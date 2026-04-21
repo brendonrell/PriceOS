@@ -1,0 +1,112 @@
+/* ============================================================
+   PriceOS · globals.css · D1 scaffold
+   Minimal base. Shared chrome styles land here in D2 when we
+   port collection.html.
+   ============================================================ */
+
+:root {
+  /* PD brand tokens (platform chrome) */
+  --ink: #111111;
+  --paper: #e0e0e0;
+  --hothurt: #FF0055;
+  --attention: #FFE600;
+
+  /* Per-page themeable background (Brendon's default = orange) */
+  --bg-color: #FF8C1A;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Courier New", Courier, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ------------------------------------------------------------
+   D1 proof page only. Delete when homepage gets its real port.
+   ------------------------------------------------------------ */
+
+.proof {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 32px;
+  gap: 40px;
+}
+
+.proof-logo {
+  font-family: "Rubik Mono One", sans-serif;
+  font-size: 40px;
+  letter-spacing: 1px;
+  color: var(--paper);
+  line-height: 1;
+}
+
+.proof-logo .pm {
+  color: var(--hothurt);
+}
+
+.proof-status {
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.proof-status strong {
+  color: var(--attention);
+  font-weight: bold;
+}
+
+.proof-stripes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.proof-stripes .stripe {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.stripe-ink      { background: var(--ink);      color: var(--paper); border: 1px solid var(--paper); }
+.stripe-hothurt  { background: var(--hothurt);  color: var(--ink); }
+.stripe-attention{ background: var(--attention);color: var(--ink); }
+.stripe-paper    { background: var(--paper);   color: var(--ink); }
+
+.proof-routes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.proof-routes a {
+  color: var(--paper);
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(224, 224, 224, 0.25);
+  width: fit-content;
+}
+
+.proof-routes a:hover {
+  color: var(--hothurt);
+}
