@@ -13,8 +13,23 @@
  *
  * Accordion-open state for the Tape / Pings / Todos / Notes boxes
  * lives in PdNotifsContext (matches the sim's pdNotifs object).
- * That state DOES persist, intentionally — if you had Notes open
- * and reload, it stays open.
+ *
+ * Outside-click handler — uses mousedown, not click.
+ *
+ * The earlier click-based version had a bug: when the user clicked
+ * an internal link (e.g. Settings) that triggers a setView, React
+ * batched the state update and re-rendered before the click event
+ * finished bubbling to the document. By the time the document
+ * handler ran, the original target node was detached from the DOM,
+ * so target.closest('.user-menu-wrapper') returned null and the
+ * handler treated the click as "outside" and closed the menu.
+ *
+ * Switching to mousedown sidesteps the entire race: mousedown fires
+ * before the click is even dispatched (let alone bubbled), so the
+ * target is always still in the DOM when the handler runs. The
+ * handler also queries the wrapper element fresh each time rather
+ * than relying on closest() walking up from the target, which is
+ * more robust if anything ever does manage to detach mid-flight.
  */
 
 import {
@@ -59,22 +74,26 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         setView('links');
     }, []);
 
-    // Close on outside click. The connect button's onClick calls toggleMenu and
-    // also stops propagation, so its click never reaches this listener.
+    // Outside-click closes. See top-of-file comment for why mousedown.
     useEffect(() => {
         if (!menuOpen) return;
         const handler = (e: MouseEvent) => {
-            const target = e.target as HTMLElement | null;
+            const target = e.target as Node | null;
             if (!target) return;
-            if (target.closest('.user-menu-wrapper')) return;
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (wrapper && wrapper.contains(target)) return;
             setMenuOpen(false);
             setView('links');
         };
-        // Defer attach so the same click that opened the menu doesn't immediately close it.
-        const t = setTimeout(() => document.addEventListener('click', handler), 0);
+        // Defer attach so the same gesture that opened the menu
+        // doesn't immediately close it (the connect button's click
+        // bubbles to document on the same tick).
+        const t = setTimeout(() => {
+            document.addEventListener('mousedown', handler);
+        }, 0);
         return () => {
             clearTimeout(t);
-            document.removeEventListener('click', handler);
+            document.removeEventListener('mousedown', handler);
         };
     }, [menuOpen]);
 
