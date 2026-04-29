@@ -222,19 +222,26 @@ body.is-pwa .navbar {
 }
 
 
-/* ── SENTIMENT WIDGET (placeholder, gated by body.sentiment-on) ─── */
+/* ── SENTIMENT WIDGET (placeholder, gated by body.sentiment-on) ───
+   FIX (step 2.1): default was opacity:0 inside a flex parent, which
+   meant it still took horizontal space and pushed the petey-bubble
+   (positioned at left:100% of .pd-logo-wrap) far past the logo.
+   Switched to display:none default + display:inline-flex when active.
+*/
 .sentiment-widget {
     margin-left: 14px;
     font-size: 18px;
     line-height: 1;
     color: var(--text-color);
-    opacity: 0;
-    transition: opacity 0.3s;
     pointer-events: none;
     user-select: none;
+    display: none;
+    align-items: center;
+    transition: opacity 0.3s;
 }
 
 body.sentiment-on .sentiment-widget {
+    display: inline-flex;
     opacity: 0.7;
 }
 
@@ -317,13 +324,22 @@ body.sentiment-on .sentiment-widget {
 }
 
 
-/* ── PRICESPRITE + LEVEL BADGE ───────────────────────────── */
+/* ── PRICESPRITE + LEVEL BADGE ───────────────────────────────
+   Default hidden. They appear when the Connect Menu is open
+   (the .menu-open class on .user-menu-wrapper is added by Step 3
+   when the dropdown wires up). Until then this keeps the navbar
+   right-side quiet — just the collapsed connect square.
+*/
 .ascii-sprite-wrap {
-    display: flex;
+    display: none;
     align-items: center;
     pointer-events: auto;
     user-select: none;
     cursor: pointer;
+}
+
+.user-menu-wrapper.menu-open .ascii-sprite-wrap {
+    display: flex;
 }
 
 .ascii-sprite {
@@ -355,6 +371,12 @@ body.sentiment-on .sentiment-widget {
     cursor: pointer;
     /* -2px tightener for composed multi-circle dingbats like ❹❷ */
     letter-spacing: -2px;
+    /* Default hidden (see .ascii-sprite-wrap comment above). */
+    display: none;
+}
+
+.user-menu-wrapper.menu-open .ascii-pfp-badge {
+    display: inline-block;
 }
 
 /* Anon mode: black bar over sprite eyes; pfp badge hidden */
