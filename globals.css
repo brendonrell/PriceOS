@@ -1,0 +1,1401 @@
+@import '../styles/calendar.css';
+
+/* ============================================================
+   PriceOS — globals.css
+   Phase 2 · Step 5 (Calendar Panel wired in)
+   ============================================================
+   Adds the full Settings panel styling on top of step 3's Connect
+   Menu. Also corrects the mobile navbar margins to match the sim
+   (15px top, 20px horizontal — was 20px / 16px).
+
+   Layered structure (top to bottom):
+     1. Brand tokens
+     2. Functional theme tokens
+     3. Base reset + iOS PWA fixes
+     4. Navbar (Petey logo, ticker, user menu wrapper)
+     5. Connect Menu — dropdown stack + main user-dropdown
+     6. Connect Menu — accordion boxes (Tape/Pings/Todos/Notes)
+     7. Connect Menu — Settings panel (NEW in step 4)
+     8. Footer
+     9. Background layers (starfield, familiar)
+    10. Phase 1 placeholder page
+   ============================================================ */
+
+
+/* ── BRAND TOKENS ─────────────────────────────────────────── */
+:root {
+    --hothurt:   #FF0055;
+    --attention: #FFE600;
+    --dot:       #111111;
+    --matrix:    #E0E0E0;
+}
+
+
+/* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
+:root {
+    --bg-color:     var(--hothurt);
+    --text-color:   var(--dot);
+    --border-color: rgba(0, 0, 0, 0.15);
+    --accent:       var(--dot);
+
+    --modal-bg:         rgba(0, 200, 150, 0.98);
+    --stat-bg:          rgba(0, 0, 0, 0.08);
+    --stat-active-bg:   #000000;
+    --stat-active-text: #e0e0e0;
+
+    --mint-bg:      var(--dot);
+    --mint-text:    var(--matrix);
+    --mint-border:  var(--dot);
+    --mint-bg-img:  none;
+
+    --pill-l1-bg:     var(--dot);
+    --pill-l1-text:   var(--hothurt);
+    --pill-l1-border: var(--dot);
+    --pill-l1-bg-img: none;
+
+    --btn-user-hover: #ffffff;
+
+    --pd-menu-height: 173px;
+}
+
+
+/* ── BASE RESET ──────────────────────────────────────────── */
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s, color 0.3s;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    font-size: 13px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+button {
+    font-family: inherit;
+    color: inherit;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: max(25px, env(safe-area-inset-top)) 40px 15px 40px;
+    background: transparent;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    pointer-events: none;
+}
+
+body.is-pwa .navbar {
+    padding-top: max(30px, calc(env(safe-area-inset-top) + 12px));
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        /* Sim-faithful mobile padding: 15px top/bottom, 20px horizontal.
+           Step 3 used 20/16 here — slightly tighter than the sim, which
+           Brendon noticed as menus sitting too close to the page edges. */
+        padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;
+    }
+    body.is-pwa .navbar {
+        padding-top: max(30px, calc(env(safe-area-inset-top) + 16px));
+    }
+}
+
+.pd-logo-wrap,
+.nav-controls {
+    pointer-events: auto;
+    transition: opacity 0.4s ease;
+}
+
+.nav-faded { opacity: 0.10; }
+
+
+/* ── PETEY LOGO ─────────────────────────────────────────── */
+.pd-logo-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    z-index: 210;
+}
+
+.pd-logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center center;
+}
+
+.pd-logo svg {
+    height: 28px;
+    width: auto;
+    transition: color 0.3s;
+}
+
+.pd-logo.rotated { transform: rotate(-90deg); }
+
+.logo-price {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    left: -1.7px;
+}
+
+
+/* ── PETEY SPEECH BUBBLE ─────────────────────────────────── */
+.petey-bubble {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%) translateX(-10px);
+    margin-left: 20px;
+    border: 2px dotted var(--text-color);
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    background: var(--bg-color);
+    color: var(--text-color);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: -1;
+}
+
+.petey-bubble::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: var(--bg-color);
+    border-bottom: 2px dotted var(--text-color);
+    border-left: 2px dotted var(--text-color);
+    z-index: -1;
+}
+
+.pd-logo.rotated + .petey-bubble {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+    pointer-events: auto;
+}
+
+.petey-bubble a {
+    color: inherit;
+    transition: opacity 0.2s;
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.petey-bubble a:hover { opacity: 0.7; }
+
+
+/* ── SENTIMENT WIDGET ────────────────────────────────────── */
+.sentiment-widget {
+    margin-left: 14px;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-color);
+    pointer-events: none;
+    user-select: none;
+    display: none;
+    align-items: center;
+    transition: opacity 0.3s;
+}
+
+body.sentiment-on .sentiment-widget {
+    display: inline-flex;
+    opacity: 0.7;
+}
+
+.pd-logo.rotated ~ .sentiment-widget {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .sentiment-widget { font-size: 22px; }
+    body:not(.tape-off) .sentiment-widget { margin-left: 18px; }
+}
+
+
+/* ============================================================
+   USER MENU BUTTONS (right side of navbar)
+   ============================================================ */
+.user-menu-wrapper {
+    position: relative;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-cart {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 32px;
+    width: 34px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn-cart.has-items { display: inline-flex; }
+.btn-cart:hover { opacity: 0.85; }
+
+.cart-count-badge {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold; line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.ascii-sprite-wrap {
+    display: none;
+    align-items: center;
+    pointer-events: auto;
+    user-select: none;
+    cursor: pointer;
+}
+.user-menu-wrapper.active .ascii-sprite-wrap { display: flex; }
+
+.ascii-sprite {
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 14px !important;
+    font-weight: bold; line-height: 1;
+    color: var(--text-color); opacity: 0.75;
+    white-space: nowrap; letter-spacing: -0.5px;
+    transition: opacity 0.3s;
+}
+.ascii-sprite.sleeping { opacity: 0.45; }
+
+.ascii-pfp-badge {
+    font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
+    font-size: 22px; font-weight: normal; line-height: 1;
+    color: var(--text-color); opacity: 1;
+    pointer-events: auto; user-select: none;
+    flex-shrink: 0; cursor: pointer;
+    letter-spacing: -2px;
+    display: none;
+}
+.user-menu-wrapper.active .ascii-pfp-badge { display: inline-block; }
+
+body.anon-mode .ascii-sprite { position: relative; display: inline-block; }
+body.anon-mode .ascii-sprite::before {
+    content: ''; position: absolute;
+    left: 20%; right: 22%; top: 8%; height: 50%;
+    background: var(--text-color); opacity: 0.88;
+    pointer-events: none;
+}
+body.anon-mode .ascii-pfp-badge { display: none !important; }
+
+.btn-user {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 32px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: flex-start;
+    padding: 0 10px; gap: 8px;
+    max-width: 34px; overflow: hidden;
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.2s, opacity 0.2s;
+    box-sizing: border-box;
+    line-height: 1;
+    position: relative; z-index: 2;
+}
+.btn-user.expanded { max-width: 150px; }
+.btn-user:hover { color: var(--btn-user-hover); }
+
+.user-icon {
+    font-size: 14px; width: 14px;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-text {
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex; align-items: center;
+    pointer-events: none;
+    line-height: 1;
+}
+.btn-user.expanded .user-text {
+    opacity: 1;
+    transition-delay: 0.1s;
+}
+
+
+/* ============================================================
+   CONNECT MENU — dropdown stack
+   ============================================================ */
+.dropdown-stack {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 200;
+    width: 310px;
+    max-height: var(--dropdown-max-h, calc(100dvh - 180px));
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+.dropdown-stack::-webkit-scrollbar { display: none; }
+
+.user-menu-wrapper.active .dropdown-stack {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+
+/* ── USER DROPDOWN (the main panel) ──────────────────────── */
+.user-dropdown {
+    background: var(--text-color);
+    color: var(--bg-color);
+    width: 100%;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 4px;
+    box-shadow: none;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.user-dropdown a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 13px; font-weight: bold;
+    padding: 6px 10px;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    border-left: 2px solid transparent;
+    display: flex; align-items: center;
+    height: 30px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.user-dropdown a:hover {
+    border-left-color: var(--bg-color);
+    background: rgba(128, 128, 128, 0.2);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(128,128,128,0.3);
+    margin: 4px 0;
+}
+
+.dropdown-pill {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    height: 28px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    box-sizing: border-box;
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--bg-color);
+    margin-top: 2px;
+    padding: 0 10px;
+    width: 100%;
+}
+.dropdown-pill:hover {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.logout-icon {
+    font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.nav-follower-stats {
+    display: inline-flex; align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: normal;
+    opacity: 1; margin-left: 12px; line-height: 1;
+}
+.nav-follower-stats .nav-ico {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; font-weight: normal; opacity: 1;
+    display: inline-flex; align-items: center;
+}
+.nav-follower-stats b {
+    font-weight: bold;
+    opacity: 0.6;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+}
+
+
+/* ── GLOBAL SEARCH (top of user-dropdown) ────────────────── */
+.global-search-wrap { padding: 4px 2px 0 2px; }
+
+.search-dormant-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: var(--bg-color);
+    transition: opacity 0.2s;
+    min-height: 38px;
+    box-sizing: border-box;
+}
+.search-dormant-label:hover { opacity: 0.75; }
+
+.search-dormant-text {
+    font-size: 13px; font-weight: bold;
+    color: var(--bg-color);
+}
+
+.search-dormant-label .globe-icon { color: var(--bg-color); opacity: 1; }
+
+.global-search-field {
+    display: flex; align-items: center; gap: 8px;
+    background: transparent;
+    border-radius: 4px;
+    padding: 8px 10px;
+    border: none;
+    margin: 0;
+}
+
+.globe-icon {
+    flex-shrink: 0;
+    color: var(--bg-color);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: color 0.2s, opacity 0.2s;
+}
+.globe-icon:hover { color: var(--bg-color); opacity: 1; }
+
+.global-search-input {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold;
+    color: var(--bg-color);
+    caret-color: var(--bg-color);
+    min-width: 0;
+}
+.global-search-input::placeholder {
+    font-size: 13px; opacity: 0.55; font-weight: normal;
+    color: var(--bg-color);
+}
+
+.global-search-results {
+    margin-top: 4px;
+    display: flex; flex-direction: column; gap: 2px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.2s ease;
+    scrollbar-width: none; -ms-overflow-style: none;
+}
+.global-search-results::-webkit-scrollbar { display: none; }
+.global-search-results.has-results { max-height: 120px; overflow-y: auto; }
+
+
+/* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
+.top-menu-icons {
+    padding-right: 10px;
+    display: inline-flex; align-items: center; gap: 10px;
+}
+
+.dm-icon {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px; line-height: 1;
+    color: var(--bg-color);
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 2px;
+    transition: opacity 0.2s;
+}
+.dm-icon:hover { opacity: 1; }
+.dm-icon.active { opacity: 1; }
+
+@media (max-width: 600px) {
+    .dm-icon-calendar  { font-size: 26px; }
+    .dm-icon-topbarcal { font-size: 22px; }
+    .dm-icon-menutape  { font-size: 26px; }
+}
+
+
+/* ── DROPDOWN-MENU-LINKS (default view) ──────────────────── */
+.dropdown-menu-links {
+    transition: opacity 0.15s;
+    display: flex; flex-direction: column;
+    margin-top: -4px;
+    gap: 0;
+}
+.dropdown-menu-links.hidden { display: none; }
+
+#profileRow {
+    display: flex; align-items: center;
+    padding: 6px 10px;
+    border-left: 2px solid transparent;
+    height: 30px;
+    box-sizing: border-box;
+    transition: background 0.2s, border-left-color 0.2s;
+}
+#profileRow:hover {
+    border-left-color: var(--bg-color);
+    background: rgba(128, 128, 128, 0.2);
+}
+#profileRow > a {
+    font-size: 13px; font-weight: bold;
+    text-decoration: none; color: inherit;
+    padding: 0 !important;
+    border-left: none !important;
+    height: auto !important;
+}
+
+.settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+}
+
+.gas-widget {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold;
+    opacity: 0.7;
+    color: var(--bg-color);
+    white-space: nowrap;
+    user-select: none;
+    cursor: default;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.gas-widget-inline { padding: 0; margin-right: 5px; }
+.gas-glyph { font-size: 13px; opacity: 0.85; }
+
+
+/* ── PANEL PLACEHOLDERS (used only while their full panels haven't shipped) ── */
+.panel-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: -4px;
+    min-height: var(--pd-menu-height);
+}
+
+.panel-back-row {
+    display: flex; align-items: center;
+    padding: 4px 10px;
+    cursor: pointer;
+    user-select: none;
+    color: inherit;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+}
+.panel-back-row:hover { opacity: 1; }
+.panel-back-arrow { font-size: 18px; margin-right: 6px; line-height: 1; }
+.panel-back-label {
+    font-size: 11px; font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.panel-placeholder-body {
+    padding: 16px 14px 24px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-start;
+    color: inherit;
+}
+.panel-placeholder-title {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 14px; line-height: 1.2;
+    letter-spacing: 0.5px;
+}
+.panel-placeholder-note {
+    font-size: 11px;
+    opacity: 0.6;
+    line-height: 1.5;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+
+/* ============================================================
+   ACCORDION BOXES (Tape / Pings / Todos / Notes)
+   ============================================================ */
+.notifications-box {
+    width: 100%;
+    padding-bottom: 8px;
+    box-sizing: border-box;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding-top: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.notif-header {
+    font-size: 11px;
+    opacity: 0.8;
+    padding: 4px 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: flex; align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+}
+.notif-header:hover { opacity: 1; }
+
+.notif-count {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; margin-left: 6px;
+    opacity: 0.85;
+}
+
+.notif-list {
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: 5px;
+}
+.notif-list::-webkit-scrollbar { display: none; }
+
+@media (min-width: 601px) {
+    .notif-list { max-height: 168px; }
+}
+
+.notif-item {
+    font-size: 12px;
+    padding: 8px 10px;
+    display: flex; gap: 10px; align-items: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    border-radius: 4px;
+    color: inherit;
+}
+.notif-item:hover { background: rgba(128,128,128,0.2); }
+
+.notif-item .n-icon {
+    font-size: 14px;
+    opacity: 0.9;
+    width: 16px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1;
+}
+
+.notif-item.todo-item b { font-weight: 900; }
+
+#notesList .notif-item { align-items: flex-start; }
+#notesList .notif-item .n-icon { margin-top: 1px; }
+
+.notif-item code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.12);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+.notif-item strong { font-weight: 900; }
+.notif-item em { font-style: italic; }
+
+.scroll-arrow {
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    padding: 4px 10px;
+    transition: opacity 0.2s, color 0.2s;
+    user-select: none;
+    color: inherit;
+}
+.scroll-arrow:hover { opacity: 1; }
+
+
+/* ── TAPE BOX ────────────────────────────────────────────── */
+.menu-tape-rail-h {
+    flex: 1;
+    overflow: hidden;
+    height: 22px;
+    line-height: 22px;
+    color: inherit;
+}
+
+
+/* ============================================================
+   SETTINGS PANEL (NEW in step 4)
+   ============================================================ */
+.settings-panel {
+    max-height: 78vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: -4px;
+}
+.settings-panel::-webkit-scrollbar { display: none; }
+@media (max-width: 600px) {
+    .settings-panel { max-height: none; overflow-y: visible; }
+}
+
+
+/* Section headers (WALLET, MY PD, DEFAULT THEME, etc.) */
+.settings-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    opacity: 0.8;
+    padding: 4px 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+/* Wallet handle row */
+.settings-wallet {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0 10px 4px 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 15px;
+    box-sizing: content-box;
+    line-height: 15px;
+    color: inherit;
+}
+.settings-wallet:hover { opacity: 0.7; }
+
+.icon-copy {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.rpc-ping-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: normal;
+    opacity: 0.65;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: opacity 0.2s;
+    color: inherit;
+}
+.rpc-ping-btn:hover { opacity: 1; }
+
+
+/* ENS pills row */
+.settings-ens-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+.pill-ens {
+    height: auto;
+    min-height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    border: 1px dashed currentColor;
+    background: transparent;
+    color: inherit;
+    opacity: 0.5;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: left;
+}
+.pill-ens.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+    border-style: solid;
+}
+
+.ens-more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: inherit;
+    opacity: 0.6;
+    padding: 4px 8px;
+    height: 24px;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: transparent;
+    transition: opacity 0.2s;
+    flex: 0 0 auto;
+}
+.ens-more-btn:hover { opacity: 1; }
+
+
+/* Balance row */
+.balance-toggle-icon {
+    font-size: 14px;
+    position: relative;
+    top: -1px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+
+/* Generic settings pill row (used by MY PD modes, default sort, MY PINGS) */
+.settings-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+
+/* Settings toggle pill — the workhorse */
+.settings-toggle {
+    height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    user-select: none;
+    background: transparent;
+    border: 1px solid currentColor;
+    opacity: 0.5;
+    color: inherit;
+    box-sizing: border-box;
+    gap: 4px;
+}
+.settings-toggle:hover { opacity: 0.8; }
+.settings-toggle.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+}
+.settings-toggle.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+.settings-toggle .st-icon {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+.settings-toggle .st-label {
+    line-height: 1;
+}
+.sharp-glyph {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    font-synthesis: none;
+}
+
+
+/* The redacted-mode @ glyph reads cleaner in Arial */
+#sn-redacted .st-icon {
+    font-family: Arial, 'Helvetica Neue', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0;
+}
+
+
+/* Hex input + copy button (Profile theme color) */
+.hex-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    width: 52px;
+    padding: 0;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-left: 6px;
+    margin-right: 4px;
+}
+.hex-input:focus {
+    opacity: 1;
+    border-bottom: 1px dotted currentColor;
+}
+.copy-hex-btn {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: normal;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.copy-hex-btn:hover { opacity: 1; }
+
+
+/* Setup Code field (next to MY PD header) */
+.setup-code-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    gap: 4px;
+}
+.setup-code-row .settings-header { padding: 0; flex: 0 0 auto; }
+.setup-code-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.8;
+    padding: 0;
+    text-transform: uppercase;
+    text-align: right;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow-x: auto;
+    text-overflow: clip;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px dotted transparent;
+    margin-left: 8px;
+}
+.setup-code-input::-webkit-scrollbar { display: none; }
+.setup-code-input:focus {
+    opacity: 1;
+    border-bottom-color: currentColor;
+}
+.setup-code-copy {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.setup-code-copy:hover { opacity: 1; }
+
+
+/* Theme pills */
+#settingsPanel .pill-theme {
+    background: rgba(128,128,128,0.2) !important;
+    border: 1px solid currentColor !important;
+    color: inherit !important;
+    box-sizing: border-box;
+    opacity: 0.6;
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#settingsPanel .pill-theme.active {
+    background: var(--text-color) !important;
+    border: 2px solid var(--text-color) !important;
+    color: var(--bg-color) !important;
+    opacity: 1;
+}
+#settingsPanel .pill-theme:hover {
+    background: rgba(128,128,128,0.35) !important;
+    border-color: var(--text-color) !important;
+    opacity: 0.9;
+}
+.pill-theme span {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 600px) {
+    .pill-theme.t-light span,
+    .pill-theme.t-dark span { font-size: 22px; }
+}
+
+
+/* Spell Book — wraps the pills with consistent gap + padding */
+.spell-book-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    align-items: center;
+}
+
+
+/* Workspace switcher (footer of Settings panel) */
+.workspace-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    margin-top: 4px;
+}
+
+.ws-dot {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+.ws-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: opacity 0.18s, width 0.18s, height 0.18s;
+}
+.ws-dot:hover::before { opacity: 0.7; }
+.ws-dot.active::before {
+    width: 6px;
+    height: 6px;
+    opacity: 1;
+}
+
+.ws-add {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-add:hover:not(.faded) { opacity: 0.9; }
+.ws-add.faded { opacity: 0.15; cursor: not-allowed; }
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.priceos-footer {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold;
+    color: var(--text-color);
+    opacity: 0.35;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+    letter-spacing: 0.5px;
+    user-select: none;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+    .priceos-footer {
+        gap: 6px; font-size: 9px;
+        padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
+    }
+}
+
+.priceos-sep { opacity: 0.4; }
+.priceos-footer-break { display: none; }
+
+@media (max-width: 600px) {
+    .priceos-footer-break {
+        display: block; flex-basis: 100%; width: 100%; height: 0;
+    }
+    .priceos-sep-desktop { display: none; }
+}
+
+.priceos-link {
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+.priceos-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+body.zen-mode .priceos-footer { display: none !important; }
+
+
+/* ============================================================
+   THE TAPE (top-bar ticker — empty in step 2/3/4)
+   ============================================================ */
+.tape-wrap {
+    flex: 1 1 auto; min-width: 0;
+    align-self: center;
+    height: 22px;
+    margin: 0 18px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; line-height: 22px;
+    color: var(--text-color);
+    letter-spacing: 0.3px;
+    user-select: none; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+}
+
+.tape-rail {
+    position: absolute;
+    left: 0; top: 0;
+    display: flex; align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+.tape-item { flex-shrink: 0; }
+.tape-item.bold { font-weight: 700; }
+.tape-sep-outer { flex-shrink: 0; padding: 0 10px; }
+.tape-sep-inner { padding: 0 6px; }
+.tape-sigil { font-size: 11px; margin-left: 1px; letter-spacing: 0; }
+
+@media (max-width: 600px) {
+    .tape-wrap { height: 20px; font-size: 12px; line-height: 20px; margin: 0 10px; }
+    .tape-sep-outer { padding: 0 8px; }
+    .tape-sep-inner { padding: 0 4px; }
+    body.sentiment-on .tape-wrap { margin-left: 48px; }
+}
+
+body.tape-off .tape-wrap,
+body.zen-mode .tape-wrap { display: none !important; }
+
+body.tape-faded .tape-wrap { opacity: 0.55; }
+body.tape-faded .tape-sep-outer { opacity: 0.35; }
+body.tape-faded .tape-sep-inner { opacity: 0.45; }
+body.tape-faded .tape-sigil { opacity: 0.85; }
+
+body.tape-bold .tape-rail { font-weight: 700; }
+
+body.tape-framed .tape-wrap {
+    background: var(--text-color); color: var(--bg-color);
+    border-radius: 0;
+}
+body.tape-framed .tape-rail {
+    font-weight: 900; letter-spacing: 0.4px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================================
+   BACKGROUND LAYERS
+   ============================================================ */
+#starfield {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    display: none;
+    background: #0d0618;
+}
+body.stargazing-mode #starfield { display: block; }
+body.stargazing-mode {
+    background-color: #0d0618 !important;
+    color: #c5a8f0 !important;
+    --bg-color: #0d0618 !important;
+    --text-color: #c5a8f0 !important;
+}
+
+#digital-familiar {
+    position: fixed; bottom: 20px; left: 20px;
+    z-index: 150;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px; line-height: 1;
+    color: var(--text-color);
+    white-space: pre;
+    user-select: none; -webkit-user-select: none;
+    pointer-events: auto; cursor: pointer;
+    display: flex; align-items: flex-end; gap: 0;
+}
+
+.familiar-sprite {
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 14px !important; font-weight: bold; line-height: 1;
+    opacity: 0.75; letter-spacing: -0.5px;
+    transition: opacity 0.3s;
+}
+
+.familiar-badge {
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 11px; font-weight: 900; line-height: 1;
+    opacity: 0; letter-spacing: 0.5px;
+    max-width: 0; overflow: hidden; white-space: nowrap;
+    transition: opacity 0.2s, max-width 0.2s;
+    text-transform: uppercase;
+}
+
+
+/* ============================================================
+   PHASE 1 PLACEHOLDER PAGE
+   ============================================================ */
+.placeholder-shell {
+    flex: 1;
+    display: flex;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    text-align: center;
+}
+
+.placeholder-wordmark {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: clamp(48px, 12vw, 128px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+    user-select: none;
+}
+
+.placeholder-tagline {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    margin-top: 16px;
+    opacity: 0.7;
+    color: var(--text-color);
+}
