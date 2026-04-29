@@ -1,112 +1,153 @@
 /* ============================================================
-   PriceOS · globals.css · D1 scaffold
-   Minimal base. Shared chrome styles land here in D2 when we
-   port collection.html.
+   PriceOS · globals.css
+   Phase 1 — token foundation, font wiring, base body styles.
+   The full theme system (Custom / Light / Dark / Orange) and
+   per-component tokens (--mint-*, --pill-l1-*, etc.) land in
+   Phase 2 alongside the Collection page port. Keeping this file
+   intentionally lean so the foundation is reviewable on its own.
    ============================================================ */
 
+/* --- BRAND CONSTANTS — never theme-shift, locked McDonalds2050 ---
+   Source of truth: PD Master Brief → Brand. Renamed Apr 29 2026:
+   --ink → --dot, --paper → --matrix (digital-native register, replacing
+   the print-shop ink/paper metaphor that was wrong for the platform). */
 :root {
-  /* PD brand tokens (platform chrome) */
-  --ink: #111111;
-  --paper: #e0e0e0;
-  --hothurt: #FF0055;
-  --attention: #FFE600;
+    --hothurt: #FF0055;
+    --attention: #FFE600;
+    --dot: #111111;       /* PD's brand black */
+    --matrix: #E0E0E0;    /* PD's brand off-white */
 
-  /* Per-page themeable background (Brendon's default = orange) */
-  --bg-color: #FF8C1A;
+    /* --- THEME-SHIFTING SEMANTIC TOKENS ---
+       Default "artist" theme uses the artist's chosen background colour;
+       Phase 1 ships the indigo placeholder that the prototype's PRISMS
+       demo uses (#6366F1) so the page renders something on-brand without
+       the full theme engine wired up yet. Phase 2 reintroduces the
+       full token set + body.theme-* selectors. */
+    --bg-color: #6366F1;
+    --text-color: var(--dot);
+    --border-color: rgba(0, 0, 0, 0.15);
+    --accent: var(--dot);
 }
 
-* {
-  box-sizing: border-box;
+/* --- BASE BODY ---
+   Mirrors source HTML lines 50-58, minus the main { flex: 1 } which lands
+   when we have a real <main> in Phase 2. Transitions preserved so future
+   theme switches animate. */
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s, color 0.3s;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
-html,
 body {
-  margin: 0;
-  padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-body {
-  min-height: 100vh;
-  background: var(--ink);
-  color: var(--paper);
-  font-family: "Courier New", Courier, monospace;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* --- DISPLAY TYPE ---
+   Rubik Mono One is the platform display face. Loaded via Google Fonts
+   <link> in app/layout.tsx (deliberately NOT next/font/google to keep
+   builds offline-safe on library machines — preserved from D1 decision). */
+.display, h1, h2, h3 {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-weight: normal;
+    letter-spacing: 0;
 }
 
-/* ------------------------------------------------------------
-   D1 proof page only. Delete when homepage gets its real port.
-   ------------------------------------------------------------ */
-
-.proof {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 40px 32px;
-  gap: 40px;
+/* --- iOS 26.1 PWA LIQUID GLASS FIX ---
+   Verbatim from source HTML lines 65-72. The blurred top strip masks
+   the iOS PWA status-bar contamination. Active in PWA mode only via
+   safe-area-inset; harmless on web. */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
 }
 
-.proof-logo {
-  font-family: "Rubik Mono One", sans-serif;
-  font-size: 40px;
-  letter-spacing: 1px;
-  color: var(--paper);
-  line-height: 1;
+/* --- PHASE 1 PLACEHOLDER HOMEPAGE ---
+   Random-gradient hero rendered server-side (regenerates per request).
+   Brendon flagged "the random CSS gradients placeholder was probably my
+   favourite placeholder" — putting that aesthetic in the foundation as
+   the homepage shell until /  becomes the global feed in Phase 5. */
+.p1-shell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px max(40px, env(safe-area-inset-bottom)) 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.proof-logo .pm {
-  color: var(--hothurt);
+.p1-grad {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
 }
 
-.proof-status {
-  font-size: 13px;
-  line-height: 1.6;
-  max-width: 640px;
+.p1-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    max-width: 640px;
 }
 
-.proof-status strong {
-  color: var(--attention);
-  font-weight: bold;
+.p1-wordmark {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: clamp(36px, 9vw, 80px);
+    line-height: 1;
+    letter-spacing: 0;
+    margin: 0;
+    color: var(--matrix);
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
-.proof-stripes {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-  max-width: 640px;
+.p1-wordmark .price { color: var(--matrix); }
+.p1-wordmark .discussion { color: var(--hothurt); }
+
+.p1-status {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--matrix);
+    opacity: 0.92;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 14px 18px;
+    border-radius: 6px;
+    text-align: left;
+    max-width: 480px;
 }
 
-.proof-stripes .stripe {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
+.p1-status b { color: var(--attention); font-weight: bold; }
 
-.stripe-ink      { background: var(--ink);      color: var(--paper); border: 1px solid var(--paper); }
-.stripe-hothurt  { background: var(--hothurt);  color: var(--ink); }
-.stripe-attention{ background: var(--attention);color: var(--ink); }
-.stripe-paper    { background: var(--paper);   color: var(--ink); }
-
-.proof-routes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.proof-routes a {
-  color: var(--paper);
-  text-decoration: none;
-  padding: 4px 0;
-  border-bottom: 1px dashed rgba(224, 224, 224, 0.25);
-  width: fit-content;
-}
-
-.proof-routes a:hover {
-  color: var(--hothurt);
+.p1-foot {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    color: var(--matrix);
+    opacity: 0.55;
+    letter-spacing: 0.5px;
 }
