@@ -1,9 +1,10 @@
 /* ============================================================
    PriceOS — globals.css
-   Phase 2 · Step 3 (Connect Menu)
+   Phase 2 · Step 4 (Settings Panel)
    ============================================================
-   Adds the dropdown stack + main user-dropdown + accordion boxes.
-   All styles ported from sim.html as faithfully as possible.
+   Adds the full Settings panel styling on top of step 3's Connect
+   Menu. Also corrects the mobile navbar margins to match the sim
+   (15px top, 20px horizontal — was 20px / 16px).
 
    Layered structure (top to bottom):
      1. Brand tokens
@@ -12,7 +13,7 @@
      4. Navbar (Petey logo, ticker, user menu wrapper)
      5. Connect Menu — dropdown stack + main user-dropdown
      6. Connect Menu — accordion boxes (Tape/Pings/Todos/Notes)
-     7. Connect Menu — sub-views (Settings/Calendar/Artists/Portfolio)
+     7. Connect Menu — Settings panel (NEW in step 4)
      8. Footer
      9. Background layers (starfield, familiar)
     10. Phase 1 placeholder page
@@ -52,10 +53,6 @@
 
     --btn-user-hover: #ffffff;
 
-    /* Shared height token: the calendar panel reads this so it's always
-       the same height as the links view — backboard never grows/shrinks
-       on view swap. JS sets the precise value once on first menu open;
-       this is the fallback. */
     --pd-menu-height: 173px;
 }
 
@@ -86,7 +83,11 @@ main {
     flex-direction: column;
 }
 
-/* iOS 26.1 PWA Liquid Glass Fix */
+button {
+    font-family: inherit;
+    color: inherit;
+}
+
 body::before {
     content: '';
     position: fixed;
@@ -123,11 +124,14 @@ body.is-pwa .navbar {
 }
 
 @media (max-width: 600px) {
+    .navbar {
+        /* Sim-faithful mobile padding: 15px top/bottom, 20px horizontal.
+           Step 3 used 20/16 here — slightly tighter than the sim, which
+           Brendon noticed as menus sitting too close to the page edges. */
+        padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;
+    }
     body.is-pwa .navbar {
         padding-top: max(30px, calc(env(safe-area-inset-top) + 16px));
-    }
-    .navbar {
-        padding: max(20px, env(safe-area-inset-top)) 16px 12px 16px;
     }
 }
 
@@ -137,9 +141,7 @@ body.is-pwa .navbar {
     transition: opacity 0.4s ease;
 }
 
-.nav-faded {
-    opacity: 0.10;
-}
+.nav-faded { opacity: 0.10; }
 
 
 /* ── PETEY LOGO ─────────────────────────────────────────── */
@@ -165,9 +167,7 @@ body.is-pwa .navbar {
     transition: color 0.3s;
 }
 
-.pd-logo.rotated {
-    transform: rotate(-90deg);
-}
+.pd-logo.rotated { transform: rotate(-90deg); }
 
 .logo-price {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -227,9 +227,7 @@ body.is-pwa .navbar {
     font-weight: normal;
 }
 
-.petey-bubble a:hover {
-    opacity: 0.7;
-}
+.petey-bubble a:hover { opacity: 0.7; }
 
 
 /* ── SENTIMENT WIDGET ────────────────────────────────────── */
@@ -272,7 +270,6 @@ body.sentiment-on .sentiment-widget {
     gap: 8px;
 }
 
-/* Cart button */
 .btn-cart {
     background: var(--text-color);
     color: var(--bg-color);
@@ -306,7 +303,6 @@ body.sentiment-on .sentiment-widget {
     font-variant-numeric: tabular-nums;
 }
 
-/* PriceSprite + level badge — hidden by default; reveal when wrapper is .active */
 .ascii-sprite-wrap {
     display: none;
     align-items: center;
@@ -314,9 +310,7 @@ body.sentiment-on .sentiment-widget {
     user-select: none;
     cursor: pointer;
 }
-.user-menu-wrapper.active .ascii-sprite-wrap {
-    display: flex;
-}
+.user-menu-wrapper.active .ascii-sprite-wrap { display: flex; }
 
 .ascii-sprite {
     font-family: 'Courier New', Courier, monospace !important;
@@ -337,9 +331,7 @@ body.sentiment-on .sentiment-widget {
     letter-spacing: -2px;
     display: none;
 }
-.user-menu-wrapper.active .ascii-pfp-badge {
-    display: inline-block;
-}
+.user-menu-wrapper.active .ascii-pfp-badge { display: inline-block; }
 
 body.anon-mode .ascii-sprite { position: relative; display: inline-block; }
 body.anon-mode .ascii-sprite::before {
@@ -350,7 +342,6 @@ body.anon-mode .ascii-sprite::before {
 }
 body.anon-mode .ascii-pfp-badge { display: none !important; }
 
-/* Connect button */
 .btn-user {
     background: var(--text-color);
     color: var(--bg-color);
@@ -542,9 +533,6 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     border: none;
     margin: 0;
 }
-.global-search-field:focus-within { border-color: transparent; }
-.global-search-field .globe-icon { color: var(--bg-color); opacity: 0.7; }
-.global-search-field:focus-within .globe-icon { color: var(--bg-color); opacity: 1; }
 
 .globe-icon {
     flex-shrink: 0;
@@ -579,21 +567,6 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 }
 .global-search-results::-webkit-scrollbar { display: none; }
 .global-search-results.has-results { max-height: 120px; overflow-y: auto; }
-
-.global-result-item {
-    font-size: 12px;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    padding: 7px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s, background 0.2s;
-}
-.global-result-item:hover {
-    opacity: 1;
-    background: rgba(255,255,255,0.1);
-}
 
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
@@ -651,7 +624,6 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     height: auto !important;
 }
 
-/* Settings link with inline gas widget */
 .settings-row {
     display: flex; align-items: center; justify-content: space-between;
     cursor: pointer;
@@ -673,10 +645,7 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 .gas-glyph { font-size: 13px; opacity: 0.85; }
 
 
-/* ── PANEL PLACEHOLDERS (Settings/Calendar/Artists/Portfolio) ──
-   These swap in for .dropdown-menu-links when clicked. Step 3
-   ships them as labelled placeholders — Step 4 fills the content.
-*/
+/* ── PANEL PLACEHOLDERS (used only while their full panels haven't shipped) ── */
 .panel-placeholder {
     display: flex;
     flex-direction: column;
@@ -695,32 +664,23 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     transition: opacity 0.2s;
 }
 .panel-back-row:hover { opacity: 1; }
-
-.panel-back-arrow {
-    font-size: 18px;
-    margin-right: 6px;
-    line-height: 1;
-}
-
+.panel-back-arrow { font-size: 18px; margin-right: 6px; line-height: 1; }
 .panel-back-label {
     font-size: 11px; font-weight: bold;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-
 .panel-placeholder-body {
     padding: 16px 14px 24px 14px;
     display: flex; flex-direction: column; gap: 6px;
     align-items: flex-start;
     color: inherit;
 }
-
 .panel-placeholder-title {
     font-family: 'Rubik Mono One', sans-serif;
     font-size: 14px; line-height: 1.2;
     letter-spacing: 0.5px;
 }
-
 .panel-placeholder-note {
     font-size: 11px;
     opacity: 0.6;
@@ -736,8 +696,6 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     width: 100%;
     padding-bottom: 8px;
     box-sizing: border-box;
-    /* matches .user-dropdown chrome — these are sibling boxes that
-       look identical to the main panel from the outside */
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
@@ -801,16 +759,11 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     line-height: 1;
 }
 
-/* Todos: action verb is bolded inline */
-.notif-item.todo-item b {
-    font-weight: 900;
-}
+.notif-item.todo-item b { font-weight: 900; }
 
-/* Notes: multi-line capable, top-aligned icon */
 #notesList .notif-item { align-items: flex-start; }
 #notesList .notif-item .n-icon { margin-top: 1px; }
 
-/* Markdown styles inside notes */
 .notif-item code {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
@@ -835,21 +788,426 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 .scroll-arrow:hover { opacity: 1; }
 
 
-/* ── TAPE BOX (the in-dropdown menu tape clone) ──────────── */
-.menu-tape-header {
-    /* Header slot contains the scrolling tape rail instead of a label */
-    padding: 4px 10px;
-    min-height: 22px;
-}
-
+/* ── TAPE BOX ────────────────────────────────────────────── */
 .menu-tape-rail-h {
     flex: 1;
     overflow: hidden;
     height: 22px;
     line-height: 22px;
     color: inherit;
-    /* Step 3 ships this empty — populated when ticker data is wired */
 }
+
+
+/* ============================================================
+   SETTINGS PANEL (NEW in step 4)
+   ============================================================ */
+.settings-panel {
+    max-height: 78vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: -4px;
+}
+.settings-panel::-webkit-scrollbar { display: none; }
+@media (max-width: 600px) {
+    .settings-panel { max-height: none; overflow-y: visible; }
+}
+
+
+/* Section headers (WALLET, MY PD, DEFAULT THEME, etc.) */
+.settings-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    opacity: 0.8;
+    padding: 4px 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+/* Wallet handle row */
+.settings-wallet {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0 10px 4px 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 15px;
+    box-sizing: content-box;
+    line-height: 15px;
+    color: inherit;
+}
+.settings-wallet:hover { opacity: 0.7; }
+
+.icon-copy {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.rpc-ping-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: normal;
+    opacity: 0.65;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: opacity 0.2s;
+    color: inherit;
+}
+.rpc-ping-btn:hover { opacity: 1; }
+
+
+/* ENS pills row */
+.settings-ens-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+.pill-ens {
+    height: auto;
+    min-height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    border: 1px dashed currentColor;
+    background: transparent;
+    color: inherit;
+    opacity: 0.5;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: left;
+}
+.pill-ens.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+    border-style: solid;
+}
+
+.ens-more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: inherit;
+    opacity: 0.6;
+    padding: 4px 8px;
+    height: 24px;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: transparent;
+    transition: opacity 0.2s;
+    flex: 0 0 auto;
+}
+.ens-more-btn:hover { opacity: 1; }
+
+
+/* Balance row */
+.balance-toggle-icon {
+    font-size: 14px;
+    position: relative;
+    top: -1px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+
+/* Generic settings pill row (used by MY PD modes, default sort, MY PINGS) */
+.settings-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+
+/* Settings toggle pill — the workhorse */
+.settings-toggle {
+    height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    user-select: none;
+    background: transparent;
+    border: 1px solid currentColor;
+    opacity: 0.5;
+    color: inherit;
+    box-sizing: border-box;
+    gap: 4px;
+}
+.settings-toggle:hover { opacity: 0.8; }
+.settings-toggle.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+}
+.settings-toggle.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+.settings-toggle .st-icon {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+.settings-toggle .st-label {
+    line-height: 1;
+}
+.sharp-glyph {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    font-synthesis: none;
+}
+
+
+/* The redacted-mode @ glyph reads cleaner in Arial */
+#sn-redacted .st-icon {
+    font-family: Arial, 'Helvetica Neue', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0;
+}
+
+
+/* Hex input + copy button (Profile theme color) */
+.hex-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    width: 52px;
+    padding: 0;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-left: 6px;
+    margin-right: 4px;
+}
+.hex-input:focus {
+    opacity: 1;
+    border-bottom: 1px dotted currentColor;
+}
+.copy-hex-btn {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: normal;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.copy-hex-btn:hover { opacity: 1; }
+
+
+/* Setup Code field (next to MY PD header) */
+.setup-code-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    gap: 4px;
+}
+.setup-code-row .settings-header { padding: 0; flex: 0 0 auto; }
+.setup-code-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.8;
+    padding: 0;
+    text-transform: uppercase;
+    text-align: right;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow-x: auto;
+    text-overflow: clip;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px dotted transparent;
+    margin-left: 8px;
+}
+.setup-code-input::-webkit-scrollbar { display: none; }
+.setup-code-input:focus {
+    opacity: 1;
+    border-bottom-color: currentColor;
+}
+.setup-code-copy {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.setup-code-copy:hover { opacity: 1; }
+
+
+/* Theme pills */
+#settingsPanel .pill-theme {
+    background: rgba(128,128,128,0.2) !important;
+    border: 1px solid currentColor !important;
+    color: inherit !important;
+    box-sizing: border-box;
+    opacity: 0.6;
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#settingsPanel .pill-theme.active {
+    background: var(--text-color) !important;
+    border: 2px solid var(--text-color) !important;
+    color: var(--bg-color) !important;
+    opacity: 1;
+}
+#settingsPanel .pill-theme:hover {
+    background: rgba(128,128,128,0.35) !important;
+    border-color: var(--text-color) !important;
+    opacity: 0.9;
+}
+.pill-theme span {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 600px) {
+    .pill-theme.t-light span,
+    .pill-theme.t-dark span { font-size: 22px; }
+}
+
+
+/* Spell Book — wraps the pills with consistent gap + padding */
+.spell-book-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    align-items: center;
+}
+
+
+/* Workspace switcher (footer of Settings panel) */
+.workspace-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    margin-top: 4px;
+}
+
+.ws-dot {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+.ws-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: opacity 0.18s, width 0.18s, height 0.18s;
+}
+.ws-dot:hover::before { opacity: 0.7; }
+.ws-dot.active::before {
+    width: 6px;
+    height: 6px;
+    opacity: 1;
+}
+
+.ws-add {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-add:hover:not(.faded) { opacity: 0.9; }
+.ws-add.faded { opacity: 0.15; cursor: not-allowed; }
 
 
 /* ============================================================
@@ -902,7 +1260,7 @@ body.zen-mode .priceos-footer { display: none !important; }
 
 
 /* ============================================================
-   THE TAPE (top-bar ticker — empty in step 2/3)
+   THE TAPE (top-bar ticker — empty in step 2/3/4)
    ============================================================ */
 .tape-wrap {
     flex: 1 1 auto; min-width: 0;

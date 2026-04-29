@@ -4,6 +4,7 @@ import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
+import { SortProvider } from '../lib/state/SortContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
 export const metadata: Metadata = {
@@ -16,29 +17,35 @@ export const metadata: Metadata = {
     },
 };
 
-/*
- * Pre-hydration script.
- *
- * Runs synchronously before React mounts so the page paints with the
- * user's saved theme and body-class flags rather than the server-rendered
- * defaults flashing first.
- *
- * Reads:
- *   pd_settings_theme  → { mode, bgColor, textColor }
- *   pd_settings_notifs → { tape, notes, todos, tapeOpen, spell_*, ... }
- *
- * Writes:
- *   document.documentElement.style.setProperty('--bg-color', ...)
- *   document.documentElement.style.setProperty('--text-color', ...)
- *   document.body.classList.add(...)  for each active flag
- */
 const PREHYDRATION_SCRIPT = `
 (function () {
     try {
-        var theme = JSON.parse(localStorage.getItem('pd_settings_theme') || 'null');
-        if (theme) {
-            if (theme.bgColor)   document.documentElement.style.setProperty('--bg-color', theme.bgColor);
-            if (theme.textColor) document.documentElement.style.setProperty('--text-color', theme.textColor);
+        var theme = localStorage.getItem('pd_settings_theme');
+        var THEMES = {
+            artist:  '#FFE600',
+            light:   '#e0e0e0',
+            dark:    '#1a1a1a',
+            orange:  '#ff6600',
+            blue:    '#3D9EFF',
+            red:     '#FF0033',
+            hashsyn: '#7B2FFF'
+        };
+        if (theme && THEMES[theme]) {
+            var bg = THEMES[theme];
+            var hex = bg.replace('#', '');
+            var r = parseInt(hex.substr(0, 2), 16) || 0;
+            var g = parseInt(hex.substr(2, 2), 16) || 0;
+            var b = parseInt(hex.substr(4, 2), 16) || 0;
+            var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            var text = yiq >= 128 ? '#111111' : '#e0e0e0';
+            document.documentElement.style.setProperty('--bg-color', bg);
+            document.documentElement.style.setProperty('--text-color', text);
+            if (document.body) {
+                document.body.classList.add('theme-' + theme);
+                if (r > g + 40 && r > b + 40 && r > 100) {
+                    document.body.classList.add('bg-is-red');
+                }
+            }
         }
 
         var notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
@@ -104,11 +111,13 @@ export default function RootLayout({
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
                 <ThemeProvider>
                     <PdNotifsProvider>
-                        <ModalProvider>
-                            <DropdownProvider>
-                                <PriceOSShell>{children}</PriceOSShell>
-                            </DropdownProvider>
-                        </ModalProvider>
+                        <SortProvider>
+                            <ModalProvider>
+                                <DropdownProvider>
+                                    <PriceOSShell>{children}</PriceOSShell>
+                                </DropdownProvider>
+                            </ModalProvider>
+                        </SortProvider>
                     </PdNotifsProvider>
                 </ThemeProvider>
             </body>

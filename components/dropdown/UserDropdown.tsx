@@ -3,27 +3,23 @@
 /*
  * UserDropdown
  *
- * The main panel inside the dropdown stack — the inverted-palette box
- * that hosts the Global Search bar at top and one of five views below:
+ * Top of the dropdown stack. Hosts the Global Search bar and one of
+ * five views below it:
  *
  *   - links     — Profile / Discord / Artists / Portfolio / Settings / Log Out
- *   - calendar  — month grid + day column (placeholder in step 3)
- *   - settings  — wallet / themes / sort / pings / spell book (placeholder)
- *   - artists   — directory (placeholder)
- *   - portfolio — main / shadow / tree (placeholder)
+ *   - settings  — full Settings panel (step 4 — wallet/MY PD/themes/sort/pings/spell-book/workspace)
+ *   - calendar  — placeholder (lands later)
+ *   - artists   — placeholder (lands later)
+ *   - portfolio — placeholder (lands later)
  *
- * The view is read from DropdownContext. Search bar stays mounted
- * across view swaps so the input keeps focus through state changes.
- *
- * Hidden when one of the panel views is active: the four accordion
- * boxes below (Tape/Pings/Todos/Notes). This is handled in DropdownStack
- * via the same view check.
+ * Search bar stays mounted across view swaps so input keeps focus.
  */
 
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { GlobalSearchBar } from './GlobalSearchBar';
 import { LinksView } from './LinksView';
 import { PanelPlaceholder } from './PanelPlaceholder';
+import { SettingsView } from './settings/SettingsView';
 
 export function UserDropdown() {
     const { view } = useDropdown();
@@ -34,31 +30,26 @@ export function UserDropdown() {
 
             {view === 'links' && <LinksView />}
 
+            {view === 'settings' && <SettingsView />}
+
             {view === 'calendar' && (
                 <PanelPlaceholder
                     title="Calendar"
-                    note="Month grid + day column with events / to-dos lands in Step 4."
-                />
-            )}
-
-            {view === 'settings' && (
-                <PanelPlaceholder
-                    title="Settings"
-                    note="Wallet, themes, default sort, MY PINGS, Spell Book, and the workspace switcher all land in Step 4."
+                    note="Month grid + day column with events / to-dos lands in its own dedicated round."
                 />
             )}
 
             {view === 'artists' && (
                 <PanelPlaceholder
                     title="Artists"
-                    note="A–Z directory with filter pills (Starred / Notes / Mutuals / Following / Followers / Cooldown / Active) lands in Step 4."
+                    note="A–Z directory with filter pills (Starred / Notes / Mutuals / Following / Followers / Cooldown / Active) lands in its own dedicated round."
                 />
             )}
 
             {view === 'portfolio' && (
                 <PanelPlaceholder
                     title="Portfolio"
-                    note="Main / Shadow tabs and the long-form per-collection tree land in Step 4."
+                    note="Main / Shadow tabs and the long-form per-collection tree land in their own dedicated round."
                 />
             )}
         </div>

@@ -3,26 +3,28 @@
 /*
  * ThemeContext
  *
- * Owns the platform theme: bg color, text color, and the chosen mode.
+ * Owns the page's theme state. Setting a theme writes hex values into
+ * --bg-color / --text-color (and a few related vars) on documentElement
+ * and persists the theme key in localStorage.
  *
- * Modes:
- *   'custom' — user-picked colour pair (or artist-custom-bg from a collection)
- *   'light'  — flat light
- *   'dark'   — flat dark
- *   'orange' — Brendon's signature platform theme; permanent option
- *   'zen'    — Attention-yellow workspace; per the workspace switcher
+ * Theme keys + bg colors match the sim verbatim:
+ *   artist   #FFE600  (Attention yellow — the ARTIST_COLOR slot)
+ *   light    #e0e0e0
+ *   dark     #1a1a1a
+ *   orange   #ff6600
+ *   blue     #3D9EFF
+ *   red      #FF0033
+ *   hashsyn  #7B2FFF
  *
- * Default mode = 'custom' with bg = Hothurt red and text = Dot near-black.
+ * Plus a non-pickable default — Hothurt #FF0055 — which is what the page
+ * boots into when no theme has been picked. This is the React port's
+ * starting state per Brendon's brief; it differs from the sim's default
+ * (which boots into "artist" / yellow). The picker doesn't include
+ * Hothurt as a pill — it's the baseline you return to by clearing
+ * pd_settings_theme in storage.
  *
- * The CSS vars --bg-color and --text-color drive everything visual; this
- * context updates them on documentElement (the <html> tag) at runtime.
- * The pre-hydration script in layout.tsx primes them synchronously so
- * there's no flash on reload.
- *
- * YIQ resolver: when the user (or a collection) sets an arbitrary bg
- * colour, the text colour is auto-derived using the standard YIQ
- * brightness formula. This is the same logic the sim uses for its
- * artist-custom-bg pass.
+ * Text color: YIQ luminance check on the bg. Bright bg → dark text
+ * (#111111). Dim bg → light text (#e0e0e0). Same algorithm as the sim.
  */
 
 import {
@@ -35,136 +37,141 @@ import {
     type ReactNode,
 } from 'react';
 
-export type ThemeMode = 'custom' | 'light' | 'dark' | 'orange' | 'zen';
+export type ThemeKey =
+    | 'artist'
+    | 'light'
+    | 'dark'
+    | 'orange'
+    | 'blue'
+    | 'red'
+    | 'hashsyn'
+    | null; // null = factory default (Hothurt)
 
-export interface ThemeState {
-    mode: ThemeMode;
-    bgColor: string;
-    textColor: string;
-}
-
-const DEFAULTS: ThemeState = {
-    mode: 'custom',
-    bgColor: '#FF0055',  // Hothurt
-    textColor: '#111111', // Dot
+const THEMES: Record<NonNullable<ThemeKey>, string> = {
+    artist:  '#FFE600',
+    light:   '#e0e0e0',
+    dark:    '#1a1a1a',
+    orange:  '#ff6600',
+    blue:    '#3D9EFF',
+    red:     '#FF0033',
+    hashsyn: '#7B2FFF',
 };
 
-// Named theme presets. 'custom' isn't here because it's user-driven.
-export const THEME_PRESETS: Record<Exclude<ThemeMode, 'custom'>, { bgColor: string; textColor: string }> = {
-    light:  { bgColor: '#E0E0E0', textColor: '#111111' }, // Matrix on Dot
-    dark:   { bgColor: '#111111', textColor: '#E0E0E0' }, // Dot on Matrix
-    orange: { bgColor: '#FF8A3D', textColor: '#111111' }, // Brendon's permanent theme
-    zen:    { bgColor: '#FFE600', textColor: '#111111' }, // Attention yellow
-};
+const HOTHURT  = '#FF0055';
+const DOT_TEXT = '#111111';
+const MATRIX   = '#e0e0e0';
 
 const STORAGE_KEY = 'pd_settings_theme';
 
-/**
- * YIQ contrast resolver. Given a hex bg colour, returns either
- * '#111111' or '#E0E0E0' for the most legible text overlay.
- *
- * Same threshold the sim uses (~128 / 255). Accepts #RGB, #RRGGBB,
- * or named CSS colours (named falls back to dark-on-light since we
- * can't parse them without a DOM measurement).
- */
-export function resolveTextColor(bg: string): string {
-    const cleaned = bg.trim().toLowerCase();
-    let r = 0, g = 0, b = 0;
-
-    if (cleaned.startsWith('#')) {
-        let hex = cleaned.slice(1);
-        if (hex.length === 3) {
-            hex = hex.split('').map((c) => c + c).join('');
-        }
-        if (hex.length === 6) {
-            r = parseInt(hex.slice(0, 2), 16);
-            g = parseInt(hex.slice(2, 4), 16);
-            b = parseInt(hex.slice(4, 6), 16);
-        } else {
-            return '#111111';
-        }
-    } else if (cleaned.startsWith('rgb')) {
-        const m = cleaned.match(/\d+/g);
-        if (m && m.length >= 3) {
-            r = parseInt(m[0], 10);
-            g = parseInt(m[1], 10);
-            b = parseInt(m[2], 10);
-        }
-    } else {
-        // Named colour or unrecognised — default to dark text.
-        return '#111111';
-    }
-
-    // YIQ brightness. Threshold 128 chosen to match the sim.
-    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    return yiq >= 128 ? '#111111' : '#E0E0E0';
-}
-
 interface ThemeContextValue {
-    theme: ThemeState;
-    /** Apply a named preset. Falls through to 'custom' for arbitrary colours. */
-    setMode: (mode: ThemeMode) => void;
-    /** Apply an arbitrary bg colour. Text colour derives via YIQ unless overridden. */
-    setCustomBg: (bgColor: string, textColor?: string) => void;
+    /** Currently active theme key. null = no pick (Hothurt default). */
+    theme: ThemeKey;
+    /** Apply a theme. Pass null to revert to the Hothurt default. */
+    setTheme: (key: ThemeKey) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setTheme] = useState<ThemeState>(DEFAULTS);
+/** Compute text color from a bg hex via the YIQ luminance heuristic. */
+function resolveTextColor(bgHex: string): string {
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 128 ? DOT_TEXT : MATRIX;
+}
 
-    // Hydrate from localStorage. The pre-hydration script has already
-    // applied the saved colours to documentElement; this is just so the
-    // React state matches.
+/** Detect a "red-ish" bg (used for the to-do markers' contrast safety). */
+function isRedBg(bgHex: string): boolean {
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return r > g + 40 && r > b + 40 && r > 100;
+}
+
+/** Apply a theme to the documentElement and body classes. */
+function applyTheme(key: ThemeKey) {
+    const root = document.documentElement;
+    const body = document.body;
+
+    const bg = key === null ? HOTHURT : THEMES[key];
+    const text = resolveTextColor(bg);
+
+    root.style.setProperty('--bg-color', bg);
+    root.style.setProperty('--text-color', text);
+    root.style.setProperty(
+        '--border-color',
+        text === DOT_TEXT ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
+    );
+    root.style.setProperty('--accent', text);
+    root.style.setProperty(
+        '--stat-bg',
+        text === DOT_TEXT ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)'
+    );
+    root.style.setProperty(
+        '--stat-active-bg',
+        text === DOT_TEXT ? '#000000' : MATRIX
+    );
+    root.style.setProperty(
+        '--stat-active-text',
+        text === DOT_TEXT ? MATRIX : '#000000'
+    );
+
+    // Body class flags read by various theme-conditional CSS rules.
+    body.classList.toggle('theme-dark',    key === 'dark');
+    body.classList.toggle('theme-light',   key === 'light');
+    body.classList.toggle('theme-orange',  key === 'orange');
+    body.classList.toggle('theme-blue',    key === 'blue');
+    body.classList.toggle('theme-red',     key === 'red');
+    body.classList.toggle('theme-hashsyn', key === 'hashsyn');
+    body.classList.toggle('theme-artist',  key === 'artist');
+    body.classList.toggle('bg-is-red',     isRedBg(bg));
+
+    // Update PWA theme-color meta if present.
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.setAttribute('content', bg);
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+    const [theme, setThemeState] = useState<ThemeKey>(null);
+
+    // Hydrate from localStorage on mount. The pre-hydration script in
+    // layout.tsx applied the saved bg/text vars synchronously; here we
+    // bring the React state in line so the picker shows the right
+    // active pill.
     useEffect(() => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                setTheme({ ...DEFAULTS, ...parsed });
+            if (raw && raw in THEMES) {
+                setThemeState(raw as ThemeKey);
+                applyTheme(raw as ThemeKey);
+            } else {
+                applyTheme(null);
             }
         } catch {
-            // No-op.
+            applyTheme(null);
         }
     }, []);
 
-    // Apply CSS vars to <html> on every change + persist.
-    useEffect(() => {
-        const root = document.documentElement;
-        root.style.setProperty('--bg-color', theme.bgColor);
-        root.style.setProperty('--text-color', theme.textColor);
-
-        // Update the meta theme-color tag too — affects iOS PWA URL bar tint.
-        const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', theme.bgColor);
-
+    const setTheme = useCallback((key: ThemeKey) => {
+        setThemeState(key);
+        applyTheme(key);
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(theme));
+            if (key === null) {
+                localStorage.removeItem(STORAGE_KEY);
+            } else {
+                localStorage.setItem(STORAGE_KEY, key);
+            }
         } catch {
-            // No-op.
+            // ignore quota / private mode
         }
-    }, [theme]);
-
-    const setMode = useCallback((mode: ThemeMode) => {
-        if (mode === 'custom') {
-            setTheme((prev) => ({ ...prev, mode: 'custom' }));
-            return;
-        }
-        const preset = THEME_PRESETS[mode];
-        setTheme({ mode, bgColor: preset.bgColor, textColor: preset.textColor });
-    }, []);
-
-    const setCustomBg = useCallback((bgColor: string, textColor?: string) => {
-        setTheme({
-            mode: 'custom',
-            bgColor,
-            textColor: textColor ?? resolveTextColor(bgColor),
-        });
     }, []);
 
     const value = useMemo<ThemeContextValue>(
-        () => ({ theme, setMode, setCustomBg }),
-        [theme, setMode, setCustomBg]
+        () => ({ theme, setTheme }),
+        [theme, setTheme]
     );
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
