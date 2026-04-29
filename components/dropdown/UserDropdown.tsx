@@ -8,7 +8,7 @@
  *
  *   - links     — Profile / Discord / Artists / Portfolio / Settings / Log Out
  *   - settings  — full Settings panel (step 4 — wallet/MY PD/themes/sort/pings/spell-book/workspace)
- *   - calendar  — placeholder (lands later)
+ *   - calendar  — Calendar panel (step 5 — month grid + day column with events / to-dos)
  *   - artists   — placeholder (lands later)
  *   - portfolio — placeholder (lands later)
  *
@@ -20,6 +20,7 @@ import { GlobalSearchBar } from './GlobalSearchBar';
 import { LinksView } from './LinksView';
 import { PanelPlaceholder } from './PanelPlaceholder';
 import { SettingsView } from './settings/SettingsView';
+import { CalendarPanel } from '../CalendarPanel';
 
 export function UserDropdown() {
     const { view } = useDropdown();
@@ -32,12 +33,7 @@ export function UserDropdown() {
 
             {view === 'settings' && <SettingsView />}
 
-            {view === 'calendar' && (
-                <PanelPlaceholder
-                    title="Calendar"
-                    note="Month grid + day column with events / to-dos lands in its own dedicated round."
-                />
-            )}
+            {view === 'calendar' && <CalendarPanel />}
 
             {view === 'artists' && (
                 <PanelPlaceholder
