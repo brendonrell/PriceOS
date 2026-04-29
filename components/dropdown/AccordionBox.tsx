@@ -19,6 +19,10 @@
  * Pings is the only accordion that always shows when the menu opens
  * (its closed state isn't really "closed" — it's an "always there"
  * baseline). Other accordions hide their list until expanded.
+ *
+ * `children` is optional: TapeBox doesn't render items in step 3
+ * (the ticker data source isn't wired yet) so it passes nothing.
+ * Pings/Todos/Notes pass arrays of <div className="notif-item">.
  */
 
 import { useRef, type ReactNode } from 'react';
@@ -32,8 +36,8 @@ interface Props {
     open: boolean;
     /** Click handler for the header (toggles open). */
     onHeaderClick: () => void;
-    /** List items rendered inside the scrollable area. */
-    children: ReactNode;
+    /** List items. Optional — boxes with no data yet pass nothing. */
+    children?: ReactNode;
     /** Optional id for the outer box (lets the sim's CSS hooks attach). */
     boxId?: string;
     /** If true, the list always renders (used by Pings — see comment above). */
