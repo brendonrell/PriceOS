@@ -1,38 +1,73 @@
 /* ============================================================
-   PriceOS · globals.css
-   Phase 1 — token foundation, font wiring, base body styles.
-   The full theme system (Custom / Light / Dark / Orange) and
-   per-component tokens (--mint-*, --pill-l1-*, etc.) land in
-   Phase 2 alongside the Collection page port. Keeping this file
-   intentionally lean so the foundation is reviewable on its own.
+   PriceOS — globals.css
+   Phase 2 · Step 1 (foundation)
+   ============================================================
+   Layered token system:
+
+   1. BRAND TOKENS — fixed colours that never change. Used wherever
+      the design intent is "this specific brand colour" (logo, buy
+      button accents, hothurt-coded events on the tape, etc).
+
+   2. FUNCTIONAL TOKENS — drive page chrome (background, text, borders).
+      These shift with theme + artist custom bg + workspace.
+      Default app theme is Hothurt red on near-black (the PD signature).
+      Per-collection / workspace overrides set --bg-color and
+      --text-color on <html> at runtime via ThemeContext.
+
+   3. BODY CLASS FLAGS — boolean state hooks. Mirror pdNotifs flags
+      so CSS can react without the rest of the app re-rendering.
+      Wired by useBodyClass() in PriceOSShell.
+
+   The sim's CSS lands here partition-by-partition across the next
+   steps. Step 1 only ships tokens, base reset, and class-flag stubs.
    ============================================================ */
 
-/* --- BRAND CONSTANTS — never theme-shift, locked McDonalds2050 ---
-   Source of truth: PD Master Brief → Brand. Renamed Apr 29 2026:
-   --ink → --dot, --paper → --matrix (digital-native register, replacing
-   the print-shop ink/paper metaphor that was wrong for the platform). */
-:root {
-    --hothurt: #FF0055;
-    --attention: #FFE600;
-    --dot: #111111;       /* PD's brand black */
-    --matrix: #E0E0E0;    /* PD's brand off-white */
 
-    /* --- THEME-SHIFTING SEMANTIC TOKENS ---
-       Default "artist" theme uses the artist's chosen background colour;
-       Phase 1 ships the indigo placeholder that the prototype's PRISMS
-       demo uses (#6366F1) so the page renders something on-brand without
-       the full theme engine wired up yet. Phase 2 reintroduces the
-       full token set + body.theme-* selectors. */
-    --bg-color: #6366F1;
-    --text-color: var(--dot);
-    --border-color: rgba(0, 0, 0, 0.15);
-    --accent: var(--dot);
+/* ── BRAND TOKENS ─────────────────────────────────────────── */
+:root {
+    --hothurt:   #FF0055;   /* PD signature red */
+    --attention: #FFE600;   /* PD signature yellow */
+    --dot:       #111111;   /* near-black (renamed from --ink, Apr 29 2026) */
+    --matrix:    #E0E0E0;   /* warm off-white (renamed from --paper, Apr 29 2026) */
 }
 
-/* --- BASE BODY ---
-   Mirrors source HTML lines 50-58, minus the main { flex: 1 } which lands
-   when we have a real <main> in Phase 2. Transitions preserved so future
-   theme switches animate. */
+
+/* ── FUNCTIONAL TOKENS (theme-driven) ──────────────────────
+   Defaults below = the platform default theme: Hothurt on Dot.
+   ThemeContext overrides --bg-color / --text-color on <html> at
+   runtime. The pre-hydration script in layout.tsx primes them
+   before React paints, so there is no flash-of-default-theme.
+   ───────────────────────────────────────────────────────── */
+:root {
+    --bg-color:     var(--hothurt);
+    --text-color:   var(--dot);
+    --border-color: rgba(0, 0, 0, 0.15);
+    --accent:       var(--dot);
+
+    /* Sim's per-component tokens — included at their sim defaults.
+       Components that consume them land in later steps; tokens
+       defined here so a component-of-the-week can reference them
+       without each one having to redefine its own scoped token. */
+    --modal-bg:         rgba(0, 200, 150, 0.98);
+    --stat-bg:          rgba(0, 0, 0, 0.08);
+    --stat-active-bg:   #000000;
+    --stat-active-text: #e0e0e0;
+
+    --mint-bg:      var(--dot);
+    --mint-text:    var(--matrix);
+    --mint-border:  var(--dot);
+    --mint-bg-img:  none;
+
+    --pill-l1-bg:     var(--dot);
+    --pill-l1-text:   var(--hothurt);
+    --pill-l1-border: var(--dot);
+    --pill-l1-bg-img: none;
+
+    --btn-user-hover: #ffffff;
+}
+
+
+/* ── BASE RESET ──────────────────────────────────────────── */
 html, body {
     margin: 0;
     padding: 0;
@@ -51,20 +86,11 @@ body {
     min-height: 100vh;
 }
 
-/* --- DISPLAY TYPE ---
-   Rubik Mono One is the platform display face. Loaded via Google Fonts
-   <link> in app/layout.tsx (deliberately NOT next/font/google to keep
-   builds offline-safe on library machines — preserved from D1 decision). */
-.display, h1, h2, h3 {
-    font-family: 'Rubik Mono One', sans-serif;
-    font-weight: normal;
-    letter-spacing: 0;
+main {
+    flex: 1;
 }
 
-/* --- iOS 26.1 PWA LIQUID GLASS FIX ---
-   Verbatim from source HTML lines 65-72. The blurred top strip masks
-   the iOS PWA status-bar contamination. Active in PWA mode only via
-   safe-area-inset; harmless on web. */
+/* iOS 26.1 PWA Liquid Glass Fix — preserved verbatim from sim */
 body::before {
     content: '';
     position: fixed;
@@ -80,74 +106,91 @@ body::before {
     pointer-events: none;
 }
 
-/* --- PHASE 1 PLACEHOLDER HOMEPAGE ---
-   Random-gradient hero rendered server-side (regenerates per request).
-   Brendon flagged "the random CSS gradients placeholder was probably my
-   favourite placeholder" — putting that aesthetic in the foundation as
-   the homepage shell until /  becomes the global feed in Phase 5. */
-.p1-shell {
-    flex: 1;
+/* Default platform body font weight */
+body {
+    font-size: 13px;
+}
+
+
+/* ── BODY CLASS FLAG STUBS ──────────────────────────────────
+   These selectors are placeholders — they document which flags
+   the rest of the system uses. The actual rules attached to
+   each flag land alongside their consuming components in the
+   steps that follow. Listed here so:
+     (a) future Claudes know the full flag inventory at a glance;
+     (b) a missing flag in pdNotifs is obvious during review.
+
+   Source of truth for which flags exist: extracted from the sim
+   on Apr 29 2026. Update this list whenever a flag is added or
+   removed. The useBodyClass hook in lib/hooks reads pdNotifs and
+   applies the matching subset.
+   ───────────────────────────────────────────────────────── */
+
+/* Theme + workspace */
+/* body.theme-dark              { } */
+/* body.theme-red               { } */
+/* body.bg-is-red               { } */
+/* body.persona-default         { }   — anonymous / not logged in */
+
+/* Tape modes (mutually exclusive) */
+/* body.tape-off                { } */
+/* body.tape-faded              { } */
+/* body.tape-bold               { } */
+/* body.tape-framed             { } */
+
+/* Connect Menu accordion-open flags */
+/* body.notes-mode              { } */
+
+/* Spell Book toggles */
+/* body.aura-active             { } */
+/* body.pm-active               { }   — Price Memory ghost */
+/* body.stargazing-mode         { }   — gates #starfield render */
+/* body.hammer-mode             { } */
+/* body.pricelens-mode          { } */
+/* body.fog-mode                { }   — Fog default-sort */
+/* body.feed-mode               { } */
+/* body.zen-mode                { } */
+/* body.sentiment-on            { } */
+/* body.redacted-mode           { } */
+/* body.anon-mode               { } */
+/* body.anchor-active           { }   — OS Tool */
+/* body.budget-active           { }   — OS Tool */
+/* body.budget-step-line        { }   — Budget step-line variant */
+
+/* Environment */
+/* body.is-pwa                  { }   — set on load */
+/* body.modal-open              { }   — modal lock */
+
+
+/* ── PHASE 1 PLACEHOLDER PAGE STYLES ────────────────────────
+   The Phase 1 random-gradient placeholder lives at /. Step 1
+   swaps it from indigo to Hothurt red. The placeholder gets
+   replaced with real content when the homepage / global feed
+   is built in a later phase. Until then this is the visible
+   proof that step 1's deploy succeeded.
+   ───────────────────────────────────────────────────────── */
+.placeholder-shell {
+    min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 24px max(40px, env(safe-area-inset-bottom)) 24px;
+    padding: 24px;
     text-align: center;
-    position: relative;
-    overflow: hidden;
 }
 
-.p1-grad {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-}
-
-.p1-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    max-width: 640px;
-}
-
-.p1-wordmark {
+.placeholder-wordmark {
     font-family: 'Rubik Mono One', sans-serif;
-    font-size: clamp(36px, 9vw, 80px);
+    font-size: clamp(48px, 12vw, 128px);
     line-height: 1;
-    letter-spacing: 0;
-    margin: 0;
-    color: var(--matrix);
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+    user-select: none;
 }
 
-.p1-wordmark .price { color: var(--matrix); }
-.p1-wordmark .discussion { color: var(--hothurt); }
-
-.p1-status {
+.placeholder-tagline {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
-    line-height: 1.7;
-    color: var(--matrix);
-    opacity: 0.92;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 14px 18px;
-    border-radius: 6px;
-    text-align: left;
-    max-width: 480px;
-}
-
-.p1-status b { color: var(--attention); font-weight: bold; }
-
-.p1-foot {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    color: var(--matrix);
-    opacity: 0.55;
-    letter-spacing: 0.5px;
+    margin-top: 16px;
+    opacity: 0.7;
+    color: var(--text-color);
 }
