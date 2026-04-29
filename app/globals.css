@@ -1,17 +1,21 @@
 /* ============================================================
    PriceOS — globals.css
-   Phase 2 · Step 2 (navbar shell + footer + backgrounds)
+   Phase 2 · Step 3 (Connect Menu)
    ============================================================
-   Step 2 adds the visible chrome: sticky navbar (Petey + tape +
-   user-menu-buttons), bottom footer, and the gated background
-   layers (starfield + digital-familiar). The Connect Menu
-   dropdown contents land in Step 3.
+   Adds the dropdown stack + main user-dropdown + accordion boxes.
+   All styles ported from sim.html as faithfully as possible.
 
-   All styles below are ported as-close-to-verbatim as possible
-   from the sim's <style> block. Only changes are:
-     - dropping rules that depend on yet-to-land components
-       (e.g. body.modal-open, body.notes-mode hide rules);
-       these will land alongside their consuming components.
+   Layered structure (top to bottom):
+     1. Brand tokens
+     2. Functional theme tokens
+     3. Base reset + iOS PWA fixes
+     4. Navbar (Petey logo, ticker, user menu wrapper)
+     5. Connect Menu — dropdown stack + main user-dropdown
+     6. Connect Menu — accordion boxes (Tape/Pings/Todos/Notes)
+     7. Connect Menu — sub-views (Settings/Calendar/Artists/Portfolio)
+     8. Footer
+     9. Background layers (starfield, familiar)
+    10. Phase 1 placeholder page
    ============================================================ */
 
 
@@ -47,6 +51,12 @@
     --pill-l1-bg-img: none;
 
     --btn-user-hover: #ffffff;
+
+    /* Shared height token: the calendar panel reads this so it's always
+       the same height as the links view — backboard never grows/shrinks
+       on view swap. JS sets the precise value once on first menu open;
+       this is the fallback. */
+    --pd-menu-height: 173px;
 }
 
 
@@ -222,12 +232,7 @@ body.is-pwa .navbar {
 }
 
 
-/* ── SENTIMENT WIDGET (placeholder, gated by body.sentiment-on) ───
-   FIX (step 2.1): default was opacity:0 inside a flex parent, which
-   meant it still took horizontal space and pushed the petey-bubble
-   (positioned at left:100% of .pd-logo-wrap) far past the logo.
-   Switched to display:none default + display:inline-flex when active.
-*/
+/* ── SENTIMENT WIDGET ────────────────────────────────────── */
 .sentiment-widget {
     margin-left: 14px;
     font-size: 18px;
@@ -251,17 +256,13 @@ body.sentiment-on .sentiment-widget {
 }
 
 @media (max-width: 600px) {
-    .sentiment-widget {
-        font-size: 22px;
-    }
-    body:not(.tape-off) .sentiment-widget {
-        margin-left: 18px;
-    }
+    .sentiment-widget { font-size: 22px; }
+    body:not(.tape-off) .sentiment-widget { margin-left: 18px; }
 }
 
 
 /* ============================================================
-   CONNECT MENU BUTTONS (dropdown contents land in Step 3)
+   USER MENU BUTTONS (right side of navbar)
    ============================================================ */
 .user-menu-wrapper {
     position: relative;
@@ -271,14 +272,7 @@ body.sentiment-on .sentiment-widget {
     gap: 8px;
 }
 
-
-/* ── CART BUTTON ─────────────────────────────────────────── */
-/*
-   The cart button visually mirrors the collapsed connect button
-   (same 34×32 dot-on-bg square). Only renders when the cart has
-   items — default display:none, .has-items flips to inline-flex.
-   Sits at the far-left of the user-menu-wrapper.
-*/
+/* Cart button */
 .btn-cart {
     background: var(--text-color);
     color: var(--bg-color);
@@ -298,38 +292,21 @@ body.sentiment-on .sentiment-widget {
     transition: opacity 0.2s;
     -webkit-tap-highlight-color: transparent;
 }
-
-.btn-cart.has-items {
-    display: inline-flex;
-}
-
-.btn-cart:hover {
-    opacity: 0.85;
-}
+.btn-cart.has-items { display: inline-flex; }
+.btn-cart:hover { opacity: 0.85; }
 
 .cart-count-badge {
     background: var(--bg-color);
     color: var(--text-color);
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 20px; height: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 1;
+    font-size: 11px; font-weight: bold; line-height: 1;
     font-variant-numeric: tabular-nums;
 }
 
-
-/* ── PRICESPRITE + LEVEL BADGE ───────────────────────────────
-   Default hidden. They appear when the Connect Menu is open
-   (the .menu-open class on .user-menu-wrapper is added by Step 3
-   when the dropdown wires up). Until then this keeps the navbar
-   right-side quiet — just the collapsed connect square.
-*/
+/* PriceSprite + level badge — hidden by default; reveal when wrapper is .active */
 .ascii-sprite-wrap {
     display: none;
     align-items: center;
@@ -337,72 +314,43 @@ body.sentiment-on .sentiment-widget {
     user-select: none;
     cursor: pointer;
 }
-
-.user-menu-wrapper.menu-open .ascii-sprite-wrap {
+.user-menu-wrapper.active .ascii-sprite-wrap {
     display: flex;
 }
 
 .ascii-sprite {
     font-family: 'Courier New', Courier, monospace !important;
     font-size: 14px !important;
-    font-weight: bold;
-    line-height: 1;
-    color: var(--text-color);
-    opacity: 0.75;
-    white-space: nowrap;
-    letter-spacing: -0.5px;
+    font-weight: bold; line-height: 1;
+    color: var(--text-color); opacity: 0.75;
+    white-space: nowrap; letter-spacing: -0.5px;
     transition: opacity 0.3s;
 }
-
-.ascii-sprite.sleeping {
-    opacity: 0.45;
-}
+.ascii-sprite.sleeping { opacity: 0.45; }
 
 .ascii-pfp-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 22px;
-    font-weight: normal;
-    line-height: 1;
-    color: var(--text-color);
-    opacity: 1;
-    pointer-events: auto;
-    user-select: none;
-    flex-shrink: 0;
-    cursor: pointer;
-    /* -2px tightener for composed multi-circle dingbats like ❹❷ */
+    font-size: 22px; font-weight: normal; line-height: 1;
+    color: var(--text-color); opacity: 1;
+    pointer-events: auto; user-select: none;
+    flex-shrink: 0; cursor: pointer;
     letter-spacing: -2px;
-    /* Default hidden (see .ascii-sprite-wrap comment above). */
     display: none;
 }
-
-.user-menu-wrapper.menu-open .ascii-pfp-badge {
+.user-menu-wrapper.active .ascii-pfp-badge {
     display: inline-block;
 }
 
-/* Anon mode: black bar over sprite eyes; pfp badge hidden */
-body.anon-mode .ascii-sprite {
-    position: relative;
-    display: inline-block;
-}
-
+body.anon-mode .ascii-sprite { position: relative; display: inline-block; }
 body.anon-mode .ascii-sprite::before {
-    content: '';
-    position: absolute;
-    left: 20%;
-    right: 22%;
-    top: 8%;
-    height: 50%;
-    background: var(--text-color);
-    opacity: 0.88;
+    content: ''; position: absolute;
+    left: 20%; right: 22%; top: 8%; height: 50%;
+    background: var(--text-color); opacity: 0.88;
     pointer-events: none;
 }
+body.anon-mode .ascii-pfp-badge { display: none !important; }
 
-body.anon-mode .ascii-pfp-badge {
-    display: none !important;
-}
-
-
-/* ── CONNECT BUTTON ──────────────────────────────────────── */
+/* Connect button */
 .btn-user {
     background: var(--text-color);
     color: var(--bg-color);
@@ -410,39 +358,23 @@ body.anon-mode .ascii-pfp-badge {
     height: 32px;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 13px; font-weight: bold;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 10px;
-    gap: 8px;
-    /* Collapsed default: 34px wide; .expanded grows to fit @handle */
-    max-width: 34px;
-    overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: flex-start;
+    padding: 0 10px; gap: 8px;
+    max-width: 34px; overflow: hidden;
     transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.2s, opacity 0.2s;
     box-sizing: border-box;
     line-height: 1;
-    position: relative;
-    z-index: 2;
+    position: relative; z-index: 2;
 }
-
-.btn-user.expanded {
-    max-width: 150px;
-}
-
-.btn-user:hover {
-    color: var(--btn-user-hover);
-}
+.btn-user.expanded { max-width: 150px; }
+.btn-user:hover { color: var(--btn-user-hover); }
 
 .user-icon {
-    font-size: 14px;
-    width: 14px;
+    font-size: 14px; width: 14px;
     font-family: 'Courier New', Courier, monospace;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
 
@@ -450,12 +382,10 @@ body.anon-mode .ascii-pfp-badge {
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.3s ease;
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     pointer-events: none;
     line-height: 1;
 }
-
 .btn-user.expanded .user-text {
     opacity: 1;
     transition-delay: 0.1s;
@@ -463,114 +393,462 @@ body.anon-mode .ascii-pfp-badge {
 
 
 /* ============================================================
-   THE TAPE (persistent ambient ticker)
-   ============================================================
-   Step 2 ships the wrapper with all 5 mode classes wired. The
-   actual scrolling tape items / animation are populated by JS
-   in a later step when ticker data sources are ready. Until
-   then, the wrap renders empty (transparent space between logo
-   and connect buttons).
-*/
-.tape-wrap {
-    flex: 1 1 auto;
-    min-width: 0;
-    align-self: center;
-    height: 22px;
-    margin: 0 18px;
-    position: relative;
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    line-height: 22px;
-    color: var(--text-color);
-    letter-spacing: 0.3px;
-    user-select: none;
-    pointer-events: none;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
-}
-
-.tape-rail {
+   CONNECT MENU — dropdown stack
+   ============================================================ */
+.dropdown-stack {
     position: absolute;
-    left: 0;
-    top: 0;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
     display: flex;
-    align-items: center;
-    height: 100%;
-    white-space: nowrap;
-    will-change: transform;
-    transform: translate3d(0, 0, 0);
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 200;
+    width: 310px;
+    max-height: var(--dropdown-max-h, calc(100dvh - 180px));
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+.dropdown-stack::-webkit-scrollbar { display: none; }
+
+.user-menu-wrapper.active .dropdown-stack {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
-.tape-item {
-    flex-shrink: 0;
-}
 
-.tape-item.bold {
-    font-weight: 700;
-}
-
-.tape-sep-outer {
-    flex-shrink: 0;
-    padding: 0 10px;
-}
-
-.tape-sep-inner {
-    padding: 0 6px;
-}
-
-.tape-sigil {
-    font-size: 11px;
-    margin-left: 1px;
-    letter-spacing: 0;
-}
-
-@media (max-width: 600px) {
-    .tape-wrap {
-        height: 20px;
-        font-size: 12px;
-        line-height: 20px;
-        margin: 0 10px;
-    }
-    .tape-sep-outer {
-        padding: 0 8px;
-    }
-    .tape-sep-inner {
-        padding: 0 4px;
-    }
-    body.sentiment-on .tape-wrap {
-        margin-left: 48px;
-    }
-}
-
-/* Tape mode rules — body class sets which mode is active */
-body.tape-off .tape-wrap,
-body.zen-mode .tape-wrap {
-    display: none !important;
-}
-
-body.tape-faded .tape-wrap { opacity: 0.55; }
-body.tape-faded .tape-sep-outer { opacity: 0.35; }
-body.tape-faded .tape-sep-inner { opacity: 0.45; }
-body.tape-faded .tape-sigil { opacity: 0.85; }
-
-/* Standard mode = no overrides */
-
-body.tape-bold .tape-rail {
-    font-weight: 700;
-}
-
-body.tape-framed .tape-wrap {
+/* ── USER DROPDOWN (the main panel) ──────────────────────── */
+.user-dropdown {
     background: var(--text-color);
     color: var(--bg-color);
-    border-radius: 0;
+    width: 100%;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 4px;
+    box-shadow: none;
+    text-align: left;
+    box-sizing: border-box;
 }
 
-body.tape-framed .tape-rail {
+.user-dropdown a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 13px; font-weight: bold;
+    padding: 6px 10px;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    border-left: 2px solid transparent;
+    display: flex; align-items: center;
+    height: 30px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.user-dropdown a:hover {
+    border-left-color: var(--bg-color);
+    background: rgba(128, 128, 128, 0.2);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(128,128,128,0.3);
+    margin: 4px 0;
+}
+
+.dropdown-pill {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    height: 28px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    box-sizing: border-box;
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--bg-color);
+    margin-top: 2px;
+    padding: 0 10px;
+    width: 100%;
+}
+.dropdown-pill:hover {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.logout-icon {
+    font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.nav-follower-stats {
+    display: inline-flex; align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: normal;
+    opacity: 1; margin-left: 12px; line-height: 1;
+}
+.nav-follower-stats .nav-ico {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; font-weight: normal; opacity: 1;
+    display: inline-flex; align-items: center;
+}
+.nav-follower-stats b {
+    font-weight: bold;
+    opacity: 0.6;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+}
+
+
+/* ── GLOBAL SEARCH (top of user-dropdown) ────────────────── */
+.global-search-wrap { padding: 4px 2px 0 2px; }
+
+.search-dormant-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: var(--bg-color);
+    transition: opacity 0.2s;
+    min-height: 38px;
+    box-sizing: border-box;
+}
+.search-dormant-label:hover { opacity: 0.75; }
+
+.search-dormant-text {
+    font-size: 13px; font-weight: bold;
+    color: var(--bg-color);
+}
+
+.search-dormant-label .globe-icon { color: var(--bg-color); opacity: 1; }
+
+.global-search-field {
+    display: flex; align-items: center; gap: 8px;
+    background: transparent;
+    border-radius: 4px;
+    padding: 8px 10px;
+    border: none;
+    margin: 0;
+}
+.global-search-field:focus-within { border-color: transparent; }
+.global-search-field .globe-icon { color: var(--bg-color); opacity: 0.7; }
+.global-search-field:focus-within .globe-icon { color: var(--bg-color); opacity: 1; }
+
+.globe-icon {
+    flex-shrink: 0;
+    color: var(--bg-color);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: color 0.2s, opacity 0.2s;
+}
+.globe-icon:hover { color: var(--bg-color); opacity: 1; }
+
+.global-search-input {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold;
+    color: var(--bg-color);
+    caret-color: var(--bg-color);
+    min-width: 0;
+}
+.global-search-input::placeholder {
+    font-size: 13px; opacity: 0.55; font-weight: normal;
+    color: var(--bg-color);
+}
+
+.global-search-results {
+    margin-top: 4px;
+    display: flex; flex-direction: column; gap: 2px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.2s ease;
+    scrollbar-width: none; -ms-overflow-style: none;
+}
+.global-search-results::-webkit-scrollbar { display: none; }
+.global-search-results.has-results { max-height: 120px; overflow-y: auto; }
+
+.global-result-item {
+    font-size: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    padding: 7px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s, background 0.2s;
+}
+.global-result-item:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+}
+
+
+/* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
+.top-menu-icons {
+    padding-right: 10px;
+    display: inline-flex; align-items: center; gap: 10px;
+}
+
+.dm-icon {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px; line-height: 1;
+    color: var(--bg-color);
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 2px;
+    transition: opacity 0.2s;
+}
+.dm-icon:hover { opacity: 1; }
+.dm-icon.active { opacity: 1; }
+
+@media (max-width: 600px) {
+    .dm-icon-calendar  { font-size: 26px; }
+    .dm-icon-topbarcal { font-size: 22px; }
+    .dm-icon-menutape  { font-size: 26px; }
+}
+
+
+/* ── DROPDOWN-MENU-LINKS (default view) ──────────────────── */
+.dropdown-menu-links {
+    transition: opacity 0.15s;
+    display: flex; flex-direction: column;
+    margin-top: -4px;
+    gap: 0;
+}
+.dropdown-menu-links.hidden { display: none; }
+
+#profileRow {
+    display: flex; align-items: center;
+    padding: 6px 10px;
+    border-left: 2px solid transparent;
+    height: 30px;
+    box-sizing: border-box;
+    transition: background 0.2s, border-left-color 0.2s;
+}
+#profileRow:hover {
+    border-left-color: var(--bg-color);
+    background: rgba(128, 128, 128, 0.2);
+}
+#profileRow > a {
+    font-size: 13px; font-weight: bold;
+    text-decoration: none; color: inherit;
+    padding: 0 !important;
+    border-left: none !important;
+    height: auto !important;
+}
+
+/* Settings link with inline gas widget */
+.settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+}
+
+.gas-widget {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold;
+    opacity: 0.7;
+    color: var(--bg-color);
+    white-space: nowrap;
+    user-select: none;
+    cursor: default;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.gas-widget-inline { padding: 0; margin-right: 5px; }
+.gas-glyph { font-size: 13px; opacity: 0.85; }
+
+
+/* ── PANEL PLACEHOLDERS (Settings/Calendar/Artists/Portfolio) ──
+   These swap in for .dropdown-menu-links when clicked. Step 3
+   ships them as labelled placeholders — Step 4 fills the content.
+*/
+.panel-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: -4px;
+    min-height: var(--pd-menu-height);
+}
+
+.panel-back-row {
+    display: flex; align-items: center;
+    padding: 4px 10px;
+    cursor: pointer;
+    user-select: none;
+    color: inherit;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+}
+.panel-back-row:hover { opacity: 1; }
+
+.panel-back-arrow {
+    font-size: 18px;
+    margin-right: 6px;
+    line-height: 1;
+}
+
+.panel-back-label {
+    font-size: 11px; font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.panel-placeholder-body {
+    padding: 16px 14px 24px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-start;
+    color: inherit;
+}
+
+.panel-placeholder-title {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 14px; line-height: 1.2;
+    letter-spacing: 0.5px;
+}
+
+.panel-placeholder-note {
+    font-size: 11px;
+    opacity: 0.6;
+    line-height: 1.5;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+
+/* ============================================================
+   ACCORDION BOXES (Tape / Pings / Todos / Notes)
+   ============================================================ */
+.notifications-box {
+    width: 100%;
+    padding-bottom: 8px;
+    box-sizing: border-box;
+    /* matches .user-dropdown chrome — these are sibling boxes that
+       look identical to the main panel from the outside */
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding-top: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.notif-header {
+    font-size: 11px;
+    opacity: 0.8;
+    padding: 4px 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: flex; align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+}
+.notif-header:hover { opacity: 1; }
+
+.notif-count {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; margin-left: 6px;
+    opacity: 0.85;
+}
+
+.notif-list {
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: 5px;
+}
+.notif-list::-webkit-scrollbar { display: none; }
+
+@media (min-width: 601px) {
+    .notif-list { max-height: 168px; }
+}
+
+.notif-item {
+    font-size: 12px;
+    padding: 8px 10px;
+    display: flex; gap: 10px; align-items: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    border-radius: 4px;
+    color: inherit;
+}
+.notif-item:hover { background: rgba(128,128,128,0.2); }
+
+.notif-item .n-icon {
+    font-size: 14px;
+    opacity: 0.9;
+    width: 16px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1;
+}
+
+/* Todos: action verb is bolded inline */
+.notif-item.todo-item b {
     font-weight: 900;
-    letter-spacing: 0.4px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Notes: multi-line capable, top-aligned icon */
+#notesList .notif-item { align-items: flex-start; }
+#notesList .notif-item .n-icon { margin-top: 1px; }
+
+/* Markdown styles inside notes */
+.notif-item code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.12);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+.notif-item strong { font-weight: 900; }
+.notif-item em { font-style: italic; }
+
+.scroll-arrow {
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    padding: 4px 10px;
+    transition: opacity 0.2s, color 0.2s;
+    user-select: none;
+    color: inherit;
+}
+.scroll-arrow:hover { opacity: 1; }
+
+
+/* ── TAPE BOX (the in-dropdown menu tape clone) ──────────── */
+.menu-tape-header {
+    /* Header slot contains the scrolling tape rail instead of a label */
+    padding: 4px 10px;
+    min-height: 22px;
+}
+
+.menu-tape-rail-h {
+    flex: 1;
+    overflow: hidden;
+    height: 22px;
+    line-height: 22px;
+    color: inherit;
+    /* Step 3 ships this empty — populated when ticker data is wired */
 }
 
 
@@ -578,13 +856,10 @@ body.tape-framed .tape-rail {
    FOOTER
    ============================================================ */
 .priceos-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     gap: 8px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    font-weight: bold;
+    font-size: 10px; font-weight: bold;
     color: var(--text-color);
     opacity: 0.35;
     padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
@@ -596,30 +871,19 @@ body.tape-framed .tape-rail {
 
 @media (max-width: 600px) {
     .priceos-footer {
-        gap: 6px;
-        font-size: 9px;
+        gap: 6px; font-size: 9px;
         padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
     }
 }
 
-.priceos-sep {
-    opacity: 0.4;
-}
-
-.priceos-footer-break {
-    display: none;
-}
+.priceos-sep { opacity: 0.4; }
+.priceos-footer-break { display: none; }
 
 @media (max-width: 600px) {
     .priceos-footer-break {
-        display: block;
-        flex-basis: 100%;
-        width: 100%;
-        height: 0;
+        display: block; flex-basis: 100%; width: 100%; height: 0;
     }
-    .priceos-sep-desktop {
-        display: none;
-    }
+    .priceos-sep-desktop { display: none; }
 }
 
 .priceos-link {
@@ -628,7 +892,6 @@ body.tape-framed .tape-rail {
     text-decoration: none;
     color: inherit;
 }
-
 .priceos-link:hover {
     opacity: 1;
     text-decoration: underline;
@@ -639,24 +902,80 @@ body.zen-mode .priceos-footer { display: none !important; }
 
 
 /* ============================================================
-   STARFIELD (Spell Book gated — Stargazing)
-   ============================================================
-   Mounted always, display:none unless body.stargazing-mode is on.
-   Star generation is a step-3+ concern — for now this renders an
-   empty fixed-position div that turns visible when toggled.
-*/
+   THE TAPE (top-bar ticker — empty in step 2/3)
+   ============================================================ */
+.tape-wrap {
+    flex: 1 1 auto; min-width: 0;
+    align-self: center;
+    height: 22px;
+    margin: 0 18px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; line-height: 22px;
+    color: var(--text-color);
+    letter-spacing: 0.3px;
+    user-select: none; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+}
+
+.tape-rail {
+    position: absolute;
+    left: 0; top: 0;
+    display: flex; align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+.tape-item { flex-shrink: 0; }
+.tape-item.bold { font-weight: 700; }
+.tape-sep-outer { flex-shrink: 0; padding: 0 10px; }
+.tape-sep-inner { padding: 0 6px; }
+.tape-sigil { font-size: 11px; margin-left: 1px; letter-spacing: 0; }
+
+@media (max-width: 600px) {
+    .tape-wrap { height: 20px; font-size: 12px; line-height: 20px; margin: 0 10px; }
+    .tape-sep-outer { padding: 0 8px; }
+    .tape-sep-inner { padding: 0 4px; }
+    body.sentiment-on .tape-wrap { margin-left: 48px; }
+}
+
+body.tape-off .tape-wrap,
+body.zen-mode .tape-wrap { display: none !important; }
+
+body.tape-faded .tape-wrap { opacity: 0.55; }
+body.tape-faded .tape-sep-outer { opacity: 0.35; }
+body.tape-faded .tape-sep-inner { opacity: 0.45; }
+body.tape-faded .tape-sigil { opacity: 0.85; }
+
+body.tape-bold .tape-rail { font-weight: 700; }
+
+body.tape-framed .tape-wrap {
+    background: var(--text-color); color: var(--bg-color);
+    border-radius: 0;
+}
+body.tape-framed .tape-rail {
+    font-weight: 900; letter-spacing: 0.4px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================================
+   BACKGROUND LAYERS
+   ============================================================ */
 #starfield {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     pointer-events: none;
     z-index: 0;
     overflow: hidden;
     display: none;
     background: #0d0618;
 }
-
 body.stargazing-mode #starfield { display: block; }
-
 body.stargazing-mode {
     background-color: #0d0618 !important;
     color: #c5a8f0 !important;
@@ -664,67 +983,42 @@ body.stargazing-mode {
     --text-color: #c5a8f0 !important;
 }
 
-
-/* ============================================================
-   DIGITAL FAMILIAR (Spell Book gated — spell_familiar)
-   ============================================================
-   Tiny ASCII entity in fixed bottom-left. Default display:none;
-   spell_familiar toggle in pdNotifs flips it on. The actual
-   sprite content + reactivity logic lands when Spell Book is
-   wired (step 4+).
-*/
 #digital-familiar {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
+    position: fixed; bottom: 20px; left: 20px;
     z-index: 150;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    line-height: 1;
+    font-size: 14px; line-height: 1;
     color: var(--text-color);
     white-space: pre;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: auto;
-    cursor: pointer;
-    display: flex;
-    align-items: flex-end;
-    gap: 0;
+    user-select: none; -webkit-user-select: none;
+    pointer-events: auto; cursor: pointer;
+    display: flex; align-items: flex-end; gap: 0;
 }
 
 .familiar-sprite {
     font-family: 'Courier New', Courier, monospace !important;
-    font-size: 14px !important;
-    font-weight: bold;
-    line-height: 1;
-    opacity: 0.75;
-    letter-spacing: -0.5px;
+    font-size: 14px !important; font-weight: bold; line-height: 1;
+    opacity: 0.75; letter-spacing: -0.5px;
     transition: opacity 0.3s;
 }
 
 .familiar-badge {
     font-family: 'Courier New', Courier, monospace !important;
-    font-size: 11px;
-    font-weight: 900;
-    line-height: 1;
-    opacity: 0;
-    letter-spacing: 0.5px;
-    max-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
+    font-size: 11px; font-weight: 900; line-height: 1;
+    opacity: 0; letter-spacing: 0.5px;
+    max-width: 0; overflow: hidden; white-space: nowrap;
     transition: opacity 0.2s, max-width 0.2s;
     text-transform: uppercase;
 }
 
 
 /* ============================================================
-   PHASE 1 PLACEHOLDER PAGE (still the homepage in step 2)
+   PHASE 1 PLACEHOLDER PAGE
    ============================================================ */
 .placeholder-shell {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; justify-content: center;
     padding: 24px;
     text-align: center;
 }

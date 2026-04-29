@@ -3,6 +3,7 @@ import './globals.css';
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
+import { DropdownProvider } from '../lib/state/DropdownContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
 export const metadata: Metadata = {
@@ -20,8 +21,7 @@ export const metadata: Metadata = {
  *
  * Runs synchronously before React mounts so the page paints with the
  * user's saved theme and body-class flags rather than the server-rendered
- * defaults flashing first. Intentionally inlined as a string + dangerouslySetInnerHTML
- * because Next's <Script> components defer past hydration.
+ * defaults flashing first.
  *
  * Reads:
  *   pd_settings_theme  → { mode, bgColor, textColor }
@@ -31,8 +31,6 @@ export const metadata: Metadata = {
  *   document.documentElement.style.setProperty('--bg-color', ...)
  *   document.documentElement.style.setProperty('--text-color', ...)
  *   document.body.classList.add(...)  for each active flag
- *
- * Wrapped in try/catch so a malformed localStorage value can never block render.
  */
 const PREHYDRATION_SCRIPT = `
 (function () {
@@ -47,12 +45,10 @@ const PREHYDRATION_SCRIPT = `
         if (notifs) {
             var classList = document.body && document.body.classList;
             if (classList) {
-                // Tape modes (mutually exclusive). Map integer 0..4 to a class.
                 var tapeMap = ['tape-off', 'tape-faded', null, 'tape-bold', 'tape-framed'];
                 var tapeClass = tapeMap[notifs.tape];
                 if (tapeClass) classList.add(tapeClass);
 
-                // Boolean spell + mode flags
                 if (notifs.notes)            classList.add('notes-mode');
                 if (notifs.spell_aura)       classList.add('aura-active');
                 if (notifs.spell_priceghost) classList.add('pm-active');
@@ -79,11 +75,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                {/* Plain Google Fonts <link> — keeps the offline-safe build pattern from D1.
-                    next/font/google is intentionally avoided so the build doesn't make
-                    network calls during compile, which would fail on the library machine. */}
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossOrigin="anonymous"
+                />
                 <link
                     rel="stylesheet"
                     href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Inter:wght@400;700&display=swap"
@@ -93,10 +90,14 @@ export default function RootLayout({
                     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
                 />
                 <meta name="apple-mobile-web-app-capable" content="yes" />
-                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-                <meta name="apple-mobile-web-app-title" content="Price Discussion" />
-                {/* theme-color matches the Hothurt default; ThemeContext updates it at runtime
-                    when the user picks a different theme. */}
+                <meta
+                    name="apple-mobile-web-app-status-bar-style"
+                    content="black-translucent"
+                />
+                <meta
+                    name="apple-mobile-web-app-title"
+                    content="Price Discussion"
+                />
                 <meta name="theme-color" content="#FF0055" />
             </head>
             <body>
@@ -104,7 +105,9 @@ export default function RootLayout({
                 <ThemeProvider>
                     <PdNotifsProvider>
                         <ModalProvider>
-                            <PriceOSShell>{children}</PriceOSShell>
+                            <DropdownProvider>
+                                <PriceOSShell>{children}</PriceOSShell>
+                            </DropdownProvider>
                         </ModalProvider>
                     </PdNotifsProvider>
                 </ThemeProvider>

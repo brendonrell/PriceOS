@@ -16,9 +16,12 @@
  * the same classes synchronously before React mounts so there's no
  * flash-of-default-state.
  *
- * Future Claudes: when a new spell or mode is added, extend the
- * PdNotifs type, the DEFAULTS object, and the body-class mapping in
- * useBodyClass — those three are the contract.
+ * Accordion mutual exclusion:
+ *   The four accordion boxes (Tape/Pings/Todos/Notes) at the bottom of
+ *   the Connect Menu are mutually exclusive — opening one closes the
+ *   others. The sim enforces this in each accordion's toggle handler.
+ *   We expose setAccordion(name, open) here as the single source of
+ *   truth for that behavior.
  */
 
 import {
@@ -44,16 +47,15 @@ export interface PdNotifs {
     // Tape
     tape: TapeMode;
     menutape: MenuTapeMode;
-    tapeOpen: boolean; // session-only in sim; we persist for simplicity, no harm
+    tapeOpen: boolean; // Tape accordion expanded
 
-    // Connect Menu accordion-open flags (mutually exclusive in practice;
-    // the toggle handlers enforce that, not the type)
+    // Connect Menu accordion-open flags. Mutually exclusive in practice;
+    // setAccordion() below enforces this.
     notes: boolean;
     todos: boolean;
+    // tapeOpen above is the third accordion flag — colocated with tape mode.
 
     // Spell Book toggles. Matches the sim's spell_<name> naming.
-    // 19 spells per the Atlas; some are wired, most are stubs that just
-    // persist their on/off state for now.
     spell_familiar: boolean;
     spell_cartel: boolean;
     spell_spitebook: boolean;
@@ -63,9 +65,9 @@ export interface PdNotifs {
     spell_panopticon: boolean;
     spell_invisible: boolean;
     spell_tarot: boolean;
-    spell_priceghost: boolean; // Price Memory ghost (= togglePriceMemory)
+    spell_priceghost: boolean;
     spell_portal: boolean;
-    spell_cme: boolean; // Solar Flare
+    spell_cme: boolean;
     spell_stargazing: boolean;
     spell_offershield: boolean;
     spell_sybilnet: boolean;
@@ -74,7 +76,7 @@ export interface PdNotifs {
     spell_arbitrage: boolean;
     spell_moodring: boolean;
     spell_pricelens: boolean;
-    spell_hammer: boolean; // The Hammer — always last in the row
+    spell_hammer: boolean;
 
     // Default sort + view modes
     fogMode: boolean;
@@ -95,7 +97,7 @@ export interface PdNotifs {
         cooldown: boolean;
     };
 
-    // Misc UI prefs that the sim persists alongside the settings bag
+    // Misc UI prefs
     nightmode: boolean;
     priceLogo: boolean;
 }
@@ -152,47 +154,49 @@ const DEFAULTS: PdNotifs = {
 
 const STORAGE_KEY = 'pd_settings_notifs';
 
-// ── Context ─────────────────────────────────────────────────
+export type AccordionName = 'tape' | 'pings' | 'todos' | 'notes';
+
 interface PdNotifsContextValue {
     notifs: PdNotifs;
-    /** Replace the entire notifs object. Rare — prefer `update`. */
     setNotifs: (next: PdNotifs) => void;
-    /** Patch one or more fields. Triggers persist + body-class sync. */
     update: (patch: Partial<PdNotifs>) => void;
-    /** Toggle a boolean field. Convenience wrapper around update. */
     toggle: (key: keyof PdNotifs) => void;
+    /**
+     * Set one of the four accordion boxes open/closed. Opening one
+     * automatically closes the others (sim's single-panel rule).
+     * Pings doesn't have its own flag because Pings is the default
+     * "always shown" accordion in the sim — it's only closed by other
+     * accordions opening on top of it.
+     */
+    setAccordion: (name: AccordionName, open: boolean) => void;
 }
 
 const PdNotifsContext = createContext<PdNotifsContextValue | null>(null);
 
 export function PdNotifsProvider({ children }: { children: ReactNode }) {
-    // Start with DEFAULTS to keep SSR + first client paint identical.
-    // The pre-hydration script has already applied any saved body
-    // classes by this point, so the visual state is correct even
-    // before React reads localStorage in the effect below.
     const [notifs, setNotifsState] = useState<PdNotifs>(DEFAULTS);
 
-    // Load from localStorage once on mount (client only).
     useEffect(() => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                // Merge over defaults so newly-added fields get sensible values
-                // when an older saved blob is loaded.
-                setNotifsState({ ...DEFAULTS, ...parsed, pings: { ...DEFAULTS.pings, ...(parsed.pings || {}) } });
+                setNotifsState({
+                    ...DEFAULTS,
+                    ...parsed,
+                    pings: { ...DEFAULTS.pings, ...(parsed.pings || {}) },
+                });
             }
         } catch {
             // Corrupted blob — fall back to defaults silently.
         }
     }, []);
 
-    // Persist on every change.
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(notifs));
         } catch {
-            // Quota / private mode — no-op. State stays in memory.
+            // Quota / private mode — no-op.
         }
     }, [notifs]);
 
@@ -212,9 +216,29 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    const setAccordion = useCallback((name: AccordionName, open: boolean) => {
+        setNotifsState((prev) => {
+            // Closing — just flip the named one off.
+            if (!open) {
+                if (name === 'tape')  return { ...prev, tapeOpen: false };
+                if (name === 'todos') return { ...prev, todos: false };
+                if (name === 'notes') return { ...prev, notes: false };
+                // 'pings' has no boolean — it's the implicit default.
+                return prev;
+            }
+            // Opening — flip ALL accordions off, then open the named one.
+            const cleared = { ...prev, tapeOpen: false, todos: false, notes: false };
+            if (name === 'tape')  return { ...cleared, tapeOpen: true };
+            if (name === 'todos') return { ...cleared, todos: true };
+            if (name === 'notes') return { ...cleared, notes: true };
+            // 'pings' opens by closing the others.
+            return cleared;
+        });
+    }, []);
+
     const value = useMemo<PdNotifsContextValue>(
-        () => ({ notifs, setNotifs, update, toggle }),
-        [notifs, setNotifs, update, toggle]
+        () => ({ notifs, setNotifs, update, toggle, setAccordion }),
+        [notifs, setNotifs, update, toggle, setAccordion]
     );
 
     return <PdNotifsContext.Provider value={value}>{children}</PdNotifsContext.Provider>;
