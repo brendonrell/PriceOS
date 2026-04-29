@@ -1,84 +1,87 @@
-# PriceOS · Phase 2 · Step 1 (foundation)
+# PriceOS · Phase 2 · Step 2 (navbar shell + footer + backgrounds)
 
-**Branch to push to:** `dev` (NOT `main`).
+**Branch to push to:** `dev` (same as Step 1).
 
 ## What this step does
 
-Lays the foundation everything else rides on. No visible UI yet beyond
-the homepage colour change. The point of this step is to get state plumbing
-in place so steps 2+ have somewhere to read/write from.
+Adds the visible chrome that wraps every page:
 
-After deploy, you should see:
+- Sticky **navbar** at the top with three slots: rotating Petey logo (left),
+  empty Tape lane (middle, fills with live activity later), and the user
+  menu cluster (right) — cart button (hidden until cart has items),
+  PriceSprite face, level badge ❹❷, and the @brendon connect button.
+- **Footer** at the bottom: `PriceOS 1.0 · Connected · 0.044 gwei · Blk 22,140,887 · About · Discord · Docs · Support`.
+- **Background mounts** for the starfield (Stargazing spell) and the
+  Digital Familiar — both rendered in the DOM but hidden by default
+  via CSS, so when their toggles land they just need to flip a body
+  class rather than mount/unmount React subtrees.
 
-- `price-os-bay.vercel.app` (and `bayshaffer.com`) renders a flat **Hothurt
-  red** background instead of the indigo random-gradient from Phase 1.
-- The PD wordmark and tagline render in dark text on top.
-- Browser dev tools should show three things in localStorage after a few
-  seconds: `pd_settings_notifs`, `pd_settings_theme` (both as JSON blobs).
-- No console errors. No hydration warnings.
+The Connect Menu **dropdown contents** (Profile / Discord / Artists /
+Portfolio / Settings / Spell Book / Pings / Todos / Notes / Tape) are
+**not** in this step — that's Step 3. The connect button in Step 2
+hovers-to-expand but doesn't open anything when clicked.
 
-If any of those don't happen, something went wrong — flag it before step 2.
+## What to expect after deploy
+
+Looking at the dev preview URL after this commit lands:
+
+- Navbar at top: Petey speech-bubble logo on the left, then a wide
+  empty space in the middle (the Tape lane), then `(ง •̀_•́)ง ❹❷ ⟠`
+  cluster on the right. The connect button is collapsed by default
+  showing just the wallet glyph — hover over it and it expands to
+  reveal `@brendon`.
+- The PRICE DISCUSSION wordmark from Step 1 is now **vertically
+  centred between the navbar and footer** instead of floating in the
+  middle of the page.
+- Footer at the bottom in faint dark text.
+- Click the Petey logo: it rotates 90° counter-clockwise and a dotted-
+  border speech bubble appears next to it with HOME and $PRICE links.
+  Click again to unrotate.
+
+Things that should still be working from Step 1:
+- Hothurt red bg, Rubik Mono One on the wordmark, dark text, no
+  console errors, no white flash on hard reload.
 
 ## Files
-
-All paths are relative to the repo root. **Replacement** = drop-in over an
-existing file. **New** = create the file (and any parent dirs).
 
 | File | Type | Path |
 |---|---|---|
 | globals.css | **REPLACEMENT** | `app/globals.css` |
-| layout.tsx | **REPLACEMENT** | `app/layout.tsx` |
-| page.tsx | **REPLACEMENT** | `app/page.tsx` |
-| PdNotifsContext.tsx | NEW | `lib/state/PdNotifsContext.tsx` |
-| ThemeContext.tsx | NEW | `lib/state/ThemeContext.tsx` |
-| ModalContext.tsx | NEW | `lib/state/ModalContext.tsx` |
-| useBodyClass.ts | NEW | `lib/hooks/useBodyClass.ts` |
-| useLocalStorage.ts | NEW | `lib/hooks/useLocalStorage.ts` |
-| PriceOSShell.tsx | NEW | `components/shell/PriceOSShell.tsx` |
+| PriceOSShell.tsx | **REPLACEMENT** | `components/shell/PriceOSShell.tsx` |
+| Backgrounds.tsx | NEW | `components/shell/Backgrounds.tsx` |
+| Navbar.tsx | NEW | `components/shell/Navbar.tsx` |
+| PeteyLogo.tsx | NEW | `components/shell/PeteyLogo.tsx` |
+| Ticker.tsx | NEW | `components/shell/Ticker.tsx` |
+| UserMenuButtons.tsx | NEW | `components/shell/UserMenuButtons.tsx` |
+| Footer.tsx | NEW | `components/shell/Footer.tsx` |
 
-The zip mirrors the destination paths under their parent dirs, so dragging
-the contents over the repo root from GitHub's web UI should land them in
-the right places. Worth eyeballing in the GitHub diff view before merging.
+8 files. 2 replacements (globals.css and PriceOSShell.tsx), 6 new.
 
-## How to push (library-machine GitHub web UI)
+## How to push
 
-1. Make sure you're on the **`dev`** branch (the branch dropdown should
-   say `dev`, not `main`). Phase 1's last step ran a PR `dev → main`, so
-   `dev` should still exist. If it doesn't, create it from `main`.
-2. For each replacement file, navigate to it and use the pencil icon to
-   replace the contents. Don't try to drag-drop a replacement on top —
-   the web UI sometimes resolves the conflict weirdly.
-3. For the new files, use **Add file → Create new file** and paste paths
-   like `lib/state/PdNotifsContext.tsx` (the `/`-separated path is what
-   creates the parent dirs).
-4. Commit each file with a message like `step 1: <filename>`. After the
-   last commit, Vercel auto-deploys `dev` to a preview URL. Wait for the
-   green check.
-5. Side-by-side compare: production (`price-os-bay.vercel.app` = main)
-   should still show the indigo placeholder; the dev preview should show
-   Hothurt red.
-6. If the dev preview looks right, open a PR `dev → main` and merge.
+1. **Branch dropdown says `dev`.** Verify before doing anything else.
+2. Replace the two files via the pencil icon (don't drag-drop replacements
+   on top — GitHub web UI sometimes resolves conflicts unpredictably).
+3. Drag-drop the 6 new files into `components/shell/` (or use
+   "Add file → Create new file" and paste each path).
+4. Commit message: `step 2: navbar shell + footer + backgrounds`.
+5. Wait for Vercel green check on the dev preview URL.
+6. Eyeball the preview against the expectations above.
 
-## What's deferred
+## What's still deferred
 
-Step 1 is intentionally barebones. Things you might expect to see but
-won't yet:
+- Connect button click → dropdown open. **Step 3.**
+- Cart button click, PriceSprite click, level badge click. **Step 7.**
+- Tape population with live events. After indexer wires up.
+- Top Bar (grail pins, hammer, incognito, RPC ping) row above the
+  main navbar. Lands with the spell toggles that summon it.
+- Starfield star generation, Familiar sprite + animation. Step 4+
+  with Spell Book wiring.
+- "PriceOS 1.0" → changelog modal, "About PD" → about modal. Step 7.
 
-- The navbar, ticker, Connect Menu, footer — all in step 2.
-- Any actual styling beyond the page reset and brand tokens.
-- The Collection page — that's steps 5+.
+## If the build fails
 
-## Sanity checks for the deploy
-
-- `view-source:price-os-bay.vercel.app` should show `<meta name="theme-color" content="#FF0055">`
-  in the HTML head.
-- The pre-hydration script tag should be present right after `<body>`.
-- After a hard reload, no white flash before the Hothurt red paints.
-
-## If the build fails on Vercel
-
-Most likely culprit: a relative import path I got wrong (different repo
-layout than I assumed). Vercel's build log will point at the file. Send
-me the log and I'll fix it in a tiny patch zip.
+Most likely culprit: relative import paths if my assumed repo layout
+differs. Send me the Vercel build log and I'll patch.
 
 — Opus 4.7

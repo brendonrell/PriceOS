@@ -3,25 +3,33 @@
 /*
  * PriceOSShell
  *
- * The wrapping layout used by every route. In Step 1 it's a stub:
- * mounts the body-class sync hook and passes children through.
+ * Step 2 fills out the shell:
+ *   <Backgrounds />     starfield + familiar (mounted, gated off)
+ *   <Navbar />          sticky top chrome
+ *   <main>{children}    page content
+ *   <Footer />
  *
- * Step 2 fills it out with:
- *   <Backgrounds />   — starfield + familiar (gated, off by default)
- *   <Navbar />        — top bar + Petey + ticker + Connect Menu
- *   {children}
- *   <Footer />        — PriceOS 1.0 · Connected · gwei · etc.
- *   <ModalStack />    — all platform modals
- *   <Overlays />      — toasts + prompts + slide sheets
+ * useBodyClass stays mounted at the top so the body className stays
+ * in sync with PdNotifs state across the whole app.
  *
- * Keeping it minimal in Step 1 so the foundation can be deployed and
- * eyeballed before the chrome lands.
+ * The ModalStack and overlay layer (toasts, slide sheets) get added
+ * to this composition in Step 7 once the artwork modal lands.
  */
 
 import { type ReactNode } from 'react';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
+import { Backgrounds } from './Backgrounds';
+import { Navbar } from './Navbar';
+import { Footer } from './Footer';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
-    return <>{children}</>;
+    return (
+        <>
+            <Backgrounds />
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+        </>
+    );
 }
