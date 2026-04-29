@@ -1,42 +1,22 @@
-import Link from "next/link";
+/*
+ * Phase 1 shipped a random-gradient placeholder at / on indigo (#6366F1).
+ * Step 1 of Phase 2 swaps that to a flat Hothurt red placeholder so the
+ * deploy is visibly distinct from Phase 1 — proof step 1 landed correctly.
+ *
+ * The homepage gets replaced with the global feed in a later phase. Until
+ * then this is a presence beacon and a quick visual diff target between
+ * deploys.
+ */
 
-// D1 PROOF PAGE
-// Verifies: Next.js App Router works · Rubik Mono One loaded ·
-// Courier New fallback · brand tokens render · Vercel build green.
-// Replace with real homepage port in a later sprint.
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  return (
-    <main className="proof">
-      <h1 className="proof-logo">
-        Price<span className="pm">Discussion</span>
-      </h1>
-
-      <p className="proof-status">
-        <strong>D1 · Pipeline confirmed.</strong>
-        <br />
-        If you can read this on Vercel with Rubik Mono One above and the
-        brand stripes below, the GitHub → Vercel loop is live. Ready for
-        D2 (collection port).
-      </p>
-
-      <div className="proof-stripes">
-        <div className="stripe stripe-ink">INK &middot; #111111</div>
-        <div className="stripe stripe-hothurt">HOTHURT &middot; #FF0055</div>
-        <div className="stripe stripe-attention">ATTENTION &middot; #FFE600</div>
-        <div className="stripe stripe-paper">PAPER &middot; #E0E0E0</div>
-      </div>
-
-      <nav className="proof-routes">
-        <div style={{ opacity: 0.5, fontSize: 11, marginBottom: 4 }}>
-          ROUTE SHELLS (all empty in D1):
+    return (
+        <div className="placeholder-shell">
+            <div>
+                <div className="placeholder-wordmark">PRICE&nbsp;DISCUSSION</div>
+                <div className="placeholder-tagline">COLLECT · CHAT · DEBATE · PROFIT</div>
+            </div>
         </div>
-        <Link href="/collection/portals">/collection/portals</Link>
-        <Link href="/profile/brendon">/profile/brendon</Link>
-        <Link href="/token/1">/token/1</Link>
-        <Link href="/artist/piterpasma">/artist/piterpasma</Link>
-        <Link href="/mint/portals">/mint/portals</Link>
-      </nav>
-    </main>
-  );
+    );
 }
