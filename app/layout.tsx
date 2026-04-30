@@ -5,6 +5,7 @@ import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
+import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
@@ -116,7 +117,9 @@ export default function RootLayout({
                             <ModalProvider>
                                 <DropdownProvider>
                                     <CalendarProvider>
-                                        <PriceOSShell>{children}</PriceOSShell>
+                                        <NotePromptProvider>
+                                            <PriceOSShell>{children}</PriceOSShell>
+                                        </NotePromptProvider>
                                     </CalendarProvider>
                                 </DropdownProvider>
                             </ModalProvider>
