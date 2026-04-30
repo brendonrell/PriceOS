@@ -20,7 +20,7 @@ import { GlobalSearchBar } from './GlobalSearchBar';
 import { LinksView } from './LinksView';
 import { PanelPlaceholder } from './PanelPlaceholder';
 import { SettingsView } from './settings/SettingsView';
-import { CalendarPanel } from '../CalendarPanel';
+import CalendarPanel from '../CalendarPanel';
 
 export function UserDropdown() {
     const { view } = useDropdown();
