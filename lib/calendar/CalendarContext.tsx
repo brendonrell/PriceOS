@@ -9,18 +9,25 @@
  * Initial state matches sim's CAL_TODAY (April 19 2026 — the prototype's
  * simulated "today"). When real wall-clock time replaces this, swap
  * CAL_TODAY in data.ts.
+ *
+ * Day notes persist to localStorage('pd_day_notes'). Hydration runs once on
+ * mount; setDayNote writes through on every mutation. Empty `note` arg
+ * deletes the key — same semantics as sim's saveDayNote at lines 5894–5905.
  */
 
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
 import { CAL_TODAY } from './data';
 import type { CalendarContextValue, DayNotesMap } from './types';
+
+const DAY_NOTES_KEY = 'pd_day_notes';
 
 const CalendarCtx = createContext<CalendarContextValue | null>(null);
 
@@ -32,6 +39,21 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selD, setSelD] = useState<number>(CAL_TODAY.d);
   const [todosMode, setTodosMode] = useState<boolean>(false);
   const [dayNotes, setDayNotes] = useState<DayNotesMap>({});
+
+  // Hydrate day notes from localStorage on mount. Wrapped in try/catch —
+  // corrupted localStorage shouldn't take down the app.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DAY_NOTES_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        setDayNotes(parsed as DayNotesMap);
+      }
+    } catch {
+      // swallow — bad JSON or storage access denial
+    }
+  }, []);
 
   const selectDay = useCallback((y: number, m: number, d: number) => {
     setSelY(y);
@@ -70,6 +92,11 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
       const next = { ...prev };
       if (note) next[dayKey] = note;
       else delete next[dayKey];
+      try {
+        localStorage.setItem(DAY_NOTES_KEY, JSON.stringify(next));
+      } catch {
+        // swallow — storage quota or access denial
+      }
       return next;
     });
   }, []);
