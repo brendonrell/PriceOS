@@ -5,6 +5,7 @@ import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
+import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
 export const metadata: Metadata = {
@@ -114,7 +115,9 @@ export default function RootLayout({
                         <SortProvider>
                             <ModalProvider>
                                 <DropdownProvider>
-                                    <PriceOSShell>{children}</PriceOSShell>
+                                    <CalendarProvider>
+                                        <PriceOSShell>{children}</PriceOSShell>
+                                    </CalendarProvider>
                                 </DropdownProvider>
                             </ModalProvider>
                         </SortProvider>
