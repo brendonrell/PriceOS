@@ -12,10 +12,8 @@
  * height-locked CSS does the rest.
  *
  * NOTES:
- *  - Day Note edit flow defers to a future round when the modal stack
- *    lands. Buttons render and have hover affordance; their click
- *    handlers are stubbed with TODO markers so wire-in is one diff
- *    when the modal arrives.
+ *  - Day Note edit flow is wired to NotePromptContext via
+ *    openDayNoteEditor(selKey); the modal renders at the app shell.
  *  - Top Bar Calendar (⥹) is a separate piece, not in scope here.
  */
 
@@ -27,6 +25,7 @@ import {
   CAL_TODOS,
 } from '../lib/calendar/data';
 import { useCalendar } from '../lib/calendar/CalendarContext';
+import { useNotePrompt } from '../lib/state/NotePromptContext';
 import {
   buildMonthCells,
   dateKey,
@@ -39,6 +38,8 @@ export default function CalendarPanel() {
     todosMode, dayNotes,
     selectDay, jumpToToday, toggleTodos,
   } = useCalendar();
+
+  const { openDayNoteEditor } = useNotePrompt();
 
   const cells = useMemo(() => buildMonthCells(viewY, viewM), [viewY, viewM]);
 
@@ -56,12 +57,6 @@ export default function CalendarPanel() {
   const events = CAL_EVENTS[selKey] || [];
   const todos = todosMode ? (CAL_TODOS[selKey] || []) : [];
   const empty = events.length === 0 && todos.length === 0 && !dayNote;
-
-  // TODO: wire to modal stack when ported. For now the click is a
-  // hover-affordance only — matches the sim's tap-target shape.
-  const openDayNoteEditor = () => {
-    // intentional no-op — see TODO above
-  };
 
   return (
     <div className="calendar-panel active" id="calendarPanel">
@@ -166,12 +161,12 @@ export default function CalendarPanel() {
               className={`cal-daynote-btn${hasNote ? ' has-note' : ''}`}
               role="button"
               tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); openDayNoteEditor(); }}
+              onClick={(e) => { e.stopPropagation(); openDayNoteEditor(selKey); }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   e.stopPropagation();
-                  openDayNoteEditor();
+                  openDayNoteEditor(selKey);
                 }
               }}
               title="Day Note"
@@ -188,12 +183,12 @@ export default function CalendarPanel() {
                 className="cal-event-item cal-event-daynote"
                 role="button"
                 tabIndex={0}
-                onClick={(e) => { e.stopPropagation(); openDayNoteEditor(); }}
+                onClick={(e) => { e.stopPropagation(); openDayNoteEditor(selKey); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     e.stopPropagation();
-                    openDayNoteEditor();
+                    openDayNoteEditor(selKey);
                   }
                 }}
                 title="Edit Day Note"
