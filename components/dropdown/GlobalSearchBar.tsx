@@ -20,9 +20,30 @@
  * F25: icons row (▰ ⥹ ▦) hidden on settings / artists / portfolio views
  *      (sim.html 11129–11130). Only menu-links and calendar surfaces show
  *      the icons row alongside the search bar / cal-header.
+ * F23: --pd-menu-height is now measured at calendar-open time, not
+ *      hardcoded. Mirrors sim toggleCalendar (sim.html 6529–6549):
+ *
+ *      OPEN  → measure #dropdownMenuLinks getBoundingClientRect().height,
+ *              write to documentElement --pd-menu-height (1-decimal),
+ *              measure .user-dropdown getBoundingClientRect().height,
+ *              pin min-height as permanent floor on first successful open
+ *              (dataset.heightLocked guard, sim parity), pin strict height
+ *              on every open (released on close).
+ *      CLOSE → clear strict .user-dropdown style.height; min-height floor
+ *              stays so settings/artists/portfolio can grow taller without
+ *              snapping smaller than the menu-links footprint.
+ *
+ *      Measurement happens synchronously in the click handler BEFORE
+ *      setView('calendar') runs, because by the time the next render
+ *      completes LinksView (#dropdownMenuLinks) has already unmounted
+ *      and there is nothing to measure. The min-height floor persists
+ *      across subsequent opens via dataset.heightLocked, so opening
+ *      calendar from settings/artists/portfolio (where #dropdownMenuLinks
+ *      isn't in the DOM and the new measurement is skipped) still keeps
+ *      the dropdown at full size after the first links→calendar open.
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
@@ -53,6 +74,9 @@ export function GlobalSearchBar() {
     const { view, setView } = useDropdown();
     const [active, setActive] = useState(false);
     const [value, setValue] = useState('');
+    // F23: ref on the wrap so we can walk up to .user-dropdown via .closest()
+    // without reaching for a global document.querySelector.
+    const wrapRef = useRef<HTMLDivElement | null>(null);
 
     const calendarOpen = view === 'calendar';
 
@@ -68,17 +92,68 @@ export function GlobalSearchBar() {
         update({ topBarCalendar: !notifs.topBarCalendar });
     };
 
-    // F21: true toggle. Tapping ▦ while calendar is open returns to links.
-    // Tapping from any other view (links / settings / artists / portfolio)
-    // opens the calendar — setView replaces the previous view's mount, so
-    // sim's "explicitly close Settings/Artists/Portfolio first" path is
-    // implicit in React.
+    // F21 + F23: true toggle with synchronous height-lock measurement.
+    //
+    // Tapping ▦ while calendar is open returns to links and releases the
+    // strict height lock. Tapping from any other view opens the calendar;
+    // setView replaces the previous view's mount, so sim's "explicitly
+    // close Settings/Artists/Portfolio first" path is implicit in React.
+    //
+    // The measurement MUST run before setView('calendar') because LinksView
+    // (which renders #dropdownMenuLinks) unmounts on the next render. We
+    // reach into the live DOM here — wrapRef → closest('.user-dropdown'),
+    // and getElementById('dropdownMenuLinks') for the menu-links element.
     const toggleCalendar = () => {
-        setView(calendarOpen ? 'links' : 'calendar');
+        const userDd = wrapRef.current?.closest('.user-dropdown') as
+            | HTMLElement
+            | null;
+
+        if (calendarOpen) {
+            // CLOSE → release strict height. min-height floor stays so the
+            // dropdown can't snap smaller than the menu-links footprint;
+            // settings/artists/portfolio remain free to grow taller.
+            if (userDd) userDd.style.height = '';
+            setView('links');
+            return;
+        }
+
+        // OPEN → measure now while #dropdownMenuLinks is still mounted
+        // (i.e. when view === 'links'). If the user is on settings, artists,
+        // or portfolio, the links element isn't in the DOM and we skip the
+        // measurement; the previously-locked min-height keeps the dropdown
+        // from contracting on subsequent opens.
+        const links = document.getElementById('dropdownMenuLinks');
+        if (links && userDd) {
+            const h = links.getBoundingClientRect().height;
+            if (h > 0) {
+                // 1-decimal precision (matches sim 6533) — eliminates
+                // sub-pixel jitter without rounding the menu-links and
+                // calendar panel to different integer heights.
+                const hStr = `${Math.round(h * 10) / 10}px`;
+                document.documentElement.style.setProperty(
+                    '--pd-menu-height',
+                    hStr
+                );
+
+                const fullH = userDd.getBoundingClientRect().height;
+                const fullHStr = `${Math.round(fullH * 10) / 10}px`;
+
+                // First successful open seeds the permanent min-height
+                // floor (dataset.heightLocked guard, sim parity at 6546).
+                // Strict height is set on every open and cleared on close.
+                if (!userDd.dataset.heightLocked) {
+                    userDd.style.minHeight = fullHStr;
+                    userDd.dataset.heightLocked = '1';
+                }
+                userDd.style.height = fullHStr;
+            }
+        }
+
+        setView('calendar');
     };
 
     return (
-        <div className="global-search-wrap">
+        <div className="global-search-wrap" ref={wrapRef}>
             <div
                 id="gasWidgetRow"
                 style={{
@@ -177,7 +252,8 @@ export function GlobalSearchBar() {
                         >
                             ⥹{'\uFE0E'}
                         </span>
-                        {/* F21: .active while calendar is open + click toggles. */}
+                        {/* F21: .active while calendar is open + click toggles.
+                            F23: toggleCalendar measures --pd-menu-height before swapping. */}
                         <span
                             className={`dm-icon dm-icon-calendar${calendarOpen ? ' active' : ''}`}
                             id="dm-calendar"
