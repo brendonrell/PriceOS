@@ -80,6 +80,44 @@
     align-items: center;
 }
 
+/* ENS expanded — sim's two-row horizontal-scroll strip. The accompanying
+   WalletSection.tsx rebuild (F1b) reshapes the row DOM on expand into:
+       row → .ens-scroll-viewport → .ens-scroll-stack → 2× .ens-scroll-row
+   splitting pills across the two rows. The viewport owns the horizontal
+   scroll; pills keep their natural content widths via flex-shrink: 0 +
+   white-space: nowrap, which extends the scroll track as needed.
+   Collapse flattens back to the default flex-wrap row.
+   These rules are inert until F1b ships — safe to land alone. */
+.settings-ens-row.ens-expanded {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.ens-scroll-viewport {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+.ens-scroll-viewport::-webkit-scrollbar { display: none; }
+.ens-scroll-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+    width: max-content;
+}
+.ens-scroll-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+.ens-scroll-row .pill-ens {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .pill-ens {
     height: auto;
     min-height: 24px;
