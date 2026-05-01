@@ -63,6 +63,14 @@ export default function NotePromptModal({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Tracks where the most recent mousedown landed. Must live above the
+  // early returns below — React requires every hook to run in the same
+  // order every render. We only close on backdrop click if BOTH mousedown
+  // AND mouseup happened on the backdrop itself — otherwise text-drag
+  // selections (mousedown in the textarea, mouseup outside the box)
+  // would close the modal.
+  const mouseDownTargetRef = useRef<EventTarget | null>(null);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -119,14 +127,8 @@ export default function NotePromptModal({
   if (!isClient) return null;
   if (!open && !mounted) return null;
 
-  // Tracks where the most recent mousedown landed. We only close on
-  // backdrop click if BOTH mousedown AND mouseup happened on the backdrop
-  // itself — otherwise text-drag selections (mousedown in the textarea,
-  // mouseup outside the box) would close the modal. Sim doesn't hit this
-  // because its native click handler isn't paired with a draggable
-  // textarea sitting on top of the wrap.
-  const mouseDownTargetRef = useRef<EventTarget | null>(null);
-
+  // Backdrop close handlers — see mouseDownTargetRef declaration above
+  // for why this is split into mousedown + mouseup rather than onClick.
   const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     mouseDownTargetRef.current = e.target;
   };
