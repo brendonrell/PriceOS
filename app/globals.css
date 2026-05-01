@@ -580,6 +580,7 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 .dm-icon {
     font-family: 'Courier New', Courier, monospace;
     font-size: 20px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
     color: var(--bg-color);
     opacity: 0.7;
     cursor: pointer;
@@ -589,6 +590,9 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 }
 .dm-icon:hover { opacity: 1; }
 .dm-icon.active { opacity: 1; }
+
+.dm-icon-topbarcal { font-size: 12px; }
+.dm-icon-menutape  { font-size: 16px; }
 
 @media (max-width: 600px) {
     .dm-icon-calendar  { font-size: 26px; }
