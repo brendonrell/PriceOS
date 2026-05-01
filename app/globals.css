@@ -647,8 +647,14 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     flex-shrink: 0;
     display: inline-flex; align-items: center; gap: 4px;
 }
+.gas-widget:hover { opacity: 1; }
 .gas-widget-inline { padding: 0; margin-right: 5px; }
 .gas-glyph { font-size: 13px; opacity: 0.85; }
+/* Gas widget glyph (⍞) — mobile-only 0.5px down nudge for optical alignment
+   with the gwei text. Sub-pixel, modern browsers anti-alias the shift. */
+@media (max-width: 600px) {
+    .gas-glyph { position: relative; top: 0.5px; display: inline-block; }
+}
 
 
 /* ── PANEL PLACEHOLDERS (used only while their full panels haven't shipped) ── */
@@ -794,13 +800,53 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 .scroll-arrow:hover { opacity: 1; }
 
 
-/* ── TAPE BOX ────────────────────────────────────────────── */
-.menu-tape-rail-h {
-    flex: 1;
+/* ── MENU TAPE ────────────────────────────────────────────
+   Inverted-context tape inside the Connect Menu dropdown. #tapeBox is the
+   AccordionBox shell; its notif-header is the tape ticker slot (instead of a
+   "NOTES (22)"-style label). Mode 0 (OFF) is React-gated — TapeBox returns
+   null in mode 0 — so no display:none CSS rule is needed in the port.
+   Mode 3 = Bold, Mode 4 = Framed (port classes: .menu-tape-bold / .menu-tape-framed).
+
+   Dropdown context: .user-dropdown sets background:var(--text-color) and
+   color:var(--bg-color), so inside the dropdown --bg-color is the visible
+   text colour (light/orange) and --text-color is the dark dropdown surface.
+   ────────────────────────────────────────────────────────── */
+#tapeBox .notif-header {
+    padding: 4px 0 !important;
+    letter-spacing: 0 !important;
+    opacity: 1 !important;
     overflow: hidden;
-    height: 22px;
-    line-height: 22px;
+    color: var(--bg-color);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+}
+#tapeBox .menu-tape-rail-h {
+    display: block;
+    white-space: nowrap;
+    padding-left: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    line-height: 1.2;
     color: inherit;
+    font-weight: inherit;
+    will-change: transform;
+    /* Transform driven by the rAF loop that lands with the indexer
+       (sim's _menuTapeStep, shared px/sec with the top tape). Rail is
+       currently static in the port — animation lands with the tape-data
+       workstream. */
+}
+/* BOLD (mode 3) — visible text on the dark dropdown surface, weight 700. */
+#tapeBox.menu-tape-bold .menu-tape-rail-h { font-weight: 700; }
+/* FRAMED (mode 4) — inverted strip: light bg with dark text. Body unchanged. */
+#tapeBox.menu-tape-framed .notif-header {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+#tapeBox.menu-tape-framed .menu-tape-rail-h {
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 
