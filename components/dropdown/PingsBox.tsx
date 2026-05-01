@@ -11,6 +11,10 @@
  * Per the sim's handlePingsHeaderClick: if any other accordion is
  * open, this header click closes them. Otherwise it's a no-op (Pings
  * itself doesn't toggle — it has no closed state of its own).
+ *
+ * Scroll step is 60px (sim line 6760: `scrollNotifs` uses dir * 60),
+ * tighter than the 80px used by Tape / Todos / Notes — Pings rows
+ * are denser so a smaller step keeps scrolling readable.
  */
 
 import { AccordionBox } from './AccordionBox';
@@ -38,6 +42,7 @@ export function PingsBox() {
             alwaysOpen={pingsActive}
             open={pingsActive}
             onHeaderClick={onHeaderClick}
+            scrollStep={60}
             header={
                 <>
                     PINGS
