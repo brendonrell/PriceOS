@@ -17,7 +17,7 @@
  *  - Top Bar Calendar (⥹) is a separate piece, not in scope here.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   CAL_EVENTS,
   CAL_MONTH_SHORT,
@@ -42,6 +42,16 @@ export default function CalendarPanel() {
   const { openDayNoteEditor } = useNotePrompt();
 
   const cells = useMemo(() => buildMonthCells(viewY, viewM), [viewY, viewM]);
+
+  // Sim 6558–6559: every calendar open hard-resets view + selection to
+  // CAL_TODAY. CalendarPanel only mounts when active === 'calendar', so a
+  // mount-time effect with empty deps is the per-open reset. Hook lives at
+  // the top of the component (alongside useMemo above) — never below an
+  // early return.
+  useEffect(() => {
+    jumpToToday();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // "Today" link is illuminated only when the calendar is viewing
   // the current month/year AND the selected day IS today.
