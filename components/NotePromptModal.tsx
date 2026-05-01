@@ -119,10 +119,26 @@ export default function NotePromptModal({
   if (!isClient) return null;
   if (!open && !mounted) return null;
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
+  // Tracks where the most recent mousedown landed. We only close on
+  // backdrop click if BOTH mousedown AND mouseup happened on the backdrop
+  // itself — otherwise text-drag selections (mousedown in the textarea,
+  // mouseup outside the box) would close the modal. Sim doesn't hit this
+  // because its native click handler isn't paired with a draggable
+  // textarea sitting on top of the wrap.
+  const mouseDownTargetRef = useRef<EventTarget | null>(null);
+
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    mouseDownTargetRef.current = e.target;
+  };
+
+  const handleBackdropMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (
+      e.target === e.currentTarget &&
+      mouseDownTargetRef.current === e.currentTarget
+    ) {
       onClose();
     }
+    mouseDownTargetRef.current = null;
   };
 
   const handlePrimaryClick = () => {
@@ -153,8 +169,12 @@ export default function NotePromptModal({
     .join(' ');
 
   return createPortal(
-    <div className={wrapClassName} onClick={handleBackdropClick}>
-      <div className={boxClassName} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={wrapClassName}
+      onMouseDown={handleBackdropMouseDown}
+      onMouseUp={handleBackdropMouseUp}
+    >
+      <div className={boxClassName}>
         <div className="note-prompt-handle" />
         <span
           className="note-prompt-close-x"
