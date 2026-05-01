@@ -11,20 +11,33 @@
  *   - ENS pills row: 3 visible by default, …more reveals the full list
  *   - 17,450.54 PRICE | balance-toggle eyeball
  *
- * Step 4 ships:
- *   - Tap handle → copies to clipboard, shows toast (toast wired in step 6)
- *   - ENS pill click → marks that pill active (single-active radio behavior)
- *   - …more / …hide → toggles visibility of pills 4+
- *   - Balance toggle → swaps the number for ***
+ * Collapsed ENS row (default):
+ *   Flat flex-wrap of the first 3 pills (active pill bumped in if it sits
+ *   beyond the cutoff) + the …more button.
  *
- * Step 4 defers:
+ * Expanded ENS row (after tapping …more):
+ *   Per sim — DOM reshapes to a single nowrap container holding a scroll
+ *   viewport + the …hide button:
+ *
+ *     row.settings-ens-row.ens-expanded
+ *       > .ens-scroll-viewport          (flex: 1 1 auto, overflow-x: auto)
+ *           > .ens-scroll-stack         (inline-flex column, width: max-content)
+ *               > .ens-scroll-row       (top half, flex-shrink: 0 nowrap)
+ *               > .ens-scroll-row       (bottom half)
+ *       > button.ens-more-btn (…hide)   (pinned right of viewport)
+ *
+ *   Pills split with `Math.ceil(N/2)` going to row 1, the rest to row 2 —
+ *   biases row 1 by one when the count is odd, which keeps the first three
+ *   (always-visible collapsed set) pinned to row 1 as long as there are 6+
+ *   pills total. Pills keep natural widths via flex-shrink: 0 + nowrap;
+ *   viewport scrolls horizontally as needed.
+ *
+ * F1b lights up the inert CSS shipped in F1a (.ens-scroll-viewport /
+ * .ens-scroll-stack / .ens-scroll-row in styles/settings.css).
+ *
+ * Step 4 still defers:
  *   - RPC ping interaction (would show latency popover)
  *   - Incognito proxy interaction
- *   - The two-row horizontal-scroll expanded view (the sim's full
- *     ens-scroll-stack with split rows). Our expand just shows all
- *     pills wrapped — same data visible, same active pill, simpler
- *     internals. The full split-and-scroll behavior can land later
- *     once the wallet ENS list is real.
  */
 
 import { useState } from 'react';
@@ -59,6 +72,7 @@ export function WalletSection() {
 
     // Only show the …more affordance when there are more than 3 pills.
     const showMoreBtn = ENS_PILLS.length > 3;
+
     // Which pills are visible in the collapsed state — first 3 pills,
     // bumping the active one in if it's beyond the cutoff.
     const collapsedVisible = (() => {
@@ -71,6 +85,43 @@ export function WalletSection() {
         }
         return visible;
     })();
+
+    // Expanded state pill split — first half → row 1, second half → row 2.
+    // Math.ceil biases row 1 to one more pill when the count is odd.
+    const splitIndex = Math.ceil(ENS_PILLS.length / 2);
+    const pillsRow1 = ENS_PILLS.slice(0, splitIndex);
+    const pillsRow2 = ENS_PILLS.slice(splitIndex);
+
+    const renderPill = (ens: string) => {
+        const isActive = ens === activeEns;
+        return (
+            <button
+                key={ens}
+                type="button"
+                className={`pill-ens${isActive ? ' active' : ''}`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveEns(ens);
+                }}
+            >
+                ↳ {ens}
+            </button>
+        );
+    };
+
+    const moreButton = showMoreBtn ? (
+        <button
+            type="button"
+            className="ens-more-btn"
+            onClick={(e) => {
+                e.stopPropagation();
+                setEnsExpanded((v) => !v);
+            }}
+            title={ensExpanded ? 'Collapse wallet ENS list' : 'Show all wallet ENS'}
+        >
+            {ensExpanded ? '…hide' : '…more'}
+        </button>
+    ) : null;
 
     return (
         <>
@@ -120,37 +171,25 @@ export function WalletSection() {
                 className={`settings-ens-row${ensExpanded ? ' ens-expanded' : ''}`}
                 id="walletEnsRow"
             >
-                {ENS_PILLS.map((ens) => {
-                    const visible = ensExpanded || collapsedVisible.has(ens);
-                    if (!visible) return null;
-                    const isActive = ens === activeEns;
-                    return (
-                        <button
-                            key={ens}
-                            type="button"
-                            className={`pill-ens${isActive ? ' active' : ''}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveEns(ens);
-                            }}
-                        >
-                            ↳ {ens}
-                        </button>
-                    );
-                })}
-
-                {showMoreBtn && (
-                    <button
-                        type="button"
-                        className="ens-more-btn"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setEnsExpanded((v) => !v);
-                        }}
-                        title={ensExpanded ? 'Hide extra ENS' : 'Show all wallet ENS'}
-                    >
-                        {ensExpanded ? '…hide' : '…more'}
-                    </button>
+                {ensExpanded ? (
+                    <>
+                        <div className="ens-scroll-viewport">
+                            <div className="ens-scroll-stack">
+                                <div className="ens-scroll-row">
+                                    {pillsRow1.map(renderPill)}
+                                </div>
+                                <div className="ens-scroll-row">
+                                    {pillsRow2.map(renderPill)}
+                                </div>
+                            </div>
+                        </div>
+                        {moreButton}
+                    </>
+                ) : (
+                    <>
+                        {ENS_PILLS.filter((p) => collapsedVisible.has(p)).map(renderPill)}
+                        {moreButton}
+                    </>
                 )}
             </div>
 
