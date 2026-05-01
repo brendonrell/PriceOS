@@ -17,6 +17,9 @@
  * F21: ▦ icon is now a true toggle (sim toggleCalendar at sim.html line 6489).
  *      Adds .active class while calendar view is open — globals.css:591
  *      .dm-icon.active { opacity: 1 }.
+ * F25: icons row (▰ ⥹ ▦) hidden on settings / artists / portfolio views
+ *      (sim.html 11129–11130). Only menu-links and calendar surfaces show
+ *      the icons row alongside the search bar / cal-header.
  */
 
 import { useState } from 'react';
@@ -136,10 +139,11 @@ export function GlobalSearchBar() {
                     </div>
                 )}
 
-                {/* Icons row — visible whenever search is dormant OR calendar is open.
-                    Hidden only when search is actively typing (it takes the full row).
+                {/* Icons row — visible only on links or calendar view, and only
+                    when search isn't actively typing (active typing takes the full row).
+                    F25: hidden on settings / artists / portfolio (sim.html 11129–11130).
                     Sim DOM 4487–4491: icons live in the same row as the search/cal-header. */}
-                {(calendarOpen || !active) && (
+                {(view === 'links' || view === 'calendar') && (calendarOpen || !active) && (
                     <span className="top-menu-icons">
                         <span
                             className={`dm-icon dm-icon-menutape${notifs.menutape !== 0 ? ' active' : ''}`}
