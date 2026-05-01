@@ -58,7 +58,11 @@ const ENS_PILLS = [
 const INITIAL_BALANCE = '17,450.54';
 
 export function WalletSection() {
-    const [activeEns, setActiveEns] = useState<string>(ENS_PILLS[0]);
+    // F2: ENS pills behave as a toggle — tapping the active pill again
+    // deselects it (no active pill). Mirrors sim's selectENS, which removes
+    // the active class from all pills, then re-adds it only if the click
+    // target wasn't already active. So `activeEns` can be null.
+    const [activeEns, setActiveEns] = useState<string | null>(ENS_PILLS[0]);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
 
@@ -78,7 +82,7 @@ export function WalletSection() {
     const collapsedVisible = (() => {
         if (ENS_PILLS.length <= 3) return new Set(ENS_PILLS);
         const visible = new Set<string>();
-        if (ENS_PILLS.indexOf(activeEns) >= 0) visible.add(activeEns);
+        if (activeEns && ENS_PILLS.indexOf(activeEns) >= 0) visible.add(activeEns);
         for (const p of ENS_PILLS) {
             if (visible.size >= 3) break;
             visible.add(p);
@@ -101,7 +105,7 @@ export function WalletSection() {
                 className={`pill-ens${isActive ? ' active' : ''}`}
                 onClick={(e) => {
                     e.stopPropagation();
-                    setActiveEns(ens);
+                    setActiveEns((prev) => (prev === ens ? null : ens));
                 }}
             >
                 ↳ {ens}
