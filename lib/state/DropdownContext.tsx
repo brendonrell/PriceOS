@@ -30,6 +30,12 @@
  * handler also queries the wrapper element fresh each time rather
  * than relying on closest() walking up from the target, which is
  * more robust if anything ever does manage to detach mid-flight.
+ *
+ * Viewport sync — also lives here (sim.html 6670–6688). The dropdown
+ * stack's max-height is driven by a CSS variable --dropdown-max-h
+ * which has to track the visual viewport on iOS 26 (and any other
+ * mobile environment where chrome resizes the visual viewport
+ * independently of the layout viewport). See the useEffect below.
  */
 
 import {
@@ -109,6 +115,74 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
     }, [menuOpen]);
+
+    // ── iOS 26 Safari bottom-cutoff fix (sim.html 6670–6688) ──
+    //
+    // CSS-only approaches (svh, dvh, env(safe-area-inset-bottom),
+    // fixed padding) can't track iOS 26's three URL-bar configs
+    // (top bar / bottom minimised / bottom expanded) because the
+    // layout viewport != the visual viewport when the keyboard or
+    // URL bar is mid-transition. window.visualViewport returns the
+    // actual pixel rectangle the user can see — exactly what the
+    // dropdown's max-height needs to know.
+    //
+    // Sets --dropdown-max-h on <html>; consumed by .dropdown-stack
+    // in app/globals.css (line 407) as `max-height: var(--dropdown-max-h, …)`.
+    //
+    // Runs always (not gated on menuOpen) so the value is correct
+    // the first time the menu opens, matching sim's permanent
+    // window-level bindings.
+    useEffect(() => {
+        const sync = () => {
+            const stack = document.querySelector('.dropdown-stack');
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (!stack || !wrapper) return;
+            const vv = window.visualViewport;
+            const vpHeight = vv ? vv.height : window.innerHeight;
+            const vpOffsetTop = vv ? vv.offsetTop : 0;
+            const rect = (wrapper as HTMLElement).getBoundingClientRect();
+            // getBoundingClientRect is in LAYOUT-viewport coords;
+            // visualViewport.offsetTop tells us how far the visual vp
+            // is shifted. Available space below the wrapper in the
+            // visual viewport = (vv bottom) - (wrapper bottom in vv coords).
+            const wrapperBottomInVV = rect.bottom - vpOffsetTop;
+            const availableBelow = vpHeight - wrapperBottomInVV;
+            // 20px safety margin so the last scrolled item never butts
+            // the visual-viewport edge. env(safe-area-inset-bottom) is
+            // already in the stack's padding-bottom — don't double-count.
+            const maxH = Math.max(200, Math.floor(availableBelow - 20));
+            document.documentElement.style.setProperty(
+                '--dropdown-max-h',
+                `${maxH}px`
+            );
+        };
+
+        const vv = window.visualViewport;
+        if (vv) {
+            vv.addEventListener('resize', sync);
+            vv.addEventListener('scroll', sync);
+        }
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+
+        // First-paint sync, after layout is stable. Double rAF matches sim.
+        let raf1 = 0;
+        let raf2 = 0;
+        raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(sync);
+        });
+
+        return () => {
+            if (vv) {
+                vv.removeEventListener('resize', sync);
+                vv.removeEventListener('scroll', sync);
+            }
+            window.removeEventListener('resize', sync);
+            window.removeEventListener('orientationchange', sync);
+            if (raf1) cancelAnimationFrame(raf1);
+            if (raf2) cancelAnimationFrame(raf2);
+        };
+    }, []);
 
     const value = useMemo<DropdownContextValue>(
         () => ({ menuOpen, view, openMenu, closeMenu, toggleMenu, setView, reset }),
