@@ -7,14 +7,21 @@
  * Connect Menu (Tape / Pings / Todos / Notes).
  *
  * Visual: matches .notifications-box from the sim — a self-contained
- * panel with a header row and (when open) a scrollable list with up/
- * down scroll arrow rows above and below.
+ * panel with a header row, a divider, and (when open) a scrollable
+ * list with up/down scroll arrow rows above and below.
  *
  * Behavior:
  *   - Header click toggles open/closed
  *   - Mutual exclusion is handled by the caller via setAccordion in
  *     PdNotifsContext; this component just renders state
- *   - Scroll arrows scroll the inner list by 80px in either direction
+ *   - Scroll arrows scroll the inner list by `scrollStep` px in either
+ *     direction. Defaults to 80 (Tape / Todos / Notes per sim 5952,
+ *     6105, 7222). Pings overrides to 60 (sim 6760).
+ *   - When the body is visible, a `.dropdown-divider` is rendered
+ *     between the header and the body. Its visibility tracks the body
+ *     (both gated on `isVisible` here, matching sim's
+ *     applyDropdownStates which toggles body and divider together —
+ *     sim 7238–7246).
  *
  * Pings is the only accordion that always shows when the menu opens
  * (its closed state isn't really "closed" — it's an "always there"
@@ -44,6 +51,12 @@ interface Props {
     alwaysOpen?: boolean;
     /** Optional className additions on the outer box. */
     className?: string;
+    /**
+     * Pixels per scroll-arrow click. Defaults to 80 (Tape / Todos /
+     * Notes per sim). Pings passes 60 (sim's scrollNotifs uses
+     * `dir * 60`, line 6760).
+     */
+    scrollStep?: number;
 }
 
 export function AccordionBox({
@@ -55,6 +68,7 @@ export function AccordionBox({
     boxId,
     alwaysOpen = false,
     className,
+    scrollStep = 80,
 }: Props) {
     const listRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +76,7 @@ export function AccordionBox({
 
     const scrollList = (direction: 1 | -1) => {
         const el = listRef.current;
-        if (el) el.scrollBy({ top: direction * 80, behavior: 'smooth' });
+        if (el) el.scrollBy({ top: direction * scrollStep, behavior: 'smooth' });
     };
 
     return (
@@ -87,6 +101,7 @@ export function AccordionBox({
 
             {isVisible && (
                 <>
+                    <div className="dropdown-divider" />
                     <div
                         className="scroll-arrow"
                         onClick={() => scrollList(-1)}
