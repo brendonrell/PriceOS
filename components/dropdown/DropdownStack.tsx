@@ -11,9 +11,11 @@
  *   4. TodosBox     — always present
  *   5. NotesBox     — always present
  *
- * The accordion boxes (2-5) are hidden when the user-dropdown is on a
- * sub-panel view (settings/calendar/artists/portfolio) — that matches
- * the sim's behavior of giving sub-panels the full vertical space.
+ * The accordion boxes (2-5) stay visible on the default `links` view AND
+ * on the `calendar` view — sim explicitly keeps Pings / To-Dos / Notes
+ * below the calendar (sim.html line 6132–6133: "Pings / To-Dos / Notes
+ * below stay visible"). They hide on `settings` / `artists` / `portfolio`
+ * because those panels take the full vertical space.
  *
  * Visibility of the whole stack is controlled by .user-menu-wrapper.active
  * via CSS — this component just renders the content unconditionally
@@ -29,7 +31,7 @@ import { NotesBox } from './NotesBox';
 
 export function DropdownStack() {
     const { view } = useDropdown();
-    const showAccordions = view === 'links';
+    const showAccordions = view === 'links' || view === 'calendar';
 
     return (
         <div className="dropdown-stack">
