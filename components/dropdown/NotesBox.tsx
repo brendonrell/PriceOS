@@ -25,7 +25,7 @@ export function NotesBox() {
             header={
                 <>
                     NOTES
-                    <span className="notif-count">({MOCK_NOTES.length})</span>
+                    <span className="notif-count">(22)</span>
                 </>
             }
         >
