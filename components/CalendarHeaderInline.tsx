@@ -37,7 +37,7 @@ export default function CalendarHeaderInline() {
         }}
         title="Previous month"
       >
-        ‹
+        {'\u25C0\uFE0E'}
       </span>
       <span className="cal-month-label" id="calMonthLabel">
         {monthLabel}
@@ -56,7 +56,7 @@ export default function CalendarHeaderInline() {
         }}
         title="Next month"
       >
-        ›
+        {'\u25B6\uFE0E'}
       </span>
     </div>
   );
