@@ -5,19 +5,24 @@
  *
  * The top section of the main user-dropdown panel:
  *   - Left:  globe icon + "Global Search" label (dormant) — clicking
- *            swaps to an active search input
+ *            swaps to an active search input.
+ *            When view === 'calendar', the cal-header (◀ APRIL 2026 ▶)
+ *            replaces the search row so the top of the dropdown shows
+ *            month navigation while the calendar is open.
  *   - Right: ▰ menutape · ⥹ topbarcal · ▦ calendar icon row
  *
- * In step 3 the search results aren't wired (no data layer to search
- * yet); typing in the active state just shows nothing. Clicking the
- * three icons cycles their respective pdNotifs flags so the UI state
- * is real even though some downstream effects (e.g. the actual top-
- * bar calendar appearance) land in later steps.
+ * F20: cal-header swap. Both .cal-header-inline and .search-dormant-label
+ *      share min-height: 38px box-sizing: border-box so the top-row height
+ *      never changes whether main menu or calendar is active.
+ * F21: ▦ icon is now a true toggle (sim toggleCalendar at sim.html line 6489).
+ *      Adds .active class while calendar view is open — globals.css:591
+ *      .dm-icon.active { opacity: 1 }.
  */
 
 import { useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
+import CalendarHeaderInline from '../CalendarHeaderInline';
 
 function GlobeIcon({ id }: { id?: string }) {
     return (
@@ -42,9 +47,11 @@ function GlobeIcon({ id }: { id?: string }) {
 
 export function GlobalSearchBar() {
     const { notifs, update } = usePdNotifs();
-    const { setView } = useDropdown();
+    const { view, setView } = useDropdown();
     const [active, setActive] = useState(false);
     const [value, setValue] = useState('');
+
+    const calendarOpen = view === 'calendar';
 
     // Cycle menu tape mode 0 → 3 → 4 → 0 (skips desktop-only 1, 2)
     const cycleMenuTape = () => {
@@ -58,8 +65,13 @@ export function GlobalSearchBar() {
         update({ topBarCalendar: !notifs.topBarCalendar });
     };
 
-    const openCalendar = () => {
-        setView('calendar');
+    // F21: true toggle. Tapping ▦ while calendar is open returns to links.
+    // Tapping from any other view (links / settings / artists / portfolio)
+    // opens the calendar — setView replaces the previous view's mount, so
+    // sim's "explicitly close Settings/Artists/Portfolio first" path is
+    // implicit in React.
+    const toggleCalendar = () => {
+        setView(calendarOpen ? 'links' : 'calendar');
     };
 
     return (
@@ -72,7 +84,11 @@ export function GlobalSearchBar() {
                     justifyContent: 'space-between',
                 }}
             >
-                {!active && (
+                {/* F20: cal-header replaces the search row when calendar is open.
+                    Otherwise: dormant label until the user activates search. */}
+                {calendarOpen ? (
+                    <CalendarHeaderInline />
+                ) : !active ? (
                     <div
                         className="search-dormant-label"
                         id="searchDormant"
@@ -89,9 +105,7 @@ export function GlobalSearchBar() {
                         <GlobeIcon />
                         <span className="search-dormant-text">Global Search</span>
                     </div>
-                )}
-
-                {active && (
+                ) : (
                     <div
                         className="global-search-field"
                         id="searchActive"
@@ -122,7 +136,10 @@ export function GlobalSearchBar() {
                     </div>
                 )}
 
-                {!active && (
+                {/* Icons row — visible whenever search is dormant OR calendar is open.
+                    Hidden only when search is actively typing (it takes the full row).
+                    Sim DOM 4487–4491: icons live in the same row as the search/cal-header. */}
+                {(calendarOpen || !active) && (
                     <span className="top-menu-icons">
                         <span
                             className={`dm-icon dm-icon-menutape${notifs.menutape !== 0 ? ' active' : ''}`}
@@ -156,17 +173,18 @@ export function GlobalSearchBar() {
                         >
                             ⥹{'\uFE0E'}
                         </span>
+                        {/* F21: .active while calendar is open + click toggles. */}
                         <span
-                            className="dm-icon dm-icon-calendar"
+                            className={`dm-icon dm-icon-calendar${calendarOpen ? ' active' : ''}`}
                             id="dm-calendar"
                             role="button"
                             tabIndex={0}
                             title="Calendar"
-                            onClick={openCalendar}
+                            onClick={toggleCalendar}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    openCalendar();
+                                    toggleCalendar();
                                 }
                             }}
                         >
