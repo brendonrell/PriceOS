@@ -7,10 +7,10 @@
  * five views below it:
  *
  *   - links     — Profile / Discord / Artists / Portfolio / Settings / Log Out
- *   - settings  — full Settings panel (step 4 — wallet/MY PD/themes/sort/pings/spell-book/workspace)
- *   - calendar  — Calendar panel (step 5 — month grid + day column with events / to-dos)
- *   - artists   — placeholder (lands later)
- *   - portfolio — placeholder (lands later)
+ *   - settings  — full Settings panel (wallet/MY PD/themes/sort/pings/spell-book/workspace)
+ *   - calendar  — Calendar panel (month grid + day column with events / to-dos)
+ *   - artists   — Artists A-Z directory (filter pills + pin/note + scroll list)
+ *   - portfolio — Portfolios panel (Budgets + Main/Shadow tabs + tree + filters)
  *
  * Search bar stays mounted across view swaps so input keeps focus.
  */
@@ -18,8 +18,9 @@
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { GlobalSearchBar } from './GlobalSearchBar';
 import { LinksView } from './LinksView';
-import { PanelPlaceholder } from './PanelPlaceholder';
 import { SettingsView } from './settings/SettingsView';
+import { ArtistsView } from './ArtistsView';
+import { PortfolioView } from './PortfolioView';
 import CalendarPanel from '../CalendarPanel';
 
 export function UserDropdown() {
@@ -30,24 +31,10 @@ export function UserDropdown() {
             <GlobalSearchBar />
 
             {view === 'links' && <LinksView />}
-
             {view === 'settings' && <SettingsView />}
-
             {view === 'calendar' && <CalendarPanel />}
-
-            {view === 'artists' && (
-                <PanelPlaceholder
-                    title="Artists"
-                    note="A–Z directory with filter pills (Starred / Notes / Mutuals / Following / Followers / Cooldown / Active) lands in its own dedicated round."
-                />
-            )}
-
-            {view === 'portfolio' && (
-                <PanelPlaceholder
-                    title="Portfolio"
-                    note="Main / Shadow tabs and the long-form per-collection tree land in their own dedicated round."
-                />
-            )}
+            {view === 'artists' && <ArtistsView />}
+            {view === 'portfolio' && <PortfolioView />}
         </div>
     );
 }
