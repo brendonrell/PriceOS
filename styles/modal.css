@@ -323,3 +323,226 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
         padding: calc(60px + env(safe-area-inset-top)) 20px 20px 20px;
     }
 }
+
+
+/* ============================================================
+   CALC SHEET — sim id #calcSheet (sim.html 2703-2838 + 5018-5067).
+   Slide-up bottom sheet on mobile, centred card on desktop. Opened by
+   the ƒ tab inside the compound action button (BUY-state only).
+
+   Vocabulary deliberately mirrors .value-prompt-* (inverted palette,
+   .mounted/.active two-stage display, slide-up motion, desktop card
+   override at >600px). Field structure differs — calc has a single
+   decimal input row with an ETH suffix and a "vs floor" delta below
+   it, plus the static P&L ladder.
+   ============================================================ */
+
+.calc-sheet-wrap {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 10001;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+}
+.calc-sheet-wrap.mounted { display: flex; }
+.calc-sheet-wrap.mounted.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.calc-sheet-box {
+    /* Inverted palette — same as value-prompt-box. Reads as the dark
+       menu chrome on every theme. */
+    background: var(--text-color);
+    color: var(--bg-color);
+    width: 100%;
+    max-width: 440px;
+    border-radius: 10px 10px 0 0;
+    padding: 16px 18px 18px 18px;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+    transform: translateY(20px);
+    transition: transform 0.22s ease;
+    position: relative;
+}
+.calc-sheet-wrap.active .calc-sheet-box {
+    transform: translateY(0);
+}
+
+.calc-sheet-close-x {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    opacity: 0.55;
+    line-height: 1;
+    color: var(--bg-color);
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+.calc-sheet-close-x:hover { opacity: 1; }
+
+.calc-sheet-title {
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: bold;
+    letter-spacing: 0;
+    padding-right: 24px;  /* clear the X button */
+}
+.calc-sheet-title-glyph {
+    /* ƒ glyph next to the wordmark — opacity-dimmed so it reads as a
+       suffix rather than competing with the words. Same energy as the
+       % logo at the brand level. */
+    opacity: 0.55;
+    margin-left: 4px;
+}
+
+.calc-sheet-context {
+    font-size: 11px;
+    opacity: 0.55;
+    line-height: 1.4;
+    letter-spacing: 0.3px;
+    padding-right: 24px;
+    margin-top: -4px;
+}
+.calc-sheet-context em { font-style: italic; }
+
+.calc-sheet-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+.calc-sheet-field-label {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.calc-sheet-input-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+    padding: 4px 0;
+    transition: border-bottom-color 0.15s;
+}
+.calc-sheet-input-row:focus-within {
+    border-bottom-color: color-mix(in srgb, var(--bg-color) 50%, transparent);
+}
+
+.calc-sheet-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;  /* >= 16px so iOS doesn't auto-zoom on focus */
+    font-weight: bold;
+    color: var(--bg-color);
+    caret-color: var(--bg-color);
+    flex: 1;
+    padding: 2px 0;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+}
+.calc-sheet-input::placeholder {
+    color: var(--bg-color);
+    opacity: 0.3;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.calc-sheet-input-suffix {
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 1.5px;
+}
+
+.calc-sheet-vs-floor {
+    /* Live readout under the offer field — confirms the user's mental
+       model as they type. Subtle by design (not a CTA). min-height
+       reserves space so the layout doesn't jump when the line populates. */
+    font-size: 11px;
+    opacity: 0.6;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+    min-height: 1em;
+}
+
+.calc-sheet-divider {
+    border-top: 1.5px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+    margin: 8px 0 2px 0;
+}
+.calc-sheet-divider-thin {
+    border-top: 1px dashed color-mix(in srgb, var(--bg-color) 30%, transparent);
+    margin: 2px 0;
+}
+
+.calc-sheet-section-label {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.calc-sheet-line {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+}
+.calc-sheet-line-label { opacity: 0.85; }
+.calc-sheet-line-val {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+.calc-sheet-line-deduct .calc-sheet-line-label,
+.calc-sheet-line-deduct .calc-sheet-line-val { opacity: 0.7; }
+.calc-sheet-line-subtotal .calc-sheet-line-val { opacity: 1; }
+
+.calc-sheet-line-result {
+    /* Final NET row — the answer to "should I do this?" gets the visual
+       priority. Half-step bigger, no opacity dim. */
+    margin-top: 4px;
+}
+.calc-sheet-line-result .calc-sheet-line-label {
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.calc-sheet-line-result .calc-sheet-line-val { font-size: 16px; }
+
+
+/* Desktop: centred card instead of bottom sheet — same treatment as
+   value-prompt + note-prompt above. */
+@media (min-width: 601px) {
+    .calc-sheet-wrap { align-items: center; }
+    .calc-sheet-box {
+        max-width: 480px;
+        border-radius: 8px;
+        transform: translateY(8px);
+        padding: 24px 28px 22px 28px;
+    }
+    .calc-sheet-wrap.active .calc-sheet-box {
+        transform: translateY(0);
+    }
+}
