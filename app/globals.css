@@ -56,6 +56,13 @@
     --btn-user-hover: #ffffff;
 
     --pd-menu-height: 173px;
+
+    /* F29 — Connect menu sizing (clamp + accordion bounds) */
+    --menu-top-offset:      68px;   /* under the @brendon button */
+    --menu-bottom-reveal:   32px;   /* page peek below menu */
+    --accordion-min-height: 80px;   /* header + 1 row + padding */
+    --notif-list-min:       32px;   /* 1 list row visible minimum */
+    --notif-list-max:      200px;   /* ~6 list rows visible maximum */
 }
 
 
@@ -404,12 +411,11 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
                 transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 200;
     width: 310px;
-    height: calc(100lvh - 180px);
+    max-height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 .dropdown-stack::-webkit-scrollbar { display: none; }
 
@@ -433,6 +439,7 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     box-shadow: none;
     text-align: left;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .user-dropdown a {
@@ -735,8 +742,24 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     opacity: 0.85;
 }
 
+/* F29 — open accordion contracts internally instead of pushing the
+   menu down. The :has() selector targets only boxes that actually
+   contain an expanded list; closed accordions stay header-only. */
+.notifications-box:has(.notif-list) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: var(--accordion-min-height);
+    overflow: hidden;
+}
+
+.notifications-box:has(.notif-list) .notif-list {
+    flex: 1 1 auto;
+    min-height: var(--notif-list-min);
+    max-height: var(--notif-list-max);
+}
+
 .notif-list {
-    max-height: 120px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -744,10 +767,6 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     padding-bottom: 5px;
 }
 .notif-list::-webkit-scrollbar { display: none; }
-
-@media (min-width: 601px) {
-    .notif-list { max-height: 168px; }
-}
 
 .notif-item {
     font-size: 12px;
