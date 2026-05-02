@@ -41,10 +41,18 @@ import {
 } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useLocalStorage } from '../lib/hooks/useLocalStorage';
 
 const COLLECTION_TITLE = 'PRISMS';
 const TOTAL_EDITIONS = 222;
+
+/* Mock collection floor — sim reads this from the BUY button's
+   .mint-price element on the collection page. The Collection Page
+   isn't ported yet, so the prototype Calc uses a constant in the
+   listed-price range. Replace with a useCollectionFloor() hook (or
+   indexer query) once that surface lands. */
+const MOCK_COLLECTION_FLOOR_ETH = 0.014;
 
 /* Sim seeds 8 deterministic Brendon-owned tokens across the grid so the
    "Me" Network filter has meaningful output without stomping all listings.
@@ -102,6 +110,7 @@ function getTokenMeta(id: number): TokenMeta {
 export default function ArtworkModal() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
+    const { openCalcSheet } = useCalcSheet();
     const [grailPins, setGrailPins] = useLocalStorage<number[]>(
         'pd_grail_pins',
         []
@@ -408,9 +417,25 @@ export default function ArtworkModal() {
                             <button
                                 className="modal-action-btn-calc"
                                 id="mActionCalc"
-                                onClick={() =>
-                                    showToast('The Calc — coming soon')
-                                }
+                                onClick={() => {
+                                    if (id == null || !meta) return;
+                                    /* meta.price arrives pre-formatted as
+                                       "0.014 ETH" — strip the suffix for
+                                       the numeric API. NaN guards a future
+                                       indexer hand-off where price could
+                                       be malformed. */
+                                    const priceNum = meta.price
+                                        ? parseFloat(meta.price)
+                                        : NaN;
+                                    openCalcSheet({
+                                        tokenId: id,
+                                        collectionTitle: COLLECTION_TITLE,
+                                        price: Number.isFinite(priceNum)
+                                            ? priceNum
+                                            : null,
+                                        floor: MOCK_COLLECTION_FLOOR_ETH,
+                                    });
+                                }}
                                 title="The Calc"
                                 aria-label="Open The Calc"
                             >
