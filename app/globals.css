@@ -404,7 +404,7 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
                 transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 200;
     width: 310px;
-    max-height: var(--dropdown-max-h, calc(100dvh - 180px));
+    max-height: calc(100lvh - 180px);
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
