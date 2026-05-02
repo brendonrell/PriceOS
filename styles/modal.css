@@ -1,0 +1,325 @@
+/* ============================================================
+   PriceOS — modal.css
+   Artwork Modal port (sim id #modal). Sourced from sim.html lines
+   3049–3260 (.platform-modal scaffold + bottom bar + close/pin
+   chrome) and 3520–3565 (stats row + pill row + self-check badge).
+
+   Body lock — `body.modal-open { overflow: hidden; position: fixed; }`
+   is applied by ModalContext while any modal is open. The scroll-Y
+   preservation that sim does in openModal/closeModal lives in
+   ArtworkModal (component-side useEffect) so the dance doesn't
+   bleed into a context that other modals will share.
+
+   Surfaces NOT included here (they ride with their own components):
+     - hammer-mode mute overlay (.modal-canvas-wrap .mute-overlay)
+     - redacted-mode / zen-mode title/artist overrides
+     - stargazing-mode .platform-modal background
+     - collectorsModal / followersModal / priceosModal styling
+     - .modal-fields / .mf-lbl / .mf-val (used by collectorsModal)
+   ============================================================ */
+
+
+/* ── BODY LOCK ────────────────────────────────────────────── */
+body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+
+
+/* ── MODAL SCAFFOLD ───────────────────────────────────────── */
+.platform-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--modal-bg);
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(40px + env(safe-area-inset-top)) 0 0 0;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.3s;
+    color: var(--text-color);
+}
+.platform-modal.active { display: flex; opacity: 1; }
+#modal { justify-content: flex-start; }
+
+
+/* ── CANVAS REGION ────────────────────────────────────────── */
+.modal-canvas-wrap {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+#modalCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    user-select: none;
+    display: block;
+    -webkit-touch-callout: default;
+}
+
+/* Desktop breathing room — reservation matches sim's 300px below
+   the canvas to keep tall artworks from pushing into the title row. */
+@media (min-width: 601px) {
+    .modal-canvas-wrap { padding: 40px 60px 20px 60px; }
+    #modalCanvas {
+        max-width: calc(100vw - 120px);
+        max-height: calc(100vh - 300px);
+    }
+}
+
+
+/* ── INFO STACK ───────────────────────────────────────────── */
+.modal-info {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px 0 20px;
+    box-sizing: border-box;
+}
+.modal-title {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-weight: normal;
+    font-size: 20px;
+    text-align: center;
+}
+.modal-artist {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 0.7;
+}
+
+
+/* ── STATS ROW + SELF-OWNED CHECK BADGE ───────────────────── */
+.modal-stats-row {
+    display: flex;
+    gap: 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    color: var(--text-color);
+    padding-top: 8px;
+}
+.modal-stat { display: inline-flex; align-items: center; gap: 5px; }
+.owner-self-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--text-color);
+    color: var(--bg-color);
+    font-size: 8px;
+    font-weight: bold;
+    line-height: 1;
+    margin-left: 2px;
+    flex-shrink: 0;
+}
+
+
+/* ── PILL ROW (Star · Wishlist · Album · Note · ToDo · Share) ─ */
+.modal-pill-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 6px 0 0 0;
+}
+.modal-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 34px;
+    border-radius: 4px;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.7;
+    background: transparent;
+    transition: opacity 0.2s, background 0.2s, color 0.2s;
+    /* APR 21: 4-direction text-shadow thickens the Unicode glyphs so
+       they read clearly against red theme backgrounds on mobile. */
+    text-shadow:
+         0.4px  0.4px 0 currentColor,
+        -0.4px -0.4px 0 currentColor,
+         0.4px -0.4px 0 currentColor,
+        -0.4px  0.4px 0 currentColor;
+}
+
+
+/* ── BOTTOM BAR (Prev · Action+ƒ · Next) ──────────────────── */
+.modal-bottom-bar {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)) 20px;
+    box-sizing: border-box;
+}
+
+.modal-action-btn {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 36px;
+    width: 180px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s;
+}
+
+/* Compound action wrap — fuses BUY/LIST/MAKE OFFER button with the
+   ƒ Calc tab via shared 4px outer radius (overflow:hidden). The ƒ
+   tab is hidden by default; the .has-calc class on the wrap (set
+   only in BUY state) reveals it. */
+.modal-action-btn-wrap {
+    display: inline-flex;
+    align-items: stretch;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.modal-action-btn-wrap .modal-action-btn { border-radius: 0; }
+
+.modal-action-btn-calc {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-left: 1px solid color-mix(in srgb, var(--bg-color) 25%, transparent);
+    height: 36px;
+    width: 36px;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.modal-action-btn-wrap.has-calc .modal-action-btn-calc { display: inline-flex; }
+
+.modal-action-btn-price {
+    /* Price suffix inside the BUY/LIST button. Lighter weight than
+       the Rubik Mono One verb so the action still leads the eye. */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.9;
+}
+
+.modal-nav-pill {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+.modal-nav-pill:active { transform: scale(0.92); }
+
+
+/* ── TOP CHROME (close + grail pin) ───────────────────────── */
+.close-hint {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top));
+    right: 30px;
+    font-size: 30px;
+    cursor: pointer;
+    color: var(--text-color);
+    z-index: 1002;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* APR 28: Grail Pin lives in modal chrome (next to close X), not in
+   the pill row. Pills are content actions ("things you do with this
+   token"); the pin is a UI/platform action ("show this token in the
+   top bar"). Sized smaller than X (22px vs 30px) and dimmer (0.7 by
+   default) so it reads as the secondary action; .pinned ramps to 1. */
+.modal-pin-hint {
+    position: absolute;
+    /* +6px nudge so the pin's visual center aligns with the close X. */
+    top: calc(max(20px, env(safe-area-inset-top)) + 6px);
+    right: 70px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0.7;
+    z-index: 1002;
+    font-family: 'Courier New', Courier, monospace;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.modal-pin-hint.pinned { opacity: 1; }
+
+
+/* ── HOVER STATES (desktop only) ──────────────────────────── */
+@media (hover: hover) {
+    .modal-action-btn:hover { opacity: 0.8; }
+    .modal-action-btn-calc:hover { opacity: 1; }
+    .modal-pill:hover {
+        opacity: 1;
+        background: var(--text-color);
+        color: var(--bg-color);
+    }
+    .modal-nav-pill:hover {
+        border-color: var(--text-color);
+        opacity: 1;
+    }
+    .modal-pin-hint:hover { opacity: 1; }
+}
+
+
+/* ── MOBILE PADDING ───────────────────────────────────────── */
+@media (max-width: 600px) {
+    .platform-modal {
+        padding: calc(60px + env(safe-area-inset-top)) 20px 20px 20px;
+    }
+}
