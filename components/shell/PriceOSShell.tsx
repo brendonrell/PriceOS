@@ -8,6 +8,9 @@
  *   <main>{children}    page content
  *   <Footer />
  *   <ActionToast />     bottom-fixed toast (shared by every showToast() call)
+ *   <ArtworkModal />    sim id #modal — mounted globally so any caller
+ *                       (gallery, /token/[id] route, deep links) opens the
+ *                       same instance via useModal().open('artwork', id).
  *
  * useBodyClass stays mounted at the top so the body className stays
  * in sync with PdNotifs state across the whole app.
@@ -19,6 +22,7 @@ import { Backgrounds } from './Backgrounds';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import ActionToast from '../ActionToast';
+import ArtworkModal from '../ArtworkModal';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
@@ -29,6 +33,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <main>{children}</main>
             <Footer />
             <ActionToast />
+            <ArtworkModal />
         </>
     );
 }
