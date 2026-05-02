@@ -63,7 +63,15 @@
        turn made --menu-bottom-reveal a no-op (the gap below the menu was
        always the slack between menu-content and clamp, not the reveal var).
        Per Brendon: "ideally we just use the space." 1-row floor still
-       applies; ceiling now = whatever the dropdown-stack clamp gives. */
+       applies; ceiling now = whatever the dropdown-stack clamp gives.
+       F33 (2026-05-02): F31's "use the space" + F32's height-not-max-height
+       combined to push the menu to the bottom of the viewport — Pings filled
+       all available room. Sim doesn't actually do this. Restored sim's
+       per-list caps directly on .notif-list (120px mobile / 168px desktop,
+       matching sim lines 209 and 2165) and reverted F32 — .dropdown-stack
+       is back to max-height so it contracts to content. F29's :has() flex
+       rule is still in place but is now a no-op once the list cap kicks in
+       (max-height ceilings flex-grow), which is exactly sim's behaviour. */
     --menu-top-offset:      76px;   /* navbar pad + nav-controls margin-top + btn-user + dropdown margin-top */
     --menu-bottom-reveal:    4px;   /* 1/3 reduction from prior 11px */
     --accordion-min-height: 80px;   /* header + 1 row + padding */
@@ -428,8 +436,14 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
        dropdown-stack always exactly the clamp height; the slack between
        content and clamp becomes real space that flex: 1 1 auto can fill.
        overflow-y: auto stays as the safety net for tiny viewports where
-       content > height. */
-    height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
+       content > height.
+       F33 (2026-05-02): reverted to max-height. F32's reasoning was
+       correct under F31's "no caps anywhere" world, but that produced
+       a menu that always filled the viewport — wrong, sim doesn't do
+       that. Now that .notif-list has its sim-matching 120/168px caps
+       back (F33 below), the stack should collapse to content size,
+       which is what max-height gives us. Matches sim line 168/182. */
+    max-height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -805,6 +819,9 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 }
 
 .notif-list {
+    /* F33 (2026-05-02): mobile cap, matching sim line 209.
+       Desktop override below at @media (min-width: 601px). */
+    max-height: 120px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -812,6 +829,14 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     padding-bottom: 5px;
 }
 .notif-list::-webkit-scrollbar { display: none; }
+
+/* F33 (2026-05-02): desktop cap on the dropdown lists, matching sim
+   line 2165–2166. Sim uses .notif-list and .notes-list as separate
+   classes; the port unified them under .notif-list (AccordionBox owns
+   all four — Tape/Pings/Todos/Notes), so a single rule covers it. */
+@media (min-width: 601px) {
+    .notif-list { max-height: 168px; }
+}
 
 .notif-item {
     font-size: 12px;
