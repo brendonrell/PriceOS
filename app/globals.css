@@ -59,7 +59,7 @@
 
     /* F29 — Connect menu sizing (clamp + accordion bounds) */
     --menu-top-offset:      68px;   /* under the @brendon button */
-    --menu-bottom-reveal:   11px;   /* page peek below menu (1/3 of original 32px) */
+    --menu-bottom-reveal:    6px;   /* page peek below menu (~half of post-F29 11px) */
     --accordion-min-height: 80px;   /* header + 1 row + padding */
     --notif-list-min:       32px;   /* 1 list row visible minimum */
     --notif-list-max:      200px;   /* ~6 list rows visible maximum */
@@ -132,10 +132,13 @@ body.is-pwa .navbar {
 
 @media (max-width: 600px) {
     .navbar {
-        /* Sim-faithful mobile padding: 15px top/bottom, 20px horizontal.
-           Step 3 used 20/16 here — slightly tighter than the sim, which
-           Brendon noticed as menus sitting too close to the page edges. */
-        padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;
+        /* Top padding 25px (matches desktop) so the connect button sits at
+           the same vertical position regardless of viewport. Sim's literal
+           CSS uses 15px on mobile, but in practice (Brendon's screenshot
+           comparison) the button lands too high vs sim — bumping to 25px
+           gives the visible buffer he expects under the browser chrome.
+           Side/bottom padding stays at sim's mobile values (20/15). */
+        padding: max(25px, env(safe-area-inset-top)) 20px 15px 20px;
     }
     body.is-pwa .navbar {
         padding-top: max(30px, calc(env(safe-area-inset-top) + 16px));
