@@ -2,9 +2,16 @@
 
 /* ============================================================
    SETTINGS PANEL (NEW in step 4)
-   ============================================================ */
+   ============================================================
+   F30 (2026-05-02): dropped the desktop max-height: 78vh cap and the mobile
+   override that nullified it. The cap was running its own internal scroll
+   that bypassed F29's outer max-height clamp on .dropdown-stack, leaving
+   the menu's bottom edge mid-viewport and producing the same colour-mix
+   tinting at the Safari chrome that F29 fixed for the links view. The
+   .dropdown-stack F29 clamp now owns the bounds across every view, and
+   .settings-panel scrolls internally via flex (rule below + flex sizing
+   on .user-dropdown:has(.settings-panel) in app/globals.css). */
 .settings-panel {
-    max-height: 78vh;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -15,9 +22,6 @@
     margin-top: -4px;
 }
 .settings-panel::-webkit-scrollbar { display: none; }
-@media (max-width: 600px) {
-    .settings-panel { max-height: none; overflow-y: visible; }
-}
 
 
 /* Section headers (WALLET, MY PD, DEFAULT THEME, etc.) */
