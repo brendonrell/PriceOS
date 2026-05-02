@@ -464,6 +464,30 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     background: rgba(128, 128, 128, 0.2);
 }
 
+/* F30 — extend the F29 "absorb the slack" pattern from accordions to full-panel
+   views (settings/artists/portfolio). When user-dropdown contains a settings
+   panel or panel-placeholder, no accordions are rendered as siblings inside
+   .dropdown-stack — so without these rules the user-dropdown stays at content
+   size and leaves a huge gap below the menu. Mirroring F29's mechanic: grow
+   the user-dropdown to fill the dropdown-stack, then let the inner panel fill
+   the user-dropdown via flex. Result: page peek below the menu stays at the
+   6px reveal across every view. */
+.user-dropdown:has(.settings-panel),
+.user-dropdown:has(.panel-placeholder) {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.user-dropdown:has(.settings-panel) .settings-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.user-dropdown:has(.panel-placeholder) .panel-placeholder {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .dropdown-divider {
     height: 1px;
     background: rgba(128,128,128,0.3);
