@@ -34,8 +34,8 @@
 
 /* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
 :root {
-    --bg-color:     var(--hothurt);
-    --text-color:   var(--dot);
+    --bg-color:     var(--dot);
+    --text-color:   var(--matrix);
     --border-color: rgba(0, 0, 0, 0.15);
     --accent:       var(--dot);
 
