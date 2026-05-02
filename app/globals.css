@@ -1708,6 +1708,163 @@ body.stargazing-mode {
 
 
 /* ============================================================
+   VALUE PROMPT — ports sim 2584-2685
+   ============================================================
+   Reusable bottom-sheet for 1- or 2-field value entry. Inverted
+   palette (bg: var(--text-color), fg: var(--bg-color)) — matches
+   the .user-dropdown inversion so it reads as the same terminal-
+   style dark surface across every theme. Used by Budget Add and
+   future Anchor + 2-field prompts. Two-stage visibility via
+   .mounted (display: flex) + .active (opacity 1 + slide-up).
+*/
+
+.value-prompt-wrap {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 10001;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+}
+.value-prompt-wrap.mounted { display: flex; }
+.value-prompt-wrap.mounted.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.value-prompt-box {
+    /* Inverted palette — matches .user-dropdown pattern. On any theme
+       this reads as the dark menu chrome. */
+    background: var(--text-color);
+    color: var(--bg-color);
+    width: 100%;
+    max-width: 440px;
+    border-radius: 10px 10px 0 0;
+    padding: 16px 18px 18px 18px;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+    transform: translateY(20px);
+    transition: transform 0.22s ease;
+    position: relative;
+}
+.value-prompt-wrap.active .value-prompt-box {
+    transform: translateY(0);
+}
+
+.value-prompt-close-x {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    opacity: 0.55;
+    line-height: 1;
+    color: var(--bg-color);
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+.value-prompt-close-x:hover { opacity: 1; }
+
+.value-prompt-title {
+    /* Sentence-case + normal tracking — titles can include <em> for italic
+       collection names (sim's anchor prompt). Uppercase would flatten the
+       italic distinction. */
+    font-size: 14px;
+    opacity: 0.9;
+    letter-spacing: 0;
+    font-weight: bold;
+    padding-right: 24px;  /* clear the X button */
+}
+.value-prompt-title em { font-style: italic; }
+
+.value-prompt-help {
+    font-size: 11px;
+    opacity: 0.55;
+    line-height: 1.5;
+    font-weight: normal;
+    letter-spacing: 0.3px;
+    padding-right: 24px;
+    margin-top: -4px;
+}
+
+.value-prompt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.value-prompt-field-label {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.value-prompt-input {
+    background: transparent;
+    border: none;
+    /* Translucent fg underline — sits correctly on any theme. */
+    border-bottom: 1.5px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;  /* >= 16px so iOS doesn't auto-zoom on focus */
+    font-weight: bold;
+    color: var(--bg-color);
+    caret-color: var(--bg-color);
+    width: 100%;
+    padding: 6px 0;
+    line-height: 1.3;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+}
+.value-prompt-input:focus {
+    border-bottom-color: color-mix(in srgb, var(--bg-color) 50%, transparent);
+}
+.value-prompt-input::placeholder {
+    color: var(--bg-color);
+    opacity: 0.3;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.value-prompt-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-top: 6px;
+}
+
+.value-prompt-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1.5px solid color-mix(in srgb, var(--bg-color) 35%, transparent);
+    background: transparent;
+    color: var(--bg-color);
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.value-prompt-btn:hover { opacity: 0.8; }
+.value-prompt-btn.primary {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--bg-color);
+}
+
+
+/* ============================================================
    DESKTOP OVERRIDES — ports sim 2225-2228 inside its (min-width: 601px)
    ============================================================
    The base @media query is below at the file level. The artists list
