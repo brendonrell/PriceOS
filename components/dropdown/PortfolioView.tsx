@@ -8,7 +8,7 @@
  * Layout (top → bottom):
  *   ←  back arrow
  *   BUDGETS                                  (settings-header)
- *   [ ☀ Real ] [ ◐ Dream ] [ + Add ]         (settings-ens-row of pills)
+ *   [ Real Budget ] [ Dream Budget ] [ + Add ]   (settings-ens-row of pills)
  *   ──── divider ────
  *   PORTFOLIOS                               (settings-header)
  *   EST. 0.00 ETH                            (grand total — visibility-toggled)
@@ -39,15 +39,20 @@
  *     Search narrows by case-insensitive substring on artist or
  *     collection name (sim's filterPortfolio behaviour).
  *
- * Budgets section: minimal MVP. Two preset budgets (Real / Dream) with
- * one-active-at-a-time toggling. Adding budgets is deferred — the "+ Add"
- * pill calls showToast('Budgets — Add coming soon'). Active budget
- * persists to localStorage so re-open feels stateful.
+ * Budgets section (sim parity, line 11183 + 11887):
+ *   - State shape: { list: { name, eth }[], activeIdx: number (-1 = none) }
+ *   - Persisted to localStorage 'pd_budgets'
+ *   - No presets — list starts empty; user adds budgets via "+ Add"
+ *   - "+ Add" opens ValuePrompt (NEW BUDGET — name + ETH)
+ *   - On add, the new budget auto-activates (sim line 11903)
+ *   - Tap an active budget to deactivate; tap a different budget to switch
+ *   - Long-press to delete: deferred (not in scope this round)
  */
 
 import { useCallback, useMemo, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import {
     PORTFOLIO_DATA,
@@ -63,10 +68,15 @@ const FILTER_PILLS: { key: CategoryFilter; label: string }[] = [
     { key: 'ENS',       label: 'ENS' },
 ];
 
-const PRESET_BUDGETS: { id: string; label: string }[] = [
-    { id: 'real',  label: 'Real' },
-    { id: 'dream', label: 'Dream' },
-];
+interface BudgetEntry {
+    name: string;
+    eth: number;
+}
+interface BudgetsState {
+    list: BudgetEntry[];
+    activeIdx: number; // -1 = none active
+}
+const DEFAULT_BUDGETS: BudgetsState = { list: [], activeIdx: -1 };
 
 function formatEth(v: number): string {
     if (v >= 100) return v.toFixed(0);
@@ -77,15 +87,16 @@ function formatEth(v: number): string {
 export function PortfolioView() {
     const { setView } = useDropdown();
     const { showToast } = useToast();
+    const { openValuePrompt } = useValuePrompt();
 
     const [tab, setTab] = useState<PortfolioTab>('portfolio');
     const [showDollar, setShowDollar] = useLocalStorage<boolean>(
         'pd_portfolio_show_dollar',
         true
     );
-    const [activeBudget, setActiveBudget] = useLocalStorage<string | null>(
-        'pd_active_budget',
-        null
+    const [budgets, setBudgets] = useLocalStorage<BudgetsState>(
+        'pd_budgets',
+        DEFAULT_BUDGETS
     );
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
@@ -108,17 +119,60 @@ export function PortfolioView() {
 
     const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
 
+    /**
+     * Toggle a budget at index `idx`. If it's already active, deactivate
+     * (-1). Otherwise switch to it. Mirrors sim's tap-active-to-clear
+     * behaviour at the budgets-row click handler.
+     */
     const toggleBudget = useCallback(
-        (id: string) => {
-            setActiveBudget((prev) => {
-                const next = prev === id ? null : id;
-                const label = PRESET_BUDGETS.find((b) => b.id === id)?.label ?? id;
-                showToast(next ? `Budget: ${label}` : 'Budget OFF');
-                return next;
+        (idx: number) => {
+            setBudgets((prev) => {
+                const isActive = prev.activeIdx === idx;
+                const nextIdx = isActive ? -1 : idx;
+                const label = prev.list[idx]?.name ?? '';
+                showToast(
+                    isActive ? 'Budget OFF' : `Budget: ${label}`
+                );
+                return { ...prev, activeIdx: nextIdx };
             });
         },
-        [setActiveBudget, showToast]
+        [setBudgets, showToast]
     );
+
+    /**
+     * Open the value-prompt to add a new budget. Title + help + fields
+     * mirror sim line 11888 verbatim. On submit, validate (non-empty name
+     * + positive finite ETH), append, auto-activate (sim line 11903).
+     */
+    const addBudget = useCallback(() => {
+        openValuePrompt({
+            title: 'NEW BUDGET',
+            help: 'Set an ETH cap. Listings at or below this price get a subtle in-reach treatment across every collection.',
+            fields: [
+                { label: 'NAME', placeholder: 'e.g. Real Budget' },
+                { label: 'ETH', placeholder: '0.25', inputmode: 'decimal' },
+            ],
+            submit: 'Add',
+            onSubmit: (vals) => {
+                if (!vals) return;
+                const name = (vals[0] || '').trim();
+                if (!name) {
+                    showToast('Name required');
+                    return;
+                }
+                const v = parseFloat(vals[1] || '');
+                if (!(v > 0) || !isFinite(v)) {
+                    showToast('Invalid ETH amount');
+                    return;
+                }
+                setBudgets((prev) => {
+                    const list = [...prev.list, { name, eth: v }];
+                    return { list, activeIdx: list.length - 1 };
+                });
+                showToast(`Budget added: ${name}`);
+            },
+        });
+    }, [openValuePrompt, setBudgets, showToast]);
 
     const toggleCatFilter = useCallback((k: CategoryFilter) => {
         setActiveCats((prev) => {
@@ -194,32 +248,37 @@ export function PortfolioView() {
                 BUDGETS
             </div>
             <div className="settings-ens-row" id="budgetsRow" style={{ flexShrink: 0 }}>
-                {PRESET_BUDGETS.map((b) => (
-                    <div
-                        key={b.id}
-                        className={`pill-ens${activeBudget === b.id ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => toggleBudget(b.id)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                toggleBudget(b.id);
-                            }
-                        }}
-                    >
-                        {b.label}
-                    </div>
-                ))}
+                {budgets.list.map((b, i) => {
+                    const isActive = i === budgets.activeIdx;
+                    const title = `${b.name} — ${formatEth(b.eth)} ETH`;
+                    return (
+                        <div
+                            key={`${b.name}-${i}`}
+                            className={`pill-ens${isActive ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title={title}
+                            onClick={() => toggleBudget(i)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleBudget(i);
+                                }
+                            }}
+                        >
+                            {b.name}
+                        </div>
+                    );
+                })}
                 <div
-                    className="pill-ens pill-ens-add"
+                    className="pill-ens pill-budget-add"
                     role="button"
                     tabIndex={0}
-                    onClick={() => showToast('Budgets — Add coming soon')}
+                    onClick={addBudget}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            showToast('Budgets — Add coming soon');
+                            addBudget();
                         }
                     }}
                     title="Add budget"
