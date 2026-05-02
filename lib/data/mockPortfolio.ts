@@ -1,0 +1,140 @@
+/*
+ * Mock Portfolio — sim line 10770-10846 ported.
+ *
+ * Two tabs (portfolio = "Main", shadow = "Shadow"). Each tab has three
+ * sections: LONG-FORM (tree of artist → collections → tokens), STICKER
+ * (same tree shape), ENS (flat list of $PRICE.eth subdomain names).
+ *
+ * Floors are hardcoded; in production these come from the indexer. Token
+ * arrays are the pre-image of every owned edition number under that
+ * collection — sim renders one row per token id when the collection is
+ * expanded.
+ */
+
+export interface PortfolioTokenRef {
+    /** Edition / token id, e.g. 56 for Chromie #56. */
+    id: number;
+}
+
+export interface PortfolioCollection {
+    name: string;
+    /** Floor in ETH at moment of mock generation. */
+    floor: number;
+    /** Tokens this wallet holds in the collection. */
+    tokens: number[];
+}
+
+export interface PortfolioArtist {
+    name: string;
+    collections: PortfolioCollection[];
+}
+
+export interface PortfolioEnsName {
+    label: string;
+    /** Listed price for this ENS subdomain in ETH (Brendon's $PRICE.eth tier). */
+    price: number;
+}
+
+export type PortfolioCategory =
+    | { name: 'LONG-FORM'; type: 'tree'; artists: PortfolioArtist[] }
+    | { name: 'STICKER';   type: 'tree'; artists: PortfolioArtist[] }
+    | { name: 'ENS';       type: 'flat'; names: PortfolioEnsName[] };
+
+export type PortfolioTab = 'portfolio' | 'shadow';
+
+export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
+    portfolio: [
+        {
+            name: 'LONG-FORM', type: 'tree',
+            artists: [
+                { name: '@claude',       collections: [
+                    { name: 'Strata',              floor: 0.015, tokens: [1, 2, 3, 22, 67, 112, 158, 201] },
+                ]},
+                { name: '@snowfro',      collections: [
+                    { name: 'Chromie Squiggles',   floor: 12.0,  tokens: [56] },
+                ]},
+                { name: '@piterpasma',   collections: [
+                    { name: 'Dutchtide',           floor: 1.8,   tokens: [47] },
+                ]},
+                { name: '@xcopy',        collections: [
+                    { name: 'MAX PAIN',            floor: 4.2,   tokens: [1042] },
+                ]},
+                { name: '@tylerxhobbs',  collections: [
+                    { name: 'Fidenza',             floor: 58.0,  tokens: [313] },
+                ]},
+            ],
+        },
+        {
+            name: 'STICKER', type: 'tree',
+            artists: [
+                { name: '@claude',       collections: [
+                    { name: 'Kiki',                floor: 0.022, tokens: [22, 147, 203] },
+                ]},
+                { name: '@jackbutcher',  collections: [
+                    { name: 'Checks',              floor: 0.18,  tokens: [4721, 5102] },
+                ]},
+            ],
+        },
+        {
+            // Sim line 10808: $PRICE.eth subdomains, all-caps "$PRICE" preserved.
+            name: 'ENS', type: 'flat',
+            names: [
+                { label: 'brendon.$PRICE.eth',     price: 0.85 },
+                { label: 'brendonrell.$PRICE.eth', price: 0.42 },
+                { label: 'pd.$PRICE.eth',          price: 2.10 },
+            ],
+        },
+    ],
+    shadow: [
+        {
+            name: 'LONG-FORM', type: 'tree',
+            artists: [
+                { name: '@dmitricherniak', collections: [
+                    { name: 'Ringers',             floor: 48.0,  tokens: [172, 545] },
+                ]},
+                { name: '@matto',          collections: [
+                    { name: 'Autoglyphs',          floor: 310.0, tokens: [202] },
+                ]},
+                { name: '@kjetilgolid',    collections: [
+                    { name: 'Archetype',           floor: 3.1,   tokens: [88, 216] },
+                ]},
+            ],
+        },
+        {
+            name: 'STICKER', type: 'tree',
+            artists: [
+                { name: '@xcopy',          collections: [
+                    { name: 'Grifters',            floor: 0.35,  tokens: [6600, 7777] },
+                ]},
+            ],
+        },
+        {
+            name: 'ENS', type: 'flat',
+            names: [
+                { label: 'snowfro.$PRICE.eth',     price: 1.25 },
+                { label: 'opus.$PRICE.eth',        price: 0.95 },
+            ],
+        },
+    ],
+};
+
+/**
+ * Sum the estimated value of a tab's holdings:
+ *   tree   → Σ (floor × tokens.length) over every collection
+ *   flat   → Σ price over every name
+ */
+export function sumPortfolioValue(tab: PortfolioTab): number {
+    let total = 0;
+    for (const cat of PORTFOLIO_DATA[tab]) {
+        if (cat.type === 'tree') {
+            for (const artist of cat.artists) {
+                for (const col of artist.collections) {
+                    total += col.floor * col.tokens.length;
+                }
+            }
+        } else {
+            for (const n of cat.names) total += n.price;
+        }
+    }
+    return total;
+}
