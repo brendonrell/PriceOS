@@ -7,6 +7,7 @@ import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
 import { ToastProvider } from '../lib/state/ToastContext';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
+import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
@@ -127,7 +128,9 @@ export default function RootLayout({
                                     <ToastProvider>
                                         <CalendarProvider>
                                             <NotePromptProvider>
-                                                <PriceOSShell>{children}</PriceOSShell>
+                                                <ValuePromptProvider>
+                                                    <PriceOSShell>{children}</PriceOSShell>
+                                                </ValuePromptProvider>
                                             </NotePromptProvider>
                                         </CalendarProvider>
                                     </ToastProvider>
