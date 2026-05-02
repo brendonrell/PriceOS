@@ -5,6 +5,7 @@ import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
+import { ToastProvider } from '../lib/state/ToastContext';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
@@ -76,6 +77,13 @@ const PREHYDRATION_SCRIPT = `
 })();
 `.trim();
 
+/*
+ * Provider order matters: anything that calls useToast() must be
+ * inside <ToastProvider>. NotePromptProvider uses showToast() for
+ * day + artist note save/clear messages, so ToastProvider wraps it.
+ * NotePromptProvider also depends on CalendarContext, so calendar
+ * stays inside it.
+ */
 export default function RootLayout({
     children,
 }: {
@@ -116,11 +124,13 @@ export default function RootLayout({
                         <SortProvider>
                             <ModalProvider>
                                 <DropdownProvider>
-                                    <CalendarProvider>
-                                        <NotePromptProvider>
-                                            <PriceOSShell>{children}</PriceOSShell>
-                                        </NotePromptProvider>
-                                    </CalendarProvider>
+                                    <ToastProvider>
+                                        <CalendarProvider>
+                                            <NotePromptProvider>
+                                                <PriceOSShell>{children}</PriceOSShell>
+                                            </NotePromptProvider>
+                                        </CalendarProvider>
+                                    </ToastProvider>
                                 </DropdownProvider>
                             </ModalProvider>
                         </SortProvider>

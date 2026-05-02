@@ -1128,3 +1128,646 @@ body.stargazing-mode {
     opacity: 0.3;
     user-select: none;
 }
+
+
+/* ============================================================
+   ARTISTS PANEL — ports sim 1681-1772 + 3572-3588 + 2225-2228
+   ============================================================
+   Layout: A scrollable list of .artist-row entries above a sticky
+   filter footer (#artistSearchInput + .pill-artist-filter pills).
+   Pinned rows float to the top of the list (handled in TSX).
+*/
+
+#artistsPanel {
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.artists-list-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    /* Mobile cap; desktop override at @media (min-width: 601px) below. */
+    max-height: 225px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* iOS Safari scroll-chaining isolation — same pattern as .notif-list.
+       Without this, fling-scrolling at the top/bottom of the list rubber-bands
+       the page and triggers gallery reflow, blowing Safari's memory budget
+       (sim line 1692-1699). */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    display: flex; flex-direction: column;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.artists-list-container::-webkit-scrollbar { display: none; }
+
+.artists-filter-sticky {
+    flex-shrink: 0;
+    background: var(--text-color);
+    padding: 10px 10px 12px 10px;
+    display: flex; flex-direction: column; gap: 8px;
+    border-top: 1px dashed rgba(128, 128, 128, 0.3);
+    margin-top: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+#artistSearchInput {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: normal;
+    padding: 8px 10px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+#artistSearchInput::placeholder {
+    color: var(--text-color);
+    opacity: 0.8;
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.artist-filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pill-artist-filter {
+    border: 1px dashed var(--bg-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 24px;
+    box-sizing: border-box;
+}
+.pill-artist-filter span {
+    position: relative;
+    top: 1px;
+    line-height: 1;
+    font-weight: normal;
+}
+.pill-artist-filter.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-style: solid;
+    opacity: 1;
+}
+.pill-artist-filter:hover {
+    opacity: 0.8;
+}
+
+/* Artist rows */
+.artist-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Sim line 1740: vertical padding 5.5px is intentional sub-pixel — tightens
+       inter-row spacing per Brendon. Renders consistently incl. iOS Safari. */
+    padding: 5.5px 10px;
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: normal;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.artist-row:hover { opacity: 1; }
+.artist-row.is-pinned { background: rgba(0, 0, 0, 0.05); }
+
+.artist-name-txt { opacity: 1; }
+
+.artist-pin-icon {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.6;
+    cursor: pointer;
+    user-select: none;
+    padding: 0 6px 0 0;
+    transition: opacity 0.2s;
+}
+.artist-pin-icon:hover { opacity: 0.9; }
+.artist-pin-icon.active { opacity: 1; }
+
+.artist-note-icon {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0.55;
+    cursor: pointer;
+    user-select: none;
+    padding: 0 4px;
+    transition: opacity 0.2s;
+}
+.artist-note-icon:hover { opacity: 0.9; }
+.artist-note-icon.active { opacity: 1; }
+
+.artist-rel-icon {
+    font-size: 18px;
+    opacity: 1;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    font-weight: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.artist-leader {
+    flex-grow: 1;
+    border-bottom: 2px dotted currentColor;
+    opacity: 0.22;
+    margin: 0 8px;
+    position: relative;
+    top: 3px;
+}
+
+.artist-status-icon {
+    font-size: 17px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    opacity: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================================
+   PORTFOLIO PANEL — ports sim 1779-2013
+   ============================================================
+   Tree structure (PARKED DEVIATION FROM SIM, 2026-05-03): the port
+   uses click-to-expand carets at every level (cat → artist → col →
+   tokens). Sim renders the entire tree flat with progressive
+   indentation. The collapsible variant scales better for wallets
+   with 50+ collections, where the flat tree becomes a wall of text.
+   Visual hierarchy still mirrors sim: 11px caps for cat headers,
+   13px artist labels, 12px italic collection names, 12px token
+   chips, leader dots between label and price column.
+*/
+
+#portfolioPanel {
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.portfolio-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 4px 10px;
+    flex-shrink: 0;
+}
+
+.portfolio-main-pill,
+.portfolio-shadow-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    color: inherit;
+    background: transparent;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    line-height: 1;
+    box-sizing: border-box;
+}
+.portfolio-main-pill:hover,
+.portfolio-shadow-pill:hover { opacity: 0.85; }
+.portfolio-main-pill.active,
+.portfolio-shadow-pill.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+}
+.portfolio-main-pill .main-glyph,
+.portfolio-shadow-pill .shadow-glyph {
+    font-size: 12px;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+}
+
+.portfolio-dollar-toggle {
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    color: inherit;
+    background: transparent;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.5;
+    transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    flex-shrink: 0;
+    line-height: 1;
+    box-sizing: border-box;
+    min-width: 14px;
+}
+.portfolio-dollar-toggle:hover { opacity: 0.85; }
+.portfolio-dollar-toggle.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+}
+
+.portfolio-grand-total {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    text-transform: uppercase;
+    padding: 4px 10px 8px 10px;
+    flex-shrink: 0;
+}
+
+.portfolio-list-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    /* Sim line 1865: 232px after BUDGETS section was added (~48px above). */
+    max-height: 232px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 20px 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+.portfolio-list-container::-webkit-scrollbar { display: none; }
+
+/* Tree rows — port-specific (collapsible variant, see deviation note above).
+   Hierarchy is achieved via progressive indent on the row + matching font
+   sizing on the .pf-*-name spans. Each row is a flex line: caret → name →
+   count → spacer. Toggle row click on .pf-*-row swaps the caret glyph and
+   reveals/hides the matching .pf-*-body underneath. */
+
+.pf-cat {
+    /* Top-level category section. */
+}
+.pf-cat-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 10px 10px 4px 10px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.75;
+    transition: opacity 0.15s;
+}
+.pf-cat-row:hover { opacity: 1; }
+.pf-cat-name { flex: 0 0 auto; }
+.pf-cat-count {
+    font-weight: normal;
+    font-size: 10px;
+    opacity: 0.65;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+}
+.pf-cat-body { display: flex; flex-direction: column; }
+
+/* Caret glyph — shared across cat/art/col rows. */
+.pf-caret {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    opacity: 0.7;
+    line-height: 1;
+    width: 10px;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Artist row — 2nd level. Sim 1927-1933 padding 8px 10px 2px 28px. */
+.pf-art {
+    /* Just a wrapper. */
+}
+.pf-art-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 10px 2px 28px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    font-weight: bold;
+    transition: opacity 0.15s;
+}
+.pf-art-row:hover { opacity: 0.85; }
+.pf-art-name { flex: 0 0 auto; }
+.pf-art-count {
+    font-weight: normal;
+    opacity: 0.65;
+    margin-left: auto;
+}
+.pf-art-body { display: flex; flex-direction: column; }
+
+/* Collection row — 3rd level. Sim 1935-1941 padding 4px 10px 2px 40px. */
+.pf-col {
+    /* Wrapper. */
+}
+.pf-col-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 4px 10px 2px 40px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: normal;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+}
+.pf-col-row:hover { opacity: 1; }
+.pf-col-name {
+    flex: 0 0 auto;
+    font-style: italic;
+}
+.pf-col-floor {
+    flex: 0 0 auto;
+    opacity: 0.7;
+    font-style: normal;
+    font-size: 11px;
+}
+.pf-col-count {
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+/* Token chips — leaves of the tree. Wrap onto multiple lines.
+   Sim 1945-1951 indents these as full rows; the port renders them as
+   tap-target chips so a wallet with 200 tokens is browsable instead
+   of a single tall scroll column. */
+.pf-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    padding: 4px 10px 6px 52px;
+}
+.pf-token-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s, background 0.15s;
+    box-sizing: border-box;
+    line-height: 1;
+}
+.pf-token-chip:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* ENS rows — flat, no collection layer. Sim 1965-1971. */
+.pf-ens-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 10px 4px 28px;
+    font-size: 13px;
+    font-weight: normal;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s;
+}
+.pf-ens-row:hover { opacity: 0.85; }
+.pf-ens-label { flex: 0 0 auto; }
+.pf-ens-price {
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.7;
+    font-weight: bold;
+}
+
+/* Filter sticky footer — mirrors .artists-filter-sticky. */
+.portfolio-filter-sticky {
+    flex-shrink: 0;
+    background: var(--text-color);
+    padding: 10px 10px 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px dashed rgba(128, 128, 128, 0.3);
+    margin-top: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+#portfolioSearchInput {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: normal;
+    padding: 8px 10px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+#portfolioSearchInput::placeholder {
+    color: var(--text-color);
+    opacity: 0.8;
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.portfolio-filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pill-portfolio-filter {
+    border: 1px dashed var(--bg-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 24px;
+    box-sizing: border-box;
+}
+.pill-portfolio-filter.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-style: solid;
+    opacity: 1;
+}
+.pill-portfolio-filter:hover { opacity: 0.8; }
+
+
+/* ============================================================
+   ACTION TOAST — ports sim 3272-3281
+   ============================================================
+   Single fixed bottom-centred pill, rendered once near root by
+   PriceOSShell. Two-stage display: .mounted shows the element
+   (display: block + opacity 0); .show fades it in. ToastContext
+   handles the timing dance (two-rAFs to attach the transition,
+   1800ms visible, 250ms fade-out).
+*/
+
+.ens-copy-toast {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--text-color);
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9999;
+}
+.ens-copy-toast.mounted { display: block; }
+.ens-copy-toast.mounted.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+
+/* ============================================================
+   DESKTOP OVERRIDES — ports sim 2225-2228 inside its (min-width: 601px)
+   ============================================================
+   The base @media query is below at the file level. The artists list
+   gets a slightly taller cap and the filter glyphs get exact pixel
+   sizing per icon (sim's per-glyph nudges).
+*/
+@media (min-width: 601px) {
+    #artistsList { max-height: 225px; }
+    .pill-artist-filter span {
+        font-size: 16px !important;
+        transform: none !important;
+        top: 1px !important;
+    }
+    .artist-rel-icon[title="Followers"] {
+        font-size: 22px !important;
+        transform: translateY(-1px);
+    }
+    .artist-rel-icon[title="Following"] {
+        font-size: 16px !important;
+        transform: translateY(-1px);
+    }
+    .artist-rel-icon[title="Mutual"] {
+        font-size: 18px !important;
+        transform: translateY(-1px);
+    }
+
+    /* Per-pill icon sizing on desktop — sim 2179-2185. */
+    .pill-artist-filter[data-rel="starred"] span {
+        font-size: 14px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .pill-artist-filter[data-rel="notes"] span {
+        font-size: 16px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .pill-artist-filter[data-rel="mutual"] span {
+        font-size: 19px;
+        display: inline-block;
+        transform: translateY(-2.5px);
+    }
+    .pill-artist-filter[data-rel="following"] span {
+        font-size: 17px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .pill-artist-filter[data-rel="followers"] span {
+        font-size: 17px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .pill-artist-filter[data-rel="cooldown"] span {
+        font-size: 13px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .pill-artist-filter[data-rel="active"] span {
+        font-size: 13px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+}
