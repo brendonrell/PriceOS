@@ -19,15 +19,15 @@
  * data (850 / 2.2k); real values land when wallet + indexer wire up.
  *
  * ── PARKED DEVIATION FROM SIM (2026-05-02, Brendon) ─────────────────
- * The Profile link DELIBERATELY does NOT use `flex: 1`. Sim does — the
- * link expands to fill the row, pushing the follower / following stats
- * hard against the right edge of the dropdown panel. Brendon prefers
- * the layout where the stats sit clustered next to the "Profile" label
- * with the 12px margin-left from .nav-follower-stats, leaving empty
- * space on the right. This is intentional. Do not "restore parity with
- * sim" by adding flex: 1 back to the anchor — the deviation is
- * deliberate and Brendon-approved. If sim ever changes to match this,
- * delete this comment block.
+ * The Profile link USES `flex: 1` deliberately. Sim does NOT — sim's
+ * profile row leaves the link at natural width, which clusters the
+ * follower / following stats next to the "Profile" label (12px gap
+ * from .nav-follower-stats margin-left). Brendon prefers the layout
+ * where the link expands to fill the row, pushing the stats hard
+ * against the right edge of the dropdown panel. This is intentional.
+ * Do not "restore parity with sim" by removing flex: 1 — the
+ * deviation is deliberate and Brendon-approved. If sim ever changes
+ * to match this, delete this comment block.
  * ────────────────────────────────────────────────────────────────────
  */
 
@@ -39,8 +39,9 @@ export function LinksView() {
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">
             <div id="profileRow">
-                {/* PARKED DEVIATION: no flex: 1 — keeps the stats
-                    clustered next to "Profile" rather than right-edge. */}
+                {/* PARKED DEVIATION: flex: 1 pushes the stats to the
+                    right edge of the row instead of clustering them
+                    next to "Profile" (sim's natural layout). */}
                 <a
                     href="/brendon"
                     style={{
@@ -48,6 +49,7 @@ export function LinksView() {
                         fontWeight: 'bold',
                         textDecoration: 'none',
                         color: 'inherit',
+                        flex: 1,
                     }}
                 >
                     Profile
