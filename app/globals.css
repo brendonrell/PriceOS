@@ -65,7 +65,7 @@
        Per Brendon: "ideally we just use the space." 1-row floor still
        applies; ceiling now = whatever the dropdown-stack clamp gives. */
     --menu-top-offset:      76px;   /* navbar pad + nav-controls margin-top + btn-user + dropdown margin-top */
-    --menu-bottom-reveal:    6px;   /* page peek below menu (now actually engages) */
+    --menu-bottom-reveal:    4px;   /* 1/3 reduction from prior 11px */
     --accordion-min-height: 80px;   /* header + 1 row + padding */
     --notif-list-min:       32px;   /* 1 list row visible minimum */
 }
