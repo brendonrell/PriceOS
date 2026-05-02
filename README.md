@@ -35,8 +35,8 @@ Locked Apr 29 2026. Full spec lives in ClickUp under PD Master Brief → Front E
 |---|---|---|
 | `--hothurt` | `#FF0055` | Primary brand red |
 | `--attention` | `#FFE600` | Primary brand yellow |
-| `--dot` | `#111111` | Brand black (was `--ink`) |
-| `--matrix` | `#E0E0E0` | Brand off-white (was `--paper`) |
+| `--dot` | `#111111` | Brand black |
+| `--matrix` | `#E0E0E0` | Brand off-white |
 
 ## Routes
 
