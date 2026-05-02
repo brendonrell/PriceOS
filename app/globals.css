@@ -58,7 +58,7 @@
     --pd-menu-height: 173px;
 
     /* F29 — Connect menu sizing (clamp + accordion bounds) */
-    --menu-top-offset:      68px;   /* under the @brendon button */
+    --menu-top-offset:      76px;   /* navbar pad + nav-controls margin-top + btn-user + dropdown margin-top */
     --menu-bottom-reveal:    6px;   /* page peek below menu (~half of post-F29 11px) */
     --accordion-min-height: 80px;   /* header + 1 row + padding */
     --notif-list-min:       32px;   /* 1 list row visible minimum */
@@ -132,13 +132,8 @@ body.is-pwa .navbar {
 
 @media (max-width: 600px) {
     .navbar {
-        /* Top padding 25px (matches desktop) so the connect button sits at
-           the same vertical position regardless of viewport. Sim's literal
-           CSS uses 15px on mobile, but in practice (Brendon's screenshot
-           comparison) the button lands too high vs sim — bumping to 25px
-           gives the visible buffer he expects under the browser chrome.
-           Side/bottom padding stays at sim's mobile values (20/15). */
-        padding: max(25px, env(safe-area-inset-top)) 20px 15px 20px;
+        /* Sim-faithful mobile padding: 15px top/bottom, 20px horizontal. */
+        padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;
     }
     body.is-pwa .navbar {
         padding-top: max(30px, calc(env(safe-area-inset-top) + 16px));
@@ -149,6 +144,15 @@ body.is-pwa .navbar {
 .nav-controls {
     pointer-events: auto;
     transition: opacity 0.4s ease;
+    /* Sim has a hidden .top-bar element as the first child of .navbar. Two
+       sibling-combinator rules in sim (lines 1090-1091) — `.top-bar +
+       .pd-logo-wrap` and `.top-bar ~ .nav-controls` — give both wrappers
+       margin-top: 8px. Adjacent/general sibling combinators match on source
+       order even when the sibling is display:none, so this margin is always
+       active in sim. The React port omits .top-bar entirely (Step 2 plan),
+       so neither selector matches and both wrappers sat 8px too high.
+       Matching the effective rendering directly here. */
+    margin-top: 8px;
 }
 
 .nav-faded { opacity: 0.10; }
