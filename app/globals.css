@@ -421,7 +421,15 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
                 transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 200;
     width: 310px;
-    max-height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
+    /* F32 (2026-05-02): height, not max-height. max-height is a ceiling — it
+       lets dropdown-stack collapse to content size when content < clamp,
+       which means no slack exists for flex-grow children (F29 accordions,
+       F30 panel views, F31 uncapped notif-list) to absorb. height makes
+       dropdown-stack always exactly the clamp height; the slack between
+       content and clamp becomes real space that flex: 1 1 auto can fill.
+       overflow-y: auto stays as the safety net for tiny viewports where
+       content > height. */
+    height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
