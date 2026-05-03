@@ -13,11 +13,19 @@
  * Date label format mirrors sim line 5863 — the date string is rendered with
  * an underline + 3px offset. CAL_MONTH_SHORT already returns uppercase tokens
  * ('JAN', 'FEB', …), so the rendered output is "NOTE FOR: APR 19 2026" — no
- * css text-transform required.
+ * css text-transform required. Artist label format mirrors sim line 10577 —
+ * "ARTIST NOTE FOR: <underlined>${name}</underlined>" with the same 3px
+ * underline offset; the "ARTIST" prefix distinguishes the kind at a glance.
  *
  * Toast: showToast() now wired up. Sim's exact strings:
- *   - 'Day Note SAVED' / 'Day Note REMOVED'           (sim ~5867)
- *   - `Note saved: ${name}` / `Note cleared: ${name}` (sim editArtistNote)
+ *   - 'Day Note SAVED' / 'Day Note REMOVED'                   (sim 5910)
+ *   - 'Artist note saved — ${name}' / 'Artist note cleared — ${name}'
+ *                                                              (sim 10628;
+ *                                                              em-dash, NOT
+ *                                                              colon, and
+ *                                                              "Artist note"
+ *                                                              prefix not
+ *                                                              "Note")
  */
 
 import {
@@ -105,8 +113,8 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                 });
                 showToast(
                     trimmed
-                        ? `Note saved: ${prompt.name}`
-                        : `Note cleared: ${prompt.name}`
+                        ? `Artist note saved \u2014 ${prompt.name}`
+                        : `Artist note cleared \u2014 ${prompt.name}`
                 );
             }
             setPrompt(null);
@@ -138,7 +146,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             initialValue = artistNotes[prompt.name] || '';
             label = (
                 <>
-                    NOTE FOR:{' '}
+                    ARTIST NOTE FOR:{' '}
                     <span
                         style={{
                             textDecoration: 'underline',
