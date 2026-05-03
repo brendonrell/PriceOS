@@ -1,30 +1,35 @@
 /*
- * Navbar
+ * Navbar — Launch Cut (stripped)
  *
- * The sticky chrome at the top of every page. Three top-level slots:
- *   1. PeteyLogo — left side, rotates on click
- *   2. Ticker — flex-fills the middle (empty in Step 2, fills with
- *      live activity events when the indexer wires up later)
- *   3. UserMenuButtons — right side cluster (cart, sprite, badge,
- *      connect button)
+ * Slots in the stripped launch-cut variant:
+ *   1. PeteyLogo — left side, PD wordmark, click rotates and opens
+ *      the home/$PRICE bubble.
+ *   2. TopBarConnect — right side, RainbowKit-backed wallet connect
+ *      button. Three states (CONNECT / WRONG NETWORK / address pill).
  *
- * The Top Bar (grail pins, hammer pill, incognito, RPC ping) lives
- * inside the sim's navbar element above this row. Hidden in the
- * sim by default (style="display:none") and only revealed by feature
- * toggles. Step 2 omits it entirely — it'll land alongside the spell
- * toggles that summon it.
+ * Everything else from the previous Navbar (Ticker, cart, sprite,
+ * level badge, dropdown stack) is deferred. Those components remain
+ * in the codebase but are not mounted in the launch-cut chrome.
+ * They land back in once the launch is open and the surfaces below
+ * the fold are shipping (calendar pill, search, dropdown, etc).
+ *
+ * .navbar's flex layout (justify-content: space-between) handles
+ * the left/right split. .nav-controls preserves the right-side
+ * cluster styling hooks (gap, pointer-events, hover-fade behaviour
+ * from sim line 90 + 897) so this slot reads as the same family of
+ * chrome as the eventual full Top Bar.
  */
 
 import { PeteyLogo } from './PeteyLogo';
-import { Ticker } from './Ticker';
-import { UserMenuButtons } from './UserMenuButtons';
+import { TopBarConnect } from '../chrome/TopBarConnect';
 
 export function Navbar() {
     return (
         <nav className="navbar">
             <PeteyLogo />
-            <Ticker />
-            <UserMenuButtons />
+            <div className="nav-controls">
+                <TopBarConnect />
+            </div>
         </nav>
     );
 }
