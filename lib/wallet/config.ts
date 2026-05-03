@@ -19,7 +19,7 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { mainnet } from 'wagmi/chains';
 
-const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '';
+const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || 'PD_PLACEHOLDER_PROJECT_ID';
 
 export const wagmiConfig = getDefaultConfig({
     appName: 'Price Discussion',
