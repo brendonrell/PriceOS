@@ -46,7 +46,7 @@ export function PingsBox() {
             header={
                 <>
                     PINGS
-                    <span className="notif-count">({MOCK_PINGS.length})</span>
+                    <span className="notif-count">(8)</span>
                 </>
             }
         >

@@ -23,7 +23,7 @@ export function TodosBox() {
             header={
                 <>
                     TO-DOS
-                    <span className="notif-count">({MOCK_TODOS.length})</span>
+                    <span className="notif-count">(5)</span>
                 </>
             }
         >
