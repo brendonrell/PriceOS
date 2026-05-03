@@ -31,14 +31,29 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
+import { useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 
 export function LinksView() {
     const { setView } = useDropdown();
+    const [profileHover, setProfileHover] = useState(false);
 
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">
-            <div id="profileRow">
+            {/* F33: row container styles match sim 4508 (flex / padding / border-left placeholder / 30px height).
+                F34: hover state paints borderLeftColor + background, mirrors sim 4509 inline mouseenter/leave handlers. */}
+            <div
+                id="profileRow"
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '6px 10px',
+                    borderLeft: `2px solid ${profileHover ? 'var(--bg-color)' : 'transparent'}`,
+                    background: profileHover ? 'rgba(128,128,128,0.2)' : '',
+                    height: 30,
+                    boxSizing: 'border-box',
+                }}
+            >
                 {/* PARKED DEVIATION: flex: 1 pushes the stats to the
                     right edge of the row instead of clustering them
                     next to "Profile" (sim's natural layout). */}
@@ -49,12 +64,25 @@ export function LinksView() {
                         fontWeight: 'bold',
                         textDecoration: 'none',
                         color: 'inherit',
+                        transition: 'all 0.2s',
+                        borderLeft: 'none',
+                        padding: 0,
                         flex: 1,
                     }}
+                    onMouseEnter={() => setProfileHover(true)}
+                    onMouseLeave={() => setProfileHover(false)}
                 >
                     Profile
                 </a>
-                <span className="nav-follower-stats">
+                {/* F35: stopPropagation + preventDefault prevents stats clicks from bubbling
+                    to the row and triggering Profile navigation (sim 4510). */}
+                <span
+                    className="nav-follower-stats"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }}
+                >
                     <span className="nav-ico nav-ico-followers" title="Followers">
                         ⚬{'\uFE0E'}
                     </span>{' '}
