@@ -10,6 +10,15 @@
  * panel with a header row, a divider, and (when open) a scrollable
  * list with up/down scroll arrow rows above and below.
  *
+ * DOM shape (mirrors sim 4870–4955):
+ *   .notifications-box[id={boxId}]
+ *     .notif-header
+ *     .dropdown-divider                    ← toggled via display
+ *     #{boxId}Body                         ← toggled via display
+ *       .scroll-arrow (up)
+ *       .notif-list[id={listId}]
+ *       .scroll-arrow (down)
+ *
  * Behavior:
  *   - Header click toggles open/closed
  *   - Mutual exclusion is handled by the caller via setAccordion in
@@ -17,11 +26,10 @@
  *   - Scroll arrows scroll the inner list by `scrollStep` px in either
  *     direction. Defaults to 80 (Tape / Todos / Notes per sim 5952,
  *     6105, 7222). Pings overrides to 60 (sim 6760).
- *   - When the body is visible, a `.dropdown-divider` is rendered
- *     between the header and the body. Its visibility tracks the body
- *     (both gated on `isVisible` here, matching sim's
- *     applyDropdownStates which toggles body and divider together —
- *     sim 7238–7246).
+ *   - Body wrapper + divider stay mounted across open/close so the
+ *     inner list's scroll position survives a close→reopen cycle
+ *     (sim's applyDropdownStates only toggles `style.display`, never
+ *     unmounts — sim 7238–7246).
  *
  * Pings is the only accordion that always shows when the menu opens
  * (its closed state isn't really "closed" — it's an "always there"
@@ -74,10 +82,20 @@ export function AccordionBox({
 
     const isVisible = alwaysOpen || open;
 
+    // Sim wraps [scroll-up + notif-list + scroll-down] in a #{boxId}Body
+    // div (sim 4875 / 4884 / 4903 / 4919). Derive the body id when the
+    // outer boxId is provided so legacy CSS / JS hooks resolve.
+    const bodyId = boxId ? `${boxId}Body` : undefined;
+
     const scrollList = (direction: 1 | -1) => {
         const el = listRef.current;
         if (el) el.scrollBy({ top: direction * scrollStep, behavior: 'smooth' });
     };
+
+    // Render body + divider unconditionally; toggle visibility via
+    // `display: none` so DOM nodes (and inner scroll position) survive
+    // close→reopen. Matches sim's applyDropdownStates (sim 7238–7246).
+    const hiddenStyle = { display: 'none' } as const;
 
     return (
         <div
@@ -99,34 +117,38 @@ export function AccordionBox({
                 {header}
             </div>
 
-            {isVisible && (
-                <>
-                    <div className="dropdown-divider" />
-                    <div
-                        className="scroll-arrow"
-                        onClick={() => scrollList(-1)}
-                        role="button"
-                        tabIndex={0}
-                        title="Scroll Up"
-                        aria-label="Scroll up"
-                    >
-                        ⇡{'\uFE0E'}
-                    </div>
-                    <div className="notif-list" id={listId} ref={listRef}>
-                        {children}
-                    </div>
-                    <div
-                        className="scroll-arrow"
-                        onClick={() => scrollList(1)}
-                        role="button"
-                        tabIndex={0}
-                        title="Scroll Down"
-                        aria-label="Scroll down"
-                    >
-                        ⇣{'\uFE0E'}
-                    </div>
-                </>
-            )}
+            <div
+                className="dropdown-divider"
+                style={isVisible ? undefined : hiddenStyle}
+            />
+            <div
+                id={bodyId}
+                style={isVisible ? undefined : hiddenStyle}
+            >
+                <div
+                    className="scroll-arrow"
+                    onClick={() => scrollList(-1)}
+                    role="button"
+                    tabIndex={0}
+                    title="Scroll Up"
+                    aria-label="Scroll up"
+                >
+                    ⇡{'\uFE0E'}
+                </div>
+                <div className="notif-list" id={listId} ref={listRef}>
+                    {children}
+                </div>
+                <div
+                    className="scroll-arrow"
+                    onClick={() => scrollList(1)}
+                    role="button"
+                    tabIndex={0}
+                    title="Scroll Down"
+                    aria-label="Scroll down"
+                >
+                    ⇣{'\uFE0E'}
+                </div>
+            </div>
         </div>
     );
 }
