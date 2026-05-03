@@ -11,6 +11,7 @@ import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
 import { CollectionProvider } from '../lib/state/CollectionContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
+import { WalletProvider } from '../lib/wallet/WalletProvider';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
 export const metadata: Metadata = {
@@ -132,9 +133,11 @@ export default function RootLayout({
                                             <NotePromptProvider>
                                                 <ValuePromptProvider>
                                                     <CalcSheetProvider>
-                                                        <CollectionProvider>
-                                                            <PriceOSShell>{children}</PriceOSShell>
-                                                        </CollectionProvider>
+                                                        <WalletProvider>
+                                                            <CollectionProvider>
+                                                                <PriceOSShell>{children}</PriceOSShell>
+                                                            </CollectionProvider>
+                                                        </WalletProvider>
                                                     </CalcSheetProvider>
                                                 </ValuePromptProvider>
                                             </NotePromptProvider>
