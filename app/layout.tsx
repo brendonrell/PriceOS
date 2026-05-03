@@ -9,6 +9,7 @@ import { ToastProvider } from '../lib/state/ToastContext';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
+import { CollectionProvider } from '../lib/state/CollectionContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
@@ -131,7 +132,9 @@ export default function RootLayout({
                                             <NotePromptProvider>
                                                 <ValuePromptProvider>
                                                     <CalcSheetProvider>
-                                                        <PriceOSShell>{children}</PriceOSShell>
+                                                        <CollectionProvider>
+                                                            <PriceOSShell>{children}</PriceOSShell>
+                                                        </CollectionProvider>
                                                     </CalcSheetProvider>
                                                 </ValuePromptProvider>
                                             </NotePromptProvider>
