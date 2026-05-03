@@ -99,7 +99,7 @@ export function AccordionBox({
 
     return (
         <div
-            className={`user-dropdown notifications-box${className ? ' ' + className : ''}`}
+            className={`user-dropdown notifications-box${isVisible ? ' is-open' : ''}${className ? ' ' + className : ''}`}
             id={boxId}
         >
             <div
