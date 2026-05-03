@@ -4,10 +4,16 @@
  * Ported verbatim from sim.html:
  *   lines 2491–2575  — mobile defaults + body.theme-dark variants
  *   lines 3002–3016  — @media (min-width: 601px) desktop refinement
+ *   lines 3591–3595  — .artist-note-mode artist-sheet sizing
  *
  * iOS 26 Safari tinting fix: must be display: none when inactive, not just
  * opacity: 0, otherwise Safari samples its fixed dark bg and infects the
  * bottom toolbar.
+ *
+ * .artist-note-mode is mobile-first here: sim writes desktop default 55vh +
+ * `@media (max-width: 600px)` override to 60vh. Port flips the order — 60vh
+ * sits in mobile defaults, 55vh override sits in `@media (min-width: 601px)`.
+ * Same observable behaviour, port idiom.
  */
 
 .note-prompt-wrap {
@@ -220,6 +226,19 @@ body.theme-dark .note-prompt-view {
     display: none;
 }
 
+/* artist-note-mode: slightly shorter sheet for artist notes (sim 3591–3595).
+   Textarea sizing is unscoped — applies on mobile + desktop. Box max-height
+   is mobile-first here (60vh); desktop override (55vh) lives in the
+   min-width: 601px block below. */
+.note-prompt-box.artist-note-mode .note-prompt-textarea {
+    min-height: 120px;
+    max-height: 30vh;
+}
+
+.note-prompt-box.artist-note-mode {
+    max-height: 60vh;
+}
+
 /* Desktop: centred card instead of bottom sheet, 50% taller */
 @media (min-width: 601px) {
     .note-prompt-wrap {
@@ -262,5 +281,9 @@ body.theme-dark .note-prompt-view {
 
     .note-prompt-btn {
         font-size: 12px;
+    }
+
+    .note-prompt-box.artist-note-mode {
+        max-height: 55vh;
     }
 }
