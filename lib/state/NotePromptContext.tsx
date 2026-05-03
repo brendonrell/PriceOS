@@ -26,6 +26,13 @@
  *                                                              "Artist note"
  *                                                              prefix not
  *                                                              "Note")
+ *
+ * Kind threading: `prompt.kind` is forwarded to <NotePromptModal> so the
+ * box element can apply `.artist-note-mode` for the slightly-shorter
+ * artist sheet sizing (sim CSS 3591–3595). Sim keeps the class on the
+ * box until close (sim 10608, 10627); when `prompt` flips to null at
+ * close-start, `kind` becomes undefined and the class drops, matching
+ * sim's mid-fade resize behaviour.
  */
 
 import {
@@ -170,6 +177,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             {children}
             <NotePromptModal
                 open={open}
+                kind={prompt?.kind}
                 label={label}
                 initialValue={initialValue}
                 onClose={closeNotePrompt}
