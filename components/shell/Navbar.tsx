@@ -1,35 +1,36 @@
 /*
- * Navbar — Launch Cut (stripped)
+ * Navbar — Launch Cut (sim-faithful)
  *
- * Slots in the stripped launch-cut variant:
- *   1. PeteyLogo — left side, PD wordmark, click rotates and opens
- *      the home/$PRICE bubble.
- *   2. TopBarConnect — right side, RainbowKit-backed wallet connect
- *      button. Three states (CONNECT / WRONG NETWORK / address pill).
+ * Slots:
+ *   1. PeteyLogo       — left side, PD wordmark, click rotates and
+ *                        opens the home/$PRICE bubble.
+ *   2. UserMenuButtons — right side. Wraps the entire .user-menu-wrapper
+ *                        cluster from sim (cart, sprite, level badge,
+ *                        .btn-user @brendon button) plus DropdownStack
+ *                        beneath it. The wrapper carries .active when
+ *                        the menu is open, so cart/sprite/badge reveal
+ *                        and the dropdown drops down.
  *
- * Everything else from the previous Navbar (Ticker, cart, sprite,
- * level badge, dropdown stack) is deferred. Those components remain
- * in the codebase but are not mounted in the launch-cut chrome.
- * They land back in once the launch is open and the surfaces below
- * the fold are shipping (calendar pill, search, dropdown, etc).
+ * Why mount UserMenuButtons here directly instead of TopBarConnect:
+ * sim.html has no wallet stack. The "wallet" surface is hardcoded
+ * 0x1234...abcd in settings (sim line 4557). The right-side button
+ * is .btn-user (sim line 4453–4456), not a CONNECT pill. The launch
+ * cut reset ripped RainbowKit/wagmi/viem entirely; the dropdown port
+ * (UserDropdown + LinksView + WalletView + accordions) is the real
+ * surface and reconnects through this mount.
  *
- * .navbar's flex layout (justify-content: space-between) handles
- * the left/right split. .nav-controls preserves the right-side
- * cluster styling hooks (gap, pointer-events, hover-fade behaviour
- * from sim line 90 + 897) so this slot reads as the same family of
- * chrome as the eventual full Top Bar.
+ * Ticker remains deferred — lands back in once the launch is open and
+ * the surfaces below the fold ship.
  */
 
 import { PeteyLogo } from './PeteyLogo';
-import { TopBarConnect } from '../chrome/TopBarConnect';
+import { UserMenuButtons } from './UserMenuButtons';
 
 export function Navbar() {
     return (
         <nav className="navbar">
             <PeteyLogo />
-            <div className="nav-controls">
-                <TopBarConnect />
-            </div>
+            <UserMenuButtons />
         </nav>
     );
 }
