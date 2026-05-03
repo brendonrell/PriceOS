@@ -107,7 +107,7 @@ export function PeteyLogo() {
                 {/* Sentiment Weather glyph — populated when body.sentiment-on is set.
                     Step 2 ships an empty placeholder; the 7-state weather logic
                     lands when Sentiment Weather is wired. */}
-                <span aria-hidden="true">{'\u2601\uFE0E'}</span>
+                <span id="sentimentIcon" aria-hidden="true">{'\u2601\uFE0E'}</span>
             </div>
         </div>
     );
