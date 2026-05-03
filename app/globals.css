@@ -800,9 +800,13 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
 }
 
 /* F29 — open accordion contracts internally instead of pushing the
-   menu down. The :has() selector targets only boxes that actually
-   contain an expanded list; closed accordions stay header-only. */
-.notifications-box:has(.notif-list) {
+   menu down. Scoped to `.is-open` (set by AccordionBox when isVisible)
+   instead of `:has(.notif-list)` because the list element stays in the
+   DOM at all times to preserve scroll position across close→reopen
+   (display: none on the body wrapper, not unmount). `:has(.notif-list)`
+   matched closed boxes too — that gave Tape/Todos/Notes the 80px
+   min-height even when they should be header-only. */
+.notifications-box.is-open {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -810,7 +814,7 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     overflow: hidden;
 }
 
-.notifications-box:has(.notif-list) .notif-list {
+.notifications-box.is-open .notif-list {
     flex: 1 1 auto;
     min-height: var(--notif-list-min);
     /* F31: no max-height — list grows to fill available space inside
