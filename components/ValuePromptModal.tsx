@@ -50,6 +50,19 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
     const [mounted, setMounted] = useState(false);
     const [active, setActive] = useState(false);
 
+    // Cache the most recent non-null config so the close fade renders the
+    // prior content (sim doesn't tear DOM down on close — line 11523-11537
+    // just toggles classes — so it never sees this). In the React port we
+    // drive the fade off `config` going null; without the cache the title,
+    // fields, help and submit label all collapse to fallbacks during the
+    // 250ms fade window. Updating a ref during render is fine here (the
+    // assignment is idempotent and depends only on the current config).
+    const lastConfigRef = useRef<ValuePromptConfig | null>(null);
+    if (config) {
+        lastConfigRef.current = config;
+    }
+    const renderConfig = config ?? lastConfigRef.current;
+
     // Input values, seeded from config when it changes.
     const fieldCount = Math.min(config?.fields.length ?? 0, 2);
     const initialValues = useMemo(() => {
@@ -157,10 +170,10 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
     // nothing (saves a hidden node when the prompt has never opened).
     if (!mounted && !config) return null;
 
-    const titleHtml = config?.title ?? '';
-    const help = config?.help;
-    const submitLabel = config?.submit ?? 'Save';
-    const fields = config?.fields ?? [];
+    const titleHtml = renderConfig?.title ?? '';
+    const help = renderConfig?.help;
+    const submitLabel = renderConfig?.submit ?? 'Save';
+    const fields = renderConfig?.fields ?? [];
 
     return (
         <div

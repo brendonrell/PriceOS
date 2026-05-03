@@ -74,6 +74,20 @@ export default function CalcSheet({ config, onClose }: Props) {
     const [mounted, setMounted] = useState(false);
     const [active, setActive] = useState(false);
 
+    /* Cache the most recent non-null config so the close fade renders
+       the prior content. Without this, during the 240ms fade window the
+       offer pre-fill empties, the context line falls back to em-dash,
+       and every P&L row computes from NaN-floor → "—". Sim avoids this
+       by never tearing DOM down on close (line 11638-11646 just toggles
+       classes); the React port drives the fade off `config` going null
+       and needs the prior render data preserved. Ref-during-render is
+       idempotent and depends only on the current config. */
+    const lastConfigRef = useRef<CalcSheetConfig | null>(null);
+    if (config) {
+        lastConfigRef.current = config;
+    }
+    const renderConfig = config ?? lastConfigRef.current;
+
     /* Pre-fill seed — recomputed when config changes. Listed price first,
        floor second, blank third. Sim 11614-11620. */
     const initialOffer = useMemo(() => {
@@ -125,7 +139,7 @@ export default function CalcSheet({ config, onClose }: Props) {
     /* P&L ladder. Deductions stored as positive amounts — the "−" lives
        in each row label so accounting reads cleanly. Sim 11680-11687. */
     const offerNum = parseFloat(offer);
-    const floor = config?.floor ?? NaN;
+    const floor = renderConfig?.floor ?? NaN;
     const platform = Number.isFinite(floor) ? floor * CALC_PLATFORM_FEE_PCT : NaN;
     const royalty  = Number.isFinite(floor) ? floor * CALC_ROYALTY_PCT      : NaN;
     const gas      = CALC_GAS_ESTIMATE_ETH;
@@ -187,12 +201,12 @@ export default function CalcSheet({ config, onClose }: Props) {
        InnerHTML mirrors sim's innerHTML use (italics on collection name);
        caller controls the title string and no user input is interpolated. */
     let contextHtml = '\u2014';
-    if (config) {
-        const base = `<em>${config.collectionTitle}</em> #${config.tokenId}`;
-        if (config.price != null) {
-            contextHtml = `${base} \u2014 listed ${config.price.toFixed(3)} ETH`;
-        } else if (config.floor != null) {
-            contextHtml = `${base} \u2014 not listed \u00B7 Floor ${config.floor.toFixed(3)} ETH`;
+    if (renderConfig) {
+        const base = `<em>${renderConfig.collectionTitle}</em> #${renderConfig.tokenId}`;
+        if (renderConfig.price != null) {
+            contextHtml = `${base} \u2014 listed ${renderConfig.price.toFixed(3)} ETH`;
+        } else if (renderConfig.floor != null) {
+            contextHtml = `${base} \u2014 not listed \u00B7 Floor ${renderConfig.floor.toFixed(3)} ETH`;
         } else {
             contextHtml = base;
         }
