@@ -16,11 +16,12 @@
  *   red      #FF0033
  *   hashsyn  #7B2FFF
  *
- * Plus a non-pickable default — Hothurt #FF0055 — which is what the page
+ * Plus a non-pickable default — Dot #111111 — which is what the page
  * boots into when no theme has been picked. This is the React port's
  * starting state per Brendon's brief; it differs from the sim's default
- * (which boots into "artist" / yellow). The picker doesn't include
- * Hothurt as a pill — it's the baseline you return to by clearing
+ * (which boots into "artist" / yellow). Sim doesn't govern the default
+ * colour, so this is a port-only choice. The picker doesn't include
+ * Dot as a pill — it's the baseline you return to by clearing
  * pd_settings_theme in storage.
  *
  * Text color: YIQ luminance check on the bg. Bright bg → dark text
@@ -45,7 +46,7 @@ export type ThemeKey =
     | 'blue'
     | 'red'
     | 'hashsyn'
-    | null; // null = factory default (Hothurt)
+    | null; // null = factory default (Dot)
 
 const THEMES: Record<NonNullable<ThemeKey>, string> = {
     artist:  '#FFE600',
@@ -57,16 +58,15 @@ const THEMES: Record<NonNullable<ThemeKey>, string> = {
     hashsyn: '#7B2FFF',
 };
 
-const HOTHURT  = '#FF0055';
-const DOT_TEXT = '#111111';
-const MATRIX   = '#e0e0e0';
+const DOT    = '#111111';
+const MATRIX = '#e0e0e0';
 
 const STORAGE_KEY = 'pd_settings_theme';
 
 interface ThemeContextValue {
-    /** Currently active theme key. null = no pick (Hothurt default). */
+    /** Currently active theme key. null = no pick (Dot default). */
     theme: ThemeKey;
-    /** Apply a theme. Pass null to revert to the Hothurt default. */
+    /** Apply a theme. Pass null to revert to the Dot default. */
     setTheme: (key: ThemeKey) => void;
 }
 
@@ -79,7 +79,7 @@ function resolveTextColor(bgHex: string): string {
     const g = parseInt(hex.substring(2, 4), 16) || 0;
     const b = parseInt(hex.substring(4, 6), 16) || 0;
     const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    return yiq >= 128 ? DOT_TEXT : MATRIX;
+    return yiq >= 128 ? DOT : MATRIX;
 }
 
 /** Detect a "red-ish" bg (used for the to-do markers' contrast safety). */
@@ -96,27 +96,27 @@ function applyTheme(key: ThemeKey) {
     const root = document.documentElement;
     const body = document.body;
 
-    const bg = key === null ? HOTHURT : THEMES[key];
+    const bg = key === null ? DOT : THEMES[key];
     const text = resolveTextColor(bg);
 
     root.style.setProperty('--bg-color', bg);
     root.style.setProperty('--text-color', text);
     root.style.setProperty(
         '--border-color',
-        text === DOT_TEXT ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
+        text === DOT ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
     );
     root.style.setProperty('--accent', text);
     root.style.setProperty(
         '--stat-bg',
-        text === DOT_TEXT ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)'
+        text === DOT ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)'
     );
     root.style.setProperty(
         '--stat-active-bg',
-        text === DOT_TEXT ? '#000000' : MATRIX
+        text === DOT ? '#000000' : MATRIX
     );
     root.style.setProperty(
         '--stat-active-text',
-        text === DOT_TEXT ? MATRIX : '#000000'
+        text === DOT ? MATRIX : '#000000'
     );
 
     // Body class flags read by various theme-conditional CSS rules.
