@@ -117,7 +117,7 @@ export default function RootLayout({
                     name="apple-mobile-web-app-title"
                     content="Price Discussion"
                 />
-                <meta name="theme-color" content="#FF0055" />
+                <meta name="theme-color" content="#111111" />
             </head>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
