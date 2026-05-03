@@ -9,7 +9,9 @@
  *   2. #digital-familiar — fixed-position bottom-left ASCII entity
  *      for the Familiar spell. Default display:none via the parent
  *      style; spell_familiar toggle reveals it. Empty sprite +
- *      badge in step 2 — the species + animation logic lands later.
+ *      badge + bubble in step 2 — the species + animation logic
+ *      (and the dialogue text rendered into #familiarBubble) lands
+ *      later. Mirrors sim.html:4265-4269.
  *
  * Both are mounted unconditionally so the spell toggles can simply
  * flip a CSS flag rather than mounting/unmounting React subtrees.
@@ -23,6 +25,7 @@ export function Backgrounds() {
             <div id="digital-familiar" aria-hidden="true" style={{ display: 'none' }}>
                 <span className="familiar-sprite" id="familiarSprite" />
                 <span className="familiar-badge" id="familiarBadge" />
+                <span className="familiar-bubble" id="familiarBubble" />
             </div>
         </>
     );
