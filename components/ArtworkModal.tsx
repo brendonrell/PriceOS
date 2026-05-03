@@ -29,12 +29,16 @@
  * sits at the top of the component, before any conditional return.
  * The whole component renders the modal element on every render,
  * gating internals on `id != null` rather than early-returning.
+ *
+ * Data routing: token metadata comes from CollectionContext via
+ * useTokenMeta(id). The modal no longer owns the LCG seed math —
+ * swapping the indexer in is a single-file change in CollectionContext
+ * with zero diff here.
  */
 
 import {
     useCallback,
     useEffect,
-    useMemo,
     useRef,
     type MouseEvent as ReactMouseEvent,
     type ReactNode,
@@ -42,75 +46,20 @@ import {
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
+import { useCollection } from '../lib/state/CollectionContext';
+import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 import { useLocalStorage } from '../lib/hooks/useLocalStorage';
-
-const COLLECTION_TITLE = 'PRISMS';
-const TOTAL_EDITIONS = 222;
-
-/* Mock collection floor — sim reads this from the BUY button's
-   .mint-price element on the collection page. The Collection Page
-   isn't ported yet, so the prototype Calc uses a constant in the
-   listed-price range. Replace with a useCollectionFloor() hook (or
-   indexer query) once that surface lands. */
-const MOCK_COLLECTION_FLOOR_ETH = 0.014;
-
-/* Sim seeds 8 deterministic Brendon-owned tokens across the grid so the
-   "Me" Network filter has meaningful output without stomping all listings.
-   Sim source: line 7967 — `_brendonOwned = new Set([1,2,3,22,67,112,158,201])`. */
-const BRENDON_OWNED: ReadonlySet<number> = new Set([
-    1, 2, 3, 22, 67, 112, 158, 201,
-]);
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
    text-style form (mono, no emoji colour). Required for every Unicode
    glyph the modal paints; matches sim's `&#xFE0E;` everywhere. */
 const VS15 = '\uFE0E';
 
-interface TokenMeta {
-    ownerDisplay: string;
-    price: string | null;
-    isOwnedByBrendon: boolean;
-}
-
-/**
- * Deterministic mock metadata. Same id → same shape on every refresh,
- * which is what sim's Math.random()-seeded init produces in practice
- * (the seeds get reused via metaCache so refreshing the page yields
- * the same listed/priced/owner state).
- *
- * Real metadata comes from the on-chain indexer once that workstream
- * lands; this helper is the throwaway placeholder.
- */
-function getTokenMeta(id: number): TokenMeta {
-    const isMine = BRENDON_OWNED.has(id);
-
-    // Two independent LCG-style draws from the id keep listed-ness and
-    // price uncoupled (matches sim's two Math.random() calls in init).
-    const r1 = ((id * 9301 + 49297) % 233280) / 233280;
-    const r2 = ((id * 31 + 1234567) % 233280) / 233280;
-    const isListed = r1 < 0.3;
-    const price = isListed
-        ? (r2 * 0.5 + 0.01).toFixed(3) + ' ETH'
-        : null;
-
-    let ownerDisplay: string;
-    if (isMine) {
-        ownerDisplay = '@Brendon';
-    } else {
-        const hex = ((id * 2654435761) >>> 0).toString(16).padStart(8, '0');
-        const tail = ((id * 31 + (id % 17) * 13) % 0xffff)
-            .toString(16)
-            .padStart(4, '0');
-        ownerDisplay = '0x' + hex.slice(0, 4) + '\u2026' + tail;
-    }
-
-    return { ownerDisplay, price, isOwnedByBrendon: isMine };
-}
-
 export default function ArtworkModal() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
+    const { title, totalEditions, floorEth } = useCollection();
     const [grailPins, setGrailPins] = useLocalStorage<number[]>(
         'pd_grail_pins',
         []
@@ -120,6 +69,10 @@ export default function ArtworkModal() {
 
     const isOpen = openModal?.name === 'artwork';
     const id = isOpen ? currentModalId : null;
+
+    /* Token metadata — id-keyed lookup over CollectionContext. Returns
+       null when the modal is closed or id is unmapped. */
+    const meta = useTokenMeta(id);
 
     /* Canvas placeholder render. Real ArtEngine wiring is its own ship;
        this paints a stable HSL gradient + radial glow + #id stamp so the
@@ -187,13 +140,13 @@ export default function ArtworkModal() {
        a gallery yet, we walk the full edition range with wrap-around. */
     const goNext = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id >= TOTAL_EDITIONS ? 1 : id + 1);
-    }, [id, setCurrentModalId]);
+        setCurrentModalId(id >= totalEditions ? 1 : id + 1);
+    }, [id, totalEditions, setCurrentModalId]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id <= 1 ? TOTAL_EDITIONS : id - 1);
-    }, [id, setCurrentModalId]);
+        setCurrentModalId(id <= 1 ? totalEditions : id - 1);
+    }, [id, totalEditions, setCurrentModalId]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {
@@ -211,7 +164,7 @@ export default function ArtworkModal() {
     const togglePin = useCallback(() => {
         if (id == null) return;
         const collName =
-            COLLECTION_TITLE.charAt(0) + COLLECTION_TITLE.slice(1).toLowerCase();
+            title.charAt(0) + title.slice(1).toLowerCase();
         if (grailPins.includes(id)) {
             setGrailPins(grailPins.filter((p) => p !== id));
             showToast(`${collName} #${id} DE-PINNED`);
@@ -223,7 +176,7 @@ export default function ArtworkModal() {
         }
         setGrailPins([...grailPins, id]);
         showToast(`${collName} #${id} GRAIL PINNED`);
-    }, [id, grailPins, setGrailPins, showToast]);
+    }, [id, title, grailPins, setGrailPins, showToast]);
 
     /* Backdrop click closes only when the click lands on the modal element
        itself, not bubbled from a child. Mirrors sim's onclick guard at
@@ -235,10 +188,6 @@ export default function ArtworkModal() {
         [close]
     );
 
-    const meta = useMemo<TokenMeta | null>(
-        () => (id != null ? getTokenMeta(id) : null),
-        [id]
-    );
     const isPinned = id != null && grailPins.includes(id);
 
     /* Action button label + Calc-tab visibility. ƒ tab shows ONLY in BUY
@@ -320,7 +269,7 @@ export default function ArtworkModal() {
                                 tabIndex={0}
                                 onClick={close}
                             >
-                                {COLLECTION_TITLE}
+                                {title}
                             </span>
                             {' '}#{id}
                         </div>
@@ -429,11 +378,11 @@ export default function ArtworkModal() {
                                         : NaN;
                                     openCalcSheet({
                                         tokenId: id,
-                                        collectionTitle: COLLECTION_TITLE,
+                                        collectionTitle: title,
                                         price: Number.isFinite(priceNum)
                                             ? priceNum
                                             : null,
-                                        floor: MOCK_COLLECTION_FLOOR_ETH,
+                                        floor: floorEth,
                                     });
                                 }}
                                 title="The Calc"
