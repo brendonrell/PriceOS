@@ -238,6 +238,27 @@ function CollectionPageInner({
         return new Set(ids.slice(0, 6));
     });
 
+    /* Build 22 — Breadcrumb sample (sim 7145-7157). 5 random ids from
+       the first 200 tokens, drawn once per page session, marked as
+       "recently visited" via a small dot on the bottom-right of the
+       artwork. Sim's pickBreadcrumbSample IIFE seeds traitData.Breadcrumb
+       and _recentSubCats; here we just need the id Set for the visual
+       sticker — the trait/recent-cats wiring lands when those features
+       ship. _hotTokenIds collision avoidance mirrors sim 7149 verbatim. */
+    const [breadcrumbSample] = useState<Set<number>>(() => {
+        const HOT_TOKEN_IDS = [7, 42, 99, 147, 256, 444, 617, 888];
+        const used = new Set<number>(HOT_TOKEN_IDS);
+        const picks: number[] = [];
+        while (picks.length < 5) {
+            const id = 1 + Math.floor(Math.random() * 200);
+            if (!used.has(id)) {
+                used.add(id);
+                picks.push(id);
+            }
+        }
+        return new Set(picks);
+    });
+
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
        we read the title via CollectionContext and ignore the route param.
        The reference here keeps the unused-variable lint quiet. */
@@ -599,6 +620,7 @@ function CollectionPageInner({
                         key={id}
                         id={id}
                         showcasePick={showcasePicks.has(id)}
+                        isBreadcrumb={breadcrumbSample.has(id)}
                     />
                 ))}
             </section>
