@@ -18,6 +18,7 @@
 
 import { useRef } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
+import { useModal } from '../../../lib/state/ModalContext';
 import { SettingsToggle } from './SettingsToggle';
 import { SPELLS } from '../../../lib/data/spells';
 
@@ -27,6 +28,7 @@ interface Props {
 
 export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle } = usePdNotifs();
+    const { open: openModal } = useModal();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
         lastTap: 0,
@@ -63,7 +65,18 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         key={spell.id}
                         id={`sb-${spell.id}`}
                         active={notifs[spell.flag]}
-                        onClick={() => toggle(spell.flag)}
+                        onClick={
+                            /* Build 5: the Familiar pill click opens the
+                               Familiar modal instead of toggling the spell.
+                               Sim opens the modal from the floating familiar
+                               sprite (sim 12879), but that sprite isn't
+                               ported yet, so the pill is the entry point.
+                               Every other pill keeps the standard toggle
+                               behavior. */
+                            spell.id === 'familiar'
+                                ? () => openModal('familiar')
+                                : () => toggle(spell.flag)
+                        }
                         icon={spell.icon}
                         iconStyle={{
                             ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
