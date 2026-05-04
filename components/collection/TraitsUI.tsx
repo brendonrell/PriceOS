@@ -376,6 +376,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                         active={isActive}
                                         dimmed={dimmed}
                                         isZero={count === 0}
+                                        category={activeCategory}
                                         onClick={() =>
                                             toggleFilter(
                                                 activeCategory,
@@ -634,6 +635,13 @@ interface L3PillProps {
     active: boolean;
     dimmed: boolean;
     isZero: boolean;
+    /** Active L1 category. Drives the inner-span variant — sim 8679
+     *  renders Breadcrumb (Recent) L3 pills as `<recent-dot>⬤</recent-dot>
+     *  #${name}` with NO stat-count, while every other category uses
+     *  the `↳ ${name}` + count form. Optional so legacy call sites
+     *  (none today, but keeps the surface flexible) keep the original
+     *  rendering by default. */
+    category?: string;
     onClick: () => void;
 }
 
@@ -660,6 +668,7 @@ function L3Pill({
     active,
     dimmed,
     isZero,
+    category,
     onClick,
 }: L3PillProps) {
     const cls = [
@@ -671,6 +680,12 @@ function L3Pill({
     ]
         .filter(Boolean)
         .join(' ');
+    /* Build 24 — Breadcrumb (Recent) variant per sim 8679. Renders
+       the leading `⬤` glyph as `.recent-dot`, prefixes the label
+       with `#`, and omits the stat-count entirely (Breadcrumb counts
+       are always 1, so sim hides them to keep the row visually
+       aligned with the L2 sub-pills above). */
+    const isBreadcrumb = category === 'Breadcrumb';
     return (
         <div
             className={cls}
@@ -684,8 +699,16 @@ function L3Pill({
                 }
             }}
         >
-            <span className="stat-name">↳ {label}</span>
-            <span className="stat-count">{count}</span>
+            {isBreadcrumb ? (
+                <span className="stat-name">
+                    <span className="recent-dot">⬤</span> #{label}
+                </span>
+            ) : (
+                <>
+                    <span className="stat-name">↳ {label}</span>
+                    <span className="stat-count">{count}</span>
+                </>
+            )}
         </div>
     );
 }
