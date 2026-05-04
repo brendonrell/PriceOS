@@ -103,6 +103,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
     const {
         activeCategory,
         setActiveCategory,
+        clearActiveCategory,
         activeFilters,
         toggleFilter,
         myNotesActive,
@@ -145,22 +146,36 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
             <div className="traits-ui" style={hiddenStyle}>
                 <div className="traits-header-bar">
                     <div className="stats-container" id="traitCategories">
-                        {/* Dynamic trait pills (Layer / Mineral) — sim 8518-8529 */}
-                        {DYNAMIC_TRAIT_PILLS.map((p) => (
-                            <BarPill
-                                key={p.key}
-                                label={p.label}
-                                active={activeCategory === p.key}
-                                dimmed={
-                                    activeCategory !== null &&
-                                    activeCategory !== p.key
-                                }
-                                count={countOf(p.key)}
-                                onClick={() => setActiveCategory(p.key)}
-                            />
-                        ))}
+                        {/* Dynamic trait pills (Layer / Mineral) — sim 8518-8529.
+                            Build 16: clicking the currently-active L1 fires
+                            `clearActiveCategory` so the L1 toggle-off path also
+                            drains activeFilters[cat] in the same setState batch
+                            (Build 9 spec residual #4). Clicking an inactive L1
+                            still calls `setActiveCategory(p.key)` to open / swap. */}
+                        {DYNAMIC_TRAIT_PILLS.map((p) => {
+                            const isActive = activeCategory === p.key;
+                            return (
+                                <BarPill
+                                    key={p.key}
+                                    label={p.label}
+                                    active={isActive}
+                                    dimmed={
+                                        activeCategory !== null &&
+                                        activeCategory !== p.key
+                                    }
+                                    count={countOf(p.key)}
+                                    onClick={
+                                        isActive
+                                            ? clearActiveCategory
+                                            : () => setActiveCategory(p.key)
+                                    }
+                                />
+                            );
+                        })}
 
-                        {/* Fate — pinned after dynamic block, sim 8533 */}
+                        {/* Fate — pinned after dynamic block, sim 8533.
+                            Build 16: same toggle-off semantics as the dynamic
+                            pills above. */}
                         <BarPill
                             label="Fate"
                             active={activeCategory === 'Fate'}
@@ -169,11 +184,16 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                 activeCategory !== 'Fate'
                             }
                             count={countOf('Fate')}
-                            onClick={() => setActiveCategory('Fate')}
+                            onClick={
+                                activeCategory === 'Fate'
+                                    ? clearActiveCategory
+                                    : () => setActiveCategory('Fate')
+                            }
                             title="Fate Filter — iChing Destines"
                         />
 
-                        {/* My Network — sim 8549 */}
+                        {/* My Network — sim 8549.
+                            Build 16: toggle-off via clearActiveCategory. */}
                         <BarPill
                             label="My Network"
                             active={activeCategory === 'Network'}
@@ -182,7 +202,11 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                 activeCategory !== 'Network'
                             }
                             count={countOf('Network')}
-                            onClick={() => setActiveCategory('Network')}
+                            onClick={
+                                activeCategory === 'Network'
+                                    ? clearActiveCategory
+                                    : () => setActiveCategory('Network')
+                            }
                         />
 
                         {/* My Notes — sim 8550 (toggle, not category swap) */}
@@ -223,8 +247,13 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                         activeCategory !== 'Breadcrumb'
                                     }
                                     count={countOf('Breadcrumb')}
-                                    onClick={() =>
-                                        setActiveCategory('Breadcrumb')
+                                    onClick={
+                                        activeCategory === 'Breadcrumb'
+                                            ? clearActiveCategory
+                                            : () =>
+                                                  setActiveCategory(
+                                                      'Breadcrumb'
+                                                  )
                                     }
                                     title="Recent — recently-seen tokens"
                                     extraClass="pill-breadcrumb"
