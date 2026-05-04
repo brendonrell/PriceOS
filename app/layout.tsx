@@ -11,6 +11,7 @@ import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
 import { CollectionProvider } from '../lib/state/CollectionContext';
 import { CartProvider } from '../lib/state/CartContext';
+import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
@@ -65,11 +66,25 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs.spell_stargazing) classList.add('stargazing-mode');
                 if (notifs.spell_hammer)     classList.add('hammer-mode');
                 if (notifs.spell_pricelens)  classList.add('pricelens-mode');
-                if (notifs.fogMode)          classList.add('fog-mode');
                 if (notifs.zenMode)          classList.add('zen-mode');
                 if (notifs.sentimentOn)      classList.add('sentiment-on');
                 if (notifs.redactedMode)     classList.add('redacted-mode');
             }
+        }
+
+        // Build 23 — fog-mode follows SortContext (sim 8334-8338),
+        // not the dormant notifs.fogMode flag.
+        var sort = localStorage.getItem('pd_settings_sort');
+        if (sort === 'fog' && document.body) {
+            document.body.classList.add('fog-mode');
+        }
+
+        // Build 23 — persona-default mirrors sim's debugPersona flow
+        // (sim 12015 + 12035). Default ('pd') leaves the class off; only
+        // 'default' adds it. PersonaContext takes ownership post-hydration.
+        var persona = localStorage.getItem('pd_debug_persona');
+        if (persona === 'default' && document.body) {
+            document.body.classList.add('persona-default');
         }
     } catch (e) {
         // Swallow — corrupted localStorage shouldn't take down the app.
@@ -83,6 +98,11 @@ const PREHYDRATION_SCRIPT = `
  * day + artist note save/clear messages, so ToastProvider wraps it.
  * NotePromptProvider also depends on CalendarContext, so calendar
  * stays inside it.
+ *
+ * Build 23 — PersonaProvider mounts at the top of the tree alongside
+ * ThemeProvider. Persona has no other context dependencies (it just
+ * owns body.persona-default and exposes window.setDebugPersona) so
+ * placement is purely organizational.
  */
 export default function RootLayout({
     children,
@@ -140,29 +160,31 @@ export default function RootLayout({
             <body>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
                 <ThemeProvider>
-                    <PdNotifsProvider>
-                        <SortProvider>
-                            <ModalProvider>
-                                <DropdownProvider>
-                                    <ToastProvider>
-                                        <CalendarProvider>
-                                            <NotePromptProvider>
-                                                <ValuePromptProvider>
-                                                    <CalcSheetProvider>
-                                                        <CollectionProvider>
-                                                            <CartProvider>
-                                                                <PriceOSShell>{children}</PriceOSShell>
-                                                            </CartProvider>
-                                                        </CollectionProvider>
-                                                    </CalcSheetProvider>
-                                                </ValuePromptProvider>
-                                            </NotePromptProvider>
-                                        </CalendarProvider>
-                                    </ToastProvider>
-                                </DropdownProvider>
-                            </ModalProvider>
-                        </SortProvider>
-                    </PdNotifsProvider>
+                    <PersonaProvider>
+                        <PdNotifsProvider>
+                            <SortProvider>
+                                <ModalProvider>
+                                    <DropdownProvider>
+                                        <ToastProvider>
+                                            <CalendarProvider>
+                                                <NotePromptProvider>
+                                                    <ValuePromptProvider>
+                                                        <CalcSheetProvider>
+                                                            <CollectionProvider>
+                                                                <CartProvider>
+                                                                    <PriceOSShell>{children}</PriceOSShell>
+                                                                </CartProvider>
+                                                            </CollectionProvider>
+                                                        </CalcSheetProvider>
+                                                    </ValuePromptProvider>
+                                                </NotePromptProvider>
+                                            </CalendarProvider>
+                                        </ToastProvider>
+                                    </DropdownProvider>
+                                </ModalProvider>
+                            </SortProvider>
+                        </PdNotifsProvider>
+                    </PersonaProvider>
                 </ThemeProvider>
             </body>
         </html>
