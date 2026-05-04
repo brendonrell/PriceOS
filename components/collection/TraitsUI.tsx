@@ -296,14 +296,58 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                             })}
                     </div>
 
-                    {/* sim 5174: L3 stats output. JS-injected in sim — kept
-                        as an empty mount point here so the DOM shape matches
-                        when later builds wire it in. */}
+                    {/* L3 stat-pills — sim 5174 mount point + sim 8670-8682
+                        render block. Same gate as L2: show only when an L1
+                        category with a non-empty pool is active. Click
+                        handler shares activeFilters[activeCategory] with the
+                        L2 row above — intentional duplication mirroring
+                        sim's split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
+                        Mock count of 22 per value until gallery wiring
+                        lands; the `.is-zero` class still applies whenever
+                        count === 0 so the structural class logic is in
+                        place for the wiring build. */}
                     <div
                         className="stats-container"
                         id="statsOutput"
-                        style={{ display: 'none' }}
-                    />
+                        style={
+                            l2Visible
+                                ? { display: 'flex' }
+                                : { display: 'none' }
+                        }
+                    >
+                        {l2Visible &&
+                            activeCategory !== null &&
+                            l2Pool.map((value) => {
+                                const isActive =
+                                    activeFilters[activeCategory].has(value);
+                                const anySelected =
+                                    activeFilters[activeCategory].size > 0;
+                                const dimmed = anySelected && !isActive;
+                                /* Mock count — gallery wiring will replace
+                                   with real per-value counts from token data
+                                   (sim sources from `traitData[cat][name]`,
+                                   sim 8664). Typed as `number` (not the
+                                   literal `22`) so the `isZero` check below
+                                   stays live for the wiring build. */
+                                const count: number = 22;
+                                return (
+                                    <L3Pill
+                                        key={value}
+                                        label={value}
+                                        count={count}
+                                        active={isActive}
+                                        dimmed={dimmed}
+                                        isZero={count === 0}
+                                        onClick={() =>
+                                            toggleFilter(
+                                                activeCategory,
+                                                value
+                                            )
+                                        }
+                                    />
+                                );
+                            })}
+                    </div>
                 </div>
             </div>
 
@@ -542,6 +586,59 @@ function SubPill({ label, active, dimmed, onClick }: SubPillProps) {
             }}
         >
             <span className="stat-name">↴ {label}</span>
+        </div>
+    );
+}
+
+interface L3PillProps {
+    label: string;
+    count: number;
+    active: boolean;
+    dimmed: boolean;
+    isZero: boolean;
+    onClick: () => void;
+}
+
+/* L3 stat-pill — sim 8670-8682. Visual prefix `↳` matches sim 8681
+   (L3 uses ↳ vs L2's ↴). `.is-zero` (sim 8672) is applied when count
+   reaches 0 — kept in place even though Build 15 mocks counts at 22 so
+   the gallery-wiring build only needs to replace the count source.
+   `.active` / `.dimmed` mirror L2 selection state — both rows share
+   `activeFilters[cat]`, so toggling here updates the L2 pill above and
+   any future gallery predicate. The trailing `<span class="stat-count">`
+   carries the numeric count (sim 8681). */
+function L3Pill({
+    label,
+    count,
+    active,
+    dimmed,
+    isZero,
+    onClick,
+}: L3PillProps) {
+    const cls = [
+        'pill',
+        'pill-l3',
+        active ? 'active' : '',
+        dimmed ? 'dimmed' : '',
+        isZero ? 'is-zero' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+    return (
+        <div
+            className={cls}
+            role="button"
+            tabIndex={0}
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+        >
+            <span className="stat-name">↳ {label}</span>
+            <span className="stat-count">{count}</span>
         </div>
     );
 }
