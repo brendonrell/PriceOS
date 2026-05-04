@@ -15,53 +15,88 @@
  *   - Click outside menu → DropdownContext's effect closes it
  *   - Pressing Esc → DropdownContext's effect closes it
  *
- * The cart, sprite, and badge clicks open various modals — those
- * handlers wire up in step 7 with the modal stack. For now they're
- * inert chrome.
+ * Modal openers (Build 5):
+ *   - Cart button (leftmost) → CartContext.openPanel(). The btn-cart
+ *     gets .has-items when items.length > 0 (sim 11748–11754) — the CSS
+ *     hides the button entirely when empty per Brendon's "regular
+ *     ecommerce, not whale trading desk" framing. Count badge shows N
+ *     up to 99, then "99+".
+ *   - PriceSprite + ❹❷ badge → ModalContext.open('priceSprite'). Both
+ *     wrap their click in stopPropagation so the menu doesn't toggle
+ *     out from under the modal (sim 4449, 4452).
+ *
+ * Familiar modal opener lives in SpellBookSection (its pill click
+ * routes through ModalContext.open('familiar')) — sim opens it from
+ * clicking the actual floating familiar sprite, but the floating
+ * sprite isn't ported yet, so Build 5 routes the entry point through
+ * the Spell Book pill.
  */
 
 import { useDropdown } from '../../lib/state/DropdownContext';
+import { useModal } from '../../lib/state/ModalContext';
+import { useCart } from '../../lib/state/CartContext';
 import { DropdownStack } from '../dropdown/DropdownStack';
 
 export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
+    const { open: openModal } = useModal();
+    const { items, openPanel: openCartPanel } = useCart();
+
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
     const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
 
+    const cartCount = items.length;
+    const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
+    const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
+
     return (
         <div className={wrapperClass}>
-            {/* Cart — hidden by default; .has-items toggles it on. */}
+            {/* Cart — hidden by default; .has-items toggles it on. Click
+                opens the slide-up CartPanel via its own context. */}
             <button
-                className="btn-cart"
+                className={cartBtnClass}
                 id="btnCart"
                 aria-label="Cart"
                 title="Cart"
                 type="button"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    openCartPanel();
+                }}
             >
                 <span className="cart-count-badge" id="cartCountBadge">
-                    0
+                    {cartBadgeText}
                 </span>
             </button>
 
-            {/* PriceSprite — hidden by CSS until .active. */}
+            {/* PriceSprite — hidden by CSS until .active. Click opens the
+                PriceSprite modal (sim 4449). */}
             <div
                 className="ascii-sprite-wrap"
                 id="asciiSpriteWrap"
-                onClick={(e) => e.stopPropagation()}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    openModal('priceSprite');
+                }}
             >
                 <span className="ascii-sprite" id="asciiSprite">
                     (ง •̀_•́)ง
                 </span>
             </div>
 
-            {/* Level badge — hidden by CSS until .active. */}
+            {/* Level badge — hidden by CSS until .active. Click also opens
+                the PriceSprite modal (sim 4452). */}
             <span
                 className="ascii-pfp-badge"
                 id="asciiPfpBadge"
                 aria-label="Level 42"
                 title="Level 42"
-                onClick={(e) => e.stopPropagation()}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    openModal('priceSprite');
+                }}
             >
                 ❹❷
             </span>
