@@ -36,9 +36,17 @@ import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 
 interface ArtworkCardProps {
     id: number;
+    /* Build 21 — sim 13113-13130 + globals.css :2690.
+       When the parent gallery has `.showcase-mode`, every .edition-card
+       is hidden via display:none unless it also carries .showcase-pick.
+       The page picks 6 random ids once on mount and passes showcasePick
+       through here so the Showcase tab actually renders 6 tiles instead
+       of an empty grid. Optional + defaults to false so the Artworks
+       tab path is unchanged. */
+    showcasePick?: boolean;
 }
 
-export default function ArtworkCard({ id }: ArtworkCardProps) {
+export default function ArtworkCard({ id, showcasePick = false }: ArtworkCardProps) {
     const { open } = useModal();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,7 +110,10 @@ export default function ArtworkCard({ id }: ArtworkCardProps) {
     const ownerDisplay = meta?.ownerDisplay ?? '';
 
     return (
-        <article className="edition-card" data-mint-id={id}>
+        <article
+            className={`edition-card${showcasePick ? ' showcase-pick' : ''}`}
+            data-mint-id={id}
+        >
             <div
                 className="edition-content"
                 onClick={handleOpen}
@@ -126,7 +137,22 @@ export default function ArtworkCard({ id }: ArtworkCardProps) {
                     />
                 </div>
                 <div className="meta">
-                    <span className="meta-id">#{id}</span>
+                    {/* Build 21 — sim 8108. The first 3 ids carry an
+                        "owned by you" check-mark glyph nested inside
+                        .meta-id, after a leading space. Sim hardcodes
+                        i <= 3 even though _brendonOwned is a wider set
+                        — we mirror sim verbatim for visual parity. */}
+                    <span className="meta-id">
+                        #{id}
+                        {id <= 3 && (
+                            <>
+                                {' '}
+                                <span className="badge-owned" title="Owned by You">
+                                    <span className="css-check" />
+                                </span>
+                            </>
+                        )}
+                    </span>
                     {listed ? (
                         <span
                             className="meta-owner price-trigger"
