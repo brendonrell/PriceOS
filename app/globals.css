@@ -34,9 +34,14 @@
 
 
 /* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
+/* Build 9: default --bg-color flipped from --dot (#111111) to --attention
+   (#FFE600) so the page renders in Attention Yellow before ThemeProvider's
+   useEffect runs. Text/border/accent flip to dark to keep contrast on yellow.
+   ThemeContext still applies a saved theme (or its own null-state) on mount;
+   these CSS-level defaults govern the pre-hydration paint. */
 :root {
-    --bg-color:     var(--dot);
-    --text-color:   var(--matrix);
+    --bg-color:     var(--attention);
+    --text-color:   var(--dot);
     --border-color: rgba(0, 0, 0, 0.15);
     --accent:       var(--dot);
 
@@ -1933,4 +1938,986 @@ body.stargazing-mode {
         display: inline-block;
         transform: translateY(-1px);
     }
+}
+
+
+/* ============================================================
+   COLLECTION PAGE
+   ============================================================
+   Build 9 port. Every rule here is a verbatim copy from sim.html
+   (sim line refs noted above each block). Touches: hero
+   (.collection-hero family), stats grid, action row + mint
+   button, profile tabs, traits/sort/search, gallery grid,
+   activity feed, and the + More panel (REPLAY / ALBUMS /
+   GENOME / PRICE TARGETS / ATH & HOLDERS / DISAGREEMENT
+   SCORE). No new rules beyond sim — anything that needs
+   tuning vs. sim is a separate ship.
+   ============================================================ */
+
+/* ── HERO — sim ~2036-2066 ───────────────────────────────── */
+.collection-hero {
+    padding: 10px 40px 10px 40px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    align-items: flex-start;
+}
+@media (min-width: 601px) {
+    .collection-hero { align-items: stretch; }
+}
+.hero-group-1 {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+    max-width: 900px;
+    align-self: flex-start;
+}
+
+.collection-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: baseline;
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 22px;
+    margin: 0;
+    font-weight: normal;
+    line-height: 1;
+    text-align: left;
+}
+.collection-date {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    opacity: 1;
+    margin-left: 0;
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.hero-line {
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--text-color);
+}
+.collection-artist { align-items: baseline; }
+.by-text { font-size: 13px; font-weight: bold; }
+.artist-lockup { display: flex; align-items: baseline; }
+.artist-lockup a {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-weight: normal;
+    font-size: 13px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: inherit;
+}
+.follower-count {
+    font-size: 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.artist-tag {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 21px;
+    opacity: 0.85;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    margin-left: 0px;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+.artist-name-wrap { display: inline; text-decoration: none; }
+.artist-lockup:hover .artist-name-wrap {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+.artist-lockup:hover .artist-tag { opacity: 0.75; }
+
+/* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
+.stats-row {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.stat-icon {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.stat-icon-eth {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+.stat-val {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    line-height: 1;
+    opacity: 1;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    column-gap: 20px;
+    row-gap: 2px;
+    align-items: center;
+}
+.stats-grid .stats-row { display: contents; }
+body.zen-mode .stats-grid { display: none !important; }
+.stats-row-2 .stat-item-anchor { cursor: pointer; }
+.stats-row-2 .stat-item-anchor:hover { opacity: 0.75; }
+body.persona-default .stats-row-2 { display: none !important; }
+.stats-row-2 .stat-icon-owned,
+.stats-row-2 .stat-icon-spent { font-size: 17px; }
+.stats-row-2 .stat-item-anchor .stat-icon-box { font-size: 16px; }
+@media (max-width: 600px) {
+    .stats-row-2 .stat-icon-owned,
+    .stats-row-2 .stat-icon-spent { font-size: 15px; }
+    .stats-row-2 .stat-item-anchor .stat-icon-box { font-size: 14px; }
+}
+.stats-row-2 .stat-val.stat-val-empty { opacity: 0.45; letter-spacing: 0; }
+.stats-row-2 .stat-icon-spent { position: relative; top: 1px; }
+
+/* ⬚ dotted square — stat box icon. sim ~2161 */
+.stat-icon-box {
+    font-size: 13px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow:
+        0.25px 0.25px 0 currentColor,
+        -0.25px -0.25px 0 currentColor,
+        0.25px -0.25px 0 currentColor,
+        -0.25px 0.25px 0 currentColor;
+}
+/* ⌗ owners icon — pure brutalist grid symbol. sim ~2163 */
+.stat-icon-owners {
+    font-size: 13px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* "Collected by" line — sim ~2074-2133 */
+.info-rubik {
+    display: inline-block;
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    line-height: 1.6;
+    color: var(--text-color);
+    opacity: 1;
+    max-width: 100%;
+}
+.collected-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-right: 0;
+    display: inline-block;
+    line-height: 1;
+}
+.collected-pair {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--bg-color) 88%, var(--text-color) 12%);
+    margin: 0 1px;
+    line-height: 1;
+    position: relative;
+}
+.profile-link {
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none !important;
+    transition: opacity 0.2s;
+}
+.collected-pair::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: -3px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+}
+.collected-pair:hover::after { opacity: 0.6; }
+.collected-pair:hover .collected-sprite,
+.collected-pair:hover .profile-link {
+    text-decoration: none !important;
+    opacity: 0.6;
+}
+
+/* Follow badge — sim ~2140-2156 */
+.follow-badge {
+    font-family: 'Courier New', Courier, monospace;
+    margin-left: 2px;
+    display: inline-block;
+    cursor: help;
+    opacity: 0.85;
+    text-shadow: none;
+    line-height: 0;
+    position: relative;
+}
+.ico-mutual,
+.ico-following,
+.ico-followers {
+    font-size: 22px;
+    font-weight: normal;
+    display: inline-block;
+}
+
+/* ── HERO GROUP 2 / ACTION ROW / MINT — sim ~2226-2244 ───── */
+.hero-group-2 {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+}
+@media (min-width: 601px) {
+    .hero-group-2 { align-items: stretch; }
+}
+.action-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    align-self: flex-start;
+}
+.btn-mint {
+    background-color: var(--mint-bg);
+    background-image: var(--mint-bg-img);
+    color: var(--mint-text);
+    border: 1px solid var(--mint-border);
+    padding: 0 24px;
+    height: 46px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.mint-lbl {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 16px;
+    font-weight: normal;
+}
+.mint-price {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.85;
+}
+
+/* ── PROFILE TABS — sim ~2218-2225 ───────────────────────── */
+.profile-tabs-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.profile-tabs-row .pill-l1 {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-weight: normal;
+    font-size: 11px;
+    height: 36px;
+    padding: 0 16px;
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+/* ── PILLS — sim ~2274-2298 ──────────────────────────────── */
+.pill {
+    display: flex;
+    gap: 6px;
+    padding: 0 10px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+.pill-l1 {
+    background-color: var(--pill-l1-bg);
+    background-image: var(--pill-l1-bg-img);
+    color: var(--pill-l1-text);
+    border: 1px solid var(--pill-l1-border);
+}
+.pill-l1.active {
+    background-color: var(--bg-color);
+    background-image: var(--pill-l1-active-bg-img, none);
+    color: var(--text-color);
+    border-color: var(--text-color);
+    opacity: 1 !important;
+}
+.pill-l1.dimmed { opacity: 0.7; }
+
+/* ── TRAITS UI / SORT BAR — sim ~2266-2306, ~2330-2342 ───── */
+.traits-ui {
+    max-width: 1400px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    align-self: flex-start;
+}
+@media (min-width: 601px) {
+    .traits-ui { width: 100%; }
+}
+.traits-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+.stats-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+}
+.sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    flex-wrap: wrap;
+    margin: 0;
+    align-self: flex-start;
+}
+@media (min-width: 601px) { .sort-bar { font-size: 14px; } }
+
+/* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
+.search-row {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 4px 0;
+}
+.search-row.open {
+    display: flex;
+    width: 100%;
+    max-width: 480px;
+}
+@media (min-width: 601px) {
+    .search-row.open { max-width: 467px; }
+}
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--text-color);
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 4px 0;
+    caret-color: var(--text-color);
+    min-width: 0;
+}
+.search-input::placeholder {
+    opacity: 0.5;
+    font-weight: normal;
+    color: var(--text-color);
+    font-size: 13px;
+}
+.search-clear {
+    cursor: pointer;
+    opacity: 0.5;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+    color: var(--text-color);
+}
+.search-clear:hover { opacity: 1; }
+.feed-price-range {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.price-input {
+    width: 60px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--text-color);
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 4px 0;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.price-input::placeholder {
+    opacity: 0.5;
+    font-weight: normal;
+    color: var(--text-color);
+    font-size: 13px;
+}
+.price-sep {
+    opacity: 0.5;
+    font-size: 13px;
+    vertical-align: middle;
+}
+.price-eth-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.5;
+    vertical-align: middle;
+}
+
+/* ── GALLERY GRID + EDITION CARDS — sim ~2346-2365 + ~3018-3032 ── */
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 10px 40px 100px 40px;
+    min-height: 100vh;
+    align-items: start;
+    align-content: start;
+}
+.edition-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-self: start;
+}
+.edition-card.hidden { display: none !important; }
+.edition-card.search-hidden { display: none !important; }
+#gallery.showcase-mode .edition-card { display: none !important; }
+#gallery.showcase-mode .edition-card.showcase-pick { display: flex !important; }
+#gallery.showcase-mode .edition-card.showcase-pick .meta { display: none !important; }
+#gallery.showcase-mode {
+    min-height: 0;
+    padding-bottom: 40px;
+}
+
+.edition-content {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.canvas-wrapper {
+    width: 100%;
+    background: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+body.theme-dark .canvas-wrapper {
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.14);
+}
+
+.meta {
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 6px;
+    padding-bottom: 14px;
+    color: var(--text-color);
+    height: 20px;
+    box-sizing: content-box;
+    position: relative;
+}
+.meta-id {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+}
+.meta-owner {
+    opacity: 0.6;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: opacity 0.3s;
+}
+.price-trigger {
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'Rubik Mono One', sans-serif;
+    font-weight: normal;
+    opacity: 1;
+}
+
+/* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
+#activity-feed {
+    display: none;
+    padding: 10px 40px 100px 40px;
+}
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+.feed-row {
+    display: flex;
+    gap: 15px;
+    padding: 12px 0;
+    position: relative;
+    align-items: flex-start;
+    color: var(--text-color);
+    transition: background 0.2s, padding-left 0.2s;
+}
+.feed-line {
+    position: absolute;
+    left: 6px;
+    top: 30px;
+    bottom: -12px;
+    width: 1px;
+    border-left: 1px dashed var(--border-color);
+}
+.feed-row:last-child .feed-line { display: none; }
+.f-icon-wrap {
+    width: 14px;
+    text-align: center;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    z-index: 1;
+    opacity: 0.9;
+}
+.f-time {
+    width: 90px;
+    opacity: 0.5;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.f-type {
+    width: 65px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.f-content { flex: 1; }
+.f-content .ico-mutual,
+.f-content .ico-following,
+.f-content .ico-followers {
+    line-height: 0;
+    position: relative;
+    top: 3px;
+}
+.f-content .artist-tag {
+    line-height: 0;
+    position: relative;
+    top: 3px;
+}
+.f-highlight {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+/* ── + MORE PANEL — sim ~3597-3868 ───────────────────────── */
+.more-section-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    padding: 8px 40px 4px 40px;
+    color: var(--text-color);
+    user-select: none;
+}
+@media (max-width: 600px) {
+    .more-section-header { padding: 8px 20px 4px 20px; }
+}
+
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 10px 40px 20px 40px;
+}
+@media (max-width: 600px) {
+    .albums-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 10px 20px 20px 20px;
+    }
+}
+.album-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+}
+.album-thumb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    aspect-ratio: 1.5 / 1;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--stat-bg);
+}
+.atg-cell {
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+}
+.atg-cell:nth-child(1) { background: var(--bg-color); filter: hue-rotate(30deg)  saturate(1.4); }
+.atg-cell:nth-child(2) { background: var(--bg-color); filter: hue-rotate(90deg)  saturate(1.4); }
+.atg-cell:nth-child(3) { background: var(--bg-color); filter: hue-rotate(150deg) saturate(1.4); }
+.atg-cell:nth-child(4) { background: var(--bg-color); filter: hue-rotate(220deg) saturate(1.4); }
+.album-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+.album-name { }
+.album-count { opacity: 0.5; font-size: 12px; }
+
+.more-replay-wrap,
+.more-genome-wrap,
+.more-seal-wrap,
+.more-disagree-wrap {
+    padding: 0 40px 20px 40px;
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+}
+#albums-panel > .albums-grid {
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+}
+#albums-panel > .more-section-header {
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .more-replay-wrap,
+    .more-genome-wrap,
+    .more-seal-wrap,
+    .more-disagree-wrap {
+        padding: 0 20px 20px 20px;
+        max-width: none;
+    }
+    #albums-panel > .albums-grid,
+    #albums-panel > .more-section-header { max-width: none; }
+}
+.more-replay-card,
+.more-genome-card,
+.more-seal-card,
+.more-disagree-card,
+.more-stat-tile {
+    border: 1px dashed var(--text-color);
+    border-radius: 4px;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: transparent;
+    transition: background 0.2s;
+    font-family: 'Courier New', Courier, monospace;
+}
+.more-replay-card:hover,
+.more-genome-card:hover,
+.more-seal-card:hover,
+.more-disagree-card:hover,
+.more-stat-tile:hover { background: rgba(0, 0, 0, 0.04); }
+
+/* Replay */
+.more-replay-timeline {
+    position: relative;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+.mr-tl-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--text-color);
+    opacity: 0.4;
+}
+.mr-tl-playhead {
+    position: absolute;
+    left: 28%;
+    top: 50%;
+    width: 2px;
+    height: 20px;
+    background: var(--text-color);
+    transform: translateY(-50%);
+}
+.mr-tl-events {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.mr-tl-ev {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-color);
+    opacity: 0.7;
+}
+.more-replay-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+}
+.mr-play { font-size: 14px; }
+.mr-speed {
+    padding: 2px 6px;
+    border: 1px solid var(--text-color);
+    border-radius: 3px;
+}
+.mr-speed-dim { opacity: 0.4; border-style: dashed; }
+.mr-range { margin-left: auto; opacity: 0.6; font-size: 10px; }
+
+/* Genome */
+.more-genome-svg {
+    width: 100%;
+    height: 140px;
+    display: block;
+    color: var(--text-color);
+    opacity: 0.85;
+}
+.more-genome-meta {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+    opacity: 0.6;
+}
+
+/* Aggregate Seal / Price Targets */
+.more-seal-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    margin-bottom: 10px;
+}
+.more-seal-buckets {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 80px;
+    gap: 4px;
+    padding: 0 2px;
+}
+.msb-bar {
+    flex: 1;
+    background: var(--text-color);
+    opacity: 0.5;
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    transition: opacity 0.2s;
+}
+.msb-bar.msb-peak { opacity: 1; }
+.more-seal-card:hover .msb-bar { opacity: 0.75; }
+.more-seal-card:hover .msb-bar.msb-peak { opacity: 1; }
+.more-seal-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.5;
+    margin-top: 6px;
+}
+
+/* ATH + Holders (2-col stat tiles) */
+.more-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    padding: 0 40px 20px 40px;
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .more-stats-grid {
+        padding: 0 20px 20px 20px;
+        gap: 15px;
+        max-width: none;
+    }
+}
+.more-stat-tile {
+    padding: 16px 20px;
+    box-sizing: border-box;
+    min-width: 0;
+}
+.mst-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    margin-bottom: 8px;
+}
+.mst-value {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 20px;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.mst-sub {
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.5;
+    letter-spacing: 0.5px;
+}
+
+/* Disagreement Score */
+.mdg-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--text-color);
+}
+.mdg-fill {
+    background: var(--text-color);
+    opacity: 0.7;
+}
+.mdg-fill-right { opacity: 0.3; }
+.mdg-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+}
+.mdg-label-r { opacity: 0.6; }
+
+/* ── COLLECTION PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
+@media (max-width: 600px) {
+    .collection-hero { padding: 10px 20px 20px 20px; }
+    #gallery,
+    #activity-feed {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+        padding: 10px 20px;
+    }
+    .hero-group-2 { gap: 16px; }
+    .traits-header-bar { flex-direction: column; }
+    .sort-bar {
+        gap: 10px;
+        margin-top: 0;
+        flex-wrap: nowrap;
+    }
+    .info-rubik {
+        line-height: 1.25 !important;
+        display: inline-block;
+        padding-top: 4px;
+        font-size: 11px !important;
+    }
+    .info-rubik .ico-mutual,
+    .info-rubik .ico-following,
+    .info-rubik .ico-followers { font-size: 16px !important; }
+    .info-rubik .follow-badge {
+        line-height: 0;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+    .info-rubik .artist-tag {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .artist-lockup .artist-tag { font-size: 25px; }
+    .stat-icon-owners {
+        font-size: 23px;
+        position: relative;
+        top: -2px;
+    }
+    .stat-icon-box { font-size: 14px; }
+    .search-input::placeholder { font-size: 12px; }
+    .f-time { width: 60px; font-size: 11px; }
+    .f-type { width: 44px; font-size: 11px; }
+    .feed-row { gap: 8px; }
+    .f-content .artist-tag { font-size: 23px; }
+}
+
+/* Desktop-specific stat sizing — sim ~2167-2174 */
+@media (min-width: 601px) {
+    .stat-icon-box {
+        font-size: 19px;
+        text-shadow:
+            0.10px 0.10px 0 currentColor,
+            -0.25px -0.25px 0 currentColor,
+            0.25px -0.25px 0 currentColor,
+            -0.25px 0.25px 0 currentColor;
+    }
+    .stat-icon-owners { font-size: 14px; text-shadow: none; }
+    .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
+    .meta-owner { font-size: 13px; opacity: 0.7; }
+    .info-rubik .ico-mutual,
+    .info-rubik .ico-following,
+    .info-rubik .ico-followers { font-size: 22px; }
+    .follow-badge { margin-left: 2px; }
+    .ico-mutual,
+    .ico-following,
+    .ico-followers { font-size: 22px; }
 }
