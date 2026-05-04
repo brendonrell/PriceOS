@@ -10,6 +10,7 @@ import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
 import { CollectionProvider } from '../lib/state/CollectionContext';
+import { CartProvider } from '../lib/state/CartContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
@@ -133,7 +134,9 @@ export default function RootLayout({
                                                 <ValuePromptProvider>
                                                     <CalcSheetProvider>
                                                         <CollectionProvider>
-                                                            <PriceOSShell>{children}</PriceOSShell>
+                                                            <CartProvider>
+                                                                <PriceOSShell>{children}</PriceOSShell>
+                                                            </CartProvider>
                                                         </CollectionProvider>
                                                     </CalcSheetProvider>
                                                 </ValuePromptProvider>
