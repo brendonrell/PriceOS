@@ -23,6 +23,7 @@
 import { useRef } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useTheme } from '../../../lib/state/ThemeContext';
+import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 
 interface Props {
@@ -36,6 +37,7 @@ interface Props {
 export function MyPdSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
     const { theme } = useTheme();
+    const { showToast } = useToast();
 
     // Triple-tap detector: 3 taps within 600ms. Any tap that doesn't
     // come within 600ms of the previous resets the count.
@@ -167,13 +169,22 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.priceLogo}
                         onClick={() => toggle('priceLogo')}
                         icon={'‰\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            lineHeight: '1',
+                            letterSpacing: 0,
+                            margin: '0 2px',
+                        }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
                         className="price-strike"
                     />
                     <SettingsToggle
                         id="sn-anon"
                         title="Anon Mode"
+                        active={notifs.anon}
+                        onClick={() => toggle('anon')}
                         icon={'∅\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
@@ -262,10 +273,19 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={() => {
                             // Cycle 0 → 3 → 4 → 0 (matches sim's mobile cycle, skips
                             // desktop-only Faded and Standard until those land).
+                            // Build 25 D11: showToast feedback per sim 9305 — without
+                            // this the button looked dead because no surface yet
+                            // listens to notifs.tape.
                             const cycle: Array<0 | 3 | 4> = [0, 3, 4];
                             const idx = cycle.indexOf(notifs.tape as 0 | 3 | 4);
                             const next = cycle[(idx + 1) % cycle.length] ?? 0;
                             update({ tape: next });
+                            const labels: Record<0 | 3 | 4, string> = {
+                                0: 'OFF',
+                                3: 'Bold',
+                                4: 'Framed',
+                            };
+                            showToast('The Tape: ' + labels[next]);
                         }}
                         icon={'⏥\uFE0E'}
                         iconStyle={{ fontSize: '15px', lineHeight: '1' }}
