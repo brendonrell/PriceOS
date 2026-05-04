@@ -546,3 +546,285 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
         transform: translateY(0);
     }
 }
+
+
+/* ============================================================
+   BUILD 6 — PUNCH-LIST PASS 1 ports
+
+   Three blocks lifted verbatim from sim.html:
+     - Cart panel (sim 2855–2998) — bottom-sheet on mobile,
+       centred card on >600px. .btn-cart + .btn-cart.has-items
+       chrome already lives in app/globals.css (lines 301–321).
+     - PriceSprite modal body (sim 4130–4235) — hero sprite,
+       level row, next-level bar, score-breakdown grid, action
+       button. Rides on the .platform-modal scaffold above.
+     - Familiar modal CSS (sim 3407–3440) intentionally NOT
+       ported: sim's actual <div id="familiarModal"> at line
+       4274 uses class="platform-modal", so the .familiar-modal-*
+       block is dead CSS in sim itself. React FamiliarModal also
+       renders as platform-modal — fully covered by the scaffold.
+   ============================================================ */
+
+
+/* ── CART PANEL ───────────────────────────────────────────── */
+/* Bottom-sheet on mobile (slides up from the bottom edge) with
+   header, scrollable items list, subtotal + fees footer, BUY ALL
+   button. Items list scrolls when the cart grows; max-height
+   constrained so the panel never swallows the viewport. */
+.cart-panel-wrap {
+    display: none;
+    position: fixed; inset: 0; z-index: 10001;
+    align-items: flex-end; justify-content: center;
+    background: rgba(0,0,0,0.55); opacity: 0;
+    pointer-events: none; transition: opacity 0.22s ease;
+}
+.cart-panel-wrap.mounted { display: flex; }
+.cart-panel-wrap.mounted.active { opacity: 1; pointer-events: auto; }
+.cart-panel-box {
+    background: var(--bg-color);
+    color: var(--text-color);
+    width: 100%; max-width: 440px;
+    border-radius: 10px 10px 0 0;
+    padding: 18px 18px 20px 18px;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex; flex-direction: column;
+    box-sizing: border-box;
+    transform: translateY(20px); transition: transform 0.22s ease;
+    position: relative;
+    max-height: 75vh;
+}
+.cart-panel-wrap.active .cart-panel-box { transform: translateY(0); }
+.cart-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+.cart-panel-title {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 14px; letter-spacing: 1.5px;
+}
+.cart-panel-title-count {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold; opacity: 0.55;
+    margin-left: 4px;
+}
+.cart-panel-close-x {
+    font-size: 18px; cursor: pointer;
+    opacity: 0.7; line-height: 1;
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+}
+.cart-panel-close-x:hover { opacity: 1; }
+.cart-items-list {
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto; min-height: 0;
+}
+.cart-items-list::-webkit-scrollbar { display: none; }
+.cart-empty-state {
+    text-align: center; opacity: 0.55;
+    font-size: 12px; padding: 24px 0; letter-spacing: 0.3px;
+}
+.cart-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-top: 1px dashed color-mix(in srgb, var(--text-color) 25%, transparent);
+}
+.cart-item-thumb {
+    width: 36px; height: 36px;
+    flex-shrink: 0;
+    display: block;
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+}
+.cart-item-meta {
+    flex: 1 1 auto; min-width: 0;
+    overflow: hidden;
+}
+.cart-item-name {
+    font-weight: bold; font-size: 13px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cart-item-artist {
+    font-size: 11px; opacity: 0.65;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cart-item-price {
+    font-weight: bold; font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+.cart-item-remove {
+    font-size: 14px; opacity: 0.5;
+    padding-left: 6px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+.cart-item-remove:hover { opacity: 1; }
+.cart-panel-totals {
+    border-top: 1.5px solid color-mix(in srgb, var(--text-color) 45%, transparent);
+    margin-top: 4px;
+    padding-top: 12px;
+    flex-shrink: 0;
+}
+.cart-panel-subtotal-row {
+    display: flex; justify-content: space-between;
+    align-items: baseline; font-size: 12px;
+}
+.cart-panel-subtotal-label { opacity: 0.7; }
+.cart-panel-subtotal-val {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+.cart-panel-fees-row {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px; opacity: 0.6;
+    margin-top: 2px;
+}
+.cart-panel-fees-row span:last-child {
+    font-variant-numeric: tabular-nums;
+}
+.cart-panel-buy-all {
+    display: block; width: 100%;
+    margin-top: 16px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    padding: 13px;
+    text-align: center;
+    font-family: 'Rubik Mono One', sans-serif;
+    letter-spacing: 1.5px; font-size: 14px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+}
+.cart-panel-buy-all:hover { opacity: 0.85; }
+.cart-panel-buy-all:disabled {
+    opacity: 0.4; cursor: not-allowed;
+}
+@media (min-width: 601px) {
+    .cart-panel-wrap { align-items: center; }
+    .cart-panel-box {
+        max-width: 480px;
+        border-radius: 8px;
+        transform: translateY(8px);
+    }
+    .cart-panel-wrap.active .cart-panel-box { transform: translateY(0); }
+}
+
+
+/* ── PRICESPRITE MODAL BODY ───────────────────────────────── */
+/* Lives inside a .platform-modal shell (sim 4292). Hero sprite
+   matches the connect-menu sprite size, level row mirrors the
+   ❹❷ badge, metrics grid is dashed-border tiles. */
+.ps-hero {
+    display: flex; justify-content: center; align-items: center;
+    margin: 4px 0 10px 0;
+}
+.ps-hero-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    /* APR 20 round 5: reduced desktop 36→28 and mobile 30→24 per Brendon —
+       "a bit smaller". Still hero-sized but no longer dominating the modal. */
+    font-size: 28px; font-weight: bold; line-height: 1;
+    color: var(--text-color);
+    letter-spacing: 0;
+    user-select: none;
+    transition: opacity 0.3s, transform 0.3s;
+    display: inline-block;
+}
+@media (max-width: 600px) {
+    .ps-hero-sprite { font-size: 24px; }
+}
+/* Mirror the connect-menu sprite's sleeping visual — dims to match the original. */
+.ps-hero-sprite.sleeping { opacity: 0.45; }
+.ps-level-row {
+    display: flex; justify-content: center; align-items: baseline;
+    gap: 12px; margin-bottom: 8px;
+}
+.ps-level-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold; letter-spacing: 1.5px;
+    opacity: 0.55; text-transform: uppercase;
+}
+.ps-level-value {
+    font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
+    font-size: 32px; line-height: 1;
+    letter-spacing: -2px; /* same tightener as the connect-menu badge */
+    color: var(--text-color);
+}
+.ps-next-wrap {
+    width: 100%; padding: 0 20px; box-sizing: border-box;
+    margin-bottom: 18px;
+}
+.ps-next-bar {
+    height: 6px; border: 1px solid var(--text-color); border-radius: 3px;
+    overflow: hidden; background: transparent;
+}
+.ps-next-fill {
+    height: 100%; background: var(--text-color); opacity: 0.85;
+    transition: width 0.4s;
+}
+.ps-next-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 0.5px;
+    opacity: 0.55; margin-top: 5px;
+}
+.ps-section-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 1.5px;
+    opacity: 0.5; text-transform: uppercase;
+    padding: 0 20px 8px 20px;
+    text-align: left;
+}
+.ps-metrics {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; padding: 0 20px;
+    margin-bottom: 18px;
+}
+@media (max-width: 600px) {
+    .ps-metrics { gap: 6px; padding: 0 14px; }
+}
+.ps-metric {
+    border: 1px dashed var(--text-color); border-radius: 4px;
+    padding: 10px 12px;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+}
+.ps-metric-label {
+    font-size: 9px; font-weight: bold; letter-spacing: 1px;
+    opacity: 0.55; text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.ps-metric-val {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 18px; line-height: 1;
+    margin-bottom: 3px;
+}
+.ps-metric-pts {
+    font-size: 10px; font-weight: bold;
+    opacity: 0.55;
+}
+.ps-action-row {
+    display: flex; justify-content: center;
+    padding: 0 20px;
+}
+.ps-action-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--text-color); color: var(--bg-color);
+    border: none; border-radius: 4px;
+    padding: 10px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    cursor: pointer; user-select: none;
+    transition: opacity 0.2s;
+}
+.ps-action-btn:hover { opacity: 0.85; }
+.ps-action-icon {
+    font-size: 14px; line-height: 1;
+}
