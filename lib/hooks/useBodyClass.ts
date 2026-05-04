@@ -12,11 +12,19 @@
  * and the pre-hydration script. They MUST stay in lockstep — when a
  * new flag is added, update both.
  *
+ * Build 23 — fog-mode is now driven by SortContext (sort === 'fog'),
+ * not by a pdNotifs flag. Sim 8334-8338 toggles `body.fog-mode` exactly
+ * when `currentSort === 'fog'`. The DefaultSortRow already wires that
+ * sort key, so flipping body.fog-mode from `useSort()` here is the
+ * single sim-faithful source. The dormant `notifs.fogMode` flag stays
+ * in PdNotifs (no state-shape change) but is no longer consulted.
+ *
  * Mounted once in PriceOSShell.
  */
 
 import { useEffect } from 'react';
 import { usePdNotifs } from '../state/PdNotifsContext';
+import { useSort } from '../state/SortContext';
 
 const TAPE_CLASS_MAP: Record<number, string | null> = {
     0: 'tape-off',
@@ -43,6 +51,7 @@ const ALL_FLAG_CLASSES = [
 
 export function useBodyClass() {
     const { notifs } = usePdNotifs();
+    const { sort } = useSort();
 
     useEffect(() => {
         const cl = document.body.classList;
@@ -60,9 +69,10 @@ export function useBodyClass() {
         if (notifs.spell_stargazing) cl.add('stargazing-mode');
         if (notifs.spell_hammer)     cl.add('hammer-mode');
         if (notifs.spell_pricelens)  cl.add('pricelens-mode');
-        if (notifs.fogMode)          cl.add('fog-mode');
+        // Build 23 — fog-mode follows SortContext, not pdNotifs (sim 8334-8338).
+        if (sort === 'fog')          cl.add('fog-mode');
         if (notifs.zenMode)          cl.add('zen-mode');
         if (notifs.sentimentOn)      cl.add('sentiment-on');
         if (notifs.redactedMode)     cl.add('redacted-mode');
-    }, [notifs]);
+    }, [notifs, sort]);
 }
