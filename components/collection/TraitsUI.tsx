@@ -8,7 +8,9 @@
  *
  *   1. .traits-ui            — header bar of filter pills
  *      └ .traits-header-bar  — flex-wrap row, dynamic pill content
- *        └ #traitCategories  — the actual pills
+ *        ├ #traitCategories   — L1 pills (Layer / Mineral / Fate / Network …)
+ *        └ #traitSubCategories — L2 value pills, visible only when an L1
+ *          category with a value pool is active (sim 8617-8618)
  *   2. .sort-bar             — theme pills + #ID / $PRICE / FEED sort tabs
  *   3. .search-row           — text search + min/max ETH price-range + ✕
  *
@@ -17,9 +19,25 @@
  * non-feed default state — every pill that JS injects is rendered once
  * here, with onClick handlers wired into TraitsContext.
  *
- * UI-only build (Build 13 scope): the gallery is unchanged. The pills
- * track active state via TraitsContext but no actual filter predicate
- * runs against the gallery yet.
+ * Build 14 (current): L2 sub-pills land. Sim splits filtering across L2
+ * (sub-categories like Network → Followers/Following/Mutuals) and L3
+ * (the actual values). Per Brendon's brief, this port collapses sim's L3
+ * value pool into the L2 row directly — clicking an L2 pill toggles a
+ * value into `activeFilters[activeCategory]` rather than swapping the
+ * sub-category. Visual styling stays as `.pill-l2`. The L1 pill picks up
+ * a numeric `.badge` whenever its Set is non-empty (sim 8488).
+ *
+ * Value pools are hard-coded here as VALUE_POOLS. Sim sources them from
+ * `traitData` / `GodModeDict`; for v0 we just bake in the STRATA pools
+ * called out at sim 7693 (LAYERS = Crust/Mantle/Bedrock/…, MINERALS =
+ * Quartz/Schist/Slate/…). Fate / Network / Breadcrumb get empty pools so
+ * the L2 row stays hidden when one of those categories is active —
+ * matching sim 8618's `display = l2Html ? 'flex' : 'none'`. Real value
+ * sources land when the gallery wiring goes in.
+ *
+ * UI-only build (Build 14 scope): the gallery is unchanged. Pills track
+ * active state via TraitsContext but no actual filter predicate runs
+ * against the gallery yet.
  *
  * The "Search Filter ON" floating chip is a port-only addition. Sim
  * fires that exact phrase as a toast in toggleSearch() at sim 8861,
@@ -45,6 +63,19 @@ const DYNAMIC_TRAIT_PILLS: { key: TraitCategory; label: string }[] = [
     { key: 'Layer',   label: 'Layer'   },
     { key: 'Mineral', label: 'Mineral' },
 ];
+
+/* L2 value pools per category. Sim sources these from `traitData` /
+   `GodModeDict`; for v0 we hard-code the STRATA-rebrand pools called
+   out at sim 7693. Fate / Network / Breadcrumb have empty pools, which
+   means the L2 row stays hidden when those categories are selected
+   (parity with sim 8618). Gallery filtering is the next build's job. */
+const VALUE_POOLS: Record<TraitCategory, readonly string[]> = {
+    Layer:      ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'],
+    Mineral:    ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'],
+    Fate:       [],
+    Network:    [],
+    Breadcrumb: [],
+};
 
 /* Themes shown as the four-square cluster on the left of the sort-bar
    (sim 8443-8446). ThemeContext has more keys, but only these four
@@ -72,6 +103,8 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
     const {
         activeCategory,
         setActiveCategory,
+        activeFilters,
+        toggleFilter,
         myNotesActive,
         toggleMyNotes,
         burnPileActive,
@@ -96,6 +129,16 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
         ? undefined
         : { display: 'none' };
 
+    /* L2 row visibility — show only when an L1 category is selected AND
+       that category has a value pool to render (sim 8618 parity). */
+    const l2Pool: readonly string[] =
+        activeCategory !== null ? VALUE_POOLS[activeCategory] : [];
+    const l2Visible = l2Pool.length > 0;
+
+    /* Per-category badge counts for L1 pills (sim 8488). */
+    const countOf = (cat: TraitCategory): number =>
+        activeFilters[cat]?.size ?? 0;
+
     return (
         <>
             {/* .traits-ui — sim 5168-5175 */}
@@ -112,6 +155,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                     activeCategory !== null &&
                                     activeCategory !== p.key
                                 }
+                                count={countOf(p.key)}
                                 onClick={() => setActiveCategory(p.key)}
                             />
                         ))}
@@ -124,6 +168,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                 activeCategory !== null &&
                                 activeCategory !== 'Fate'
                             }
+                            count={countOf('Fate')}
                             onClick={() => setActiveCategory('Fate')}
                             title="Fate Filter — iChing Destines"
                         />
@@ -136,6 +181,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                 activeCategory !== null &&
                                 activeCategory !== 'Network'
                             }
+                            count={countOf('Network')}
                             onClick={() => setActiveCategory('Network')}
                         />
 
@@ -176,6 +222,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                         activeCategory !== null &&
                                         activeCategory !== 'Breadcrumb'
                                     }
+                                    count={countOf('Breadcrumb')}
                                     onClick={() =>
                                         setActiveCategory('Breadcrumb')
                                     }
@@ -207,14 +254,51 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         </div>
                     </div>
 
-                    {/* sim 5173-5174: sub-category + stats output. JS-injected
-                        in sim — kept as empty mount points here so the DOM
-                        shape matches when later builds wire them in. */}
+                    {/* L2 sub-category pills — sim 5173, render block sim
+                        8617-8618. Filled with value pills for the active
+                        category; hidden via display:none when no L1 is
+                        selected or the active L1 has an empty pool. */}
                     <div
                         className="stats-container"
                         id="traitSubCategories"
-                        style={{ display: 'none' }}
-                    />
+                        style={
+                            l2Visible
+                                ? { display: 'flex' }
+                                : { display: 'none' }
+                        }
+                    >
+                        {l2Visible &&
+                            activeCategory !== null &&
+                            l2Pool.map((value) => {
+                                const isActive =
+                                    activeFilters[activeCategory].has(value);
+                                /* Build 14: dim non-selected siblings only
+                                   once at least one value is selected — same
+                                   pattern sim uses for Hot/Breadcrumbs at
+                                   sim 8580-8583. */
+                                const anySelected =
+                                    activeFilters[activeCategory].size > 0;
+                                const dimmed = anySelected && !isActive;
+                                return (
+                                    <SubPill
+                                        key={value}
+                                        label={value}
+                                        active={isActive}
+                                        dimmed={dimmed}
+                                        onClick={() =>
+                                            toggleFilter(
+                                                activeCategory,
+                                                value
+                                            )
+                                        }
+                                    />
+                                );
+                            })}
+                    </div>
+
+                    {/* sim 5174: L3 stats output. JS-injected in sim — kept
+                        as an empty mount point here so the DOM shape matches
+                        when later builds wire it in. */}
                     <div
                         className="stats-container"
                         id="statsOutput"
@@ -379,6 +463,8 @@ interface BarPillProps {
     label: ReactNode;
     active: boolean;
     dimmed: boolean;
+    /* Numeric badge inside the pill — sim 8488. Omit / 0 = no badge. */
+    count?: number;
     onClick: () => void;
     title?: string;
     extraClass?: string;
@@ -388,6 +474,7 @@ function BarPill({
     label,
     active,
     dimmed,
+    count,
     onClick,
     title,
     extraClass,
@@ -401,6 +488,7 @@ function BarPill({
     ]
         .filter(Boolean)
         .join(' ');
+    const showBadge = typeof count === 'number' && count > 0;
     return (
         <div
             className={cls}
@@ -416,6 +504,44 @@ function BarPill({
             title={title}
         >
             <span className="stat-name">{label}</span>
+            {showBadge && <span className="badge">{count}</span>}
+        </div>
+    );
+}
+
+interface SubPillProps {
+    label: string;
+    active: boolean;
+    dimmed: boolean;
+    onClick: () => void;
+}
+
+/* L2 sub-pill — used for value selections within the active L1 category.
+   Visual prefix `↴` matches sim's L2 row at sim 8585 / 8613 (the L2 row
+   uses ↴ even though sim's L3 row uses ↳). */
+function SubPill({ label, active, dimmed, onClick }: SubPillProps) {
+    const cls = [
+        'pill',
+        'pill-l2',
+        active ? 'active' : '',
+        dimmed ? 'dimmed' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+    return (
+        <div
+            className={cls}
+            role="button"
+            tabIndex={0}
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+        >
+            <span className="stat-name">↴ {label}</span>
         </div>
     );
 }
