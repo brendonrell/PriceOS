@@ -99,25 +99,76 @@ function applyTheme(key: ThemeKey) {
     const bg = key === null ? DOT : THEMES[key];
     const text = resolveTextColor(bg);
 
+    /* RGB triplet for modal-bg rgba string (sim 6816). */
+    const hex = bg.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const isLight = text === DOT;
+
     root.style.setProperty('--bg-color', bg);
     root.style.setProperty('--text-color', text);
     root.style.setProperty(
         '--border-color',
-        text === DOT ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
+        isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
     );
     root.style.setProperty('--accent', text);
     root.style.setProperty(
         '--stat-bg',
-        text === DOT ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)'
+        isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)'
     );
     root.style.setProperty(
         '--stat-active-bg',
-        text === DOT ? '#000000' : MATRIX
+        isLight ? '#000000' : MATRIX
     );
     root.style.setProperty(
         '--stat-active-text',
-        text === DOT ? MATRIX : '#000000'
+        isLight ? MATRIX : '#000000'
     );
+
+    /* Build 25 D1+D2+D3: sim 6820-6850 — pill-l1 + mint + modal-bg + btn-user-hover
+       must be re-derived per theme. Without these writes, the static globals.css
+       fallback (`--pill-l1-text: var(--hothurt)` = #FF0055) keeps the Showcase /
+       Artworks / +More tabs and trait L1 pills stuck on red. Modal-bg likewise
+       falls back to a green default. Dark theme gets the diagonal repeating-
+       linear-gradient bg-img per sim 6826-6827. */
+    const modalBg = `rgba(${r},${g},${b},0.98)`;
+    const btnUserHover = isLight ? '#ffffff' : '#888888';
+
+    let mintBg = '#111111';
+    let mintText = MATRIX;
+    let mintBorder = '#111111';
+    const mintBgImg = 'none';
+    let pillL1Bg = text;
+    let pillL1BgImg = 'none';
+    let pillL1Text = bg;
+    let pillL1Border = text;
+    let pillL1ActiveBgImg = 'none';
+
+    if (key === 'dark') {
+        mintBg = MATRIX;
+        mintText = '#111111';
+        mintBorder = MATRIX;
+        pillL1Bg = '#111111';
+        pillL1Text = MATRIX;
+        pillL1Border = MATRIX;
+        pillL1BgImg =
+            'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
+        pillL1ActiveBgImg =
+            'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
+    }
+
+    root.style.setProperty('--modal-bg', modalBg);
+    root.style.setProperty('--mint-bg', mintBg);
+    root.style.setProperty('--mint-bg-img', mintBgImg);
+    root.style.setProperty('--mint-text', mintText);
+    root.style.setProperty('--mint-border', mintBorder);
+    root.style.setProperty('--pill-l1-bg', pillL1Bg);
+    root.style.setProperty('--pill-l1-bg-img', pillL1BgImg);
+    root.style.setProperty('--pill-l1-text', pillL1Text);
+    root.style.setProperty('--pill-l1-border', pillL1Border);
+    root.style.setProperty('--pill-l1-active-bg-img', pillL1ActiveBgImg);
+    root.style.setProperty('--btn-user-hover', btnUserHover);
 
     // Body class flags read by various theme-conditional CSS rules.
     body.classList.toggle('theme-dark',    key === 'dark');
