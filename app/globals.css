@@ -2921,3 +2921,115 @@ body.theme-dark .canvas-wrapper {
     .ico-following,
     .ico-followers { font-size: 22px; }
 }
+
+/* ============================================================
+   BUILD 11 — Collection page CSS gap port
+   Re-grep of classNames used by app/collection/[slug]/page.tsx +
+   components/ArtworkCard.tsx against this file surfaced the blocks
+   below as still-missing from sim. Ported verbatim. Source line
+   refs annotated per block.
+   ============================================================ */
+
+/* sim 941-998 — REDACTED MODE (Classic black-bar censorship).
+   Targets collection-page text surfaces (collection-title,
+   artist-lockup, meta-owner, f-highlight, info-line links) plus
+   the modal/tape/calendar surfaces that share the same treatment.
+   Selectors targeting elements that don't exist in the React port
+   yet sit dormant — harmless until those land. */
+body.redacted-mode .user-text,
+body.redacted-mode .settings-wallet,
+body.redacted-mode .pill-ens,
+body.redacted-mode .meta-owner:not(.price-trigger),
+body.redacted-mode .f-highlight,
+body.redacted-mode .modal-artist,
+body.redacted-mode .artist-lockup,
+body.redacted-mode .artist-name-txt,
+body.redacted-mode .notif-item,
+body.redacted-mode .info-line .profile-link,
+body.redacted-mode .info-line .open-modal-text,
+body.redacted-mode .ascii-sprite,
+body.redacted-mode .tape-item,
+body.redacted-mode .cal-event-title,
+body.redacted-mode .cal-event-item,
+body.redacted-mode .topbarcal-events,
+body.redacted-mode .collection-title {
+    color: transparent !important;
+    background: #000000 !important;
+    border-radius: 1px !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: transparent !important;
+    text-decoration: none !important;
+}
+body.redacted-mode .collection-title .collection-date { color: transparent !important; }
+/* Redacted mode: modals */
+body.redacted-mode .modal-title,
+body.redacted-mode .modal-fields .mf-val,
+body.redacted-mode .collectors-list .hover-link {
+    color: transparent !important;
+    background: #000000 !important;
+    border-radius: 1px !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: transparent !important;
+    text-decoration: none !important;
+}
+body.theme-dark.redacted-mode .modal-title,
+body.theme-dark.redacted-mode .modal-fields .mf-val,
+body.theme-dark.redacted-mode .collectors-list .hover-link { background: rgba(224,224,224,0.88) !important; }
+/* Dark Mode: light bars against dark bg */
+body.theme-dark.redacted-mode .user-text,
+body.theme-dark.redacted-mode .settings-wallet,
+body.theme-dark.redacted-mode .pill-ens,
+body.theme-dark.redacted-mode .meta-owner:not(.price-trigger),
+body.theme-dark.redacted-mode .f-highlight,
+body.theme-dark.redacted-mode .modal-artist,
+body.theme-dark.redacted-mode .artist-lockup,
+body.theme-dark.redacted-mode .artist-name-txt,
+body.theme-dark.redacted-mode .notif-item,
+body.theme-dark.redacted-mode .info-line .profile-link,
+body.theme-dark.redacted-mode .info-line .open-modal-text,
+body.theme-dark.redacted-mode .ascii-sprite,
+body.theme-dark.redacted-mode .tape-item,
+body.theme-dark.redacted-mode .cal-event-title,
+body.theme-dark.redacted-mode .cal-event-item,
+body.theme-dark.redacted-mode .topbarcal-events,
+body.theme-dark.redacted-mode .collection-title { background: rgba(224,224,224,0.88) !important; }
+
+/* sim 3872-3879 — ANON MODE (collection page hides). Hides
+   identity-bearing surfaces on the collection page when the user
+   has Anon Mode on. The artistsPanel selectors stay dormant until
+   that panel lands but mirror sim verbatim per scope. */
+body.anon-mode .info-line { display: none !important; }
+body.anon-mode .follow-badge { display: none !important; }
+body.anon-mode .follower-count { display: none !important; }
+body.anon-mode #ctab-network-pill { display: none !important; }
+body.anon-mode #artistsPanel .artist-rel-icon { display: none !important; }
+body.anon-mode #artistsPanel .pill-artist-filter[data-rel="mutual"],
+body.anon-mode #artistsPanel .pill-artist-filter[data-rel="following"],
+body.anon-mode #artistsPanel .pill-artist-filter[data-rel="followers"] { display: none !important; }
+
+/* sim 3881-3883 — Art placeholder. CSS gradient backstop + hover
+   overlay border reset on the gallery cards' .canvas-wrapper. */
+.art-placeholder { border: none; }
+.art-placeholder .hover-overlay { border-radius: 0; }
+
+/* sim 3917-3930 — ZEN MODE (collection page hides). globals.css
+   already hides .stats-grid, .priceos-footer, and .tape-wrap in
+   zen-mode; the block below adds the rest of the collection-page
+   surfaces sim hides as a coordinated set so toggling zen leaves a
+   minimal hero + gallery view. .stats-row hide here is technically
+   redundant with the existing .stats-grid rule but matches sim
+   verbatim and is harmless. */
+body.zen-mode .collection-artist,
+body.zen-mode .info-line,
+body.zen-mode .stats-row,
+body.zen-mode .action-row,
+body.zen-mode .traits-ui,
+body.zen-mode .sort-bar,
+body.zen-mode .search-row,
+body.zen-mode .collection-date,
+body.zen-mode #pingsBox { display: none !important; }
+body.zen-mode #todosBox { display: none !important; }
+body.zen-mode #gallery .meta { display: none !important; }
+body.zen-mode .collection-hero { padding-top: 6px !important; padding-bottom: 6px !important; }
+body.zen-mode .modal-action-btn { pointer-events: none; cursor: default; font-size: 0 !important; }
+body.zen-mode .modal-artist { display: none !important; }
