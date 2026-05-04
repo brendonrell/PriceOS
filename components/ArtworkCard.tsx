@@ -22,16 +22,40 @@
  *     useModal().open('artwork', id). The handler lives on .edition-content
  *     (matches sim's contentInner.onclick at ~8009).
  *
+ * Build 22 layers added (gallery card surface gaps):
+ *   - data-pct attribute on .meta-owner.price-trigger. Sim 8106 stamps a
+ *     floor-relative pct that the body.pricelens-mode CSS swaps in via
+ *     ::before content: attr(data-pct). Mock floor = 0.042 ETH (sim 8099).
+ *     Format mirrors sim 8103: explicit +/- sign, one decimal, % suffix.
+ *   - Per-card Aura vars (sim 8064-8067). --aura-angle = (i*137)%360 deg
+ *     (golden-angle spread so cards aren't synchronized); --aura-duration
+ *     = (10 + (i*23)%60/10)s (mild rotation-speed variation, 10–16s range).
+ *     Read by the body.aura-active .edition-card::before conic gradient.
+ *   - Hover overlay (sim 8041-8057). 7 icons (Star/Wishlist/Album/Note/
+ *     Grail/Cart/Hammer) over a 0.85 black scrim. Cart only for listed
+ *     tokens (sim 8050 isListed branch). Note + Hammer hidden by default
+ *     (display:none style) — body.notes-mode / body.hammer-mode reveals
+ *     them. Click handlers stub to showToast for v1; real wiring (toggleStar,
+ *     openNotePrompt, addToCart, etc.) lands when those flows ship.
+ *   - Breadcrumb sticker (sim 8072-8082). Small ⬤ dot on the bottom-right
+ *     of .canvas-wrapper, mounted only on the 5 ids the page chose for
+ *     this session (parent passes isBreadcrumb). Half-on/half-off the
+ *     artwork's rounded corner — it's a "recently visited" UI marker, not
+ *     part of the art.
+ *   - Price Memory ghost (sim 8085-8089). Faded "LAST · {ethVal} Ξ" readout
+ *     in the bottom-left of .canvas-wrapper. Always rendered; visible only
+ *     when body.pm-active is set (CSS gate). Per-id deterministic seed
+ *     mirrors sim verbatim so the readout is stable across reloads.
+ *
  * Out of v0 scope (deferred to later builds, listed so the next ship knows
- * where to layer in): hover overlay icons (Star/Wishlist/Album/Note/Grail/
- * Cart/Hammer), Aura per-card vars, breadcrumb dots, price-memory ghost,
- * mute overlay, badge-owned check next to #id, fog-mode reveal. The DOM
- * shape (article > edition-content > canvas-wrapper) stays open so those
- * layer in without restructuring.
+ * where to layer in): mute overlay, fog-mode reveal, persona gating for
+ * stats-row-2. The DOM shape (article > edition-content > canvas-wrapper)
+ * stays open so those layer in without restructuring.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { useToast } from '../lib/state/ToastContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 
 interface ArtworkCardProps {
@@ -44,10 +68,24 @@ interface ArtworkCardProps {
        of an empty grid. Optional + defaults to false so the Artworks
        tab path is unchanged. */
     showcasePick?: boolean;
+    /* Build 22 — sim 8072-8082. Page picks 5 random ids per session as
+       "recently visited" breadcrumbs and stamps a ⬤ sticker on each.
+       The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
+       the rounded corner). Optional + defaults to false. */
+    isBreadcrumb?: boolean;
 }
 
-export default function ArtworkCard({ id, showcasePick = false }: ArtworkCardProps) {
+/* sim 8099 — mock floor used for the Price Lens pct readout. Real
+   indexer floor wiring lands later; this is the visual demo. */
+const MOCK_FLOOR_ETH = 0.042;
+
+export default function ArtworkCard({
+    id,
+    showcasePick = false,
+    isBreadcrumb = false,
+}: ArtworkCardProps) {
     const { open } = useModal();
+    const { showToast } = useToast();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -109,10 +147,56 @@ export default function ArtworkCard({ id, showcasePick = false }: ArtworkCardPro
     const listed = meta?.price != null;
     const ownerDisplay = meta?.ownerDisplay ?? '';
 
+    /* Build 22 — sim 8100-8104. Floor-relative pct stamped as data-pct
+       on .meta-owner.price-trigger. Body.pricelens-mode CSS swaps the
+       price text for this pct via ::before content: attr(data-pct).
+       parseFloat() strips the " ETH" suffix from the formatted price
+       string ("0.123 ETH" → 0.123). Sim only computes/stamps for listed
+       tokens, and our React only renders data-pct inside the listed
+       branch, so the empty-string init is just for the unused path. */
+    let pctStr = '';
+    if (listed && meta?.price) {
+        const rawEth = parseFloat(meta.price);
+        const pct = ((rawEth / MOCK_FLOOR_ETH) - 1) * 100;
+        pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+    }
+
+    /* Build 22 — sim 8064-8067. Per-card Aura vars stamped inline on
+       .edition-card. Without these every card animates at the same
+       angle and speed (synchronized halos look mechanical, not
+       organic). The body.aura-active .edition-card::before conic
+       gradient reads them. id (not array index) is used as the seed
+       so the variation is stable across reloads + sort/filter changes
+       — sim seeds off the loop variable i which equals the token id
+       in render order. */
+    const auraAngle = (id * 137) % 360;
+    const auraDuration = (10 + ((id * 23) % 60) / 10).toFixed(2) + 's';
+    const articleStyle: CSSProperties = {
+        ['--aura-angle' as string]: auraAngle + 'deg',
+        ['--aura-duration' as string]: auraDuration,
+    };
+
+    /* Build 22 — sim 8041-8057. Hover overlay icons. v1 wiring stubs to
+       showToast; real handlers (toggleStar, openNotePrompt, etc.) wire
+       up when those flows ship. event.stopPropagation on every icon —
+       otherwise the click bubbles to .edition-content and opens the
+       modal. Note + Hammer carry display:none inline (sim 8048, 8056);
+       body.notes-mode / body.hammer-mode flips them visible via CSS. */
+    const stubAction = (label: string) => (e: React.MouseEvent) => {
+        e.stopPropagation();
+        showToast(label);
+    };
+
+    /* Build 22 — sim 8085. Price Memory ghost seed. Deterministic per id
+       so the "last sale" readout is stable across reloads + filter / sort
+       changes. CSS gates visibility on body.pm-active (sim 3690). */
+    const lastSaleEth = (0.04 + ((id * 47 + 13) % 420) / 1000).toFixed(3);
+
     return (
         <article
             className={`edition-card${showcasePick ? ' showcase-pick' : ''}`}
             data-mint-id={id}
+            style={articleStyle}
         >
             <div
                 className="edition-content"
@@ -135,6 +219,85 @@ export default function ArtworkCard({ id, showcasePick = false }: ArtworkCardPro
                         ref={canvasRef}
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
+                    {/* Build 22 — sim 8041-8057 hover overlay. */}
+                    <div className="hover-overlay">
+                        <div className="hover-bg" />
+                        <div className="hover-icons">
+                            <span
+                                className="hi-icon"
+                                title="Star"
+                                data-starred="false"
+                                onClick={stubAction('Starred')}
+                            >
+                                {'\u2606\uFE0E'}
+                            </span>
+                            <span
+                                className="hi-icon"
+                                title="Wishlist"
+                                onClick={stubAction('Added to Wishlist')}
+                            >
+                                {'\u271B\uFE0E'}
+                            </span>
+                            <span
+                                className="hi-icon"
+                                title="Add to Album"
+                                onClick={stubAction('Added to Album')}
+                            >
+                                {'\u25F0\uFE0E'}
+                            </span>
+                            <span
+                                className="hi-icon hi-note"
+                                title="Add Note"
+                                style={{ display: 'none' }}
+                                onClick={stubAction('Note prompt')}
+                            >
+                                {'\u229F\uFE0E'}
+                            </span>
+                            <span
+                                className="hi-icon hi-grail"
+                                title="Grail Pin"
+                                onClick={stubAction('Grail pinned')}
+                            >
+                                {'\u27DF\uFE0E'}
+                            </span>
+                            {listed && (
+                                <span
+                                    className="hi-icon hi-cart"
+                                    title="Add to Cart"
+                                    onClick={stubAction('Added to Cart')}
+                                >
+                                    {'\u25A2\uFE0E'}
+                                </span>
+                            )}
+                            <span
+                                className="hi-icon hi-hammer"
+                                title="Mute (Hammer)"
+                                style={{ display: 'none' }}
+                                onClick={stubAction('Muted')}
+                            >
+                                {'\u16A6\uFE0E'}
+                            </span>
+                        </div>
+                    </div>
+                    {/* Build 22 — sim 8077-8081 breadcrumb sticker. ⬤ on
+                        bottom-right of .canvas-wrapper for the 5 ids the
+                        page picked this session. CSS .canvas-wrapper:has(.breadcrumb-crumb)
+                        flips overflow to visible so the dot can bleed past
+                        the rounded corner (half-on/half-off). */}
+                    {isBreadcrumb && (
+                        <span
+                            className="breadcrumb-crumb bc-br"
+                            title="Breadcrumb · recently visited"
+                        >
+                            {'\u2B24'}
+                        </span>
+                    )}
+                    {/* Build 22 — sim 8086-8089 price-memory ghost. Always
+                        rendered; CSS gates visibility on body.pm-active.
+                        Per-id deterministic seed — stable across reloads. */}
+                    <span className="price-memory-ghost">
+                        LAST · {lastSaleEth} Ξ
+                    </span>
                 </div>
                 <div className="meta">
                     {/* Build 21 — sim 8108. The first 3 ids carry an
@@ -156,6 +319,7 @@ export default function ArtworkCard({ id, showcasePick = false }: ArtworkCardPro
                     {listed ? (
                         <span
                             className="meta-owner price-trigger"
+                            data-pct={pctStr}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpen();
