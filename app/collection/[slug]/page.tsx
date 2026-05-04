@@ -50,7 +50,7 @@
  * dropdown component. Strictly the two files in this build.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -258,6 +258,52 @@ function CollectionPageInner({
         }
         return new Set(picks);
     });
+
+    /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
+       'fog', body.fog-mode CSS blurs every .edition-card .canvas-wrapper
+       until the card carries .fog-revealed. First tap on a fogged card
+       adds the class and swallows the click so the modal doesn't open
+       on the same gesture (sim 8378-8385); a second tap on the now-
+       revealed card opens the modal normally.
+
+       The handler is attached in the capture phase on #gallery so it
+       runs before the .edition-content onClick that opens the modal.
+       Imperative DOM mutation (classList.add) mirrors sim's
+       _startFogObserver pattern verbatim — no per-card React state
+       needed, and switching sort away from 'fog' clears all
+       .fog-revealed classes so re-entering fog starts clean
+       (sim 8395-8398). */
+    useEffect(() => {
+        if (sort !== 'fog') {
+            // Sim 8395-8398 cleanup: when fog turns off, scrub every
+            // .fog-revealed flag so the next entry re-fogs the grid.
+            document
+                .querySelectorAll('.edition-card.fog-revealed')
+                .forEach((c) => c.classList.remove('fog-revealed'));
+            return;
+        }
+        const gallery = document.getElementById('gallery');
+        if (!gallery) return;
+
+        const handler = (ev: Event) => {
+            // Re-check inside the handler in case body.fog-mode was
+            // dropped between attach and click (defensive — sim 8375).
+            if (!document.body.classList.contains('fog-mode')) return;
+            const target = ev.target as HTMLElement | null;
+            if (!target) return;
+            const card = target.closest('.edition-card');
+            if (!card || card.classList.contains('fog-revealed')) return;
+            card.classList.add('fog-revealed');
+            ev.preventDefault();
+            ev.stopPropagation();
+        };
+
+        // Capture phase — runs before .edition-content's bubbled onClick.
+        gallery.addEventListener('click', handler, true);
+        return () => {
+            gallery.removeEventListener('click', handler, true);
+        };
+    }, [sort]);
 
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
        we read the title via CollectionContext and ignore the route param.
