@@ -2306,6 +2306,40 @@ body.persona-default .stats-row-2 { display: none !important; }
     background: var(--text-color);
     color: var(--bg-color);
 }
+/* L2 sub-pill — used for value selections within the active L1 category
+   (sim 2294-2296). Build 14 ports the modifier classes; the base .pill
+   layout is already declared above with .pill-l1. */
+.pill-l2 {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+.pill-l2.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+    opacity: 1 !important;
+}
+.pill-l2.dimmed { opacity: 0.7; }
+/* L3 stat pill — sim 2298-2301. Not yet rendered by TraitsUI (the L3 row
+   is a JS-injected block in sim ~8662); ported here so future builds can
+   drop the class straight in without another CSS pass. */
+.pill-l3 {
+    background: var(--stat-bg);
+    color: var(--text-color);
+    border: 1px solid transparent;
+}
+.pill-l3.active {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border: 1px solid var(--stat-active-bg);
+}
+.pill-l3.dimmed { opacity: 0.6; }
+.pill-l3.is-zero {
+    opacity: 0.6;
+    background: transparent;
+    border: 1px dashed rgba(120, 120, 120, 0.5);
+}
 /* Recent (formerly Breadcrumb) L2 sub-pill dot — sim 2284-2290 */
 .recent-dot {
     font-size: 8px;
