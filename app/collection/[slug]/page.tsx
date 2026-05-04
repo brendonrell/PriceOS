@@ -54,6 +54,7 @@ import { useState, type ReactNode } from 'react';
 import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useModal } from '../../../lib/state/ModalContext';
 import ArtworkCard from '../../../components/ArtworkCard';
 
 type CollectionTab = 'showcase' | 'artworks' | 'albums';
@@ -200,6 +201,7 @@ export default function CollectionPage({
     const collection = useCollection();
     const { sort } = useSort();
     const { showToast } = useToast();
+    const { open } = useModal();
     const [activeTab, setActiveTab] = useState<CollectionTab>('showcase');
 
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
@@ -291,13 +293,11 @@ export default function CollectionPage({
                                 className="stat-item stat-item-owners"
                                 role="button"
                                 tabIndex={0}
-                                onClick={() =>
-                                    showToast('Collectors — modal pending')
-                                }
+                                onClick={() => open('collectors')}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        showToast('Collectors — modal pending');
+                                        open('collectors');
                                     }
                                 }}
                             >
