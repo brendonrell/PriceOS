@@ -50,12 +50,16 @@
  * dropdown component. Strictly the two files in this build.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useModal } from '../../../lib/state/ModalContext';
-import { TraitsProvider } from '../../../lib/state/TraitsContext';
+import {
+    TraitsProvider,
+    useTraits,
+    type TraitCategory,
+} from '../../../lib/state/TraitsContext';
 import ArtworkCard from '../../../components/ArtworkCard';
 import TraitsUI from '../../../components/collection/TraitsUI';
 
@@ -193,7 +197,14 @@ const GENOME_DOTS: Array<[number, number]> = [
     [86, 12],
 ];
 
-export default function CollectionPage({
+/* Build 19 split: TraitsProvider must wrap the consumer that calls
+   useTraits(). The page now exports a thin outer wrapper that mounts
+   the provider; CollectionPageInner reads activeFilters/searchQuery/
+   priceMin/priceMax via useTraits and runs the gallery predicate +
+   sort below. Splitting at the provider boundary keeps the existing
+   render shape (single root section before the provider closes) and
+   avoids hoisting the filter logic into a separate component. */
+function CollectionPageInner({
     params,
 }: {
     params: { slug: string };
@@ -204,6 +215,7 @@ export default function CollectionPage({
     const { sort } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
+    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
     const [activeTab, setActiveTab] = useState<CollectionTab>('showcase');
 
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
@@ -225,11 +237,121 @@ export default function CollectionPage({
     const feedVisible = onArtworksTab && feedActive;
     const traitsAndSortVisible = onArtworksTab;
 
-    const tokenIds: number[] = [];
-    for (let i = 1; i <= collection.totalEditions; i++) tokenIds.push(i);
+    /* Build 19: filter + sort pipeline.
+       ───────────────────────────────────────────────────────────────────
+       Order matches sim's two-pass model (sim 8684 updateGalleryUI for
+       trait + sim 8875 applySearch for search + price), but collapsed to
+       a single pass since we own the full token universe in React state.
+       ───────────────────────────────────────────────────────────────────
+       1. Trait filters (activeFilters):
+          - intra-category OR (token must match SOMETHING in the Set)
+          - inter-category AND (must satisfy every active category)
+          - 'Network' special-cases 'Me' as ownership (sim 8702)
+          - 'Breadcrumb' filters by mintId-as-string (sim 8694) — Breadcrumb
+            L2 isn't surfaced yet so this is dormant in v0 but matches sim
+            shape so it lights up the moment Breadcrumb pills land.
+          - Layer / Mineral / Fate read meta.traits[cat].
+       2. Search (searchQuery): case-insensitive substring match against
+          token id and ownerDisplay (sim 8885 matches gateway/spectrum
+          too — those become Layer/Mineral here, but per Build 19 spec
+          we keep search to id + owner only; trait pills already cover
+          trait searches).
+       3. Price range (priceMin / priceMax): unlisted tokens pass when
+          only priceMax is set; they fail the moment priceMin is non-empty
+          (per Build 19 spec — listing-only floor). This deviates slightly
+          from sim's `cardPrice >= minVal` where unlisted cards have
+          dataset.price=-1 and naturally fail any positive minVal, but
+          collapses to identical behavior in practice.
+       4. Sort (sort from SortContext):
+          - 'id'    → ascending id (default)
+          - 'price' → ascending listed price, unlisted shoved to the
+                      end via Infinity, id as stable tiebreaker
+          - 'feed'  → reverse id (gallery is hidden when feed sort fires
+                      on Artworks tab; on Showcase tab the gallery still
+                      renders so we still apply the sort)
+          - 'fog'   → falls through to ascending id
+       ─────────────────────────────────────────────────────────────────── */
+    const visibleTokenIds = useMemo(() => {
+        const ids: number[] = [];
+        for (let i = 1; i <= collection.totalEditions; i++) ids.push(i);
+
+        const minVal = parseFloat(priceMin);
+        const maxVal = parseFloat(priceMax);
+        const hasMin = !Number.isNaN(minVal);
+        const hasMax = !Number.isNaN(maxVal);
+        const q = searchQuery.trim().toLowerCase();
+
+        const activeCats = (
+            Object.keys(activeFilters) as TraitCategory[]
+        ).filter((cat) => activeFilters[cat].size > 0);
+
+        const filtered = ids.filter((id) => {
+            const meta = collection.tokens.get(id);
+            if (!meta) return false;
+
+            // 1. Trait filters
+            for (const cat of activeCats) {
+                const set = activeFilters[cat];
+                if (cat === 'Breadcrumb') {
+                    if (!set.has(String(id))) return false;
+                    continue;
+                }
+                if (cat === 'Network') {
+                    let netMatch = false;
+                    if (set.has('Me') && meta.isOwnedByBrendon) netMatch = true;
+                    // Future-proof: any non-'Me' Network value would compare
+                    // against a Network trait; the mock has no such trait
+                    // today, so non-'Me' selections never match. Sim parity
+                    // (sim 8705) — when Network L2 lands, add the trait
+                    // dimension here and the loop handles it.
+                    if (!netMatch) return false;
+                    continue;
+                }
+                // Layer | Mineral | Fate
+                const v = meta.traits[cat];
+                if (!set.has(v)) return false;
+            }
+
+            // 2. Search
+            if (q) {
+                const idStr = String(id);
+                const owner = meta.ownerDisplay.toLowerCase();
+                if (!idStr.includes(q) && !owner.includes(q)) return false;
+            }
+
+            // 3. Price range
+            const priceNum = meta.price ? parseFloat(meta.price) : null;
+            if (hasMin) {
+                if (priceNum == null) return false;
+                if (priceNum < minVal) return false;
+            }
+            if (hasMax) {
+                if (priceNum != null && priceNum > maxVal) return false;
+            }
+
+            return true;
+        });
+
+        // 4. Sort
+        if (sort === 'price') {
+            filtered.sort((a, b) => {
+                const ma = collection.tokens.get(a);
+                const mb = collection.tokens.get(b);
+                const na = ma?.price ? parseFloat(ma.price) : Infinity;
+                const nb = mb?.price ? parseFloat(mb.price) : Infinity;
+                if (na !== nb) return na - nb;
+                return a - b;
+            });
+        } else if (sort === 'feed') {
+            filtered.sort((a, b) => b - a);
+        }
+        // 'id' and 'fog' = ascending id (already in order from construction)
+
+        return filtered;
+    }, [collection, sort, activeFilters, searchQuery, priceMin, priceMax]);
 
     return (
-        <TraitsProvider>
+        <>
             <section className="collection-hero" aria-label="Collection Info">
                 <div className="hero-group-1">
                     <h1 className="collection-title">
@@ -439,17 +561,20 @@ export default function CollectionPage({
             </section>
 
             {/* Sim 5195: gallery section. JS-populated in sim via renderFeed
-                (~8155). In React: one ArtworkCard per token id 1..222.
+                (~8155). In React: one ArtworkCard per visible token id —
+                Build 19 wires the visible set to TraitsContext (filter +
+                search + price range) and SortContext (sort family).
                 showcase-mode class follows sim's switchCollectionTab toggle
                 (sim ~13150) — CSS uses :nth-child gating to limit visible
-                tiles, so all 222 still mount and we just flag the parent. */}
+                tiles, so we still mount the full filtered list and just
+                flag the parent. */}
             <section
                 id="gallery"
                 aria-label="Gallery"
                 className={onShowcaseTab ? 'showcase-mode' : undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
-                {tokenIds.map((id) => (
+                {visibleTokenIds.map((id) => (
                     <ArtworkCard key={id} id={id} />
                 ))}
             </section>
@@ -660,6 +785,21 @@ export default function CollectionPage({
                     </div>
                 </div>
             </section>
+        </>
+    );
+}
+
+/* Build 19 outer wrapper. Mounts TraitsProvider so the inner consumer
+   can call useTraits(). Keeps the page's public shape (default export
+   takes { params }) identical to the v0 component. */
+export default function CollectionPage({
+    params,
+}: {
+    params: { slug: string };
+}) {
+    return (
+        <TraitsProvider>
+            <CollectionPageInner params={params} />
         </TraitsProvider>
     );
 }
