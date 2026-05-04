@@ -18,10 +18,6 @@ export const metadata: Metadata = {
     title: 'Price Discussion',
     description:
         'A web3 social platform where the community discussing secondary prices is the product. Browse collections, track grail pins, and explore generative art.',
-    icons: {
-        icon: '/favicon.ico',
-        apple: '/icon-180px.png',
-    },
 };
 
 const PREHYDRATION_SCRIPT = `
@@ -96,6 +92,26 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
+                {/*
+                  Dynamic favicon — sim line 10. FaviconEngine repaints
+                  this <link>'s href on every theme change / priceLogo
+                  toggle / alert / ETH ping / rotation event. The static
+                  href="/favicon.ico" is the pre-hydration fallback shown
+                  before JS runs.
+                */}
+                <link
+                    rel="icon"
+                    id="dynamic-favicon"
+                    type="image/png"
+                    href="/favicon.ico"
+                />
+                {/*
+                  apple-touch-icon — pinned home-screen icon for PWA
+                  installs. iOS doesn't run JS for this surface, so it
+                  stays a static 180px PNG matching the dynamic engine's
+                  default-state mark (speech-bubble + ‰ wordmark).
+                */}
+                <link rel="apple-touch-icon" href="/icon-180px.png" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                     rel="preconnect"
