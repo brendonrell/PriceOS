@@ -23,6 +23,9 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import ActionToast from '../ActionToast';
 import ArtworkModal from '../ArtworkModal';
+import CollectorsModal from '../CollectorsModal';
+import FollowersModal from '../FollowersModal';
+import PriceosModal from '../PriceosModal';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
@@ -34,6 +37,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <Footer />
             <ActionToast />
             <ArtworkModal />
+            <CollectorsModal />
+            <FollowersModal />
+            <PriceosModal />
         </>
     );
 }

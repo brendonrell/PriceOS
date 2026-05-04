@@ -14,16 +14,17 @@
  * rule lives in globals.css; nothing for this component to do.
  *
  * Click handlers (sim 5338 / 5347 / 5351):
- *   - "PriceOS 1.0" → showToast('Changelog — coming soon').
- *     Stub for sim's openPriceosModal() until the changelog modal
- *     stack lands. Same coming-soon pattern as About / Docs.
+ *   - "PriceOS 1.0" → open('priceos') — sim openPriceosModal().
+ *     Opens the changelog modal (ASCII figlet logo + version list).
  *   - "About PD"   → showToast('About PD — coming soon').
  *   - "Docs"       → showToast('Docs — coming soon').
  */
 import { useToast } from '../../lib/state/ToastContext';
+import { useModal } from '../../lib/state/ModalContext';
 
 export function Footer() {
     const { showToast } = useToast();
+    const { open } = useModal();
 
     return (
         <footer className="priceos-footer" id="priceosFooter">
@@ -31,7 +32,7 @@ export function Footer() {
                 className="priceos-link priceos-label"
                 title="Changelog"
                 style={{ cursor: 'pointer' }}
-                onClick={() => showToast('Changelog — coming soon')}
+                onClick={() => open('priceos')}
             >
                 PriceOS 1.0
             </span>
