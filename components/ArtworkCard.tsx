@@ -47,10 +47,23 @@
  *     when body.pm-active is set (CSS gate). Per-id deterministic seed
  *     mirrors sim verbatim so the readout is stable across reloads.
  *
- * Out of v0 scope (deferred to later builds, listed so the next ship knows
- * where to layer in): mute overlay, fog-mode reveal, persona gating for
- * stats-row-2. The DOM shape (article > edition-content > canvas-wrapper)
- * stays open so those layer in without restructuring.
+ * Build 23 layer added (mute overlay):
+ *   - Mute overlay (sim 8038-8040). <div class="mute-overlay"><span
+ *     class="mute-label">Mute</span></div> always mounted inside
+ *     .canvas-wrapper, before .hover-overlay (sim DOM order). CSS gates
+ *     visibility on body.hammer-mode — overlay is display:none baseline,
+ *     flips to display:flex when hammer-mode is on. The optional `muted`
+ *     prop applies the .muted class to the article and swaps the label
+ *     to .muted-final ("Muted" boxed-tape glyph) per sim ~2444. No
+ *     parent currently passes muted=true — that requires a real toggleMute
+ *     handler (sim 7280) which is out of this build's scope. The prop
+ *     existing means the toggle wires up later without further markup
+ *     changes. Sim 2390-2392: when hammer-mode is OFF, .muted/.hammered
+ *     cards vanish from the grid — that rule lands in globals.css this
+ *     build too.
+ *
+ * Out of v0 scope: fog-mode reveal handler lives in the collection page
+ * (gallery-wide event delegation per sim 8364-8389), not here.
  */
 
 import { useEffect, useRef, type CSSProperties } from 'react';
@@ -73,6 +86,13 @@ interface ArtworkCardProps {
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
        the rounded corner). Optional + defaults to false. */
     isBreadcrumb?: boolean;
+    /* Build 23 — sim 7280 + 2390-2392 + 2444. Card's "muted" state. When
+       true: article gets .muted class (which hides the card entirely
+       outside hammer-mode per sim 2390), and the mute label flips to
+       MUTED with .muted-final styling. No parent currently sets this —
+       the toggleMute handler that flips it lands when hammer-mode click
+       wiring ships. Optional + defaults to false. */
+    muted?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -83,6 +103,7 @@ export default function ArtworkCard({
     id,
     showcasePick = false,
     isBreadcrumb = false,
+    muted = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -192,9 +213,18 @@ export default function ArtworkCard({
        changes. CSS gates visibility on body.pm-active (sim 3690). */
     const lastSaleEth = (0.04 + ((id * 47 + 13) % 420) / 1000).toFixed(3);
 
+    /* Build 23 — sim 7280-7290 + 2444-2457. When muted, the article
+       carries .muted (which hides it outside hammer-mode per sim 2390),
+       and the label text flips to "Muted" with .muted-final styling
+       (boxed-tape tag, sim 2444-2457). */
+    const articleClass =
+        'edition-card' +
+        (showcasePick ? ' showcase-pick' : '') +
+        (muted ? ' muted' : '');
+
     return (
         <article
-            className={`edition-card${showcasePick ? ' showcase-pick' : ''}`}
+            className={articleClass}
             data-mint-id={id}
             style={articleStyle}
         >
@@ -219,6 +249,21 @@ export default function ArtworkCard({
                         ref={canvasRef}
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
+                    {/* Build 23 — sim 8038-8040 mute overlay. Always
+                        mounted; CSS gates visibility on body.hammer-mode.
+                        Sits before .hover-overlay in DOM order to match
+                        sim's renderFeed append sequence. Label text is
+                        "Mute" baseline; flips to "Muted" + .muted-final
+                        when the parent passes muted=true (sim 7280-7290). */}
+                    <div className="mute-overlay">
+                        <span
+                            className={
+                                'mute-label' + (muted ? ' muted-final' : '')
+                            }
+                        >
+                            {muted ? 'Muted' : 'Mute'}
+                        </span>
+                    </div>
                     {/* Build 22 — sim 8041-8057 hover overlay. */}
                     <div className="hover-overlay">
                         <div className="hover-bg" />
