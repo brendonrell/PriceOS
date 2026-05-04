@@ -2289,6 +2289,33 @@ body.persona-default .stats-row-2 { display: none !important; }
     opacity: 1 !important;
 }
 .pill-l1.dimmed { opacity: 0.7; }
+.pill-l1 .badge {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    padding: 0 5px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 0;
+    box-sizing: border-box;
+}
+.pill-l1.active .badge {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+/* Recent (formerly Breadcrumb) L2 sub-pill dot — sim 2284-2290 */
+.recent-dot {
+    font-size: 8px;
+    line-height: 1;
+    position: relative;
+    top: -1px;
+    margin-right: 3px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
 /* ── TRAITS UI / SORT BAR — sim ~2266-2306, ~2330-2342 ───── */
 .traits-ui {
@@ -2326,6 +2353,194 @@ body.persona-default .stats-row-2 { display: none !important; }
     align-self: flex-start;
 }
 @media (min-width: 601px) { .sort-bar { font-size: 14px; } }
+
+/* ── THEME PILLS (sort-bar left cluster) — sim 2304-2308 ── */
+.theme-pills {
+    display: flex;
+    gap: 6px;
+    margin-right: 6px;
+}
+.pill-theme {
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pill-theme span {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pill-theme.active {
+    border-color: var(--text-color);
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.theme-br-dot {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.4;
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    padding: 0 2px;
+    color: inherit;
+}
+
+/* ── SORT BUTTONS — sim 2310-2314 ── */
+.sort-btn {
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.7;
+}
+.sort-btn.active {
+    opacity: 1;
+    color: var(--accent);
+}
+.sort-btn.active .sort-lbl {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+.sort-arrow {
+    font-size: 19px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+    display: inline-block;
+}
+@media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
+
+/* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
+.burn-btn {
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 28px;
+    width: 26px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.burn-btn.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+@media (max-width: 600px) { .burn-btn { font-size: 22px; } }
+@media (hover: hover) {
+    .burn-btn:hover {
+        opacity: 1;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-thickness: 1px;
+    }
+}
+.search-btn {
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 28px;
+    width: 26px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.search-btn.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+    font-weight: normal;
+}
+@media (max-width: 600px) { .search-btn { font-size: 22px; } }
+
+/* ── TRAIT CATEGORIES CONTAINER — sim 2327 ── */
+#traitCategories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    align-items: center;
+}
+
+/* Multi-select icon (epoch-btn) shares the burn-btn / search-btn rules.
+   Aliasing here so the existing sim glyph render stays consistent. */
+.epoch-btn {
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 28px;
+    width: 26px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.epoch-btn.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+@media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
+
+/* ── PORT-ONLY: "Search Filter ON" chip ─────────────────────────
+   Not in sim (only fires as a toast at sim 8861). Renders when
+   TraitsContext.hasActiveFilter is true. Pinned bottom-right so it
+   doesn't push gallery layout. Removable in one line if a sim spec
+   later defines this surface differently. */
+.search-filter-chip {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 80;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--text-color);
+    pointer-events: none;
+    user-select: none;
+}
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 .search-row {
@@ -2380,7 +2595,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     flex-shrink: 0;
 }
 .price-input {
-    width: 60px;
+    width: 54px;
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--text-color);
@@ -2389,9 +2604,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-size: 13px;
     font-weight: bold;
     color: var(--text-color);
-    padding: 4px 0;
+    padding: 2px 0;
+    caret-color: var(--text-color);
     text-align: center;
     -moz-appearance: textfield;
+    vertical-align: middle;
+    line-height: 1;
 }
 .price-input::-webkit-outer-spin-button,
 .price-input::-webkit-inner-spin-button {
@@ -2867,6 +3085,12 @@ body.theme-dark .canvas-wrapper {
         margin-top: 0;
         flex-wrap: nowrap;
     }
+    .sort-btn-group {
+        gap: 10px !important;
+        flex-wrap: nowrap !important;
+    }
+    .pill-theme.t-light span,
+    .pill-theme.t-dark span { font-size: 22px; }
     .info-rubik {
         line-height: 1.25 !important;
         display: inline-block;
