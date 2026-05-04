@@ -19,6 +19,17 @@
  * single sim-faithful source. The dormant `notifs.fogMode` flag stays
  * in PdNotifs (no state-shape change) but is no longer consulted.
  *
+ * Build 24 — feed-mode joins fog-mode as a sort-driven body class.
+ * Sim 8342 + 9927 toggle `body.feed-mode` when
+ * `currentSort.startsWith('feed')` — for our 'id' | 'price' | 'feed'
+ * | 'fog' union that collapses to `sort === 'feed'`. globals.css 2954
+ * already had `body.feed-mode .price-memory-ghost { display: none }`
+ * waiting for a consumer; this wires it up. anon-mode joins as a
+ * pdNotifs-driven flag (sim 9499 + 13033) — `notifs.anon` is new in
+ * Build 24 and lights up sim's ascii-sprite font swap (sim 925-936)
+ * plus info-line / follow-badge / follower-count / network pill /
+ * artists rel pill hides (sim 3872-3879).
+ *
  * Mounted once in PriceOSShell.
  */
 
@@ -44,6 +55,8 @@ const ALL_FLAG_CLASSES = [
     'hammer-mode',
     'pricelens-mode',
     'fog-mode',
+    'feed-mode',
+    'anon-mode',
     'zen-mode',
     'sentiment-on',
     'redacted-mode',
@@ -71,6 +84,10 @@ export function useBodyClass() {
         if (notifs.spell_pricelens)  cl.add('pricelens-mode');
         // Build 23 — fog-mode follows SortContext, not pdNotifs (sim 8334-8338).
         if (sort === 'fog')          cl.add('fog-mode');
+        // Build 24 — feed-mode follows SortContext (sim 8342 + 9927).
+        if (sort === 'feed')         cl.add('feed-mode');
+        // Build 24 — anon-mode follows pdNotifs.anon (sim 9499 + 13033).
+        if (notifs.anon)             cl.add('anon-mode');
         if (notifs.zenMode)          cl.add('zen-mode');
         if (notifs.sentimentOn)      cl.add('sentiment-on');
         if (notifs.redactedMode)     cl.add('redacted-mode');
