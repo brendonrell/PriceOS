@@ -84,6 +84,15 @@ export interface PdNotifs {
     redactedMode: boolean;
     sentimentOn: boolean;
 
+    // Build 24 — anon mode (sim 9499 + 13033). Hides info-line,
+    // follow-badge, follower-count, the Network category pill, and
+    // artists pill rel filters (mutual/following/followers). Also
+    // swaps the ascii-sprite to a redacted block glyph (sim 925-936).
+    // Sim has no UI toggle for this yet — flip from console with
+    // `window.setAnonMode(true|false)` (debug binding mounted by
+    // PdNotifsProvider, mirrors the persona pattern from Build 23).
+    anon: boolean;
+
     // Top Bar Calendar visibility
     topBarCalendar: boolean;
 
@@ -136,6 +145,8 @@ const DEFAULTS: PdNotifs = {
     zenMode: false,
     redactedMode: false,
     sentimentOn: false,
+
+    anon: false,
 
     topBarCalendar: false,
 
@@ -199,6 +210,23 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
             // Quota / private mode — no-op.
         }
     }, [notifs]);
+
+    /* Build 24 — bind `window.setAnonMode(true|false)` for visual QA.
+       Sim has no UI toggle for anon yet (it's wired into a Settings
+       row that hasn't shipped); console binding mirrors the Build 23
+       persona pattern so Brendon can flip the body class from devtools
+       and verify all the dependent CSS rules in one go. The store of
+       record is still `notifs.anon` — the global just calls update(). */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const w = window as unknown as { setAnonMode?: (v: boolean) => void };
+        w.setAnonMode = (v: boolean) => {
+            setNotifsState((prev) => ({ ...prev, anon: !!v }));
+        };
+        return () => {
+            delete w.setAnonMode;
+        };
+    }, []);
 
     const setNotifs = useCallback((next: PdNotifs) => {
         setNotifsState(next);
