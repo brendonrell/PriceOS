@@ -3492,3 +3492,146 @@ body.zen-mode #gallery .meta { display: none !important; }
 body.zen-mode .collection-hero { padding-top: 6px !important; padding-bottom: 6px !important; }
 body.zen-mode .modal-action-btn { pointer-events: none; cursor: default; font-size: 0 !important; }
 body.zen-mode .modal-artist { display: none !important; }
+
+/* ── BUILD 23 — MUTE OVERLAY — sim 2387-2486 ──
+   Hammer mode flips every .edition-card into a "tap-to-mute" target —
+   a black scrim with a "Mute" label fills .canvas-wrapper. Tapping
+   the card runs toggleMute (sim 7280) which adds .muted to the card
+   and re-renders the label as "Muted" via .muted-final. When hammer
+   mode is OFF, .muted (and the legacy alias .hammered) cards vanish
+   from the grid so the user only sees their unmuted set.
+
+   sim 2387 (hi-icon hi-hammer hide) and sim 2389 (hover-overlay hide
+   in hammer-mode) already live in the hover-overlay block above —
+   not duplicated here. */
+body:not(.hammer-mode) .edition-card.muted { display: none !important; }
+body:not(.hammer-mode) .edition-card.hammered { display: none !important; }
+
+.mute-overlay {
+    position: absolute; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    z-index: 5; pointer-events: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #ffffff; letter-spacing: 2px;
+    user-select: none; -webkit-user-select: none;
+}
+body.hammer-mode .canvas-wrapper .mute-overlay { display: flex; }
+.mute-overlay .mute-label {
+    font-size: clamp(10px, 3vw, 20px);
+    line-height: 1;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), font-size 0.18s ease;
+}
+/* MUTED state base — slight fade to show past action */
+body.hammer-mode .edition-card.muted .mute-overlay { background: rgba(0,0,0,0.72); }
+body.hammer-mode .edition-card.muted .mute-overlay .mute-label { opacity: 0.75; }
+/* ⟙ HAMMER SWING — always on angle (never at 0deg which reads as a flat T).
+   Sequence: cocked → wind back → SLAM. Pivots from near the handle butt so
+   the head arcs naturally. Bolded via stacked text-shadows for Mjolnir girth. */
+.mute-overlay.punch-hammer .mute-label {
+    font-size: clamp(22px, 6vw, 44px);
+    font-weight: 900;
+    letter-spacing: 0;
+    display: inline-block;
+    transform-origin: 50% 80%;
+    text-shadow:
+        -1px 0 0 currentColor, 1px 0 0 currentColor,
+        0 -1px 0 currentColor, 0 1px 0 currentColor,
+        -1px -1px 0 currentColor, 1px -1px 0 currentColor,
+        -1px 1px 0 currentColor, 1px 1px 0 currentColor;
+    opacity: 1 !important;
+    animation: hammerSwing 700ms cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+@keyframes hammerSwing {
+    0%   { transform: rotate(-45deg) scale(1.15); }   /* cocked — head up-and-left */
+    22%  { transform: rotate(30deg)  scale(1.15); }   /* wind back to the right */
+    32%  { transform: rotate(30deg)  scale(1.15); }   /* brief hold */
+    62%  { transform: rotate(-160deg) scale(1.25); }  /* SLAM — head down-and-left */
+    72%  { transform: rotate(-152deg) scale(1.22); }  /* tiny recoil */
+    100% { transform: rotate(-158deg) scale(1.22); }  /* settle on impact */
+}
+/* Persistent muted-final state: MUTED as a filled boxed tag — code-block/tape aesthetic.
+   Dark tag, white text, no border. Size reduced 3 steps per UX feedback.
+   Trailing-space fix: letter-spacing adds 2px after EVERY letter including the last,
+   so `padding: x 12px` renders with visual 14px on the right (12 + 2 trailing) vs 12px
+   on the left. Compensate with asymmetric padding — right 10px, left 12px — so the
+   visible box looks centered around the word. */
+body.hammer-mode .edition-card.muted .mute-overlay .mute-label.muted-final,
+.mute-overlay .mute-label.muted-final {
+    font-size: clamp(12px, 3.8vw, 24px);
+    font-weight: bold;
+    letter-spacing: 2px;
+    border: none;
+    border-radius: 2px;
+    padding: 5px 10px 5px 12px;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    line-height: 1;
+    opacity: 1;
+}
+/* Modal-scoped MUTE overlay: larger font, sits over the artwork canvas.
+   Build 23 ports the rules so when ArtworkModal mounts its own
+   .modal-canvas-wrap > .mute-overlay markup, the cascade is already
+   in place. No JSX consumer today — purely a forward-compat port. */
+.modal-canvas-wrap .mute-overlay {
+    background: rgba(0,0,0,0.55);
+    pointer-events: auto; cursor: pointer;
+}
+body.hammer-mode .modal-canvas-wrap .mute-overlay { display: flex; }
+.modal-canvas-wrap .mute-overlay .mute-label {
+    font-size: clamp(24px, 6vw, 60px);
+    letter-spacing: 3px;
+}
+.modal-canvas-wrap .mute-overlay.punch-hammer .mute-label {
+    font-size: clamp(56px, 14vw, 140px);
+    font-weight: 900;
+    letter-spacing: 0;
+    /* inherits animation + transform-origin from grid rule above */
+}
+.modal-canvas-wrap .mute-overlay .mute-label.muted-final {
+    font-size: clamp(24px, 6vw, 64px);
+    font-weight: bold;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: 3px;
+    padding: 10px 19px 10px 22px;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    opacity: 1;
+}
+
+/* ── BUILD 23 — FOG MODE — sim 3640-3666 ──
+   Default sort option. When active (sort === 'fog'), every card stays
+   blurred until the user taps/clicks it (first tap reveals; second tap
+   opens the modal normally). Persistent fog across the entire grid —
+   off-screen cards stay fogged too. Session-only; a refresh re-covers
+   everything. Wiring lives in app/collection/[slug]/page.tsx
+   (gallery-wide capture-phase click handler, sim parity with
+   _startFogObserver / _stopFogObserver). Body class toggle lives in
+   useBodyClass driven by SortContext (sim 8334-8338). */
+body.fog-mode .edition-card:not(.fog-revealed) { cursor: pointer; }
+body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper {
+    filter: blur(28px) brightness(0.75) saturate(0.5);
+    transition: filter 0.6s ease;
+}
+body.fog-mode .edition-card.fog-revealed .canvas-wrapper {
+    filter: none;
+    transition: filter 0.8s ease;
+}
+/* Subtle pulse on unrevealed cards so the fog feels alive */
+body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.08);
+    animation: fogPulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes fogPulse {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 0.7; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after { animation: none; }
+}
