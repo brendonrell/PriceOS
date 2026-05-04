@@ -260,21 +260,21 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                 />
                                 <IconBtn
                                     cls="burn-btn"
-                                    glyph="⏚\uFE0E"
+                                    glyph={'⏚\uFE0E'}
                                     title="Burn Pile"
                                     active={burnPileActive}
                                     onClick={toggleBurnPile}
                                 />
                                 <IconBtn
                                     cls="epoch-btn"
-                                    glyph="❐\uFE0E"
+                                    glyph={'❐\uFE0E'}
                                     title="Multi-Select"
                                     active={multiSelectActive}
                                     onClick={toggleMultiSelect}
                                 />
                                 <IconBtn
                                     cls="search-btn"
-                                    glyph="⌕\uFE0E"
+                                    glyph={'⌕\uFE0E'}
                                     title="Search"
                                     active={searchActive}
                                     onClick={toggleSearch}
