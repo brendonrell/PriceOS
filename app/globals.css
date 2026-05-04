@@ -575,6 +575,14 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
     text-decoration-thickness: 1px;
 }
 
+/* Build 24 — sim 2191 mobile-only override. The Followers ⚬ glyph
+   gets bumped to 22px on narrow viewports so it reads at the same
+   visual weight as the surrounding count text; the Following ⚯
+   glyph isn't bumped (sim is asymmetric here, mirror verbatim). */
+@media (max-width: 600px) {
+    .nav-ico-followers { font-size: 22px !important; }
+}
+
 
 /* ── GLOBAL SEARCH (top of user-dropdown) ────────────────── */
 .global-search-wrap { padding: 4px 2px 0 2px; }
