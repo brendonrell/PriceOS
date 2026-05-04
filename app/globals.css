@@ -2777,6 +2777,182 @@ body.theme-dark .canvas-wrapper {
     opacity: 1;
 }
 
+/* ── HOVER OVERLAY — sim 2369-2392 + 3223-3224 + 2486 + 3266 ──
+   Per-card hover layer. Black 0.85 scrim + a row of action icons
+   (Star/Wishlist/Album/Note/Grail/Cart/Hammer). Mounted inside
+   .canvas-wrapper. Default opacity:0; reveal on .edition-content:hover
+   (devices with a real hover pointer only). 44px hit area via padding +
+   negative margin keeps visual layout unchanged but extends touch zone.
+   Note + Hammer hidden by default — body.notes-mode / body.hammer-mode
+   flip them on. Touch devices (pointer: coarse) hide the overlay
+   entirely; on hammer-mode same. Build 22. */
+.hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+.hover-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000000;
+    opacity: 0.85;
+}
+.hover-icons {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 16px;
+}
+.hi-icon {
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    color: #e0e0e0;
+    transition: transform 0.2s;
+    padding: 13px 10px;
+    margin: -13px -10px;
+    cursor: pointer;
+    display: inline-block;
+}
+.hi-icon.active-star { color: #fff; }
+body.notes-mode .hi-icon.hi-note { display: inline-block !important; }
+body.hammer-mode .hi-icon.hi-hammer { display: none !important; }
+body.hammer-mode .hover-overlay { display: none !important; }
+@media (hover: hover) {
+    .edition-content:hover .hover-overlay { opacity: 1; }
+    .hi-icon:hover { transform: translateY(-3px); color: #fff; }
+}
+@media (pointer: coarse) {
+    .hover-overlay { display: none; }
+}
+@media (max-width: 600px) {
+    .hi-icon.hi-note { font-size: 26px !important; }
+}
+
+/* ── PRICE LENS ⊛ — sim 3934-3949 ──
+   When body.pricelens-mode is active, swap the raw ETH price display for
+   a mock floor-relative pct. Implementation trick: font-size:0 hides the
+   original text node; ::before re-injects the pct via the data-pct
+   attribute at the normal font size. Zero DOM churn on toggle — just a
+   class flip on body. Real indexer floor wiring lands later; this is the
+   visual mock. data-pct stamping happens in ArtworkCard (Build 22). */
+body.pricelens-mode .meta-owner.price-trigger { font-size: 0; }
+body.pricelens-mode .meta-owner.price-trigger::before {
+    content: attr(data-pct);
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 1;
+    color: var(--text-color);
+}
+@media (max-width: 600px) {
+    body.pricelens-mode .meta-owner.price-trigger::before { font-size: 13px; }
+}
+
+/* ── AURA — sim 3693-3731 ──
+   Ambient multi-color glow AROUND each artwork. Sits behind the card via
+   a ::before pseudo on .edition-card with negative inset (extends ~16px
+   outward). Slowly-rotating conic gradient across 6 theme-compatible
+   hues so every thumbnail reads as haloed in a living, shifting colour
+   field. CRUCIALLY: does NOT touch .canvas-wrapper, overflow, z-index
+   of interior elements, or anything above the card. `isolation: isolate`
+   creates a local stacking context so z-index:-1 pushes the halo behind
+   content without affecting sibling cards or hover/event behaviour.
+   Per-card --aura-angle / --aura-duration vars are stamped in
+   ArtworkCard from id (Build 22) so cards aren't synchronized. Body
+   class toggle wiring lives in Settings (later build). */
+body.aura-active .edition-card {
+    position: relative;
+    isolation: isolate;
+}
+body.aura-active .edition-card::before {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    background: conic-gradient(from var(--aura-angle, 0deg),
+        #FF0055, #FFE600, #14EACE, #FF8A3D, #D600FF, #00FF66, #FF0055);
+    filter: blur(22px);
+    opacity: 0.55;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 12px;
+    animation: auraRotate var(--aura-duration, 14s) linear infinite;
+}
+body.aura-active { overflow-x: hidden; }
+body.aura-active #gallery { overflow-x: clip; }
+@keyframes auraRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.aura-active .edition-card::before { animation: none; opacity: 0.45; }
+}
+
+/* ── BREADCRUMB CRUMB — sim 3893-3914 + 8072-8082 ──
+   "Recently visited" sticker. Mounted on .canvas-wrapper for the 5 ids
+   the page picks per session (CollectionPageInner breadcrumbSample lazy
+   useState). Half-on / half-off the artwork's rounded corner so it reads
+   as meta-UI, not part of the art. .canvas-wrapper normally clips
+   (overflow: hidden) — :has(.breadcrumb-crumb) flips it to visible so the
+   dot can bleed past the corner. Build 22. */
+.breadcrumb-crumb {
+    position: absolute;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-color) !important;
+    pointer-events: none;
+    z-index: 11;
+    user-select: none;
+    transition: color 0.2s;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.breadcrumb-crumb.bc-tr { top: -7px; right: -7px; }
+.breadcrumb-crumb.bc-bl { bottom: -7px; left: -7px; }
+.breadcrumb-crumb.bc-br { bottom: -7px; right: -7px; }
+.canvas-wrapper:has(.breadcrumb-crumb) { overflow: visible; }
+.edition-content:hover .breadcrumb-crumb {
+    color: var(--bg-color) !important;
+}
+
+/* ── PRICE MEMORY GHOST — sim 3676 + 3678-3691 + 8085-8089 ──
+   Faded "last sale" readout in the bottom-left of .canvas-wrapper.
+   Always mounted in DOM; CSS gates visibility on body.pm-active (Spell
+   Book → Price Ghost). On hover the opacity bumps to 1 for legibility.
+   Hidden entirely in feed-mode (different surface there). Per-id
+   deterministic seed in ArtworkCard so the readout is stable across
+   reloads + sort/filter changes. Build 22. */
+.price-memory-ghost {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: #fff;
+    opacity: 0;
+    text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 1px 0 rgba(0,0,0,0.5);
+    pointer-events: none;
+    transition: opacity 0.4s;
+    z-index: 4;
+}
+body.pm-active .price-memory-ghost { opacity: 0.75; }
+body.pm-active .edition-content:hover .price-memory-ghost { opacity: 1; }
+body.feed-mode .price-memory-ghost { display: none !important; }
+
 /* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
 #activity-feed {
     display: none;
