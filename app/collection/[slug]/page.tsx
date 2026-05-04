@@ -218,6 +218,26 @@ function CollectionPageInner({
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
     const [activeTab, setActiveTab] = useState<CollectionTab>('showcase');
 
+    /* Build 21 — Showcase pick (sim 13113-13130 + applyShowcasePicks
+       at sim 13130). On Showcase tab the gallery carries .showcase-mode
+       which CSS-hides every .edition-card except those marked
+       .showcase-pick (globals.css 2690-2692). Sim picks 6 random ids
+       once per page session and stamps the class on those cards. We
+       use a lazy useState initializer so the random draw runs exactly
+       once on mount — re-renders (filter changes, sort changes, tab
+       switches) reuse the same set, mirroring sim's _showcasePicks
+       array which only resets on full page reload. */
+    const [showcasePicks] = useState<Set<number>>(() => {
+        const ids: number[] = [];
+        for (let i = 1; i <= collection.totalEditions; i++) ids.push(i);
+        // Fisher-Yates — sim 13119-13122 verbatim
+        for (let i = ids.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [ids[i], ids[j]] = [ids[j], ids[i]];
+        }
+        return new Set(ids.slice(0, 6));
+    });
+
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
        we read the title via CollectionContext and ignore the route param.
        The reference here keeps the unused-variable lint quiet. */
@@ -575,7 +595,11 @@ function CollectionPageInner({
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {visibleTokenIds.map((id) => (
-                    <ArtworkCard key={id} id={id} />
+                    <ArtworkCard
+                        key={id}
+                        id={id}
+                        showcasePick={showcasePicks.has(id)}
+                    />
                 ))}
             </section>
 
@@ -627,7 +651,7 @@ function CollectionPageInner({
                             <div className="mr-tl-bar" />
                             <div className="mr-tl-playhead" />
                             <div className="mr-tl-events">
-                                {Array.from({ length: 14 }).map((_, i) => (
+                                {Array.from({ length: 11 }).map((_, i) => (
                                     <span className="mr-tl-ev" key={i} />
                                 ))}
                             </div>
