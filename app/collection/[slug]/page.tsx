@@ -55,7 +55,9 @@ import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useModal } from '../../../lib/state/ModalContext';
+import { TraitsProvider } from '../../../lib/state/TraitsContext';
 import ArtworkCard from '../../../components/ArtworkCard';
+import TraitsUI from '../../../components/collection/TraitsUI';
 
 type CollectionTab = 'showcase' | 'artworks' | 'albums';
 
@@ -227,7 +229,7 @@ export default function CollectionPage({
     for (let i = 1; i <= collection.totalEditions; i++) tokenIds.push(i);
 
     return (
-        <>
+        <TraitsProvider>
             <section className="collection-hero" aria-label="Collection Info">
                 <div className="hero-group-1">
                     <h1 className="collection-title">
@@ -427,77 +429,12 @@ export default function CollectionPage({
                         </div>
                     </div>
 
-                    {/* Sim 5168-5174: traits-ui pre-JS shell. Inner
-                        containers stay empty until renderTraitUI ports. */}
-                    <div
-                        className="traits-ui"
-                        style={{
-                            display: traitsAndSortVisible ? undefined : 'none',
-                        }}
-                    >
-                        <div className="traits-header-bar">
-                            <div className="stats-container" id="traitCategories" />
-                        </div>
-                        <div
-                            className="stats-container"
-                            id="traitSubCategories"
-                            style={{ display: 'none' }}
-                        />
-                        <div
-                            className="stats-container"
-                            id="statsOutput"
-                            style={{ display: 'none' }}
-                        />
-                    </div>
-
-                    {/* Sim 5176-5179: sort-bar empty shell. Pills inject
-                        via renderSortUI (sim ~8417) in a later build. */}
-                    <div
-                        className="sort-bar"
-                        id="sortOptions"
-                        style={{
-                            display: traitsAndSortVisible ? undefined : 'none',
-                        }}
-                    />
-
-                    {/* Sim 5180-5193: search-row. Inputs are uncontrolled
-                        at v0 — the applySearch + price-range wiring lives
-                        in a later build. */}
-                    <div className="search-row" id="searchRow">
-                        <input
-                            className="search-input"
-                            id="searchInput"
-                            type="text"
-                            placeholder="# id, collector..."
-                            autoComplete="off"
-                            enterKeyHint="done"
-                        />
-                        <span className="feed-price-range" id="feedPriceRange">
-                            <input
-                                className="price-input"
-                                id="feedPriceMin"
-                                type="number"
-                                placeholder="min"
-                                step="0.001"
-                                min="0"
-                                enterKeyHint="done"
-                            />
-                            <span className="price-sep">–</span>
-                            <input
-                                className="price-input"
-                                id="feedPriceMax"
-                                type="number"
-                                placeholder="max"
-                                step="0.001"
-                                min="0"
-                                enterKeyHint="done"
-                            />
-                            <span className="price-eth-label">ETH</span>
-                        </span>
-                        <span className="search-clear" title="Clear">
-                            ✕&#xFE0E;
-                        </span>
-                    </div>
+                    {/* Sim 5168-5189: TraitsUI = .traits-ui + .sort-bar +
+                        .search-row, mounted as one component so the three
+                        sibling blocks share TraitsContext. Visibility
+                        gating mirrors sim's switchCollectionTab — only
+                        the Artworks tab shows trait/sort surfaces. */}
+                    <TraitsUI visible={traitsAndSortVisible} />
                 </div>
             </section>
 
@@ -723,6 +660,6 @@ export default function CollectionPage({
                     </div>
                 </div>
             </section>
-        </>
+        </TraitsProvider>
     );
 }
