@@ -33,9 +33,11 @@
 
 import { useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
+import { useModal } from '../../lib/state/ModalContext';
 
 export function LinksView() {
     const { setView } = useDropdown();
+    const { open } = useModal();
     const [profileHover, setProfileHover] = useState(false);
 
     return (
@@ -75,7 +77,9 @@ export function LinksView() {
                     Profile
                 </a>
                 {/* F35: stopPropagation + preventDefault prevents stats clicks from bubbling
-                    to the row and triggering Profile navigation (sim 4510). */}
+                    to the row and triggering Profile navigation (sim 4510).
+                    Build 4: each side opens FollowersModal with its own tab — sim
+                    openFollowersModal('followers' | 'following'). */}
                 <span
                     className="nav-follower-stats"
                     onClick={(e) => {
@@ -83,18 +87,84 @@ export function LinksView() {
                         e.preventDefault();
                     }}
                 >
-                    <span className="nav-ico nav-ico-followers" title="Followers">
+                    <span
+                        className="nav-ico nav-ico-followers"
+                        title="Followers"
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            open('followers', 'followers');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                open('followers', 'followers');
+                            }
+                        }}
+                    >
                         ⚬{'\uFE0E'}
                     </span>{' '}
-                    &nbsp;<b>850</b>
+                    &nbsp;
+                    <b
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            open('followers', 'followers');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                open('followers', 'followers');
+                            }
+                        }}
+                    >
+                        850
+                    </b>
                     <span
                         className="nav-ico nav-ico-following"
-                        style={{ marginLeft: 12 }}
+                        style={{ marginLeft: 12, cursor: 'pointer' }}
                         title="Following"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            open('followers', 'following');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                open('followers', 'following');
+                            }
+                        }}
                     >
                         ⚯{'\uFE0E'}
                     </span>{' '}
-                    &nbsp;<b>2.2k</b>
+                    &nbsp;
+                    <b
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            open('followers', 'following');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                open('followers', 'following');
+                            }
+                        }}
+                    >
+                        2.2k
+                    </b>
                 </span>
             </div>
 
