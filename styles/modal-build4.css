@@ -1,0 +1,318 @@
+/* ============================================================
+   PriceOS — modal-build4.css
+   Build 4 modal CSS port. Sourced from sim.html for the three
+   modals mounted in Build 7:
+     - CollectorsModal   (sim id #collectorsModal,  ~5418)
+     - FollowersModal    (sim id #followersModal,   ~5447)
+     - PriceosModal      (sim id #priceosModal,     ~5462)
+
+   The .platform-modal scaffold itself lives in styles/modal.css
+   (Build 1, ArtworkModal). This file fills the gaps modal.css
+   explicitly parked in its header:
+     - .modal-fields / .mf-lbl / .mf-val (collectorsModal grid)
+     - collectorsModal / followersModal / priceosModal styling
+
+   sim line refs noted inline so future sim walks can verify.
+   Match-sim scope: rules ported as-is even when current React
+   markup doesn't yet trigger them (e.g. .modal-fields parent
+   selector). That's deliberate — sim is the spec.
+   ============================================================ */
+
+
+/* ── MODAL FIELD GRID  (sim 3146–3155) ─────────────────────
+   The label/value grid used inside .modal-info. CollectorsModal
+   only uses the .modal-fields-wrap centring shell; .modal-fields,
+   .mf-lbl, .mf-val, .mf-copy ride along for ArtworkModal field
+   parity when it lands. .mf-val.hover-link is the chained-class
+   variant that turns a value cell into a click target. */
+.modal-fields-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.modal-fields {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    gap: 10px 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    align-items: center;
+}
+.mf-lbl {
+    text-align: right;
+    opacity: 0.6;
+    text-transform: uppercase;
+}
+.mf-val {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: max-content;
+    box-sizing: border-box;
+    background: var(--stat-bg);
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px var(--border-color);
+    color: var(--text-color);
+}
+.mf-val.hover-link {
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    justify-content: flex-start;
+}
+.mf-copy {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+
+/* ── COLLECTORS LIST + BOTTOM STAT  (sim 3157–3159) ────────
+   Scrollable list shell used by CollectorsModal, FollowersModal,
+   and PriceosModal (changelog body). overscroll-behavior: contain
+   prevents iOS Safari rubber-banding from bleeding into the
+   modal backdrop. modal-stats-bottom is the dashed-rule footer
+   line under the list (e.g. "UNIQUE COLLECTORS: 68%"). */
+.collectors-list {
+    max-height: 250px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+}
+.collectors-list::-webkit-scrollbar { display: none; }
+.modal-stats-bottom {
+    margin-top: 15px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0.8;
+    text-align: center;
+}
+
+
+/* ── SCROLL ARROW DARK VARIANT  (sim 205) ──────────────────
+   .scroll-arrow base + :hover live in app/globals.css (sim 204,
+   3211) — used by the dropdown notif scroller in light context.
+   The dark-arrow modifier forces the explicit text-color, which
+   matters inside .platform-modal where the inherited colour
+   chain differs from the dropdown surface. */
+.scroll-arrow.dark-arrow { color: var(--text-color); }
+
+
+/* ── PILL L2  (sim 2294–2296) ──────────────────────────────
+   Second-tier pill used as the FOLLOWERS / FOLLOWING / MUTUALS
+   tab row in FollowersModal. Inverts on .active. .dimmed is the
+   inactive-but-not-disabled state; not currently triggered by
+   FollowersModal's React state but ported for sim parity. */
+.pill-l2 {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+.pill-l2.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+    opacity: 1 !important;
+}
+.pill-l2.dimmed { opacity: 0.7; }
+
+
+/* ── ARTIST TAG  (sim 2052–2068, 3045) ─────────────────────
+   The ✺ glyph appended after a handle to mark "this user is also
+   an artist on PD." CollectorsModal renders it inline beside the
+   handle; .artist-lockup and .f-content variants are sim parents
+   that don't currently exist in the repo (artist pages, activity
+   feed). Ported so the rules are ready when those surfaces land. */
+.artist-tag {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 21px;
+    opacity: 0.85;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    margin-left: 0px;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+.artist-name-wrap { display: inline; text-decoration: none; }
+.artist-lockup:hover .artist-name-wrap {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+.artist-lockup:hover .artist-tag { opacity: 0.75; }
+.f-content .artist-tag {
+    line-height: 0;
+    position: relative;
+    top: 3px;
+}
+
+
+/* ── PRICEOS CHANGELOG  (sim 3447–3517) ────────────────────
+   PriceosModal-specific. The wrap/logo pair handles the rotating
+   ASCII figlet header; sim applies a JS scale-to-fit transform
+   after render but the React port renders raw <pre> for now (per
+   the component header comment — fit math is a follow-up polish).
+
+   The changelog list reuses .collectors-list as its scroll shell,
+   then layers the version/date/items typography on top. */
+.priceos-ascii-logo-wrap {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    margin: 0 0 14px 0;
+}
+.priceos-ascii-logo {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    line-height: 1.1;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    white-space: pre;
+    user-select: none;
+    -webkit-user-select: none;
+    opacity: 0.9;
+    display: inline-block;
+    transform-origin: center top;
+}
+.priceos-changelog-sep {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--text-color);
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 14px;
+}
+.priceos-changelog-list {
+    text-align: left;
+    padding: 6px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+}
+.priceos-changelog-entry { margin-bottom: 14px; }
+.priceos-changelog-entry .cl-version {
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    opacity: 0.95;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+.priceos-changelog-entry .cl-date {
+    opacity: 0.5;
+    font-weight: normal;
+    font-size: 10px;
+}
+.priceos-changelog-entry ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-color);
+    opacity: 0.75;
+}
+.priceos-changelog-entry li {
+    padding: 2px 0 2px 14px;
+    position: relative;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+.priceos-changelog-entry li::before {
+    content: '\00B7';
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    opacity: 0.6;
+}
+
+
+/* ── REDACTED-MODE OVERLAYS  (sim 968–980) ─────────────────
+   Privacy theme blacks out PII inside the modals — modal title,
+   field values, and collector-list links become solid bars.
+   Light theme uses pure black; dark-theme variant lightens to
+   off-white at 88% so the bar reads against the dark backdrop. */
+body.redacted-mode .modal-title,
+body.redacted-mode .modal-fields .mf-val,
+body.redacted-mode .collectors-list .hover-link {
+    color: transparent !important;
+    background: #000000 !important;
+    border-radius: 1px !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: transparent !important;
+    text-decoration: none !important;
+}
+body.theme-dark.redacted-mode .modal-title,
+body.theme-dark.redacted-mode .modal-fields .mf-val,
+body.theme-dark.redacted-mode .collectors-list .hover-link {
+    background: rgba(224, 224, 224, 0.88) !important;
+}
+
+
+/* ── HOVER STATES  (sim 3228–3229) ─────────────────────────
+   Wrapped in @media (hover: hover) per sim — keeps the inverted
+   colour swap from sticking on touch devices after a tap. */
+@media (hover: hover) {
+    .mf-val.hover-link:hover {
+        color: var(--bg-color);
+        background: var(--text-color);
+    }
+    .mf-copy:hover {
+        opacity: 1;
+        color: var(--accent);
+    }
+}
+
+
+/* ── MOBILE OVERRIDES  (sim 2202–2211, 3458, 3477) ─────────
+   Subset of sim's @media (max-width: 600px) block — only the
+   rules touching classes defined in this file. ASCII logo wrap
+   breaks out of modal side padding to recover 16px of width for
+   wider figlets; logo font drops a notch for the same reason.
+   Artist-tag size bumps up in dense-info contexts (lockup,
+   activity feed). modal-fields/mf-val mobile shape ports for
+   ArtworkModal-grid parity even though it doesn't yet render. */
+@media (max-width: 600px) {
+    .priceos-ascii-logo-wrap {
+        margin: 0 -8px 14px -8px;
+        width: calc(100% + 16px);
+    }
+    .priceos-ascii-logo {
+        font-size: 8px;
+        line-height: 1.05;
+    }
+
+    .info-rubik .artist-tag {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .artist-lockup .artist-tag { font-size: 25px; }
+    .f-content .artist-tag { font-size: 23px; }
+
+    .modal-fields {
+        grid-template-columns: minmax(80px, 25%) 1fr;
+        width: 100%;
+    }
+    .mf-val {
+        width: 100%;
+        justify-content: space-between;
+        word-break: break-all;
+    }
+}
