@@ -13,12 +13,31 @@
  *      (and the dialogue text rendered into #familiarBubble) lands
  *      later. Mirrors sim.html:4265-4269.
  *
- * Both are mounted unconditionally so the spell toggles can simply
- * flip a CSS flag rather than mounting/unmounting React subtrees.
- * That keeps the render path stable when the user toggles spells
- * on and off rapidly.
+ * Build 9 — explicit `enable` prop:
+ *   The Vercel preview surfaced an issue where Backgrounds was
+ *   suspected of running canvas/animation work on every page load
+ *   (heavy enough to interrupt other tab audio). The current React
+ *   shell is just two empty <div>s and CSS-gated visibility, so
+ *   today there is nothing to "stop" — but once the actual sim
+ *   starfield builder + familiar sprite logic ports in, those will
+ *   live here. Per Build 9 spec: the layers must NOT mount unless
+ *   explicitly enabled. Defaulting to `false` makes opting in a
+ *   conscious decision in PriceOSShell (or wherever it's mounted),
+ *   which means the future star/familiar JS can never accidentally
+ *   auto-run on a route that doesn't want it. CSS still does the
+ *   per-spell visibility flip via body.stargazing-mode etc., so
+ *   the spell-toggle wiring already in PdNotifsContext continues
+ *   to work the same way once `enable` flips on.
  */
-export function Backgrounds() {
+
+interface BackgroundsProps {
+    /** Pass `true` to mount the starfield + familiar DOM nodes.
+     *  Default `false` — Build 9: no auto-run on page load. */
+    enable?: boolean;
+}
+
+export function Backgrounds({ enable = false }: BackgroundsProps) {
+    if (!enable) return null;
     return (
         <>
             <div id="starfield" aria-hidden="true" />
