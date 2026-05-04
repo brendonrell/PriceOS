@@ -12,21 +12,21 @@
  * ArtworkCard to this context and apply the predicates.
  *
  * Sim parity:
- *   - activeCategory   ← sim's `activeCategory` (sim ~6240). String key from
+ *   - activeCategory   ← sim's `activeCategory` (sim 7163). String key from
  *     traitData (Gateway → "Layer", Spectrum → "Mineral") plus 'Fate' /
  *     'Network' / 'Breadcrumb'. null = no category selected.
- *   - activeFilters    ← sim's `activeFilters` (sim ~6242). Record keyed by
+ *   - activeFilters    ← sim's `activeFilters` (sim 7140). Record keyed by
  *     TraitCategory; each value is a Set of selected value names within that
  *     category. Toggled by the L2 sub-pills in the .traits-header-bar.
- *     Mirrors sim's `toggleFilter` (sim ~8299): clicking a value pill
+ *     Mirrors sim's `toggleFilter` (sim 8298): clicking a value pill
  *     adds-or-removes it from the Set for the active category.
- *   - myNotesActive    ← sim's `myNotesActive` (sim ~6238) — toggled by the
+ *   - myNotesActive    ← sim's `myNotesActive` — toggled by the
  *     "My Notes" pill (sim 8550).
- *   - burnPileActive   ← sim's `burnPileActive` (sim ~6235) — the ⏚ icon.
- *   - multiSelectActive ← sim's `_multiSelectActive` (sim ~6234) — the ❐ icon.
- *   - searchActive     ← sim's `searchActive` (sim ~6232) — gates the
+ *   - burnPileActive   ← sim's `burnPileActive` — the ⏚ icon.
+ *   - multiSelectActive ← sim's `_multiSelectActive` — the ❐ icon.
+ *   - searchActive     ← sim's `searchActive` — gates the
  *     `.search-row.open` modifier so the row collapses when off.
- *   - searchQuery      ← sim's `_searchQuery` (sim ~6233).
+ *   - searchQuery      ← sim's `_searchQuery`.
  *   - priceMin/priceMax ← sim's `feedPriceMin` / `feedPriceMax` input values.
  *
  * `hasActiveFilter` is the OR of every filter input — used by the
@@ -41,6 +41,16 @@
  * Scope guard: this context is mounted only inside the collection page
  * tree. Other pages do not need it; calling useTraits() outside the
  * provider throws.
+ *
+ * Build 16 (current): L1 toggle-off semantics. Sim's setCategory at
+ * sim 8272-8285 is a single-step toggler — clicking the active L1 again
+ * sets `activeCategory = null`. The Build 9 spec residual #4 extends this
+ * to also drain the value Set for that category in the same transaction
+ * (so a stale L3 selection doesn't survive an L1 clear and re-emerge when
+ * the same L1 is re-opened later). That behavior lives in the new
+ * `clearActiveCategory` method below; `setActiveCategory` is a plain
+ * setter — the prev===c toggle path is gone, BarPill picks the call site
+ * based on whether the clicked pill is already active.
  */
 
 import {
@@ -77,8 +87,13 @@ interface TraitsContextValue {
     /* Header-bar filter pills */
     activeCategory: TraitCategory | null;
     setActiveCategory: (c: TraitCategory | null) => void;
+    /* Build 16: explicit L1 clear — drains activeFilters[activeCategory]
+       atomically with the activeCategory=null write. See implementation
+       comment below for why this isn't `setActiveCategory(null)` plus a
+       follow-up clear. */
+    clearActiveCategory: () => void;
 
-    /* L2 value-pill selections — sim ~6242 / sim 8299 toggleFilter */
+    /* L2 value-pill selections — sim 7140 / sim 8298 toggleFilter */
     activeFilters: ActiveFilters;
     toggleFilter: (cat: TraitCategory, value: string) => void;
 
@@ -125,16 +140,55 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const [priceMin, setPriceMinState] = useState('');
     const [priceMax, setPriceMaxState] = useState('');
 
-    /* Mirrors sim's setCategory: clicking the active category clears it,
-       clicking a different one swaps. (sim ~7180-7200, simplified.) */
+    /* Build 16: plain setter. The prev===c toggle that used to live here
+       is gone — the BarPill onClick decides between `setActiveCategory`
+       (open / swap) and `clearActiveCategory` (toggle off) based on its
+       own `active` prop. Centralizing the decision at the call site lets
+       the toggle-off path also drain filters in the same setState batch
+       without leaking that responsibility into the setter signature. */
     const setActiveCategory = useCallback((c: TraitCategory | null) => {
-        setActiveCategoryState((prev) => (c !== null && prev === c ? null : c));
+        setActiveCategoryState(c);
     }, []);
 
-    /* Mirrors sim's toggleFilter (sim 8299): if the value is already in the
+    /* Build 16: clear active L1 + drain its filter Set in one transaction.
+       Both setState calls fire from the same event handler so React 18+
+       batches them into a single render. The activeFilters update reads
+       the previous activeCategory off the functional updater so it stays
+       correct even if the surrounding closure has captured a stale value
+       (this matters when clearActiveCategory is called from a non-React
+       callback path — e.g. a future keyboard handler). If activeCategory
+       is already null this is a no-op on both axes. */
+    const clearActiveCategory = useCallback(() => {
+        setActiveCategoryState((prevCat) => {
+            if (prevCat !== null) {
+                setActiveFiltersState((prevFilters) => ({
+                    ...prevFilters,
+                    [prevCat]: new Set<string>(),
+                }));
+            }
+            return null;
+        });
+    }, []);
+
+    /* Mirrors sim's toggleFilter (sim 8298): if the value is already in the
        Set for that category, remove it; otherwise add it. We clone the Set
        on every mutation so React detects the change and re-renders pills
-       that derive from `activeFilters[cat]`. */
+       that derive from `activeFilters[cat]`.
+       ────────────────────────────────────────────────────────────────────
+       INVARIANT (Build 16, locked): toggleFilter MUST NOT touch
+       activeCategory. Sim's toggleFilter at sim 8298-8310 only mutates
+       activeFilters[internalCatKey] — it never inspects or assigns
+       activeCategory, even when the toggle drains the Set to size 0.
+       Removing the LAST value from activeFilters[activeCategory] keeps
+       activeCategory pinned; the L1 pill stays lit and the L2/L3 rows
+       stay rendered (just with no selections). The only paths that ever
+       null activeCategory are:
+         • clearActiveCategory()  — explicit L1 clear from BarPill
+         • clearAllFilters()      — global reset from .search-clear ✕
+       Do NOT add an `if (nextSet.size === 0) clearActiveCategory()` short-
+       circuit here. That would diverge from sim and break the L3 toggle-
+       off → re-toggle-on flow that depends on the L1 staying open.
+       ──────────────────────────────────────────────────────────────────── */
     const toggleFilter = useCallback(
         (cat: TraitCategory, value: string) => {
             setActiveFiltersState((prev) => {
@@ -163,8 +217,8 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         []
     );
 
-    /* Sim's toggleSearch (sim ~8843) flips `.search-row.open` and clears
-       the query when collapsing. closeSearch is the explicit ✕ path. */
+    /* Sim's toggleSearch flips `.search-row.open` and clears the query
+       when collapsing. closeSearch is the explicit ✕ path. */
     const toggleSearch = useCallback(() => {
         setSearchActive((prev) => {
             if (prev) {
@@ -231,6 +285,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         () => ({
             activeCategory,
             setActiveCategory,
+            clearActiveCategory,
             activeFilters,
             toggleFilter,
             myNotesActive,
@@ -254,6 +309,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         [
             activeCategory,
             setActiveCategory,
+            clearActiveCategory,
             activeFilters,
             toggleFilter,
             myNotesActive,
