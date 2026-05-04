@@ -33,10 +33,16 @@
  *
  * useBodyClass stays mounted at the top so the body className stays
  * in sync with PdNotifs state across the whole app.
+ *
+ * Build 24 — useNavFade mounts alongside useBodyClass to wire the
+ * scroll-driven `.nav-faded` class on .pd-logo-wrap + .nav-controls
+ * (sim 6746-6757). The CSS rule at sim 92 was already in globals.css
+ * but had no consumer until now.
  */
 
 import { type ReactNode } from 'react';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
+import { useNavFade } from '../../lib/hooks/useNavFade';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
@@ -52,6 +58,7 @@ import CartPanel from '../CartPanel';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
+    useNavFade();
     return (
         <>
             <Backgrounds />
