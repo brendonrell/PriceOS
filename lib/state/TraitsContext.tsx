@@ -12,22 +12,27 @@
  * ArtworkCard to this context and apply the predicates.
  *
  * Sim parity:
- *   - activeCategory  ← sim's `activeCategory` (sim ~6240). String key from
+ *   - activeCategory   ← sim's `activeCategory` (sim ~6240). String key from
  *     traitData (Gateway → "Layer", Spectrum → "Mineral") plus 'Fate' /
  *     'Network' / 'Breadcrumb'. null = no category selected.
- *   - myNotesActive   ← sim's `myNotesActive` (sim ~6238) — toggled by the
+ *   - activeFilters    ← sim's `activeFilters` (sim ~6242). Record keyed by
+ *     TraitCategory; each value is a Set of selected value names within that
+ *     category. Toggled by the L2 sub-pills in the .traits-header-bar.
+ *     Mirrors sim's `toggleFilter` (sim ~8299): clicking a value pill
+ *     adds-or-removes it from the Set for the active category.
+ *   - myNotesActive    ← sim's `myNotesActive` (sim ~6238) — toggled by the
  *     "My Notes" pill (sim 8550).
- *   - burnPileActive  ← sim's `burnPileActive` (sim ~6235) — the ⏚ icon.
+ *   - burnPileActive   ← sim's `burnPileActive` (sim ~6235) — the ⏚ icon.
  *   - multiSelectActive ← sim's `_multiSelectActive` (sim ~6234) — the ❐ icon.
- *   - searchActive    ← sim's `searchActive` (sim ~6232) — gates the
+ *   - searchActive     ← sim's `searchActive` (sim ~6232) — gates the
  *     `.search-row.open` modifier so the row collapses when off.
- *   - searchQuery     ← sim's `_searchQuery` (sim ~6233).
+ *   - searchQuery      ← sim's `_searchQuery` (sim ~6233).
  *   - priceMin/priceMax ← sim's `feedPriceMin` / `feedPriceMax` input values.
  *
  * `hasActiveFilter` is the OR of every filter input — used by the
- * "Search Filter ON" chip in TraitsUI.tsx. (The chip itself is a port-only
- * addition — sim only fires this string as a toast at sim 8861. See the
- * note in TraitsUI.tsx for context.)
+ * "Search Filter ON" chip in TraitsUI.tsx. Build 14 widens this to
+ * include "any activeFilters Set non-empty" so the chip lights up when
+ * the user has toggled L2 value pills even without a L1 category lock.
  *
  * Direction of the active sort (asc/desc) is intentionally not tracked
  * here — sort family lives in SortContext and the arrow state will land
@@ -54,10 +59,28 @@ export type TraitCategory =
     | 'Network'
     | 'Breadcrumb';
 
+export type ActiveFilters = Record<TraitCategory, Set<string>>;
+
+/* Empty filter map factory — used at init and on clearAllFilters. New Set
+   per call so we never share Set references between resets. */
+function emptyFilters(): ActiveFilters {
+    return {
+        Layer: new Set<string>(),
+        Mineral: new Set<string>(),
+        Fate: new Set<string>(),
+        Network: new Set<string>(),
+        Breadcrumb: new Set<string>(),
+    };
+}
+
 interface TraitsContextValue {
     /* Header-bar filter pills */
     activeCategory: TraitCategory | null;
     setActiveCategory: (c: TraitCategory | null) => void;
+
+    /* L2 value-pill selections — sim ~6242 / sim 8299 toggleFilter */
+    activeFilters: ActiveFilters;
+    toggleFilter: (cat: TraitCategory, value: string) => void;
 
     /* Toggle pills sitting at the right end of the header bar */
     myNotesActive: boolean;
@@ -92,6 +115,8 @@ const TraitsContext = createContext<TraitsContextValue | null>(null);
 export function TraitsProvider({ children }: { children: ReactNode }) {
     const [activeCategory, setActiveCategoryState] =
         useState<TraitCategory | null>(null);
+    const [activeFilters, setActiveFiltersState] =
+        useState<ActiveFilters>(emptyFilters);
     const [myNotesActive, setMyNotesActive] = useState(false);
     const [burnPileActive, setBurnPileActive] = useState(false);
     const [multiSelectActive, setMultiSelectActive] = useState(false);
@@ -105,6 +130,25 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const setActiveCategory = useCallback((c: TraitCategory | null) => {
         setActiveCategoryState((prev) => (c !== null && prev === c ? null : c));
     }, []);
+
+    /* Mirrors sim's toggleFilter (sim 8299): if the value is already in the
+       Set for that category, remove it; otherwise add it. We clone the Set
+       on every mutation so React detects the change and re-renders pills
+       that derive from `activeFilters[cat]`. */
+    const toggleFilter = useCallback(
+        (cat: TraitCategory, value: string) => {
+            setActiveFiltersState((prev) => {
+                const nextSet = new Set(prev[cat]);
+                if (nextSet.has(value)) {
+                    nextSet.delete(value);
+                } else {
+                    nextSet.add(value);
+                }
+                return { ...prev, [cat]: nextSet };
+            });
+        },
+        []
+    );
 
     const toggleMyNotes = useCallback(
         () => setMyNotesActive((v) => !v),
@@ -153,6 +197,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
 
     const clearAllFilters = useCallback(() => {
         setActiveCategoryState(null);
+        setActiveFiltersState(emptyFilters());
         setMyNotesActive(false);
         setBurnPileActive(false);
         setMultiSelectActive(false);
@@ -162,8 +207,20 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         setPriceMaxState('');
     }, []);
 
+    /* Build 14: any L1 active OR any activeFilters set non-empty OR
+       myNotes / burn / search / price. Multi-select intentionally
+       excluded — it's a UI mode, not a filter predicate. */
+    const anyValueFiltersActive = useMemo(
+        () =>
+            (Object.keys(activeFilters) as TraitCategory[]).some(
+                (k) => activeFilters[k].size > 0
+            ),
+        [activeFilters]
+    );
+
     const hasActiveFilter =
         activeCategory !== null ||
+        anyValueFiltersActive ||
         myNotesActive ||
         burnPileActive ||
         searchQuery.trim() !== '' ||
@@ -174,6 +231,8 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         () => ({
             activeCategory,
             setActiveCategory,
+            activeFilters,
+            toggleFilter,
             myNotesActive,
             toggleMyNotes,
             burnPileActive,
@@ -195,6 +254,8 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         [
             activeCategory,
             setActiveCategory,
+            activeFilters,
+            toggleFilter,
             myNotesActive,
             toggleMyNotes,
             burnPileActive,
