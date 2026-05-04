@@ -31,7 +31,7 @@
  * body.sentiment-on — empty/invisible by default in step 2.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 
 export function PeteyLogo() {
@@ -39,6 +39,21 @@ export function PeteyLogo() {
     const { notifs } = usePdNotifs();
 
     const showPrice = notifs.priceLogo;
+
+    /* Dispatch a CustomEvent every time `rotated` flips so FaviconEngine
+       can mirror the easter-egg rotation (sim 5530–5533: classList.toggle
+       'rotated' → updateFavicon with isRotated). The initial mount also
+       dispatches once with rotated=false, which is a no-op for the
+       engine's default state.
+
+       A DOM event keeps this state local to PeteyLogo (same as sim's
+       module-level `currentFaviconRotated`) without lifting it into a
+       global context that would persist across reloads. */
+    useEffect(() => {
+        document.dispatchEvent(
+            new CustomEvent('pd:petey-rotated', { detail: { rotated } })
+        );
+    }, [rotated]);
 
     return (
         <div className="pd-logo-wrap">
