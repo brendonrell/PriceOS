@@ -334,7 +334,16 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         Mock count of 22 per value until gallery wiring
                         lands; the `.is-zero` class still applies whenever
                         count === 0 so the structural class logic is in
-                        place for the wiring build. */}
+                        place for the wiring build.
+
+                        Build 17 — dim cascade rule (sim 8674-8675):
+                        `dimmed = anySelected && !isActive` keeps `active`
+                        and `dimmed` mutually exclusive on a per-pill basis,
+                        so the same pill never carries both classes. The
+                        L3Pill component below emits classes in sim order
+                        (`is-zero` first, then `active`|`dimmed`); CSS
+                        source order in globals.css 2332-2342 lets is-zero
+                        win the cascade when stacked. */}
                     <div
                         className="stats-container"
                         id="statsOutput"
@@ -635,7 +644,16 @@ interface L3PillProps {
    `.active` / `.dimmed` mirror L2 selection state — both rows share
    `activeFilters[cat]`, so toggling here updates the L2 pill above and
    any future gallery predicate. The trailing `<span class="stat-count">`
-   carries the numeric count (sim 8681). */
+   carries the numeric count (sim 8681).
+
+   Build 17 — class-emission order tightened to match sim 8671-8676
+   verbatim: `pill pill-l3 [is-zero] [active|dimmed]`. `active` and
+   `dimmed` are mutually exclusive at the call site (sim 8674-8675's
+   if/else mirrored in TraitsUI 350-354 where `dimmed = anySelected &&
+   !isActive`). `is-zero` stacks on top of either via CSS source order
+   in globals.css (.pill-l3.active 2332 → .pill-l3.dimmed 2337 →
+   .pill-l3.is-zero 2338) — so a zero-count pill that's also selected
+   renders with the dashed-transparent is-zero treatment dominating. */
 function L3Pill({
     label,
     count,
@@ -647,9 +665,9 @@ function L3Pill({
     const cls = [
         'pill',
         'pill-l3',
+        isZero ? 'is-zero' : '',
         active ? 'active' : '',
         dimmed ? 'dimmed' : '',
-        isZero ? 'is-zero' : '',
     ]
         .filter(Boolean)
         .join(' ');
