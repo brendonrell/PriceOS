@@ -37,7 +37,7 @@
  * wires unread-event tracking, this is the place to read that flag.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../lib/state/ThemeContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
@@ -90,16 +90,46 @@ export function FaviconEngine() {
         return () => document.removeEventListener(ROTATION_EVENT, handler);
     }, []);
 
-    /* ETH ping on Connect menu open (sim 6731-6735). Fires on the
-       false→true edge of menuOpen. The cleanup clears the pending
-       restore if menuOpen flips again before the 2s elapses, so a
-       quick close+reopen restarts the timer fresh. */
+    /* ETH ping on Connect menu open (sim 6731-6735). Sim fires
+       updateFavicon with isEthPing=true, then schedules an UNCONDITIONAL
+       setTimeout that restores the favicon 2000ms later — the timer
+       fires regardless of whether the menu is still open.
+
+       Build 25 D8: prior implementation cancelled the timer in the
+       cleanup whenever menuOpen flipped, which meant a quick
+       open→close→open within 2s would let the FIRST open's still-
+       pending timer fire and prematurely clear the SECOND open's ping
+       (Brendon's "shows briefly then disappears"). Fixed here by
+       tracking the active timer in a ref: each new false→true edge
+       cancels the previous pending restore (so we don't double-clear)
+       and starts a fresh 2000ms window. Closing the menu does NOT
+       cancel the timer — sim parity. */
+    const prevMenuOpenRef = useRef(false);
+    const ethPingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
-        if (!menuOpen) return;
+        const wasOpen = prevMenuOpenRef.current;
+        prevMenuOpenRef.current = menuOpen;
+        // Only fire on the false→true edge.
+        if (!menuOpen || wasOpen) return;
+        if (ethPingTimerRef.current !== null) {
+            clearTimeout(ethPingTimerRef.current);
+        }
         setEthPing(true);
-        const t = setTimeout(() => setEthPing(false), ETH_PING_DURATION_MS);
-        return () => clearTimeout(t);
+        ethPingTimerRef.current = setTimeout(() => {
+            setEthPing(false);
+            ethPingTimerRef.current = null;
+        }, ETH_PING_DURATION_MS);
     }, [menuOpen]);
+
+    // Clear any pending restore on unmount.
+    useEffect(() => {
+        return () => {
+            if (ethPingTimerRef.current !== null) {
+                clearTimeout(ethPingTimerRef.current);
+                ethPingTimerRef.current = null;
+            }
+        };
+    }, []);
 
     /* Main paint effect. Re-runs on every favicon-relevant state
        change: theme, priceLogo override, easter-egg rotation, ETH
