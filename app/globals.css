@@ -2468,6 +2468,80 @@ body.persona-default .stats-row-2 { display: none !important; }
 @media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
+/* Build 25 D6+D7: .st-icon + .sharp-glyph + per-id overrides ported from
+   sim 712, 885, 1000-1006, 1541, 1549, 1557, 1562-1601, 1666-1667.
+   Without these, every Settings/Spell-Book icon span renders at the
+   browser's default font-size (which on iOS Safari is significantly
+   larger than 16px), producing the oversized icons Brendon flagged. */
+.st-icon {
+    font-size: 16px;
+    margin-right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transform: translateY(1px);
+}
+.sharp-glyph {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    font-synthesis: none;
+}
+
+/* Echo Chamber star sits a touch larger desktop-side. */
+#sn-echo .st-icon { font-size: 16px !important; }
+
+/* Redacted @ — Arial-rendered, sharp; sim 1000-1001, 1006, 1541. */
+#sn-redacted .st-icon {
+    font-family: Arial, 'Helvetica Neue', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0;
+}
+@media (min-width: 601px) {
+    #sn-redacted .st-icon { position: relative; top: -1px; }
+}
+@media (max-width: 600px) {
+    #sn-redacted .st-icon { font-size: 13px !important; }
+}
+
+/* Mints/mutuals nudges — sim 1666-1667. */
+#sn-mints .st-icon { transform: translateY(-2px) !important; }
+#sn-mutualsOnly .st-icon { transform: translateY(0px); }
+
+/* Mobile pill icon size + position pass — sim 1562-1601. */
+@media (max-width: 600px) {
+    #sn-anon .st-icon, #sn-zen .st-icon { font-size: 14px !important; }
+    #sn-sticker .st-icon { font-size: 15px !important; }
+    #sn-zerocontext .st-icon, #sn-sentiment .st-icon { font-size: 15px !important; }
+    #sn-redacted .st-icon,
+    #sn-asciiId .st-icon,
+    #sn-degen .st-icon,
+    #sn-autoscroll .st-icon { font-size: 14px !important; }
+    #sn-echo .st-icon, #sn-stargazing .st-icon {
+        font-size: 21px !important;
+        position: relative;
+        top: 2px;
+    }
+    #sn-zerocontext .st-icon { position: relative; top: -3px; }
+    #sb-spitebook { font-size: 12px !important; position: relative; top: 2px; }
+    #sb-tribunal  { font-size: 12px !important; }
+    #sb-cartel    { position: relative; top: 1px; }
+    #sb-spitebook .st-icon { position: relative; top: 3px; }
+    #sb-celestial .st-icon { position: relative; top: 2px; }
+    #sb-cartel .st-icon,
+    #sb-familiar .st-icon,
+    #sb-invisible .st-icon { position: relative; top: 1px; }
+    #sn-autoscroll .st-icon { position: relative; top: 2px; }
+    #sn-zerocontext .st-icon { top: 0; }
+    #sn-zen .st-icon  { position: relative; top: 1px; }
+    #sn-anon .st-icon { position: relative; top: 2px; }
+    #sn-echo .st-icon, #sn-stargazing .st-icon { top: 3px; }
+    #sn-sentiment .st-icon,
+    #sn-asciiId   .st-icon,
+    #sn-degen     .st-icon { position: relative; top: 1px; }
+}
+
 .burn-btn {
     cursor: pointer;
     font-size: 18px;
