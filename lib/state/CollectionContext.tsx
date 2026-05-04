@@ -19,6 +19,17 @@
  *   metaCache shape ........ sim.html 7138, 7968–8003
  *   _brendonOwned set ...... sim.html 7967–7968
  *   id-keyed lookup pattern  sim.html 8725–8788, 11598–11599
+ *
+ * Build 19: added `traits` to TokenMeta so the gallery wiring
+ * (TraitsContext → ArtworkCard render) can predicate on Layer / Mineral /
+ * Fate. Sim assigns these per token in renderFeed (sim 7986–8002) using
+ * Math.random() seeded once at init; we mirror with a deterministic
+ * id-based LCG so traits are stable across reloads. Pools match the
+ * STRATA-rebrand strings in TraitsUI's VALUE_POOLS (Crust/Mantle/… for
+ * Layer, Quartz/Schist/… for Mineral). Fate pool comes from sim's
+ * OMEN_TRAITS array (sim ~7999) — TraitsUI VALUE_POOLS.Fate is empty
+ * for v0, so no L2 pill toggles a Fate value yet, but the data exists
+ * for the day Fate L2 lands.
  */
 
 import {
@@ -32,6 +43,17 @@ export interface TokenMeta {
     ownerDisplay: string;
     price: string | null;
     isOwnedByBrendon: boolean;
+    /* Build 19: deterministic mock traits for Layer / Mineral / Fate.
+       Pools match TraitsUI.VALUE_POOLS verbatim for Layer + Mineral so
+       a value the user toggles in the L2 row maps 1:1 to this string.
+       Fate uses sim's 8 OMEN_TRAITS (sim ~7999); TraitsUI's Fate pool
+       is empty in v0, so this field is read-but-not-yet-filtered until
+       Fate L2 pills land. */
+    traits: {
+        Layer: string;
+        Mineral: string;
+        Fate: string;
+    };
 }
 
 export interface CollectionState {
@@ -59,6 +81,25 @@ const MOCK_COLLECTION_FLOOR_ETH = 0.014;
 const BRENDON_OWNED: ReadonlySet<number> = new Set([
     1, 2, 3, 22, 67, 112, 158, 201,
 ]);
+
+/* Build 19: trait pools. Layer + Mineral mirror TraitsUI.VALUE_POOLS so
+   the L2 value pills the user can toggle line up byte-for-byte with the
+   strings stored on TokenMeta.traits. Fate is sim's OMEN_TRAITS (sim
+   ~7999) — kept here even though TraitsUI doesn't surface a Fate L2 pool
+   yet, so the field is populated and ready when that build lands. Pools
+   are typed `as const` to keep the index types happy without a cast. */
+const LAYER_POOL = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'] as const;
+const MINERAL_POOL = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'] as const;
+const FATE_POOL = [
+    'SOVEREIGN',
+    'ABUNDANT',
+    'FORTUNE',
+    'ASCENDANT',
+    'BALANCED',
+    'SHADOW',
+    'TRIBULATION',
+    'VOID',
+] as const;
 
 /**
  * Deterministic mock metadata for one token id. Same id → same shape on
@@ -94,7 +135,20 @@ function buildTokenMeta(id: number): TokenMeta {
         ownerDisplay = '0x' + hex.slice(0, 4) + '\u2026' + tail;
     }
 
-    return { ownerDisplay, price, isOwnedByBrendon: isMine };
+    /* Build 19: three independent LCG-style draws — distinct multipliers
+       so Layer/Mineral/Fate aren't correlated by id. Modulo each pool's
+       length to pick a value. Stable across reloads since the only input
+       is the id. */
+    const tLayer = (id * 1103 + 12345) % 65536;
+    const tMineral = (id * 2087 + 98765) % 65536;
+    const tFate = (id * 3469 + 54321) % 65536;
+    const traits = {
+        Layer: LAYER_POOL[tLayer % LAYER_POOL.length],
+        Mineral: MINERAL_POOL[tMineral % MINERAL_POOL.length],
+        Fate: FATE_POOL[tFate % FATE_POOL.length],
+    };
+
+    return { ownerDisplay, price, isOwnedByBrendon: isMine, traits };
 }
 
 export function CollectionProvider({ children }: { children: ReactNode }) {
