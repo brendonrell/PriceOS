@@ -38,6 +38,7 @@
 import { type ReactNode } from 'react';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { Backgrounds } from './Backgrounds';
+import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import ActionToast from '../ActionToast';
@@ -54,6 +55,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     return (
         <>
             <Backgrounds />
+            <FaviconEngine />
             <Navbar />
             <main>{children}</main>
             <Footer />
