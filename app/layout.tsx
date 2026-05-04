@@ -69,14 +69,19 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs.zenMode)          classList.add('zen-mode');
                 if (notifs.sentimentOn)      classList.add('sentiment-on');
                 if (notifs.redactedMode)     classList.add('redacted-mode');
+                // Build 24 — anon-mode (sim 13033).
+                if (notifs.anon)             classList.add('anon-mode');
             }
         }
 
         // Build 23 — fog-mode follows SortContext (sim 8334-8338),
         // not the dormant notifs.fogMode flag.
+        // Build 24 — feed-mode joins fog-mode as a sort-driven body
+        // class (sim 8342 + 9927).
         var sort = localStorage.getItem('pd_settings_sort');
-        if (sort === 'fog' && document.body) {
-            document.body.classList.add('fog-mode');
+        if (document.body) {
+            if (sort === 'fog')  document.body.classList.add('fog-mode');
+            if (sort === 'feed') document.body.classList.add('feed-mode');
         }
 
         // Build 23 — persona-default mirrors sim's debugPersona flow
