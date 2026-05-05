@@ -8,23 +8,77 @@
  * Four pill toggles backed by SortContext. Single-active behavior:
  * clicking a pill activates it and deactivates the others.
  *
- * The active sort drives the collection page's default view (lands in
- * step 5+ when the collection page is built); for now the value just
- * persists in localStorage and reflects in the picker UI.
+ * Build 29 — D14 adds the directional arrow glyph that sim 10492-10498
+ * renders inside each active pill via the .settings-sort-arrow span.
+ * Active-pill arrow reflects the current direction:
+ *
+ *   #ID    : '↑' when id-asc, '↓' when id-desc, no arrow otherwise
+ *   $PRICE : '↑' when price-asc, '↓' when price-desc, no arrow otherwise
+ *   FEED   : 'FEED <↑|↓>' for feed-time-*; 'FEED $ <↑|↓>' for feed-price-*
+ *   FOG    : no arrow (single state)
+ *
+ * Click handler upgraded from `setSort` to `cycleSort` so the settings
+ * row mirrors sim's main sort row: re-tapping the active family flips
+ * direction (sim's window.setSort is the single shared cycle handler).
+ *
+ * The active sort drives the collection page's default view; the
+ * pd_settings_sort key persists family-only (matches sim's defaultSort).
  */
 
-import { useSort } from '../../../lib/state/SortContext';
+import type { ReactNode } from 'react';
+import { useSort, type SortKey } from '../../../lib/state/SortContext';
 import { SettingsToggle } from './SettingsToggle';
 
-const SORTS: Array<{ key: 'id' | 'price' | 'feed' | 'fog'; label: string; title: string }> = [
-    { key: 'id',    label: '# ID',    title: 'Sort by ID' },
-    { key: 'price', label: '$ PRICE', title: 'Sort by Price' },
-    { key: 'feed',  label: 'FEED',    title: 'Activity Feed' },
-    { key: 'fog',   label: 'FOG',     title: 'Fog — reveal collection artwork by artwork' },
+const SORTS: Array<{ key: SortKey; title: string }> = [
+    { key: 'id',    title: 'Sort by ID' },
+    { key: 'price', title: 'Sort by Price' },
+    { key: 'feed',  title: 'Activity Feed' },
+    { key: 'fog',   title: 'Fog — reveal collection artwork by artwork' },
 ];
 
 export function DefaultSortRow() {
-    const { sort, setSort } = useSort();
+    const { sort, dir, feedKind, cycleSort } = useSort();
+
+    /* Sim 10492-10498 — pill labels are HTML-built per family with
+       direction arrow inside .settings-sort-arrow when active. */
+    const labelFor = (key: SortKey): ReactNode => {
+        const arrow = (glyph: string) => (
+            <span className="settings-sort-arrow">{glyph}</span>
+        );
+        if (key === 'id') {
+            if (sort === 'id') {
+                return (
+                    <>
+                        # ID {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
+                    </>
+                );
+            }
+            return '# ID';
+        }
+        if (key === 'price') {
+            if (sort === 'price') {
+                return (
+                    <>
+                        $ PRICE {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
+                    </>
+                );
+            }
+            return '$ PRICE';
+        }
+        if (key === 'feed') {
+            if (sort === 'feed') {
+                const dirGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
+                return feedKind === 'price' ? (
+                    <>FEED $ {arrow(dirGlyph)}</>
+                ) : (
+                    <>FEED {arrow(dirGlyph)}</>
+                );
+            }
+            return 'FEED';
+        }
+        // fog
+        return 'FOG';
+    };
 
     return (
         <>
@@ -36,8 +90,8 @@ export function DefaultSortRow() {
                         id={`ss-${s.key}`}
                         active={sort === s.key}
                         title={s.title}
-                        label={s.label}
-                        onClick={() => setSort(s.key)}
+                        label={labelFor(s.key)}
+                        onClick={() => cycleSort(s.key)}
                     />
                 ))}
             </div>
