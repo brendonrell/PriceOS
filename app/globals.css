@@ -1089,6 +1089,29 @@ body.stargazing-mode {
     --text-color: #c5a8f0 !important;
 }
 
+/* Stargazing: force all modal/dropdown surfaces into dark glass so they don't blast white over the starfield.
+   Applies to user menu, ping/todo/note panels, and the note-prompt bottom sheet. Artwork .platform-modal
+   already pulls from --modal-bg which is remapped to dark in stargazing via JS. (sim 1611-1629) */
+body.stargazing-mode .user-dropdown,
+body.stargazing-mode .notifications-box,
+body.stargazing-mode .note-prompt-box {
+    background: rgba(13, 6, 24, 0.82) !important;
+    color: #c5a8f0 !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(197, 168, 240, 0.12);
+}
+body.stargazing-mode .user-dropdown a { color: #c5a8f0; }
+body.stargazing-mode .user-dropdown a:hover { background: rgba(197, 168, 240, 0.08); }
+
+/* Force platform-modal backgrounds to dark when stargazing is active.
+   Without this, a previously-selected theme leaves inline backgroundColor on the modal element
+   (set by setTheme + openModal) which leaks through. !important beats the inline style. */
+body.stargazing-mode .platform-modal {
+    background: #0d0618 !important;
+    background-color: #0d0618 !important;
+}
+
 #digital-familiar {
     position: fixed; bottom: 20px; left: 20px;
     z-index: 150;
@@ -2502,6 +2525,45 @@ body.persona-default .stats-row-2 { display: none !important; }
      `active={true}`, so this rule activates automatically on toggle. */
 #sn-sticker { position: relative; overflow: visible; }
 #sn-sticker.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: currentColor;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+/* sim 889 / 893 / 895 — strike-line rules paired with sn-sticker (sim 891).
+   Each pill toggles `.active` from SettingsToggle when the matching pdNotifs
+   flag is true, so the line draws automatically. F44 / BUG-14. */
+#sn-priceLogo { position: relative; overflow: visible; }
+#sn-priceLogo.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: currentColor;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+#sn-redacted { position: relative; overflow: visible; }
+#sn-redacted.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: currentColor;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+#sn-asciiId { position: relative; overflow: visible; }
+#sn-asciiId.active::after {
     content: '';
     position: absolute;
     left: 0;
