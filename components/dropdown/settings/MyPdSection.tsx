@@ -21,7 +21,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
+import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useTheme } from '../../../lib/state/ThemeContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
@@ -133,6 +133,17 @@ export function MyPdSection({ onTripleTap }: Props) {
             s.count = 0;
             onTripleTap();
         }
+    };
+
+    /* Build 29 D28 — every mode toggle now emits a `<Label> ON|OFF`
+       toast on flip. Pattern matches sim 9319 / 9320 / 9599 / 12700:
+       compute the next state at click time (notifs reflects the
+       pre-toggle value) and toast it. The body-class follow-through
+       still rides on PdNotifsContext via useBodyClass.  */
+    const toggleWithToast = (key: keyof PdNotifs, label: string) => {
+        const next = !notifs[key];
+        toggle(key);
+        showToast(`${label} ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -259,7 +270,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-pureLight"
                         title="Pure Light Mode"
                         active={notifs.pure_light}
-                        onClick={() => toggle('pure_light')}
+                        onClick={() => toggleWithToast('pure_light', 'Pure Light')}
                         icon={'◻\uFE0E'}
                         label="PL"
                     />
@@ -267,7 +278,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-pureDark"
                         title="Pure Dark Mode"
                         active={notifs.pure_dark}
-                        onClick={() => toggle('pure_dark')}
+                        onClick={() => toggleWithToast('pure_dark', 'Pure Dark')}
                         icon={'◼\uFE0E'}
                         label="PD"
                     />
@@ -275,7 +286,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-priceLogo"
                         title="Price Logo"
                         active={notifs.priceLogo}
-                        onClick={() => toggle('priceLogo')}
+                        onClick={() => toggleWithToast('priceLogo', 'Price Logo')}
                         icon={'‰\uFE0E'}
                         iconStyle={{
                             fontFamily: "'Inter', sans-serif",
@@ -292,7 +303,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-anon"
                         title="Anon Mode"
                         active={notifs.anon}
-                        onClick={() => toggle('anon')}
+                        onClick={() => toggleWithToast('anon', 'Anon Mode')}
                         icon={'∅\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
@@ -301,7 +312,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-zen"
                         title="Zen Mode"
                         active={notifs.zenMode}
-                        onClick={() => toggle('zenMode')}
+                        onClick={() => toggleWithToast('zenMode', 'Zen Mode')}
                         icon={'⛶\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
@@ -310,7 +321,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-sticker"
                         title="Sticker Mode"
                         active={notifs.sticker}
-                        onClick={() => toggle('sticker')}
+                        onClick={() => toggleWithToast('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
@@ -319,7 +330,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-echo"
                         title="Echo Chamber"
                         active={notifs.echo}
-                        onClick={() => toggle('echo')}
+                        onClick={() => toggleWithToast('echo', 'Echo Chamber')}
                         icon={'⊛\uFE0E'}
                         iconStyle={{ fontSize: '16px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -333,7 +344,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-zerocontext"
                         title="Zero Context Mode"
                         active={notifs.zerocontext}
-                        onClick={() => toggle('zerocontext')}
+                        onClick={() => toggleWithToast('zerocontext', 'Zero Context Mode')}
                         icon={'z\uFE0E'}
                         iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -342,7 +353,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-pricelens"
                         title="Price Lens — floor-relative pricing"
                         active={notifs.spell_pricelens}
-                        onClick={() => toggle('spell_pricelens')}
+                        onClick={() => toggleWithToast('spell_pricelens', 'Price Lens')}
                         icon={'⌾\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -351,7 +362,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-sentiment"
                         title="Sentiment Weather"
                         active={notifs.sentimentOn}
-                        onClick={() => toggle('sentimentOn')}
+                        onClick={() => toggleWithToast('sentimentOn', 'Sentiment Weather')}
                         icon={'◒\uFE0E'}
                         iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -360,7 +371,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-asciiId"
                         title="ASCII-ID"
                         active={notifs.asciiId}
-                        onClick={() => toggle('asciiId')}
+                        onClick={() => toggleWithToast('asciiId', 'ASCII-ID')}
                         icon={'⍢\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -369,7 +380,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-degen"
                         title="Degen Mode"
                         active={notifs.degen}
-                        onClick={() => toggle('degen')}
+                        onClick={() => toggleWithToast('degen', 'Degen Mode')}
                         icon={'⚔\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -378,7 +389,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-redacted"
                         title="Redacted Mode"
                         active={notifs.redactedMode}
-                        onClick={() => toggle('redactedMode')}
+                        onClick={() => toggleWithToast('redactedMode', 'Redacted Mode')}
                         icon={'@\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
@@ -413,7 +424,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-autoscroll"
                         title="Auto-Scroll"
                         active={notifs.autoscroll}
-                        onClick={() => toggle('autoscroll')}
+                        onClick={() => toggleWithToast('autoscroll', 'Auto-Scroll')}
                         icon={'⍖\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}

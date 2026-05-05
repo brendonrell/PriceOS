@@ -19,6 +19,7 @@
 import { useRef } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useModal } from '../../../lib/state/ModalContext';
+import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 import { SPELLS } from '../../../lib/data/spells';
 
@@ -29,6 +30,7 @@ interface Props {
 export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle } = usePdNotifs();
     const { open: openModal } = useModal();
+    const { showToast } = useToast();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
         lastTap: 0,
@@ -47,6 +49,17 @@ export function SpellBookSection({ onTripleTap }: Props) {
             s.count = 0;
             onTripleTap();
         }
+    };
+
+    /* Build 29 D28 — every spell flip emits a `<spell.name> ON|OFF`
+       toast on click. Mirrors sim 12700:
+         showToast(`${spellNames[key] || key} ${on ? 'ON' : 'OFF'}`);
+       The Familiar pill opens a modal instead of toggling and so
+       gets no on/off toast (no flag flips). */
+    const toggleSpellWithToast = (spell: typeof SPELLS[number]) => {
+        const next = !notifs[spell.flag];
+        toggle(spell.flag);
+        showToast(`${spell.name} ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -72,10 +85,12 @@ export function SpellBookSection({ onTripleTap }: Props) {
                                sprite (sim 12879), but that sprite isn't
                                ported yet, so the pill is the entry point.
                                Every other pill keeps the standard toggle
-                               behavior. */
+                               behavior — Build 29 D28 routes those toggles
+                               through `toggleSpellWithToast` so each flip
+                               emits a `<name> ON|OFF` toast (sim 12700). */
                             spell.id === 'familiar'
                                 ? () => openModal('familiar')
-                                : () => toggle(spell.flag)
+                                : () => toggleSpellWithToast(spell)
                         }
                         icon={spell.icon}
                         iconStyle={{
