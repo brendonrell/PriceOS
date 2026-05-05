@@ -78,6 +78,12 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (!menuOpen) return;
         const handler = (e: MouseEvent) => {
+            // F45 / BUG-19 — ignore outside-click while any modal is open.
+            // Native mousedown fires before React stopPropagation can run, so a
+            // tap inside an open modal would otherwise close the connect menu
+            // out from under it. Sim references the same gate at sim 5493 +
+            // 7449 + 7467 etc. via document.body.classList.contains('modal-open').
+            if (document.body.classList.contains('modal-open')) return;
             const target = e.target as Node | null;
             if (!target) return;
             const wrapper = document.querySelector('.user-menu-wrapper');
