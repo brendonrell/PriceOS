@@ -324,6 +324,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={() => toggleWithToast('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1' }}
+                        iconClassName="sticker-strike"
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
                     />
                     <SettingsToggle

@@ -16,7 +16,7 @@
  * Header itself accepts triple-tap → swap back to MY PD view.
  */
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useModal } from '../../../lib/state/ModalContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -35,6 +35,39 @@ export function SpellBookSection({ onTripleTap }: Props) {
         count: 0,
         lastTap: 0,
     });
+
+    /* Build 32 D21 — hammer-badge counter (sim 4759 + 7262-7271). The
+       Hammer pill carries an inline badge that displays the number of
+       muted items. Source of truth is `pd_hammer_count` in localStorage,
+       written by sim's `_persistMuted` (sim 7258-7261) — the Mute UI
+       hasn't been ported yet, so the count will be 0 in practice until
+       the mute surfaces land in a later build. The pattern mirrors
+       Build 31's anchor sync (page.tsx 326-355): read on mount, listen
+       to `pd:hammer-count-changed` window events for live updates from
+       any future mute caller. SSR-safe via useEffect mount.
+
+       Display format follows sim exactly — bare integer (`badge.textContent
+       = _hammerCount`, sim 7266) — not the "×N" multiplier shorthand. The
+       `.hammer-badge` styling lives in globals.css (sim 4759 inline → CSS
+       class). Badge renders only when count > 0, matching sim's
+       `display:none / ''` toggle. */
+    const [hammerCount, setHammerCount] = useState(0);
+    useEffect(() => {
+        const sync = () => {
+            try {
+                const raw = window.localStorage.getItem('pd_hammer_count');
+                const n = raw == null ? 0 : parseInt(raw, 10);
+                setHammerCount(Number.isFinite(n) && n > 0 ? n : 0);
+            } catch {
+                setHammerCount(0);
+            }
+        };
+        sync();
+        window.addEventListener('pd:hammer-count-changed', sync);
+        return () => {
+            window.removeEventListener('pd:hammer-count-changed', sync);
+        };
+    }, []);
 
     const handleHeaderTap = () => {
         const now = Date.now();
@@ -102,6 +135,18 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         }}
                         sharp={spell.sharp}
                         label={spell.name}
+                        /* Build 32 D21 — Hammer alone wears the badge slot.
+                           Sim 4759 places `<span class="hammer-badge"
+                           id="hammerBadge">N</span>` after the label inside
+                           the pill. We omit the DOM id (no imperative
+                           consumer in the React port — state drives it) and
+                           render only when count > 0 so the empty hidden
+                           state matches sim's `display:none`. */
+                        badge={
+                            spell.id === 'hammer' && hammerCount > 0
+                                ? <span className="hammer-badge" id="hammerBadge">{hammerCount}</span>
+                                : undefined
+                        }
                     />
                 ))}
             </div>

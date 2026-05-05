@@ -30,10 +30,16 @@ interface Props {
     icon?: ReactNode;
     /** Optional inline-style overrides for the icon span (font-size etc.). */
     iconStyle?: CSSProperties;
+    /** Extra class on the inner .st-icon span (e.g. `sticker-strike`,
+        sim 4623 — pairs with the body.sticker-mode opacity rule). */
+    iconClassName?: string;
     /** Use the .sharp-glyph class on the icon for crisp dingbat rendering. */
     sharp?: boolean;
     /** Optional text label rendered after the icon. */
     label?: ReactNode;
+    /** Optional trailing slot rendered after the label. Used for the
+        Hammer pill's count badge (sim 4759 hammerBadge). */
+    badge?: ReactNode;
     /** Override outer style (compact pills sometimes shrink padding). */
     style?: CSSProperties;
     /** Extra class (e.g. for special pills like price-strike). */
@@ -49,8 +55,10 @@ export function SettingsToggle({
     onClick,
     icon,
     iconStyle,
+    iconClassName,
     sharp = false,
     label,
+    badge,
     style,
     className,
     disabled = false,
@@ -60,6 +68,11 @@ export function SettingsToggle({
         (active ? ' active' : '') +
         (className ? ' ' + className : '') +
         (disabled ? ' disabled' : '');
+
+    const iconCls =
+        'st-icon' +
+        (sharp ? ' sharp-glyph' : '') +
+        (iconClassName ? ' ' + iconClassName : '');
 
     return (
         <button
@@ -77,7 +90,7 @@ export function SettingsToggle({
         >
             {icon !== undefined && (
                 <span
-                    className={`st-icon${sharp ? ' sharp-glyph' : ''}`}
+                    className={iconCls}
                     style={iconStyle}
                     aria-hidden="true"
                 >
@@ -85,6 +98,7 @@ export function SettingsToggle({
                 </span>
             )}
             {label !== undefined && <span className="st-label">{label}</span>}
+            {badge !== undefined && badge}
         </button>
     );
 }
