@@ -20,10 +20,11 @@
  * of the same flags.
  */
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useTheme } from '../../../lib/state/ThemeContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
 import { SettingsToggle } from './SettingsToggle';
 
 interface Props {
@@ -38,6 +39,71 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
     const { theme } = useTheme();
     const { showToast } = useToast();
+    const { currentCode, applyCode } = useWorkspaces();
+
+    // Build 26 D12 — setup-code field is now live + interactive.
+    // The displayed value tracks `currentCode` (encoded from theme + sort
+    // + notifs) unless the user is mid-edit. Enter or blur applies the
+    // typed code via WorkspacesContext.applyCode. Copy briefly swaps the
+    // value to "COPIED" for 1500ms (sim 7635 — matches copyProfileHex's
+    // pattern: input.value swap, not a separate toast).
+    const [inputValue, setInputValue] = useState(currentCode);
+    const [editing, setEditing] = useState(false);
+    const copyingRef = useRef(false);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    // Sync field from live currentCode when not editing + not mid-copy.
+    useEffect(() => {
+        if (editing) return;
+        if (copyingRef.current) return;
+        setInputValue(currentCode);
+    }, [currentCode, editing]);
+
+    const handleApply = () => {
+        const trimmed = inputValue.trim();
+        if (!trimmed) return;
+        // No-op if the field still matches live state (no real edit).
+        if (trimmed === currentCode) {
+            setEditing(false);
+            return;
+        }
+        const ok = applyCode(trimmed);
+        setEditing(false);
+        if (!ok) {
+            // Restore the live value so the field doesn't get stuck on
+            // an invalid string the user typed.
+            setInputValue(currentCode);
+        } else {
+            // Trigger the 600ms flash animation by toggling the class.
+            const el = inputRef.current;
+            if (el) {
+                el.classList.remove('flash-applied');
+                // Force reflow so the animation re-fires when the same
+                // class is re-added in quick succession.
+                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                void el.offsetWidth;
+                el.classList.add('flash-applied');
+                window.setTimeout(() => {
+                    el.classList.remove('flash-applied');
+                }, 700);
+            }
+        }
+    };
+
+    const handleCopy = (e: React.MouseEvent | React.KeyboardEvent) => {
+        e.stopPropagation();
+        try {
+            navigator.clipboard?.writeText(currentCode);
+        } catch {
+            // ignore
+        }
+        copyingRef.current = true;
+        setInputValue('COPIED');
+        window.setTimeout(() => {
+            copyingRef.current = false;
+            setInputValue(currentCode);
+        }, 1500);
+    };
 
     // Triple-tap detector: 3 taps within 600ms. Any tap that doesn't
     // come within 600ms of the previous resets the count.
@@ -75,24 +141,43 @@ export function MyPdSection({ onTripleTap }: Props) {
                         MY PD
                     </div>
                     <input
+                        ref={inputRef}
                         type="text"
                         id="setupCodeInput"
                         className="setup-code-input"
-                        defaultValue="‰ARTS-IDAS"
+                        value={inputValue}
+                        onChange={(e) => {
+                            setEditing(true);
+                            setInputValue(e.target.value);
+                        }}
+                        onFocus={() => setEditing(true)}
+                        onBlur={() => {
+                            handleApply();
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                inputRef.current?.blur();
+                            } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                setInputValue(currentCode);
+                                setEditing(false);
+                                inputRef.current?.blur();
+                            }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
                         spellCheck={false}
                         autoCapitalize="characters"
                         autoCorrect="off"
-                        title="Setup Code — encodes your current PD configuration."
-                        readOnly
+                        title="Setup Code — encodes your current PD configuration. Paste a code + Enter to apply."
                     />
                     <span
                         className="setup-code-copy"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            try {
-                                navigator.clipboard?.writeText('‰ARTS-IDAS');
-                            } catch {
-                                // ignore
+                        onClick={handleCopy}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleCopy(e);
                             }
                         }}
                         title="Copy Setup Code"
@@ -151,15 +236,16 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-pureLight"
                         title="Pure Light Mode"
+                        active={notifs.pure_light}
+                        onClick={() => toggle('pure_light')}
                         icon={'◻\uFE0E'}
                         label="PL"
-                        // No corresponding pdNotifs flag in step 4 — the
-                        // pure-mode interactions are tied to active theme
-                        // and land in step 5.
                     />
                     <SettingsToggle
                         id="sn-pureDark"
                         title="Pure Dark Mode"
+                        active={notifs.pure_dark}
+                        onClick={() => toggle('pure_dark')}
                         icon={'◼\uFE0E'}
                         label="PD"
                     />
@@ -201,6 +287,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-sticker"
                         title="Sticker Mode"
+                        active={notifs.sticker}
+                        onClick={() => toggle('sticker')}
                         icon={'▣\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
@@ -208,6 +296,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-echo"
                         title="Echo Chamber"
+                        active={notifs.echo}
+                        onClick={() => toggle('echo')}
                         icon={'⊛\uFE0E'}
                         iconStyle={{ fontSize: '16px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -220,6 +310,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-zerocontext"
                         title="Zero Context Mode"
+                        active={notifs.zerocontext}
+                        onClick={() => toggle('zerocontext')}
                         icon={'z\uFE0E'}
                         iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -245,6 +337,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-asciiId"
                         title="ASCII-ID"
+                        active={notifs.asciiId}
+                        onClick={() => toggle('asciiId')}
                         icon={'⍢\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -252,6 +346,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-degen"
                         title="Degen Mode"
+                        active={notifs.degen}
+                        onClick={() => toggle('degen')}
                         icon={'⚔\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
@@ -294,6 +390,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <SettingsToggle
                         id="sn-autoscroll"
                         title="Auto-Scroll"
+                        active={notifs.autoscroll}
+                        onClick={() => toggle('autoscroll')}
                         icon={'⍖\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
