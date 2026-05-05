@@ -87,6 +87,27 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /* F62 / BUG-32 — bfcache scroll restoration (sim 5488-5497).
+       iOS Safari swipe-back restores the prior scroll position by default,
+       which lands the user mid-gallery on every back-navigation. Force
+       manual control + reset on every pageshow (initial load + bfcache
+       restore from another tab). Skip the snap when a modal is open —
+       modal-open uses position:fixed scroll-locking (sim 3268), and
+       scrolling under it would un-pin the modal scroll-lock. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+        const onPageShow = () => {
+            if (!document.body.classList.contains('modal-open')) {
+                window.scrollTo(0, 0);
+            }
+        };
+        window.addEventListener('pageshow', onPageShow);
+        return () => window.removeEventListener('pageshow', onPageShow);
+    }, []);
+
     return (
         <>
             <Backgrounds />
