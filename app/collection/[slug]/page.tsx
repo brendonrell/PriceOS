@@ -55,6 +55,7 @@ import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useModal } from '../../../lib/state/ModalContext';
+import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import {
     TraitsProvider,
     useTraits,
@@ -215,8 +216,14 @@ function CollectionPageInner({
     const { sort } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
+    const { openAnchorPrompt } = useValuePrompt();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
     const [activeTab, setActiveTab] = useState<CollectionTab>('showcase');
+    /* D17 anchor — local mirror of pd_anchors[collection.title]. Hydrated
+       from localStorage on mount, kept in sync via the 'pd:anchors-changed'
+       window event below. Drives both the .stat-val text rendering for the
+       ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
+    const [anchorEth, setAnchorEth] = useState<number | null>(null);
 
     /* Build 21 — Showcase pick (sim 13113-13130 + applyShowcasePicks
        at sim 13130). On Showcase tab the gallery carries .showcase-mode
@@ -304,6 +311,48 @@ function CollectionPageInner({
             gallery.removeEventListener('click', handler, true);
         };
     }, [sort]);
+
+    /* ── D17 anchor hydration + cross-surface sync ──
+       Reads pd_anchors from localStorage on mount AND on every
+       'pd:anchors-changed' window event (the ValuePromptContext helper
+       fires this after every save). Each pass:
+         1. Updates body.anchor-active iff at least one saved anchor > 0
+            (defensive — the helper already toggles this on save, but a
+             stale class from a prior session is possible if storage was
+             cleared externally).
+         2. Mirrors pd_anchors[collection.title] into local anchorEth
+            state, which drives the ⚓ .stat-val text rendering AND the
+            delta-stamping useEffect that runs after visibleTokenIds. */
+    useEffect(() => {
+        const sync = () => {
+            let anchors: Record<string, number> = {};
+            try {
+                const raw = window.localStorage.getItem('pd_anchors');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        anchors = parsed as Record<string, number>;
+                    }
+                }
+            } catch { /* keep empty */ }
+
+            const hasAny = Object.values(anchors).some(
+                (v) => typeof v === 'number' && isFinite(v) && v > 0
+            );
+            document.body.classList.toggle('anchor-active', hasAny);
+
+            const v = anchors[collection.title];
+            setAnchorEth(
+                typeof v === 'number' && isFinite(v) && v > 0 ? v : null
+            );
+        };
+
+        sync();
+        window.addEventListener('pd:anchors-changed', sync);
+        return () => {
+            window.removeEventListener('pd:anchors-changed', sync);
+        };
+    }, [collection.title]);
 
     /* Slug is mock-only at v0 — sim has a single collection (PRISMS), so
        we read the title via CollectionContext and ignore the route param.
@@ -437,6 +486,45 @@ function CollectionPageInner({
         return filtered;
     }, [collection, sort, activeFilters, searchQuery, priceMin, priceMax]);
 
+    /* ── D17 anchor delta stamping ──
+       For every .meta-owner.price-trigger inside #gallery, parse the price
+       from text content (format "0.014 ETH" — see CollectionContext token
+       seeder) and stamp data-anchor-delta as a signed plain decimal pct
+       to 1 dp ("+12.4" / "-3.1" / "0"). When anchor is null OR the price
+       can't be parsed, the attr is removed so CSS body.anchor-active rules
+       don't render a stale delta.
+
+       Re-runs on every gallery re-render (visibleTokenIds change) because
+       React's reconciler will not preserve imperatively-stamped attrs
+       across card mount/unmount. Cheap — single querySelectorAll +
+       parseFloat per card. Sim parity ref: applyAnchor sim 11333. */
+    useEffect(() => {
+        const gallery = document.getElementById('gallery');
+        if (!gallery) return;
+
+        const triggers = gallery.querySelectorAll<HTMLElement>(
+            '.meta-owner.price-trigger'
+        );
+
+        if (anchorEth == null) {
+            triggers.forEach((el) => el.removeAttribute('data-anchor-delta'));
+            return;
+        }
+
+        triggers.forEach((el) => {
+            const p = parseFloat(el.textContent || '');
+            if (!(p > 0) || !isFinite(p)) {
+                el.removeAttribute('data-anchor-delta');
+                return;
+            }
+            const pct = (p / anchorEth - 1) * 100;
+            const fixed = pct.toFixed(1);
+            const isZero = parseFloat(fixed) === 0;
+            const str = isZero ? '0' : pct > 0 ? `+${fixed}` : fixed;
+            el.setAttribute('data-anchor-delta', str);
+        });
+    }, [anchorEth, visibleTokenIds]);
+
     return (
         <>
             <section className="collection-hero" aria-label="Collection Info">
@@ -546,13 +634,20 @@ function CollectionPageInner({
                                 role="button"
                                 tabIndex={0}
                                 title="Your Personal Reference Price — tap to set"
-                                onClick={() =>
-                                    showToast('Anchor — prompt pending')
-                                }
+                                data-anchor-key={collection.title}
+                                onClick={(e) => {
+                                    const key =
+                                        e.currentTarget.dataset.anchorKey ||
+                                        collection.title;
+                                    openAnchorPrompt({ key, label: key });
+                                }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        showToast('Anchor — prompt pending');
+                                        const key =
+                                            e.currentTarget.dataset
+                                                .anchorKey || collection.title;
+                                        openAnchorPrompt({ key, label: key });
                                     }
                                 }}
                             >
@@ -560,10 +655,16 @@ function CollectionPageInner({
                                     ⚓&#xFE0E;
                                 </span>{' '}
                                 <span
-                                    className="stat-val stat-val-empty"
+                                    className={
+                                        anchorEth != null
+                                            ? 'stat-val'
+                                            : 'stat-val stat-val-empty'
+                                    }
                                     id="statAnchorVal"
                                 >
-                                    —
+                                    {anchorEth != null
+                                        ? `${anchorEth} ETH`
+                                        : '—'}
                                 </span>
                             </span>
                         </div>
