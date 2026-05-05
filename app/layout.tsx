@@ -73,7 +73,12 @@ const PREHYDRATION_SCRIPT = `
                 // Build 24 — anon-mode (sim 13033).
                 if (notifs.anon)             classList.add('anon-mode');
                 // Build 32 D20 — sticker-mode (sim 887 + 891). Drives
-                // `.sticker-strike` opacity fade via globals.css.
+                // .sticker-strike opacity fade via globals.css. Backticks
+                // omitted on purpose — the prehydration script is itself a
+                // template literal, so any backtick inside (even in a
+                // comment) closes it early and turns the rest of the
+                // string into a TS expression. Build 33 shipped that bug;
+                // Build 34 hotfix removes the backticks.
                 if (notifs.sticker)          classList.add('sticker-mode');
             }
         }
