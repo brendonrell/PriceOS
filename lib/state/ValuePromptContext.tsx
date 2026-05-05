@@ -38,6 +38,7 @@ import {
     type ReactNode,
 } from 'react';
 import ValuePromptModal from '../../components/ValuePromptModal';
+import { useToast } from './ToastContext';
 
 export interface ValuePromptField {
     label: string;
@@ -68,12 +69,30 @@ export interface ValuePromptConfig {
 interface ValuePromptContextValue {
     openValuePrompt: (config: ValuePromptConfig) => void;
     closeValuePrompt: () => void;
+    /**
+     * D17 anchor system. Convenience wrapper around openValuePrompt that
+     * persists per-key anchor prices to localStorage 'pd_anchors' and
+     * dispatches a 'pd:anchors-changed' window event so any consumer
+     * (collection page, profile page, etc.) can re-stamp deltas + update
+     * displays. Sim ref: openAnchorPrompt at sim 11915.
+     *
+     * Behaviour:
+     *   - Pre-fills the bottom sheet with the current saved value (if any).
+     *   - Submitting an empty input clears the key.
+     *   - Submitting an unchanged value (same as current) ALSO clears the
+     *     key — "tap-twice-to-clear" toggle parity with Brendon's spec.
+     *   - Invalid input (non-positive / NaN) toasts and does not save.
+     *   - Helper toggles body.anchor-active iff any saved anchor > 0
+     *     so the body class stays consistent across surfaces.
+     */
+    openAnchorPrompt: (opts: { key: string; label?: string }) => void;
 }
 
 const ValuePromptCtx = createContext<ValuePromptContextValue | null>(null);
 
 export function ValuePromptProvider({ children }: { children: ReactNode }) {
     const [config, setConfig] = useState<ValuePromptConfig | null>(null);
+    const { showToast } = useToast();
 
     const openValuePrompt = useCallback((next: ValuePromptConfig) => {
         // If a prompt is already open, fire its onSubmit(null) before
@@ -89,6 +108,117 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
     const closeValuePrompt = useCallback(() => {
         setConfig(null);
     }, []);
+
+    /* ── D17 anchor helper ──
+       Reads pd_anchors from localStorage, opens the value prompt
+       prefilled with the current value for the given key, and on save
+       writes back + toggles body.anchor-active + dispatches
+       'pd:anchors-changed' so listeners can re-stamp deltas. */
+    const openAnchorPrompt = useCallback(
+        ({ key, label }: { key: string; label?: string }) => {
+            // Defensive read — bad JSON or unavailable storage falls back to {}.
+            let anchors: Record<string, number> = {};
+            try {
+                if (typeof window !== 'undefined') {
+                    const raw = window.localStorage.getItem('pd_anchors');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === 'object') {
+                            anchors = parsed as Record<string, number>;
+                        }
+                    }
+                }
+            } catch { /* keep empty */ }
+
+            const cur = anchors[key];
+            const curValid =
+                typeof cur === 'number' && isFinite(cur) && cur > 0;
+
+            const titleLabel = label ?? key;
+            openValuePrompt({
+                title: `Your Anchor Price for <em>${titleLabel}</em>`,
+                help: curValid
+                    ? 'Your personal reference price. Every listing shows a bracketed delta vs this number. Leave blank and save to clear.'
+                    : 'Set your personal reference price. Every listing on this collection will show a bracketed delta vs this number.',
+                fields: [
+                    {
+                        label: 'ETH',
+                        value: curValid ? String(cur) : '',
+                        placeholder: '0.05',
+                        inputmode: 'decimal',
+                    },
+                ],
+                submit: curValid ? 'Update' : 'Set',
+                onSubmit: (vals) => {
+                    if (!vals) return; // Cancelled
+
+                    const finalize = (next: Record<string, number>) => {
+                        try {
+                            if (typeof window !== 'undefined') {
+                                window.localStorage.setItem(
+                                    'pd_anchors',
+                                    JSON.stringify(next)
+                                );
+                            }
+                        } catch { /* swallow */ }
+                        if (typeof document !== 'undefined') {
+                            const hasAny = Object.values(next).some(
+                                (v) =>
+                                    typeof v === 'number' &&
+                                    isFinite(v) &&
+                                    v > 0
+                            );
+                            document.body.classList.toggle(
+                                'anchor-active',
+                                hasAny
+                            );
+                        }
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(
+                                new CustomEvent('pd:anchors-changed', {
+                                    detail: {
+                                        key,
+                                        value: next[key] ?? null,
+                                    },
+                                })
+                            );
+                        }
+                    };
+
+                    const trimmed = (vals[0] || '').trim();
+
+                    // Empty → clear.
+                    if (trimmed === '') {
+                        const next = { ...anchors };
+                        delete next[key];
+                        finalize(next);
+                        showToast('Anchor cleared');
+                        return;
+                    }
+
+                    const v = parseFloat(trimmed);
+                    if (!(v > 0) || !isFinite(v)) {
+                        showToast('Invalid anchor price');
+                        return;
+                    }
+
+                    // Tap-twice-with-same-value → clear.
+                    if (curValid && v === cur) {
+                        const next = { ...anchors };
+                        delete next[key];
+                        finalize(next);
+                        showToast('Anchor cleared');
+                        return;
+                    }
+
+                    const next = { ...anchors, [key]: v };
+                    finalize(next);
+                    showToast(`Anchor: ${v} ETH`);
+                },
+            });
+        },
+        [openValuePrompt, showToast]
+    );
 
     /**
      * The modal calls these on user action. submit() fires onSubmit with
@@ -115,8 +245,8 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
     }, [config]);
 
     const value = useMemo<ValuePromptContextValue>(
-        () => ({ openValuePrompt, closeValuePrompt }),
-        [openValuePrompt, closeValuePrompt]
+        () => ({ openValuePrompt, closeValuePrompt, openAnchorPrompt }),
+        [openValuePrompt, closeValuePrompt, openAnchorPrompt]
     );
 
     return (
