@@ -96,6 +96,22 @@ export interface PdNotifs {
     // Top Bar Calendar visibility
     topBarCalendar: boolean;
 
+    // Build 26 — additional MY PD mode flags introduced for Setup Code
+    // roundtrip parity with sim's _SETUP_MODES table (sim 9746-9764).
+    // No UI surface listens to these yet — they're stored so a Setup Code
+    // import/export preserves the user's intent across versions. UI wiring
+    // for each lands in subsequent passes as the corresponding spell
+    // behaviour ships. Sim names kept verbatim (under_score / camel) so the
+    // SetupCode mode→pdNotifs key map stays trivially 1:1 for these.
+    pure_light: boolean;
+    pure_dark: boolean;
+    sticker: boolean;       // negative — active = stickers hidden
+    echo: boolean;
+    zerocontext: boolean;
+    asciiId: boolean;       // negative — active = ASCII-ID hidden
+    degen: boolean;
+    autoscroll: boolean;
+
     // Ping category preferences (MY PINGS panel)
     pings: {
         mints: boolean;
@@ -149,6 +165,16 @@ const DEFAULTS: PdNotifs = {
     anon: false,
 
     topBarCalendar: false,
+
+    // Build 26 — Setup Code roundtrip flags (no UI yet, see interface comment).
+    pure_light: false,
+    pure_dark: false,
+    sticker: false,
+    echo: false,
+    zerocontext: false,
+    asciiId: false,
+    degen: false,
+    autoscroll: false,
 
     pings: {
         mints: true,
