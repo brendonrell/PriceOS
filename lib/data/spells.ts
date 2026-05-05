@@ -52,6 +52,5 @@ export const SPELLS: SpellEntry[] = [
     { id: 'aura',        flag: 'spell_aura',        name: 'Aura',              icon: '⦿\uFE0E' },
     { id: 'arbitrage',   flag: 'spell_arbitrage',   name: 'Arbitrage Map',     icon: '⊞\uFE0E' },
     { id: 'moodring',    flag: 'spell_moodring',    name: 'Mood Ring',         icon: '⌬\uFE0E', iconStyle: { fontSize: '20px', top: '-1px' } },
-    { id: 'pricelens',   flag: 'spell_pricelens',   name: 'Price Lens',        icon: '⌾\uFE0E' },
     { id: 'hammer',      flag: 'spell_hammer',      name: 'The Hammer',        icon: 'ᚦ\uFE0E', sharp: true },
 ];
