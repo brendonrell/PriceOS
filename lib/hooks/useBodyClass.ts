@@ -86,6 +86,9 @@ const ALL_FLAG_CLASSES = [
     // Build 28 — degen + zero-context flags (sim 9330 / 9363).
     'degen-mode',
     'zero-context-mode',
+    // Build 32 D20 — sticker-mode drives the .sticker-strike opacity
+    // fade on the sn-sticker pill icon (sim 887 + 891).
+    'sticker-mode',
 ];
 
 export function useBodyClass() {
@@ -121,6 +124,11 @@ export function useBodyClass() {
         // Build 28 — degen + zero-context (sim 9330 / 9363).
         if (notifs.degen)            cl.add('degen-mode');
         if (notifs.zerocontext)      cl.add('zero-context-mode');
+        // Build 32 D20 — sticker-mode (sim 887 + 891). The body-class
+        // follow-through replaces sim's imperative `.sticker-strike` →
+        // `.strikethrough` toggle (sim 9491 / 10471) — body class drives
+        // the same opacity fade via globals.css.
+        if (notifs.sticker)          cl.add('sticker-mode');
     }, [notifs, sort]);
 
     /* Build 28 — zen-mode Escape handler. Sim 9519-9532 attaches a
