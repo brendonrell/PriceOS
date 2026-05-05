@@ -38,9 +38,20 @@
  * scroll-driven `.nav-faded` class on .pd-logo-wrap + .nav-controls
  * (sim 6746-6757). The CSS rule at sim 92 was already in globals.css
  * but had no consumer until now.
+ *
+ * Build 28 — is-pwa body class (D18). Sim 5633-5635 sets
+ * `body.is-pwa` once on load when `navigator.standalone === true`
+ * (iOS) or `matchMedia('(display-mode: standalone)').matches`. The
+ * original Layout.tsx scaffold owned this check but was never wired
+ * into the React tree — so the class never landed and the
+ * `body.is-pwa .navbar` rules in globals.css (149, 158) sat dormant.
+ * The check belongs here: PriceOSShell mounts at the top of every
+ * route, runs once on hydration, and is colocated with the other
+ * body-class side effects (useBodyClass / useNavFade). One-shot
+ * effect — display-mode doesn't flip mid-session, so no listener.
  */
 
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { useNavFade } from '../../lib/hooks/useNavFade';
 import { Backgrounds } from './Backgrounds';
@@ -59,6 +70,23 @@ import CartPanel from '../CartPanel';
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
+
+    /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
+       exactly: OR navigator.standalone (iOS-only, ignores display-mode
+       media query) with matchMedia('(display-mode: standalone)'). One-shot
+       on mount; the standalone state can't change during a session, so
+       no listener / cleanup needed. The matching CSS rules already exist
+       at globals.css 149 + 158. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        // @ts-expect-error — non-standard iOS-only API, intentionally accessed
+        const iosStandalone = window.navigator?.standalone === true;
+        const displayMode = window.matchMedia?.('(display-mode: standalone)')?.matches === true;
+        if (iosStandalone || displayMode) {
+            document.body.classList.add('is-pwa');
+        }
+    }, []);
+
     return (
         <>
             <Backgrounds />
