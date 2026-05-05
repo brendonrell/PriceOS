@@ -30,6 +30,28 @@
  * plus info-line / follow-badge / follower-count / network pill /
  * artists rel pill hides (sim 3872-3879).
  *
+ * Build 28 — degen-mode + zero-context-mode body classes.
+ *   Sim 9330-9331 (`window._applyDegenMode` toggles `body.degen-mode`)
+ *   and sim 9363-9364 (`window._applyZeroContextMode` toggles
+ *   `body.zero-context-mode`) drive a stack of CSS rules that were
+ *   already ported (sim 1009-1010 for degen; sim 1483, 1525-1537,
+ *   3307, 3403 for zero-context) but had no React-side toggle. Both
+ *   are flipped from settings rows that write `notifs.degen` /
+ *   `notifs.zerocontext` (already on the PdNotifs interface since
+ *   Build 26 for Setup Code roundtrip), so this hook just wires the
+ *   class follow-through. Sim 9535 + 9536 + 13095 + 13036 confirm
+ *   the boolean→class mapping is the entire surface.
+ *
+ *   Build 28 also adds the zen-mode Escape handler missing since
+ *   the initial port. Sim 9519-9532: when `body.zen-mode` is active
+ *   the sim attaches a window-level keydown listener that flips zen
+ *   off on Escape, removes itself, and shows the "Zen Mode OFF"
+ *   toast. We mirror the listener + cleanup; the body class removal
+ *   and localStorage sync ride along automatically (this hook clears
+ *   the class on the next render; PdNotifsContext persists zenMode
+ *   on every change). The toast is owned by D28 (audit pass) and is
+ *   intentionally not added here.
+ *
  * Mounted once in PriceOSShell.
  */
 
@@ -60,10 +82,13 @@ const ALL_FLAG_CLASSES = [
     'zen-mode',
     'sentiment-on',
     'redacted-mode',
+    // Build 28 — degen + zero-context flags (sim 9330 / 9363).
+    'degen-mode',
+    'zero-context-mode',
 ];
 
 export function useBodyClass() {
-    const { notifs } = usePdNotifs();
+    const { notifs, update } = usePdNotifs();
     const { sort } = useSort();
 
     useEffect(() => {
@@ -91,5 +116,28 @@ export function useBodyClass() {
         if (notifs.zenMode)          cl.add('zen-mode');
         if (notifs.sentimentOn)      cl.add('sentiment-on');
         if (notifs.redactedMode)     cl.add('redacted-mode');
+        // Build 28 — degen + zero-context (sim 9330 / 9363).
+        if (notifs.degen)            cl.add('degen-mode');
+        if (notifs.zerocontext)      cl.add('zero-context-mode');
     }, [notifs, sort]);
+
+    /* Build 28 — zen-mode Escape handler. Sim 9519-9532 attaches a
+       window keydown listener whenever zen flips on; Escape flips zen
+       off, removes the listener, removes the body class, and toasts.
+       In React the listener is a useEffect keyed on zenMode: mount
+       while active, cleanup when it flips off (or the shell unmounts).
+       Setting `zenMode: false` via update() triggers the main effect
+       above to drop the body class and PdNotifsContext to persist
+       to localStorage — same end state as the sim. The toast is
+       intentionally deferred to D28 (spell-toggle audit). */
+    useEffect(() => {
+        if (!notifs.zenMode) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') update({ zenMode: false });
+        };
+        window.addEventListener('keydown', onKey);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [notifs.zenMode, update]);
 }
