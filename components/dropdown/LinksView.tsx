@@ -31,7 +31,7 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 
@@ -39,6 +39,31 @@ export function LinksView() {
     const { setView } = useDropdown();
     const { open } = useModal();
     const [profileHover, setProfileHover] = useState(false);
+
+    /* F63 / BUG-33 — mock gas widget cycling (sim 5703-5712).
+       Sim cycles through ten plausible gwei values every 15 seconds and
+       skips the update when the tab is hidden. The repo previously hard-
+       coded "0.057 gwei", which made every refresh feel identical. Initial
+       index is randomized so dropdown reopens don't always start at the
+       same value. visibilitychange forces an immediate refresh when the
+       tab returns so a long-hidden value isn't stuck on screen. */
+    const FAKE_GWEI = [0.031, 0.042, 0.057, 0.063, 0.079, 0.044, 0.038, 0.052, 0.071, 0.059];
+    const [gasIdx, setGasIdx] = useState(() => Math.floor(Math.random() * FAKE_GWEI.length));
+    useEffect(() => {
+        const tick = () => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            setGasIdx(i => (i + 1) % FAKE_GWEI.length);
+        };
+        const id = setInterval(tick, 15000);
+        const onVis = () => { if (!document.hidden) tick(); };
+        document.addEventListener('visibilitychange', onVis);
+        return () => {
+            clearInterval(id);
+            document.removeEventListener('visibilitychange', onVis);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    const gasValue = FAKE_GWEI[gasIdx].toFixed(3);
 
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">
@@ -234,7 +259,7 @@ export function LinksView() {
                     id="gasWidget"
                     title="Estimated gas price"
                 >
-                    <span style={{ position: 'relative', top: 2 }}>0.057 gwei</span>{' '}
+                    <span style={{ position: 'relative', top: 2 }}>{gasValue} gwei</span>{' '}
                     <span className="gas-glyph">⍞</span>
                 </span>
             </a>
