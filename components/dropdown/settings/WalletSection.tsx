@@ -35,12 +35,37 @@
  * F1b lights up the inert CSS shipped in F1a (.ens-scroll-viewport /
  * .ens-scroll-stack / .ens-scroll-row in styles/settings.css).
  *
- * Step 4 still defers:
- *   - RPC ping interaction (would show latency popover)
- *   - Incognito proxy interaction
+ * Build 33 D22 + D23 — wired the inline ⚇ + ⌁ buttons.
+ *
+ * D23 — ⌁ RPC Latency Ping (sim 4560 + 12453-12504):
+ *   onClick → toggleRpcPing() → engine flips active, kicks off the
+ *   simulated-latency timer, dispatches updates that TopBarRow's
+ *   .rpc-ping-display reads. Button gets .rpc-active when the engine
+ *   is active (sim 12489 — sets underline + opacity:1). Toast fires
+ *   from here, not the engine — sim does it inline in
+ *   triggerRpcPing (sim 12495/12501).
+ *
+ * D22 — ⚇ Incognito Proxy (sim 4559 + 12506-12524):
+ *   onClick → toggleIncognito() (engine) + maybe toggle('spell_hammer')
+ *   (mutual exclusion side effect, sim 12513-12515). Button gets
+ *   .rpc-active when the engine is active (sim 12511). The
+ *   incognito-proxy bar (bar-pill-input) lives in TopBarRow and
+ *   surfaces from the engine's pub/sub channel.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+    isIncognitoActive,
+    subscribeIncognito,
+    toggleIncognito as engineToggleIncognito,
+} from '../../../lib/incognito/incognitoEngine';
+import {
+    isRpcActive,
+    subscribeRpc,
+    toggleRpcPing as engineToggleRpcPing,
+} from '../../../lib/rpc/rpcEngine';
+import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
+import { useToast } from '../../../lib/state/ToastContext';
 
 const HANDLE = '0x1234...abcd';
 
@@ -65,6 +90,42 @@ export function WalletSection() {
     const [activeEns, setActiveEns] = useState<string | null>(ENS_PILLS[0]);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
+
+    // Build 33 — engine state mirrors. Both engines are session-only
+    // singletons; on first hydrate they read `false`, then stay
+    // subscribed for any toggle from this or another mount point.
+    const [rpcActive, setRpcActive] = useState(false);
+    const [incognitoActive, setIncognitoActive] = useState(false);
+    useEffect(() => {
+        setRpcActive(isRpcActive());
+        const offRpc = subscribeRpc((s) => setRpcActive(s.active));
+        setIncognitoActive(isIncognitoActive());
+        const offInc = subscribeIncognito((s) => setIncognitoActive(s.active));
+        return () => {
+            offRpc();
+            offInc();
+        };
+    }, []);
+
+    const { showToast } = useToast();
+    const { notifs, toggle: toggleNotif } = usePdNotifs();
+
+    const handleRpcPing = () => {
+        const nowActive = engineToggleRpcPing();
+        // Sim 12495/12501 — toast fires inline from triggerRpcPing.
+        showToast(nowActive ? 'RPC Ping ON' : 'RPC Ping OFF');
+    };
+
+    const handleIncognito = () => {
+        const nowActive = engineToggleIncognito();
+        // Sim 12513-12515 — turning Incognito ON deactivates Hammer
+        // (mutually exclusive top-bar modes). Reverse direction is
+        // handled inside spell logic; not our concern here.
+        if (nowActive && notifs.spell_hammer) {
+            toggleNotif('spell_hammer');
+        }
+        showToast(`Incognito Proxy ${nowActive ? 'ON' : 'OFF'}`);
+    };
 
     const handleCopyWallet = async () => {
         try {
@@ -146,10 +207,11 @@ export function WalletSection() {
             >
                 {HANDLE} <span className="icon-copy">⧉{'\uFE0E'}</span>
                 <span
-                    className="rpc-ping-btn incognito-btn"
+                    className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
+                    id="incognitoProxyBtn"
                     onClick={(e) => {
                         e.stopPropagation();
-                        // step 5+: open incognito proxy panel
+                        handleIncognito();
                     }}
                     title="Incognito Proxy"
                     role="button"
@@ -158,10 +220,11 @@ export function WalletSection() {
                     ⚇{'\uFE0E'}
                 </span>
                 <span
-                    className="rpc-ping-btn"
+                    className={`rpc-ping-btn${rpcActive ? ' rpc-active' : ''}`}
+                    id="rpcPingBtn"
                     onClick={(e) => {
                         e.stopPropagation();
-                        // step 5+: trigger RPC latency ping
+                        handleRpcPing();
                     }}
                     title="RPC Latency Ping"
                     role="button"
