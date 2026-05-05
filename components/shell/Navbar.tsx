@@ -24,11 +24,13 @@
  */
 
 import { PeteyLogo } from './PeteyLogo';
+import { TopBarCalendar } from './TopBarCalendar';
 import { UserMenuButtons } from './UserMenuButtons';
 
 export function Navbar() {
     return (
         <nav className="navbar">
+            <TopBarCalendar />
             <PeteyLogo />
             <UserMenuButtons />
         </nav>
