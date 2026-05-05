@@ -52,7 +52,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
-import { useSort, type SortKey } from '../../lib/state/SortContext';
+import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 
 /* PD-persona dynamic trait categories (sim ~8517 — Network/Fate/Breadcrumb
@@ -123,7 +123,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
         setPriceMax,
         hasActiveFilter,
     } = useTraits();
-    const { sort, setSort } = useSort();
+    const { sort, dir, feedKind, cycleSort } = useSort();
     const { theme, setTheme } = useTheme();
 
     const hiddenStyle: CSSProperties | undefined = visible
@@ -431,19 +431,25 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         label={'#\u202FID'}
                         family="id"
                         active={sort === 'id'}
-                        onClick={() => setSort('id')}
+                        dir={dir}
+                        feedKind={feedKind}
+                        onClick={() => cycleSort('id')}
                     />
                     <SortBtn
                         label={'$\u202FPRICE'}
                         family="price"
                         active={sort === 'price'}
-                        onClick={() => setSort('price')}
+                        dir={dir}
+                        feedKind={feedKind}
+                        onClick={() => cycleSort('price')}
                     />
                     <SortBtn
                         label="FEED"
                         family="feed"
                         active={sort === 'feed'}
-                        onClick={() => setSort('feed')}
+                        dir={dir}
+                        feedKind={feedKind}
+                        onClick={() => cycleSort('feed')}
                     />
                 </div>
             </div>
@@ -745,14 +751,56 @@ interface SortBtnProps {
     label: string;
     family: SortKey;
     active: boolean;
+    dir: SortDir;
+    feedKind: FeedKind;
     onClick: () => void;
 }
 
-function SortBtn({ label, active, onClick }: SortBtnProps) {
-    /* Sim renders the arrow off the precise sort variant (id-asc,
-       id-desc, etc — sim 8420). v0 only has the family in SortContext,
-       so we show ↓ on whichever family is active and leave direction
-       cycling for the gallery wiring build. */
+/* Sim 8420-8428 — arrow only renders when this family is the active
+   sort. ID/PRICE just show ↑/↓ per dir. FEED shows ↓/↑ per dir AND
+   prepends a `feed-sort-dollar` $ span when feedKind is 'price'
+   (i.e. currentSort is feed-price-desc / feed-price-asc).
+
+   Direction cycling is owned by SortContext.cycleSort (sim 8312-8331).
+   For 'id'/'price': click toggles asc↔desc when this family is already
+   active; for 'feed': click advances through the 4-step FEED_SORTS
+   sequence (sim 8313). */
+function SortBtn({
+    label,
+    family,
+    active,
+    dir,
+    feedKind,
+    onClick,
+}: SortBtnProps) {
+    let arrowGlyph = '';
+    let dollarSpan: ReactNode = null;
+    if (active) {
+        if (family === 'id' || family === 'price') {
+            arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
+        } else if (family === 'feed') {
+            arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
+            if (feedKind === 'price') {
+                // Sim 8427-8428 — inline-styled $ span. Class hook
+                // (.feed-sort-dollar) preserved for any CSS attached
+                // to it; sim's own CSS rule for this class (sim 2209)
+                // is overridden by these inline styles anyway.
+                dollarSpan = (
+                    <span
+                        className="feed-sort-dollar"
+                        style={{
+                            fontFamily:
+                                "'Courier New', Courier, monospace",
+                            fontSize: '13px',
+                            marginRight: '2px',
+                        }}
+                    >
+                        $
+                    </span>
+                );
+            }
+        }
+    }
     return (
         <div
             className={`sort-btn${active ? ' active' : ''}`}
@@ -767,7 +815,10 @@ function SortBtn({ label, active, onClick }: SortBtnProps) {
             }}
         >
             <span className="sort-lbl">{label}</span>
-            <span className="sort-arrow">{active ? '↓\uFE0E' : ''}</span>
+            <span className="sort-arrow">
+                {dollarSpan}
+                {arrowGlyph}
+            </span>
         </div>
     );
 }
