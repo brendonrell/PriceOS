@@ -65,6 +65,17 @@ export function TopBarCalendar() {
         wasOpenRef.current = notifs.topBarCalendar;
     }, [notifs.topBarCalendar]);
 
+    // Build 27 fix-ship F1 — sim 6475: reset the events strip's scroll
+    // position when a different day is selected. Browsers preserve
+    // scrollLeft across re-renders, so without this the strip stays
+    // scrolled to wherever the user left it on the previous day. The
+    // ref is on the .topbarcal-events container itself.
+    const eventsRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        const el = eventsRef.current;
+        if (el) el.scrollLeft = 0;
+    }, [selDay.y, selDay.m, selDay.d]);
+
     // Don't render the row at all when off — saves layout cost and keeps
     // the navbar's flex-wrap behaviour identical to the pre-D9 state.
     if (!notifs.topBarCalendar) return null;
@@ -138,7 +149,7 @@ export function TopBarCalendar() {
                         })}
                     </div>
 
-                    <div className="topbarcal-events" id="topbarcalEvents">
+                    <div className="topbarcal-events" id="topbarcalEvents" ref={eventsRef}>
                         {isEmpty ? (
                             <span className="tbc-ev-empty">No events</span>
                         ) : (
