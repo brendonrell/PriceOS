@@ -60,6 +60,14 @@ interface Props {
     /** Optional className additions on the outer box. */
     className?: string;
     /**
+     * Optional className additions on the .notif-header element. Sim
+     * 4871 stamps the TapeBox header with both `notif-header` and
+     * `menu-tape-header` so the tape-specific CSS (sim 1391-1402,
+     * 1422-1425) can attach. TapeBox is the only current consumer
+     * (Build 29 D27); other accordions leave this undefined.
+     */
+    headerClassName?: string;
+    /**
      * Pixels per scroll-arrow click. Defaults to 80 (Tape / Todos /
      * Notes per sim). Pings passes 60 (sim's scrollNotifs uses
      * `dir * 60`, line 6760).
@@ -76,6 +84,7 @@ export function AccordionBox({
     boxId,
     alwaysOpen = false,
     className,
+    headerClassName,
     scrollStep = 80,
 }: Props) {
     const listRef = useRef<HTMLDivElement>(null);
@@ -103,7 +112,7 @@ export function AccordionBox({
             id={boxId}
         >
             <div
-                className="notif-header"
+                className={`notif-header${headerClassName ? ' ' + headerClassName : ''}`}
                 onClick={onHeaderClick}
                 role="button"
                 tabIndex={0}

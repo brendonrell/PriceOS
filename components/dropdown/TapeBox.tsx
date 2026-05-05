@@ -104,6 +104,7 @@ export function TapeBox() {
             open={notifs.tapeOpen}
             onHeaderClick={() => setAccordion('tape', !notifs.tapeOpen)}
             className={framed ? 'menu-tape-framed' : 'menu-tape-bold'}
+            headerClassName="menu-tape-header"
             header={
                 <div
                     className="menu-tape-rail-h"
