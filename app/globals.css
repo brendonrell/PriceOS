@@ -2942,6 +2942,32 @@ body.pricelens-mode .meta-owner.price-trigger::before {
     body.pricelens-mode .meta-owner.price-trigger::before { font-size: 13px; }
 }
 
+/* ── ANCHOR DELTA — sim 4045-4072 ──
+   When the user has set a personal reference price for any collection,
+   every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
+   attribute (signed plain decimal pct, 1 dp; e.g. "+12.4", "-3.1", "0").
+   CSS appends "⚓(<delta>%)" via ::before so anchor changes never churn the
+   DOM — the page-level useEffect just stamps the attr.
+
+   Format note: sim's data-anchor-delta value INCLUDES the parens + percent
+   sign (e.g. "(+18%)"); the React port strips both into the attribute
+   format and CSS adds them back here. \2693\FE0E = ⚓ with VS15 text-
+   presentation selector. Courier so the secondary delta is visually
+   distinguishable from the Rubik Mono One primary price. */
+body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
+    content: '\2693\FE0E(' attr(data-anchor-delta) '%)  ';
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0;
+    opacity: 0.7;
+}
+@media (max-width: 600px) {
+    body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
+        font-size: 11px;
+    }
+}
+
 /* ── AURA — sim 3693-3731 ──
    Ambient multi-color glow AROUND each artwork. Sits behind the card via
    a ::before pseudo on .edition-card with negative inset (extends ~16px
