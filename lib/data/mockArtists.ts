@@ -104,8 +104,8 @@ export const MOCK_ARTISTS: MockArtist[] = MOCK_ARTIST_NAMES
 
 /** Map of rel → glyph (with VS15 selector). Matches sim line 10520. */
 export const REL_ICONS: Record<ArtistRel, string> = {
-    mutual:    '\u26ED\uFE0E',  // ⚭
-    following: '\u26EF\uFE0E',  // ⚯
+    mutual:    '\u26AD\uFE0E',  // ⚭
+    following: '\u26AF\uFE0E',  // ⚯
     followers: '\u26AC\uFE0E',  // ⚬
     none:      '',
 };
