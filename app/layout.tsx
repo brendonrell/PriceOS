@@ -72,6 +72,9 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs.redactedMode)     classList.add('redacted-mode');
                 // Build 24 — anon-mode (sim 13033).
                 if (notifs.anon)             classList.add('anon-mode');
+                // Build 32 D20 — sticker-mode (sim 887 + 891). Drives
+                // `.sticker-strike` opacity fade via globals.css.
+                if (notifs.sticker)          classList.add('sticker-mode');
             }
         }
 

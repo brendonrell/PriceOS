@@ -2491,6 +2491,44 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* Echo Chamber star sits a touch larger desktop-side. */
 #sn-echo .st-icon { font-size: 16px !important; }
 
+/* Build 32 D20 — Sticker Mode pill (sim 887, 891).
+   - `.sticker-strike` lives on a span inside the sn-sticker pill icon;
+     the body-class follow-through (driven by useBodyClass when
+     `notifs.sticker` flips on) fades it to 0.5 opacity. Replaces sim's
+     imperative `.strikethrough` toggle (sim 9491 / 10471) with the
+     React-port's standard body-class pattern.
+   - `#sn-sticker.active::after` is the strike-line drawn across the
+     full pill; the `.active` class is added by SettingsToggle whenever
+     `active={true}`, so this rule activates automatically on toggle. */
+#sn-sticker { position: relative; overflow: visible; }
+#sn-sticker.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: currentColor;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+body.sticker-mode .sticker-strike { opacity: 0.5; }
+
+/* Build 32 D21 — Hammer pill badge (sim 4759 inline → CSS class).
+   Inline pill rendered after the "The Hammer" label when the muted-id
+   count is > 0. The Mute UI hasn't landed yet, so the badge shows only
+   when a future build writes `pd_hammer_count` and dispatches the
+   `pd:hammer-count-changed` event listened to in SpellBookSection. */
+.hammer-badge {
+    margin-left: 5px;
+    font-size: 10px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 3px;
+    padding: 1px 5px;
+    line-height: 1.2;
+}
+
 /* Redacted @ — Arial-rendered, sharp; sim 1000-1001, 1006, 1541. */
 #sn-redacted .st-icon {
     font-family: Arial, 'Helvetica Neue', sans-serif !important;
