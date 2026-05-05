@@ -58,6 +58,7 @@
 import { useEffect } from 'react';
 import { usePdNotifs } from '../state/PdNotifsContext';
 import { useSort } from '../state/SortContext';
+import { useToast } from '../state/ToastContext';
 
 const TAPE_CLASS_MAP: Record<number, string | null> = {
     0: 'tape-off',
@@ -90,6 +91,7 @@ const ALL_FLAG_CLASSES = [
 export function useBodyClass() {
     const { notifs, update } = usePdNotifs();
     const { sort } = useSort();
+    const { showToast } = useToast();
 
     useEffect(() => {
         const cl = document.body.classList;
@@ -128,16 +130,24 @@ export function useBodyClass() {
        while active, cleanup when it flips off (or the shell unmounts).
        Setting `zenMode: false` via update() triggers the main effect
        above to drop the body class and PdNotifsContext to persist
-       to localStorage — same end state as the sim. The toast is
-       intentionally deferred to D28 (spell-toggle audit). */
+       to localStorage — same end state as the sim.
+
+       Build 29 D28 — emit `showToast('Zen Mode OFF')` (sim 9526) so
+       the Escape path produces the same toast feedback as toggling
+       zen off via the MyPdSection pill. The pill route generates the
+       same string via `toggleWithToast('zenMode', 'Zen Mode')`, so
+       both paths surface identical text. */
     useEffect(() => {
         if (!notifs.zenMode) return;
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') update({ zenMode: false });
+            if (e.key === 'Escape') {
+                update({ zenMode: false });
+                showToast('Zen Mode OFF');
+            }
         };
         window.addEventListener('keydown', onKey);
         return () => {
             window.removeEventListener('keydown', onKey);
         };
-    }, [notifs.zenMode, update]);
+    }, [notifs.zenMode, update, showToast]);
 }
