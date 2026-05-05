@@ -2900,6 +2900,26 @@ body.theme-dark .canvas-wrapper {
     box-shadow: 0 2px 20px rgba(255, 255, 255, 0.14);
 }
 
+/* Build 35 — BET-06 virtualization port. Opacity transition mirrors
+   sim 2366-2367. The IntersectionObserver-driven canvasVirtualizer flips
+   .visible on the canvas after a successful idle-time paint; the 0 → 1
+   fade hides the single-frame gap between buffer allocation and first
+   draw. The wrapper's inline background also flips to transparent at
+   the same moment, so the placeholder #ccc shows through as a clean
+   tile until the art lands. On LRU eviction the .visible class is
+   removed and the wrapper bg falls back to the default rule above
+   (#ccc) — same placeholder, same fade.
+   Note: width/height/display from sim 2366 aren't repeated here because
+   the inline style on <canvas> in ArtworkCard already pins them, and
+   inline styles always beat CSS. Adding them again would be dead code. */
+.edition-canvas {
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+}
+.edition-canvas.visible {
+    opacity: 1;
+}
+
 .meta {
     font-size: 12px;
     display: flex;
