@@ -13,6 +13,7 @@ import { CollectionProvider } from '../lib/state/CollectionContext';
 import { CartProvider } from '../lib/state/CartContext';
 import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
+import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 
 export const metadata: Metadata = {
@@ -177,7 +178,9 @@ export default function RootLayout({
                                                         <CalcSheetProvider>
                                                             <CollectionProvider>
                                                                 <CartProvider>
-                                                                    <PriceOSShell>{children}</PriceOSShell>
+                                                                    <WorkspacesProvider>
+                                                                        <PriceOSShell>{children}</PriceOSShell>
+                                                                    </WorkspacesProvider>
                                                                 </CartProvider>
                                                             </CollectionProvider>
                                                         </CalcSheetProvider>
