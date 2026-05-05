@@ -62,6 +62,16 @@
  *     cards vanish from the grid — that rule lands in globals.css this
  *     build too.
  *
+ * Build 35 layer added (BET-06 virtualization port):
+ *   - Canvas no longer paints on mount. The render closure is registered
+ *     with lib/virtualization/canvasVirtualizer, which uses a single
+ *     module-scoped IntersectionObserver to lazy-paint canvases as their
+ *     wrappers cross the viewport (rootMargin '400px 0px' — sim 8265).
+ *     LRU cap of 60 keeps GPU pressure bounded on Strata's 333 editions.
+ *     The canvas now carries className="edition-canvas" so the .visible
+ *     class swap drives the opacity 0 → 1 fade-in (sim 2366-2367).
+ *     Cleanup unregisters on unmount.
+ *
  * Out of v0 scope: fog-mode reveal handler lives in the collection page
  * (gallery-wide event delegation per sim 8364-8389), not here.
  */
@@ -70,6 +80,10 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
+import {
+    registerCanvas,
+    unregisterCanvas,
+} from '../lib/virtualization/canvasVirtualizer';
 
 interface ArtworkCardProps {
     id: number;
@@ -109,51 +123,72 @@ export default function ArtworkCard({
     const { showToast } = useToast();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    /* Build 35 — wrapper ref so the virtualizer can observe this card's
+       canvas-wrapper directly (data-id is set on the wrapper to match
+       sim 8267 + the existing fog-mode delegation handler at page.tsx:288). */
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
-    /* Canvas placeholder — same HSL formula ArtworkModal uses (sim seed
-       math, three derived hues, linear + radial gradients, #id stamp).
-       400px internal resolution matches sim's THUMB_WIDTH (sim ~8030). */
+    /* Build 35 — virtualization port (BET-06).
+       Pre-Build-35: this useEffect drew immediately on mount, so 222+
+       canvases all painted on first render → mobile Safari OOM at
+       higher edition counts. Now: the closure that draws the placeholder
+       art gets registered with the module-scoped virtualizer, which
+       lazy-invokes it via IntersectionObserver + requestIdleCallback
+       only when the card's wrapper crosses the viewport (rootMargin
+       400px so the paint completes before the user sees the card).
+       LRU cap 60 ensures even a long Strata scroll never exceeds the
+       GPU texture budget. The draw logic itself is unchanged from the
+       prior immediate-paint path — same seed math, same gradients,
+       same #id stamp at 400px internal resolution (sim THUMB_WIDTH). */
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        const wrapper = wrapperRef.current;
+        if (!canvas || !wrapper) return;
 
-        const w = 400;
-        canvas.width = w;
-        canvas.height = w;
+        const render = () => {
+            const w = 400;
+            canvas.width = w;
+            canvas.height = w;
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
 
-        const seed = (id * 2654435761) >>> 0;
-        const h1 = seed % 360;
-        const h2 = ((seed * 13) >>> 0) % 360;
-        const h3 = ((seed * 31) >>> 0) % 360;
+            const seed = (id * 2654435761) >>> 0;
+            const h1 = seed % 360;
+            const h2 = ((seed * 13) >>> 0) % 360;
+            const h3 = ((seed * 31) >>> 0) % 360;
 
-        const linear = ctx.createLinearGradient(0, 0, 0, w);
-        linear.addColorStop(0, `hsl(${h1}, 65%, 58%)`);
-        linear.addColorStop(0.5, `hsl(${h2}, 65%, 48%)`);
-        linear.addColorStop(1, `hsl(${h3}, 65%, 38%)`);
-        ctx.fillStyle = linear;
-        ctx.fillRect(0, 0, w, w);
+            const linear = ctx.createLinearGradient(0, 0, 0, w);
+            linear.addColorStop(0, `hsl(${h1}, 65%, 58%)`);
+            linear.addColorStop(0.5, `hsl(${h2}, 65%, 48%)`);
+            linear.addColorStop(1, `hsl(${h3}, 65%, 38%)`);
+            ctx.fillStyle = linear;
+            ctx.fillRect(0, 0, w, w);
 
-        const radial = ctx.createRadialGradient(
-            w * 0.5,
-            w * 0.5,
-            0,
-            w * 0.5,
-            w * 0.5,
-            w * 0.75
-        );
-        radial.addColorStop(0, `hsla(${h1}, 85%, 72%, 0.55)`);
-        radial.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = radial;
-        ctx.fillRect(0, 0, w, w);
+            const radial = ctx.createRadialGradient(
+                w * 0.5,
+                w * 0.5,
+                0,
+                w * 0.5,
+                w * 0.5,
+                w * 0.75
+            );
+            radial.addColorStop(0, `hsla(${h1}, 85%, 72%, 0.55)`);
+            radial.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = radial;
+            ctx.fillRect(0, 0, w, w);
 
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.font = `bold ${Math.floor(w / 8)}px "Rubik Mono One", sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`#${id}`, w / 2, w / 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = `bold ${Math.floor(w / 8)}px "Rubik Mono One", sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`#${id}`, w / 2, w / 2);
+        };
+
+        registerCanvas({ id, wrapper, canvas, render });
+        return () => {
+            unregisterCanvas(id);
+        };
     }, [id]);
 
     const handleOpen = () => open('artwork', id);
@@ -241,12 +276,14 @@ export default function ArtworkCard({
                 }}
             >
                 <div
+                    ref={wrapperRef}
                     className="canvas-wrapper art-placeholder"
                     data-id={id}
                     style={{ aspectRatio: '1 / 1' }}
                 >
                     <canvas
                         ref={canvasRef}
+                        className="edition-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
                     {/* Build 23 — sim 8038-8040 mute overlay. Always
