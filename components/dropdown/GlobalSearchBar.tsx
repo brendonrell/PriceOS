@@ -41,9 +41,37 @@
  *      calendar from settings/artists/portfolio (where #dropdownMenuLinks
  *      isn't in the DOM and the new measurement is skipped) still keeps
  *      the dropdown at full size after the first links→calendar open.
+ *
+ * D25: dummy result rows. While the search input is non-empty
+ *      (isGlobalSearching), three preview rows render inside
+ *      .global-search-results using sim's exact shape (sim.html 8979–8985):
+ *        ⌕ @<val> — collector
+ *        ⌕ "<val>" — palette match
+ *        ⌕ #<rand 1..1000> — token
+ *      The container also receives .has-results so the sim CSS rule at
+ *      sim line 613 ({ max-height: 120px; overflow-y: auto }) applies.
+ * D26: panel hide on type. While isGlobalSearching, the rest of the
+ *      dropdown surface is hidden so the search results dominate the
+ *      panel (sim.html 8971–8977). The effect imperatively sets:
+ *        - #dropdownMenuLinks       → classList.add('hidden')
+ *        - .notifications-box (all) → style.display = 'none'
+ *        - #settingsPanel           → style.display = 'none'
+ *        - #artistsPanel            → style.display = 'none'
+ *      Sim's 8973 only hits the first .notifications-box (a documented
+ *      bug — sim 8941–8942 calls it out: "ALL .notifications-box hidden
+ *      … previously only first was hidden, leaving tapeBox/pingsBox
+ *      leaking"). We hit all of them up-front so notes/todos/tape/pings
+ *      can't leak through. Cleanup restores classList / display:'' on
+ *      the same captured refs whenever isGlobalSearching flips false or
+ *      the bar unmounts; React's view state (links/calendar/settings/
+ *      artists/portfolio) is untouched, so clearing the input or closing
+ *      the dropdown returns the user to whatever surface they were on.
+ *      DropdownStack only mounts the accordion boxes on links / calendar
+ *      views, so on settings / artists / portfolio the queryAll captures
+ *      zero .notifications-box and the effect just hides the panel.
  */
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
@@ -79,6 +107,55 @@ export function GlobalSearchBar() {
     const wrapRef = useRef<HTMLDivElement | null>(null);
 
     const calendarOpen = view === 'calendar';
+
+    // D25 + D26: any non-empty trimmed input flips the bar into search
+    // mode. D25 reads this to render dummy rows; D26 reads it to hide
+    // the rest of the dropdown surface. Mirrors sim's `isGlobalSearching`
+    // flag (sim.html 8914 + 8968).
+    const isGlobalSearching = value.trim().length > 0;
+
+    // D26: panel hide on type. Imperatively reach into the live DOM and
+    // toggle visibility on menu-links / accordion boxes / settings panel /
+    // artists panel while typing. Refs are captured at the moment the
+    // effect runs so cleanup restores the same nodes — even if React
+    // re-renders or unmounts the bar mid-search.
+    useEffect(() => {
+        if (!isGlobalSearching) return;
+
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const notifsBoxes = Array.from(
+            document.querySelectorAll<HTMLElement>('.notifications-box')
+        );
+        const settingsPanel = document.getElementById('settingsPanel');
+        const artistsPanel = document.getElementById('artistsPanel');
+
+        if (menuLinks) menuLinks.classList.add('hidden');
+        notifsBoxes.forEach((b) => {
+            b.style.display = 'none';
+        });
+        if (settingsPanel) settingsPanel.style.display = 'none';
+        if (artistsPanel) artistsPanel.style.display = 'none';
+
+        return () => {
+            if (menuLinks) menuLinks.classList.remove('hidden');
+            notifsBoxes.forEach((b) => {
+                b.style.display = '';
+            });
+            if (settingsPanel) settingsPanel.style.display = '';
+            if (artistsPanel) artistsPanel.style.display = '';
+        };
+    }, [isGlobalSearching]);
+
+    // D25: three dummy result rows mirroring sim 8979–8985. Math.random
+    // is intentionally re-rolled on every keystroke (each render) — sim
+    // does the same inside its handler.
+    const dummies = isGlobalSearching
+        ? [
+              `⌕ @${value} — collector`,
+              `⌕ "${value}" — palette match`,
+              `⌕ #${Math.floor(Math.random() * 1000) + 1} — token`,
+          ]
+        : [];
 
     // Cycle menu tape mode 0 → 3 → 4 → 0 (skips desktop-only 1, 2)
     const cycleMenuTape = () => {
@@ -274,7 +351,16 @@ export function GlobalSearchBar() {
                 )}
             </div>
 
-            <div className="global-search-results" id="globalSearchResults" />
+            <div
+                className={`global-search-results${isGlobalSearching ? ' has-results' : ''}`}
+                id="globalSearchResults"
+            >
+                {dummies.map((d, i) => (
+                    <div key={i} className="global-result-item">
+                        {d}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
