@@ -114,8 +114,15 @@ export function TopBarCalendar() {
         openDayNoteEditor(selKey);
     };
 
+    /* Build 33 D22 — wrapper moved to TopBarRow.
+       Sim has a single .top-bar #topBar element hosting both rows
+       (topbar-calendar-row + top-bar-row). Pre-Build-33 only this
+       calendar row existed, so it owned the wrapper; now the second
+       row needs the same parent. TopBarRow renders the wrapper and
+       includes <TopBarCalendar /> as its first child, so this
+       component returns just the calendar row itself. */
     return (
-        <div className="top-bar" id="topBar">
+        <>
             <div className="top-bar-calendar-row active" id="topBarCalendarRow">
                 <div className="topbarcal-pill" id="topbarcalPill">
                     <span className="topbarcal-icon">⭢{'\uFE0E'}</span>
@@ -178,7 +185,7 @@ export function TopBarCalendar() {
                     </span>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
 

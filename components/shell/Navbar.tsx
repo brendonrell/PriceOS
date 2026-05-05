@@ -19,18 +19,27 @@
  * (UserDropdown + LinksView + WalletView + accordions) is the real
  * surface and reconnects through this mount.
  *
+ * Build 33 D22 — TopBarRow replaces the TopBarCalendar mount. Sim's
+ * .top-bar element hosts BOTH the calendar row and the
+ * grail/incognito/hammer/RPC row inside one wrapper; TopBarRow
+ * renders that wrapper and the second row, with TopBarCalendar
+ * embedded for the calendar row. Mounting the wrapper here keeps the
+ * navbar flex-wrap behaviour identical and avoids duplicate id="topBar"
+ * elements that would result from each component owning its own
+ * .top-bar div.
+ *
  * Ticker remains deferred — lands back in once the launch is open and
  * the surfaces below the fold ship.
  */
 
 import { PeteyLogo } from './PeteyLogo';
-import { TopBarCalendar } from './TopBarCalendar';
+import { TopBarRow } from './TopBarRow';
 import { UserMenuButtons } from './UserMenuButtons';
 
 export function Navbar() {
     return (
         <nav className="navbar">
-            <TopBarCalendar />
+            <TopBarRow />
             <PeteyLogo />
             <UserMenuButtons />
         </nav>
