@@ -61,7 +61,15 @@ export function MyPdSection({ onTripleTap }: Props) {
 
     const handleApply = () => {
         const trimmed = inputValue.trim();
-        if (!trimmed) return;
+        // Build 27 fix-ship F3 — empty/whitespace-only input on blur was
+        // early-returning without resetting `editing`, leaving the field
+        // stuck on its empty state and the live-sync useEffect
+        // permanently gated. Restore live + drop editing flag instead.
+        if (!trimmed) {
+            setInputValue(currentCode);
+            setEditing(false);
+            return;
+        }
         // No-op if the field still matches live state (no real edit).
         if (trimmed === currentCode) {
             setEditing(false);
@@ -150,7 +158,21 @@ export function MyPdSection({ onTripleTap }: Props) {
                             setEditing(true);
                             setInputValue(e.target.value);
                         }}
-                        onFocus={() => setEditing(true)}
+                        onFocus={() => {
+                            setEditing(true);
+                            // Build 27 fix-ship F2 — sim 10051-10057: select
+                            // the whole field on focus so paste-replace is
+                            // the expected default. setTimeout(0) wins the
+                            // race against the iOS soft keyboard, which
+                            // otherwise collapses the selection on its
+                            // own focus pass.
+                            const el = inputRef.current;
+                            if (el) {
+                                window.setTimeout(() => {
+                                    try { el.select(); } catch { /* ignore */ }
+                                }, 0);
+                            }
+                        }}
                         onBlur={() => {
                             handleApply();
                         }}
