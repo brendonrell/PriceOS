@@ -25,6 +25,7 @@ import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useTheme } from '../../../lib/state/ThemeContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
+import { useArtistColor } from '../../../lib/hooks/useArtistColor';
 import { SettingsToggle } from './SettingsToggle';
 
 interface Props {
@@ -40,6 +41,26 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { theme } = useTheme();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
+
+    /* F64 (BUG-28) — artist-color picker is now live + persistent.
+       useArtistColor owns the storage + migration; this section owns the
+       UI surface (hidden <input type="color"> wired to the pill, visible
+       hex text input with validate-on-blur, copy button). When the active
+       theme is 'artist', ThemeContext re-applies on each color change so
+       the page actually responds. */
+    const { color: artistColor, setColor: setArtistColor } = useArtistColor();
+    const [hexField, setHexField] = useState<string>(artistColor);
+    const copyingHexRef = useRef(false);
+    const editingHexRef = useRef(false);
+    const colorPickerRef = useRef<HTMLInputElement | null>(null);
+
+    // Keep the hex field synced to the live color whenever the user
+    // isn't mid-edit and the copy-blink isn't holding the slot.
+    useEffect(() => {
+        if (editingHexRef.current) return;
+        if (copyingHexRef.current) return;
+        setHexField(artistColor);
+    }, [artistColor]);
 
     // Build 26 D12 — setup-code field is now live + interactive.
     // The displayed value tracks `currentCode` (encoded from theme + sort
@@ -223,27 +244,86 @@ export function MyPdSection({ onTripleTap }: Props) {
             </div>
 
             <div id="myPdContent">
-                {/* Profile theme picker (color input). Compact label-pill with
-                    a hidden color input + a visible hex text field next to
-                    it. Step 4 wires color picker → hex input only; persisting
-                    a custom artist color is step 5. */}
+                {/* F64 (BUG-28) — live profile color picker. Hidden <input
+                    type="color"> sits absolutely positioned inside a
+                    relatively-positioned wrapper, opened by tapping the
+                    pill (sim 4610-4613 — sim wraps in a <label>; we use a
+                    ref + .click() since SettingsToggle is a button). The
+                    visible hex input mirrors the hook's color, validates
+                    on every change, persists on valid match, and reverts
+                    on blur if the typed value is malformed. Copy button
+                    writes the current color to the clipboard and swaps
+                    the field to "COPIED" for 1500ms. */}
                 <div className="settings-pill-row">
-                    <SettingsToggle
-                        id="sn-profileTheme"
-                        active={theme === 'artist'}
-                        title="Profile Theme"
-                        icon={'◩\uFE0E'}
-                        label="PROFILE THEME"
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <SettingsToggle
+                            id="sn-profileTheme"
+                            active={theme === 'artist'}
+                            title="Profile Theme"
+                            icon={'◩\uFE0E'}
+                            label="PROFILE THEME"
+                            onClick={() => colorPickerRef.current?.click()}
+                        />
+                        <input
+                            ref={colorPickerRef}
+                            type="color"
+                            id="profileColorPicker"
+                            value={artistColor}
+                            onChange={(e) => setArtistColor(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            style={{
+                                position: 'absolute',
+                                opacity: 0,
+                                width: '1px',
+                                height: '1px',
+                                bottom: 0,
+                                left: '50%',
+                                pointerEvents: 'none',
+                            }}
+                        />
+                    </div>
                     <input
                         type="text"
                         id="profileHexInput"
-                        defaultValue="#FFE600"
+                        value={hexField}
                         className="hex-input"
                         maxLength={7}
                         spellCheck={false}
-                        readOnly
                         onClick={(e) => e.stopPropagation()}
+                        onFocus={() => {
+                            editingHexRef.current = true;
+                        }}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            setHexField(v);
+                            // Live-apply whenever the typed value is a
+                            // complete 6-digit hex; intermediate states
+                            // (e.g. "#FF") just update the visible field.
+                            if (/^#[0-9A-F]{6}$/i.test(v)) {
+                                setArtistColor(v);
+                            }
+                        }}
+                        onBlur={() => {
+                            editingHexRef.current = false;
+                            if (!/^#[0-9A-F]{6}$/i.test(hexField)) {
+                                // Invalid hex on blur — revert to the
+                                // last known good color.
+                                setHexField(artistColor);
+                            } else {
+                                // Normalize casing for valid input.
+                                setHexField(hexField.toUpperCase());
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                (e.currentTarget as HTMLInputElement).blur();
+                            } else if (e.key === 'Escape') {
+                                setHexField(artistColor);
+                                (e.currentTarget as HTMLInputElement).blur();
+                            }
+                        }}
                     />
                     <span
                         className="copy-hex-btn"
@@ -253,10 +333,16 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={(e) => {
                             e.stopPropagation();
                             try {
-                                navigator.clipboard?.writeText('#FFE600');
+                                navigator.clipboard?.writeText(artistColor);
                             } catch {
                                 // ignore
                             }
+                            copyingHexRef.current = true;
+                            setHexField('COPIED');
+                            window.setTimeout(() => {
+                                copyingHexRef.current = false;
+                                setHexField(artistColor);
+                            }, 1500);
                         }}
                     >
                         ⧉{'\uFE0E'}
