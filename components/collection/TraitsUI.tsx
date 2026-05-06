@@ -130,11 +130,30 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
         ? undefined
         : { display: 'none' };
 
-    /* L2 row visibility — show only when an L1 category is selected AND
-       that category has a value pool to render (sim 8618 parity). */
-    const l2Pool: readonly string[] =
+    /* F41 — L2 row sub-category labels. Sim 8568-8616 gates the L2 row
+       on Breadcrumb (What's Hot / My Breadcrumbs, sim 8584-8587) or
+       Network (GodModeDict keys My Circle / Global, sim 8588-8615 +
+       7392). All other categories hide L2 and surface their values in
+       L3. v0 hardcodes the labels; sub-filter wiring (sim setSubFilter)
+       lands when traitData is real. Pre-F41 the L2 row reused the L3
+       value pool for every category, doubling every Layer/Mineral pill
+       (BUG-01). */
+    const L2_SUB_LABELS: Partial<Record<TraitCategory, readonly string[]>> = {
+        Breadcrumb: ["What's Hot", 'My Breadcrumbs'],
+        Network:    ['My Circle', 'Global'],
+    };
+    const l2SubLabels: readonly string[] =
+        activeCategory !== null
+            ? (L2_SUB_LABELS[activeCategory] ?? [])
+            : [];
+    const l2Visible = l2SubLabels.length > 0;
+
+    /* L3 row value pool — Layer / Mineral hardcoded for v0 (sim 8623-8665
+       parity for the non-Network branch at sim 8658-8668). Empty for
+       Fate / Network / Breadcrumb until traitData lands. */
+    const l3Pool: readonly string[] =
         activeCategory !== null ? VALUE_POOLS[activeCategory] : [];
-    const l2Visible = l2Pool.length > 0;
+    const l3Visible = l3Pool.length > 0;
 
     /* Per-category badge counts for L1 pills (sim 8488). */
     const countOf = (cat: TraitCategory): number =>
@@ -284,9 +303,11 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     </div>
 
                     {/* L2 sub-category pills — sim 5173, render block sim
-                        8617-8618. Filled with value pills for the active
-                        category; hidden via display:none when no L1 is
-                        selected or the active L1 has an empty pool. */}
+                        8568-8617. F41: row gates on Breadcrumb (Hot /
+                        Breadcrumbs sub-pills, sim 8584-8587) or Network
+                        (GodModeDict keys, sim 8588-8615). Layer / Mineral /
+                        Fate hide L2 and surface in L3 instead — sim 8618
+                        sets display:none when l2Html is empty. */}
                     <div
                         className="stats-container"
                         id="traitSubCategories"
@@ -298,7 +319,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     >
                         {l2Visible &&
                             activeCategory !== null &&
-                            l2Pool.map((value) => {
+                            l2SubLabels.map((value) => {
                                 const isActive =
                                     activeFilters[activeCategory].has(value);
                                 /* Build 14: dim non-selected siblings only
@@ -326,11 +347,16 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     </div>
 
                     {/* L3 stat-pills — sim 5174 mount point + sim 8670-8682
-                        render block. Same gate as L2: show only when an L1
-                        category with a non-empty pool is active. Click
-                        handler shares activeFilters[activeCategory] with the
-                        L2 row above — intentional duplication mirroring
-                        sim's split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
+                        render block. F41: gated on l3Pool (Layer /
+                        Mineral) — independent of the L2 row's
+                        Breadcrumb/Network gate. Sim 8625-8668 walks every
+                        active category through traitData; v0 hardcodes
+                        VALUE_POOLS for Layer/Mineral and leaves Fate /
+                        Network / Breadcrumb empty (hidden) until
+                        traitData wiring lands. Click handler shares
+                        activeFilters[activeCategory] with the L2 row
+                        above — intentional duplication mirroring sim's
+                        split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
                         Mock count of 22 per value until gallery wiring
                         lands; the `.is-zero` class still applies whenever
                         count === 0 so the structural class logic is in
@@ -348,14 +374,14 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         className="stats-container"
                         id="statsOutput"
                         style={
-                            l2Visible
+                            l3Visible
                                 ? { display: 'flex' }
                                 : { display: 'none' }
                         }
                     >
-                        {l2Visible &&
+                        {l3Visible &&
                             activeCategory !== null &&
-                            l2Pool.map((value) => {
+                            l3Pool.map((value) => {
                                 const isActive =
                                     activeFilters[activeCategory].has(value);
                                 const anySelected =
