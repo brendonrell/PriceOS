@@ -61,18 +61,6 @@
     opacity: 0.7;
 }
 
-.rpc-ping-btn {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    font-weight: normal;
-    opacity: 0.65;
-    cursor: pointer;
-    margin-left: 4px;
-    transition: opacity 0.2s;
-    color: inherit;
-}
-.rpc-ping-btn:hover { opacity: 1; }
-
 
 /* ENS pills row */
 .settings-ens-row {
