@@ -1520,165 +1520,102 @@ body.zero-context-mode #digital-familiar { display: none !important; }
 }
 .portfolio-list-container::-webkit-scrollbar { display: none; }
 
-/* Tree rows — port-specific (collapsible variant, see deviation note above).
-   Hierarchy is achieved via progressive indent on the row + matching font
-   sizing on the .pf-*-name spans. Each row is a flex line: caret → name →
-   count → spacer. Toggle row click on .pf-*-row swaps the caret glyph and
-   reveals/hides the matching .pf-*-body underneath. */
+/* F58 (BUG-25) — sim 1880-1980 verbatim port. Repo previously carried a
+   custom collapsible-tree vocabulary (.pf-cat-row / .pf-art / .pf-col /
+   .pf-tokens / .pf-token-chip + carets + count badges). Sim's actual
+   vocabulary is flat: .pf-cat > .pf-cat-head (➔ glyph + label) +
+   optional .pf-est (when $); .pf-artist; .pf-collection; .pf-artwork;
+   .pf-ens-row; with .pf-leader dotted lines on the leaf rows
+   (.pf-artwork + .pf-ens-row) for the book-TOC pattern. The tree is
+   always rendered in full — no expand state. APR 22 rev 2 underline:
+   border-bottom on .pf-cat-head spans the 6px arrow→label gap so the
+   stroke reads as one continuous line. */
 
 .pf-cat {
-    /* Top-level category section. */
-}
-.pf-cat-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+    display: flex; align-items: baseline;
     padding: 10px 10px 4px 10px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    opacity: 0.75;
-    transition: opacity 0.15s;
+    font-size: 11px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.75;
+    margin: 0 10px;
 }
-.pf-cat-row:hover { opacity: 1; }
-.pf-cat-name { flex: 0 0 auto; }
-.pf-cat-count {
-    font-weight: normal;
-    font-size: 10px;
-    opacity: 0.65;
-    letter-spacing: 0.5px;
-    margin-left: auto;
+.pf-cat-head {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    /* APR 22 rev 3 (sim 1901-1907): switched from text-decoration: underline
+       to border-bottom. text-decoration only draws under actual text runs,
+       so the 6px flex gap between the arrow span and the label span stayed
+       unstruck. A border-bottom on the wrapper spans the full width of the
+       inline-flex container — gap included — so the line now reads as one
+       continuous stroke. */
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
 }
-.pf-cat-body { display: flex; flex-direction: column; }
-
-/* Caret glyph — shared across cat/art/col rows. */
-.pf-caret {
-    flex: 0 0 auto;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    opacity: 0.7;
-    line-height: 1;
-    width: 10px;
-    text-align: center;
+.pf-cat .pf-cat-glyph {
+    font-size: 12px; opacity: 0.85; letter-spacing: 0;
     -webkit-font-smoothing: antialiased;
 }
-
-/* Artist row — 2nd level. Sim 1927-1933 padding 8px 10px 2px 28px. */
-.pf-art {
-    /* Just a wrapper. */
+.pf-cat .pf-label { flex: 0 0 auto; }
+/* APR 23 (sim 1914-1919) — underline parity: .pf-cat-head on the left
+   already carries border-bottom (arrow + label). Totals on the right
+   felt detached without a matching stroke. Give .pf-est the same
+   border-bottom + padding-bottom so the underline runs (visually) across
+   the whole row, with only the flex-grow middle gap unstruck. */
+.pf-cat .pf-est {
+    font-weight: bold; opacity: 0.9; letter-spacing: 0.5px;
+    flex: 0 0 auto; margin-left: auto;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
 }
-.pf-art-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 6px 10px 2px 28px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 13px;
-    font-weight: bold;
-    transition: opacity 0.15s;
+/* Artist row — 2nd level. */
+.pf-artist {
+    display: flex; align-items: baseline;
+    padding: 8px 10px 2px 28px;
+    font-size: 13px; font-weight: bold;
 }
-.pf-art-row:hover { opacity: 0.85; }
-.pf-art-name { flex: 0 0 auto; }
-.pf-art-count {
-    font-weight: normal;
-    opacity: 0.65;
-    margin-left: auto;
-}
-.pf-art-body { display: flex; flex-direction: column; }
-
-/* Collection row — 3rd level. Sim 1935-1941 padding 4px 10px 2px 40px. */
-.pf-col {
-    /* Wrapper. */
-}
-.pf-col-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+.pf-artist .pf-label { flex: 0 0 auto; }
+.pf-artist .pf-est { font-weight: bold; opacity: 0.85; flex: 0 0 auto; }
+/* Collection row — 3rd level. */
+.pf-collection {
+    display: flex; align-items: baseline;
     padding: 4px 10px 2px 40px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 12px;
-    font-weight: normal;
-    opacity: 0.85;
-    transition: opacity 0.15s;
+    font-size: 12px; font-weight: normal; opacity: 0.85;
 }
-.pf-col-row:hover { opacity: 1; }
-.pf-col-name {
-    flex: 0 0 auto;
-    font-style: italic;
+.pf-collection .pf-label { flex: 0 0 auto; font-style: italic; }
+.pf-collection .pf-est { font-style: normal; opacity: 0.85; flex: 0 0 auto; }
+/* Artwork row — leaf. TOC-style leader dots fill the space between label
+   and price column (classic book table-of-contents pattern). Dots render
+   always; when $ is off the price element is absent so leader extends
+   all the way to the right padding. */
+.pf-artwork {
+    display: flex; align-items: baseline;
+    padding: 2px 10px 2px 52px;
+    font-size: 12px; font-weight: normal; opacity: 0.75;
 }
-.pf-col-floor {
-    flex: 0 0 auto;
-    opacity: 0.7;
-    font-style: normal;
-    font-size: 11px;
+.pf-artwork .pf-label { flex: 0 0 auto; }
+.pf-artwork .pf-est { opacity: 0.7; flex: 0 0 auto; }
+/* Leader — dotted border between label and price. "top: -2px" nudges the
+   baseline dots up so they sit optically between the text's x-height
+   lines, not at descender. */
+.pf-leader {
+    flex: 1 1 auto;
+    border-bottom: 1px dotted currentColor;
+    opacity: 0.3;
+    margin: 0 8px;
+    position: relative;
+    top: -2px;
+    min-width: 12px;
 }
-.pf-col-count {
-    flex: 0 0 auto;
-    margin-left: auto;
-    font-size: 11px;
-    opacity: 0.6;
-}
-
-/* Token chips — leaves of the tree. Wrap onto multiple lines.
-   Sim 1945-1951 indents these as full rows; the port renders them as
-   tap-target chips so a wallet with 200 tokens is browsable instead
-   of a single tall scroll column. */
-.pf-tokens {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 6px;
-    padding: 4px 10px 6px 52px;
-}
-.pf-token-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 3px;
-    border: 1px solid currentColor;
-    background: transparent;
-    color: inherit;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    font-weight: normal;
-    opacity: 0.7;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity 0.15s, background 0.15s;
-    box-sizing: border-box;
-    line-height: 1;
-}
-.pf-token-chip:hover {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.06);
-}
-
-/* ENS rows — flat, no collection layer. Sim 1965-1971. */
+/* ENS entries — flat, no collection layer, same leader-dot treatment.
+   APR 21: indent bumped 20→28 to match new section-hierarchy spacing. */
 .pf-ens-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
+    display: flex; align-items: baseline;
     padding: 4px 10px 4px 28px;
-    font-size: 13px;
-    font-weight: normal;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity 0.15s;
+    font-size: 13px; font-weight: normal;
 }
-.pf-ens-row:hover { opacity: 0.85; }
-.pf-ens-label { flex: 0 0 auto; }
-.pf-ens-price {
-    flex: 0 0 auto;
-    margin-left: auto;
-    font-size: 12px;
-    opacity: 0.7;
-    font-weight: bold;
+.pf-ens-row .pf-label { flex: 0 0 auto; }
+.pf-ens-row .pf-est { flex: 0 0 auto; }
+.pf-empty {
+    padding: 20px 10px; text-align: center;
+    font-size: 12px; opacity: 0.5; font-style: italic;
 }
 
 /* Filter sticky footer — mirrors .artists-filter-sticky. */
