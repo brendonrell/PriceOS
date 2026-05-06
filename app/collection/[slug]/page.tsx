@@ -50,7 +50,7 @@
  * dropdown component. Strictly the two files in this build.
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -63,6 +63,10 @@ import {
 } from '../../../lib/state/TraitsContext';
 import ArtworkCard from '../../../components/ArtworkCard';
 import TraitsUI from '../../../components/collection/TraitsUI';
+import {
+    artistGlyphVS15,
+    artistGlyphTitle,
+} from '../../../lib/data/artistStatus';
 
 type CollectionTab = 'showcase' | 'artworks' | 'albums';
 
@@ -156,7 +160,10 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         detail: (
             <>
                 <span className="f-highlight">@snowfro</span>
-                <span className="artist-tag">✺</span> listed{' '}
+                <span className="artist-tag" title={artistGlyphTitle('@snowfro')}>
+                    {artistGlyphVS15('@snowfro')}
+                </span>{' '}
+                listed{' '}
                 <span className="f-highlight">#1</span> for 2.0 ETH
             </>
         ),
@@ -169,7 +176,9 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         detail: (
             <>
                 <span className="f-highlight">@XCOPY</span>
-                <span className="artist-tag">✺</span>
+                <span className="artist-tag" title={artistGlyphTitle('@XCOPY')}>
+                    {artistGlyphVS15('@XCOPY')}
+                </span>
                 <span className="follow-badge">
                     <span className="ico-mutual" title="Mutual">
                         ⚭&#xFE0E;
@@ -217,7 +226,7 @@ function CollectionPageInner({
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
-    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
+    const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive } = useTraits();
     const [activeTab, setActiveTab] = useState<CollectionTab>('showcase');
     /* D17 anchor — local mirror of pd_anchors[collection.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
@@ -265,6 +274,20 @@ function CollectionPageInner({
         }
         return new Set(picks);
     });
+
+    /* F61 (BUG-30) — Burn Pile gallery effect (sim 6625-6643).
+       When `burnPileActive` flips ON, sim picks 3 random gallery cards
+       and stamps `.burn-pick` on them; the gallery itself gets
+       `.burn-mode` so CSS dims everything except the picks (sim 2320-2321).
+       In React: maintain a `burnPicks` Set keyed off the same flag —
+       re-randomized on every transition to ON, cleared on transition to
+       OFF. The visible-set dependency keeps the picks restricted to ids
+       that survive the active filter / search predicate, mirroring sim's
+       `gallery.querySelectorAll('.edition-card')` (only mounted cards). */
+    const [burnPicks, setBurnPicks] = useState<Set<number>>(() => new Set());
+    /* Snapshot of visible ids for the burn-pick draw. Computed lower
+       down (after all filter wiring) — this useEffect just consumes
+       whatever the gallery is currently rendering when the flag flips. */
 
     /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
        'fog', body.fog-mode CSS blurs every .edition-card .canvas-wrapper
@@ -525,6 +548,29 @@ function CollectionPageInner({
         });
     }, [anchorEth, visibleTokenIds]);
 
+    /* F61 (BUG-30) — re-pick on burnPileActive flip ON.
+       Sim 6629-6635 takes a fresh random sample of 3 cards each time
+       Burn Pile turns on. We use a stable `wasOn` ref so we only
+       re-randomize on the OFF → ON edge (not on every visibleTokenIds
+       change, which would walk the picks around as the user filters).
+       OFF clears the set entirely. Mount-time: flag defaults to false
+       so the empty-set initializer wins; no draw runs until the user
+       toggles. */
+    const burnWasOnRef = useRef(false);
+    useEffect(() => {
+        if (burnPileActive && !burnWasOnRef.current) {
+            const ids = visibleTokenIds.slice();
+            for (let i = ids.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [ids[i], ids[j]] = [ids[j], ids[i]];
+            }
+            setBurnPicks(new Set(ids.slice(0, 3)));
+        } else if (!burnPileActive && burnWasOnRef.current) {
+            setBurnPicks(new Set());
+        }
+        burnWasOnRef.current = burnPileActive;
+    }, [burnPileActive, visibleTokenIds]);
+
     return (
         <>
             <section className="collection-hero" aria-label="Collection Info">
@@ -539,8 +585,12 @@ function CollectionPageInner({
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
                                 <a href="/profile/claude">@claude</a>
-                                <span className="artist-tag" aria-label="artist">
-                                    ✺
+                                <span
+                                    className="artist-tag"
+                                    aria-label="artist"
+                                    title={artistGlyphTitle('@claude')}
+                                >
+                                    {artistGlyphVS15('@claude')}
                                 </span>
                                 <span className="follow-badge">
                                     <span className="ico-mutual" title="Mutual">
@@ -759,7 +809,14 @@ function CollectionPageInner({
             <section
                 id="gallery"
                 aria-label="Gallery"
-                className={onShowcaseTab ? 'showcase-mode' : undefined}
+                className={[
+                    onShowcaseTab ? 'showcase-mode' : null,
+                    /* F61 (BUG-30) — sim 6635: burnPileActive adds
+                       `burn-mode` to #gallery; CSS in globals.css
+                       (sim 2320-2321) dims every .edition-card except
+                       those carrying .burn-pick. */
+                    burnPileActive ? 'burn-mode' : null,
+                ].filter(Boolean).join(' ') || undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {visibleTokenIds.map((id) => (
@@ -768,6 +825,7 @@ function CollectionPageInner({
                         id={id}
                         showcasePick={showcasePicks.has(id)}
                         isBreadcrumb={breadcrumbSample.has(id)}
+                        burnPick={burnPicks.has(id)}
                     />
                 ))}
             </section>
