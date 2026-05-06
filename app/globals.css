@@ -3107,6 +3107,103 @@ body.pricelens-mode .meta-owner.price-trigger::before {
     body.pricelens-mode .meta-owner.price-trigger::before { font-size: 13px; }
 }
 
+/* ── BUDGET (ambient in-reach signal) — sim 3952-4043 ──
+   F57 (BUG-10). When a user-defined budget is active, every card not-in-budget
+   recedes via opacity only (no desaturation — these are generative artworks,
+   dimming their colour would disrespect the art). In-budget cards render at
+   full strength so the market stays intact; the user's position within it
+   becomes visually clear without filtering anything out. APR 23. */
+body.budget-active #gallery .edition-card:not(.in-budget):not(.hidden):not(.search-hidden) {
+    /* APR 24 rev 2: was 0.45 — wasn't distinct enough from in-budget cards
+       per Brendon. Halved to 0.22 ("twice as faded") so the in-budget set
+       genuinely pops while OOB cards recede to the background. Still
+       visible/tappable (not hidden), just clearly de-emphasised. */
+    opacity: 0.22;
+    transition: opacity 0.3s;
+}
+/* ── BUDGET STEP LINE — sim 3966-4043 ──
+   Only rendered when body.budget-step-line is active (set by JS when sort is
+   price-ascending AND a budget is active). Traces the jagged cutoff across the
+   grid as ONE continuous line, thicker for visibility.
+
+   APR 24 — thicker + continuous rework.
+   Prior version (APR 23): two disconnected 1px bottom-borders on the cutoff
+   row and the row above. Visually read as two floating lines, not a step.
+   Now: horizontals extend into the column gap (left/right by 20px = #gallery's
+   grid gap) so each row's segment reads as one unbroken stroke across the
+   full width. At the cutoff column, a vertical overlay div sits on L card
+   (the last in-budget card) spanning from the high horizontal's Y down to
+   the low horizontal's Y — connecting the two segments into a proper step.
+   All strokes 2px at 0.7 opacity. */
+body.budget-step-line #gallery .edition-card.budget-step-l,
+body.budget-step-line #gallery .edition-card.budget-step-r {
+    position: relative;
+}
+body.budget-step-line #gallery .edition-card.budget-step-l::after {
+    /* Low horizontal — bottom of cards in the cutoff row. Extends 20px to
+       the right to bridge the grid column gap and connect to the next
+       step-l card (or to the L card's corner + vertical). The rightmost
+       step-l card = L itself, whose right:-20px lands exactly at the
+       column after L's right edge; its corresponding vertical overlay
+       (added via JS) covers from there back to L.right. */
+    content: '';
+    position: absolute;
+    left: 0;
+    right: -20px;
+    bottom: -11px; /* centered in the 20px grid gap: -20/2 + 1 */
+    height: 2px;
+    background: var(--text-color);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 2;
+}
+body.budget-step-line #gallery .edition-card.budget-step-r::after {
+    /* High horizontal — bottom of the row above the cutoff row, starting
+       at L.right (not at the step-r card's own left). Extends 20px LEFT
+       into the column gap so it meets L card's vertical overlay. Also
+       extends right by 20px to chain through subsequent step-r cards
+       along the whole row. */
+    content: '';
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    bottom: -11px;
+    height: 2px;
+    background: var(--text-color);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 2;
+}
+/* Vertical connector — sits on L card as an absolutely-positioned child
+   div. Injected by applyStepLine() only when the cutoff is mid-row AND a
+   row above exists (i.e. an actual step is needed; no vertical when the
+   cutoff falls at an exact row boundary). Spans from high horizontal's Y
+   down to low horizontal's Y. Width 2px, centred on L's right edge. */
+body.budget-step-line #gallery .edition-card {
+    /* L card always needs position:relative when step-line is active so an
+       overlay child positions correctly. Safe to blanket-apply — cheap, and
+       .edition-card is already position:relative in several other modes. */
+    position: relative;
+}
+body.budget-step-line #gallery .edition-card .budget-step-v-overlay {
+    position: absolute;
+    /* Horizontals are drawn with bottom: -11px; height: 2px — the 2px line
+       sits in the y range [parent.bottom + 9, parent.bottom + 11]. For the
+       vertical to meet both horizontals, it needs to span:
+         top    = top of step-r line    = Y_{K-1 bottom} + 9  = L.top - 11
+         bottom = bottom of step-l line = Y_K bottom    + 11 = L.bottom + 11
+       Relative to L card: top: -11px, bottom: -11px. Width 2px centred on
+       L's right edge via right: -1px. */
+    top: -11px;
+    bottom: -11px;
+    right: -1px;
+    width: 2px;
+    background: var(--text-color);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 2;
+}
+
 /* ── ANCHOR DELTA — sim 4045-4072 ──
    When the user has set a personal reference price for any collection,
    every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
