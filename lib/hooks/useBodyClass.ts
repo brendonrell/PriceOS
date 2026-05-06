@@ -109,7 +109,10 @@ export function useBodyClass() {
         if (notifs.notes)            cl.add('notes-mode');
         if (notifs.spell_aura)       cl.add('aura-active');
         if (notifs.spell_priceghost) cl.add('pm-active');
-        if (notifs.spell_stargazing) cl.add('stargazing-mode');
+        /* F48 — body.stargazing-mode now reads `notifs.stargazing`
+           (matches sim 9370 + 9960). The earlier `spell_stargazing`
+           field was a port-time slot mismatch — sim never had that key. */
+        if (notifs.stargazing)       cl.add('stargazing-mode');
         if (notifs.spell_hammer)     cl.add('hammer-mode');
         if (notifs.spell_pricelens)  cl.add('pricelens-mode');
         // Build 23 — fog-mode follows SortContext, not pdNotifs (sim 8334-8338).
