@@ -24,7 +24,7 @@
  *   Build 11 replaces the prop gate with the right-shaped gate: a
  *   single rAF loop that only spins while the body has class
  *   `bg-canvas-on` OR `stargazing-mode` (the latter is the existing
- *   equivalent flag derived from pdNotifs.spell_stargazing in
+ *   equivalent flag derived from pdNotifs.stargazing in
  *   useBodyClass — grep confirmed no `bg-canvas-on` is wired yet, so
  *   accepting both keeps a clean opt-in escape hatch and the
  *   spell-driven path working end-to-end). With neither class
@@ -56,9 +56,9 @@ import { useEffect, useRef } from 'react';
 
 /* Canonical body-class flags that gate the rAF loop. `bg-canvas-on`
    is the explicit hook the Build 11 spec asks for; `stargazing-mode`
-   is the existing flag already derived from pdNotifs.spell_stargazing
-   in useBodyClass — accepting both means the existing Spell Book
-   wiring drives the loop without any context plumbing changes. */
+   is the existing flag already derived from pdNotifs.stargazing
+   in useBodyClass — accepting both means the existing wiring
+   drives the loop without any context plumbing changes. */
 const CANVAS_ON_CLASSES = ['bg-canvas-on', 'stargazing-mode'];
 
 export function Backgrounds() {
