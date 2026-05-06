@@ -85,10 +85,22 @@ import {
     toggleIncognito,
 } from '../../lib/incognito/incognitoEngine';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useCollection } from '../../lib/state/CollectionContext';
+import { useModal } from '../../lib/state/ModalContext';
+import { useToast } from '../../lib/state/ToastContext';
+import { useTokenMeta } from '../../lib/hooks/useTokenMeta';
+import {
+    getGrails,
+    subscribeGrails,
+    unpinGrail,
+} from '../../lib/pins/grailStore';
 import { TopBarCalendar } from './TopBarCalendar';
 
 export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
+    const { title: collectionTitle } = useCollection();
+    const { open: openTokenModal } = useModal();
+    const { showToast } = useToast();
 
     // Subscribe to engine state. We mirror engine state into React
     // state so toggles trigger re-renders. Initialised lazily from
@@ -97,6 +109,18 @@ export function TopBarRow() {
     const [rpcActive, setRpcActive] = useState<boolean>(false);
     const [rpcMs, setRpcMs] = useState<number | null>(null);
     const [incognitoActive, setIncognitoActive] = useState<boolean>(false);
+
+    /* F50 (BUG-02) — grail pill row. Subscribed to grailStore so the
+       pills reflect the latest pin set whether the user pinned from
+       the modal pin button, the gallery hover icon, or another tab
+       still attached to the same localStorage key. SSR-safe: the lazy
+       initialiser reads the empty default; the useEffect below
+       hydrates from localStorage and keeps the snapshot in sync. */
+    const [grailPins, setGrailPins] = useState<readonly number[]>([]);
+    useEffect(() => {
+        setGrailPins(getGrails());
+        return subscribeGrails((next) => setGrailPins(next));
+    }, []);
 
     useEffect(() => {
         // Hydrate from engine and stay subscribed.
@@ -151,8 +175,24 @@ export function TopBarRow() {
 
     const hasTopBarCalendar = !!notifs.topBarCalendar;
     const hasHammer = !!notifs.spell_hammer;
+    /* F50 (BUG-02) — sim 12342: grail pills render only when neither
+       Incognito nor Hammer is active. Both modes hide the user's
+       grails for privacy / focus reasons (the bar still appears for
+       RPC etc). Sim's hidden state is built into renderGrailBar's
+       early return; the React port computes the same predicate inline
+       so the pills array can be rendered or skipped without an
+       imperative DOM mutation. */
+    const grailsVisible =
+        grailPins.length > 0 && !incognitoActive && !hasHammer;
+    /* sim 12390 — the inner row's own visibility key still tracks the
+       grail count so we don't render an empty 24px-min-height grey
+       strip when only the calendar row is on. Grails count toward the
+       row even when hidden by incognito/hammer? No — sim 12390 OR
+       chains hasGrails | hasRpc | hasIncognito | hasHammer with the
+       grails part already false when masked, so the masking flows
+       through. We mirror that with `grailsVisible`. */
     const showCenter = incognitoActive || hasHammer;
-    const showRow = showCenter || rpcActive;
+    const showRow = grailsVisible || showCenter || rpcActive;
     const showWrapper = hasTopBarCalendar || showRow;
 
     if (!showWrapper) return null;
@@ -166,6 +206,35 @@ export function TopBarRow() {
             <TopBarCalendar />
             {showRow ? (
                 <div className="top-bar-row" id="topBarInner">
+                    {/* F50 (BUG-02) — sim 12343-12362 grail pill list.
+                        Inserted BEFORE the center wrap so the row reads
+                        left→ pills → center (incognito/hammer) → right
+                        (RPC) per sim 12360-12361. Each pill shows
+                        collection title (8-char "short" mask if short),
+                        #id, listed price (if any), and an unpin × that
+                        stops propagation so the surrounding pill click
+                        opens the modal instead. Display title flips to
+                        ████████ blocks when redactedMode is on (sim 12348).
+                        notifs.redactedMode is the React port's field
+                        name — sim uses notifs.redacted; same semantic. */}
+                    {grailsVisible &&
+                        grailPins.map((pinId) => (
+                            <GrailPill
+                                key={pinId}
+                                id={pinId}
+                                collectionTitle={collectionTitle}
+                                redacted={!!notifs.redactedMode}
+                                onOpen={() => openTokenModal('artwork', pinId)}
+                                onUnpin={() => {
+                                    if (unpinGrail(pinId)) {
+                                        const collName =
+                                            collectionTitle.charAt(0) +
+                                            collectionTitle.slice(1).toLowerCase();
+                                        showToast(`${collName} #${pinId} DE-PINNED`);
+                                    }
+                                }}
+                            />
+                        ))}
                     {/* Incognito + Hammer: centered via absolute positioning */}
                     <div
                         className={`bar-center-wrap${showCenter ? ' active' : ''}`}
@@ -252,5 +321,73 @@ export function TopBarRow() {
                 </div>
             ) : null}
         </div>
+    );
+}
+
+/* F50 (BUG-02) — single grail pill. Sim 12350-12357 builds this DOM
+   imperatively; we render it from a small subcomponent that calls
+   useTokenMeta inside a hooked function (loop above can't call hooks
+   directly). Pill text:
+     - title    : COLLECTION_TITLE (or ████████ when redacted, sim 12348);
+                  "short" variant (no fade mask) when ≤ 8 chars (sim 12349)
+     - id       : `#${id}` (sim 12355)
+     - price    : numeric ETH minus the " ETH" suffix (sim 12356), only
+                  rendered when meta.price is non-null
+     - unpin ×  : stopPropagation handler so it removes the pin without
+                  opening the modal beneath (sim 12357)
+
+   onOpen handles the body click — same as sim's `onclick = function() {
+   openModal(id); }` at sim 12352. */
+interface GrailPillProps {
+    id: number;
+    collectionTitle: string;
+    redacted: boolean;
+    onOpen: () => void;
+    onUnpin: () => void;
+}
+
+function GrailPill({
+    id,
+    collectionTitle,
+    redacted,
+    onOpen,
+    onUnpin,
+}: GrailPillProps) {
+    const meta = useTokenMeta(id);
+    const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : collectionTitle;
+    const titleShortClass = displayTitle.length <= 8 ? ' short' : '';
+    /* Sim 12356 — price renders the numeric portion only ("0.014" not
+       "0.014 ETH") because the pill is space-constrained. The repo's
+       TokenMeta.price is already a string like "0.014 ETH"; replace
+       trailing " ETH" to match sim verbatim. */
+    const priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
+    const titleAttr = `${collectionTitle} #${id}${meta?.price ? ` · ${meta.price}` : ''}`;
+
+    return (
+        <span
+            className="grail-pill"
+            title={titleAttr}
+            onClick={onOpen}
+            role="button"
+            tabIndex={0}
+        >
+            <span className={`grail-pill-title${titleShortClass}`}>
+                {displayTitle}
+            </span>
+            <span className="grail-pill-id">{`#${id}`}</span>
+            {priceText && <span className="grail-pill-price">{priceText}</span>}
+            <span
+                className="grail-pill-unpin"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onUnpin();
+                }}
+                title="Unpin"
+                role="button"
+                tabIndex={0}
+            >
+                {'\u00D7'}
+            </span>
+        </span>
     );
 }
