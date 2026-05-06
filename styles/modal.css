@@ -361,6 +361,12 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     .platform-modal {
         padding: calc(60px + env(safe-area-inset-top)) 20px 20px 20px;
     }
+    /* PriceOS modal specifically needs the full mobile width for wide ASCII
+       banners — tightened to 8px each side so logos don't scale down as often.
+       Other modals keep the comfortable 20px buffer. (sim 3253) */
+    #priceosModal { padding-left: 8px; padding-right: 8px; }
+    /* Modal note button — bumped icon size + vertical-align: middle on mobile. (sim 3072) */
+    .modal-note-btn { font-size: 26px !important; vertical-align: middle; }
 }
 
 
