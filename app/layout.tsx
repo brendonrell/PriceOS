@@ -64,7 +64,7 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs.notes)            classList.add('notes-mode');
                 if (notifs.spell_aura)       classList.add('aura-active');
                 if (notifs.spell_priceghost) classList.add('pm-active');
-                if (notifs.spell_stargazing) classList.add('stargazing-mode');
+                if (notifs.stargazing)       classList.add('stargazing-mode');
                 if (notifs.spell_hammer)     classList.add('hammer-mode');
                 if (notifs.spell_pricelens)  classList.add('pricelens-mode');
                 if (notifs.zenMode)          classList.add('zen-mode');
