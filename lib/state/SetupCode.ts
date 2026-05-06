@@ -26,7 +26,7 @@
  *   sim `sentiment`  → React `sentimentOn`
  *   sim `redacted`   → React `redactedMode`
  *   sim `pricelens`  → React `spell_pricelens` (lives in spell bucket)
- *   sim `stargazing` → React `spell_stargazing` (lives in spell bucket)
+ *   sim `stargazing` → React `stargazing` (notif key, F48 corrected)
  *
  * Build 26 added inert pdNotifs flags for the rest (pure_light,
  * pure_dark, sticker, echo, zerocontext, asciiId, degen, autoscroll)
@@ -136,7 +136,10 @@ const MODE_TOKEN_TO_KEY: Record<string, keyof PdNotifs> = {
     DGEN: 'degen',
     RDCT: 'redactedMode',      // sim `redacted`   → React `redactedMode`
     ASCR: 'autoscroll',
-    STAR: 'spell_stargazing',  // sim mode → React spell bucket
+    /* F48 — STAR token maps to the `stargazing` notif key (sim 9761).
+       Earlier port had it routed into the spell bucket as
+       `spell_stargazing`; that field never existed in sim. */
+    STAR: 'stargazing',
 };
 
 const MODE_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromEntries(
@@ -144,8 +147,9 @@ const MODE_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromEn
 );
 
 // ── Spell tokens (sim 9766-9787) ───────────────────────────────
-// React port has no spell_astral so ASTR is omitted from encode.
-// Decode silently ignores ASTR (lands in `unknown` list).
+// F48 — ASTR is now wired (was previously omitted from encode/decode).
+// The Astral spell pill lives in lib/data/spells.ts; its body-class is
+// none (sim 9955-9963 _bodyClassMap omits spell_astral).
 const SPELL_TOKEN_TO_KEY: Record<string, keyof PdNotifs> = {
     FMLR: 'spell_familiar',
     CRTL: 'spell_cartel',
@@ -166,6 +170,7 @@ const SPELL_TOKEN_TO_KEY: Record<string, keyof PdNotifs> = {
     ARBT: 'spell_arbitrage',
     MOOD: 'spell_moodring',
     HMMR: 'spell_hammer',
+    ASTR: 'spell_astral',
 };
 
 const SPELL_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromEntries(
