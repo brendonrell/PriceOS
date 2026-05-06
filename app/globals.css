@@ -627,6 +627,9 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     border: none;
     margin: 0;
 }
+.global-search-field:focus-within { border-color: transparent; }
+.global-search-field .globe-icon { color: var(--bg-color); opacity: 0.7; }
+.global-search-field:focus-within .globe-icon { color: var(--bg-color); opacity: 1; }
 
 .globe-icon {
     flex-shrink: 0;
@@ -661,6 +664,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .global-search-results::-webkit-scrollbar { display: none; }
 .global-search-results.has-results { max-height: 120px; overflow-y: auto; }
+.global-result-item { font-size: 12px; font-family: 'Courier New', Courier, monospace; font-weight: bold; padding: 7px 10px; border-radius: 4px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, background 0.2s; }
+.global-result-item:hover { opacity: 1; background: rgba(255,255,255,0.1); }
 
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
@@ -1008,6 +1013,51 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     color: var(--text-color);
 }
 #tapeBox.menu-tape-framed .menu-tape-rail-h {
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── MENU TAPE — sim-vocab (audit B1, Batch O) ────────────
+   Sim's #tapeBox uses a class-toggle architecture: element always
+   in DOM, with `.tape-on` flipping visibility and `.mode-bold` /
+   `.mode-framed` selecting style (sim _applyMenuTapeState 5987-6004).
+   Repo's TapeBox.tsx instead returns null in mode 0 and emits
+   `.menu-tape-bold` / `.menu-tape-framed` (rules above). Sim-vocab
+   rules below land dormant — ready for the future component-side
+   port that aligns vocab + adds .tape-on. Same dormant-CSS pattern
+   as Batch L (.notes-* / .note-*).
+
+   Skipped from sim 1389: `#tapeBox { display: none; }` — porting
+   it verbatim would hide the shell in modes 1-4 (since component
+   never applies .tape-on), so the base hide is paired with the
+   .tape-on toggle in a future component+CSS batch. The base rule
+   sits dormant until then; the .tape-on rule below does too.
+   ────────────────────────────────────────────────────────── */
+#tapeBox.tape-on { display: block; }
+#tapeBox .menu-tape-header {
+    padding: 4px 0 !important;
+    letter-spacing: 0 !important;
+    opacity: 1 !important;
+    overflow: hidden;
+    /* Dropdown context: .user-dropdown sets background:var(--text-color) and
+       color:var(--bg-color). So --bg-color here is the *visible* text color
+       (light/orange) and --text-color is the dark dropdown surface. */
+    color: var(--bg-color);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+}
+/* BOLD (mode 3) — visible text (bg-color) on the dark dropdown surface, weight 700 */
+#tapeBox.mode-bold .menu-tape-rail-h { font-weight: 700; }
+/* FRAMED (mode 4) — inverted header strip: light strip (bg-color) with dark text
+   (text-color). Visually equivalent to the top-tape framed mode but flipped for
+   the dropdown's inverted variable context. Body below stays unchanged. */
+#tapeBox.mode-framed .menu-tape-header {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+#tapeBox.mode-framed .menu-tape-rail-h {
     font-weight: 900;
     letter-spacing: 0.4px;
     -webkit-font-smoothing: antialiased;
