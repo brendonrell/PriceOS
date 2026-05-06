@@ -28,8 +28,14 @@
  * internals on `isOpen`.
  */
 
+import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import {
+    getSpriteFrame,
+    subscribeSprite,
+    type SpriteFrame,
+} from '../lib/engines/priceSpriteEngine';
 
 const VS15 = '\uFE0E';
 
@@ -54,6 +60,21 @@ export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'priceSprite';
+
+    /* Mirror priceSpriteEngine into the modal hero so the hero's
+       blink/turn/yawn/sleep stays in sync with the menu sprite (sim
+       12135-12143 + 12988-12995). Subscribe only while the modal is
+       open — when closed, the hero isn't visible and we shouldn't
+       hold the engine running on its behalf. */
+    const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
+    useEffect(() => {
+        if (!isOpen) return;
+        setFrame(getSpriteFrame());
+        const unsubscribe = subscribeSprite(() => {
+            setFrame(getSpriteFrame());
+        });
+        return unsubscribe;
+    }, [isOpen]);
 
     return (
         <div
@@ -87,11 +108,16 @@ export default function PriceSpriteModal() {
                     PRICESPRITE
                 </div>
 
-                {/* Hero sprite — static for now. Live MutationObserver wiring lands
-                    when the PDFamiliar engine ports (sim 12988–12995). */}
+                {/* Hero sprite — subscribed to the same priceSpriteEngine
+                    that drives the menu sprite. Frame.face / transform /
+                    sleeping mirror the menu in real time. */}
                 <div className="ps-hero" aria-hidden="true">
-                    <span className="ps-hero-sprite" id="priceSpriteHeroSprite">
-                        (ง •̀_•́)ง
+                    <span
+                        className={`ps-hero-sprite${frame.sleeping ? ' sleeping' : ''}`}
+                        id="priceSpriteHeroSprite"
+                        style={{ transform: frame.transform }}
+                    >
+                        {frame.face}
                     </span>
                 </div>
 
