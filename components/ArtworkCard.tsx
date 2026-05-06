@@ -76,14 +76,20 @@
  * (gallery-wide event delegation per sim 8364-8389), not here.
  */
 
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useCollection } from '../lib/state/CollectionContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 import {
     registerCanvas,
     unregisterCanvas,
 } from '../lib/virtualization/canvasVirtualizer';
+import {
+    getGrails,
+    subscribeGrails,
+    togglePin as storeTogglePin,
+} from '../lib/pins/grailStore';
 
 interface ArtworkCardProps {
     id: number;
@@ -130,12 +136,29 @@ export default function ArtworkCard({
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
+    const { title: collectionTitle } = useCollection();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     /* Build 35 — wrapper ref so the virtualizer can observe this card's
        canvas-wrapper directly (data-id is set on the wrapper to match
        sim 8267 + the existing fog-mode delegation handler at page.tsx:288). */
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    /* F50 (BUG-02) — grail pin state subscribed from lib/pins/grailStore.
+       isPinned drives both the article's `.grail-pinned` class (sim
+       12397-12399) and the rendered `.grail-badge` glyph inside the
+       canvas-wrapper (sim 12401-12409). Each card subscribes once on
+       mount; the snapshot is local component state so React re-renders
+       when other surfaces toggle the pin (modal pin button, top-bar
+       pill `×`). */
+    const [pinnedSet, setPinnedSet] = useState<readonly number[]>(
+        () => getGrails()
+    );
+    useEffect(() => {
+        setPinnedSet(getGrails());
+        return subscribeGrails((next) => setPinnedSet(next));
+    }, []);
+    const isPinned = pinnedSet.includes(id);
 
     /* Build 35 — virtualization port (BET-06).
        Pre-Build-35: this useEffect drew immediately on mount, so 222+
@@ -252,6 +275,29 @@ export default function ArtworkCard({
         showToast(label);
     };
 
+    /* F50 (BUG-02) — sim 8049 hover-icon click handler. Pre-F50 this
+       was a stubAction toast; now wires through grailStore.togglePin
+       so the pill row + modal pin button update in lockstep. Toast
+       text mirrors sim 12424 + 12426 + 12428 (collection name title-
+       cased, "GRAIL PINNED" / "DE-PINNED" / "Grail Pin Limit: 5 max").
+       e.stopPropagation prevents the surrounding .edition-content
+       click from also opening the modal. */
+    const handleGrailClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const collName =
+            collectionTitle.charAt(0) + collectionTitle.slice(1).toLowerCase();
+        const result = storeTogglePin(id);
+        if (result === 'limit') {
+            showToast('Grail Pin Limit: 5 max');
+            return;
+        }
+        if (result === 'unpinned') {
+            showToast(`${collName} #${id} DE-PINNED`);
+            return;
+        }
+        showToast(`${collName} #${id} GRAIL PINNED`);
+    };
+
     /* Build 22 — sim 8085. Price Memory ghost seed. Deterministic per id
        so the "last sale" readout is stable across reloads + filter / sort
        changes. CSS gates visibility on body.pm-active (sim 3690). */
@@ -269,7 +315,13 @@ export default function ArtworkCard({
            when Burn Pile is on. Always rendered when the prop is true;
            CSS gating on #gallery.burn-mode (sim 2320-2321) handles
            visibility — outside burn-mode the class is inert. */
-        (burnPick ? ' burn-pick' : '');
+        (burnPick ? ' burn-pick' : '') +
+        /* F50 (BUG-02) — sim 12397-12399. The article wears `.grail-pinned`
+           whenever this id is in the grail set; downstream CSS (none yet,
+           but the class is the contractual hook future styling reads)
+           plus the in-wrapper .grail-badge below give the pinned state
+           a visible footprint on the card itself. */
+        (isPinned ? ' grail-pinned' : '');
 
     return (
         <article
@@ -352,7 +404,7 @@ export default function ArtworkCard({
                             <span
                                 className="hi-icon hi-grail"
                                 title="Grail Pin"
-                                onClick={stubAction('Grail pinned')}
+                                onClick={handleGrailClick}
                             >
                                 {'\u27DF\uFE0E'}
                             </span>
@@ -375,6 +427,19 @@ export default function ArtworkCard({
                             </span>
                         </div>
                     </div>
+                    {/* F50 (BUG-02) — sim 12401-12409. When this token
+                        is in the grail set, paint a small ⟟ glyph in the
+                        top-right of the canvas-wrapper (.grail-badge CSS
+                        in app/globals.css positions absolute, opacity 0.85,
+                        text-shadow for legibility against any artwork).
+                        Sim builds this DOM node imperatively in
+                        renderGrailBar; React port renders it conditionally
+                        from the subscribed pin state instead. */}
+                    {isPinned && (
+                        <span className="grail-badge" aria-hidden="true">
+                            {'\u27DF'}
+                        </span>
+                    )}
                     {/* Build 22 — sim 8077-8081 breadcrumb sticker. ⬤ on
                         bottom-right of .canvas-wrapper for the 5 ids the
                         page picked this session. CSS .canvas-wrapper:has(.breadcrumb-crumb)

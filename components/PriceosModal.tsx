@@ -29,10 +29,12 @@
 import {
     useCallback,
     useEffect,
+    useRef,
     useState,
     type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { FLAT_LOGOS, pickRandomLogo } from '../lib/logos/priceosLogos';
 
 interface ChangelogEntry {
     v: string;
@@ -40,18 +42,13 @@ interface ChangelogEntry {
     items: string[];
 }
 
-/* Curated subset of sim's PRICEOS_LOGOS — the cleanest small/medium
-   figlet renders that survive the React port without further escape
-   gymnastics. Sim has ~30+ logos across common/middle/rare tiers; for
-   the prototype 6 covers the "rotates on each open" feel. */
-const LOGOS: string[] = [
-    ' _____      _           ____   _____ \n|  __ \\    (_)         / __ \\ / ____|\n| |__) | __ _  ___ ___| |  | | (___  \n|  ___/ \'__| |/ __/ _ \\ |  | |\\___ \\ \n| |   | |  | | (_|  __/ |__| |____) |\n|_|   |_|  |_|\\___\\___|\\____/|_____/ ',
-    '______     _           _____ _____ \n| ___ \\   (_)         |  _  /  ___|\n| |_/ / __ _  ___ ___ | | | \\ `--. \n|  __/ \'__| |/ __/ _ \\| | | |`--. \\\n| |  | |  | | (_|  __/\\ \\_/ /\\__/ /\n\\_|  |_|  |_|\\___\\___| \\___/\\____/ ',
-    '                                 \n _____     _         _____ _____ \n|  _  |___|_|___ ___|     |   __|\n|   __|  _| |  _| -_|  |  |__   |\n|__|  |_| |_|___|___|_____|_____|',
-    ' __        __  __ \n|__)_. _ _/  \\(_  \n|  | |(_(-\\__/__) ',
-    '888b.      w            .d88b. .d88b. \n8  .8 8d8b w .d8b .d88b 8P  Y8 YPwww. \n8wwP\' 8P   8 8    8.dP\' 8b  d8     d8 \n8     8    8 `Y8P `Y88P `Y88P\' `Y88P\' ',
-    'PPPP  RRRR  III  CCC  EEEEE  OOO   SSSS \nP   P R   R  I  C   C E     O   O S     \nPPPP  RRRR   I  C     EEEE  O   O  SSS  \nP     R  R   I  C   C E     O   O     S \nP     R   R III  CCC  EEEEE  OOO  SSSS  ',
-];
+/* F54 (BUG-06) — full PRICEOS_LOGOS pool now lives in
+   lib/logos/priceosLogos.ts (54 figlet renders across common/middle/rare
+   tiers, lifted verbatim from sim 7484-7551). Pre-F54 the modal carried
+   a hand-curated 6-logo inline subset; the rotation was tiny enough
+   that returning users would loop the same figlet within a few opens.
+   Picker is the flat-pool equal-probability variant per Brendon's APR
+   20 debug-phase request (sim 7553-7555). */
 
 /* 10 most-recent changelog entries from sim 7581, condensed for the
    prototype. Sim ports the full 100+-entry log when the
@@ -136,20 +133,57 @@ const CHANGELOG: ChangelogEntry[] = [
 ];
 
 function pickLogo(): string {
-    return LOGOS[Math.floor(Math.random() * LOGOS.length)];
+    return pickRandomLogo();
 }
 
 export default function PriceosModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'priceos';
 
-    const [logo, setLogo] = useState<string>(LOGOS[0]);
+    const [logo, setLogo] = useState<string>(FLAT_LOGOS[0]);
+
+    /* F54 (BUG-06) — refs for the rAF scale-to-fit pass. Sim 7566-7578
+       measures el.scrollWidth against wrap.clientWidth-4 after the
+       <pre> commits, then applies a CSS scale transform when the figlet
+       overflows. Without this, the larger logos (Big Money-nw, Slant
+       Relief, Larry 3D, Henry 3D) overflow the modal width and either
+       clip or cause horizontal scroll. The scale also shrinks the wrap
+       height so there's no ghost vertical space below the scaled figlet. */
+    const preRef = useRef<HTMLPreElement>(null);
+    const wrapRef = useRef<HTMLDivElement>(null);
 
     /* Re-pick logo on every open — sim's _pickPriceosLogo() runs in
        window.openPriceosModal at sim 7898. */
     useEffect(() => {
         if (isOpen) setLogo(pickLogo());
     }, [isOpen]);
+
+    /* F54 — fit the rendered figlet to the wrap. Sim 7561-7578 verbatim:
+       reset transform → measure scrollWidth → if it exceeds available,
+       compute scale and apply, then shrink the wrap height so it doesn't
+       leave dead space below the scaled <pre>. Runs on every logo change
+       (modal open) inside requestAnimationFrame so layout has settled. */
+    useEffect(() => {
+        if (!isOpen) return;
+        const el = preRef.current;
+        const wrap = wrapRef.current;
+        if (!el || !wrap) return;
+        // Reset before measuring so prior transforms don't pollute scrollWidth.
+        el.style.transform = '';
+        wrap.style.height = '';
+        const raf = requestAnimationFrame(() => {
+            const avail = wrap.clientWidth - 4;
+            const actual = el.scrollWidth;
+            if (actual > avail && avail > 0) {
+                const s = avail / actual;
+                el.style.transform = `scale(${s})`;
+                el.style.transformOrigin = 'top left';
+                const origH = el.scrollHeight;
+                wrap.style.height = `${origH * s}px`;
+            }
+        });
+        return () => cancelAnimationFrame(raf);
+    }, [logo, isOpen]);
 
     const onBackdropClick = useCallback(
         (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -186,8 +220,9 @@ export default function PriceosModal() {
                 className="modal-info"
                 style={{ marginTop: 0, maxWidth: 720, width: '100%' }}
             >
-                <div className="priceos-ascii-logo-wrap">
+                <div className="priceos-ascii-logo-wrap" ref={wrapRef}>
                     <pre
+                        ref={preRef}
                         className="priceos-ascii-logo"
                         id="priceosAsciiLogo"
                         aria-hidden="true"

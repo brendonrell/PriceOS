@@ -40,6 +40,7 @@ import {
     useCallback,
     useEffect,
     useRef,
+    useState,
     type MouseEvent as ReactMouseEvent,
     type ReactNode,
 } from 'react';
@@ -48,7 +49,11 @@ import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useCollection } from '../lib/state/CollectionContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
-import { useLocalStorage } from '../lib/hooks/useLocalStorage';
+import {
+    getGrails,
+    subscribeGrails,
+    togglePin as storeTogglePin,
+} from '../lib/pins/grailStore';
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
    text-style form (mono, no emoji colour). Required for every Unicode
@@ -60,10 +65,21 @@ export default function ArtworkModal() {
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { title, totalEditions, floorEth } = useCollection();
-    const [grailPins, setGrailPins] = useLocalStorage<number[]>(
-        'pd_grail_pins',
-        []
+
+    /* F50 (BUG-02) — grail pins now live in lib/pins/grailStore so
+       ArtworkCard's hover icon, the TopBarRow pill row, and this modal
+       share one source of truth. Pre-F50 this component owned the
+       useLocalStorage hook directly, which left card + bar reading
+       stale state. Subscribe-on-mount mirrors the store snapshot into
+       local state so the pin button re-renders when other surfaces
+       toggle it. */
+    const [grailPins, setGrailPins] = useState<readonly number[]>(
+        () => getGrails()
     );
+    useEffect(() => {
+        setGrailPins(getGrails());
+        return subscribeGrails((next) => setGrailPins(next));
+    }, []);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -160,23 +176,24 @@ export default function ArtworkModal() {
     }, [isOpen, goNext, goPrev]);
 
     /* Grail pin toggle. Mirrors sim's toggleGrailPin (sim 12413), including
-       the 5-pin cap and the "Prisms #N GRAIL PINNED / DE-PINNED" toast. */
+       the 5-pin cap and the "Prisms #N GRAIL PINNED / DE-PINNED" toast.
+       F50 (BUG-02): delegates state mutation to grailStore so
+       ArtworkCard's hover icon and TopBarRow pills stay in sync. */
     const togglePin = useCallback(() => {
         if (id == null) return;
         const collName =
             title.charAt(0) + title.slice(1).toLowerCase();
-        if (grailPins.includes(id)) {
-            setGrailPins(grailPins.filter((p) => p !== id));
-            showToast(`${collName} #${id} DE-PINNED`);
-            return;
-        }
-        if (grailPins.length >= 5) {
+        const result = storeTogglePin(id);
+        if (result === 'limit') {
             showToast('Grail Pin Limit: 5 max');
             return;
         }
-        setGrailPins([...grailPins, id]);
+        if (result === 'unpinned') {
+            showToast(`${collName} #${id} DE-PINNED`);
+            return;
+        }
         showToast(`${collName} #${id} GRAIL PINNED`);
-    }, [id, title, grailPins, setGrailPins, showToast]);
+    }, [id, title, showToast]);
 
     /* Backdrop click closes only when the click lands on the modal element
        itself, not bubbled from a child. Mirrors sim's onclick guard at
