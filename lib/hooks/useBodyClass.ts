@@ -89,6 +89,13 @@ const ALL_FLAG_CLASSES = [
     // Build 32 D20 — sticker-mode drives the .sticker-strike opacity
     // fade on the sn-sticker pill icon (sim 887 + 891).
     'sticker-mode',
+    // F55 (BUG-22) — sim 9959 + 12200-12206. When asciiId is on, the
+    // sprite + ❹❷ badge inside the user-menu-wrapper get hidden. Sim
+    // does it imperatively via _asciiUpdateVisibility; we drive it from
+    // the body class so the React port doesn't need a separate runtime
+    // hide path. CSS rules in app/globals.css gate display:none on this
+    // class.
+    'ascii-id-mode',
 ];
 
 export function useBodyClass() {
@@ -132,6 +139,11 @@ export function useBodyClass() {
         // `.strikethrough` toggle (sim 9491 / 10471) — body class drives
         // the same opacity fade via globals.css.
         if (notifs.sticker)          cl.add('sticker-mode');
+        // F55 (BUG-22) — sim 9959 maps asciiId → 'ascii-id-mode'. CSS
+        // hides .ascii-sprite-wrap + .ascii-pfp-badge when this class is
+        // present, even with the menu open. Replaces sim's imperative
+        // _asciiUpdateVisibility (sim 12200-12206).
+        if (notifs.asciiId)          cl.add('ascii-id-mode');
     }, [notifs, sort]);
 
     /* Build 28 — zen-mode Escape handler. Sim 9519-9532 attaches a
