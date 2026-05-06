@@ -80,6 +80,8 @@ const PREHYDRATION_SCRIPT = `
                 // string into a TS expression. Build 33 shipped that bug;
                 // Build 34 hotfix removes the backticks.
                 if (notifs.sticker)          classList.add('sticker-mode');
+                if (notifs.degen)            classList.add('degen-mode');
+                if (notifs.zerocontext)      classList.add('zero-context-mode');
             }
         }
 

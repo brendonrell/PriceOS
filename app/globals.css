@@ -1112,6 +1112,32 @@ body.stargazing-mode .platform-modal {
     background-color: #0d0618 !important;
 }
 
+/* F38 — degen-mode CSS (BUG-07). Sim 1009-1014. */
+body.degen-mode .edition-canvas { opacity: 0 !important; transition: none !important; }
+body.degen-mode .canvas-wrapper {
+    background: rgba(120,120,120,0.12) !important;
+    border: 1px dashed rgba(120,120,120,0.3) !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+}
+
+/* F38 — zero-context-mode CSS (BUG-08). Sim 1483, 1525-1537, 3307, 3403. */
+body.zero-context-mode .tape-wrap { display: none !important; }
+body.zero-context-mode .collection-hero,
+body.zero-context-mode .traits-ui,
+body.zero-context-mode .sort-bar,
+body.zero-context-mode #collectionTabsRow,
+body.zero-context-mode .action-row,
+body.zero-context-mode .meta { display: none !important; }
+body.zero-context-mode #gallery {
+    gap: 0 !important; padding: 0 !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+}
+body.zero-context-mode .edition-card { gap: 0 !important; }
+body.zero-context-mode .canvas-wrapper { border-radius: 0 !important; box-shadow: none !important; }
+body.zero-context-mode .edition-canvas { border-radius: 0 !important; }
+body.zero-context-mode .priceos-footer { display: none !important; }
+body.zero-context-mode #digital-familiar { display: none !important; }
+
 #digital-familiar {
     position: fixed; bottom: 20px; left: 20px;
     z-index: 150;
