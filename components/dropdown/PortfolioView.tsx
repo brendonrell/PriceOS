@@ -3,7 +3,13 @@
 /*
  * PortfolioView
  *
- * Sim parity: portfolioPanel (sim line 4799-4863) + renderPortfolio family.
+ * Sim parity: portfolioPanel (sim 4807-4862) + renderPortfolio family
+ * (sim 10927-11030). F58 (BUG-25) — render layer below BUDGETS rewritten
+ * to sim's vocabulary verbatim. Flat full render — sim has no expand
+ * /collapse, no carets, no count badges, no token chips. The whole tree
+ * renders unconditionally; .pf-leader dotted lines fill the space between
+ * label and price on leaf rows (.pf-artwork + .pf-ens-row) per sim's
+ * book-TOC pattern (sim 1944-1963).
  *
  * Layout (top → bottom):
  *   ←  back arrow
@@ -11,40 +17,46 @@
  *   [ Real Budget ] [ Dream Budget ] [ + Add ]   (settings-ens-row of pills)
  *   ──── divider ────
  *   PORTFOLIOS                               (settings-header)
- *   EST. 0.00 ETH                            (grand total — visibility-toggled)
- *   [ ☀ Main ] [ ◐ Shadow ] [ $ ]            (portfolio-pills-row)
+ *   EST. 0.00 ETH                            (.portfolio-grand-total)
+ *   [ ☀ Main ] [ ◐ Shadow ] [ $ ]            (.portfolio-pills-row)
  *   ┌────────────────────────────────────┐
- *   │ ▾ LONG-FORM  (5)                   │
- *   │   ▾ @claude  (1)                   │
- *   │     ▾ Strata  ·  0.015E floor      │
- *   │       #1  #2  #3  #22  #67  …       │
- *   │   ▸ @snowfro                        │
- *   │   ▸ …                               │
- *   │ ▸ STICKER                          │
- *   │ ▸ ENS                              │
+ *   │ ➔ LONG-FORM                  12.50 │   .pf-cat > .pf-cat-head + .pf-est
+ *   │   @claude                     1.50 │   .pf-artist
+ *   │     Strata                    1.50 │   .pf-collection
+ *   │       #1  ··················· 0.015│   .pf-artwork + .pf-leader
+ *   │       #2  ··················· 0.015│
+ *   │   @snowfro                    8.00 │
+ *   │     Squiggle                  8.00 │
+ *   │       #56 ··················· 8.00 │
+ *   │ ➔ STICKERS                    0.50 │
+ *   │   @petey                      0.50 │
+ *   │     Stickers                  0.50 │
+ *   │       #1  ··················· 0.10 │
+ *   │ ➔ ENS                         3.00 │
+ *   │   brendon.eth ··············· 1.00 │   .pf-ens-row
+ *   │   pricediscussion.eth ······· 2.00 │
  *   └────────────────────────────────────┘
  *   [ type to filter ]
  *   [ Long-Form ] [ Stickers ] [ ENS ]      (filter pills)
  *
  * Behavior:
  *   - Tabs: 'portfolio' (Main, default active) | 'shadow' | $ ($ toggles
- *     the dollar-est visibility — the grand total + per-collection floor
- *     subtotals get visibility:hidden when off, layout preserved).
- *   - Expand/collapse: click a category, artist, or collection row to
- *     expand its children. State held in expanded-keys Set.
- *   - Token chips: click a token chip to fire showToast('Token coming
- *     soon — Strata #67') as a placeholder until token modal lands.
+ *     the .pf-est visibility globally — when off, sim simply omits the
+ *     .pf-est spans from the rendered tree; the grand total uses
+ *     visibility:hidden so layout height is preserved).
+ *   - No expand/collapse. The whole tree renders flat. Per sim 10927-
+ *     11030 — there is no expanded state in sim's renderPortfolio.
  *   - Filters: pill toggles the category visibility; multiple chips
  *     OR within their group; if no chips active, show all categories.
  *     Search narrows by case-insensitive substring on artist or
  *     collection name (sim's filterPortfolio behaviour).
  *
- * Budgets section (sim parity, line 11183 + 11887):
+ * Budgets section (F57 — sim 11183 + 11887, untouched by F58):
  *   - State shape: { list: { name, eth }[], activeIdx: number (-1 = none) }
- *   - Persisted to localStorage 'pd_budgets'
+ *   - Persisted to localStorage 'pd_budgets' (engine owns this)
  *   - No presets — list starts empty; user adds budgets via "+ Add"
  *   - "+ Add" opens ValuePrompt (NEW BUDGET — name + ETH)
- *   - On add, the new budget auto-activates (sim line 11903)
+ *   - On add, the new budget auto-activates (sim 11903)
  *   - Tap an active budget to deactivate; tap a different budget to switch
  *   - Long-press to delete: deferred (not in scope this round)
  */
@@ -59,6 +71,7 @@ import {
     sumPortfolioValue,
     type PortfolioTab,
     type PortfolioCategory,
+    type PortfolioCollection,
 } from '../../lib/data/mockPortfolio';
 import {
     addBudget as engineAddBudget,
@@ -75,10 +88,12 @@ const FILTER_PILLS: { key: CategoryFilter; label: string }[] = [
     { key: 'ENS',       label: 'ENS' },
 ];
 
-function formatEth(v: number): string {
-    if (v >= 100) return v.toFixed(0);
-    if (v >= 10) return v.toFixed(1);
-    return v.toFixed(3);
+/* Sim's _pfFmtEth (sim 10863-10867). >=1 → 2 decimals; <1 → up to 3
+   decimals with trailing zeros stripped via parseFloat. Always suffixed
+   with " ETH". Used for grand total + every .pf-est slot. */
+function pfFmtEth(eth: number): string {
+    if (eth >= 1) return eth.toFixed(2) + ' ETH';
+    return parseFloat(eth.toFixed(3)) + ' ETH';
 }
 
 export function PortfolioView() {
@@ -105,21 +120,11 @@ export function PortfolioView() {
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
 
-    // Track expanded keys. Top-level cats default expanded; artists +
-    // collections start collapsed. Keys: 'cat:LONG-FORM', 'art:LONG-FORM:@claude',
-    // 'col:LONG-FORM:@claude:Strata'.
-    const [expanded, setExpanded] = useState<Set<string>>(
-        () => new Set(['cat:LONG-FORM', 'cat:STICKER', 'cat:ENS'])
-    );
-    const isExpanded = (k: string) => expanded.has(k);
-    const toggleExpand = (k: string) => {
-        setExpanded((prev) => {
-            const next = new Set(prev);
-            if (next.has(k)) next.delete(k);
-            else next.add(k);
-            return next;
-        });
-    };
+    // Sim has no expand/collapse — the entire tree renders flat. F58
+    // dropped the expanded-keys Set and toggleExpand callback that the
+    // pre-F58 port carried over from a tree-widget pattern that didn't
+    // exist in sim. See sim 10927-11030 — every artist + collection +
+    // artwork is emitted unconditionally.
 
     const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
 
@@ -247,7 +252,7 @@ export function PortfolioView() {
             <div className="settings-ens-row" id="budgetsRow" style={{ flexShrink: 0 }}>
                 {budgets.list.map((b, i) => {
                     const isActive = i === budgets.activeIdx;
-                    const title = `${b.name} — ${formatEth(b.eth)} ETH`;
+                    const title = `${b.name} — ${pfFmtEth(b.eth)}`;
                     return (
                         <div
                             key={`${b.name}-${i}`}
@@ -301,7 +306,7 @@ export function PortfolioView() {
                     visibility: showDollar ? 'visible' : 'hidden',
                 }}
             >
-                EST. {formatEth(grandTotal)} ETH
+                EST. {pfFmtEth(grandTotal)}
             </div>
 
             <div className="portfolio-pills-row">
@@ -358,205 +363,80 @@ export function PortfolioView() {
             </div>
 
             {/* ── TREE ──────────────────────────────────────────── */}
+            {/* Sim 10927-11030 verbatim port. Flat full render — no
+               expand/collapse. .pf-cat header is .pf-cat-head (➔ glyph +
+               .pf-label) plus optional .pf-est (when showDollar). Tree
+               cats emit .pf-artist → .pf-collection → .pf-artwork rows.
+               Flat (ENS) cats emit .pf-ens-row. Leaf rows (.pf-artwork +
+               .pf-ens-row) carry .pf-leader between label and price for
+               the book-TOC dotted line (sim 1944-1963). */}
             <div id="portfolioList" className="portfolio-list-container">
                 {visibleCats.length === 0 ? (
-                    <div
-                        style={{
-                            padding: '15px 10px',
-                            fontSize: 12,
-                            opacity: 0.5,
-                            textAlign: 'center',
-                        }}
-                    >
-                        No matches found.
+                    <div className="pf-empty">
+                        {search || activeCats.size > 0 ? 'No matches.' : 'Nothing here yet.'}
                     </div>
                 ) : (
                     visibleCats.map((cat) => {
-                        const catKey = `cat:${cat.name}`;
-                        const catOpen = isExpanded(catKey);
-                        const catCount =
+                        // Sim 10984: STICKER renders as STICKERS (plural parity).
+                        const catLabel = cat.name === 'STICKER' ? 'STICKERS' : cat.name;
+                        // Sim 10913-10926: catSum = floor*tokens for tree, sum of
+                        // names[].price for flat.
+                        const catEst =
                             cat.type === 'tree'
                                 ? cat.artists.reduce(
                                       (s, a) =>
-                                          s + a.collections.reduce((ss, c) => ss + c.tokens.length, 0),
+                                          s +
+                                          a.collections.reduce(
+                                              (ss, c) => ss + (c.floor || 0) * c.tokens.length,
+                                              0
+                                          ),
                                       0
                                   )
-                                : cat.names.length;
+                                : cat.names.reduce((s, n) => s + (n.price || 0), 0);
                         return (
                             <div key={cat.name} className="pf-cat">
-                                <div
-                                    className="pf-cat-row"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => toggleExpand(catKey)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            toggleExpand(catKey);
-                                        }
-                                    }}
-                                >
-                                    <span className="pf-caret">
-                                        {catOpen ? '\u25BE\uFE0E' : '\u25B8\uFE0E'}
+                                <span className="pf-cat-head">
+                                    <span className="pf-cat-glyph">{'\u2794\uFE0E'}</span>
+                                    <span className="pf-label">{catLabel}</span>
+                                </span>
+                                {showDollar && (
+                                    <span className="pf-est" style={{ marginLeft: 'auto' }}>
+                                        {pfFmtEth(catEst)}
                                     </span>
-                                    <span className="pf-cat-name">{cat.name}</span>
-                                    <span className="pf-cat-count">({catCount})</span>
-                                </div>
-                                {catOpen && cat.type === 'tree' && (
-                                    <div className="pf-cat-body">
+                                )}
+                                {cat.type === 'tree' ? (
+                                    <>
                                         {cat.artists.map((art) => {
-                                            const artKey = `art:${cat.name}:${art.name}`;
-                                            const artOpen = isExpanded(artKey);
-                                            const artCount = art.collections.reduce(
-                                                (s, c) => s + c.tokens.length,
+                                            // Sim 11005-11009: artistSum = sum of floor*tokens.
+                                            const artistSum = art.collections.reduce(
+                                                (s, c) => s + (c.floor || 0) * c.tokens.length,
                                                 0
                                             );
                                             return (
-                                                <div key={art.name} className="pf-art">
-                                                    <div
-                                                        className="pf-art-row"
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onClick={() => toggleExpand(artKey)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                                e.preventDefault();
-                                                                toggleExpand(artKey);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <span className="pf-caret">
-                                                            {artOpen
-                                                                ? '\u25BE\uFE0E'
-                                                                : '\u25B8\uFE0E'}
-                                                        </span>
-                                                        <span className="pf-art-name">
-                                                            {art.name}
-                                                        </span>
-                                                        <span className="pf-art-count">
-                                                            ({artCount})
-                                                        </span>
-                                                    </div>
-                                                    {artOpen && (
-                                                        <div className="pf-art-body">
-                                                            {art.collections.map((col) => {
-                                                                const colKey = `col:${cat.name}:${art.name}:${col.name}`;
-                                                                const colOpen = isExpanded(colKey);
-                                                                return (
-                                                                    <div
-                                                                        key={col.name}
-                                                                        className="pf-col"
-                                                                    >
-                                                                        <div
-                                                                            className="pf-col-row"
-                                                                            role="button"
-                                                                            tabIndex={0}
-                                                                            onClick={() =>
-                                                                                toggleExpand(colKey)
-                                                                            }
-                                                                            onKeyDown={(e) => {
-                                                                                if (
-                                                                                    e.key === 'Enter' ||
-                                                                                    e.key === ' '
-                                                                                ) {
-                                                                                    e.preventDefault();
-                                                                                    toggleExpand(colKey);
-                                                                                }
-                                                                            }}
-                                                                        >
-                                                                            <span className="pf-caret">
-                                                                                {colOpen
-                                                                                    ? '\u25BE\uFE0E'
-                                                                                    : '\u25B8\uFE0E'}
-                                                                            </span>
-                                                                            <span className="pf-col-name">
-                                                                                {col.name}
-                                                                            </span>
-                                                                            <span
-                                                                                className="pf-col-floor"
-                                                                                style={{
-                                                                                    visibility: showDollar
-                                                                                        ? 'visible'
-                                                                                        : 'hidden',
-                                                                                }}
-                                                                            >
-                                                                                {' · '}
-                                                                                {formatEth(col.floor)}E floor
-                                                                            </span>
-                                                                            <span className="pf-col-count">
-                                                                                ({col.tokens.length})
-                                                                            </span>
-                                                                        </div>
-                                                                        {colOpen && (
-                                                                            <div className="pf-tokens">
-                                                                                {col.tokens.map((t) => (
-                                                                                    <span
-                                                                                        key={t}
-                                                                                        className="pf-token-chip"
-                                                                                        role="button"
-                                                                                        tabIndex={0}
-                                                                                        onClick={() =>
-                                                                                            showToast(
-                                                                                                `Token coming soon — ${col.name} #${t}`
-                                                                                            )
-                                                                                        }
-                                                                                        onKeyDown={(e) => {
-                                                                                            if (
-                                                                                                e.key === 'Enter' ||
-                                                                                                e.key === ' '
-                                                                                            ) {
-                                                                                                e.preventDefault();
-                                                                                                showToast(
-                                                                                                    `Token coming soon — ${col.name} #${t}`
-                                                                                                );
-                                                                                            }
-                                                                                        }}
-                                                                                    >
-                                                                                        #{t}
-                                                                                    </span>
-                                                                                ))}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                <PortfolioArtistRows
+                                                    key={art.name}
+                                                    artistName={art.name}
+                                                    artistSum={artistSum}
+                                                    showDollar={showDollar}
+                                                    collections={art.collections}
+                                                />
                                             );
                                         })}
-                                    </div>
-                                )}
-                                {catOpen && cat.type === 'flat' && (
-                                    <div className="pf-cat-body">
+                                    </>
+                                ) : (
+                                    <>
                                         {cat.names.map((n) => (
-                                            <div
-                                                key={n.label}
-                                                className="pf-ens-row"
-                                                role="button"
-                                                tabIndex={0}
-                                                onClick={() =>
-                                                    showToast(`ENS coming soon — ${n.label}`)
-                                                }
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' || e.key === ' ') {
-                                                        e.preventDefault();
-                                                        showToast(`ENS coming soon — ${n.label}`);
-                                                    }
-                                                }}
-                                            >
-                                                <span className="pf-ens-label">{n.label}</span>
-                                                <span
-                                                    className="pf-ens-price"
-                                                    style={{
-                                                        visibility: showDollar ? 'visible' : 'hidden',
-                                                    }}
-                                                >
-                                                    {formatEth(n.price)}E
-                                                </span>
+                                            <div key={n.label} className="pf-ens-row">
+                                                <span className="pf-label">{n.label}</span>
+                                                <span className="pf-leader" />
+                                                {showDollar && (
+                                                    <span className="pf-est">
+                                                        {pfFmtEth(n.price)}
+                                                    </span>
+                                                )}
                                             </div>
                                         ))}
-                                    </div>
+                                    </>
                                 )}
                             </div>
                         );
@@ -599,5 +479,64 @@ export function PortfolioView() {
                 </div>
             </div>
         </div>
+    );
+}
+
+/**
+ * Renders one artist's full subtree per sim 10996-11026: a .pf-artist
+ * header row (label + est) followed by all of the artist's .pf-collection
+ * rows, each followed by all of that collection's .pf-artwork rows. No
+ * expand/collapse — sim emits everything unconditionally. Pulled out of
+ * the parent JSX so the nesting stays readable.
+ */
+function PortfolioArtistRows({
+    artistName,
+    artistSum,
+    showDollar,
+    collections,
+}: {
+    artistName: string;
+    artistSum: number;
+    showDollar: boolean;
+    collections: PortfolioCollection[];
+}) {
+    return (
+        <>
+            <div className="pf-artist">
+                <span className="pf-label">{artistName}</span>
+                {showDollar && (
+                    <span className="pf-est" style={{ marginLeft: 'auto' }}>
+                        {pfFmtEth(artistSum)}
+                    </span>
+                )}
+            </div>
+            {collections.map((coll) => {
+                // Sim 11011: collSum = floor * tokens.length.
+                const collSum = (coll.floor || 0) * coll.tokens.length;
+                return (
+                    <div key={coll.name}>
+                        <div className="pf-collection">
+                            <span className="pf-label">{coll.name}</span>
+                            {showDollar && (
+                                <span className="pf-est" style={{ marginLeft: 'auto' }}>
+                                    {pfFmtEth(collSum)}
+                                </span>
+                            )}
+                        </div>
+                        {coll.tokens.map((tid) => (
+                            <div key={tid} className="pf-artwork">
+                                <span className="pf-label">#{tid}</span>
+                                <span className="pf-leader" />
+                                {showDollar && (
+                                    <span className="pf-est">
+                                        {pfFmtEth(coll.floor)}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
+        </>
     );
 }
