@@ -3,30 +3,50 @@
 /*
  * FamiliarModal
  *
- * Sim id #familiarModal — sim.html 4274–4283. Opened from the actual
- * Digital Familiar sprite click in sim (handleClick at 12879); since the
- * floating familiar isn't ported yet, Build 5 routes the opener through
- * the Spell Book's Familiar pill instead (per build instructions).
+ * Sim id #familiarModal — sim.html 4274–4283. Opened from the
+ * Digital Familiar sprite click via Backgrounds.tsx onClick →
+ * ModalContext.open('familiar'). Sim handles this through a
+ * document-level capture-phase listener at sim 12877-12886; the
+ * React port owns the host JSX, so a direct onClick is cleaner.
  *
  * Sim refs:
  *   markup ............. sim.html 4274–4283 (placeholder copy)
  *   open/close ......... sim.html 12938–12954
  *   species name ....... sim.html 12890 (window._getFamiliarSpeciesName)
  *
- * Surface is a minimal placeholder — the title stamps in the species name
- * once the familiar engine lands ("FAMILIAR · STARLING" etc.); the body
- * lists the four future settings (species/dialogue/outline/placement).
- * No state of its own; ModalContext gates open/close via the union name
- * 'familiar'.
+ * Surface is a minimal placeholder — the title stamps in the species
+ * name on open ("FAMILIAR · STARLING" etc.) per sim 12942-12946; the
+ * body lists the four future settings (species/dialogue/outline/
+ * placement). No state of its own beyond the title sync; ModalContext
+ * gates open/close via the union name 'familiar'.
+ *
+ * Batch G / F56 / BUG-23 — title sync:
+ *   useEffect on isOpen calls getFamiliarSpeciesName() and stamps
+ *   `FAMILIAR · {NAME}` into the title. When the spell is off and
+ *   the modal is somehow opened, the title falls back to plain
+ *   "FAMILIAR" (matches sim's `name ? ... : 'FAMILIAR'` ternary).
  */
 
+import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { getFamiliarSpeciesName } from '../lib/engines/familiarEngine';
 
 const VS15 = '\uFE0E';
 
 export default function FamiliarModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'familiar';
+    const [title, setTitle] = useState('FAMILIAR');
+
+    /* Sim 12942-12946: read the live species name when the modal
+       opens and stamp it into the title. No subscription needed —
+       species is sticky for the page lifetime per the engine's
+       _speciesPicked guard, so a single read on open is enough. */
+    useEffect(() => {
+        if (!isOpen) return;
+        const name = getFamiliarSpeciesName();
+        setTitle(name ? `FAMILIAR · ${name.toUpperCase()}` : 'FAMILIAR');
+    }, [isOpen]);
 
     return (
         <div
@@ -56,7 +76,7 @@ export default function FamiliarModal() {
                     id="familiarModalTitle"
                     style={{ marginBottom: 14 }}
                 >
-                    FAMILIAR
+                    {title}
                 </div>
                 <div
                     style={{
