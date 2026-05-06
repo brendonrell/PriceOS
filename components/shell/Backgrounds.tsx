@@ -50,9 +50,30 @@
  *   while a body class is active. It cannot pre-empt the page's
  *   audio focus the way an autoplay <video>/<audio> element or an
  *   AudioContext.resume() call would.
+ *
+ * Batch G / F56 / BUG-23 — Digital Familiar engine wiring:
+ *   This component now subscribes to familiarEngine when
+ *   pdNotifs.spell_familiar flips on. Frame snapshot drives the
+ *   sprite text, badge text, bubble text + .visible class,
+ *   .outlined class, --familiar-outline CSS var, and host display.
+ *   Sprite click opens FamiliarModal via ModalContext.open('familiar')
+ *   — replaces sim's document-level capture-phase detection at
+ *   sim 12877-12886 with a React onClick on the host JSX. The
+ *   action-button branch (.btn-mint / .modal-action-btn / etc.)
+ *   stays inside the engine's own document listener since those
+ *   targets are scattered across many components.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useModal } from '../../lib/state/ModalContext';
+import {
+    enableFamiliar,
+    disableFamiliar,
+    subscribeFamiliar,
+    type FamiliarFrame,
+} from '../../lib/engines/familiarEngine';
 
 /* Canonical body-class flags that gate the rAF loop. `bg-canvas-on`
    is the explicit hook the Build 11 spec asks for; `stargazing-mode`
@@ -61,8 +82,21 @@ import { useEffect, useRef } from 'react';
    drives the loop without any context plumbing changes. */
 const CANVAS_ON_CLASSES = ['bg-canvas-on', 'stargazing-mode'];
 
+const EMPTY_FRAME: FamiliarFrame = {
+    spriteText: '',
+    badgeText: '',
+    bubbleText: '',
+    bubbleVisible: false,
+    outlined: false,
+    outlineColor: null,
+    visible: false,
+};
+
 export function Backgrounds() {
     const rafIdRef = useRef<number | null>(null);
+    const { notifs } = usePdNotifs();
+    const { open: openModal } = useModal();
+    const [frame, setFrame] = useState<FamiliarFrame>(EMPTY_FRAME);
 
     useEffect(() => {
         const isCanvasOn = () => {
@@ -70,10 +104,11 @@ export function Backgrounds() {
             return CANVAS_ON_CLASSES.some((c) => cl.contains(c));
         };
 
-        /* Tick body — placeholder. Future starfield + familiar draw
-           work lands here, gated by the start/stop pair below so it
-           can never run unless the body class explicitly invites it.
-           No audio APIs used: no AudioContext, no .play(). */
+        /* Tick body — placeholder. Future starfield draw work lands
+           here, gated by the start/stop pair below so it can never
+           run unless the body class explicitly invites it. The
+           Familiar engine is independent of this loop — its frame
+           cadence comes from setInterval inside familiarEngine.ts. */
         const tick = () => {
             rafIdRef.current = requestAnimationFrame(tick);
         };
@@ -115,13 +150,63 @@ export function Backgrounds() {
         };
     }, []);
 
+    /* Familiar engine lifecycle — gated on pdNotifs.spell_familiar.
+       enableFamiliar is sticky-mounted (species/outline picked once
+       per page, reused on re-enable per sim 12898), so toggling off
+       then on keeps the same companion. The subscribe/unsubscribe
+       pair runs on every flip; disable on transition out clears
+       timers + listeners. The setFrame callback on mount fires
+       synchronously with the current snapshot so the JSX renders
+       in lockstep without waiting for the first interval tick. */
+    useEffect(() => {
+        if (!notifs.spell_familiar) {
+            disableFamiliar();
+            setFrame(EMPTY_FRAME);
+            return;
+        }
+        enableFamiliar();
+        const unsub = subscribeFamiliar(setFrame);
+        return () => {
+            unsub();
+            disableFamiliar();
+        };
+    }, [notifs.spell_familiar]);
+
+    /* Inline style — only set --familiar-outline when an outline is
+       active; otherwise leave the CSS var undefined so the rule
+       falls through to var(--text-color) per the .familiar-sprite.outlined
+       declaration at globals.css 1163+ / sim 3343-3346. */
+    const familiarStyle: CSSProperties = {
+        display: frame.visible ? '' : 'none',
+    };
+    if (frame.outlined && frame.outlineColor) {
+        (familiarStyle as Record<string, string>)['--familiar-outline'] = frame.outlineColor;
+    }
+
     return (
         <>
             <div id="starfield" aria-hidden="true" />
-            <div id="digital-familiar" aria-hidden="true" style={{ display: 'none' }}>
-                <span className="familiar-sprite" id="familiarSprite" />
-                <span className="familiar-badge" id="familiarBadge" />
-                <span className="familiar-bubble" id="familiarBubble" />
+            <div
+                id="digital-familiar"
+                aria-hidden="true"
+                style={familiarStyle}
+                onClick={() => openModal('familiar')}
+            >
+                <span
+                    className={`familiar-sprite${frame.outlined ? ' outlined' : ''}`}
+                    id="familiarSprite"
+                >
+                    {frame.spriteText}
+                </span>
+                <span className="familiar-badge" id="familiarBadge">
+                    {frame.badgeText}
+                </span>
+                <span
+                    className={`familiar-bubble${frame.bubbleVisible ? ' visible' : ''}`}
+                    id="familiarBubble"
+                >
+                    {frame.bubbleText}
+                </span>
             </div>
         </>
     );
