@@ -266,15 +266,14 @@ body.is-pwa .navbar {
 
 /* ── SENTIMENT WIDGET ────────────────────────────────────── */
 .sentiment-widget {
-    margin-left: 14px;
-    font-size: 18px;
-    line-height: 1;
-    color: var(--text-color);
-    pointer-events: none;
-    user-select: none;
-    display: none;
-    align-items: center;
-    transition: opacity 0.3s;
+    display: none; align-items: center;
+    position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+    margin-left: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px; line-height: 1;
+    color: var(--text-color); opacity: 0.75;
+    user-select: none; cursor: default;
+    transition: opacity 0.3s, margin-left 0.2s;
 }
 
 body.sentiment-on .sentiment-widget {
@@ -338,7 +337,7 @@ body.sentiment-on .sentiment-widget {
 }
 
 .ascii-sprite-wrap {
-    display: none;
+    display: flex;
     align-items: center;
     pointer-events: auto;
     user-select: none;
@@ -1500,6 +1499,7 @@ body.zero-context-mode #digital-familiar { display: none !important; }
     text-transform: uppercase;
     padding: 4px 10px 8px 10px;
     flex-shrink: 0;
+    visibility: hidden;
 }
 
 .portfolio-list-container {
@@ -2890,11 +2890,11 @@ body.theme-dark .canvas-wrapper {
    the same moment, so the placeholder #ccc shows through as a clean
    tile until the art lands. On LRU eviction the .visible class is
    removed and the wrapper bg falls back to the default rule above
-   (#ccc) — same placeholder, same fade.
-   Note: width/height/display from sim 2366 aren't repeated here because
-   the inline style on <canvas> in ArtworkCard already pins them, and
-   inline styles always beat CSS. Adding them again would be dead code. */
+   (#ccc) — same placeholder, same fade. */
 .edition-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
     opacity: 0;
     transition: opacity 0.5s ease-in;
 }
@@ -3144,17 +3144,16 @@ body.budget-step-line #gallery .edition-card .budget-step-v-overlay {
 /* ── ANCHOR DELTA — sim 4045-4072 ──
    When the user has set a personal reference price for any collection,
    every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
-   attribute (signed plain decimal pct, 1 dp; e.g. "+12.4", "-3.1", "0").
-   CSS appends "⚓(<delta>%)" via ::before so anchor changes never churn the
-   DOM — the page-level useEffect just stamps the attr.
+   attribute. CSS appends "⚓<delta>" via ::before so anchor changes never
+   churn the DOM — the page-level useEffect just stamps the attr.
 
-   Format note: sim's data-anchor-delta value INCLUDES the parens + percent
-   sign (e.g. "(+18%)"); the React port strips both into the attribute
-   format and CSS adds them back here. \2693\FE0E = ⚓ with VS15 text-
-   presentation selector. Courier so the secondary delta is visually
-   distinguishable from the Rubik Mono One primary price. */
+   Format note: sim's data-anchor-delta value carries the full formatted
+   delta INCLUDING parens + percent sign (e.g. "(+18%)", "(-3%)", "0").
+   CSS appends it verbatim after the anchor glyph. \2693\FE0E = ⚓ with
+   VS15 text-presentation selector. Courier so the secondary delta is
+   visually distinguishable from the Rubik Mono One primary price. */
 body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
-    content: '\2693\FE0E(' attr(data-anchor-delta) '%)  ';
+    content: '\2693\FE0E' attr(data-anchor-delta) '  ';
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: normal;
