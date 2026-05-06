@@ -2,11 +2,13 @@
  * Spell Book — 21 entries.
  *
  * Each spell has a pill in the Spell Book section of Settings. Tapping
- * a pill toggles its corresponding pdNotifs.spell_<name> flag (or, for
- * Stargazing, the body.stargazing-mode class via pdNotifs.spell_stargazing).
+ * a pill toggles its corresponding pdNotifs.spell_<name> flag. None of
+ * the entries below carry a body class — Stargazing (which does drive
+ * body.stargazing-mode) is NOT a spell; it lives in MyPdSection as a
+ * plain notif key (`stargazing`, sim 6782 + 9761) per F48.
  *
- * Order matters — matches the sim left-to-right, top-to-bottom. The
- * Hammer is always last per Brendon's convention.
+ * Order matches the sim left-to-right, top-to-bottom. The Hammer is
+ * always last per Brendon's convention.
  *
  * Icons all carry the VS-15 selector (\uFE0E) so iOS / Android render
  * them as text glyphs rather than colored emoji.
@@ -45,7 +47,7 @@ export const SPELLS: SpellEntry[] = [
     { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: '⦾\uFE0E' },
     { id: 'portal',      flag: 'spell_portal',      name: 'Portal',            icon: 'ᗝ\uFE0E' },
     { id: 'cme',         flag: 'spell_cme',         name: 'Solar Flare',       icon: '⛆\uFE0E' },
-    { id: 'stargazing',  flag: 'spell_stargazing',  name: 'Stargazing',        icon: '❇\uFE0E' },
+    { id: 'astral',      flag: 'spell_astral',      name: 'Astral',            icon: '⍈\uFE0E' },
     { id: 'offershield', flag: 'spell_offershield', name: 'Offer Shield',      icon: '⍲\uFE0E' },
     { id: 'sybilnet',    flag: 'spell_sybilnet',    name: 'Sybil Net',         icon: '∾\uFE0E' },
     { id: 'gossip',      flag: 'spell_gossip',      name: 'Gossip Protocol',   icon: '⑃\uFE0E' },
