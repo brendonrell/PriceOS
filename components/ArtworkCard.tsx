@@ -107,6 +107,14 @@ interface ArtworkCardProps {
        the toggleMute handler that flips it lands when hammer-mode click
        wiring ships. Optional + defaults to false. */
     muted?: boolean;
+    /* F61 (BUG-30) — sim 6629-6635 picks 3 random cards each time Burn
+       Pile flips on and stamps `.burn-pick` on them; the gallery itself
+       gets `.burn-mode` (sim 6635) so CSS in globals.css (sim 2320-2321)
+       dims every card except the picks. The page owns the random draw
+       (it has the visibleTokenIds set + the on-edge useEffect); this
+       prop just tells the card whether to wear the class. Optional +
+       defaults to false. */
+    burnPick?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -118,6 +126,7 @@ export default function ArtworkCard({
     showcasePick = false,
     isBreadcrumb = false,
     muted = false,
+    burnPick = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -255,7 +264,12 @@ export default function ArtworkCard({
     const articleClass =
         'edition-card' +
         (showcasePick ? ' showcase-pick' : '') +
-        (muted ? ' muted' : '');
+        (muted ? ' muted' : '') +
+        /* F61 (BUG-30) — sim 6634 stamps .burn-pick on selected cards
+           when Burn Pile is on. Always rendered when the prop is true;
+           CSS gating on #gallery.burn-mode (sim 2320-2321) handles
+           visibility — outside burn-mode the class is inert. */
+        (burnPick ? ' burn-pick' : '');
 
     return (
         <article
