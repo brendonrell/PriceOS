@@ -288,6 +288,7 @@ body.sentiment-on .sentiment-widget {
 
 @media (max-width: 600px) {
     .sentiment-widget { font-size: 22px; }
+    #sentimentIcon { font-size: 22px; }
     body:not(.tape-off) .sentiment-widget { margin-left: 18px; }
 }
 
@@ -1289,6 +1290,19 @@ body.zero-context-mode #digital-familiar { display: none !important; }
 }
 .familiar-bubble.visible { opacity: 1; transform: translateX(0); }
 
+/* Mobile sizing — sim 3390-3401. Bubble's right reservation drops 82→40px
+   per APR 20 round 3, gaining ~42px (~50% more) of usable horizontal space
+   while still leaving a viewport-edge buffer. */
+@media (max-width: 600px) {
+    #digital-familiar { font-size: 12px; left: 14px; }
+    .familiar-bubble {
+        white-space: normal;
+        max-width: calc(100vw - 40px);
+        font-size: 10px;
+        padding: 8px 11px;
+    }
+}
+
 /* ── FAMILIAR MODAL ── Blank shell for now. Batch 2 fills the content
    (species picker, dialogue frequency, outline toggle, placement). */
 .familiar-modal-backdrop {
@@ -1374,7 +1388,8 @@ body.zero-context-mode #digital-familiar { display: none !important; }
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0;
-    /* Mobile cap; desktop override at @media (min-width: 601px) below. */
+    /* Default cap (sim 1689); mobile #artistsList override to 225px lives in
+       the consolidated @media (max-width: 600px) block below (sim 2225). */
     max-height: 257px;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2026,32 +2041,14 @@ body.zero-context-mode #digital-familiar { display: none !important; }
 
 
 /* ============================================================
-   DESKTOP OVERRIDES — ports sim 2225-2228 inside its (min-width: 601px)
+   DESKTOP OVERRIDES — ports sim 2179-2185 (per-glyph data-rel pills)
    ============================================================
-   The base @media query is below at the file level. The artists list
-   gets a slightly taller cap and the filter glyphs get exact pixel
-   sizing per icon (sim's per-glyph nudges).
+   Per-pill icon sizing on desktop — exact pixel sizing per data-rel glyph
+   (sim's per-glyph nudges). Mobile overrides for #artistsList,
+   .artist-rel-icon, .artist-status-icon, and the generic .pill-artist-filter
+   span (sim 2225-2230) live in the consolidated max-width:600 block below.
 */
 @media (min-width: 601px) {
-    #artistsList { max-height: 225px; }
-    .pill-artist-filter span {
-        font-size: 16px !important;
-        transform: none !important;
-        top: 1px !important;
-    }
-    .artist-rel-icon[title="Followers"] {
-        font-size: 22px !important;
-        transform: translateY(-1px);
-    }
-    .artist-rel-icon[title="Following"] {
-        font-size: 16px !important;
-        transform: translateY(-1px);
-    }
-    .artist-rel-icon[title="Mutual"] {
-        font-size: 18px !important;
-        transform: translateY(-1px);
-    }
-
     /* Per-pill icon sizing on desktop — sim 2179-2185. */
     .pill-artist-filter[data-rel="starred"] span {
         font-size: 14px;
@@ -2728,6 +2725,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 #sn-mints .st-icon { transform: translateY(-2px) !important; }
 #sn-mutualsOnly .st-icon { transform: translateY(0px); }
 
+/* Desktop overrides — sim 2176-2177. Sim runs both the bare rules above
+   AND these desktop-specific size + transform overrides at min-width:601. */
+@media (min-width: 601px) {
+    #sn-mutualsOnly .st-icon { font-size: 20px; transform: translateY(1px); }
+    #sn-mints .st-icon { font-size: 18px !important; transform: translateY(-1px) !important; }
+}
+
 /* Mobile pill icon size + position pass — sim 1562-1601. */
 @media (max-width: 600px) {
     #sn-anon .st-icon, #sn-zen .st-icon { font-size: 14px !important; }
@@ -3199,6 +3203,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .familiar-modal-close:hover { opacity: 1; }
 }
 @media (pointer: coarse) {
+    .nav-arrow { display: none; }
     .hover-overlay { display: none; }
 }
 @media (max-width: 600px) {
@@ -3844,6 +3849,29 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .f-type { width: 44px; font-size: 11px; }
     .feed-row { gap: 8px; }
     .f-content .artist-tag { font-size: 23px; }
+
+    /* Batch Q — sim 2189 mobile block, remaining ports per audit B1. */
+    .user-icon { position: relative; top: 1px; }
+    .global-search-input::placeholder { font-size: 12px; }
+    .feed-sort-dollar { font-weight: bold !important; font-size: 10px !important; position: relative; top: 1px; }
+
+    /* Settings toggle ID overrides — sim 2214, 2220-2222.
+       (.balance-toggle-icon, .settings-toggle .st-icon, .settings-sort-arrow
+       mobile overrides live in styles/settings.css next to their bare rules.) */
+    #sn-profileTheme .st-icon { font-size: 14px !important; }
+    #sn-mints .st-icon { transform: translateY(1px) !important; }
+    #sn-lists .st-icon, #sn-offers .st-icon, #sn-xfers .st-icon { transform: translateY(0px) !important; }
+    #sn-mutualsOnly .st-icon { transform: translateY(0px) !important; }
+
+    /* Artists Menu mobile overrides — sim 2225-2230. Relocated from
+       @media (min-width: 601px) above; sim has these as mobile-only.
+       #artistsList overrides .artists-list-container's 257px base to 225px on mobile. */
+    #artistsList { max-height: 225px; }
+    .artist-rel-icon[title="Followers"] { font-size: 22px !important; transform: translateY(-1px); }
+    .artist-rel-icon[title="Following"] { font-size: 16px !important; transform: translateY(-1px); }
+    .artist-rel-icon[title="Mutual"]    { font-size: 18px !important; transform: translateY(-1px); }
+    .artist-status-icon { transform: translateY(-1px); }
+    .pill-artist-filter span { font-size: 16px !important; transform: none !important; top: 1px !important; }
 }
 
 /* Desktop-specific stat sizing — sim ~2167-2174 */
