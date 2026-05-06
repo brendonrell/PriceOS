@@ -50,7 +50,7 @@
  * dropdown component. Strictly the two files in this build.
  */
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useCollection } from '../../../lib/state/CollectionContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -67,6 +67,13 @@ import {
     artistGlyphVS15,
     artistGlyphTitle,
 } from '../../../lib/data/artistStatus';
+import {
+    applyStepLine,
+    getBudgets,
+    registerStepLineRedraw,
+    subscribeBudgets,
+    type BudgetsState,
+} from '../../../lib/engines/budgetEngine';
 
 type CollectionTab = 'showcase' | 'artworks' | 'albums';
 
@@ -222,7 +229,7 @@ function CollectionPageInner({
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const collection = useCollection();
-    const { sort } = useSort();
+    const { sort, dir } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
@@ -547,6 +554,45 @@ function CollectionPageInner({
             el.setAttribute('data-anchor-delta', str);
         });
     }, [anchorEth, visibleTokenIds]);
+
+    /* F57 (BUG-10) — Budget step-line driver.
+       The engine owns budget state + body.budget-active toggle + per-card
+       .in-budget class drive (via ArtworkCard subscribers). The step-line
+       portion is layout-dependent (offsetTop / offsetLeft / offsetWidth)
+       so it MUST be applied imperatively after the page commits — that's
+       this useLayoutEffect's job. Re-runs on:
+         - budgetsState change  (active budget toggled / added)
+         - sort + dir change    (price-asc gate flips)
+         - visibleTokenIds      (filter / search / trait change moves cards)
+       Sim parity refs: applyBudget at sim 8148 (init), 8359 (sort change),
+       8722 (trait), 8896/8909 (search), 9972 (toggle). One React hook
+       collapses all of those touch points into one place.
+
+       Resize is handled separately — engine attaches a debounced 150ms
+       resize listener (sim 6076-6078) and invokes registered redraw
+       callbacks. We register a closure that captures the live priceAsc
+       flag via a ref so the listener doesn't go stale. */
+    const [budgetsState, setBudgetsState] = useState<BudgetsState>(() =>
+        getBudgets()
+    );
+    useEffect(() => {
+        setBudgetsState(getBudgets());
+        return subscribeBudgets((next) => setBudgetsState(next));
+    }, []);
+
+    const priceAscActive = sort === 'price' && dir === 'asc';
+    const priceAscRef = useRef(priceAscActive);
+    priceAscRef.current = priceAscActive;
+
+    useLayoutEffect(() => {
+        applyStepLine(priceAscActive);
+    }, [budgetsState, sort, dir, visibleTokenIds, priceAscActive]);
+
+    useEffect(() => {
+        return registerStepLineRedraw(() => {
+            applyStepLine(priceAscRef.current);
+        });
+    }, []);
 
     /* F61 (BUG-30) — re-pick on burnPileActive flip ON.
        Sim 6629-6635 takes a fresh random sample of 3 cards each time
