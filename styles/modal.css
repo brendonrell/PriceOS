@@ -303,8 +303,9 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 /* ── MODAL INTERACTION BLOCK ──────────────────────────────────
    Ported from sim — scattered in sim source (1370-1381, 2029-2033,
    3071, 3094, 3130, 3140, 3143-3144, 3187, 3527, 3564), consolidated
-   here next to the modal chrome cluster. :hover rules are bare per
-   Batch M scope; Batch P sweeps them all into @media (hover: hover). */
+   here next to the modal chrome cluster. :hover rules are wrapped
+   in @media (hover: hover) below (Batch P sweep — touch devices
+   shouldn't fire sticky hover on tap). */
 
 /* Modal grail pin button — 44px hit area via padding/negative-margin trick */
 .modal-grail-btn {
@@ -313,7 +314,6 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     opacity: 0.5; transition: opacity 0.2s; vertical-align: middle;
     padding: 12px 10px; margin: -12px -10px; display: inline-block;
 }
-.modal-grail-btn:hover { opacity: 1; }
 .modal-grail-btn.pinned { opacity: 1; }
 
 /* Modal note button (inline in title) — same hit-area treatment */
@@ -325,25 +325,22 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 /* Modal action row */
 .modal-actions-row { display: flex; gap: 16px; align-items: center; justify-content: center; opacity: 0.45; }
 .modal-action { cursor: pointer; font-family: 'Courier New', Courier, monospace; font-size: 16px; line-height: 1; transition: opacity 0.2s; user-select: none; }
-.modal-action:hover { opacity: 1; }
 .modal-action-buy { font-family: 'Rubik Mono One', sans-serif; font-size: 11px; font-weight: normal; cursor: pointer; }
 .modal-action-owned { font-family: 'Rubik Mono One', sans-serif; font-size: 10px; font-weight: normal; cursor: default; letter-spacing: 0.5px; }
 
-.modal-action-btn:hover { opacity: 0.8; }
-.modal-action-btn-calc:hover { opacity: 1; }
 .modal-action-price { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; opacity: 0.8; }
 
 /* Remove old buy row and theme row from modal — now handled by bottom bar */
 .modal-theme-row { display: none !important; }
 .modal-buy-row { display: none !important; }
 
-.modal-pin-hint:hover { opacity: 1; }
 .modal-stat-glyph { font-size: 14px; }
-.modal-pill:hover { opacity: 1; background: var(--text-color); color: var(--bg-color); }
 
 
 /* ── HOVER STATES (desktop only) ──────────────────────────── */
 @media (hover: hover) {
+    .modal-grail-btn:hover { opacity: 1; }
+    .modal-action:hover { opacity: 1; }
     .modal-action-btn:hover { opacity: 0.8; }
     .modal-action-btn-calc:hover { opacity: 1; }
     .modal-pill:hover {
