@@ -82,6 +82,9 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs.sticker)          classList.add('sticker-mode');
                 if (notifs.degen)            classList.add('degen-mode');
                 if (notifs.zerocontext)      classList.add('zero-context-mode');
+                // F55 (BUG-22) — sim 9959. Boot with sprite+badge hidden
+                // for returning users who had ASCII-ID on at last unload.
+                if (notifs.asciiId)          classList.add('ascii-id-mode');
             }
         }
 

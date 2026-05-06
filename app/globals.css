@@ -376,6 +376,16 @@ body.anon-mode .ascii-sprite::before {
 }
 body.anon-mode .ascii-pfp-badge { display: none !important; }
 
+/* F55 (BUG-22) — sim 9959 + 12200-12206. When asciiId mode is on,
+   the ASCII sprite + Level badge are hidden inside the open menu.
+   Sim toggles display imperatively in _asciiUpdateVisibility; we
+   drive it from `body.ascii-id-mode` (added by useBodyClass +
+   pre-hydration script) so the React port stays declarative. The
+   `!important` overrides `.user-menu-wrapper.active .*` reveal
+   rules immediately above. */
+body.ascii-id-mode .ascii-sprite-wrap { display: none !important; }
+body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
+
 .btn-user {
     background: var(--text-color);
     color: var(--bg-color);
@@ -4147,6 +4157,22 @@ body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
     padding: 8px 8px 8px 6px; margin: -8px -12px -8px 0;
 }
 .grail-pill-unpin:hover { opacity: 1; }
+
+/* F50 (BUG-02) — sim 1361-1368 .grail-badge. Small ⟟ glyph painted
+   absolutely in the top-right corner of the canvas-wrapper on any
+   pinned card. Sim builds it imperatively (renderGrailBar appends a
+   <span class="grail-badge"> per pinned id); React port renders it
+   conditionally from the subscribed pin state. text-shadow keeps it
+   legible against light artwork; pointer-events:none so it doesn't
+   intercept the card's click target. */
+.grail-badge {
+    position: absolute; top: 5px; right: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; color: var(--bg-color);
+    pointer-events: none; line-height: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.55);
+    opacity: 0.85; user-select: none;
+}
 
 /* RPC ping pill — pure black background, white default text,
    coloured ms readout. Always sits at the right end of the row. */
