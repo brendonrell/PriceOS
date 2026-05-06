@@ -54,6 +54,8 @@
 import { useEffect, type ReactNode } from 'react';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { useNavFade } from '../../lib/hooks/useNavFade';
+import { pickTabstractTitle } from '../../lib/title/tabstract';
+import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
@@ -76,7 +78,13 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
        media query) with matchMedia('(display-mode: standalone)'). One-shot
        on mount; the standalone state can't change during a session, so
        no listener / cleanup needed. The matching CSS rules already exist
-       at globals.css 149 + 158. */
+       at globals.css 149 + 158.
+
+       F43 / BUG-05 — PTR engine mount (sim 5637-5699). The PTR check
+       guards on the same standalone signal as the body class, so it's
+       colocated here. mountPtr() is idempotent + owns its own overlay
+       DOM node; cleanup via unmountPtr() runs on shell unmount (route
+       teardown / HMR). */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         // @ts-expect-error — non-standard iOS-only API, intentionally accessed
@@ -84,7 +92,20 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         const displayMode = window.matchMedia?.('(display-mode: standalone)')?.matches === true;
         if (iosStandalone || displayMode) {
             document.body.classList.add('is-pwa');
+            mountPtr();
         }
+        return () => {
+            unmountPtr();
+        };
+    }, []);
+
+    /* F42 / BUG-04 — Tabstract title generator (sim 5510-5526).
+       Next.js metadata.title is server-rendered and can't rotate per
+       page load, so the rotation has to land in a client-mount effect.
+       Runs once per shell mount (per page load). */
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        document.title = pickTabstractTitle();
     }, []);
 
     /* F62 / BUG-32 — bfcache scroll restoration (sim 5488-5497).
