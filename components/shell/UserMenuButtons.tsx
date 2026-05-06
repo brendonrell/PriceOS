@@ -32,15 +32,42 @@
  * the Spell Book pill.
  */
 
+import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { DropdownStack } from '../dropdown/DropdownStack';
+import {
+    getSpriteFrame,
+    subscribeSprite,
+    wakeSprite,
+    type SpriteFrame,
+} from '../../lib/engines/priceSpriteEngine';
 
 export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
+
+    /* Mirror priceSpriteEngine state into local component state so
+       React re-renders on every blink / turn / yawn / sleep frame.
+       Sim mutates DOM directly inside render() (sim 12114-12143);
+       React port hooks the same engine via subscribeSprite(). */
+    const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
+    useEffect(() => {
+        setFrame(getSpriteFrame());
+        const unsubscribe = subscribeSprite(() => {
+            setFrame(getSpriteFrame());
+        });
+        return unsubscribe;
+    }, []);
+
+    /* Sim 12213-12219 — when the user opens the connect menu, snap a
+       sleeping/yawning sprite awake so the user sees an awake face on
+       open. resetIdleTimer also fires for an already-awake sprite. */
+    useEffect(() => {
+        if (menuOpen) wakeSprite();
+    }, [menuOpen]);
 
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
     const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
@@ -80,8 +107,12 @@ export function UserMenuButtons() {
                     openModal('priceSprite');
                 }}
             >
-                <span className="ascii-sprite" id="asciiSprite">
-                    (ง •̀_•́)ง
+                <span
+                    className={`ascii-sprite${frame.sleeping ? ' sleeping' : ''}`}
+                    id="asciiSprite"
+                    style={{ transform: frame.transform, display: 'inline-block' }}
+                >
+                    {frame.face}
                 </span>
             </div>
 

@@ -33,12 +33,38 @@
 
 import { useEffect, useState } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
+import {
+    getSentimentState,
+    subscribeSentiment,
+    type SentimentState,
+} from '@/lib/engines/sentimentEngine';
 
 export function PeteyLogo() {
     const [rotated, setRotated] = useState(false);
     const { notifs } = usePdNotifs();
 
     const showPrice = notifs.priceLogo;
+    const showSentiment = notifs.sentimentOn;
+
+    /* Mirror the sentimentEngine state into local component state so
+       React re-renders on every cycle (sim 12253-12259 renderSentimentIcon
+       directly mutates DOM; React mirrors via useState).
+
+       Subscription is gated on showSentiment — when off, no subscriber
+       exists and the engine auto-stops. When on, subscribe immediately
+       and prime local state with the engine's current value so the
+       widget reflects the latest tick on remount. */
+    const [sentiment, setSentiment] = useState<SentimentState>(() =>
+        getSentimentState()
+    );
+    useEffect(() => {
+        if (!showSentiment) return;
+        setSentiment(getSentimentState());
+        const unsubscribe = subscribeSentiment(() => {
+            setSentiment(getSentimentState());
+        });
+        return unsubscribe;
+    }, [showSentiment]);
 
     /* Dispatch a CustomEvent every time `rotated` flips so FaviconEngine
        can mirror the easter-egg rotation (sim 5530–5533: classList.toggle
@@ -118,11 +144,20 @@ export function PeteyLogo() {
                 <a href="/" className="pb-home" title="Home">HOME</a>
                 <a href="/$price" className="pb-price" title="$PRICE Token">$PRICE</a>
             </div>
-            <div className="sentiment-widget" id="sentimentWidget" aria-hidden="true">
-                {/* Sentiment Weather glyph — populated when body.sentiment-on is set.
-                    Step 2 ships an empty placeholder; the 7-state weather logic
-                    lands when Sentiment Weather is wired. */}
-                <span id="sentimentIcon" aria-hidden="true">{'\u2601\uFE0E'}</span>
+            <div
+                className="sentiment-widget"
+                id="sentimentWidget"
+                title={showSentiment ? sentiment.tip : undefined}
+                aria-hidden={!showSentiment}
+                style={{ display: showSentiment ? 'flex' : 'none' }}
+            >
+                {/* Sentiment Weather glyph — driven by sentimentEngine.
+                    7-state cycle (Strong Bull → Capitulation), ~3-6s
+                    cadence with 75% per-tick swap probability. Pauses
+                    on document.hidden. */}
+                <span id="sentimentIcon" aria-hidden="true">
+                    {sentiment.icon}
+                </span>
             </div>
         </div>
     );
