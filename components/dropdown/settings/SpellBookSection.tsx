@@ -18,7 +18,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
-import { useModal } from '../../../lib/state/ModalContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 import { SPELLS } from '../../../lib/data/spells';
@@ -29,7 +28,6 @@ interface Props {
 
 export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle } = usePdNotifs();
-    const { open: openModal } = useModal();
     const { showToast } = useToast();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
@@ -87,8 +85,13 @@ export function SpellBookSection({ onTripleTap }: Props) {
     /* Build 29 D28 — every spell flip emits a `<spell.name> ON|OFF`
        toast on click. Mirrors sim 12700:
          showToast(`${spellNames[key] || key} ${on ? 'ON' : 'OFF'}`);
-       The Familiar pill opens a modal instead of toggling and so
-       gets no on/off toast (no flag flips). */
+
+       Batch G / F56 — the Familiar pill now follows this same path.
+       Earlier builds routed the Familiar pill straight to the modal
+       because the floating sprite engine wasn't ported; F56 lands
+       the engine, so the pill returns to its sim role: TOGGLE the
+       spell, and the modal opens from clicking the floating sprite
+       itself (sim 12879, ported via Backgrounds.tsx onClick). */
     const toggleSpellWithToast = (spell: typeof SPELLS[number]) => {
         const next = !notifs[spell.flag];
         toggle(spell.flag);
@@ -111,20 +114,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         key={spell.id}
                         id={`sb-${spell.id}`}
                         active={notifs[spell.flag]}
-                        onClick={
-                            /* Build 5: the Familiar pill click opens the
-                               Familiar modal instead of toggling the spell.
-                               Sim opens the modal from the floating familiar
-                               sprite (sim 12879), but that sprite isn't
-                               ported yet, so the pill is the entry point.
-                               Every other pill keeps the standard toggle
-                               behavior — Build 29 D28 routes those toggles
-                               through `toggleSpellWithToast` so each flip
-                               emits a `<name> ON|OFF` toast (sim 12700). */
-                            spell.id === 'familiar'
-                                ? () => openModal('familiar')
-                                : () => toggleSpellWithToast(spell)
-                        }
+                        onClick={() => toggleSpellWithToast(spell)}
                         icon={spell.icon}
                         iconStyle={{
                             ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
