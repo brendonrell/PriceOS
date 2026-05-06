@@ -37,6 +37,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 
 export type ThemeKey =
     | 'artist'
@@ -112,10 +113,24 @@ function isRedBg(bgHex: string): boolean {
 
 /** Apply a theme to the documentElement and body classes. */
 function applyTheme(key: ThemeKey) {
+    const bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
+    applyBgHex(bg, key);
+}
+
+/* F53 (BUG-18) — extracted from applyTheme so the HashSyn engine can
+   apply a sampled hex without going through the THEMES dict. Sim's
+   setTheme accepts BOTH a key and a raw hex (sim 6796:
+   `let bgHex = THEMES[themeKey] || themeKey`); the React port does the
+   same split — applyTheme(key) resolves the bg, then this helper does
+   the var/class write with the resolved hex. The body-class flags
+   still need the key (so theme-hashsyn / theme-dark / etc. light up
+   correctly) — when the engine calls in, it passes 'hashsyn' so the
+   theme-hashsyn class stays attached even as the bg cycles. */
+export function applyBgHex(bgHex: string, key: ThemeKey) {
     const root = document.documentElement;
     const body = document.body;
 
-    const bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
+    const bg = bgHex;
     const text = resolveTextColor(bg);
 
     /* RGB triplet for modal-bg rgba string (sim 6816). */
@@ -211,10 +226,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // layout.tsx applied the saved bg/text vars synchronously; here we
     // bring the React state in line so the picker shows the right
     // active pill.
+    //
+    // F53 (BUG-18) — hashsyn never persists (sim 12617-12618: it needs
+    // live canvases per session), so it shouldn't appear in storage.
+    // If somehow it does (manual write, older build), treat it as
+    // unset and boot Dot — re-picking hashsyn from the picker gives a
+    // clean engine start.
     useEffect(() => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw && raw in THEMES) {
+            if (raw && raw in THEMES && raw !== 'hashsyn') {
                 setThemeState(raw as ThemeKey);
                 applyTheme(raw as ThemeKey);
             } else {
@@ -225,11 +246,40 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /* F53 (BUG-18) — sim's hashsyn seed colour is `#6a1fc2` (sim 12620),
+       NOT THEMES.hashsyn (`#7B2FFF`). The THEMES entry exists so the
+       picker pill carries a sensible static swatch + so applyTheme has
+       a fallback when the engine hasn't sampled yet, but the runtime
+       seed-on-activate matches sim verbatim. */
+    const HASHSYN_SEED = '#6a1fc2';
+
     const setTheme = useCallback((key: ThemeKey) => {
+        const prev = theme;
         setThemeState(key);
-        applyTheme(key);
+
+        // F53 (BUG-18) — leaving hashsyn: tear down the engine before
+        // applying the new theme so the new bg isn't immediately
+        // overwritten by a pending retry/scroll resample.
+        if (prev === 'hashsyn' && key !== 'hashsyn') {
+            disableHashSyn();
+        }
+
+        if (key === 'hashsyn') {
+            // Seed with sim's vivid purple so the surface flashes a
+            // sensible colour while the canvases settle. The engine
+            // resample cascade (200/600/1200/2500ms) overwrites the bg
+            // with the sampled blend as soon as canvases are paintable.
+            applyBgHex(HASHSYN_SEED, 'hashsyn');
+            enableHashSyn((hex) => applyBgHex(hex, 'hashsyn'));
+        } else {
+            applyTheme(key);
+        }
+
         try {
-            if (key === null) {
+            // F53 — sim 12618: hashsyn never persists. Removing the
+            // key is the right call here too so a returning user
+            // boots Dot rather than a stale bg.
+            if (key === null || key === 'hashsyn') {
                 localStorage.removeItem(STORAGE_KEY);
             } else {
                 localStorage.setItem(STORAGE_KEY, key);
@@ -237,7 +287,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         } catch {
             // ignore quota / private mode
         }
-    }, []);
+    }, [theme]);
 
     /* F64 (BUG-28) — when the user picks a new artist color via
        useArtistColor.setColor, the hook dispatches `pd:artist-color-changed`.
