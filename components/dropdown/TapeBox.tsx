@@ -17,10 +17,12 @@
  * uses the same data with the .notif-item visual grammar.
  */
 
+import { useEffect, useRef } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { tapeFeedItems, tapeBodyIcon } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
+import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
@@ -91,6 +93,26 @@ function BodyItem({ item }: { item: TapeFeedItem }) {
 
 export function TapeBox() {
     const { notifs, setAccordion } = usePdNotifs();
+    const railRef = useRef<HTMLDivElement | null>(null);
+
+    /* F52 / BUG-16 — subscribe the menu-tape rail to the shared tape
+       engine for rAF-driven horizontal scroll. Sim 6045-6067 +
+       6082-6084: sim animates whenever menutape mode > 0 (regardless
+       of accordion-body-open state — the rail lives in the header
+       and is visible whenever TapeBox is rendered).
+
+       Effect depends on notifs.menutape because the early-return
+       below means the rail JSX is gated on that flag. When mode
+       flips 0 → 3/4 the rail mounts, this effect re-runs, and the
+       new ref attaches. When mode flips back to 0 the rail unmounts,
+       cleanup runs, the engine drops the subscription, and the
+       transform is reset. */
+    useEffect(() => {
+        const rail = railRef.current;
+        if (!rail) return;
+        const unsubscribe = subscribeTapeRail(rail);
+        return unsubscribe;
+    }, [notifs.menutape]);
 
     if (notifs.menutape === 0) return null;
 
@@ -110,11 +132,11 @@ export function TapeBox() {
                     className="menu-tape-rail-h"
                     id="menuTapeRailH"
                     aria-label="Menu Tape"
+                    ref={railRef}
                 >
                     {/* Sim 6020: rail HTML concatenated with itself + a
-                        separator so the marquee reads as a seamless
-                        loop. Animation hooks come from the existing
-                        menu-tape-rail-h CSS in globals.css. */}
+                        separator so the engine's modulo-halfWidth
+                        translate reads as a seamless loop. */}
                     {items.map((item, i) => (
                         <RailItem key={`a-${i}`} item={item} />
                     ))}
