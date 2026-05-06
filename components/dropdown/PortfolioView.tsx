@@ -49,7 +49,7 @@
  *   - Long-press to delete: deferred (not in scope this round)
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
@@ -60,6 +60,13 @@ import {
     type PortfolioTab,
     type PortfolioCategory,
 } from '../../lib/data/mockPortfolio';
+import {
+    addBudget as engineAddBudget,
+    getBudgets,
+    subscribeBudgets,
+    toggleActiveBudget,
+    type BudgetsState,
+} from '../../lib/engines/budgetEngine';
 
 type CategoryFilter = 'LONG-FORM' | 'STICKER' | 'ENS';
 const FILTER_PILLS: { key: CategoryFilter; label: string }[] = [
@@ -67,16 +74,6 @@ const FILTER_PILLS: { key: CategoryFilter; label: string }[] = [
     { key: 'STICKER',   label: 'Stickers' },
     { key: 'ENS',       label: 'ENS' },
 ];
-
-interface BudgetEntry {
-    name: string;
-    eth: number;
-}
-interface BudgetsState {
-    list: BudgetEntry[];
-    activeIdx: number; // -1 = none active
-}
-const DEFAULT_BUDGETS: BudgetsState = { list: [], activeIdx: -1 };
 
 function formatEth(v: number): string {
     if (v >= 100) return v.toFixed(0);
@@ -94,10 +91,17 @@ export function PortfolioView() {
         'pd_portfolio_show_dollar',
         true
     );
-    const [budgets, setBudgets] = useLocalStorage<BudgetsState>(
-        'pd_budgets',
-        DEFAULT_BUDGETS
-    );
+    const [budgets, setBudgets] = useState<BudgetsState>(() => getBudgets());
+    /* F57 (BUG-10) — subscribe to budgetEngine. The engine owns
+       persistence (`pd_budgets` localStorage key), the body.budget-active
+       toggle, and the .in-budget per-card class drive (via ArtworkCard
+       subscribers). PortfolioView dispatches state changes through engine
+       functions; the subscribe-on-mount keeps the pill row in sync if
+       another surface (or another tab) mutates the store. */
+    useEffect(() => {
+        setBudgets(getBudgets());
+        return subscribeBudgets((next) => setBudgets(next));
+    }, []);
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
 
@@ -121,28 +125,24 @@ export function PortfolioView() {
 
     /**
      * Toggle a budget at index `idx`. If it's already active, deactivate
-     * (-1). Otherwise switch to it. Mirrors sim's tap-active-to-clear
-     * behaviour at the budgets-row click handler.
+     * (-1). Otherwise switch to it. Mirrors sim 11941-11947 budgetPillClick.
+     * F57 — dispatches through engine; the subscribe effect re-mirrors
+     * local state. Toast text matches sim 11947 verbatim.
      */
     const toggleBudget = useCallback(
         (idx: number) => {
-            setBudgets((prev) => {
-                const isActive = prev.activeIdx === idx;
-                const nextIdx = isActive ? -1 : idx;
-                const label = prev.list[idx]?.name ?? '';
-                showToast(
-                    isActive ? 'Budget OFF' : `Budget: ${label}`
-                );
-                return { ...prev, activeIdx: nextIdx };
-            });
+            const isActive = budgets.activeIdx === idx;
+            const label = budgets.list[idx]?.name ?? '';
+            toggleActiveBudget(idx);
+            showToast(isActive ? 'Budget OFF' : `Budget: ${label}`);
         },
-        [setBudgets, showToast]
+        [budgets, showToast]
     );
 
     /**
      * Open the value-prompt to add a new budget. Title + help + fields
-     * mirror sim line 11888 verbatim. On submit, validate (non-empty name
-     * + positive finite ETH), append, auto-activate (sim line 11903).
+     * mirror sim 11888-11899 verbatim. On submit, validate (non-empty name
+     * + positive finite ETH), engine appends + auto-activates (sim 11903).
      */
     const addBudget = useCallback(() => {
         openValuePrompt({
@@ -165,14 +165,11 @@ export function PortfolioView() {
                     showToast('Invalid ETH amount');
                     return;
                 }
-                setBudgets((prev) => {
-                    const list = [...prev.list, { name, eth: v }];
-                    return { list, activeIdx: list.length - 1 };
-                });
+                engineAddBudget(name, v);
                 showToast(`Budget added: ${name}`);
             },
         });
-    }, [openValuePrompt, setBudgets, showToast]);
+    }, [openValuePrompt, showToast]);
 
     const toggleCatFilter = useCallback((k: CategoryFilter) => {
         setActiveCats((prev) => {
