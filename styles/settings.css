@@ -242,10 +242,11 @@
     line-height: 1;
 }
 
-/* Sort arrow inside settings — sim 1677 desktop bump + sim 2216 mobile nudge.
-   Bare rule (font-weight bold, font-size 17px, transform translateY(-3px)
-   per sim 1675) ports in Batch R. Q lays in the @media overrides; the
-   dormant base inherits parent font until R fills it. */
+/* Sort arrow inside settings — bare rule (sim 1675) sets the typography
+   defaults; @media (min-width: 601px) at sim 1677 bumps font-size on
+   desktop; @media (max-width: 600px) at sim 2216 nudges transform on
+   mobile. R lands the base; Q laid in the overrides. */
+.settings-sort-arrow { font-weight: bold; font-size: 17px; display: inline-block; transform: translateY(-3px); }
 @media (min-width: 601px) {
     .settings-sort-arrow { font-size: 19px; display: inline-block; }
 }
