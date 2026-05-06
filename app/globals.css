@@ -2903,6 +2903,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     padding-bottom: 40px;
 }
 
+/* F61 (BUG-30) — Burn Pile gallery effect (sim 2320-2321 verbatim).
+   When `burnPileActive` flips ON, page.tsx adds `burn-mode` to #gallery
+   and stamps `.burn-pick` on 3 random cards via ArtworkCard's burnPick
+   prop. The dimmed cards stay clickable visually only — pointer-events
+   off prevents accidental modal-opens on cards that aren't being
+   considered for the burn. */
+#gallery.burn-mode .edition-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
+#gallery.burn-mode .edition-card.burn-pick { opacity: 1; pointer-events: auto; }
+
 .edition-content {
     position: relative;
     cursor: pointer;
