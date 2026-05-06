@@ -226,17 +226,17 @@ body.theme-dark .note-prompt-view {
     display: none;
 }
 
-/* artist-note-mode: slightly shorter sheet for artist notes (sim 3591–3595).
+/* artist-note-mode: slightly shorter sheet for artist notes (sim 3590-3595).
    Textarea sizing is unscoped — applies on mobile + desktop. Box max-height
-   is mobile-first here (60vh); desktop override (55vh) lives in the
-   min-width: 601px block below. */
+   is desktop default 55vh (sim 3592). Mobile override (max-width: 600px)
+   bumps to 60vh per sim 3593-3595 — missing here, ports in Batch Q. */
 .note-prompt-box.artist-note-mode .note-prompt-textarea {
     min-height: 120px;
     max-height: 30vh;
 }
 
 .note-prompt-box.artist-note-mode {
-    max-height: 60vh;
+    max-height: 55vh;
 }
 
 /* Desktop: centred card instead of bottom sheet, 50% taller */
@@ -281,9 +281,5 @@ body.theme-dark .note-prompt-view {
 
     .note-prompt-btn {
         font-size: 12px;
-    }
-
-    .note-prompt-box.artist-note-mode {
-        max-height: 55vh;
     }
 }
