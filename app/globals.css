@@ -171,11 +171,19 @@ body.is-pwa .navbar {
        .pd-logo-wrap` and `.top-bar ~ .nav-controls` — give both wrappers
        margin-top: 8px. Adjacent/general sibling combinators match on source
        order even when the sibling is display:none, so this margin is always
-       active in sim. The React port omits .top-bar entirely (Step 2 plan),
-       so neither selector matches and both wrappers sat 8px too high.
-       Matching the effective rendering directly here. */
+       active in sim. The React port renders .top-bar conditionally
+       (TopBarRow / TopBarCalendar), so this static rule pins margin-top: 8px
+       on both wrappers regardless of .top-bar presence; the sim combinator
+       rules below are layered alongside for selector parity (cascade
+       resolves to the same 8px). */
     margin-top: 8px;
 }
+
+/* Sim 1090-1091 — sibling combinators on .top-bar. Redundant with the
+   static rule above for the React port (which always sets 8px), but
+   ported verbatim for sim parity. R7. */
+.top-bar + .pd-logo-wrap { margin-top: 8px; }
+.top-bar ~ .nav-controls { margin-top: 8px; }
 
 .nav-faded { opacity: 0.10; }
 
@@ -1142,7 +1150,8 @@ body.zen-mode .priceos-footer { display: none !important; }
 }
 
 body.tape-off .tape-wrap,
-body.zen-mode .tape-wrap { display: none !important; }
+body.zen-mode .tape-wrap,
+body.zero-context-mode .tape-wrap { display: none !important; }
 
 body.tape-faded .tape-wrap { opacity: 0.55; }
 body.tape-faded .tape-sep-outer { opacity: 0.35; }
@@ -1212,8 +1221,9 @@ body.degen-mode .canvas-wrapper {
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
 
-/* F38 — zero-context-mode CSS (BUG-08). Sim 1483, 1525-1537, 3307, 3403. */
-body.zero-context-mode .tape-wrap { display: none !important; }
+/* F38 — zero-context-mode CSS (BUG-08). Sim 1525-1537, 3307, 3403.
+   The `.tape-wrap` hide for zero-context-mode is consolidated into the
+   sim-1481-1483 comma-list rule alongside tape-off and zen-mode (R4). */
 body.zero-context-mode .collection-hero,
 body.zero-context-mode .traits-ui,
 body.zero-context-mode .sort-bar,
@@ -1226,8 +1236,10 @@ body.zero-context-mode #gallery {
 }
 body.zero-context-mode .edition-card { gap: 0 !important; }
 body.zero-context-mode .canvas-wrapper { border-radius: 0 !important; box-shadow: none !important; }
+body.zen-mode .canvas-wrapper { box-shadow: none !important; }
 body.zero-context-mode .edition-canvas { border-radius: 0 !important; }
 body.zero-context-mode .priceos-footer { display: none !important; }
+body.zen-mode #digital-familiar,
 body.zero-context-mode #digital-familiar { display: none !important; }
 
 #digital-familiar {
@@ -2234,6 +2246,7 @@ body.zero-context-mode #digital-familiar { display: none !important; }
 body.zen-mode .stats-grid { display: none !important; }
 .stats-row-2 .stat-item-anchor { cursor: pointer; }
 .stats-row-2 .stat-item-anchor:hover { opacity: 0.75; }
+body.persona-default .t-artist { display: none !important; }
 body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-icon-owned,
 .stats-row-2 .stat-icon-spent { font-size: 17px; }
