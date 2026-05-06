@@ -68,7 +68,12 @@ export interface PdNotifs {
     spell_priceghost: boolean;
     spell_portal: boolean;
     spell_cme: boolean;
-    spell_stargazing: boolean;
+    /* F48 — Astral (Identity Plate Export) is its own pdNotifs flag.
+       Sim relocates the UI to the PriceSprite modal (sim 4350-4356);
+       repo keeps it as a Spell Book pill via lib/data/spells.ts so the
+       Setup Code roundtrip (ASTR token, sim 9786) stays whole. No body
+       class — sim 9955-9963 _bodyClassMap omits spell_astral. */
+    spell_astral: boolean;
     spell_offershield: boolean;
     spell_sybilnet: boolean;
     spell_gossip: boolean;
@@ -77,6 +82,12 @@ export interface PdNotifs {
     spell_moodring: boolean;
     spell_pricelens: boolean;
     spell_hammer: boolean;
+    /* F48 — `stargazing` (no spell_ prefix) matches sim 6782 verbatim.
+       Drives body.stargazing-mode (sim 9370 / 9960). Pill lives in
+       MyPdSection per Brendon's spec; setup-code token STAR maps here
+       (sim 9761). The earlier `spell_stargazing` field was a port-time
+       slot mismatch — sim never had that key. */
+    stargazing: boolean;
 
     // Default sort + view modes
     fogMode: boolean;
@@ -147,7 +158,7 @@ const DEFAULTS: PdNotifs = {
     spell_priceghost: false,
     spell_portal: false,
     spell_cme: false,
-    spell_stargazing: false,
+    spell_astral: false,
     spell_offershield: false,
     spell_sybilnet: false,
     spell_gossip: false,
@@ -156,6 +167,7 @@ const DEFAULTS: PdNotifs = {
     spell_moodring: false,
     spell_pricelens: false,
     spell_hammer: false,
+    stargazing: false,
 
     fogMode: false,
     zenMode: false,
@@ -191,6 +203,19 @@ const DEFAULTS: PdNotifs = {
 
 const STORAGE_KEY = 'pd_settings_notifs';
 
+/* F59 (BUG-26) — Accordion-open flags persist in sessionStorage, not
+   localStorage. Sim 5921-5942 + 6092-6099 + 6789-6791 + 7206-7213: the
+   three accordion booleans (notes / todos / tapeOpen) live under per-tab
+   keys (`pd_notes_open` / `pd_todos_open` / `pd_tape_open`) so they
+   reset on a full page reload — opening Notes shouldn't keep Notes open
+   forever. Every other pdNotifs key stays in localStorage as before. */
+const SESSION_KEYS = ['notes', 'todos', 'tapeOpen'] as const;
+const SESSION_STORAGE_KEYS: Record<typeof SESSION_KEYS[number], string> = {
+    notes:    'pd_notes_open',
+    todos:    'pd_todos_open',
+    tapeOpen: 'pd_tape_open',
+};
+
 export type AccordionName = 'tape' | 'pings' | 'todos' | 'notes';
 
 interface PdNotifsContextValue {
@@ -216,14 +241,28 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
+            let next: PdNotifs = DEFAULTS;
             if (raw) {
                 const parsed = JSON.parse(raw);
-                setNotifsState({
+                next = {
                     ...DEFAULTS,
                     ...parsed,
                     pings: { ...DEFAULTS.pings, ...(parsed.pings || {}) },
-                });
+                };
             }
+            /* F59 (BUG-26) — overlay session-scoped accordion flags. Read
+               only at hydration; subsequent updates write through the
+               persistence effect below. Missing keys → false (closed). */
+            try {
+                const overlay: Partial<Record<typeof SESSION_KEYS[number], boolean>> = {};
+                for (const k of SESSION_KEYS) {
+                    overlay[k] = sessionStorage.getItem(SESSION_STORAGE_KEYS[k]) === '1';
+                }
+                next = { ...next, ...overlay };
+            } catch {
+                // Private mode / disabled storage — fall through with localStorage values.
+            }
+            setNotifsState(next);
         } catch {
             // Corrupted blob — fall back to defaults silently.
         }
@@ -231,9 +270,23 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(notifs));
+            /* F59 (BUG-26) — strip the three accordion flags from the
+               localStorage blob; they ride sessionStorage instead. The
+               localStorage envelope keeps the same `pd_settings_notifs`
+               key so existing pre-F59 users get their other settings
+               carried forward intact. */
+            const { notes, todos, tapeOpen, ...rest } = notifs;
+            void notes; void todos; void tapeOpen;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
         } catch {
             // Quota / private mode — no-op.
+        }
+        try {
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.notes,    notifs.notes    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.todos,    notifs.todos    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.tapeOpen, notifs.tapeOpen ? '1' : '0');
+        } catch {
+            // Private mode / disabled — no-op.
         }
     }, [notifs]);
 
