@@ -11,7 +11,7 @@
  *
  *   1 · Main  — ‰ARTS-IDAS                                      (clean)
  *   2 · Zen   — ‰ARTS-NASC-NSTK-ZNMD-IDAS                       (zen)
- *   3 · Degen — ‰DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB   (loud)
+ *   3 · Degen — ‰DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB        (loud, BUG-15: AURA dropped)
  *
  * Tapping a dot loads (decode + apply via applySetupCodeState). Long-press
  * opens the popover; trailing + creates a new workspace from current state.
@@ -69,7 +69,10 @@ const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = [
     // Sim 10120-10127 — codes are post-v1.0.45 short form.
     { id: 1, name: 'Main',  code: '\u2030ARTS-IDAS', isDefault: true },
     { id: 2, name: 'Zen',   code: '\u2030ARTS-NASC-NSTK-ZNMD-IDAS', isDefault: true },
-    { id: 3, name: 'Degen', code: '\u2030DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB', isDefault: true },
+    // BUG-15 (greenlit 2026-05-05) — AURA dropped from Degen default.
+    // Existing users on the with-AURA short-form auto-migrate via the
+    // _OLD_DEFAULT_CODES entry below.
+    { id: 3, name: 'Degen', code: '\u2030DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB', isDefault: true },
 ];
 
 // Sim 10133-10141. When changing a default workspace's shipped code,
@@ -80,7 +83,12 @@ const OLD_DEFAULT_CODES: Record<number, string[]> = {
         '[\u2030-ARTS-NASC-NSTK-ZNMD-ZRCX-IDAS-V1]', // v1.0.34 had ZRCX (removed v1.0.35)
         '[\u2030-ARTS-NASC-NSTK-ZNMD-IDAS-V1]',
     ],
-    3: ['[\u2030-DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB-V1]'],
+    3: [
+        '[\u2030-DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB-V1]',
+        // BUG-15 (greenlit 2026-05-05) — pre-drop short-form code; existing
+        // users on this string get bumped to the new no-AURA default.
+        '\u2030DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB',
+    ],
 };
 
 const STORAGE_KEY_LIST   = 'pd_workspaces';
