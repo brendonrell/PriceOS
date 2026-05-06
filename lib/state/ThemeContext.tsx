@@ -58,6 +58,25 @@ const THEMES: Record<NonNullable<ThemeKey>, string> = {
     hashsyn: '#7B2FFF',
 };
 
+/* F64 (BUG-28) — when the active theme is 'artist', the bg hex comes from
+   the user's saved pick (lib/hooks/useArtistColor.ts), not the static
+   THEMES.artist constant. The hook owns persistence + migration; this
+   helper just reads the already-migrated value on every applyTheme pass.
+   Falls back to THEMES.artist whenever the saved value is missing or
+   malformed. SSR-safe via the `typeof window` guard. */
+const ARTIST_COLOR_KEY = 'pd_artist_color';
+const ARTIST_HEX_RE = /^#[0-9A-F]{6}$/i;
+function getArtistBg(): string {
+    if (typeof window === 'undefined') return THEMES.artist;
+    try {
+        const saved = localStorage.getItem(ARTIST_COLOR_KEY);
+        if (saved && ARTIST_HEX_RE.test(saved)) return saved.toUpperCase();
+    } catch {
+        /* ignore */
+    }
+    return THEMES.artist;
+}
+
 const DOT    = '#111111';
 const MATRIX = '#e0e0e0';
 
@@ -96,7 +115,7 @@ function applyTheme(key: ThemeKey) {
     const root = document.documentElement;
     const body = document.body;
 
-    const bg = key === null ? DOT : THEMES[key];
+    const bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
     const text = resolveTextColor(bg);
 
     /* RGB triplet for modal-bg rgba string (sim 6816). */
@@ -219,6 +238,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             // ignore quota / private mode
         }
     }, []);
+
+    /* F64 (BUG-28) — when the user picks a new artist color via
+       useArtistColor.setColor, the hook dispatches `pd:artist-color-changed`.
+       If the active theme is 'artist', re-run applyTheme so --bg-color /
+       --text-color / etc. pick up the new value live. If a different theme
+       is active, the new value silently persists (via the hook's
+       localStorage write) and lights up next time the user picks Artist. */
+    useEffect(() => {
+        const handler = () => {
+            if (theme === 'artist') applyTheme('artist');
+        };
+        window.addEventListener('pd:artist-color-changed', handler);
+        return () => window.removeEventListener('pd:artist-color-changed', handler);
+    }, [theme]);
 
     const value = useMemo<ThemeContextValue>(
         () => ({ theme, setTheme }),
