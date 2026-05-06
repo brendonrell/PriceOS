@@ -870,6 +870,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    all four — Tape/Pings/Todos/Notes), so a single rule covers it. */
 @media (min-width: 601px) {
     .notif-list { max-height: 168px; }
+    .notes-list { max-height: 168px; }
 }
 
 .notif-item {
@@ -921,6 +922,47 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     color: inherit;
 }
 .scroll-arrow:hover { opacity: 1; }
+
+
+/* Notes box */
+.notes-box { padding-bottom: 8px; }
+.notes-header-row {
+    display: flex; align-items: center;
+    padding: 4px 10px; width: 100%; box-sizing: border-box;
+    cursor: pointer; user-select: none;
+    transition: opacity 0.2s;
+}
+.notes-header-row:hover { opacity: 0.8; }
+/* Notes header label — exact copy of PINGS notif-header */
+.notes-header {
+    font-size: 11px; font-weight: bold; letter-spacing: 1px;
+    color: inherit; opacity: 1;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex; align-items: center;
+}
+/* Notes item list */
+.notes-list {
+    max-height: 120px; overflow-y: auto; scrollbar-width: none;
+    -ms-overflow-style: none; overscroll-behavior: contain;
+    display: none;
+    flex-direction: column; gap: 2px;
+    padding: 2px 0 6px 0;
+}
+.notes-list.active { display: flex; }
+.notes-list::-webkit-scrollbar { display: none; }
+/* note-item matches notif-item aesthetics */
+.note-item {
+    font-size: 12px; font-family: 'Courier New', Courier, monospace;
+    font-weight: bold; padding: 8px 10px;
+    display: flex; gap: 8px; align-items: center;
+    cursor: pointer; border-radius: 4px; color: inherit;
+    transition: background 0.2s;
+}
+.note-item:hover { background: rgba(128,128,128,0.2); }
+.note-id { opacity: 1; flex-shrink: 0; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; white-space: nowrap; }
+.note-icon-glyph { font-size: 13px; flex-shrink: 0; opacity: 0.7; font-family: 'Courier New', Courier, monospace; }
+.note-text { opacity: 1; line-height: 1.4; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-divider { height: 1px; background: rgba(128,128,128,0.2); margin: 2px 10px; }
 
 
 /* ── MENU TAPE ────────────────────────────────────────────
