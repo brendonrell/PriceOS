@@ -90,6 +90,10 @@ import {
     subscribeGrails,
     togglePin as storeTogglePin,
 } from '../lib/pins/grailStore';
+import {
+    getActiveBudgetEth,
+    subscribeBudgets,
+} from '../lib/engines/budgetEngine';
 
 interface ArtworkCardProps {
     id: number;
@@ -159,6 +163,37 @@ export default function ArtworkCard({
         return subscribeGrails((next) => setPinnedSet(next));
     }, []);
     const isPinned = pinnedSet.includes(id);
+
+    /* F57 (BUG-10) — sim 11225-11235 applyBudget. Each card subscribes
+       to budgetEngine and applies its own .in-budget class via React
+       when an active budget exists AND meta.price <= cap. Subscribing
+       per-card (vs the engine walking #gallery and classList.toggling)
+       avoids React's reconciler clobbering the class on the next render
+       — same end state as sim, idiomatic React port. activeEth state
+       is the live numeric cap (or null when no budget active); re-mirror
+       on every store emit. */
+    const [activeBudgetEth, setActiveBudgetEth] = useState<number | null>(
+        () => getActiveBudgetEth()
+    );
+    useEffect(() => {
+        setActiveBudgetEth(getActiveBudgetEth());
+        return subscribeBudgets(() => setActiveBudgetEth(getActiveBudgetEth()));
+    }, []);
+    /* parseFloat strips " ETH" suffix — same pattern as the pricelens
+       data-pct stamp below. data-price on the article mirrors sim 7993
+       so applyStepLine's DOM walk (sim 11280) reads the same numeric
+       attr — uses -1 for unlisted tokens to match sim's sentinel. */
+    const rawPriceEth =
+        meta?.price != null ? parseFloat(meta.price) : null;
+    const inBudget =
+        activeBudgetEth != null &&
+        rawPriceEth != null &&
+        rawPriceEth > 0 &&
+        rawPriceEth <= activeBudgetEth;
+    const dataPriceAttr =
+        rawPriceEth != null && rawPriceEth > 0
+            ? rawPriceEth.toString()
+            : '-1';
 
     /* Build 35 — virtualization port (BET-06).
        Pre-Build-35: this useEffect drew immediately on mount, so 222+
@@ -321,12 +356,21 @@ export default function ArtworkCard({
            but the class is the contractual hook future styling reads)
            plus the in-wrapper .grail-badge below give the pinned state
            a visible footprint on the card itself. */
-        (isPinned ? ' grail-pinned' : '');
+        (isPinned ? ' grail-pinned' : '') +
+        /* F57 (BUG-10) — sim 11232. `.in-budget` rides whenever an
+           active budget exists and this card's listed price ≤ cap.
+           body.budget-active CSS keys off the inverse — non-.in-budget
+           cards drop to opacity 0.22 (sim 3957-3964). */
+        (inBudget ? ' in-budget' : '');
 
     return (
         <article
             className={articleClass}
             data-mint-id={id}
+            /* F57 (BUG-10) — sim 7993. Numeric ETH price stamp read
+               by applyStepLine's #gallery walk (sim 11280). -1 for
+               unlisted tokens matches sim's sentinel. */
+            data-price={dataPriceAttr}
             style={articleStyle}
         >
             <div
