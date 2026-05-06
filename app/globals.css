@@ -64,6 +64,8 @@
 
     --pd-menu-height: 173px;
 
+    --top-bar-h: 0px;
+
     /* F29 — Connect menu sizing (clamp + accordion bounds)
        F31 (2026-05-02): removed --notif-list-max. The 200px cap (≈6 list rows)
        was what kept the menu short of its outer max-height clamp, which in
@@ -445,25 +447,28 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
                 transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 200;
     width: 310px;
-    /* F32 (2026-05-02): height, not max-height. max-height is a ceiling — it
-       lets dropdown-stack collapse to content size when content < clamp,
-       which means no slack exists for flex-grow children (F29 accordions,
-       F30 panel views, F31 uncapped notif-list) to absorb. height makes
-       dropdown-stack always exactly the clamp height; the slack between
-       content and clamp becomes real space that flex: 1 1 auto can fill.
-       overflow-y: auto stays as the safety net for tiny viewports where
-       content > height.
-       F33 (2026-05-02): reverted to max-height. F32's reasoning was
-       correct under F31's "no caps anywhere" world, but that produced
-       a menu that always filled the viewport — wrong, sim doesn't do
-       that. Now that .notif-list has its sim-matching 120/168px caps
-       back (F33 below), the stack should collapse to content size,
-       which is what max-height gives us. Matches sim line 168/182. */
-    max-height: calc(100svh - var(--menu-top-offset) - var(--menu-bottom-reveal));
+    /* Two-tier max-height strategy for iOS Safari 26 (which flips between top
+       bar, bottom-minimised, and bottom-expanded URL-bar configs — bottom was
+       being clipped in all three):
+         1. CSS fallback via dvh — "dynamic viewport height" actually tracks
+            the iOS URL-bar expansion/collapse (svh only reported the static
+            minimum, which was wrong when the bar was collapsed and the real
+            viewport was larger). -180 covers navbar + safe-area-top headroom.
+         2. JS override via --dropdown-max-h custom property — set by
+            _syncDropdownMaxHeight() using window.visualViewport.height and
+            the wrapper's actual getBoundingClientRect().bottom. Pixel-exact
+            per-device, per-URL-bar-state.
+       The `var(--dropdown-max-h, …)` pattern means the JS value wins when
+       present and the CSS calc is the graceful fallback. Matches sim 182. */
+    max-height: var(--dropdown-max-h, calc(100dvh - 180px));
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
+    /* Bottom padding INSIDE the scroll area — ensures the last item can be
+       scrolled clear of both the iOS bottom toolbar AND the home-indicator
+       inset. Sim 187. */
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 .dropdown-stack::-webkit-scrollbar { display: none; }
 
@@ -726,6 +731,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px; font-weight: bold;
     opacity: 0.7;
+    padding: 8px 10px 8px 2px;
     color: var(--bg-color);
     white-space: nowrap;
     user-select: none;
@@ -1148,7 +1154,7 @@ body.zero-context-mode .priceos-footer { display: none !important; }
 body.zero-context-mode #digital-familiar { display: none !important; }
 
 #digital-familiar {
-    position: fixed; bottom: 20px; left: 20px;
+    position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 20px;
     z-index: 150;
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px; line-height: 1;
@@ -1225,7 +1231,7 @@ body.zero-context-mode #digital-familiar { display: none !important; }
     overflow-y: auto;
     min-height: 0;
     /* Mobile cap; desktop override at @media (min-width: 601px) below. */
-    max-height: 225px;
+    max-height: 257px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     /* iOS Safari scroll-chaining isolation — same pattern as .notif-list.
@@ -3959,6 +3965,8 @@ body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
 .top-bar {
     width: 100%;
     flex-basis: 100%;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
