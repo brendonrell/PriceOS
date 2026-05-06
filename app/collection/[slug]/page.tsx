@@ -519,8 +519,9 @@ function CollectionPageInner({
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
        from text content (format "0.014 ETH" — see CollectionContext token
-       seeder) and stamp data-anchor-delta as a signed plain decimal pct
-       to 1 dp ("+12.4" / "-3.1" / "0"). When anchor is null OR the price
+       seeder) and stamp data-anchor-delta as the fully-formatted delta
+       string ("(+18%)" / "(-3%)" / "0"). The CSS ::before appends this
+       value verbatim after the ⚓ glyph. When anchor is null OR the price
        can't be parsed, the attr is removed so CSS body.anchor-active rules
        don't render a stale delta.
 
@@ -548,9 +549,10 @@ function CollectionPageInner({
                 return;
             }
             const pct = (p / anchorEth - 1) * 100;
-            const fixed = pct.toFixed(1);
-            const isZero = parseFloat(fixed) === 0;
-            const str = isZero ? '0' : pct > 0 ? `+${fixed}` : fixed;
+            const sign = pct > 0 ? '+' : pct < 0 ? '-' : '';
+            const abs = Math.abs(pct).toFixed(0);
+            const isZero = parseFloat(abs) === 0;
+            const str = isZero ? '0' : `(${sign}${abs}%)`;
             el.setAttribute('data-anchor-delta', str);
         });
     }, [anchorEth, visibleTokenIds]);
