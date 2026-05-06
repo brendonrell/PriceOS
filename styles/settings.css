@@ -198,7 +198,14 @@
 }
 
 
-/* Settings toggle pill — the workhorse */
+/* Settings toggle pill — the workhorse.
+   F49 (BUG-13): removed `gap: 4px`. Sim's .settings-toggle (sim 711) has no
+   gap — the icon→label spacing is the .st-icon's `margin-right: 4px`
+   (sim 885 / globals.css 2525-2533) only. Adding a 4px flex gap on top of
+   that pushed every pill 4px wider than sim, and across a 6-pill row inside
+   the 310px dropdown the cumulative drift was forcing pills (and the ENS
+   …more affordance) to wrap. Drop the gap and pills land at sim widths,
+   the row stops compressing, and …more no longer truncates. */
 .settings-toggle {
     height: 24px;
     border-radius: 4px;
@@ -217,7 +224,6 @@
     opacity: 0.5;
     color: inherit;
     box-sizing: border-box;
-    gap: 4px;
 }
 .settings-toggle:hover { opacity: 0.8; }
 .settings-toggle.active {
