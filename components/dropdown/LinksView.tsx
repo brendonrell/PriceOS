@@ -92,10 +92,17 @@ export function LinksView() {
                 >
                     Profile
                 </a>
-                {/* F35: stopPropagation + preventDefault prevents stats clicks from bubbling
-                    to the row and triggering Profile navigation (sim 4510).
-                    Build 4: each side opens FollowersModal with its own tab — sim
-                    openFollowersModal('followers' | 'following'). */}
+                {/* Brendon-list-2 chat F item 2 — each side (followers OR
+                    following) is now a SINGLE click target that wraps
+                    the icon + number together. Sim 4511-4512 leaves the
+                    icons decorative (only the <b> is clickable); we go
+                    one step further per Brendon — the whole .nav-stat-
+                    link span is the click region, so tapping the icon
+                    OR the number opens the same FollowersModal tab.
+                    Hover treatment shifts to opacity-only so it stays
+                    theme-aware on every theme (the prior color: var
+                    (--hothurt) red was sim deviation that read jarring
+                    on most themes). */}
                 <span
                     className="nav-follower-stats"
                     onClick={(e) => {
@@ -104,11 +111,10 @@ export function LinksView() {
                     }}
                 >
                     <span
-                        className="nav-ico nav-ico-followers"
+                        className="nav-stat-link"
+                        role="button"
+                        tabIndex={0}
                         title="Followers"
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -121,33 +127,18 @@ export function LinksView() {
                             }
                         }}
                     >
-                        ⚬{'\uFE0E'}
-                    </span>{' '}
-                    &nbsp;
-                    <b
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            open('followers', 'followers');
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                open('followers', 'followers');
-                            }
-                        }}
-                    >
-                        850
-                    </b>
+                        <span className="nav-ico nav-ico-followers">
+                            ⚬{'\uFE0E'}
+                        </span>
+                        {' '}&nbsp;
+                        <b>850</b>
+                    </span>
                     <span
-                        className="nav-ico nav-ico-following"
-                        style={{ marginLeft: 12, cursor: 'pointer' }}
+                        className="nav-stat-link"
+                        role="button"
+                        tabIndex={0}
                         title="Following"
-                        role="button"
-                        tabIndex={0}
+                        style={{ marginLeft: 12 }}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -160,27 +151,12 @@ export function LinksView() {
                             }
                         }}
                     >
-                        ⚯{'\uFE0E'}
-                    </span>{' '}
-                    &nbsp;
-                    <b
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            open('followers', 'following');
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                open('followers', 'following');
-                            }
-                        }}
-                    >
-                        2.2k
-                    </b>
+                        <span className="nav-ico nav-ico-following">
+                            ⚯{'\uFE0E'}
+                        </span>
+                        {' '}&nbsp;
+                        <b>2.2k</b>
+                    </span>
                 </span>
             </div>
 
