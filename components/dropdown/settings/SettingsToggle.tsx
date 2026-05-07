@@ -35,6 +35,13 @@ interface Props {
     iconClassName?: string;
     /** Use the .sharp-glyph class on the icon for crisp dingbat rendering. */
     sharp?: boolean;
+    /** When true, the icon span renders with NO class at all — sim's
+        sn-nightmode pattern (sim 4685: `<span style="font-size:12px;
+        line-height:1;">⏾</span>`). Skips the .st-icon defaults
+        (`margin-right: 4px`, `transform: translateY(1px)`) which fight
+        against the trim icon-only pill shape. Mutually exclusive with
+        `sharp` and `iconClassName`; if both are set, `iconBare` wins. */
+    iconBare?: boolean;
     /** Optional text label rendered after the icon. */
     label?: ReactNode;
     /** Optional trailing slot rendered after the label. Used for the
@@ -57,6 +64,7 @@ export function SettingsToggle({
     iconStyle,
     iconClassName,
     sharp = false,
+    iconBare = false,
     label,
     badge,
     style,
@@ -69,10 +77,15 @@ export function SettingsToggle({
         (className ? ' ' + className : '') +
         (disabled ? ' disabled' : '');
 
-    const iconCls =
-        'st-icon' +
-        (sharp ? ' sharp-glyph' : '') +
-        (iconClassName ? ' ' + iconClassName : '');
+    /* iconBare — sim 4685's bare-span pattern. With NO class, the icon
+       span sidesteps `.st-icon { margin-right: 4px; transform:
+       translateY(1px) }` which trims the pill width and removes the
+       1px nudge. Used by sn-nightmode (Silent Mode). */
+    const iconCls = iconBare
+        ? undefined
+        : 'st-icon' +
+          (sharp ? ' sharp-glyph' : '') +
+          (iconClassName ? ' ' + iconClassName : '');
 
     return (
         <button

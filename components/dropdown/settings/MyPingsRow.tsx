@@ -91,6 +91,7 @@ export function MyPingsRow() {
                     active={notifs.nightmode}
                     onClick={() => toggle('nightmode')}
                     icon={'⏾\uFE0E'}
+                    iconBare
                     iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
