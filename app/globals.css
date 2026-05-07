@@ -711,24 +711,31 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .dropdown-menu-links.hidden { display: none; }
 
+/* Brendon item 19 (chat A) — Profile row hover treatment moved off
+   the wrapping div. The <a>Profile</a> now inherits .user-dropdown a /
+   .user-dropdown a:hover so its rectangle matches every other row. The
+   row container is just a flex line with no padding/height/border — the
+   <a> carries those itself via the shared rule. */
 #profileRow {
-    display: flex; align-items: center;
-    padding: 6px 10px;
-    border-left: 2px solid transparent;
-    height: 30px;
-    box-sizing: border-box;
-    transition: background 0.2s, border-left-color 0.2s;
+    display: flex;
+    align-items: center;
 }
-#profileRow:hover {
-    border-left-color: var(--bg-color);
-    background: rgba(128, 128, 128, 0.2);
+
+/* Brendon item 19 (chat A) — follower/following number + icon hover.
+   Theme-sensitive accent via --hothurt (PD brand color, pops on every
+   theme). Numbers are <b> elements inside .nav-follower-stats; icons
+   are .nav-ico-followers / .nav-ico-following spans. */
+.nav-follower-stats b,
+.nav-follower-stats .nav-ico-followers,
+.nav-follower-stats .nav-ico-following {
+    transition: color 0.15s;
 }
-#profileRow > a {
-    font-size: 13px; font-weight: bold;
-    text-decoration: none; color: inherit;
-    padding: 0 !important;
-    border-left: none !important;
-    height: auto !important;
+@media (hover: hover) {
+    .nav-follower-stats b:hover,
+    .nav-follower-stats .nav-ico-followers:hover,
+    .nav-follower-stats .nav-ico-following:hover {
+        color: var(--hothurt);
+    }
 }
 
 .settings-row {
@@ -917,6 +924,40 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .notif-item strong { font-weight: 900; }
 .notif-item em { font-style: italic; }
+
+/* Brendon item 18 (chat A) — per-row delete on Notes accordion items.
+   NOT a sim port; sim has no delete affordance. The body span carries
+   `flex: 1` so the × button hugs the right edge of the row. The button
+   sits at low opacity by default and ramps up on row-hover (and to full
+   opacity on its own hover) so it's discoverable without dominating
+   the row at rest. */
+.notif-item-deletable .notif-item-body {
+    flex: 1;
+    min-width: 0;
+}
+.notif-item-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    border-radius: 3px;
+}
+@media (hover: hover) {
+    .notif-item-deletable:hover .notif-item-delete { opacity: 0.55; }
+    .notif-item-delete:hover { opacity: 1 !important; color: var(--hothurt); }
+}
+@media (hover: none) {
+    /* Touch devices — no hover; show the × at low opacity always. */
+    .notif-item-delete { opacity: 0.45; }
+}
 
 .scroll-arrow {
     text-align: left;
@@ -2299,6 +2340,32 @@ body.persona-default .stats-row-2 { display: none !important; }
     .stats-row-2 .stat-icon-owned,
     .stats-row-2 .stat-icon-spent { font-size: 15px; }
     .stats-row-2 .stat-item-anchor .stat-icon-box { font-size: 14px; }
+}
+/* Brendon item 6 (chat A) — row-2 icons #2 and #3 were drifting left of
+   their row-1 counterparts because each .stat-icon's intrinsic width
+   tracks its glyph's font-size, so a 17px ⎵ centred at column-start
+   doesn't visually align with a 14px ⟠ centred at the same X. Fix:
+   give every row-1 icon-box and every row-2 icon a fixed-width slot
+   with content centered. The grid columns still size to max-content of
+   the full stat-item, but inside each cell the icon now sits in a
+   consistent ~22px slot so the visual centers stack. Mobile gets a
+   tighter slot to match the smaller font-sizes. */
+.stats-row .stat-icon-box,
+.stats-row .stat-icon-eth,
+.stats-row .stat-icon-owners,
+.stats-row-2 .stat-icon-owned,
+.stats-row-2 .stat-icon-spent {
+    min-width: 22px;
+    justify-content: center;
+}
+@media (max-width: 600px) {
+    .stats-row .stat-icon-box,
+    .stats-row .stat-icon-eth,
+    .stats-row .stat-icon-owners,
+    .stats-row-2 .stat-icon-owned,
+    .stats-row-2 .stat-icon-spent {
+        min-width: 26px;
+    }
 }
 .stats-row-2 .stat-val.stat-val-empty { opacity: 0.45; letter-spacing: 0; }
 .stats-row-2 .stat-icon-spent { position: relative; top: 1px; }
