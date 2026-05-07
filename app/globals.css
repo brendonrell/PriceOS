@@ -1305,6 +1305,28 @@ body.degen-mode .canvas-wrapper {
     border: 1px dashed rgba(120,120,120,0.3) !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
+/* Brendon list item 8 — Degen overlay. Sim 1015-1031 verbatim. The
+   overlay is rendered conditionally inside ArtworkCard when
+   notifs.degen is true; CSS sets layout + typography + the 2-cell
+   trait grid. pointer-events: none lets clicks fall through to the
+   edition-content button so the modal still opens. */
+.degen-overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; pointer-events: none;
+    font-family: 'Courier New', Courier, monospace; font-weight: bold;
+    color: var(--text-color); text-align: center; padding: 6px;
+    box-sizing: border-box;
+}
+.degen-overlay .d-id    { font-size: 14px; opacity: 0.9; margin-bottom: 2px; line-height: 1; }
+/* 2×2 grid for traits — no labels, apples-to-apples, nothing cut off */
+.degen-overlay .d-grid  {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 2px 6px; width: 100%; font-size: 9px;
+    opacity: 0.6; line-height: 1.3; letter-spacing: 0.2px;
+}
+.degen-overlay .d-cell  { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.degen-overlay .d-price { font-size: 11px; opacity: 0.8; margin-top: 2px; line-height: 1; }
 
 /* F38 — zero-context-mode CSS (BUG-08). Sim 1525-1537, 3307, 3403.
    The `.tape-wrap` hide for zero-context-mode is consolidated into the
@@ -4664,6 +4686,66 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
     20%  { background: rgba(255, 230, 0, 0.35); }
     100% { background: rgba(255, 230, 0, 0); }
 }
+
+/* Brendon list item 12 — Workspace switcher base CSS. Sim 792-844.
+   The repo had ws-popover styles but missed the base styles for the
+   container, the dots, and the +ADD button — the dots were rendering
+   as default-sized buttons, which compounded with the connect-menu
+   flex layout in unexpected ways (Brendon flagged spacing breakage
+   when degen + workspace dot are both visible; the underlying cause
+   was the missing 16x16 hit-area constraint, not a degen-specific
+   combined-mode rule). */
+.workspace-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+.ws-dot {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 16px; height: 16px;
+    flex: 0 0 auto;
+}
+.ws-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px; height: 4px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: opacity 0.18s, width 0.18s, height 0.18s;
+}
+.ws-dot:hover::before { opacity: 0.7; }
+.ws-dot.active::before {
+    width: 6px; height: 6px;
+    opacity: 1;
+}
+.ws-add {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold;
+    line-height: 1;
+    width: 16px; height: 16px;
+    margin-left: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-add:hover:not(.faded) { opacity: 0.9; }
+.ws-add.faded { opacity: 0.15; cursor: not-allowed; }
 
 /* Long-press popover — keeps its own dark surface so it reads
    against any theme. Sits above the dot, position: fixed (uses
