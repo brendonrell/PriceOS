@@ -362,13 +362,15 @@ body.sentiment-on .sentiment-widget {
     white-space: nowrap; letter-spacing: -0.5px;
     transition: opacity 0.3s;
 }
-/* Desktop-only: nudge the whole sprite down 2px so the ง arms
-   (Thai U+0E07) baseline-align with the face glyphs. Courier New
-   renders Thai script slightly higher on desktop than mobile Safari.
-   Mobile is the target device — do not change the mobile baseline. */
-@media (min-width: 601px) {
-    .ascii-sprite { position: relative; top: 2px; }
-}
+/* Brendon-list-2 chat F item 14 — desktop-only `position: relative;
+   top: 2px;` block removed. Was added (Build pre-F) under the theory
+   that Courier renders Thai (ง) higher on desktop so the whole sprite
+   needed to push down 2px to baseline-align face glyphs. In practice
+   this nudged the sprite below the .ascii-pfp-badge, making the two
+   visibly misaligned vs sim (which has no nudge). Sim is canon — sprite
+   and badge both sit at flex's natural center now. The internal eyebrow
+   rendering on desktop (item 6) is a separate concern Brendon
+   explicitly does not want chased. */
 .ascii-sprite.sleeping { opacity: 0.45; }
 
 .ascii-pfp-badge {
@@ -400,6 +402,41 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
    rules immediately above. */
 body.ascii-id-mode .ascii-sprite-wrap { display: none !important; }
 body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
+
+/* Brendon-list-2 chat F item 11 — modal-pin-hint CSS was completely
+   absent from the React port. Sim 3170-3188 carries the full block;
+   without it the .modal-pin-hint <div> in ArtworkModal.tsx (line 343)
+   rendered with no positioning, no sizing, no chrome — just a bare
+   character at the start of the modal flow.
+
+   Sim's .pinned state only ramps opacity 0.7 → 1. Per Brendon, that
+   isn't a strong enough "already pinned" signal — the pin glyph stays
+   the same size and just gets slightly more visible. We go beyond
+   sim parity with `transform: scale(1.1)` on .pinned so the pin
+   visibly grows when the artwork is pinned; clearer affordance,
+   theme-agnostic, no new color introduced.
+
+   Logged in Post-Sim Backlog as a deliberate sim deviation. */
+.modal-pin-hint {
+    position: absolute;
+    /* +6px nudge so the pin's visual center aligns with the close X.
+       Both share the same top anchor, but X is 30px and pin is 22px —
+       4px was the half-of-size-delta math, +2px more per Brendon's
+       eye-test. Sim 3174-3176. */
+    top: calc(max(20px, env(safe-area-inset-top)) + 6px);
+    right: 70px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0.7;
+    z-index: 1002;
+    font-family: 'Courier New', Courier, monospace;
+    transition: opacity 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.modal-pin-hint:hover { opacity: 1; }
+.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); }
 
 .btn-user {
     background: var(--text-color);
@@ -711,30 +748,76 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .dropdown-menu-links.hidden { display: none; }
 
-/* Brendon item 19 (chat A) — Profile row hover treatment moved off
-   the wrapping div. The <a>Profile</a> now inherits .user-dropdown a /
-   .user-dropdown a:hover so its rectangle matches every other row. The
-   row container is just a flex line with no padding/height/border — the
-   <a> carries those itself via the shared rule. */
+/* Brendon-list-2 chat F items 2 + 12 — Profile row hover now treats
+   the WHOLE row (icons + numbers + label) as one rectangle, matching
+   Settings/Discord/Artists/Portfolio. Sim 4508-4509 carries the row
+   chrome (padding, border-left, height) on the OUTER #profileRow div
+   and strips it off the inner <a> via inline styles; we mirror that
+   pattern declaratively below. The <a>'s flex:1 (PARKED DEVIATION)
+   pushes the stats to the right edge — without this rule the stats
+   span sits in the row's natural-width gap and the hover rectangle
+   only covered the link region, getting "cut off" under the stats
+   per Brendon. The inner #profileRow > a:hover suppresses the
+   default .user-dropdown a:hover (line 3344) so the row + the link
+   don't double-up the border + bg. */
 #profileRow {
     display: flex;
     align-items: center;
+    padding: 6px 10px;
+    border-left: 2px solid transparent;
+    height: 30px;
+    box-sizing: border-box;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+#profileRow > a {
+    padding: 0;
+    border-left: none;
+    height: auto;
 }
 
-/* Brendon item 19 (chat A) — follower/following number + icon hover.
-   Theme-sensitive accent via --hothurt (PD brand color, pops on every
-   theme). Numbers are <b> elements inside .nav-follower-stats; icons
-   are .nav-ico-followers / .nav-ico-following spans. */
-.nav-follower-stats b,
-.nav-follower-stats .nav-ico-followers,
-.nav-follower-stats .nav-ico-following {
-    transition: color 0.15s;
+/* Brendon-list-2 chat F item 2 — .nav-stat-link is the new single
+   click-target wrapping each [icon + b] pair (followers OR following).
+   Hover treatment is opacity-only — sim 197 keeps b at opacity 0.6 +
+   underline by default; we run the same pattern on the wrapper so the
+   icon + number lift together. The prior color: var(--hothurt) red
+   hover (chat A item 19) was a sim deviation that read jarring on
+   most themes; replaced with theme-agnostic opacity ramp.
+
+   .nav-follower-stats margin-left zeroed because #profileRow now
+   carries its own padding — the 12px gap to the label was sim's
+   way of separating stats from a no-padding profile link, no
+   longer needed. */
+.nav-follower-stats {
+    margin-left: 0;
 }
+.nav-stat-link {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+.nav-stat-link b {
+    opacity: 1;
+    cursor: inherit;
+}
+.nav-stat-link .nav-ico {
+    cursor: inherit;
+}
+
 @media (hover: hover) {
-    .nav-follower-stats b:hover,
-    .nav-follower-stats .nav-ico-followers:hover,
-    .nav-follower-stats .nav-ico-following:hover {
-        color: var(--hothurt);
+    #profileRow:hover {
+        border-left-color: var(--bg-color);
+        background: rgba(128, 128, 128, 0.2);
+    }
+    #profileRow:hover > a {
+        border-left: none;
+        background: transparent;
+    }
+    .nav-stat-link:hover {
+        opacity: 1;
     }
 }
 
@@ -3340,7 +3423,17 @@ body.hammer-mode .hover-overlay { display: none !important; }
    Sim-block-order for the first cluster, then L–O appendix below. */
 @media (hover: hover) {
     .petey-bubble a:hover { opacity: 0.7; }
-    .btn-user:hover { color: var(--btn-user-hover); }
+    /* Brendon-list-2 chat F item 2 — sim 3202 / 6817 sets
+       --btn-user-hover to #ffffff on light themes and #888888 on dark
+       themes. Both reads as "rolls white" against most theme bgs
+       (the yellow / red / blue / orange themes all have light text on
+       a saturated bg, so the white-on-color hover felt jarring). Per
+       Brendon, theme-aware = no new color introduced. Opacity-only
+       hover keeps the existing color palette and just lifts the
+       button slightly. The --btn-user-hover variable + ThemeContext
+       writes are left in place (vestigial but harmless) so removing
+       this rule cleanly is one CSS edit. */
+    .btn-user:hover { opacity: 0.85; }
     .user-dropdown a:hover {
         border-left-color: var(--bg-color);
         background: rgba(128, 128, 128, 0.2);
