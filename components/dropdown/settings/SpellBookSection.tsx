@@ -142,7 +142,6 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         showToast(`Stargazing ${next ? 'ON' : 'OFF'}`);
                     }}
                     icon={'❇\uFE0E'}
-                    iconStyle={{ fontSize: '13px', lineHeight: '1' }}
                     label="Stargazing"
                 />
                 {/* Spells 13–19: offer shield → hammer */}
