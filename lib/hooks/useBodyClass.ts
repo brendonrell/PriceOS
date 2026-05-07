@@ -63,12 +63,20 @@ import { useToast } from '../state/ToastContext';
 const TAPE_CLASS_MAP: Record<number, string | null> = {
     0: 'tape-off',
     1: 'tape-faded',
-    2: null, // 'standard' has no class — it's the unstyled baseline
+    /* Brendon list item 9 — sim 13348 lists 'tape-standard' as one of
+       the 5 MODE_CLASSES; sim 13360 always adds the active one. The
+       class has no CSS rules of its own (sim 1492 — "STANDARD: baseline
+       CSS above; no overrides needed") but parity demands the body
+       class flips on regardless so any rule that gates on
+       `body.tape-standard` reads correctly. Earlier ports treated this
+       slot as null because no CSS rule referenced it; that left desktop
+       Standard as a no-class state, off-by-one against sim. */
+    2: 'tape-standard',
     3: 'tape-bold',
     4: 'tape-framed',
 };
 
-const ALL_TAPE_CLASSES = ['tape-off', 'tape-faded', 'tape-bold', 'tape-framed'];
+const ALL_TAPE_CLASSES = ['tape-off', 'tape-faded', 'tape-standard', 'tape-bold', 'tape-framed'];
 
 const ALL_FLAG_CLASSES = [
     'notes-mode',
