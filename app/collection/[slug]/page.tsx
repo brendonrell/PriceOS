@@ -64,10 +64,6 @@ import {
 import ArtworkCard from '../../../components/ArtworkCard';
 import TraitsUI from '../../../components/collection/TraitsUI';
 import {
-    artistGlyphVS15,
-    artistGlyphTitle,
-} from '../../../lib/data/artistStatus';
-import {
     applyStepLine,
     getBudgets,
     registerStepLineRedraw,
@@ -167,8 +163,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         detail: (
             <>
                 <span className="f-highlight">@snowfro</span>
-                <span className="artist-tag" title={artistGlyphTitle('@snowfro')}>
-                    {artistGlyphVS15('@snowfro')}
+                <span className="artist-tag" aria-label="artist">
+                    {'✺\uFE0E'}
                 </span>{' '}
                 listed{' '}
                 <span className="f-highlight">#1</span> for 2.0 ETH
@@ -183,8 +179,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         detail: (
             <>
                 <span className="f-highlight">@XCOPY</span>
-                <span className="artist-tag" title={artistGlyphTitle('@XCOPY')}>
-                    {artistGlyphVS15('@XCOPY')}
+                <span className="artist-tag" aria-label="artist">
+                    {'✺\uFE0E'}
                 </span>
                 <span className="follow-badge">
                     <span className="ico-mutual" title="Mutual">
@@ -636,9 +632,8 @@ function CollectionPageInner({
                                 <span
                                     className="artist-tag"
                                     aria-label="artist"
-                                    title={artistGlyphTitle('@claude')}
                                 >
-                                    {artistGlyphVS15('@claude')}
+                                    {'✺\uFE0E'}
                                 </span>
                                 <span className="follow-badge">
                                     <span className="ico-mutual" title="Mutual">
