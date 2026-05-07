@@ -136,6 +136,13 @@ export interface PdNotifs {
     // Misc UI prefs
     nightmode: boolean;
     priceLogo: boolean;
+    /* Brendon item 11 (chat A) — Pingtoasts: when true, ping events
+       toast (sim 9275 — `Pingtoasts ${state}`). The pill in MY PINGS
+       was rendered inert (no active/onClick props), so clicking
+       didn't react. Now wired: defaults true (sim 6782 init).
+       Behaviour for "show ping toast" callsites lands in subsequent
+       chats — this surfaces the toggle so the button reacts. */
+    pingToasts: boolean;
 }
 
 const DEFAULTS: PdNotifs = {
@@ -199,6 +206,9 @@ const DEFAULTS: PdNotifs = {
 
     nightmode: false,
     priceLogo: false,
+    /* Brendon item 11 (chat A) — Pingtoasts default true matches sim
+       6782 initialization (pingToasts: true). */
+    pingToasts: true,
 };
 
 const STORAGE_KEY = 'pd_settings_notifs';
