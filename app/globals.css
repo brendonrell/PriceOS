@@ -346,7 +346,7 @@ body.sentiment-on .sentiment-widget {
 }
 
 .ascii-sprite-wrap {
-    display: flex;
+    display: none;
     align-items: center;
     pointer-events: auto;
     user-select: none;
@@ -361,6 +361,13 @@ body.sentiment-on .sentiment-widget {
     color: var(--text-color); opacity: 0.75;
     white-space: nowrap; letter-spacing: -0.5px;
     transition: opacity 0.3s;
+}
+/* Desktop-only: nudge the whole sprite down 1px so the ง arms
+   (Thai U+0E07) baseline-align with the face glyphs. Courier New
+   renders Thai script slightly higher on desktop than mobile Safari.
+   Mobile is the target device — do not change the mobile baseline. */
+@media (min-width: 601px) {
+    .ascii-sprite { position: relative; top: 1px; }
 }
 .ascii-sprite.sleeping { opacity: 0.45; }
 
