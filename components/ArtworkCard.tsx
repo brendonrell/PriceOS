@@ -98,6 +98,7 @@ import {
     toggleMute as storeToggleMute,
 } from '../lib/pins/muteStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import { useNotePrompt } from '../lib/state/NotePromptContext';
 import {
     getActiveBudgetEth,
     subscribeBudgets,
@@ -151,6 +152,7 @@ export default function ArtworkCard({
     const { showToast } = useToast();
     const { title: collectionTitle } = useCollection();
     const { notifs } = usePdNotifs();
+    const { openTokenNoteEditor } = useNotePrompt();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     /* Build 35 — wrapper ref so the virtualizer can observe this card's
@@ -543,7 +545,19 @@ export default function ArtworkCard({
                             <span
                                 className="hi-icon hi-note"
                                 title="Add Note"
-                                onClick={stubAction('Note prompt')}
+                                onClick={(e) => {
+                                    /* D010-note (chat #5) — sim 8048:
+                                       openNotePrompt(event, parseInt(this
+                                       .closest('.edition-card').dataset
+                                       .mintId)). e.stopPropagation prevents
+                                       the surrounding .edition-content
+                                       click from also opening the modal.
+                                       Visibility is CSS-gated to
+                                       body.notes-mode (globals.css 3220-
+                                       3221 / sim 2382). */
+                                    e.stopPropagation();
+                                    openTokenNoteEditor(id);
+                                }}
                             >
                                 {'\u229F\uFE0E'}
                             </span>

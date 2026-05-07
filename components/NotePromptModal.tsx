@@ -18,15 +18,19 @@
  * the active class then unmounts after 260ms (matches the CSS
  * `transition: opacity 0.25s ease`).
  *
- * Generic on purpose — Day Notes and Artist Notes wire it up via
- * NotePromptContext. Token Notes will reuse the same modal once
- * NotePromptContext gets its token-kind branch (NPF-Prompt-Token).
+ * Generic on purpose — Day Notes, Artist Notes, and Token Notes wire it
+ * up via NotePromptContext. The token kind ships in chat #5 (Notes
+ * feature parity); modal markup + animation are kind-agnostic, the only
+ * kind-aware bit is the `.artist-note-mode` className applied to the
+ * box for the artist sheet's slightly-shorter sizing.
  *
  * `kind` prop drives the `.artist-note-mode` class on the box —
  * applies the slightly shorter artist-sheet sizing from sim CSS
  * 3591–3595. Sim adds the class at sim 10576 and removes it on close
  * (sim 10608, 10627); when the parent flips kind to undefined at
  * close-start, the class drops, matching sim's mid-fade behaviour.
+ * Token kind uses the default sheet sizing — sim has no token-specific
+ * CSS class so we don't add one here either.
  */
 
 import {
@@ -40,7 +44,7 @@ import { renderNoteMarkdown } from '../lib/calendar/utils';
 
 interface NotePromptModalProps {
   open: boolean;
-  kind?: 'day' | 'artist';
+  kind?: 'day' | 'artist' | 'token';
   label: ReactNode;
   initialValue: string;
   onClose: () => void;
