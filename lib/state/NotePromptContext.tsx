@@ -6,9 +6,14 @@
  * Discriminated `prompt` shape supports:
  *   - kind: 'day'    — calendar day notes; backed by CalendarContext.dayNotes
  *   - kind: 'artist' — per-artist notes; backed by localStorage 'pd_artist_notes'
+ *   - kind: 'token'  — per-edition notes; backed by localStorage 'pd_token_notes'
+ *                       (sim 5715-5814 + 6566-6603). chat #5 / Notes feature.
  *
- * MUST be mounted INSIDE <CalendarProvider> + <ToastProvider> in
- * app/layout.tsx so the day-notes map and showToast() are reachable.
+ * MUST be mounted INSIDE <CalendarProvider> + <ToastProvider> + <ModalProvider>
+ * in app/layout.tsx so the day-notes map, showToast(), and openModal() are
+ * reachable. The token-label renders an underlined "PRISMS #1234" span whose
+ * onClick fires open('artwork', id) — sim 5743 same behaviour, opens the
+ * artwork modal underneath the note prompt sheet (z-index 10001 vs 1000).
  *
  * Date label format mirrors sim line 5863 — the date string is rendered with
  * an underline + 3px offset. CAL_MONTH_SHORT already returns uppercase tokens
@@ -16,8 +21,10 @@
  * css text-transform required. Artist label format mirrors sim line 10577 —
  * "ARTIST NOTE FOR: <underlined>${name}</underlined>" with the same 3px
  * underline offset; the "ARTIST" prefix distinguishes the kind at a glance.
+ * Token label mirrors sim line 5743 — "NOTE FOR: <underlined-clickable>
+ * ${COLLECTION_TITLE} #${id}</underlined-clickable>".
  *
- * Toast: showToast() now wired up. Sim's exact strings:
+ * Toast strings — sim's exact wording for each kind:
  *   - 'Day Note SAVED' / 'Day Note REMOVED'                   (sim 5910)
  *   - 'Artist note saved — ${name}' / 'Artist note cleared — ${name}'
  *                                                              (sim 10628;
@@ -26,13 +33,37 @@
  *                                                              "Artist note"
  *                                                              prefix not
  *                                                              "Note")
+ *   - 'Note SAVED' / 'Note REMOVED'                            (sim 5812 —
+ *                                                              token kind
+ *                                                              ships with NO
+ *                                                              prefix; the
+ *                                                              caps SAVED /
+ *                                                              REMOVED match
+ *                                                              the day kind)
  *
  * Kind threading: `prompt.kind` is forwarded to <NotePromptModal> so the
  * box element can apply `.artist-note-mode` for the slightly-shorter
  * artist sheet sizing (sim CSS 3591–3595). Sim keeps the class on the
  * box until close (sim 10608, 10627); when `prompt` flips to null at
  * close-start, `kind` becomes undefined and the class drops, matching
- * sim's mid-fade resize behaviour.
+ * sim's mid-fade resize behaviour. Token kind uses the default sheet
+ * sizing — sim has no `.token-note-mode` class, so we don't add one
+ * (the default 72vh max-height suits longer collector notes).
+ *
+ * Token-note pre-population: openTokenNoteEditor accepts an optional
+ * `prepopulate` second argument. When the user opens a note from the
+ * Notes accordion list, NotesBox passes the matching MOCK_DEMO_NOTES
+ * entry — sim 6601: `if (!tokenNotes[id] && demoNotes[id]) tokenNotes[id]
+ * = demoNotes[id];`. The pre-populated text is persisted to localStorage
+ * BEFORE the modal opens, so first-open from list shows view-mode with
+ * saved markdown rendered (matches sim's behaviour exactly). Modal pill
+ * + card hover icon callsites pass no prepopulate value — they open
+ * empty in edit-mode for fresh notes, view-mode for already-saved.
+ *
+ * COLLECTION_TITLE: hardcoded 'PRISMS' here, mirroring CollectionContext.tsx
+ * line 68. The provider sits ABOVE CollectionProvider in app/layout.tsx so
+ * useCollection() isn't reachable; in the single-collection MVP era both
+ * hardcodes get cleaned up together when multi-collection routing lands.
  */
 
 import {
@@ -47,7 +78,13 @@ import NotePromptModal from '../../components/NotePromptModal';
 import { useCalendar } from '../calendar/CalendarContext';
 import { CAL_MONTH_SHORT } from '../calendar/data';
 import { useToast } from './ToastContext';
+import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+
+/* Hardcoded to match CollectionContext.tsx:68. Replace with a useCollection()
+   read once NotePromptProvider is moved inside CollectionProvider OR multi-
+   collection routing lands and a per-route lookup is required. */
+const COLLECTION_TITLE = 'PRISMS';
 
 interface DayPrompt {
     kind: 'day';
@@ -59,11 +96,27 @@ interface ArtistPrompt {
     name: string;
 }
 
-type Prompt = DayPrompt | ArtistPrompt;
+interface TokenPrompt {
+    kind: 'token';
+    tokenId: number;
+}
+
+type Prompt = DayPrompt | ArtistPrompt | TokenPrompt;
 
 interface NotePromptContextValue {
     openDayNoteEditor: (dayKey: string) => void;
     openArtistNoteEditor: (name: string) => void;
+    /**
+     * Open the per-token note editor.
+     *
+     * @param tokenId  Numeric token id (sim's `_notePromptId`).
+     * @param prepopulate  Optional markdown body to seed pd_token_notes
+     *                     IF AND ONLY IF the token has no existing saved
+     *                     note. Mirrors sim 6601 demoNotes pre-fill.
+     *                     NotesBox passes MOCK_DEMO_NOTES[id]; modal pill
+     *                     + card hi-note callsites pass nothing.
+     */
+    openTokenNoteEditor: (tokenId: number, prepopulate?: string) => void;
     closeNotePrompt: () => void;
 }
 
@@ -84,8 +137,16 @@ function formatDayLabel(dayKey: string): string {
 export function NotePromptProvider({ children }: { children: ReactNode }) {
     const { dayNotes, setDayNote } = useCalendar();
     const { showToast } = useToast();
+    const { open: openModal } = useModal();
     const [artistNotes, setArtistNotes] = useLocalStorage<Record<string, string>>(
         'pd_artist_notes',
+        {}
+    );
+    /* Token notes — sim 5715-5717. Keys round-trip to strings via JSON, so
+       the type is Record<string, string> at the storage layer; runtime
+       lookups by numeric tokenId still work via JS property-access coercion. */
+    const [tokenNotes, setTokenNotes] = useLocalStorage<Record<string, string>>(
+        'pd_token_notes',
         {}
     );
     const [prompt, setPrompt] = useState<Prompt | null>(null);
@@ -99,6 +160,22 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         if (!name) return;
         setPrompt({ kind: 'artist', name });
     }, []);
+
+    const openTokenNoteEditor = useCallback(
+        (tokenId: number, prepopulate?: string) => {
+            if (typeof tokenId !== 'number' || Number.isNaN(tokenId)) return;
+            const key = String(tokenId);
+            /* Sim 6601 — only seed if there's no existing saved note. */
+            if (prepopulate) {
+                setTokenNotes((prev) => {
+                    if (prev[key]) return prev;
+                    return { ...prev, [key]: prepopulate };
+                });
+            }
+            setPrompt({ kind: 'token', tokenId });
+        },
+        [setTokenNotes]
+    );
 
     const closeNotePrompt = useCallback(() => {
         setPrompt(null);
@@ -123,10 +200,37 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                         ? `Artist note saved \u2014 ${prompt.name}`
                         : `Artist note cleared \u2014 ${prompt.name}`
                 );
+            } else if (prompt.kind === 'token') {
+                /* Sim 5803-5812 — trimmed empty deletes; non-empty saves;
+                   toast string is the bare 'Note SAVED' / 'Note REMOVED'
+                   (no kind prefix, sim 5812). */
+                const trimmed = value.trim();
+                const key = String(prompt.tokenId);
+                setTokenNotes((prev) => {
+                    const next = { ...prev };
+                    if (trimmed) next[key] = trimmed;
+                    else delete next[key];
+                    return next;
+                });
+                showToast(trimmed ? 'Note SAVED' : 'Note REMOVED');
             }
             setPrompt(null);
         },
-        [prompt, setDayNote, showToast, setArtistNotes]
+        [prompt, setDayNote, showToast, setArtistNotes, setTokenNotes]
+    );
+
+    /* Click handler for the underlined token-name span inside the token
+       label. Sim 5743 stops propagation (so the wrap's backdrop-close
+       doesn't fire) then calls openModal(id). Note prompt stays open;
+       artwork modal opens at z-index 1000 underneath the note prompt's
+       z-index 10001. When the user dismisses the note prompt, the
+       artwork modal is revealed. */
+    const handleTokenLabelClick = useCallback(
+        (e: React.MouseEvent, tokenId: number) => {
+            e.stopPropagation();
+            openModal('artwork', tokenId);
+        },
+        [openModal]
     );
 
     // Resolve current value + label for the open prompt.
@@ -164,12 +268,40 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     </span>
                 </>
             );
+        } else if (prompt.kind === 'token') {
+            const tokenId = prompt.tokenId;
+            initialValue = tokenNotes[String(tokenId)] || '';
+            label = (
+                <>
+                    NOTE FOR:{' '}
+                    <span
+                        style={{
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '3px',
+                            cursor: 'pointer',
+                        }}
+                        onClick={(e) => handleTokenLabelClick(e, tokenId)}
+                    >
+                        {COLLECTION_TITLE} #{tokenId}
+                    </span>
+                </>
+            );
         }
     }
 
     const value = useMemo<NotePromptContextValue>(
-        () => ({ openDayNoteEditor, openArtistNoteEditor, closeNotePrompt }),
-        [openDayNoteEditor, openArtistNoteEditor, closeNotePrompt]
+        () => ({
+            openDayNoteEditor,
+            openArtistNoteEditor,
+            openTokenNoteEditor,
+            closeNotePrompt,
+        }),
+        [
+            openDayNoteEditor,
+            openArtistNoteEditor,
+            openTokenNoteEditor,
+            closeNotePrompt,
+        ]
     );
 
     return (
