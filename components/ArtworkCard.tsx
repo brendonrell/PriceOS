@@ -563,6 +563,39 @@ export default function ArtworkCard({
                         className="edition-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
+                    {/* Brendon list item 8 — Degen Mode overlay.
+                        Sim 9342-9351 + 1015-1031. When body.degen-mode is
+                        active, sim hides the canvas (CSS opacity 0) and
+                        overlays a 4-block tile: id / 2-cell trait grid /
+                        price. Sim's two trait cells are 'gateway' +
+                        'spectrum'; the React port stores Layer + Mineral
+                        on TokenMeta — same 2-trait pattern, different
+                        names per Build 19's pool migration. We render
+                        Layer + Mineral here for parity with the sim's
+                        2-cell grid shape.
+
+                        Always mounted when degen flag is true; CSS at
+                        globals.css gates the visual via body.degen-mode
+                        scoping (the .canvas-wrapper itself is what hides
+                        the canvas and shows the dashed border). pointer-
+                        events: none in CSS so clicks fall through to the
+                        edition-content button. */}
+                    {notifs.degen && (
+                        <div className="degen-overlay">
+                            <span className="d-id">#{id}</span>
+                            <div className="d-grid">
+                                <span className="d-cell">
+                                    {meta?.traits.Layer || 'NONE'}
+                                </span>
+                                <span className="d-cell">
+                                    {meta?.traits.Mineral || 'NONE'}
+                                </span>
+                            </div>
+                            {meta?.price && (
+                                <span className="d-price">{meta.price}</span>
+                            )}
+                        </div>
+                    )}
                     {/* Build 23 + chat #4 — sim 8038-8040 mute overlay.
                         Always mounted; CSS gates visibility on body.hammer-
                         mode. Three label states (sim 7295-7310):
