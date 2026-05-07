@@ -572,21 +572,30 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="The Tape — tap to cycle"
                         active={notifs.tape !== 0}
                         onClick={() => {
-                            // Cycle 0 → 3 → 4 → 0 (matches sim's mobile cycle, skips
-                            // desktop-only Faded and Standard until those land).
-                            // Build 25 D11: showToast feedback per sim 9305 — without
-                            // this the button looked dead because no surface yet
-                            // listens to notifs.tape.
-                            const cycle: Array<0 | 3 | 4> = [0, 3, 4];
-                            const idx = cycle.indexOf(notifs.tape as 0 | 3 | 4);
-                            const next = cycle[(idx + 1) % cycle.length] ?? 0;
-                            update({ tape: next });
-                            const labels: Record<0 | 3 | 4, string> = {
+                            /* Brendon list item 9 — sim 9287-9306. Desktop
+                               cycles all 5 states (0→1→2→3→4→0); mobile
+                               skips Faded (1) + Standard (2) which sim
+                               annotates as "illegible at mobile sizes"
+                               (sim 9286). Width threshold matches sim
+                               9292's `(max-width: 600px)` matchMedia. */
+                            const isMobile =
+                                typeof window !== 'undefined' &&
+                                window.matchMedia('(max-width: 600px)').matches;
+                            const cycle: number[] = isMobile ? [0, 3, 4] : [0, 1, 2, 3, 4];
+                            const idx = cycle.indexOf(notifs.tape);
+                            const next: number =
+                                (idx === -1
+                                    ? cycle[0]
+                                    : cycle[(idx + 1) % cycle.length]) ?? 0;
+                            update({ tape: next as 0 | 1 | 2 | 3 | 4 });
+                            const labels: Record<number, string> = {
                                 0: 'OFF',
+                                1: 'Faded (Desktop only)',
+                                2: 'Standard (Desktop only)',
                                 3: 'Bold',
                                 4: 'Framed',
                             };
-                            showToast('The Tape: ' + labels[next]);
+                            showToast('The Tape: ' + (labels[next] ?? 'OFF'));
                         }}
                         icon={'⏥\uFE0E'}
                         iconStyle={{ fontSize: '15px', lineHeight: '1', margin: '0 1px' }}
