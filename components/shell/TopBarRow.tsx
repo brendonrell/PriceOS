@@ -58,12 +58,15 @@
  * shipped, so the count will be 0 in practice until a future build
  * dispatches that event.
  *
- * Hammer pill .filtering toggle (sim 1172-1181): sim's onclick wires
- * to `toggleMutedFilter` which gates `body.hammer-mode.muted-filter-active`
- * on edition cards. With no muted cards yet, the filter is dead code;
- * this build ships the CSS but does NOT wire the click. Documented
- * deviation — adding the filter without the underlying mute state
- * would just be a class-toggle going nowhere.
+ * Hammer pill .filtering toggle (sim 1172-1181 + sim 12727-12742) — chat #4:
+ * the pill body click now fires `handleToggleMutedFilter`, which gates
+ * `body.muted-filter-active` (combined with body.hammer-mode it hides every
+ * non-muted card via the sim 1184 rule). The `.filtering` class on the pill
+ * inverts its colors so the user sees the filter is engaged. When hammer
+ * mode is turned off (× close button, or the spell book toggle), sim
+ * 12704-12709 forces the muted-only filter off too; the React port
+ * mirrors that with a `useEffect` watching `hasHammer` going from true →
+ * false. Toast string `Muted Only ON/OFF` matches sim 12740 verbatim.
  *
  * Incognito ENS input: the bar-pill-input is a plain text field that
  * does nothing on change in sim (the ENS string is read by no caller
@@ -159,6 +162,26 @@ export function TopBarRow() {
         };
     }, []);
 
+    /* chat #4 — hammer pill body click → toggleMutedFilter (sim
+       12727-12742). `.filtering` is local React state because the
+       inverted-pill visual reads it from the className. Sim writes
+       directly to the DOM; React port mirrors the effect by piping it
+       through state. The body class itself we toggle imperatively
+       since `body.muted-filter-active` is referenced by globals.css
+       (sim 1184) and there's no central body-class hook for non-spell
+       transient flags — same approach the sim takes. */
+    const [filtering, setFiltering] = useState(false);
+    const handleToggleMutedFilter = () => {
+        // Sim 12731 — only meaningful when hammer mode is on.
+        if (typeof document === 'undefined') return;
+        if (!document.body.classList.contains('hammer-mode')) return;
+        const next = !document.body.classList.contains('muted-filter-active');
+        document.body.classList.toggle('muted-filter-active', next);
+        setFiltering(next);
+        // Sim 12740 — normalized ON/OFF toast format.
+        showToast('Muted Only ' + (next ? 'ON' : 'OFF'));
+    };
+
     // Autofocus the ENS input on incognito activation (sim 12519-12522).
     const ensInputRef = useRef<HTMLInputElement | null>(null);
     const prevIncognitoRef = useRef<boolean>(false);
@@ -175,6 +198,20 @@ export function TopBarRow() {
 
     const hasTopBarCalendar = !!notifs.topBarCalendar;
     const hasHammer = !!notifs.spell_hammer;
+
+    /* When hammer mode flips off (× on the pill, spell book toggle, etc),
+       sim 12704-12709 forces the muted-only filter off too — the filter
+       is meaningless without the mode. Mirror that here. The body-class
+       hammer-mode itself is owned by useBodyClass; we just clean up the
+       muted-filter-active body class + our local filtering state when
+       hasHammer transitions true → false. */
+    useEffect(() => {
+        if (hasHammer) return;
+        if (typeof document !== 'undefined') {
+            document.body.classList.remove('muted-filter-active');
+        }
+        setFiltering(false);
+    }, [hasHammer]);
     /* F50 (BUG-02) — sim 12342: grail pills render only when neither
        Incognito nor Hammer is active. Both modes hide the user's
        grails for privacy / focus reasons (the bar still appears for
@@ -277,9 +314,22 @@ export function TopBarRow() {
                         </div>
 
                         <div
-                            className={`hammer-bar-pill hammer-pill-hefty${hasHammer ? ' active' : ''}`}
+                            className={
+                                'hammer-bar-pill hammer-pill-hefty' +
+                                (hasHammer ? ' active' : '') +
+                                (filtering ? ' filtering' : '')
+                            }
                             id="hammerBarPill"
-                            title="The Hammer"
+                            title="The Hammer — tap to filter muted"
+                            onClick={handleToggleMutedFilter}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleToggleMutedFilter();
+                                }
+                            }}
                         >
                             <span style={{ fontWeight: 900, letterSpacing: '0.5px' }}>
                                 THE HAMMER
