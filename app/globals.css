@@ -951,6 +951,28 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
        the flex layout settled on. */
 }
 
+/* G item 9 — lock the ACTIVE accordion's notif-list to its full
+   max-height so the connect menu's total height stays stable across
+   open/close transitions between Pings / Notes / Todos / Tape. The
+   bare `.notif-list` rule below caps mobile at 120 / desktop at 168;
+   when the active accordion's data row count is short, flex:1 1 auto
+   without a min-height lets the list shrink to content, and the whole
+   stack contracts. Pinning min-height to match the cap means the
+   active list always claims the same vertical slot regardless of
+   item count.
+   Sim deviation: sim's CSS doesn't carry this min-height; sim's mock
+   datasets happen to fill each list near-cap (8 pings, many todos,
+   many notes) so the instability never surfaces visually. The React
+   port's mock counts can leave gaps. Park as deviation. */
+.notifications-box.is-open .notif-list {
+    min-height: 120px;
+}
+@media (min-width: 601px) {
+    .notifications-box.is-open .notif-list {
+        min-height: 168px;
+    }
+}
+
 .notif-list {
     /* F33 (2026-05-02): mobile cap, matching sim line 209.
        Desktop override below at @media (min-width: 601px). */
@@ -1615,6 +1637,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     /* Default cap (sim 1689); mobile #artistsList override to 225px lives in
        the consolidated @media (max-width: 600px) block below (sim 2225). */
     max-height: 257px;
+    /* G item 13 — Brendon deviation. min-height matches max-height so the
+       artists panel stays the same total height as the Settings panel
+       when filtered down to a small result count. Sim has no min-height
+       — when filtered the panel shrinks to fit the visible rows; Brendon
+       wants the Settings height as the canonical floor across all three
+       panel views (settings / artists / portfolio). */
+    min-height: 257px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     /* iOS Safari scroll-chaining isolation — same pattern as .notif-list.
@@ -1893,6 +1922,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     min-height: 0;
     /* Sim line 1865: 232px after BUDGETS section was added (~48px above). */
     max-height: 232px;
+    /* G item 13 — Brendon deviation. min-height matches max-height for
+       same-height parity with Settings + Artists panels. See
+       .artists-list-container note above. */
+    min-height: 232px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
@@ -4128,8 +4161,10 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
     /* Artists Menu mobile overrides — sim 2225-2230. Relocated from
        @media (min-width: 601px) above; sim has these as mobile-only.
-       #artistsList overrides .artists-list-container's 257px base to 225px on mobile. */
-    #artistsList { max-height: 225px; }
+       #artistsList overrides .artists-list-container's 257px base to 225px on mobile.
+       G item 13 — Brendon deviation: min-height equalized to max-height so the
+       panel stays at canonical Settings-height across filter result counts. */
+    #artistsList { min-height: 225px; max-height: 225px; }
     .artist-rel-icon[title="Followers"] { font-size: 22px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Following"] { font-size: 16px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Mutual"]    { font-size: 18px !important; transform: translateY(-1px); }
