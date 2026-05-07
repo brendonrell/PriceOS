@@ -19,10 +19,11 @@
  *     reads as "different artwork".
  *   - Calc Sheet → ƒ tab is wired but currently shows placeholder
  *     toast. Sheet renderer is the next ship.
- *   - Per-token notes (⊟ pill) → placeholder toast. NotePromptContext
- *     covers day + artist kinds today; token kind extends here later.
  *   - handleModalAction (BUY/LIST/MAKE OFFER trade flow) → placeholder
  *     toast; live wallet wiring is its own workstream.
+ *
+ * D011 (chat #4) — Modal mute overlay wired via muteStore + currentModalId.
+ * D015 (chat #5) — Note ⊟ pill wired via NotePromptContext token kind.
  *
  * Hooks discipline (locked rule from session bootstrap): every hook
  * sits at the top of the component, before any conditional return.
@@ -60,6 +61,7 @@ import {
     toggleMute as storeToggleMute,
 } from '../lib/pins/muteStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import { useNotePrompt } from '../lib/state/NotePromptContext';
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
    text-style form (mono, no emoji colour). Required for every Unicode
@@ -72,6 +74,7 @@ export default function ArtworkModal() {
     const { openCalcSheet } = useCalcSheet();
     const { title, totalEditions, floorEth } = useCollection();
     const { notifs } = usePdNotifs();
+    const { openTokenNoteEditor } = useNotePrompt();
 
     /* F50 (BUG-02) — grail pins now live in lib/pins/grailStore so
        ArtworkCard's hover icon, the TopBarRow pill row, and this modal
@@ -439,7 +442,19 @@ export default function ArtworkModal() {
                             <span
                                 className="modal-pill"
                                 title="Note"
-                                onClick={() => showToast('Note — coming soon')}
+                                onClick={() => {
+                                    /* D015 (chat #5) — sim 5395:
+                                       openNotePrompt(event, currentModalId).
+                                       Token-kind branch of NotePromptContext;
+                                       opens with empty initialValue → edit
+                                       mode for fresh notes, view-mode for
+                                       already-saved (NotePromptModal reads
+                                       initialValue from pd_token_notes via
+                                       the provider). */
+                                    if (currentModalId !== null) {
+                                        openTokenNoteEditor(currentModalId);
+                                    }
+                                }}
                             >
                                 {`\u229F${VS15}`}
                             </span>
