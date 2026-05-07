@@ -23,6 +23,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useTheme } from '../../../lib/state/ThemeContext';
+import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
 import { useArtistColor } from '../../../lib/hooks/useArtistColor';
@@ -38,7 +39,8 @@ interface Props {
 
 export function MyPdSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
-    const { theme } = useTheme();
+    const { theme, setTheme } = useTheme();
+    const { setSort } = useSort();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
 
@@ -165,6 +167,75 @@ export function MyPdSection({ onTripleTap }: Props) {
         const next = !notifs[key];
         toggle(key);
         showToast(`${label} ${next ? 'ON' : 'OFF'}`);
+    };
+
+    /* Brendon list item 7 — Pure Light / Pure Dark mode parity.
+       Sim 9308-9320 togglePure(mode):
+         1. Flip pdNotifs.pure_light / pdNotifs.pure_dark.
+         2. Persist to localStorage (the toggle() helper handles this).
+         3. Dispatch pd:pure-mode-changed so ThemeContext re-applies
+            on the active theme key (picks up the bg-hex override).
+         4. If now ON: setAndSaveTheme(mode) — switch theme to light/dark
+            AND persist (so the user's saved theme becomes light/dark).
+         5. If now OFF: setTheme(savedKey) — restore whatever theme is
+            in localStorage (which may itself be 'light' or 'dark', but
+            with the pure flag now false, applyTheme returns the standard
+            #e0e0e0 / #1a1a1a bg).
+         6. Toast 'Pure Light/Dark ON/OFF'. */
+    const togglePure = (mode: 'light' | 'dark') => {
+        const stateKey = (mode === 'light' ? 'pure_light' : 'pure_dark') as keyof PdNotifs;
+        const next = !notifs[stateKey];
+
+        // CRITICAL ORDERING: applyTheme reads pure_light/pure_dark from
+        // localStorage (ThemeContext lives upstream of PdNotifsContext, so
+        // it can't useNotifs() — it reads LS directly). React state +
+        // PdNotifs → LS sync goes through a useEffect that fires AFTER
+        // the next commit, but setTheme(mode) below synchronously calls
+        // applyTheme which reads LS. So we MUST write the new flag to LS
+        // here, BEFORE setTheme, or applyTheme reads the stale value and
+        // the bg-hex override misses by one click. The PdNotifs effect
+        // will later re-write LS with the same value once the React state
+        // commit catches up — safe no-op.
+        try {
+            const raw = localStorage.getItem('pd_settings_notifs');
+            const parsed: Record<string, unknown> = raw ? JSON.parse(raw) : {};
+            parsed[stateKey] = next;
+            localStorage.setItem('pd_settings_notifs', JSON.stringify(parsed));
+        } catch {
+            /* private mode / quota — applyTheme will read whatever LS has,
+               worst case the override misses one click. */
+        }
+
+        toggle(stateKey);
+
+        if (next) {
+            // Sim 9314 — setAndSaveTheme(mode). setTheme via context
+            // already writes the theme to localStorage in its callback.
+            setTheme(mode);
+        } else {
+            // Sim 9316 — setTheme(localStorage.getItem('pd_settings_theme') || 'artist').
+            try {
+                const saved = localStorage.getItem('pd_settings_theme');
+                const valid = saved && (saved === 'artist' || saved === 'light' || saved === 'dark' || saved === 'orange' || saved === 'blue' || saved === 'red')
+                    ? (saved as 'artist' | 'light' | 'dark' | 'orange' | 'blue' | 'red')
+                    : 'artist';
+                setTheme(valid);
+            } catch {
+                setTheme('artist');
+            }
+        }
+
+        // Belt-and-suspenders re-apply for the case where setTheme above
+        // was a no-op (e.g. pure_dark flipping while theme is already
+        // 'dark' — setTheme('dark') sees no theme change but applyTheme
+        // still needs to fire to pick up the new pure flag).
+        try {
+            window.dispatchEvent(new CustomEvent('pd:pure-mode-changed'));
+        } catch {
+            /* SSR-safe ignore */
+        }
+
+        showToast(`${mode === 'light' ? 'Pure Light' : 'Pure Dark'} ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -356,7 +427,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-pureLight"
                         title="Pure Light Mode"
                         active={notifs.pure_light}
-                        onClick={() => toggleWithToast('pure_light', 'Pure Light')}
+                        onClick={() => togglePure('light')}
                         icon={'◻\uFE0E'}
                         label="PL"
                     />
@@ -364,7 +435,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-pureDark"
                         title="Pure Dark Mode"
                         active={notifs.pure_dark}
-                        onClick={() => toggleWithToast('pure_dark', 'Pure Dark')}
+                        onClick={() => togglePure('dark')}
                         icon={'◼\uFE0E'}
                         label="PD"
                     />
@@ -467,7 +538,21 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-degen"
                         title="Degen Mode"
                         active={notifs.degen}
-                        onClick={() => toggleWithToast('degen', 'Degen Mode')}
+                        onClick={() => {
+                            /* Brendon list item 8 — Degen Mode toggle.
+                               Sim 9357-9358: when degen activates, auto-
+                               sort the gallery by price ascending. The
+                               body-class flip + canvas hide + overlay
+                               render ride on PdNotifsContext via
+                               useBodyClass; this onClick adds the sort
+                               side effect that sim does inline. The flag
+                               flip + toast still go through the standard
+                               toggleWithToast path so Setup Code +
+                               localStorage stay in sync. */
+                            const next = !notifs.degen;
+                            toggleWithToast('degen', 'Degen Mode');
+                            if (next) setSort('price');
+                        }}
                         icon={'⚔\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
