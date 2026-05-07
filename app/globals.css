@@ -3179,7 +3179,9 @@ body.theme-dark .canvas-wrapper {
     display: inline-block;
 }
 .hi-icon.active-star { color: #fff; }
-body.notes-mode .hi-icon.hi-note { display: inline-block !important; }
+/* Note icon — hidden until notes accordion is open (body.notes-mode). */
+.hi-icon.hi-note { display: none; }
+body.notes-mode .hi-icon.hi-note { display: inline-block; }
 body.hammer-mode .hi-icon.hi-hammer { display: none !important; }
 body.hammer-mode .hover-overlay { display: none !important; }
 /* ── HOVER STATES (desktop only) ──────────────────────────────
