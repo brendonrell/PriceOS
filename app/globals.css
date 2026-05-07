@@ -1349,6 +1349,28 @@ body.zero-context-mode .priceos-footer { display: none !important; }
 body.zen-mode #digital-familiar,
 body.zero-context-mode #digital-familiar { display: none !important; }
 
+/* Phase 5 mode batch 3 — Echo Chamber Mode. Sim 9458-9479. The mode
+   filters surfaces down to mutuals only. Sim does this imperatively
+   via two querySelectorAll loops that flip inline `style.display` on
+   each row; in the React port the rows are React-rendered and React
+   would fight the inline style on every re-render. Driving the same
+   end-state from CSS gated on `body.echo-mode` keeps the filter
+   reactive and removes the need for a useEffect side-effect path or
+   MutationObserver. The body class flips via useBodyClass off
+   `notifs.echo` and prehydrates from layout.tsx for returning users.
+
+   Sim 9462-9466 — hide .notif-item rows that don't contain an
+   .ico-mutual descendant. The :has() selector is universally
+   supported in evergreen browsers (Safari 15.4+, Chrome 105+,
+   Firefox 121+) and matches the same set the imperative walk does.
+
+   Sim 9468-9471 — show only .artist-row rows whose data-rel is
+   "mutual". The attribute selector matches sim's `dataset.rel`
+   check exactly; the React port already stamps `data-rel={a.rel}`
+   in ArtistsView.tsx so the predicate aligns one-to-one. */
+body.echo-mode .notif-item:not(:has(.ico-mutual)) { display: none; }
+body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
+
 #digital-familiar {
     position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 20px;
     z-index: 150;

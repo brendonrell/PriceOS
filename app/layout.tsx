@@ -108,6 +108,12 @@ const PREHYDRATION_SCRIPT = `
                 // F55 (BUG-22) — sim 9959. Boot with sprite+badge hidden
                 // for returning users who had ASCII-ID on at last unload.
                 if (notifs.asciiId)          classList.add('ascii-id-mode');
+                // Phase 5 mode batch 3 — echo-mode (sim 13039). Boot with
+                // mutuals-only filter active for returning users who had
+                // Echo Chamber on at last unload. CSS rules in globals.css
+                // hide non-mutual notif-items + artist-rows when this
+                // class is present.
+                if (notifs.echo)             classList.add('echo-mode');
             }
         }
 
