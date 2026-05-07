@@ -359,11 +359,15 @@ export default function ArtworkCard({
             ctx.fillStyle = radial;
             ctx.fillRect(0, 0, w, w);
 
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            ctx.font = `bold ${Math.floor(w / 8)}px "Rubik Mono One", sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`#${id}`, w / 2, w / 2);
+            /* Brendon-list-2 chat F item 15 — id stamp removed from
+               the canvas placeholder (was: ctx.fillText(`#${id}`,
+               w/2, w/2) at this position). The .meta-id label below
+               the canvas already shows the id in chrome; stamping it
+               again in the middle of the artwork is redundant and
+               competes with the actual artwork once real renders ship.
+               The font/textAlign/textBaseline setup is left in place
+               for any future per-card center text we might want to
+               draw. */
         };
 
         registerCanvas({ id, wrapper, canvas, render });
@@ -556,7 +560,15 @@ export default function ArtworkCard({
                     ref={wrapperRef}
                     className="canvas-wrapper art-placeholder"
                     data-id={id}
-                    style={{ aspectRatio: '1 / 1' }}
+                    /* Brendon-list-2 chat F item 15 — flipped from
+                       1:1 (square) to 3:4 (portrait). Sim's earlier
+                       PRISMS / PORTALS art was 3:4 portrait too;
+                       Build 19's STRATA placeholder pushed RATIOS to
+                       [1.0] but Brendon wants portrait restored for
+                       the gallery card surface. Aspect change drives
+                       canvas + degen-overlay + every absolute child
+                       inside .canvas-wrapper. */
+                    style={{ aspectRatio: '3 / 4' }}
                 >
                     <canvas
                         ref={canvasRef}
