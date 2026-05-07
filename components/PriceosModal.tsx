@@ -177,7 +177,6 @@ export default function PriceosModal() {
             if (actual > avail && avail > 0) {
                 const s = avail / actual;
                 el.style.transform = `scale(${s})`;
-                el.style.transformOrigin = 'top left';
                 const origH = el.scrollHeight;
                 wrap.style.height = `${origH * s}px`;
             }
