@@ -68,12 +68,18 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import {
     enableFamiliar,
     disableFamiliar,
     subscribeFamiliar,
     type FamiliarFrame,
 } from '../../lib/engines/familiarEngine';
+import {
+    seedStarfield,
+    clearStarfield,
+    applyStargazingVars,
+} from '../../lib/effects/stargazing';
 
 /* Canonical body-class flags that gate the rAF loop. `bg-canvas-on`
    is the explicit hook the Build 11 spec asks for; `stargazing-mode`
@@ -96,6 +102,25 @@ export function Backgrounds() {
     const rafIdRef = useRef<number | null>(null);
     const { notifs } = usePdNotifs();
     const { open: openModal } = useModal();
+    const { theme, setTheme } = useTheme();
+    const starfieldRef = useRef<HTMLDivElement | null>(null);
+    /* Holds the theme key that was active at the moment stargazing
+       flipped on. Captured on the ON-edge so flip-off can restore it
+       even if the user picked a different theme mid-stargazing. Sim
+       9373 captures the same way (`localStorage.getItem('pd_settings_theme')`).
+       Default 'artist' on first ON to match sim 9435's `|| 'artist'`. */
+    const prevThemeRef = useRef<ThemeKey>(null);
+    /* Live mirror of setTheme so the stargazing effect can depend on
+       `notifs.stargazing` alone — without this ref, including setTheme
+       in the dep array would re-fire the effect every time setTheme
+       changes identity (it's `useCallback` keyed on theme, so it
+       changes on every theme pick), re-seeding the starfield with
+       fresh random positions on every mid-stargazing theme change.
+       Sim's _applyStargazingMode only runs on ON/OFF transitions;
+       mid-stargazing theme picks leak the new theme's vars over the
+       stargazing vars (a sim quirk we match). */
+    const setThemeRef = useRef(setTheme);
+    useEffect(() => { setThemeRef.current = setTheme; }, [setTheme]);
     const [frame, setFrame] = useState<FamiliarFrame>(EMPTY_FRAME);
 
     useEffect(() => {
@@ -150,6 +175,106 @@ export function Backgrounds() {
         };
     }, []);
 
+    /* Stargazing edge effect — the JS half of sim's _applyStargazingMode
+       (sim 9367-9437). The CSS half (body.stargazing-mode rules + .star-dot
+       + .shooting-star + keyframes) lives in app/globals.css 1184-1235.
+       The body.class flip is owned by useBodyClass / the prehydration
+       script — NOT this effect — so the class is already present on
+       flip-on edges. This effect is purely about populating #starfield
+       and writing the runtime vars.
+
+       Depends ONLY on notifs.stargazing so it fires exactly on ON/OFF
+       transitions (and once on mount if stargazing is true at boot,
+       which is the sim 13037 hydration restore path). Theme + setTheme
+       are read via live refs above; mid-stargazing theme picks therefore
+       don't trigger a re-seed (they would otherwise generate a fresh
+       random starfield on every pick).
+
+       ON-edge (notifs.stargazing true after mount or transition):
+         1. Capture the current theme key into prevThemeRef so flip-off
+            can restore it (sim 9373). 'artist' fallback per sim 9435.
+         2. Seed 380 .star-dot + 3 .shooting-star into #starfield —
+            seedStarfield is idempotent so a re-mount with the field
+            already populated bails cleanly.
+         3. Write 11 root vars + --modal-bg + theme-color meta.
+
+       OFF-edge (notifs.stargazing transitioning true → false):
+         1. Clear the starfield container (sim 9434).
+         2. setTheme(prevTheme) — re-derives every theme var in one
+            call, identical to sim 9435.
+
+       Boot case (notifs.stargazing already true on first render):
+         body.stargazing-mode is already on the body from prehydration;
+         this effect mounts the stars and writes vars. The user sees
+         the proper purple UI from first paint after hydration completes.
+
+       Cleanup: clear the starfield only if stargazing is actively on
+       at unmount time — guards against StrictMode double-mount leaving
+       760 stars and against SPA route changes leaving stale stars in
+       the DOM if PriceOSShell ever re-mounts mid-stargazing. */
+    useEffect(() => {
+        const sf = starfieldRef.current;
+        if (!sf) return;
+
+        if (notifs.stargazing) {
+            /* Sim 9373 verbatim: read the persisted theme key out of
+               localStorage at the moment of ON-edge capture. Reading
+               from React state instead would be incorrect on the boot
+               path — child useEffects run before parent useEffects in
+               React's bottom-up effect order, so on first mount with
+               stargazing=true at boot, ThemeProvider's hydration effect
+               hasn't yet written its saved theme into React state and
+               `theme` is still null. localStorage already holds the
+               correct value, so reading it directly is both sim-exact
+               and timing-correct. */
+            try {
+                const saved = localStorage.getItem('pd_settings_theme');
+                prevThemeRef.current = (saved as ThemeKey) ?? 'artist';
+            } catch {
+                prevThemeRef.current = 'artist';
+            }
+            seedStarfield(sf);
+            applyStargazingVars();
+            return () => {
+                /* Cleanup runs on the OFF transition AND on real
+                   unmount. Both want the field cleared. The OFF
+                   transition's setTheme restore is handled in the
+                   else branch below — the closure here was captured
+                   when stargazing was ON, so we only need to clear
+                   here, not restore. */
+                clearStarfield(sf);
+            };
+        } else if (prevThemeRef.current !== null) {
+            /* Sim 9433-9436: clear + setTheme(_stargazingPrevTheme || 'artist'). */
+            clearStarfield(sf);
+            setThemeRef.current(prevThemeRef.current);
+            prevThemeRef.current = null;
+        }
+    }, [notifs.stargazing]);
+
+    /* Tracks the last `theme` value the previous render saw so the
+       hydration-edge effect can distinguish:
+         • Hydration write (null → saved): ThemeProvider's mount effect
+           setting state for the first time. We DO want stargazing vars
+           to win here so a returning user with stargazing-on at last
+           unload boots into a fully-purple UI (sim 13037 boot path
+           runs _applyStargazingMode AFTER setTheme).
+         • User pick (saved → other): the picker writing a new theme
+           mid-stargazing. Sim does NOT re-apply stargazing here —
+           setTheme is just called once and theme vars leak through
+           the 9 minor slots not pinned by !important. We match this
+           sim quirk by NOT re-applying vars on this transition. */
+    const lastThemeRef = useRef<ThemeKey>(null);
+    useEffect(() => {
+        const prev = lastThemeRef.current;
+        lastThemeRef.current = theme;
+        if (!notifs.stargazing) return;
+        const wasHydration = prev === null && theme !== null;
+        if (wasHydration) {
+            applyStargazingVars();
+        }
+    }, [notifs.stargazing, theme]);
+
     /* Familiar engine lifecycle — gated on pdNotifs.spell_familiar.
        enableFamiliar is sticky-mounted (species/outline picked once
        per page, reused on re-enable per sim 12898), so toggling off
@@ -185,7 +310,7 @@ export function Backgrounds() {
 
     return (
         <>
-            <div id="starfield" aria-hidden="true" />
+            <div id="starfield" ref={starfieldRef} aria-hidden="true" />
             <div
                 id="digital-familiar"
                 aria-hidden="true"
