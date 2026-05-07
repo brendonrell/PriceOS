@@ -42,6 +42,13 @@ let _onApplyHex: ((hex: string) => void) | null = null;
 let _scrollHandler: (() => void) | null = null;
 let _scrollDebounceId: ReturnType<typeof setTimeout> | null = null;
 const _retryTimers: Array<ReturnType<typeof setTimeout>> = [];
+/* Brendon list item 14 — sim 8230-8234. Sim debounces a hashsyn
+   resample whenever a new edition canvas paints. Without this, the
+   one-shot retry cascade (200/600/1200/2500ms) is the engine's only
+   sampling opportunity — if cards weren't visible during that window
+   the bg stays stuck at the seed `#6a1fc2`. The virtualizer calls
+   hashSynNotifyCanvasPaint() after each canvas.classList.add('visible'). */
+let _paintDebounceId: ReturnType<typeof setTimeout> | null = null;
 
 /* Sim 12534-12559 — sample a centred 60x60 patch from a canvas, mean
    the non-near-gray non-near-extremes pixels. Returns null when the
@@ -151,6 +158,28 @@ export function hashSynResample(): void {
 }
 
 /**
+ * Brendon list item 14 — sim 8230-8234.
+ *
+ * Called by the canvas virtualizer after a new edition canvas has
+ * just rendered + been marked .visible. Debounces 300ms then calls
+ * resample() so that a flurry of paints during scroll triggers a
+ * single sample pass at the tail.
+ *
+ * Cheap no-op when the engine isn't enabled (no _onApplyHex registered):
+ * resample() bails on the same null check, but skipping the timer setup
+ * entirely keeps scroll-time cost at zero for users who never picked
+ * hashsyn.
+ */
+export function hashSynNotifyCanvasPaint(): void {
+    if (!_onApplyHex) return;
+    if (_paintDebounceId !== null) clearTimeout(_paintDebounceId);
+    _paintDebounceId = setTimeout(() => {
+        _paintDebounceId = null;
+        resample();
+    }, 300);
+}
+
+/**
  * Register the apply callback and attach the scroll listener + retry
  * cascade. Sim 12624-12627 — retry sampling at 200/600/1200/2500ms
  * because the canvases need a moment to paint after activation.
@@ -196,6 +225,13 @@ export function disableHashSyn(): void {
     if (_scrollDebounceId !== null) {
         clearTimeout(_scrollDebounceId);
         _scrollDebounceId = null;
+    }
+    /* Item 14 — clear pending paint-notify resample so a canvas that
+       paints right at the moment the user leaves hashsyn doesn't fire
+       a stray applyBgHex into the wrong theme. */
+    if (_paintDebounceId !== null) {
+        clearTimeout(_paintDebounceId);
+        _paintDebounceId = null;
     }
     if (_scrollHandler && typeof window !== 'undefined') {
         window.removeEventListener('scroll', _scrollHandler);
