@@ -44,6 +44,16 @@ interface Props {
     iconBare?: boolean;
     /** Optional text label rendered after the icon. */
     label?: ReactNode;
+    /** Brendon list item 15 — sim 10502-10504 sets ssId.innerHTML
+        directly on the button (`'# ID' + idDir` where idDir is a string
+        containing the .settings-sort-arrow span). The arrow is therefore
+        a DIRECT child of the button. The default React port wraps the
+        label in `<span class="st-label">` which shifts the arrow's
+        baseline relative to the rest of the label text — visible as
+        misalignment. Passing `bareLabel` skips the .st-label wrapper so
+        the label children render straight under the button, restoring
+        sim's structural parity for the Default Sort row pills. */
+    bareLabel?: boolean;
     /** Optional trailing slot rendered after the label. Used for the
         Hammer pill's count badge (sim 4759 hammerBadge). */
     badge?: ReactNode;
@@ -66,6 +76,7 @@ export function SettingsToggle({
     sharp = false,
     iconBare = false,
     label,
+    bareLabel = false,
     badge,
     style,
     className,
@@ -110,7 +121,8 @@ export function SettingsToggle({
                     {icon}
                 </span>
             )}
-            {label !== undefined && <span className="st-label">{label}</span>}
+            {label !== undefined &&
+                (bareLabel ? label : <span className="st-label">{label}</span>)}
             {badge !== undefined && badge}
         </button>
     );

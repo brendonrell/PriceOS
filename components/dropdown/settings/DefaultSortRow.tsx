@@ -91,6 +91,13 @@ export function DefaultSortRow() {
                         active={sort === s.key}
                         title={s.title}
                         label={labelFor(s.key)}
+                        /* Brendon list item 15 — sim 10502-10504 renders
+                           the label directly into the button (no .st-label
+                           wrapper). Without bareLabel here, the
+                           .settings-sort-arrow span sits inside .st-label
+                           and its `transform: translateY(-3px)` (sim 1675)
+                           visually misaligns vs the pill's baseline. */
+                        bareLabel
                         onClick={() => cycleSort(s.key)}
                     />
                 ))}
