@@ -391,7 +391,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.anon}
                         onClick={() => toggleWithToast('anon', 'Anon Mode')}
                         icon={'∅\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 2px' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -400,7 +400,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.zenMode}
                         onClick={() => toggleWithToast('zenMode', 'Zen Mode')}
                         icon={'⛶\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 2px' }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -409,7 +409,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.sticker}
                         onClick={() => toggleWithToast('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 2px' }}
                         iconClassName="sticker-strike"
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
                     />
@@ -419,7 +419,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.echo}
                         onClick={() => toggleWithToast('echo', 'Echo Chamber')}
                         icon={'⊛\uFE0E'}
-                        iconStyle={{ fontSize: '16px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '16px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                 </div>
@@ -433,7 +433,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.zerocontext}
                         onClick={() => toggleWithToast('zerocontext', 'Zero Context Mode')}
                         icon={'z\uFE0E'}
-                        iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '14px', fontWeight: 'bold', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -442,7 +442,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.spell_pricelens}
                         onClick={() => toggleWithToast('spell_pricelens', 'Price Lens')}
                         icon={'⌾\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -451,7 +451,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.sentimentOn}
                         onClick={() => toggleWithToast('sentimentOn', 'Sentiment Weather')}
                         icon={'◒\uFE0E'}
-                        iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '14px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -460,7 +460,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.asciiId}
                         onClick={() => toggleWithToast('asciiId', 'ASCII-ID')}
                         icon={'⍢\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -469,7 +469,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.degen}
                         onClick={() => toggleWithToast('degen', 'Degen Mode')}
                         icon={'⚔\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -478,9 +478,9 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.redactedMode}
                         onClick={() => toggleWithToast('redactedMode', 'Redacted Mode')}
                         icon={'@\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
+                        iconClassName="redacted-strike"
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
-                        className="redacted-strike"
                     />
                     <SettingsToggle
                         id="sn-tape"
@@ -504,7 +504,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             showToast('The Tape: ' + labels[next]);
                         }}
                         icon={'⏥\uFE0E'}
-                        iconStyle={{ fontSize: '15px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '15px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
@@ -513,7 +513,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.autoscroll}
                         onClick={() => toggleWithToast('autoscroll', 'Auto-Scroll')}
                         icon={'⍖\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                 </div>
