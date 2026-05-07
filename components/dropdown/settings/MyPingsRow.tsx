@@ -9,19 +9,27 @@
  * pdNotifs.pings (or top-level pdNotifs for nightmode / pingToasts).
  *
  * pingToasts and nightmode aren't in pdNotifs.pings (which is a sub-
- * object holding the four event-category flags). Step 4 wires them
- * to top-level pdNotifs slots — pingToasts is a stub flag for now,
- * nightmode wires to pdNotifs.nightmode (already declared).
+ * object holding the four event-category flags). pingToasts is now
+ * top-level (Brendon item 11, chat A) and toggles inline.
  */
 
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
+import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 
 export function MyPingsRow() {
     const { notifs, update, toggle } = usePdNotifs();
+    const { showToast } = useToast();
 
     const togglePingCat = (key: keyof typeof notifs.pings) => {
         update({ pings: { ...notifs.pings, [key]: !notifs.pings[key] } });
+    };
+
+    const handlePingToasts = () => {
+        // Sim 9275 — toast on every flip.
+        const next = !notifs.pingToasts;
+        toggle('pingToasts');
+        showToast(`Pingtoasts ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -31,6 +39,8 @@ export function MyPingsRow() {
                 <SettingsToggle
                     id="sn-pingToasts"
                     title="Pingtoasts"
+                    active={notifs.pingToasts}
+                    onClick={handlePingToasts}
                     icon={'⇡\uFE0E'}
                     iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}

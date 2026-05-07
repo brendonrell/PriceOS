@@ -35,6 +35,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MAX_WORKSPACES, useWorkspaces, type Workspace } from '../../../lib/state/WorkspacesContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 
 interface PopoverState {
     wsId: number;
@@ -52,6 +53,7 @@ export function WorkspaceSwitcher() {
         deleteWorkspace,
     } = useWorkspaces();
     const { showToast } = useToast();
+    const { openValuePrompt } = useValuePrompt();
 
     const [popover, setPopover] = useState<PopoverState | null>(null);
     const justOpenedRef = useRef(false);
@@ -76,8 +78,31 @@ export function WorkspaceSwitcher() {
             showToast('Workspace cap reached');
             return;
         }
-        const name = window.prompt('Name your workspace?');
-        if (name && name.trim()) saveCurrentAsNewWorkspace(name.trim());
+        // Brendon item 13 (chat A) — replace native window.prompt with the
+        // app's own ValuePromptModal (same modal as the Anchor / Floor /
+        // Calc value prompts). NOT a sim port (sim uses window.prompt at
+        // 10288), but Brendon explicitly greenlit the swap because the
+        // native prompt is jarring inside an otherwise theme-cohesive UI.
+        // openValuePrompt seeds an empty input, slides up the bottom sheet,
+        // focuses field 1 after the 280ms transition, and routes Enter →
+        // submit / Esc → cancel via the same handlers the Anchor flow uses.
+        openValuePrompt({
+            title: 'Name Your Workspace',
+            help: 'Saves the current Setup Code to a new workspace dot.',
+            fields: [
+                {
+                    label: 'NAME',
+                    placeholder: 'My Workspace',
+                    inputmode: 'text',
+                },
+            ],
+            submit: 'Save',
+            onSubmit: (vals) => {
+                if (!vals) return; // cancel / backdrop close
+                const trimmed = vals[0]?.trim();
+                if (trimmed) saveCurrentAsNewWorkspace(trimmed);
+            },
+        });
     };
 
     const closePopover = () => setPopover(null);

@@ -128,10 +128,17 @@ export function WalletSection() {
     };
 
     const handleCopyWallet = async () => {
+        // Brendon item 16 (chat A) — copy was wired to clipboard but
+        // gave zero feedback ("the copy icon does nothing, or at least
+        // it doesnt react"). Toast on success + on clipboard failure
+        // so the user always sees the click registered.
         try {
-            await navigator.clipboard?.writeText('0x1234567890abcdef1234567890abcdef1234abcd');
+            await navigator.clipboard?.writeText(
+                '0x1234567890abcdef1234567890abcdef1234abcd'
+            );
+            showToast('Wallet Address Copied');
         } catch {
-            // ignore
+            showToast('Copy Failed');
         }
     };
 
