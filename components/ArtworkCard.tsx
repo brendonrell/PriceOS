@@ -440,7 +440,6 @@ export default function ArtworkCard({
                             <span
                                 className="hi-icon hi-note"
                                 title="Add Note"
-                                style={{ display: 'none' }}
                                 onClick={stubAction('Note prompt')}
                             >
                                 {'\u229F\uFE0E'}
