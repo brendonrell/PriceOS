@@ -395,118 +395,126 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* L2 sub-category pills — sim 5173, render block sim
-                        8568-8617. F41: row gates on Breadcrumb (Hot /
-                        Breadcrumbs sub-pills, sim 8584-8587) or Network
-                        (GodModeDict keys, sim 8588-8615). Layer / Mineral /
-                        Fate hide L2 and surface in L3 instead — sim 8618
-                        sets display:none when l2Html is empty. */}
-                    <div
-                        className="stats-container"
-                        id="traitSubCategories"
-                        style={
-                            l2Visible
-                                ? { display: 'flex' }
-                                : { display: 'none' }
-                        }
-                    >
-                        {l2Visible &&
-                            activeCategory !== null &&
-                            l2SubLabels.map((value) => {
-                                const isActive =
-                                    activeFilters[activeCategory].has(value);
-                                /* Build 14: dim non-selected siblings only
-                                   once at least one value is selected — same
-                                   pattern sim uses for Hot/Breadcrumbs at
-                                   sim 8580-8583. */
-                                const anySelected =
-                                    activeFilters[activeCategory].size > 0;
-                                const dimmed = anySelected && !isActive;
-                                return (
-                                    <SubPill
-                                        key={value}
-                                        label={value}
-                                        active={isActive}
-                                        dimmed={dimmed}
-                                        onClick={() =>
-                                            toggleFilter(
-                                                activeCategory,
-                                                value
-                                            )
-                                        }
-                                    />
-                                );
-                            })}
-                    </div>
+                {/* Sibling of `.traits-header-bar` (sim 5168-5174). Pre-
+                    chat-B these two `.stats-container` blocks were nested
+                    INSIDE `.traits-header-bar` which broke any CSS that
+                    targets `.traits-ui > .stats-container` and pushed the
+                    L2/L3 rows into the flex-wrap pill row instead of
+                    placing them as their own rows below it. Sim 5173 +
+                    5174 mount these as direct children of `.traits-ui`. */}
 
-                    {/* L3 stat-pills — sim 5174 mount point + sim 8670-8682
-                        render block. F41: gated on l3Pool (Layer /
-                        Mineral) — independent of the L2 row's
-                        Breadcrumb/Network gate. Sim 8625-8668 walks every
-                        active category through traitData; v0 hardcodes
-                        VALUE_POOLS for Layer/Mineral and leaves Fate /
-                        Network / Breadcrumb empty (hidden) until
-                        traitData wiring lands. Click handler shares
-                        activeFilters[activeCategory] with the L2 row
-                        above — intentional duplication mirroring sim's
-                        split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
-                        Mock count of 22 per value until gallery wiring
-                        lands; the `.is-zero` class still applies whenever
-                        count === 0 so the structural class logic is in
-                        place for the wiring build.
+                {/* L2 sub-category pills — sim 5173, render block sim
+                    8568-8617. F41: row gates on Breadcrumb (Hot /
+                    Breadcrumbs sub-pills, sim 8584-8587) or Network
+                    (GodModeDict keys, sim 8588-8615). Layer / Mineral /
+                    Fate hide L2 and surface in L3 instead — sim 8618
+                    sets display:none when l2Html is empty. */}
+                <div
+                    className="stats-container"
+                    id="traitSubCategories"
+                    style={
+                        l2Visible
+                            ? { display: 'flex' }
+                            : { display: 'none' }
+                    }
+                >
+                    {l2Visible &&
+                        activeCategory !== null &&
+                        l2SubLabels.map((value) => {
+                            const isActive =
+                                activeFilters[activeCategory].has(value);
+                            /* Build 14: dim non-selected siblings only
+                               once at least one value is selected — same
+                               pattern sim uses for Hot/Breadcrumbs at
+                               sim 8580-8583. */
+                            const anySelected =
+                                activeFilters[activeCategory].size > 0;
+                            const dimmed = anySelected && !isActive;
+                            return (
+                                <SubPill
+                                    key={value}
+                                    label={value}
+                                    active={isActive}
+                                    dimmed={dimmed}
+                                    onClick={() =>
+                                        toggleFilter(
+                                            activeCategory,
+                                            value
+                                        )
+                                    }
+                                />
+                            );
+                        })}
+                </div>
 
-                        Build 17 — dim cascade rule (sim 8674-8675):
-                        `dimmed = anySelected && !isActive` keeps `active`
-                        and `dimmed` mutually exclusive on a per-pill basis,
-                        so the same pill never carries both classes. The
-                        L3Pill component below emits classes in sim order
-                        (`is-zero` first, then `active`|`dimmed`); CSS
-                        source order in globals.css 2332-2342 lets is-zero
-                        win the cascade when stacked. */}
-                    <div
-                        className="stats-container"
-                        id="statsOutput"
-                        style={
-                            l3Visible
-                                ? { display: 'flex' }
-                                : { display: 'none' }
-                        }
-                    >
-                        {l3Visible &&
-                            activeCategory !== null &&
-                            l3Pool.map((value) => {
-                                const isActive =
-                                    activeFilters[activeCategory].has(value);
-                                const anySelected =
-                                    activeFilters[activeCategory].size > 0;
-                                const dimmed = anySelected && !isActive;
-                                /* Mock count — gallery wiring will replace
-                                   with real per-value counts from token data
-                                   (sim sources from `traitData[cat][name]`,
-                                   sim 8664). Typed as `number` (not the
-                                   literal `22`) so the `isZero` check below
-                                   stays live for the wiring build. */
-                                const count: number = 22;
-                                return (
-                                    <L3Pill
-                                        key={value}
-                                        label={value}
-                                        count={count}
-                                        active={isActive}
-                                        dimmed={dimmed}
-                                        isZero={count === 0}
-                                        category={activeCategory}
-                                        onClick={() =>
-                                            toggleFilter(
-                                                activeCategory,
-                                                value
-                                            )
-                                        }
-                                    />
-                                );
-                            })}
-                    </div>
+                {/* L3 stat-pills — sim 5174 mount point + sim 8670-8682
+                    render block. F41: gated on l3Pool (Layer /
+                    Mineral) — independent of the L2 row's
+                    Breadcrumb/Network gate. Sim 8625-8668 walks every
+                    active category through traitData; v0 hardcodes
+                    VALUE_POOLS for Layer/Mineral and leaves Fate /
+                    Network / Breadcrumb empty (hidden) until
+                    traitData wiring lands. Click handler shares
+                    activeFilters[activeCategory] with the L2 row
+                    above — intentional duplication mirroring sim's
+                    split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
+                    Mock count of 22 per value until gallery wiring
+                    lands; the `.is-zero` class still applies whenever
+                    count === 0 so the structural class logic is in
+                    place for the wiring build.
+
+                    Build 17 — dim cascade rule (sim 8674-8675):
+                    `dimmed = anySelected && !isActive` keeps `active`
+                    and `dimmed` mutually exclusive on a per-pill basis,
+                    so the same pill never carries both classes. The
+                    L3Pill component below emits classes in sim order
+                    (`is-zero` first, then `active`|`dimmed`); CSS
+                    source order in globals.css 2332-2342 lets is-zero
+                    win the cascade when stacked. */}
+                <div
+                    className="stats-container"
+                    id="statsOutput"
+                    style={
+                        l3Visible
+                            ? { display: 'flex' }
+                            : { display: 'none' }
+                    }
+                >
+                    {l3Visible &&
+                        activeCategory !== null &&
+                        l3Pool.map((value) => {
+                            const isActive =
+                                activeFilters[activeCategory].has(value);
+                            const anySelected =
+                                activeFilters[activeCategory].size > 0;
+                            const dimmed = anySelected && !isActive;
+                            /* Mock count — gallery wiring will replace
+                               with real per-value counts from token data
+                               (sim sources from `traitData[cat][name]`,
+                               sim 8664). Typed as `number` (not the
+                               literal `22`) so the `isZero` check below
+                               stays live for the wiring build. */
+                            const count: number = 22;
+                            return (
+                                <L3Pill
+                                    key={value}
+                                    label={value}
+                                    count={count}
+                                    active={isActive}
+                                    dimmed={dimmed}
+                                    isZero={count === 0}
+                                    category={activeCategory}
+                                    onClick={() =>
+                                        toggleFilter(
+                                            activeCategory,
+                                            value
+                                        )
+                                    }
+                                />
+                            );
+                        })}
                 </div>
             </div>
 
