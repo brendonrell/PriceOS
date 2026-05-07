@@ -23,7 +23,6 @@
  *     covers day + artist kinds today; token kind extends here later.
  *   - handleModalAction (BUY/LIST/MAKE OFFER trade flow) → placeholder
  *     toast; live wallet wiring is its own workstream.
- *   - hammer-mode mute overlay inside the canvas wrap.
  *
  * Hooks discipline (locked rule from session bootstrap): every hook
  * sits at the top of the component, before any conditional return.
@@ -54,6 +53,13 @@ import {
     subscribeGrails,
     togglePin as storeTogglePin,
 } from '../lib/pins/grailStore';
+import {
+    getMutedIds,
+    isMuted as storeIsMuted,
+    subscribeMuted,
+    toggleMute as storeToggleMute,
+} from '../lib/pins/muteStore';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
    text-style form (mono, no emoji colour). Required for every Unicode
@@ -65,6 +71,7 @@ export default function ArtworkModal() {
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { title, totalEditions, floorEth } = useCollection();
+    const { notifs } = usePdNotifs();
 
     /* F50 (BUG-02) — grail pins now live in lib/pins/grailStore so
        ArtworkCard's hover icon, the TopBarRow pill row, and this modal
@@ -81,10 +88,78 @@ export default function ArtworkModal() {
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
 
+    /* chat #4 — D011. Modal mute overlay reads its label state from the
+       same muteStore that ArtworkCard subscribes to, so the modal label
+       and the underlying card's .muted class stay in lockstep. Replaces
+       sim's imperative `_applyModalHammer` (sim 7350-7358) — instead of
+       calling a sync function on every openModal / hammer-mode toggle,
+       React reconciliation paints the right label whenever either
+       `currentModalId` or the muted set changes. */
+    const [mutedSet, setMutedSet] = useState<ReadonlySet<number>>(
+        () => getMutedIds()
+    );
+    useEffect(() => {
+        setMutedSet(getMutedIds());
+        return subscribeMuted((next) => setMutedSet(next));
+    }, []);
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const isOpen = openModal?.name === 'artwork';
     const id = isOpen ? currentModalId : null;
+    const isMutedNow = id != null && mutedSet.has(id);
+
+    /* chat #4 — sim 7370-7385 hammerSwing animation on the modal overlay.
+       Same three-phase label model as ArtworkCard: baseline "Mute" → ⟙
+       with .punch-hammer for 700ms → settled "MUTED" with .muted-final.
+       The unmute path is instantaneous. swinging is a one-shot UI flag
+       cleared by a 700ms timer; cleanup on unmount + on currentModalId
+       change cancels stale timers so a fast prev/next during the swing
+       doesn't strand a half-finished animation. */
+    const [swinging, setSwinging] = useState(false);
+    const swingTimerRef = useRef<number | null>(null);
+    useEffect(() => {
+        return () => {
+            if (swingTimerRef.current != null) {
+                window.clearTimeout(swingTimerRef.current);
+                swingTimerRef.current = null;
+            }
+        };
+    }, []);
+    /* Cancel an in-flight swing if the user navigates the modal mid-
+       animation — prev/next would otherwise show ⟙ briefly on the
+       wrong token. Re-derives label from `isMutedNow` cleanly on the
+       new id. */
+    useEffect(() => {
+        if (swingTimerRef.current != null) {
+            window.clearTimeout(swingTimerRef.current);
+            swingTimerRef.current = null;
+        }
+        setSwinging(false);
+    }, [id]);
+
+    /* sim 7359-7386 _onModalMuteTap. Gates on hammer-mode + a non-null
+       current modal id, then defers to the shared muteStore (which keeps
+       the underlying card in sync — sim runs `window.toggleMute(id)` from
+       inside _onModalMuteTap for the same reason). The Mute → MUTED edge
+       fires the hammerSwing; the MUTED → Mute edge is silent (sim 7382-
+       7385 sets the label back to "Mute" and bails without animating). */
+    const handleModalMuteTap = () => {
+        if (!notifs.spell_hammer) return;
+        if (id == null) return;
+        const wasMuted = storeIsMuted(id);
+        storeToggleMute(id);
+        if (!wasMuted) {
+            if (swingTimerRef.current != null) {
+                window.clearTimeout(swingTimerRef.current);
+            }
+            setSwinging(true);
+            swingTimerRef.current = window.setTimeout(() => {
+                setSwinging(false);
+                swingTimerRef.current = null;
+            }, 700);
+        }
+    };
 
     /* Token metadata — id-keyed lookup over CollectionContext. Returns
        null when the modal is closed or id is unmapped. */
@@ -274,6 +349,35 @@ export default function ArtworkModal() {
 
             <div className="modal-canvas-wrap">
                 <canvas id="modalCanvas" ref={canvasRef} />
+                {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
+                    visible only when body.hammer-mode is active (gated by
+                    globals.css `body.hammer-mode .modal-canvas-wrap
+                    .mute-overlay { display: flex }` at sim 2463). Tap
+                    toggles mute on the current modal token; sim 7359-7386
+                    (_onModalMuteTap) early-returns outside hammer-mode.
+                    Label and animation derive from muteStore + local
+                    swinging state — see handleModalMuteTap above. */}
+                <div
+                    className={
+                        'mute-overlay' + (swinging ? ' punch-hammer' : '')
+                    }
+                    id="modalMuteOverlay"
+                    onClick={handleModalMuteTap}
+                >
+                    <span
+                        className={
+                            'mute-label' +
+                            (!swinging && isMutedNow ? ' muted-final' : '')
+                        }
+                        id="modalMuteLabel"
+                    >
+                        {swinging
+                            ? `\u27D9${VS15}`
+                            : isMutedNow
+                                ? 'MUTED'
+                                : 'Mute'}
+                    </span>
+                </div>
             </div>
 
             {id != null && meta && (

@@ -91,6 +91,14 @@ import {
     togglePin as storeTogglePin,
 } from '../lib/pins/grailStore';
 import {
+    getMutedIds,
+    isMuted as storeIsMuted,
+    muteOnly as storeMuteOnly,
+    subscribeMuted,
+    toggleMute as storeToggleMute,
+} from '../lib/pins/muteStore';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import {
     getActiveBudgetEth,
     subscribeBudgets,
 } from '../lib/engines/budgetEngine';
@@ -110,13 +118,15 @@ interface ArtworkCardProps {
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
        the rounded corner). Optional + defaults to false. */
     isBreadcrumb?: boolean;
-    /* Build 23 — sim 7280 + 2390-2392 + 2444. Card's "muted" state. When
-       true: article gets .muted class (which hides the card entirely
-       outside hammer-mode per sim 2390), and the mute label flips to
-       MUTED with .muted-final styling. No parent currently sets this —
-       the toggleMute handler that flips it lands when hammer-mode click
-       wiring ships. Optional + defaults to false. */
-    muted?: boolean;
+    /* chat #4 — Mute system parity. Card subscribes to muteStore directly,
+       same pattern as grailStore above. The legacy `muted` prop on this
+       interface (Build 23 placeholder) is removed: no parent ever passed
+       it, and the muteStore subscription is the canonical source now.
+       sim 7280-7290 toggleMute drives the .muted class via store updates
+       → React re-renders the card with `.muted` in articleClass, which
+       triggers globals.css 2390 (`body:not(.hammer-mode) .edition-card.muted
+       { display: none }`) to hide muted cards outside hammer-mode and
+       2444-2457 (`.muted-final` boxed-tape label) inside it. */
     /* F61 (BUG-30) — sim 6629-6635 picks 3 random cards each time Burn
        Pile flips on and stamps `.burn-pick` on them; the gallery itself
        gets `.burn-mode` (sim 6635) so CSS in globals.css (sim 2320-2321)
@@ -135,12 +145,12 @@ export default function ArtworkCard({
     id,
     showcasePick = false,
     isBreadcrumb = false,
-    muted = false,
     burnPick = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
     const { title: collectionTitle } = useCollection();
+    const { notifs } = usePdNotifs();
     const meta = useTokenMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     /* Build 35 — wrapper ref so the virtualizer can observe this card's
@@ -163,6 +173,73 @@ export default function ArtworkCard({
         return subscribeGrails((next) => setPinnedSet(next));
     }, []);
     const isPinned = pinnedSet.includes(id);
+
+    /* chat #4 — Mute system parity. Same subscription pattern as the
+       grail pin subscription above. mutedSet is local component state so
+       React re-renders this card whenever toggleMute / muteOnly fires
+       from any surface (this card's own mute click, the modal mute tap,
+       the legacy hi-hammer icon). sim 7280-7317 updates the global
+       _mutedIds Set; the React port replaces the imperative DOM walk
+       (sim's _paintMutedState at 7328-7346) with a per-card subscription
+       so reconciliation paints the .muted class + label state for free. */
+    const [mutedSet, setMutedSet] = useState<ReadonlySet<number>>(
+        () => getMutedIds()
+    );
+    useEffect(() => {
+        setMutedSet(getMutedIds());
+        return subscribeMuted((next) => setMutedSet(next));
+    }, []);
+    const muted = mutedSet.has(id);
+
+    /* sim 7295-7310 — when toggleMute flips Mute → MUTED, the label first
+       shows ⟙ + .punch-hammer for 700ms (the swing keyframe), then
+       settles to MUTED with .muted-final. The Muted → Mute path is
+       instantaneous (no animation). React port mirrors with a `swinging`
+       state set on the unmute → mute edge; a 700ms timer flips it off
+       and the rendered label re-derives from the muted boolean.
+
+       The Mute / MUTED text rendering is derived from `muted` directly
+       so it stays in sync if the muteStore is poked from another tab
+       (storage event sync isn't wired today, but the derivation pattern
+       prevents drift if it's added later). swinging is a one-shot UI
+       flag for the animation only. */
+    const [swinging, setSwinging] = useState(false);
+    const swingTimerRef = useRef<number | null>(null);
+    useEffect(() => {
+        return () => {
+            if (swingTimerRef.current != null) {
+                window.clearTimeout(swingTimerRef.current);
+            }
+        };
+    }, []);
+    const startSwing = () => {
+        if (swingTimerRef.current != null) {
+            window.clearTimeout(swingTimerRef.current);
+        }
+        setSwinging(true);
+        swingTimerRef.current = window.setTimeout(() => {
+            setSwinging(false);
+            swingTimerRef.current = null;
+        }, 700);
+    };
+
+    /* The actual mute-click runner used by both the in-card content tap
+       (when hammer-mode is on, sim 8008-8014) and the legacy hi-hammer
+       hover icon (sim 8056). Sim's `hammerItem` shim mutes-only — the
+       hover icon never unmutes — but in practice the icon is hidden via
+       CSS (sim 2387 `body.hammer-mode .hi-hammer { display: none }` plus
+       its own inline style:none baseline) so the unmute branch is dead.
+       Kept here for parity. The card content path uses the full toggle. */
+    const runMuteToggle = () => {
+        const wasMuted = storeIsMuted(id);
+        storeToggleMute(id);
+        if (!wasMuted) startSwing();
+    };
+    const runMuteOnly = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const did = storeMuteOnly(id);
+        if (did) startSwing();
+    };
 
     /* F57 (BUG-10) — sim 11225-11235 applyBudget. Each card subscribes
        to budgetEngine and applies its own .in-budget class via React
@@ -258,7 +335,19 @@ export default function ArtworkCard({
         };
     }, [id]);
 
-    const handleOpen = () => open('artwork', id);
+    /* sim 8008-8014 — when hammer-mode is on, tapping the card body
+       toggles mute on this token rather than opening the modal. Mode
+       state is read from PdNotifsContext (`spell_hammer`), which is
+       the canonical source for the body class itself (useBodyClass.ts
+       L78 + L123). Reading from notifs avoids touching document.body
+       in the click path. */
+    const handleOpen = () => {
+        if (notifs.spell_hammer) {
+            runMuteToggle();
+            return;
+        }
+        open('artwork', id);
+    };
 
     /* Sim caption split (sim ~8092):
          - listed   → .meta-owner.price-trigger showing the price
@@ -396,19 +485,33 @@ export default function ArtworkCard({
                         className="edition-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
-                    {/* Build 23 — sim 8038-8040 mute overlay. Always
-                        mounted; CSS gates visibility on body.hammer-mode.
-                        Sits before .hover-overlay in DOM order to match
-                        sim's renderFeed append sequence. Label text is
-                        "Mute" baseline; flips to "Muted" + .muted-final
-                        when the parent passes muted=true (sim 7280-7290). */}
-                    <div className="mute-overlay">
+                    {/* Build 23 + chat #4 — sim 8038-8040 mute overlay.
+                        Always mounted; CSS gates visibility on body.hammer-
+                        mode. Three label states (sim 7295-7310):
+                          baseline    : "Mute"
+                          mid-swing   : "⟙" + overlay carries .punch-hammer
+                                        (700ms hammerSwing animation, sim
+                                        2430-2437)
+                          settled     : "MUTED" + .muted-final (boxed-tape,
+                                        sim 2444-2457)
+                        Uppercase MUTED matches sim 7306; the prior placeholder
+                        "Muted" titlecase was a Build 23 stub. */}
+                    <div
+                        className={
+                            'mute-overlay' + (swinging ? ' punch-hammer' : '')
+                        }
+                    >
                         <span
                             className={
-                                'mute-label' + (muted ? ' muted-final' : '')
+                                'mute-label' +
+                                (!swinging && muted ? ' muted-final' : '')
                             }
                         >
-                            {muted ? 'Muted' : 'Mute'}
+                            {swinging
+                                ? '\u27D9\uFE0E'
+                                : muted
+                                    ? 'MUTED'
+                                    : 'Mute'}
                         </span>
                     </div>
                     {/* Build 22 — sim 8041-8057 hover overlay. */}
@@ -464,7 +567,7 @@ export default function ArtworkCard({
                                 className="hi-icon hi-hammer"
                                 title="Mute (Hammer)"
                                 style={{ display: 'none' }}
-                                onClick={stubAction('Muted')}
+                                onClick={runMuteOnly}
                             >
                                 {'\u16A6\uFE0E'}
                             </span>
