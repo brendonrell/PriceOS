@@ -139,7 +139,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     onClick={() => {
                         const next = !notifs.stargazing;
                         toggle('stargazing');
-                        showToast(`Stargazing ${next ? 'ON' : 'OFF'}`);
+                        showToast(`Stargazing Mode ${next ? 'ON' : 'OFF'}`);
                     }}
                     icon={'❇\uFE0E'}
                     label="Stargazing"
