@@ -23,7 +23,6 @@
 
 import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { useModal } from '../lib/state/ModalContext';
-import { artistGlyphVS15, artistGlyphTitle } from '../lib/data/artistStatus';
 
 const VS15 = '\uFE0E';
 
@@ -143,9 +142,9 @@ export default function CollectorsModal() {
                                 {c.artist && (
                                     <span
                                         className="artist-tag"
-                                        title={artistGlyphTitle(c.handle)}
+                                        aria-label="artist"
                                     >
-                                        {artistGlyphVS15(c.handle)}
+                                        {'✺\uFE0E'}
                                     </span>
                                 )}{' '}
                                 ({c.count})
