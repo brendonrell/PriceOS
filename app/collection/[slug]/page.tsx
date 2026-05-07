@@ -517,22 +517,31 @@ function CollectionPageInner({
         });
 
         // 4. Sort
+        // Brendon item 2 (chat A) — `dir` was destructured at top of
+        // page.tsx but the comparator only ever sorted ascending. Now:
+        // id family flips on dir; price family flips on dir; feed stays
+        // descending-id (its own sort lives in the feed renderer). Sort
+        // toast direction was correct (the dir state was tracked) — only
+        // the gallery comparator missed the dir multiplier.
+        const dirMult = dir === 'asc' ? 1 : -1;
         if (sort === 'price') {
             filtered.sort((a, b) => {
                 const ma = collection.tokens.get(a);
                 const mb = collection.tokens.get(b);
                 const na = ma?.price ? parseFloat(ma.price) : Infinity;
                 const nb = mb?.price ? parseFloat(mb.price) : Infinity;
-                if (na !== nb) return na - nb;
-                return a - b;
+                if (na !== nb) return (na - nb) * dirMult;
+                return (a - b) * dirMult;
             });
+        } else if (sort === 'id') {
+            filtered.sort((a, b) => (a - b) * dirMult);
         } else if (sort === 'feed') {
             filtered.sort((a, b) => b - a);
         }
-        // 'id' and 'fog' = ascending id (already in order from construction)
+        // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [collection, sort, activeFilters, searchQuery, priceMin, priceMax]);
+    }, [collection, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
@@ -725,23 +734,34 @@ function CollectionPageInner({
                         </div>
 
                         <div className="hero-line stats-row stats-row-2">
-                            <span className="stat-item" title="Editions You Own">
+                            {/* Brendon items 3+4 (chat A) — row-2 reframed:
+                                col 1 swaps Editions Owned (⊡) for % Listed
+                                (⊞ — boxed-plus, reads as "active listings");
+                                col 2 swaps Total Spent (⎙) for Floor Price
+                                (⎵ — bottom-bracket, reads as "lowest-of"
+                                shape). Anchor (col 3) untouched per
+                                Brendon's "Anchor stays the same". Floor
+                                value pulls from collection.tokens via the
+                                existing lowestFloor helper computed above. */}
+                            <span className="stat-item" title="Percent Listed">
                                 <span className="stat-icon stat-icon-box stat-icon-owned">
-                                    ⊡&#xFE0E;
+                                    ⊞&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statOwnedVal">
-                                    —
+                                    100% LISTED
                                 </span>
                             </span>
                             <span
                                 className="stat-item"
-                                title="Total Spent on This Collection"
+                                title="Floor Price"
                             >
                                 <span className="stat-icon stat-icon-box stat-icon-spent">
-                                    ⎙&#xFE0E;
+                                    ⎵&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
-                                    0.142 ETH
+                                    {lowestFloor !== null
+                                        ? `${lowestFloor.toFixed(3)} ETH`
+                                        : '—'}
                                 </span>
                             </span>
                             <span
