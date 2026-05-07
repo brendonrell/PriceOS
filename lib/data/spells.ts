@@ -4,8 +4,9 @@
  * Each spell has a pill in the Spell Book section of Settings. Tapping
  * a pill toggles its corresponding pdNotifs.spell_<name> flag. None of
  * the entries below carry a body class — Stargazing (which does drive
- * body.stargazing-mode) is NOT a spell; it lives in MyPdSection as a
- * plain notif key (`stargazing`, sim 6782 + 9761) per F48.
+ * body.stargazing-mode) is NOT a spell; it lives in SpellBookSection as a
+ * hardcoded pill (sb-stargazing, sim 4735) between Solar Flare and Offer
+ * Shield. It toggles the plain `stargazing` pdNotifs key (sim 6782).
  *
  * Order matches the sim left-to-right, top-to-bottom. The Hammer is
  * always last per Brendon's convention.
@@ -47,7 +48,6 @@ export const SPELLS: SpellEntry[] = [
     { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: '⦾\uFE0E' },
     { id: 'portal',      flag: 'spell_portal',      name: 'Portal',            icon: 'ᗝ\uFE0E' },
     { id: 'cme',         flag: 'spell_cme',         name: 'Solar Flare',       icon: '⛆\uFE0E' },
-    { id: 'astral',      flag: 'spell_astral',      name: 'Astral',            icon: '⍈\uFE0E' },
     { id: 'offershield', flag: 'spell_offershield', name: 'Offer Shield',      icon: '⍲\uFE0E' },
     { id: 'sybilnet',    flag: 'spell_sybilnet',    name: 'Sybil Net',         icon: '∾\uFE0E' },
     { id: 'gossip',      flag: 'spell_gossip',      name: 'Gossip Protocol',   icon: '⑃\uFE0E' },
