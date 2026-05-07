@@ -1187,7 +1187,6 @@ body.tape-framed .tape-rail {
     z-index: 0;
     overflow: hidden;
     display: none;
-    background: #0d0618;
 }
 body.stargazing-mode #starfield { display: block; }
 body.stargazing-mode {
@@ -1195,6 +1194,44 @@ body.stargazing-mode {
     color: #c5a8f0 !important;
     --bg-color: #0d0618 !important;
     --text-color: #c5a8f0 !important;
+}
+
+/* Stargazing star primitives (sim 1636-1665).
+   .star-dot is a single 1-3px square that pulses opacity via starPulse;
+   per-star duration / delay / peak-opacity come from inline --sd / --sde / --sop
+   set by the seeder in lib/effects/stargazing.ts.
+   .shooting-star is a thin gradient streak whose 'shoot' keyframe is visible
+   for ~2% of the cycle (genuinely rare); --ss-dur / --ss-del / --ss-angle
+   come from the same inline style. */
+.star-dot {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #c5a8f0;
+    border-radius: 0;
+    image-rendering: pixelated;
+    animation: starPulse var(--sd, 3s) ease-in-out infinite;
+    animation-delay: var(--sde, 0s);
+}
+@keyframes starPulse {
+    0%, 100% { opacity: 0.1; }
+    50%       { opacity: var(--sop, 0.85); }
+}
+.shooting-star {
+    position: absolute;
+    width: 1px; height: 0;
+    background: linear-gradient(to bottom, transparent, #e8d8ff, transparent);
+    animation: shoot var(--ss-dur, 50s) linear infinite;
+    animation-delay: var(--ss-del, 0s);
+    opacity: 0;
+    transform-origin: top center;
+}
+@keyframes shoot {
+    /* streak visible for only ~2% of long cycle = genuinely rare event */
+    0%    { opacity: 0;    height: 0;     transform: rotate(var(--ss-angle, 38deg)) translateY(0); }
+    0.8%  { opacity: 0.92; height: 100px; }
+    2.5%  { opacity: 0;    height: 100px; transform: rotate(var(--ss-angle, 38deg)) translateY(360px); }
+    2.51% { height: 0; transform: rotate(var(--ss-angle, 38deg)) translateY(0); }
+    100%  { opacity: 0;    height: 0;     transform: rotate(var(--ss-angle, 38deg)) translateY(0); }
 }
 
 /* Stargazing: force all modal/dropdown surfaces into dark glass so they don't blast white over the starfield.
