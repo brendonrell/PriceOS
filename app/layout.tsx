@@ -80,7 +80,7 @@ const PREHYDRATION_SCRIPT = `
         if (notifs) {
             var classList = document.body && document.body.classList;
             if (classList) {
-                var tapeMap = ['tape-off', 'tape-faded', null, 'tape-bold', 'tape-framed'];
+                var tapeMap = ['tape-off', 'tape-faded', 'tape-standard', 'tape-bold', 'tape-framed'];
                 var tapeClass = tapeMap[notifs.tape];
                 if (tapeClass) classList.add(tapeClass);
 
