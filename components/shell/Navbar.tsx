@@ -28,11 +28,14 @@
  * elements that would result from each component owning its own
  * .top-bar div.
  *
- * Ticker remains deferred — lands back in once the launch is open and
- * the surfaces below the fold ship.
+ * D001 — Ticker mounted between PeteyLogo and UserMenuButtons.
+ * Sim ref L4431-4433: tape-wrap is third child of .navbar between
+ * .pd-logo-wrap and .nav-controls. CSS already ports tape-wrap rules
+ * at globals.css 1120-1178 verbatim.
  */
 
 import { PeteyLogo } from './PeteyLogo';
+import { Ticker } from './Ticker';
 import { TopBarRow } from './TopBarRow';
 import { UserMenuButtons } from './UserMenuButtons';
 
@@ -41,6 +44,7 @@ export function Navbar() {
         <nav className="navbar">
             <TopBarRow />
             <PeteyLogo />
+            <Ticker />
             <UserMenuButtons />
         </nav>
     );
