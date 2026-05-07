@@ -385,6 +385,28 @@ function CollectionPageInner({
        The reference here keeps the unused-variable lint quiet. */
     void params.slug;
 
+    /* D003 + D004 — BUY button dynamic floor (sim 8127-8141).
+       Sim walks metaCache[1..TOTAL_EDITIONS] for the lowest listed price
+       and wires buyBtn.onclick → openModal(lowestId), .mint-price text →
+       `(${lowestFloor.toFixed(3)} ETH)`. Falls back to (SOLD OUT) +
+       opacity 0.5 + cursor not-allowed when no listed editions exist.
+       Token meta has only `price: string | null` (no rawPrice numeric),
+       so we parseFloat in the same pattern as line 485 / 502. */
+    const { lowestId, lowestFloor } = useMemo(() => {
+        let lo = Infinity;
+        let id: number | null = null;
+        for (let i = 1; i <= collection.totalEditions; i++) {
+            const meta = collection.tokens.get(i);
+            if (!meta || !meta.price) continue;
+            const n = parseFloat(meta.price);
+            if (!Number.isNaN(n) && n < lo) {
+                lo = n;
+                id = i;
+            }
+        }
+        return { lowestId: id, lowestFloor: id !== null ? lo : null };
+    }, [collection]);
+
     /* Sim's tab visibility table (sim ~13150):
          showcase  → gallery, no feed/traits/sort/albums
          artworks  → gallery (or activity-feed if sort starts with 'feed'),
@@ -769,12 +791,21 @@ function CollectionPageInner({
                         <button
                             className="btn-mint"
                             title="Buy the Lowest Listed Edition"
-                            onClick={() =>
-                                showToast('Mint flow — wiring pending')
+                            onClick={() => {
+                                if (lowestId !== null) open('artwork', lowestId);
+                            }}
+                            style={
+                                lowestId === null
+                                    ? { opacity: 0.5, cursor: 'not-allowed' }
+                                    : undefined
                             }
                         >
                             <span className="mint-lbl">BUY</span>
-                            <span className="mint-price">(0.014 ETH)</span>
+                            <span className="mint-price">
+                                {lowestFloor !== null
+                                    ? `(${lowestFloor.toFixed(3)} ETH)`
+                                    : '(SOLD OUT)'}
+                            </span>
                         </button>
                     </div>
 
