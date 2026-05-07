@@ -116,6 +116,101 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('keydown', handler);
     }, [menuOpen]);
 
+    /* G item 7 — _syncDropdownMaxHeight (sim 6670-6688) port.
+       The .dropdown-stack max-height clamps via `var(--dropdown-max-h, calc(100dvh - 180px))`.
+       The 180px CSS fallback is a static approximation of the navbar
+       footprint; when a top-bar pill (Stargazing / Hammer / Echo / etc)
+       flips on, the navbar wraps to multiple rows and the wrapper's
+       bottom-edge moves further down the viewport. Without a JS sync,
+       the dropdown anchored to the wrapper extends past the viewport
+       AND its own clamp doesn't compensate, so accordions get pushed
+       below the visible area — the menu reads as "shortened to top
+       part" because Pings/Notes/Todos are scrolled off-screen.
+
+       The sync writes a pixel-exact `--dropdown-max-h` based on the
+       actual wrapper rect + visualViewport. Listens to viewport
+       resize/scroll (iOS URL-bar transitions), window resize/orientation,
+       and ResizeObserver on the navbar (top-bar pill row add/remove). */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const sync = () => {
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (!wrapper) return;
+            const vv = window.visualViewport;
+            const vpHeight = vv ? vv.height : window.innerHeight;
+            const vpOffsetTop = vv ? vv.offsetTop : 0;
+            const rect = wrapper.getBoundingClientRect();
+            const wrapperBottomInVV = rect.bottom - vpOffsetTop;
+            const availableBelow = vpHeight - wrapperBottomInVV;
+            const maxH = Math.max(200, Math.floor(availableBelow - 20));
+            document.documentElement.style.setProperty(
+                '--dropdown-max-h',
+                `${maxH}px`
+            );
+        };
+
+        // Initial sync + double-rAF for first-paint stability (sim 6698).
+        sync();
+        const r1 = requestAnimationFrame(() => {
+            requestAnimationFrame(sync);
+        });
+
+        const vv = window.visualViewport;
+        if (vv) {
+            vv.addEventListener('resize', sync);
+            vv.addEventListener('scroll', sync);
+        }
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+
+        // ResizeObserver on the navbar — fires when a top-bar pill row
+        // is added/removed, which changes the wrapper's bottom edge
+        // without firing visualViewport events.
+        let resizeObs: ResizeObserver | null = null;
+        const navbar = document.querySelector('.navbar');
+        if (navbar && typeof ResizeObserver !== 'undefined') {
+            resizeObs = new ResizeObserver(sync);
+            resizeObs.observe(navbar);
+        }
+
+        return () => {
+            cancelAnimationFrame(r1);
+            if (vv) {
+                vv.removeEventListener('resize', sync);
+                vv.removeEventListener('scroll', sync);
+            }
+            window.removeEventListener('resize', sync);
+            window.removeEventListener('orientationchange', sync);
+            if (resizeObs) resizeObs.disconnect();
+        };
+    }, []);
+
+    /* G item 7 (cont.) — re-sync on menu open. The general listener above
+       keeps the var fresh as the navbar mutates, but a fresh measurement
+       at open time matches sim 6713-6716 and protects against the menu
+       opening while a pill-row addition was in-flight. */
+    useEffect(() => {
+        if (!menuOpen || typeof window === 'undefined') return;
+        const sync = () => {
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (!wrapper) return;
+            const vv = window.visualViewport;
+            const vpHeight = vv ? vv.height : window.innerHeight;
+            const vpOffsetTop = vv ? vv.offsetTop : 0;
+            const rect = wrapper.getBoundingClientRect();
+            const wrapperBottomInVV = rect.bottom - vpOffsetTop;
+            const availableBelow = vpHeight - wrapperBottomInVV;
+            const maxH = Math.max(200, Math.floor(availableBelow - 20));
+            document.documentElement.style.setProperty(
+                '--dropdown-max-h',
+                `${maxH}px`
+            );
+        };
+        const r = requestAnimationFrame(() => requestAnimationFrame(sync));
+        return () => cancelAnimationFrame(r);
+    }, [menuOpen]);
+
     const value = useMemo<DropdownContextValue>(
         () => ({ menuOpen, view, openMenu, closeMenu, toggleMenu, setView, reset }),
         [menuOpen, view, openMenu, closeMenu, toggleMenu, reset]

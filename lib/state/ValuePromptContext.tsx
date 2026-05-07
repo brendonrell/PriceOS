@@ -33,6 +33,7 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
@@ -108,6 +109,22 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
     const closeValuePrompt = useCallback(() => {
         setConfig(null);
     }, []);
+
+    /* G item 10 — body.modal-open while the value prompt is mounted.
+       DropdownContext's outside-mousedown handler gates on this class;
+       without it, addBudget / openAnchorPrompt / WorkspaceSwitcher's
+       Name-prompt close the connect menu when the user taps inside the
+       value-prompt sheet. Same pattern as NotePromptContext / ModalContext. */
+    useEffect(() => {
+        if (config) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [config]);
 
     /* ── D17 anchor helper ──
        Reads pd_anchors from localStorage, opens the value prompt

@@ -70,6 +70,7 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
@@ -180,6 +181,24 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
     const closeNotePrompt = useCallback(() => {
         setPrompt(null);
     }, []);
+
+    /* G item 10 — body.modal-open while the note prompt is mounted.
+       DropdownContext's outside-mousedown handler gates on this class
+       (DropdownContext.tsx F45/BUG-19 guard) — without it, a click
+       inside the open note-prompt overlay closes the connect menu out
+       from under the user. ModalContext does this for its own modals
+       (ModalContext.tsx) but the note prompt manages its own overlay,
+       so the gate has to be set here too. */
+    useEffect(() => {
+        if (prompt) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [prompt]);
 
     const handleSave = useCallback(
         (value: string) => {
