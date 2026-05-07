@@ -38,7 +38,6 @@ import { useModal } from '../../lib/state/ModalContext';
 export function LinksView() {
     const { setView } = useDropdown();
     const { open } = useModal();
-    const [profileHover, setProfileHover] = useState(false);
 
     /* F63 / BUG-33 — mock gas widget cycling (sim 5703-5712).
        Sim cycles through ten plausible gwei values every 15 seconds and
@@ -67,18 +66,21 @@ export function LinksView() {
 
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">
-            {/* F33: row container styles match sim 4508 (flex / padding / border-left placeholder / 30px height).
-                F34: hover state paints borderLeftColor + background, mirrors sim 4509 inline mouseenter/leave handlers. */}
+            {/* Brendon item 19 (chat A) — Profile row no longer has the
+                outer-div hover rectangle. The <a>Profile</a> now matches
+                Discord / Artists / Portfolio rows: takes the standard
+                `.user-dropdown a` styling (border-left + bg via
+                `.user-dropdown a:hover`). The follower/following stats
+                sit to the right of the link with their own hover color
+                change on the numbers + icons (theme-sensitive accent).
+                The "additional little square" that used to wrap the
+                whole row was the duplicated borderLeft+bg on
+                #profileRow:hover — gone. */}
             <div
                 id="profileRow"
                 style={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '6px 10px',
-                    borderLeft: `2px solid ${profileHover ? 'var(--bg-color)' : 'transparent'}`,
-                    background: profileHover ? 'rgba(128,128,128,0.2)' : '',
-                    height: 30,
-                    boxSizing: 'border-box',
                 }}
             >
                 {/* PARKED DEVIATION: flex: 1 pushes the stats to the
@@ -86,18 +88,7 @@ export function LinksView() {
                     next to "Profile" (sim's natural layout). */}
                 <a
                     href="/brendon"
-                    style={{
-                        fontSize: 13,
-                        fontWeight: 'bold',
-                        textDecoration: 'none',
-                        color: 'inherit',
-                        transition: 'all 0.2s',
-                        borderLeft: 'none',
-                        padding: 0,
-                        flex: 1,
-                    }}
-                    onMouseEnter={() => setProfileHover(true)}
-                    onMouseLeave={() => setProfileHover(false)}
+                    style={{ flex: 1 }}
                 >
                     Profile
                 </a>

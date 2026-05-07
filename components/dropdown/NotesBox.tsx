@@ -24,16 +24,57 @@
  *      inside openTokenNoteEditor short-circuits.
  *   3. e.stopPropagation prevents the click from bubbling up to the
  *      AccordionBox header (which would collapse the accordion).
+ *
+ * Brendon item 18 (chat A) — NOT a sim port. Sim has no delete affordance
+ * on the Notes list items. Brendon explicitly greenlit adding one because
+ * "this is probably NOT sim parity but its the right time to fix it." Per-
+ * row × button revealed on hover (kept out of the way at rest); persists
+ * to localStorage `pd_notes_deleted` so the deletion survives reload.
  */
 
+import { useEffect, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { MOCK_NOTES, MOCK_DEMO_NOTES } from '../../lib/data/mockNotes';
+
+const DELETED_KEY = 'pd_notes_deleted';
 
 export function NotesBox() {
     const { notifs, setAccordion } = usePdNotifs();
     const { openTokenNoteEditor } = useNotePrompt();
+    const { showToast } = useToast();
+
+    const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(DELETED_KEY);
+            if (!raw) return;
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) setDeletedIds(new Set(arr.map(String)));
+        } catch {
+            /* swallow */
+        }
+    }, []);
+
+    const handleDelete = (e: React.MouseEvent, idStr: string) => {
+        e.stopPropagation();
+        setDeletedIds((prev) => {
+            const next = new Set(prev);
+            next.add(idStr);
+            try {
+                localStorage.setItem(DELETED_KEY, JSON.stringify([...next]));
+            } catch {
+                /* swallow */
+            }
+            return next;
+        });
+        showToast(`Note ${idStr} Deleted`);
+    };
+
+    const visible = MOCK_NOTES.filter((n) => !deletedIds.has(n.id));
 
     return (
         <AccordionBox
@@ -44,11 +85,11 @@ export function NotesBox() {
             header={
                 <>
                     NOTES
-                    <span className="notif-count">(22)</span>
+                    <span className="notif-count">({visible.length})</span>
                 </>
             }
         >
-            {MOCK_NOTES.map((n) => {
+            {visible.map((n) => {
                 /* Strip leading '#' from the list-item id string and
                    parseInt — mockNotes stores ids as '#22', sim's
                    demoNotes (now MOCK_DEMO_NOTES) is keyed by numeric
@@ -66,14 +107,33 @@ export function NotesBox() {
                 return (
                     <div
                         key={n.id}
-                        className="notif-item"
+                        className="notif-item notif-item-deletable"
                         onClick={handleClick}
                         role="button"
                         tabIndex={0}
                     >
                         <span className="n-icon">{n.icon}</span>
-                        <span>
+                        <span className="notif-item-body">
                             {n.id} — {n.text}
+                        </span>
+                        <span
+                            className="notif-item-delete"
+                            role="button"
+                            tabIndex={0}
+                            title="Delete note"
+                            onClick={(e) => handleDelete(e, n.id)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleDelete(
+                                        e as unknown as React.MouseEvent,
+                                        n.id
+                                    );
+                                }
+                            }}
+                        >
+                            {'\u00D7\uFE0E'}
                         </span>
                     </div>
                 );
