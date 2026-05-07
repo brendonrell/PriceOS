@@ -97,6 +97,18 @@ import {
     subscribeMuted,
     toggleMute as storeToggleMute,
 } from '../lib/pins/muteStore';
+/* chat #6 D010-star — sim 5536-5551. Toggle star via module-singleton
+   store (mirrors grailStore / muteStore pattern). Sim itself toggles
+   data-starred + .active-star on the icon span DOM directly; the React
+   port replaces that with a Set in starStore, persisted to
+   localStorage.pd_starred_ids so virtualization-driven remounts don't
+   eat the state. */
+import {
+    getStarredIds,
+    subscribeStarred,
+    toggleStar as storeToggleStar,
+} from '../lib/pins/starStore';
+import { useCart } from '../lib/state/CartContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import {
@@ -192,6 +204,29 @@ export default function ArtworkCard({
         return subscribeMuted((next) => setMutedSet(next));
     }, []);
     const muted = mutedSet.has(id);
+
+    /* chat #6 D010-star — sim 5536-5551. Same subscription pattern as
+       grailStore + muteStore. starredSet drives the icon's character
+       (☆ unstarred / ★ starred) plus the .active-star class on the span
+       (CSS at app/globals.css:3218 sets `.hi-icon.active-star { color:
+       #fff }`). Sim toggles data-starred + .active-star directly on the
+       DOM; the React port subscribes per-card so reconciliation paints
+       the active state on every render — survives remount under
+       virtualization (Build 35). */
+    const [starredSet, setStarredSet] = useState<ReadonlySet<number>>(
+        () => getStarredIds()
+    );
+    useEffect(() => {
+        setStarredSet(getStarredIds());
+        return subscribeStarred((next) => setStarredSet(next));
+    }, []);
+    const starred = starredSet.has(id);
+
+    /* chat #6 D010-cart — sim 11823-11836. CartContext already owns the
+       items Set + persistence; ArtworkCard reads `has` for the duplicate-
+       toast branch + `add` for the mutation. Toast strings mirror sim
+       11827 (already-in-cart) + 11834 (added) verbatim. */
+    const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
 
     /* sim 7295-7310 — when toggleMute flips Mute → MUTED, the label first
        shows ⟙ + .punch-hammer for 700ms (the swing keyframe), then
@@ -424,6 +459,47 @@ export default function ArtworkCard({
         showToast(`${collName} #${id} GRAIL PINNED`);
     };
 
+    /* chat #6 D010-star — sim 5536-5551. Sim's toggleStar reads
+       data-starred + flips .active-star + showToast('STARRED #'+id) /
+       'UNSTARRED #'+id. React port routes through starStore.toggleStar
+       (the store fires emit() so every other card subscribed to the
+       same id gets the snapshot — relevant for cross-surface listings
+       once those land). e.stopPropagation prevents the surrounding
+       .edition-content click from also opening the modal. */
+    const handleStarClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const result = storeToggleStar(id);
+        if (result === 'starred') {
+            showToast(`STARRED #${id}`);
+        } else {
+            showToast(`UNSTARRED #${id}`);
+        }
+    };
+
+    /* chat #6 D010-cart — sim 11823-11836. addToCart's two branches:
+       already-in-cart shows "Prisms #22 already in cart" (sim 11827 —
+       title-cased collection name + ' #' + id + ' already in cart');
+       fresh-add shows "Added to cart · N items" (sim 11834 — uses
+       _pdCart.size POST-add, with singular/plural). React reads the
+       pre-add count from the items array (which is stable in the click
+       closure) and computes post-add as items.length + 1. The icon
+       only renders for listed tokens (sim 8050 isListed gate, mirrored
+       in the JSX `{listed && ...}` block below) so this handler
+       cannot fire on an unlisted card. */
+    const handleCartClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (cartHas(id)) {
+            const collName =
+                collectionTitle.charAt(0) +
+                collectionTitle.slice(1).toLowerCase();
+            showToast(`${collName} #${id} already in cart`);
+            return;
+        }
+        cartAdd(id);
+        const next = cartItems.length + 1;
+        showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
+    };
+
     /* Build 22 — sim 8085. Price Memory ghost seed. Deterministic per id
        so the "last sale" readout is stable across reloads + filter / sort
        changes. CSS gates visibility on body.pm-active (sim 3690). */
@@ -521,13 +597,24 @@ export default function ArtworkCard({
                         <div className="hover-bg" />
                         <div className="hover-icons">
                             <span
-                                className="hi-icon"
+                                className={
+                                    'hi-icon' + (starred ? ' active-star' : '')
+                                }
                                 title="Star"
-                                data-starred="false"
-                                onClick={stubAction('Starred')}
+                                data-starred={starred ? 'true' : 'false'}
+                                onClick={handleStarClick}
                             >
-                                {'\u2606\uFE0E'}
+                                {starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}
                             </span>
+                            {/* chat #6 — sim 8046 has NO onclick on the
+                                Wishlist span. Sim never implemented a
+                                wishlist handler (grep across sim.html for
+                                wishlistSet / toggleWishlist / pd_wishlist
+                                = zero hits). Keeping stubAction here is a
+                                deliberate sim deviation — sim's no-op
+                                would bubble to .edition-content and open
+                                the modal, which is worse than the toast.
+                                Real handler lands when sim adds one. */}
                             <span
                                 className="hi-icon"
                                 title="Wishlist"
@@ -535,6 +622,12 @@ export default function ArtworkCard({
                             >
                                 {'\u271B\uFE0E'}
                             </span>
+                            {/* chat #6 — sim 8047 has NO onclick on the
+                                Album span. Same finding as Wishlist —
+                                sim never implemented an album handler.
+                                stubAction preserved for the same
+                                e.stopPropagation reason. Real handler
+                                lands when sim adds one. */}
                             <span
                                 className="hi-icon"
                                 title="Add to Album"
@@ -572,7 +665,7 @@ export default function ArtworkCard({
                                 <span
                                     className="hi-icon hi-cart"
                                     title="Add to Cart"
-                                    onClick={stubAction('Added to Cart')}
+                                    onClick={handleCartClick}
                                 >
                                     {'\u25A2\uFE0E'}
                                 </span>
