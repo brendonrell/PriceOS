@@ -80,6 +80,10 @@ import {
     clearStarfield,
     applyStargazingVars,
 } from '../../lib/effects/stargazing';
+import {
+    startAutoScroll,
+    stopAutoScroll,
+} from '../../lib/effects/autoscroll';
 
 /* Canonical body-class flags that gate the rAF loop. `bg-canvas-on`
    is the explicit hook the Build 11 spec asks for; `stargazing-mode`
@@ -274,6 +278,26 @@ export function Backgrounds() {
             applyStargazingVars();
         }
     }, [notifs.stargazing, theme]);
+
+    /* Brendon list item 10 — Auto-Scroll lifecycle. Sim 9441-9455 +
+       sim 13038 hydration restore. start on flip-on edge, stop on
+       flip-off + on unmount. The helper is idempotent so a re-mount
+       under StrictMode doesn't double-tick. No body class to manage —
+       sim's _applyAutoScroll doesn't set one (Setup Code apply path
+       sets `autoscroll-mode` as a decorative marker but nothing in
+       CSS reads it). The interval pauses internally when document.hidden,
+       so a backgrounded tab doesn't burn CPU. */
+    useEffect(() => {
+        if (notifs.autoscroll) {
+            startAutoScroll();
+            return () => stopAutoScroll();
+        }
+        // Defensive stop on transition into a render where the flag is
+        // false — guards against a rapid flip that would otherwise leave
+        // the interval running if the previous render's cleanup hasn't
+        // fired yet.
+        stopAutoScroll();
+    }, [notifs.autoscroll]);
 
     /* Familiar engine lifecycle — gated on pdNotifs.spell_familiar.
        enableFamiliar is sticky-mounted (species/outline picked once
