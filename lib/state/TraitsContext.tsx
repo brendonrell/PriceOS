@@ -217,14 +217,33 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         () => setMyNotesActive((v) => !v),
         []
     );
-    const toggleBurnPile = useCallback(
-        () => setBurnPileActive((v) => !v),
-        []
-    );
-    const toggleMultiSelect = useCallback(
-        () => setMultiSelectActive((v) => !v),
-        []
-    );
+    /* Sim 6625-6643: toggleBurnPile toasts on every flip ("Burn Pile ON" /
+       "Burn Pile OFF"). Random burn-pick draw + #gallery.burn-mode class
+       are owned by app/collection/[slug]/page.tsx (F61 effect at sim
+       6629-6635). Toast was missing here pre-chat-B — the pill went
+       active but the user got no audible-equivalent confirmation. */
+    const toggleBurnPile = useCallback(() => {
+        setBurnPileActive((v) => {
+            const next = !v;
+            showToast('Burn Pile ' + (next ? 'ON' : 'OFF'));
+            return next;
+        });
+    }, [showToast]);
+    /* Sim 7196-7200: toggleMultiSelect flips body.multi-select-mode AND
+       toasts. The body-class write makes `.multi-select-mode` CSS rules
+       (sim 4607 + others — selection sticky-bar, breadcrumb chip mode)
+       light up. Pre-chat-B the React port flipped state only; the body
+       class + toast were missing, so multi-select was visually inert. */
+    const toggleMultiSelect = useCallback(() => {
+        setMultiSelectActive((v) => {
+            const next = !v;
+            if (typeof document !== 'undefined') {
+                document.body.classList.toggle('multi-select-mode', next);
+            }
+            showToast('Multi-Select ' + (next ? 'ON' : 'OFF'));
+            return next;
+        });
+    }, [showToast]);
 
     /* Sim's toggleSearch flips `.search-row.open` and clears the query
        when collapsing. closeSearch is the explicit ✕ path.
@@ -299,6 +318,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         setMyNotesActive(false);
         setBurnPileActive(false);
         setMultiSelectActive(false);
+        if (typeof document !== 'undefined') {
+            document.body.classList.remove('multi-select-mode');
+        }
         setSearchActive(false);
         setSearchQueryState('');
         setPriceMinState('');
