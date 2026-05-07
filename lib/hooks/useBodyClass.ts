@@ -104,6 +104,16 @@ const ALL_FLAG_CLASSES = [
     // hide path. CSS rules in app/globals.css gate display:none on this
     // class.
     'ascii-id-mode',
+    // Phase 5 mode batch 3 — echo-mode. Sim 9458-9479 + 9957 + 13039.
+    // Sim flips `body.echo-mode` from `_applyEchoMode` and adds two
+    // imperative DOM filters (`.notif-item` without `.ico-mutual` →
+    // hide; `.artist-row` not `[data-rel="mutual"]` → hide). The React
+    // port collapses the imperative walk into CSS rules in globals.css
+    // gated on this class, so the only plumbing here is the body-class
+    // follow-through. Sim has zero CSS rules referencing `echo-mode`
+    // because it does the filter via inline `style.display`; we own
+    // the CSS-driven version end-to-end.
+    'echo-mode',
 ];
 
 export function useBodyClass() {
@@ -152,6 +162,12 @@ export function useBodyClass() {
         // present, even with the menu open. Replaces sim's imperative
         // _asciiUpdateVisibility (sim 12200-12206).
         if (notifs.asciiId)          cl.add('ascii-id-mode');
+        // Phase 5 mode batch 3 — echo-mode (sim 9460). Sim 9462-9472 also
+        // walks `.notif-item` and `.artist-row` and sets inline display
+        // styles; the React port replaces that imperative walk with CSS
+        // rules in globals.css that gate visibility off this class. Body
+        // class is the single source of truth for the filter.
+        if (notifs.echo)             cl.add('echo-mode');
     }, [notifs, sort]);
 
     /* Build 28 — zen-mode Escape handler. Sim 9519-9532 attaches a
