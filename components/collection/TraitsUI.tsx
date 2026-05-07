@@ -51,9 +51,11 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react';
+import { useMemo } from 'react';
 import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
+import { usePersona } from '../../lib/state/PersonaContext';
 
 /* PD-persona dynamic trait categories (sim ~8517 — Network/Fate/Breadcrumb
    are pinned separately so they're excluded here). Display labels follow
@@ -125,10 +127,59 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
     } = useTraits();
     const { sort, dir, feedKind, cycleSort } = useSort();
     const { theme, setTheme } = useTheme();
+    const { persona } = usePersona();
+
+    /* D006 (sim 8470) — `.traits-ui` hides only when Regular persona AND
+       not on feed. The `.sort-bar` is NOT touched by sim 8470 — sim's
+       renderSortUI runs unconditionally (sim 8418-8460), and the sort
+       row stays visible whenever we're on the artworks tab regardless
+       of persona. So `.traits-ui` gets the persona+feed gate folded into
+       its hiddenStyle below; `.sort-bar` keeps the parent's `visible`
+       prop (which is `onArtworksTab`) and ignores persona+feed. Same
+       pattern sim uses: tab visibility outer, persona+feed inner.
+       D007 (sim 8438, 8505, 8556) — search-btn placement also varies
+       by these flags; computed once here, branched at the three render
+       sites below. */
+    const isRegular = persona === 'default';
+    const isFeed = sort === 'feed';
+    const showSearchInTraitHeader = !isFeed && !isRegular; // sim 8556 site
+    const showSearchInFeedTraitRow = isFeed;               // sim 8505 site
+    const showSearchInSortRow      = isRegular && !isFeed; // sim 8438 site
+
+    /* D008 (sim 8841-8845) — search input placeholder derived from
+       traitData keys, not literal. Sim takes Object.keys(traitData)
+       (sim 7139: { Gateway, Spectrum, Network, Fate, Breadcrumb }),
+       slices the first 2, lowercases, joins.
+       In the React port the equivalent ordered key list is the
+       TraitCategory union (Layer, Mineral, Fate, Network, Breadcrumb)
+       — Layer/Mineral are sim's STRATA-rebrand display labels for
+       Gateway/Spectrum (sim 8524). Slice(0,2) → 'layer, mineral' which
+       matches sim's derivation logic 1:1 against the React port's
+       canonical category keys. Memoized because the source array is
+       static; the placeholder string never changes after mount. */
+    const searchPlaceholder = useMemo(() => {
+        const cats: TraitCategory[] = [
+            'Layer',
+            'Mineral',
+            'Fate',
+            'Network',
+            'Breadcrumb',
+        ];
+        const extras = cats.slice(0, 2).map((c) => c.toLowerCase());
+        return (
+            '# id, collector' +
+            (extras.length ? ', ' + extras.join(', ') + '...' : '...')
+        );
+    }, []);
 
     const hiddenStyle: CSSProperties | undefined = visible
         ? undefined
         : { display: 'none' };
+
+    /* D006 — `.traits-ui` adds the persona+feed gate on top of `visible`.
+       Sim 8470: `traitsUI.style.display = (isRegular && !isFeed) ? 'none' : 'flex'`. */
+    const traitsHiddenStyle: CSSProperties | undefined =
+        !visible || (isRegular && !isFeed) ? { display: 'none' } : undefined;
 
     /* F41 — L2 row sub-category labels. Sim 8568-8616 gates the L2 row
        on Breadcrumb (What's Hot / My Breadcrumbs, sim 8584-8587) or
@@ -161,8 +212,9 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
 
     return (
         <>
-            {/* .traits-ui — sim 5168-5175 */}
-            <div className="traits-ui" style={hiddenStyle}>
+            {/* .traits-ui — sim 5168-5175. D006: persona+feed gate folded
+                into traitsHiddenStyle (sim 8470). */}
+            <div className="traits-ui" style={traitsHiddenStyle}>
                 <div className="traits-header-bar">
                     <div className="stats-container" id="traitCategories">
                         {/* Dynamic trait pills (Layer / Mineral) — sim 8518-8529.
@@ -291,6 +343,48 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                     active={multiSelectActive}
                                     onClick={toggleMultiSelect}
                                 />
+                                {/* D007 (sim 8556) — search-btn only renders
+                                    in the sort-icons cluster for the PD-persona
+                                    non-feed branch (sim's `else if (!isRegular
+                                    || debugState === 'zero')` arm). Regular
+                                    non-feed → search-btn lives in the sort row
+                                    (sim 8438 — rendered in .sort-btn-group
+                                    below). Feed mode (any persona) → search-btn
+                                    appended to the trait pill row (sim 8505 —
+                                    rendered in #traitCategories above). */}
+                                {showSearchInTraitHeader && (
+                                    <IconBtn
+                                        cls="search-btn"
+                                        glyph={'⌕\uFE0E'}
+                                        title="Search"
+                                        active={searchActive}
+                                        onClick={toggleSearch}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                        {/* D007 (sim 8505) — feed-mode search-btn. Sim
+                            wraps the LAST feed-mode L1 pill (Market) +
+                            search-btn together in a
+                            `display:flex;align-items:center;gap:10px`
+                            container so the icon stays glued to the
+                            pill row's right edge. v0 doesn't render
+                            feed-mode pills (Event / Network / Traits /
+                            Market — sim 8475-8509) yet, so the wrapper
+                            is rendered standalone with just the
+                            search-btn — preserves sim's container
+                            shape so when feed-mode pill rendering
+                            lands, it slots in alongside without a
+                            second port pass. Wrapper kept inline-style
+                            sim-verbatim. */}
+                        {showSearchInFeedTraitRow && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 10,
+                                }}
+                            >
                                 <IconBtn
                                     cls="search-btn"
                                     glyph={'⌕\uFE0E'}
@@ -299,7 +393,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                     onClick={toggleSearch}
                                 />
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* L2 sub-category pills — sim 5173, render block sim
@@ -477,6 +571,35 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         feedKind={feedKind}
                         onClick={() => cycleSort('feed')}
                     />
+                    {/* D007 (sim 8438) — search-btn lives in the sort row
+                        ONLY for Regular persona on non-feed (when
+                        `.traits-ui` is hidden by D006 above and there are
+                        no trait pills to attach to). Inline `style` matches
+                        sim verbatim — `position: relative; top: -2px` is
+                        sim's nudge to align the glyph with the sort
+                        labels' baseline. Same toggleSearch as the other
+                        two sites (one source of truth in TraitsContext
+                        per D009). */}
+                    {showSearchInSortRow && (
+                        <div
+                            className={`search-btn${
+                                searchActive ? ' active' : ''
+                            }`}
+                            style={{ position: 'relative', top: -2 }}
+                            role="button"
+                            tabIndex={0}
+                            title="Search"
+                            onClick={toggleSearch}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleSearch();
+                                }
+                            }}
+                        >
+                            ⌕&#xFE0E;
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -491,7 +614,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     className="search-input"
                     id="searchInput"
                     type="text"
-                    placeholder="# id, collector..."
+                    placeholder={searchPlaceholder}
                     autoComplete="off"
                     enterKeyHint="done"
                     value={searchQuery}
