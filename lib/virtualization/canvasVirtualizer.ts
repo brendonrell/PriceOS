@@ -44,6 +44,8 @@
  *   Build 37 — this is the minimal hook.
  */
 
+import { hashSynNotifyCanvasPaint } from '../engines/hashSynEngine';
+
 const CANVAS_LRU_CAP = 60;
 const RENDER_BATCH_SIZE = 4;
 const ROOT_MARGIN = '400px 0px';
@@ -131,6 +133,11 @@ function drainQueue(): void {
         reg.wrapper.style.background = 'transparent';
         active.set(reg.id, reg);
         renderCounter++;
+        /* Brendon list item 14 — sim 8230-8234. Notify the hashsyn
+           engine so it can debounce a resample once the new canvas
+           pixels are paintable. No-op when hashsyn isn't the active
+           theme — engine bails on null _onApplyHex. */
+        hashSynNotifyCanvasPaint();
         enforceLruCap();
     });
     publishStats();
