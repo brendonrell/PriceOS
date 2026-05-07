@@ -109,7 +109,44 @@ export function SpellBookSection({ onTripleTap }: Props) {
                 SPELL BOOK
             </div>
             <div className="spell-book-pills">
-                {SPELLS.map((spell) => (
+                {/* Spells 1–12: familiar → solar flare */}
+                {SPELLS.slice(0, 12).map((spell) => (
+                    <SettingsToggle
+                        key={spell.id}
+                        id={`sb-${spell.id}`}
+                        active={notifs[spell.flag]}
+                        onClick={() => toggleSpellWithToast(spell)}
+                        icon={spell.icon}
+                        iconStyle={{
+                            ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
+                            ...(spell.iconStyle?.lineHeight ? { lineHeight: spell.iconStyle.lineHeight } : {}),
+                            ...(spell.iconStyle?.top
+                                ? { position: 'relative', top: spell.iconStyle.top }
+                                : {}),
+                        }}
+                        sharp={spell.sharp}
+                        label={spell.name}
+                    />
+                ))}
+                {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
+                    and Offer Shield. It toggles the plain `stargazing` pdNotifs
+                    key (no spell_ prefix), so it cannot go through the SPELLS
+                    array (typed as spell_* flags). Sim uses toggleMode(), not
+                    toggleSpell(); we wire the same toast path. */}
+                <SettingsToggle
+                    id="sb-stargazing"
+                    active={notifs.stargazing}
+                    onClick={() => {
+                        const next = !notifs.stargazing;
+                        toggle('stargazing');
+                        showToast(`Stargazing ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    icon={'❇\uFE0E'}
+                    iconStyle={{ fontSize: '13px', lineHeight: '1' }}
+                    label="Stargazing"
+                />
+                {/* Spells 13–19: offer shield → hammer */}
+                {SPELLS.slice(12).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}

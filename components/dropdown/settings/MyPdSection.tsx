@@ -516,23 +516,6 @@ export function MyPdSection({ onTripleTap }: Props) {
                         iconStyle={{ fontSize: '12px', lineHeight: '1' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
-                    {/* F48 (BUG-21) — Stargazing pill. Sim 6782 stores
-                        `stargazing` (no spell_ prefix) in pdNotifs; sim
-                        9370 + 9960 toggle body.stargazing-mode from that
-                        key. Earlier port had this slot in spells.ts as
-                        `spell_stargazing`, which never existed in sim.
-                        Kept in MY PD per Brendon's spec — the pill drives
-                        the body class via useBodyClass; CSS already
-                        ported in F40. */}
-                    <SettingsToggle
-                        id="sn-stargazing"
-                        title="Stargazing"
-                        active={notifs.stargazing}
-                        onClick={() => toggleWithToast('stargazing', 'Stargazing Mode')}
-                        icon={'❇\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1' }}
-                        style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
-                    />
                 </div>
             </div>
         </>
