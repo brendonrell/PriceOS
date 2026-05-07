@@ -54,6 +54,29 @@ const PREHYDRATION_SCRIPT = `
         }
 
         var notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
+        if (theme && THEMES[theme]) {
+            // Brendon list item 7 — sim 6798-6803. Pre-hydrate the
+            // pure light / pure dark bg override so first paint reads
+            // #ffffff / #000000 instead of #e0e0e0 / #1a1a1a when the
+            // pure flag is set. Recomputes bg + yiq + text since the
+            // earlier block already painted with the standard variant.
+            if (notifs && (theme === 'light' || theme === 'dark')) {
+                var pureBg = null;
+                if (theme === 'light' && notifs.pure_light) pureBg = '#ffffff';
+                if (theme === 'dark'  && notifs.pure_dark)  pureBg = '#000000';
+                if (pureBg) {
+                    var ph = pureBg.replace('#', '');
+                    var pr = parseInt(ph.substr(0, 2), 16) || 0;
+                    var pg = parseInt(ph.substr(2, 2), 16) || 0;
+                    var pb = parseInt(ph.substr(4, 2), 16) || 0;
+                    var pyiq = ((pr * 299) + (pg * 587) + (pb * 114)) / 1000;
+                    var ptext = pyiq >= 128 ? '#111111' : '#e0e0e0';
+                    document.documentElement.style.setProperty('--bg-color', pureBg);
+                    document.documentElement.style.setProperty('--text-color', ptext);
+                }
+            }
+        }
+
         if (notifs) {
             var classList = document.body && document.body.classList;
             if (classList) {
