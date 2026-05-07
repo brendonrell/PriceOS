@@ -61,6 +61,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { useToast } from './ToastContext';
 
 export type TraitCategory =
     | 'Layer'
@@ -140,6 +141,14 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const [priceMin, setPriceMinState] = useState('');
     const [priceMax, setPriceMaxState] = useState('');
 
+    /* D009 — toggleSearch's two side effects (sim 8859 autofocus + sim 8861
+       ON/OFF toast) need showToast. ToastProvider wraps TraitsProvider in
+       app/layout.tsx (line 187 wraps the page tree which mounts
+       TraitsProvider in app/collection/[slug]/page.tsx:1126). closeSearch
+       deliberately does NOT toast — sim's window.closeSearch (sim 8864-8870)
+       skips the toast even though it flips searchActive=false. Same here. */
+    const { showToast } = useToast();
+
     /* Build 16: plain setter. The prev===c toggle that used to live here
        is gone — the BarPill onClick decides between `setActiveCategory`
        (open / swap) and `clearActiveCategory` (toggle off) based on its
@@ -218,17 +227,52 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     );
 
     /* Sim's toggleSearch flips `.search-row.open` and clears the query
-       when collapsing. closeSearch is the explicit ✕ path. */
+       when collapsing. closeSearch is the explicit ✕ path.
+       ────────────────────────────────────────────────────────────────────
+       D009 — sim parity for two toggle side effects:
+         • Autofocus the search input on the true edge (sim 8859 — 50ms
+           setTimeout so the row's CSS transition has applied display:flex
+           before focus, otherwise iOS Safari refuses focus on a hidden
+           element). Field lookup mirrors sim verbatim:
+           document.getElementById('searchInput') — the React render
+           pins this id at TraitsUI.tsx:492.
+         • Toast on every toggle, both edges (sim 8861 — fires
+           'Search Filter ON' OR 'Search Filter OFF' depending on the
+           NEW value, regardless of direction). Sim's closeSearch (sim
+           8864) does NOT toast, only toggleSearch does, so the toast
+           lives in the toggle path only.
+
+       Closure-captured `searchActive` reads the pre-update value, so
+       `next = !searchActive` is the new value and feeds both side
+       effects + the setSearchActive call. useCallback deps include
+       [searchActive, showToast] which forces re-creation on each
+       toggle — fine, this isn't a hot path.
+
+       NOTE: the .search-filter-chip surface (TraitsUI.tsx:562-570) is a
+       Brendon-approved Build 13 port-only addition that lives ALONGSIDE
+       this toast — sim has no persistent chip. Toast and chip together,
+       not as replacements for each other. */
     const toggleSearch = useCallback(() => {
-        setSearchActive((prev) => {
-            if (prev) {
-                setSearchQueryState('');
-                setPriceMinState('');
-                setPriceMaxState('');
-            }
-            return !prev;
-        });
-    }, []);
+        const next = !searchActive;
+        setSearchActive(next);
+        if (!next) {
+            setSearchQueryState('');
+            setPriceMinState('');
+            setPriceMaxState('');
+        }
+        if (next) {
+            // sim 8859: setTimeout(..., 50) — wait for display:flex
+            // transition before focus().
+            setTimeout(() => {
+                const inp = document.getElementById(
+                    'searchInput'
+                ) as HTMLInputElement | null;
+                inp?.focus();
+            }, 50);
+        }
+        // sim 8861: 'Search Filter ON' / 'Search Filter OFF'.
+        showToast('Search Filter ' + (next ? 'ON' : 'OFF'));
+    }, [searchActive, showToast]);
 
     const closeSearch = useCallback(() => {
         setSearchActive(false);
