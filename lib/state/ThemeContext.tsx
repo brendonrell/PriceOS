@@ -78,6 +78,32 @@ function getArtistBg(): string {
     return THEMES.artist;
 }
 
+/* Brendon list item 7 — Pure Light / Pure Dark mode parity (sim 6798-6803).
+   When the active theme is 'light' AND pdNotifs.pure_light is true, the bg
+   hex is forced to #ffffff (instead of the standard #e0e0e0 light bg).
+   Same for 'dark' AND pdNotifs.pure_dark forcing #000000. The pure flags
+   live in pdNotifs (read from localStorage here so applyTheme can be
+   invoked from contexts upstream of PdNotifsProvider — same pattern
+   useArtistColor uses for the artist hex). MyPdSection's pure_light /
+   pure_dark pills dispatch a `pd:pure-mode-changed` event after writing
+   the flag; ThemeProvider listens for it and re-runs applyTheme on the
+   active key so the bg flips live. */
+const NOTIFS_KEY = 'pd_settings_notifs';
+function readPureFlags(): { pure_light: boolean; pure_dark: boolean } {
+    if (typeof window === 'undefined') return { pure_light: false, pure_dark: false };
+    try {
+        const raw = localStorage.getItem(NOTIFS_KEY);
+        if (!raw) return { pure_light: false, pure_dark: false };
+        const parsed = JSON.parse(raw) as { pure_light?: boolean; pure_dark?: boolean };
+        return {
+            pure_light: !!parsed?.pure_light,
+            pure_dark: !!parsed?.pure_dark,
+        };
+    } catch {
+        return { pure_light: false, pure_dark: false };
+    }
+}
+
 const DOT    = '#111111';
 const MATRIX = '#e0e0e0';
 
@@ -113,7 +139,14 @@ function isRedBg(bgHex: string): boolean {
 
 /** Apply a theme to the documentElement and body classes. */
 function applyTheme(key: ThemeKey) {
-    const bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
+    let bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
+    /* Brendon list item 7 — sim 6798-6803. Override standard light/dark
+       bg with the pure variant when the corresponding flag is set. */
+    if (key === 'light' || key === 'dark') {
+        const { pure_light, pure_dark } = readPureFlags();
+        if (key === 'light' && pure_light) bg = '#ffffff';
+        if (key === 'dark'  && pure_dark)  bg = '#000000';
+    }
     applyBgHex(bg, key);
 }
 
@@ -301,6 +334,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         };
         window.addEventListener('pd:artist-color-changed', handler);
         return () => window.removeEventListener('pd:artist-color-changed', handler);
+    }, [theme]);
+
+    /* Brendon list item 7 — Pure Light / Pure Dark live re-apply.
+       MyPdSection's pure_light / pure_dark pills dispatch this event
+       after flipping the corresponding pdNotifs flag and before
+       (or after) calling setTheme. The handler re-runs applyTheme on
+       the active key so applyTheme's pure-flag override (#ffffff /
+       #000000) takes effect immediately without waiting for the next
+       theme pick. Sim 9311-9317 — togglePure persists pdNotifs then
+       calls setAndSaveTheme/setTheme to re-apply. */
+    useEffect(() => {
+        const handler = () => {
+            if (theme !== null) applyTheme(theme);
+        };
+        window.addEventListener('pd:pure-mode-changed', handler);
+        return () => window.removeEventListener('pd:pure-mode-changed', handler);
     }, [theme]);
 
     const value = useMemo<ThemeContextValue>(
