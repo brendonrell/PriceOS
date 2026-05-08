@@ -61,7 +61,7 @@
  *   - Long-press to delete: deferred (not in scope this round)
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
@@ -393,52 +393,64 @@ export function PortfolioView() {
                                       0
                                   )
                                 : cat.names.reduce((s, n) => s + (n.price || 0), 0);
+                        /* Brendon-list-2 chat I item 8 — DOM structure fix.
+                           Sim 10985 closes the .pf-cat div BEFORE emitting
+                           .pf-artist / .pf-collection / .pf-artwork rows;
+                           those rows are flat siblings inside #portfolioList,
+                           NOT children of .pf-cat. The pre-chat-I port
+                           wrapped them inside .pf-cat — but .pf-cat is
+                           `display: flex` (sim 1892-1898), so the artist /
+                           collection / artwork rows became flex CHILDREN of
+                           the cat-head row and laid out HORIZONTALLY,
+                           overlapping each other (visible in Brendon's
+                           "portfolio entirely broken" screenshot).
+                           Restructure: the .pf-cat div now contains ONLY
+                           .pf-cat-head + optional .pf-est. Children render
+                           as siblings via React.Fragment. */
                         return (
-                            <div key={cat.name} className="pf-cat">
-                                <span className="pf-cat-head">
-                                    <span className="pf-cat-glyph">{'\u2794\uFE0E'}</span>
-                                    <span className="pf-label">{catLabel}</span>
-                                </span>
-                                {showDollar && (
-                                    <span className="pf-est" style={{ marginLeft: 'auto' }}>
-                                        {pfFmtEth(catEst)}
+                            <Fragment key={cat.name}>
+                                <div className="pf-cat">
+                                    <span className="pf-cat-head">
+                                        <span className="pf-cat-glyph">{'\u2794\uFE0E'}</span>
+                                        <span className="pf-label">{catLabel}</span>
                                     </span>
-                                )}
+                                    {showDollar && (
+                                        <span className="pf-est" style={{ marginLeft: 'auto' }}>
+                                            {pfFmtEth(catEst)}
+                                        </span>
+                                    )}
+                                </div>
                                 {cat.type === 'tree' ? (
-                                    <>
-                                        {cat.artists.map((art) => {
-                                            // Sim 11005-11009: artistSum = sum of floor*tokens.
-                                            const artistSum = art.collections.reduce(
-                                                (s, c) => s + (c.floor || 0) * c.tokens.length,
-                                                0
-                                            );
-                                            return (
-                                                <PortfolioArtistRows
-                                                    key={art.name}
-                                                    artistName={art.name}
-                                                    artistSum={artistSum}
-                                                    showDollar={showDollar}
-                                                    collections={art.collections}
-                                                />
-                                            );
-                                        })}
-                                    </>
+                                    cat.artists.map((art) => {
+                                        // Sim 11005-11009: artistSum = sum of floor*tokens.
+                                        const artistSum = art.collections.reduce(
+                                            (s, c) => s + (c.floor || 0) * c.tokens.length,
+                                            0
+                                        );
+                                        return (
+                                            <PortfolioArtistRows
+                                                key={art.name}
+                                                artistName={art.name}
+                                                artistSum={artistSum}
+                                                showDollar={showDollar}
+                                                collections={art.collections}
+                                            />
+                                        );
+                                    })
                                 ) : (
-                                    <>
-                                        {cat.names.map((n) => (
-                                            <div key={n.label} className="pf-ens-row">
-                                                <span className="pf-label">{n.label}</span>
-                                                <span className="pf-leader" />
-                                                {showDollar && (
-                                                    <span className="pf-est">
-                                                        {pfFmtEth(n.price)}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </>
+                                    cat.names.map((n) => (
+                                        <div key={n.label} className="pf-ens-row">
+                                            <span className="pf-label">{n.label}</span>
+                                            <span className="pf-leader" />
+                                            {showDollar && (
+                                                <span className="pf-est">
+                                                    {pfFmtEth(n.price)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))
                                 )}
-                            </div>
+                            </Fragment>
                         );
                     })
                 )}
