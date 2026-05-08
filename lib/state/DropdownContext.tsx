@@ -167,15 +167,50 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         // ResizeObserver on the navbar — fires when a top-bar pill row
         // is added/removed, which changes the wrapper's bottom edge
         // without firing visualViewport events.
+        //
+        // Chat J parking-lot fix: rAF-debounce the observer callback.
+        // The pre-fix observer called sync() directly on every fire, and
+        // ResizeObserver fires on every layout pass during a navbar
+        // reflow — when a top-bar pill mounts (e.g. Hammer toggles on),
+        // the navbar's flex-wrap layout settles over multiple browser
+        // ticks on iOS Safari, and intermediate fires read a wrapper
+        // bottom-edge mid-flight (sometimes near the navbar's transient
+        // bottom rather than its final stable bottom). The interstitial
+        // measurement wrote a too-small --dropdown-max-h value; if the
+        // last fire happened to land mid-reflow, the var stayed clamped
+        // near the 200px floor for the remainder of the menu session.
+        // Visible repro: connect menu collapses to truncated state
+        // showing only WALLET + start of MY PD list when a top-bar pill
+        // flips on while the menu is open.
+        //
+        // The fix coalesces all fires within one frame into a single
+        // sync call scheduled via double-rAF — same pattern sim uses for
+        // first-paint stability (sim 6699) and the menu-open re-sync
+        // below (line 210). The first rAF waits for the current layout
+        // pass to commit; the second waits for any cascading layout
+        // (e.g., flex-wrap re-flow on the next tick). pendingRaf gates
+        // re-entry so a burst of observer fires during a long reflow
+        // collapses to one trailing-edge sync.
+        let pendingRaf: number | null = null;
+        const debouncedSync = () => {
+            if (pendingRaf !== null) cancelAnimationFrame(pendingRaf);
+            pendingRaf = requestAnimationFrame(() => {
+                pendingRaf = requestAnimationFrame(() => {
+                    pendingRaf = null;
+                    sync();
+                });
+            });
+        };
         let resizeObs: ResizeObserver | null = null;
         const navbar = document.querySelector('.navbar');
         if (navbar && typeof ResizeObserver !== 'undefined') {
-            resizeObs = new ResizeObserver(sync);
+            resizeObs = new ResizeObserver(debouncedSync);
             resizeObs.observe(navbar);
         }
 
         return () => {
             cancelAnimationFrame(r1);
+            if (pendingRaf !== null) cancelAnimationFrame(pendingRaf);
             if (vv) {
                 vv.removeEventListener('resize', sync);
                 vv.removeEventListener('scroll', sync);
