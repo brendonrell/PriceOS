@@ -152,11 +152,41 @@ export default function PriceosModal() {
     const preRef = useRef<HTMLPreElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
 
-    /* Re-pick logo on every open — sim's _pickPriceosLogo() runs in
-       window.openPriceosModal at sim 7898. */
-    useEffect(() => {
-        if (isOpen) setLogo(pickLogo());
-    }, [isOpen]);
+    /* Item 16 — Pick a fresh logo on every isOpen false→true transition
+       SYNCHRONOUSLY DURING RENDER, not in a post-commit useEffect. Sim's
+       _pickPriceosLogo() (sim 7556-7579) runs INSIDE window.openPriceosModal
+       (sim 7897-7900) BEFORE `pm.classList.add('active')` makes the modal
+       visible — meaning the <pre>'s textContent is already the new logo
+       at the moment the modal's opacity transition begins. Sim's <pre>
+       is empty in initial DOM (sim 5471), so there's no prior logo to
+       flash either.
+
+       The pre-Item-16 React port mirrored this with a useEffect that
+       called setLogo(pickLogo()) when isOpen flipped true. useEffect
+       runs AFTER commit, so the modal's first paint with .active applied
+       still rendered the PREVIOUS logo's state — the user saw the prior
+       open's logo for one frame of the 0.3s opacity fade-in (modal.css:39),
+       then a re-render swapped in the new pick and the user visibly saw
+       the figlet change mid-fade. Brendon's report verbatim: "It briefly
+       shows the previous one and you see it change."
+
+       Fix: React's "adjusting state on prop change" pattern (React docs:
+       https://react.dev/learn/you-might-not-need-an-effect#adjusting-state-on-prop-change).
+       Setting state during render aborts the in-flight render and
+       restarts it with the updated state — no commit happens between
+       the two renders, so there's no paint with the stale logo. The
+       prevIsOpen ref tracks the transition so we only repick on
+       false→true edges (not on every re-render while open).
+
+       Result: sim parity. Modal's first paint with .active set already
+       carries the new logo. */
+    const prevIsOpen = useRef(false);
+    if (isOpen && !prevIsOpen.current) {
+        prevIsOpen.current = true;
+        setLogo(pickLogo());
+    } else if (!isOpen && prevIsOpen.current) {
+        prevIsOpen.current = false;
+    }
 
     /* F54 — fit the rendered figlet to the wrap. Sim 7561-7578 verbatim:
        reset transform → measure scrollWidth → if it exceeds available,
