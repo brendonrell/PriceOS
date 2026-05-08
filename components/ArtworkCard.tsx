@@ -690,14 +690,30 @@ export default function ArtworkCard({
                                        .mintId)). e.stopPropagation prevents
                                        the surrounding .edition-content
                                        click from also opening the modal.
-                                       Visibility is CSS-gated to
-                                       body.notes-mode (globals.css 3220-
-                                       3221 / sim 2382). */
+                                       Brendon-list-3 chat A item 1a —
+                                       always visible (was body.notes-mode
+                                       gated, sim deviation). */
                                     e.stopPropagation();
                                     openTokenNoteEditor(id);
                                 }}
                             >
                                 {'\u229F\uFE0E'}
+                            </span>
+                            {/* Brendon-list-3 chat A item 1b — Make To-Do
+                                icon added to hover row. Icon-only stub for
+                                now; functional handler lands when the
+                                To-Dos store ships. Glyph ❍ U+274D matches
+                                the modal-pill row in ArtworkModal.tsx:466
+                                ("Add to To-Do"). e.stopPropagation prevents
+                                the outer .edition-content click from
+                                opening the modal. Sim deviation: sim
+                                hover-icons row has no to-do entry. */}
+                            <span
+                                className="hi-icon hi-todo"
+                                title="Make To-Do"
+                                onClick={stubAction('Added to To-Dos')}
+                            >
+                                {'\u274D\uFE0E'}
                             </span>
                             <span
                                 className="hi-icon hi-grail"
