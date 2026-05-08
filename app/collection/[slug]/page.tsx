@@ -818,9 +818,18 @@ function CollectionPageInner({
                                     }
                                     id="statAnchorVal"
                                 >
+                                    {/* Brendon-list-3 chat A item 3 — empty
+                                        branch was '—' hyphen; now an empty
+                                        span styled by .stat-val-empty as a
+                                        low-opacity rectangle placeholder.
+                                        Sim deviation: sim 5145 renders the
+                                        anchor cell with no value when unset
+                                        (no glyph). React port previously
+                                        bridged that with '—'; rectangle
+                                        placeholder is Brendon's preference. */}
                                     {anchorEth != null
                                         ? `${anchorEth} ETH`
-                                        : '—'}
+                                        : ''}
                                 </span>
                             </span>
                         </div>
