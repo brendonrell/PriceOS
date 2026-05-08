@@ -68,7 +68,20 @@ export type TraitCategory =
     | 'Mineral'
     | 'Fate'
     | 'Network'
-    | 'Breadcrumb';
+    | 'Breadcrumb'
+    /* Chat H item 3 — feed-mode L1 categories (sim 7391-7395 GodModeDict).
+       'Event' and 'Market' carry their own filter Sets in activeFilters.
+       'Traits' is a feed-mode wrapper L1 (sim 8484) that doesn't carry an
+       own Set — it routes L3 toggles into activeFilters['Layer'] /
+       activeFilters['Mineral'] depending on activeSubFilter. So 'Traits'
+       lives in FeedCategory only, NOT in ActiveFilters. */
+    | 'Event'
+    | 'Market';
+
+/* Feed-mode L1 categories. Sim 8477:
+   `['Event', 'Network', 'Traits', 'Market']`. Disjoint-ish from
+   TraitCategory — 'Network' overlaps (same filter Set is used). */
+export type FeedCategory = 'Event' | 'Network' | 'Traits' | 'Market';
 
 export type ActiveFilters = Record<TraitCategory, Set<string>>;
 
@@ -81,6 +94,8 @@ function emptyFilters(): ActiveFilters {
         Fate: new Set<string>(),
         Network: new Set<string>(),
         Breadcrumb: new Set<string>(),
+        Event: new Set<string>(),
+        Market: new Set<string>(),
     };
 }
 
@@ -93,6 +108,29 @@ interface TraitsContextValue {
        comment below for why this isn't `setActiveCategory(null)` plus a
        follow-up clear. */
     clearActiveCategory: () => void;
+
+    /* Chat H item 3 — feed-mode L1 selection. Sim's `activeFeedCategory`
+       (sim 7400). When sort==='feed', the trait pill row swaps from the
+       non-feed cats (Layer/Mineral/Fate/Network/Breadcrumb) to the feed
+       cats (Event/Network/Traits/Market — sim 8477). This state mirrors
+       sim's separate `activeFeedCategory` so a non-feed Layer selection
+       doesn't leak into feed mode (and vice versa). null = no feed L1
+       selected. */
+    activeFeedCategory: FeedCategory | null;
+    setActiveFeedCategory: (c: FeedCategory | null) => void;
+    clearActiveFeedCategory: () => void;
+
+    /* Chat H item 4 — L2 sub-filter narrowing. Sim's `activeSubFilter`
+       (sim 7163) + `activeFeedSubFilter` (sim 7401). Single piece of
+       state because only one L1 (feed or non-feed) is active at a time.
+       Default 'All' — shows every L3 leaf across all sub-buckets. When
+       set to a specific sub-bucket name (e.g. 'My Circle'), L3 narrows
+       to just that bucket's leaves. setSubFilter toggles between the
+       bucket and 'All' (sim 8293-8294 / 8290 — feed-mode Traits L1
+       defaults sub to 'Gateway' instead of 'All' since both Layer +
+       Mineral can't co-exist in a single L3 view). */
+    activeSubFilter: string;
+    setSubFilter: (sub: string) => void;
 
     /* L2 value-pill selections — sim 7140 / sim 8298 toggleFilter */
     activeFilters: ActiveFilters;
@@ -131,6 +169,12 @@ const TraitsContext = createContext<TraitsContextValue | null>(null);
 export function TraitsProvider({ children }: { children: ReactNode }) {
     const [activeCategory, setActiveCategoryState] =
         useState<TraitCategory | null>(null);
+    /* Chat H item 3 — feed-mode L1 (sim 7400). */
+    const [activeFeedCategory, setActiveFeedCategoryState] =
+        useState<FeedCategory | null>(null);
+    /* Chat H item 4 — L2 narrowing (sim 7163 / 7401). 'All' = no narrow. */
+    const [activeSubFilter, setActiveSubFilterState] =
+        useState<string>('All');
     const [activeFilters, setActiveFiltersState] =
         useState<ActiveFilters>(emptyFilters);
     const [myNotesActive, setMyNotesActive] = useState(false);
@@ -154,9 +198,13 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
        (open / swap) and `clearActiveCategory` (toggle off) based on its
        own `active` prop. Centralizing the decision at the call site lets
        the toggle-off path also drain filters in the same setState batch
-       without leaking that responsibility into the setter signature. */
+       without leaking that responsibility into the setter signature.
+       Chat H item 4: also resets activeSubFilter to 'All' on every L1
+       open/swap (sim 8282 — `activeSubFilter = 'All'` after the
+       activeCategory write). */
     const setActiveCategory = useCallback((c: TraitCategory | null) => {
         setActiveCategoryState(c);
+        setActiveSubFilterState('All');
     }, []);
 
     /* Build 16: clear active L1 + drain its filter Set in one transaction.
@@ -166,7 +214,10 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
        correct even if the surrounding closure has captured a stale value
        (this matters when clearActiveCategory is called from a non-React
        callback path — e.g. a future keyboard handler). If activeCategory
-       is already null this is a no-op on both axes. */
+       is already null this is a no-op on both axes.
+       Chat H item 4: also resets activeSubFilter to 'All' (sim 8282 — the
+       `activeSubFilter = 'All'` line runs on every setCategory call,
+       open OR close path). */
     const clearActiveCategory = useCallback(() => {
         setActiveCategoryState((prevCat) => {
             if (prevCat !== null) {
@@ -176,6 +227,69 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
                 }));
             }
             return null;
+        });
+        setActiveSubFilterState('All');
+    }, []);
+
+    /* Chat H item 3 — feed-mode L1 setter. Mirrors sim 8274-8279:
+       opening a feed L1 sets activeFeedSubFilter to 'Gateway' for Traits
+       (so the Layer pool is the default L3 view) or 'All' for the others.
+       Stored in activeSubFilter (one piece of state shared between feed
+       and non-feed) since only one L1 is active at a time. */
+    const setActiveFeedCategory = useCallback((c: FeedCategory | null) => {
+        setActiveFeedCategoryState(c);
+        if (c === 'Traits') {
+            setActiveSubFilterState('Gateway');
+        } else {
+            setActiveSubFilterState('All');
+        }
+    }, []);
+
+    /* Chat H item 3 — feed-mode L1 clear. Drains the feed-cat-specific
+       filter Sets in one transaction (sim doesn't drain on toggle-off,
+       but the React port mirrors the non-feed clearActiveCategory shape
+       so a stale L3 selection doesn't survive an L1 close). For 'Traits'
+       the drain hits both Layer + Mineral since both route through the
+       Traits L1. */
+    const clearActiveFeedCategory = useCallback(() => {
+        setActiveFeedCategoryState((prevCat) => {
+            if (prevCat !== null) {
+                setActiveFiltersState((prevFilters) => {
+                    if (prevCat === 'Traits') {
+                        return {
+                            ...prevFilters,
+                            Layer: new Set<string>(),
+                            Mineral: new Set<string>(),
+                        };
+                    }
+                    /* prevCat is 'Event' | 'Network' | 'Market' — all in
+                       ActiveFilters keys. */
+                    return {
+                        ...prevFilters,
+                        [prevCat]: new Set<string>(),
+                    };
+                });
+            }
+            return null;
+        });
+        setActiveSubFilterState('All');
+    }, []);
+
+    /* Chat H item 4 — L2 narrowing toggler. Sim 8287-8297. If clicking the
+       already-active sub, reset to 'All' (or 'Gateway' for feed-mode
+       Traits L1). Otherwise narrow to that sub. Read by the L3 render
+       block to filter which leaves are visible. */
+    const setSubFilter = useCallback((sub: string) => {
+        setActiveSubFilterState((prev) => {
+            if (prev === sub) {
+                /* sim 8290 — feed-mode Traits sub-default is 'Gateway',
+                   not 'All'. We can't read activeFeedCategory off the
+                   functional updater here, so check it via closure
+                   (this callback is recreated when activeFeedCategory
+                   flips because of the dep below). */
+                return 'All';
+            }
+            return sub;
         });
     }, []);
 
@@ -314,6 +428,8 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
 
     const clearAllFilters = useCallback(() => {
         setActiveCategoryState(null);
+        setActiveFeedCategoryState(null);
+        setActiveSubFilterState('All');
         setActiveFiltersState(emptyFilters());
         setMyNotesActive(false);
         setBurnPileActive(false);
@@ -340,6 +456,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
 
     const hasActiveFilter =
         activeCategory !== null ||
+        activeFeedCategory !== null ||
         anyValueFiltersActive ||
         myNotesActive ||
         burnPileActive ||
@@ -352,6 +469,11 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             activeCategory,
             setActiveCategory,
             clearActiveCategory,
+            activeFeedCategory,
+            setActiveFeedCategory,
+            clearActiveFeedCategory,
+            activeSubFilter,
+            setSubFilter,
             activeFilters,
             toggleFilter,
             myNotesActive,
@@ -376,6 +498,11 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             activeCategory,
             setActiveCategory,
             clearActiveCategory,
+            activeFeedCategory,
+            setActiveFeedCategory,
+            clearActiveFeedCategory,
+            activeSubFilter,
+            setSubFilter,
             activeFilters,
             toggleFilter,
             myNotesActive,
