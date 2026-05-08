@@ -491,6 +491,16 @@ function CollectionPageInner({
                     if (!netMatch) return false;
                     continue;
                 }
+                // Chat H item 3 — Event / Market are feed-mode-only filter
+                // categories (sim 8475-8509). They flow into activeFilters
+                // when a feed-mode L3 leaf is toggled, but they don't apply
+                // to the gallery view (sim 8302-8304: feed-mode toggleFilter
+                // calls renderFeed, NOT updateGalleryUI). Skip them here so
+                // a stale feed-mode selection doesn't accidentally hide
+                // gallery cards when the user flips back to a non-feed sort.
+                if (cat === 'Event' || cat === 'Market') {
+                    continue;
+                }
                 // Layer | Mineral | Fate
                 const v = meta.traits[cat];
                 if (!set.has(v)) return false;
