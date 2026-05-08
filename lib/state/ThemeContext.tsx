@@ -243,6 +243,18 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
     root.style.setProperty('--pill-l1-active-bg-img', pillL1ActiveBgImg);
     root.style.setProperty('--btn-user-hover', btnUserHover);
 
+    /* Brendon-list-2 chat I item 17 — sim 6860 belt-and-suspenders.
+       Sim sets body.style.backgroundColor INLINE in addition to the
+       --bg-color CSS var write. The React port previously relied on
+       `body { background-color: var(--bg-color); }` alone; on hashsyn
+       activation the bg appeared not to flip on some surfaces (likely
+       a paint-cycle / specificity edge case where the var update didn't
+       propagate before the engine's first sample lapped it). Inline
+       writes always win the cascade for the bg-color rule on body, so
+       both the seed (#6a1fc2) and engine-sampled hexes apply
+       deterministically. Sim does this verbatim — keep parity. */
+    body.style.backgroundColor = bg;
+
     // Body class flags read by various theme-conditional CSS rules.
     body.classList.toggle('theme-dark',    key === 'dark');
     body.classList.toggle('theme-light',   key === 'light');
