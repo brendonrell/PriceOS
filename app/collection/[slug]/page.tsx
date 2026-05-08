@@ -744,21 +744,32 @@ function CollectionPageInner({
                         </div>
 
                         <div className="hero-line stats-row stats-row-2">
-                            {/* Brendon items 3+4 (chat A) — row-2 reframed:
-                                col 1 swaps Editions Owned (⊡) for % Listed
-                                (⊞ — boxed-plus, reads as "active listings");
-                                col 2 swaps Total Spent (⎙) for Floor Price
-                                (⎵ — bottom-bracket, reads as "lowest-of"
-                                shape). Anchor (col 3) untouched per
-                                Brendon's "Anchor stays the same". Floor
-                                value pulls from collection.tokens via the
-                                existing lowestFloor helper computed above. */}
+                            {/* Brendon-list-2 chat I item 5 — icon revert
+                                + value tighten. Chat A's repurpose kept the
+                                row-2 cols (Percent Listed / Floor / Anchor)
+                                but swapped to glyphs that fall back poorly
+                                in Courier New (⊞ rendered as a generic
+                                boxed-plus; ⎵ U+23B5 fell back to a bare
+                                underscore on iOS, breaking grid alignment).
+                                Reverts:
+                                  col 1 icon ⊞ → ⊡ (sim's owned glyph
+                                  U+22A1, the pre-chat-A original Brendon
+                                  asked back for: "the unicode icon we had
+                                  there before, I wanted to keep it");
+                                  col 1 value "100% LISTED" → "57%" (no
+                                  bare word — the icon carries the meaning);
+                                  col 2 icon ⎵ → ⊥ (U+22A5 — sim's
+                                  historical Floor glyph per sim 5131:
+                                  "APR 26: Floor (⊥) replaced with Amount
+                                  Spent". Renders reliably across desktop
+                                  + iOS where ⎵ does not).
+                                Anchor (col 3) untouched. */}
                             <span className="stat-item" title="Percent Listed">
                                 <span className="stat-icon stat-icon-box stat-icon-owned">
-                                    ⊞&#xFE0E;
+                                    ⊡&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statOwnedVal">
-                                    100% LISTED
+                                    57%
                                 </span>
                             </span>
                             <span
@@ -766,7 +777,7 @@ function CollectionPageInner({
                                 title="Floor Price"
                             >
                                 <span className="stat-icon stat-icon-box stat-icon-spent">
-                                    ⎵&#xFE0E;
+                                    ⊥&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
                                     {lowestFloor !== null
