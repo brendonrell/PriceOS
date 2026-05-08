@@ -52,7 +52,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useMemo } from 'react';
-import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
+import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
@@ -66,17 +66,95 @@ const DYNAMIC_TRAIT_PILLS: { key: TraitCategory; label: string }[] = [
     { key: 'Mineral', label: 'Mineral' },
 ];
 
-/* L2 value pools per category. Sim sources these from `traitData` /
-   `GodModeDict`; for v0 we hard-code the STRATA-rebrand pools called
-   out at sim 7693. Fate / Network / Breadcrumb have empty pools, which
-   means the L2 row stays hidden when those categories are selected
-   (parity with sim 8618). Gallery filtering is the next build's job. */
-const VALUE_POOLS: Record<TraitCategory, readonly string[]> = {
-    Layer:      ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'],
-    Mineral:    ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'],
-    Fate:       [],
-    Network:    [],
-    Breadcrumb: [],
+/* Chat H item 3 — feed-mode L1 pill row (sim 8475-8509). Four cats:
+   Event, My Network (key 'Network'), Traits, Market. Sim 8495-8497
+   maps Network → 'My Network' and Gateway/Spectrum → Layer/Mineral
+   for display; the four feed-mode L1 keys themselves are stable. */
+const FEED_TRAIT_PILLS: { key: FeedCategory; label: string }[] = [
+    { key: 'Event',   label: 'Event'      },
+    { key: 'Network', label: 'My Network' },
+    { key: 'Traits',  label: 'Traits'     },
+    { key: 'Market',  label: 'Market'     },
+];
+
+/* ─── Sim trait pools ──────────────────────────────────────────────────
+   Sim 6955-6956 — STRATA pools (display labels Layer / Mineral; internal
+   keys Gateway / Spectrum kept for back-compat per sim 6961-6967).
+   Sim 7999  — Fate (iChing Omens), 8 destinies derived from token id.
+   Sim 7392  — Network L2 sub-buckets (My Circle / Global) and their leaf
+              names. */
+const LAYERS:   readonly string[] = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'];
+const MINERALS: readonly string[] = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'];
+const OMEN_TRAITS: readonly string[] = [
+    'SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT',
+    'BALANCED',  'SHADOW',   'TRIBULATION', 'VOID',
+];
+
+/* L2 sub-bucket → L3 leaf names mapping. Sim's GodModeDict (sim 7390-7395)
+   collapsed into one table, keyed by L1 category — both non-feed and
+   feed-mode L1s. Empty entries for L1s that surface their L3 directly
+   (Layer / Mineral / Fate — no sub-bucketing in sim either). Breadcrumb
+   carries Hot / Breadcrumbs labels but no concrete L3 leaves yet
+   (sim's L3 = recently-seen token IDs, dynamic per session — wires in
+   when breadcrumb-data lands).
+
+   Chat H item 4: replaces the prior `L2_SUB_LABELS` (which fed the SubPill
+   row as filter-value toggles). The new model — per Brendon's chat-H
+   prompt — is sim-faithful: L2 narrows L3 visibility via setSubFilter,
+   L3 toggles values via toggleFilter. */
+const L2_DICT: Record<
+    TraitCategory | 'Traits',
+    Record<string, readonly string[]>
+> = {
+    /* Non-feed L1s with no L2 sub-bucketing — L3 reads from a flat pool
+       (computed below as L3_FLAT_POOL). Empty L2_DICT entry keeps the
+       L2 row hidden (sim 8617-8618). */
+    Layer:      {},
+    Mineral:    {},
+    Fate:       {},
+
+    /* Non-feed L1s that DO sub-bucket. For Network, sim renders L2 narrows
+       in BOTH feed and non-feed modes (sim 8588 — `(isFeed && active) ||
+       (!isFeed && activeCategory === 'Network')`). */
+    Network: {
+        'My Circle': ['Me', '⚭ Mutuals', '⚯ Following', '⚬ Followers'],
+        'Global':    ['Top Holders', 'New Wallets'],
+    },
+    Breadcrumb: {
+        /* Sim's L3 = session-random token IDs; for v0 the L2 narrows are
+           rendered but L3 stays empty until breadcrumb-data wires in.
+           Empty arrays here mean L3 row shows nothing — L1 active +
+           L2 narrowing visible without spurious leaves. */
+        "What's Hot":     [],
+        'My Breadcrumbs': [],
+    },
+
+    /* Feed-mode-only L1 cats (sim 7390-7395 GodModeDict). */
+    Event: {
+        'Sales':  ['✶ Mints', '✹ Lists'],
+        'Offers': ['✦ Item Offers', '✦ Coll. Offers'],
+        'Other':  ['✸ Xfers'],
+    },
+    Market: {
+        'Primary':   ['Native'],
+        'Secondary': ['Blur', 'OpenSea', 'OTC', 'Magic Eden'],
+    },
+    /* Traits (feed-mode wrapper L1) — sub-buckets gate which trait pool
+       renders in L3. activeSubFilter='Gateway' → LAYERS routed to
+       activeFilters['Layer']; activeSubFilter='Spectrum' → MINERALS
+       routed to activeFilters['Mineral'] (sim 8627-8635). Display labels
+       follow sim 8524 (Layer / Mineral). */
+    Traits: {
+        'Gateway':  LAYERS,
+        'Spectrum': MINERALS,
+    },
+};
+
+/* Flat L3 pool for non-feed L1s without L2 sub-bucketing. */
+const L3_FLAT_POOL: Partial<Record<TraitCategory, readonly string[]>> = {
+    Layer:   LAYERS,
+    Mineral: MINERALS,
+    Fate:    OMEN_TRAITS,
 };
 
 /* Themes shown as the four-square cluster on the left of the sort-bar
@@ -106,6 +184,11 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
         activeCategory,
         setActiveCategory,
         clearActiveCategory,
+        activeFeedCategory,
+        setActiveFeedCategory,
+        clearActiveFeedCategory,
+        activeSubFilter,
+        setSubFilter,
         activeFilters,
         toggleFilter,
         myNotesActive,
@@ -181,34 +264,97 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
     const traitsHiddenStyle: CSSProperties | undefined =
         !visible || (isRegular && !isFeed) ? { display: 'none' } : undefined;
 
-    /* F41 — L2 row sub-category labels. Sim 8568-8616 gates the L2 row
-       on Breadcrumb (What's Hot / My Breadcrumbs, sim 8584-8587) or
-       Network (GodModeDict keys My Circle / Global, sim 8588-8615 +
-       7392). All other categories hide L2 and surface their values in
-       L3. v0 hardcodes the labels; sub-filter wiring (sim setSubFilter)
-       lands when traitData is real. Pre-F41 the L2 row reused the L3
-       value pool for every category, doubling every Layer/Mineral pill
-       (BUG-01). */
-    const L2_SUB_LABELS: Partial<Record<TraitCategory, readonly string[]>> = {
-        Breadcrumb: ["What's Hot", 'My Breadcrumbs'],
-        Network:    ['My Circle', 'Global'],
-    };
-    const l2SubLabels: readonly string[] =
-        activeCategory !== null
-            ? (L2_SUB_LABELS[activeCategory] ?? [])
-            : [];
+    /* Chat H items 3+4 — mode-aware L1/L2/L3 plumbing.
+       ────────────────────────────────────────────────────────────────
+       The active L1 key changes by mode: feed sort uses activeFeedCategory
+       (sim 7400 — values 'Event' | 'Network' | 'Traits' | 'Market'),
+       non-feed uses activeCategory. activeSubFilter is single-state
+       across modes (sim only has one L1 active at a time, so a single
+       narrow value works either way).
+
+       The L2 row gates on whichever active L1 has a non-empty sub-bucket
+       map in L2_DICT. Layer/Mineral/Fate (non-feed) have empty L2_DICT
+       entries → L2 hidden, L3 reads from L3_FLAT_POOL.
+
+       L3 routing: when the active L1 has L2 sub-buckets, L3 leaves come
+       from L2_DICT[L1][activeSubFilter] when narrowed, or all sub-buckets
+       concatenated when activeSubFilter='All'. The `filterCat` (which
+       activeFilters Set absorbs L3 toggles) is normally the L1 key
+       itself — except for feed-mode 'Traits' which routes to 'Layer'
+       or 'Mineral' depending on activeSubFilter (sim 8627-8635). */
+    type ActiveL1 = TraitCategory | FeedCategory;
+    const activeL1: ActiveL1 | null = isFeed ? activeFeedCategory : activeCategory;
+
+    /* L2 sub-bucket labels for the active L1 (sim 8588-8615 + 7390-7395
+       GodModeDict). Empty for L1s without sub-bucketing — L2 row hidden. */
+    const l2BucketMap: Record<string, readonly string[]> =
+        activeL1 !== null ? L2_DICT[activeL1] ?? {} : {};
+    const l2SubLabels: readonly string[] = Object.keys(l2BucketMap);
     const l2Visible = l2SubLabels.length > 0;
 
-    /* L3 row value pool — Layer / Mineral hardcoded for v0 (sim 8623-8665
-       parity for the non-Network branch at sim 8658-8668). Empty for
-       Fate / Network / Breadcrumb until traitData lands. */
-    const l3Pool: readonly string[] =
-        activeCategory !== null ? VALUE_POOLS[activeCategory] : [];
+    /* L3 leaf pool. For sub-bucketed L1s, slice by activeSubFilter:
+       'All' → concat all buckets (sim 8641-8642), specific → just that
+       bucket's leaves (sim 8643-8645). For flat L1s (Layer/Mineral/Fate),
+       read straight from L3_FLAT_POOL. */
+    const l3Pool: readonly string[] = (() => {
+        if (activeL1 === null) return [];
+        if (l2Visible) {
+            if (activeSubFilter === 'All') {
+                /* Sim 8641-8642 — concatenate every sub-bucket's leaves. */
+                return Object.values(l2BucketMap).flat();
+            }
+            return l2BucketMap[activeSubFilter] ?? [];
+        }
+        /* Flat L1 — Layer / Mineral / Fate. */
+        return L3_FLAT_POOL[activeL1 as TraitCategory] ?? [];
+    })();
     const l3Visible = l3Pool.length > 0;
 
-    /* Per-category badge counts for L1 pills (sim 8488). */
+    /* L3 → activeFilters Set routing. For feed-mode 'Traits' L1, the
+       sub-filter dictates which underlying trait Set to write to (sim
+       8627-8635: 'Gateway' → activeFilters['Layer'], 'Spectrum' →
+       activeFilters['Mineral']). For all other L1s, the L1 key IS the
+       filter Set key — Network / Event / Market / Layer / Mineral / Fate
+       all map directly. Breadcrumb stays in its own Set (token-id
+       leaves wire in later). */
+    const l3FilterCat: TraitCategory | null = (() => {
+        if (activeL1 === null) return null;
+        if (activeL1 === 'Traits') {
+            /* Sim 8628 — feed-mode Traits L1 routes via sub-filter key. */
+            if (activeSubFilter === 'Spectrum') return 'Mineral';
+            return 'Layer'; /* 'Gateway' default, also fallback */
+        }
+        /* All other L1 keys are also TraitCategory keys (typed by
+           construction — Event/Market/Network/Layer/Mineral/Fate/
+           Breadcrumb all live in TraitCategory). */
+        return activeL1 as TraitCategory;
+    })();
+
+    /* Per-category badge counts for L1 pills (sim 8488).
+       Sim 8484 — feed-mode 'Traits' badge sums Layer + Mineral counts. */
     const countOf = (cat: TraitCategory): number =>
         activeFilters[cat]?.size ?? 0;
+    const traitsBadgeCount = countOf('Layer') + countOf('Mineral');
+
+    /* Sim 8611 — L2 sub-pills get a `•` dot when any L3 leaf within that
+       sub-bucket is currently selected. Read against the routed filter
+       Set (so feed-mode Traits checks Layer or Mineral by sub-bucket). */
+    const l2HasActive = (sub: string): boolean => {
+        if (activeL1 === null) return false;
+        const bucketLeaves = l2BucketMap[sub] ?? [];
+        if (bucketLeaves.length === 0) return false;
+        if (activeL1 === 'Traits') {
+            /* Each Traits sub-bucket maps to its own filter Set (sim
+               8604-8608 — feed-mode Traits checks the sub-keyed Set,
+               not a single shared Set). */
+            const subCat: TraitCategory = sub === 'Spectrum' ? 'Mineral' : 'Layer';
+            const set = activeFilters[subCat];
+            return bucketLeaves.some((leaf) => set.has(leaf));
+        }
+        const set = activeFilters[activeL1 as TraitCategory];
+        if (!set) return false;
+        return bucketLeaves.some((leaf) => set.has(leaf));
+    };
 
     return (
         <>
@@ -217,166 +363,214 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
             <div className="traits-ui" style={traitsHiddenStyle}>
                 <div className="traits-header-bar">
                     <div className="stats-container" id="traitCategories">
-                        {/* Dynamic trait pills (Layer / Mineral) — sim 8518-8529.
-                            Build 16: clicking the currently-active L1 fires
-                            `clearActiveCategory` so the L1 toggle-off path also
-                            drains activeFilters[cat] in the same setState batch
-                            (Build 9 spec residual #4). Clicking an inactive L1
-                            still calls `setActiveCategory(p.key)` to open / swap. */}
-                        {DYNAMIC_TRAIT_PILLS.map((p) => {
-                            const isActive = activeCategory === p.key;
-                            return (
-                                <BarPill
-                                    key={p.key}
-                                    label={p.label}
-                                    active={isActive}
-                                    dimmed={
-                                        activeCategory !== null &&
-                                        activeCategory !== p.key
-                                    }
-                                    count={countOf(p.key)}
-                                    onClick={
-                                        isActive
-                                            ? clearActiveCategory
-                                            : () => setActiveCategory(p.key)
-                                    }
-                                />
-                            );
-                        })}
-
-                        {/* Fate — pinned after dynamic block, sim 8533.
-                            Build 16: same toggle-off semantics as the dynamic
-                            pills above. */}
-                        <BarPill
-                            label="Fate"
-                            active={activeCategory === 'Fate'}
-                            dimmed={
-                                activeCategory !== null &&
-                                activeCategory !== 'Fate'
-                            }
-                            count={countOf('Fate')}
-                            onClick={
-                                activeCategory === 'Fate'
-                                    ? clearActiveCategory
-                                    : () => setActiveCategory('Fate')
-                            }
-                            title="Fate Filter — iChing Destines"
-                        />
-
-                        {/* My Network — sim 8549.
-                            Build 16: toggle-off via clearActiveCategory. */}
-                        <BarPill
-                            label="My Network"
-                            active={activeCategory === 'Network'}
-                            dimmed={
-                                activeCategory !== null &&
-                                activeCategory !== 'Network'
-                            }
-                            count={countOf('Network')}
-                            onClick={
-                                activeCategory === 'Network'
-                                    ? clearActiveCategory
-                                    : () => setActiveCategory('Network')
-                            }
-                        />
-
-                        {/* My Notes — sim 8550 (toggle, not category swap) */}
-                        <BarPill
-                            label="My Notes"
-                            active={myNotesActive}
-                            dimmed={
-                                activeCategory !== null && !myNotesActive
-                            }
-                            onClick={toggleMyNotes}
-                            title="My Notes"
-                        />
-
-                        {/* Recent + icon cluster — sim 8551-8557.
-                            Wrapped in inline-flex so they stay together when
-                            the row wraps on mobile (sim parity, sim 8551). */}
-                        <div
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                flexShrink: 0,
-                            }}
-                        >
-                            <div
-                                className="sort-icons"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                }}
-                            >
-                                <BarPill
-                                    label="Recent"
-                                    active={activeCategory === 'Breadcrumb'}
-                                    dimmed={
-                                        activeCategory !== null &&
-                                        activeCategory !== 'Breadcrumb'
-                                    }
-                                    count={countOf('Breadcrumb')}
-                                    onClick={
-                                        activeCategory === 'Breadcrumb'
-                                            ? clearActiveCategory
-                                            : () =>
-                                                  setActiveCategory(
-                                                      'Breadcrumb'
-                                                  )
-                                    }
-                                    title="Recent — recently-seen tokens"
-                                    extraClass="pill-breadcrumb"
-                                />
-                                <IconBtn
-                                    cls="burn-btn"
-                                    glyph={'⏚\uFE0E'}
-                                    title="Burn Pile"
-                                    active={burnPileActive}
-                                    onClick={toggleBurnPile}
-                                />
-                                <IconBtn
-                                    cls="epoch-btn"
-                                    glyph={'❐\uFE0E'}
-                                    title="Multi-Select"
-                                    active={multiSelectActive}
-                                    onClick={toggleMultiSelect}
-                                />
-                                {/* D007 (sim 8556) — search-btn only renders
-                                    in the sort-icons cluster for the PD-persona
-                                    non-feed branch (sim's `else if (!isRegular
-                                    || debugState === 'zero')` arm). Regular
-                                    non-feed → search-btn lives in the sort row
-                                    (sim 8438 — rendered in .sort-btn-group
-                                    below). Feed mode (any persona) → search-btn
-                                    appended to the trait pill row (sim 8505 —
-                                    rendered in #traitCategories above). */}
-                                {showSearchInTraitHeader && (
-                                    <IconBtn
-                                        cls="search-btn"
-                                        glyph={'⌕\uFE0E'}
-                                        title="Search"
-                                        active={searchActive}
-                                        onClick={toggleSearch}
+                        {/* Chat H item 3 — feed-mode L1 row (sim 8475-8509).
+                            When sort==='feed' the regular pill cluster is
+                            replaced by the four feed cats: Event / My Network
+                            / Traits / Market. The search-btn is wrapped with
+                            the LAST pill (Market) per sim 8503-8506 — see the
+                            showSearchInFeedTraitRow block below for the wrapper
+                            shape. Click handler toggles between
+                            setActiveFeedCategory (open / swap) and
+                            clearActiveFeedCategory (toggle off) — same pattern
+                            as the non-feed Build 16 split. */}
+                        {isFeed &&
+                            FEED_TRAIT_PILLS.map((p) => {
+                                const isActive = activeFeedCategory === p.key;
+                                /* Sim 8484 — Traits L1 badge sums Layer +
+                                   Mineral counts; other feed cats use their
+                                   own filter Set's size. */
+                                const badgeCount =
+                                    p.key === 'Traits'
+                                        ? traitsBadgeCount
+                                        : countOf(p.key as TraitCategory);
+                                return (
+                                    <BarPill
+                                        key={p.key}
+                                        label={p.label}
+                                        active={isActive}
+                                        dimmed={
+                                            activeFeedCategory !== null &&
+                                            !isActive
+                                        }
+                                        count={badgeCount}
+                                        onClick={
+                                            isActive
+                                                ? clearActiveFeedCategory
+                                                : () =>
+                                                      setActiveFeedCategory(
+                                                          p.key
+                                                      )
+                                        }
                                     />
-                                )}
-                            </div>
-                        </div>
+                                );
+                            })}
+
+                        {/* Non-feed pill cluster — sim 8510-8557 ('else if
+                            (!isRegular || debugState === "zero")' arm).
+                            Layer / Mineral / Fate / My Network / My Notes /
+                            Recent + the burn/multi-select/search icons.
+                            Chat H item 3: gated on !isFeed so the feed-mode
+                            arm above replaces this entire block. */}
+                        {!isFeed && (
+                            <>
+                                {/* Dynamic trait pills (Layer / Mineral) — sim 8518-8529.
+                                    Build 16: clicking the currently-active L1 fires
+                                    `clearActiveCategory` so the L1 toggle-off path also
+                                    drains activeFilters[cat] in the same setState batch
+                                    (Build 9 spec residual #4). Clicking an inactive L1
+                                    still calls `setActiveCategory(p.key)` to open / swap. */}
+                                {DYNAMIC_TRAIT_PILLS.map((p) => {
+                                    const isActive = activeCategory === p.key;
+                                    return (
+                                        <BarPill
+                                            key={p.key}
+                                            label={p.label}
+                                            active={isActive}
+                                            dimmed={
+                                                activeCategory !== null &&
+                                                activeCategory !== p.key
+                                            }
+                                            count={countOf(p.key)}
+                                            onClick={
+                                                isActive
+                                                    ? clearActiveCategory
+                                                    : () => setActiveCategory(p.key)
+                                            }
+                                        />
+                                    );
+                                })}
+
+                                {/* Fate — pinned after dynamic block, sim 8533.
+                                    Build 16: same toggle-off semantics as the dynamic
+                                    pills above. */}
+                                <BarPill
+                                    label="Fate"
+                                    active={activeCategory === 'Fate'}
+                                    dimmed={
+                                        activeCategory !== null &&
+                                        activeCategory !== 'Fate'
+                                    }
+                                    count={countOf('Fate')}
+                                    onClick={
+                                        activeCategory === 'Fate'
+                                            ? clearActiveCategory
+                                            : () => setActiveCategory('Fate')
+                                    }
+                                    title="Fate Filter — iChing Destines"
+                                />
+
+                                {/* My Network — sim 8549.
+                                    Build 16: toggle-off via clearActiveCategory. */}
+                                <BarPill
+                                    label="My Network"
+                                    active={activeCategory === 'Network'}
+                                    dimmed={
+                                        activeCategory !== null &&
+                                        activeCategory !== 'Network'
+                                    }
+                                    count={countOf('Network')}
+                                    onClick={
+                                        activeCategory === 'Network'
+                                            ? clearActiveCategory
+                                            : () => setActiveCategory('Network')
+                                    }
+                                />
+
+                                {/* My Notes — sim 8550 (toggle, not category swap) */}
+                                <BarPill
+                                    label="My Notes"
+                                    active={myNotesActive}
+                                    dimmed={
+                                        activeCategory !== null && !myNotesActive
+                                    }
+                                    onClick={toggleMyNotes}
+                                    title="My Notes"
+                                />
+
+                                {/* Recent + icon cluster — sim 8551-8557.
+                                    Wrapped in inline-flex so they stay together when
+                                    the row wraps on mobile (sim parity, sim 8551). */}
+                                <div
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <div
+                                        className="sort-icons"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <BarPill
+                                            label="Recent"
+                                            active={activeCategory === 'Breadcrumb'}
+                                            dimmed={
+                                                activeCategory !== null &&
+                                                activeCategory !== 'Breadcrumb'
+                                            }
+                                            count={countOf('Breadcrumb')}
+                                            onClick={
+                                                activeCategory === 'Breadcrumb'
+                                                    ? clearActiveCategory
+                                                    : () =>
+                                                          setActiveCategory(
+                                                              'Breadcrumb'
+                                                          )
+                                            }
+                                            title="Recent — recently-seen tokens"
+                                            extraClass="pill-breadcrumb"
+                                        />
+                                        <IconBtn
+                                            cls="burn-btn"
+                                            glyph={'⏚\uFE0E'}
+                                            title="Burn Pile"
+                                            active={burnPileActive}
+                                            onClick={toggleBurnPile}
+                                        />
+                                        <IconBtn
+                                            cls="epoch-btn"
+                                            glyph={'❐\uFE0E'}
+                                            title="Multi-Select"
+                                            active={multiSelectActive}
+                                            onClick={toggleMultiSelect}
+                                        />
+                                        {/* D007 (sim 8556) — search-btn only renders
+                                            in the sort-icons cluster for the PD-persona
+                                            non-feed branch (sim's `else if (!isRegular
+                                            || debugState === 'zero')` arm). Regular
+                                            non-feed → search-btn lives in the sort row
+                                            (sim 8438 — rendered in .sort-btn-group
+                                            below). Feed mode (any persona) → search-btn
+                                            appended to the trait pill row (sim 8505 —
+                                            rendered in #traitCategories above). */}
+                                        {showSearchInTraitHeader && (
+                                            <IconBtn
+                                                cls="search-btn"
+                                                glyph={'⌕\uFE0E'}
+                                                title="Search"
+                                                active={searchActive}
+                                                onClick={toggleSearch}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
                         {/* D007 (sim 8505) — feed-mode search-btn. Sim
                             wraps the LAST feed-mode L1 pill (Market) +
                             search-btn together in a
                             `display:flex;align-items:center;gap:10px`
                             container so the icon stays glued to the
-                            pill row's right edge. v0 doesn't render
-                            feed-mode pills (Event / Network / Traits /
-                            Market — sim 8475-8509) yet, so the wrapper
-                            is rendered standalone with just the
-                            search-btn — preserves sim's container
-                            shape so when feed-mode pill rendering
-                            lands, it slots in alongside without a
-                            second port pass. Wrapper kept inline-style
-                            sim-verbatim. */}
+                            pill row's right edge. Chat H item 3 — the
+                            feed-mode L1 pills now render above (Event /
+                            My Network / Traits / Market) so the wrapper
+                            sits right after them, gluing the search-btn
+                            to Market's right edge per sim 8503-8506. */}
                         {showSearchInFeedTraitRow && (
                             <div
                                 style={{
@@ -406,11 +600,14 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     5174 mount these as direct children of `.traits-ui`. */}
 
                 {/* L2 sub-category pills — sim 5173, render block sim
-                    8568-8617. F41: row gates on Breadcrumb (Hot /
-                    Breadcrumbs sub-pills, sim 8584-8587) or Network
-                    (GodModeDict keys, sim 8588-8615). Layer / Mineral /
-                    Fate hide L2 and surface in L3 instead — sim 8618
-                    sets display:none when l2Html is empty. */}
+                    8568-8617. Chat H item 4: row gates on whichever active
+                    L1 has a non-empty sub-bucket map in L2_DICT. Click
+                    handler swapped from `toggleFilter` (the prior port
+                    deviation that treated L2 as a filter-value toggle)
+                    to `setSubFilter` (sim-faithful narrow — sim 8287-8297).
+                    Active state reads from `activeSubFilter`; the `•` dot
+                    indicator (sim 8611) lights up when any L3 leaf inside
+                    that sub-bucket is currently selected. */}
                 <div
                     className="stats-container"
                     id="traitSubCategories"
@@ -421,49 +618,41 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     }
                 >
                     {l2Visible &&
-                        activeCategory !== null &&
-                        l2SubLabels.map((value) => {
-                            const isActive =
-                                activeFilters[activeCategory].has(value);
-                            /* Build 14: dim non-selected siblings only
-                               once at least one value is selected — same
-                               pattern sim uses for Hot/Breadcrumbs at
-                               sim 8580-8583. */
-                            const anySelected =
-                                activeFilters[activeCategory].size > 0;
-                            const dimmed = anySelected && !isActive;
+                        l2SubLabels.map((sub) => {
+                            const isActive = activeSubFilter === sub;
+                            /* Sim 8573-8574 — dim non-narrowed siblings
+                               only when the row is narrowed (i.e. not 'All').
+                               'All' = neutral, no narrow, no dim. Feed-mode
+                               Traits L1 defaults to 'Gateway' (not 'All',
+                               sim 8278), so 'All'-vs-narrowed neutrality
+                               doesn't apply there — instead, the sub that
+                               isn't 'Gateway' (i.e. 'Spectrum') gets dimmed
+                               whenever Gateway is the narrow. The check
+                               below treats any non-'All' value as a narrow
+                               state, which gives both behaviors. */
+                            const dimmed =
+                                activeSubFilter !== 'All' && !isActive;
+                            const dot = l2HasActive(sub) ? ' •' : '';
                             return (
                                 <SubPill
-                                    key={value}
-                                    label={value}
+                                    key={sub}
+                                    label={`${sub}${dot}`}
                                     active={isActive}
                                     dimmed={dimmed}
-                                    onClick={() =>
-                                        toggleFilter(
-                                            activeCategory,
-                                            value
-                                        )
-                                    }
+                                    onClick={() => setSubFilter(sub)}
                                 />
                             );
                         })}
                 </div>
 
                 {/* L3 stat-pills — sim 5174 mount point + sim 8670-8682
-                    render block. F41: gated on l3Pool (Layer /
-                    Mineral) — independent of the L2 row's
-                    Breadcrumb/Network gate. Sim 8625-8668 walks every
-                    active category through traitData; v0 hardcodes
-                    VALUE_POOLS for Layer/Mineral and leaves Fate /
-                    Network / Breadcrumb empty (hidden) until
-                    traitData wiring lands. Click handler shares
-                    activeFilters[activeCategory] with the L2 row
-                    above — intentional duplication mirroring sim's
-                    split (L2 ↴ row vs L3 ↳ row, sim 8613 / 8681).
-                    Mock count of 22 per value until gallery wiring
-                    lands; the `.is-zero` class still applies whenever
-                    count === 0 so the structural class logic is in
-                    place for the wiring build.
+                    render block. Chat H item 4: gated on l3Pool which
+                    derives from L2_DICT[activeL1][activeSubFilter] for
+                    sub-bucketed L1s, or L3_FLAT_POOL[activeL1] for flat
+                    L1s (Layer / Mineral / Fate). Click handler routes to
+                    `l3FilterCat` — usually the L1 key itself, but for
+                    feed-mode 'Traits' L1 it routes via sub-filter to
+                    'Layer' or 'Mineral' (sim 8627-8635).
 
                     Build 17 — dim cascade rule (sim 8674-8675):
                     `dimmed = anySelected && !isActive` keeps `active`
@@ -483,12 +672,11 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                     }
                 >
                     {l3Visible &&
-                        activeCategory !== null &&
+                        l3FilterCat !== null &&
                         l3Pool.map((value) => {
-                            const isActive =
-                                activeFilters[activeCategory].has(value);
-                            const anySelected =
-                                activeFilters[activeCategory].size > 0;
+                            const filterSet = activeFilters[l3FilterCat];
+                            const isActive = filterSet.has(value);
+                            const anySelected = filterSet.size > 0;
                             const dimmed = anySelected && !isActive;
                             /* Mock count — gallery wiring will replace
                                with real per-value counts from token data
@@ -499,18 +687,15 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                             const count: number = 22;
                             return (
                                 <L3Pill
-                                    key={value}
+                                    key={`${l3FilterCat}:${value}`}
                                     label={value}
                                     count={count}
                                     active={isActive}
                                     dimmed={dimmed}
                                     isZero={count === 0}
-                                    category={activeCategory}
+                                    category={l3FilterCat}
                                     onClick={() =>
-                                        toggleFilter(
-                                            activeCategory,
-                                            value
-                                        )
+                                        toggleFilter(l3FilterCat, value)
                                     }
                                 />
                             );
