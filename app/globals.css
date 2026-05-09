@@ -1589,7 +1589,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* ============================================================
    PHASE 1 PLACEHOLDER PAGE
    ============================================================
-   Sim has no homepage — it loads straight to the collection page.
+   Sim has no homepage — it loads straight to the project page.
    Until the global feed replaces this, mirror sim's content gutters
    (.collection-hero — 10px 40px desktop, 10px 20px 20px 20px mobile)
    so the placeholder visually aligns with what real pages will look
@@ -1814,9 +1814,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    uses click-to-expand carets at every level (cat → artist → col →
    tokens). Sim renders the entire tree flat with progressive
    indentation. The collapsible variant scales better for wallets
-   with 50+ collections, where the flat tree becomes a wall of text.
+   with 50+ projects, where the flat tree becomes a wall of text.
    Visual hierarchy still mirrors sim: 11px caps for cat headers,
-   13px artist labels, 12px italic collection names, 12px token
+   13px artist labels, 12px italic project names, 12px token
    chips, leader dots between label and price column.
 */
 
@@ -1991,7 +1991,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .pf-artist .pf-label { flex: 0 0 auto; }
 .pf-artist .pf-est { font-weight: bold; opacity: 0.85; flex: 0 0 auto; }
-/* Collection row — 3rd level. */
+/* Project row — 3rd level. (CSS class `.pf-collection` kept matching sim.) */
 .pf-collection {
     display: flex; align-items: baseline;
     padding: 4px 10px 2px 40px;
@@ -2022,7 +2022,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     top: -2px;
     min-width: 12px;
 }
-/* ENS entries — flat, no collection layer, same leader-dot treatment.
+/* ENS entries — flat, no project layer, same leader-dot treatment.
    APR 21: indent bumped 20→28 to match new section-hierarchy spacing. */
 .pf-ens-row {
     display: flex; align-items: baseline;
@@ -2207,7 +2207,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 .value-prompt-title {
     /* Sentence-case + normal tracking — titles can include <em> for italic
-       collection names (sim's anchor prompt). Uppercase would flatten the
+       project names (sim's anchor prompt). Uppercase would flatten the
        italic distinction. */
     font-size: 14px;
     opacity: 0.9;
@@ -2346,7 +2346,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 
 /* ============================================================
-   COLLECTION PAGE
+   PROJECT PAGE
    ============================================================
    Build 9 port. Every rule here is a verbatim copy from sim.html
    (sim line refs noted above each block). Touches: hero
@@ -2356,6 +2356,16 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    GENOME / PRICE TARGETS / ATH & HOLDERS / DISAGREEMENT
    SCORE). No new rules beyond sim — anything that needs
    tuning vs. sim is a separate ship.
+
+   CSS-CLASS NAMING LOCK (CTO call, 2026-05-09):
+   "Collection" was renamed to "Project" across the platform
+   nomenclature, but CSS class names (`.collection-hero`,
+   `.collection-title`, `.collection-date`, `.collection-artist`,
+   `#collectionTabsRow`, `.pf-collection`) deliberately stay
+   matching sim.html, which is the visual source of truth.
+   Renaming the classes here would break sim parity on every
+   future port. The rename happens only when sim itself flips.
+   Do NOT "match new nomenclature" by renaming these classes.
    ============================================================ */
 
 /* ── HERO — sim ~2036-2066 ───────────────────────────────── */
@@ -3650,7 +3660,7 @@ body.budget-step-line #gallery .edition-card .budget-step-v-overlay {
 }
 
 /* ── ANCHOR DELTA — sim 4045-4072 ──
-   When the user has set a personal reference price for any collection,
+   When the user has set a personal reference price for any project,
    every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
    attribute. CSS appends "⚓<delta>" via ::before so anchor changes never
    churn the DOM — the page-level useEffect just stamps the attr.
@@ -3715,7 +3725,7 @@ body.aura-active #gallery { overflow-x: clip; }
 
 /* ── BREADCRUMB CRUMB — sim 3893-3914 + 8072-8082 ──
    "Recently visited" sticker. Mounted on .canvas-wrapper for the 5 ids
-   the page picks per session (CollectionPageInner breadcrumbSample lazy
+   the page picks per session (ProjectPageInner breadcrumbSample lazy
    useState). Half-on / half-off the artwork's rounded corner so it reads
    as meta-UI, not part of the art. .canvas-wrapper normally clips
    (overflow: hidden) — :has(.breadcrumb-crumb) flips it to visible so the
@@ -4118,7 +4128,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 .mdg-label-r { opacity: 0.6; }
 
-/* ── COLLECTION PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
+/* ── PROJECT PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
 @media (max-width: 600px) {
     .collection-hero { padding: 10px 20px 20px 20px; }
     #gallery,
@@ -4221,15 +4231,15 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 
 /* ============================================================
-   BUILD 11 — Collection page CSS gap port
-   Re-grep of classNames used by app/collection/[slug]/page.tsx +
+   BUILD 11 — Project page CSS gap port
+   Re-grep of classNames used by app/art/[slug]/page.tsx +
    components/ArtworkCard.tsx against this file surfaced the blocks
    below as still-missing from sim. Ported verbatim. Source line
    refs annotated per block.
    ============================================================ */
 
 /* sim 941-998 — REDACTED MODE (Classic black-bar censorship).
-   Targets collection-page text surfaces (collection-title,
+   Targets project-page text surfaces (CSS class names — .collection-* — kept matching sim) (collection-title,
    artist-lockup, meta-owner, f-highlight, info-line links) plus
    the modal/tape/calendar surfaces that share the same treatment.
    Selectors targeting elements that don't exist in the React port
@@ -4292,8 +4302,8 @@ body.theme-dark.redacted-mode .cal-event-item,
 body.theme-dark.redacted-mode .topbarcal-events,
 body.theme-dark.redacted-mode .collection-title { background: rgba(224,224,224,0.88) !important; }
 
-/* sim 3872-3879 — ANON MODE (collection page hides). Hides
-   identity-bearing surfaces on the collection page when the user
+/* sim 3872-3879 — ANON MODE (project page hides). Hides
+   identity-bearing surfaces on the project page when the user
    has Anon Mode on. The artistsPanel selectors stay dormant until
    that panel lands but mirror sim verbatim per scope. */
 body.anon-mode .info-line { display: none !important; }
@@ -4310,9 +4320,9 @@ body.anon-mode #artistsPanel .pill-artist-filter[data-rel="followers"] { display
 .art-placeholder { border: none; }
 .art-placeholder .hover-overlay { border-radius: 0; }
 
-/* sim 3917-3930 — ZEN MODE (collection page hides). globals.css
+/* sim 3917-3930 — ZEN MODE (project page hides). globals.css
    already hides .stats-grid, .priceos-footer, and .tape-wrap in
-   zen-mode; the block below adds the rest of the collection-page
+   zen-mode; the block below adds the rest of the project-page
    surfaces sim hides as a coordinated set so toggling zen leaves a
    minimal hero + gallery view. .stats-row hide here is technically
    redundant with the existing .stats-grid rule but matches sim
@@ -4447,7 +4457,7 @@ body.hammer-mode .modal-canvas-wrap .mute-overlay { display: flex; }
    blurred until the user taps/clicks it (first tap reveals; second tap
    opens the modal normally). Persistent fog across the entire grid —
    off-screen cards stay fogged too. Session-only; a refresh re-covers
-   everything. Wiring lives in app/collection/[slug]/page.tsx
+   everything. Wiring lives in app/art/[slug]/page.tsx
    (gallery-wide capture-phase click handler, sim parity with
    _startFogObserver / _stopFogObserver). Body class toggle lives in
    useBodyClass driven by SortContext (sim 8334-8338). */

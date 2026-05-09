@@ -9,7 +9,7 @@ import { ToastProvider } from '../lib/state/ToastContext';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
-import { CollectionProvider } from '../lib/state/CollectionContext';
+import { ProjectProvider } from '../lib/state/ProjectContext';
 import { CartProvider } from '../lib/state/CartContext';
 import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
@@ -19,7 +19,7 @@ import { PriceOSShell } from '../components/shell/PriceOSShell';
 export const metadata: Metadata = {
     title: 'Price Discussion',
     description:
-        'A web3 social platform where the community discussing secondary prices is the product. Browse collections, track grail pins, and explore generative art.',
+        'A web3 social platform where the community discussing secondary prices is the product. Browse projects, track grail pins, and explore generative art.',
 };
 
 const PREHYDRATION_SCRIPT = `
@@ -218,13 +218,13 @@ export default function RootLayout({
                                                 <NotePromptProvider>
                                                     <ValuePromptProvider>
                                                         <CalcSheetProvider>
-                                                            <CollectionProvider>
+                                                            <ProjectProvider>
                                                                 <CartProvider>
                                                                     <WorkspacesProvider>
                                                                         <PriceOSShell>{children}</PriceOSShell>
                                                                     </WorkspacesProvider>
                                                                 </CartProvider>
-                                                            </CollectionProvider>
+                                                            </ProjectProvider>
                                                         </CalcSheetProvider>
                                                     </ValuePromptProvider>
                                                 </NotePromptProvider>
