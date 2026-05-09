@@ -10,7 +10,7 @@
  * `ReadonlyMap<number, TokenMeta>` populated once at provider mount.
  *
  * Today the provider seeds the map with the same deterministic LCG math
- * the prototype has been running inside ArtworkModal, so visual state
+ * the prototype has been running inside OutputPreview, so visual state
  * is byte-for-byte identical. When the on-chain indexer ships, only
  * the seeding block changes — every consumer (`useTokenMeta(id)`,
  * future gallery, future Calc) keeps its existing API.
@@ -106,7 +106,7 @@ const FATE_POOL = [
  * every refresh — matches sim's behavior where Math.random() draws are
  * cached in metaCache and reused for the session.
  *
- * Lifted verbatim from ArtworkModal's previous inline `getTokenMeta()`
+ * Lifted verbatim from OutputPreview's previous inline `getTokenMeta()`
  * (the LCG constants, the `0x____…____` hex tail formula, the listed
  * threshold, the price formatting). Real metadata comes from the
  * on-chain indexer once that workstream lands; this seeding is the

@@ -6,7 +6,7 @@
  * The Calc — sim line 11597's window.openCalcSheet(tokenId). A bottom-sheet
  * (mobile) / centred card (desktop) slide-up that runs a quick "if I bought
  * this and flipped at floor, what's my net?" P&L ladder. Opened by the ƒ
- * tab in ArtworkModal's compound action button (BUY-state only — sim 8762).
+ * tab in OutputPreview's compound action button (BUY-state only — sim 8762).
  *
  * Vocabulary parity with .value-prompt-* (inverted palette, .mounted/.active
  * two-stage display, slide-up motion, desktop centred-card override at
@@ -20,8 +20,8 @@
  * Caller computes both numbers from its own meta source. Closing is via the
  * X button, backdrop tap, or programmatic closeCalcSheet.
  *
- * Auto-close: when the parent ArtworkModal closes (or the modal stack
- * switches to a non-artwork surface), calc auto-dismisses. Sim hard-codes
+ * Auto-close: when the parent OutputPreview closes (or the modal stack
+ * switches to a non-output surface), calc auto-dismisses. Sim hard-codes
  * this in closeModal (sim 7446); here we react to ModalContext rather than
  * coupling it back, keeping ModalContext unaware of calc.
  *
@@ -76,7 +76,7 @@ export function CalcSheetProvider({ children }: { children: ReactNode }) {
        (sim 7446); we react to ModalContext instead of coupling it back, so
        calc stays a leaf consumer. */
     useEffect(() => {
-        if (config != null && openModal?.name !== 'artwork') {
+        if (config != null && openModal?.name !== 'output') {
             setConfig(null);
         }
     }, [openModal, config]);

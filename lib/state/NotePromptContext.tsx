@@ -12,8 +12,8 @@
  * MUST be mounted INSIDE <CalendarProvider> + <ToastProvider> + <ModalProvider>
  * in app/layout.tsx so the day-notes map, showToast(), and openModal() are
  * reachable. The token-label renders an underlined "PRISMS #1234" span whose
- * onClick fires open('artwork', id) — sim 5743 same behaviour, opens the
- * artwork modal underneath the note prompt sheet (z-index 10001 vs 1000).
+ * onClick fires open('output', id) — sim 5743 same behaviour, opens the
+ * OutputPreview underneath the note prompt sheet (z-index 10001 vs 1000).
  *
  * Date label format mirrors sim line 5863 — the date string is rendered with
  * an underline + 3px offset. CAL_MONTH_SHORT already returns uppercase tokens
@@ -241,13 +241,13 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
     /* Click handler for the underlined token-name span inside the token
        label. Sim 5743 stops propagation (so the wrap's backdrop-close
        doesn't fire) then calls openModal(id). Note prompt stays open;
-       artwork modal opens at z-index 1000 underneath the note prompt's
+       OutputPreview opens at z-index 1000 underneath the note prompt's
        z-index 10001. When the user dismisses the note prompt, the
-       artwork modal is revealed. */
+       OutputPreview is revealed. */
     const handleTokenLabelClick = useCallback(
         (e: React.MouseEvent, tokenId: number) => {
             e.stopPropagation();
-            openModal('artwork', tokenId);
+            openModal('output', tokenId);
         },
         [openModal]
     );
