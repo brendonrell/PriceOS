@@ -12,10 +12,10 @@ Write operations (follows, mark-notifications-read, future stars/wishlist writes
 
 | Surface | TTL | Used by |
 |---|---|---|
-| Collection stats | 15s | `GET /api/collection/[id]`, `GET /api/token/[id]` |
-| Feed events | 5s | `GET /api/feed`, `GET /api/collection/[id]/feed` |
+| Project stats | 15s | `GET /api/project/[slug]`, `GET /api/output/[id]` |
+| Feed events | 5s | `GET /api/feed`, `GET /api/project/[slug]/feed` |
 | Artist info / cooldown | 30s | `GET /api/artist/[address]` |
-| Token traits | 300s | `GET /api/collection/[id]/tokens` |
+| Project outputs | 300s | `GET /api/project/[slug]/outputs` |
 | $PRICE balance | 10s | `GET /api/price/[address]` |
 | Search | 60s | `GET /api/search` |
 | Platform stats | 60s | `GET /api/stats` |
@@ -210,10 +210,10 @@ Errors: `400 BAD_REQUEST` (empty array, > 200 IDs, bad JSON), `401 UNAUTHORIZED`
 
 ### `GET /api/search?q=`
 
-Full-text search over collections (by title) and users (by ENS / display name / address). Min query length: 2 chars. Max results per category: 20.
+Full-text search over projects (by title) and users (by ENS / display name / address). Min query length: 2 chars. Max results per category: 20.
 
 - **Auth:** none
-- **Source:** `collections`, `users` (Supabase, ILIKE)
+- **Source:** `projects`, `users` (Supabase, ILIKE)
 - **Cache:** 60s ISR
 - **Status:** ready-to-build
 
@@ -222,7 +222,7 @@ Full-text search over collections (by title) and users (by ENS / display name / 
 
 interface SearchResponse {
   query: string;
-  collections: Array<{
+  projects: Array<{
     id: string;
     title: string;
     artist_address: string;
@@ -239,25 +239,25 @@ interface SearchResponse {
 
 Errors: `400 BAD_REQUEST`.
 
-Future: when collection / user counts grow past a few thousand rows, swap ILIKE for Postgres `tsvector` + GIN index, or move to a dedicated search service (Meilisearch / Typesense). Response shape stays the same.
+Future: when project / user counts grow past a few thousand rows, swap ILIKE for Postgres `tsvector` + GIN index, or move to a dedicated search service (Meilisearch / Typesense). Response shape stays the same.
 
 ---
 
 ## Indexer-derived routes (mocked)
 
-Each route below currently returns typed mock data shaped to match the production response. The mock reflects the Kiki genesis collection (2,222 editions, ~$22 mint price) with the locked trait names (Palette / Mode / Encounter / State).
+Each route below currently returns typed mock data shaped to match the production response. The mock reflects the Kiki genesis project (2,222 editions, ~$22 mint price) with the locked trait names (Palette / Mode / Encounter / State).
 
-### `GET /api/collection/[id]`
+### `GET /api/project/[slug]`
 
 - **Auth:** none
-- **Source:** `collections` (Supabase, indexer-written)
+- **Source:** `projects` (Supabase, indexer-written)
 - **Cache:** 15s ISR
 - **Status:** blocked-on-indexer
 
 ```ts
 interface Params { id: string; }
 
-interface CollectionResponse {
+interface ProjectResponse {
   id: string;
   artist_address: string;
   title: string;
@@ -275,10 +275,10 @@ interface CollectionResponse {
 
 ---
 
-### `GET /api/collection/[id]/tokens`
+### `GET /api/project/[slug]/outputs`
 
 - **Auth:** none
-- **Source:** `tokens` (derived view; indexer-written)
+- **Source:** `outputs` (derived view; indexer-written)
 - **Cache:** 300s ISR
 - **Status:** blocked-on-indexer
 
@@ -286,17 +286,17 @@ interface CollectionResponse {
 interface Params { id: string; }
 // Query: ?page=1&page_size=24 (max 100)
 
-interface CollectionTokensResponse {
-  collection_id: string;
+interface ProjectOutputsResponse {
+  project_id: string;
   total: number;
   page: number;
   page_size: number;
-  tokens: TokenSummary[];
+  outputs: OutputSummary[];
 }
 
-interface TokenSummary {
-  id: string;                       // "{collection_id}-{edition}"
-  collection_id: string;
+interface OutputSummary {
+  id: string;                       // "{project_id}-{edition}"
+  project_id: string;
   edition: number;
   owner: string;
   minter: string;
@@ -308,10 +308,10 @@ interface TokenSummary {
 
 ---
 
-### `GET /api/collection/[id]/feed`
+### `GET /api/project/[slug]/feed`
 
 - **Auth:** none
-- **Source:** `events` filtered by `collection_id` (indexer-written)
+- **Source:** `events` filtered by `project_id` (indexer-written)
 - **Cache:** 5s ISR
 - **Status:** blocked-on-indexer
 
@@ -319,8 +319,8 @@ interface TokenSummary {
 interface Params { id: string; }
 // Query: ?limit=20
 
-interface CollectionFeedResponse {
-  collection_id: string;
+interface ProjectFeedResponse {
+  project_id: string;
   events: EventRow[];
   next_cursor: string | null;       // ISO timestamp of oldest event in page
 }
@@ -328,7 +328,7 @@ interface CollectionFeedResponse {
 interface EventRow {
   id: string;
   type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
-  collection_id: string;
+  project_id: string;
   token_id: string | null;
   from_address: string | null;
   to_address: string | null;
@@ -339,21 +339,21 @@ interface EventRow {
 
 ---
 
-### `GET /api/token/[id]`
+### `GET /api/output/[id]`
 
 Token detail plus full event history.
 
 - **Auth:** none
-- **Source:** derived `tokens` view + `events` (indexer-written)
+- **Source:** derived `outputs` view + `events` (indexer-written)
 - **Cache:** 15s ISR
 - **Status:** blocked-on-indexer
 
 ```ts
-interface Params { id: string; }    // "{collection_id}-{edition}"
+interface Params { id: string; }    // "{project_id}-{edition}"
 
-interface TokenDetailResponse {
+interface OutputDetailResponse {
   id: string;
-  collection_id: string;
+  project_id: string;
   edition: number;
   owner: string;
   minter: string;
@@ -369,10 +369,10 @@ interface TokenDetailResponse {
 
 ### `GET /api/artist/[address]`
 
-Artist profile, cooldown status (60-day enforcement), and their collections.
+Artist profile, cooldown status (60-day enforcement), and their projects.
 
 - **Auth:** none
-- **Source:** `users` + `collections` (Supabase, indexer-written for cooldown)
+- **Source:** `users` + `projects` (Supabase, indexer-written for cooldown)
 - **Cache:** 30s ISR
 - **Status:** blocked-on-indexer
 
@@ -388,7 +388,7 @@ interface ArtistResponse {
   cooldown_until: string | null;     // ISO; mint-end + 60 days
   cooldown_active: boolean;
   cooldown_days_remaining: number;
-  collections: Array<{
+  projects: Array<{
     id: string;
     title: string;
     minted_count: number;
@@ -404,7 +404,7 @@ interface ArtistResponse {
 
 ### `GET /api/feed`
 
-Global activity feed. Filterable by collection and event type.
+Global activity feed. Filterable by project and event type.
 
 - **Auth:** none
 - **Source:** `events` (indexer-written)
@@ -415,14 +415,14 @@ Global activity feed. Filterable by collection and event type.
 // Query:
 //   ?limit=20                                 (max 100)
 //   ?types=MINT,SALE                          (default: all four types)
-//   ?collection_id=kiki                       (optional, scopes to one collection)
+//   ?project_id=kiki                       (optional, scopes to one project)
 
 interface GlobalFeedResponse {
   events: EventRow[];
   next_cursor: string | null;
   filter: {
     types: Array<'MINT' | 'LIST' | 'SALE' | 'XFER'>;
-    collection_id: string | null;
+    project_id: string | null;
   };
 }
 ```
@@ -434,13 +434,13 @@ interface GlobalFeedResponse {
 Platform-wide totals.
 
 - **Auth:** none
-- **Source:** `collections` + `events` aggregates (indexer-written; likely a materialized view)
+- **Source:** `projects` + `events` aggregates (indexer-written; likely a materialized view)
 - **Cache:** 60s ISR
 - **Status:** blocked-on-indexer
 
 ```ts
 interface PlatformStatsResponse {
-  total_collections: number;
+  total_projects: number;
   total_minted: number;
   total_holders: number;
   total_volume_eth: string;
