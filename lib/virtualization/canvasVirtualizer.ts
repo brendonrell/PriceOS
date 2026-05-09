@@ -3,7 +3,7 @@
 /*
  * canvasVirtualizer — Build 35 / BET-06
  *
- * IntersectionObserver-driven lazy canvas mounting for the collection
+ * IntersectionObserver-driven lazy canvas mounting for the project
  * gallery. Ports sim's renderFeed observer pattern (sim 8215-8270) into a
  * module-scoped service the React port can register cards against, with
  * one extension on top: an LRU cap that evicts the least-recently-visible
