@@ -1,0 +1,79 @@
+// BLOCKED: requires indexer. Replace mock data with Supabase queries once
+// indexer writes to `collections` table. The 60-day cooldown is computed
+// from the most recent collection's mint-end timestamp + 60 days; once
+// the collections table has a `mint_ended_at` column (or `cooldown_until`
+// is materialized on-chain into the row), this becomes a single SELECT.
+
+import { type NextRequest, NextResponse } from 'next/server';
+import { badRequest } from '@/lib/errors';
+
+export const revalidate = 30; // Artist info / cooldown: 30s
+
+const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+const COOLDOWN_DAYS = 60;
+
+export interface ArtistCollectionSummary {
+  id: string;
+  title: string;
+  minted_count: number;
+  max_supply: number;
+  floor_price_eth: string | null;
+  volume_eth: string;
+}
+
+export interface ArtistResponse {
+  address: string;
+  ens_name: string | null;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  cooldown_until: string | null;
+  cooldown_active: boolean;
+  cooldown_days_remaining: number;
+  collections: ArtistCollectionSummary[];
+  total_volume_eth: string;
+}
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { address: string } }
+): Promise<NextResponse> {
+  const address = params.address.toLowerCase();
+  if (!ADDRESS_RE.test(address)) {
+    return badRequest('Invalid Ethereum address');
+  }
+
+  // Mock: a Kiki-shaped artist with 41 cooldown days remaining.
+  const cooldownUntilDate = new Date(Date.now() + 41 * 86_400_000);
+  const cooldownActive = cooldownUntilDate.getTime() > Date.now();
+  const daysRemaining = cooldownActive
+    ? Math.ceil((cooldownUntilDate.getTime() - Date.now()) / 86_400_000)
+    : 0;
+
+  const response: ArtistResponse = {
+    address,
+    ens_name: 'kiki.eth',
+    display_name: 'Kiki',
+    bio: 'Genesis artist on Price Discussion. Working with palette, mode, encounter, state.',
+    avatar_url: null,
+    cooldown_until: cooldownUntilDate.toISOString(),
+    cooldown_active: cooldownActive,
+    cooldown_days_remaining: daysRemaining,
+    collections: [
+      {
+        id: 'kiki',
+        title: 'Kiki',
+        minted_count: 1847,
+        max_supply: 2222,
+        floor_price_eth: '0.0091',
+        volume_eth: '24.713',
+      },
+    ],
+    total_volume_eth: '24.713',
+  };
+
+  // Reference COOLDOWN_DAYS so future implementations don't drop the constant.
+  void COOLDOWN_DAYS;
+
+  return NextResponse.json(response);
+}
