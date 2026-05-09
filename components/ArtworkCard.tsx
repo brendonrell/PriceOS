@@ -11,15 +11,15 @@
  * v0 scope (this build):
  *   - Render sim's flat card structure with sim class names so the
  *     CSS port wires up without touching this component.
- *   - Stable HSL placeholder canvas. Same seeded formula as ArtworkModal
+ *   - Stable HSL placeholder canvas. Same seeded formula as OutputPreview
  *     (sim seed = id * 2654435761 >>> 0, three hue derivations, linear +
  *     radial gradient + #id stamp). 400px internal resolution matches
  *     sim's THUMB_WIDTH constant — wrapper scales via CSS.
  *   - Show #id and either the listed price or the truncated owner addr,
  *     matching sim's metaIdStr / metaOwnerStr split (sim ~8092). Listed
  *     tokens get .meta-owner.price-trigger; unlisted get .meta-owner.profile-link.
- *   - On click, open the global ArtworkModal at this id via
- *     useModal().open('artwork', id). The handler lives on .edition-content
+ *   - On click, open the global OutputPreview at this id via
+ *     useModal().open('output', id). The handler lives on .edition-content
  *     (matches sim's contentInner.onclick at ~8009).
  *
  * Build 22 layers added (gallery card surface gaps):
@@ -387,7 +387,7 @@ export default function ArtworkCard({
             runMuteToggle();
             return;
         }
-        open('artwork', id);
+        open('output', id);
     };
 
     /* Sim caption split (sim ~8092):
@@ -703,7 +703,7 @@ export default function ArtworkCard({
                                 icon added to hover row. Icon-only stub for
                                 now; functional handler lands when the
                                 To-Dos store ships. Glyph ❍ U+274D matches
-                                the modal-pill row in ArtworkModal.tsx:466
+                                the modal-pill row in OutputPreview.tsx
                                 ("Add to To-Do"). e.stopPropagation prevents
                                 the outer .edition-content click from
                                 opening the modal. Sim deviation: sim
