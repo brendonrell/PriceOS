@@ -7,7 +7,7 @@
    Body lock — `body.modal-open { overflow: hidden; position: fixed; }`
    is applied by ModalContext while any modal is open. The scroll-Y
    preservation that sim does in openModal/closeModal lives in
-   ArtworkModal (component-side useEffect) so the dance doesn't
+   OutputPreview (component-side useEffect) so the dance doesn't
    bleed into a context that other modals will share.
 
    Surfaces NOT included here (they ride with their own components):

@@ -7,7 +7,7 @@
      - PriceosModal      (sim id #priceosModal,     ~5462)
 
    The .platform-modal scaffold itself lives in styles/modal.css
-   (Build 1, ArtworkModal). This file fills the gaps modal.css
+   (Build 1, OutputPreview). This file fills the gaps modal.css
    explicitly parked in its header:
      - .modal-fields / .mf-lbl / .mf-val (collectorsModal grid)
      - collectorsModal / followersModal / priceosModal styling
@@ -22,7 +22,7 @@
 /* ── MODAL FIELD GRID  (sim 3146–3155) ─────────────────────
    The label/value grid used inside .modal-info. CollectorsModal
    only uses the .modal-fields-wrap centring shell; .modal-fields,
-   .mf-lbl, .mf-val, .mf-copy ride along for ArtworkModal field
+   .mf-lbl, .mf-val, .mf-copy ride along for OutputPreview field
    parity when it lands. .mf-val.hover-link is the chained-class
    variant that turns a value cell into a click target. */
 .modal-fields-wrap {
@@ -288,7 +288,7 @@ body.theme-dark.redacted-mode .collectors-list .hover-link {
    wider figlets; logo font drops a notch for the same reason.
    Artist-tag size bumps up in dense-info contexts (lockup,
    activity feed). modal-fields/mf-val mobile shape ports for
-   ArtworkModal-grid parity even though it doesn't yet render. */
+   OutputPreview-grid parity even though it doesn't yet render. */
 @media (max-width: 600px) {
     .priceos-ascii-logo-wrap {
         margin: 0 -8px 14px -8px;
