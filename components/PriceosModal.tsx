@@ -88,7 +88,7 @@ const CHANGELOG: ChangelogEntry[] = [
         v: 'v1.0.42',
         date: 'APR 28 2026',
         items: [
-            'PRISMS replaces STRATA as the placeholder collection — radial sectors.',
+            'PRISMS replaces STRATA as the placeholder project — radial sectors.',
             'Modal pin nudge bumped +4 → +6px.',
         ],
     },

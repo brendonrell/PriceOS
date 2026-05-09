@@ -207,7 +207,7 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
                     className="value-prompt-title"
                     id="valuePromptLabel"
                     // dangerouslySetInnerHTML mirrors sim's innerHTML usage
-                    // (line 11477) so callers can italicise collection
+                    // (line 11477) so callers can italicise project
                     // names. Caller controls the string — no user input
                     // is interpolated here.
                     dangerouslySetInnerHTML={{ __html: titleHtml }}

@@ -3,7 +3,7 @@
 /*
  * ArtworkCard
  *
- * Single edition tile in the collection gallery. Sim's gallery is
+ * Single edition tile in the project gallery. Sim's gallery is
  * built imperatively in renderFeed (sim ~8155) — each card is an
  * <article class="edition-card"> wrapping a clickable .edition-content
  * with a .canvas-wrapper for the art and a .meta caption row beneath.
@@ -72,14 +72,14 @@
  *     class swap drives the opacity 0 → 1 fade-in (sim 2366-2367).
  *     Cleanup unregisters on unmount.
  *
- * Out of v0 scope: fog-mode reveal handler lives in the collection page
+ * Out of v0 scope: fog-mode reveal handler lives in the project page
  * (gallery-wide event delegation per sim 8364-8389), not here.
  */
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
-import { useCollection } from '../lib/state/CollectionContext';
+import { useProject } from '../lib/state/ProjectContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 import {
     registerCanvas,
@@ -162,7 +162,7 @@ export default function ArtworkCard({
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const { title: collectionTitle } = useCollection();
+    const { title: projectTitle } = useProject();
     const { notifs } = usePdNotifs();
     const { openTokenNoteEditor } = useNotePrompt();
     const meta = useTokenMeta(id);
@@ -443,14 +443,14 @@ export default function ArtworkCard({
     /* F50 (BUG-02) — sim 8049 hover-icon click handler. Pre-F50 this
        was a stubAction toast; now wires through grailStore.togglePin
        so the pill row + modal pin button update in lockstep. Toast
-       text mirrors sim 12424 + 12426 + 12428 (collection name title-
+       text mirrors sim 12424 + 12426 + 12428 (project name title-
        cased, "GRAIL PINNED" / "DE-PINNED" / "Grail Pin Limit: 5 max").
        e.stopPropagation prevents the surrounding .edition-content
        click from also opening the modal. */
     const handleGrailClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         const collName =
-            collectionTitle.charAt(0) + collectionTitle.slice(1).toLowerCase();
+            projectTitle.charAt(0) + projectTitle.slice(1).toLowerCase();
         const result = storeTogglePin(id);
         if (result === 'limit') {
             showToast('Grail Pin Limit: 5 max');
@@ -482,7 +482,7 @@ export default function ArtworkCard({
 
     /* chat #6 D010-cart — sim 11823-11836. addToCart's two branches:
        already-in-cart shows "Prisms #22 already in cart" (sim 11827 —
-       title-cased collection name + ' #' + id + ' already in cart');
+       title-cased project name + ' #' + id + ' already in cart');
        fresh-add shows "Added to cart · N items" (sim 11834 — uses
        _pdCart.size POST-add, with singular/plural). React reads the
        pre-add count from the items array (which is stable in the click
@@ -494,8 +494,8 @@ export default function ArtworkCard({
         e.stopPropagation();
         if (cartHas(id)) {
             const collName =
-                collectionTitle.charAt(0) +
-                collectionTitle.slice(1).toLowerCase();
+                projectTitle.charAt(0) +
+                projectTitle.slice(1).toLowerCase();
             showToast(`${collName} #${id} already in cart`);
             return;
         }

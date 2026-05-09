@@ -35,9 +35,9 @@
  * The whole component renders the modal element on every render,
  * gating internals on `id != null` rather than early-returning.
  *
- * Data routing: token metadata comes from CollectionContext via
+ * Data routing: token metadata comes from ProjectContext via
  * useTokenMeta(id). The modal no longer owns the LCG seed math —
- * swapping the indexer in is a single-file change in CollectionContext
+ * swapping the indexer in is a single-file change in ProjectContext
  * with zero diff here.
  */
 
@@ -52,7 +52,7 @@ import {
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
-import { useCollection } from '../lib/state/CollectionContext';
+import { useProject } from '../lib/state/ProjectContext';
 import { useTokenMeta } from '../lib/hooks/useTokenMeta';
 import {
     getGrails,
@@ -77,7 +77,7 @@ export default function OutputPreview() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
-    const { title, totalEditions, floorEth } = useCollection();
+    const { title, totalEditions, floorEth } = useProject();
     const { notifs } = usePdNotifs();
     const { openTokenNoteEditor } = useNotePrompt();
 
@@ -169,7 +169,7 @@ export default function OutputPreview() {
         }
     };
 
-    /* Token metadata — id-keyed lookup over CollectionContext. Returns
+    /* Token metadata — id-keyed lookup over ProjectContext. Returns
        null when the modal is closed or id is unmapped. */
     const meta = useTokenMeta(id);
 
@@ -519,7 +519,7 @@ export default function OutputPreview() {
                                         : NaN;
                                     openCalcSheet({
                                         tokenId: id,
-                                        collectionTitle: title,
+                                        projectTitle: title,
                                         price: Number.isFinite(priceNum)
                                             ? priceNum
                                             : null,

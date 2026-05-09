@@ -150,7 +150,7 @@ export default function CalcSheet({ config, onClose }: Props) {
         ? takehome - offerNum
         : NaN;
 
-    /* vs-floor delta — % the offer sits above/below the collection floor.
+    /* vs-floor delta — % the offer sits above/below the project floor.
        Snap to "at floor" inside ±0.5% so tiny float drift doesn't read
        as "+0.0% vs floor". Sim 11665-11678. */
     let vsFloor = '';
@@ -198,11 +198,11 @@ export default function CalcSheet({ config, onClose }: Props) {
 
     /* Context line — "<em>COLLECTION</em> #N — listed X.XXX ETH" or the
        not-listed / no-floor variants. Sim 11603-11612. dangerouslySet-
-       InnerHTML mirrors sim's innerHTML use (italics on collection name);
+       InnerHTML mirrors sim's innerHTML use (italics on project name);
        caller controls the title string and no user input is interpolated. */
     let contextHtml = '\u2014';
     if (renderConfig) {
-        const base = `<em>${renderConfig.collectionTitle}</em> #${renderConfig.tokenId}`;
+        const base = `<em>${renderConfig.projectTitle}</em> #${renderConfig.tokenId}`;
         if (renderConfig.price != null) {
             contextHtml = `${base} \u2014 listed ${renderConfig.price.toFixed(3)} ETH`;
         } else if (renderConfig.floor != null) {

@@ -16,7 +16,7 @@
  * State source: CartContext.useCart() — items / panelOpen / mutators all
  * consumed from the same provider that drives the navbar Cart button.
  *
- * Token meta source: useCollection().tokens at the top level (one Map
+ * Token meta source: useProject().tokens at the top level (one Map
  * lookup per id during the subtotal pass). Sim reads `metaCache[id]`
  * directly in _renderCartPanel for the same reason — avoids per-row
  * hook overhead. Mock thumbnails follow OutputPreview's HSL gradient
@@ -46,7 +46,7 @@ import {
     CART_GAS_PER_ITEM,
     CART_FEE_RATE,
 } from '../lib/state/CartContext';
-import { useCollection } from '../lib/state/CollectionContext';
+import { useProject } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
 
 const VS15 = '\uFE0E';
@@ -79,12 +79,12 @@ function thumbStyle(id: number): CSSProperties {
 
 interface RowProps {
     id: number;
-    collectionTitle: string;
+    projectTitle: string;
     priceStr: string;
     onRemove: (id: number) => void;
 }
 
-function CartItemRow({ id, collectionTitle, priceStr, onRemove }: RowProps) {
+function CartItemRow({ id, projectTitle, priceStr, onRemove }: RowProps) {
     return (
         <div className="cart-item-row" data-mint-id={id}>
             <div
@@ -94,7 +94,7 @@ function CartItemRow({ id, collectionTitle, priceStr, onRemove }: RowProps) {
             />
             <div className="cart-item-meta">
                 <div className="cart-item-name">
-                    {collectionTitle} #{id}
+                    {projectTitle} #{id}
                 </div>
                 <div className="cart-item-artist">by @claude</div>
             </div>
@@ -117,7 +117,7 @@ function CartItemRow({ id, collectionTitle, priceStr, onRemove }: RowProps) {
 
 export default function CartPanel() {
     const { items, panelOpen, remove, buyAll, closePanel } = useCart();
-    const { title, tokens } = useCollection();
+    const { title, tokens } = useProject();
     const { showToast } = useToast();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
@@ -152,7 +152,7 @@ export default function CartPanel() {
         };
     }, [panelOpen]);
 
-    /* Per-row price strings + subtotal — one pass over the collection
+    /* Per-row price strings + subtotal — one pass over the project
        Map. Mirrors sim's _renderCartPanel inline tally (sim 11781–11800). */
     const { rows, subtotal } = useMemo(() => {
         let sub = 0;
@@ -244,7 +244,7 @@ export default function CartPanel() {
                             <CartItemRow
                                 key={id}
                                 id={id}
-                                collectionTitle={title}
+                                projectTitle={title}
                                 priceStr={priceStr}
                                 onRemove={remove}
                             />

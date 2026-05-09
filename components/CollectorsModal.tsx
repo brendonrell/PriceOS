@@ -4,7 +4,7 @@
  * CollectorsModal
  *
  * Sim id #collectorsModal (sim.html 5418–5444). Triggered from the
- * collection page hero stats row — the "67 PPL" stat
+ * project page hero stats row — the "67 PPL" stat
  * (sim 5124, openCollectorsModal). Mounted globally in PriceOSShell
  * so the same pattern as OutputPreview: any caller can fire
  * useModal().open('collectors').
