@@ -8,7 +8,7 @@
  *   <main>{children}       page content
  *   <Footer />
  *   <ActionToast />        bottom-fixed toast (shared by every showToast() call)
- *   <ArtworkModal />       sim id #modal — primary artwork inspector
+ *   <OutputPreview />      sim id #modal — primary output inspector
  *   <CollectorsModal />    sim id #collectorsModal — hero "67 PPL" stat
  *   <FollowersModal />     sim id #followersModal — LinksView ⚬/⚯ stats
  *   <PriceosModal />       sim id #priceosModal — Footer "PriceOS 1.0" link
@@ -61,7 +61,7 @@ import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import ActionToast from '../ActionToast';
-import ArtworkModal from '../ArtworkModal';
+import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
 import FollowersModal from '../FollowersModal';
 import PriceosModal from '../PriceosModal';
@@ -137,7 +137,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <main>{children}</main>
             <Footer />
             <ActionToast />
-            <ArtworkModal />
+            <OutputPreview />
             <CollectorsModal />
             <FollowersModal />
             <PriceosModal />
