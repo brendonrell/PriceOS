@@ -37,21 +37,19 @@ export const POST = requireAuth(async (req, _ctx, address) => {
 
   try {
     const supabase = getSupabaseService();
+    const payload = {
+      follower_address: address,
+      following_address: target,
+      created_at: new Date().toISOString(),
+    };
     const { data, error } = await supabase
       .from('follows')
-      .upsert(
-        {
-          follower_address: address,
-          following_address: target,
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: 'follower_address,following_address' }
-      )
+      .upsert(payload as never, { onConflict: 'follower_address,following_address' })
       .select()
       .single();
 
     if (error) return serverError(error.message);
-    const response: FollowResponse = data;
+    const response: FollowResponse = data as FollowResponse;
     return NextResponse.json(response, { status: 201 });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
