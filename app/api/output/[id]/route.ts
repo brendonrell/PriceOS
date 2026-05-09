@@ -1,6 +1,6 @@
 // BLOCKED: requires indexer. Replace mock data with Supabase queries once
-// indexer writes to `events` table (per-token history) and a derived
-// tokens table or view (current owner, listing, traits frozen at mint).
+// indexer writes to `events` table (per-output history) and a derived
+// outputs table or view (current owner, listing, traits frozen at mint).
 
 import { type NextRequest, NextResponse } from 'next/server';
 import type { EventRow } from '@/lib/supabase';
@@ -15,7 +15,7 @@ export interface KikiTraits {
   State: string;
 }
 
-export interface TokenDetailResponse {
+export interface OutputDetailResponse {
   id: string;
   project_id: string;
   edition: number;
@@ -40,9 +40,9 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
-  if (!params.id) return badRequest('Missing token id');
+  if (!params.id) return badRequest('Missing output id');
 
-  // Token id convention: "{project_id}-{edition}". Fall back to "kiki" / 1.
+  // Output id convention: "{project_id}-{edition}". Fall back to "kiki" / 1.
   const dash = params.id.lastIndexOf('-');
   const projectId = dash > 0 ? params.id.slice(0, dash) : 'kiki';
   const edition = dash > 0 ? Number(params.id.slice(dash + 1)) || 1 : 1;
@@ -52,7 +52,7 @@ export async function GET(
   const listedAt = new Date(now - 7 * 86_400_000).toISOString();
   const soldAt = new Date(now - 3 * 86_400_000).toISOString();
 
-  const response: TokenDetailResponse = {
+  const response: OutputDetailResponse = {
     id: params.id,
     project_id: projectId,
     edition,
