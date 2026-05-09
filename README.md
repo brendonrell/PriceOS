@@ -9,7 +9,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 
 ## Status
 
-**Phase 1 — Foundation.** Token system, layout shell, fonts, root meta, reserved-handle module. Random-gradient placeholder homepage. Old D1 route shells (`/collection`, `/profile`, `/token`, `/artist`, `/mint`) being replaced by the locked URL architecture in Phase 2+.
+URL architecture and nomenclature both locked May 9 2026 (see sections below). API surfaces (project, output, feed, search, stats, artist, follows, notifications, price, user) scaffolded with typed mock responses; production data lands when the indexer is live. Project page renders sim's hero lockup + gallery at `/art/[slug]`; profile shells render at `/{handle}` and sub-routes. Wallet auth, mint flow, and calendar internals are the next surfaces.
 
 ## Nomenclature
 
@@ -55,4 +55,4 @@ The URL prefix `/art/` is a public-facing brand asset; the entity noun is "proje
 
 ## Routes
 
-Phase 1 ships only `/` and 404 (implicit). Phase 2 adds `/art/[slug]`. Phases 3–6 fill out the rest per the URL architecture above.
+`/` (home) and `/art/[slug]` (project page) render. Profile shells at `/{handle}` and `/{handle}/collection|anointed|wishlist|starred|notes|albums` exist as placeholder bodies. Wallet auth, full mint flow, and the calendar surfaces are the next ships.
