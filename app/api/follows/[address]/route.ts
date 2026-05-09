@@ -39,8 +39,12 @@ export async function GET(
     if (followersRes.error) return serverError(followersRes.error.message);
     if (followingRes.error) return serverError(followingRes.error.message);
 
-    const followers = (followersRes.data ?? []).map((r) => r.follower_address);
-    const following = (followingRes.data ?? []).map((r) => r.following_address);
+    const followers = ((followersRes.data ?? []) as Array<{ follower_address: string }>).map(
+      (r) => r.follower_address
+    );
+    const following = ((followingRes.data ?? []) as Array<{ following_address: string }>).map(
+      (r) => r.following_address
+    );
 
     const response: FollowsListResponse = {
       address,
