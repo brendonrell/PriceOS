@@ -15,9 +15,14 @@
  * slug list from the indexer (Phase 5+). Until that wiring exists,
  * `RESERVED_HANDLES_STATIC` is the full enforceable set.
  *
- * Decision log: 2026-04-29 — `claude` and `gemini` added to T2 by
- * Brendon, `opus` and `sonnet` added by inference (the AI-team
- * naming category — natural extension of the same carve-out).
+ * Decision log:
+ *   2026-04-29 — `claude` and `gemini` added to T2 by Brendon,
+ *   `opus` and `sonnet` added by inference (the AI-team naming
+ *   category — natural extension of the same carve-out).
+ *   2026-05-09 — T3 nomenclature pass: `stars` → `starred` (feature
+ *   branded as "Starred"); `owned` → `collection` (user-side reclaim
+ *   of the word — "collection" now means a user's gathered outputs,
+ *   distinct from "project" which is a platform-released body of work).
  */
 
 /** T1 — System / framework. Hard-reserved. */
@@ -65,10 +70,10 @@ export const RESERVED_T3 = [
     'feed',
     'home',
     // Profile sub-routes (cannot be a top-level handle)
-    'owned',
+    'collection',
     'anointed',
     'wishlist',
-    'stars',
+    'starred',
     'notes',
     'albums',
     // Future-reserved
