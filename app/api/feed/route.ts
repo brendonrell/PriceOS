@@ -1,7 +1,7 @@
 // BLOCKED: requires indexer. Replace mock data with Supabase queries once
 // indexer writes to `events` table. Filter shape stays the same; the only
 // change is swapping the Array.from() generator for a SELECT with WHERE
-// type = ANY($types) AND collection_id = $col (when present).
+// type = ANY($types) AND project_id = $col (when present).
 
 import { type NextRequest, NextResponse } from 'next/server';
 import type { EventRow, EventType } from '@/lib/supabase';
@@ -13,7 +13,7 @@ export interface GlobalFeedResponse {
   next_cursor: string | null;
   filter: {
     types: EventType[];
-    collection_id: string | null;
+    project_id: string | null;
   };
 }
 
@@ -27,7 +27,7 @@ const MOCK_ADDRS = [
   '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
 ];
 
-const COLLECTIONS = ['kiki'];
+const PROJECTS = ['kiki'];
 
 function isEventType(s: string): s is EventType {
   return (ALL_TYPES as string[]).includes(s);
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     100,
     Math.max(1, Number(url.searchParams.get('limit') ?? '20'))
   );
-  const collectionFilter = url.searchParams.get('collection_id');
+  const projectFilter = url.searchParams.get('project_id');
   const typesParam = url.searchParams.get('types');
 
   const types: EventType[] = typesParam
@@ -68,13 +68,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const now = Date.now();
   const events: EventRow[] = Array.from({ length: limit }, (_, i) => {
     const type = types[i % types.length];
-    const collection = collectionFilter ?? COLLECTIONS[i % COLLECTIONS.length];
+    const project = projectFilter ?? PROJECTS[i % PROJECTS.length];
     const tokenEdition = ((i * 11) % 2222) + 1;
     return {
       id: `evt_global_${i}_${now}`,
       type,
-      collection_id: collection,
-      token_id: `${collection}-${tokenEdition}`,
+      project_id: project,
+      token_id: `${project}-${tokenEdition}`,
       from_address: type === 'MINT' ? null : MOCK_ADDRS[i % MOCK_ADDRS.length],
       to_address: type === 'LIST' ? null : MOCK_ADDRS[(i + 1) % MOCK_ADDRS.length],
       price_eth: priceFor(type),
@@ -85,7 +85,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const response: GlobalFeedResponse = {
     events,
     next_cursor: events.length === limit ? events[events.length - 1].timestamp : null,
-    filter: { types, collection_id: collectionFilter },
+    filter: { types, project_id: projectFilter },
   };
   return NextResponse.json(response);
 }
