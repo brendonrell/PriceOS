@@ -28,13 +28,13 @@ export interface ProjectResponse {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
-  if (!params.id) return badRequest('Missing project slug');
+  if (!params.slug) return badRequest('Missing project slug');
 
   // Mock — values shaped after Kiki, the genesis project.
   const response: ProjectResponse = {
-    id: params.id,
+    id: params.slug,
     artist_address: '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
     title: 'Kiki',
     description:
