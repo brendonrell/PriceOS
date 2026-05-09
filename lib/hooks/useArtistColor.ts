@@ -32,7 +32,7 @@ const STORAGE_KEY = 'pd_artist_color';
 /* Brendon-list-2 chat F item 1 — Artist color default rotated from
    Attention Yellow (#FFE600) to soft violet (#C488FF). Sim's current
    ARTIST_COLOR is still #FFE600 (sim 6776); this is a Brendon-greenlit
-   sim deviation for the Prisms collection — see Post-Sim Backlog.
+   sim deviation for the Prisms project — see Post-Sim Backlog.
    #FFE600 added to OLD_DEFAULTS so users with the prior default migrate
    forward on next reload, matching the prior #FF0033 / #FF6B35 → #FFE600
    migration pattern. Custom picks (anything other than these defaults)
