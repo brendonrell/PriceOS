@@ -261,7 +261,7 @@ export function TopBarRow() {
                                 id={pinId}
                                 collectionTitle={collectionTitle}
                                 redacted={!!notifs.redactedMode}
-                                onOpen={() => openTokenModal('artwork', pinId)}
+                                onOpen={() => openTokenModal('output', pinId)}
                                 onUnpin={() => {
                                     if (unpinGrail(pinId)) {
                                         const collName =
