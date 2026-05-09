@@ -405,7 +405,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
 /* Brendon-list-2 chat F item 11 — modal-pin-hint CSS was completely
    absent from the React port. Sim 3170-3188 carries the full block;
-   without it the .modal-pin-hint <div> in ArtworkModal.tsx (line 343)
+   without it the .modal-pin-hint <div> in OutputPreview.tsx
    rendered with no positioning, no sizing, no chrome — just a bare
    character at the start of the modal flow.
 
@@ -4411,7 +4411,7 @@ body.hammer-mode .edition-card.muted .mute-overlay .mute-label.muted-final,
     opacity: 1;
 }
 /* Modal-scoped MUTE overlay: larger font, sits over the artwork canvas.
-   Build 23 ports the rules so when ArtworkModal mounts its own
+   Build 23 ports the rules so when OutputPreview mounts its own
    .modal-canvas-wrap > .mute-overlay markup, the cascade is already
    in place. No JSX consumer today — purely a forward-compat port. */
 .modal-canvas-wrap .mute-overlay {
