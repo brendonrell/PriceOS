@@ -12,7 +12,7 @@
  *
  * Why a module store and not a React context:
  *   PortfolioView renders the pill row, every ArtworkCard needs to know the
- *   active budget for its own .in-budget class, and the collection page
+ *   active budget for its own .in-budget class, and the project page
  *   useLayoutEffect runs the step-line algorithm. Threading a context through
  *   every parent works but adds noise; a small subscribe-on-mount module-
  *   singleton matches the pattern already used by grailStore / sentimentEngine
@@ -28,7 +28,7 @@
  *   The .budget-step-l / .budget-step-r class assignments and the
  *   .budget-step-v-overlay div injection are layout-dependent (offsetTop,
  *   offsetLeft, offsetWidth). They MUST be applied imperatively after layout
- *   settles. The collection page calls applyStepLine() inside a useLayoutEffect
+ *   settles. The project page calls applyStepLine() inside a useLayoutEffect
  *   gated on (budget state, sort, visible card count). The engine attaches a
  *   debounced resize listener once on first subscribe so the step re-traces
  *   on viewport changes (mirrors sim 6076-6078).
@@ -383,7 +383,7 @@ export function applyStepLine(priceAscActive: boolean): void {
 
 /**
  * Register a step-line redraw callback that fires on debounced resize.
- * Caller (the collection page useLayoutEffect) passes a closure that
+ * Caller (the project page useLayoutEffect) passes a closure that
  * computes the priceAscActive flag from current sort state and calls
  * applyStepLine. Returns unsubscribe. Resize listener is attached lazily
  * on first registration.
