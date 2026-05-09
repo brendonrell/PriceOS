@@ -9,7 +9,7 @@
  *   T1 — System / framework (hard reserved, never claimable)
  *   T2 — PD brand + AI team (Brendon owns; nobody can ever claim)
  *   T3 — Functional routes (current and future)
- *   T4 — Auto-derived (every deployed collection slug, dynamic)
+ *   T4 — Auto-derived (every deployed project slug, dynamic)
  *
  * T4 is computed at runtime by joining T1-T3 with the live collection
  * slug list from the indexer (Phase 5+). Until that wiring exists,
@@ -117,8 +117,8 @@ export const RESERVED_HANDLES_STATIC: ReadonlySet<string> = new Set([
  * Returns true if `handle` is reserved by the static list, or if it
  * is purely numeric (the `/{globalId}` namespace owns all-digit URLs).
  *
- * For T4 (auto-derived from deployed collection slugs), the caller
- * must additionally check against the live collection list — this
+ * For T4 (auto-derived from deployed project slugs), the caller
+ * must additionally check against the live project list — this
  * function only covers the static tiers.
  */
 export function isReservedHandle(handle: string): boolean {
