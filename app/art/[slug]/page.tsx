@@ -1,17 +1,17 @@
 // Project page shell — `/art/{slug}`.
-// Replaces D1 scaffolds at /collection/[slug] and /mint/[slug].
+// Replaces D1 scaffolds at D1 /collection/[slug] and /mint/[slug] (now /art/[slug]).
 // Mint UI lives inside this page during the mint window;
 // no separate /mint/{slug} route exists.
 //
 // V0 (ProjectPage v0): server component validates the slug + emits
 // metadata, then renders <ProjectPageBody /> (client) for the actual
 // hero + gallery surface. The body reads everything from
-// CollectionContext — slug-data binding lands once the indexer is
+// ProjectContext — slug-data binding lands once the indexer is
 // live and per-slug fetch is wired in. Until then every valid slug
 // renders the same PRISMS demo data.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import ProjectPageBody from '../../../components/collection/ProjectPageBody';
+import ProjectPageBody from '../../../components/project/ProjectPageBody';
 
 type Props = { params: { slug: string } };
 
