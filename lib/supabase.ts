@@ -41,7 +41,7 @@ export type EventType = 'MINT' | 'LIST' | 'SALE' | 'XFER';
 export interface EventRow {
   id: string;
   type: EventType;
-  collection_id: string;
+  project_id: string;
   token_id: string | null;
   from_address: string | null;
   to_address: string | null;
@@ -50,7 +50,7 @@ export interface EventRow {
   timestamp: string;
 }
 
-export interface CollectionRow {
+export interface ProjectRow {
   id: string;
   artist_address: string;
   title: string;
@@ -65,14 +65,14 @@ export interface CollectionRow {
 export interface StarRow {
   user_address: string;
   token_id: string;
-  collection_id: string;
+  project_id: string;
   created_at: string;
 }
 
 export interface WishlistRow {
   user_address: string;
   token_id: string;
-  collection_id: string;
+  project_id: string;
   created_at: string;
 }
 
@@ -108,10 +108,10 @@ export type Database = {
         Update: Partial<EventRow>;
         Relationships: [];
       };
-      collections: {
-        Row: CollectionRow;
-        Insert: CollectionRow;
-        Update: Partial<CollectionRow>;
+      projects: {
+        Row: ProjectRow;
+        Insert: ProjectRow;
+        Update: Partial<ProjectRow>;
         Relationships: [];
       };
       stars: {
