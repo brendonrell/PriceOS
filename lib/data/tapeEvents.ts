@@ -10,7 +10,7 @@
  * tapeFeedItems() helper mirroring sim 13403-13417.
  *
  * Structure preserved from sim:
- *   EVENTS rows: [type, walletIdx (null=system), verb, collection, id, price]
+ *   EVENTS rows: [type, walletIdx (null=system), verb, project, id, price]
  *   types: buy | list | anoint | mint  → standard weight
  *          offer | ignored | cancel    → soft (non-consummated)
  *          mint                         → bold class

@@ -2,12 +2,12 @@
  * Mock Portfolio — sim line 10770-10846 ported.
  *
  * Two tabs (portfolio = "Main", shadow = "Shadow"). Each tab has three
- * sections: LONG-FORM (tree of artist → collections → tokens), STICKER
+ * sections: LONG-FORM (tree of artist → projects → outputs), STICKER
  * (same tree shape), ENS (flat list of $PRICE.eth subdomain names).
  *
  * Floors are hardcoded; in production these come from the indexer. Token
  * arrays are the pre-image of every owned edition number under that
- * collection — sim renders one row per token id when the collection is
+ * project — sim renders one row per token id when the project is
  * expanded.
  */
 
@@ -16,17 +16,17 @@ export interface PortfolioTokenRef {
     id: number;
 }
 
-export interface PortfolioCollection {
+export interface PortfolioProject {
     name: string;
     /** Floor in ETH at moment of mock generation. */
     floor: number;
-    /** Tokens this wallet holds in the collection. */
+    /** Tokens this wallet holds in the project. */
     tokens: number[];
 }
 
 export interface PortfolioArtist {
     name: string;
-    collections: PortfolioCollection[];
+    projects: PortfolioProject[];
 }
 
 export interface PortfolioEnsName {
@@ -47,19 +47,19 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
         {
             name: 'LONG-FORM', type: 'tree',
             artists: [
-                { name: '@claude',       collections: [
+                { name: '@claude',       projects: [
                     { name: 'Strata',              floor: 0.015, tokens: [1, 2, 3, 22, 67, 112, 158, 201] },
                 ]},
-                { name: '@snowfro',      collections: [
+                { name: '@snowfro',      projects: [
                     { name: 'Chromie Squiggles',   floor: 12.0,  tokens: [56] },
                 ]},
-                { name: '@piterpasma',   collections: [
+                { name: '@piterpasma',   projects: [
                     { name: 'Dutchtide',           floor: 1.8,   tokens: [47] },
                 ]},
-                { name: '@xcopy',        collections: [
+                { name: '@xcopy',        projects: [
                     { name: 'MAX PAIN',            floor: 4.2,   tokens: [1042] },
                 ]},
-                { name: '@tylerxhobbs',  collections: [
+                { name: '@tylerxhobbs',  projects: [
                     { name: 'Fidenza',             floor: 58.0,  tokens: [313] },
                 ]},
             ],
@@ -67,10 +67,10 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
         {
             name: 'STICKER', type: 'tree',
             artists: [
-                { name: '@claude',       collections: [
+                { name: '@claude',       projects: [
                     { name: 'Kiki',                floor: 0.022, tokens: [22, 147, 203] },
                 ]},
-                { name: '@jackbutcher',  collections: [
+                { name: '@jackbutcher',  projects: [
                     { name: 'Checks',              floor: 0.18,  tokens: [4721, 5102] },
                 ]},
             ],
@@ -89,13 +89,13 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
         {
             name: 'LONG-FORM', type: 'tree',
             artists: [
-                { name: '@dmitricherniak', collections: [
+                { name: '@dmitricherniak', projects: [
                     { name: 'Ringers',             floor: 48.0,  tokens: [172, 545] },
                 ]},
-                { name: '@matto',          collections: [
+                { name: '@matto',          projects: [
                     { name: 'Autoglyphs',          floor: 310.0, tokens: [202] },
                 ]},
-                { name: '@kjetilgolid',    collections: [
+                { name: '@kjetilgolid',    projects: [
                     { name: 'Archetype',           floor: 3.1,   tokens: [88, 216] },
                 ]},
             ],
@@ -103,7 +103,7 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
         {
             name: 'STICKER', type: 'tree',
             artists: [
-                { name: '@xcopy',          collections: [
+                { name: '@xcopy',          projects: [
                     { name: 'Grifters',            floor: 0.35,  tokens: [6600, 7777] },
                 ]},
             ],
@@ -120,7 +120,7 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
 
 /**
  * Sum the estimated value of a tab's holdings:
- *   tree   → Σ (floor × tokens.length) over every collection
+ *   tree   → Σ (floor × tokens.length) over every project
  *   flat   → Σ price over every name
  */
 export function sumPortfolioValue(tab: PortfolioTab): number {
@@ -128,7 +128,7 @@ export function sumPortfolioValue(tab: PortfolioTab): number {
     for (const cat of PORTFOLIO_DATA[tab]) {
         if (cat.type === 'tree') {
             for (const artist of cat.artists) {
-                for (const col of artist.collections) {
+                for (const col of artist.projects) {
                     total += col.floor * col.tokens.length;
                 }
             }
