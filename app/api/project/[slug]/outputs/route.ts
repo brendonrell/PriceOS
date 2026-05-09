@@ -1,11 +1,11 @@
 // BLOCKED: requires indexer. Replace mock data with Supabase queries once
-// indexer writes to a `tokens` table (token-level state derived from chain
+// indexer writes to an `outputs` table (output-level state derived from chain
 // events: minter, current owner, traits frozen at mint, current listing).
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest } from '@/lib/errors';
 
-export const revalidate = 300; // Token traits: 5 min
+export const revalidate = 300; // Output traits: 5 min
 
 export interface KikiTraits {
   Palette: string;
@@ -14,7 +14,7 @@ export interface KikiTraits {
   State: string;
 }
 
-export interface TokenSummary {
+export interface OutputSummary {
   id: string;
   project_id: string;
   edition: number;
@@ -30,7 +30,7 @@ export interface ProjectOutputsResponse {
   total: number;
   page: number;
   page_size: number;
-  tokens: TokenSummary[];
+  outputs: OutputSummary[];
 }
 
 const PALETTES = ['Hothurt', 'Cool Bath', 'Swampcore', 'Static', 'Forest Floor', 'Citrus'];
@@ -66,7 +66,7 @@ export async function GET(
   const end = Math.min(start + pageSize, MOCK_TOTAL);
   const count = Math.max(0, end - start);
 
-  const tokens: TokenSummary[] = Array.from({ length: count }, (_, i) => {
+  const outputs: OutputSummary[] = Array.from({ length: count }, (_, i) => {
     const edition = start + i + 1;
     return {
       id: `${params.slug}-${edition}`,
@@ -90,7 +90,7 @@ export async function GET(
     total: MOCK_TOTAL,
     page,
     page_size: pageSize,
-    tokens,
+    outputs,
   };
   return NextResponse.json(response);
 }
