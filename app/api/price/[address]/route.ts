@@ -46,11 +46,11 @@ function encodeBalanceOf(address: string): string {
 
 function formatUnits(weiHex: string, decimals: number): string {
   const wei = BigInt(weiHex);
-  if (wei === 0n) return '0';
-  const divisor = 10n ** BigInt(decimals);
+  if (wei === BigInt(0)) return '0';
+  const divisor = BigInt(10) ** BigInt(decimals);
   const whole = wei / divisor;
   const fraction = wei % divisor;
-  if (fraction === 0n) return whole.toString();
+  if (fraction === BigInt(0)) return whole.toString();
   const fractionStr = fraction.toString().padStart(decimals, '0').replace(/0+$/, '');
   return `${whole.toString()}.${fractionStr}`;
 }
