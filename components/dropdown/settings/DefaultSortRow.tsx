@@ -21,7 +21,7 @@
  * row mirrors sim's main sort row: re-tapping the active family flips
  * direction (sim's window.setSort is the single shared cycle handler).
  *
- * The active sort drives the collection page's default view; the
+ * The active sort drives the project page's default view; the
  * pd_settings_sort key persists family-only (matches sim's defaultSort).
  */
 
@@ -33,7 +33,7 @@ const SORTS: Array<{ key: SortKey; title: string }> = [
     { key: 'id',    title: 'Sort by ID' },
     { key: 'price', title: 'Sort by Price' },
     { key: 'feed',  title: 'Activity Feed' },
-    { key: 'fog',   title: 'Fog — reveal collection artwork by artwork' },
+    { key: 'fog',   title: 'Fog — reveal project artwork by artwork' },
 ];
 
 export function DefaultSortRow() {
