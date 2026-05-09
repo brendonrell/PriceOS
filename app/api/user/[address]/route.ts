@@ -47,7 +47,7 @@ export async function GET(
     if (followingRes.error) return serverError(followingRes.error.message);
 
     const response: UserProfileResponse = {
-      ...user,
+      ...(user as UserRow),
       follower_count: followersRes.count ?? 0,
       following_count: followingRes.count ?? 0,
     };
