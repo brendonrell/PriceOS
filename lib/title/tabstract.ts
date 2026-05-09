@@ -3,7 +3,7 @@
  *
  * Sim 5510-5526. On every page load the document title is set to:
  *
- *     `Price Discussion ⋮ ${COLLECTION_TITLE} ⋮ ${tabstract}`
+ *     `Price Discussion ⋮ ${PROJECT_TITLE} ⋮ ${tabstract}`
  *
  * where `tabstract` is six glyphs randomly drawn (with replacement)
  * from a randomly-chosen pattern set.
@@ -16,10 +16,10 @@
  * "verbatim from sim", we port the runtime literal — six sets —
  * not the comment-only sets the spec author counted by reading.
  *
- * COLLECTION_TITLE is duplicated here from CollectionContext:
+ * PROJECT_TITLE is duplicated here from ProjectContext:
  * sim 5510 declares it inline in the same block, and this generator
  * runs before any provider mounts (it's called from PriceOSShell's
- * mount effect, before useCollection is available).
+ * mount effect, before useProject is available).
  *
  * Wire site: PriceOSShell mounts a one-shot useEffect that calls
  * pickTabstractTitle() and assigns to document.title. Next.js
@@ -27,7 +27,7 @@
  * so the rotation has to be a client-mount effect.
  */
 
-const COLLECTION_TITLE = 'PRISMS';
+const PROJECT_TITLE = 'PRISMS';
 
 const TABSTRACT_SETS: ReadonlyArray<readonly string[]> = [
     ['☱', '☲', '☳', '☴', '☵', '☶'],                                      // Phase Lines
@@ -44,5 +44,5 @@ export function pickTabstractTitle(): string {
     for (let i = 0; i < 6; i++) {
         tabstract += set[Math.floor(Math.random() * set.length)];
     }
-    return `Price Discussion ⋮ ${COLLECTION_TITLE} ⋮ ${tabstract}`;
+    return `Price Discussion ⋮ ${PROJECT_TITLE} ⋮ ${tabstract}`;
 }
