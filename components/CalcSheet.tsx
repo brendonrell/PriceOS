@@ -49,7 +49,7 @@ const CLOSE_FADE_MS  = 240;
 
 /* iOS variant selector 15 — keeps Unicode glyphs in text-style form
    instead of upgrading to emoji presentation. Same discipline as
-   ArtworkModal + the rest of the modal surfaces. */
+   OutputPreview + the rest of the modal surfaces. */
 const VS15 = '\uFE0E';
 
 /** 4-decimal "0.0000 ETH" — calculator precision for the line items.

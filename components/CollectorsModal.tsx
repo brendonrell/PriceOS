@@ -6,7 +6,7 @@
  * Sim id #collectorsModal (sim.html 5418–5444). Triggered from the
  * collection page hero stats row — the "67 PPL" stat
  * (sim 5124, openCollectorsModal). Mounted globally in PriceOSShell
- * so the same pattern as ArtworkModal: any caller can fire
+ * so the same pattern as OutputPreview: any caller can fire
  * useModal().open('collectors').
  *
  * Mock data only — port of the static collector list in sim
@@ -18,7 +18,7 @@
  * so they stay functional.
  *
  * Hooks discipline: all hooks at the top, internals gate on isOpen,
- * no early return. Same rule ArtworkModal follows.
+ * no early return. Same rule OutputPreview follows.
  */
 
 import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react';

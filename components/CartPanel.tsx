@@ -19,7 +19,7 @@
  * Token meta source: useCollection().tokens at the top level (one Map
  * lookup per id during the subtotal pass). Sim reads `metaCache[id]`
  * directly in _renderCartPanel for the same reason — avoids per-row
- * hook overhead. Mock thumbnails follow ArtworkModal's HSL gradient
+ * hook overhead. Mock thumbnails follow OutputPreview's HSL gradient
  * pattern, deterministic per id so each row reads as a distinct piece.
  *
  * Two-stage display (matches sim 11857–11859 + 11862–11867):
@@ -65,7 +65,7 @@ function formatBuyLabel(total: number): string {
     return `BUY  ALL  \u00B7  ${total.toFixed(3)} ETH`;
 }
 
-/* HSL placeholder thumb — same generator pattern as ArtworkModal's
+/* HSL placeholder thumb — same generator pattern as OutputPreview's
    canvas seeding so the cart preview reads as "the same artwork" until
    the real ArtEngine ports. Deterministic per id. */
 function thumbStyle(id: number): CSSProperties {
