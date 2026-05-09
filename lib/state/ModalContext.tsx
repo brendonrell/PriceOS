@@ -11,8 +11,8 @@
  * automatically while any modal is open, which the sim's CSS uses to lock
  * background scrolling and dim chrome.
  *
- * currentModalId is preserved as a separate field because the artwork modal's
- * prev/next nav increments through token IDs without changing the modal name.
+ * currentModalId is preserved as a separate field because the OutputPreview's
+ * prev/next nav increments through output IDs without changing the modal name.
  *
  * Session-only — modals don't persist across reloads on purpose; opening a
  * page should never auto-pop a modal.
@@ -29,7 +29,7 @@ import {
 } from 'react';
 
 export type ModalName =
-    | 'artwork'
+    | 'output'
     | 'collectors'
     | 'followers'
     | 'priceSprite'
@@ -38,17 +38,17 @@ export type ModalName =
 
 interface OpenModalState {
     name: ModalName;
-    /** Token id when name === 'artwork'; tab key when name === 'followers'; ignored otherwise. */
+    /** Output id when name === 'output'; tab key when name === 'followers'; ignored otherwise. */
     payload?: number | string;
 }
 
 interface ModalContextValue {
     openModal: OpenModalState | null;
-    /** The currently-displayed token id in the artwork modal. */
+    /** The currently-displayed output id in the OutputPreview. */
     currentModalId: number | null;
     open: (name: ModalName, payload?: number | string) => void;
     close: () => void;
-    /** Set the artwork modal's token id (for prev/next nav). */
+    /** Set the OutputPreview's output id (for prev/next nav). */
     setCurrentModalId: (id: number | null) => void;
 }
 
@@ -60,7 +60,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
     const open = useCallback((name: ModalName, payload?: number | string) => {
         setOpenModal({ name, payload });
-        if (name === 'artwork' && typeof payload === 'number') {
+        if (name === 'output' && typeof payload === 'number') {
             setCurrentModalId(payload);
         }
     }, []);
