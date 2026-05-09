@@ -51,9 +51,9 @@ const MOCK_TOTAL = 2222;
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
-  if (!params.id) return badRequest('Missing project slug');
+  if (!params.slug) return badRequest('Missing project slug');
 
   const url = new URL(req.url);
   const page = Math.max(1, Number(url.searchParams.get('page') ?? '1'));
@@ -69,8 +69,8 @@ export async function GET(
   const tokens: TokenSummary[] = Array.from({ length: count }, (_, i) => {
     const edition = start + i + 1;
     return {
-      id: `${params.id}-${edition}`,
-      project_id: params.id,
+      id: `${params.slug}-${edition}`,
+      project_id: params.slug,
       edition,
       owner: MOCK_HOLDERS[edition % MOCK_HOLDERS.length],
       minter: MOCK_HOLDERS[(edition + 1) % MOCK_HOLDERS.length],
@@ -86,7 +86,7 @@ export async function GET(
   });
 
   const response: ProjectOutputsResponse = {
-    project_id: params.id,
+    project_id: params.slug,
     total: MOCK_TOTAL,
     page,
     page_size: pageSize,
