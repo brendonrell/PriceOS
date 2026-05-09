@@ -38,9 +38,9 @@ function priceFor(type: EventType): string | null {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
-  if (!params.id) return badRequest('Missing project slug');
+  if (!params.slug) return badRequest('Missing project slug');
 
   const limit = Math.min(
     100,
@@ -52,10 +52,10 @@ export async function GET(
     const type = TYPES[i % TYPES.length];
     const tokenEdition = ((i * 13) % 2222) + 1;
     return {
-      id: `evt_${params.id}_${i}_${now}`,
+      id: `evt_${params.slug}_${i}_${now}`,
       type,
-      project_id: params.id,
-      token_id: `${params.id}-${tokenEdition}`,
+      project_id: params.slug,
+      token_id: `${params.slug}-${tokenEdition}`,
       from_address: type === 'MINT' ? null : MOCK_ADDRS[i % MOCK_ADDRS.length],
       to_address: type === 'LIST' ? null : MOCK_ADDRS[(i + 1) % MOCK_ADDRS.length],
       price_eth: priceFor(type),
@@ -64,7 +64,7 @@ export async function GET(
   });
 
   const response: ProjectFeedResponse = {
-    project_id: params.id,
+    project_id: params.slug,
     events,
     next_cursor: events.length === limit ? events[events.length - 1].timestamp : null,
   };
