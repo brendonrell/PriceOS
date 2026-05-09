@@ -49,7 +49,7 @@
  *   - Filters: pill toggles the category visibility; multiple chips
  *     OR within their group; if no chips active, show all categories.
  *     Search narrows by case-insensitive substring on artist or
- *     collection name (sim's filterPortfolio behaviour).
+ *     project name (sim's filterPortfolio behaviour).
  *
  * Budgets section (F57 — sim 11183 + 11887, untouched by F58):
  *   - State shape: { list: { name, eth }[], activeIdx: number (-1 = none) }
@@ -71,7 +71,7 @@ import {
     sumPortfolioValue,
     type PortfolioTab,
     type PortfolioCategory,
-    type PortfolioCollection,
+    type PortfolioProject,
 } from '../../lib/data/mockPortfolio';
 import {
     addBudget as engineAddBudget,
@@ -123,7 +123,7 @@ export function PortfolioView() {
     // Sim has no expand/collapse — the entire tree renders flat. F58
     // dropped the expanded-keys Set and toggleExpand callback that the
     // pre-F58 port carried over from a tree-widget pattern that didn't
-    // exist in sim. See sim 10927-11030 — every artist + collection +
+    // exist in sim. See sim 10927-11030 — every artist + project +
     // artwork is emitted unconditionally.
 
     const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
@@ -152,7 +152,7 @@ export function PortfolioView() {
     const addBudget = useCallback(() => {
         openValuePrompt({
             title: 'NEW BUDGET',
-            help: 'Set an ETH cap. Listings at or below this price get a subtle in-reach treatment across every collection.',
+            help: 'Set an ETH cap. Listings at or below this price get a subtle in-reach treatment across every project.',
             fields: [
                 { label: 'NAME', placeholder: 'e.g. Real Budget' },
                 { label: 'ETH', placeholder: '0.25', inputmode: 'decimal' },
@@ -197,12 +197,12 @@ export function PortfolioView() {
                     const filteredArtists = cat.artists
                         .map((a) => ({
                             ...a,
-                            collections: a.collections.filter((c) =>
+                            projects: a.projects.filter((c) =>
                                 c.name.toLowerCase().includes(searchLower) ||
                                 a.name.toLowerCase().includes(searchLower)
                             ),
                         }))
-                        .filter((a) => a.collections.length > 0);
+                        .filter((a) => a.projects.length > 0);
                     return { ...cat, artists: filteredArtists } as PortfolioCategory;
                 }
                 return {
@@ -386,7 +386,7 @@ export function PortfolioView() {
                                 ? cat.artists.reduce(
                                       (s, a) =>
                                           s +
-                                          a.collections.reduce(
+                                          a.projects.reduce(
                                               (ss, c) => ss + (c.floor || 0) * c.tokens.length,
                                               0
                                           ),
@@ -400,7 +400,7 @@ export function PortfolioView() {
                            NOT children of .pf-cat. The pre-chat-I port
                            wrapped them inside .pf-cat — but .pf-cat is
                            `display: flex` (sim 1892-1898), so the artist /
-                           collection / artwork rows became flex CHILDREN of
+                           project / artwork rows became flex CHILDREN of
                            the cat-head row and laid out HORIZONTALLY,
                            overlapping each other (visible in Brendon's
                            "portfolio entirely broken" screenshot).
@@ -423,7 +423,7 @@ export function PortfolioView() {
                                 {cat.type === 'tree' ? (
                                     cat.artists.map((art) => {
                                         // Sim 11005-11009: artistSum = sum of floor*tokens.
-                                        const artistSum = art.collections.reduce(
+                                        const artistSum = art.projects.reduce(
                                             (s, c) => s + (c.floor || 0) * c.tokens.length,
                                             0
                                         );
@@ -433,7 +433,7 @@ export function PortfolioView() {
                                                 artistName={art.name}
                                                 artistSum={artistSum}
                                                 showDollar={showDollar}
-                                                collections={art.collections}
+                                                projects={art.projects}
                                             />
                                         );
                                     })
@@ -497,7 +497,7 @@ export function PortfolioView() {
 /**
  * Renders one artist's full subtree per sim 10996-11026: a .pf-artist
  * header row (label + est) followed by all of the artist's .pf-collection
- * rows, each followed by all of that collection's .pf-artwork rows. No
+ * rows, each followed by all of that project's .pf-artwork rows. No
  * expand/collapse — sim emits everything unconditionally. Pulled out of
  * the parent JSX so the nesting stays readable.
  */
@@ -505,12 +505,12 @@ function PortfolioArtistRows({
     artistName,
     artistSum,
     showDollar,
-    collections,
+    projects,
 }: {
     artistName: string;
     artistSum: number;
     showDollar: boolean;
-    collections: PortfolioCollection[];
+    projects: PortfolioProject[];
 }) {
     return (
         <>
@@ -522,7 +522,7 @@ function PortfolioArtistRows({
                     </span>
                 )}
             </div>
-            {collections.map((coll) => {
+            {projects.map((coll) => {
                 // Sim 11011: collSum = floor * tokens.length.
                 const collSum = (coll.floor || 0) * coll.tokens.length;
                 return (
