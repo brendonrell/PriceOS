@@ -56,11 +56,11 @@ export const GET = requireAuth<{ address: string }>(
 
       if (countErr) return serverError(countErr.message);
 
-      const list = notifications ?? [];
+      const list = (notifications ?? []) as Array<{ created_at: string } & Record<string, unknown>>;
       const response: NotificationsListResponse = {
         address,
         unread_count: count ?? 0,
-        notifications: list,
+        notifications: list as unknown as NotificationsListResponse['notifications'],
         next_cursor: list.length === limit ? list[list.length - 1].created_at : null,
       };
       return NextResponse.json(response);
