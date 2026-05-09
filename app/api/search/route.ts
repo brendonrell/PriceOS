@@ -7,7 +7,7 @@ export const revalidate = 60;
 const MIN_QUERY = 2;
 const MAX_RESULTS = 20;
 
-export interface SearchCollectionResult {
+export interface SearchProjectResult {
   id: string;
   title: string;
   artist_address: string;
@@ -23,7 +23,7 @@ export interface SearchUserResult {
 
 export interface SearchResponse {
   query: string;
-  collections: SearchCollectionResult[];
+  projects: SearchProjectResult[];
   users: SearchUserResult[];
 }
 
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const supabase = getSupabaseAnon();
     const [colRes, userRes] = await Promise.all([
       supabase
-        .from('collections')
+        .from('projects')
         .select('id, title, artist_address, minted_count, max_supply')
         .ilike('title', pattern)
         .limit(MAX_RESULTS),
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const response: SearchResponse = {
       query: q,
-      collections: colRes.data ?? [],
+      projects: colRes.data ?? [],
       users: userRes.data ?? [],
     };
     return NextResponse.json(response);
