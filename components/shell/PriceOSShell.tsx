@@ -17,9 +17,9 @@
  *   <CartPanel />          sim id #cartPanelWrap — bulk-buy slide-up panel
  *
  * All seven modal/panel surfaces mount once globally. Their open/close
- * is driven by ModalContext (artwork / collectors / followers / priceos
+ * is driven by ModalContext (output / collectors / followers / priceos
  * / familiar / priceSprite) or CartContext (CartPanel). Any caller —
- * gallery, /token/[id] route, deep links, navbar chrome, settings —
+ * gallery, /[id] output page, deep links, navbar chrome, settings —
  * opens the same instance via the matching hook.
  *
  * Build 7 punch-list pass 2: collectors / followers / priceos were

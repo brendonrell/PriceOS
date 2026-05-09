@@ -88,7 +88,7 @@ import {
     toggleIncognito,
 } from '../../lib/incognito/incognitoEngine';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useCollection } from '../../lib/state/CollectionContext';
+import { useProject } from '../../lib/state/ProjectContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTokenMeta } from '../../lib/hooks/useTokenMeta';
@@ -101,7 +101,7 @@ import { TopBarCalendar } from './TopBarCalendar';
 
 export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
-    const { title: collectionTitle } = useCollection();
+    const { title: projectTitle } = useProject();
     const { open: openTokenModal } = useModal();
     const { showToast } = useToast();
 
@@ -247,7 +247,7 @@ export function TopBarRow() {
                         Inserted BEFORE the center wrap so the row reads
                         left→ pills → center (incognito/hammer) → right
                         (RPC) per sim 12360-12361. Each pill shows
-                        collection title (8-char "short" mask if short),
+                        project title (8-char "short" mask if short),
                         #id, listed price (if any), and an unpin × that
                         stops propagation so the surrounding pill click
                         opens the modal instead. Display title flips to
@@ -259,14 +259,14 @@ export function TopBarRow() {
                             <GrailPill
                                 key={pinId}
                                 id={pinId}
-                                collectionTitle={collectionTitle}
+                                projectTitle={projectTitle}
                                 redacted={!!notifs.redactedMode}
                                 onOpen={() => openTokenModal('output', pinId)}
                                 onUnpin={() => {
                                     if (unpinGrail(pinId)) {
                                         const collName =
-                                            collectionTitle.charAt(0) +
-                                            collectionTitle.slice(1).toLowerCase();
+                                            projectTitle.charAt(0) +
+                                            projectTitle.slice(1).toLowerCase();
                                         showToast(`${collName} #${pinId} DE-PINNED`);
                                     }
                                 }}
@@ -378,7 +378,7 @@ export function TopBarRow() {
    imperatively; we render it from a small subcomponent that calls
    useTokenMeta inside a hooked function (loop above can't call hooks
    directly). Pill text:
-     - title    : COLLECTION_TITLE (or ████████ when redacted, sim 12348);
+     - title    : PROJECT_TITLE (or ████████ when redacted, sim 12348);
                   "short" variant (no fade mask) when ≤ 8 chars (sim 12349)
      - id       : `#${id}` (sim 12355)
      - price    : numeric ETH minus the " ETH" suffix (sim 12356), only
@@ -390,7 +390,7 @@ export function TopBarRow() {
    openModal(id); }` at sim 12352. */
 interface GrailPillProps {
     id: number;
-    collectionTitle: string;
+    projectTitle: string;
     redacted: boolean;
     onOpen: () => void;
     onUnpin: () => void;
@@ -398,20 +398,20 @@ interface GrailPillProps {
 
 function GrailPill({
     id,
-    collectionTitle,
+    projectTitle,
     redacted,
     onOpen,
     onUnpin,
 }: GrailPillProps) {
     const meta = useTokenMeta(id);
-    const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : collectionTitle;
+    const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : projectTitle;
     const titleShortClass = displayTitle.length <= 8 ? ' short' : '';
     /* Sim 12356 — price renders the numeric portion only ("0.014" not
        "0.014 ETH") because the pill is space-constrained. The repo's
        TokenMeta.price is already a string like "0.014 ETH"; replace
        trailing " ETH" to match sim verbatim. */
     const priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
-    const titleAttr = `${collectionTitle} #${id}${meta?.price ? ` · ${meta.price}` : ''}`;
+    const titleAttr = `${projectTitle} #${id}${meta?.price ? ` · ${meta.price}` : ''}`;
 
     return (
         <span
