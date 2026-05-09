@@ -9,25 +9,40 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 
 ## Status
 
-**Phase 1 — Foundation.** Token system, layout shell, fonts, root meta, reserved-handle module. Random-gradient placeholder homepage. Old D1 route shells (`/collection`, `/profile`, `/token`, `/artist`, `/mint`) deleted; replaced by the locked URL architecture in Phase 2+.
+**Phase 1 — Foundation.** Token system, layout shell, fonts, root meta, reserved-handle module. Random-gradient placeholder homepage. Old D1 route shells (`/collection`, `/profile`, `/token`, `/artist`, `/mint`) being replaced by the locked URL architecture in Phase 2+.
+
+## Nomenclature
+
+Platform vocabulary, sharpened May 9 2026:
+
+- **Project** — what the platform releases (Kiki, Portals). Artist's body of work, mintable.
+- **Output** — the individual minted unit. The vessel that bundles the artwork, token, and metadata. The unit of scarcity.
+- **Artwork** — the visual content inside an output (rendered canvas).
+- **Token** — the ERC-721 inside an output (chain primitive only).
+- **Metadata** — the manifest inside an output (mint data, traits, provenance, edition number).
+- **Collection** — a user's gathered outputs, across many projects.
+- **Edition** — total mintable supply per project ("edition of 256").
 
 ## URL Architecture
 
-Locked Apr 29 2026. Full spec lives in ClickUp under PD Master Brief → Front End → URL Architecture & Slug Routing. Quick map:
+Locked Apr 29 2026. Nomenclature pass May 9 2026. Full spec lives in ClickUp under PD Master Brief → Front End → URL Architecture & Slug Routing. Quick map:
 
 | URL | Resolves to |
 |---|---|
 | `/` | Home / global feed |
-| `/{number}` | Token (artwork) — global PD ID, fxhash model |
+| `/{number}` | Output — global PD ID, fxhash model |
 | `/{handle}`, `/@{handle}` | Profile |
-| `/art/{slug}` | Collection (mint UI inside) |
-| `/art/{slug}/{localId}` | Token (alt URL) |
-| `/{handle}/owned`, `/anointed`, `/wishlist`, `/stars`, `/notes`, `/albums` | Profile sub-routes |
+| `/art/{slug}` | Project (mint UI inside) |
+| `/art/{slug}/{localId}` | Output (alt URL) |
+| `/{handle}/collection`, `/anointed`, `/wishlist`, `/starred`, `/notes`, `/albums` | Profile sub-routes |
 | `/{handle}/albums/{slug}` | Specific album |
 | `/artists` | Artists directory |
 | `/search?q=...` | Search results |
-| `/discord`, `/twitter`, `/farcaster`, `/x` | 302 → social accounts (Phase 6) |
+| `/settings` | URL-addressable modal (lives in menu, not top-nav) |
+| `/discord`, `/twitter`, `/farcaster`, `/x` | 302 → social accounts |
 | `/$price`, `/price` | Reserved (token redirect, Phase 6+) |
+
+The URL prefix `/art/` is a public-facing brand asset; the entity noun is "project." URL doesn't have to match the internal noun.
 
 ## Brand tokens (CSS vars, defined in `app/globals.css`)
 
