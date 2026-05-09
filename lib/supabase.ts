@@ -80,48 +80,59 @@ export interface WishlistRow {
 // Database type — used to parameterize SupabaseClient<Database>.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       users: {
         Row: UserRow;
         Insert: Partial<UserRow> & { address: string };
         Update: Partial<UserRow>;
+        Relationships: [];
       };
       follows: {
         Row: FollowRow;
         Insert: FollowRow;
         Update: Partial<FollowRow>;
+        Relationships: [];
       };
       notifications: {
         Row: NotificationRow;
         Insert: Omit<NotificationRow, 'id' | 'created_at'> &
           Partial<Pick<NotificationRow, 'id' | 'created_at'>>;
         Update: Partial<NotificationRow>;
+        Relationships: [];
       };
       events: {
         Row: EventRow;
         Insert: EventRow;
         Update: Partial<EventRow>;
+        Relationships: [];
       };
       collections: {
         Row: CollectionRow;
         Insert: CollectionRow;
         Update: Partial<CollectionRow>;
+        Relationships: [];
       };
       stars: {
         Row: StarRow;
         Insert: StarRow;
         Update: Partial<StarRow>;
+        Relationships: [];
       };
       wishlist: {
         Row: WishlistRow;
         Insert: WishlistRow;
         Update: Partial<WishlistRow>;
+        Relationships: [];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
-}
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clients
