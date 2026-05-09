@@ -16,7 +16,7 @@
  * Why a module store and not a React context:
  *   Same reasoning as grailStore (lib/pins/grailStore.ts) — three independent
  *   surfaces (TopBarRow's hammer pill count, ArtworkCard's .muted class +
- *   overlay label, ArtworkModal's #modalMuteOverlay) need to read+write the
+ *   overlay label, OutputPreview's #modalMuteOverlay) need to read+write the
  *   same set of muted ids. Module-singleton + subscribe is the lower-friction
  *   fit and matches the pattern already used by grailStore + sentimentEngine.
  *

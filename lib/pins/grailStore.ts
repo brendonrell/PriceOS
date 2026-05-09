@@ -14,7 +14,7 @@
  * Why a module store and not a React context:
  *   Three independent surfaces need to read + write the same set of
  *   pinned ids — TopBarRow renders the pills, ArtworkCard renders the
- *   badge + handles the hover-icon click, ArtworkModal renders the pin
+ *   badge + handles the hover-icon click, OutputPreview renders the pin
  *   button. Threading a context through every parent works but adds
  *   noise to the tree; a small subscribe-on-mount module-singleton is
  *   the lower-friction fit and matches the pattern already used by
