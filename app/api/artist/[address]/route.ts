@@ -1,7 +1,7 @@
 // BLOCKED: requires indexer. Replace mock data with Supabase queries once
-// indexer writes to `collections` table. The 60-day cooldown is computed
-// from the most recent collection's mint-end timestamp + 60 days; once
-// the collections table has a `mint_ended_at` column (or `cooldown_until`
+// indexer writes to `projects` table. The 60-day cooldown is computed
+// from the most recent project's mint-end timestamp + 60 days; once
+// the projects table has a `mint_ended_at` column (or `cooldown_until`
 // is materialized on-chain into the row), this becomes a single SELECT.
 
 import { type NextRequest, NextResponse } from 'next/server';
@@ -12,7 +12,7 @@ export const revalidate = 30; // Artist info / cooldown: 30s
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const COOLDOWN_DAYS = 60;
 
-export interface ArtistCollectionSummary {
+export interface ArtistProjectSummary {
   id: string;
   title: string;
   minted_count: number;
@@ -30,7 +30,7 @@ export interface ArtistResponse {
   cooldown_until: string | null;
   cooldown_active: boolean;
   cooldown_days_remaining: number;
-  collections: ArtistCollectionSummary[];
+  projects: ArtistProjectSummary[];
   total_volume_eth: string;
 }
 
@@ -59,7 +59,7 @@ export async function GET(
     cooldown_until: cooldownUntilDate.toISOString(),
     cooldown_active: cooldownActive,
     cooldown_days_remaining: daysRemaining,
-    collections: [
+    projects: [
       {
         id: 'kiki',
         title: 'Kiki',
