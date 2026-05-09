@@ -3,11 +3,11 @@
 /*
  * TraitsContext
  *
- * Owns the trait-filter / search / price-range UI state for the collection
+ * Owns the trait-filter / search / price-range UI state for the project
  * page's TraitsUI block (sim 5167-5193 — .traits-ui + .sort-bar + .search-row).
  *
  * v0 scope: state only, no actual gallery filtering yet. The gallery in
- * app/collection/[slug]/page.tsx still renders all 222 tokens regardless
+ * app/art/[slug]/page.tsx still renders all 222 tokens regardless
  * of the values stored here. A later build will subscribe Gallery /
  * ArtworkCard to this context and apply the predicates.
  *
@@ -38,7 +38,7 @@
  * here — sort family lives in SortContext and the arrow state will land
  * when the gallery wiring goes in. v0 just shows ↓ on the active family.
  *
- * Scope guard: this context is mounted only inside the collection page
+ * Scope guard: this context is mounted only inside the project page
  * tree. Other pages do not need it; calling useTraits() outside the
  * provider throws.
  *
@@ -188,7 +188,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     /* D009 — toggleSearch's two side effects (sim 8859 autofocus + sim 8861
        ON/OFF toast) need showToast. ToastProvider wraps TraitsProvider in
        app/layout.tsx (line 187 wraps the page tree which mounts
-       TraitsProvider in app/collection/[slug]/page.tsx:1126). closeSearch
+       TraitsProvider in app/art/[slug]/page.tsx:1126). closeSearch
        deliberately does NOT toast — sim's window.closeSearch (sim 8864-8870)
        skips the toast even though it flips searchActive=false. Same here. */
     const { showToast } = useToast();
@@ -333,7 +333,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     );
     /* Sim 6625-6643: toggleBurnPile toasts on every flip ("Burn Pile ON" /
        "Burn Pile OFF"). Random burn-pick draw + #gallery.burn-mode class
-       are owned by app/collection/[slug]/page.tsx (F61 effect at sim
+       are owned by app/art/[slug]/page.tsx (F61 effect at sim
        6629-6635). Toast was missing here pre-chat-B — the pill went
        active but the user got no audible-equivalent confirmation. */
     const toggleBurnPile = useCallback(() => {

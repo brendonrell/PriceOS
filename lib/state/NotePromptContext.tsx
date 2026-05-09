@@ -22,7 +22,7 @@
  * "ARTIST NOTE FOR: <underlined>${name}</underlined>" with the same 3px
  * underline offset; the "ARTIST" prefix distinguishes the kind at a glance.
  * Token label mirrors sim line 5743 — "NOTE FOR: <underlined-clickable>
- * ${COLLECTION_TITLE} #${id}</underlined-clickable>".
+ * ${PROJECT_TITLE} #${id}</underlined-clickable>".
  *
  * Toast strings — sim's exact wording for each kind:
  *   - 'Day Note SAVED' / 'Day Note REMOVED'                   (sim 5910)
@@ -60,10 +60,10 @@
  * + card hover icon callsites pass no prepopulate value — they open
  * empty in edit-mode for fresh notes, view-mode for already-saved.
  *
- * COLLECTION_TITLE: hardcoded 'PRISMS' here, mirroring CollectionContext.tsx
- * line 68. The provider sits ABOVE CollectionProvider in app/layout.tsx so
- * useCollection() isn't reachable; in the single-collection MVP era both
- * hardcodes get cleaned up together when multi-collection routing lands.
+ * PROJECT_TITLE: hardcoded 'PRISMS' here, mirroring ProjectContext.tsx
+ * line 68. The provider sits ABOVE ProjectProvider in app/layout.tsx so
+ * useProject() isn't reachable; in the single-project MVP era both
+ * hardcodes get cleaned up together when multi-project routing lands.
  */
 
 import {
@@ -82,10 +82,10 @@ import { useToast } from './ToastContext';
 import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
-/* Hardcoded to match CollectionContext.tsx:68. Replace with a useCollection()
-   read once NotePromptProvider is moved inside CollectionProvider OR multi-
-   collection routing lands and a per-route lookup is required. */
-const COLLECTION_TITLE = 'PRISMS';
+/* Hardcoded to match ProjectContext.tsx:68. Replace with a useProject()
+   read once NotePromptProvider is moved inside ProjectProvider OR multi-
+   project routing lands and a per-route lookup is required. */
+const PROJECT_TITLE = 'PRISMS';
 
 interface DayPrompt {
     kind: 'day';
@@ -301,7 +301,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                         }}
                         onClick={(e) => handleTokenLabelClick(e, tokenId)}
                     >
-                        {COLLECTION_TITLE} #{tokenId}
+                        {PROJECT_TITLE} #{tokenId}
                     </span>
                 </>
             );

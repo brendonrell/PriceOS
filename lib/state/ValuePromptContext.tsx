@@ -52,8 +52,8 @@ export interface ValuePromptField {
 
 export interface ValuePromptConfig {
     /**
-     * Title of the sheet. Limited HTML allowed for italics on collection
-     * names — sim uses `<em>${COLLECTION_TITLE}</em>` in the anchor prompt.
+     * Title of the sheet. Limited HTML allowed for italics on project
+     * names — sim uses `<em>${PROJECT_TITLE}</em>` in the anchor prompt.
      * Caller is responsible for not interpolating user input.
      */
     title: string;
@@ -74,7 +74,7 @@ interface ValuePromptContextValue {
      * D17 anchor system. Convenience wrapper around openValuePrompt that
      * persists per-key anchor prices to localStorage 'pd_anchors' and
      * dispatches a 'pd:anchors-changed' window event so any consumer
-     * (collection page, profile page, etc.) can re-stamp deltas + update
+     * (project page, profile page, etc.) can re-stamp deltas + update
      * displays. Sim ref: openAnchorPrompt at sim 11915.
      *
      * Behaviour:
@@ -156,7 +156,7 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
                 title: `Your Anchor Price for <em>${titleLabel}</em>`,
                 help: curValid
                     ? 'Your personal reference price. Every listing shows a bracketed delta vs this number. Leave blank and save to clear.'
-                    : 'Set your personal reference price. Every listing on this collection will show a bracketed delta vs this number.',
+                    : 'Set your personal reference price. Every listing on this project will show a bracketed delta vs this number.',
                 fields: [
                     {
                         label: 'ETH',

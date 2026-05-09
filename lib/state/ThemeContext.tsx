@@ -52,7 +52,7 @@ export type ThemeKey =
 const THEMES: Record<NonNullable<ThemeKey>, string> = {
     /* Brendon-list-2 chat F item 1 — sim deviation. Sim's THEMES.artist
        is #FFE600 (sim 6776 / 6779); we override to #C488FF (soft violet)
-       for the Prisms collection per Brendon. The default is still
+       for the Prisms project per Brendon. The default is still
        overridden by the user's saved hex via getArtistBg() below; this
        fallback is what loads when the user has never picked a custom
        color or the saved value is malformed. */

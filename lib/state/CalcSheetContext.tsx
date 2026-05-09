@@ -14,9 +14,9 @@
  * with an ETH suffix and a live "vs floor" delta below it, plus the static
  * P&L ladder. CSS lives in styles/modal.css alongside .modal-action-btn-calc.
  *
- * API: useCalcSheet().openCalcSheet({ tokenId, collectionTitle, price, floor })
+ * API: useCalcSheet().openCalcSheet({ tokenId, projectTitle, price, floor })
  *   - price: listed price in ETH, null if not listed
- *   - floor: collection floor in ETH, null if unknown
+ *   - floor: project floor in ETH, null if unknown
  * Caller computes both numbers from its own meta source. Closing is via the
  * X button, backdrop tap, or programmatic closeCalcSheet.
  *
@@ -44,11 +44,11 @@ import { useModal } from './ModalContext';
 export interface CalcSheetConfig {
     /** Token id under inspection — used for the context line + key. */
     tokenId: number;
-    /** Collection title — italicised in the context line, like value-prompt. */
-    collectionTitle: string;
+    /** Project title — italicised in the context line, like value-prompt. */
+    projectTitle: string;
     /** Listed price in ETH, or null if the token isn't listed. */
     price: number | null;
-    /** Collection floor in ETH, or null if no floor is available yet. */
+    /** Project floor in ETH, or null if no floor is available yet. */
     floor: number | null;
 }
 

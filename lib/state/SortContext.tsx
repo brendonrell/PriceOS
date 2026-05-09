@@ -3,18 +3,18 @@
 /*
  * SortContext
  *
- * Owns the user's default sort preference for collection pages.
+ * Owns the user's default sort preference for project pages.
  * Four families matching the sim's Default Sort row:
  *   id     — sort by token ID (default)
  *   price  — sort by price asc/desc
  *   feed   — activity feed view
- *   fog    — fog mode reveal (collection unfolds artwork by artwork)
+ *   fog    — fog mode reveal (project unfolds artwork by artwork)
  *
  * Persisted in localStorage under 'pd_settings_sort' (family only —
  * matches sim's persisted defaultSort which is family-level too).
  *
  * Build 29 — D13 + D14 add direction state to the same context so
- * the in-collection SortBtn (TraitsUI) and the settings DefaultSortRow
+ * the in-project SortBtn (TraitsUI) and the settings DefaultSortRow
  * pill share a single source of truth for the direction arrow.
  *
  *   Sim's `currentSort` is a hyphenated string ('id-asc', 'price-desc',
@@ -35,7 +35,7 @@
  *   (sim 8312-8331): clicking the active family flips direction (or
  *   advances through the 4-step FEED_SORTS sequence); clicking an
  *   inactive family enters at that family's default. Used by the
- *   in-collection SortBtn (D13) and the settings DefaultSortRow
+ *   in-project SortBtn (D13) and the settings DefaultSortRow
  *   pills (D14) — both of which want sim-faithful cycle-on-click.
  */
 
