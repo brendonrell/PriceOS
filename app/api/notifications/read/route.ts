@@ -37,7 +37,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     // mark their own notifications read, even if they pass someone else's IDs.
     const { data, error } = await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ read: true } as never)
       .in('id', body.ids)
       .eq('recipient_address', address)
       .select('id');
