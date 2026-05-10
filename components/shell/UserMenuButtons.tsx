@@ -1,80 +1,129 @@
 'use client';
 
 /*
- * UserMenuButtons
+ * UserMenuButtons — Launch Cut wallet wiring.
  *
  * The right-side cluster of the navbar PLUS the dropdown stack itself
- * (which lives inside .user-menu-wrapper because it positions absolutely
- * relative to it).
+ * (the stack lives inside .user-menu-wrapper because it positions
+ * absolutely relative to it).
  *
- * Click flow:
- *   - Connect button click → toggle menu open/closed via DropdownContext
- *   - Wrapper gets .active class when menu is open (CSS reveals sprite,
- *     badge, and the dropdown stack)
- *   - Connect button gets .expanded class so the @brendon text shows
- *   - Click outside menu → DropdownContext's effect closes it
- *   - Pressing Esc → DropdownContext's effect closes it
+ * Build #11 strip:
+ *   - PriceSprite + ❹❷ level badge un-mounted (post-launch level/
+ *     familiar mechanic, not in launch cut surface set). The
+ *     priceSpriteEngine + ModalContext('priceSprite') stay on disk
+ *     for future re-mount; this component just stops rendering them.
  *
- * Modal openers (Build 5):
- *   - Cart button (leftmost) → CartContext.openPanel(). The btn-cart
- *     gets .has-items when items.length > 0 (sim 11748–11754) — the CSS
- *     hides the button entirely when empty per Brendon's "regular
- *     ecommerce, not whale trading desk" framing. Count badge shows N
- *     up to 99, then "99+".
- *   - PriceSprite + ❹❷ badge → ModalContext.open('priceSprite'). Both
- *     wrap their click in stopPropagation so the menu doesn't toggle
- *     out from under the modal (sim 4449, 4452).
+ * Build #11 wallet wiring — three .btn-user states:
  *
- * Familiar modal opener lives in SpellBookSection (its pill click
- * routes through ModalContext.open('familiar')) — sim opens it from
- * clicking the actual floating familiar sprite, but the floating
- * sprite isn't ported yet, so Build 5 routes the entry point through
- * the Spell Book pill.
+ *   1. Disconnected  (no wallet paired)
+ *      ↳ button renders collapsed (icon-only ⟠), `.expanded` off.
+ *      ↳ click → useConnectModal().openConnectModal()
+ *        Opens RainbowKit's connect modal. Wagmi's onSuccess wires
+ *        through to AuthContext's auto-sign useEffect, which fires
+ *        the SIWE flow (nonce → sign → verify) without any further
+ *        user click. After verify, AuthContext sets siweAddress and
+ *        the button transitions to state 3.
+ *
+ *   2. Authenticating  (wallet paired, SIWE in flight)
+ *      ↳ button renders collapsed icon-only — same shape as state 1
+ *        because the user just saw the connect modal close and a
+ *        wallet sign-prompt appear. Showing the address pill mid-flight
+ *        would be a lie (server hasn't verified yet). Click is a no-op
+ *        during this transient state.
+ *
+ *   3. Authenticated  (SIWE session cookie set)
+ *      ↳ button renders expanded with truncated address pill
+ *        (`0xf7c0…3690`, sim's 5383 format used in OutputMeta.ownerDisplay).
+ *      ↳ click → toggleMenu() (existing dropdown behavior)
+ *
+ * Address truncation matches OutputPreview.shortAddr — same `0x` head
+ * + `\u2026` (…) ellipsis + last 4. Inlined locally because lifting
+ * to a shared util is scope creep for one tiny helper.
+ *
+ * Cart button — unchanged. Cart can have items even when wallet isn't
+ * connected (browse + queue purchases, sign in to BUY). `.has-items`
+ * still gates display via globals.css; cartCount badge still uses the
+ * `99+` overflow rule.
+ *
+ * The .expanded class is always-on when authenticated. Sim only
+ * applies it on menu-open (so the button collapses again when menu
+ * closes). For wallet-era PD the address pill is the user's identity
+ * marker — it stays expanded permanently while signed in, then
+ * collapses to icon-only after sign-out.
  */
 
-import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
-import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { DropdownStack } from '../dropdown/DropdownStack';
-import {
-    getSpriteFrame,
-    subscribeSprite,
-    wakeSprite,
-    type SpriteFrame,
-} from '../../lib/engines/priceSpriteEngine';
+
+/* Inline mirror of OutputPreview.shortAddr. Kept local rather than
+   shared because the truncation pattern is one line and lifting it
+   would touch OutputPreview unnecessarily. */
+function shortAddr(addr: string): string {
+    if (!addr.startsWith('0x') || addr.length < 10) return addr;
+    return `${addr.slice(0, 6)}\u2026${addr.slice(-4)}`;
+}
 
 export function UserMenuButtons() {
-    const { menuOpen, toggleMenu } = useDropdown();
-    const { open: openModal } = useModal();
+    const { menuOpen, toggleMenu, closeMenu } = useDropdown();
     const { items, openPanel: openCartPanel } = useCart();
+    const { siweAddress, isAuthenticating } = useAuth();
+    const { openConnectModal } = useConnectModal();
 
-    /* Mirror priceSpriteEngine state into local component state so
-       React re-renders on every blink / turn / yawn / sleep frame.
-       Sim mutates DOM directly inside render() (sim 12114-12143);
-       React port hooks the same engine via subscribeSprite(). */
-    const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
-    useEffect(() => {
-        setFrame(getSpriteFrame());
-        const unsubscribe = subscribeSprite(() => {
-            setFrame(getSpriteFrame());
-        });
-        return unsubscribe;
-    }, []);
+    const isAuthed = !!siweAddress;
 
-    /* Sim 12213-12219 — when the user opens the connect menu, snap a
-       sleeping/yawning sprite awake so the user sees an awake face on
-       open. resetIdleTimer also fires for an already-awake sprite. */
-    useEffect(() => {
-        if (menuOpen) wakeSprite();
-    }, [menuOpen]);
-
+    /* Wrapper carries .active when menu is open (CSS reveals dropdown
+       stack). The cart + sprite + badge sibling reveals are no longer
+       relevant since sprite/badge are stripped, but .active still
+       drives the .dropdown-stack visibility transition. */
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
-    const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
+
+    /* .expanded always on when authenticated (address pill visible).
+       Falls back to menu-open expansion only when authed AND closed —
+       same end result, but explicit. When disconnected/authenticating,
+       button stays collapsed (icon-only). */
+    const buttonClass = `btn-user${isAuthed ? ' expanded' : ''}`;
 
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
+
+    /* Three-state click handler. Disconnected → open RainbowKit modal.
+       Authenticating → no-op (transient state; wallet's own sign-prompt
+       is already visible). Authenticated → toggle dropdown menu. */
+    const handleConnectClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isAuthed) {
+            toggleMenu();
+            return;
+        }
+        if (isAuthenticating) {
+            // Wallet sign-prompt is up; clicking again would be confusing.
+            return;
+        }
+        // Disconnected — open RainbowKit modal. `openConnectModal` is
+        // undefined while RainbowKit is initialising; guard with `?.()`.
+        openConnectModal?.();
+    };
+
+    /* If the menu is open and the user signs out from inside it, the
+       siweAddress drops to null. The wrapper would stay .active until
+       the next interaction. Close on auth flip-to-null so the dropdown
+       collapses immediately. */
+    if (!isAuthed && menuOpen) {
+        // Defer: setState during render is illegal. closeMenu is stable
+        // via useCallback, but invoking it inline still triggers a
+        // warning. queueMicrotask defers without the useEffect overhead.
+        queueMicrotask(() => closeMenu());
+    }
+
+    /* Address pill text. shortAddr handles the truncation; sim 5383
+       format is `0xf7c0…3690` which matches our `0x` + 4 + … + 4 = 11
+       chars, comfortably under .btn-user.expanded's 150px max-width. */
+    const pillText = siweAddress ? shortAddr(siweAddress) : 'Connect';
 
     return (
         <div className={wrapperClass}>
@@ -96,60 +145,20 @@ export function UserMenuButtons() {
                 </span>
             </button>
 
-            {/* PriceSprite — hidden by CSS until .active. Click opens the
-                PriceSprite modal (sim 4449). */}
-            <div
-                className="ascii-sprite-wrap"
-                id="asciiSpriteWrap"
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    openModal('priceSprite');
-                }}
-            >
-                <span
-                    className={`ascii-sprite${frame.sleeping ? ' sleeping' : ''}`}
-                    id="asciiSprite"
-                    style={{ transform: frame.transform, display: 'inline-block' }}
-                >
-                    {frame.face}
-                </span>
-            </div>
-
-            {/* Level badge — hidden by CSS until .active. Click also opens
-                the PriceSprite modal (sim 4452). */}
-            <span
-                className="ascii-pfp-badge"
-                id="asciiPfpBadge"
-                aria-label="Level 42"
-                title="Level 42"
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    openModal('priceSprite');
-                }}
-            >
-                ❹❷
-            </span>
-
-            {/* Connect button — toggles the menu. */}
+            {/* Connect button — three states (see top-of-file comment). */}
             <button
                 className={buttonClass}
                 id="btnUser"
-                aria-label="Toggle User Menu"
-                aria-expanded={menuOpen}
-                title="Toggle User Menu"
+                aria-label={isAuthed ? 'Toggle User Menu' : 'Connect Wallet'}
+                aria-expanded={isAuthed ? menuOpen : undefined}
+                title={isAuthed ? 'Toggle User Menu' : 'Connect Wallet'}
                 type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleMenu();
-                }}
+                onClick={handleConnectClick}
             >
                 <span className="user-icon" aria-hidden="true">
                     {'⟠\uFE0E'}
                 </span>
-                <span className="user-text">@brendon</span>
+                <span className="user-text">{pillText}</span>
             </button>
 
             <DropdownStack />
