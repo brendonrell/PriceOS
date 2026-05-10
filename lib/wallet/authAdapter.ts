@@ -15,9 +15,17 @@
  *   1. RainbowKit modal calls `getNonce()` → server stashes nonce in
  *      session, returns it.
  *   2. Modal calls `createMessage()` to build the SIWE message object.
- *   3. Modal calls `getMessageBody()` to get the EIP-4361 string the
- *      wallet will sign.
- *   4. Wallet returns signature; modal calls `verify()`.
+ *   3. Modal calls `getMessageBody({ message })` to convert that object
+ *      to the EIP-4361 string the wallet will sign. This step is
+ *      REQUIRED — RainbowKit calls it inside its sign hook before
+ *      handing the result to wagmi's `signMessageAsync`. Without it,
+ *      the wallet receives `undefined` (or a SiweMessage object) and
+ *      rejects with "invalid parameters" on every platform, not just
+ *      mobile. The `AuthenticationAdapter<Message>` type marks this
+ *      field as required (no `?`); a missing-field error only escapes
+ *      because Next's default build tolerates type errors.
+ *   4. Wallet returns signature; modal calls `verify({ message, signature })`
+ *      with the SiweMessage object (not the prepared string).
  *   5. Server verifies signature against expected nonce, writes address
  *      into the session cookie. If success, the adapter notifies its
  *      caller via `onAuthenticated(address)` so React state updates.
@@ -28,6 +36,11 @@
  * `onAuthenticated` / `onSignedOut` callbacks — those callbacks live in
  * WalletProviders' inner component (where the React state for
  * `siweAddress` and `status` is held).
+ *
+ * `createAuthenticationAdapter<SiweMessage>` is explicitly typed so the
+ * Message generic is concrete. If `getMessageBody` ever falls out of
+ * the object literal again, TypeScript will fail the build immediately
+ * instead of letting the bug ship.
  */
 
 import { createAuthenticationAdapter } from '@rainbow-me/rainbowkit';
@@ -39,7 +52,7 @@ interface AuthAdapterOptions {
 }
 
 export function createAuthAdapter(options: AuthAdapterOptions) {
-    return createAuthenticationAdapter({
+    return createAuthenticationAdapter<SiweMessage>({
         getNonce: async () => {
             const r = await fetch('/api/auth/nonce', {
                 method: 'POST',
@@ -66,17 +79,15 @@ export function createAuthAdapter(options: AuthAdapterOptions) {
             });
         },
 
+        getMessageBody: ({ message }) => message.prepareMessage(),
+
         verify: async ({ message, signature }) => {
-            const messageBody =
-                typeof message === 'string'
-                    ? message
-                    : (message as SiweMessage).prepareMessage();
             const r = await fetch('/api/auth/siwe', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: messageBody,
+                    message: message.prepareMessage(),
                     signature,
                 }),
             });
