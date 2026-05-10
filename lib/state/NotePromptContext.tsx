@@ -6,12 +6,15 @@
  * Discriminated `prompt` shape supports:
  *   - kind: 'day'    — calendar day notes; backed by CalendarContext.dayNotes
  *   - kind: 'artist' — per-artist notes; backed by localStorage 'pd_artist_notes'
- *   - kind: 'token'  — per-edition notes; backed by localStorage 'pd_token_notes'
+ *   - kind: 'output' — per-edition notes; backed by localStorage 'pd_token_notes'
  *                       (sim 5715-5814 + 6566-6603). chat #5 / Notes feature.
+ *                       NB: localStorage key kept as 'pd_token_notes' for sim
+ *                       parity + zero user data migration; PD nomenclature
+ *                       names this kind 'output' at the API surface.
  *
  * MUST be mounted INSIDE <CalendarProvider> + <ToastProvider> + <ModalProvider>
  * in app/layout.tsx so the day-notes map, showToast(), and openModal() are
- * reachable. The token-label renders an underlined "PRISMS #1234" span whose
+ * reachable. The output-label renders an underlined "PRISMS #1234" span whose
  * onClick fires open('output', id) — sim 5743 same behaviour, opens the
  * OutputPreview underneath the note prompt sheet (z-index 10001 vs 1000).
  *
@@ -21,7 +24,7 @@
  * css text-transform required. Artist label format mirrors sim line 10577 —
  * "ARTIST NOTE FOR: <underlined>${name}</underlined>" with the same 3px
  * underline offset; the "ARTIST" prefix distinguishes the kind at a glance.
- * Token label mirrors sim line 5743 — "NOTE FOR: <underlined-clickable>
+ * Output label mirrors sim line 5743 — "NOTE FOR: <underlined-clickable>
  * ${PROJECT_TITLE} #${id}</underlined-clickable>".
  *
  * Toast strings — sim's exact wording for each kind:
@@ -34,7 +37,7 @@
  *                                                              prefix not
  *                                                              "Note")
  *   - 'Note SAVED' / 'Note REMOVED'                            (sim 5812 —
- *                                                              token kind
+ *                                                              output kind
  *                                                              ships with NO
  *                                                              prefix; the
  *                                                              caps SAVED /
@@ -46,11 +49,11 @@
  * artist sheet sizing (sim CSS 3591–3595). Sim keeps the class on the
  * box until close (sim 10608, 10627); when `prompt` flips to null at
  * close-start, `kind` becomes undefined and the class drops, matching
- * sim's mid-fade resize behaviour. Token kind uses the default sheet
+ * sim's mid-fade resize behaviour. Output kind uses the default sheet
  * sizing — sim has no `.token-note-mode` class, so we don't add one
  * (the default 72vh max-height suits longer collector notes).
  *
- * Token-note pre-population: openTokenNoteEditor accepts an optional
+ * Output-note pre-population: openOutputNoteEditor accepts an optional
  * `prepopulate` second argument. When the user opens a note from the
  * Notes accordion list, NotesBox passes the matching MOCK_DEMO_NOTES
  * entry — sim 6601: `if (!tokenNotes[id] && demoNotes[id]) tokenNotes[id]
@@ -97,27 +100,27 @@ interface ArtistPrompt {
     name: string;
 }
 
-interface TokenPrompt {
-    kind: 'token';
-    tokenId: number;
+interface OutputPrompt {
+    kind: 'output';
+    outputId: number;
 }
 
-type Prompt = DayPrompt | ArtistPrompt | TokenPrompt;
+type Prompt = DayPrompt | ArtistPrompt | OutputPrompt;
 
 interface NotePromptContextValue {
     openDayNoteEditor: (dayKey: string) => void;
     openArtistNoteEditor: (name: string) => void;
     /**
-     * Open the per-token note editor.
+     * Open the per-output note editor.
      *
-     * @param tokenId  Numeric token id (sim's `_notePromptId`).
+     * @param outputId  Numeric output id (sim's `_notePromptId`).
      * @param prepopulate  Optional markdown body to seed pd_token_notes
-     *                     IF AND ONLY IF the token has no existing saved
+     *                     IF AND ONLY IF the output has no existing saved
      *                     note. Mirrors sim 6601 demoNotes pre-fill.
      *                     NotesBox passes MOCK_DEMO_NOTES[id]; modal pill
      *                     + card hi-note callsites pass nothing.
      */
-    openTokenNoteEditor: (tokenId: number, prepopulate?: string) => void;
+    openOutputNoteEditor: (outputId: number, prepopulate?: string) => void;
     closeNotePrompt: () => void;
 }
 
@@ -143,10 +146,13 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         'pd_artist_notes',
         {}
     );
-    /* Token notes — sim 5715-5717. Keys round-trip to strings via JSON, so
-       the type is Record<string, string> at the storage layer; runtime
-       lookups by numeric tokenId still work via JS property-access coercion. */
-    const [tokenNotes, setTokenNotes] = useLocalStorage<Record<string, string>>(
+    /* Output notes — sim 5715-5717. Variable renamed to outputNotes for PD
+       nomenclature, but localStorage key 'pd_token_notes' stays for sim
+       parity + zero user data migration. Keys round-trip to strings via
+       JSON, so the type is Record<string, string> at the storage layer;
+       runtime lookups by numeric outputId still work via JS property-access
+       coercion. */
+    const [outputNotes, setOutputNotes] = useLocalStorage<Record<string, string>>(
         'pd_token_notes',
         {}
     );
@@ -162,20 +168,20 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         setPrompt({ kind: 'artist', name });
     }, []);
 
-    const openTokenNoteEditor = useCallback(
-        (tokenId: number, prepopulate?: string) => {
-            if (typeof tokenId !== 'number' || Number.isNaN(tokenId)) return;
-            const key = String(tokenId);
+    const openOutputNoteEditor = useCallback(
+        (outputId: number, prepopulate?: string) => {
+            if (typeof outputId !== 'number' || Number.isNaN(outputId)) return;
+            const key = String(outputId);
             /* Sim 6601 — only seed if there's no existing saved note. */
             if (prepopulate) {
-                setTokenNotes((prev) => {
+                setOutputNotes((prev) => {
                     if (prev[key]) return prev;
                     return { ...prev, [key]: prepopulate };
                 });
             }
-            setPrompt({ kind: 'token', tokenId });
+            setPrompt({ kind: 'output', outputId });
         },
-        [setTokenNotes]
+        [setOutputNotes]
     );
 
     const closeNotePrompt = useCallback(() => {
@@ -219,13 +225,13 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                         ? `Artist note saved \u2014 ${prompt.name}`
                         : `Artist note cleared \u2014 ${prompt.name}`
                 );
-            } else if (prompt.kind === 'token') {
+            } else if (prompt.kind === 'output') {
                 /* Sim 5803-5812 — trimmed empty deletes; non-empty saves;
                    toast string is the bare 'Note SAVED' / 'Note REMOVED'
                    (no kind prefix, sim 5812). */
                 const trimmed = value.trim();
-                const key = String(prompt.tokenId);
-                setTokenNotes((prev) => {
+                const key = String(prompt.outputId);
+                setOutputNotes((prev) => {
                     const next = { ...prev };
                     if (trimmed) next[key] = trimmed;
                     else delete next[key];
@@ -235,19 +241,19 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             }
             setPrompt(null);
         },
-        [prompt, setDayNote, showToast, setArtistNotes, setTokenNotes]
+        [prompt, setDayNote, showToast, setArtistNotes, setOutputNotes]
     );
 
-    /* Click handler for the underlined token-name span inside the token
+    /* Click handler for the underlined output-name span inside the output
        label. Sim 5743 stops propagation (so the wrap's backdrop-close
        doesn't fire) then calls openModal(id). Note prompt stays open;
        OutputPreview opens at z-index 1000 underneath the note prompt's
        z-index 10001. When the user dismisses the note prompt, the
        OutputPreview is revealed. */
-    const handleTokenLabelClick = useCallback(
-        (e: React.MouseEvent, tokenId: number) => {
+    const handleOutputLabelClick = useCallback(
+        (e: React.MouseEvent, outputId: number) => {
             e.stopPropagation();
-            openModal('output', tokenId);
+            openModal('output', outputId);
         },
         [openModal]
     );
@@ -287,9 +293,9 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     </span>
                 </>
             );
-        } else if (prompt.kind === 'token') {
-            const tokenId = prompt.tokenId;
-            initialValue = tokenNotes[String(tokenId)] || '';
+        } else if (prompt.kind === 'output') {
+            const outputId = prompt.outputId;
+            initialValue = outputNotes[String(outputId)] || '';
             label = (
                 <>
                     NOTE FOR:{' '}
@@ -299,9 +305,9 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                             textUnderlineOffset: '3px',
                             cursor: 'pointer',
                         }}
-                        onClick={(e) => handleTokenLabelClick(e, tokenId)}
+                        onClick={(e) => handleOutputLabelClick(e, outputId)}
                     >
-                        {PROJECT_TITLE} #{tokenId}
+                        {PROJECT_TITLE} #{outputId}
                     </span>
                 </>
             );
@@ -312,13 +318,13 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         () => ({
             openDayNoteEditor,
             openArtistNoteEditor,
-            openTokenNoteEditor,
+            openOutputNoteEditor,
             closeNotePrompt,
         }),
         [
             openDayNoteEditor,
             openArtistNoteEditor,
-            openTokenNoteEditor,
+            openOutputNoteEditor,
             closeNotePrompt,
         ]
     );

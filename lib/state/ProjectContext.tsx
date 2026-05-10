@@ -7,12 +7,12 @@
  * `metaCache` (sim.html line 7138) is a flat object keyed by token id;
  * every surface — modal, gallery cards, Calc Sheet, filter logic —
  * reads from it. The React port mirrors that shape with a frozen
- * `ReadonlyMap<number, TokenMeta>` populated once at provider mount.
+ * `ReadonlyMap<number, OutputMeta>` populated once at provider mount.
  *
  * Today the provider seeds the map with the same deterministic LCG math
  * the prototype has been running inside OutputPreview, so visual state
  * is byte-for-byte identical. When the on-chain indexer ships, only
- * the seeding block changes — every consumer (`useTokenMeta(id)`,
+ * the seeding block changes — every consumer (`useOutputMeta(id)`,
  * future gallery, future Calc) keeps its existing API.
  *
  * Sim refs:
@@ -20,7 +20,7 @@
  *   _brendonOwned set ...... sim.html 7967–7968
  *   id-keyed lookup pattern  sim.html 8725–8788, 11598–11599
  *
- * Build 19: added `traits` to TokenMeta so the gallery wiring
+ * Build 19: added `traits` to OutputMeta so the gallery wiring
  * (TraitsContext → ArtworkCard render) can predicate on Layer / Mineral /
  * Fate. Sim assigns these per token in renderFeed (sim 7986–8002) using
  * Math.random() seeded once at init; we mirror with a deterministic
@@ -39,7 +39,7 @@ import {
     type ReactNode,
 } from 'react';
 
-export interface TokenMeta {
+export interface OutputMeta {
     ownerDisplay: string;
     price: string | null;
     isOwnedByBrendon: boolean;
@@ -60,7 +60,7 @@ export interface ProjectState {
     title: string;
     totalEditions: number;
     floorEth: number;
-    tokens: ReadonlyMap<number, TokenMeta>;
+    outputs: ReadonlyMap<number, OutputMeta>;
 }
 
 const ProjectCtx = createContext<ProjectState | null>(null);
@@ -84,7 +84,7 @@ const BRENDON_OWNED: ReadonlySet<number> = new Set([
 
 /* Build 19: trait pools. Layer + Mineral mirror TraitsUI.VALUE_POOLS so
    the L2 value pills the user can toggle line up byte-for-byte with the
-   strings stored on TokenMeta.traits. Fate is sim's OMEN_TRAITS (sim
+   strings stored on OutputMeta.traits. Fate is sim's OMEN_TRAITS (sim
    ~7999) — kept here even though TraitsUI doesn't surface a Fate L2 pool
    yet, so the field is populated and ready when that build lands. Pools
    are typed `as const` to keep the index types happy without a cast. */
@@ -106,13 +106,13 @@ const FATE_POOL = [
  * every refresh — matches sim's behavior where Math.random() draws are
  * cached in metaCache and reused for the session.
  *
- * Lifted verbatim from OutputPreview's previous inline `getTokenMeta()`
+ * Lifted verbatim from OutputPreview's previous inline `getOutputMeta()`
  * (the LCG constants, the `0x____…____` hex tail formula, the listed
  * threshold, the price formatting). Real metadata comes from the
  * on-chain indexer once that workstream lands; this seeding is the
  * throwaway placeholder.
  */
-function buildTokenMeta(id: number): TokenMeta {
+function buildOutputMeta(id: number): OutputMeta {
     const isMine = BRENDON_OWNED.has(id);
 
     // Two independent LCG-style draws from the id keep listed-ness and
@@ -154,18 +154,18 @@ function buildTokenMeta(id: number): TokenMeta {
 export function ProjectProvider({ children }: { children: ReactNode }) {
     /* Build the full 222-entry map once at mount. Cheap (low hundreds
        of entries, pure arithmetic) and stable across re-renders, so
-       every useTokenMeta() consumer reads from the same Map reference
+       every useOutputMeta() consumer reads from the same Map reference
        and Map.get(id) is O(1). */
     const value = useMemo<ProjectState>(() => {
-        const tokens = new Map<number, TokenMeta>();
+        const outputs = new Map<number, OutputMeta>();
         for (let id = 1; id <= TOTAL_EDITIONS; id++) {
-            tokens.set(id, buildTokenMeta(id));
+            outputs.set(id, buildOutputMeta(id));
         }
         return {
             title: PROJECT_TITLE,
             totalEditions: TOTAL_EDITIONS,
             floorEth: MOCK_PROJECT_FLOOR_ETH,
-            tokens,
+            outputs,
         };
     }, []);
 
