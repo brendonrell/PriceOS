@@ -20,19 +20,34 @@
  *   - Click outside menu OR Esc → DropdownContext effect closes it
  *
  * Connect button — three wallet states:
- *   1. Disconnected  → icon-only ⟠. Click opens the RainbowKit modal
- *                      via useConnectModal().openConnectModal(). User-text
- *                      reads "Connect" but CSS hides it when not .expanded.
- *   2. Authenticating → icon-only ⟠. Click is a no-op — the wallet's own
- *                       sign-prompt is already on screen and clicking
- *                       again would be confusing.
- *   3. Authenticated → expanded address pill (sim's 0xf7c0…3690 format).
- *                      Click toggles the dropdown menu open/closed.
- *                      .expanded stays on permanently while signed in so
- *                      the address pill is always visible as the user's
- *                      identity marker.
+ *   1. Disconnected   → icon-only ⟠. Click opens the RainbowKit modal
+ *                       via useConnectModal().openConnectModal(). The
+ *                       user-text reads "Connect" but CSS hides it
+ *                       (no .expanded).
+ *   2. Authenticating → icon-only ⟠. Click is a no-op — the wallet's
+ *                       own sign-prompt is already on screen.
+ *   3. Authenticated  → still icon-only when menu is closed. .expanded
+ *                       toggles in only while the menu is open (sim-
+ *                       faithful — sim does not surface user-identity
+ *                       chrome outside the open menu). Click toggles
+ *                       the menu open/closed.
  *
- * Modal openers (Build 5):
+ * User-text priority (top → bottom):
+ *   1. @handle   — post-launch, after account creation forces @name
+ *                  selection at signup. Stored as a first-class user-
+ *                  state column. Not in this build.
+ *   2. ENS name  — wagmi's useEnsName lookup against the connected
+ *                  address on chainId 1. Async; renders as the
+ *                  truncated address while resolving, then swaps to
+ *                  the ENS string when the lookup returns. Settings
+ *                  panel (post-launch) will let the user pick which
+ *                  ENS to display when they hold several.
+ *   3. shortAddr — 0xf7c0…3690 fallback when no ENS is set or the
+ *                  lookup is in flight / returned null.
+ *   4. "Connect" — disconnected state placeholder (visually hidden
+ *                  because the button stays icon-only).
+ *
+ * Modal openers:
  *   - Cart button → CartContext.openPanel(). .has-items toggles via
  *     items.length > 0 (sim 11748–11754). Count badge: N up to 99, "99+".
  *   - PriceSprite + level badge → ModalContext.open('priceSprite').
@@ -47,6 +62,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useEnsName } from 'wagmi';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -75,6 +91,18 @@ export function UserMenuButtons() {
     const { siweAddress, isAuthenticating } = useAuth();
     const { openConnectModal } = useConnectModal();
 
+    /* ENS resolution. wagmi's useEnsName hits mainnet (chainId 1
+       pinned — ENS lives on mainnet regardless of which chain a user
+       is connected to). The hook is enabled only when we have an
+       address; otherwise it short-circuits to undefined and the
+       pillText fallback chain handles it. Cache lives in react-query
+       so re-renders don't re-fetch. */
+    const { data: ensName } = useEnsName({
+        address: siweAddress ? (siweAddress as `0x${string}`) : undefined,
+        chainId: 1,
+        query: { enabled: !!siweAddress },
+    });
+
     /* Mirror priceSpriteEngine state into local component state so
        React re-renders on every blink / turn / yawn / sleep frame.
        Sim mutates DOM directly inside render() (sim 12114-12143);
@@ -101,11 +129,12 @@ export function UserMenuButtons() {
        badge + dropdown stack). */
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
 
-    /* .expanded always-on when authenticated (address pill stays
-       visible as the user's identity marker even when the menu is
-       closed). Falls back to icon-only when disconnected /
-       authenticating. */
-    const buttonClass = `btn-user${isAuthed ? ' expanded' : ''}`;
+    /* .expanded follows sim — only fires when the menu is open. The
+       user-text (ENS / address) is hidden when the menu is closed
+       regardless of auth state. Identity affordance lives inside the
+       dropdown panel (Profile row, follower stats), not on the navbar
+       button. */
+    const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
 
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
@@ -140,10 +169,11 @@ export function UserMenuButtons() {
         queueMicrotask(() => closeMenu());
     }
 
-    /* Address pill text. shortAddr handles the truncation; sim 5383
-       format is `0xf7c0…3690` which matches our `0x` + 4 + … + 4 = 11
-       chars, comfortably under .btn-user.expanded's 150px max-width. */
-    const pillText = siweAddress ? shortAddr(siweAddress) : 'Connect';
+    /* User-text priority chain — see top-of-file comment block. The
+       future @handle slot would insert here as `handle ?? ensName ??
+       ...`; for now it starts at ENS. */
+    const pillText = ensName
+        ?? (siweAddress ? shortAddr(siweAddress) : 'Connect');
 
     return (
         <div className={wrapperClass}>
