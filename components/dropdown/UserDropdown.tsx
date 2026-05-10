@@ -1,40 +1,42 @@
 'use client';
 
 /*
- * UserDropdown
+ * UserDropdown — Launch Cut surface.
  *
- * Top of the dropdown stack. Hosts the Global Search bar and one of
- * five views below it:
+ * Top of the dropdown stack. Hosts the Global Search bar and the
+ * default LinksView panel below it.
  *
- *   - links     — Profile / Discord / Artists / Portfolio / Settings / Log Out
- *   - settings  — full Settings panel (wallet/MY PD/themes/sort/pings/spell-book/workspace)
- *   - calendar  — Calendar panel (month grid + day column with events / to-dos)
- *   - artists   — Artists A-Z directory (filter pills + pin/note + scroll list)
- *   - portfolio — Portfolios panel (Budgets + Main/Shadow tabs + tree + filters)
+ * Build #11 strip — the four secondary views that used to swap into
+ * this slot via clicks inside LinksView are un-mounted:
  *
- * Search bar stays mounted across view swaps so input keeps focus.
+ *   - SettingsView   (full Settings panel — wallet/MY PD/themes/sort/
+ *                     pings/spell-book/workspace; post-launch)
+ *   - ArtistsView    (Artists A-Z directory — post-launch)
+ *   - PortfolioView  (Portfolios panel — post-launch)
+ *   - CalendarPanel  (month grid + day column — post-launch)
+ *
+ * LinksView's nav entries that pointed to those views (Artists /
+ * Portfolio / Settings) are also stripped — see LinksView.tsx. With
+ * the entries gone there's no way to set view !== 'links' from the
+ * UI, so this component renders LinksView unconditionally.
+ *
+ * GlobalSearchBar is kept — search is core launch surface (browse
+ * projects + outputs by id, address, handle).
+ *
+ * The DropdownContext still owns `view` state — we just stop reading
+ * it. Components on disk that mutate `view` (none currently mounted
+ * in launch surface) continue to work; the view value just doesn't
+ * drive any rendering until those components remount.
  */
 
-import { useDropdown } from '../../lib/state/DropdownContext';
 import { GlobalSearchBar } from './GlobalSearchBar';
 import { LinksView } from './LinksView';
-import { SettingsView } from './settings/SettingsView';
-import { ArtistsView } from './ArtistsView';
-import { PortfolioView } from './PortfolioView';
-import CalendarPanel from '../CalendarPanel';
 
 export function UserDropdown() {
-    const { view } = useDropdown();
-
     return (
         <div className="user-dropdown">
             <GlobalSearchBar />
-
-            {view === 'links' && <LinksView />}
-            {view === 'settings' && <SettingsView />}
-            {view === 'calendar' && <CalendarPanel />}
-            {view === 'artists' && <ArtistsView />}
-            {view === 'portfolio' && <PortfolioView />}
+            <LinksView />
         </div>
     );
 }

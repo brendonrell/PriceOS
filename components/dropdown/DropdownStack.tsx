@@ -1,49 +1,44 @@
 'use client';
 
 /*
- * DropdownStack
+ * DropdownStack — Launch Cut surface.
  *
  * The vertical column that drops down beneath the connect button when
- * the menu is open. Contains:
- *   1. UserDropdown — the main inverted-palette panel
- *   2. TapeBox      — Menu Tape (only renders when menutape mode != OFF)
- *   3. PingsBox     — always present
- *   4. TodosBox     — always present
- *   5. NotesBox     — always present
+ * the menu is open. Stripped to one mount for launch:
  *
- * The accordion boxes (2-5) stay visible on the default `links` view AND
- * on the `calendar` view — sim explicitly keeps Pings / To-Dos / Notes
- * below the calendar (sim.html line 6132–6133: "Pings / To-Dos / Notes
- * below stay visible"). They hide on `settings` / `artists` / `portfolio`
- * because those panels take the full vertical space.
+ *   1. UserDropdown — the main inverted-palette panel (LinksView only)
  *
- * Visibility of the whole stack is controlled by .user-menu-wrapper.active
- * via CSS — this component just renders the content unconditionally
- * and lets CSS handle the transition.
+ * Build #11 strip — the four accordion boxes that previously rendered
+ * below the user-dropdown on the `links` and `calendar` views are
+ * un-mounted from the launch surface:
+ *
+ *   - TapeBox   (Bloomberg-style scrolling Menu Tape — post-launch)
+ *   - PingsBox  (price-alert / ping accordion — post-launch)
+ *   - TodosBox  (calendar to-do accordion — post-launch)
+ *   - NotesBox  (per-day / per-artist note accordion — post-launch)
+ *
+ * Components stay on disk (lib/state contexts they depend on still
+ * mount in the provider tree) so a future build can re-mount them
+ * without re-implementing.
+ *
+ * The view switcher inside UserDropdown also collapses to a single
+ * view (links) for launch — see UserDropdown.tsx. With only one view,
+ * the showAccordions gate that conditioned on `view === 'links' ||
+ * view === 'calendar'` becomes redundant. Removed entirely; the
+ * accordions wouldn't render anyway because their JSX is gone.
+ *
+ * Visibility of the whole stack is still controlled by
+ * .user-menu-wrapper.active via CSS — UserMenuButtons toggles that
+ * class on menu-open, and the existing transition rules in
+ * globals.css handle the drop animation.
  */
 
-import { useDropdown } from '../../lib/state/DropdownContext';
 import { UserDropdown } from './UserDropdown';
-import { TapeBox } from './TapeBox';
-import { PingsBox } from './PingsBox';
-import { TodosBox } from './TodosBox';
-import { NotesBox } from './NotesBox';
 
 export function DropdownStack() {
-    const { view } = useDropdown();
-    const showAccordions = view === 'links' || view === 'calendar';
-
     return (
         <div className="dropdown-stack">
             <UserDropdown />
-            {showAccordions && (
-                <>
-                    <TapeBox />
-                    <PingsBox />
-                    <TodosBox />
-                    <NotesBox />
-                </>
-            )}
         </div>
     );
 }
