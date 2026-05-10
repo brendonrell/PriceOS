@@ -2,9 +2,9 @@
  * wagmiConfig — Launch Cut wallet stack.
  *
  * Uses RainbowKit's `connectorsForWallets` so the modal renders proper
- * branded wallet entries (icons, deep-links, install URLs, etc.) — raw
- * wagmi connectors don't carry the metadata RainbowKit's UI needs, which
- * is why a previous iteration of this file shipped an empty modal.
+ * branded wallet entries (icons, deep-links, install URLs) — raw wagmi
+ * connectors don't carry the metadata RainbowKit's UI needs, which is
+ * why a previous iteration of this file shipped an empty modal.
  *
  * Wallet roster:
  *   - injectedWallet     — any EIP-1193 wallet exposed as window.ethereum
@@ -13,15 +13,16 @@
  *   - coinbaseWallet     — Coinbase Wallet (extension + mobile passkey)
  *   - walletConnectWallet — generic WC scan-QR fallback for any mobile wallet
  *
- * `projectId` comes from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. RainbowKit
- * uses it for the WalletConnect-based wallet entries (rainbowWallet,
- * walletConnectWallet, and metaMaskWallet's mobile deep-link). If the env
- * var isn't injected at build time, fall back to a placeholder string so
- * `connectorsForWallets` doesn't throw at SSG — those specific wallets
- * just won't connect at runtime if the placeholder is used. The modal
- * itself still renders.
+ * `projectId` is the WalletConnect/Reown Cloud credential. Hardcoded
+ * rather than read from process.env because Vercel Preview env-var
+ * injection at build time wasn't reliable for us, and projectIds are
+ * already public values (they ship in client-side JS regardless — no
+ * secret to leak). Source: PD's Reown Cloud project (Configuration tab).
+ * Rotate by replacing this string + redeploying.
  *
- * Mainnet-only at launch. `ssr: true` keeps wagmi's SSR-safe rendering.
+ * Mainnet-only at launch. `ssr: true` keeps wagmi's SSR-safe rendering
+ * shape (everyone disconnected on the server, hydrate from localStorage
+ * on the client).
  */
 
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
@@ -35,8 +36,7 @@ import {
 import { createConfig, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 
-const projectId =
-    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'pd-launch-cut';
+const projectId = 'dddf23db294ed8117609933e1a6ae83c';
 
 const connectors = connectorsForWallets(
     [
