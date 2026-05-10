@@ -1,10 +1,23 @@
 /*
  * wagmiConfig — Launch Cut wallet stack.
  *
- * Uses RainbowKit's `connectorsForWallets` so the modal renders proper
- * branded wallet entries (icons, deep-links, install URLs) — raw wagmi
- * connectors don't carry the metadata RainbowKit's UI needs, which is
- * why a previous iteration of this file shipped an empty modal.
+ * Two pieces of context worth keeping in mind here:
+ *
+ * 1. `connectorsForWallets` (instead of `getDefaultConfig`) is what
+ *    populates RainbowKit's modal with branded wallet entries. Raw
+ *    wagmi connectors don't carry icons / deep-link metadata / install
+ *    URLs, which is why the modal showed empty in an earlier shipped
+ *    iteration of this file.
+ *
+ * 2. `cookieStorage` (instead of the default localStorage) means wagmi
+ *    persists its connection state in a server-readable cookie. This
+ *    matters mostly for iOS Safari, which aggressively kills the JS
+ *    context of background tabs — including during the deep-link
+ *    round-trip from a wallet app back to the browser. With
+ *    cookieStorage the connection survives those kills because the
+ *    state lives outside the page, and the layout's server component
+ *    can pre-populate `initialState` so the first paint already shows
+ *    the user as connected.
  *
  * Wallet roster:
  *   - injectedWallet     — any EIP-1193 wallet exposed as window.ethereum
@@ -18,11 +31,8 @@
  * injection at build time wasn't reliable for us, and projectIds are
  * already public values (they ship in client-side JS regardless — no
  * secret to leak). Source: PD's Reown Cloud project (Configuration tab).
- * Rotate by replacing this string + redeploying.
  *
- * Mainnet-only at launch. `ssr: true` keeps wagmi's SSR-safe rendering
- * shape (everyone disconnected on the server, hydrate from localStorage
- * on the client).
+ * Mainnet-only at launch. `ssr: true` keeps wagmi's SSR-safe rendering.
  */
 
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
@@ -33,7 +43,7 @@ import {
     rainbowWallet,
     walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { createConfig, http } from 'wagmi';
+import { cookieStorage, createConfig, createStorage, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 
 const projectId = 'dddf23db294ed8117609933e1a6ae83c';
@@ -67,4 +77,7 @@ export const wagmiConfig = createConfig({
         [mainnet.id]: http(),
     },
     ssr: true,
+    storage: createStorage({
+        storage: cookieStorage,
+    }),
 });
