@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { cookieToInitialState } from 'wagmi';
+import { cookieToInitialState, type Config as WagmiConfigType } from 'wagmi';
 import './globals.css';
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
@@ -18,7 +18,6 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import { WalletProviders } from '../components/wallet/WalletProviders';
-import { wagmiConfig } from '../lib/wallet/wagmiConfig';
 import { getSession } from '../lib/auth/siwe';
 
 export const metadata: Metadata = {
@@ -176,8 +175,21 @@ export default async function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    /* cookieToInitialState only reads `config.storage.key` (per its
+       implementation in @wagmi/core/utils/cookie.js) to derive the
+       cookie name. Importing the real wagmiConfig here would also
+       pull in the connector chain — which transitively loads
+       @metamask/sdk's browser-only code, crashing static SSR of the
+       /_not-found page during `next build`. The stub keeps the
+       storage key in sync ('wagmi' is wagmi's default when
+       createStorage is called without an explicit `key`) and skips
+       all that. If wagmiConfig ever sets a non-default storage key,
+       update this stub to match. */
+    const SSR_COOKIE_CONFIG_STUB = {
+        storage: { key: 'wagmi' },
+    } as unknown as WagmiConfigType;
     const cookieHeader = headers().get('cookie') ?? '';
-    const initialState = cookieToInitialState(wagmiConfig, cookieHeader);
+    const initialState = cookieToInitialState(SSR_COOKIE_CONFIG_STUB, cookieHeader);
 
     let initialAuth: string | null | undefined;
     try {
