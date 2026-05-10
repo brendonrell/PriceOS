@@ -1,29 +1,25 @@
 'use client';
 
 /*
- * LinksView — Launch Cut surface.
+ * LinksView
  *
- * The default (and only) view inside the main user-dropdown panel:
- *   - Profile     (with follower / following counts; links to
- *                  /{siweAddress} when authenticated)
- *   - Discord     (community plug — pricediscussion.com discord)
- *   - Log Out     (calls AuthContext.signOut → DELETE session +
- *                  wagmi disconnect + close menu)
+ * The default view inside the main user-dropdown panel:
+ *   - Profile (with follower / following counts; links to /{siweAddress}
+ *              when authenticated, falls back to /brendon if not)
+ *   - Discord
+ *   - Artists   (clicking swaps the user-dropdown to the Artists panel)
+ *   - Portfolio (similar)
+ *   - Settings  (with inline gas widget; clicks swap to Settings panel)
+ *   - Log Out   (calls AuthContext.signOut → DELETE session + wagmi
+ *                disconnect + close menu)
  *
- * Build #11 strip — these LinksView entries are removed (their target
- * views are also un-mounted from UserDropdown):
- *   - Artists     (Artists A-Z directory — post-launch)
- *   - Portfolio   (Portfolios panel — post-launch)
- *   - Settings    (full Settings panel + inline gas widget — post-launch)
+ * Artists / Portfolio / Settings / Calendar panels swap into the same
+ * dropdown slot via DropdownContext.setView, keeping the dropdown
+ * footprint stable.
  *
- * Profile link target — was hardcoded to `/brendon` (mock user).
- * Now uses the live SIWE-verified address as the slug. The `[slug]`
- * route renders a stub shell until the profile body migration ships,
- * so the link goes somewhere meaningful instead of a mock handle.
- *
- * Follower / following counts stay mocked at 850 / 2.2k — they wire
- * to real values when the indexer + follow graph land. Same opens
- * FollowersModal pattern (modal exists; pre-launch but harmless).
+ * Follower / following counts stay mocked at 850 / 2.2k — they wire to
+ * real values when the indexer + follow graph land. Same FollowersModal
+ * pattern (modal already exists, harmless pre-launch).
  *
  * ── PARKED DEVIATION FROM SIM (2026-05-02, Brendon) ─────────────────
  * The Profile link USES `flex: 1` deliberately. Sim does NOT — sim's
@@ -38,20 +34,46 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
+import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 
 export function LinksView() {
-    const { closeMenu } = useDropdown();
+    const { setView, closeMenu } = useDropdown();
     const { open } = useModal();
     const { siweAddress, signOut } = useAuth();
 
     /* Profile link target. Uses live SIWE address when authenticated;
        falls back to `/brendon` when not (defensive — LinksView only
-       renders inside the menu, which only opens when authenticated,
+       renders inside an open menu, which only opens when authenticated,
        so this fallback is unreachable in practice). */
     const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
+
+    /* F63 / BUG-33 — mock gas widget cycling (sim 5703-5712).
+       Sim cycles through ten plausible gwei values every 15 seconds and
+       skips the update when the tab is hidden. The repo previously hard-
+       coded "0.057 gwei", which made every refresh feel identical. Initial
+       index is randomized so dropdown reopens don't always start at the
+       same value. visibilitychange forces an immediate refresh when the
+       tab returns so a long-hidden value isn't stuck on screen. */
+    const FAKE_GWEI = [0.031, 0.042, 0.057, 0.063, 0.079, 0.044, 0.038, 0.052, 0.071, 0.059];
+    const [gasIdx, setGasIdx] = useState(() => Math.floor(Math.random() * FAKE_GWEI.length));
+    useEffect(() => {
+        const tick = () => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            setGasIdx(i => (i + 1) % FAKE_GWEI.length);
+        };
+        const id = setInterval(tick, 15000);
+        const onVis = () => { if (!document.hidden) tick(); };
+        document.addEventListener('visibilitychange', onVis);
+        return () => {
+            clearInterval(id);
+            document.removeEventListener('visibilitychange', onVis);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    const gasValue = FAKE_GWEI[gasIdx].toFixed(3);
 
     const handleLogOut = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -80,10 +102,15 @@ export function LinksView() {
                 >
                     Profile
                 </a>
-                {/* Each side (followers / following) is a single click
-                    target wrapping the icon + number. Hover treatment
-                    is opacity-only so it stays theme-aware. Mock counts
-                    until the follow graph + indexer land. */}
+                {/* Each side (followers OR following) is a SINGLE click
+                    target that wraps the icon + number together. Sim
+                    4511-4512 leaves the icons decorative (only the <b>
+                    is clickable); we go one step further per Brendon —
+                    the whole .nav-stat-link span is the click region,
+                    so tapping the icon OR the number opens the same
+                    FollowersModal tab. Hover treatment shifts to
+                    opacity-only so it stays theme-aware on every
+                    theme. */}
                 <span
                     className="nav-follower-stats"
                     onClick={(e) => {
@@ -147,6 +174,69 @@ export function LinksView() {
                 rel="noopener noreferrer"
             >
                 Discord
+            </a>
+
+            <a
+                role="button"
+                tabIndex={0}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setView('artists');
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setView('artists');
+                    }
+                }}
+            >
+                Artists
+            </a>
+
+            <a
+                role="button"
+                tabIndex={0}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setView('portfolio');
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setView('portfolio');
+                    }
+                }}
+            >
+                Portfolio
+            </a>
+
+            <a
+                role="button"
+                tabIndex={0}
+                className="settings-row"
+                style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setView('settings');
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setView('settings');
+                    }
+                }}
+            >
+                <span>Settings</span>
+                <span
+                    className="gas-widget gas-widget-inline"
+                    id="gasWidget"
+                    title="Estimated gas price"
+                >
+                    <span style={{ position: 'relative', top: 2 }}>{gasValue} gwei</span>{' '}
+                    <span className="gas-glyph">⍞</span>
+                </span>
             </a>
 
             <div className="dropdown-divider" />
