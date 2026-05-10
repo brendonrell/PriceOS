@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { cookieToInitialState } from 'wagmi';
 import './globals.css';
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
@@ -16,6 +18,7 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import { WalletProviders } from '../components/wallet/WalletProviders';
+import { wagmiConfig } from '../lib/wallet/wagmiConfig';
 
 export const metadata: Metadata = {
     title: 'Price Discussion',
@@ -158,6 +161,17 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    /* Read the wagmi cookie (set by `cookieStorage` in wagmiConfig)
+       server-side so the first paint already knows whether the user is
+       wallet-connected. Without this, hydration starts from "disconnected"
+       and only flips after the client mounts and reads the cookie itself,
+       which causes a visible flash on every page load. `headers().get('cookie')`
+       is the App-Router-friendly way to grab the raw header; pass it
+       through `cookieToInitialState` to get the typed wagmi state. */
+    const initialState = cookieToInitialState(
+        wagmiConfig,
+        headers().get('cookie')
+    );
     return (
         <html lang="en">
             <head>
@@ -208,7 +222,7 @@ export default function RootLayout({
             </head>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
-                <WalletProviders>
+                <WalletProviders initialState={initialState}>
                     <ThemeProvider>
                         <PersonaProvider>
                             <PdNotifsProvider>
