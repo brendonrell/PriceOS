@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { cookieToInitialState } from 'wagmi';
 import './globals.css';
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
@@ -16,6 +18,8 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import { WalletProviders } from '../components/wallet/WalletProviders';
+import { wagmiConfig } from '../lib/wallet/wagmiConfig';
+import { getSession } from '../lib/auth/siwe';
 
 export const metadata: Metadata = {
     title: 'Price Discussion',
@@ -152,12 +156,37 @@ const PREHYDRATION_SCRIPT = `
  * ThemeProvider. Persona has no other context dependencies (it just
  * owns body.persona-default and exposes window.setDebugPersona) so
  * placement is purely organizational.
+ *
+ * Wallet stack server-side hydration (auth fix-up, post-Build #11):
+ *   - `cookieToInitialState(wagmiConfig, cookieHeader)` parses the
+ *     wagmi.store cookie into wagmi's State shape, so WagmiProvider
+ *     boots already-connected if the cookie says so. Without this the
+ *     first paint flashes disconnected before client-side cookie
+ *     rehydration runs.
+ *   - `getSession()` reads the iron-session cookie on the same
+ *     request, so InnerProviders can boot straight to authenticated/
+ *     unauthenticated and skip its hydration GET round-trip. The
+ *     try/catch falls through to `undefined` if SIWE_SESSION_SECRET
+ *     is missing or the cookie can't be decoded — InnerProviders
+ *     reads `undefined` as "no server data, do the GET-on-mount" so
+ *     the page still renders even if env config is broken.
  */
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const cookieHeader = headers().get('cookie') ?? '';
+    const initialState = cookieToInitialState(wagmiConfig, cookieHeader);
+
+    let initialAuth: string | null | undefined;
+    try {
+        const session = await getSession();
+        initialAuth = session.address?.toLowerCase() ?? null;
+    } catch {
+        initialAuth = undefined;
+    }
+
     return (
         <html lang="en">
             <head>
@@ -208,7 +237,10 @@ export default function RootLayout({
             </head>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
-                <WalletProviders>
+                <WalletProviders
+                    initialState={initialState}
+                    initialAuth={initialAuth}
+                >
                     <ThemeProvider>
                         <PersonaProvider>
                             <PdNotifsProvider>
