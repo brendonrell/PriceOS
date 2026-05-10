@@ -91,7 +91,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useProject } from '../../lib/state/ProjectContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { useTokenMeta } from '../../lib/hooks/useTokenMeta';
+import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import {
     getGrails,
     subscribeGrails,
@@ -102,7 +102,7 @@ import { TopBarCalendar } from './TopBarCalendar';
 export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
     const { title: projectTitle } = useProject();
-    const { open: openTokenModal } = useModal();
+    const { open: openOutputModal } = useModal();
     const { showToast } = useToast();
 
     // Subscribe to engine state. We mirror engine state into React
@@ -261,7 +261,7 @@ export function TopBarRow() {
                                 id={pinId}
                                 projectTitle={projectTitle}
                                 redacted={!!notifs.redactedMode}
-                                onOpen={() => openTokenModal('output', pinId)}
+                                onOpen={() => openOutputModal('output', pinId)}
                                 onUnpin={() => {
                                     if (unpinGrail(pinId)) {
                                         const collName =
@@ -376,7 +376,7 @@ export function TopBarRow() {
 
 /* F50 (BUG-02) — single grail pill. Sim 12350-12357 builds this DOM
    imperatively; we render it from a small subcomponent that calls
-   useTokenMeta inside a hooked function (loop above can't call hooks
+   useOutputMeta inside a hooked function (loop above can't call hooks
    directly). Pill text:
      - title    : PROJECT_TITLE (or ████████ when redacted, sim 12348);
                   "short" variant (no fade mask) when ≤ 8 chars (sim 12349)
@@ -403,12 +403,12 @@ function GrailPill({
     onOpen,
     onUnpin,
 }: GrailPillProps) {
-    const meta = useTokenMeta(id);
+    const meta = useOutputMeta(id);
     const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : projectTitle;
     const titleShortClass = displayTitle.length <= 8 ? ' short' : '';
     /* Sim 12356 — price renders the numeric portion only ("0.014" not
        "0.014 ETH") because the pill is space-constrained. The repo's
-       TokenMeta.price is already a string like "0.014 ETH"; replace
+       OutputMeta.price is already a string like "0.014 ETH"; replace
        trailing " ETH" to match sim verbatim. */
     const priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
     const titleAttr = `${projectTitle} #${id}${meta?.price ? ` · ${meta.price}` : ''}`;
