@@ -15,14 +15,17 @@
  *
  * Build #11 wallet wiring — three .btn-user states:
  *
- *   1. Disconnected  (no wallet paired)
+ *   1. Disconnected  (no wallet paired, no SIWE session)
  *      ↳ button renders collapsed (icon-only ⟠), `.expanded` off.
  *      ↳ click → useConnectModal().openConnectModal()
- *        Opens RainbowKit's connect modal. Wagmi's onSuccess wires
- *        through to AuthContext's auto-sign useEffect, which fires
- *        the SIWE flow (nonce → sign → verify) without any further
- *        user click. After verify, AuthContext sets siweAddress and
- *        the button transitions to state 3.
+ *        Opens RainbowKit's connect modal. RainbowKit then runs the
+ *        full connect → SIWE-sign → verify cycle inside that single
+ *        modal session, no further user clicks beyond the wallet's
+ *        own approval sheets. The auth adapter (wired in
+ *        WalletProviders) fires `onAuthenticated(address)` on
+ *        verify-success, which flips InnerProviders' siweAddress +
+ *        status; AuthContext propagates that to this button and the
+ *        button transitions to state 3.
  *
  *   2. Authenticating  (wallet paired, SIWE in flight)
  *      ↳ button renders collapsed icon-only — same shape as state 1
