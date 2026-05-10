@@ -35,8 +35,8 @@
  * The whole component renders the modal element on every render,
  * gating internals on `id != null` rather than early-returning.
  *
- * Data routing: token metadata comes from ProjectContext via
- * useTokenMeta(id). The modal no longer owns the LCG seed math —
+ * Data routing: output metadata comes from ProjectContext via
+ * useOutputMeta(id). The modal no longer owns the LCG seed math —
  * swapping the indexer in is a single-file change in ProjectContext
  * with zero diff here.
  */
@@ -53,7 +53,7 @@ import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useProject } from '../lib/state/ProjectContext';
-import { useTokenMeta } from '../lib/hooks/useTokenMeta';
+import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     getGrails,
     subscribeGrails,
@@ -79,7 +79,7 @@ export default function OutputPreview() {
     const { openCalcSheet } = useCalcSheet();
     const { title, totalEditions, floorEth } = useProject();
     const { notifs } = usePdNotifs();
-    const { openTokenNoteEditor } = useNotePrompt();
+    const { openOutputNoteEditor } = useNotePrompt();
 
     /* F50 (BUG-02) — grail pins now live in lib/pins/grailStore so
        ArtworkCard's hover icon, the TopBarRow pill row, and this modal
@@ -169,9 +169,9 @@ export default function OutputPreview() {
         }
     };
 
-    /* Token metadata — id-keyed lookup over ProjectContext. Returns
+    /* Output metadata — id-keyed lookup over ProjectContext. Returns
        null when the modal is closed or id is unmapped. */
-    const meta = useTokenMeta(id);
+    const meta = useOutputMeta(id);
 
     /* Canvas placeholder render. Real ArtEngine wiring is its own ship;
        this paints a stable HSL gradient + radial glow + #id stamp so the
@@ -450,14 +450,14 @@ export default function OutputPreview() {
                                 onClick={() => {
                                     /* D015 (chat #5) — sim 5395:
                                        openNotePrompt(event, currentModalId).
-                                       Token-kind branch of NotePromptContext;
+                                       Output-kind branch of NotePromptContext;
                                        opens with empty initialValue → edit
                                        mode for fresh notes, view-mode for
                                        already-saved (NotePromptModal reads
                                        initialValue from pd_token_notes via
                                        the provider). */
                                     if (currentModalId !== null) {
-                                        openTokenNoteEditor(currentModalId);
+                                        openOutputNoteEditor(currentModalId);
                                     }
                                 }}
                             >

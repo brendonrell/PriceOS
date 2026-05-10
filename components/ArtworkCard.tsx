@@ -80,7 +80,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject } from '../lib/state/ProjectContext';
-import { useTokenMeta } from '../lib/hooks/useTokenMeta';
+import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
     unregisterCanvas,
@@ -164,8 +164,8 @@ export default function ArtworkCard({
     const { showToast } = useToast();
     const { title: projectTitle } = useProject();
     const { notifs } = usePdNotifs();
-    const { openTokenNoteEditor } = useNotePrompt();
-    const meta = useTokenMeta(id);
+    const { openOutputNoteEditor } = useNotePrompt();
+    const meta = useOutputMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     /* Build 35 — wrapper ref so the virtualizer can observe this card's
        canvas-wrapper directly (data-id is set on the wrapper to match
@@ -581,7 +581,7 @@ export default function ArtworkCard({
                         overlays a 4-block tile: id / 2-cell trait grid /
                         price. Sim's two trait cells are 'gateway' +
                         'spectrum'; the React port stores Layer + Mineral
-                        on TokenMeta — same 2-trait pattern, different
+                        on OutputMeta — same 2-trait pattern, different
                         names per Build 19's pool migration. We render
                         Layer + Mineral here for parity with the sim's
                         2-cell grid shape.
@@ -694,7 +694,7 @@ export default function ArtworkCard({
                                        always visible (was body.notes-mode
                                        gated, sim deviation). */
                                     e.stopPropagation();
-                                    openTokenNoteEditor(id);
+                                    openOutputNoteEditor(id);
                                 }}
                             >
                                 {'\u229F\uFE0E'}
