@@ -4,14 +4,15 @@
  *   GET    → returns { address: string | null }
  *            Read the current session cookie and return the
  *            authenticated address (lowercased), or null if no SIWE
- *            session is active. Used by AuthContext on mount to
- *            hydrate after a full-page reload.
+ *            session is active. Used by the wallet provider on
+ *            mount to hydrate after a full-page reload.
  *
  *   POST   → { message, signature } → { address }
  *            Verify a SIWE { message, signature } pair against the
- *            nonce stashed during /api/auth/nonce. On success, write
- *            the recovered address into the session cookie and
- *            return it. On failure, 400 / 401.
+ *            nonce stashed during /api/auth/nonce AND against the
+ *            request's host (domain binding). On success, write the
+ *            recovered address into the session cookie and return
+ *            it. On failure, 400 / 401.
  *
  *   DELETE → { ok: true }
  *            Destroy the session cookie. Wallet disconnect is the
@@ -20,7 +21,8 @@
  *
  * iron-session is the storage layer (signed + encrypted cookie, no
  * server-side store). `verifySiweMessage()` in lib/auth/siwe.ts wraps
- * the `siwe` package's verifier and enforces nonce + signature match.
+ * the `siwe` package's verifier and enforces nonce + domain +
+ * (when present in the message) expirationTime.
  *
  * The route is force-dynamic because every verb mutates or reads the
  * session cookie — caching or static optimization here is wrong.
@@ -66,7 +68,23 @@ export async function POST(req: NextRequest) {
         return badRequest('No nonce on session — call /api/auth/nonce first');
     }
 
-    const result = await verifySiweMessage(message, signature, expectedNonce);
+    /* Domain binding. The signed SIWE message carries a `domain` field
+       the client populated from `window.location.host`; passing this
+       request's host to siwe.verify() forces the two to match, which
+       blocks a signature minted against one origin from being replayed
+       against another. `req.headers.get('host')` is the user-agent's
+       view of the host — same value the browser used when populating
+       the message — so the comparison is symmetric. Behind a proxy
+       Next.js still surfaces the host the request was made against;
+       no x-forwarded-host massaging needed for our deploy. */
+    const expectedDomain = req.headers.get('host') ?? undefined;
+
+    const result = await verifySiweMessage(
+        message,
+        signature,
+        expectedNonce,
+        expectedDomain
+    );
     if (!result) {
         return unauthorized('SIWE verification failed');
     }
