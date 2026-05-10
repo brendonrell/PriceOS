@@ -1,41 +1,68 @@
 /*
  * wagmiConfig — Launch Cut wallet stack.
  *
- * Manual `createConfig` instead of RainbowKit's `getDefaultConfig`.
- * `getDefaultConfig` requires a WalletConnect Cloud projectId at
- * build time and throws during SSG when missing — which blocked the
- * launch-cut build. This config sidesteps WalletConnect entirely:
+ * Uses RainbowKit's `connectorsForWallets` so the modal renders proper
+ * branded wallet entries (icons, deep-links, install URLs, etc.) — raw
+ * wagmi connectors don't carry the metadata RainbowKit's UI needs, which
+ * is why a previous iteration of this file shipped an empty modal.
  *
- *   - injected()       — MetaMask, Rainbow browser ext, any EIP-1193
- *                        wallet exposed as window.ethereum
- *   - coinbaseWallet() — Coinbase Wallet (extension + mobile passkey)
+ * Wallet roster:
+ *   - injectedWallet     — any EIP-1193 wallet exposed as window.ethereum
+ *   - metaMaskWallet     — MetaMask (extension on desktop, deep-link on mobile)
+ *   - rainbowWallet      — Rainbow (extension on desktop, deep-link on mobile)
+ *   - coinbaseWallet     — Coinbase Wallet (extension + mobile passkey)
+ *   - walletConnectWallet — generic WC scan-QR fallback for any mobile wallet
  *
- * RainbowKit's modal still renders, just showing the connectors above
- * instead of the full WalletConnect-class list (mobile QR wallets).
- * Acceptable launch-cut tradeoff — desktop users with browser
- * extensions cover the early audience, and WalletConnect adds back
- * later via `walletConnect()` connector when the projectId env var
- * is sorted.
+ * `projectId` comes from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. RainbowKit
+ * uses it for the WalletConnect-based wallet entries (rainbowWallet,
+ * walletConnectWallet, and metaMaskWallet's mobile deep-link). If the env
+ * var isn't injected at build time, fall back to a placeholder string so
+ * `connectorsForWallets` doesn't throw at SSG — those specific wallets
+ * just won't connect at runtime if the placeholder is used. The modal
+ * itself still renders.
  *
- * Mainnet-only at launch — Kiki + every PD project deploys to
- * Ethereum mainnet. Multi-chain support lands when a project ships
- * on a different L1/L2.
- *
- * `ssr: true` keeps wagmi's SSR-safe rendering shape (everyone
- * disconnected on the server, hydrate from localStorage on the
- * client).
+ * Mainnet-only at launch. `ssr: true` keeps wagmi's SSR-safe rendering.
  */
 
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+    coinbaseWallet,
+    injectedWallet,
+    metaMaskWallet,
+    rainbowWallet,
+    walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 import { createConfig, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { coinbaseWallet, injected } from 'wagmi/connectors';
+
+const projectId =
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'pd-launch-cut';
+
+const connectors = connectorsForWallets(
+    [
+        {
+            groupName: 'Popular',
+            wallets: [
+                injectedWallet,
+                metaMaskWallet,
+                rainbowWallet,
+                coinbaseWallet,
+                walletConnectWallet,
+            ],
+        },
+    ],
+    {
+        appName: 'Price Discussion',
+        appDescription:
+            'A web3 social platform where the community discussing secondary prices is the product.',
+        appUrl: 'https://pricediscussion.com',
+        projectId,
+    }
+);
 
 export const wagmiConfig = createConfig({
     chains: [mainnet],
-    connectors: [
-        injected(),
-        coinbaseWallet({ appName: 'Price Discussion' }),
-    ],
+    connectors,
     transports: {
         [mainnet.id]: http(),
     },
