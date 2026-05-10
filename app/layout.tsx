@@ -15,6 +15,7 @@ import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
+import { WalletProviders } from '../components/wallet/WalletProviders';
 
 export const metadata: Metadata = {
     title: 'Price Discussion',
@@ -207,35 +208,37 @@ export default function RootLayout({
             </head>
             <body>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
-                <ThemeProvider>
-                    <PersonaProvider>
-                        <PdNotifsProvider>
-                            <SortProvider>
-                                <ModalProvider>
-                                    <DropdownProvider>
-                                        <ToastProvider>
-                                            <CalendarProvider>
-                                                <NotePromptProvider>
-                                                    <ValuePromptProvider>
-                                                        <CalcSheetProvider>
-                                                            <ProjectProvider>
-                                                                <CartProvider>
-                                                                    <WorkspacesProvider>
-                                                                        <PriceOSShell>{children}</PriceOSShell>
-                                                                    </WorkspacesProvider>
-                                                                </CartProvider>
-                                                            </ProjectProvider>
-                                                        </CalcSheetProvider>
-                                                    </ValuePromptProvider>
-                                                </NotePromptProvider>
-                                            </CalendarProvider>
-                                        </ToastProvider>
-                                    </DropdownProvider>
-                                </ModalProvider>
-                            </SortProvider>
-                        </PdNotifsProvider>
-                    </PersonaProvider>
-                </ThemeProvider>
+                <WalletProviders>
+                    <ThemeProvider>
+                        <PersonaProvider>
+                            <PdNotifsProvider>
+                                <SortProvider>
+                                    <ModalProvider>
+                                        <DropdownProvider>
+                                            <ToastProvider>
+                                                <CalendarProvider>
+                                                    <NotePromptProvider>
+                                                        <ValuePromptProvider>
+                                                            <CalcSheetProvider>
+                                                                <ProjectProvider>
+                                                                    <CartProvider>
+                                                                        <WorkspacesProvider>
+                                                                            <PriceOSShell>{children}</PriceOSShell>
+                                                                        </WorkspacesProvider>
+                                                                    </CartProvider>
+                                                                </ProjectProvider>
+                                                            </CalcSheetProvider>
+                                                        </ValuePromptProvider>
+                                                    </NotePromptProvider>
+                                                </CalendarProvider>
+                                            </ToastProvider>
+                                        </DropdownProvider>
+                                    </ModalProvider>
+                                </SortProvider>
+                            </PdNotifsProvider>
+                        </PersonaProvider>
+                    </ThemeProvider>
+                </WalletProviders>
             </body>
         </html>
     );
