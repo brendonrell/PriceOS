@@ -16,7 +16,7 @@
  * State source: CartContext.useCart() — items / panelOpen / mutators all
  * consumed from the same provider that drives the navbar Cart button.
  *
- * Token meta source: useProject().tokens at the top level (one Map
+ * Output meta source: useProject().outputs at the top level (one Map
  * lookup per id during the subtotal pass). Sim reads `metaCache[id]`
  * directly in _renderCartPanel for the same reason — avoids per-row
  * hook overhead. Mock thumbnails follow OutputPreview's HSL gradient
@@ -117,7 +117,7 @@ function CartItemRow({ id, projectTitle, priceStr, onRemove }: RowProps) {
 
 export default function CartPanel() {
     const { items, panelOpen, remove, buyAll, closePanel } = useCart();
-    const { title, tokens } = useProject();
+    const { title, outputs } = useProject();
     const { showToast } = useToast();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
@@ -158,7 +158,7 @@ export default function CartPanel() {
         let sub = 0;
         const r: { id: number; priceStr: string }[] = [];
         for (const id of items) {
-            const meta = tokens.get(id);
+            const meta = outputs.get(id);
             const eth = parseEth(meta?.price);
             sub += eth;
             r.push({
@@ -167,7 +167,7 @@ export default function CartPanel() {
             });
         }
         return { rows: r, subtotal: sub };
-    }, [items, tokens]);
+    }, [items, outputs]);
 
     /* Fees model — sim 11815: 8% on subtotal + flat gas × N. */
     const fees = subtotal * CART_FEE_RATE + CART_GAS_PER_ITEM * items.length;

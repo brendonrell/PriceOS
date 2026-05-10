@@ -17,6 +17,8 @@
  *   markup ............. sim.html 5357–5421
  *   openModal/nav ...... sim.html 8725–8825
  *   toggleGrailPin ..... sim.html 12413–12442
+ *   modal-fields-wrap .. sim.html 3146–3155 (CSS) + 5423 (collectorsModal exemplar)
+ *   btn-mint ........... sim.html 2253–2258 (CSS) + 5149 (project-page hero exemplar)
  *
  * Surfaces deferred (each rides with its own ship):
  *   - ArtEngine canvas render → seeded HSL placeholder for now;
@@ -30,6 +32,43 @@
  * D011 (chat #4) — Modal mute overlay wired via muteStore + currentModalId.
  * D015 (chat #5) — Note ⊟ pill wired via NotePromptContext token kind.
  *
+ * v1 (Launch Cut step 2, 2026-05-10) — four new surfaces ported into the
+ * modal-info column between pill-row and bottom-bar. Sim doesn't have a
+ * per-output preview equivalent of these (sim's modal stops at pills);
+ * each surface composes from sim's existing modal vocabulary, NOT from
+ * new classnames:
+ *   - TRAITS  — modal-fields-wrap > modal-fields grid; 3 lbl/val rows
+ *               from OutputMeta.traits (Layer / Mineral / Fate). Pulled
+ *               in-memory from ProjectContext, no fetch.
+ *   - OFFERS  — modal-fields-wrap.collectors-list scrollable list of
+ *               lbl/val rows. Mocked inline for v1 (CTO call: dedicated
+ *               /api/output/[id]/offers route lands when the offers
+ *               feature firms up; mock is deterministic per id via
+ *               LCG so prev/next reads as distinct outputs).
+ *   - HISTORY — modal-fields-wrap.collectors-list rendered from the
+ *               existing /api/output/[id] response.history (EventRow[]).
+ *               Fetched on isOpen + id change with cancellation guard;
+ *               loading + empty states render in modal-stat style.
+ *   - MINT    — btn-mint stub with mint-lbl + mint-price spans. Always
+ *               visible regardless of ownership/listing state per spec
+ *               ("just the surface"). Click → toast, no wallet wiring.
+ *
+ * v1 section dividers use sim's .modal-stats-bottom (sim 3159 — dashed
+ * border-top + Courier 13px) so headers align with existing modal
+ * typography. No new CSS classnames introduced.
+ *
+ * Open drift (parked, not addressed in v1):
+ *   - /api/output/[id] returns KikiTraits (Palette/Mode/Encounter/State)
+ *     while OutputMeta.traits holds PRISMS-shape (Layer/Mineral/Fate).
+ *     v1 surfaces from OutputMeta per Brendon's spec; the API trait
+ *     shape will get re-shaped when the indexer + per-project trait
+ *     definitions land.
+ *   - ProjectContext exposes `title` ("PRISMS") but no `slug`. We
+ *     derive slug = title.toLowerCase() inline for the history fetch
+ *     URL; lift slug into ProjectState when a second consumer needs it.
+ *   - events.token_id holds slug-edition strings ("prisms-1"), see
+ *     Step 7b parked open question.
+ *
  * Hooks discipline (locked rule from session bootstrap): every hook
  * sits at the top of the component, before any conditional return.
  * The whole component renders the modal element on every render,
@@ -42,8 +81,10 @@
  */
 
 import {
+    Fragment,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
     type MouseEvent as ReactMouseEvent,
@@ -67,11 +108,98 @@ import {
 } from '../lib/pins/muteStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+/* v1 — type-only import. The route file ships the OutputDetailResponse
+   contract (see app/api/output/[id]/route.ts:18); pulling the type here
+   keeps the modal's history fetch shape-locked to the API without a
+   parallel local definition. EventRow[] arrives transitively. */
+import type { OutputDetailResponse } from '../app/api/output/[id]/route';
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
    text-style form (mono, no emoji colour). Required for every Unicode
    glyph the modal paints; matches sim's `&#xFE0E;` everywhere. */
 const VS15 = '\uFE0E';
+
+/* v1 — relative-time formatter for the HISTORY section. Sim's feed uses
+   absolute time labels ("12:04 PM") but those only make sense in a
+   live ticker; per-output history reads more naturally as relative ago
+   since events span days/weeks. Keeps the column compact (≤6 chars). */
+function timeAgo(iso: string): string {
+    const then = new Date(iso).getTime();
+    if (!Number.isFinite(then)) return '—';
+    const diffMs = Date.now() - then;
+    if (diffMs < 0) return 'now';
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const day = Math.floor(hr / 24);
+    if (day < 30) return `${day}d ago`;
+    const mo = Math.floor(day / 30);
+    if (mo < 12) return `${mo}mo ago`;
+    const yr = Math.floor(day / 365);
+    return `${yr}y ago`;
+}
+
+/* v1 — abbreviate an Ethereum address for the to/from columns of the
+   HISTORY section. Sim's ownerDisplay format is `0xf7c0…3690` (sim
+   5383); mirrors the same head/tail truncation. Returns the input
+   unchanged for handles or other non-hex strings. */
+function shortAddr(addr: string | null | undefined): string {
+    if (!addr) return '—';
+    if (addr.startsWith('0x') && addr.length > 10) {
+        return `${addr.slice(0, 6)}\u2026${addr.slice(-4)}`;
+    }
+    return addr;
+}
+
+/* v1 — deterministic mock offers per output id. Same id → same shape on
+   every refresh, matching the OutputMeta LCG discipline. The offers
+   API doesn't exist yet (CTO call: mock inline for v1, dedicated
+   /api/output/[id]/offers route lands when the offers feature does);
+   this seed survives the swap by keeping shape compatible with what
+   that route is likely to return. Deletes 0–4 offers per output so
+   prev/next nav reads as visibly different. */
+const MOCK_OFFER_USERS = [
+    '@matty',
+    '@gmoney',
+    '@cspok',
+    '@Darold',
+    '@thefunnyguys',
+    '@atlasforge',
+    '@willpop',
+    '@Trinity',
+] as const;
+
+interface MockOffer {
+    id: string;
+    who: string;
+    eth: string;
+    timestampIso: string;
+}
+
+function buildMockOffers(outputId: number): MockOffer[] {
+    const seed = (outputId * 2654435761) >>> 0;
+    const count = seed % 5; /* 0..4 */
+    const now = Date.now();
+    return Array.from({ length: count }, (_, i) => {
+        const sub = ((seed * (i + 7)) >>> 0);
+        const user = MOCK_OFFER_USERS[sub % MOCK_OFFER_USERS.length];
+        /* Spread offers across 0.0010..0.0210 ETH in 0.0001 steps. */
+        const eth = (((sub % 200) + 10) / 10000).toFixed(4);
+        /* Stagger ages 1..72 hours back so the relative-time labels
+           render with variety. */
+        const hoursBack = ((sub >>> 8) % 72) + 1;
+        const timestampIso = new Date(now - hoursBack * 3600_000).toISOString();
+        return {
+            id: `${outputId}-offer-${i}`,
+            who: user,
+            eth,
+            timestampIso,
+        };
+    });
+}
 
 export default function OutputPreview() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
@@ -172,6 +300,58 @@ export default function OutputPreview() {
     /* Output metadata — id-keyed lookup over ProjectContext. Returns
        null when the modal is closed or id is unmapped. */
     const meta = useOutputMeta(id);
+
+    /* v1 — HISTORY surface. Fetches /api/output/[id] on isOpen + id
+       change and stores the response (history: EventRow[]) for
+       rendering. The cancellation guard prevents a stale fetch from
+       overwriting state if the user navigates with prev/next before
+       the previous request resolves. AbortController would be an
+       upgrade; the cancelled flag is sufficient for v1.
+
+       Slug derivation: ProjectContext exposes `title` ("PRISMS") only;
+       the API route expects `{slug}-{edition}` shape. Lower-casing
+       title is correct for the demo project — when ProjectContext
+       grows beyond a single project, hoist `slug` into ProjectState.
+
+       The detail object also carries the API's KikiTraits, but TRAITS
+       in v1 surfaces from OutputMeta (PRISMS-shape) — see header
+       comment for the parked drift. detail is HISTORY-only here. */
+    const [detail, setDetail] = useState<OutputDetailResponse | null>(null);
+    const [detailError, setDetailError] = useState(false);
+    useEffect(() => {
+        if (!isOpen || id == null) {
+            setDetail(null);
+            setDetailError(false);
+            return;
+        }
+        let cancelled = false;
+        setDetail(null);
+        setDetailError(false);
+        const slug = title.toLowerCase();
+        fetch(`/api/output/${slug}-${id}`)
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json() as Promise<OutputDetailResponse>;
+            })
+            .then((j) => {
+                if (!cancelled) setDetail(j);
+            })
+            .catch(() => {
+                if (!cancelled) setDetailError(true);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen, id, title]);
+
+    /* v1 — OFFERS surface. Mocked inline (CTO call locked: dedicated
+       route lands with the offers feature). useMemo keeps the array
+       reference stable per id so the list doesn't reconcile on every
+       parent render. */
+    const offers = useMemo(
+        () => (id == null ? [] : buildMockOffers(id)),
+        [id]
+    );
 
     /* Canvas placeholder render. Real ArtEngine wiring is its own ship;
        this paints a stable HSL gradient + radial glow + #id stamp so the
@@ -478,6 +658,168 @@ export default function OutputPreview() {
                                 {`\u2197${VS15}`}
                             </span>
                         </div>
+
+                        {/* v1 — TRAITS. Pulled from OutputMeta in-memory;
+                            no fetch. Three-row label/value grid using
+                            sim's modal-fields vocabulary (sim 3146-3148). */}
+                        <div className="modal-stats-bottom">TRAITS</div>
+                        <div className="modal-fields-wrap">
+                            <div className="modal-fields" id="mTraits">
+                                <span className="mf-lbl">Layer</span>
+                                <span className="mf-val">{meta.traits.Layer}</span>
+                                <span className="mf-lbl">Mineral</span>
+                                <span className="mf-val">{meta.traits.Mineral}</span>
+                                <span className="mf-lbl">Fate</span>
+                                <span className="mf-val">{meta.traits.Fate}</span>
+                            </div>
+                        </div>
+
+                        {/* v1 — OFFERS. Mocked inline per CTO call.
+                            Scrollable via .collectors-list (sim 3157)
+                            once count exceeds the 250px clamp. Empty
+                            state mirrors sim's modal-stat opacity for
+                            quiet visual weight. */}
+                        <div className="modal-stats-bottom">OFFERS</div>
+                        {offers.length === 0 ? (
+                            <div className="modal-stats-row">
+                                <span className="modal-stat">No offers</span>
+                            </div>
+                        ) : (
+                            <div
+                                className="modal-fields-wrap collectors-list"
+                                id="mOffers"
+                            >
+                                <div className="modal-fields">
+                                    {offers.map((o) => (
+                                        <Fragment key={o.id}>
+                                            <span className="mf-lbl">
+                                                {o.who}
+                                            </span>
+                                            <span className="mf-val">
+                                                {o.eth} ETH
+                                                {' \u00B7 '}
+                                                {timeAgo(o.timestampIso)}
+                                            </span>
+                                        </Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* v1 — HISTORY. Sourced from /api/output/[id].
+                            EventRow[] currently mock-seeds 3 events
+                            (MINT, LIST, SALE) until the indexer is
+                            live. Loading + error states render in
+                            modal-stat dim style. */}
+                        <div className="modal-stats-bottom">HISTORY</div>
+                        {detailError ? (
+                            <div className="modal-stats-row">
+                                <span className="modal-stat">
+                                    History unavailable
+                                </span>
+                            </div>
+                        ) : !detail ? (
+                            <div className="modal-stats-row">
+                                <span className="modal-stat">Loading\u2026</span>
+                            </div>
+                        ) : detail.history.length === 0 ? (
+                            <div className="modal-stats-row">
+                                <span className="modal-stat">No history</span>
+                            </div>
+                        ) : (
+                            <div
+                                className="modal-fields-wrap collectors-list"
+                                id="mHistory"
+                            >
+                                <div className="modal-fields">
+                                    {detail.history.map((ev) => {
+                                        /* Per-type detail string. MINT
+                                           reads "to @minter", LIST
+                                           reads "by @from at price",
+                                           SALE reads "to @to at price".
+                                           Falls through to a generic
+                                           summary for unknown event
+                                           types so future EventType
+                                           additions don't drop out
+                                           silently. */
+                                        let body: ReactNode = null;
+                                        const price = ev.price_eth
+                                            ? `${ev.price_eth} ETH`
+                                            : null;
+                                        const ago = timeAgo(ev.timestamp);
+                                        if (ev.type === 'MINT') {
+                                            body = (
+                                                <>
+                                                    {shortAddr(ev.to_address)}
+                                                    {price
+                                                        ? ` \u00B7 ${price}`
+                                                        : ''}
+                                                    {' \u00B7 '}
+                                                    {ago}
+                                                </>
+                                            );
+                                        } else if (ev.type === 'LIST') {
+                                            body = (
+                                                <>
+                                                    {price ?? '\u2014'}
+                                                    {' \u00B7 '}
+                                                    {ago}
+                                                </>
+                                            );
+                                        } else if (ev.type === 'SALE') {
+                                            body = (
+                                                <>
+                                                    {shortAddr(ev.to_address)}
+                                                    {price
+                                                        ? ` \u00B7 ${price}`
+                                                        : ''}
+                                                    {' \u00B7 '}
+                                                    {ago}
+                                                </>
+                                            );
+                                        } else {
+                                            body = (
+                                                <>
+                                                    {price ?? '\u2014'}
+                                                    {' \u00B7 '}
+                                                    {ago}
+                                                </>
+                                            );
+                                        }
+                                        return (
+                                            <Fragment key={ev.id}>
+                                                <span className="mf-lbl">
+                                                    {ev.type}
+                                                </span>
+                                                <span className="mf-val">
+                                                    {body}
+                                                </span>
+                                            </Fragment>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* v1 — MINT button stub. Always visible per
+                            spec ("just the surface"); zero wallet
+                            wiring. Uses sim's btn-mint vocabulary
+                            (sim 2253-2258 + sim 5149 hero exemplar).
+                            Action button BUY/LIST/MAKE OFFER stays
+                            in modal-bottom-bar — this stub is a
+                            distinct mint-window primitive that the
+                            mint flow ship will light up. */}
+                        <div className="modal-stats-bottom">MINT</div>
+                        <button
+                            type="button"
+                            className="btn-mint"
+                            id="mMintStub"
+                            onClick={() => showToast('Mint — coming soon')}
+                            title="Mint this output"
+                        >
+                            <span className="mint-lbl">MINT</span>
+                            <span className="mint-price">(0.014 ETH)</span>
+                        </button>
                     </div>
 
                     <div className="modal-bottom-bar" id="mBottomBar">
