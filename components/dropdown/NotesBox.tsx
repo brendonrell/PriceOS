@@ -11,8 +11,8 @@
  * and Tape.
  *
  * D013 (chat #5 — Notes feature parity, sim 4922-4951 + 6598-6603):
- * each list item's onClick wires to NotePromptContext's token-kind
- * branch via openTokenNoteEditor(numericId, MOCK_DEMO_NOTES[id]).
+ * each list item's onClick wires to NotePromptContext's output-kind
+ * branch via openOutputNoteEditor(numericId, MOCK_DEMO_NOTES[id]).
  *
  *   1. The list-item id-string '#22' is parsed to its numeric form 22.
  *   2. MOCK_DEMO_NOTES[22] (the longer expanded body) is passed as the
@@ -21,7 +21,7 @@
  *        if (!tokenNotes[id] && demoNotes[id]) tokenNotes[id] = demoNotes[id];
  *      Subsequent opens (after the demo text has been written to
  *      pd_token_notes) skip the seed because the existing-value guard
- *      inside openTokenNoteEditor short-circuits.
+ *      inside openOutputNoteEditor short-circuits.
  *   3. e.stopPropagation prevents the click from bubbling up to the
  *      AccordionBox header (which would collapse the accordion).
  *
@@ -43,7 +43,7 @@ const DELETED_KEY = 'pd_notes_deleted';
 
 export function NotesBox() {
     const { notifs, setAccordion } = usePdNotifs();
-    const { openTokenNoteEditor } = useNotePrompt();
+    const { openOutputNoteEditor } = useNotePrompt();
     const { showToast } = useToast();
 
     const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
@@ -99,7 +99,7 @@ export function NotesBox() {
                 const handleClick = (e: React.MouseEvent) => {
                     e.stopPropagation();
                     if (Number.isNaN(numericId)) return;
-                    openTokenNoteEditor(
+                    openOutputNoteEditor(
                         numericId,
                         MOCK_DEMO_NOTES[numericId]
                     );
