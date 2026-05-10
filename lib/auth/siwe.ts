@@ -85,17 +85,32 @@ export async function verifySiweSession(_request: NextRequest): Promise<string |
  * to establish a session. Returns the recovered address (lowercase) and the
  * nonce on success, or null on any failure.
  *
- * The expectedNonce should be the value previously stored in the session by
+ * `expectedNonce` should be the value previously stored in the session by
  * /api/auth/nonce, so replays are rejected.
+ *
+ * `expectedDomain` should be the request's host (e.g. from
+ * `req.headers.get('host')`). siwe.verify() compares it against the `domain`
+ * field baked into the signed message and rejects on mismatch — without this,
+ * the message's claimed domain is recovered but never enforced, leaving room
+ * for a signature minted against one domain to be replayed against another.
+ *
+ * `expirationTime` validation is handled inside siwe.verify() automatically
+ * if the message includes one (our client always sets it; defence-in-depth
+ * against an outdated client builds is the only reason to check explicitly).
  */
 export async function verifySiweMessage(
   message: string,
   signature: string,
-  expectedNonce?: string
+  expectedNonce: string | undefined,
+  expectedDomain: string | undefined
 ): Promise<{ address: string; nonce: string } | null> {
   try {
     const siwe = new SiweMessage(message);
-    const result = await siwe.verify({ signature, nonce: expectedNonce });
+    const result = await siwe.verify({
+      signature,
+      nonce: expectedNonce,
+      domain: expectedDomain,
+    });
     if (!result.success) return null;
     return {
       address: result.data.address.toLowerCase(),
