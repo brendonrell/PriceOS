@@ -66,6 +66,16 @@ export function createAuthAdapter(options: AuthAdapterOptions) {
             });
         },
 
+        /* RainbowKit calls this to convert the SiweMessage object
+           returned by `createMessage` into the EIP-4361 string the
+           wallet actually signs. Without it RainbowKit serializes the
+           object via fallback logic (often JSON.stringify) and the
+           wallet rejects with "invalid parameters" because the result
+           isn't a valid SIWE string. */
+        getMessageBody: ({ message }) => {
+            return (message as SiweMessage).prepareMessage();
+        },
+
         verify: async ({ message, signature }) => {
             const messageBody =
                 typeof message === 'string'
