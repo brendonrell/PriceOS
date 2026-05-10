@@ -1,38 +1,35 @@
 /*
- * Navbar — Launch Cut, stripped to wallet-era surface.
+ * Navbar
  *
- * Slots (left → right):
- *   1. PeteyLogo       — left side, PD wordmark, click rotates and
- *                        opens the home/$PRICE bubble.
- *   2. UserMenuButtons — right side. Wraps the .user-menu-wrapper
- *                        cluster (cart, .btn-user Connect/address pill,
- *                        DropdownStack). Wallet-wired: btn-user opens
- *                        the RainbowKit modal when disconnected and
- *                        toggles the menu when authenticated.
- *
- * Build #11 (Launch Cut wallet + Top Bar strip) — TopBarRow + Ticker
- * un-mounted from the launch surface. Sim chrome they owned (calendar
- * row, incognito pill, hammer pill, RPC ping, grail pills, Bloomberg
- * tape) is post-launch and lives outside the launch-cut scope. The
- * components themselves stay on disk so a future build can re-mount
- * them without re-implementing.
- *
- * Stripped from this Navbar:
- *   - <TopBarRow />   (calendar / incognito / hammer / RPC / grails)
- *   - <Ticker />      (Bloomberg-style scrolling tape mid-navbar)
- *
- * Kept:
- *   - <PeteyLogo />        (PD wordmark — core identity)
- *   - <UserMenuButtons />  (cart + Connect + dropdown stack)
+ * Slots (left → right inside .navbar, with .top-bar above):
+ *   1. TopBarRow        — .top-bar wrapper. Sim's calendar row +
+ *                         grail/incognito/hammer/RPC row in one element.
+ *                         Owns id="topBar" so we never duplicate it from
+ *                         child components.
+ *   2. PeteyLogo        — PD wordmark, click rotates and opens the
+ *                         home/$PRICE bubble.
+ *   3. Ticker           — Bloomberg-style scrolling tape mid-navbar.
+ *                         Sim ref L4431-4433: third child between
+ *                         .pd-logo-wrap and .nav-controls.
+ *   4. UserMenuButtons  — right side. Wraps the .user-menu-wrapper
+ *                         cluster (cart, PriceSprite, ❹❷ level badge,
+ *                         .btn-user Connect/address pill) plus the
+ *                         DropdownStack beneath. Wallet-wired: btn-user
+ *                         opens the RainbowKit modal when disconnected,
+ *                         toggles the menu when authenticated.
  */
 
 import { PeteyLogo } from './PeteyLogo';
+import { Ticker } from './Ticker';
+import { TopBarRow } from './TopBarRow';
 import { UserMenuButtons } from './UserMenuButtons';
 
 export function Navbar() {
     return (
         <nav className="navbar">
+            <TopBarRow />
             <PeteyLogo />
+            <Ticker />
             <UserMenuButtons />
         </nav>
     );

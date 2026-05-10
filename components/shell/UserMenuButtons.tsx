@@ -1,65 +1,64 @@
 'use client';
 
 /*
- * UserMenuButtons — Launch Cut wallet wiring.
+ * UserMenuButtons
  *
  * The right-side cluster of the navbar PLUS the dropdown stack itself
  * (the stack lives inside .user-menu-wrapper because it positions
  * absolutely relative to it).
  *
- * Build #11 strip:
- *   - PriceSprite + ❹❷ level badge un-mounted (post-launch level/
- *     familiar mechanic, not in launch cut surface set). The
- *     priceSpriteEngine + ModalContext('priceSprite') stay on disk
- *     for future re-mount; this component just stops rendering them.
+ * Children left → right:
+ *   - Cart button       (.btn-cart, hidden by CSS until .has-items)
+ *   - PriceSprite       (.ascii-sprite-wrap, hidden by CSS until .active)
+ *   - Level badge       (.ascii-pfp-badge ❹❷, hidden by CSS until .active)
+ *   - Connect button    (.btn-user — three wallet states, see below)
+ *   - DropdownStack     (renders below .user-menu-wrapper)
  *
- * Build #11 wallet wiring — three .btn-user states:
+ * Click flow:
+ *   - Wrapper carries .active when menu open (CSS reveals sprite/badge
+ *     and the dropdown stack)
+ *   - Click outside menu OR Esc → DropdownContext effect closes it
  *
- *   1. Disconnected  (no wallet paired, no SIWE session)
- *      ↳ button renders collapsed (icon-only ⟠), `.expanded` off.
- *      ↳ click → useConnectModal().openConnectModal()
- *        Opens RainbowKit's connect modal. RainbowKit then runs the
- *        full connect → SIWE-sign → verify cycle inside that single
- *        modal session, no further user clicks beyond the wallet's
- *        own approval sheets. The auth adapter (wired in
- *        WalletProviders) fires `onAuthenticated(address)` on
- *        verify-success, which flips InnerProviders' siweAddress +
- *        status; AuthContext propagates that to this button and the
- *        button transitions to state 3.
+ * Connect button — three wallet states:
+ *   1. Disconnected  → icon-only ⟠. Click opens the RainbowKit modal
+ *                      via useConnectModal().openConnectModal(). User-text
+ *                      reads "Connect" but CSS hides it when not .expanded.
+ *   2. Authenticating → icon-only ⟠. Click is a no-op — the wallet's own
+ *                       sign-prompt is already on screen and clicking
+ *                       again would be confusing.
+ *   3. Authenticated → expanded address pill (sim's 0xf7c0…3690 format).
+ *                      Click toggles the dropdown menu open/closed.
+ *                      .expanded stays on permanently while signed in so
+ *                      the address pill is always visible as the user's
+ *                      identity marker.
  *
- *   2. Authenticating  (wallet paired, SIWE in flight)
- *      ↳ button renders collapsed icon-only — same shape as state 1
- *        because the user just saw the connect modal close and a
- *        wallet sign-prompt appear. Showing the address pill mid-flight
- *        would be a lie (server hasn't verified yet). Click is a no-op
- *        during this transient state.
+ * Modal openers (Build 5):
+ *   - Cart button → CartContext.openPanel(). .has-items toggles via
+ *     items.length > 0 (sim 11748–11754). Count badge: N up to 99, "99+".
+ *   - PriceSprite + level badge → ModalContext.open('priceSprite').
+ *     Both wrap their click in stopPropagation so the menu doesn't
+ *     toggle out from under the modal (sim 4449, 4452).
  *
- *   3. Authenticated  (SIWE session cookie set)
- *      ↳ button renders expanded with truncated address pill
- *        (`0xf7c0…3690`, sim's 5383 format used in OutputMeta.ownerDisplay).
- *      ↳ click → toggleMenu() (existing dropdown behavior)
- *
- * Address truncation matches OutputPreview.shortAddr — same `0x` head
- * + `\u2026` (…) ellipsis + last 4. Inlined locally because lifting
- * to a shared util is scope creep for one tiny helper.
- *
- * Cart button — unchanged. Cart can have items even when wallet isn't
- * connected (browse + queue purchases, sign in to BUY). `.has-items`
- * still gates display via globals.css; cartCount badge still uses the
- * `99+` overflow rule.
- *
- * The .expanded class is always-on when authenticated. Sim only
- * applies it on menu-open (so the button collapses again when menu
- * closes). For wallet-era PD the address pill is the user's identity
- * marker — it stays expanded permanently while signed in, then
- * collapses to icon-only after sign-out.
+ * Sprite engine wiring:
+ *   - getSpriteFrame() seeds initial face/transform/sleeping state.
+ *   - subscribeSprite() re-renders on blink / turn / yawn / sleep frames.
+ *   - wakeSprite() fires on menu open so the user sees an awake face
+ *     instead of catching the sprite mid-yawn (sim 12213-12219).
  */
 
+import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { DropdownStack } from '../dropdown/DropdownStack';
+import {
+    getSpriteFrame,
+    subscribeSprite,
+    wakeSprite,
+    type SpriteFrame,
+} from '../../lib/engines/priceSpriteEngine';
 
 /* Inline mirror of OutputPreview.shortAddr. Kept local rather than
    shared because the truncation pattern is one line and lifting it
@@ -71,22 +70,41 @@ function shortAddr(addr: string): string {
 
 export function UserMenuButtons() {
     const { menuOpen, toggleMenu, closeMenu } = useDropdown();
+    const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, isAuthenticating } = useAuth();
     const { openConnectModal } = useConnectModal();
 
+    /* Mirror priceSpriteEngine state into local component state so
+       React re-renders on every blink / turn / yawn / sleep frame.
+       Sim mutates DOM directly inside render() (sim 12114-12143);
+       React port hooks the same engine via subscribeSprite(). */
+    const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
+    useEffect(() => {
+        setFrame(getSpriteFrame());
+        const unsubscribe = subscribeSprite(() => {
+            setFrame(getSpriteFrame());
+        });
+        return unsubscribe;
+    }, []);
+
+    /* Sim 12213-12219 — when the user opens the connect menu, snap a
+       sleeping/yawning sprite awake so the user sees an awake face on
+       open. resetIdleTimer also fires for an already-awake sprite. */
+    useEffect(() => {
+        if (menuOpen) wakeSprite();
+    }, [menuOpen]);
+
     const isAuthed = !!siweAddress;
 
-    /* Wrapper carries .active when menu is open (CSS reveals dropdown
-       stack). The cart + sprite + badge sibling reveals are no longer
-       relevant since sprite/badge are stripped, but .active still
-       drives the .dropdown-stack visibility transition. */
+    /* Wrapper carries .active when menu open (CSS reveals sprite +
+       badge + dropdown stack). */
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
 
-    /* .expanded always on when authenticated (address pill visible).
-       Falls back to menu-open expansion only when authed AND closed —
-       same end result, but explicit. When disconnected/authenticating,
-       button stays collapsed (icon-only). */
+    /* .expanded always-on when authenticated (address pill stays
+       visible as the user's identity marker even when the menu is
+       closed). Falls back to icon-only when disconnected /
+       authenticating. */
     const buttonClass = `btn-user${isAuthed ? ' expanded' : ''}`;
 
     const cartCount = items.length;
@@ -104,11 +122,10 @@ export function UserMenuButtons() {
             return;
         }
         if (isAuthenticating) {
-            // Wallet sign-prompt is up; clicking again would be confusing.
             return;
         }
-        // Disconnected — open RainbowKit modal. `openConnectModal` is
-        // undefined while RainbowKit is initialising; guard with `?.()`.
+        // `openConnectModal` is undefined while RainbowKit is
+        // initialising; guard with `?.()`.
         openConnectModal?.();
     };
 
@@ -147,6 +164,42 @@ export function UserMenuButtons() {
                     {cartBadgeText}
                 </span>
             </button>
+
+            {/* PriceSprite — hidden by CSS until .active. Click opens
+                the PriceSprite modal (sim 4449). */}
+            <div
+                className="ascii-sprite-wrap"
+                id="asciiSpriteWrap"
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    openModal('priceSprite');
+                }}
+            >
+                <span
+                    className={`ascii-sprite${frame.sleeping ? ' sleeping' : ''}`}
+                    id="asciiSprite"
+                    style={{ transform: frame.transform, display: 'inline-block' }}
+                >
+                    {frame.face}
+                </span>
+            </div>
+
+            {/* Level badge — hidden by CSS until .active. Click also
+                opens the PriceSprite modal (sim 4452). */}
+            <span
+                className="ascii-pfp-badge"
+                id="asciiPfpBadge"
+                aria-label="Level 42"
+                title="Level 42"
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    openModal('priceSprite');
+                }}
+            >
+                ❹❷
+            </span>
 
             {/* Connect button — three states (see top-of-file comment). */}
             <button
