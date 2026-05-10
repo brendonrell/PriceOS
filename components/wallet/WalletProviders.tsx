@@ -14,21 +14,32 @@
  *             <AuthContext.Provider>
  *               {children}
  *
- * `InnerProviders` is the brain. It:
+ * Server-side hydration (both layers):
+ *
+ *   - `initialState` is wagmi's connection state, parsed from this
+ *     request's cookie header by `cookieToInitialState` in layout.tsx.
+ *     Pre-populating WagmiProvider with it means the first paint shows
+ *     the user as connected if their wagmi.store cookie says so —
+ *     instead of flashing disconnected before client-side cookie
+ *     rehydration runs.
+ *
+ *   - `initialAuth` is the SIWE address read from this request's
+ *     iron-session cookie by `getSession()` in layout.tsx. When the
+ *     layout supplied it, InnerProviders boots straight to
+ *     `authenticated`/`unauthenticated` and skips the hydration GET
+ *     entirely — that GET was always going to ask the same cookie the
+ *     server just answered. When `initialAuth === undefined` (legacy
+ *     callers, or env-var failure path), InnerProviders falls back to
+ *     the GET-on-mount behavior.
+ *
+ * InnerProviders' job:
  *   - holds React state for `status` (RainbowKit's auth status enum:
  *     loading | authenticated | unauthenticated) and `siweAddress`
- *   - hydrates that state on mount via GET /api/auth/siwe
  *   - constructs the RainbowKit auth adapter with closure callbacks
  *     that flip the local state when a sign succeeds or sign-out fires
  *   - watches wagmi's connection state and signs the user out when
  *     they disconnect or swap addresses (server cookie + local state)
  *   - exposes the Auth context to consumers via AuthProvider
- *
- * The `initialState` prop comes from the layout's server component
- * (read from cookies via `cookieToInitialState`). Pre-populating
- * wagmi's state on first paint avoids the disconnected-flash that
- * normally happens before localStorage rehydration. With cookieStorage
- * configured in wagmiConfig, this round-trip is server-readable.
  */
 
 import {
@@ -57,41 +68,64 @@ import { AuthContextProvider } from '../../lib/state/AuthContext';
 
 interface WalletProvidersProps {
     children: ReactNode;
-    /** Hydrated wagmi state from server-side cookie read in layout.tsx.
-        Lets the first paint already show wagmi as connected if a valid
-        session cookie exists, instead of flashing disconnected. */
+    /** Hydrated wagmi state from server-side cookie read in layout.tsx
+        via `cookieToInitialState(wagmiConfig, cookieHeader)`. */
     initialState?: WagmiState;
+    /** Lowercased SIWE address from server-side iron-session read in
+        layout.tsx via `getSession()`. `null` = server confirms no
+        session; `undefined` = layout didn't supply (fall back to
+        client-side GET on mount). */
+    initialAuth?: string | null;
 }
 
 export function WalletProviders({
     children,
     initialState,
+    initialAuth,
 }: WalletProvidersProps) {
     const [queryClient] = useState(() => new QueryClient());
 
     return (
         <WagmiProvider config={wagmiConfig} initialState={initialState}>
             <QueryClientProvider client={queryClient}>
-                <InnerProviders>{children}</InnerProviders>
+                <InnerProviders initialAuth={initialAuth}>
+                    {children}
+                </InnerProviders>
             </QueryClientProvider>
         </WagmiProvider>
     );
 }
 
-function InnerProviders({ children }: { children: ReactNode }) {
+interface InnerProvidersProps {
+    children: ReactNode;
+    initialAuth?: string | null;
+}
+
+function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
     const { address, isConnected } = useAccount();
     const { disconnect } = useDisconnect();
 
-    /* RainbowKit auth status — `loading` until the hydration GET
-       resolves, then `authenticated` (cookie valid) or `unauthenticated`
-       (no cookie). RainbowKit reads this and gates the modal flow. */
-    const [status, setStatus] = useState<AuthenticationStatus>('loading');
-    const [siweAddress, setSiweAddress] = useState<string | null>(null);
+    /* Server-supplied auth means we already know the answer at first
+       render. `undefined` = fall back to the legacy GET-on-mount path. */
+    const hasServerAuth = initialAuth !== undefined;
 
-    /* Hydrate from server on mount. Server returns { address: null }
-       when no cookie is present (200, not 401). Flip status either way
-       so the modal isn't stuck on `loading` forever. */
+    /* RainbowKit auth status. With server props we boot straight into
+       a final state — no `loading` flicker, no race against the GET
+       round-trip. Without them, boot to `loading` and let the
+       fallback effect resolve it. */
+    const [status, setStatus] = useState<AuthenticationStatus>(() => {
+        if (!hasServerAuth) return 'loading';
+        return initialAuth ? 'authenticated' : 'unauthenticated';
+    });
+    const [siweAddress, setSiweAddress] = useState<string | null>(() =>
+        hasServerAuth ? initialAuth ?? null : null
+    );
+
+    /* Fallback hydration. Only runs when the layout didn't pass
+       initialAuth (defensive — env-var failure path, legacy callers).
+       With layout wired correctly this branch is dead code. */
     useEffect(() => {
+        if (hasServerAuth) return;
         let cancelled = false;
         fetch('/api/auth/siwe', {
             method: 'GET',
@@ -113,7 +147,7 @@ function InnerProviders({ children }: { children: ReactNode }) {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [hasServerAuth]);
 
     /* RainbowKit auth adapter, built once per mount. Closure callbacks
        flip the local state when verify() succeeds or signOut() fires. */
@@ -134,8 +168,12 @@ function InnerProviders({ children }: { children: ReactNode }) {
 
     /* If wagmi disconnects (or address swaps), drop the SIWE session
        too — leaving the cookie around after a wallet swap would let a
-       different account's session leak forward. Best-effort delete + 
-       wagmi disconnect already handled inside `signOutFull` below. */
+       different account's session leak forward. The `status` early-
+       return prevents double-firing when signOutFull already set
+       status to 'unauthenticated' before calling disconnect(): React
+       18 batches the state updates from signOutFull, so by the time
+       this effect runs in response to the isConnected flip, status
+       is already 'unauthenticated' and we exit immediately. */
     useEffect(() => {
         if (status !== 'authenticated') return;
         if (!isConnected) {
@@ -159,9 +197,11 @@ function InnerProviders({ children }: { children: ReactNode }) {
         }
     }, [isConnected, address, status, siweAddress]);
 
-    /* Full sign-out: server cookie + wagmi disconnect + local state.
-       Exposed to children via AuthContext so LinksView's Log Out can
-       call it. */
+    /* Full sign-out: server cookie + local state + wagmi disconnect.
+       Order matters: setStatus('unauthenticated') before disconnect()
+       so that the watcher useEffect above sees status !== 'authenticated'
+       on its next run (driven by the isConnected flip) and early-
+       returns instead of issuing a redundant second DELETE. */
     const signOutFull = async () => {
         await serverSignOut();
         setSiweAddress(null);
