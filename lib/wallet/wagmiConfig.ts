@@ -1,42 +1,43 @@
 /*
  * wagmiConfig — Launch Cut wallet stack.
  *
- * RainbowKit's `getDefaultConfig` bundles wagmi connectors (injected,
- * WalletConnect, Coinbase, etc.), default transports, and the
- * appName/appDescription metadata that wallets surface when prompting
- * the user. Everything ships through the WalletConnect Cloud
- * `projectId` — required by the WalletConnect connector even for
- * non-WC wallets (RainbowKit also uses it for analytics).
+ * Manual `createConfig` instead of RainbowKit's `getDefaultConfig`.
+ * `getDefaultConfig` requires a WalletConnect Cloud projectId at
+ * build time and throws during SSG when missing — which blocked the
+ * launch-cut build. This config sidesteps WalletConnect entirely:
  *
- * The projectId comes from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`,
- * which Brendon needs to set in Vercel (all three environments) before
- * the connect modal will show WalletConnect-class wallets. Missing
- * projectId still allows browser-extension wallets (MetaMask /
- * Rainbow Browser / etc.) to connect via the injected connector — the
- * UX just degrades for users on mobile / no extension.
+ *   - injected()       — MetaMask, Rainbow browser ext, any EIP-1193
+ *                        wallet exposed as window.ethereum
+ *   - coinbaseWallet() — Coinbase Wallet (extension + mobile passkey)
  *
- * `ssr: true` tells wagmi to render a stable shape during SSR
- * (everyone disconnected on the server) and hydrate from
- * localStorage on the client. We accept one paint of "Connect" before
- * hydration restores the address pill — same behaviour Coinbase /
- * Uniswap / OpenSea ship with on Next.js App Router.
+ * RainbowKit's modal still renders, just showing the connectors above
+ * instead of the full WalletConnect-class list (mobile QR wallets).
+ * Acceptable launch-cut tradeoff — desktop users with browser
+ * extensions cover the early audience, and WalletConnect adds back
+ * later via `walletConnect()` connector when the projectId env var
+ * is sorted.
  *
- * Mainnet-only at launch — Kiki + every other PD project deploys to
+ * Mainnet-only at launch — Kiki + every PD project deploys to
  * Ethereum mainnet. Multi-chain support lands when a project ships
  * on a different L1/L2.
+ *
+ * `ssr: true` keeps wagmi's SSR-safe rendering shape (everyone
+ * disconnected on the server, hydrate from localStorage on the
+ * client).
  */
 
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { createConfig, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
+import { coinbaseWallet, injected } from 'wagmi/connectors';
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '';
-
-export const wagmiConfig = getDefaultConfig({
-    appName: 'Price Discussion',
-    appDescription:
-        'A web3 social platform where the community discussing secondary prices is the product.',
-    appUrl: 'https://pricediscussion.com',
-    projectId: PROJECT_ID,
+export const wagmiConfig = createConfig({
     chains: [mainnet],
+    connectors: [
+        injected(),
+        coinbaseWallet({ appName: 'Price Discussion' }),
+    ],
+    transports: {
+        [mainnet.id]: http(),
+    },
     ssr: true,
 });
