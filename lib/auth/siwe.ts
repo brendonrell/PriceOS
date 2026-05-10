@@ -12,17 +12,23 @@ import { unauthorized } from '@/lib/errors';
 // iron-session. No server-side session store needed.
 //
 // Lifecycle:
-//   1. Client requests a nonce from a future POST /api/auth/nonce route, which
-//      writes a fresh nonce into the session.
+//   1. Client requests a nonce from POST /api/auth/nonce, which writes a
+//      fresh nonce into the session.
 //   2. Client signs an EIP-4361 message containing that nonce with their wallet.
-//   3. Client POSTs { message, signature } to a future POST /api/auth/verify
-//      route, which calls verifySiweMessage() below and, on success, writes
-//      the recovered address into the session.
+//   3. Client POSTs { message, signature } to POST /api/auth/siwe, which calls
+//      verifySiweMessage() below and, on success, writes the recovered address
+//      into the session.
 //   4. Subsequent write requests pass through requireAuth(), which reads the
 //      session via verifySiweSession() and rejects if no address is present.
 //
-// The /api/auth/nonce and /api/auth/verify route handlers are intentionally
-// not part of this scaffold — they ship alongside the wallet-connect UI.
+// Persistence: 14 days (set explicitly via SESSION_TTL_SECONDS). iron-session's
+// default ttl is also 14 days, but pinning it here is self-documenting and
+// removes the implicit dependency on the library's default. Cookie maxAge
+// follows ttl. Renewals: iron-session refreshes the cookie's maxAge on every
+// session.save() call — meaning every time we touch the session (issue a nonce,
+// verify SIWE, etc.) the 14-day window resets. A user signing in once and then
+// browsing for a week stays signed in indefinitely as long as they keep using
+// the site. This meets Brendon's ≥1-week persistence bar with margin.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface SiweSession {
@@ -33,6 +39,7 @@ export interface SiweSession {
 }
 
 const SESSION_COOKIE_NAME = 'pd_siwe_session';
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 14; // 14 days.
 
 function sessionOptions(): SessionOptions {
   const password = process.env.SIWE_SESSION_SECRET;
@@ -44,11 +51,13 @@ function sessionOptions(): SessionOptions {
   return {
     cookieName: SESSION_COOKIE_NAME,
     password,
+    ttl: SESSION_TTL_SECONDS,
     cookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      maxAge: SESSION_TTL_SECONDS,
     },
   };
 }
@@ -72,9 +81,9 @@ export async function verifySiweSession(_request: NextRequest): Promise<string |
 }
 
 /**
- * Verify a raw SIWE { message, signature } pair. Used by the future
- * POST /api/auth/verify route to establish a session. Returns the recovered
- * address (lowercase) and the nonce on success, or null on any failure.
+ * Verify a raw SIWE { message, signature } pair. Used by POST /api/auth/siwe
+ * to establish a session. Returns the recovered address (lowercase) and the
+ * nonce on success, or null on any failure.
  *
  * The expectedNonce should be the value previously stored in the session by
  * /api/auth/nonce, so replays are rejected.
