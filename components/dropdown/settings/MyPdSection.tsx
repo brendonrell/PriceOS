@@ -244,7 +244,12 @@ export function MyPdSection({ onTripleTap }: Props) {
     return (
         <>
             <div id="myPdHeaderWrap">
-                <div className={`setup-code-row${isAuthed ? '' : ' auth-gated'}`}>
+                {/* Brendon S5 May 11 — MY PD header + setup code stay live
+                   when !isAuthed. Setup code is a local-preference apply
+                   surface, doesn't require auth. The MY PD header is also
+                   the triple-tap entry into the Spell Book; gating it dead
+                   on logged-out kills Spell Book access entirely. */}
+                <div className="setup-code-row">
                     <div
                         className="settings-header"
                         id="myPdHeader"
