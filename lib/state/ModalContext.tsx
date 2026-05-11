@@ -34,7 +34,8 @@ export type ModalName =
     | 'followers'
     | 'priceSprite'
     | 'familiar'
-    | 'priceos';
+    | 'priceos'
+    | 'gasTracker';
 
 interface OpenModalState {
     name: ModalName;
