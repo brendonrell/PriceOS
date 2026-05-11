@@ -46,6 +46,7 @@ import { useDropdown } from '../../lib/state/DropdownContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import { useToast } from '../../lib/state/ToastContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import {
     MOCK_ARTISTS,
     REL_ICONS,
@@ -81,6 +82,17 @@ export function ArtistsView() {
     const { setView } = useDropdown();
     const { showToast } = useToast();
     const { openArtistNoteEditor } = useNotePrompt();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
+
+    /* S2 logged-out preview — strip personal-relationship affordances:
+       no pin/note/rel icons per row, no filter pills for starred/notes/
+       mutual/following/followers. The cooldown/active status filters
+       and the search input stay (those reflect public artist state,
+       not the viewer's relationship). */
+    const visibleFilterPills = isAuthed
+        ? FILTER_PILLS
+        : FILTER_PILLS.filter((p) => p.key === 'cooldown' || p.key === 'active');
 
     // Pinned: array (preserves insertion order) backed by localStorage.
     const [pinned, setPinned] = useLocalStorage<string[]>('pd_artist_pinned', []);
@@ -224,6 +236,7 @@ export function ArtistsView() {
                                         e.stopPropagation();
                                         togglePin(a.name);
                                     }}
+                                    style={isAuthed ? undefined : { display: 'none' }}
                                 >
                                     {isPinned ? '\u2605\uFE0E' : '\u2606\uFE0E'}
                                 </span>
@@ -235,10 +248,11 @@ export function ArtistsView() {
                                         e.stopPropagation();
                                         openArtistNoteEditor(a.name);
                                     }}
+                                    style={isAuthed ? undefined : { display: 'none' }}
                                 >
                                     {'\u2ACF\uFE0E'}
                                 </span>
-                                {a.rel !== 'none' && (
+                                {isAuthed && a.rel !== 'none' && (
                                     <span
                                         className="artist-rel-icon"
                                         data-rel-type={a.rel}
@@ -275,7 +289,7 @@ export function ArtistsView() {
                     onChange={(e) => setSearch(e.target.value)}
                 />
                 <div className="artist-filter-pills">
-                    {FILTER_PILLS.map((p) => (
+                    {visibleFilterPills.map((p) => (
                         <div
                             key={p.key}
                             className={`pill-artist-filter${
