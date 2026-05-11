@@ -1259,27 +1259,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
 body.zen-mode .priceos-footer { display: none !important; }
 
-/* S4 page 3234 — footer fixed to viewport bottom (sim carve-out).
-   Sim leaves the footer in normal flow; PD pins it so it stays visible
-   on long-scroll surfaces (project pages, calendar day-detail, etc.).
-   Body bottom padding clears the fixed footer so the last item in main
-   doesn't sit under it. Zen / zero-context modes zero the padding
-   since both already hide the footer via the rules above. */
-.priceos-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 5;
-    background: var(--bg-color);
-}
-main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
-@media (max-width: 600px) {
-    main { padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
-}
-body.zen-mode main,
-body.zero-context-mode main { padding-bottom: 0; }
-
 
 /* ============================================================
    THE TAPE (top-bar ticker — empty in step 2/3/4)
