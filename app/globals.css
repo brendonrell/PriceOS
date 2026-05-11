@@ -2550,6 +2550,21 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-icon-spent {
     min-width: 22px;
     justify-content: center;
+    /* Brendon S5 May 11 — vertical grid alignment. Each .stat-icon's
+       intrinsic height tracks its font-size (13-23px depending on
+       class). That makes grid row 1's height jump above row 2's
+       (row 1's # owners glyph is 23px on mobile while row 2's icons
+       are 14-15px), producing visible vertical drift between rows.
+       Lock every icon slot to a uniform height with line-height:1
+       so cell heights match regardless of font-size. Glyphs still
+       receive their per-class font-size for visual weight; only the
+       container box stops growing. */
+    height: 22px;
+    line-height: 1;
+}
+.stats-row-2 .stat-item-anchor .stat-icon-box {
+    height: 22px;
+    line-height: 1;
 }
 @media (max-width: 600px) {
     .stats-row .stat-icon-box,
@@ -2558,6 +2573,10 @@ body.persona-default .stats-row-2 { display: none !important; }
     .stats-row-2 .stat-icon-owned,
     .stats-row-2 .stat-icon-spent {
         min-width: 26px;
+        height: 26px;
+    }
+    .stats-row-2 .stat-item-anchor .stat-icon-box {
+        height: 26px;
     }
 }
 /* Brendon-list-3 chat A item 3 — anchor empty state: low-opacity rectangle
@@ -3860,14 +3879,15 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     font-family: 'Courier New', Courier, monospace;
     z-index: 1;
     opacity: 0.9;
-    /* Brendon S5 call (May 11 dev preview screenshot). Star glyphs
-       (✶/✹/✦/✸) at 18px in a 14px box with .feed-row's
-       align-items:flex-start sit visually above the text rows.
-       First pass was top:3px which overshot — glyphs landed below
-       the text. 1px nudge keeps a clean visual without crossing
-       center. Sim deviation; don't revert under "match sim" passes. */
+    /* Brendon S5 May 11 — feed-row star glyphs (✶/✹/✦/✸ at 18px in
+       a 14px box with .feed-row's align-items:flex-start) sit visually
+       BELOW the text rows because at this font-size the glyph's
+       geometric center lands below the text's visual middle in the
+       row's cross-axis. Push UP with negative top. First two passes
+       had this inverted — pushed DOWN further, which was wrong. Sim
+       deviation; don't revert under "match sim" passes. */
     position: relative;
-    top: 1px;
+    top: -3px;
 }
 .f-time {
     width: 90px;
