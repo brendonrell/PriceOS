@@ -39,9 +39,24 @@
  *   incognito / rpc-ping buttons, and PRICE balance toggle all become
  *   inert. The block stays visible so the logged-out user sees the
  *   shape of their future Settings panel.
+ *
+ * S3 live wallet data:
+ *   When isAuthed, the displayed values pull from live sources rather
+ *   than hardcoded mocks:
+ *     - handle      → shortAddr(siweAddress)
+ *     - ensPills    → useEnsName({ address, chainId: 1 }) — wraps the
+ *                     single resolved primary ENS in an array; empty
+ *                     when no ENS resolves. Multi-ENS list parks
+ *                     until the indexer ships.
+ *     - balance     → usePriceBalance(siweAddress).balanceFormatted
+ *                     (one-shot per address per Tier 2 cost arch — no
+ *                     polling on per-user data)
+ *   When !isAuthed, the PLACEHOLDER_* constants fill in so the S2
+ *   gated preview keeps its full shape under the auth-gated class.
  */
 
 import { useEffect, useState } from 'react';
+import { useEnsName } from 'wagmi';
 import {
     isIncognitoActive,
     subscribeIncognito,
@@ -55,30 +70,76 @@ import {
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
+import { usePriceBalance } from '../../../lib/hooks/usePriceBalance';
 
-const HANDLE = '0x1234...abcd';
+/* Placeholder values shown while !isAuthed so the S2 logged-out preview
+   keeps its full shape (opacity 0.4 + pointer-events: none — the gating
+   class handles the inertness). When authed, these are replaced with
+   live data from siweAddress / useEnsName / usePriceBalance. */
+const PLACEHOLDER_HANDLE = '0x1234...abcd';
+const PLACEHOLDER_FULL_ADDRESS = '0x1234567890abcdef1234567890abcdef1234abcd';
+const PLACEHOLDER_ENS_PILLS = ['name.eth', 'name.$PRICE.eth'];
+const PLACEHOLDER_BALANCE = '17,450.54';
 
-const ENS_PILLS = [
-    'pricediscussion.eth',
-    'brendon.eth',
-    'brendon.$PRICE.eth',
-    'brendonrell.$PRICE.eth',
-    'pd.$PRICE.eth',
-    'pricediscussion.$PRICE.eth',
-    'founder.$PRICE.eth',
-    '22.$PRICE.eth',
-];
-
-const INITIAL_BALANCE = '17,450.54';
+function shortAddr(addr: string): string {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
 
 export function WalletSection() {
+    const { showToast } = useToast();
+    const { notifs, toggle: toggleNotif } = usePdNotifs();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
+    const gatedClass = isAuthed ? '' : ' auth-gated';
+
+    /* S3 — live wallet display. Multi-ENS list parks until the indexer
+       lands; for now we show the single primary ENS (if one resolves)
+       per address. When !isAuthed, fall back to PLACEHOLDER_* so the
+       S2 gated-preview shape stays intact. */
+    const ensQuery = useEnsName({
+        address: (siweAddress ?? undefined) as `0x${string}` | undefined,
+        chainId: 1,
+    });
+    const ensName = ensQuery.data ?? null;
+
+    const priceBalance = usePriceBalance(siweAddress);
+
+    const handle = isAuthed && siweAddress
+        ? shortAddr(siweAddress)
+        : PLACEHOLDER_HANDLE;
+    const fullAddress = isAuthed && siweAddress
+        ? siweAddress
+        : PLACEHOLDER_FULL_ADDRESS;
+    const ensPills: string[] = isAuthed
+        ? ensName
+            ? [ensName]
+            : []
+        : PLACEHOLDER_ENS_PILLS;
+    const balanceDisplay = isAuthed
+        ? priceBalance.balanceFormatted ?? '—'
+        : PLACEHOLDER_BALANCE;
+
     // F2: ENS pills behave as a toggle — tapping the active pill again
     // deselects it (no active pill). Mirrors sim's selectENS, which removes
     // the active class from all pills, then re-adds it only if the click
     // target wasn't already active. So `activeEns` can be null.
-    const [activeEns, setActiveEns] = useState<string | null>(ENS_PILLS[0]);
+    const [activeEns, setActiveEns] = useState<string | null>(null);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
+
+    /* Sync activeEns with the live pill list — set it to the first
+       pill when one becomes available, clear it if the current active
+       pill disappears (e.g., wallet swap). */
+    useEffect(() => {
+        if (ensPills.length === 0) {
+            if (activeEns !== null) setActiveEns(null);
+            return;
+        }
+        if (activeEns === null || !ensPills.includes(activeEns)) {
+            setActiveEns(ensPills[0]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ensPills.join('|')]);
 
     // Build 33 — engine state mirrors. Both engines are session-only
     // singletons; on first hydrate they read `false`, then stay
@@ -95,12 +156,6 @@ export function WalletSection() {
             offInc();
         };
     }, []);
-
-    const { showToast } = useToast();
-    const { notifs, toggle: toggleNotif } = usePdNotifs();
-    const { siweAddress } = useAuth();
-    const isAuthed = !!siweAddress;
-    const gatedClass = isAuthed ? '' : ' auth-gated';
 
     const handleRpcPing = () => {
         const nowActive = engineToggleRpcPing();
@@ -124,9 +179,7 @@ export function WalletSection() {
         // it doesnt react"). Toast on success + on clipboard failure
         // so the user always sees the click registered.
         try {
-            await navigator.clipboard?.writeText(
-                '0x1234567890abcdef1234567890abcdef1234abcd'
-            );
+            await navigator.clipboard?.writeText(fullAddress);
             showToast('Wallet Address Copied');
         } catch {
             showToast('Copy Failed');
@@ -134,15 +187,15 @@ export function WalletSection() {
     };
 
     // Only show the …more affordance when there are more than 3 pills.
-    const showMoreBtn = ENS_PILLS.length > 3;
+    const showMoreBtn = ensPills.length > 3;
 
     // Which pills are visible in the collapsed state — first 3 pills,
     // bumping the active one in if it's beyond the cutoff.
     const collapsedVisible = (() => {
-        if (ENS_PILLS.length <= 3) return new Set(ENS_PILLS);
+        if (ensPills.length <= 3) return new Set(ensPills);
         const visible = new Set<string>();
-        if (activeEns && ENS_PILLS.indexOf(activeEns) >= 0) visible.add(activeEns);
-        for (const p of ENS_PILLS) {
+        if (activeEns && ensPills.indexOf(activeEns) >= 0) visible.add(activeEns);
+        for (const p of ensPills) {
             if (visible.size >= 3) break;
             visible.add(p);
         }
@@ -151,9 +204,9 @@ export function WalletSection() {
 
     // Expanded state pill split — first half → row 1, second half → row 2.
     // Math.ceil biases row 1 to one more pill when the count is odd.
-    const splitIndex = Math.ceil(ENS_PILLS.length / 2);
-    const pillsRow1 = ENS_PILLS.slice(0, splitIndex);
-    const pillsRow2 = ENS_PILLS.slice(splitIndex);
+    const splitIndex = Math.ceil(ensPills.length / 2);
+    const pillsRow1 = ensPills.slice(0, splitIndex);
+    const pillsRow2 = ensPills.slice(splitIndex);
 
     const renderPill = (ens: string) => {
         const isActive = ens === activeEns;
@@ -204,7 +257,7 @@ export function WalletSection() {
                 }}
                 title="Copy wallet address"
             >
-                {HANDLE} <span className="icon-copy">⧉{'\uFE0E'}</span>
+                {handle} <span className="icon-copy">⧉{'\uFE0E'}</span>
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"
@@ -255,7 +308,7 @@ export function WalletSection() {
                     </>
                 ) : (
                     <>
-                        {ENS_PILLS.filter((p) => collapsedVisible.has(p)).map(renderPill)}
+                        {ensPills.filter((p) => collapsedVisible.has(p)).map(renderPill)}
                         {moreButton}
                     </>
                 )}
@@ -287,7 +340,7 @@ export function WalletSection() {
                 title="Toggle balance visibility"
             >
                 <span id="priceBalanceText">
-                    {balanceHidden ? '***' : INITIAL_BALANCE}
+                    {balanceHidden ? '***' : balanceDisplay}
                 </span>{' '}
                 PRICE
                 <span
