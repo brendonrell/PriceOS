@@ -3887,7 +3887,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
        had this inverted — pushed DOWN further, which was wrong. Sim
        deviation; don't revert under "match sim" passes. */
     position: relative;
-    top: -3px;
+    top: -5px;
 }
 .f-time {
     width: 90px;
