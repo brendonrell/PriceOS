@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * rpcEngine — Build 33 D23
+ * rpcEngine — Build 33 D23 + S3
  *
  * Sim refs: 12453-12504 (RPC LATENCY PING ENGINE).
  *
@@ -30,10 +30,25 @@
  *   ms < 150 → 'ok'   (#ffe44e)
  *   else     → 'slow' (#ff6b35)
  *
- * Simulation parameters (sim 12468-12475): seed at 28ms, drift each
- * tick by (rand-0.48)*22, 7% chance of a 80-260ms spike, clamped to
- * 8-400ms. Tick interval 4000-8000ms randomized per tick (matches
- * sim 12494). Same numbers, same skew — visual fidelity to sim.
+ * S3 — realPing swap (replaces sim's simulateTick):
+ *   The sim's simulated-latency drift is gone. Each tick now fires
+ *   GET /api/rpc-ping, which itself runs eth_blockNumber against
+ *   Alchemy and returns the server-measured round-trip in ms.
+ *   The 4-8s tick cadence and visibility-pause are preserved exactly
+ *   so the user-visible behavior (pill flickers on, value updates
+ *   every few seconds, color tier per latency) doesn't change shape
+ *   — only the source of the number does. The fetch result is
+ *   clamped into the sim's 8-400ms window so the quality-tier
+ *   classifier keeps working with the same boundaries.
+ *
+ *   Failure modes: a non-2xx response or a thrown fetch error pins
+ *   the value at 400ms (slow tier), which surfaces network trouble
+ *   in the UI without crashing the engine. Toggle-off mid-fetch
+ *   no-ops the resolve via the `state.active` re-check, so a stale
+ *   resolution can't revive a disabled ping.
+ *
+ *   The /api/rpc-ping route is itself revalidated at 4s, so coincident
+ *   ticks across many clients collapse to one Alchemy hit per window.
  *
  * Toast on toggle is intentionally NOT fired here; sim does it inline
  * in `triggerRpcPing` but the toast surface is a React Context. The
@@ -62,23 +77,39 @@ function qualityClass(ms: number): 'good' | 'ok' | 'slow' {
     return 'slow';
 }
 
-function simulateTick() {
+async function realPing() {
     if (typeof document !== 'undefined' && document.hidden) return;
-    const prev = state.ms ?? 28;
-    const drift = (Math.random() - 0.48) * 22;
-    const spike = Math.random() < 0.07 ? Math.random() * 180 + 80 : 0;
-    const next = Math.max(8, Math.min(400, Math.round(prev + drift + spike)));
-    state = { active: state.active, ms: next };
-    notify();
+    if (!state.active) return;
+    try {
+        const res = await fetch('/api/rpc-ping');
+        if (!state.active) return; // toggled off mid-fetch
+        if (!res.ok) {
+            state = { active: state.active, ms: 400 };
+            notify();
+            return;
+        }
+        const json = (await res.json()) as { ms: number };
+        if (!state.active) return;
+        const clamped = Math.max(8, Math.min(400, Math.round(json.ms)));
+        state = { active: state.active, ms: clamped };
+        notify();
+    } catch {
+        if (!state.active) return;
+        state = { active: state.active, ms: 400 };
+        notify();
+    }
 }
 
 function scheduleNext() {
     // Sim 12494: setInterval(_simulateRpc, 4000 + Math.random()*4000) — but
     // setInterval gives a fixed cadence per call. Sim re-randomizes each
     // run by re-creating the interval; the React port mirrors that with a
-    // chained setTimeout that re-rolls every tick.
+    // chained setTimeout that re-rolls every tick. realPing is fire-and-
+    // forget — its async resolve writes state via notify when it lands;
+    // we don't await it so the 4-8s cadence is unaffected by network
+    // round-trip duration.
     timer = setTimeout(() => {
-        simulateTick();
+        realPing();
         if (state.active) scheduleNext();
     }, 4000 + Math.random() * 4000);
 }
@@ -118,7 +149,9 @@ export function toggleRpcPing(): boolean {
     notify();
     // Fire one immediate tick so the pill shows a number right away
     // (matches sim 12492: `_simulateRpc()` called before scheduling).
-    simulateTick();
+    // realPing is async; we don't await — the resolve will notify when
+    // the round-trip lands.
+    realPing();
     scheduleNext();
     return true;
 }
