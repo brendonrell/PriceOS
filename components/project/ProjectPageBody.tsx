@@ -719,13 +719,22 @@ function ProjectPageBodyInner() {
                             <span
                                 className="stat-item"
                                 title="Editions Minted / Total Supply"
+                                onClick={() =>
+                                    showToast(
+                                        'Editions Minted / Total Supply'
+                                    )
+                                }
                             >
                                 <span className="stat-icon stat-icon-box">
                                     ⬚&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val">198/222</span>
                             </span>
-                            <span className="stat-item stat-item-vol">
+                            <span
+                                className="stat-item stat-item-vol"
+                                title="Total Volume"
+                                onClick={() => showToast('Total Volume')}
+                            >
                                 <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
                                 <span className="stat-val stat-val-vol">14 VOL</span>
                             </span>
@@ -771,7 +780,11 @@ function ProjectPageBodyInner() {
                                   Spent". Renders reliably across desktop
                                   + iOS where ⎵ does not).
                                 Anchor (col 3) untouched. */}
-                            <span className="stat-item" title="Percent Listed">
+                            <span
+                                className="stat-item"
+                                title="Percent Listed"
+                                onClick={() => showToast('Percent Listed')}
+                            >
                                 <span className="stat-icon stat-icon-box stat-icon-owned">
                                     ⊡&#xFE0E;
                                 </span>{' '}
@@ -782,6 +795,7 @@ function ProjectPageBodyInner() {
                             <span
                                 className="stat-item"
                                 title="Floor Price"
+                                onClick={() => showToast('Floor Price')}
                             >
                                 <span className="stat-icon stat-icon-box stat-icon-spent">
                                     ⊥&#xFE0E;
