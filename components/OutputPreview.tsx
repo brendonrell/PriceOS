@@ -400,20 +400,11 @@ export default function OutputPreview() {
         ctx.fillText(`#${id}`, w / 2, w / 2);
     }, [isOpen, id]);
 
-    /* Scroll-position preservation. ModalContext applies `body.modal-open`,
-       and modal.css turns that into `position: fixed` — which would snap
-       the page to the top of the viewport on open without the saved-Y
-       restore on close. Sim does the same dance in openModal/closeModal
-       (sim.html line 8771 + 7446). */
-    useEffect(() => {
-        if (!isOpen) return;
-        const y = window.scrollY;
-        document.body.style.top = `-${y}px`;
-        return () => {
-            document.body.style.top = '';
-            window.scrollTo(0, y);
-        };
-    }, [isOpen]);
+    /* Scroll-position preservation now lives in ModalContext's body-lock
+       effect so every modal inherits the dance (sim openModal/closeModal
+       at sim.html line 8771 + 7446). Previously this effect lived here
+       only, which meant other modals (Collectors, Followers, etc.)
+       opened from mobile teleported the page to top. Lifted in S1. */
 
     /* Prev/next nav. Sim cycles through the visible-cards array; without
        a gallery yet, we walk the full edition range with wrap-around. */
