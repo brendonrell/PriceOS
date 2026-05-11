@@ -26,6 +26,7 @@ import {
 } from '../lib/calendar/data';
 import { useCalendar } from '../lib/calendar/CalendarContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+import { useAuth } from '../lib/state/AuthContext';
 import {
   buildMonthCells,
   dateKey,
@@ -40,6 +41,7 @@ export default function CalendarPanel() {
   } = useCalendar();
 
   const { openDayNoteEditor } = useNotePrompt();
+  const { siweAddress } = useAuth();
 
   const cells = useMemo(() => buildMonthCells(viewY, viewM), [viewY, viewM]);
 
@@ -59,13 +61,19 @@ export default function CalendarPanel() {
     viewY === CAL_TODAY.y && viewM === CAL_TODAY.m &&
     selY === CAL_TODAY.y && selM === CAL_TODAY.m && selD === CAL_TODAY.d;
 
+  /* S2 logged-out preview — calendar shows public events only:
+       - Day notes (personal markdown notes) hidden
+       - To-Dos toggle + per-day to-do dots hidden
+     CAL_EVENTS is the public schedule and stays visible to everyone. */
+  const isAuthed = !!siweAddress;
+
   const selKey = dateKey(selY, selM, selD);
-  const dayNote = dayNotes[selKey] || '';
+  const dayNote = isAuthed ? (dayNotes[selKey] || '') : '';
   const hasNote = Boolean(dayNote);
   const dateLabel = `${CAL_MONTH_SHORT[selM]} ${selD}`;
 
   const events = CAL_EVENTS[selKey] || [];
-  const todos = todosMode ? (CAL_TODOS[selKey] || []) : [];
+  const todos = isAuthed && todosMode ? (CAL_TODOS[selKey] || []) : [];
   const empty = events.length === 0 && todos.length === 0 && !dayNote;
 
   return (
@@ -94,7 +102,7 @@ export default function CalendarPanel() {
               const evs = CAL_EVENTS[k] || [];
               const dotCount = Math.min(evs.length, 3);
               const hasTodo =
-                todosMode && !c.other &&
+                isAuthed && todosMode && !c.other &&
                 Boolean(CAL_TODOS[k] && CAL_TODOS[k].length);
 
               return (
@@ -144,22 +152,24 @@ export default function CalendarPanel() {
             >
               Today
             </div>
-            <div
-              className={`cal-todos-link${todosMode ? ' active' : ''}`}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); toggleTodos(); }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleTodos();
-                }
-              }}
-              title="Toggle To-Dos on calendar"
-            >
-              To-Dos
-            </div>
+            {isAuthed && (
+              <div
+                className={`cal-todos-link${todosMode ? ' active' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); toggleTodos(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTodos();
+                  }
+                }}
+                title="Toggle To-Dos on calendar"
+              >
+                To-Dos
+              </div>
+            )}
           </div>
         </div>
 
@@ -167,22 +177,24 @@ export default function CalendarPanel() {
         <div className="cal-day-col" id="calDayCol">
           <div className="cal-day-col-header" id="calDayColHeader">
             <span>{dateLabel}</span>
-            <span
-              className={`cal-daynote-btn${hasNote ? ' has-note' : ''}`}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); openDayNoteEditor(selKey); }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openDayNoteEditor(selKey);
-                }
-              }}
-              title="Day Note"
-            >
-              {'\u229F'}{'\uFE0E'}
-            </span>
+            {isAuthed && (
+              <span
+                className={`cal-daynote-btn${hasNote ? ' has-note' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); openDayNoteEditor(selKey); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openDayNoteEditor(selKey);
+                  }
+                }}
+                title="Day Note"
+              >
+                {'\u229F'}{'\uFE0E'}
+              </span>
+            )}
           </div>
 
           <div className="cal-day-col-events" id="calDayColEvents">
