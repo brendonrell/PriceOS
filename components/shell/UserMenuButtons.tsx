@@ -11,7 +11,7 @@
  *   - Cart button       (.btn-cart, hidden by CSS until .has-items)
  *   - PriceSprite       (.ascii-sprite-wrap, hidden by CSS until .active)
  *   - Level badge       (.ascii-pfp-badge ❹❷, hidden by CSS until .active)
- *   - Connect button    (.btn-user — three wallet states, see below)
+ *   - Connect button    (.btn-user — two display states, see below)
  *   - DropdownStack     (renders below .user-menu-wrapper)
  *
  * Click flow:
@@ -19,18 +19,19 @@
  *     and the dropdown stack)
  *   - Click outside menu OR Esc → DropdownContext effect closes it
  *
- * Connect button — three wallet states:
- *   1. Disconnected   → icon-only ⟠. Click opens the RainbowKit modal
- *                       via useConnectModal().openConnectModal(). The
- *                       user-text reads "Connect" but CSS hides it
- *                       (no .expanded).
- *   2. Authenticating → icon-only ⟠. Click is a no-op — the wallet's
+ * Connect button — click ALWAYS toggles the dropdown menu, regardless
+ * of auth state (S2 logged-out preview). The disconnected menu has a
+ * "Connect Wallet" CTA at the bottom of LinksView which is what fires
+ * the RainbowKit modal — the top-bar pill is just a menu opener.
+ *
+ *   1. Disconnected   → pill reads "Connect" (.expanded pinned so the
+ *                       user-text is visible). Click toggles menu.
+ *   2. Authenticating → pill icon-only. Click is a no-op — the wallet's
  *                       own sign-prompt is already on screen.
- *   3. Authenticated  → still icon-only when menu is closed. .expanded
- *                       toggles in only while the menu is open (sim-
- *                       faithful — sim does not surface user-identity
- *                       chrome outside the open menu). Click toggles
- *                       the menu open/closed.
+ *   3. Authenticated  → icon-only when menu closed; .expanded toggles
+ *                       in when the menu opens (so ENS/shortAddr shows
+ *                       inside the open menu and the pill stays compact
+ *                       when closed). Click toggles menu.
  *
  * User-text priority (top → bottom):
  *   1. @handle   — post-launch, after account creation forces @name
@@ -39,26 +40,29 @@
  *   2. ENS name  — wagmi's useEnsName lookup against the connected
  *                  address on chainId 1. Async; renders as the
  *                  truncated address while resolving, then swaps to
- *                  the ENS string when the lookup returns. Settings
- *                  panel (post-launch) will let the user pick which
- *                  ENS to display when they hold several.
+ *                  the ENS string when the lookup returns.
  *   3. shortAddr — 0xf7c0…3690 fallback when no ENS is set or the
  *                  lookup is in flight / returned null.
- *   4. "Connect" — disconnected state placeholder (visually hidden
- *                  because the button stays icon-only).
+ *   4. "Connect" — disconnected state placeholder. Now ALWAYS visible
+ *                  in the top bar (.expanded pinned when !isAuthed).
  *
  * Modal openers:
  *   - Cart button → CartContext.openPanel(). .has-items toggles via
- *     items.length > 0 (sim 11748–11754). Count badge: N up to 99, "99+".
+ *     items.length > 0. Count badge: N up to 99, "99+".
  *   - PriceSprite + level badge → ModalContext.open('priceSprite').
  *     Both wrap their click in stopPropagation so the menu doesn't
- *     toggle out from under the modal (sim 4449, 4452).
+ *     toggle out from under the modal.
  *
  * Sprite engine wiring:
  *   - getSpriteFrame() seeds initial face/transform/sleeping state.
  *   - subscribeSprite() re-renders on blink / turn / yawn / sleep frames.
  *   - wakeSprite() fires on menu open so the user sees an awake face
- *     instead of catching the sprite mid-yawn (sim 12213-12219).
+ *     instead of catching the sprite mid-yawn.
+ *
+ * NOTE — auto-close-on-disconnect removed (S2). The dropdown has a
+ * dedicated logged-out shape (Profile + Portfolio gated, Log Out
+ * replaced with Connect Wallet CTA), so the menu can stay open
+ * through an auth flip in either direction without ejecting the user.
  */
 
 import { useEffect, useState } from 'react';
@@ -67,7 +71,6 @@ import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { DropdownStack } from '../dropdown/DropdownStack';
 import {
     getSpriteFrame,
@@ -85,11 +88,10 @@ function shortAddr(addr: string): string {
 }
 
 export function UserMenuButtons() {
-    const { menuOpen, toggleMenu, closeMenu } = useDropdown();
+    const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, isAuthenticating } = useAuth();
-    const { openConnectModal } = useConnectModal();
 
     /* ENS resolution. wagmi's useEnsName hits mainnet (chainId 1
        pinned — ENS lives on mainnet regardless of which chain a user
@@ -105,8 +107,8 @@ export function UserMenuButtons() {
 
     /* Mirror priceSpriteEngine state into local component state so
        React re-renders on every blink / turn / yawn / sleep frame.
-       Sim mutates DOM directly inside render() (sim 12114-12143);
-       React port hooks the same engine via subscribeSprite(). */
+       Sim mutates DOM directly inside render(); React port hooks the
+       same engine via subscribeSprite(). */
     const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
     useEffect(() => {
         setFrame(getSpriteFrame());
@@ -116,9 +118,9 @@ export function UserMenuButtons() {
         return unsubscribe;
     }, []);
 
-    /* Sim 12213-12219 — when the user opens the connect menu, snap a
-       sleeping/yawning sprite awake so the user sees an awake face on
-       open. resetIdleTimer also fires for an already-awake sprite. */
+    /* When the user opens the connect menu, snap a sleeping/yawning
+       sprite awake so the user sees an awake face on open.
+       resetIdleTimer also fires for an already-awake sprite. */
     useEffect(() => {
         if (menuOpen) wakeSprite();
     }, [menuOpen]);
@@ -129,45 +131,29 @@ export function UserMenuButtons() {
        badge + dropdown stack). */
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
 
-    /* .expanded follows sim — only fires when the menu is open. The
-       user-text (ENS / address) is hidden when the menu is closed
-       regardless of auth state. Identity affordance lives inside the
-       dropdown panel (Profile row, follower stats), not on the navbar
-       button. */
-    const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
+    /* .expanded shows the .user-text. When authed, it follows menuOpen
+       (text appears inside open menu, hides when closed). When NOT
+       authed, .expanded is pinned ON so "Connect" reads in the top bar
+       at all times — S2 logged-out preview makes the menu opener self-
+       labelling instead of icon-only. */
+    const buttonClass = `btn-user${menuOpen || !isAuthed ? ' expanded' : ''}`;
 
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
 
-    /* Three-state click handler. Disconnected → open RainbowKit modal.
-       Authenticating → no-op (transient state; wallet's own sign-prompt
-       is already visible). Authenticated → toggle dropdown menu. */
+    /* Click handler — ALWAYS toggles menu, regardless of auth state.
+       Disconnected click no longer fires the RainbowKit modal; that
+       moves to LinksView's "Connect Wallet" bottom CTA so the user
+       sees the logged-out preview before connecting. isAuthenticating
+       window stays as a no-op (wallet's own sign-prompt is already
+       on screen). */
     const handleConnectClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (isAuthed) {
-            toggleMenu();
-            return;
-        }
-        if (isAuthenticating) {
-            return;
-        }
-        // `openConnectModal` is undefined while RainbowKit is
-        // initialising; guard with `?.()`.
-        openConnectModal?.();
+        if (isAuthenticating) return;
+        toggleMenu();
     };
-
-    /* If the menu is open and the user signs out from inside it, the
-       siweAddress drops to null. The wrapper would stay .active until
-       the next interaction. Close on auth flip-to-null so the dropdown
-       collapses immediately. */
-    if (!isAuthed && menuOpen) {
-        // Defer: setState during render is illegal. closeMenu is stable
-        // via useCallback, but invoking it inline still triggers a
-        // warning. queueMicrotask defers without the useEffect overhead.
-        queueMicrotask(() => closeMenu());
-    }
 
     /* User-text priority chain — see top-of-file comment block. The
        future @handle slot would insert here as `handle ?? ensName ??
@@ -196,7 +182,7 @@ export function UserMenuButtons() {
             </button>
 
             {/* PriceSprite — hidden by CSS until .active. Click opens
-                the PriceSprite modal (sim 4449). */}
+                the PriceSprite modal. */}
             <div
                 className="ascii-sprite-wrap"
                 id="asciiSpriteWrap"
@@ -216,7 +202,7 @@ export function UserMenuButtons() {
             </div>
 
             {/* Level badge — hidden by CSS until .active. Click also
-                opens the PriceSprite modal (sim 4452). */}
+                opens the PriceSprite modal. */}
             <span
                 className="ascii-pfp-badge"
                 id="asciiPfpBadge"
@@ -231,13 +217,13 @@ export function UserMenuButtons() {
                 ❹❷
             </span>
 
-            {/* Connect button — three states (see top-of-file comment). */}
+            {/* Connect button — toggles menu in all auth states. */}
             <button
                 className={buttonClass}
                 id="btnUser"
-                aria-label={isAuthed ? 'Toggle User Menu' : 'Connect Wallet'}
-                aria-expanded={isAuthed ? menuOpen : undefined}
-                title={isAuthed ? 'Toggle User Menu' : 'Connect Wallet'}
+                aria-label={isAuthed ? 'Toggle User Menu' : 'Open Menu'}
+                aria-expanded={menuOpen}
+                title={isAuthed ? 'Toggle User Menu' : 'Open Menu'}
                 type="button"
                 onClick={handleConnectClick}
             >
