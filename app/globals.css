@@ -300,6 +300,28 @@ body.sentiment-on .sentiment-widget {
     body:not(.tape-off) .sentiment-widget { margin-left: 18px; }
 }
 
+/* Brendon S5 — sentiment weather glyphs render at very different intrinsic
+   visual sizes (☼ rays vs ☂ umbrella vs ⛅ sun-behind-cloud). Per-glyph
+   font-size overrides bring them to a uniform visual scale. data-sentiment
+   attribute is set on #sentimentIcon by PeteyLogo. Adjust per glyph;
+   sim has no equivalent rules — sim deviation, baseline first pass. */
+#sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 17px; }  /* ☼ rays slightly large */
+#sentimentIcon[data-sentiment="Bull"]         { font-size: 17px; }  /* ☀ bold sun */
+#sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 15px; }  /* ⛅ wide compound glyph */
+#sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 18px; }  /* ☁ cloud reads smaller */
+#sentimentIcon[data-sentiment="Bear"]         { font-size: 16px; }  /* ⛆ rain — tall with lines */
+#sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 17px; }  /* ☂ umbrella — vertical */
+#sentimentIcon[data-sentiment="Capitulation"] { font-size: 19px; }  /* ☈ thunderstorm reads small */
+@media (max-width: 600px) {
+    #sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 21px; }
+    #sentimentIcon[data-sentiment="Bull"]         { font-size: 21px; }
+    #sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 19px; }
+    #sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 22px; }
+    #sentimentIcon[data-sentiment="Bear"]         { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 21px; }
+    #sentimentIcon[data-sentiment="Capitulation"] { font-size: 23px; }
+}
+
 
 /* ============================================================
    USER MENU BUTTONS (right side of navbar)
@@ -3684,6 +3706,24 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
 @media (max-width: 600px) {
     body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
         font-size: 11px;
+        /* Brendon S5 May 11 — on mobile + anchor-active, the ⚓(-XX%) prefix
+           shares a line with the ETH price and crams against .meta-id on
+           the left (cards are 140-160px wide, content is 145-150px). Make
+           the ::before drop to its own line above the price, and let .meta
+           grow vertically so the two-line meta fits cleanly. */
+        display: block;
+        line-height: 1.2;
+        text-align: right;
+        margin-bottom: 1px;
+    }
+    body.anchor-active #gallery .meta {
+        height: auto;
+        min-height: 20px;
+        align-items: flex-start;
+    }
+    body.anchor-active #gallery .meta-owner.price-trigger {
+        text-align: right;
+        line-height: 1.2;
     }
 }
 
@@ -3820,13 +3860,14 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     font-family: 'Courier New', Courier, monospace;
     z-index: 1;
     opacity: 0.9;
-    /* Brendon S5 call (May 11 dev preview screenshot). Sim itself has
-       these star glyphs misaligned with the text rows — at 18px in a
-       14px box with .feed-row's align-items:flex-start, the geometric
-       center of ✶/✹/✦/✸ sits ~3px above the text baseline. Nudge down.
-       Sim deviation; don't revert under "match sim" passes. */
+    /* Brendon S5 call (May 11 dev preview screenshot). Star glyphs
+       (✶/✹/✦/✸) at 18px in a 14px box with .feed-row's
+       align-items:flex-start sit visually above the text rows.
+       First pass was top:3px which overshot — glyphs landed below
+       the text. 1px nudge keeps a clean visual without crossing
+       center. Sim deviation; don't revert under "match sim" passes. */
     position: relative;
-    top: 3px;
+    top: 1px;
 }
 .f-time {
     width: 90px;
