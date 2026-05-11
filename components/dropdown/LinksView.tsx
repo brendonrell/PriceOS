@@ -86,25 +86,28 @@ export function LinksView() {
         closeMenu();
     };
 
-    const handleConnectWallet = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        /* openConnectModal is undefined while RainbowKit's auth status
-           is still 'loading' — extremely brief in normal operation
-           (layout passes server-resolved initialAuth so InnerProviders
-           boots straight to authenticated / unauthenticated). If we hit
-           the undefined branch, the layout's GET-on-mount fallback is
-           still in flight or has failed silently. Toast tells Brendon
-           to retry rather than swallowing the click. */
+    const handleConnectWallet = () => {
+        /* RK's ModalContext only exposes `openConnectModal` as a real
+           function when connectionStatus is 'disconnected' or
+           'unauthenticated' (node_modules/@rainbow-me/rainbowkit/dist/
+           index.js:6355). When it's undefined, the user is already
+           in a wallet-connected state we can't open the connect
+           modal from. Toast tells them to retry rather than
+           swallowing the click. */
         if (!openConnectModal) {
             showToast('Wallet not ready — refresh and try again');
             return;
         }
-        /* Close the dropdown before opening the RK modal so the two
-           panels don't visually stack. RK modal portals to body, so
-           closing the menu does not affect the modal — just clears the
-           backdrop the user is dismissing through. */
-        closeMenu();
+        /* No closeMenu, no preventDefault, no stopPropagation. RK
+           modal renders via createPortal to document.body with
+           z-index 2147483646 (rainbowkit/dist/index.css) so it
+           layers above the dropdown without needing the dropdown
+           out of the way. PR1 shipped a closeMenu() before this
+           call; on iOS PWA that suppressed the modal render
+           entirely (menu closed, no modal). Original pre-PR1 code
+           didn't closeMenu either — the dropdown closes naturally
+           when the user interacts with the RK modal (mousedown
+           outside .user-menu-wrapper). */
         openConnectModal();
     };
 
