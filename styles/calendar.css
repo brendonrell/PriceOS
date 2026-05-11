@@ -230,6 +230,28 @@
        panel height stays locked at --pd-menu-height. */
     max-height: 145px;
     scrollbar-width: none;
+    /* S1 — iOS Safari momentum-scroll crash hardening. The day-events
+       column is a small inner overflow:auto living inside the dropdown,
+       which is itself a transformed/positioned parent. Without scroll
+       containment, fling-scrolling this list chains the scroll back to
+       body (which is also locked via position:fixed when a modal is up,
+       see modal.css) and the resulting bounce/chain interaction is a
+       known OOM-class on mobile Safari. The recipe:
+         - overscroll-behavior: contain  — kill scroll chaining to parents
+         - -webkit-overflow-scrolling: touch — momentum scroll on its own
+           compositor layer (modern iOS does this by default with auto,
+           keeping it explicit is defence in depth)
+         - touch-action: pan-y — only vertical pans reach the scroller;
+           any horizontal/pinch gestures get gated out before they can
+           feed back into the layout
+         - contain: layout style paint — isolate the layer's containment
+           context so paint/layout inside doesn't escape upward
+       Crash was Brendon's reported symptom: "scrolling within a day
+       crashes after a few seconds." */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    contain: layout style paint;
 }
 .cal-day-col-events::-webkit-scrollbar { display: none; }
 .cal-event-item {
