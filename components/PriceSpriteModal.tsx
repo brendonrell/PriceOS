@@ -124,7 +124,7 @@ export default function PriceSpriteModal() {
                 {/* Level — composed dingbats matching the ❹❷ badge by the connect menu. */}
                 <div className="ps-level-row">
                     <div className="ps-level-label">LEVEL</div>
-                    <div className="ps-level-value">{'\u2779\u2777'}</div>
+                    <div className="ps-level-value">{'\u2776'}</div>
                 </div>
 
                 {/* Progress bar to next level — placeholder 68%. */}
