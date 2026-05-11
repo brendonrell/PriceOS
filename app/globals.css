@@ -1259,6 +1259,27 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
 body.zen-mode .priceos-footer { display: none !important; }
 
+/* S4 page 3234 — footer fixed to viewport bottom (sim carve-out).
+   Sim leaves the footer in normal flow; PD pins it so it stays visible
+   on long-scroll surfaces (project pages, calendar day-detail, etc.).
+   Body bottom padding clears the fixed footer so the last item in main
+   doesn't sit under it. Zen / zero-context modes zero the padding
+   since both already hide the footer via the rules above. */
+.priceos-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    background: var(--bg-color);
+}
+main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 600px) {
+    main { padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+}
+body.zen-mode main,
+body.zero-context-mode main { padding-bottom: 0; }
+
 
 /* ============================================================
    THE TAPE (top-bar ticker — empty in step 2/3/4)
@@ -2544,10 +2565,12 @@ body.persona-default .stats-row-2 { display: none !important; }
    Border-only rectangle; transparent fill. opacity: 0.25 keeps it
    discreet — readable as a "to be set" affordance without competing with
    live values in the same row. vertical-align: middle aligns the rect
-   against Rubik Mono One value text in adjacent cells. */
+   against Rubik Mono One value text in adjacent cells.
+   S4 page 3234 (clean-fix, NOT sim) — width +30% (36 → 47) so the empty
+   affordance reads at a glance and doesn't look like a hyphen artifact. */
 .stats-row-2 .stat-val.stat-val-empty {
     display: inline-block;
-    width: 36px;
+    width: 47px;
     height: 9px;
     border: 1px solid currentColor;
     background: transparent;
@@ -3733,7 +3756,9 @@ body.aura-active #gallery { overflow-x: clip; }
 .breadcrumb-crumb {
     position: absolute;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    /* S4 page 3234 — breadcrumb dots half size (13 → 7) so they read as
+       quieter meta-UI against the artwork corner. */
+    font-size: 7px;
     line-height: 1;
     color: var(--text-color) !important;
     pointer-events: none;
@@ -4368,7 +4393,9 @@ body:not(.hammer-mode) .edition-card.hammered { display: none !important; }
 }
 body.hammer-mode .canvas-wrapper .mute-overlay { display: flex; }
 .mute-overlay .mute-label {
-    font-size: clamp(10px, 3vw, 20px);
+    /* S4 page 3234 — Hammer "Mute" / "MUTED" text +2 font sizes larger.
+       Base label: clamp(10, 3vw, 20) → clamp(14, 4vw, 28). */
+    font-size: clamp(14px, 4vw, 28px);
     line-height: 1;
     transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), font-size 0.18s ease;
 }
@@ -4408,7 +4435,9 @@ body.hammer-mode .edition-card.muted .mute-overlay .mute-label { opacity: 0.75; 
    visible box looks centered around the word. */
 body.hammer-mode .edition-card.muted .mute-overlay .mute-label.muted-final,
 .mute-overlay .mute-label.muted-final {
-    font-size: clamp(12px, 3.8vw, 24px);
+    /* S4 page 3234 — MUTED settled state +2 font sizes larger.
+       clamp(12, 3.8vw, 24) → clamp(16, 5vw, 32). */
+    font-size: clamp(16px, 5vw, 32px);
     font-weight: bold;
     letter-spacing: 2px;
     border: none;
@@ -4838,15 +4867,25 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
 .hammer-bar-close:hover { opacity: 1; }
 
 /* Input field inside bar pill (Incognito ENS). Transparent against
-   the pill's filled background. Sim 1342-1348. */
+   the pill's filled background. Sim 1342-1348.
+   S4 page 3234 — width 100 → 70 (sim carve-out) so the centered
+   incognito pill stops colliding with the right-aligned RPC pill on
+   narrow viewports. Combined with the #incognitoPill padding tighten
+   below they cohabitate at viewport widths where sim's defaults overlap. */
 .bar-pill-input {
     background: transparent; border: none;
     color: var(--bg-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px; font-weight: bold; width: 100px; outline: none;
+    font-size: 13px; font-weight: bold; width: 70px; outline: none;
     padding: 0; line-height: 1;
 }
 .bar-pill-input::placeholder { opacity: 0.4; color: var(--bg-color); }
+
+/* S4 page 3234 — #incognitoPill padding tightened from .hammer-bar-pill's
+   default 4px 12px → 4px 8px + gap 6 (was 8) so the pill takes less
+   horizontal room and the RPC pill stops colliding. Only this pill —
+   #hammerBarPill keeps its hefty padding via .hammer-pill-hefty. */
+#incognitoPill { padding: 4px 8px; gap: 6px; }
 
 /* ⌁ + ⚇ icons in WalletSection. Sim 1349-1359. .rpc-active is
    applied by WalletSection when either engine is active — adds the
@@ -5071,4 +5110,21 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
     .gas-tracker-card-gwei { font-size: 18px; }
     .gas-tracker-card-usd { font-size: 11px; }
     .gas-tracker-card-label { font-size: 9px; letter-spacing: 1px; }
+}
+
+/* ============================================================
+   S4 page 3234 — ZEN MODE PILL CUSTOM COLOR
+   ============================================================
+   Active state of the Zen Mode toggle in MyPdSection paints Attention
+   Yellow (#FFE600) — PD's secondary brand color, signalling the "quiet
+   surface" workspace at a glance. Every other settings-toggle.active
+   pill (Anon, Sticker, Echo, etc.) keeps the theme-default fill
+   (purple on the artist theme, --bg-color elsewhere), so the user
+   reads Zen as the one switch that's branded loudly.
+   Specificity: #sn-zen.active beats .settings-toggle.active without
+   needing !important. */
+#sn-zen.active {
+    background: #FFE600;
+    color: #000000;
+    border-color: #FFE600;
 }
