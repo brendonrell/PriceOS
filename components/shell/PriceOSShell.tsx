@@ -14,6 +14,7 @@
  *   <PriceosModal />       sim id #priceosModal — Footer "PriceOS 1.0" link
  *   <FamiliarModal />      sim id #familiarModal — Familiar settings placeholder
  *   <PriceSpriteModal />   sim id #priceSpriteModal — Level + score breakdown
+ *   <GasTrackerModal />    S3 — Etherscan-style gwei + ETH/USD modal
  *   <CartPanel />          sim id #cartPanelWrap — bulk-buy slide-up panel
  *
  * All seven modal/panel surfaces mount once globally. Their open/close
@@ -67,6 +68,7 @@ import FollowersModal from '../FollowersModal';
 import PriceosModal from '../PriceosModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
+import GasTrackerModal from '../GasTrackerModal';
 import CartPanel from '../CartPanel';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
@@ -143,6 +145,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <PriceosModal />
             <FamiliarModal />
             <PriceSpriteModal />
+            <GasTrackerModal />
             <CartPanel />
         </>
     );
