@@ -36,6 +36,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MAX_WORKSPACES, useWorkspaces, type Workspace } from '../../../lib/state/WorkspacesContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
+import { useAuth } from '../../../lib/state/AuthContext';
 
 interface PopoverState {
     wsId: number;
@@ -54,6 +55,8 @@ export function WorkspaceSwitcher() {
     } = useWorkspaces();
     const { showToast } = useToast();
     const { openValuePrompt } = useValuePrompt();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
 
     const [popover, setPopover] = useState<PopoverState | null>(null);
     const justOpenedRef = useRef(false);
@@ -112,7 +115,7 @@ export function WorkspaceSwitcher() {
     return (
         <>
             <div
-                className="workspace-switcher"
+                className={`workspace-switcher${isAuthed ? '' : ' auth-gated'}`}
                 id="workspace-switcher"
                 role="tablist"
                 aria-label="Workspaces"

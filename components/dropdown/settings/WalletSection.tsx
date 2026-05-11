@@ -16,8 +16,8 @@
  *   beyond the cutoff) + the …more button.
  *
  * Expanded ENS row (after tapping …more):
- *   Per sim — DOM reshapes to a single nowrap container holding a scroll
- *   viewport + the …hide button:
+ *   DOM reshapes to a single nowrap container holding a scroll viewport
+ *   + the …hide button:
  *
  *     row.settings-ens-row.ens-expanded
  *       > .ens-scroll-viewport          (flex: 1 1 auto, overflow-x: auto)
@@ -32,25 +32,13 @@
  *   pills total. Pills keep natural widths via flex-shrink: 0 + nowrap;
  *   viewport scrolls horizontally as needed.
  *
- * F1b lights up the inert CSS shipped in F1a (.ens-scroll-viewport /
- * .ens-scroll-stack / .ens-scroll-row in styles/settings.css).
- *
- * Build 33 D22 + D23 — wired the inline ⚇ + ⌁ buttons.
- *
- * D23 — ⌁ RPC Latency Ping (sim 4560 + 12453-12504):
- *   onClick → toggleRpcPing() → engine flips active, kicks off the
- *   simulated-latency timer, dispatches updates that TopBarRow's
- *   .rpc-ping-display reads. Button gets .rpc-active when the engine
- *   is active (sim 12489 — sets underline + opacity:1). Toast fires
- *   from here, not the engine — sim does it inline in
- *   triggerRpcPing (sim 12495/12501).
- *
- * D22 — ⚇ Incognito Proxy (sim 4559 + 12506-12524):
- *   onClick → toggleIncognito() (engine) + maybe toggle('spell_hammer')
- *   (mutual exclusion side effect, sim 12513-12515). Button gets
- *   .rpc-active when the engine is active (sim 12511). The
- *   incognito-proxy bar (bar-pill-input) lives in TopBarRow and
- *   surfaces from the engine's pub/sub channel.
+ * S2 logged-out preview:
+ *   The entire section is auth-gated when !isAuthed — every top-level
+ *   child gets the `.auth-gated` class (opacity 0.4 + pointer-events:
+ *   none + user-select: none). The wallet handle, ENS pills, copy /
+ *   incognito / rpc-ping buttons, and PRICE balance toggle all become
+ *   inert. The block stays visible so the logged-out user sees the
+ *   shape of their future Settings panel.
  */
 
 import { useEffect, useState } from 'react';
@@ -66,6 +54,7 @@ import {
 } from '../../../lib/rpc/rpcEngine';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useAuth } from '../../../lib/state/AuthContext';
 
 const HANDLE = '0x1234...abcd';
 
@@ -109,18 +98,20 @@ export function WalletSection() {
 
     const { showToast } = useToast();
     const { notifs, toggle: toggleNotif } = usePdNotifs();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
+    const gatedClass = isAuthed ? '' : ' auth-gated';
 
     const handleRpcPing = () => {
         const nowActive = engineToggleRpcPing();
-        // Sim 12495/12501 — toast fires inline from triggerRpcPing.
         showToast(nowActive ? 'RPC Ping ON' : 'RPC Ping OFF');
     };
 
     const handleIncognito = () => {
         const nowActive = engineToggleIncognito();
-        // Sim 12513-12515 — turning Incognito ON deactivates Hammer
-        // (mutually exclusive top-bar modes). Reverse direction is
-        // handled inside spell logic; not our concern here.
+        // Turning Incognito ON deactivates Hammer (mutually exclusive
+        // top-bar modes). Reverse direction is handled inside spell
+        // logic; not our concern here.
         if (nowActive && notifs.spell_hammer) {
             toggleNotif('spell_hammer');
         }
@@ -197,14 +188,15 @@ export function WalletSection() {
 
     return (
         <>
-            <div className="settings-header">WALLET</div>
+            <div className={`settings-header${gatedClass}`}>WALLET</div>
 
             <div
-                className="settings-wallet"
+                className={`settings-wallet${gatedClass}`}
                 onClick={handleCopyWallet}
                 role="button"
-                tabIndex={0}
+                tabIndex={isAuthed ? 0 : -1}
                 onKeyDown={(e) => {
+                    if (!isAuthed) return;
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         handleCopyWallet();
@@ -218,11 +210,12 @@ export function WalletSection() {
                     id="incognitoProxyBtn"
                     onClick={(e) => {
                         e.stopPropagation();
+                        if (!isAuthed) return;
                         handleIncognito();
                     }}
                     title="Incognito Proxy"
                     role="button"
-                    tabIndex={0}
+                    tabIndex={isAuthed ? 0 : -1}
                 >
                     ⚇{'\uFE0E'}
                 </span>
@@ -231,18 +224,19 @@ export function WalletSection() {
                     id="rpcPingBtn"
                     onClick={(e) => {
                         e.stopPropagation();
+                        if (!isAuthed) return;
                         handleRpcPing();
                     }}
                     title="RPC Latency Ping"
                     role="button"
-                    tabIndex={0}
+                    tabIndex={isAuthed ? 0 : -1}
                 >
                     ⌁{'\uFE0E'}
                 </span>
             </div>
 
             <div
-                className={`settings-ens-row${ensExpanded ? ' ens-expanded' : ''}`}
+                className={`settings-ens-row${ensExpanded ? ' ens-expanded' : ''}${gatedClass}`}
                 id="walletEnsRow"
             >
                 {ensExpanded ? (
@@ -268,17 +262,22 @@ export function WalletSection() {
             </div>
 
             <div
-                className="settings-ens-row price-held-row"
+                className={`settings-ens-row price-held-row${gatedClass}`}
                 onClick={(e) => {
                     e.stopPropagation();
+                    if (!isAuthed) return;
                     setBalanceHidden((v) => !v);
                 }}
                 role="button"
-                tabIndex={0}
+                tabIndex={isAuthed ? 0 : -1}
                 style={{
                     cursor: 'pointer',
                     userSelect: 'none',
-                    opacity: 0.6,
+                    /* Inline opacity beats class specificity — apply
+                       the 0.6 secondary-info dim only when not gated,
+                       so .auth-gated's 0.4 wins in the logged-out
+                       preview. */
+                    ...(isAuthed ? { opacity: 0.6 } : {}),
                     fontSize: 11,
                     marginTop: -6,
                     display: 'flex',

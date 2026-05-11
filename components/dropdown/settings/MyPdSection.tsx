@@ -27,6 +27,7 @@ import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
 import { useArtistColor } from '../../../lib/hooks/useArtistColor';
+import { useAuth } from '../../../lib/state/AuthContext';
 import { SettingsToggle } from './SettingsToggle';
 
 interface Props {
@@ -43,6 +44,8 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { setSort } = useSort();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
 
     /* F64 (BUG-28) — artist-color picker is now live + persistent.
        useArtistColor owns the storage + migration; this section owns the
@@ -241,7 +244,7 @@ export function MyPdSection({ onTripleTap }: Props) {
     return (
         <>
             <div id="myPdHeaderWrap">
-                <div className="setup-code-row">
+                <div className={`setup-code-row${isAuthed ? '' : ' auth-gated'}`}>
                     <div
                         className="settings-header"
                         id="myPdHeader"

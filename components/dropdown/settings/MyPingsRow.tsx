@@ -11,22 +11,32 @@
  * pingToasts and nightmode aren't in pdNotifs.pings (which is a sub-
  * object holding the four event-category flags). pingToasts is now
  * top-level (Brendon item 11, chat A) and toggles inline.
+ *
+ * S2 logged-out preview:
+ *   Full section auth-gated when !isAuthed — Pingtoasts master toggle,
+ *   per-category ping toggles (mints/lists/offers/xfers/mutuals), and
+ *   Silent Mode all become inert. Section stays visible so the logged-
+ *   out user sees the shape of the personal notification preferences.
  */
 
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useAuth } from '../../../lib/state/AuthContext';
 import { SettingsToggle } from './SettingsToggle';
 
 export function MyPingsRow() {
     const { notifs, update, toggle } = usePdNotifs();
     const { showToast } = useToast();
+    const { siweAddress } = useAuth();
+    const isAuthed = !!siweAddress;
+    const gatedClass = isAuthed ? '' : ' auth-gated';
 
     const togglePingCat = (key: keyof typeof notifs.pings) => {
         update({ pings: { ...notifs.pings, [key]: !notifs.pings[key] } });
     };
 
     const handlePingToasts = () => {
-        // Sim 9275 — toast on every flip.
+        // Toast on every flip.
         const next = !notifs.pingToasts;
         toggle('pingToasts');
         showToast(`Pingtoasts ${next ? 'ON' : 'OFF'}`);
@@ -34,8 +44,8 @@ export function MyPingsRow() {
 
     return (
         <>
-            <div className="settings-header">MY PINGS</div>
-            <div className="settings-pill-row">
+            <div className={`settings-header${gatedClass}`}>MY PINGS</div>
+            <div className={`settings-pill-row${gatedClass}`}>
                 <SettingsToggle
                     id="sn-pingToasts"
                     title="Pingtoasts"
