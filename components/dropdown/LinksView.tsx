@@ -45,11 +45,11 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
-import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useGasData } from '../../lib/hooks/useGasData';
 
 export function LinksView() {
     const { setView, closeMenu } = useDropdown();
@@ -65,29 +65,17 @@ export function LinksView() {
        when not authed) but kept as a defensive default. */
     const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
 
-    /* F63 / BUG-33 — mock gas widget cycling.
-       Cycles through ten plausible gwei values every 15 seconds and
-       skips the update when the tab is hidden. Initial index is
-       randomized so dropdown reopens don't always start at the same
-       value. visibilitychange forces an immediate refresh when the tab
-       returns so a long-hidden value isn't stuck on screen. */
-    const FAKE_GWEI = [0.031, 0.042, 0.057, 0.063, 0.079, 0.044, 0.038, 0.052, 0.071, 0.059];
-    const [gasIdx, setGasIdx] = useState(() => Math.floor(Math.random() * FAKE_GWEI.length));
-    useEffect(() => {
-        const tick = () => {
-            if (typeof document !== 'undefined' && document.hidden) return;
-            setGasIdx(i => (i + 1) % FAKE_GWEI.length);
-        };
-        const id = setInterval(tick, 15000);
-        const onVis = () => { if (!document.hidden) tick(); };
-        document.addEventListener('visibilitychange', onVis);
-        return () => {
-            clearInterval(id);
-            document.removeEventListener('visibilitychange', onVis);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    const gasValue = FAKE_GWEI[gasIdx].toFixed(3);
+    /* S3 — real gas data from /api/gas (edge-cached 12s). LinksView only
+       mounts while the user dropdown is open, so `useGasData(true)`
+       polls only while the user is looking at the menu. Clicking the
+       widget opens the GasTrackerModal — full 3-card view. Works
+       logged-out per Tier 1 lead-magnet spec. */
+    const gas = useGasData(true);
+    const gasValue = gas.data
+        ? gas.data.standardGwei < 10
+            ? gas.data.standardGwei.toFixed(2)
+            : gas.data.standardGwei.toFixed(1)
+        : '—';
 
     const handleLogOut = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -259,7 +247,21 @@ export function LinksView() {
                 <span
                     className="gas-widget gas-widget-inline"
                     id="gasWidget"
-                    title="Estimated gas price"
+                    role="button"
+                    tabIndex={0}
+                    title="Open gas tracker"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        open('gasTracker');
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            open('gasTracker');
+                        }
+                    }}
                 >
                     <span style={{ position: 'relative', top: 2 }}>{gasValue} gwei</span>{' '}
                     <span className="gas-glyph">⍞</span>
