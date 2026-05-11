@@ -45,6 +45,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from 'react';
@@ -189,17 +190,38 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
        silent sign-out happen, and saw the connect modal again. That
        was Brendon's #1 dapp pet peeve.
 
-       The guard: bail while wagmi is still resolving ('reconnecting'
-       or 'connecting'). Only act on 'disconnected' (terminal-no-wallet)
-       or 'connected' (steady-state — check address swap). The
-       `status === 'authenticated'` early-return at the top still
-       prevents redundant DELETEs when signOutFull already flipped
-       local state to 'unauthenticated'. */
+       The reconnecting/connecting guard covers the in-flight window.
+       But terminal 'disconnected' on initial mount needs its own
+       guard too: with WalletConnect on mobile Safari (Brendon's daily
+       driver), the deep-link session frequently does NOT survive a
+       full-page reload — wagmi settles straight to 'disconnected'
+       without ever passing through 'connected'. Without a second
+       guard, the watcher fires serverSignOut() on every refresh and
+       deletes the perfectly-valid SIWE cookie. That's Brendon's
+       reported "logs out every page refresh" bug.
+
+       The fix: track previous wagmiStatus in a ref. Only treat
+       'disconnected' as a sign-out signal when we previously
+       observed 'connected' in this mount. Initial-mount
+       reconnecting → disconnected (WalletConnect couldn't restore)
+       becomes a no-op: SIWE cookie stays alive, UI shows
+       authenticated, wallet shows disconnected, user can reconnect
+       wallet without re-signing SIWE. Connected → disconnected
+       transitions (real user-initiated disconnect) still fire
+       serverSignOut as before. Address-swap branch is unaffected
+       because it already gates on (address && siweAddress) which
+       are both populated only after a connected state. */
+    const prevWagmiStatusRef = useRef<typeof wagmiStatus | undefined>(undefined);
     useEffect(() => {
+        const prev = prevWagmiStatusRef.current;
+        prevWagmiStatusRef.current = wagmiStatus;
+
         if (status !== 'authenticated') return;
         if (wagmiStatus === 'reconnecting' || wagmiStatus === 'connecting') return;
         if (wagmiStatus === 'disconnected') {
-            // Wallet went away — clear server + local state.
+            if (prev !== 'connected') return;
+            // Wallet went away after a successful connection — clear
+            // server + local state.
             void serverSignOut().finally(() => {
                 setSiweAddress(null);
                 setStatus('unauthenticated');
