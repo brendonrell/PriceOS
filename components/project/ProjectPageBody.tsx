@@ -798,7 +798,7 @@ function ProjectPageBodyInner() {
                                 onClick={() => showToast('Floor Price')}
                             >
                                 <span className="stat-icon stat-icon-box stat-icon-spent">
-                                    ⊥&#xFE0E;
+                                    ⤓&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
                                     {lowestFloor !== null
