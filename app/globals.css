@@ -3093,21 +3093,48 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-mints .st-icon { font-size: 18px !important; transform: translateY(-1px) !important; }
 }
 
-/* Mobile pill icon size + position pass — sim 1562-1601. */
+/* Mobile pill icon size + position pass — values read directly off
+   the rendered pills in IMG_3825 (iPhone Safari). Sign confirmed
+   against the visible pixel offset BEFORE picking magnitude. Re-tune
+   by re-reading the screenshot — this is not a sim-parity block. */
 @media (max-width: 600px) {
-    #sn-anon .st-icon, #sn-zen .st-icon { font-size: 14px !important; }
-    #sn-sticker .st-icon { font-size: 15px !important; }
-    #sn-zerocontext .st-icon, #sn-sentiment .st-icon { font-size: 15px !important; }
-    #sn-redacted .st-icon,
-    #sn-asciiId .st-icon,
-    #sn-degen .st-icon,
-    #sn-autoscroll .st-icon { font-size: 14px !important; }
-    #sn-echo .st-icon, #sb-stargazing .st-icon {
-        font-size: 21px !important;
-        position: relative;
-        top: 2px;
-    }
-    #sn-zerocontext .st-icon { position: relative; top: -3px; }
+    /* ── MY PD row (sn-) ────────────────────────────────────────────
+       Goal: every glyph the same visual weight as the ◻/◼ baseline
+       pair, and visually centered in its pill. */
+
+    /* Size: match weight to ◻/◼ baseline (16px default). */
+    #sn-anon .st-icon         { font-size: 15px !important; }
+    #sn-zen .st-icon          { font-size: 16px !important; }
+    #sn-sticker .st-icon      { font-size: 15px !important; }
+    #sn-zerocontext .st-icon  { font-size: 15px !important; }
+    #sn-pricelens .st-icon    { font-size: 15px !important; }
+    #sn-sentiment .st-icon    { font-size: 15px !important; }
+    #sn-asciiId .st-icon      { font-size: 15px !important; }
+    #sn-degen .st-icon        { font-size: 16px !important; }
+    #sn-redacted .st-icon     { font-size: 14px !important; }
+    #sn-autoscroll .st-icon   { font-size: 16px !important; }
+    #sn-echo .st-icon         { font-size: 20px !important; }
+
+    /* Vertical: lift the glyphs sitting LOW in the pill (∅ ◒ ⍢ ⚔ ⍖)
+       with negative top; drop the ones sitting HIGH (▣ @ ⏥) with
+       positive top; leave the geometric-symmetric ones (z ⛶ ⌾)
+       on the baseline. */
+    #sn-anon .st-icon         { position: relative; top: -1px; }
+    #sn-zen .st-icon          { position: relative; top: 0; }
+    #sn-sticker .st-icon      { position: relative; top: 1px; }
+    #sn-zerocontext .st-icon  { position: relative; top: 0; }
+    #sn-pricelens .st-icon    { position: relative; top: 0; }
+    #sn-echo .st-icon         { position: relative; top: 1px; }
+    #sn-sentiment .st-icon    { position: relative; top: -1px; }
+    #sn-asciiId .st-icon      { position: relative; top: -2px; }
+    #sn-degen .st-icon        { position: relative; top: -1px; }
+    #sn-redacted .st-icon     { position: relative; top: 1px; }
+    #sn-tape .st-icon         { position: relative; top: 1px; }
+    #sn-autoscroll .st-icon   { position: relative; top: -1px; }
+
+    /* ── Spell Book row (sb-) — untouched in this pass ─────────────
+       These are a different surface and weren't in IMG_3825. Leaving
+       sim-derived values verbatim until a Spell Book screenshot pass. */
     #sb-spitebook { font-size: 12px !important; position: relative; top: 2px; }
     #sb-tribunal  { font-size: 12px !important; }
     #sb-cartel    { position: relative; top: 1px; }
@@ -3116,14 +3143,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sb-cartel .st-icon,
     #sb-familiar .st-icon,
     #sb-invisible .st-icon { position: relative; top: 1px; }
-    #sn-autoscroll .st-icon { position: relative; top: 2px; }
-    #sn-zerocontext .st-icon { top: 0; }
-    #sn-zen .st-icon  { position: relative; top: 1px; }
-    #sn-anon .st-icon { position: relative; top: 2px; }
-    #sn-echo .st-icon, #sb-stargazing .st-icon { top: 3px; }
-    #sn-sentiment .st-icon,
-    #sn-asciiId   .st-icon,
-    #sn-degen     .st-icon { position: relative; top: 1px; }
+    #sb-stargazing .st-icon { font-size: 21px !important; position: relative; top: 3px; }
 }
 
 .burn-btn {
