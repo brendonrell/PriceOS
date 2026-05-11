@@ -70,15 +70,33 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         setCurrentModalId(null);
     }, []);
 
-    // Body class lock — applied while any modal is open.
+    /* Body class lock + scroll-Y preservation.
+
+       modal.css sets `body.modal-open { position: fixed; }` so the
+       background can't scroll while a modal is open. The side effect
+       of `position: fixed` is that the page snaps to the top of the
+       viewport on open and loses the user's scroll position on close.
+       The fix is the sim's openModal/closeModal dance (sim.html 8771
+       + 7446): cache `window.scrollY` on open, write it as a negative
+       `body.style.top` so the page visually stays put, then on close
+       remove the class + reset `top` and `scrollTo(0, y)` to restore.
+
+       This dance previously lived only inside OutputPreview, which
+       meant every other modal (Collectors, Followers, PriceSprite,
+       Familiar, Priceos) opened from mobile teleported the user to
+       page-top and left them there on close — i.e. "mobile modals
+       broken entirely." Lifting it into the shared primitive here
+       means every modal — current and future — inherits the
+       behaviour without needing its own copy. */
     useEffect(() => {
-        if (openModal) {
-            document.body.classList.add('modal-open');
-        } else {
-            document.body.classList.remove('modal-open');
-        }
+        if (!openModal) return;
+        const y = window.scrollY;
+        document.body.style.top = `-${y}px`;
+        document.body.classList.add('modal-open');
         return () => {
             document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+            window.scrollTo(0, y);
         };
     }, [openModal]);
 
