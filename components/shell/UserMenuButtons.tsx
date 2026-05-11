@@ -24,14 +24,12 @@
  * "Connect Wallet" CTA at the bottom of LinksView which is what fires
  * the RainbowKit modal — the top-bar pill is just a menu opener.
  *
- *   1. Disconnected   → pill reads "Connect" (.expanded pinned so the
- *                       user-text is visible). Click toggles menu.
- *   2. Authenticating → pill icon-only. Click is a no-op — the wallet's
- *                       own sign-prompt is already on screen.
- *   3. Authenticated  → icon-only when menu closed; .expanded toggles
- *                       in when the menu opens (so ENS/shortAddr shows
- *                       inside the open menu and the pill stays compact
- *                       when closed). Click toggles menu.
+ *   Closed (any auth state)   → icon-only. Sim parity — sim's btn-user
+ *                               only adds .expanded when the menu is
+ *                               open, never as a function of auth.
+ *   Open (any auth state)     → .expanded; user-text fades in.
+ *   Authenticating            → click is a no-op — the wallet's own
+ *                               sign-prompt is already on screen.
  *
  * User-text priority (top → bottom):
  *   1. @handle   — post-launch, after account creation forces @name
@@ -43,8 +41,9 @@
  *                  the ENS string when the lookup returns.
  *   3. shortAddr — 0xf7c0…3690 fallback when no ENS is set or the
  *                  lookup is in flight / returned null.
- *   4. "Connect" — disconnected state placeholder. Now ALWAYS visible
- *                  in the top bar (.expanded pinned when !isAuthed).
+ *   4. "Connect" — disconnected fallback. Renders inside the open
+ *                  menu only — top-bar pill stays icon-only when
+ *                  closed regardless of auth.
  *
  * Modal openers:
  *   - Cart button → CartContext.openPanel(). .has-items toggles via
@@ -131,12 +130,13 @@ export function UserMenuButtons() {
        badge + dropdown stack). */
     const wrapperClass = `nav-controls user-menu-wrapper${menuOpen ? ' active' : ''}`;
 
-    /* .expanded shows the .user-text. When authed, it follows menuOpen
-       (text appears inside open menu, hides when closed). When NOT
-       authed, .expanded is pinned ON so "Connect" reads in the top bar
-       at all times — S2 logged-out preview makes the menu opener self-
-       labelling instead of icon-only. */
-    const buttonClass = `btn-user${menuOpen || !isAuthed ? ' expanded' : ''}`;
+    /* .expanded shows the .user-text. Tracks menuOpen ONLY — sim
+       6700-6708 toggles .expanded in lockstep with .active (menu open
+       state) regardless of auth. So both logged-in and logged-out
+       states render icon-only when the menu is closed; the user-text
+       (ENS / shortAddr / "Connect" fallback) only fades in once the
+       menu opens. */
+    const buttonClass = `btn-user${menuOpen ? ' expanded' : ''}`;
 
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
