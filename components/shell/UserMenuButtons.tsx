@@ -19,15 +19,21 @@
  *     and the dropdown stack)
  *   - Click outside menu OR Esc → DropdownContext effect closes it
  *
- * Connect button — click ALWAYS toggles the dropdown menu, regardless
- * of auth state (S2 logged-out preview). The disconnected menu has a
- * "Connect Wallet" CTA at the bottom of LinksView which is what fires
- * the RainbowKit modal — the top-bar pill is just a menu opener.
+ * Connect button — click behavior depends on auth state and menu state:
  *
- *   Closed (any auth state)   → icon-only. Sim parity — sim's btn-user
- *                               only adds .expanded when the menu is
- *                               open, never as a function of auth.
- *   Open (any auth state)     → .expanded; user-text fades in.
+ *   Closed (any auth state)   → icon-only (sim 6700-6708). Click
+ *                               opens the menu.
+ *   Open + authed             → .expanded shows ENS/shortAddr. Click
+ *                               toggles the menu shut.
+ *   Open + disconnected       → .expanded shows "Connect" text.
+ *                               Click fires openConnectModal — the
+ *                               pre-S2 wallet-launch path. PR1
+ *                               accidentally made this a pure menu-
+ *                               toggler; PR1.2 restores the launch
+ *                               wiring. The bottom Connect Wallet
+ *                               CTA inside LinksView is the same
+ *                               flow; two entry points, both fire
+ *                               openConnectModal.
  *   Authenticating            → click is a no-op — the wallet's own
  *                               sign-prompt is already on screen.
  *
@@ -66,10 +72,12 @@
 
 import { useEffect, useState } from 'react';
 import { useEnsName } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { DropdownStack } from '../dropdown/DropdownStack';
 import {
     getSpriteFrame,
@@ -91,6 +99,8 @@ export function UserMenuButtons() {
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, isAuthenticating } = useAuth();
+    const { openConnectModal } = useConnectModal();
+    const { showToast } = useToast();
 
     /* ENS resolution. wagmi's useEnsName hits mainnet (chainId 1
        pinned — ENS lives on mainnet regardless of which chain a user
@@ -142,16 +152,26 @@ export function UserMenuButtons() {
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
 
-    /* Click handler — ALWAYS toggles menu, regardless of auth state.
-       Disconnected click no longer fires the RainbowKit modal; that
-       moves to LinksView's "Connect Wallet" bottom CTA so the user
-       sees the logged-out preview before connecting. isAuthenticating
-       window stays as a no-op (wallet's own sign-prompt is already
-       on screen). */
+    /* Click handler — dual path based on auth + menu state.
+       - Disconnected + menu open: pill shows "Connect" text. Click
+         fires openConnectModal (the pre-S2 wallet-launch path
+         Brendon flagged as broken after PR1).
+       - All other cases: toggle menu. Authed-state-with-menu-open
+         still uses the pill as the close affordance.
+       - isAuthenticating window stays a no-op (wallet's own
+         sign-prompt is already on screen). */
     const handleConnectClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (isAuthenticating) return;
+        if (!isAuthed && menuOpen) {
+            if (!openConnectModal) {
+                showToast('Wallet not ready — refresh and try again');
+                return;
+            }
+            openConnectModal();
+            return;
+        }
         toggleMenu();
     };
 
