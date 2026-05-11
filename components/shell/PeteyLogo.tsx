@@ -155,7 +155,11 @@ export function PeteyLogo() {
                     7-state cycle (Strong Bull → Capitulation), ~3-6s
                     cadence with 75% per-tick swap probability. Pauses
                     on document.hidden. */}
-                <span id="sentimentIcon" aria-hidden="true">
+                <span
+                    id="sentimentIcon"
+                    aria-hidden="true"
+                    data-sentiment={sentiment.label}
+                >
                     {sentiment.icon}
                 </span>
             </div>
