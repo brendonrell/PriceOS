@@ -4140,7 +4140,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     #activity-feed {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 15px;
-        padding: 10px 20px;
+        /* Bottom padding bumped 10 → 100px on mobile to match desktop's
+           gap between the list's last row and the normal-flow footer.
+           Brendon S5 "sensible gap" call — sim deviation; sim's mobile
+           rule (sim 3248) collapses to 10px 20px shorthand. */
+        padding: 10px 20px 100px 20px;
     }
     .hero-group-2 { gap: 16px; }
     .traits-header-bar { flex-direction: column; }
@@ -4261,6 +4265,7 @@ body.redacted-mode .notif-item,
 body.redacted-mode .info-line .profile-link,
 body.redacted-mode .info-line .open-modal-text,
 body.redacted-mode .ascii-sprite,
+body.redacted-mode .collected-sprite,
 body.redacted-mode .tape-item,
 body.redacted-mode .cal-event-title,
 body.redacted-mode .cal-event-item,
@@ -4301,6 +4306,7 @@ body.theme-dark.redacted-mode .notif-item,
 body.theme-dark.redacted-mode .info-line .profile-link,
 body.theme-dark.redacted-mode .info-line .open-modal-text,
 body.theme-dark.redacted-mode .ascii-sprite,
+body.theme-dark.redacted-mode .collected-sprite,
 body.theme-dark.redacted-mode .tape-item,
 body.theme-dark.redacted-mode .cal-event-title,
 body.theme-dark.redacted-mode .cal-event-item,
