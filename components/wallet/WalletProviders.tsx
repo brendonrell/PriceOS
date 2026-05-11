@@ -102,7 +102,12 @@ interface InnerProvidersProps {
 }
 
 function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
-    const { address, isConnected } = useAccount();
+    /* wagmi v2's `useAccount` surfaces `status` as an explicit state
+       machine: 'reconnecting' | 'connecting' | 'connected' | 'disconnected'.
+       The disconnect-watcher below reads `status` instead of `isConnected`
+       so it can distinguish "wallet is gone" from "wallet hasn't finished
+       hydrating yet" — see the comment on that effect for the full story. */
+    const { address, status: wagmiStatus } = useAccount();
     const { disconnect } = useDisconnect();
 
     /* Server-supplied auth means we already know the answer at first
@@ -166,17 +171,34 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
         []
     );
 
-    /* If wagmi disconnects (or address swaps), drop the SIWE session
-       too — leaving the cookie around after a wallet swap would let a
-       different account's session leak forward. The `status` early-
-       return prevents double-firing when signOutFull already set
-       status to 'unauthenticated' before calling disconnect(): React
-       18 batches the state updates from signOutFull, so by the time
-       this effect runs in response to the isConnected flip, status
-       is already 'unauthenticated' and we exit immediately. */
+    /* If wagmi reports the wallet is gone (or the address swaps), drop
+       the SIWE session too — leaving the cookie around after a wallet
+       swap would let a different account's session leak forward.
+
+       CRITICAL: we read wagmi's `status` rather than `isConnected`. On
+       every mount wagmi runs a `reconnect()` cycle even when SSR
+       pre-populated `initialState` from cookieStorage; during that
+       cycle `status === 'reconnecting'` and `isConnected === false`
+       briefly. The layout's server-side iron-session read can
+       independently boot us with `status === 'authenticated'` at the
+       same moment (the SIWE cookie and the wagmi cookie are
+       independent — one can be valid while the other is rehydrating).
+       Earlier shipped code used `if (!isConnected) serverSignOut()`,
+       which fired during that window and DELETE'd a perfectly good
+       session — the user landed on the page logged-in, watched a
+       silent sign-out happen, and saw the connect modal again. That
+       was Brendon's #1 dapp pet peeve.
+
+       The guard: bail while wagmi is still resolving ('reconnecting'
+       or 'connecting'). Only act on 'disconnected' (terminal-no-wallet)
+       or 'connected' (steady-state — check address swap). The
+       `status === 'authenticated'` early-return at the top still
+       prevents redundant DELETEs when signOutFull already flipped
+       local state to 'unauthenticated'. */
     useEffect(() => {
         if (status !== 'authenticated') return;
-        if (!isConnected) {
+        if (wagmiStatus === 'reconnecting' || wagmiStatus === 'connecting') return;
+        if (wagmiStatus === 'disconnected') {
             // Wallet went away — clear server + local state.
             void serverSignOut().finally(() => {
                 setSiweAddress(null);
@@ -184,6 +206,7 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             });
             return;
         }
+        // 'connected' — check address swap.
         if (
             address &&
             siweAddress &&
@@ -195,12 +218,12 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
                 setStatus('unauthenticated');
             });
         }
-    }, [isConnected, address, status, siweAddress]);
+    }, [wagmiStatus, address, status, siweAddress]);
 
     /* Full sign-out: server cookie + local state + wagmi disconnect.
        Order matters: setStatus('unauthenticated') before disconnect()
        so that the watcher useEffect above sees status !== 'authenticated'
-       on its next run (driven by the isConnected flip) and early-
+       on its next run (driven by the wagmiStatus flip) and early-
        returns instead of issuing a redundant second DELETE. */
     const signOutFull = async () => {
         await serverSignOut();
