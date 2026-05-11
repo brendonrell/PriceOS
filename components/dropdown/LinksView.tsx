@@ -48,6 +48,7 @@
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useGasData } from '../../lib/hooks/useGasData';
 
@@ -55,6 +56,7 @@ export function LinksView() {
     const { setView, closeMenu } = useDropdown();
     const { open } = useModal();
     const { siweAddress, signOut } = useAuth();
+    const { showToast } = useToast();
     const { openConnectModal } = useConnectModal();
 
     const isAuthed = !!siweAddress;
@@ -87,9 +89,23 @@ export function LinksView() {
     const handleConnectWallet = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        /* openConnectModal is undefined while RainbowKit is initialising;
-           guard with `?.()`. */
-        openConnectModal?.();
+        /* openConnectModal is undefined while RainbowKit's auth status
+           is still 'loading' — extremely brief in normal operation
+           (layout passes server-resolved initialAuth so InnerProviders
+           boots straight to authenticated / unauthenticated). If we hit
+           the undefined branch, the layout's GET-on-mount fallback is
+           still in flight or has failed silently. Toast tells Brendon
+           to retry rather than swallowing the click. */
+        if (!openConnectModal) {
+            showToast('Wallet not ready — refresh and try again');
+            return;
+        }
+        /* Close the dropdown before opening the RK modal so the two
+           panels don't visually stack. RK modal portals to body, so
+           closing the menu does not affect the modal — just clears the
+           backdrop the user is dismissing through. */
+        closeMenu();
+        openConnectModal();
     };
 
     return (
