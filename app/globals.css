@@ -4983,3 +4983,92 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
     pointer-events: none;
     user-select: none;
 }
+
+
+/* ── GAS TRACKER MODAL ──────────────────────────────────────
+   S3 — Etherscan-style 3-card modal (.platform-modal scaffold +
+   .modal-info container live in styles/modal.css). Theme-aware via
+   existing tokens — --bg-color / --text-color / --hothurt /
+   --attention. Rubik Mono One on labels (matches platform's display
+   face), Courier on numbers (matches every other tabular surface).
+
+   Works fully logged-out (Tier 1 lead magnet — page 2kyd6gx6-3234)
+   so no .auth-gated nor SIWE-gating selectors apply here. */
+.gas-tracker-info {
+    max-width: 520px;
+    width: 100%;
+}
+.gas-tracker-title {
+    font-family: 'Rubik Mono One', sans-serif;
+    letter-spacing: 1.5px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+.gas-tracker-ethusd {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: normal;
+    opacity: 0.7;
+    font-size: 0.85em;
+}
+.gas-tracker-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    margin-bottom: 14px;
+}
+.gas-tracker-card {
+    border: 2px dotted var(--text-color);
+    background: var(--bg-color);
+    padding: 14px 8px 12px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+.gas-tracker-card-label {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--hothurt);
+    margin-bottom: 6px;
+}
+.gas-tracker-card-gwei {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--text-color);
+    line-height: 1.1;
+}
+.gas-tracker-card-gwei-unit {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    opacity: 0.55;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.gas-tracker-card-usd {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    opacity: 0.75;
+    margin-top: 4px;
+    color: var(--text-color);
+}
+.gas-tracker-footer {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    text-align: center;
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+    padding: 0 20px;
+}
+@media (max-width: 600px) {
+    .gas-tracker-cards { padding: 0 14px; gap: 6px; }
+    .gas-tracker-card { padding: 10px 4px 8px 4px; }
+    .gas-tracker-card-gwei { font-size: 18px; }
+    .gas-tracker-card-usd { font-size: 11px; }
+    .gas-tracker-card-label { font-size: 9px; letter-spacing: 1px; }
+}
