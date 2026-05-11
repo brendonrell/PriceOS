@@ -4970,3 +4970,16 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
 .ws-popover-item:hover { background: rgba(255, 255, 255, 0.08); }
 .ws-popover-item.danger { color: #FF5577; }
 .ws-popover-item.danger:hover { background: rgba(255, 85, 119, 0.12); }
+
+
+/* ── AUTH-GATED PREVIEW (S2) ──────────────────────────────────
+   Applied to logged-out surfaces that show a visible preview of
+   account-only chrome (Profile row, Portfolio link, Wallet
+   section, setup-code row, My Pings, Workspace Switcher). The
+   element stays in the layout, dimmed, with all pointer + text-
+   select interaction disabled. */
+.auth-gated {
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+}
