@@ -95,7 +95,19 @@ interface FeedEvent {
     time: string;
     type: 'MINT' | 'LIST' | 'OFFER' | 'XFER';
     detail: ReactNode;
+    /* Brendon S5 May 11 — sort keys. Feed sort cycles 4 ways
+       (time-desc, time-asc, price-desc, price-asc) per sim 8313 and
+       SortContext.cycleSort. Without numeric timestamp + price fields
+       the list rendered in array order regardless of feedKind+dir, so
+       clicking the FEED pill produced no visual change. */
+    timestamp: number;
+    price: number;
 }
+
+/* Captured once at module load so MOCK_FEED_EVENTS timestamps stay
+   stable across re-renders (sim does the same — sim 7411 `const now =
+   Date.now()` before mockEvents). */
+const MOCK_NOW = Date.now();
 
 const MOCK_FEED_EVENTS: FeedEvent[] = [
     {
@@ -103,6 +115,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✶',
         time: '12:04 PM',
         type: 'MINT',
+        timestamp: MOCK_NOW - 100000,
+        price: 0.05,
         detail: (
             <>
                 <span className="f-highlight">@matty</span>
@@ -120,6 +134,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✹',
         time: '11:45 AM',
         type: 'LIST',
+        timestamp: MOCK_NOW - 200000,
+        price: 0.4,
         detail: (
             <>
                 <span className="f-highlight">@atlasforge</span>
@@ -137,6 +153,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✦',
         time: '10:30 AM',
         type: 'OFFER',
+        timestamp: MOCK_NOW - 300000,
+        price: 0.5,
         detail: (
             <>
                 <span className="f-highlight">@Darold</span>
@@ -154,6 +172,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✶',
         time: '08:00 AM',
         type: 'MINT',
+        timestamp: MOCK_NOW - 500000,
+        price: 0.05,
         detail: (
             <>
                 <span className="f-highlight">@gmoney</span>
@@ -171,6 +191,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✹',
         time: 'Yesterday',
         type: 'LIST',
+        timestamp: MOCK_NOW - 86400000,
+        price: 2.0,
         detail: (
             <>
                 <span className="f-highlight">@snowfro</span>
@@ -187,6 +209,8 @@ const MOCK_FEED_EVENTS: FeedEvent[] = [
         icon: '✸',
         time: 'Yesterday',
         type: 'XFER',
+        timestamp: MOCK_NOW - 90000000,
+        price: 0,
         detail: (
             <>
                 <span className="f-highlight">@XCOPY</span>
@@ -232,7 +256,7 @@ function ProjectPageBodyInner() {
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
-    const { sort, dir } = useSort();
+    const { sort, dir, feedKind } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
@@ -427,6 +451,24 @@ function ProjectPageBodyInner() {
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
     const feedVisible = onArtworksTab && feedActive;
     const traitsAndSortVisible = onArtworksTab;
+
+    /* Brendon S5 May 11 — feed sort actually sorts. Per sim 8159-8162,
+       feedKind='time' sorts by timestamp; feedKind='price' sorts by
+       price; dir flips ascending/descending. cycleSort('feed') cycles
+       through all four combos (time-desc → time-asc → price-desc →
+       price-asc → wrap). Before this fix the feed list rendered in
+       array order regardless of feedKind+dir so the FEED pill cycled
+       state without changing the visible order. */
+    const sortedFeedEvents = useMemo(() => {
+        const events = [...MOCK_FEED_EVENTS];
+        const dirMult = dir === 'asc' ? 1 : -1;
+        if (feedKind === 'price') {
+            events.sort((a, b) => (a.price - b.price) * dirMult);
+        } else {
+            events.sort((a, b) => (a.timestamp - b.timestamp) * dirMult);
+        }
+        return events;
+    }, [feedKind, dir]);
 
     /* Build 19: filter + sort pipeline.
        ───────────────────────────────────────────────────────────────────
@@ -985,7 +1027,7 @@ function ProjectPageBodyInner() {
                 style={{ display: feedVisible ? 'block' : 'none' }}
             >
                 <div className="feed-list" id="feedList">
-                    {MOCK_FEED_EVENTS.map((e) => (
+                    {sortedFeedEvents.map((e) => (
                         <div className="feed-row" key={e.id}>
                             <div className="feed-line" />
                             <div className="f-icon-wrap">
