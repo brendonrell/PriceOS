@@ -3820,6 +3820,13 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     font-family: 'Courier New', Courier, monospace;
     z-index: 1;
     opacity: 0.9;
+    /* Brendon S5 call (May 11 dev preview screenshot). Sim itself has
+       these star glyphs misaligned with the text rows — at 18px in a
+       14px box with .feed-row's align-items:flex-start, the geometric
+       center of ✶/✹/✦/✸ sits ~3px above the text baseline. Nudge down.
+       Sim deviation; don't revert under "match sim" passes. */
+    position: relative;
+    top: 3px;
 }
 .f-time {
     width: 90px;
