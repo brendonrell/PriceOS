@@ -250,7 +250,12 @@ export function ArtistsView() {
                                     }}
                                     style={isAuthed ? undefined : { display: 'none' }}
                                 >
-                                    {'\u2ACF\uFE0E'}
+                                    {/* S4 page 3234 — swap from ⫏ U+2ACF to ⊟ U+229F to
+                                       match the regular Note icon used per-output on
+                                       ArtworkCard.tsx (line 700). Unifies the Note glyph
+                                       across artist rows and output cards so users learn
+                                       one symbol. */}
+                                    {'\u229F\uFE0E'}
                                 </span>
                                 {isAuthed && a.rel !== 'none' && (
                                     <span
