@@ -200,7 +200,7 @@ export function LinksView() {
             </div>
 
             <a
-                href="https://discord.pricediscussion.com"
+                href="https://discord.gg/mJteKZmg28"
                 target="_blank"
                 rel="noopener noreferrer"
             >
