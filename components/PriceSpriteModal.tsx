@@ -136,8 +136,8 @@ export default function PriceSpriteModal() {
                         />
                     </div>
                     <div className="ps-next-labels">
-                        <span>lvl 42 · 680 / 1000 XP</span>
-                        <span>lvl 43 →</span>
+                        <span>lvl 1 · 680 / 1000 XP</span>
+                        <span>lvl 2 →</span>
                     </div>
                 </div>
 
