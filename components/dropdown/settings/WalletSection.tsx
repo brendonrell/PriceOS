@@ -78,7 +78,7 @@ import { usePriceBalance } from '../../../lib/hooks/usePriceBalance';
    live data from siweAddress / useEnsName / usePriceBalance. */
 const PLACEHOLDER_HANDLE = '0x1234...abcd';
 const PLACEHOLDER_FULL_ADDRESS = '0x1234567890abcdef1234567890abcdef1234abcd';
-const PLACEHOLDER_ENS_PILLS = ['name.eth', 'name.$PRICE.eth'];
+const PLACEHOLDER_ENS_PILLS = ['name.eth', 'name.pricediscussion.eth'];
 const PLACEHOLDER_BALANCE = '17,450.54';
 
 function shortAddr(addr: string): string {

@@ -465,7 +465,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         grid that reads this flag lands when the slot
                         model + Add-to-Showcase action arrive. */}
                     <span
-                        className="copy-hex-btn"
+                        className="copy-hex-btn showcase-toggle-btn"
                         title={
                             showcaseMode === 'static'
                                 ? 'Showcase Mode — Static'
