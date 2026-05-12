@@ -31,10 +31,25 @@ const PREHYDRATION_SCRIPT = `
     try {
         // Per-page theme override (sim deviation). Project pages
         // (/art/*) boot to the artist's custom colour when the user
-        // has NOT picked a global theme; if they have a saved pick,
+        // has NOT picked a global theme. Profile pages (/{handle}/*)
+        // boot to Attention Yellow (#FFE600) — own slot, NOT linked
+        // to the artist custom colour. If the user has a saved pick,
         // that wins (the picker must work on every page).
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
+
+        // Profile-page detection mirrors ThemeContext's first-segment
+        // gate: not 'art', not 'api', not all-digits (output namespace),
+        // matches the handle shape.
+        var firstSeg = '';
+        var segMatch = pathname.match(/^\/([^/]+)/);
+        if (segMatch) firstSeg = segMatch[1].toLowerCase();
+        var isProfilePage =
+            firstSeg.length > 0 &&
+            firstSeg !== 'art' &&
+            firstSeg !== 'api' &&
+            !/^\d+$/.test(firstSeg) &&
+            /^[@a-z0-9_-]+$/i.test(firstSeg);
 
         var savedTheme = null;
         try { savedTheme = localStorage.getItem('pd_settings_theme'); } catch (e) { /* ignore */ }
@@ -43,6 +58,11 @@ const PREHYDRATION_SCRIPT = `
 
         var theme = savedTheme;
         if (theme === null && isProjectPage) theme = 'artist';
+        // Profile-page boot default lives outside THEMES — Attention
+        // Yellow is its own slot. We carry a synthetic flag so the
+        // bg-resolution block below knows to use #FFE600 with no
+        // theme-* body class added.
+        var profileBoot = (theme === null && isProfilePage);
 
         var THEMES = {
             artist:  '#C488FF',
@@ -121,7 +141,17 @@ const PREHYDRATION_SCRIPT = `
             link.href = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
         }
 
-        if (theme && THEMES[theme]) {
+        if (profileBoot) {
+            // Profile-page boot — paint Attention Yellow with no
+            // theme-* body class. paintVars receives key=null so it
+            // takes the default light-bg branch (yellow is light, YIQ
+            // resolves text to #111111). paintFavicon picks up the
+            // themed bg/text. No body.classList.add('theme-*') below.
+            var pBg = '#FFE600';
+            var pText = '#111111';
+            paintVars(pBg, pText, null);
+            paintFavicon(pBg, pText);
+        } else if (theme && THEMES[theme]) {
             var bg = THEMES[theme];
 
             // When theme is 'artist' (project-page boot default OR user
