@@ -59,6 +59,38 @@ export function MyPdSection({ onTripleTap }: Props) {
     const editingHexRef = useRef(false);
     const colorPickerRef = useRef<HTMLInputElement | null>(null);
 
+    /* Profile Page v0 — Showcase mode toggle. Sits to the right of the
+       copy-hex button. ⑆ = static (default, user-ordered, doesn't
+       change), ⑇ = generative (randomized order each visit). Visual
+       toggle only for v0 — Showcase grid wiring lands when persistence
+       + slot model arrive. Persisted to localStorage `pd_showcase_mode`
+       so the picked mode survives reload. SSR-safe via the typeof
+       window guard pattern useArtistColor uses. */
+    const SHOWCASE_KEY = 'pd_showcase_mode';
+    const [showcaseMode, setShowcaseModeState] = useState<'static' | 'generative'>('static');
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            const raw = localStorage.getItem(SHOWCASE_KEY);
+            if (raw === 'generative' || raw === 'static') {
+                setShowcaseModeState(raw);
+            }
+        } catch {
+            /* ignore */
+        }
+    }, []);
+    const toggleShowcaseMode = () => {
+        setShowcaseModeState((prev) => {
+            const next = prev === 'static' ? 'generative' : 'static';
+            try {
+                localStorage.setItem(SHOWCASE_KEY, next);
+            } catch {
+                /* ignore */
+            }
+            return next;
+        });
+    };
+
     // Keep the hex field synced to the live color whenever the user
     // isn't mid-edit and the copy-blink isn't holding the slot.
     useEffect(() => {
@@ -425,6 +457,35 @@ export function MyPdSection({ onTripleTap }: Props) {
                         }}
                     >
                         ⧉{'\uFE0E'}
+                    </span>
+                    {/* Profile Page v0 — Showcase mode toggle. Lives
+                        right of the copy-hex button per spec. Glyph
+                        flips on tap: ⑆ static (default) ↔ ⑇ generative.
+                        Visual + persistence only for v0; the Showcase
+                        grid that reads this flag lands when the slot
+                        model + Add-to-Showcase action arrive. */}
+                    <span
+                        className="copy-hex-btn"
+                        title={
+                            showcaseMode === 'static'
+                                ? 'Showcase Mode — Static'
+                                : 'Showcase Mode — Generative'
+                        }
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleShowcaseMode();
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                toggleShowcaseMode();
+                            }
+                        }}
+                    >
+                        {showcaseMode === 'static' ? '⑆' : '⑇'}
+                        {'\uFE0E'}
                     </span>
                 </div>
 
