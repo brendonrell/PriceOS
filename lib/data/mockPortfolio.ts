@@ -3,12 +3,18 @@
  *
  * Two tabs (portfolio = "Main", shadow = "Shadow"). Each tab has three
  * sections: LONG-FORM (tree of artist → projects → outputs), STICKER
- * (same tree shape), ENS (flat list of $PRICE.eth subdomain names).
+ * (same tree shape), ENS (flat list of pricediscussion.eth subdomain
+ * names).
  *
  * Floors are hardcoded; in production these come from the indexer. Token
  * arrays are the pre-image of every owned edition number under that
  * project — sim renders one row per token id when the project is
  * expanded.
+ *
+ * 2026-05 nomenclature note: the ENS subdomain tier is rooted at
+ * pricediscussion.eth (PD owns this name). The earlier sim copy
+ * referred to a $PRICE.eth root which was never registered to PD;
+ * pricediscussion.eth is the live root going forward.
  */
 
 export interface PortfolioTokenRef {
@@ -31,7 +37,7 @@ export interface PortfolioArtist {
 
 export interface PortfolioEnsName {
     label: string;
-    /** Listed price for this ENS subdomain in ETH (Brendon's $PRICE.eth tier). */
+    /** Listed price for this ENS subdomain in ETH (PD's pricediscussion.eth tier). */
     price: number;
 }
 
@@ -76,12 +82,13 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
             ],
         },
         {
-            // Sim line 10808: $PRICE.eth subdomains, all-caps "$PRICE" preserved.
+            // Sim line 10808 ported. Root domain updated from $PRICE.eth
+            // (unregistered) to pricediscussion.eth (PD-owned).
             name: 'ENS', type: 'flat',
             names: [
-                { label: 'brendon.$PRICE.eth',     price: 0.85 },
-                { label: 'brendonrell.$PRICE.eth', price: 0.42 },
-                { label: 'pd.$PRICE.eth',          price: 2.10 },
+                { label: 'brendon.pricediscussion.eth',     price: 0.85 },
+                { label: 'brendonrell.pricediscussion.eth', price: 0.42 },
+                { label: 'pd.pricediscussion.eth',          price: 2.10 },
             ],
         },
     ],
@@ -111,8 +118,8 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
         {
             name: 'ENS', type: 'flat',
             names: [
-                { label: 'snowfro.$PRICE.eth',     price: 1.25 },
-                { label: 'opus.$PRICE.eth',        price: 0.95 },
+                { label: 'snowfro.pricediscussion.eth',     price: 1.25 },
+                { label: 'opus.pricediscussion.eth',        price: 0.95 },
             ],
         },
     ],
