@@ -24,9 +24,7 @@ export interface ArtistProjectSummary {
 export interface ArtistResponse {
   address: string;
   ens_name: string | null;
-  display_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
+  handle: string | null;
   cooldown_until: string | null;
   cooldown_active: boolean;
   cooldown_days_remaining: number;
@@ -53,9 +51,7 @@ export async function GET(
   const response: ArtistResponse = {
     address,
     ens_name: 'kiki.eth',
-    display_name: 'Kiki',
-    bio: 'Genesis artist on Price Discussion. Working with palette, mode, encounter, state.',
-    avatar_url: null,
+    handle: 'kiki',
     cooldown_until: cooldownUntilDate.toISOString(),
     cooldown_active: cooldownActive,
     cooldown_days_remaining: daysRemaining,
