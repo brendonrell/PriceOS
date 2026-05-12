@@ -34,7 +34,7 @@ Locked Apr 29 2026. Nomenclature pass May 9 2026. Full spec lives in ClickUp und
 | `/{handle}`, `/@{handle}` | Profile |
 | `/art/{slug}` | Project (mint UI inside) |
 | `/art/{slug}/{localId}` | Output (alt URL) |
-| `/{handle}/collection`, `/anointed`, `/wishlist`, `/starred`, `/notes`, `/albums` | Profile sub-routes |
+| `/{handle}/collected`, `/anointed`, `/wishlist`, `/starred`, `/notes`, `/albums` | Profile sub-routes |
 | `/{handle}/albums/{slug}` | Specific album |
 | `/artists` | Artists directory |
 | `/search?q=...` | Search results |
@@ -55,4 +55,4 @@ The URL prefix `/art/` is a public-facing brand asset; the entity noun is "proje
 
 ## Routes
 
-`/` (home) and `/art/[slug]` (project page) render. Profile shells at `/{handle}` and `/{handle}/collection|anointed|wishlist|starred|notes|albums` exist as placeholder bodies. Wallet auth, full mint flow, and the calendar surfaces are the next ships.
+`/` (home), `/art/[slug]` (project page), and `/{handle}` (profile page) render. Profile sub-routes at `/{handle}/collected|anointed|wishlist|starred|notes|albums` exist as placeholder bodies. Wallet auth, full mint flow, and the calendar surfaces are the next ships.
