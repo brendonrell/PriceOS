@@ -97,6 +97,9 @@
 
 
 /* ── BASE RESET ──────────────────────────────────────────── */
+html {
+    height: 100%;
+}
 html, body {
     margin: 0;
     padding: 0;
@@ -118,6 +121,13 @@ html, body {
     flex: 1;
 }
 
+/* Sticky-footer pattern. Body is the flex column container; main
+   expands to consume all remaining space so the footer parks at
+   the viewport bottom on short pages and at the end of content on
+   tall ones. `flex: 1 0 auto` (vs the previous `flex: 1` which is
+   shorthand for `1 1 0`) is the canonical sticky-footer growth
+   rule — main never shrinks below its content height, and grows
+   to fill any remaining body height. */
 body {
     display: flex;
     flex-direction: column;
@@ -126,7 +136,7 @@ body {
 }
 
 main {
-    flex: 1;
+    flex: 1 0 auto;
 }
 
 button {
@@ -5248,4 +5258,100 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
     background: #FFE600;
     color: #000000;
     border-color: #FFE600;
+}
+
+
+/* ============================================================
+   SIGN-IN MODAL — "Verify your account"
+   ============================================================
+   Surfaced whenever wagmi reports a connected wallet but no SIWE
+   session is active. Anchors the sign request to an explicit user
+   click rather than an auto-fire useEffect — restores the retry
+   surface that previously lived in RainbowKit's auth adapter
+   "Verify" step. SignInModal.tsx owns the markup; this styles it.
+   Backdrop is a fixed overlay above everything (z-index pegged
+   above modal-open scroll-lock surfaces). Theme-tracking via the
+   --bg-color / --text-color vars so the modal stays consistent
+   across theme picks (including hashsyn as it samples). */
+.signin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 20px;
+    /* Tap-through guard: backdrop catches all pointer events so the
+       page behind the modal is fully inert while it's open. */
+    pointer-events: auto;
+}
+.signin-modal {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+    padding: 22px 22px 18px;
+    width: 100%;
+    max-width: 320px;
+    font-family: 'Courier New', Courier, monospace;
+    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.4);
+}
+.signin-modal-title {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+.signin-modal-body {
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+.signin-modal-addr {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 6px 8px;
+    margin-bottom: 14px;
+    border-radius: 4px;
+    background: rgba(127, 127, 127, 0.15);
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+.signin-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.signin-modal-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s;
+    border: 1px solid currentColor;
+}
+.signin-modal-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+.signin-modal-btn-primary {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.signin-modal-btn-primary:hover:not(:disabled) {
+    opacity: 0.88;
+}
+.signin-modal-btn-secondary {
+    background: transparent;
+    color: var(--text-color);
+    opacity: 0.65;
+}
+.signin-modal-btn-secondary:hover:not(:disabled) {
+    opacity: 1;
 }
