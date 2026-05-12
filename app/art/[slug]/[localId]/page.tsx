@@ -1,10 +1,17 @@
 // Output alt URL shell — /art/{slug}/{localId}.
-// Both this URL and /{globalId} render the same page; canonical points
-// to the bare /{globalId} once the (project, localId) ↔ globalId mapping
-// is resolved indexer-side.
+// Both this URL and /{globalId} render the same ArtworkPageBody;
+// canonical points to the bare /{globalId} once the
+// (project, localId) ↔ globalId mapping is resolved indexer-side.
 // Spec: ClickUp doc 2kyd6gx6-994, page 2kyd6gx6-2554 (Output URLs section).
+//
+// Artwork Page v0 (2026-05-12): the body uses localId as the
+// placeholder globalId for the renderer — the deterministic
+// gradient renderer hashes id → spec, so the alt URL paints
+// a stable artwork per (slug, localId) pair until the real
+// mapping lands.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
 type Props = { params: { slug: string; localId: string } };
 
@@ -29,15 +36,15 @@ export default function ProjectOutputPage({ params }: Props) {
   const slug = params.slug.toLowerCase();
   const localId = Number(params.localId);
 
+  // Placeholder globalId — uses localId until the indexer mapping
+  // is live. Switches to the resolved globalId in a one-line edit
+  // here once the mapping exists; the body contract is unchanged.
   return (
-    <main className="proof">
-      <h1 className="proof-logo">output</h1>
-      <p className="proof-status">
-        <strong>/art/{slug}/{localId}</strong>
-        <br />
-        Output alt URL shell. Canonical: /{'{globalId}'} via indexer mapping.
-      </p>
-    </main>
+    <ArtworkPageBody
+      globalId={localId}
+      projectSlug={slug}
+      localId={localId}
+    />
   );
 }
 
