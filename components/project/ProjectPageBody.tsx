@@ -777,8 +777,8 @@ function ProjectPageBodyInner() {
                                 title="Total Volume"
                                 onClick={() => showToast('Total Volume')}
                             >
-                                <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
-                                <span className="stat-val stat-val-vol">14 VOL</span>
+                                <span className="stat-icon stat-icon-eth">⟠&#xFE0E;</span>{' '}
+                                <span className="stat-val stat-val-vol">14.5 VOL</span>
                             </span>
                             <span
                                 className="stat-item stat-item-owners"
@@ -844,7 +844,7 @@ function ProjectPageBodyInner() {
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
                                     {lowestFloor !== null
-                                        ? `${lowestFloor.toFixed(3)} ETH`
+                                        ? `${lowestFloor.toFixed(2)} ETH`
                                         : '—'}
                                 </span>
                             </span>
@@ -916,7 +916,7 @@ function ProjectPageBodyInner() {
                             <span className="mint-lbl">BUY</span>
                             <span className="mint-price">
                                 {lowestFloor !== null
-                                    ? `(${lowestFloor.toFixed(3)} ETH)`
+                                    ? `(${lowestFloor.toFixed(2)} ETH)`
                                     : '(SOLD OUT)'}
                             </span>
                         </button>
