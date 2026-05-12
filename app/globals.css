@@ -34,16 +34,24 @@
 
 
 /* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
-/* Build 9: default --bg-color flipped from --dot (#111111) to --attention
-   (#FFE600) so the page renders in Attention Yellow before ThemeProvider's
-   useEffect runs. Text/border/accent flip to dark to keep contrast on yellow.
-   ThemeContext still applies a saved theme (or its own null-state) on mount;
-   these CSS-level defaults govern the pre-hydration paint. */
+/* Base: Dot (#111111) as the basis colour for the site. Attention Yellow
+   (#FFE600) is no longer the site basis — it lives only as (a) the default
+   artist custom colour and (b) the default profile theme colour.
+   Per-page themes override this base on render:
+     - Project pages (/art/*): artist's custom colour. The prehydration
+       script in app/layout.tsx + ThemeContext both check pathname and
+       paint the artist hex (from pd_artist_color in localStorage) over
+       this default before first paint and on every route change.
+     - Profile pages (Profile Page v0): profile owner's theme colour.
+     - All other pages: user's saved global theme, or this base if none.
+   These CSS defaults only show in the rare window before the
+   prehydration script runs — that script paints synchronously based
+   on pathname + saved values before first frame. */
 :root {
-    --bg-color:     var(--attention);
-    --text-color:   var(--dot);
-    --border-color: rgba(0, 0, 0, 0.15);
-    --accent:       var(--dot);
+    --bg-color:     var(--dot);
+    --text-color:   var(--matrix);
+    --border-color: rgba(255, 255, 255, 0.15);
+    --accent:       var(--matrix);
 
     --modal-bg:         rgba(0, 200, 150, 0.98);
     --stat-bg:          rgba(0, 0, 0, 0.08);
