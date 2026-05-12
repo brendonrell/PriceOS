@@ -3356,7 +3356,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    padding: 10px 40px 100px 40px;
+    padding: 10px 40px 160px 40px;
     min-height: 100vh;
     align-items: start;
     align-content: start;
@@ -3861,7 +3861,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 /* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
 #activity-feed {
     display: none;
-    padding: 10px 40px 100px 40px;
+    padding: 10px 40px 160px 40px;
 }
 .feed-list {
     display: flex;
