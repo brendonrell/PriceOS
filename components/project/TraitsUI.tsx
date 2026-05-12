@@ -172,14 +172,48 @@ const THEME_PILLS: {
     { key: 'orange', cls: 't-orange', glyph: '▨\uFE0E', title: 'Orange' },
 ];
 
+/* Profile Page v0 — when ProfilePageBody mounts TraitsUI on the
+   `+ More` tab, the L1 trait pill cluster is swapped to profile-mode
+   pills (Starred / Wishlists / Albums). The sort surfaces (sort-icons
+   cluster + sort-btn-group #ID/$PRICE/FEED) are hidden via the sibling
+   `hideSortBar` prop. The view-mode switcher (.theme-pills, four
+   squares) stays visible. Pill selection is visual-only for v0 — no
+   gallery filter wiring behind it. */
+export interface ProfilePill {
+    key: string;
+    label: string;
+    active: boolean;
+    onClick: () => void;
+}
+
 interface TraitsUIProps {
     /* Whether the block should render at all. Sim hides .traits-ui +
        .sort-bar when the active tab is Showcase or Albums (sim 13150).
        The page passes `onArtworksTab` here. */
     visible: boolean;
+    /* Profile Page v0 — hides ONLY the sort surfaces:
+         (1) sort-icons cluster (Recent + burn + multi + search) at the
+             top-right of #traitCategories
+         (2) .sort-btn-group (#ID / $PRICE / FEED) inside .sort-bar
+       Keeps visible: L1 trait pills (or profilePills if provided),
+       L2 sub-trait pills, .theme-pills (four-square view-mode switcher
+       at bottom-left of .sort-bar), themed background. Project page
+       passes nothing (defaults to false) and gets the full surface. */
+    hideSortBar?: boolean;
+    /* Profile Page v0 — when provided, replaces the entire non-feed
+       L1 trait pill cluster (DYNAMIC_TRAIT_PILLS + Fate + My Network +
+       My Notes + the Recent+icons wrapper) with this row. L2/L3 don't
+       render because there's no underlying TraitCategory activeCategory
+       in profile mode. Project page passes nothing and gets the
+       project trait pills. */
+    profilePills?: ProfilePill[];
 }
 
-export default function TraitsUI({ visible }: TraitsUIProps) {
+export default function TraitsUI({
+    visible,
+    hideSortBar = false,
+    profilePills,
+}: TraitsUIProps) {
     const {
         activeCategory,
         setActiveCategory,
@@ -260,9 +294,15 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
         : { display: 'none' };
 
     /* D006 — `.traits-ui` adds the persona+feed gate on top of `visible`.
-       Sim 8470: `traitsUI.style.display = (isRegular && !isFeed) ? 'none' : 'flex'`. */
+       Sim 8470: `traitsUI.style.display = (isRegular && !isFeed) ? 'none' : 'flex'`.
+       Profile Page v0 — when in profile mode (profilePills provided),
+       the persona+feed gate is bypassed: the +More tab needs the L1
+       pill row visible regardless of persona. */
+    const inProfileMode = !!profilePills;
     const traitsHiddenStyle: CSSProperties | undefined =
-        !visible || (isRegular && !isFeed) ? { display: 'none' } : undefined;
+        !visible || (!inProfileMode && isRegular && !isFeed)
+            ? { display: 'none' }
+            : undefined;
 
     /* Chat H items 3+4 — mode-aware L1/L2/L3 plumbing.
        ────────────────────────────────────────────────────────────────
@@ -363,6 +403,24 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
             <div className="traits-ui" style={traitsHiddenStyle}>
                 <div className="traits-header-bar">
                     <div className="stats-container" id="traitCategories">
+                        {/* Profile Page v0 — when profilePills is provided,
+                            the entire project-mode L1 cluster (feed-mode
+                            + non-feed pill rows + sort-icons wrapper) is
+                            replaced with a flat row of profile pills.
+                            L2/L3 rows further below naturally don't render
+                            because activeCategory stays null in this mode. */}
+                        {profilePills ? (
+                            profilePills.map((p) => (
+                                <BarPill
+                                    key={p.key}
+                                    label={p.label}
+                                    active={p.active}
+                                    dimmed={false}
+                                    onClick={p.onClick}
+                                />
+                            ))
+                        ) : (
+                            <>
                         {/* Chat H item 3 — feed-mode L1 row (sim 8475-8509).
                             When sort==='feed' the regular pill cluster is
                             replaced by the four feed cats: Event / My Network
@@ -489,7 +547,10 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
 
                                 {/* Recent + icon cluster — sim 8551-8557.
                                     Wrapped in inline-flex so they stay together when
-                                    the row wraps on mobile (sim parity, sim 8551). */}
+                                    the row wraps on mobile (sim parity, sim 8551).
+                                    Profile Page v0 — hidden entirely via hideSortBar
+                                    so the +More tab only shows the L1 profilePills. */}
+                                {!hideSortBar && (
                                 <div
                                     style={{
                                         display: 'inline-flex',
@@ -559,6 +620,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                         )}
                                     </div>
                                 </div>
+                                )}
                             </>
                         )}
                         {/* D007 (sim 8505) — feed-mode search-btn. Sim
@@ -587,6 +649,8 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                                     onClick={toggleSearch}
                                 />
                             </div>
+                        )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -731,6 +795,10 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         </div>
                     ))}
                 </div>
+                {/* Profile Page v0 — .sort-btn-group hides under
+                    hideSortBar. The four-square view-mode switcher
+                    (.theme-pills above) stays visible. */}
+                {!hideSortBar && (
                 <div
                     className="sort-btn-group"
                     style={{
@@ -794,6 +862,7 @@ export default function TraitsUI({ visible }: TraitsUIProps) {
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
             {/* .search-row — sim 5180-5189. The .open modifier mirrors
