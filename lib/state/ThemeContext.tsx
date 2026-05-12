@@ -37,6 +37,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 
 export type ThemeKey =
@@ -50,13 +51,18 @@ export type ThemeKey =
     | null; // null = factory default (Dot)
 
 const THEMES: Record<NonNullable<ThemeKey>, string> = {
-    /* Brendon-list-2 chat F item 1 — sim deviation. Sim's THEMES.artist
-       is #FFE600 (sim 6776 / 6779); we override to #C488FF (soft violet)
-       for the Prisms project per Brendon. The default is still
-       overridden by the user's saved hex via getArtistBg() below; this
-       fallback is what loads when the user has never picked a custom
-       color or the saved value is malformed. */
-    artist:  '#C488FF',
+    /* THEMES.artist is the fallback fill when the user hasn't picked a
+       custom hex yet. Brendon's spec: Attention Yellow (#FFE600) is the
+       canonical default for the artist custom colour. The static
+       fallback below is overridden by the user's saved hex via
+       getArtistBg() on every applyTheme pass; this value only paints
+       when no custom hex has been saved or the saved value is
+       malformed. Previously deviated to #C488FF (soft violet) for the
+       Prisms project — reverted per Brendon's "attention yellow should
+       only ever live as an artist custom colour or as the default
+       profile theme colour" lock. useArtistColor.ts migrates the old
+       #C488FF default forward on next load. */
+    artist:  '#FFE600',
     light:   '#e0e0e0',
     dark:    '#1a1a1a',
     orange:  '#ff6600',
@@ -272,30 +278,44 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<ThemeKey>(null);
+    const pathname = usePathname();
 
-    // Hydrate from localStorage on mount. The pre-hydration script in
-    // layout.tsx applied the saved bg/text vars synchronously; here we
-    // bring the React state in line so the picker shows the right
-    // active pill.
+    // Per-page theme override. Project pages (/art/*) always paint the
+    // artist's custom colour, regardless of the user's saved global
+    // theme. Profile Page v0 will add a /{handle}/* branch here for the
+    // profile owner's theme. Re-runs on every route change so navigating
+    // in/out of project pages swaps themes cleanly.
+    //
+    // We always hydrate `theme` state from localStorage so the rest of
+    // the app (ThemePicker pill highlight, etc.) reads the user's saved
+    // preference correctly, even when the project page visually overrides.
     //
     // F53 (BUG-18) — hashsyn never persists (sim 12617-12618: it needs
-    // live canvases per session), so it shouldn't appear in storage.
-    // If somehow it does (manual write, older build), treat it as
-    // unset and boot Dot — re-picking hashsyn from the picker gives a
-    // clean engine start.
+    // live canvases per session). If somehow it appears in storage,
+    // treat it as unset and boot Dot — re-picking hashsyn from the
+    // picker gives a clean engine start.
     useEffect(() => {
+        let savedTheme: ThemeKey = null;
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw && raw in THEMES && raw !== 'hashsyn') {
-                setThemeState(raw as ThemeKey);
-                applyTheme(raw as ThemeKey);
-            } else {
-                applyTheme(null);
+                savedTheme = raw as ThemeKey;
             }
         } catch {
-            applyTheme(null);
+            /* ignore */
         }
-    }, []);
+        setThemeState(savedTheme);
+
+        const isProjectPage = pathname?.startsWith('/art/') ?? false;
+        if (isProjectPage) {
+            // Project pages always paint the artist's custom colour.
+            // Use getArtistBg() so the user's saved hex wins over the
+            // static THEMES.artist fallback.
+            applyBgHex(getArtistBg(), 'artist');
+        } else {
+            applyTheme(savedTheme);
+        }
+    }, [pathname]);
 
     /* F53 (BUG-18) — sim's hashsyn seed colour is `#6a1fc2` (sim 12620),
        NOT THEMES.hashsyn (`#7B2FFF`). The THEMES entry exists so the
@@ -315,13 +335,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             disableHashSyn();
         }
 
+        const isProjectPage = pathname?.startsWith('/art/') ?? false;
+
         if (key === 'hashsyn') {
-            // Seed with sim's vivid purple so the surface flashes a
-            // sensible colour while the canvases settle. The engine
-            // resample cascade (200/600/1200/2500ms) overwrites the bg
-            // with the sampled blend as soon as canvases are paintable.
+            // Hashsyn activates its own bg-sampling engine; it overrides
+            // the artist-colour-on-project-pages rule because the user
+            // explicitly picked it.
             applyBgHex(HASHSYN_SEED, 'hashsyn');
             enableHashSyn((hex) => applyBgHex(hex, 'hashsyn'));
+        } else if (isProjectPage) {
+            // Project pages: don't visually change on theme pick — the
+            // artist colour stays painted. The user's pick is still
+            // persisted to localStorage below so it takes effect when
+            // they navigate to a non-project page.
         } else {
             applyTheme(key);
         }
@@ -338,21 +364,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         } catch {
             // ignore quota / private mode
         }
-    }, [theme]);
+    }, [theme, pathname]);
 
     /* F64 (BUG-28) — when the user picks a new artist color via
        useArtistColor.setColor, the hook dispatches `pd:artist-color-changed`.
-       If the active theme is 'artist', re-run applyTheme so --bg-color /
-       --text-color / etc. pick up the new value live. If a different theme
-       is active, the new value silently persists (via the hook's
-       localStorage write) and lights up next time the user picks Artist. */
+       Re-apply the artist hex whenever:
+         - the active theme is 'artist' (user is in Artist mode globally), OR
+         - we're on a project page (project pages always paint artist colour
+           regardless of saved theme).
+       Other themes silently persist the new value via the hook's
+       localStorage write and light up next time the user picks Artist. */
     useEffect(() => {
         const handler = () => {
-            if (theme === 'artist') applyTheme('artist');
+            const isProjectPage = pathname?.startsWith('/art/') ?? false;
+            if (isProjectPage || theme === 'artist') {
+                applyBgHex(getArtistBg(), 'artist');
+            }
         };
         window.addEventListener('pd:artist-color-changed', handler);
         return () => window.removeEventListener('pd:artist-color-changed', handler);
-    }, [theme]);
+    }, [theme, pathname]);
 
     /* Brendon list item 7 — Pure Light / Pure Dark live re-apply.
        MyPdSection's pure_light / pure_dark pills dispatch this event
@@ -361,14 +392,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
        the active key so applyTheme's pure-flag override (#ffffff /
        #000000) takes effect immediately without waiting for the next
        theme pick. Sim 9311-9317 — togglePure persists pdNotifs then
-       calls setAndSaveTheme/setTheme to re-apply. */
+       calls setAndSaveTheme/setTheme to re-apply.
+       Project pages: pure flags are a no-op there because applyTheme
+       only honours pure_light / pure_dark when key is 'light' or
+       'dark', and project pages always paint via applyBgHex('artist')
+       directly — so we skip the handler entirely. */
     useEffect(() => {
         const handler = () => {
-            if (theme !== null) applyTheme(theme);
+            const isProjectPage = pathname?.startsWith('/art/') ?? false;
+            if (theme !== null && !isProjectPage) applyTheme(theme);
         };
         window.addEventListener('pd:pure-mode-changed', handler);
         return () => window.removeEventListener('pd:pure-mode-changed', handler);
-    }, [theme]);
+    }, [theme, pathname]);
 
     const value = useMemo<ThemeContextValue>(
         () => ({ theme, setTheme }),
