@@ -8,7 +8,7 @@
  * and persists the theme key in localStorage.
  *
  * Theme keys + bg colors match the sim verbatim:
- *   artist   #FFE600  (Attention yellow — the ARTIST_COLOR slot)
+ *   artist   #C488FF  (Soft violet — the ARTIST_COLOR slot)
  *   light    #e0e0e0
  *   dark     #1a1a1a
  *   orange   #ff6600
@@ -52,17 +52,14 @@ export type ThemeKey =
 
 const THEMES: Record<NonNullable<ThemeKey>, string> = {
     /* THEMES.artist is the fallback fill when the user hasn't picked a
-       custom hex yet. Brendon's spec: Attention Yellow (#FFE600) is the
-       canonical default for the artist custom colour. The static
-       fallback below is overridden by the user's saved hex via
-       getArtistBg() on every applyTheme pass; this value only paints
-       when no custom hex has been saved or the saved value is
-       malformed. Previously deviated to #C488FF (soft violet) for the
-       Prisms project — reverted per Brendon's "attention yellow should
-       only ever live as an artist custom colour or as the default
-       profile theme colour" lock. useArtistColor.ts migrates the old
-       #C488FF default forward on next load. */
-    artist:  '#FFE600',
+       custom hex yet. Soft Violet (#C488FF) is the canonical default
+       for the artist custom colour slot. The static fallback below is
+       overridden by the user's saved hex via getArtistBg() on every
+       applyTheme pass; this value only paints when no custom hex has
+       been saved or the saved value is malformed. The profile-theme
+       default (Attention Yellow) is a separate slot that lands with
+       Profile Page v0 — these two should not be conflated. */
+    artist:  '#C488FF',
     light:   '#e0e0e0',
     dark:    '#1a1a1a',
     orange:  '#ff6600',
