@@ -18,7 +18,7 @@ export interface SearchProjectResult {
 export interface SearchUserResult {
   address: string;
   ens_name: string | null;
-  display_name: string | null;
+  handle: string | null;
 }
 
 export interface SearchResponse {
@@ -45,11 +45,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .select('id, title, artist_address, minted_count, max_supply')
         .ilike('title', pattern)
         .limit(MAX_RESULTS),
+      // users.handle is citext, so .ilike() matches case-insensitively
+      // against it just as it does against the text columns. Querying
+      // all three (ens_name, handle, address) lets users find each
+      // other by whichever identifier they remember.
       supabase
         .from('users')
-        .select('address, ens_name, display_name')
+        .select('address, ens_name, handle')
         .or(
-          `ens_name.ilike.${pattern},display_name.ilike.${pattern},address.ilike.${pattern}`
+          `ens_name.ilike.${pattern},handle.ilike.${pattern},address.ilike.${pattern}`
         )
         .limit(MAX_RESULTS),
     ]);
