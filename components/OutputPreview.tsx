@@ -90,6 +90,7 @@ import {
     type MouseEvent as ReactMouseEvent,
     type ReactNode,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
@@ -212,6 +213,14 @@ export default function OutputPreview() {
     const { title, totalEditions, floorEth } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
+
+    /* Artwork Page v0 (2026-05-12) — the modal canvas is now a
+       portal to the full Artwork page at /{globalId}. Clicking the
+       canvas closes the modal and routes to the dedicated page.
+       The mute-overlay sibling absorbs canvas clicks while
+       body.hammer-mode is active (globals.css gates its display),
+       so muting and navigation never fire on the same click. */
+    const router = useRouter();
 
     /* F50 (BUG-02) — grail pins now live in lib/pins/grailStore so
        ArtworkCard's hover icon, the TopBarRow pill row, and this modal
@@ -513,7 +522,22 @@ export default function OutputPreview() {
             </div>
 
             <div className="modal-canvas-wrap">
-                <canvas id="modalCanvas" ref={canvasRef} />
+                <canvas
+                    id="modalCanvas"
+                    ref={canvasRef}
+                    onClick={() => {
+                        /* Portal to the dedicated Artwork page. Mute-
+                           overlay sibling (display: flex only in
+                           hammer-mode per globals.css) absorbs the
+                           click before it reaches the canvas while
+                           muting is active. */
+                        if (id == null) return;
+                        close();
+                        router.push(`/${id}`);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                    title="Open output page"
+                />
                 {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
                     visible only when body.hammer-mode is active (gated by
                     globals.css `body.hammer-mode .modal-canvas-wrap
