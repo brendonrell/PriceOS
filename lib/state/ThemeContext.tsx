@@ -278,14 +278,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
 
     // Per-page theme override. Project pages (/art/*) always paint the
-    // artist's custom colour, regardless of the user's saved global
-    // theme. Profile Page v0 will add a /{handle}/* branch here for the
-    // profile owner's theme. Re-runs on every route change so navigating
-    // in/out of project pages swaps themes cleanly.
+    // artist's custom colour when no theme is saved. Profile pages
+    // (/{handle}/*) boot to Attention Yellow (#FFE600) when no theme
+    // is saved — own slot, NOT linked to the artist custom colour.
+    // User picks still apply on every page; this is the boot default
+    // only. Re-runs on every route change so navigating in/out of
+    // these surfaces swaps themes cleanly.
     //
     // We always hydrate `theme` state from localStorage so the rest of
     // the app (ThemePicker pill highlight, etc.) reads the user's saved
-    // preference correctly, even when the project page visually overrides.
+    // preference correctly, even when the page visually overrides.
     //
     // F53 (BUG-18) — hashsyn never persists (sim 12617-12618: it needs
     // live canvases per session). If somehow it appears in storage,
@@ -304,12 +306,32 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setThemeState(savedTheme);
 
         const isProjectPage = pathname?.startsWith('/art/') ?? false;
+        /* Profile Page v0 — pathname is a profile page when the first
+           segment isn't 'art' or 'api', isn't all-digits (that's the
+           output / global-id namespace), and matches the handle shape.
+           `/` (root home) has empty first segment and falls through. */
+        const firstSeg = (pathname?.split('/')[1] ?? '').toLowerCase();
+        const isProfilePage =
+            firstSeg.length > 0 &&
+            firstSeg !== 'art' &&
+            firstSeg !== 'api' &&
+            !/^\d+$/.test(firstSeg) &&
+            /^[@a-z0-9_-]+$/i.test(firstSeg);
+
         if (isProjectPage && savedTheme === null) {
             // Project pages with NO user theme pick boot to the artist's
             // custom colour. Users who've picked a theme see their pick
             // here too — the earlier "always artist on /art/*" rule was
             // a CEO miscommunication; the picker has to work everywhere.
             applyBgHex(getArtistBg(), 'artist');
+        } else if (isProfilePage && savedTheme === null) {
+            // Profile pages with NO user theme pick boot to Attention
+            // Yellow. The synthetic `null` key keeps the body class
+            // flags off (no theme-* class added) — this is the boot
+            // default, not a picker selection. Per-user profile theme
+            // override (MY PD settings native picker) lands later as a
+            // separate slot from the artist custom colour.
+            applyBgHex('#FFE600', null);
         } else {
             applyTheme(savedTheme);
         }
