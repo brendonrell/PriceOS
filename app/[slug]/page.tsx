@@ -1,14 +1,16 @@
-// Root [slug] branch — numeric → Output, alpha → Profile.
+// Root [slug] branch — numeric → Artwork, alpha → Profile.
 // Replaces D1 scaffolds at /token/[id], /profile/[handle], /artist/[handle].
 // See: ClickUp doc 2kyd6gx6-994, page 2kyd6gx6-2554
 //
-// Profile Page v0 (2026-05-12): profile kind renders <ProfilePageBody />
-// (client component with TraitsProvider wrapper). Output kind still
-// proof-shells until the per-token surface lands.
+// Profile Page v0 (2026-05-12): profile kind renders <ProfilePageBody />.
+// Artwork Page v0 (2026-05-12): output kind renders <ArtworkPageBody />
+// (forked from the profile pattern — same hero shell, three tabs:
+// Artwork / Albums / + More).
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { resolveSlug } from '@/lib/slug';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
+import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
 type Props = { params: { slug: string } };
 
@@ -17,16 +19,7 @@ export default function SlugRootPage({ params }: Props) {
   if (r.kind === 'invalid') notFound();
 
   if (r.kind === 'output') {
-    return (
-      <main className="proof">
-        <h1 className="proof-logo">output</h1>
-        <p className="proof-status">
-          <strong>/{r.globalId}</strong>
-          <br />
-          Output shell. Alt URL: /art/{'{project}'}/{r.globalId}.
-        </p>
-      </main>
-    );
+    return <ArtworkPageBody globalId={r.globalId} />;
   }
 
   // Profile kind — Profile Page v0 body.
