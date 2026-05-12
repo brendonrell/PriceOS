@@ -1,35 +1,36 @@
 'use client';
 
 /*
- * hashSynEngine — F53 (BUG-18).
+ * hashSynEngine — port of sim.html 12534-12631 (Hash Synesthesia).
  *
- * Hash Synesthesia: sample colours from visible artwork canvases and
- * blend them into the UI accent. Sim refs:
- *   sim.html 12534-12559   hashSynSampleColor (centred 60x60 patch,
- *                          brightness 20-235 gate, max-min<25 skip)
- *   sim.html 12562-12565   hashSynToHex (3 channels, 2-char hex each)
- *   sim.html 12568-12592   resample (.edition-canvas pool, up to 10
- *                          samples, channel-mean blend)
- *   sim.html 12606-12610   scroll listener (debounced 400ms)
- *   sim.html 12614-12631   setTheme patch (seed + retry cascade)
+ * The engine samples colours from visible artwork canvases and blends
+ * them into the UI accent. ThemeContext owns the actual hex apply via
+ * the callback registered through enableHashSyn(applyHex).
  *
- * The engine is a module-singleton driven by a callback the consumer
- * registers via enableHashSyn(applyHex). When sampling produces a hex,
- * the engine calls applyHex — ThemeContext owns what that means
- * (typically: writes --bg-color / --text-color / --accent etc. via
- * applyBgHex). This separation keeps the engine free of React-context
- * coupling while letting ThemeContext control the actual var writes.
+ * Sim references:
+ *   sim 12534-12559  hashSynSampleColor — centred 60×60 patch,
+ *                    brightness 20-235 gate, max-min<25 near-gray skip,
+ *                    needs count>5 valid pixels.
+ *   sim 12562-12565  hashSynToHex — 2-char hex per channel.
+ *   sim 12568-12592  hashSynResample — pool .edition-canvas, prefer
+ *                    .visible+width>4, fallback width>4, sample up to
+ *                    10, channel-mean blend.
+ *   sim 12606-12610  scroll listener, debounced 400ms.
+ *   sim 12624-12627  retry cascade — 200/600/1200/2500ms after enable.
+ *   sim 8230-8234    paint-notify — virtualizer debounces 300ms after
+ *                    each new canvas paint + .visible flip.
  *
- * No localStorage. No persistence. Sim 12617-12618 explicitly removes
- * `pd_settings_theme` when hashsyn activates because the theme needs
- * live canvases each session — refresh always boots back to Dot.
+ * No viewport filter. Sim's pool is the first 10 .visible canvases in
+ * DOM order, full stop. A prior fix added a getBoundingClientRect gate
+ * above that filter — when the user picked Hashsyn before scrolling,
+ * the in-viewport set could be smaller than the threshold and the
+ * pool collapsed empty, so the engine never escaped the seed purple.
+ * Reverted here.
  *
- * Pause behaviour: the scroll listener is `passive: true` and the
- * resample bails when document.hidden — same as sim's implicit guard
- * (sim's hashSynResample doesn't bail on hidden but the canvases
- * aren't repainting either, so the result is the same). We bail
- * proactively so the timer cascade doesn't burn cycles in background
- * tabs.
+ * No localStorage. Sim 12617-12618 explicitly removes pd_settings_theme
+ * when hashsyn activates — the theme needs live canvases each session.
+ * That removal lives in ThemeContext.setTheme; the engine only handles
+ * sampling.
  */
 
 interface RGB {
@@ -41,19 +42,11 @@ interface RGB {
 let _onApplyHex: ((hex: string) => void) | null = null;
 let _scrollHandler: (() => void) | null = null;
 let _scrollDebounceId: ReturnType<typeof setTimeout> | null = null;
-const _retryTimers: Array<ReturnType<typeof setTimeout>> = [];
-/* Brendon list item 14 — sim 8230-8234. Sim debounces a hashsyn
-   resample whenever a new edition canvas paints. Without this, the
-   one-shot retry cascade (200/600/1200/2500ms) is the engine's only
-   sampling opportunity — if cards weren't visible during that window
-   the bg stays stuck at the seed `#6a1fc2`. The virtualizer calls
-   hashSynNotifyCanvasPaint() after each canvas.classList.add('visible'). */
 let _paintDebounceId: ReturnType<typeof setTimeout> | null = null;
+const _retryTimers: Array<ReturnType<typeof setTimeout>> = [];
 
-/* Sim 12534-12559 — sample a centred 60x60 patch from a canvas, mean
-   the non-near-gray non-near-extremes pixels. Returns null when the
-   canvas is too small, the read fails, or fewer than 6 valid pixels
-   pass the gates (sim 12558 `count > 5`). */
+/* Sim 12534-12559. Centred 60×60 patch, stride-16 mean of pixels that
+   pass the brightness (20–235) and saturation (max-min ≥ 25) gates. */
 function hashSynSampleColor(canvas: HTMLCanvasElement): RGB | null {
     try {
         const cw = canvas.width || 0;
@@ -71,19 +64,19 @@ function hashSynSampleColor(canvas: HTMLCanvasElement): RGB | null {
         const imgData = ctx.getImageData(sx, sy, sw, sh);
         const data = imgData.data;
         let r = 0, g = 0, b = 0, count = 0;
-        // Sim 12549 strides by 16 (every 4th pixel) — fast and
-        // statistically equivalent for a 60x60 patch.
         for (let i = 0; i < data.length; i += 16) {
-            const pr = data[i], pg = data[i + 1], pb = data[i + 2];
+            const pr = data[i];
+            const pg = data[i + 1];
+            const pb = data[i + 2];
             const brightness = (pr + pg + pb) / 3;
             if (brightness < 20 || brightness > 235) continue;
             const maxC = Math.max(pr, pg, pb);
             const minC = Math.min(pr, pg, pb);
-            // Skip near-gray patches (sim 12555). PD's HSL placeholder
-            // canvases are colour-saturated so the threshold catches
-            // the mute / hammer overlays which are gray scrim.
             if (maxC - minC < 25) continue;
-            r += pr; g += pg; b += pb; count++;
+            r += pr;
+            g += pg;
+            b += pb;
+            count++;
         }
         if (count <= 5) return null;
         return {
@@ -102,67 +95,27 @@ function hashSynToHex(c: RGB): string {
         '#' +
         [c.r, c.g, c.b]
             .map((v) =>
-                ('0' +
-                    Math.max(0, Math.min(255, v))
-                        .toString(16)).slice(-2)
+                ('0' + Math.max(0, Math.min(255, v)).toString(16)).slice(-2)
             )
             .join('')
     );
 }
 
-/* Sim 12568-12592 — pool .edition-canvas elements, prefer the .visible
-   ones (BUILD 35 virtualizer adds the class on intersection), fall
-   back to any with non-trivial width. Sample up to 10, average.
-
-   2026-05-12 fix: filter the pool to canvases currently INSIDE the
-   viewport rectangle, not the full DOM. Previous behaviour took the
-   first 10 .visible canvases in DOM order (token-id order), which
-   never changes as the user scrolls — so the blend was deterministic
-   and the bg stayed locked on whatever the lowest-id collections
-   averaged to (a muddy gray-green with the new palette set). Viewport
-   filtering means scrolling shifts the source set and the blend
-   tracks the on-screen palette, matching sim's perceived behaviour. */
+/* Sim 12568-12592 — verbatim. Pool = .edition-canvas. Prefer .visible
+   with width>4; fall back to any with width>4. Sample first 10,
+   channel-mean blend. */
 function resample(): void {
     if (!_onApplyHex) return;
     if (typeof document === 'undefined') return;
-    if (document.hidden) return;
 
-    const all = Array.from(
+    const canvases = Array.from(
         document.querySelectorAll<HTMLCanvasElement>('.edition-canvas')
     );
-
-    const viewportH = window.innerHeight;
-    const viewportW = window.innerWidth;
-
-    /* In-viewport AND painted (.visible). getBoundingClientRect on
-       canvases not yet attached returns all-zero so the check rejects
-       them naturally. Slight inset (0px) — any sliver of the canvas
-       on screen counts as visible. */
-    const inViewport = (c: HTMLCanvasElement): boolean => {
-        const rect = c.getBoundingClientRect();
-        return (
-            rect.bottom > 0 &&
-            rect.top < viewportH &&
-            rect.right > 0 &&
-            rect.left < viewportW
-        );
-    };
-
-    let pool = all.filter(
-        (c) => c.classList.contains('visible') && c.width > 4 && inViewport(c)
+    let pool = canvases.filter(
+        (c) => c.classList.contains('visible') && c.width > 4
     );
-    /* Fallbacks: relax viewport before relaxing .visible, since the
-       wrong painted canvas is still a worse sample than a sample-less
-       no-op. Both fallbacks keep us off the seed colour when the user
-       has scrolled past all painted canvases (e.g. into filter-empty
-       region). */
     if (pool.length === 0) {
-        pool = all.filter(
-            (c) => c.classList.contains('visible') && c.width > 4
-        );
-    }
-    if (pool.length === 0) {
-        pool = all.filter((c) => c.width > 4);
+        pool = canvases.filter((c) => c.width > 4);
     }
     if (pool.length === 0) return;
 
@@ -188,24 +141,19 @@ function resample(): void {
     _onApplyHex(hashSynToHex(blended));
 }
 
-/** Public — kick a manual resample. ThemeContext can call this if
- *  the user re-picks hashsyn while it's already active. */
+/** Public — kick a manual resample. */
 export function hashSynResample(): void {
     resample();
 }
 
 /**
- * Brendon list item 14 — sim 8230-8234.
+ * Sim 8230-8234. Called by the canvas virtualizer after a new edition
+ * canvas paints + flips .visible. Debounces 300ms then calls resample
+ * so a flurry of paints during scroll triggers a single sample pass.
  *
- * Called by the canvas virtualizer after a new edition canvas has
- * just rendered + been marked .visible. Debounces 300ms then calls
- * resample() so that a flurry of paints during scroll triggers a
- * single sample pass at the tail.
- *
- * Cheap no-op when the engine isn't enabled (no _onApplyHex registered):
- * resample() bails on the same null check, but skipping the timer setup
- * entirely keeps scroll-time cost at zero for users who never picked
- * hashsyn.
+ * No-op when the engine isn't enabled — resample() bails on the same
+ * null check, but skipping the timer keeps scroll-time cost at zero
+ * for users who never picked hashsyn.
  */
 export function hashSynNotifyCanvasPaint(): void {
     if (!_onApplyHex) return;
@@ -217,21 +165,16 @@ export function hashSynNotifyCanvasPaint(): void {
 }
 
 /**
- * Register the apply callback and attach the scroll listener + retry
- * cascade. Sim 12624-12627 — retry sampling at 200/600/1200/2500ms
- * because the canvases need a moment to paint after activation.
- *
- * Calling enable while already enabled re-runs the retry cascade and
- * leaves the listener attached once. Idempotent.
+ * Register the apply callback, attach the scroll listener (once),
+ * and run the retry cascade. Sim 12624-12627: retry sampling at
+ * 200/600/1200/2500ms because canvases need a moment to paint after
+ * activation. Idempotent — calling enable while already enabled
+ * re-runs the cascade and leaves the listener attached once.
  */
 export function enableHashSyn(applyHex: (hex: string) => void): void {
     _onApplyHex = applyHex;
-
     if (typeof window === 'undefined') return;
 
-    // Attach scroll listener once. The handler reads the current
-    // _onApplyHex closure on every fire so flipping the callback or
-    // disabling the engine takes effect immediately.
     if (!_scrollHandler) {
         _scrollHandler = () => {
             if (!_onApplyHex) return;
@@ -244,13 +187,10 @@ export function enableHashSyn(applyHex: (hex: string) => void): void {
         window.addEventListener('scroll', _scrollHandler, { passive: true });
     }
 
-    // Retry cascade — sim 12624-12627. New cascade per enable() call;
-    // any prior pending retries are cleared first so we don't pile up.
     _retryTimers.forEach((t) => clearTimeout(t));
     _retryTimers.length = 0;
     [200, 600, 1200, 2500].forEach((delay) => {
-        const t = setTimeout(() => resample(), delay);
-        _retryTimers.push(t);
+        _retryTimers.push(setTimeout(() => resample(), delay));
     });
 }
 
@@ -263,9 +203,6 @@ export function disableHashSyn(): void {
         clearTimeout(_scrollDebounceId);
         _scrollDebounceId = null;
     }
-    /* Item 14 — clear pending paint-notify resample so a canvas that
-       paints right at the moment the user leaves hashsyn doesn't fire
-       a stray applyBgHex into the wrong theme. */
     if (_paintDebounceId !== null) {
         clearTimeout(_paintDebounceId);
         _paintDebounceId = null;
