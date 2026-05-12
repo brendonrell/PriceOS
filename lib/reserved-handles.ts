@@ -23,6 +23,12 @@
  *   branded as "Starred"); `owned` → `collection` (user-side reclaim
  *   of the word — "collection" now means a user's gathered outputs,
  *   distinct from "project" which is a platform-released body of work).
+ *   2026-05-12 — Profile Page v0 nomenclature lock: `collection` →
+ *   `collected` everywhere (route + label + reserved-handle entry).
+ *   `created` (artist's minted projects) and `showcase` (curated subset
+ *   of Collected) added — both are profile sub-route nouns per the
+ *   Launch Cut spec. Locked nouns now: Project / Output / Artwork /
+ *   Token / Edition / Starred / Collected / Showcase / Created.
  */
 
 /** T1 — System / framework. Hard-reserved. */
@@ -70,7 +76,9 @@ export const RESERVED_T3 = [
     'feed',
     'home',
     // Profile sub-routes (cannot be a top-level handle)
-    'collection',
+    'collected',
+    'showcase',
+    'created',
     'anointed',
     'wishlist',
     'starred',
