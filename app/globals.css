@@ -2615,10 +2615,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     vertical-align: middle;
     letter-spacing: 0;
 }
-/* Floor icon centered naturally in its 22px slot. Previous ⊥-glyph
-   optical-correction offset removed — it was pushing row 2 col 2 icon
-   2px right of row 1's ⟠ icon, breaking vertical column alignment.
-   Glyph is ⟎ (U+27CE) — centers cleanly without optical tuning. */
+/* Floor icon centered naturally in its 22px slot. Glyph is ↨ (U+2195
+   UP-DOWN ARROW) — symmetric vertical metrics center cleanly without
+   optical-correction offsets. Prior glyphs ⊥ (U+22A5) and ⟎ (U+27CE)
+   are out; ⊥ pushed row 2 col 2 2px right of row 1's ⟠ which broke
+   vertical column alignment. ↨ avoids the same trap. */
 
 /* ⬚ dotted square — stat box icon. sim ~2161 */
 .stat-icon-box {
