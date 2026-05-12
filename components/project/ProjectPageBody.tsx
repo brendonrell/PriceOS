@@ -61,7 +61,7 @@
  * naming for sim-diff legibility.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -260,6 +260,24 @@ function ProjectPageBodyInner() {
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
+    /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
+       stat ("Editions Minted / Total Supply", etc.); value is inert
+       except for PPL (opens collectors modal) and Anchor (opens
+       set-anchor prompt). This helper bundles the icon's
+       button-like props (role, tabIndex, title, click + Enter/Space
+       key handler) so each .stat-icon spread is one line. */
+    const iconToastProps = (label: string) => ({
+        role: 'button' as const,
+        tabIndex: 0,
+        title: label,
+        onClick: () => showToast(label),
+        onKeyDown: (e: KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                showToast(label);
+            }
+        },
+    });
     const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive } = useTraits();
     const [activeTab, setActiveTab] = useState<ProjectTab>('showcase');
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
@@ -758,44 +776,41 @@ function ProjectPageBodyInner() {
                         is out of scope. */}
                     <div className="stats-grid">
                         <div className="hero-line stats-row">
-                            <span
-                                className="stat-item"
-                                title="Editions Minted / Total Supply"
-                                onClick={() =>
-                                    showToast(
-                                        'Editions Minted / Total Supply'
-                                    )
-                                }
-                            >
-                                <span className="stat-icon stat-icon-box">
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Editions Minted / Total Supply')}
+                                >
                                     ⬚&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val">198/222</span>
                             </span>
-                            <span
-                                className="stat-item stat-item-vol"
-                                title="Total Volume"
-                                onClick={() => showToast('Total Volume')}
-                            >
-                                <span className="stat-icon stat-icon-eth">⟠&#xFE0E;</span>{' '}
+                            <span className="stat-item stat-item-vol">
+                                <span
+                                    className="stat-icon stat-icon-eth"
+                                    {...iconToastProps('Total Volume')}
+                                >⟠&#xFE0E;</span>{' '}
                                 <span className="stat-val stat-val-vol">14.5 VOL</span>
                             </span>
-                            <span
-                                className="stat-item stat-item-owners"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => open('collectors')}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        open('collectors');
-                                    }
-                                }}
-                            >
-                                <span className="stat-icon stat-icon-owners">
+                            <span className="stat-item stat-item-owners">
+                                <span
+                                    className="stat-icon stat-icon-owners"
+                                    {...iconToastProps('Collectors')}
+                                >
                                     ⌗&#xFE0E;
                                 </span>{' '}
-                                <span className="stat-val stat-val-owners">
+                                <span
+                                    className="stat-val stat-val-owners"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => open('collectors')}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            open('collectors');
+                                        }
+                                    }}
+                                >
                                     67 PPL
                                 </span>
                             </span>
@@ -822,24 +837,22 @@ function ProjectPageBodyInner() {
                                   Spent". Renders reliably across desktop
                                   + iOS where ⎵ does not).
                                 Anchor (col 3) untouched. */}
-                            <span
-                                className="stat-item"
-                                title="Percent Listed"
-                                onClick={() => showToast('Percent Listed')}
-                            >
-                                <span className="stat-icon stat-icon-box stat-icon-owned">
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-owned"
+                                    {...iconToastProps('Percent Listed')}
+                                >
                                     ⊡&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statOwnedVal">
                                     57%
                                 </span>
                             </span>
-                            <span
-                                className="stat-item"
-                                title="Floor Price"
-                                onClick={() => showToast('Floor Price')}
-                            >
-                                <span className="stat-icon stat-icon-box stat-icon-spent">
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-spent"
+                                    {...iconToastProps('Floor Price')}
+                                >
                                     ⟎&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
@@ -848,29 +861,11 @@ function ProjectPageBodyInner() {
                                         : '—'}
                                 </span>
                             </span>
-                            <span
-                                className="stat-item stat-item-anchor"
-                                role="button"
-                                tabIndex={0}
-                                title="Your Personal Reference Price — tap to set"
-                                data-anchor-key={project.title}
-                                onClick={(e) => {
-                                    const key =
-                                        e.currentTarget.dataset.anchorKey ||
-                                        project.title;
-                                    openAnchorPrompt({ key, label: key });
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        const key =
-                                            e.currentTarget.dataset
-                                                .anchorKey || project.title;
-                                        openAnchorPrompt({ key, label: key });
-                                    }
-                                }}
-                            >
-                                <span className="stat-icon stat-icon-box">
+                            <span className="stat-item stat-item-anchor">
+                                <span
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Your Personal Reference Price')}
+                                >
                                     ⚓&#xFE0E;
                                 </span>{' '}
                                 <span
@@ -880,6 +875,25 @@ function ProjectPageBodyInner() {
                                             : 'stat-val stat-val-empty'
                                     }
                                     id="statAnchorVal"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Tap to set"
+                                    data-anchor-key={project.title}
+                                    onClick={(e) => {
+                                        const key =
+                                            e.currentTarget.dataset.anchorKey ||
+                                            project.title;
+                                        openAnchorPrompt({ key, label: key });
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            const key =
+                                                e.currentTarget.dataset
+                                                    .anchorKey || project.title;
+                                            openAnchorPrompt({ key, label: key });
+                                        }
+                                    }}
                                 >
                                     {/* Brendon-list-3 chat A item 3 — empty
                                         branch was '—' hyphen; now an empty
