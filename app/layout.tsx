@@ -45,7 +45,7 @@ const PREHYDRATION_SCRIPT = `
         if (theme === null && isProjectPage) theme = 'artist';
 
         var THEMES = {
-            artist:  '#FFE600',
+            artist:  '#C488FF',
             light:   '#e0e0e0',
             dark:    '#1a1a1a',
             orange:  '#ff6600',
