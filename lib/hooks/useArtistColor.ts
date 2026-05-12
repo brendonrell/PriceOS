@@ -29,16 +29,17 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'pd_artist_color';
-/* Brendon-list-2 chat F item 1 — Artist color default rotated from
-   Attention Yellow (#FFE600) to soft violet (#C488FF). Sim's current
-   ARTIST_COLOR is still #FFE600 (sim 6776); this is a Brendon-greenlit
-   sim deviation for the Prisms project — see Post-Sim Backlog.
-   #FFE600 added to OLD_DEFAULTS so users with the prior default migrate
-   forward on next reload, matching the prior #FF0033 / #FF6B35 → #FFE600
-   migration pattern. Custom picks (anything other than these defaults)
-   stay untouched. */
-export const ARTIST_COLOR_DEFAULT = '#C488FF';
-const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#FFE600'];
+/* Default artist custom colour is Attention Yellow (#FFE600) per
+   Brendon's nomenclature lock: "Attention Yellow should only ever live
+   as an artist custom colour or as the default profile theme colour
+   setting." This was previously deviated to #C488FF (soft violet) for
+   the Prisms project — reverted now. #C488FF added to OLD_DEFAULTS so
+   users carrying the violet default migrate forward to yellow on next
+   reload, matching the prior #FF0033 / #FF6B35 → #FFE600 migration
+   pattern. Custom picks (anything other than these defaults) stay
+   untouched. */
+export const ARTIST_COLOR_DEFAULT = '#FFE600';
+const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#C488FF'];
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 const EVENT_NAME = 'pd:artist-color-changed';
 
