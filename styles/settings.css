@@ -300,6 +300,58 @@
 }
 .copy-hex-btn:hover { opacity: 1; }
 
+/* Showcase mode toggle (⑆ static / ⑇ generative) — sits right of the
+   copy-hex button. Bumped one size up + extra left margin so it
+   doesn't crowd the copy icon (fat-finger spacing). Both glyph
+   variants share this rule via the class — there's no per-variant
+   sizing. */
+.showcase-toggle-btn {
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+/* Mobile per-id .st-icon overrides — sim 2238 block ported.
+   Desktop sizing comes from each pill's inline iconStyle prop in
+   MyPdSection / SpellBookSection (built off the desktop screenshot).
+   Mobile has a different optical balance for several glyphs, so sim
+   overrides them individually here. !important is needed to win
+   over the inline iconStyle font-size. */
+@media (max-width: 600px) {
+    #sn-redacted .st-icon { font-size: 13px !important; }
+    #sn-anon .st-icon,
+    #sn-zen .st-icon { font-size: 14px !important; }
+    #sn-sticker .st-icon { font-size: 15px !important; }
+    #sn-zerocontext .st-icon,
+    #sn-sentiment .st-icon { font-size: 15px !important; }
+    #sn-asciiId .st-icon,
+    #sn-degen .st-icon,
+    #sn-autoscroll .st-icon { font-size: 14px !important; }
+    #sn-echo .st-icon,
+    #sn-stargazing .st-icon {
+        font-size: 21px !important;
+        position: relative;
+        top: 2px;
+    }
+    #sn-mutualsOnly .st-icon {
+        font-size: 20px !important;
+        transform: translateY(1px) !important;
+    }
+    #sn-mints .st-icon {
+        font-size: 18px !important;
+        transform: translateY(-1px) !important;
+    }
+    #sn-profileTheme .st-icon { font-size: 14px !important; }
+    .pill-artist-filter[data-rel="starred"] span {
+        font-size: 14px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .balance-toggle-icon {
+        font-size: 19px !important;
+        top: 0px !important;
+    }
+}
+
 
 /* Setup Code field (next to MY PD header) */
 .setup-code-row {
