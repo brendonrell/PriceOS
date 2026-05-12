@@ -29,7 +29,17 @@ export const metadata: Metadata = {
 const PREHYDRATION_SCRIPT = `
 (function () {
     try {
-        var theme = localStorage.getItem('pd_settings_theme');
+        // Per-page theme override (sim deviation). Project pages
+        // (/art/*) always paint the artist's custom colour, regardless
+        // of the user's saved global theme. Profile Page v0 will add
+        // a /{handle}/* branch here for the profile owner's theme.
+        var pathname = (window.location && window.location.pathname) || '';
+        var isProjectPage = pathname.indexOf('/art/') === 0;
+
+        var theme = isProjectPage
+            ? 'artist'
+            : localStorage.getItem('pd_settings_theme');
+
         var THEMES = {
             artist:  '#FFE600',
             light:   '#e0e0e0',
@@ -41,6 +51,21 @@ const PREHYDRATION_SCRIPT = `
         };
         if (theme && THEMES[theme]) {
             var bg = THEMES[theme];
+
+            // When theme is 'artist' (project page or user pick), read
+            // the user's saved custom hex from pd_artist_color so the
+            // page paints the picked colour instead of the static
+            // THEMES.artist fallback. Falls back to THEMES.artist if
+            // the saved value is missing or malformed.
+            if (theme === 'artist') {
+                try {
+                    var savedArtistColor = localStorage.getItem('pd_artist_color');
+                    if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
+                        bg = savedArtistColor.toUpperCase();
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
             var hex = bg.replace('#', '');
             var r = parseInt(hex.substr(0, 2), 16) || 0;
             var g = parseInt(hex.substr(2, 2), 16) || 0;
@@ -64,6 +89,8 @@ const PREHYDRATION_SCRIPT = `
             // #ffffff / #000000 instead of #e0e0e0 / #1a1a1a when the
             // pure flag is set. Recomputes bg + yiq + text since the
             // earlier block already painted with the standard variant.
+            // Project pages skip this branch — theme is forced to
+            // 'artist' above, so pure_light / pure_dark never apply.
             if (notifs && (theme === 'light' || theme === 'dark')) {
                 var pureBg = null;
                 if (theme === 'light' && notifs.pure_light) pureBg = '#ffffff';
