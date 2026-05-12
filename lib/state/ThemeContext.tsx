@@ -307,10 +307,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setThemeState(savedTheme);
 
         const isProjectPage = pathname?.startsWith('/art/') ?? false;
-        if (isProjectPage) {
-            // Project pages always paint the artist's custom colour.
-            // Use getArtistBg() so the user's saved hex wins over the
-            // static THEMES.artist fallback.
+        if (isProjectPage && savedTheme === null) {
+            // Project pages with NO user theme pick boot to the artist's
+            // custom colour. Users who've picked a theme see their pick
+            // here too — the earlier "always artist on /art/*" rule was
+            // a CEO miscommunication; the picker has to work everywhere.
             applyBgHex(getArtistBg(), 'artist');
         } else {
             applyTheme(savedTheme);
@@ -335,20 +336,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             disableHashSyn();
         }
 
-        const isProjectPage = pathname?.startsWith('/art/') ?? false;
-
         if (key === 'hashsyn') {
-            // Hashsyn activates its own bg-sampling engine; it overrides
-            // the artist-colour-on-project-pages rule because the user
-            // explicitly picked it.
             applyBgHex(HASHSYN_SEED, 'hashsyn');
             enableHashSyn((hex) => applyBgHex(hex, 'hashsyn'));
-        } else if (isProjectPage) {
-            // Project pages: don't visually change on theme pick — the
-            // artist colour stays painted. The user's pick is still
-            // persisted to localStorage below so it takes effect when
-            // they navigate to a non-project page.
         } else {
+            // Apply on every page including /art/*. The prior suppression
+            // branch (project pages ignore picks) made the picker a no-op
+            // and is gone — see useEffect above for the boot-default rule.
             applyTheme(key);
         }
 
@@ -364,20 +358,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         } catch {
             // ignore quota / private mode
         }
-    }, [theme, pathname]);
+    }, [theme]);
 
     /* F64 (BUG-28) — when the user picks a new artist color via
        useArtistColor.setColor, the hook dispatches `pd:artist-color-changed`.
-       Re-apply the artist hex whenever:
-         - the active theme is 'artist' (user is in Artist mode globally), OR
-         - we're on a project page (project pages always paint artist colour
-           regardless of saved theme).
-       Other themes silently persist the new value via the hook's
-       localStorage write and light up next time the user picks Artist. */
+       Re-paint only when the active bg IS the artist colour — either
+       theme === 'artist' (explicit pick) or savedTheme === null on a
+       project page (boot default). Picking Dark on /art/prisms means
+       the painted bg is dark, not artist, so an artist-colour change
+       must NOT repaint there. */
     useEffect(() => {
         const handler = () => {
             const isProjectPage = pathname?.startsWith('/art/') ?? false;
-            if (isProjectPage || theme === 'artist') {
+            const paintingArtist =
+                theme === 'artist' || (theme === null && isProjectPage);
+            if (paintingArtist) {
                 applyBgHex(getArtistBg(), 'artist');
             }
         };
@@ -388,23 +383,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     /* Brendon list item 7 — Pure Light / Pure Dark live re-apply.
        MyPdSection's pure_light / pure_dark pills dispatch this event
        after flipping the corresponding pdNotifs flag and before
-       (or after) calling setTheme. The handler re-runs applyTheme on
-       the active key so applyTheme's pure-flag override (#ffffff /
-       #000000) takes effect immediately without waiting for the next
-       theme pick. Sim 9311-9317 — togglePure persists pdNotifs then
-       calls setAndSaveTheme/setTheme to re-apply.
-       Project pages: pure flags are a no-op there because applyTheme
-       only honours pure_light / pure_dark when key is 'light' or
-       'dark', and project pages always paint via applyBgHex('artist')
-       directly — so we skip the handler entirely. */
+       (or after) calling setTheme. applyTheme honours the pure-flag
+       overrides only when key is 'light' or 'dark', so the handler
+       gates on those keys; no need to check pathname now that picks
+       apply uniformly across pages. */
     useEffect(() => {
         const handler = () => {
-            const isProjectPage = pathname?.startsWith('/art/') ?? false;
-            if (theme !== null && !isProjectPage) applyTheme(theme);
+            if (theme === 'light' || theme === 'dark') applyTheme(theme);
         };
         window.addEventListener('pd:pure-mode-changed', handler);
         return () => window.removeEventListener('pd:pure-mode-changed', handler);
-    }, [theme, pathname]);
+    }, [theme]);
 
     const value = useMemo<ThemeContextValue>(
         () => ({ theme, setTheme }),
