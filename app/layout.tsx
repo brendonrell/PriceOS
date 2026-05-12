@@ -30,15 +30,19 @@ const PREHYDRATION_SCRIPT = `
 (function () {
     try {
         // Per-page theme override (sim deviation). Project pages
-        // (/art/*) always paint the artist's custom colour, regardless
-        // of the user's saved global theme. Profile Page v0 will add
-        // a /{handle}/* branch here for the profile owner's theme.
+        // (/art/*) boot to the artist's custom colour when the user
+        // has NOT picked a global theme; if they have a saved pick,
+        // that wins (the picker must work on every page).
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
 
-        var theme = isProjectPage
-            ? 'artist'
-            : localStorage.getItem('pd_settings_theme');
+        var savedTheme = null;
+        try { savedTheme = localStorage.getItem('pd_settings_theme'); } catch (e) { /* ignore */ }
+        // Hashsyn never persists — sim 12617-12618.
+        if (savedTheme === 'hashsyn') savedTheme = null;
+
+        var theme = savedTheme;
+        if (theme === null && isProjectPage) theme = 'artist';
 
         var THEMES = {
             artist:  '#FFE600',
@@ -49,14 +53,81 @@ const PREHYDRATION_SCRIPT = `
             red:     '#FF0033',
             hashsyn: '#7B2FFF'
         };
+
+        // Helper: write every theme-derived CSS var so the FOH matches
+        // applyBgHex post-hydration. Without this, --mint-bg / --pill-l1-bg
+        // / --modal-bg etc. fall through to the static globals.css
+        // defaults (mint = #111111 / e0e0e0) → the hero CTA flashes black
+        // until ThemeContext's useEffect runs.
+        function paintVars(bg, text, key) {
+            var root = document.documentElement;
+            var hex = bg.replace('#', '');
+            var rr = parseInt(hex.substr(0, 2), 16) || 0;
+            var gg = parseInt(hex.substr(2, 2), 16) || 0;
+            var bb = parseInt(hex.substr(4, 2), 16) || 0;
+            var isLight = text === '#111111';
+
+            root.style.setProperty('--bg-color', bg);
+            root.style.setProperty('--text-color', text);
+            root.style.setProperty('--accent', text);
+            root.style.setProperty('--border-color',
+                isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)');
+            root.style.setProperty('--stat-bg',
+                isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)');
+            root.style.setProperty('--stat-active-bg',
+                isLight ? '#000000' : '#e0e0e0');
+            root.style.setProperty('--stat-active-text',
+                isLight ? '#e0e0e0' : '#000000');
+            root.style.setProperty('--modal-bg',
+                'rgba(' + rr + ',' + gg + ',' + bb + ',0.98)');
+            root.style.setProperty('--btn-user-hover',
+                isLight ? '#ffffff' : '#888888');
+
+            var mintBg = '#111111', mintText = '#e0e0e0', mintBorder = '#111111';
+            var mintBgImg = 'none';
+            var pillL1Bg = text, pillL1Text = bg, pillL1Border = text;
+            var pillL1BgImg = 'none', pillL1ActiveBgImg = 'none';
+
+            if (key === 'dark') {
+                mintBg = '#e0e0e0'; mintText = '#111111'; mintBorder = '#e0e0e0';
+                pillL1Bg = '#111111'; pillL1Text = '#e0e0e0'; pillL1Border = '#e0e0e0';
+                pillL1BgImg = 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
+                pillL1ActiveBgImg = 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
+            }
+
+            root.style.setProperty('--mint-bg', mintBg);
+            root.style.setProperty('--mint-text', mintText);
+            root.style.setProperty('--mint-border', mintBorder);
+            root.style.setProperty('--mint-bg-img', mintBgImg);
+            root.style.setProperty('--pill-l1-bg', pillL1Bg);
+            root.style.setProperty('--pill-l1-text', pillL1Text);
+            root.style.setProperty('--pill-l1-border', pillL1Border);
+            root.style.setProperty('--pill-l1-bg-img', pillL1BgImg);
+            root.style.setProperty('--pill-l1-active-bg-img', pillL1ActiveBgImg);
+        }
+
+        // Helper: paint a simple SVG favicon themed to the current bg/text.
+        // Replaces the static /favicon.ico fallback before the browser
+        // commits it to the tab. FaviconEngine repaints with the proper
+        // canvas-rendered glyph after hydration; this just kills the FOH
+        // black flash.
+        function paintFavicon(bg, text) {
+            var link = document.getElementById('dynamic-favicon');
+            if (!link) return;
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+                      '<rect width="64" height="64" fill="' + bg + '"/>' +
+                      '<text x="32" y="48" font-family="sans-serif" font-size="42" font-weight="700" text-anchor="middle" fill="' + text + '">\u2030</text>' +
+                      '</svg>';
+            link.href = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
         if (theme && THEMES[theme]) {
             var bg = THEMES[theme];
 
-            // When theme is 'artist' (project page or user pick), read
-            // the user's saved custom hex from pd_artist_color so the
-            // page paints the picked colour instead of the static
-            // THEMES.artist fallback. Falls back to THEMES.artist if
-            // the saved value is missing or malformed.
+            // When theme is 'artist' (project-page boot default OR user
+            // pick), read the user's saved custom hex from
+            // pd_artist_color so the page paints the picked colour
+            // instead of the static THEMES.artist fallback.
             if (theme === 'artist') {
                 try {
                     var savedArtistColor = localStorage.getItem('pd_artist_color');
@@ -66,14 +137,27 @@ const PREHYDRATION_SCRIPT = `
                 } catch (e) { /* ignore */ }
             }
 
+            // Pure Light / Pure Dark mode override (sim 6798-6803). Project
+            // pages bypass this because theme is forced to 'artist' above
+            // when there's no saved pick — if the user explicitly picked
+            // light/dark on /art/*, the override still applies.
+            var notifs = null;
+            try {
+                notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
+            } catch (e) { /* ignore */ }
+            if (notifs && theme === 'light' && notifs.pure_light) bg = '#ffffff';
+            if (notifs && theme === 'dark'  && notifs.pure_dark)  bg = '#000000';
+
             var hex = bg.replace('#', '');
             var r = parseInt(hex.substr(0, 2), 16) || 0;
             var g = parseInt(hex.substr(2, 2), 16) || 0;
             var b = parseInt(hex.substr(4, 2), 16) || 0;
             var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             var text = yiq >= 128 ? '#111111' : '#e0e0e0';
-            document.documentElement.style.setProperty('--bg-color', bg);
-            document.documentElement.style.setProperty('--text-color', text);
+
+            paintVars(bg, text, theme);
+            paintFavicon(bg, text);
+
             if (document.body) {
                 document.body.classList.add('theme-' + theme);
                 if (r > g + 40 && r > b + 40 && r > 100) {
@@ -82,85 +166,42 @@ const PREHYDRATION_SCRIPT = `
             }
         }
 
-        var notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
-        if (theme && THEMES[theme]) {
-            // Brendon list item 7 — sim 6798-6803. Pre-hydrate the
-            // pure light / pure dark bg override so first paint reads
-            // #ffffff / #000000 instead of #e0e0e0 / #1a1a1a when the
-            // pure flag is set. Recomputes bg + yiq + text since the
-            // earlier block already painted with the standard variant.
-            // Project pages skip this branch — theme is forced to
-            // 'artist' above, so pure_light / pure_dark never apply.
-            if (notifs && (theme === 'light' || theme === 'dark')) {
-                var pureBg = null;
-                if (theme === 'light' && notifs.pure_light) pureBg = '#ffffff';
-                if (theme === 'dark'  && notifs.pure_dark)  pureBg = '#000000';
-                if (pureBg) {
-                    var ph = pureBg.replace('#', '');
-                    var pr = parseInt(ph.substr(0, 2), 16) || 0;
-                    var pg = parseInt(ph.substr(2, 2), 16) || 0;
-                    var pb = parseInt(ph.substr(4, 2), 16) || 0;
-                    var pyiq = ((pr * 299) + (pg * 587) + (pb * 114)) / 1000;
-                    var ptext = pyiq >= 128 ? '#111111' : '#e0e0e0';
-                    document.documentElement.style.setProperty('--bg-color', pureBg);
-                    document.documentElement.style.setProperty('--text-color', ptext);
-                }
-            }
-        }
+        var notifs2 = null;
+        try {
+            notifs2 = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
+        } catch (e) { /* ignore */ }
 
-        if (notifs) {
+        if (notifs2) {
             var classList = document.body && document.body.classList;
             if (classList) {
                 var tapeMap = ['tape-off', 'tape-faded', 'tape-standard', 'tape-bold', 'tape-framed'];
-                var tapeClass = tapeMap[notifs.tape];
+                var tapeClass = tapeMap[notifs2.tape];
                 if (tapeClass) classList.add(tapeClass);
 
-                if (notifs.notes)            classList.add('notes-mode');
-                if (notifs.spell_aura)       classList.add('aura-active');
-                if (notifs.spell_priceghost) classList.add('pm-active');
-                if (notifs.stargazing)       classList.add('stargazing-mode');
-                if (notifs.spell_hammer)     classList.add('hammer-mode');
-                if (notifs.spell_pricelens)  classList.add('pricelens-mode');
-                if (notifs.zenMode)          classList.add('zen-mode');
-                if (notifs.sentimentOn)      classList.add('sentiment-on');
-                if (notifs.redactedMode)     classList.add('redacted-mode');
-                // Build 24 — anon-mode (sim 13033).
-                if (notifs.anon)             classList.add('anon-mode');
-                // Build 32 D20 — sticker-mode (sim 887 + 891). Drives
-                // .sticker-strike opacity fade via globals.css. Backticks
-                // omitted on purpose — the prehydration script is itself a
-                // template literal, so any backtick inside (even in a
-                // comment) closes it early and turns the rest of the
-                // string into a TS expression. Build 33 shipped that bug;
-                // Build 34 hotfix removes the backticks.
-                if (notifs.sticker)          classList.add('sticker-mode');
-                if (notifs.degen)            classList.add('degen-mode');
-                if (notifs.zerocontext)      classList.add('zero-context-mode');
-                // F55 (BUG-22) — sim 9959. Boot with sprite+badge hidden
-                // for returning users who had ASCII-ID on at last unload.
-                if (notifs.asciiId)          classList.add('ascii-id-mode');
-                // Phase 5 mode batch 3 — echo-mode (sim 13039). Boot with
-                // mutuals-only filter active for returning users who had
-                // Echo Chamber on at last unload. CSS rules in globals.css
-                // hide non-mutual notif-items + artist-rows when this
-                // class is present.
-                if (notifs.echo)             classList.add('echo-mode');
+                if (notifs2.notes)            classList.add('notes-mode');
+                if (notifs2.spell_aura)       classList.add('aura-active');
+                if (notifs2.spell_priceghost) classList.add('pm-active');
+                if (notifs2.stargazing)       classList.add('stargazing-mode');
+                if (notifs2.spell_hammer)     classList.add('hammer-mode');
+                if (notifs2.spell_pricelens)  classList.add('pricelens-mode');
+                if (notifs2.zenMode)          classList.add('zen-mode');
+                if (notifs2.sentimentOn)      classList.add('sentiment-on');
+                if (notifs2.redactedMode)     classList.add('redacted-mode');
+                if (notifs2.anon)             classList.add('anon-mode');
+                if (notifs2.sticker)          classList.add('sticker-mode');
+                if (notifs2.degen)            classList.add('degen-mode');
+                if (notifs2.zerocontext)      classList.add('zero-context-mode');
+                if (notifs2.asciiId)          classList.add('ascii-id-mode');
+                if (notifs2.echo)             classList.add('echo-mode');
             }
         }
 
-        // Build 23 — fog-mode follows SortContext (sim 8334-8338),
-        // not the dormant notifs.fogMode flag.
-        // Build 24 — feed-mode joins fog-mode as a sort-driven body
-        // class (sim 8342 + 9927).
         var sort = localStorage.getItem('pd_settings_sort');
         if (document.body) {
             if (sort === 'fog')  document.body.classList.add('fog-mode');
             if (sort === 'feed') document.body.classList.add('feed-mode');
         }
 
-        // Build 23 — persona-default mirrors sim's debugPersona flow
-        // (sim 12015 + 12035). Default ('pd') leaves the class off; only
-        // 'default' adds it. PersonaContext takes ownership post-hydration.
         var persona = localStorage.getItem('pd_debug_persona');
         if (persona === 'default' && document.body) {
             document.body.classList.add('persona-default');
