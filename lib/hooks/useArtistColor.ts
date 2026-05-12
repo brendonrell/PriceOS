@@ -11,10 +11,10 @@
  *
  * F64 (BUG-28). Storage key: `pd_artist_color`. On first hydrate the
  * hook reads the saved value and migrates any historical default
- * (#FF0033 / #FF6B35) up to the current default (#FFE600). Anything
- * else that matches the hex regex is treated as a deliberate custom
- * pick and respected. Calling `setColor(hex)` validates the input,
- * persists the upper-cased value to localStorage, writes
+ * (#FF0033 / #FF6B35 / #FFE600) up to the current default (#C488FF).
+ * Anything else that matches the hex regex is treated as a deliberate
+ * custom pick and respected. Calling `setColor(hex)` validates the
+ * input, persists the upper-cased value to localStorage, writes
  * `--artist-accent` on documentElement for any consumer that wants to
  * read it as a CSS var, and broadcasts a `pd:artist-color-changed`
  * window event so other hook instances + ThemeContext can react. The
@@ -29,17 +29,18 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'pd_artist_color';
-/* Default artist custom colour is Attention Yellow (#FFE600) per
-   Brendon's nomenclature lock: "Attention Yellow should only ever live
-   as an artist custom colour or as the default profile theme colour
-   setting." This was previously deviated to #C488FF (soft violet) for
-   the Prisms project — reverted now. #C488FF added to OLD_DEFAULTS so
-   users carrying the violet default migrate forward to yellow on next
-   reload, matching the prior #FF0033 / #FF6B35 → #FFE600 migration
-   pattern. Custom picks (anything other than these defaults) stay
+/* Default artist custom colour is Soft Violet (#C488FF). The earlier
+   "Attention Yellow only ever lives as an artist custom or the default
+   profile theme colour" framing conflated two slots that should never
+   have been linked — the user-profile theme (default Attention Yellow,
+   lands in Profile Page v0) is its own thing, and the artist custom
+   colour is its own thing. Reverted to violet per Brendon's call.
+   #FFE600 added to OLD_DEFAULTS so users who saved Attention Yellow
+   during the brief misconflated window migrate forward to violet on
+   next load. Custom picks (anything other than these defaults) stay
    untouched. */
-export const ARTIST_COLOR_DEFAULT = '#FFE600';
-const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#C488FF'];
+export const ARTIST_COLOR_DEFAULT = '#C488FF';
+const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#FFE600'];
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 const EVENT_NAME = 'pd:artist-color-changed';
 
