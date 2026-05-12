@@ -2599,13 +2599,10 @@ body.persona-default .stats-row-2 { display: none !important; }
     vertical-align: middle;
     letter-spacing: 0;
 }
-/* Brendon-list-3 chat A item 2 — ⊥ glyph's vertical bar sits ~1px left of
-   its bbox center in Courier New, so visual-centering against θ above
-   (col 2 row 1, .stat-icon-eth) drifts left by that amount even with the
-   matching min-width: 22px slot. left: 2px nudges the glyph rightward to
-   share an optical x-axis with θ. top: 1px retained from prior baseline
-   tweak (vertical alignment with row-1's .stat-icon-eth glyph). */
-.stats-row-2 .stat-icon-spent { position: relative; top: 1px; left: 2px; }
+/* Floor icon centered naturally in its 22px slot. Previous ⊥-glyph
+   optical-correction offset removed — it was pushing row 2 col 2 icon
+   2px right of row 1's ⟠ icon, breaking vertical column alignment.
+   Glyph is ⟎ (U+27CE) — centers cleanly without optical tuning. */
 
 /* ⬚ dotted square — stat box icon. sim ~2161 */
 .stat-icon-box {
