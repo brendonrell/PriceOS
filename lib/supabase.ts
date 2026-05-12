@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { PriceSpriteVibe } from './sprites/vibes';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Database row types — mirror the Postgres schema exactly.
@@ -7,9 +8,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 export interface UserRow {
   address: string;
   ens_name: string | null;
-  display_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
+  handle: string | null;
+  price_sprite: PriceSpriteVibe | null;
   created_at: string;
 }
 
