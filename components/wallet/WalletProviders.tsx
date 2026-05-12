@@ -116,6 +116,7 @@ import {
     wakeWalletForSignStep,
 } from '../../lib/wallet/siweClient';
 import { AuthContextProvider } from '../../lib/state/AuthContext';
+import { SignInModal } from './SignInModal';
 
 interface WalletProvidersProps {
     children: ReactNode;
@@ -292,55 +293,46 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             setPhase('authenticated');
         } catch {
             /* Sign rejected, network failed, or verify rejected.
-               Drop wagmi connection so the user lands back at a
-               clean disconnected state — they can re-tap connect
-               to retry. Leaving them connected-without-SIWE would
-               create a partially-authed state the UI doesn't have
-               a clear shape for and contradicts the "finish auth
-               on connect" stance. */
-            try {
-                disconnect();
-            } catch {
-                /* swallow */
-            }
+               Drop phase back to 'idle' but DO NOT disconnect wagmi —
+               the SignInModal stays open (it's keyed off
+               connected-and-not-signed) so the user can tap Sign again
+               without re-running the connect flow. Cancel button is
+               the explicit path back to disconnected. */
             setSiweAddress(null);
             setPhase('idle');
         } finally {
             inFlightSignRef.current = false;
         }
-    }, [address, chainId, disconnect, signMessageAsync]);
+    }, [address, chainId, signMessageAsync]);
 
-    /* Combined wagmi-state watcher. Two branches:
+    /* Wagmi-state watcher.
 
-         1. Address swap: wagmi is 'connected' with an address that
-            doesn't match siweAddress → serverSignOut + clear local.
-            Fires regardless of how we got into 'connected' (user
-            initiated or cookie restore). Security: a stale SIWE
-            for the old address must not authorize requests as the
-            new address.
+         Address swap: wagmi is 'connected' with an address that
+         doesn't match siweAddress → serverSignOut + clear local.
+         Fires regardless of how we got into 'connected' (user
+         initiated or cookie restore). Security: a stale SIWE for
+         the old address must not authorize requests as the new
+         address.
 
-         2. User-initiated connect: prev wagmi status was
-            'connecting' and current is 'connected' → autoSign if
-            no SIWE for this address yet. The 'reconnecting' →
-            'connected' cookie-restore path does NOT fire autoSign
-            (the user didn't actively log in; they just refreshed
-            with a still-valid wagmi cookie).
-
-       Notably absent: any wagmi 'disconnected' branch. SIWE is
-       sticky against wagmi state changes. The wallet section can
-       prompt for a reconnect when a tx-signing action requires
-       one; identity stays lit until explicit signOut or address
-       swap.
-
-       prevWagmiStatusRef is the transition oracle. Initial mount
-       starts undefined; first observation sets it without firing
-       any branch. */
+       Auto-fire-on-connect branch removed (2026-05). Previously this
+       useEffect ran autoSign() on the 'connecting' → 'connected' edge
+       so the signature prompt would land back-to-back with the connect
+       popup. That happy-path worked but had two failure modes Brendon
+       hit repeatedly:
+         a. The sign popup sometimes didn't appear at all (wallet had
+            already bounced back to Safari; useEffect's pseudo-gesture
+            window was cold).
+         b. If the user rejected or the wallet dropped, autoSign would
+            disconnect wagmi — leaving no surface to retry from.
+       The SignInModal renders whenever wagmi reports 'connected' AND
+       siweAddress is unset, anchoring the Sign request to a click. The
+       modal closes on success; on rejection it stays so the user can
+       tap Sign again. Cancel disconnects. */
     const prevWagmiStatusRef = useRef<typeof wagmiStatus | undefined>(undefined);
     useEffect(() => {
-        const prev = prevWagmiStatusRef.current;
         prevWagmiStatusRef.current = wagmiStatus;
 
-        // Branch 1: address swap.
+        // Address swap.
         if (
             wagmiStatus === 'connected' &&
             address &&
@@ -354,27 +346,13 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             return;
         }
 
-        // Branch 2: user-initiated connect → autoSign.
-        if (
-            prev === 'connecting' &&
-            wagmiStatus === 'connected' &&
-            address &&
-            phase !== 'signing'
-        ) {
-            const lowercased = address.toLowerCase();
-            if (siweAddress !== lowercased) {
-                void autoSign();
-            }
-            return;
-        }
-
-        /* All other transitions — including 'connected' →
-           'disconnected', 'reconnecting' → 'disconnected',
-           'reconnecting' → 'connected', 'connected' → 'reconnecting'
-           — are no-ops for SIWE state. The iron-session cookie
-           lives or dies on its own server-side TTL plus the two
-           branches above. */
-    }, [wagmiStatus, address, phase, siweAddress, autoSign]);
+        /* All other transitions — including the 'connecting' →
+           'connected' edge — are no-ops here. The SignInModal handles
+           the user-initiated connect → sign sequence via its button.
+           Reconnecting → connected and connected → disconnected
+           remain no-ops for SIWE state too; identity is sticky against
+           wagmi state changes. */
+    }, [wagmiStatus, address, siweAddress]);
 
     /* Full sign-out: server cookie + local state + wagmi
        disconnect. The only path (alongside address swap) that
@@ -398,6 +376,28 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
        auto-sign cycle resolves. */
     const isAuthenticating = phase === 'hydrating' || phase === 'signing';
 
+    /* SignInModal is visible when wagmi has a connected address but
+       no SIWE session yet, AND we're past the initial cookie hydration
+       (so we don't flash the modal during the auth-cookie GET). The
+       address swap branch above clears siweAddress when the wagmi
+       address stops matching, which re-opens this modal so the user
+       can sign in as the new identity without a manual reconnect. */
+    const signInModalOpen =
+        wagmiStatus === 'connected' &&
+        !!address &&
+        !siweAddress &&
+        phase !== 'hydrating';
+
+    const handleSignInCancel = useCallback(() => {
+        try {
+            disconnect();
+        } catch {
+            /* swallow — wallet might already be gone */
+        }
+        setSiweAddress(null);
+        setPhase('idle');
+    }, [disconnect]);
+
     return (
         <RainbowKitProvider
             theme={darkTheme({
@@ -415,6 +415,15 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
                 signOut={signOutFull}
             >
                 {children}
+                <SignInModal
+                    open={signInModalOpen}
+                    address={address ?? null}
+                    signing={phase === 'signing'}
+                    onSign={() => {
+                        void autoSign();
+                    }}
+                    onCancel={handleSignInCancel}
+                />
             </AuthContextProvider>
         </RainbowKitProvider>
     );
