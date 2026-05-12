@@ -112,7 +112,16 @@ function hashSynToHex(c: RGB): string {
 
 /* Sim 12568-12592 — pool .edition-canvas elements, prefer the .visible
    ones (BUILD 35 virtualizer adds the class on intersection), fall
-   back to any with non-trivial width. Sample up to 10, average. */
+   back to any with non-trivial width. Sample up to 10, average.
+
+   2026-05-12 fix: filter the pool to canvases currently INSIDE the
+   viewport rectangle, not the full DOM. Previous behaviour took the
+   first 10 .visible canvases in DOM order (token-id order), which
+   never changes as the user scrolls — so the blend was deterministic
+   and the bg stayed locked on whatever the lowest-id collections
+   averaged to (a muddy gray-green with the new palette set). Viewport
+   filtering means scrolling shifts the source set and the blend
+   tracks the on-screen palette, matching sim's perceived behaviour. */
 function resample(): void {
     if (!_onApplyHex) return;
     if (typeof document === 'undefined') return;
@@ -121,9 +130,37 @@ function resample(): void {
     const all = Array.from(
         document.querySelectorAll<HTMLCanvasElement>('.edition-canvas')
     );
+
+    const viewportH = window.innerHeight;
+    const viewportW = window.innerWidth;
+
+    /* In-viewport AND painted (.visible). getBoundingClientRect on
+       canvases not yet attached returns all-zero so the check rejects
+       them naturally. Slight inset (0px) — any sliver of the canvas
+       on screen counts as visible. */
+    const inViewport = (c: HTMLCanvasElement): boolean => {
+        const rect = c.getBoundingClientRect();
+        return (
+            rect.bottom > 0 &&
+            rect.top < viewportH &&
+            rect.right > 0 &&
+            rect.left < viewportW
+        );
+    };
+
     let pool = all.filter(
-        (c) => c.classList.contains('visible') && c.width > 4
+        (c) => c.classList.contains('visible') && c.width > 4 && inViewport(c)
     );
+    /* Fallbacks: relax viewport before relaxing .visible, since the
+       wrong painted canvas is still a worse sample than a sample-less
+       no-op. Both fallbacks keep us off the seed colour when the user
+       has scrolled past all painted canvases (e.g. into filter-empty
+       region). */
+    if (pool.length === 0) {
+        pool = all.filter(
+            (c) => c.classList.contains('visible') && c.width > 4
+        );
+    }
     if (pool.length === 0) {
         pool = all.filter((c) => c.width > 4);
     }
