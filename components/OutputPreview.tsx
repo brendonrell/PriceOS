@@ -96,6 +96,10 @@ import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
+    getTokenArtSpec,
+    paintPlaceholder,
+} from '../lib/art/placeholderRenderer';
+import {
     getGrails,
     subscribeGrails,
     togglePin as storeTogglePin,
@@ -361,43 +365,25 @@ export default function OutputPreview() {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        /* Artwork Swap — same renderer as ArtworkCard, scaled to the
+           modal hero canvas. profile.html doesn't paint its modal
+           canvas at all (mockup #modalCanvas is declared but never
+           written to); the natural port is the same gradient logic at
+           higher resolution so gallery → modal handoff shows the same
+           piece. Canvas intrinsic dims = w × (w / ratio); the modal
+           container has no fixed aspect-ratio rule so the canvas lays
+           out at intrinsic size under the modal's max-width / max-
+           height clamps. */
         const w = window.innerWidth >= 601 ? 800 : 600;
+        const spec = getTokenArtSpec(id);
+        const H = Math.round(w / spec.ratio);
         canvas.width = w;
-        canvas.height = w;
+        canvas.height = H;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const seed = (id * 2654435761) >>> 0;
-        const h1 = seed % 360;
-        const h2 = ((seed * 13) >>> 0) % 360;
-        const h3 = ((seed * 31) >>> 0) % 360;
-
-        const linear = ctx.createLinearGradient(0, 0, 0, w);
-        linear.addColorStop(0, `hsl(${h1}, 65%, 58%)`);
-        linear.addColorStop(0.5, `hsl(${h2}, 65%, 48%)`);
-        linear.addColorStop(1, `hsl(${h3}, 65%, 38%)`);
-        ctx.fillStyle = linear;
-        ctx.fillRect(0, 0, w, w);
-
-        const radial = ctx.createRadialGradient(
-            w * 0.5,
-            w * 0.5,
-            0,
-            w * 0.5,
-            w * 0.5,
-            w * 0.75
-        );
-        radial.addColorStop(0, `hsla(${h1}, 85%, 72%, 0.55)`);
-        radial.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = radial;
-        ctx.fillRect(0, 0, w, w);
-
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.font = `bold ${Math.floor(w / 8)}px "Rubik Mono One", sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`#${id}`, w / 2, w / 2);
+        paintPlaceholder(ctx, w, H, spec);
     }, [isOpen, id]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock

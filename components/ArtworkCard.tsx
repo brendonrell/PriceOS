@@ -82,6 +82,10 @@ import { useToast } from '../lib/state/ToastContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
+    getTokenArtSpec,
+    paintPlaceholder,
+} from '../lib/art/placeholderRenderer';
+import {
     registerCanvas,
     unregisterCanvas,
 } from '../lib/virtualization/canvasVirtualizer';
@@ -327,47 +331,23 @@ export default function ArtworkCard({
         if (!canvas || !wrapper) return;
 
         const render = () => {
-            const w = 400;
-            canvas.width = w;
-            canvas.height = w;
+            /* Artwork Swap — profile.html 1727–1732 + 1749 port. Spec
+               is purely id-derived (collection by id-mod-N, angle by
+               id*37+15) so the paint is stable across reloads + virt-
+               ualizer evictions. Canvas intrinsic dims = 400 × (400 /
+               ratio); .edition-canvas width:100%/height:auto in
+               globals.css scales it to fit the wrapper, which itself
+               carries inline aspectRatio matching this spec. */
+            const spec = getTokenArtSpec(id);
+            const W = 400;
+            const H = Math.round(W / spec.ratio);
+            canvas.width = W;
+            canvas.height = H;
 
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
-            const seed = (id * 2654435761) >>> 0;
-            const h1 = seed % 360;
-            const h2 = ((seed * 13) >>> 0) % 360;
-            const h3 = ((seed * 31) >>> 0) % 360;
-
-            const linear = ctx.createLinearGradient(0, 0, 0, w);
-            linear.addColorStop(0, `hsl(${h1}, 65%, 58%)`);
-            linear.addColorStop(0.5, `hsl(${h2}, 65%, 48%)`);
-            linear.addColorStop(1, `hsl(${h3}, 65%, 38%)`);
-            ctx.fillStyle = linear;
-            ctx.fillRect(0, 0, w, w);
-
-            const radial = ctx.createRadialGradient(
-                w * 0.5,
-                w * 0.5,
-                0,
-                w * 0.5,
-                w * 0.5,
-                w * 0.75
-            );
-            radial.addColorStop(0, `hsla(${h1}, 85%, 72%, 0.55)`);
-            radial.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = radial;
-            ctx.fillRect(0, 0, w, w);
-
-            /* Brendon-list-2 chat F item 15 — id stamp removed from
-               the canvas placeholder (was: ctx.fillText(`#${id}`,
-               w/2, w/2) at this position). The .meta-id label below
-               the canvas already shows the id in chrome; stamping it
-               again in the middle of the artwork is redundant and
-               competes with the actual artwork once real renders ship.
-               The font/textAlign/textBaseline setup is left in place
-               for any future per-card center text we might want to
-               draw. */
+            paintPlaceholder(ctx, W, H, spec);
         };
 
         registerCanvas({ id, wrapper, canvas, render });
@@ -560,15 +540,15 @@ export default function ArtworkCard({
                     ref={wrapperRef}
                     className="canvas-wrapper art-placeholder"
                     data-id={id}
-                    /* Brendon-list-2 chat F item 15 — flipped from
-                       1:1 (square) to 3:4 (portrait). Sim's earlier
-                       PRISMS / PORTALS art was 3:4 portrait too;
-                       Build 19's STRATA placeholder pushed RATIOS to
-                       [1.0] but Brendon wants portrait restored for
-                       the gallery card surface. Aspect change drives
-                       canvas + degen-overlay + every absolute child
-                       inside .canvas-wrapper. */
-                    style={{ aspectRatio: '3 / 4' }}
+                    /* Artwork Swap — profile.html 1749 port. Per-token
+                       aspect ratio sourced from the same spec the
+                       canvas paint uses, so wrapper and canvas intrinsic
+                       dims stay locked. Replaces the prior hardcoded
+                       3:4 inline style (Brendon-list-2 chat F item 15).
+                       Gallery #gallery rule already carries align-items:
+                       start / align-content: start so varied heights
+                       lay out cleanly with no further CSS work. */
+                    style={{ aspectRatio: `${getTokenArtSpec(id).ratio} / 1` }}
                 >
                     <canvas
                         ref={canvasRef}
