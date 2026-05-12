@@ -5,37 +5,36 @@
  *
  * Artwork page body — mounted by app/[slug]/page.tsx (canonical
  * `/{globalId}`) and app/art/[slug]/[localId]/page.tsx (alt URL).
- * Forked from ProfilePageBody.tsx (which itself forked from
- * ProjectPageBody): same `.collection-hero` shell with .hero-group-1
- * (title / info / stats) + .hero-group-2 (action + tabs), then
- * three sibling tab panels below. Existing globals.css rules paint
- * the surface without parallel CSS.
+ * Forked from ProjectPageBody.tsx (NOT the profile body): the hero
+ * markup mirrors project line-for-line so existing globals.css
+ * rules paint the surface identically — same `.collection-title`,
+ * same `.collection-artist` lockup (By + artist-name-wrap +
+ * artist-tag + follow-badge + follower-count), same `.info-line`
+ * "Collected by"-shape chip pattern (here: "Held by"), same
+ * `.stats-grid` with class-qualified icons that the CSS sizes
+ * per-row (.stats-row .stat-icon-owners, .stats-row-2
+ * .stat-icon-owned/spent, .stats-row-2 .stat-item-anchor
+ * .stat-icon-box). Same BUY button format (parens around price,
+ * no space between mint-lbl and mint-price spans).
  *
- * Tabs (client-side state for v0; no URL changes):
- *   - Artwork — single large gradient render. `grid-column: span 3`
- *     against #gallery's `repeat(auto-fill, minmax(220px, 1fr))`
- *     template lands the card ~3 cols wide on desktop; auto-fill
- *     collapses to a single column on narrow viewports so mobile
- *     gets full-bleed within the gallery padding.
- *   - Albums — albums this artwork appears in (placeholder empty).
- *   - + More — full details (placeholder; trait rows, contract
- *     info, mint date, etherscan link land in subsequent ships).
+ * The three differences from project:
+ *   - Title reads `{Project} #{n}` (e.g. "Prisms #1"); no date span.
+ *   - Held-by chip replaces project's Collected-by list (current
+ *     owner instead of past collectors).
+ *   - Tabs are Artwork / Albums / + More; gallery section below
+ *     renders a single span-3 card on the Artwork tab.
  *
  * v0 hardcodes:
- *   - Title: `#{globalId}` for canonical URL; `{slug.toUpperCase()}
- *     #{localId}` for the alt URL.
- *   - Project + held-by chips (PRISMS / @brendon / @cto) static;
- *     anchors are inert (no href) until profile / project routes
- *     are wired across click destinations.
- *   - Stats values static placeholders (floor / last sale, transfers
- *     / age; two slots left as empty `—` placeholders per the
- *     profile-page pattern).
- *   - BUY button hardcoded; no LIST / OFFER variants for v0.
+ *   - Project name "Prisms" Title-Case for canonical URL; alt URL
+ *     passes its slug and we title-case here.
+ *   - Artist line @claude placeholder mirrors project page exactly.
+ *   - Held-by chip @cto static.
+ *   - Stats values are static placeholders.
+ *   - BUY button toasts "Buy — coming soon".
  *
  * Alt URL passes localId as the placeholder globalId for the
- * renderer. The indexer mapping (project, localId) ↔ globalId is
- * parked; both URLs render the same body once that mapping lands
- * without a contract change here.
+ * renderer; the indexer mapping (project, localId) ↔ globalId is
+ * parked. Both URLs render the same body once that mapping lands.
  */
 
 import { useState, type KeyboardEvent } from 'react';
@@ -53,6 +52,12 @@ interface Props {
     localId?: number;
 }
 
+/* Title-case a slug for display: "prisms" → "Prisms". */
+function titleCase(s: string): string {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 export default function ArtworkPageBody({
     globalId,
     projectSlug,
@@ -61,8 +66,7 @@ export default function ArtworkPageBody({
     const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
 
-    /* Stat-icon toast helper — same pattern as ProfilePageBody and
-       ProjectPageBody. Each .stat-icon spread becomes one line. */
+    /* Stat-icon toast helper — mirrors project + profile pages. */
     const iconToastProps = (label: string) => ({
         role: 'button' as const,
         tabIndex: 0,
@@ -80,150 +84,180 @@ export default function ArtworkPageBody({
     const onAlbums = activeTab === 'albums';
     const onMore = activeTab === 'more';
 
-    /* Canonical URL: `#{globalId}`. Alt URL passes project+localId
-       so the hero title reads `{PROJECT} #{LOCAL}` instead. Both
-       paint the same body. */
-    const titleLabel =
-        projectSlug && typeof localId === 'number'
-            ? `${projectSlug.toUpperCase()} #${localId}`
-            : `#${globalId}`;
+    /* Title: "Prisms #1". Canonical URL has only globalId (Prisms is
+       hardcoded for v0 demo data); alt URL passes its slug + localId. */
+    const projectName = projectSlug ? titleCase(projectSlug) : 'Prisms';
+    const numberPart = typeof localId === 'number' ? localId : globalId;
+    const titleLabel = `${projectName} #${numberPart}`;
 
     return (
         <>
             <section className="collection-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
-                    {/* Line 1: title (no artist badge — artwork is the
-                        unit, not the artist). */}
                     <h1 className="collection-title">
                         <span>{titleLabel}</span>
                     </h1>
 
-                    {/* Line 2: project + artist chip pair. Same chip
-                        pattern as ProfilePageBody's "followed by" line —
-                        `.info-rubik` + `.collected-pair` + `.profile-link`. */}
-                    <div className="hero-line">
-                        <span className="info-rubik">
-                            from{' '}
-                            <span className="collected-pair">
-                                <a className="profile-link">PRISMS</a>
-                            </span>
-                            {' '}by{' '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@brendon</a>
-                                <span className="artist-tag" aria-label="artist">
+                    {/* Artist line — mirrors ProjectPageBody.tsx exactly
+                        (.collection-artist + by-text + artist-lockup +
+                        artist-name-wrap + artist-tag + follow-badge +
+                        follower-count). @claude placeholder per the
+                        project page convention. */}
+                    <div className="hero-line collection-artist">
+                        <span className="by-text">By</span>{' '}
+                        <div className="artist-lockup">
+                            <span className="artist-name-wrap">
+                                <a href="/profile/claude">@claude</a>
+                                <span
+                                    className="artist-tag"
+                                    aria-label="artist"
+                                >
                                     {'✺\uFE0E'}
                                 </span>
+                                <span className="follow-badge">
+                                    <span className="ico-mutual" title="Mutual">
+                                        ⚭&#xFE0E;
+                                    </span>
+                                </span>
                             </span>
-                        </span>
+                            <span className="follower-count">32</span>
+                        </div>
                     </div>
 
-                    {/* Line 3: held-by chip — current owner of the
-                        artwork. Static @cto placeholder for v0. */}
+                    {/* Held-by line — same chip shape as project's
+                        "Collected by" (.info-line + .info-rubik +
+                        .collected-pair containing .collected-sprite +
+                        .profile-link). Current owner @cto. */}
                     <div className="hero-line info-line">
                         <span className="info-rubik">
-                            held by{' '}
+                            Held by{' '}
                             <span className="collected-pair">
-                                <a className="profile-link">@cto</a>
-                                <span className="artist-tag" aria-label="artist">
-                                    {'✺\uFE0E'}
+                                <span className="collected-sprite">
+                                    (⌐■_■)
                                 </span>
+                                <a className="profile-link">@cto</a>
                             </span>
                         </span>
                     </div>
 
-                    {/* Stats grid — two rows, semi-themed by glyph
-                        family per the profile pattern:
-                          Top row (economic): floor, last sale, —
-                          Bottom row (lifecycle): transfers, age, —
-                        Third columns hardcode `—` placeholders per
-                        the same v0 spec as profile. Picks pending. */}
+                    {/* Stats grid — class structure mirrors project
+                        line-for-line so the same per-class icon-sizing
+                        rules apply (.stats-row .stat-icon-owners,
+                        .stats-row-2 .stat-icon-owned/spent, anchor
+                        cell). Content is artwork-relevant; wrapper
+                        classes are project-identical. */}
                     <div className="stats-grid">
                         <div className="hero-line stats-row">
                             <span className="stat-item">
                                 <span
-                                    className="stat-icon stat-icon-eth"
-                                    {...iconToastProps('Floor')}
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Edition / Supply')}
                                 >
-                                    ↨&#xFE0E;
+                                    ⬚&#xFE0E;
                                 </span>{' '}
-                                <span className="stat-val">0.042 ETH</span>
+                                <span className="stat-val">
+                                    {numberPart}/222
+                                </span>
                             </span>
                             <span className="stat-item stat-item-vol">
                                 <span
                                     className="stat-icon stat-icon-eth"
                                     {...iconToastProps('Last Sale')}
-                                >
-                                    ⟠&#xFE0E;
-                                </span>{' '}
+                                >⟠&#xFE0E;</span>{' '}
                                 <span className="stat-val stat-val-vol">
                                     0.038 ETH
                                 </span>
                             </span>
-                            <span className="stat-item">
+                            <span className="stat-item stat-item-owners">
                                 <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Stat 3 — coming soon')}
+                                    className="stat-icon stat-icon-owners"
+                                    {...iconToastProps('Past Owners')}
                                 >
-                                    ◈&#xFE0E;
+                                    ⌗&#xFE0E;
                                 </span>{' '}
-                                <span className="stat-val stat-val-empty"></span>
+                                <span
+                                    className="stat-val stat-val-owners"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => showToast('Ownership history — coming soon')}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            showToast('Ownership history — coming soon');
+                                        }
+                                    }}
+                                >
+                                    7 PPL
+                                </span>
                             </span>
                         </div>
 
                         <div className="hero-line stats-row stats-row-2">
                             <span className="stat-item">
                                 <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Transfers')}
+                                    className="stat-icon stat-icon-box stat-icon-owned"
+                                    {...iconToastProps('Your Holding Status')}
                                 >
-                                    ⊚&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">7</span>
-                            </span>
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Age')}
-                                >
-                                    ⊙&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">42d</span>
-                            </span>
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Stat 6 — coming soon')}
-                                >
-                                    ◉&#xFE0E;
+                                    ⊡&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val stat-val-empty"></span>
+                            </span>
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-spent"
+                                    {...iconToastProps('Floor Price')}
+                                >
+                                    ↨&#xFE0E;
+                                </span>{' '}
+                                <span className="stat-val">0.042 ETH</span>
+                            </span>
+                            <span className="stat-item stat-item-anchor">
+                                <span
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Your Personal Reference Price')}
+                                >
+                                    ⚓&#xFE0E;
+                                </span>{' '}
+                                <span
+                                    className="stat-val stat-val-empty"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Tap to set"
+                                    onClick={() => showToast('Anchor — coming soon')}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            showToast('Anchor — coming soon');
+                                        }
+                                    }}
+                                ></span>
                             </span>
                         </div>
                     </div>
                 </div>
 
                 <div className="hero-group-2">
-                    {/* Action row — BUY hardcoded for v0. LIST /
-                        OFFER variants land with the wallet wiring
-                        workstream. */}
+                    {/* Action button — mirrors project's BUY format
+                        (mint-lbl + mint-price spans, parens around
+                        price, no space between spans). */}
                     <div className="action-row">
                         <button
                             className="btn-mint"
                             title={`Buy ${titleLabel}`}
                             onClick={() => showToast('Buy — coming soon')}
                         >
-                            <span className="mint-lbl">BUY</span>{' '}
-                            <span className="mint-price">0.042 ETH</span>
+                            <span className="mint-lbl">BUY</span>
+                            <span className="mint-price">(0.042 ETH)</span>
                         </button>
                     </div>
 
                     {/* Tab row — Artwork / Albums / + More. Same
                         `.profile-tabs-row` + `.pill .pill-l1` structure
-                        as profile + project pages so existing CSS
-                        paints the row. */}
+                        as project + profile pages. */}
                     <div className="profile-tabs-row" id="artworkTabsRow">
                         <div
                             className={`pill pill-l1${onArtwork ? ' active' : ''}`}
+                            id="atab-artwork"
                             role="button"
                             tabIndex={0}
                             onClick={() => setActiveTab('artwork')}
@@ -239,6 +273,7 @@ export default function ArtworkPageBody({
                         </div>
                         <div
                             className={`pill pill-l1${onAlbums ? ' active' : ''}`}
+                            id="atab-albums"
                             role="button"
                             tabIndex={0}
                             onClick={() => setActiveTab('albums')}
@@ -254,6 +289,7 @@ export default function ArtworkPageBody({
                         </div>
                         <div
                             className={`pill pill-l1${onMore ? ' active' : ''}`}
+                            id="atab-more"
                             role="button"
                             tabIndex={0}
                             onClick={() => setActiveTab('more')}
@@ -285,8 +321,7 @@ export default function ArtworkPageBody({
                 </div>
             </section>
 
-            {/* Albums tab — placeholder. Album-list surface lands
-                when the album builder workstream ships. */}
+            {/* Albums tab — placeholder. */}
             <section
                 id="albums-panel"
                 aria-label="Albums"
@@ -295,9 +330,7 @@ export default function ArtworkPageBody({
                 <p className="info-rubik">Not in any albums yet.</p>
             </section>
 
-            {/* + More tab — full details placeholder. Trait rows,
-                contract info, mint date / mint tx, etherscan link
-                land in subsequent ships. */}
+            {/* + More tab — full details placeholder. */}
             <section
                 id="details-panel"
                 aria-label="Details"
