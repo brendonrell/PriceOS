@@ -2492,7 +2492,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: flex;
     align-items: center;
     gap: 6px;
-    cursor: pointer;
     transition: opacity 0.2s;
 }
 .stat-icon {
@@ -2501,6 +2500,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    /* Brendon 2026-05-11 — stats grid behavior:
+       icon tap fires toast describing the stat (universal);
+       value tap is inert except for PPL + Anchor which open modals.
+       Cursor moved off the outer .stat-item onto interactive bits only. */
+    cursor: pointer;
 }
 .stat-icon-eth {
     font-family: 'Courier New', Courier, monospace;
@@ -2522,8 +2526,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .stats-grid .stats-row { display: contents; }
 body.zen-mode .stats-grid { display: none !important; }
-.stats-row-2 .stat-item-anchor { cursor: pointer; }
-.stats-row-2 .stat-item-anchor:hover { opacity: 0.75; }
+/* Brendon 2026-05-11 — anchor + PPL values are the only interactive
+   stat values. Cursor + hover scoped to them; the rest of each stat-item
+   is non-interactive (icon fires toast, value is inert by default). */
+.stat-val-owners,
+.stats-row-2 .stat-item-anchor .stat-val { cursor: pointer; }
+.stats-row-2 .stat-item-anchor .stat-val:hover { opacity: 0.75; }
 body.persona-default .t-artist { display: none !important; }
 body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-icon-owned,
@@ -3356,7 +3364,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    padding: 10px 40px 160px 40px;
+    padding: 10px 40px 100px 40px;
     min-height: 100vh;
     align-items: start;
     align-content: start;
@@ -3861,7 +3869,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 /* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
 #activity-feed {
     display: none;
-    padding: 10px 40px 160px 40px;
+    padding: 10px 40px 100px 40px;
 }
 .feed-list {
     display: flex;
