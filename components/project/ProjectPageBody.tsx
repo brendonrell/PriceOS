@@ -831,11 +831,11 @@ function ProjectPageBodyInner() {
                                   there before, I wanted to keep it");
                                   col 1 value "100% LISTED" → "57%" (no
                                   bare word — the icon carries the meaning);
-                                  col 2 icon ⎵ → ⊥ (U+22A5 — sim's
-                                  historical Floor glyph per sim 5131:
-                                  "APR 26: Floor (⊥) replaced with Amount
-                                  Spent". Renders reliably across desktop
-                                  + iOS where ⎵ does not).
+                                  col 2 icon ⎵ → ⊥ → ⟎ → ↨ (U+2195
+                                  UP-DOWN ARROW per 2026-05-12 CEO ask —
+                                  evokes price movement / range). The
+                                  ⊥ and ⟎ history is left in this comment
+                                  so the audit trail stays legible.
                                 Anchor (col 3) untouched. */}
                             <span className="stat-item">
                                 <span
@@ -853,7 +853,7 @@ function ProjectPageBodyInner() {
                                     className="stat-icon stat-icon-box stat-icon-spent"
                                     {...iconToastProps('Floor Price')}
                                 >
-                                    ⟎&#xFE0E;
+                                    ↨&#xFE0E;
                                 </span>{' '}
                                 <span className="stat-val" id="statSpentVal">
                                     {lowestFloor !== null
