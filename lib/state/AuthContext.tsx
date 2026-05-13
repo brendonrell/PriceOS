@@ -72,6 +72,13 @@ interface AuthContextValue {
         an auto-sign signature request is in flight after a fresh
         connect. */
     isAuthenticating: boolean;
+    /** Claimed PD handle for the SIWE-auth'd address. Null when no
+        session, while the user-row fetch is in flight, or after the
+        fetch returns a row with handle === null (the AccountCreateModal
+        is gating that state). Display surfaces (the connect-menu pill,
+        future profile-link targets, etc.) read this as the top of the
+        user-text priority chain — above ENS, above shortAddr. */
+    handle: string | null;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -90,6 +97,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 interface AuthContextProviderProps {
     siweAddress: string | null;
     isAuthenticating: boolean;
+    handle: string | null;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -99,6 +107,7 @@ interface AuthContextProviderProps {
 export function AuthContextProvider({
     siweAddress,
     isAuthenticating,
+    handle,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -110,6 +119,7 @@ export function AuthContextProvider({
                 siweAddress,
                 isAuthenticated: !!siweAddress,
                 isAuthenticating,
+                handle,
                 needsSignup,
                 onAccountCreated,
                 signOut,
