@@ -5,7 +5,7 @@
  *
  * Module-singleton port of sim's Budget engine (sim 11183-11459 + 11887-11910).
  * The Budget feature is a per-user numeric preference: enter an ETH cap once,
- * every .edition-card whose listed price ≤ cap gets `.in-budget`; out-of-budget
+ * every .output-card whose listed price ≤ cap gets `.in-budget`; out-of-budget
  * cards recede via opacity 0.22 (body.budget-active rule). When sort is
  * price-ascending AND a budget is active, a stepped cutoff line draws across
  * the grid tracing the boundary between in-budget and out-of-budget regions.
@@ -302,7 +302,7 @@ export function applyStepLine(priceAscActive: boolean): void {
     //    won't catch the overlay div — it's a real DOM child.
     gallery
         .querySelectorAll(
-            '.edition-card.budget-step-l, .edition-card.budget-step-r'
+            '.output-card.budget-step-l, .output-card.budget-step-r'
         )
         .forEach((c) => {
             c.classList.remove('budget-step-l', 'budget-step-r');
@@ -322,7 +322,7 @@ export function applyStepLine(priceAscActive: boolean): void {
     //    step traces the actually-visible boundary.
     const cards = Array.from(
         gallery.querySelectorAll<HTMLElement>(
-            '.edition-card:not(.hidden):not(.search-hidden)'
+            '.output-card:not(.hidden):not(.search-hidden)'
         )
     );
     if (cards.length === 0) return;

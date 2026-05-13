@@ -12,7 +12,7 @@
  *                    brightness 20-235 gate, max-min<25 near-gray skip,
  *                    needs count>5 valid pixels.
  *   sim 12562-12565  hashSynToHex — 2-char hex per channel.
- *   sim 12568-12592  hashSynResample — pool .edition-canvas, prefer
+ *   sim 12568-12592  hashSynResample — pool .output-canvas, prefer
  *                    .visible+width>4, fallback width>4, sample up to
  *                    10, channel-mean blend.
  *   sim 12606-12610  scroll listener, debounced 400ms.
@@ -101,7 +101,7 @@ function hashSynToHex(c: RGB): string {
     );
 }
 
-/* Sim 12568-12592 — verbatim. Pool = .edition-canvas. Prefer .visible
+/* Sim 12568-12592 — verbatim. Pool = .output-canvas. Prefer .visible
    with width>4; fall back to any with width>4. Sample first 10,
    channel-mean blend. */
 function resample(): void {
@@ -109,7 +109,7 @@ function resample(): void {
     if (typeof document === 'undefined') return;
 
     const canvases = Array.from(
-        document.querySelectorAll<HTMLCanvasElement>('.edition-canvas')
+        document.querySelectorAll<HTMLCanvasElement>('.output-canvas')
     );
     let pool = canvases.filter(
         (c) => c.classList.contains('visible') && c.width > 4
