@@ -54,6 +54,8 @@ import {
 } from '../sprites/composer';
 import { type PriceSpriteVibe } from '../sprites/vibes';
 
+export { type SpriteAnimState };
+
 export interface SpriteFrame {
     face: string;
     transform: string; // 'scaleX(1)' | 'scaleX(-1)'
@@ -353,4 +355,14 @@ export function getMainSpriteIdentity(): {
     vibe: PriceSpriteVibe;
 } | null {
     return _identity;
+}
+
+/**
+ * Read the current animation state from the shared state machine.
+ * Used by the AccountCreateModal quadrants so their 4 preview
+ * sprites animate in lockstep with the menu sprite — each quadrant
+ * passes this state to composeSprite() per frame.
+ */
+export function getSpriteAnimState(): SpriteAnimState {
+    return _state;
 }
