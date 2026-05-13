@@ -213,41 +213,48 @@ export function UserMenuButtons() {
                 </span>
             </button>
 
-            {/* PriceSprite — hidden by CSS until .active. Click opens
-                the PriceSprite modal. */}
-            <div
-                className="ascii-sprite-wrap"
-                id="asciiSpriteWrap"
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    openModal('priceSprite');
-                }}
-            >
-                <span
-                    className={`ascii-sprite${frame.sleeping ? ' sleeping' : ''}`}
-                    id="asciiSprite"
-                    style={{ transform: frame.transform, display: 'inline-block' }}
-                >
-                    {frame.face}
-                </span>
-            </div>
+            {/* PriceSprite + level badge — both gated on identity.
+                frame.hasIdentity flips true once the AuthContext-side
+                effect calls setMainSpriteIdentity() with the SIWE'd
+                wallet + the user's claimed price_sprite. Pre-claim
+                wallets (SIWE'd but no @name yet) and logged-out
+                visitors get neither — the engine has no identity to
+                render and no level to label. */}
+            {frame.hasIdentity && (
+                <>
+                    <div
+                        className="ascii-sprite-wrap"
+                        id="asciiSpriteWrap"
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openModal('priceSprite');
+                        }}
+                    >
+                        <span
+                            className={`ascii-sprite${frame.sleeping ? ' sleeping' : ''}`}
+                            id="asciiSprite"
+                            style={{ transform: frame.transform, display: 'inline-block' }}
+                        >
+                            {frame.face}
+                        </span>
+                    </div>
 
-            {/* Level badge — hidden by CSS until .active. Click also
-                opens the PriceSprite modal. */}
-            <span
-                className="ascii-pfp-badge"
-                id="asciiPfpBadge"
-                aria-label="Level 42"
-                title="Level 42"
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    openModal('priceSprite');
-                }}
-            >
-                ❹❷
-            </span>
+                    <span
+                        className="ascii-pfp-badge"
+                        id="asciiPfpBadge"
+                        aria-label="Level 42"
+                        title="Level 42"
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openModal('priceSprite');
+                        }}
+                    >
+                        ❹❷
+                    </span>
+                </>
+            )}
 
             {/* Connect button — toggles menu in all auth states. */}
             <button
