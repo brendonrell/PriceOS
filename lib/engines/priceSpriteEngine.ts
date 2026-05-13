@@ -1,20 +1,27 @@
 'use client';
 
 /*
- * priceSpriteEngine — Batch I / F66 / BUG-27
+ * priceSpriteEngine — Ship 1 (PriceSprite + Signup + Levels)
  *
- * Sim port of the PriceSprite (a.k.a. asciiSprite) state machine at
- * sim.html 12090–12231. Module singleton — owns the kaomoji frame
- * driving #asciiSprite (UserMenuButtons) and the modal hero
- * #priceSpriteHeroSprite (PriceSpriteModal).
+ * Module singleton driving the visible "main" sprite — the menu sprite
+ * in UserMenuButtons and the modal hero in PriceSpriteModal. Both
+ * surfaces subscribe to the same engine so they share frame state.
  *
- * 4 logical states × facing × mirrorMode → 6 visible variants:
- *   awake-right, awake-left, blink-right, blink-left, yawn, sleep
+ * Two render modes:
+ *   1. Standin (no identity set)  — sim-faithful kaomoji at sim.html
+ *      12090–12231, preserved verbatim. Default behaviour; renders
+ *      the same `(ง •̀_•́)ง` family that's been on dev since Batch I.
+ *      `hasIdentity` flag on each frame is false in this mode.
  *
- * Sim mirrors the menu sprite's frame into the modal hero via a
- * MutationObserver on textContent (sim 12988–12995). React port
- * collapses that into the same engine: the modal subscribes
- * directly, no DOM observation needed.
+ *   2. Composed (identity set)    — wallet + vibe → deterministic
+ *      8-slot composition via lib/sprites/composer.ts. Activated by
+ *      setMainSpriteIdentity(walletAddress, vibe). `hasIdentity` flag
+ *      flips to true. Ship 2 wires SIWE state into this setter and
+ *      gates UI visibility on the flag.
+ *
+ * The state machine (blink / turn / yawn / sleep cadence) is shared
+ * between modes. Mode only affects what `_computeFrame()` returns for
+ * a given state.
  *
  * Cadence verbatim from sim:
  *   blink:  scheduleBlink → 2800 + Math.random()*3200 ms; 160ms duration
@@ -24,38 +31,63 @@
  *   sleep duration: 20000 + Math.random()*15000 ms
  *
  * Visibility: visibilitychange listener pauses all chains on hidden
- * and restarts them on visible. Sim doesn't pause the sprite (its
- * idle timer still fires while the tab is hidden), but spec asks for
- * pause-on-hidden so we add it. Frame state is preserved across
+ * and restarts them on visible. Frame state is preserved across
  * pause; on resume the chains restart fresh from the current state.
+ *
+ * Mirror behaviour:
+ *   - standin: _facing/_mirrorMode swap between AWAKE_R/BLINK_R and
+ *     AWAKE_L/BLINK_L glyphs (the kaomoji has hand-authored mirrors).
+ *   - composed: no glyph swap — pure CSS scaleX(-1). Brackets and
+ *     asymmetric arms flip correctly under the transform.
+ *
+ * In both modes sleeping/yawning frames are NEVER mirrored (transform
+ * stays scaleX(1)) so literal "zzz" text doesn't render reversed.
  *
  * wake() is a no-op when no subscribers. UserMenuButtons calls it on
  * menu open so a sleeping/yawning sprite snaps awake when the user
  * opens the connect menu (sim 12213-12219 btnUser handler).
  */
 
+import {
+    composeSprite,
+    type SpriteAnimState,
+} from '../sprites/composer';
+import { type PriceSpriteVibe } from '../sprites/vibes';
+
 export interface SpriteFrame {
     face: string;
     transform: string; // 'scaleX(1)' | 'scaleX(-1)'
     sleeping: boolean;
+    /**
+     * True when the engine is rendering the user's composed sprite
+     * (identity set via setMainSpriteIdentity). False when rendering
+     * the standin kaomoji. Ship 2 gates UI visibility on this flag —
+     * a logged-out user has no identity and should see no sprite.
+     */
+    hasIdentity: boolean;
 }
 
-/* sim 12100-12105 verbatim. Kaomoji — verified codepoint-by-codepoint
+/* Standin kaomoji — sim 12100-12105 verbatim. Codepoints verified
    against sim.html. Do NOT tidy or "normalize"; the combining accents
    on •̀ / •́ are intentional and the mirror-mode logic depends on the
    exact glyph shapes. */
-const AWAKE_R = '(ง •̀_•́)ง';
-const AWAKE_L = 'ヽ(•́_•̀ヽ)';
-const BLINK_R = '(ง -_-)ง';
-const BLINK_L = 'ヽ(-_-ヽ)';
-const YAWN_R  = '(ง ᵕ_ᵕ)ง';
-const SLEEP_R = '(ง zzz)ง';
+const STANDIN_AWAKE_R = '(ง •̀_•́)ง';
+const STANDIN_AWAKE_L = 'ヽ(•́_•̀ヽ)';
+const STANDIN_BLINK_R = '(ง -_-)ง';
+const STANDIN_BLINK_L = 'ヽ(-_-ヽ)';
+const STANDIN_YAWN_R  = '(ง ᵕ_ᵕ)ง';
+const STANDIN_SLEEP_R = '(ง zzz)ง';
 
 type State = 'awake' | 'blinking' | 'yawning' | 'sleeping';
 
 let _facing: 1 | -1 = 1;
 let _mirrorMode = false;
 let _state: State = 'awake';
+
+let _identity: {
+    walletAddress: string;
+    vibe: PriceSpriteVibe;
+} | null = null;
 
 let _idleTimer: ReturnType<typeof setTimeout> | null = null;
 let _blinkTimer: ReturnType<typeof setTimeout> | null = null;
@@ -72,19 +104,49 @@ function _emit(): void {
     });
 }
 
+function _stateToAnim(state: State): SpriteAnimState {
+    return state;
+}
+
 function _computeFrame(): SpriteFrame {
     const isLeft = _facing === -1;
     const isAsleep = _state === 'sleeping' || _state === 'yawning';
+
+    /* Identity path — composed sprite. No glyph-level mirror; rely on
+       CSS scaleX(-1) for the L variant. Sleeping/yawning frames stay
+       upright so " zzz " reads correctly. */
+    if (_identity !== null) {
+        const composed = composeSprite(
+            _identity.walletAddress,
+            _identity.vibe,
+            _stateToAnim(_state),
+        );
+        /* composeSprite returns null only on malformed addresses; the
+           identity setter validates before assigning so this is a
+           safety net. Fall through to standin on null. */
+        if (composed !== null) {
+            const transform = (isLeft && !isAsleep)
+                ? 'scaleX(-1)'
+                : 'scaleX(1)';
+            return {
+                face: composed.fullString,
+                transform,
+                sleeping: isAsleep,
+                hasIdentity: true,
+            };
+        }
+    }
+
+    /* Standin path — sim 12117-12120 verbatim glyph swap. */
     let face: string;
-    /* sim 12117-12120 verbatim */
-    if (_state === 'sleeping')      face = SLEEP_R;
-    else if (_state === 'yawning')  face = YAWN_R;
-    else if (_state === 'blinking') face = (_mirrorMode || !isLeft) ? BLINK_R : BLINK_L;
-    else                            face = (_mirrorMode || !isLeft) ? AWAKE_R : AWAKE_L;
+    if (_state === 'sleeping')      face = STANDIN_SLEEP_R;
+    else if (_state === 'yawning')  face = STANDIN_YAWN_R;
+    else if (_state === 'blinking') face = (_mirrorMode || !isLeft) ? STANDIN_BLINK_R : STANDIN_BLINK_L;
+    else                            face = (_mirrorMode || !isLeft) ? STANDIN_AWAKE_R : STANDIN_AWAKE_L;
     /* sim 12126-12132 — skip the CSS flip when sleeping/yawning so the
-       literal "zzz" letters don't render mirrored (unreadable) */
+       literal "zzz" letters don't render mirrored (unreadable). */
     const transform = (_mirrorMode && isLeft && !isAsleep) ? 'scaleX(-1)' : 'scaleX(1)';
-    return { face, transform, sleeping: isAsleep };
+    return { face, transform, sleeping: isAsleep, hasIdentity: false };
 }
 
 function _clearAll(): void {
@@ -110,6 +172,9 @@ function _blink(): void {
 /* sim 12152-12161 */
 function _turn(): void {
     if (_state !== 'awake') return;
+    /* Standin needs the random L-vs-R glyph swap; composed flips via
+       CSS regardless of _mirrorMode. Keeping both flags so the
+       standin path stays sim-faithful. */
     _mirrorMode = Math.random() < 0.5;
     _facing = -1;
     _emit();
@@ -242,4 +307,50 @@ export function wakeSprite(): void {
     } else {
         _resetIdleTimer();
     }
+}
+
+/**
+ * Bind (or unbind) the main sprite to a wallet + vibe identity. When
+ * both args are non-null, subsequent frames render the user's
+ * composed sprite and `hasIdentity` flips to true on the next emit.
+ * Pass (null, null) to detach — frames revert to the standin and
+ * `hasIdentity` flips back to false.
+ *
+ * No-op when the identity is unchanged. Emits on actual change so
+ * subscribers re-read the frame.
+ *
+ * Ship 2 wires this to SIWE state: on successful sign-in with a
+ * claimed @name and price_sprite, call with (siweAddress, vibe);
+ * on sign-out, call with (null, null).
+ */
+export function setMainSpriteIdentity(
+    walletAddress: string | null,
+    vibe: PriceSpriteVibe | null,
+): void {
+    const next = (walletAddress && vibe)
+        ? { walletAddress, vibe }
+        : null;
+    /* No-op shortcut on identical assignment. */
+    if (
+        _identity === null && next === null
+    ) return;
+    if (
+        _identity !== null
+        && next !== null
+        && _identity.walletAddress === next.walletAddress
+        && _identity.vibe === next.vibe
+    ) return;
+    _identity = next;
+    _emit();
+}
+
+/**
+ * Read the current main-sprite identity. Returns null when no
+ * identity is bound (logged-out / pre-claim state).
+ */
+export function getMainSpriteIdentity(): {
+    walletAddress: string;
+    vibe: PriceSpriteVibe;
+} | null {
+    return _identity;
 }
