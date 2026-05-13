@@ -484,6 +484,7 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             <AuthContextProvider
                 siweAddress={siweAddress}
                 isAuthenticating={isAuthenticating}
+                handle={userRow?.handle ?? null}
                 needsSignup={needsSignup}
                 onAccountCreated={handleAccountCreated}
                 signOut={signOutFull}
