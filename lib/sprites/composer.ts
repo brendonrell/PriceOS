@@ -21,11 +21,13 @@
  *   awake    → original composed sprite
  *   blinking → eyeL='-', eyeR='-' (both eyes closed)
  *   yawning  → mouth='o' (open mouth)
- *   sleeping → middle band (eyeL+mouth+eyeR) replaced with ' zzz '
+ *   sleeping → eyeL='z', mouth='z', eyeR='z' (three z's, one per slot)
  *
- * Sleep substitution returns parts.eyeL='', parts.mouth=' zzz ',
- * parts.eyeR='' so callers wrapping parts in spans still get a sane
- * shape. The fullString reads `[crown][armL][bracketL] zzz [bracketR][armR]`.
+ * The per-slot single-character pattern for sleep matters: consumers
+ * render each slot in a fixed-width inline-block so blink / yawn /
+ * sleep don't squish the sprite as character widths change. If sleep
+ * were a multi-char block in the mouth slot, that would overflow the
+ * fixed-width column.
  *
  * Mirroring is the consumer's job (CSS scaleX(-1)) — the composer
  * never flips glyphs. Brackets and asymmetric arms render correctly
@@ -120,7 +122,7 @@ export function composeSprite(
             parts = { ...parts, mouth: 'o' };
             break;
         case 'sleeping':
-            parts = { ...parts, eyeL: '', mouth: ' zzz ', eyeR: '' };
+            parts = { ...parts, eyeL: 'z', mouth: 'z', eyeR: 'z' };
             break;
     }
 
