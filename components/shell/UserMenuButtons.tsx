@@ -236,7 +236,22 @@ export function UserMenuButtons() {
                             id="asciiSprite"
                             style={{ transform: frame.transform, display: 'inline-block' }}
                         >
-                            {frame.face}
+                            {frame.parts ? (
+                                <>
+                                    {frame.parts.crown && (
+                                        <span className="ascii-sprite-slot ascii-sprite-slot-crown">{frame.parts.crown}</span>
+                                    )}
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-armL">{frame.parts.armL}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-bracketL">{frame.parts.bracketL}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-eyeL">{frame.parts.eyeL}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-mouth">{frame.parts.mouth}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-eyeR">{frame.parts.eyeR}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-bracketR">{frame.parts.bracketR}</span>
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-armR">{frame.parts.armR}</span>
+                                </>
+                            ) : (
+                                frame.face
+                            )}
                         </span>
                     </div>
 
