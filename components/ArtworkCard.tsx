@@ -3,9 +3,9 @@
 /*
  * ArtworkCard
  *
- * Single edition tile in the project gallery. Sim's gallery is
+ * Single Output tile in the project gallery. Sim's gallery is
  * built imperatively in renderFeed (sim ~8155) — each card is an
- * <article class="edition-card"> wrapping a clickable .edition-content
+ * <article class="output-card"> wrapping a clickable .output-content
  * with a .canvas-wrapper for the art and a .meta caption row beneath.
  *
  * v0 scope (this build):
@@ -19,7 +19,7 @@
  *     matching sim's metaIdStr / metaOwnerStr split (sim ~8092). Listed
  *     tokens get .meta-owner.price-trigger; unlisted get .meta-owner.profile-link.
  *   - On click, open the global OutputPreview at this id via
- *     useModal().open('output', id). The handler lives on .edition-content
+ *     useModal().open('output', id). The handler lives on .output-content
  *     (matches sim's contentInner.onclick at ~8009).
  *
  * Build 22 layers added (gallery card surface gaps):
@@ -30,7 +30,7 @@
  *   - Per-card Aura vars (sim 8064-8067). --aura-angle = (i*137)%360 deg
  *     (golden-angle spread so cards aren't synchronized); --aura-duration
  *     = (10 + (i*23)%60/10)s (mild rotation-speed variation, 10–16s range).
- *     Read by the body.aura-active .edition-card::before conic gradient.
+ *     Read by the body.aura-active .output-card::before conic gradient.
  *   - Hover overlay (sim 8041-8057). 7 icons (Star/Wishlist/Album/Note/
  *     Grail/Cart/Hammer) over a 0.85 black scrim. Cart only for listed
  *     tokens (sim 8050 isListed branch). Note + Hammer hidden by default
@@ -67,8 +67,8 @@
  *     with lib/virtualization/canvasVirtualizer, which uses a single
  *     module-scoped IntersectionObserver to lazy-paint canvases as their
  *     wrappers cross the viewport (rootMargin '400px 0px' — sim 8265).
- *     LRU cap of 60 keeps GPU pressure bounded on Strata's 333 editions.
- *     The canvas now carries className="edition-canvas" so the .visible
+ *     LRU cap of 60 keeps GPU pressure bounded on Strata's 333 Outputs.
+ *     The canvas now carries className="output-canvas" so the .visible
  *     class swap drives the opacity 0 → 1 fade-in (sim 2366-2367).
  *     Cleanup unregisters on unmount.
  *
@@ -123,7 +123,7 @@ import {
 interface ArtworkCardProps {
     id: number;
     /* Build 21 — sim 13113-13130 + globals.css :2690.
-       When the parent gallery has `.showcase-mode`, every .edition-card
+       When the parent gallery has `.showcase-mode`, every .output-card
        is hidden via display:none unless it also carries .showcase-pick.
        The page picks 6 random ids once on mount and passes showcasePick
        through here so the Showcase tab actually renders 6 tiles instead
@@ -141,7 +141,7 @@ interface ArtworkCardProps {
        it, and the muteStore subscription is the canonical source now.
        sim 7280-7290 toggleMute drives the .muted class via store updates
        → React re-renders the card with `.muted` in articleClass, which
-       triggers globals.css 2390 (`body:not(.hammer-mode) .edition-card.muted
+       triggers globals.css 2390 (`body:not(.hammer-mode) .output-card.muted
        { display: none }`) to hide muted cards outside hammer-mode and
        2444-2457 (`.muted-final` boxed-tape label) inside it. */
     /* F61 (BUG-30) — sim 6629-6635 picks 3 random cards each time Burn
@@ -316,7 +316,7 @@ export default function ArtworkCard({
     /* Build 35 — virtualization port (BET-06).
        Pre-Build-35: this useEffect drew immediately on mount, so 222+
        canvases all painted on first render → mobile Safari OOM at
-       higher edition counts. Now: the closure that draws the placeholder
+       higher Output counts. Now: the closure that draws the placeholder
        art gets registered with the module-scoped virtualizer, which
        lazy-invokes it via IntersectionObserver + requestIdleCallback
        only when the card's wrapper crosses the viewport (rootMargin
@@ -335,7 +335,7 @@ export default function ArtworkCard({
                is purely id-derived (collection by id-mod-N, angle by
                id*37+15) so the paint is stable across reloads + virt-
                ualizer evictions. Canvas intrinsic dims = 400 × (400 /
-               ratio); .edition-canvas width:100%/height:auto in
+               ratio); .output-canvas width:100%/height:auto in
                globals.css scales it to fit the wrapper, which itself
                carries inline aspectRatio matching this spec. */
             const spec = getTokenArtSpec(id);
@@ -373,7 +373,7 @@ export default function ArtworkCard({
     /* Sim caption split (sim ~8092):
          - listed   → .meta-owner.price-trigger showing the price
          - unlisted → .meta-owner.profile-link showing the owner display
-       The price-trigger onClick re-opens the modal in sim; the .edition-content
+       The price-trigger onClick re-opens the modal in sim; the .output-content
        wrapper already opens it on any card click, so the price span just
        stops propagation to avoid double-firing if the future overlay layer
        intercepts events differently. */
@@ -395,9 +395,9 @@ export default function ArtworkCard({
     }
 
     /* Build 22 — sim 8064-8067. Per-card Aura vars stamped inline on
-       .edition-card. Without these every card animates at the same
+       .output-card. Without these every card animates at the same
        angle and speed (synchronized halos look mechanical, not
-       organic). The body.aura-active .edition-card::before conic
+       organic). The body.aura-active .output-card::before conic
        gradient reads them. id (not array index) is used as the seed
        so the variation is stable across reloads + sort/filter changes
        — sim seeds off the loop variable i which equals the token id
@@ -412,7 +412,7 @@ export default function ArtworkCard({
     /* Build 22 — sim 8041-8057. Hover overlay icons. v1 wiring stubs to
        showToast; real handlers (toggleStar, openNotePrompt, etc.) wire
        up when those flows ship. event.stopPropagation on every icon —
-       otherwise the click bubbles to .edition-content and opens the
+       otherwise the click bubbles to .output-content and opens the
        modal. Note + Hammer carry display:none inline (sim 8048, 8056);
        body.notes-mode / body.hammer-mode flips them visible via CSS. */
     const stubAction = (label: string) => (e: React.MouseEvent) => {
@@ -425,7 +425,7 @@ export default function ArtworkCard({
        so the pill row + modal pin button update in lockstep. Toast
        text mirrors sim 12424 + 12426 + 12428 (project name title-
        cased, "GRAIL PINNED" / "DE-PINNED" / "Grail Pin Limit: 5 max").
-       e.stopPropagation prevents the surrounding .edition-content
+       e.stopPropagation prevents the surrounding .output-content
        click from also opening the modal. */
     const handleGrailClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -449,7 +449,7 @@ export default function ArtworkCard({
        (the store fires emit() so every other card subscribed to the
        same id gets the snapshot — relevant for cross-surface listings
        once those land). e.stopPropagation prevents the surrounding
-       .edition-content click from also opening the modal. */
+       .output-content click from also opening the modal. */
     const handleStarClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         const result = storeToggleStar(id);
@@ -494,7 +494,7 @@ export default function ArtworkCard({
        and the label text flips to "Muted" with .muted-final styling
        (boxed-tape tag, sim 2444-2457). */
     const articleClass =
-        'edition-card' +
+        'output-card' +
         (showcasePick ? ' showcase-pick' : '') +
         (muted ? ' muted' : '') +
         /* F61 (BUG-30) — sim 6634 stamps .burn-pick on selected cards
@@ -525,7 +525,7 @@ export default function ArtworkCard({
             style={articleStyle}
         >
             <div
-                className="edition-content"
+                className="output-content"
                 onClick={handleOpen}
                 role="button"
                 tabIndex={0}
@@ -552,7 +552,7 @@ export default function ArtworkCard({
                 >
                     <canvas
                         ref={canvasRef}
-                        className="edition-canvas"
+                        className="output-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
                     {/* Brendon list item 8 — Degen Mode overlay.
@@ -571,7 +571,7 @@ export default function ArtworkCard({
                         scoping (the .canvas-wrapper itself is what hides
                         the canvas and shows the dashed border). pointer-
                         events: none in CSS so clicks fall through to the
-                        edition-content button. */}
+                        output-content button. */}
                     {notifs.degen && (
                         <div className="degen-overlay">
                             <span className="d-id">#{id}</span>
@@ -637,7 +637,7 @@ export default function ArtworkCard({
                                 wishlistSet / toggleWishlist / pd_wishlist
                                 = zero hits). Keeping stubAction here is a
                                 deliberate sim deviation — sim's no-op
-                                would bubble to .edition-content and open
+                                would bubble to .output-content and open
                                 the modal, which is worse than the toast.
                                 Real handler lands when sim adds one. */}
                             <span
@@ -666,9 +666,9 @@ export default function ArtworkCard({
                                 onClick={(e) => {
                                     /* D010-note (chat #5) — sim 8048:
                                        openNotePrompt(event, parseInt(this
-                                       .closest('.edition-card').dataset
+                                       .closest('.output-card').dataset
                                        .mintId)). e.stopPropagation prevents
-                                       the surrounding .edition-content
+                                       the surrounding .output-content
                                        click from also opening the modal.
                                        Brendon-list-3 chat A item 1a —
                                        always visible (was body.notes-mode
@@ -685,7 +685,7 @@ export default function ArtworkCard({
                                 To-Dos store ships. Glyph ❍ U+274D matches
                                 the modal-pill row in OutputPreview.tsx
                                 ("Add to To-Do"). e.stopPropagation prevents
-                                the outer .edition-content click from
+                                the outer .output-content click from
                                 opening the modal. Sim deviation: sim
                                 hover-icons row has no to-do entry. */}
                             <span

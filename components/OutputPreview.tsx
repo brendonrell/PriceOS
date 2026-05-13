@@ -210,7 +210,7 @@ export default function OutputPreview() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
-    const { title, totalEditions, floorEth } = useProject();
+    const { title, totalOutputs, floorEth } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
 
@@ -405,13 +405,13 @@ export default function OutputPreview() {
        a gallery yet, we walk the full edition range with wrap-around. */
     const goNext = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id >= totalEditions ? 1 : id + 1);
-    }, [id, totalEditions, setCurrentModalId]);
+        setCurrentModalId(id >= totalOutputs ? 1 : id + 1);
+    }, [id, totalOutputs, setCurrentModalId]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id <= 1 ? totalEditions : id - 1);
-    }, [id, totalEditions, setCurrentModalId]);
+        setCurrentModalId(id <= 1 ? totalOutputs : id - 1);
+    }, [id, totalOutputs, setCurrentModalId]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {
