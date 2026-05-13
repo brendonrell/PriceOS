@@ -10,10 +10,11 @@
  * that vibe — same wallet, four different sprites), types a handle,
  * and submits to /api/users/create.
  *
- * The 4 preview sprites animate in lockstep with the menu sprite by
- * subscribing to the same priceSpriteEngine state machine and calling
- * composeSprite() with each vibe per frame. Shared cadence, not
- * independent.
+ * The 4 preview sprites are STATIC — no blink / yawn / sleep
+ * animation here. Animation only plays on the menu sprite + the
+ * PriceSpriteModal hero (the engine's main instance, gated on a
+ * claimed identity). The modal renders one composeSprite() call per
+ * vibe in 'awake' state and that's it.
  *
  * FULLY BLOCKING. No close button, no cancel button, no Esc handling,
  * no backdrop-click dismiss. The only exit path is a successful
@@ -61,12 +62,6 @@ import {
     type PriceSpriteVibe,
 } from '@/lib/sprites/vibes';
 import { composeSprite } from '@/lib/sprites/composer';
-import {
-    getSpriteAnimState,
-    getSpriteFrame,
-    subscribeSprite,
-    type SpriteAnimState,
-} from '@/lib/engines/priceSpriteEngine';
 import type { UserRow } from '@/lib/supabase';
 import type { HandleCheckReason } from '@/app/api/handle/check/route';
 import { checkHandle, createUser } from '@/lib/wallet/accountClient';
@@ -125,27 +120,6 @@ export function AccountCreateModal({
     const [status, setStatus] = useState<HandleStatus>({ state: 'empty' });
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-
-    /* Mirror priceSpriteEngine animation state so the 4 preview
-       sprites all blink / yawn / sleep in lockstep with the menu
-       sprite. composeSprite() is called per quadrant per frame; this
-       state is the only piece they share. */
-    const [animState, setAnimState] = useState<SpriteAnimState>(
-        () => getSpriteAnimState(),
-    );
-    useEffect(() => {
-        setAnimState(getSpriteAnimState());
-        const unsubscribe = subscribeSprite(() => {
-            setAnimState(getSpriteAnimState());
-            /* getSpriteFrame() pull here is purely to keep the engine
-               from auto-stopping on zero subscribers when the modal
-               is the only mount — the singleton state machine pauses
-               when the subscriber set empties. Reading the frame is
-               a no-op apart from that. */
-            void getSpriteFrame();
-        });
-        return unsubscribe;
-    }, []);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortRef = useRef<AbortController | null>(null);
@@ -342,12 +316,15 @@ export function AccountCreateModal({
                 >
                     {PRICE_SPRITE_VIBES.map((vibe) => {
                         const isSelected = selectedVibe === vibe;
-                        /* composeSprite returns null on malformed
-                           address. Parent gates open on !!siweAddress
-                           so address should be present; fall back to
-                           the standin glyph if it isn't. */
+                        /* Modal quadrants are STATIC — no animation.
+                           Animation only plays on the menu sprite +
+                           PriceSpriteModal hero (the engine's main
+                           instance). composeSprite returns null on
+                           malformed address; parent gates open on
+                           !!siweAddress, fall back to the standin
+                           glyph defensively. */
                         const composed = address
-                            ? composeSprite(address, vibe, animState)
+                            ? composeSprite(address, vibe, 'awake')
                             : null;
                         const glyph = composed?.fullString ?? STANDIN_FALLBACK;
                         const label = getVibeLabel(vibe);
