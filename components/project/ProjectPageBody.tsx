@@ -8,8 +8,8 @@
  * section here mirrors a sim line range so a side-by-side diff against
  * sim.html is the fastest way to spot drift:
  *
- *   - .collection-hero (.hero-group-1 + .hero-group-2)  → sim 5099-5165
- *     · title + .collection-artist + .info-rubik
+ *   - .project-hero (.hero-group-1 + .hero-group-2)  → sim 5099-5165
+ *     · title + .project-artist + .info-rubik
  *     · stats-row + stats-row-2
  *     · BUY (action-row)
  *     · profile tabs (Showcase / Artworks / + More)
@@ -261,7 +261,7 @@ function ProjectPageBodyInner() {
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
     /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
-       stat ("Editions Minted / Total Supply", etc.); value is inert
+       stat ("Outputs Minted / Total Supply", etc.); value is inert
        except for PPL (opens collectors modal) and Anchor (opens
        set-anchor prompt). This helper bundles the icon's
        button-like props (role, tabIndex, title, click + Enter/Space
@@ -288,7 +288,7 @@ function ProjectPageBodyInner() {
 
     /* Build 21 — Showcase pick (sim 13113-13130 + applyShowcasePicks
        at sim 13130). On Showcase tab the gallery carries .showcase-mode
-       which CSS-hides every .edition-card except those marked
+       which CSS-hides every .output-card except those marked
        .showcase-pick (globals.css 2690-2692). Sim picks 6 random ids
        once per page session and stamps the class on those cards. We
        use a lazy useState initializer so the random draw runs exactly
@@ -297,7 +297,7 @@ function ProjectPageBodyInner() {
        array which only resets on full page reload. */
     const [showcasePicks] = useState<Set<number>>(() => {
         const ids: number[] = [];
-        for (let i = 1; i <= project.totalEditions; i++) ids.push(i);
+        for (let i = 1; i <= project.totalOutputs; i++) ids.push(i);
         // Fisher-Yates — sim 13119-13122 verbatim
         for (let i = ids.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -335,21 +335,21 @@ function ProjectPageBodyInner() {
        re-randomized on every transition to ON, cleared on transition to
        OFF. The visible-set dependency keeps the picks restricted to ids
        that survive the active filter / search predicate, mirroring sim's
-       `gallery.querySelectorAll('.edition-card')` (only mounted cards). */
+       `gallery.querySelectorAll('.output-card')` (only mounted cards). */
     const [burnPicks, setBurnPicks] = useState<Set<number>>(() => new Set());
     /* Snapshot of visible ids for the burn-pick draw. Computed lower
        down (after all filter wiring) — this useEffect just consumes
        whatever the gallery is currently rendering when the flag flips. */
 
     /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
-       'fog', body.fog-mode CSS blurs every .edition-card .canvas-wrapper
+       'fog', body.fog-mode CSS blurs every .output-card .canvas-wrapper
        until the card carries .fog-revealed. First tap on a fogged card
        adds the class and swallows the click so the modal doesn't open
        on the same gesture (sim 8378-8385); a second tap on the now-
        revealed card opens the modal normally.
 
        The handler is attached in the capture phase on #gallery so it
-       runs before the .edition-content onClick that opens the modal.
+       runs before the .output-content onClick that opens the modal.
        Imperative DOM mutation (classList.add) mirrors sim's
        _startFogObserver pattern verbatim — no per-card React state
        needed, and switching sort away from 'fog' clears all
@@ -360,7 +360,7 @@ function ProjectPageBodyInner() {
             // Sim 8395-8398 cleanup: when fog turns off, scrub every
             // .fog-revealed flag so the next entry re-fogs the grid.
             document
-                .querySelectorAll('.edition-card.fog-revealed')
+                .querySelectorAll('.output-card.fog-revealed')
                 .forEach((c) => c.classList.remove('fog-revealed'));
             return;
         }
@@ -373,14 +373,14 @@ function ProjectPageBodyInner() {
             if (!document.body.classList.contains('fog-mode')) return;
             const target = ev.target as HTMLElement | null;
             if (!target) return;
-            const card = target.closest('.edition-card');
+            const card = target.closest('.output-card');
             if (!card || card.classList.contains('fog-revealed')) return;
             card.classList.add('fog-revealed');
             ev.preventDefault();
             ev.stopPropagation();
         };
 
-        // Capture phase — runs before .edition-content's bubbled onClick.
+        // Capture phase — runs before .output-content's bubbled onClick.
         gallery.addEventListener('click', handler, true);
         return () => {
             gallery.removeEventListener('click', handler, true);
@@ -435,16 +435,16 @@ function ProjectPageBodyInner() {
        upstream; per-slug data fetch lands when the indexer ships. */
 
     /* D003 + D004 — BUY button dynamic floor (sim 8127-8141).
-       Sim walks metaCache[1..TOTAL_EDITIONS] for the lowest listed price
+       Sim walks metaCache[1..TOTAL_OUTPUTS] for the lowest listed price
        and wires buyBtn.onclick → openModal(lowestId), .mint-price text →
        `(${lowestFloor.toFixed(3)} ETH)`. Falls back to (SOLD OUT) +
-       opacity 0.5 + cursor not-allowed when no listed editions exist.
+       opacity 0.5 + cursor not-allowed when no listed Outputs exist.
        Token meta has only `price: string | null` (no rawPrice numeric),
        so we parseFloat in the same pattern as line 485 / 502. */
     const { lowestId, lowestFloor } = useMemo(() => {
         let lo = Infinity;
         let id: number | null = null;
-        for (let i = 1; i <= project.totalEditions; i++) {
+        for (let i = 1; i <= project.totalOutputs; i++) {
             const meta = project.outputs.get(i);
             if (!meta || !meta.price) continue;
             const n = parseFloat(meta.price);
@@ -524,7 +524,7 @@ function ProjectPageBodyInner() {
        ─────────────────────────────────────────────────────────────────── */
     const visibleTokenIds = useMemo(() => {
         const ids: number[] = [];
-        for (let i = 1; i <= project.totalEditions; i++) ids.push(i);
+        for (let i = 1; i <= project.totalOutputs; i++) ids.push(i);
 
         const minVal = parseFloat(priceMin);
         const maxVal = parseFloat(priceMax);
@@ -622,7 +622,7 @@ function ProjectPageBodyInner() {
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
-       from text content (format "0.014 ETH" — see CollectionContext token
+       from text content (format "0.014 ETH" — see ProjectContext token
        seeder) and stamp data-anchor-delta as the fully-formatted delta
        string ("(+18%)" / "(-3%)" / "0"). The CSS ::before appends this
        value verbatim after the ⚓ glyph. When anchor is null OR the price
@@ -725,14 +725,14 @@ function ProjectPageBodyInner() {
 
     return (
         <>
-            <section className="collection-hero" aria-label="Collection Info">
+            <section className="project-hero" aria-label="Project Info">
                 <div className="hero-group-1">
-                    <h1 className="collection-title">
+                    <h1 className="project-title">
                         <span>{project.title}</span>
-                        <span className="collection-date">AUG 14 2026</span>
+                        <span className="project-date">AUG 14 2026</span>
                     </h1>
 
-                    <div className="hero-line collection-artist">
+                    <div className="hero-line project-artist">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
@@ -770,7 +770,7 @@ function ProjectPageBodyInner() {
 
                     {/* Sim ~5121: stats grid wraps two stats-rows in a single
                         3-column grid so columns align across rows. Row 2
-                        is "your relationship to this collection" (Owned,
+                        is "your relationship to this Project" (Owned,
                         Spent, Anchor) — hidden via CSS for logged-out
                         users. We render it always at v0; persona gating
                         is out of scope. */}
@@ -779,7 +779,7 @@ function ProjectPageBodyInner() {
                             <span className="stat-item">
                                 <span
                                     className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Editions Minted / Total Supply')}
+                                    {...iconToastProps('Outputs Minted / Total Supply')}
                                 >
                                     ⬚&#xFE0E;
                                 </span>{' '}
@@ -917,7 +917,7 @@ function ProjectPageBodyInner() {
                     <div className="action-row">
                         <button
                             className="btn-mint"
-                            title="Buy the Lowest Listed Edition"
+                            title="Buy the Lowest Listed Output"
                             onClick={() => {
                                 if (lowestId !== null) open('output', lowestId);
                             }}
@@ -936,10 +936,10 @@ function ProjectPageBodyInner() {
                         </button>
                     </div>
 
-                    {/* Sim 5161-5165: collection tab pills (Showcase /
+                    {/* Sim 5161-5165: project tab pills (Showcase /
                         Artworks / + More). Visibility logic mirrors
                         switchCollectionTab (sim ~13134). */}
-                    <div className="profile-tabs-row" id="collectionTabsRow">
+                    <div className="profile-tabs-row" id="projectTabsRow">
                         <div
                             className={`pill pill-l1${onShowcaseTab ? ' active' : ''}`}
                             id="ctab-showcase"
@@ -952,7 +952,7 @@ function ProjectPageBodyInner() {
                                     setActiveTab('showcase');
                                 }
                             }}
-                            title="Curated Showcase of Featured Editions"
+                            title="Curated Showcase of Featured Outputs"
                         >
                             <span className="stat-name">Showcase</span>
                         </div>
@@ -968,7 +968,7 @@ function ProjectPageBodyInner() {
                                     setActiveTab('artworks');
                                 }
                             }}
-                            title="Browse All Artworks in the Collection"
+                            title="Browse All Artworks in the Project"
                         >
                             <span className="stat-name">Artworks</span>
                         </div>
@@ -1014,7 +1014,7 @@ function ProjectPageBodyInner() {
                     onShowcaseTab ? 'showcase-mode' : null,
                     /* F61 (BUG-30) — sim 6635: burnPileActive adds
                        `burn-mode` to #gallery; CSS in globals.css
-                       (sim 2320-2321) dims every .edition-card except
+                       (sim 2320-2321) dims every .output-card except
                        those carrying .burn-pick. */
                     burnPileActive ? 'burn-mode' : null,
                 ].filter(Boolean).join(' ') || undefined}
