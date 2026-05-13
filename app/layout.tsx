@@ -1,7 +1,30 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { Rubik_Mono_One, Inter } from 'next/font/google';
 import { cookieToInitialState, type Config as WagmiConfigType } from 'wagmi';
 import './globals.css';
+
+/*
+  Self-hosted fonts via next/font/google — Next.js downloads the font
+  files at build time and serves them from our own domain. Zero runtime
+  requests to fonts.googleapis.com or fonts.gstatic.com, which keeps the
+  site GDPR-clean (no IP-to-Google leak) and removes the need for a
+  cookie consent banner. CSS references the variables instead of the
+  literal font-family name.
+*/
+const rubikMono = Rubik_Mono_One({
+    weight: '400',
+    subsets: ['latin'],
+    variable: '--font-rubik-mono',
+    display: 'swap',
+});
+
+const inter = Inter({
+    weight: ['400', '700'],
+    subsets: ['latin'],
+    variable: '--font-inter',
+    display: 'swap',
+});
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { ThemeProvider } from '../lib/state/ThemeContext';
 import { ModalProvider } from '../lib/state/ModalContext';
@@ -319,7 +342,7 @@ export default async function RootLayout({
     }
 
     return (
-        <html lang="en">
+        <html lang="en" className={`${rubikMono.variable} ${inter.variable}`}>
             <head>
                 {/*
                   Dynamic favicon — sim line 10. FaviconEngine repaints
@@ -341,16 +364,6 @@ export default async function RootLayout({
                   default-state mark (speech-bubble + ‰ wordmark).
                 */}
                 <link rel="apple-touch-icon" href="/icon-180px.png" />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link
-                    rel="preconnect"
-                    href="https://fonts.gstatic.com"
-                    crossOrigin="anonymous"
-                />
-                <link
-                    rel="stylesheet"
-                    href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Inter:wght@400;700&display=swap"
-                />
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
