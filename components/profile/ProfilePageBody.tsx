@@ -5,7 +5,7 @@
  *
  * Profile page body — mounted by app/[slug]/page.tsx (server shell
  * which resolves the slug + emits metadata). Forked from the project
- * page body per the Launch Cut spec: same CSS classes (`.collection-
+ * page body per the Launch Cut spec: same CSS classes (`.project-
  * hero`, `.hero-group-1`, `.hero-group-2`, `.stats-grid`, `.btn-mint`,
  * `.profile-tabs-row`, `.info-rubik`, `.collected-pair`, `.profile-
  * link`) so the existing globals.css rules paint the surface without
@@ -107,14 +107,14 @@ function ProfilePageBodyInner() {
 
     return (
         <>
-            <section className="collection-hero" aria-label="Profile Info">
+            <section className="project-hero" aria-label="Profile Info">
                 <div className="hero-group-1">
                     {/* Line 1: @HANDLE + artist badge. Reuses
-                        `.collection-title` for visual parity with the
+                        `.project-title` for visual parity with the
                         project page hero — no profile-specific title
                         class exists in globals.css. No status indicator
                         in this line per spec. */}
-                    <h1 className="collection-title">
+                    <h1 className="project-title">
                         <span>@CTO</span>
                         <span className="artist-tag" aria-label="artist">
                             {'✺\uFE0E'}
