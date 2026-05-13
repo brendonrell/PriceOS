@@ -58,7 +58,7 @@ export interface OutputMeta {
 
 export interface ProjectState {
     title: string;
-    totalEditions: number;
+    totalOutputs: number;
     floorEth: number;
     outputs: ReadonlyMap<number, OutputMeta>;
 }
@@ -66,7 +66,7 @@ export interface ProjectState {
 const ProjectCtx = createContext<ProjectState | null>(null);
 
 const PROJECT_TITLE = 'PRISMS';
-const TOTAL_EDITIONS = 222;
+const TOTAL_OUTPUTS = 222;
 
 /* Mock project floor — sim reads this from the BUY button's
    .mint-price element on the project page. The Project Page
@@ -158,12 +158,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
        and Map.get(id) is O(1). */
     const value = useMemo<ProjectState>(() => {
         const outputs = new Map<number, OutputMeta>();
-        for (let id = 1; id <= TOTAL_EDITIONS; id++) {
+        for (let id = 1; id <= TOTAL_OUTPUTS; id++) {
             outputs.set(id, buildOutputMeta(id));
         }
         return {
             title: PROJECT_TITLE,
-            totalEditions: TOTAL_EDITIONS,
+            totalOutputs: TOTAL_OUTPUTS,
             floorEth: MOCK_PROJECT_FLOOR_ETH,
             outputs,
         };
