@@ -422,6 +422,24 @@ body.sentiment-on .sentiment-widget {
    explicitly does not want chased. */
 .ascii-sprite.sleeping { opacity: 0.45; }
 
+/* Per-slot rendering for composed sprites. The 8 slots of a composed
+   sprite render as inline-blocks rather than a single text run so
+   blink / yawn / sleep character swaps don't squish the sprite as
+   Courier renders unicode chars at varying widths. The 3 face slots
+   (eyeL, mouth, eyeR) lock to 1ch — those are the ones that change
+   per animation state and need width stability. Other slots (crown,
+   arms, brackets) keep natural width since they don't change with
+   animation. Standin mode (no parts) keeps the single-string render. */
+.ascii-sprite-slot {
+    display: inline-block;
+    text-align: center;
+}
+.ascii-sprite-slot-eyeL,
+.ascii-sprite-slot-eyeR,
+.ascii-sprite-slot-mouth {
+    width: 1ch;
+}
+
 .ascii-pfp-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
     font-size: 22px; font-weight: normal; line-height: 1;
@@ -5417,7 +5435,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     margin-bottom: 14px;
 }
 .account-create-modal-sprite-cell {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 3 / 2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5430,7 +5448,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     cursor: pointer;
     opacity: 0.55;
     transition: opacity 0.18s, border-color 0.18s, background 0.18s;
-    padding: 0 0 28px;
+    padding: 0 0 24px;
 }
 .account-create-modal-sprite-cell:hover:not(:disabled) {
     opacity: 0.85;
