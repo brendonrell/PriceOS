@@ -5377,20 +5377,20 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     overflow-y: auto;
 }
 .account-create-modal-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1.5px;
     margin-bottom: 12px;
     opacity: 0.6;
 }
 .account-create-modal-body {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
     margin-bottom: 12px;
     opacity: 0.9;
 }
 .account-create-modal-addr {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     padding: 6px 8px;
     margin-bottom: 14px;
@@ -5400,7 +5400,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     letter-spacing: 0.5px;
 }
 .account-create-modal-section-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     letter-spacing: 1.5px;
     opacity: 0.5;
@@ -5419,8 +5419,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .account-create-modal-sprite-cell {
     aspect-ratio: 1 / 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     background: transparent;
     color: var(--text-color);
     border: 1px solid currentColor;
@@ -5445,9 +5447,21 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     background: rgba(127, 127, 127, 0.1);
 }
 .account-create-modal-sprite-glyph {
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+/* Archetype label sits under the composed sprite glyph in each
+   quadrant — Observer / Instigator / Hacker / Mystic. Quiet by
+   default; the selected cell's overall opacity bump (above) is what
+   carries the active state. */
+.account-create-modal-sprite-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.7;
     white-space: nowrap;
 }
 /* Handle row. @ prefix is rendered separately so the user types the
@@ -5463,7 +5477,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     margin-bottom: 6px;
 }
 .account-create-modal-handle-at {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     opacity: 0.55;
 }
@@ -5474,7 +5488,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     outline: none;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    font-size: 15px;
     letter-spacing: 0.5px;
     padding: 0;
     min-width: 0;
@@ -5488,7 +5502,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     cursor: not-allowed;
 }
 .account-create-modal-handle-status {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
     min-height: 16px;
     margin-bottom: 14px;
@@ -5505,7 +5519,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     color: #FF0055; /* Hothurt — error state, matches brand */
 }
 .account-create-modal-error {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
     margin-bottom: 10px;
     color: #FF0055;
@@ -5517,7 +5531,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .account-create-modal-btn {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
     padding: 10px 12px;
