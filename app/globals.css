@@ -1454,7 +1454,7 @@ body.stargazing-mode .platform-modal {
 }
 
 /* F38 — degen-mode CSS (BUG-07). Sim 1009-1014. */
-body.degen-mode .edition-canvas { opacity: 0 !important; transition: none !important; }
+body.degen-mode .output-canvas { opacity: 0 !important; transition: none !important; }
 body.degen-mode .canvas-wrapper {
     background: rgba(120,120,120,0.12) !important;
     border: 1px dashed rgba(120,120,120,0.3) !important;
@@ -1464,7 +1464,7 @@ body.degen-mode .canvas-wrapper {
    overlay is rendered conditionally inside ArtworkCard when
    notifs.degen is true; CSS sets layout + typography + the 2-cell
    trait grid. pointer-events: none lets clicks fall through to the
-   edition-content button so the modal still opens. */
+   output-content button so the modal still opens. */
 .degen-overlay {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -1486,20 +1486,20 @@ body.degen-mode .canvas-wrapper {
 /* F38 — zero-context-mode CSS (BUG-08). Sim 1525-1537, 3307, 3403.
    The `.tape-wrap` hide for zero-context-mode is consolidated into the
    sim-1481-1483 comma-list rule alongside tape-off and zen-mode (R4). */
-body.zero-context-mode .collection-hero,
+body.zero-context-mode .project-hero,
 body.zero-context-mode .traits-ui,
 body.zero-context-mode .sort-bar,
-body.zero-context-mode #collectionTabsRow,
+body.zero-context-mode #projectTabsRow,
 body.zero-context-mode .action-row,
 body.zero-context-mode .meta { display: none !important; }
 body.zero-context-mode #gallery {
     gap: 0 !important; padding: 0 !important;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
 }
-body.zero-context-mode .edition-card { gap: 0 !important; }
+body.zero-context-mode .output-card { gap: 0 !important; }
 body.zero-context-mode .canvas-wrapper { border-radius: 0 !important; box-shadow: none !important; }
 body.zen-mode .canvas-wrapper { box-shadow: none !important; }
-body.zero-context-mode .edition-canvas { border-radius: 0 !important; }
+body.zero-context-mode .output-canvas { border-radius: 0 !important; }
 body.zero-context-mode .priceos-footer { display: none !important; }
 body.zen-mode #digital-familiar,
 body.zero-context-mode #digital-familiar { display: none !important; }
@@ -1641,7 +1641,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    ============================================================
    Sim has no homepage — it loads straight to the project page.
    Until the global feed replaces this, mirror sim's content gutters
-   (.collection-hero — 10px 40px desktop, 10px 20px 20px 20px mobile)
+   (.project-hero — 10px 40px desktop, 10px 20px 20px 20px mobile)
    so the placeholder visually aligns with what real pages will look
    like. min-height gives connect-menu debug enough scroll headroom
    to test menu behaviour against varied scroll positions.
@@ -1994,7 +1994,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    custom collapsible-tree vocabulary (.pf-cat-row / .pf-art / .pf-col /
    .pf-tokens / .pf-token-chip + carets + count badges). Sim's actual
    vocabulary is flat: .pf-cat > .pf-cat-head (➔ glyph + label) +
-   optional .pf-est (when $); .pf-artist; .pf-collection; .pf-artwork;
+   optional .pf-est (when $); .pf-artist; .pf-project; .pf-artwork;
    .pf-ens-row; with .pf-leader dotted lines on the leaf rows
    (.pf-artwork + .pf-ens-row) for the book-TOC pattern. The tree is
    always rendered in full — no expand state. APR 22 rev 2 underline:
@@ -2043,14 +2043,14 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .pf-artist .pf-label { flex: 0 0 auto; }
 .pf-artist .pf-est { font-weight: bold; opacity: 0.85; flex: 0 0 auto; }
-/* Project row — 3rd level. (CSS class `.pf-collection` kept matching sim.) */
-.pf-collection {
+/* Project row — 3rd level. */
+.pf-project {
     display: flex; align-items: baseline;
     padding: 4px 10px 2px 40px;
     font-size: 12px; font-weight: normal; opacity: 0.85;
 }
-.pf-collection .pf-label { flex: 0 0 auto; font-style: italic; }
-.pf-collection .pf-est { font-style: normal; opacity: 0.85; flex: 0 0 auto; }
+.pf-project .pf-label { flex: 0 0 auto; font-style: italic; }
+.pf-project .pf-est { font-style: normal; opacity: 0.85; flex: 0 0 auto; }
 /* Artwork row — leaf. TOC-style leader dots fill the space between label
    and price column (classic book table-of-contents pattern). Dots render
    always; when $ is off the price element is absent so leader extends
@@ -2402,28 +2402,17 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* ============================================================
    PROJECT PAGE
    ============================================================
-   Build 9 port. Every rule here is a verbatim copy from sim.html
-   (sim line refs noted above each block). Touches: hero
-   (.collection-hero family), stats grid, action row + mint
-   button, profile tabs, traits/sort/search, gallery grid,
-   activity feed, and the + More panel (REPLAY / ALBUMS /
-   GENOME / PRICE TARGETS / ATH & HOLDERS / DISAGREEMENT
-   SCORE). No new rules beyond sim — anything that needs
-   tuning vs. sim is a separate ship.
-
-   CSS-CLASS NAMING LOCK (CTO call, 2026-05-09):
-   "Collection" was renamed to "Project" across the platform
-   nomenclature, but CSS class names (`.collection-hero`,
-   `.collection-title`, `.collection-date`, `.collection-artist`,
-   `#collectionTabsRow`, `.pf-collection`) deliberately stay
-   matching sim.html, which is the visual source of truth.
-   Renaming the classes here would break sim parity on every
-   future port. The rename happens only when sim itself flips.
-   Do NOT "match new nomenclature" by renaming these classes.
+   Every rule here ports from sim.html (sim line refs noted above
+   each block). Touches: hero (.project-hero family), stats grid,
+   action row + mint button, profile tabs, traits/sort/search,
+   gallery grid, activity feed, and the + More panel (REPLAY /
+   ALBUMS / GENOME / PRICE TARGETS / ATH & HOLDERS / DISAGREEMENT
+   SCORE). Class names follow current PD nomenclature (Project /
+   Output), no longer mirrored to sim's collection/edition tokens.
    ============================================================ */
 
 /* ── HERO — sim ~2036-2066 ───────────────────────────────── */
-.collection-hero {
+.project-hero {
     padding: 10px 40px 10px 40px;
     display: flex;
     flex-direction: column;
@@ -2431,7 +2420,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     align-items: flex-start;
 }
 @media (min-width: 601px) {
-    .collection-hero { align-items: stretch; }
+    .project-hero { align-items: stretch; }
 }
 .hero-group-1 {
     display: flex;
@@ -2442,7 +2431,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     align-self: flex-start;
 }
 
-.collection-title {
+.project-title {
     display: flex;
     flex-wrap: wrap;
     position: sticky;
@@ -2456,7 +2445,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     line-height: 1;
     text-align: left;
 }
-.collection-date {
+.project-date {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     opacity: 1;
@@ -2477,7 +2466,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     gap: 6px;
     color: var(--text-color);
 }
-.collection-artist { align-items: baseline; }
+.project-artist { align-items: baseline; }
 .by-text { font-size: 13px; font-weight: bold; }
 .artist-lockup { display: flex; align-items: baseline; }
 .artist-lockup a {
@@ -3419,17 +3408,17 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: start;
     align-content: start;
 }
-.edition-card {
+.output-card {
     display: flex;
     flex-direction: column;
     gap: 8px;
     align-self: start;
 }
-.edition-card.hidden { display: none !important; }
-.edition-card.search-hidden { display: none !important; }
-#gallery.showcase-mode .edition-card { display: none !important; }
-#gallery.showcase-mode .edition-card.showcase-pick { display: flex !important; }
-#gallery.showcase-mode .edition-card.showcase-pick .meta { display: none !important; }
+.output-card.hidden { display: none !important; }
+.output-card.search-hidden { display: none !important; }
+#gallery.showcase-mode .output-card { display: none !important; }
+#gallery.showcase-mode .output-card.showcase-pick { display: flex !important; }
+#gallery.showcase-mode .output-card.showcase-pick .meta { display: none !important; }
 #gallery.showcase-mode {
     min-height: 0;
     padding-bottom: 40px;
@@ -3441,10 +3430,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    prop. The dimmed cards stay clickable visually only — pointer-events
    off prevents accidental modal-opens on cards that aren't being
    considered for the burn. */
-#gallery.burn-mode .edition-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
-#gallery.burn-mode .edition-card.burn-pick { opacity: 1; pointer-events: auto; }
+#gallery.burn-mode .output-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
+#gallery.burn-mode .output-card.burn-pick { opacity: 1; pointer-events: auto; }
 
-.edition-content {
+.output-content {
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
@@ -3476,14 +3465,14 @@ body.theme-dark .canvas-wrapper {
    tile until the art lands. On LRU eviction the .visible class is
    removed and the wrapper bg falls back to the default rule above
    (#ccc) — same placeholder, same fade. */
-.edition-canvas {
+.output-canvas {
     display: block;
     width: 100%;
     height: auto;
     opacity: 0;
     transition: opacity 0.5s ease-in;
 }
-.edition-canvas.visible {
+.output-canvas.visible {
     opacity: 1;
 }
 
@@ -3549,7 +3538,7 @@ body.theme-dark .canvas-wrapper {
 /* ── HOVER OVERLAY — sim 2369-2392 + 3223-3224 + 2486 + 3266 ──
    Per-card hover layer. Black 0.85 scrim + a row of action icons
    (Star/Wishlist/Album/Note/Grail/Cart/Hammer). Mounted inside
-   .canvas-wrapper. Default opacity:0; reveal on .edition-content:hover
+   .canvas-wrapper. Default opacity:0; reveal on .output-content:hover
    (devices with a real hover pointer only). 44px hit area via padding +
    negative margin keeps visual layout unchanged but extends touch zone.
    Note + Hammer hidden by default — body.notes-mode / body.hammer-mode
@@ -3633,7 +3622,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .scroll-arrow:hover { opacity: 1; }
     .notif-item:hover { background: rgba(128,128,128,0.2); }
     .hi-icon:hover { transform: translateY(-3px); color: #fff; }
-    .edition-content:hover .hover-overlay { opacity: 1; }
+    .output-content:hover .hover-overlay { opacity: 1; }
     .search-clear:hover { opacity: 1; }
     .pill-artist-filter:hover {
         opacity: 0.8;
@@ -3687,7 +3676,7 @@ body.pricelens-mode .meta-owner.price-trigger::before {
    dimming their colour would disrespect the art). In-budget cards render at
    full strength so the market stays intact; the user's position within it
    becomes visually clear without filtering anything out. APR 23. */
-body.budget-active #gallery .edition-card:not(.in-budget):not(.hidden):not(.search-hidden) {
+body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.search-hidden) {
     /* APR 24 rev 2: was 0.45 — wasn't distinct enough from in-budget cards
        per Brendon. Halved to 0.22 ("twice as faded") so the in-budget set
        genuinely pops while OOB cards recede to the background. Still
@@ -3709,11 +3698,11 @@ body.budget-active #gallery .edition-card:not(.in-budget):not(.hidden):not(.sear
    (the last in-budget card) spanning from the high horizontal's Y down to
    the low horizontal's Y — connecting the two segments into a proper step.
    All strokes 2px at 0.7 opacity. */
-body.budget-step-line #gallery .edition-card.budget-step-l,
-body.budget-step-line #gallery .edition-card.budget-step-r {
+body.budget-step-line #gallery .output-card.budget-step-l,
+body.budget-step-line #gallery .output-card.budget-step-r {
     position: relative;
 }
-body.budget-step-line #gallery .edition-card.budget-step-l::after {
+body.budget-step-line #gallery .output-card.budget-step-l::after {
     /* Low horizontal — bottom of cards in the cutoff row. Extends 20px to
        the right to bridge the grid column gap and connect to the next
        step-l card (or to the L card's corner + vertical). The rightmost
@@ -3731,7 +3720,7 @@ body.budget-step-line #gallery .edition-card.budget-step-l::after {
     pointer-events: none;
     z-index: 2;
 }
-body.budget-step-line #gallery .edition-card.budget-step-r::after {
+body.budget-step-line #gallery .output-card.budget-step-r::after {
     /* High horizontal — bottom of the row above the cutoff row, starting
        at L.right (not at the step-r card's own left). Extends 20px LEFT
        into the column gap so it meets L card's vertical overlay. Also
@@ -3753,13 +3742,13 @@ body.budget-step-line #gallery .edition-card.budget-step-r::after {
    row above exists (i.e. an actual step is needed; no vertical when the
    cutoff falls at an exact row boundary). Spans from high horizontal's Y
    down to low horizontal's Y. Width 2px, centred on L's right edge. */
-body.budget-step-line #gallery .edition-card {
+body.budget-step-line #gallery .output-card {
     /* L card always needs position:relative when step-line is active so an
        overlay child positions correctly. Safe to blanket-apply — cheap, and
-       .edition-card is already position:relative in several other modes. */
+       .output-card is already position:relative in several other modes. */
     position: relative;
 }
-body.budget-step-line #gallery .edition-card .budget-step-v-overlay {
+body.budget-step-line #gallery .output-card .budget-step-v-overlay {
     position: absolute;
     /* Horizontals are drawn with bottom: -11px; height: 2px — the 2px line
        sits in the y range [parent.bottom + 9, parent.bottom + 11]. For the
@@ -3823,7 +3812,7 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
 
 /* ── AURA — sim 3693-3731 ──
    Ambient multi-color glow AROUND each artwork. Sits behind the card via
-   a ::before pseudo on .edition-card with negative inset (extends ~16px
+   a ::before pseudo on .output-card with negative inset (extends ~16px
    outward). Slowly-rotating conic gradient across 6 theme-compatible
    hues so every thumbnail reads as haloed in a living, shifting colour
    field. CRUCIALLY: does NOT touch .canvas-wrapper, overflow, z-index
@@ -3833,11 +3822,11 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
    Per-card --aura-angle / --aura-duration vars are stamped in
    ArtworkCard from id (Build 22) so cards aren't synchronized. Body
    class toggle wiring lives in Settings (later build). */
-body.aura-active .edition-card {
+body.aura-active .output-card {
     position: relative;
     isolation: isolate;
 }
-body.aura-active .edition-card::before {
+body.aura-active .output-card::before {
     content: '';
     position: absolute;
     inset: -16px;
@@ -3857,7 +3846,7 @@ body.aura-active #gallery { overflow-x: clip; }
     to   { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-    body.aura-active .edition-card::before { animation: none; opacity: 0.45; }
+    body.aura-active .output-card::before { animation: none; opacity: 0.45; }
 }
 
 /* ── BREADCRUMB CRUMB — sim 3893-3914 + 8072-8082 ──
@@ -3886,7 +3875,7 @@ body.aura-active #gallery { overflow-x: clip; }
 .breadcrumb-crumb.bc-bl { bottom: -7px; left: -7px; }
 .breadcrumb-crumb.bc-br { bottom: -7px; right: -7px; }
 .canvas-wrapper:has(.breadcrumb-crumb) { overflow: visible; }
-.edition-content:hover .breadcrumb-crumb {
+.output-content:hover .breadcrumb-crumb {
     color: var(--bg-color) !important;
 }
 
@@ -3913,7 +3902,7 @@ body.aura-active #gallery { overflow-x: clip; }
     z-index: 4;
 }
 body.pm-active .price-memory-ghost { opacity: 0.75; }
-body.pm-active .edition-content:hover .price-memory-ghost { opacity: 1; }
+body.pm-active .output-content:hover .price-memory-ghost { opacity: 1; }
 body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
@@ -4278,7 +4267,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* ── PROJECT PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
 @media (max-width: 600px) {
-    .collection-hero { padding: 10px 20px 20px 20px; }
+    .project-hero { padding: 10px 20px 20px 20px; }
     #gallery,
     #activity-feed {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -4391,11 +4380,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
    ============================================================ */
 
 /* sim 941-998 — REDACTED MODE (Classic black-bar censorship).
-   Targets project-page text surfaces (CSS class names — .collection-* — kept matching sim) (collection-title,
-   artist-lockup, meta-owner, f-highlight, info-line links) plus
-   the modal/tape/calendar surfaces that share the same treatment.
-   Selectors targeting elements that don't exist in the React port
-   yet sit dormant — harmless until those land. */
+   Targets project-page text surfaces (project-title, artist-lockup,
+   meta-owner, f-highlight, info-line links) plus the modal/tape/
+   calendar surfaces that share the same treatment. Selectors
+   targeting elements that don't exist in the React port yet sit
+   dormant — harmless until those land. */
 body.redacted-mode .user-text,
 body.redacted-mode .settings-wallet,
 body.redacted-mode .pill-ens,
@@ -4413,7 +4402,7 @@ body.redacted-mode .tape-item,
 body.redacted-mode .cal-event-title,
 body.redacted-mode .cal-event-item,
 body.redacted-mode .topbarcal-events,
-body.redacted-mode .collection-title {
+body.redacted-mode .project-title {
     color: transparent !important;
     background: #000000 !important;
     border-radius: 1px !important;
@@ -4421,7 +4410,7 @@ body.redacted-mode .collection-title {
     -webkit-text-fill-color: transparent !important;
     text-decoration: none !important;
 }
-body.redacted-mode .collection-title .collection-date { color: transparent !important; }
+body.redacted-mode .project-title .project-date { color: transparent !important; }
 /* Redacted mode: modals */
 body.redacted-mode .modal-title,
 body.redacted-mode .modal-fields .mf-val,
@@ -4454,7 +4443,7 @@ body.theme-dark.redacted-mode .tape-item,
 body.theme-dark.redacted-mode .cal-event-title,
 body.theme-dark.redacted-mode .cal-event-item,
 body.theme-dark.redacted-mode .topbarcal-events,
-body.theme-dark.redacted-mode .collection-title { background: rgba(224,224,224,0.88) !important; }
+body.theme-dark.redacted-mode .project-title { background: rgba(224,224,224,0.88) !important; }
 
 /* sim 3872-3879 — ANON MODE (project page hides). Hides
    identity-bearing surfaces on the project page when the user
@@ -4481,23 +4470,23 @@ body.anon-mode #artistsPanel .pill-artist-filter[data-rel="followers"] { display
    minimal hero + gallery view. .stats-row hide here is technically
    redundant with the existing .stats-grid rule but matches sim
    verbatim and is harmless. */
-body.zen-mode .collection-artist,
+body.zen-mode .project-artist,
 body.zen-mode .info-line,
 body.zen-mode .stats-row,
 body.zen-mode .action-row,
 body.zen-mode .traits-ui,
 body.zen-mode .sort-bar,
 body.zen-mode .search-row,
-body.zen-mode .collection-date,
+body.zen-mode .project-date,
 body.zen-mode #pingsBox { display: none !important; }
 body.zen-mode #todosBox { display: none !important; }
 body.zen-mode #gallery .meta { display: none !important; }
-body.zen-mode .collection-hero { padding-top: 6px !important; padding-bottom: 6px !important; }
+body.zen-mode .project-hero { padding-top: 6px !important; padding-bottom: 6px !important; }
 body.zen-mode .modal-action-btn { pointer-events: none; cursor: default; font-size: 0 !important; }
 body.zen-mode .modal-artist { display: none !important; }
 
 /* ── BUILD 23 — MUTE OVERLAY — sim 2387-2486 ──
-   Hammer mode flips every .edition-card into a "tap-to-mute" target —
+   Hammer mode flips every .output-card into a "tap-to-mute" target —
    a black scrim with a "Mute" label fills .canvas-wrapper. Tapping
    the card runs toggleMute (sim 7280) which adds .muted to the card
    and re-renders the label as "Muted" via .muted-final. When hammer
@@ -4507,8 +4496,8 @@ body.zen-mode .modal-artist { display: none !important; }
    sim 2387 (hi-icon hi-hammer hide) and sim 2389 (hover-overlay hide
    in hammer-mode) already live in the hover-overlay block above —
    not duplicated here. */
-body:not(.hammer-mode) .edition-card.muted { display: none !important; }
-body:not(.hammer-mode) .edition-card.hammered { display: none !important; }
+body:not(.hammer-mode) .output-card.muted { display: none !important; }
+body:not(.hammer-mode) .output-card.hammered { display: none !important; }
 
 .mute-overlay {
     position: absolute; inset: 0;
@@ -4529,8 +4518,8 @@ body.hammer-mode .canvas-wrapper .mute-overlay { display: flex; }
     transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), font-size 0.18s ease;
 }
 /* MUTED state base — slight fade to show past action */
-body.hammer-mode .edition-card.muted .mute-overlay { background: rgba(0,0,0,0.72); }
-body.hammer-mode .edition-card.muted .mute-overlay .mute-label { opacity: 0.75; }
+body.hammer-mode .output-card.muted .mute-overlay { background: rgba(0,0,0,0.72); }
+body.hammer-mode .output-card.muted .mute-overlay .mute-label { opacity: 0.75; }
 /* ⟙ HAMMER SWING — always on angle (never at 0deg which reads as a flat T).
    Sequence: cocked → wind back → SLAM. Pivots from near the handle butt so
    the head arcs naturally. Bolded via stacked text-shadows for Mjolnir girth. */
@@ -4562,7 +4551,7 @@ body.hammer-mode .edition-card.muted .mute-overlay .mute-label { opacity: 0.75; 
    so `padding: x 12px` renders with visual 14px on the right (12 + 2 trailing) vs 12px
    on the left. Compensate with asymmetric padding — right 10px, left 12px — so the
    visible box looks centered around the word. */
-body.hammer-mode .edition-card.muted .mute-overlay .mute-label.muted-final,
+body.hammer-mode .output-card.muted .mute-overlay .mute-label.muted-final,
 .mute-overlay .mute-label.muted-final {
     /* S4 page 3234 — MUTED settled state +2 font sizes larger.
        clamp(12, 3.8vw, 24) → clamp(16, 5vw, 32). */
@@ -4619,17 +4608,17 @@ body.hammer-mode .modal-canvas-wrap .mute-overlay { display: flex; }
    (gallery-wide capture-phase click handler, sim parity with
    _startFogObserver / _stopFogObserver). Body class toggle lives in
    useBodyClass driven by SortContext (sim 8334-8338). */
-body.fog-mode .edition-card:not(.fog-revealed) { cursor: pointer; }
-body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper {
+body.fog-mode .output-card:not(.fog-revealed) { cursor: pointer; }
+body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper {
     filter: blur(28px) brightness(0.75) saturate(0.5);
     transition: filter 0.6s ease;
 }
-body.fog-mode .edition-card.fog-revealed .canvas-wrapper {
+body.fog-mode .output-card.fog-revealed .canvas-wrapper {
     filter: none;
     transition: filter 0.8s ease;
 }
 /* Subtle pulse on unrevealed cards so the fog feels alive */
-body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
+body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     content: ''; position: absolute; inset: 0;
     background: rgba(0,0,0,0.08);
     animation: fogPulse 4s ease-in-out infinite;
@@ -4640,7 +4629,7 @@ body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
     50%      { opacity: 0.7; }
 }
 @media (prefers-reduced-motion: reduce) {
-    body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after { animation: none; }
+    body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after { animation: none; }
 }
 
 /* ============================================================
@@ -4961,7 +4950,7 @@ body.fog-mode .edition-card:not(.fog-revealed) .canvas-wrapper::after {
 body.hammer-mode #hammerBarPill { cursor: pointer; }
 /* Hide non-muted cards when filter is active AND hammer mode is on.
    Sim 1183-1186. Will activate once mute UI ships. */
-body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
+body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     display: none !important;
 }
 
