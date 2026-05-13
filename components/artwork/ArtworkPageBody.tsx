@@ -7,8 +7,8 @@
  * `/{globalId}`) and app/art/[slug]/[localId]/page.tsx (alt URL).
  * Forked from ProjectPageBody.tsx (NOT the profile body): the hero
  * markup mirrors project line-for-line so existing globals.css
- * rules paint the surface identically — same `.collection-title`,
- * same `.collection-artist` lockup (By + artist-name-wrap +
+ * rules paint the surface identically — same `.project-title`,
+ * same `.project-artist` lockup (By + artist-name-wrap +
  * artist-tag + follow-badge + follower-count), same `.info-line`
  * "Collected by"-shape chip pattern (here: "Held by"), same
  * `.stats-grid` with class-qualified icons that the CSS sizes
@@ -92,18 +92,18 @@ export default function ArtworkPageBody({
 
     return (
         <>
-            <section className="collection-hero" aria-label="Artwork Info">
+            <section className="project-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
-                    <h1 className="collection-title">
+                    <h1 className="project-title">
                         <span>{titleLabel}</span>
                     </h1>
 
                     {/* Artist line — mirrors ProjectPageBody.tsx exactly
-                        (.collection-artist + by-text + artist-lockup +
+                        (.project-artist + by-text + artist-lockup +
                         artist-name-wrap + artist-tag + follow-badge +
                         follower-count). @claude placeholder per the
                         project page convention. */}
-                    <div className="hero-line collection-artist">
+                    <div className="hero-line project-artist">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
@@ -151,7 +151,7 @@ export default function ArtworkPageBody({
                             <span className="stat-item">
                                 <span
                                     className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Edition / Supply')}
+                                    {...iconToastProps('Output / Supply')}
                                 >
                                     ⬚&#xFE0E;
                                 </span>{' '}
