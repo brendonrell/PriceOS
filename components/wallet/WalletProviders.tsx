@@ -117,6 +117,10 @@ import {
 } from '../../lib/wallet/siweClient';
 import { AuthContextProvider } from '../../lib/state/AuthContext';
 import { SignInModal } from './SignInModal';
+import { AccountCreateModal } from './AccountCreateModal';
+import { fetchUserRow } from '../../lib/wallet/accountClient';
+import type { UserRow } from '../../lib/supabase';
+import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 
 interface WalletProvidersProps {
     children: ReactNode;
@@ -376,6 +380,74 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
        auto-sign cycle resolves. */
     const isAuthenticating = phase === 'hydrating' || phase === 'signing';
 
+    /* User-row state for Real User Accounts v0.
+
+         undefined → not yet known (no fetch started, or fetch in
+                     flight). needsSignup is false in this state so
+                     the AccountCreateModal doesn't flash open during
+                     the post-SIWE GET.
+         null      → server confirmed no row exists for this address.
+         object    → server returned a row. handle === null means a
+                     partial row (legacy / hypothetical for v0) and
+                     still gates signup.
+
+       Fetched on every siweAddress change. The address-swap branch
+       in the wagmi watcher clears siweAddress before re-fetching, so
+       the cached row from the previous identity never bleeds into
+       the new one. */
+    const [userRow, setUserRow] = useState<
+        UserProfileResponse | null | undefined
+    >(undefined);
+
+    useEffect(() => {
+        if (!siweAddress) {
+            setUserRow(undefined);
+            return;
+        }
+        let cancelled = false;
+        setUserRow(undefined);
+        fetchUserRow(siweAddress)
+            .then((row) => {
+                if (cancelled) return;
+                setUserRow(row);
+            })
+            .catch(() => {
+                /* Network / 5xx — leave state as undefined so
+                   needsSignup stays false and the user isn't blocked
+                   behind an empty modal they can't close. A future
+                   retry surface or "Refresh" CTA can recover this;
+                   for v0 the user can re-trigger via sign-out + sign-
+                   in. */
+                if (!cancelled) setUserRow(undefined);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [siweAddress]);
+
+    /* needsSignup: SIWE-authed AND the fetched row is known AND that
+       row either doesn't exist or has handle === null. The "fetched
+       row is known" gate (userRow !== undefined) is what keeps the
+       modal from flashing during the post-SIWE GET. */
+    const needsSignup =
+        !!siweAddress
+        && userRow !== undefined
+        && (userRow === null || userRow.handle === null);
+
+    /* Completion callback handed to both the modal (via props) and
+       the AuthContext (for any other surface that ends up creating
+       a row). Synthesises a follower/following pair so the cached
+       value satisfies the UserProfileResponse shape returned by
+       /api/user/{address}; counts are 0 for a freshly-claimed
+       account anyway. */
+    const handleAccountCreated = useCallback((user: UserRow) => {
+        setUserRow({
+            ...user,
+            follower_count: 0,
+            following_count: 0,
+        });
+    }, []);
+
     /* SignInModal is visible when wagmi has a connected address but
        no SIWE session yet, AND we're past the initial cookie hydration
        (so we don't flash the modal during the auth-cookie GET). The
@@ -412,6 +484,8 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             <AuthContextProvider
                 siweAddress={siweAddress}
                 isAuthenticating={isAuthenticating}
+                needsSignup={needsSignup}
+                onAccountCreated={handleAccountCreated}
                 signOut={signOutFull}
             >
                 {children}
@@ -423,6 +497,11 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
                         void autoSign();
                     }}
                     onCancel={handleSignInCancel}
+                />
+                <AccountCreateModal
+                    open={needsSignup}
+                    address={siweAddress}
+                    onAccountCreated={handleAccountCreated}
                 />
             </AuthContextProvider>
         </RainbowKitProvider>
