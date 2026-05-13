@@ -99,7 +99,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
            already exists for this address with handle set, allow the
            call to succeed iff the submitted values match what's
            stored. Different values = 409, no mutation. */
-        const { data: existing, error: existingError } = await supabase
+        const { data: existingRaw, error: existingError } = await supabase
             .from('users')
             .select('*')
             .eq('address', address)
@@ -107,14 +107,18 @@ export const POST = requireAuth(async (req, _ctx, address) => {
 
         if (existingError) return serverError(existingError.message);
 
+        /* Cast off the typed-client inference (Database['Tables']['users']
+           narrows to never in this select call — known issue with
+           SupabaseClient<Database> over the upsert path on the same table). */
+        const existing = (existingRaw as UserRow | null) ?? null;
+
         if (existing && existing.handle !== null) {
-            const sameHandle =
-                (existing.handle as string).toLowerCase() === handle;
+            const sameHandle = existing.handle.toLowerCase() === handle;
             const sameSprite = existing.price_sprite === priceSprite;
             if (sameHandle && sameSprite) {
                 const res: CreateUserResponse = {
                     ok: true,
-                    user: existing as UserRow,
+                    user: existing,
                 };
                 return NextResponse.json(res);
             }
