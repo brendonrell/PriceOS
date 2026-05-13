@@ -25,26 +25,77 @@ export async function GET(
 
   try {
     const supabase = getSupabaseAnon();
+
+    // (a) Resolve the queried address to its @name.
+    const { data: user, error: userErr } = await supabase
+      .from('users')
+      .select('handle')
+      .eq('address', address)
+      .maybeSingle();
+    if (userErr) return serverError(userErr.message);
+
+    // Cast around Supabase typed-client `never` inference on column-list selects.
+    const userRow = user as { handle: string | null } | null;
+    const handle = userRow?.handle ?? null;
+
+    // Pre-claim → no rows possible. Empty lists.
+    if (handle === null) {
+      const empty: FollowsListResponse = {
+        address,
+        followers: [],
+        following: [],
+        follower_count: 0,
+        following_count: 0,
+      };
+      return NextResponse.json(empty);
+    }
+
+    // (b) Query follows by @name to get the OTHER party's @names.
     const [followersRes, followingRes] = await Promise.all([
       supabase
         .from('follows')
-        .select('follower_address')
-        .eq('following_address', address),
+        .select('follower_name')
+        .eq('following_name', handle),
       supabase
         .from('follows')
-        .select('following_address')
-        .eq('follower_address', address),
+        .select('following_name')
+        .eq('follower_name', handle),
     ]);
 
     if (followersRes.error) return serverError(followersRes.error.message);
     if (followingRes.error) return serverError(followingRes.error.message);
 
-    const followers = ((followersRes.data ?? []) as Array<{ follower_address: string }>).map(
-      (r) => r.follower_address
-    );
-    const following = ((followingRes.data ?? []) as Array<{ following_address: string }>).map(
-      (r) => r.following_address
-    );
+    const followerNames = ((followersRes.data ?? []) as Array<{
+      follower_name: string;
+    }>).map((r) => r.follower_name);
+    const followingNames = ((followingRes.data ?? []) as Array<{
+      following_name: string;
+    }>).map((r) => r.following_name);
+
+    // (c) Resolve those @names back to addresses via a single users join.
+    const allNames = Array.from(new Set([...followerNames, ...followingNames]));
+    let nameToAddress = new Map<string, string>();
+    if (allNames.length > 0) {
+      const { data: usersData, error: usersErr } = await supabase
+        .from('users')
+        .select('address, handle')
+        .in('handle', allNames);
+      if (usersErr) return serverError(usersErr.message);
+      nameToAddress = new Map(
+        ((usersData ?? []) as Array<{ address: string; handle: string | null }>)
+          .filter((u): u is { address: string; handle: string } => u.handle !== null)
+          .map((u) => [u.handle, u.address])
+      );
+    }
+
+    // (d) Build address arrays. The follows.{follower,following}_name FK to
+    // users.handle should guarantee a hit for every row; filter defensively.
+    const followers = followerNames
+      .map((n) => nameToAddress.get(n))
+      .filter((a): a is string => typeof a === 'string');
+    const following = followingNames
+      .map((n) => nameToAddress.get(n))
+      .filter((a): a is string => typeof a === 'string');
 
     const response: FollowsListResponse = {
       address,
