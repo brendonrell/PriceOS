@@ -51,10 +51,11 @@
 import {
     composeSprite,
     type SpriteAnimState,
+    type SpriteParts,
 } from '../sprites/composer';
 import { type PriceSpriteVibe } from '../sprites/vibes';
 
-export { type SpriteAnimState };
+export { type SpriteAnimState, type SpriteParts };
 
 export interface SpriteFrame {
     face: string;
@@ -67,6 +68,17 @@ export interface SpriteFrame {
      * a logged-out user has no identity and should see no sprite.
      */
     hasIdentity: boolean;
+    /**
+     * Per-slot parts of the composed sprite. Present only in composed
+     * mode (hasIdentity === true). Consumers render each slot in a
+     * fixed-width inline-block so blink / yawn / sleep character
+     * swaps don't squish the sprite. Null in standin mode — the
+     * standin's kaomoji structure doesn't map cleanly to the 8-slot
+     * shape and the hand-authored mirror glyphs balance widths
+     * naturally, so consumers fall back to rendering `face` as a
+     * single string when parts is null.
+     */
+    parts: SpriteParts | null;
 }
 
 /* Standin kaomoji — sim 12100-12105 verbatim. Codepoints verified
@@ -135,6 +147,7 @@ function _computeFrame(): SpriteFrame {
                 transform,
                 sleeping: isAsleep,
                 hasIdentity: true,
+                parts: composed.parts,
             };
         }
     }
@@ -148,7 +161,7 @@ function _computeFrame(): SpriteFrame {
     /* sim 12126-12132 — skip the CSS flip when sleeping/yawning so the
        literal "zzz" letters don't render mirrored (unreadable). */
     const transform = (_mirrorMode && isLeft && !isAsleep) ? 'scaleX(-1)' : 'scaleX(1)';
-    return { face, transform, sleeping: isAsleep, hasIdentity: false };
+    return { face, transform, sleeping: isAsleep, hasIdentity: false, parts: null };
 }
 
 function _clearAll(): void {
