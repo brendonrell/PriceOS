@@ -121,6 +121,7 @@ import { AccountCreateModal } from './AccountCreateModal';
 import { fetchUserRow } from '../../lib/wallet/accountClient';
 import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
+import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
 
 interface WalletProvidersProps {
     children: ReactNode;
@@ -447,6 +448,36 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             following_count: 0,
         });
     }, []);
+
+    /* Sprite engine identity wiring. The priceSpriteEngine renders the
+       standin kaomoji by default; once we have a SIWE'd wallet AND a
+       fetched user row with both a claimed handle and a picked
+       price_sprite, hand the engine that identity so it switches to
+       the composed sprite. Any earlier state (no SIWE, fetch in
+       flight, partial row) gets a null identity so the engine stays
+       on the standin and downstream consumers (UserMenuButtons) keep
+       the sprite + level badge hidden via frame.hasIdentity.
+
+       Effect cleanup runs on every dep change AND on unmount —
+       clearing the identity on unmount ensures the module-singleton
+       engine doesn't bleed an old user's sprite into the next page
+       if the provider tree re-mounts. */
+    useEffect(() => {
+        const hasFullIdentity =
+            !!siweAddress
+            && userRow !== undefined
+            && userRow !== null
+            && userRow.handle !== null
+            && userRow.price_sprite !== null;
+        if (hasFullIdentity) {
+            setMainSpriteIdentity(siweAddress, userRow.price_sprite);
+        } else {
+            setMainSpriteIdentity(null, null);
+        }
+        return () => {
+            setMainSpriteIdentity(null, null);
+        };
+    }, [siweAddress, userRow]);
 
     /* SignInModal is visible when wagmi has a connected address but
        no SIWE session yet, AND we're past the initial cookie hydration
