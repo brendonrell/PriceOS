@@ -110,14 +110,32 @@ export default function PriceSpriteModal() {
 
                 {/* Hero sprite — subscribed to the same priceSpriteEngine
                     that drives the menu sprite. Frame.face / transform /
-                    sleeping mirror the menu in real time. */}
+                    sleeping mirror the menu in real time. Renders per
+                    slot when composed (frame.parts) so blink / yawn /
+                    sleep don't squish; falls back to single-string
+                    face for the standin (parts === null). */}
                 <div className="ps-hero" aria-hidden="true">
                     <span
                         className={`ps-hero-sprite${frame.sleeping ? ' sleeping' : ''}`}
                         id="priceSpriteHeroSprite"
                         style={{ transform: frame.transform }}
                     >
-                        {frame.face}
+                        {frame.parts ? (
+                            <>
+                                {frame.parts.crown && (
+                                    <span className="ascii-sprite-slot ascii-sprite-slot-crown">{frame.parts.crown}</span>
+                                )}
+                                <span className="ascii-sprite-slot ascii-sprite-slot-armL">{frame.parts.armL}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-bracketL">{frame.parts.bracketL}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-eyeL">{frame.parts.eyeL}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-mouth">{frame.parts.mouth}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-eyeR">{frame.parts.eyeR}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-bracketR">{frame.parts.bracketR}</span>
+                                <span className="ascii-sprite-slot ascii-sprite-slot-armR">{frame.parts.armR}</span>
+                            </>
+                        ) : (
+                            frame.face
+                        )}
                     </span>
                 </div>
 
