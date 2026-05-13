@@ -10,6 +10,7 @@ export interface UserRow {
   ens_name: string | null;
   handle: string | null;
   price_sprite: PriceSpriteVibe | null;
+  account_level: number;
   created_at: string;
 }
 
