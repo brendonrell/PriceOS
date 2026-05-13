@@ -73,15 +73,16 @@ interface Props {
 }
 
 /* Friendly copy for the handle status row. Server-side reasons are
-   short tokens — map them to one-line UI strings here. */
+   short tokens — map them to one-line UI strings here. User-facing
+   noun is "@name" per Platform Nomenclature SoT. */
 const REASON_COPY: Record<HandleCheckReason, string> = {
     too_short: 'Min 3 characters.',
     too_long: 'Max 20 characters.',
     invalid_start: 'Must start with a letter or digit.',
     invalid_chars: 'Letters, digits, _ and - only.',
-    all_digits: 'All-digit handles are reserved.',
-    reserved: 'This handle is reserved.',
-    taken: 'Handle is taken.',
+    all_digits: 'All-digit @names are reserved.',
+    reserved: 'This @name is reserved.',
+    taken: '@name is taken.',
 };
 
 function shortAddr(addr: string): string {
@@ -202,7 +203,7 @@ export function AccountCreateModal({
                            changing it back, but surface the error so
                            it's not silent. */
                         setSubmitError(
-                            'Could not check handle availability. Try again.'
+                            'Could not check @name availability. Try again.'
                         );
                     });
             }, 300);
@@ -231,11 +232,11 @@ export function AccountCreateModal({
             /* ok=false path — map reason to UI feedback. */
             if (res.reason === 'handle_taken') {
                 setStatus({ state: 'unavailable', reason: 'taken' });
-                setSubmitError('Handle is taken. Try another.');
+                setSubmitError('@name is taken. Try another.');
             } else if (res.reason === 'handle_invalid') {
                 const r = res.details?.handle_reason;
                 if (r) setStatus({ state: 'unavailable', reason: r });
-                setSubmitError('Handle is not valid.');
+                setSubmitError('@name is not valid.');
             } else if (res.reason === 'sprite_invalid') {
                 setSubmitError('Pick a vibe to continue.');
             } else if (res.reason === 'already_claimed') {
@@ -288,7 +289,7 @@ export function AccountCreateModal({
                     CLAIM YOUR ACCOUNT
                 </div>
                 <div className="account-create-modal-body">
-                    Pick a PriceSprite vibe and a handle. Both are
+                    Pick a PriceSprite vibe and an @name. Both are
                     permanent on this wallet.
                 </div>
                 {address && (
@@ -334,7 +335,7 @@ export function AccountCreateModal({
                 </div>
 
                 <div className="account-create-modal-section-label">
-                    HANDLE
+                    @NAME
                 </div>
                 <div className="account-create-modal-handle-row">
                     <span className="account-create-modal-handle-at">@</span>
@@ -343,7 +344,7 @@ export function AccountCreateModal({
                         className="account-create-modal-handle-input"
                         value={handleInput}
                         onChange={(e) => onHandleChange(e.target.value)}
-                        placeholder="yourhandle"
+                        placeholder="yourname"
                         maxLength={HANDLE_MAX_LENGTH}
                         autoCapitalize="none"
                         autoCorrect="off"
