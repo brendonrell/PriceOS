@@ -6,7 +6,7 @@
  * Module-singleton store for the Grail Pin system. Sim refs:
  *   sim.html 12303-12451   engine (varDecl, save, render, toggle, unpin)
  *   sim.html 12342         incognito/hammer hide gate for the bar
- *   sim.html 12397-12399   .grail-pinned class on edition-card
+ *   sim.html 12397-12399   .grail-pinned class on .output-card
  *   sim.html 12405         badge glyph U+27DF
  *   sim.html 12426         5-pin cap
  *   sim.html 5366          modal-pin-hint (#modalGrailBtn) markup
