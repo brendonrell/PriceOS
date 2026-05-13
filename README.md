@@ -13,15 +13,7 @@ URL architecture and nomenclature both locked May 9 2026 (see sections below). A
 
 ## Nomenclature
 
-Platform vocabulary, sharpened May 9 2026:
-
-- **Project** — what the platform releases (Kiki, Portals). Artist's body of work, mintable.
-- **Output** — the individual minted unit. The vessel that bundles the artwork, token, and metadata. The unit of scarcity.
-- **Artwork** — the visual content inside an output (rendered canvas).
-- **Token** — the ERC-721 inside an output (chain primitive only).
-- **Metadata** — the manifest inside an output (mint data, traits, provenance, edition number).
-- **Collection** — a user's gathered outputs, across many projects.
-- **Edition** — total mintable supply per project ("edition of 256").
+Single source of truth: ClickUp doc `2kyd6gx6-994` page `2kyd6gx6-3274` (Platform Nomenclature).
 
 ## URL Architecture
 
