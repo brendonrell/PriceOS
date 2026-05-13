@@ -38,13 +38,22 @@
  *                               sign-prompt is already on screen.
  *
  * User-text priority (top → bottom):
- *   1. @handle   — post-launch, after account creation forces @name
- *                  selection at signup. Stored as a first-class user-
- *                  state column. Not in this build.
+ *   1. @handle   — claimed PD handle for the SIWE-auth'd address.
+ *                  Sourced from useAuth().handle, which derives from
+ *                  the user-row fetch InnerProviders runs on every
+ *                  siweAddress change. Renders with a leading '@' to
+ *                  match the rest of PD's nomenclature (profile URL is
+ *                  /{handle}, mention chips render @handle, etc.).
+ *                  Wired live in Real User Accounts v0; AccountCreateModal
+ *                  gates SIWE-authed users from reaching this surface
+ *                  without a handle.
  *   2. ENS name  — wagmi's useEnsName lookup against the connected
  *                  address on chainId 1. Async; renders as the
  *                  truncated address while resolving, then swaps to
- *                  the ENS string when the lookup returns.
+ *                  the ENS string when the lookup returns. Falls
+ *                  through to here when handle is null (legacy rows
+ *                  with handle=null, or the brief post-SIWE window
+ *                  before the user-row GET resolves).
  *   3. shortAddr — 0xf7c0…3690 fallback when no ENS is set or the
  *                  lookup is in flight / returned null.
  *   4. "Connect" — disconnected fallback. Renders inside the open
@@ -98,7 +107,7 @@ export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
-    const { siweAddress, isAuthenticating } = useAuth();
+    const { siweAddress, handle, isAuthenticating } = useAuth();
     const { openConnectModal } = useConnectModal();
     const { showToast } = useToast();
 
@@ -175,11 +184,14 @@ export function UserMenuButtons() {
         toggleMenu();
     };
 
-    /* User-text priority chain — see top-of-file comment block. The
-       future @handle slot would insert here as `handle ?? ensName ??
-       ...`; for now it starts at ENS. */
-    const pillText = ensName
-        ?? (siweAddress ? shortAddr(siweAddress) : 'Connect');
+    /* User-text priority chain — see top-of-file comment block.
+       @handle wins when claimed (Real User Accounts v0); falls back
+       through ENS → shortAddr → "Connect" otherwise. The leading '@'
+       is rendered inline to match the rest of PD's @-prefixed
+       nomenclature (profile URL slugs, mention chips, etc.). */
+    const pillText = handle
+        ? `@${handle}`
+        : ensName ?? (siweAddress ? shortAddr(siweAddress) : 'Connect');
 
     return (
         <div className={wrapperClass}>
