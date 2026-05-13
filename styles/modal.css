@@ -88,7 +88,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     box-sizing: border-box;
 }
 .modal-title {
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-weight: normal;
     font-size: 20px;
     text-align: center;
@@ -187,7 +187,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     width: 180px;
     flex-shrink: 0;
     flex-grow: 0;
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 13px;
     font-weight: normal;
     cursor: pointer;
@@ -325,8 +325,8 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 /* Modal action row */
 .modal-actions-row { display: flex; gap: 16px; align-items: center; justify-content: center; opacity: 0.45; }
 .modal-action { cursor: pointer; font-family: 'Courier New', Courier, monospace; font-size: 16px; line-height: 1; transition: opacity 0.2s; user-select: none; }
-.modal-action-buy { font-family: 'Rubik Mono One', sans-serif; font-size: 11px; font-weight: normal; cursor: pointer; }
-.modal-action-owned { font-family: 'Rubik Mono One', sans-serif; font-size: 10px; font-weight: normal; cursor: default; letter-spacing: 0.5px; }
+.modal-action-buy { font-family: var(--font-rubik-mono), sans-serif; font-size: 11px; font-weight: normal; cursor: pointer; }
+.modal-action-owned { font-family: var(--font-rubik-mono), sans-serif; font-size: 10px; font-weight: normal; cursor: default; letter-spacing: 0.5px; }
 
 .modal-action-price { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; opacity: 0.8; }
 
@@ -645,7 +645,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     flex-shrink: 0;
 }
 .cart-panel-title {
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 14px; letter-spacing: 1.5px;
 }
 .cart-panel-title-count {
@@ -739,7 +739,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     color: var(--bg-color);
     padding: 13px;
     text-align: center;
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: var(--font-rubik-mono), sans-serif;
     letter-spacing: 1.5px; font-size: 14px;
     border-radius: 4px;
     border: none;
@@ -847,7 +847,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     margin-bottom: 4px;
 }
 .ps-metric-val {
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 18px; line-height: 1;
     margin-bottom: 3px;
 }
