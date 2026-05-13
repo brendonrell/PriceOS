@@ -107,7 +107,7 @@ export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
-    const { siweAddress, handle, isAuthenticating } = useAuth();
+    const { siweAddress, handle, accountLevel, isAuthenticating } = useAuth();
     const { openConnectModal } = useConnectModal();
     const { showToast } = useToast();
 
@@ -258,15 +258,15 @@ export function UserMenuButtons() {
                     <span
                         className="ascii-pfp-badge"
                         id="asciiPfpBadge"
-                        aria-label="Level 42"
-                        title="Level 42"
+                        aria-label={`Level ${accountLevel}`}
+                        title={`Level ${accountLevel}`}
                         style={{ cursor: 'pointer' }}
                         onClick={(e) => {
                             e.stopPropagation();
                             openModal('priceSprite');
                         }}
                     >
-                        ❹❷
+                        {accountLevel === 0 ? '\u24FF' : '\u2776'}
                     </span>
                 </>
             )}
