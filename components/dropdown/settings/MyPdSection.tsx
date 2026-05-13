@@ -515,7 +515,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={() => toggleWithToast('priceLogo', 'Price Logo')}
                         icon={'‰\uFE0E'}
                         iconStyle={{
-                            fontFamily: "'Inter', sans-serif",
+                            fontFamily: "var(--font-inter), sans-serif",
                             fontSize: '12px',
                             fontWeight: 'bold',
                             lineHeight: '1',
