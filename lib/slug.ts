@@ -52,22 +52,33 @@ function parseSlug(slug: string): Parsed {
     return { kind: 'invalid' };
   }
 
+  /* Next.js delivers dynamic route params in their URL-encoded form
+     (e.g. `/@cto` arrives as `%40cto`). Decode once at the entry so
+     downstream checks see canonical text. Malformed encoding throws —
+     guard with try/catch and treat as invalid. */
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(slug);
+  } catch {
+    return { kind: 'invalid' };
+  }
+
   // Numeric → Output (global PD ID).
-  if (/^\d+$/.test(slug)) {
-    const globalId = Number(slug);
+  if (/^\d+$/.test(decoded)) {
+    const globalId = Number(decoded);
     if (!Number.isFinite(globalId) || globalId < 1) {
       return { kind: 'invalid' };
     }
     // Reject leading zeros — `/01` is not canonical `/1`.
-    if (String(globalId) !== slug) {
+    if (String(globalId) !== decoded) {
       return { kind: 'invalid' };
     }
     return { kind: 'output', globalId };
   }
 
   // Strip leading @ (alias form: /@brendon, /@prisms).
-  const wasAtPrefixed = slug.startsWith('@');
-  const stripped = wasAtPrefixed ? slug.slice(1) : slug;
+  const wasAtPrefixed = decoded.startsWith('@');
+  const stripped = wasAtPrefixed ? decoded.slice(1) : decoded;
   const handle = stripped.toLowerCase();
 
   // Validate handle shape: ASCII alphanumerics, underscore, hyphen.
