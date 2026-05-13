@@ -79,6 +79,13 @@ interface AuthContextValue {
         future profile-link targets, etc.) read this as the top of the
         user-text priority chain — above ENS, above shortAddr. */
     handle: string | null;
+    /** Account level for the SIWE-auth'd user. Defaults to 0 when no
+        session, while the user-row fetch is in flight, or when the
+        user row has no `account_level` column yet. The DB caps this
+        at 1 for v0 via CHECK; the curve workstream lifts that cap and
+        loosens the constraint. Surfaces (level badge in UserMenuButtons,
+        hero badge in PriceSpriteModal) read this directly. */
+    accountLevel: number;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -98,6 +105,7 @@ interface AuthContextProviderProps {
     siweAddress: string | null;
     isAuthenticating: boolean;
     handle: string | null;
+    accountLevel: number;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -108,6 +116,7 @@ export function AuthContextProvider({
     siweAddress,
     isAuthenticating,
     handle,
+    accountLevel,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -120,6 +129,7 @@ export function AuthContextProvider({
                 isAuthenticated: !!siweAddress,
                 isAuthenticating,
                 handle,
+                accountLevel,
                 needsSignup,
                 onAccountCreated,
                 signOut,
