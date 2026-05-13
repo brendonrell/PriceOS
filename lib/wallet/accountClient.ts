@@ -1,0 +1,106 @@
+'use client';
+
+/*
+ * accountClient — client-side helpers for the Real User Accounts v0
+ * surfaces (AccountCreateModal + anything else that needs to read or
+ * mutate the SIWE-auth'd user's account row).
+ *
+ * Mirrors the style of lib/wallet/siweClient.ts: thin fetch wrappers,
+ * one helper per route, response types re-exported from the route
+ * modules so the API contract has a single source of truth.
+ *
+ * Exports:
+ *   fetchUserRow(address) — GET /api/user/{address} → UserProfileResponse
+ *                           | null (null on 404 — "no row for this
+ *                           address yet"). Throws on network / 5xx.
+ *   checkHandle(handle)   — GET /api/handle/check?handle=... →
+ *                           HandleCheckResponse. Throws on network /
+ *                           5xx; format-failure + uniqueness-failure
+ *                           are 200s with available=false + reason.
+ *   createUser({...})     — POST /api/users/create →
+ *                           CreateUserResponse. Returns the full union
+ *                           (ok-success | ok-false-with-reason); the
+ *                           caller distinguishes by `ok`.
+ *
+ * All three use credentials: 'same-origin' so the iron-session cookie
+ * rides along on the requests that read it (POST /api/users/create
+ * is auth-gated via requireAuth; the GETs are public anon reads).
+ */
+
+import type { UserProfileResponse } from '@/app/api/user/[address]/route';
+import type { HandleCheckResponse } from '@/app/api/handle/check/route';
+import type {
+    CreateUserBody,
+    CreateUserResponse,
+} from '@/app/api/users/create/route';
+
+/**
+ * Fetch the user row for an address. Returns null when the row does
+ * not exist yet (the server returns 404 in that case via
+ * notFound('User not found')). Throws on any other non-2xx response
+ * so the caller doesn't conflate "no row" with "server failure."
+ */
+export async function fetchUserRow(
+    address: string
+): Promise<UserProfileResponse | null> {
+    const r = await fetch(`/api/user/${address.toLowerCase()}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+    });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(`fetchUserRow failed: ${r.status}`);
+    return (await r.json()) as UserProfileResponse;
+}
+
+/**
+ * Live handle availability check. Server validates format first
+ * (cheap), then falls through to a uniqueness lookup. Both failure
+ * modes come back as 200 with available=false + a `reason` token;
+ * only network / 5xx errors throw.
+ *
+ * Caller is expected to pass an AbortSignal when typeahead-driven so
+ * stale responses for earlier keystrokes can be cancelled.
+ */
+export async function checkHandle(
+    handle: string,
+    signal?: AbortSignal
+): Promise<HandleCheckResponse> {
+    const r = await fetch(
+        `/api/handle/check?handle=${encodeURIComponent(handle)}`,
+        {
+            method: 'GET',
+            credentials: 'same-origin',
+            signal,
+        }
+    );
+    if (!r.ok) throw new Error(`checkHandle failed: ${r.status}`);
+    return (await r.json()) as HandleCheckResponse;
+}
+
+/**
+ * Claim a handle + PriceSprite for the SIWE-auth'd address. Identity
+ * is established server-side via the iron-session cookie; the body
+ * carries the user's chosen values only.
+ *
+ * Returns the full CreateUserResponse union. The caller branches on
+ * `res.ok`: success exposes the persisted UserRow; failure carries a
+ * `reason` token (handle_invalid / handle_taken / sprite_invalid /
+ * already_claimed) the UI surfaces to the user.
+ */
+export async function createUser(
+    body: CreateUserBody
+): Promise<CreateUserResponse> {
+    const r = await fetch('/api/users/create', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    /* 200 (idempotent match) / 201 (new) / 400 / 409 all return JSON
+       bodies in the CreateUserResponse shape. Only treat 5xx /
+       network as throw-worthy. */
+    if (r.status >= 500) {
+        throw new Error(`createUser failed: ${r.status}`);
+    }
+    return (await r.json()) as CreateUserResponse;
+}
