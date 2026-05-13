@@ -75,7 +75,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     if (!formatCheck.valid) {
         const res: CreateUserResponse = {
             ok: false,
-            error: 'Handle is not valid',
+            error: '@name is not valid',
             reason: 'handle_invalid',
             details: { handle_reason: formatCheck.reason ?? undefined },
         };
@@ -156,7 +156,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             if (code === '23505') {
                 const res: CreateUserResponse = {
                     ok: false,
-                    error: 'Handle is already taken',
+                    error: '@name is already taken',
                     reason: 'handle_taken',
                 };
                 return NextResponse.json(res, { status: 409 });
