@@ -19,16 +19,10 @@
  *   2026-04-29 — `claude` and `gemini` added to T2 by Brendon,
  *   `opus` and `sonnet` added by inference (the AI-team naming
  *   category — natural extension of the same carve-out).
- *   2026-05-09 — T3 nomenclature pass: `stars` → `starred` (feature
- *   branded as "Starred"); `owned` → `collection` (user-side reclaim
- *   of the word — "collection" now means a user's gathered outputs,
- *   distinct from "project" which is a platform-released body of work).
- *   2026-05-12 — Profile Page v0 nomenclature lock: `collection` →
- *   `collected` everywhere (route + label + reserved-handle entry).
- *   `created` (artist's minted projects) and `showcase` (curated subset
- *   of Collected) added — both are profile sub-route nouns per the
- *   Launch Cut spec. Locked nouns now: Project / Output / Artwork /
- *   Token / Edition / Starred / Collected / Showcase / Created.
+ *   2026-05-13 — Nomenclature sweep. Locked nouns now: Project /
+ *   Output / Artwork / Token / Starred / Collected / Showcase /
+ *   Created (Edition banned platform-wide; Outputs replaces it).
+ *   See ClickUp Platform Nomenclature SoT (page 2kyd6gx6-3274).
  */
 
 /** T1 — System / framework. Hard-reserved. */
