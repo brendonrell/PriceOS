@@ -15,8 +15,8 @@ export interface UserRow {
 }
 
 export interface FollowRow {
-  follower_address: string;
-  following_address: string;
+  follower_name: string;
+  following_name: string;
   created_at: string;
 }
 
