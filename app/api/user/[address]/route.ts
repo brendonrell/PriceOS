@@ -32,24 +32,35 @@ export async function GET(
     if (userErr) return serverError(userErr.message);
     if (!user) return notFound('User not found');
 
-    const [followersRes, followingRes] = await Promise.all([
-      supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_address', address),
-      supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('follower_address', address),
-    ]);
+    const userRow = user as UserRow;
 
-    if (followersRes.error) return serverError(followersRes.error.message);
-    if (followingRes.error) return serverError(followingRes.error.message);
+    // Pre-claim: no handle → no follows possible (follows.* is keyed on
+    // @name, not wallet). Skip the follows queries and return zero counts.
+    let follower_count = 0;
+    let following_count = 0;
+    if (userRow.handle !== null) {
+      const [followersRes, followingRes] = await Promise.all([
+        supabase
+          .from('follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_name', userRow.handle),
+        supabase
+          .from('follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('follower_name', userRow.handle),
+      ]);
+
+      if (followersRes.error) return serverError(followersRes.error.message);
+      if (followingRes.error) return serverError(followingRes.error.message);
+
+      follower_count = followersRes.count ?? 0;
+      following_count = followingRes.count ?? 0;
+    }
 
     const response: UserProfileResponse = {
-      ...(user as UserRow),
-      follower_count: followersRes.count ?? 0,
-      following_count: followingRes.count ?? 0,
+      ...userRow,
+      follower_count,
+      following_count,
     };
     return NextResponse.json(response);
   } catch (err) {
