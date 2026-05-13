@@ -22,7 +22,7 @@
  *   ┌────────────────────────────────────┐
  *   │ ➔ LONG-FORM                  12.50 │   .pf-cat > .pf-cat-head + .pf-est
  *   │   @claude                     1.50 │   .pf-artist
- *   │     Strata                    1.50 │   .pf-collection
+ *   │     Strata                    1.50 │   .pf-project
  *   │       #1  ··················· 0.015│   .pf-artwork + .pf-leader
  *   │       #2  ··················· 0.015│
  *   │   @snowfro                    8.00 │
@@ -366,7 +366,7 @@ export function PortfolioView() {
             {/* Sim 10927-11030 verbatim port. Flat full render — no
                expand/collapse. .pf-cat header is .pf-cat-head (➔ glyph +
                .pf-label) plus optional .pf-est (when showDollar). Tree
-               cats emit .pf-artist → .pf-collection → .pf-artwork rows.
+               cats emit .pf-artist → .pf-project → .pf-artwork rows.
                Flat (ENS) cats emit .pf-ens-row. Leaf rows (.pf-artwork +
                .pf-ens-row) carry .pf-leader between label and price for
                the book-TOC dotted line (sim 1944-1963). */}
@@ -395,7 +395,7 @@ export function PortfolioView() {
                                 : cat.names.reduce((s, n) => s + (n.price || 0), 0);
                         /* Brendon-list-2 chat I item 8 — DOM structure fix.
                            Sim 10985 closes the .pf-cat div BEFORE emitting
-                           .pf-artist / .pf-collection / .pf-artwork rows;
+                           .pf-artist / .pf-project / .pf-artwork rows;
                            those rows are flat siblings inside #portfolioList,
                            NOT children of .pf-cat. The pre-chat-I port
                            wrapped them inside .pf-cat — but .pf-cat is
@@ -496,7 +496,7 @@ export function PortfolioView() {
 
 /**
  * Renders one artist's full subtree per sim 10996-11026: a .pf-artist
- * header row (label + est) followed by all of the artist's .pf-collection
+ * header row (label + est) followed by all of the artist's .pf-project
  * rows, each followed by all of that project's .pf-artwork rows. No
  * expand/collapse — sim emits everything unconditionally. Pulled out of
  * the parent JSX so the nesting stays readable.
@@ -527,7 +527,7 @@ function PortfolioArtistRows({
                 const collSum = (coll.floor || 0) * coll.tokens.length;
                 return (
                     <div key={coll.name}>
-                        <div className="pf-collection">
+                        <div className="pf-project">
                             <span className="pf-label">{coll.name}</span>
                             {showDollar && (
                                 <span className="pf-est" style={{ marginLeft: 'auto' }}>
