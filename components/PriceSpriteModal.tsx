@@ -13,15 +13,22 @@
  *   open/close ....... sim.html 12975–13026
  *   hero sync ........ sim.html 12966–12973 (_syncHeroSprite)
  *
+ * Hero sprite is subscribed to priceSpriteEngine (Ship 1+) — frame
+ * state mirrors the menu sprite in real time, and the composed sprite
+ * renders per-slot when an identity is bound so blink/yawn/sleep
+ * don't squish the sprite.
+ *
+ * Level value is live from useAuth().accountLevel (Ship 3) — `⓿` for
+ * level 0, `❶` for level 1. Curve and Xbox-style achievements are
+ * still deferred to a dedicated workstream; XP bar renders a `-- / --`
+ * placeholder until that lands, and the six score-breakdown rows
+ * below the bar are still sim-faithful mocks pending the real
+ * user-stats indexer.
+ *
  * Surfaces deferred:
- *   - Animated hero sprite — sim hooks a MutationObserver to mirror
- *     the connect-menu sprite's frame state (blink/turn/yawn/sleep).
- *     The PDFamiliar IIFE that drives those frames isn't ported yet,
- *     so the hero shows the static default frame for now. When the
- *     sprite engine lands the observer wiring follows the same pattern.
  *   - Identity Plate Export → placeholder toast.
- *   - Live XP / Level — hard-coded to 42 / 680/1000 + the six metric
- *     mocks from sim. Real wiring goes through user-stats indexer.
+ *   - Live XP / score-breakdown — real wiring goes through the
+ *     user-stats indexer in a dedicated workstream.
  *
  * Hooks discipline: every hook before any conditional return; the
  * component renders the modal element on every render and gates
@@ -31,6 +38,7 @@
 import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useAuth } from '../lib/state/AuthContext';
 import {
     getSpriteFrame,
     subscribeSprite,
@@ -59,6 +67,7 @@ const SCORE_ROWS: readonly ScoreRow[] = [
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
+    const { accountLevel } = useAuth();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
@@ -139,23 +148,29 @@ export default function PriceSpriteModal() {
                     </span>
                 </div>
 
-                {/* Level — composed dingbats matching the ❹❷ badge by the connect menu. */}
+                {/* Level — live from useAuth().accountLevel. ⓿ for 0,
+                    ❶ for 1. Curve extension lifts this through ❷❸❹❺❻❼❽❾❿
+                    (U+2776..U+277F) when the level system expands. */}
                 <div className="ps-level-row">
                     <div className="ps-level-label">LEVEL</div>
-                    <div className="ps-level-value">{'\u2776'}</div>
+                    <div className="ps-level-value">
+                        {accountLevel === 0 ? '\u24FF' : '\u2776'}
+                    </div>
                 </div>
 
-                {/* Progress bar to next level — placeholder 68%. */}
+                {/* Progress bar to next level — XP curve isn't locked yet
+                    so the bar shows 0% and the labels read `-- / -- XP`.
+                    Real wiring follows when the curve workstream lands. */}
                 <div className="ps-next-wrap">
                     <div className="ps-next-bar">
                         <div
                             className="ps-next-fill"
-                            style={{ width: '68%' }}
+                            style={{ width: '0%' }}
                         />
                     </div>
                     <div className="ps-next-labels">
-                        <span>lvl 1 · 680 / 1000 XP</span>
-                        <span>lvl 2 →</span>
+                        <span>{`lvl ${accountLevel} \u00B7 -- / -- XP`}</span>
+                        <span>{`lvl ${accountLevel + 1} \u2192`}</span>
                     </div>
                 </div>
 
