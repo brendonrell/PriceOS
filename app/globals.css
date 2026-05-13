@@ -5508,6 +5508,7 @@ body.hammer-mode.muted-filter-active .edition-card:not(.muted) {
     opacity: 0.55;
 }
 .account-create-modal-handle-status-ok {
+    color: #00C853; /* GoodGreen — affirmative status, parallel to Hothurt */
     opacity: 0.95;
 }
 .account-create-modal-handle-status-bad {
