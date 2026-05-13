@@ -3,7 +3,7 @@
  *
  * Verbatim port of profile.html's gradient + aspect-ratio system
  * (mockup lines 1659–1732). Each token maps to one of 12 mock
- * collections by `id % N`, with a per-token rotation angle seeded
+ * projects by `id % N`, with a per-token rotation angle seeded
  * off the id. Output is purely a function of id, so the same token
  * paints identically across reloads, sort/filter changes, and the
  * gallery ↔ modal handoff.
@@ -16,12 +16,12 @@
  * palette as you scroll. No hashsyn engine changes required.
  *
  * Mockup ref:
- *   COLLECTIONS array ............ profile.html 1659–1671
+ *   PROJECTS array ............... profile.html 1659–1671
  *   per-token gradient build ..... profile.html 1727–1732
  *   wrapper aspect-ratio set ..... profile.html 1749
  */
 
-export interface MockCollection {
+export interface MockProject {
     name: string;
     artist: string;
     ratio: number;
@@ -29,9 +29,9 @@ export interface MockCollection {
 }
 
 /* profile.html 1659–1671 verbatim. The aspect ratio + palette pair
-   travels together — every token assigned to the same collection
-   inherits both, matching the mockup's per-collection coherence. */
-export const MOCK_COLLECTIONS: MockCollection[] = [
+   travels together — every token assigned to the same project
+   inherits both, matching the mockup's per-project coherence. */
+export const MOCK_PROJECTS: MockProject[] = [
     { name: 'Chromie Squiggles',       artist: '@snowfro',        ratio: 1.0,  colors: ['#FF6B6B','#FFE66D','#4ECDC4'] },
     { name: 'Ringers',                 artist: '@dmitricherniak', ratio: 1.0,  colors: ['#2C3E50','#E74C3C','#ECF0F1'] },
     { name: 'Fidenza',                 artist: '@tylerxhobbs',    ratio: 0.75, colors: ['#F7DC6F','#AED6F1','#A9DFBF'] },
@@ -55,21 +55,21 @@ export interface TokenArtSpec {
 }
 
 /**
- * Deterministic id → art spec. Collection picked by `id % N`; angle
+ * Deterministic id → art spec. Project picked by `id % N`; angle
  * follows the mockup's `(idx * 37 + 15) % 360` with idx swapped for
  * id so each token's rotation is stable across reloads. Color picks
  * mirror profile.html 1728–1730 verbatim (c1 = colors[0], c2 =
  * colors[1 % len], c3 = colors[2 % len] || c1).
  */
 export function getTokenArtSpec(id: number): TokenArtSpec {
-    const idx = ((id % MOCK_COLLECTIONS.length) + MOCK_COLLECTIONS.length) % MOCK_COLLECTIONS.length;
-    const col = MOCK_COLLECTIONS[idx];
-    const colors = col.colors;
+    const idx = ((id % MOCK_PROJECTS.length) + MOCK_PROJECTS.length) % MOCK_PROJECTS.length;
+    const proj = MOCK_PROJECTS[idx];
+    const colors = proj.colors;
     const c1 = colors[0];
     const c2 = colors[1 % colors.length];
     const c3 = colors[2 % colors.length] || c1;
     const angleDeg = (id * 37 + 15) % 360;
-    return { ratio: col.ratio, c1, c2, c3, angleDeg };
+    return { ratio: proj.ratio, c1, c2, c3, angleDeg };
 }
 
 /**
