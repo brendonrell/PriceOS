@@ -11,7 +11,7 @@
  *   T3 — Functional routes (current and future)
  *   T4 — Auto-derived (every deployed project slug, dynamic)
  *
- * T4 is computed at runtime by joining T1-T3 with the live collection
+ * T4 is computed at runtime by joining T1-T3 with the live Project
  * slug list from the indexer (Phase 5+). Until that wiring exists,
  * `RESERVED_HANDLES_STATIC` is the full enforceable set.
  *
