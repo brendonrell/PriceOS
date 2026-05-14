@@ -58,11 +58,6 @@
  * typography. No new CSS classnames introduced.
  *
  * Open drift (parked, not addressed in v1):
- *   - /api/output/[id] returns KikiTraits (Palette/Mode/Encounter/State)
- *     while OutputMeta.traits holds PRISMS-shape (Layer/Mineral/Fate).
- *     v1 surfaces from OutputMeta per Brendon's spec; the API trait
- *     shape will get re-shaped when the indexer + per-project trait
- *     definitions land.
  *   - ProjectContext exposes `title` ("PRISMS") but no `slug`. We
  *     derive slug = title.toLowerCase() inline for the history fetch
  *     URL; lift slug into ProjectState when a second consumer needs it.
@@ -326,9 +321,9 @@ export default function OutputPreview() {
        title is correct for the demo project — when ProjectContext
        grows beyond a single project, hoist `slug` into ProjectState.
 
-       The detail object also carries the API's KikiTraits, but TRAITS
-       in v1 surfaces from OutputMeta (PRISMS-shape) — see header
-       comment for the parked drift. detail is HISTORY-only here. */
+       The detail object also carries trait data, but TRAITS in v1 surface
+       from OutputMeta (ProjectContext) since the rendering pipeline is
+       already wired against that shape. detail is HISTORY-only here. */
     const [detail, setDetail] = useState<OutputDetailResponse | null>(null);
     const [detailError, setDetailError] = useState(false);
     useEffect(() => {
