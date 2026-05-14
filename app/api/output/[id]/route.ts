@@ -13,7 +13,7 @@ export type OutputTraits = Record<string, string>;
 export interface OutputDetailResponse {
   id: string;
   project_id: string;
-  edition: number;
+  token_id: number;
   owner: string;
   minter: string;
   minted_at: string;
@@ -36,10 +36,10 @@ export async function GET(
 ): Promise<NextResponse> {
   if (!params.id) return badRequest('Missing output id');
 
-  // Output id convention: "{project_id}-{edition}". Fall back to "prisms" / 1.
+  // Output id convention: "{project_id}-{token_id}". Fall back to "prisms" / 1.
   const dash = params.id.lastIndexOf('-');
   const projectId = dash > 0 ? params.id.slice(0, dash) : 'prisms';
-  const edition = dash > 0 ? Number(params.id.slice(dash + 1)) || 1 : 1;
+  const tokenId = dash > 0 ? Number(params.id.slice(dash + 1)) || 1 : 1;
   const now = Date.now();
 
   const mintedAt = new Date(now - 14 * 86_400_000).toISOString();
@@ -49,16 +49,16 @@ export async function GET(
   const response: OutputDetailResponse = {
     id: params.id,
     project_id: projectId,
-    edition,
+    token_id: tokenId,
     owner: MOCK_OWNER,
     minter: MOCK_MINTER,
     minted_at: mintedAt,
     list_price_eth: '0.0091',
     last_sale_eth: '0.0088',
     traits: {
-      Layer:   LAYERS[edition % LAYERS.length],
-      Mineral: MINERALS[edition % MINERALS.length],
-      Fate:    FATES[edition % FATES.length],
+      Layer:   LAYERS[tokenId % LAYERS.length],
+      Mineral: MINERALS[tokenId % MINERALS.length],
+      Fate:    FATES[tokenId % FATES.length],
     },
     history: [
       {
