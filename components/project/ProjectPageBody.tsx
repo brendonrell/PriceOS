@@ -770,7 +770,7 @@ function ProjectPageBodyInner() {
 
                     {/* Sim ~5121: stats grid wraps two stats-rows in a single
                         3-column grid so columns align across rows. Row 2
-                        is "your relationship to this Project" (Owned,
+                        is "your relationship to this Project" (Collected,
                         Spent, Anchor) — hidden via CSS for logged-out
                         users. We render it always at v0; persona gating
                         is out of scope. */}
