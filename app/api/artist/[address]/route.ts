@@ -1,8 +1,11 @@
 // BLOCKED: requires indexer. Replace mock data with Supabase queries once
-// indexer writes to `projects` table. The 60-day cooldown is computed
-// from the most recent project's mint-end timestamp + 60 days; once
-// the projects table has a `mint_ended_at` column (or `cooldown_until`
-// is materialized on-chain into the row), this becomes a single SELECT.
+// indexer writes to `projects` table. The 60-day cooldown is anchored to
+// the artist's most recent project CREATION timestamp + 60 days, matching
+// the contract's `PDFactory.lastProjectTimestamp[artist] + COOLDOWN_PERIOD`
+// (set at `createProject`, NOT at mint-end — the contract has no notion
+// of mint-end). Once the indexer materializes a `last_project_at` column
+// (or computes `cooldown_until` directly via the factory's `cooldownRemaining(artist)`
+// view), this becomes a single SELECT.
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest } from '@/lib/errors';
