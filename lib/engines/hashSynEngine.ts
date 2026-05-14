@@ -147,7 +147,7 @@ export function hashSynResample(): void {
 }
 
 /**
- * Sim 8230-8234. Called by the canvas virtualizer after a new edition
+ * Sim 8230-8234. Called by the canvas virtualizer after a new Output
  * canvas paints + flips .visible. Debounces 300ms then calls resample
  * so a flurry of paints during scroll triggers a single sample pass.
  *
