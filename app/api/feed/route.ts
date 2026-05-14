@@ -69,12 +69,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const events: EventRow[] = Array.from({ length: limit }, (_, i) => {
     const type = types[i % types.length];
     const project = projectFilter ?? PROJECTS[i % PROJECTS.length];
-    const tokenEdition = ((i * 11) % 2222) + 1;
+    const tokenIdNum = ((i * 11) % 222) + 1;
     return {
       id: `evt_global_${i}_${now}`,
       type,
       project_id: project,
-      token_id: `${project}-${tokenEdition}`,
+      token_id: `${project}-${tokenIdNum}`,
       from_address: type === 'MINT' ? null : MOCK_ADDRS[i % MOCK_ADDRS.length],
       to_address: type === 'LIST' ? null : MOCK_ADDRS[(i + 1) % MOCK_ADDRS.length],
       price_eth: priceFor(type),
