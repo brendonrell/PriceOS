@@ -165,6 +165,24 @@ export function hashSynNotifyCanvasPaint(): void {
 }
 
 /**
+ * Apply a hex directly through the registered callback — no canvas
+ * sampling. Used for per-card pointer triggers (ArtworkCard hover/tap)
+ * and, once ArtworkModal v0 lands, the modal-open lock (sim 8800:
+ * openModal calls `_origSetTheme(data.palette.c1)` when hashsyn is the
+ * current theme — deterministic, single-frame, zero gate failures on
+ * near-gray or near-black canvases). The retry cascade and scroll +
+ * paint-notify resamples still run; this is the per-token override
+ * that gives hashsyn a reactive surface before the muddy channel-mean
+ * locks the bg on static views (Showcase tab, short pages).
+ *
+ * No-op when the engine isn't enabled.
+ */
+export function hashSynApplyHex(hex: string): void {
+    if (!_onApplyHex) return;
+    _onApplyHex(hex);
+}
+
+/**
  * Register the apply callback, attach the scroll listener (once),
  * and run the retry cascade. Sim 12624-12627: retry sampling at
  * 200/600/1200/2500ms because canvases need a moment to paint after
