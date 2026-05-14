@@ -40,8 +40,7 @@ interface Props {
     onClose: () => void;
 }
 
-const CALC_PLATFORM_FEE_PCT = 0.05;
-const CALC_ROYALTY_PCT      = 0.03;
+const CALC_ROYALTY_PCT = 0.05;
 const CALC_GAS_ESTIMATE_ETH = 0.0008;
 
 const FOCUS_DELAY_MS = 280;
@@ -137,14 +136,15 @@ export default function CalcSheet({ config, onClose }: Props) {
     }, [config, mounted]);
 
     /* P&L ladder. Deductions stored as positive amounts — the "−" lives
-       in each row label so accounting reads cleanly. Sim 11680-11687. */
+       in each row label so accounting reads cleanly. Royalty is the full
+       on-chain royalty (5%); the 60/40 split into 3% artist / 2% platform
+       happens downstream in PaymentSplitter, after the seller is paid. */
     const offerNum = parseFloat(offer);
     const floor = renderConfig?.floor ?? NaN;
-    const platform = Number.isFinite(floor) ? floor * CALC_PLATFORM_FEE_PCT : NaN;
     const royalty  = Number.isFinite(floor) ? floor * CALC_ROYALTY_PCT      : NaN;
     const gas      = CALC_GAS_ESTIMATE_ETH;
     const takehome = Number.isFinite(floor)
-        ? floor - platform - royalty - gas
+        ? floor - royalty - gas
         : NaN;
     const net = (Number.isFinite(takehome) && Number.isFinite(offerNum))
         ? takehome - offerNum
@@ -292,15 +292,7 @@ export default function CalcSheet({ config, onClose }: Props) {
                 </div>
                 <div className="calc-sheet-line calc-sheet-line-deduct">
                     <span className="calc-sheet-line-label">
-                        {`\u2212 Platform (5%)`}
-                    </span>
-                    <span className="calc-sheet-line-val" id="calcSheetPlatform">
-                        {fmt(platform)}
-                    </span>
-                </div>
-                <div className="calc-sheet-line calc-sheet-line-deduct">
-                    <span className="calc-sheet-line-label">
-                        {`\u2212 Royalty (3%)`}
+                        {`\u2212 Royalty (5%)`}
                     </span>
                     <span className="calc-sheet-line-val" id="calcSheetRoyalty">
                         {fmt(royalty)}
