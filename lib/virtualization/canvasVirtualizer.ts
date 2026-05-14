@@ -10,7 +10,7 @@
  * canvas when the active set exceeds CANVAS_LRU_CAP.
  *
  * Why this exists:
- *   ArtworkCard mounts a 400px canvas per edition. With 222+ cards on
+ *   ArtworkCard mounts a 400px canvas per Output. With 222+ cards on
  *   Portals (and 333 incoming on Strata in B39), mobile Safari hits the
  *   GPU texture cap and crashes once enough wrappers come into view.
  *   Sim sidesteps this by lazy-rendering canvases only as wrappers
@@ -18,8 +18,8 @@
  *   (one-shot reveal — sim unobserves on first hit).
  *
  * Where this differs from sim:
- *   Sim's "render once, never again" model holds at 222 editions because
- *   the gallery list is bounded. At 555+ editions on a Safari mobile
+ *   Sim's "render once, never again" model holds at 222 Outputs because
+ *   the gallery list is bounded. At 555+ Outputs on a Safari mobile
  *   session that browses the whole grid, even sim would OOM. The LRU
  *   cap (60 active canvases) caps GPU pressure regardless of how far
  *   the user scrolls. Eviction releases the GPU buffer by setting
@@ -39,7 +39,7 @@
  * Stats surface:
  *   window.__pdCanvas exposes { active, cap, rendered, queued, registered }
  *   for dev/QA inspection. BET-06 verification spec: "scroll through 333
- *   Strata editions on mobile without crash. Render counter visible in
+ *   Strata Outputs on mobile without crash. Render counter visible in
  *   dev/debug mode." The full debug panel (forces UI states) lands in
  *   Build 37 — this is the minimal hook.
  */
