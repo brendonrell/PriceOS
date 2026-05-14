@@ -6,7 +6,7 @@
  * Discriminated `prompt` shape supports:
  *   - kind: 'day'    — calendar day notes; backed by CalendarContext.dayNotes
  *   - kind: 'artist' — per-artist notes; backed by localStorage 'pd_artist_notes'
- *   - kind: 'output' — per-edition notes; backed by localStorage 'pd_token_notes'
+ *   - kind: 'output' — per-Output notes; backed by localStorage 'pd_token_notes'
  *                       (sim 5715-5814 + 6566-6603). chat #5 / Notes feature.
  *                       NB: localStorage key kept as 'pd_token_notes' for sim
  *                       parity + zero user data migration; PD nomenclature
