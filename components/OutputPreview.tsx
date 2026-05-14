@@ -61,7 +61,7 @@
  *   - ProjectContext exposes `title` ("PRISMS") but no `slug`. We
  *     derive slug = title.toLowerCase() inline for the history fetch
  *     URL; lift slug into ProjectState when a second consumer needs it.
- *   - events.token_id holds slug-edition strings ("prisms-1"), see
+ *   - events.token_id holds slug-tokenId strings ("prisms-1"), see
  *     Step 7b parked open question.
  *
  * Hooks discipline (locked rule from session bootstrap): every hook
@@ -317,7 +317,7 @@ export default function OutputPreview() {
        upgrade; the cancelled flag is sufficient for v1.
 
        Slug derivation: ProjectContext exposes `title` ("PRISMS") only;
-       the API route expects `{slug}-{edition}` shape. Lower-casing
+       the API route expects `{slug}-{tokenId}` shape. Lower-casing
        title is correct for the demo project — when ProjectContext
        grows beyond a single project, hoist `slug` into ProjectState.
 
@@ -397,7 +397,7 @@ export default function OutputPreview() {
        opened from mobile teleported the page to top. Lifted in S1. */
 
     /* Prev/next nav. Sim cycles through the visible-cards array; without
-       a gallery yet, we walk the full edition range with wrap-around. */
+       a gallery yet, we walk the full Output range with wrap-around. */
     const goNext = useCallback(() => {
         if (id == null) return;
         setCurrentModalId(id >= totalOutputs ? 1 : id + 1);
