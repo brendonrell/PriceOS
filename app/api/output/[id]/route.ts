@@ -23,10 +23,9 @@ export interface OutputDetailResponse {
   history: EventRow[];
 }
 
-const PALETTES = ['Hothurt', 'Cool Bath', 'Swampcore', 'Static', 'Forest Floor', 'Citrus'];
-const MODES = ['Hover', 'Tap', 'Hold', 'Spin', 'Dive'];
-const ENCOUNTERS = ['Stranger', 'Familiar', 'Mirror', 'Ghost', 'Ally'];
-const STATES = ['Calm', 'Buzzed', 'Aching', 'Curious', 'Tender'];
+const LAYERS = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'];
+const MINERALS = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'];
+const FATES = ['SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT', 'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID'];
 
 const MOCK_MINTER = '0x9ab3f82a3c1e7b5dba8f2c6e1d4b7a9c3e6f0a8b';
 const MOCK_OWNER = '0x5d4e2f1c8a7b6c9e3d0f2a8b5c7d4e1f9a6b3c2e';
@@ -37,9 +36,9 @@ export async function GET(
 ): Promise<NextResponse> {
   if (!params.id) return badRequest('Missing output id');
 
-  // Output id convention: "{project_id}-{edition}". Fall back to "kiki" / 1.
+  // Output id convention: "{project_id}-{edition}". Fall back to "prisms" / 1.
   const dash = params.id.lastIndexOf('-');
-  const projectId = dash > 0 ? params.id.slice(0, dash) : 'kiki';
+  const projectId = dash > 0 ? params.id.slice(0, dash) : 'prisms';
   const edition = dash > 0 ? Number(params.id.slice(dash + 1)) || 1 : 1;
   const now = Date.now();
 
@@ -57,10 +56,9 @@ export async function GET(
     list_price_eth: '0.0091',
     last_sale_eth: '0.0088',
     traits: {
-      Palette: PALETTES[edition % PALETTES.length],
-      Mode: MODES[edition % MODES.length],
-      Encounter: ENCOUNTERS[edition % ENCOUNTERS.length],
-      State: STATES[edition % STATES.length],
+      Layer:   LAYERS[edition % LAYERS.length],
+      Mineral: MINERALS[edition % MINERALS.length],
+      Fate:    FATES[edition % FATES.length],
     },
     history: [
       {
