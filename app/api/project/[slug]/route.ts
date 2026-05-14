@@ -32,28 +32,24 @@ export async function GET(
 ): Promise<NextResponse> {
   if (!params.slug) return badRequest('Missing project slug');
 
-  // Mock — values shaped after Kiki, the genesis project.
+  // Mock — placeholder shape; real values come from the indexer.
   const response: ProjectResponse = {
     id: params.slug,
     artist_address: '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
-    title: 'Kiki',
+    title: 'PRISMS',
     description:
-      'Genesis project on Price Discussion. 2,222 editions of Kiki — each carries a Palette, a Mode, an Encounter, and a State.',
-    minted_count: 1847,
-    max_supply: 2222,
+      'Preview project on Price Discussion. 222 editions, each with a Layer, a Mineral, and a Fate.',
+    minted_count: 187,
+    max_supply: 222,
     floor_price_eth: '0.0091',
     volume_eth: '24.713',
     all_time_high_eth: '0.42',
     cooldown_until: null, // null until indexer wires lastProjectTimestamp + 60 days from chain
     primary_active: true,
     traits: [
-      {
-        name: 'Palette',
-        values: ['Hothurt', 'Cool Bath', 'Swampcore', 'Static', 'Forest Floor', 'Citrus'],
-      },
-      { name: 'Mode', values: ['Hover', 'Tap', 'Hold', 'Spin', 'Dive'] },
-      { name: 'Encounter', values: ['Stranger', 'Familiar', 'Mirror', 'Ghost', 'Ally'] },
-      { name: 'State', values: ['Calm', 'Buzzed', 'Aching', 'Curious', 'Tender'] },
+      { name: 'Layer',   values: ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'] },
+      { name: 'Mineral', values: ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'] },
+      { name: 'Fate',    values: ['SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT', 'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID'] },
     ],
   };
   return NextResponse.json(response);
