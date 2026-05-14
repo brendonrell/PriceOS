@@ -25,8 +25,7 @@ export type NotificationType =
   | 'MINT'
   | 'LIST'
   | 'SALE'
-  | 'XFER'
-  | 'OFFER';
+  | 'XFER';
 
 export interface NotificationRow {
   id: string;
