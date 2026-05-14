@@ -8,12 +8,7 @@ import { badRequest } from '@/lib/errors';
 
 export const revalidate = 15;
 
-export interface KikiTraits {
-  Palette: string;
-  Mode: string;
-  Encounter: string;
-  State: string;
-}
+export type OutputTraits = Record<string, string>;
 
 export interface OutputDetailResponse {
   id: string;
@@ -24,7 +19,7 @@ export interface OutputDetailResponse {
   minted_at: string;
   list_price_eth: string | null;
   last_sale_eth: string | null;
-  traits: KikiTraits;
+  traits: OutputTraits;
   history: EventRow[];
 }
 
