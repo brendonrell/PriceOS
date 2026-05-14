@@ -22,9 +22,9 @@
  * JSON-encoded array of token ids). A user who used the prototype keeps
  * their cart through the React port migration.
  *
- * Fees model: 8% on subtotal (5% platform + 3% royalty) + flat
- * CART_GAS_PER_ITEM × N. Same shape as sim's cart panel + The Calc's
- * ladder so the numbers compare cleanly across surfaces.
+ * Fees model: buyer pays listed sale price as-is on secondary; the 5%
+ * royalty is the seller's burden (EIP-2981 → PaymentSplitter). Plus flat
+ * CART_GAS_PER_ITEM × N as a gas estimate.
  *
  * The panel-open boolean lives here too because closing the panel when
  * the cart empties (sim 11848) needs both the items state and the panel
@@ -43,7 +43,13 @@ import {
 
 const STORAGE_KEY = 'pd_cart';
 export const CART_GAS_PER_ITEM = 0.0005; // ETH; flat-per-item mock — sim 11722
-export const CART_FEE_RATE = 0.08; // 5% platform + 3% royalty — sim 11815
+// Buyer pays the listed sale price as-is on a secondary buy. The on-chain 5%
+// royalty (EIP-2981) is paid by the seller out of their proceeds via
+// PaymentSplitter, NOT added on top of what the buyer sees. PD takes no
+// separate platform fee from the buyer on secondary.
+// TODO: when the Cart starts handling primary mints, switch to
+// `mintPrice + currentStorageFeeWei` per item (both sourced from chain).
+export const CART_FEE_RATE = 0;
 
 interface CartContextValue {
     /** Token ids in the cart, sorted ascending. */
