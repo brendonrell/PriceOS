@@ -7,12 +7,7 @@ import { badRequest } from '@/lib/errors';
 
 export const revalidate = 300; // Output traits: 5 min
 
-export interface KikiTraits {
-  Palette: string;
-  Mode: string;
-  Encounter: string;
-  State: string;
-}
+export type OutputTraits = Record<string, string>;
 
 export interface OutputSummary {
   id: string;
@@ -22,7 +17,7 @@ export interface OutputSummary {
   minter: string;
   list_price_eth: string | null;
   last_sale_eth: string | null;
-  traits: KikiTraits;
+  traits: OutputTraits;
 }
 
 export interface ProjectOutputsResponse {
@@ -33,10 +28,9 @@ export interface ProjectOutputsResponse {
   outputs: OutputSummary[];
 }
 
-const PALETTES = ['Hothurt', 'Cool Bath', 'Swampcore', 'Static', 'Forest Floor', 'Citrus'];
-const MODES = ['Hover', 'Tap', 'Hold', 'Spin', 'Dive'];
-const ENCOUNTERS = ['Stranger', 'Familiar', 'Mirror', 'Ghost', 'Ally'];
-const STATES = ['Calm', 'Buzzed', 'Aching', 'Curious', 'Tender'];
+const LAYERS = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'];
+const MINERALS = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'];
+const FATES = ['SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT', 'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID'];
 
 const MOCK_HOLDERS = [
   '0x9ab3f82a3c1e7b5dba8f2c6e1d4b7a9c3e6f0a8b',
@@ -47,7 +41,7 @@ const MOCK_HOLDERS = [
 
 const DEFAULT_PAGE_SIZE = 24;
 const MAX_PAGE_SIZE = 100;
-const MOCK_TOTAL = 2222;
+const MOCK_TOTAL = 222;
 
 export async function GET(
   req: NextRequest,
@@ -77,10 +71,9 @@ export async function GET(
       list_price_eth: edition % 7 === 0 ? '0.0091' : null,
       last_sale_eth: edition % 3 === 0 ? '0.0088' : null,
       traits: {
-        Palette: PALETTES[edition % PALETTES.length],
-        Mode: MODES[edition % MODES.length],
-        Encounter: ENCOUNTERS[edition % ENCOUNTERS.length],
-        State: STATES[edition % STATES.length],
+        Layer:   LAYERS[edition % LAYERS.length],
+        Mineral: MINERALS[edition % MINERALS.length],
+        Fate:    FATES[edition % FATES.length],
       },
     };
   });
