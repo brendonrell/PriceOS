@@ -97,12 +97,6 @@ function shortAddr(addr: string): string {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-/* Standin fallback used only when the SIWE address is somehow null
-   while the modal is open (defence in depth — parent gates open on
-   !!siweAddress so this shouldn't happen in practice). Codepoints
-   verified against priceSpriteEngine.ts. */
-const STANDIN_FALLBACK = '(ง •̀_•́)ง';
-
 type HandleStatus =
     | { state: 'empty' }
     | { state: 'checking' }
@@ -319,14 +313,16 @@ export function AccountCreateModal({
                         /* Modal quadrants are STATIC — no animation.
                            Animation only plays on the menu sprite +
                            PriceSpriteModal hero (the engine's main
-                           instance). composeSprite returns null on
-                           malformed address; parent gates open on
-                           !!siweAddress, fall back to the standin
-                           glyph defensively. */
+                           instance). Sprite flows from the deterministic
+                           composer with no fallback glyph; composeSprite
+                           returns null only on malformed addresses, and
+                           parent gates open on !!siweAddress, so an
+                           empty cell would only show if both invariants
+                           break simultaneously. */
                         const composed = address
                             ? composeSprite(address, vibe, 'awake')
                             : null;
-                        const glyph = composed?.fullString ?? STANDIN_FALLBACK;
+                        const glyph = composed?.fullString ?? '';
                         const label = getVibeLabel(vibe);
                         return (
                             <button
