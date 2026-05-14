@@ -44,7 +44,7 @@ export async function GET(
     floor_price_eth: '0.0091',
     volume_eth: '24.713',
     all_time_high_eth: '0.42',
-    cooldown_until: null, // primary still open; cooldown begins on mint-end
+    cooldown_until: null, // null until indexer wires lastProjectTimestamp + 60 days from chain
     primary_active: true,
     traits: [
       {
