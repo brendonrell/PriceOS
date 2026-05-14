@@ -3,23 +3,24 @@
  *
  * The Atlas (Storage Philosophy + PD Systems Architecture) specs four
  * distinct "vibes from wallet hash". Each vibe defines its own slot
- * arrays (crowns, arms, brackets, eyes, mouths) in lib/sprites/data.ts;
- * a wallet address + vibe combine deterministically to produce one of
- * ~48M unique sprites.
+ * arrays (brackets, arms, eyes, brows, mouths, trails) in
+ * lib/sprites/data.ts under the design-seed redesign (CEO-locked
+ * 2026-05-13); a wallet address + vibe combine deterministically to
+ * produce one of ~46M unique sprites across the 4 vibes.
  *
- * Ids are 1-indexed at the public API (`vibe_1`..`vibe_4`) — Gemini's
- * source spec is 0-3 internally but the platform is locked to 1-4.
- * Both the in-code label and the modal UI label can change without
- * touching the DB column or its CHECK constraint on `users.price_sprite`.
- * Locked to exactly 4 values at the DB level — adding a fifth requires
- * a migration + a CHECK constraint rewrite.
+ * Ids are 1-indexed at the public API (`vibe_1`..`vibe_4`) — internal
+ * SPRITE_DATA storage is 0-3 but the platform is locked to 1-4 at the
+ * DB layer. Both the in-code label and the modal UI label can change
+ * without touching the DB column or its CHECK constraint on
+ * `users.price_sprite`. Locked to exactly 4 values at the DB level —
+ * adding a fifth requires a migration + a CHECK constraint rewrite.
  *
- * Display labels (CEO-locked 2026-05-13, user-facing in
- * AccountCreateModal quadrants):
- *   vibe_1 → Observer    (minimal, deadpan)
- *   vibe_2 → Instigator  (aggressive, sharp)
- *   vibe_3 → Hacker      (structural, syntax)
- *   vibe_4 → Mystic      (esoteric, runic)
+ * Display labels + stance locks (CEO-locked 2026-05-13, user-facing
+ * in AccountCreateModal quadrants):
+ *   vibe_1 → Observer    (arms-down deadpan, trail empty)
+ *   vibe_2 → Instigator  (dukes up — design-seed standin lives here)
+ *   vibe_3 → Hacker      (tech/syntax arms, trail ─ ═ ┄ ~)
+ *   vibe_4 → Mystic      (casting arms, trail ∿ ⌇ 〜 ⟿ ⤳)
  */
 
 export const PRICE_SPRITE_VIBES = [
