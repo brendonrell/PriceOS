@@ -12,7 +12,7 @@ export type OutputTraits = Record<string, string>;
 export interface OutputSummary {
   id: string;
   project_id: string;
-  edition: number;
+  token_id: number;
   owner: string;
   minter: string;
   list_price_eth: string | null;
@@ -61,19 +61,19 @@ export async function GET(
   const count = Math.max(0, end - start);
 
   const outputs: OutputSummary[] = Array.from({ length: count }, (_, i) => {
-    const edition = start + i + 1;
+    const tokenId = start + i + 1;
     return {
-      id: `${params.slug}-${edition}`,
+      id: `${params.slug}-${tokenId}`,
       project_id: params.slug,
-      edition,
-      owner: MOCK_HOLDERS[edition % MOCK_HOLDERS.length],
-      minter: MOCK_HOLDERS[(edition + 1) % MOCK_HOLDERS.length],
-      list_price_eth: edition % 7 === 0 ? '0.0091' : null,
-      last_sale_eth: edition % 3 === 0 ? '0.0088' : null,
+      token_id: tokenId,
+      owner: MOCK_HOLDERS[tokenId % MOCK_HOLDERS.length],
+      minter: MOCK_HOLDERS[(tokenId + 1) % MOCK_HOLDERS.length],
+      list_price_eth: tokenId % 7 === 0 ? '0.0091' : null,
+      last_sale_eth: tokenId % 3 === 0 ? '0.0088' : null,
       traits: {
-        Layer:   LAYERS[edition % LAYERS.length],
-        Mineral: MINERALS[edition % MINERALS.length],
-        Fate:    FATES[edition % FATES.length],
+        Layer:   LAYERS[tokenId % LAYERS.length],
+        Mineral: MINERALS[tokenId % MINERALS.length],
+        Fate:    FATES[tokenId % FATES.length],
       },
     };
   });
