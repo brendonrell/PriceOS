@@ -50,12 +50,12 @@ export async function GET(
 
   const events: EventRow[] = Array.from({ length: limit }, (_, i) => {
     const type = TYPES[i % TYPES.length];
-    const tokenEdition = ((i * 13) % 2222) + 1;
+    const tokenIdNum = ((i * 13) % 222) + 1;
     return {
       id: `evt_${params.slug}_${i}_${now}`,
       type,
       project_id: params.slug,
-      token_id: `${params.slug}-${tokenEdition}`,
+      token_id: `${params.slug}-${tokenIdNum}`,
       from_address: type === 'MINT' ? null : MOCK_ADDRS[i % MOCK_ADDRS.length],
       to_address: type === 'LIST' ? null : MOCK_ADDRS[(i + 1) % MOCK_ADDRS.length],
       price_eth: priceFor(type),
