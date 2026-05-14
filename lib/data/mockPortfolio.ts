@@ -7,7 +7,7 @@
  * names).
  *
  * Floors are hardcoded; in production these come from the indexer. Token
- * arrays are the pre-image of every owned edition number under that
+ * arrays are the pre-image of every Output's token id under that
  * project — sim renders one row per token id when the project is
  * expanded.
  *
@@ -18,7 +18,7 @@
  */
 
 export interface PortfolioTokenRef {
-    /** Edition / token id, e.g. 56 for Chromie #56. */
+    /** Token id, e.g. 56 for Chromie #56. */
     id: number;
 }
 
