@@ -6,6 +6,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Deploy:** Vercel (auto-deploys `main`; `dev` for previews)
 - **Design source of truth:** the latest HTML uploaded to the active Claude session (`sim__1_.html` as of Apr 29 2026). Pixel-perfect mockup; the React port is faithful, not a redesign.
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
+- **Build verification:** Active maintenance should always branch from validated production-safe commits before deployment.
 
 ## Full Technical Stack
 
@@ -57,7 +58,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - PD Indexer
 - Discord intelligence bots
 - Cross-platform gen art discovery
-- Future $PRICE token ecosystem
+- Future token ecosystem
 
 ### AI + Design Workflow
 - Gemini
@@ -89,7 +90,7 @@ Locked Apr 29 2026. Nomenclature pass May 9 2026. Full spec lives in ClickUp und
 | `/search?q=...` | Search results |
 | `/settings` | URL-addressable modal (lives in menu, not top-nav) |
 | `/discord`, `/twitter`, `/farcaster`, `/x` | 302 → social accounts |
-| `/$price`, `/price` | Reserved (token redirect, Phase 6+) |
+| `/price`, `/token` | Reserved token redirect paths |
 
 The URL prefix `/art/` is a public-facing brand asset; the entity noun is "project." URL doesn't have to match the internal noun.
 
