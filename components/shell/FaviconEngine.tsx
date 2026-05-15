@@ -9,8 +9,8 @@
  *
  * Maps every sim call site for window.updateFavicon to a React trigger:
  *
- *   sim 6875  theme change                  → useEffect on `theme`
- *   sim 9596  priceLogo settings toggle     → useEffect on `notifs.priceLogo`
+ *   sim 6875  theme change                  → useLayoutEffect on `theme`
+ *   sim 9596  priceLogo settings toggle     → useLayoutEffect on `notifs.priceLogo`
  *   sim 5533  easter-egg rotation toggle    → 'pd:petey-rotated' DOM event
  *   sim 6731  Connect menu open (ETH ping)  → useEffect on `menuOpen` +
  *             sim 6734  2s restore            2000ms setTimeout
@@ -37,7 +37,7 @@
  * wires unread-event tracking, this is the place to read that flag.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTheme } from '../../lib/state/ThemeContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
@@ -131,11 +131,11 @@ export function FaviconEngine() {
         };
     }, []);
 
-    /* Main paint effect. Re-runs on every favicon-relevant state
-       change: theme, priceLogo override, easter-egg rotation, ETH
-       ping start/end. The engine itself decides which mode wins
-       (isEthPing > priceLogoOverride > default bubble+glyph). */
-    useEffect(() => {
+    /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
+       happen in the same pre-paint window as ThemeContext's CSS-var write,
+       instead of one browser paint later. This closes the "favicon only
+       updates after changing themes" gap on app/page load. */
+    useLayoutEffect(() => {
         const { bg, fg } = readThemeColors();
         updateFavicon({
             bg,
