@@ -68,8 +68,16 @@ export function Footer() {
                 }
 
                 @media (max-width: 600px) {
+                    .priceos-footer {
+                        position: static;
+                        left: auto;
+                        right: auto;
+                        bottom: auto;
+                        margin-top: auto;
+                    }
+
                     main {
-                        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+                        padding-bottom: 0;
                     }
                 }
             `}</style>
