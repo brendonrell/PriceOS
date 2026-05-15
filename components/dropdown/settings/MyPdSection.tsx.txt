@@ -466,7 +466,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         model + Add-to-Showcase action arrive. */}
                     <span
                         className="copy-hex-btn showcase-toggle-btn"
-                        style={{ fontSize: '11px', marginLeft: '-4px' }}
+                        style={{ marginLeft: '-6px' }}
                         title={
                             showcaseMode === 'static'
                                 ? 'Showcase Mode — Static'
@@ -485,8 +485,10 @@ export function MyPdSection({ onTripleTap }: Props) {
                             }
                         }}
                     >
-                        {showcaseMode === 'static' ? '⑆' : '⑇'}
-                        {'\uFE0E'}
+                        <span style={{ fontSize: '11px' }}>
+                            {showcaseMode === 'static' ? '⑆' : '⑇'}
+                            {'\uFE0E'}
+                        </span>
                     </span>
                 </div>
 
