@@ -6,7 +6,6 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Deploy:** Vercel (auto-deploys `main`; `dev` for previews)
 - **Design source of truth:** the latest HTML uploaded to the active Claude session (`sim__1_.html` as of Apr 29 2026). Pixel-perfect mockup; the React port is faithful, not a redesign.
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
-- **Build verification:** Active maintenance should always branch from validated production-safe commits before deployment.
 
 ## Status
 
@@ -14,7 +13,15 @@ URL architecture and nomenclature both locked May 9 2026 (see sections below). A
 
 ## Nomenclature
 
-Single source of truth: ClickUp doc `2kyd6gx6-994` page `2kyd6gx6-3274` (Platform Nomenclature).
+Platform vocabulary, sharpened May 9 2026:
+
+- **Project** — what the platform releases (Kiki, Portals). Artist's body of work, mintable.
+- **Output** — the individual minted unit. The vessel that bundles the artwork, token, and metadata. The unit of scarcity.
+- **Artwork** — the visual content inside an output (rendered canvas).
+- **Token** — the ERC-721 inside an output (chain primitive only).
+- **Metadata** — the manifest inside an output (mint data, traits, provenance, edition number).
+- **Collection** — a user's gathered outputs, across many projects.
+- **Edition** — total mintable supply per project ("edition of 256").
 
 ## URL Architecture
 
