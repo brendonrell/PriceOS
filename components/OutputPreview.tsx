@@ -95,6 +95,7 @@ import {
     getTokenArtSpec,
     paintPlaceholder,
 } from '../lib/art/placeholderRenderer';
+import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
     getGrails,
     subscribeGrails,
@@ -388,6 +389,8 @@ export default function OutputPreview() {
         if (!ctx) return;
 
         paintPlaceholder(ctx, w, H, spec);
+        canvas.classList.add('visible');
+        hashSynApplyHex(spec.c1);
     }, [isOpen, id]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
@@ -520,6 +523,7 @@ export default function OutputPreview() {
                 <canvas
                     id="modalCanvas"
                     ref={canvasRef}
+                    className="output-canvas"
                     onClick={() => {
                         /* Portal to the dedicated Artwork page. Mute-
                            overlay sibling (display: flex only in
