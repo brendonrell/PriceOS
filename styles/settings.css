@@ -298,6 +298,10 @@
     transition: opacity 0.2s;
     line-height: 1;
 }
+.copy-hex-btn:not(.showcase-toggle-btn) {
+    position: relative;
+    top: 2px;
+}
 .copy-hex-btn:hover { opacity: 1; }
 
 /* Showcase mode toggle (⑆ static / ⑇ generative) — sits right of the
@@ -517,5 +521,4 @@
 }
 .ws-add:hover:not(.faded) { opacity: 0.9; }
 .ws-add.faded { opacity: 0.15; cursor: not-allowed; }
-
 
