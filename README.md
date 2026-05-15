@@ -7,6 +7,63 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Design source of truth:** the latest HTML uploaded to the active Claude session (`sim__1_.html` as of Apr 29 2026). Pixel-perfect mockup; the React port is faithful, not a redesign.
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
 
+## Full Technical Stack
+
+### Frontend
+- Next.js 14
+- React 18
+- TypeScript
+- Raw CSS
+- App Router architecture
+- TanStack React Query
+
+### Authentication + Wallet
+- Supabase Auth
+- SIWE (Sign-In With Ethereum)
+- iron-session
+- RainbowKit
+- wagmi
+- viem
+- ethers.js
+
+### Backend + Data
+- Supabase Postgres
+- Supabase migrations
+- Typed API scaffold
+- Ponder indexer
+- Node.js event processing
+- Real-time contract + marketplace indexing
+
+### Blockchain Infrastructure
+- Ethereum mainnet
+- Sepolia staging
+- Base integrations
+- Solidity contracts
+- Foundry
+- OpenZeppelin
+- Solady
+- ERC-721 / ERC-1155
+- EIP-2981 royalties
+- Chainlink oracles
+- Uniswap V3 TWAP fallback
+- Seaport indexing
+- Alchemy RPC
+- Etherscan verification
+
+### Product Ecosystem
+- Price Discussion platform
+- PriceOS frontend
+- PD Contracts
+- PD Indexer
+- Discord intelligence bots
+- Cross-platform gen art discovery
+- Future $PRICE token ecosystem
+
+### AI + Design Workflow
+- Gemini
+- Claude / Opus
+- Multi-LLM assisted product and engineering workflows
+
 ## Status
 
 URL architecture and nomenclature both locked May 9 2026 (see sections below). API surfaces (project, output, feed, search, stats, artist, follows, notifications, price, user) scaffolded with typed mock responses; production data lands when the indexer is live. Project page renders sim's hero lockup + gallery at `/art/[slug]`; profile shells render at `/{handle}` and sub-routes. Wallet auth, mint flow, and calendar internals are the next surfaces.
