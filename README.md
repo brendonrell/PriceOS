@@ -6,6 +6,64 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Deploy:** Vercel (auto-deploys `main`; `dev` for previews)
 - **Design source of truth:** the latest HTML uploaded to the active Claude session (`sim__1_.html` as of Apr 29 2026). Pixel-perfect mockup; the React port is faithful, not a redesign.
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
+- **Build verification:** Active maintenance should always branch from validated production-safe commits before deployment.
+
+## Full Technical Stack
+
+### Frontend
+- Next.js 14
+- React 18
+- TypeScript
+- Raw CSS
+- App Router architecture
+- TanStack React Query
+
+### Authentication + Wallet
+- Supabase Auth
+- SIWE (Sign-In With Ethereum)
+- iron-session
+- RainbowKit
+- wagmi
+- viem
+- ethers.js
+
+### Backend + Data
+- Supabase Postgres
+- Supabase migrations
+- Typed API scaffold
+- Ponder indexer
+- Node.js event processing
+- Real-time contract + marketplace indexing
+
+### Blockchain Infrastructure
+- Ethereum mainnet
+- Sepolia staging
+- Base integrations
+- Solidity contracts
+- Foundry
+- OpenZeppelin
+- Solady
+- ERC-721 / ERC-1155
+- EIP-2981 royalties
+- Chainlink oracles
+- Uniswap V3 TWAP fallback
+- Seaport indexing
+- Alchemy RPC
+- Etherscan verification
+
+### Product Ecosystem
+- Price Discussion platform
+- PriceOS frontend
+- PD Contracts
+- PD Indexer
+- Discord intelligence bots
+- Cross-platform gen art discovery
+- Future token ecosystem
+
+### AI + Design Workflow
+- Gemini
+- Claude / Opus
+- Multi-LLM assisted product and engineering workflows
 
 ## Status
 
@@ -13,15 +71,7 @@ URL architecture and nomenclature both locked May 9 2026 (see sections below). A
 
 ## Nomenclature
 
-Platform vocabulary, sharpened May 9 2026:
-
-- **Project** — what the platform releases (Kiki, Portals). Artist's body of work, mintable.
-- **Output** — the individual minted unit. The vessel that bundles the artwork, token, and metadata. The unit of scarcity.
-- **Artwork** — the visual content inside an output (rendered canvas).
-- **Token** — the ERC-721 inside an output (chain primitive only).
-- **Metadata** — the manifest inside an output (mint data, traits, provenance, edition number).
-- **Collection** — a user's gathered outputs, across many projects.
-- **Edition** — total mintable supply per project ("edition of 256").
+Single source of truth: ClickUp doc `2kyd6gx6-994` page `2kyd6gx6-3274` (Platform Nomenclature).
 
 ## URL Architecture
 
@@ -40,7 +90,7 @@ Locked Apr 29 2026. Nomenclature pass May 9 2026. Full spec lives in ClickUp und
 | `/search?q=...` | Search results |
 | `/settings` | URL-addressable modal (lives in menu, not top-nav) |
 | `/discord`, `/twitter`, `/farcaster`, `/x` | 302 → social accounts |
-| `/$price`, `/price` | Reserved (token redirect, Phase 6+) |
+| `/price`, `/token` | Reserved token redirect paths |
 
 The URL prefix `/art/` is a public-facing brand asset; the entity noun is "project." URL doesn't have to match the internal noun.
 
