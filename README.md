@@ -6,6 +6,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Deploy:** Vercel (auto-deploys `main`; `dev` for previews)
 - **Design source of truth:** the latest HTML uploaded to the active Claude session (`sim__1_.html` as of Apr 29 2026). Pixel-perfect mockup; the React port is faithful, not a redesign.
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
+- **Build verification:** Active maintenance should always branch from validated production-safe commits before deployment.
 
 ## Status
 
