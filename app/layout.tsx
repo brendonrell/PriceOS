@@ -81,10 +81,9 @@ const PREHYDRATION_SCRIPT = `
 
         var theme = savedTheme;
         if (theme === null && isProjectPage) theme = 'artist';
-        // Profile-page boot default lives outside THEMES — Attention
-        // Yellow is its own slot. We carry a synthetic flag so the
-        // bg-resolution block below knows to use #FFE600 with no
-        // theme-* body class added.
+        // Non-project, non-profile pages (home, etc.) also default to
+        // custom colour so the site never cold-starts with Dot defaults.
+        if (theme === null && !isProfilePage) theme = 'artist';
         var profileBoot = (theme === null && isProfilePage);
 
         var THEMES = {
