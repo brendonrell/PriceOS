@@ -756,15 +756,14 @@ function ProjectPageBodyInner() {
                     <div className="hero-line info-line">
                         <span className="info-rubik">
                             Collected by{' '}
-                            <span className="collected-pair">
-                                <span className="collected-sprite">(⌐■_■)</span>
-                                <a className="profile-link">@piterpasma</a>
-                            </span>{' '}
-                            &{' '}
-                            <span className="collected-pair">
-                                <span className="collected-sprite">ᕙ(⇀‸↼‶)ᕗ</span>
-                                <a className="profile-link">@rudxane</a>
-                            </span>
+                            <a className="profile-link">@piterpasma</a>
+                            {', '}
+                            <a className="profile-link">@rudxane</a>
+                            {', '}
+                            <a className="profile-link">@trinity</a>
+                            {' and '}
+                            <span className="follower-count">42</span>
+                            {' people you follow'}
                         </span>
                     </div>
 
@@ -933,6 +932,13 @@ function ProjectPageBodyInner() {
                                     ? `(${lowestFloor.toFixed(2)} ETH)`
                                     : '(SOLD OUT)'}
                             </span>
+                        </button>
+                        <button
+                            className="btn-soundtrack"
+                            title="Play Project Soundtrack"
+                            onClick={() => showToast('Soundtrack — coming soon')}
+                        >
+                            <span className="mint-lbl">SOUNDTRACK</span>
                         </button>
                     </div>
 
