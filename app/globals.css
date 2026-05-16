@@ -2617,7 +2617,18 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-item-anchor .stat-icon-box {
     height: 22px;
     line-height: 1;
+    position: relative;
+    top: -3px;
 }
+/* Flush stats grid left edge with other hero-line content.
+   The stat-icon min-width boxes default to justify-content:center
+   which creates a visible indent vs flush text above. */
+.stats-grid .stat-icon-box,
+.stats-grid .stat-icon-eth,
+.stats-grid .stat-icon-owners,
+.stats-row-2 .stat-icon-owned,
+.stats-row-2 .stat-icon-spent,
+.stats-row-2 .stat-item-anchor .stat-icon-box { justify-content: flex-start; }
 @media (max-width: 600px) {
     .stats-row .stat-icon-box,
     .stats-row .stat-icon-eth,
