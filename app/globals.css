@@ -2618,7 +2618,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     height: 22px;
     line-height: 1;
     position: relative;
-    top: -3px;
+    top: -7px;
 }
 /* Flush stats grid left edge with other hero-line content.
    The stat-icon min-width boxes default to justify-content:center
@@ -2640,6 +2640,8 @@ body.persona-default .stats-row-2 { display: none !important; }
     }
     .stats-row-2 .stat-item-anchor .stat-icon-box {
         height: 26px;
+        position: relative;
+        top: -5px;
     }
 }
 /* Brendon-list-3 chat A item 3 — anchor empty state: low-opacity rectangle
@@ -2716,11 +2718,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 0 6px;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--bg-color) 88%, var(--text-color) 12%);
-    margin: 0 1px;
+    gap: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    margin: 0;
     line-height: 1;
     position: relative;
 }
@@ -2733,9 +2735,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .collected-pair::after {
     content: '';
     position: absolute;
-    left: 6px;
-    right: 6px;
-    bottom: -3px;
+    left: 0;
+    right: 0;
+    bottom: -2px;
     height: 1px;
     background: currentColor;
     opacity: 0;
@@ -2813,6 +2815,21 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     opacity: 0.85;
 }
+.btn-soundtrack {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    padding: 0 20px;
+    height: 46px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+}
+.btn-soundtrack:hover { opacity: 1; }
 
 /* ── PROFILE TABS — sim ~2218-2225 ───────────────────────── */
 .profile-tabs-row {
