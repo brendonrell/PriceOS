@@ -21,13 +21,31 @@ function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
     return (
         <span className={`tape-item${boldClass}`}>
-            {item.name}
-            {item.action && (
+            {item.name && (
+                <>
+                    <b>{item.name}</b>
+                    {item.sigil && (
+                        <span
+                            className="tape-sigil"
+                            style={{ marginLeft: 3 }}
+                        >
+                            {item.sigil}
+                        </span>
+                    )}
+                    {' '}
+                </>
+            )}
+            {item.verb}
+            {' '}
+            <span className="tape-sep-inner">·</span>
+            {' '}
+            {item.coll} #{item.id}
+            {item.price && (
                 <>
                     {' '}
                     <span className="tape-sep-inner">·</span>
                     {' '}
-                    {item.action}
+                    {item.price}
                 </>
             )}
         </span>
@@ -83,7 +101,6 @@ export function PingsBox() {
                         </div>
                     )}
                 </div>
-            }
             }
         >
             {MOCK_PINGS.map((p) => (
