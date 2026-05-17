@@ -214,6 +214,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const applyDecodedState = useCallback(
         (state: DecodedState) => {
             if (state.theme) setTheme(state.theme);
+            else setTheme('artist'); // default — ensures theme resets on every workspace load
             if (state.sort)  setSort(state.sort);
             const patch = notifsPatchFromDecodedState(state);
             updateNotifs(patch);
