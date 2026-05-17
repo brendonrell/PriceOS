@@ -762,8 +762,9 @@ function ProjectPageBodyInner() {
                             {', '}
                             <a className="profile-link">@trinity</a>
                             {' and '}
-                            {'42'}
-                            {' people you follow'}
+                            <span style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}>
+                                {'42 people you follow'}
+                            </span>
                         </span>
                     </div>
 
@@ -938,7 +939,7 @@ function ProjectPageBodyInner() {
                             title="Play Project Soundtrack"
                             onClick={() => showToast('Soundtrack — coming soon')}
                         >
-                            <span className="mint-lbl">SOUNDTRACK</span>
+                            <span>SOUNDTRACK</span>
                         </button>
                     </div>
 
