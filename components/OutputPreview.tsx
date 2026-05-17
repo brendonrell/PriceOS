@@ -109,6 +109,7 @@ import {
 } from '../lib/pins/muteStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+import { useCart } from '../lib/state/CartContext';
 /* v1 — type-only import. The route file ships the OutputDetailResponse
    contract (see app/api/output/[id]/route.ts:18); pulling the type here
    keeps the modal's history fetch shape-locked to the API without a
@@ -206,6 +207,7 @@ export default function OutputPreview() {
     const { openModal, currentModalId, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
+    const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { title, totalOutputs, floorEth } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
@@ -454,24 +456,23 @@ export default function OutputPreview() {
 
     const isPinned = id != null && grailPins.includes(id);
 
-    /* Action button label + Calc-tab visibility. ƒ tab shows ONLY in BUY
-       state (sim 8762): LIST has no Calc (cost basis is the real number
-       for owned tokens), MAKE OFFER has no Calc (no listing price to
-       calc against). */
+    /* Action button label + Calc-tab visibility.
+       BUY:        ƒ calc tab (buy price analysis)   → adds to cart
+       LIST:       ✺ showcase tab                    → add to showcase
+       MAKE OFFER: ƒ calc tab (offer price analysis) → offer flow */
     let actionLabel: ReactNode = null;
     let hasCalc = false;
+    let calcIcon = '\u0192';        // ƒ default
+    let calcTitle = 'The Calc';
+    let calcMode: 'buy' | 'showcase' | 'offer' = 'buy';
+
     if (meta) {
         if (meta.isOwnedByBrendon) {
-            actionLabel = meta.price ? (
-                <>
-                    LIST{' '}
-                    <span className="modal-action-btn-price">
-                        &middot; {meta.price}
-                    </span>
-                </>
-            ) : (
-                <>LIST</>
-            );
+            actionLabel = <>LIST</>;          // no price on LIST — cost basis is personal
+            hasCalc = true;
+            calcIcon = '\u273A';              // ✺ showcase icon
+            calcTitle = 'Add to Showcase';
+            calcMode = 'showcase';
         } else if (meta.price) {
             actionLabel = (
                 <>
@@ -482,8 +483,12 @@ export default function OutputPreview() {
                 </>
             );
             hasCalc = true;
+            calcMode = 'buy';
         } else {
             actionLabel = <>MAKE OFFER</>;
+            hasCalc = true;
+            calcTitle = 'Offer Calc';
+            calcMode = 'offer';
         }
     }
 
@@ -525,13 +530,7 @@ export default function OutputPreview() {
                     ref={canvasRef}
                     className="output-canvas"
                     onClick={() => {
-                        /* Portal to the dedicated Artwork page. Mute-
-                           overlay sibling (display: flex only in
-                           hammer-mode per globals.css) absorbs the
-                           click before it reaches the canvas while
-                           muting is active. */
                         if (id == null) return;
-                        close();
                         router.push(`/${id}`);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -576,7 +575,9 @@ export default function OutputPreview() {
                                 className="hover-link"
                                 role="button"
                                 tabIndex={0}
-                                onClick={close}
+                                onClick={() => {
+                                    if (id != null) router.push(`/${id}`);
+                                }}
                             >
                                 {title}
                             </span>
@@ -585,21 +586,31 @@ export default function OutputPreview() {
                         <div className="modal-artist" id="mArtist">
                             by @claude
                         </div>
-                        <div className="modal-stats-row" id="mStatsRow">
-                            <span className="modal-stat" id="mOwnerStat">
-                                {meta.isOwnedByBrendon ? (
-                                    <>
-                                        Owned by you{' '}
-                                        <span
-                                            className="owner-self-check"
-                                            aria-label="this is you"
-                                        >
-                                            &#x2713;
-                                        </span>
-                                    </>
-                                ) : (
-                                    `Owned by ${meta.ownerDisplay}`
-                                )}
+                        <div className="modal-artist" id="mOwner">
+                            {meta.isOwnedByBrendon ? (
+                                <>
+                                    owned by you{' '}
+                                    <span
+                                        className="owner-self-check"
+                                        aria-label="this is you"
+                                    >
+                                        &#x2713;
+                                    </span>
+                                </>
+                            ) : (
+                                `owned by ${meta.ownerDisplay}`
+                            )}
+                        </div>
+                        <div className="modal-artist" id="mArtworkLink">
+                            <span
+                                className="hover-link"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => {
+                                    if (id != null) router.push(`/${id}`);
+                                }}
+                            >
+                                Artwork Page &#x2197;&#xFE0E;
                             </span>
                         </div>
                         <div className="modal-pill-row" id="mPillRow">
@@ -678,9 +689,19 @@ export default function OutputPreview() {
                             <button
                                 className="modal-action-btn"
                                 id="mActionBtn"
-                                onClick={() =>
-                                    showToast('Action — coming soon')
-                                }
+                                onClick={() => {
+                                    if (calcMode === 'buy' && id != null) {
+                                        if (cartHas(id)) {
+                                            showToast(`${title} #${id} already in cart`);
+                                        } else {
+                                            cartAdd(id);
+                                            const next = cartItems.length + 1;
+                                            showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
+                                        }
+                                    } else {
+                                        showToast('Action — coming soon');
+                                    }
+                                }}
                             >
                                 {actionLabel}
                             </button>
@@ -688,28 +709,28 @@ export default function OutputPreview() {
                                 className="modal-action-btn-calc"
                                 id="mActionCalc"
                                 onClick={() => {
-                                    if (id == null || !meta) return;
-                                    /* meta.price arrives pre-formatted as
-                                       "0.014 ETH" — strip the suffix for
-                                       the numeric API. NaN guards a future
-                                       indexer hand-off where price could
-                                       be malformed. */
-                                    const priceNum = meta.price
-                                        ? parseFloat(meta.price)
-                                        : NaN;
-                                    openCalcSheet({
-                                        tokenId: id,
-                                        projectTitle: title,
-                                        price: Number.isFinite(priceNum)
-                                            ? priceNum
-                                            : null,
-                                        floor: floorEth,
-                                    });
+                                    if (calcMode === 'showcase') {
+                                        showToast('Add to Showcase — coming soon');
+                                    } else if (calcMode === 'offer') {
+                                        showToast('Offer Calc — coming soon');
+                                    } else if (id != null && meta) {
+                                        const priceNum = meta.price
+                                            ? parseFloat(meta.price)
+                                            : NaN;
+                                        openCalcSheet({
+                                            tokenId: id,
+                                            projectTitle: title,
+                                            price: Number.isFinite(priceNum)
+                                                ? priceNum
+                                                : null,
+                                            floor: floorEth,
+                                        });
+                                    }
                                 }}
-                                title="The Calc"
-                                aria-label="Open The Calc"
+                                title={calcTitle}
+                                aria-label={calcTitle}
                             >
-                                &fnof;
+                                {calcIcon}
                             </button>
                         </div>
                         <div
