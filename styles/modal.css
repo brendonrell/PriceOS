@@ -270,7 +270,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 /* ── TOP CHROME (close + grail pin) ───────────────────────── */
 .close-hint {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top));
+    top: calc(max(20px, env(safe-area-inset-top)) + 30px);
     right: 30px;
     font-size: 30px;
     cursor: pointer;
@@ -286,8 +286,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
    default) so it reads as the secondary action; .pinned ramps to 1. */
 .modal-pin-hint {
     position: absolute;
-    /* +6px nudge so the pin's visual center aligns with the close X. */
-    top: calc(max(20px, env(safe-area-inset-top)) + 6px);
+    top: calc(max(20px, env(safe-area-inset-top)) + 31px);
     right: 70px;
     font-size: 22px;
     line-height: 1;
@@ -296,10 +295,17 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     opacity: 0.7;
     z-index: 1002;
     font-family: 'Courier New', Courier, monospace;
-    transition: opacity 0.2s, transform 0.2s;
+    border-radius: 3px;
+    transition: opacity 0.2s, transform 0.2s, background 0.15s, color 0.15s, padding 0.15s;
     -webkit-tap-highlight-color: transparent;
 }
-.modal-pin-hint.pinned { opacity: 1; font-weight: 700; transform: scale(1.1); }
+.modal-pin-hint.pinned {
+    opacity: 1;
+    transform: scale(1.05);
+    background: var(--text-color);
+    color: var(--bg-color);
+    padding: 2px 5px;
+}
 
 
 /* ── MODAL INTERACTION BLOCK ──────────────────────────────────
