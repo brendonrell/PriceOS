@@ -157,11 +157,10 @@ export function GlobalSearchBar() {
           ]
         : [];
 
-    // Cycle menu tape mode 0 → 3 → 4 → 0 (skips desktop-only 1, 2)
+    // Cycle menu tape mode 0 → 3 → 0 (framed mode 4 removed — letters only)
     const cycleMenuTape = () => {
-        const cycle: Array<0 | 3 | 4> = [0, 3, 4];
-        const idx = cycle.indexOf(notifs.menutape);
-        const next = cycle[(idx + 1) % cycle.length];
+        const cycle: Array<0 | 3> = [0, 3];
+        const next = notifs.menutape === 0 ? 3 : 0;
         update({ menutape: next });
     };
 
