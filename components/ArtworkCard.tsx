@@ -720,6 +720,15 @@ export default function ArtworkCard({
                                     {'\u25A2\uFE0E'}
                                 </span>
                             )}
+                            {id <= 3 && (
+                                <span
+                                    className="hi-icon hi-showcase"
+                                    title="Add to Showcase"
+                                    onClick={stubAction('Added to Showcase')}
+                                >
+                                    {'✺︎'}
+                                </span>
+                            )}
                             <span
                                 className="hi-icon hi-hammer"
                                 title="Mute (Hammer)"
