@@ -148,7 +148,7 @@ export default function FollowersModal() {
                         display: 'flex',
                         gap: 6,
                         marginBottom: 12,
-                        justifyContent: 'center',
+                        justifyContent: 'flex-start',
                         flexWrap: 'wrap',
                     }}
                 >
@@ -166,7 +166,7 @@ export default function FollowersModal() {
                                     setTab(t.key);
                                 }
                             }}
-                            style={{ cursor: 'pointer' }}
+                            style={{ cursor: 'pointer', minWidth: 90 }}
                         >
                             {t.icon}
                             {VS15} {t.label}
@@ -176,7 +176,7 @@ export default function FollowersModal() {
                 <div
                     className="collectors-list"
                     id="followersListWrap"
-                    style={{ maxHeight: 280, width: '100%' }}
+                    style={{ maxHeight: 280, minHeight: 280, width: '100%' }}
                 >
                     <div
                         id="followersList"
