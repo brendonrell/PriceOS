@@ -762,7 +762,7 @@ function ProjectPageBodyInner() {
                             {', '}
                             <a className="profile-link">@trinity</a>
                             {' and '}
-                            <span className="follower-count">42</span>
+                            {'42'}
                             {' people you follow'}
                         </span>
                     </div>
