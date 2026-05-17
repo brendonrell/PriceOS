@@ -46,33 +46,6 @@ export function Footer() {
                     Support
                 </a>
             </footer>
-
-            <style jsx global>{`
-                .priceos-footer {
-                    position: fixed;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    z-index: 90;
-                    box-sizing: border-box;
-                    margin-top: 0;
-                    pointer-events: auto;
-                }
-
-                main {
-                    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-                }
-
-                body.zen-mode main {
-                    padding-bottom: 0;
-                }
-
-                @media (max-width: 600px) {
-                    main {
-                        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-                    }
-                }
-            `}</style>
         </>
     );
 }
