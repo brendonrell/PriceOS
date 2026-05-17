@@ -24,7 +24,6 @@
 
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { UserDropdown } from './UserDropdown';
-import { TapeBox } from './TapeBox';
 import { PingsBox } from './PingsBox';
 import { TodosBox } from './TodosBox';
 import { NotesBox } from './NotesBox';
@@ -38,7 +37,6 @@ export function DropdownStack() {
             <UserDropdown />
             {showAccordions && (
                 <>
-                    <TapeBox />
                     <PingsBox />
                     <TodosBox />
                     <NotesBox />
