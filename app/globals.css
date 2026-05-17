@@ -48,24 +48,28 @@
    prehydration script runs — that script paints synchronously based
    on pathname + saved values before first frame. */
 :root {
-    --bg-color:     var(--dot);
-    --text-color:   var(--matrix);
-    --border-color: rgba(255, 255, 255, 0.15);
-    --accent:       var(--matrix);
+    /* Defaults match the artist/custom-colour output of paintVars so
+       the page renders correctly before the pre-hydration script fires.
+       The script overwrites these synchronously for users with saved
+       themes; unauthenticated users see exactly this colour. */
+    --bg-color:     #C488FF;
+    --text-color:   #111111;
+    --border-color: rgba(0, 0, 0, 0.15);
+    --accent:       #111111;
 
-    --modal-bg:         rgba(0, 200, 150, 0.98);
+    --modal-bg:         rgba(196, 136, 255, 0.98);
     --stat-bg:          rgba(0, 0, 0, 0.08);
     --stat-active-bg:   #000000;
     --stat-active-text: #e0e0e0;
 
-    --mint-bg:      var(--dot);
-    --mint-text:    var(--matrix);
-    --mint-border:  var(--dot);
+    --mint-bg:      #111111;
+    --mint-text:    #e0e0e0;
+    --mint-border:  #111111;
     --mint-bg-img:  none;
 
-    --pill-l1-bg:     var(--dot);
-    --pill-l1-text:   var(--hothurt);
-    --pill-l1-border: var(--dot);
+    --pill-l1-bg:     #111111;
+    --pill-l1-text:   #C488FF;
+    --pill-l1-border: #111111;
     --pill-l1-bg-img: none;
 
     --btn-user-hover: #ffffff;
@@ -2496,11 +2500,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     color: inherit;
 }
 .follower-count {
-    font-size: 15px;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    opacity: 0.6;
-    margin-left: 4px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 1;
+    margin-left: 0;
 }
 
 .artist-tag {
@@ -2617,9 +2621,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-item-anchor .stat-icon-box {
     height: 22px;
     line-height: 1;
-    position: relative;
-    top: -7px;
 }
+/* Floor price ETH icon sits slightly low — nudge up 3px */
+.stats-row-2 .stat-icon-spent { position: relative; top: -3px; }
 /* Flush stats grid left edge with other hero-line content.
    The stat-icon min-width boxes default to justify-content:center
    which creates a visible indent vs flush text above. */
@@ -2640,9 +2644,8 @@ body.persona-default .stats-row-2 { display: none !important; }
     }
     .stats-row-2 .stat-item-anchor .stat-icon-box {
         height: 26px;
-        position: relative;
-        top: -5px;
     }
+    .stats-row-2 .stat-icon-spent { position: relative; top: -3px; }
 }
 /* Brendon-list-3 chat A item 3 — anchor empty state: low-opacity rectangle
    placeholder instead of '—' hyphen. Renders only when the empty span
@@ -2816,18 +2819,24 @@ body.persona-default .stats-row-2 { display: none !important; }
     opacity: 0.85;
 }
 .btn-soundtrack {
-    background-color: transparent;
+    background: transparent;
     color: var(--text-color);
     border: 1px solid var(--text-color);
-    padding: 0 20px;
-    height: 46px;
+    padding: 0 12px;
+    height: 34px;
     cursor: pointer;
-    border-radius: 4px;
-    transition: opacity 0.2s;
-    display: flex;
+    border-radius: 3px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.7;
+    opacity: 0.65;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 .btn-soundtrack:hover { opacity: 1; }
 
