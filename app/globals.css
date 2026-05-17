@@ -2589,9 +2589,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 @media (max-width: 600px) {
     .stats-grid {
         column-gap: 6px;
-        row-gap: 1px;
+        row-gap: 2px;
     }
-    .stat-item { gap: 3px; }
+    .stat-item { gap: 4px; font-size: 0; }
 }
 .stats-grid .stats-row { display: contents; }
 body.zen-mode .stats-grid { display: none !important; }
@@ -2660,11 +2660,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     .stats-row .stat-icon-owners,
     .stats-row-2 .stat-icon-owned,
     .stats-row-2 .stat-icon-spent {
-        min-width: 26px;
-        height: 26px;
+        min-width: 18px;
+        height: 20px;
     }
     .stats-row-2 .stat-item-anchor .stat-icon-box {
-        height: 26px;
+        height: 20px;
     }
     .stats-row-2 .stat-icon-spent { position: relative; top: -3px; }
 }
@@ -2840,27 +2840,26 @@ body.persona-default .stats-row-2 { display: none !important; }
     opacity: 0.85;
 }
 .btn-soundtrack {
-    background: var(--bg-color);
+    background: transparent;
     color: var(--text-color);
     border: 1px solid var(--text-color);
     padding: 0 12px;
-    height: 28px;
+    height: 34px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 3px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    opacity: 0.65;
+    transition: opacity 0.2s;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
 }
-.btn-soundtrack:hover { background: var(--text-color); color: var(--bg-color); }
-.btn-icon-play { font-family: 'Courier New', Courier, monospace; font-size: 10px; line-height: 0; display: inline-flex; align-items: center; justify-content: center; }
+.btn-soundtrack:hover { opacity: 1; }
 
 /* ── PROFILE TABS — sim ~2218-2225 ───────────────────────── */
 .profile-tabs-row {
@@ -3481,7 +3480,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
     padding: 10px 40px 100px 40px;
-    min-height: 100vh;
     align-items: start;
     align-content: start;
 }
