@@ -2847,7 +2847,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     height: 34px;
     cursor: pointer;
     border-radius: 3px;
-    font-family: var(--font-rubik-mono), sans-serif;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
