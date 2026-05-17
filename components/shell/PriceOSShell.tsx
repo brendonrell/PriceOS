@@ -131,6 +131,26 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('pageshow', onPageShow);
     }, []);
 
+    /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the
+       address bar shows/hides, causing the layout to resize on scroll
+       and on app resume. Fix: pin --app-height to visualViewport.height
+       (which is stable) and sync on every viewport resize + pageshow. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const vv = window.visualViewport;
+        const sync = () => {
+            const h = vv ? vv.height : window.innerHeight;
+            document.documentElement.style.setProperty('--app-height', `${h}px`);
+        };
+        sync();
+        vv?.addEventListener('resize', sync);
+        window.addEventListener('pageshow', sync);
+        return () => {
+            vv?.removeEventListener('resize', sync);
+            window.removeEventListener('pageshow', sync);
+        };
+    }, []);
+
     return (
         <>
             <Backgrounds />
