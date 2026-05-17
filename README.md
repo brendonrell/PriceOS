@@ -75,7 +75,7 @@ Single source of truth: ClickUp doc `2kyd6gx6-994` page `2kyd6gx6-3274` (Platfor
 
 ## URL Architecture
 
-Locked Apr 29 2026. Nomenclature pass May 9 2026. Full spec lives in ClickUp under PD Master Brief → Front End → URL Architecture & Slug Routing. Quick map:
+Quick map:
 
 | URL | Resolves to |
 |---|---|
