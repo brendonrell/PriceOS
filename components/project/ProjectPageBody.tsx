@@ -939,6 +939,7 @@ function ProjectPageBodyInner() {
                             title="Play Project Soundtrack"
                             onClick={() => showToast('Soundtrack — coming soon')}
                         >
+                            <span className="btn-icon-play">▶&#xFE0E;</span>
                             <span>SOUNDTRACK</span>
                         </button>
                     </div>
