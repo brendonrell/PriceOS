@@ -122,6 +122,7 @@ html, body {
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
+    min-height: var(--app-height, 100dvh);
     flex: 1;
 }
 
@@ -656,7 +657,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 .dropdown-divider {
     height: 1px;
     background: rgba(128,128,128,0.3);
-    margin: 4px 0;
+    margin: 1px 0;
 }
 
 .dropdown-pill {
@@ -1010,33 +1011,16 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     display: flex;
     flex-direction: column;
     min-height: var(--accordion-min-height);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .notifications-box.is-open .notif-list {
     flex: 1 1 auto;
     min-height: var(--notif-list-min);
-    /* F31: no max-height — list grows to fill available space inside
-       .dropdown-stack. overflow-y: auto on .notif-list (rule below)
-       handles scroll when the actual item count exceeds the height
-       the flex layout settled on. */
 }
 
-/* G item 9 — lock the ACTIVE accordion's notif-list to its full
-   max-height so the connect menu's total height stays stable across
-   open/close transitions between Pings / Notes / Todos / Tape. The
-   bare `.notif-list` rule below caps mobile at 120 / desktop at 168;
-   when the active accordion's data row count is short, flex:1 1 auto
-   without a min-height lets the list shrink to content, and the whole
-   stack contracts. Pinning min-height to match the cap means the
-   active list always claims the same vertical slot regardless of
-   item count.
-   Sim deviation: sim's CSS doesn't carry this min-height; sim's mock
-   datasets happen to fill each list near-cap (8 pings, many todos,
-   many notes) so the instability never surfaces visually. The React
-   port's mock counts can leave gaps. Park as deviation. */
 .notifications-box.is-open .notif-list {
-    min-height: 120px;
+    min-height: 96px;
 }
 @media (min-width: 601px) {
     .notifications-box.is-open .notif-list {
@@ -1045,9 +1029,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 
 .notif-list {
-    /* F33 (2026-05-02): mobile cap, matching sim line 209.
-       Desktop override below at @media (min-width: 601px). */
-    max-height: 120px;
+    max-height: 96px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -1279,6 +1261,38 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     letter-spacing: 0.4px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ── PINGS HEADER WITH INLINE TAPE ──────────────────────────
+   When menutape > 0 the tape runs beside the PINGS (N) label in
+   the same header row. .pings-label takes its natural width; the
+   inline rail fills remaining space and masks its edges. */
+.pings-header-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+    gap: 8px;
+}
+.pings-label {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pings-tape-inline {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: inherit;
+    will-change: transform;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
 
 
@@ -1759,7 +1773,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 #artistSearchInput::placeholder {
     color: var(--text-color);
     opacity: 0.8;
-    font-weight: normal;
+    font-weight: bold;
     font-size: 13px;
 }
 
@@ -1842,7 +1856,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-size: 20px;
     font-weight: 900;
     line-height: 1;
-    opacity: 0.55;
+    opacity: 0.28;
     cursor: pointer;
     user-select: none;
     padding: 0 4px;
@@ -2572,6 +2586,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     row-gap: 2px;
     align-items: center;
 }
+@media (max-width: 600px) {
+    .stats-grid {
+        column-gap: 6px;
+        row-gap: 1px;
+    }
+    .stat-item { gap: 3px; }
+}
 .stats-grid .stats-row { display: contents; }
 body.zen-mode .stats-grid { display: none !important; }
 /* Brendon 2026-05-11 — anchor + PPL values are the only interactive
@@ -3299,7 +3320,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     text-decoration-thickness: 1px;
     font-weight: normal;
 }
-@media (max-width: 600px) { .search-btn { font-size: 22px; } }
+@media (max-width: 600px) { .search-btn { font-size: 22px; position: relative; top: 2px; } }
 
 /* ── TRAIT CATEGORIES CONTAINER — sim 2327 ── */
 #traitCategories {
@@ -3843,16 +3864,19 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
 }
 @media (max-width: 600px) {
     body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
+        display: none;
+    }
+    body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::after {
+        content: '\2693\FE0E' attr(data-anchor-delta);
+        font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
-        /* Brendon S5 May 11 — on mobile + anchor-active, the ⚓(-XX%) prefix
-           shares a line with the ETH price and crams against .meta-id on
-           the left (cards are 140-160px wide, content is 145-150px). Make
-           the ::before drop to its own line above the price, and let .meta
-           grow vertically so the two-line meta fits cleanly. */
+        font-weight: normal;
+        letter-spacing: 0;
+        opacity: 0.7;
         display: block;
         line-height: 1.2;
         text-align: right;
-        margin-bottom: 1px;
+        margin-top: 1px;
     }
     body.anchor-active #gallery .meta {
         height: auto;
