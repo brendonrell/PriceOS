@@ -138,6 +138,7 @@ export function LinksView() {
                     the icon OR the number opens the same FollowersModal
                     tab. Hover treatment shifts to opacity-only so it
                     stays theme-aware on every theme. */}
+                {isAuthed && (
                 <span
                     className="nav-follower-stats"
                     onClick={(e) => {
@@ -148,16 +149,14 @@ export function LinksView() {
                     <span
                         className="nav-stat-link"
                         role="button"
-                        tabIndex={isAuthed ? 0 : -1}
+                        tabIndex={0}
                         title="Followers"
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            if (!isAuthed) return;
                             open('followers', 'followers');
                         }}
                         onKeyDown={(e) => {
-                            if (!isAuthed) return;
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 open('followers', 'followers');
@@ -173,17 +172,15 @@ export function LinksView() {
                     <span
                         className="nav-stat-link"
                         role="button"
-                        tabIndex={isAuthed ? 0 : -1}
+                        tabIndex={0}
                         title="Following"
                         style={{ marginLeft: 12 }}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            if (!isAuthed) return;
                             open('followers', 'following');
                         }}
                         onKeyDown={(e) => {
-                            if (!isAuthed) return;
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 open('followers', 'following');
@@ -197,6 +194,7 @@ export function LinksView() {
                         <b>2.2k</b>
                     </span>
                 </span>
+                )}
             </div>
 
             <a
