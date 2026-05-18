@@ -531,6 +531,8 @@ export default function OutputPreview() {
                     className="output-canvas"
                     onClick={() => {
                         if (id == null) return;
+                        close();
+                        window.scrollTo(0, 0);
                         router.push(`/${id}`);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -576,7 +578,7 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => {
-                                    if (id != null) router.push(`/${id}`);
+                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/${id}`); }
                                 }}
                             >
                                 {title}
@@ -607,7 +609,7 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => {
-                                    if (id != null) router.push(`/${id}`);
+                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/${id}`); }
                                 }}
                             >
                                 Artwork Page &#x2197;&#xFE0E;
