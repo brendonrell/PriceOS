@@ -119,6 +119,7 @@ function ProfilePageBodyInner() {
                         <span className="artist-tag" aria-label="artist">
                             {'✺\uFE0E'}
                         </span>
+                        <span className="project-date">APR 2025</span>
                     </h1>
 
                     {/* Line 2: ENS placeholder + active status glyph.
@@ -244,6 +245,13 @@ function ProfilePageBodyInner() {
                             onClick={() => showToast('Follow — coming soon')}
                         >
                             <span className="mint-lbl">FOLLOW</span>
+                        </button>
+                        <button
+                            className="btn-soundtrack"
+                            title="Profile action — coming soon"
+                            onClick={() => showToast('Coming soon')}
+                        >
+                            <span>SHARE</span>
                         </button>
                     </div>
 
