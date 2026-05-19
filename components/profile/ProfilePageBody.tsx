@@ -278,6 +278,35 @@ function ProfilePageBodyInner() {
                         </div>
                     </div>
 
+                    {/* +More tab — moved stats from profile hero */}
+                    {onMore && (
+                        <div className="more-tab-stats">
+                            <div className="hero-line stats-row stats-row-2">
+                                <span className="stat-item">
+                                    <span
+                                        className="stat-icon stat-icon-box"
+                                        {...iconToastProps('Followers')}
+                                    >◎&#xFE0E;</span>{' '}
+                                    <span className="stat-val">89</span>
+                                </span>
+                                <span className="stat-item">
+                                    <span
+                                        className="stat-icon stat-icon-box"
+                                        {...iconToastProps('Following')}
+                                    >⊙&#xFE0E;</span>{' '}
+                                    <span className="stat-val">34</span>
+                                </span>
+                                <span className="stat-item">
+                                    <span
+                                        className="stat-icon stat-icon-box"
+                                        {...iconToastProps('Anchor — coming soon')}
+                                    >⚓&#xFE0E;</span>{' '}
+                                    <span className="stat-val stat-val-empty">—</span>
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* +More tab — TraitsUI in profile mode:
                           - hideSortBar suppresses the sort-icons cluster
                             (Recent + burn + multi + search) AND the
@@ -287,39 +316,6 @@ function ProfilePageBodyInner() {
                             / Albums.
                         The .theme-pills four-square view-mode switcher
                         (bottom-left of .sort-bar) stays visible. */}
-                    {onMore && (
-                        <div className="more-tab-stats">
-                            <div className="hero-line stats-row stats-row-2">
-                                <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Followers')}
-                                    >
-                                        ◎&#xFE0E;
-                                    </span>{' '}
-                                    <span className="stat-val">89</span>
-                                </span>
-                                <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Following')}
-                                    >
-                                        ⊙&#xFE0E;
-                                    </span>{' '}
-                                    <span className="stat-val">34</span>
-                                </span>
-                                <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Anchor — coming soon')}
-                                    >
-                                        ⚓&#xFE0E;
-                                    </span>{' '}
-                                    <span className="stat-val stat-val-empty">—</span>
-                                </span>
-                            </div>
-                        </div>
-                    )}
                     <TraitsUI
                         visible={onMore}
                         hideSortBar
