@@ -1,0 +1,2617 @@
+<!-- --- START OF FILE: index.html --- -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Magic iOS Zoom Fix -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Price Discussion">
+    <meta name="theme-color" id="theme-color-meta" content="#FF0055">
+    
+    <link rel="apple-touch-icon" href="icon-180px.png">
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+    <title>Price Discussion | KIKI</title>
+    
+    <style>
+        :root {
+            --bg-color: #FF0055; 
+            --text-color: #111111;
+            --border-color: rgba(0,0,0,0.15);
+            --accent: #111111;
+            --modal-bg: rgba(255,0,85,0.98);
+            --stat-bg: rgba(0,0,0,0.08);
+            --stat-active-bg: #000000;
+            --stat-active-text: #e0e0e0;
+            
+            --mint-bg: #111111;
+            --mint-text: #e0e0e0;
+            --mint-border: #111111;
+            --mint-bg-img: none;
+
+            --pill-l1-bg: #111111;
+            --pill-l1-text: #FF0055;
+            --pill-l1-border: #111111;
+            --pill-l1-bg-img: none;
+
+            --btn-user-hover: #ffffff;
+        }
+
+        html, body {
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace; -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Default Persona override (Hard locks NO FLAIR mode) */
+        body.persona-default .t-artist { display: none !important; }
+        body.persona-default .btn-soundtrack { display: none !important; }
+
+        /* iOS 26.1 PWA Liquid Glass Fix */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0;
+            height: env(safe-area-inset-top);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            z-index: 9999; pointer-events: none;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: max(25px, env(safe-area-inset-top)) 40px 15px 40px; 
+            background: transparent; position: sticky; top: 0; z-index: 100; pointer-events: none;
+        }
+
+        .pd-logo-wrap, .nav-controls { pointer-events: auto; transition: opacity 0.4s ease; }
+        .nav-faded { opacity: 0.10; }
+        
+        /* Petey Logo & Speech Bubble */
+        .pd-logo-wrap { position: relative; display: flex; align-items: center; }
+        .pd-logo { display: flex; align-items: center; cursor: pointer; color: var(--text-color); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: center center; }
+        .pd-logo svg { height: 28px; width: auto; transition: color 0.3s; }
+        .pd-logo.rotated { transform: rotate(-90deg); }
+        .logo-price { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; left: 1px; }
+        
+        .petey-bubble {
+            position: absolute; left: 100%; top: 50%; transform: translateY(-50%) translateX(-10px);
+            margin-left: 20px; border: 2px dotted var(--text-color); border-radius: 6px;
+            padding: 10px 14px; display: flex; gap: 16px; align-items: center; background: var(--bg-color); color: var(--text-color);
+            white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; z-index: -1;
+        }
+        .petey-bubble::before {
+            content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%) rotate(45deg);
+            width: 10px; height: 10px; background: var(--bg-color);
+            border-bottom: 2px dotted var(--text-color); border-left: 2px dotted var(--text-color);
+            z-index: -1;
+        }
+
+        .pd-logo.rotated + .petey-bubble { opacity: 1; transform: translateY(-50%) translateX(0); pointer-events: auto; }
+        .petey-bubble a { color: inherit; transition: opacity 0.2s; font-family: 'Rubik Mono One', sans-serif; font-size: 13px; text-decoration: none; font-weight: normal; }
+
+        /* --- CONNECT MENU --- */
+        .user-menu-wrapper { position: relative; pointer-events: auto; }
+
+        .btn-user {
+            background: var(--text-color); color: var(--bg-color); border: none; height: 32px; border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: flex-start;
+            padding: 0 10px; gap: 8px; max-width: 34px; overflow: hidden; transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.2s, opacity 0.2s; box-sizing: border-box; line-height: 1; position: relative; z-index: 2;
+        }
+        .btn-user.expanded { max-width: 150px; }
+
+        .user-icon { font-size: 14px; width: 14px; font-family: 'Courier New', Courier, monospace; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-text { white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; pointer-events: none; line-height: 1; }
+        .btn-user.expanded .user-text { opacity: 1; transition-delay: 0.1s; }
+
+        .dropdown-stack { position: absolute; top: 100%; right: 0; margin-top: 8px; display: flex; flex-direction: column; gap: 10px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); z-index: 200; }
+        .user-menu-wrapper.active .dropdown-stack { opacity: 1; visibility: visible; transform: translateY(0); }
+
+        .user-dropdown { background: var(--text-color); color: var(--bg-color); min-width: 260px; border-radius: 4px; display: flex; flex-direction: column; padding: 8px; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: left; }
+        .user-dropdown a { color: inherit; text-decoration: none; font-size: 13px; font-weight: bold; padding: 10px 10px; transition: all 0.2s; border-left: 2px solid transparent; display: flex; align-items: center; }
+        
+        .nav-follower-stats { display: inline-flex; align-items: center; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: normal; opacity: 1; margin-left: 12px; line-height: 1; }
+        .nav-follower-stats .nav-ico { font-family: Arial, sans-serif; font-size: 16px; font-weight: normal; line-height: 0; position: relative; top: 1px; opacity: 1; display: inline-flex; align-items: center; }
+        .nav-follower-stats b { font-weight: bold; opacity: 0.6; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+
+        .dropdown-divider { height: 1px; background: rgba(128,128,128,0.3); margin: 4px 0; }
+
+        .dropdown-pill { display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; background: transparent; color: inherit; border: 1px solid var(--bg-color); margin-top: 2px; padding: 0 10px; width: 100%; }
+        .logout-icon { font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+
+        .scroll-arrow { text-align: left; cursor: pointer; font-size: 16px; font-family: Arial, sans-serif; opacity: 0.7; padding: 4px 10px; transition: opacity 0.2s, color 0.2s; user-select: none; color: inherit; }
+        .scroll-arrow.dark-arrow { color: var(--text-color); }
+
+        .notifications-box { min-width: 260px; padding-bottom: 8px; }
+        .notif-header { font-size: 11px; opacity: 0.8; padding: 4px 10px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; }
+        .notif-list { max-height: 155px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior: contain; padding-bottom: 5px; }
+        .notif-list::-webkit-scrollbar { display: none; }
+        .notif-item { font-size: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: background 0.2s, color 0.2s; border-radius: 4px; color: inherit; }
+        .notif-item .n-icon { font-size: 14px; opacity: 0.9; width: 16px; text-align: center; font-family: Arial, sans-serif; }
+
+        /* Search dormant label */
+        .search-dormant-label {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; cursor: pointer;
+            color: var(--bg-color); transition: opacity 0.2s;
+        }
+        .search-dormant-label:hover { opacity: 0.75; }
+        .search-dormant-text {
+            font-size: 13px; font-weight: bold; color: var(--bg-color);
+        }
+        .search-dormant-label .globe-icon { color: var(--bg-color); opacity: 1; }
+        
+        /* Active search bar */
+        .global-search-wrap { padding: 4px 2px 0 2px; }
+        .global-search-field {
+            display: flex; align-items: center; gap: 8px;
+            background: transparent; border-radius: 4px;
+            padding: 8px 10px; border: none;
+            margin: 0;
+        }
+        .global-search-field:focus-within { border-color: transparent; }
+        .global-search-field .globe-icon { color: var(--bg-color); opacity: 0.7; }
+        .global-search-field:focus-within .globe-icon { color: var(--bg-color); opacity: 1; }
+        .globe-icon { flex-shrink: 0; color: var(--bg-color); opacity: 0.7; cursor: pointer; transition: color 0.2s, opacity 0.2s; }
+        .globe-icon:hover { color: var(--bg-color); opacity: 1; }
+        .global-search-input {
+            flex: 1; background: transparent; border: none; outline: none;
+            font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold;
+            color: var(--bg-color); caret-color: var(--bg-color); min-width: 0;
+        }
+        .global-search-input::placeholder { font-size: 13px; opacity: 0.55; font-weight: normal; color: var(--bg-color); }
+
+        .global-search-results { margin-top: 4px; display: flex; flex-direction: column; gap: 2px; max-height: 0; overflow: hidden; transition: max-height 0.2s ease; scrollbar-width: none; -ms-overflow-style: none; }
+        .global-search-results::-webkit-scrollbar { display: none; }
+        .global-search-results.has-results { max-height: 120px; overflow-y: auto; }
+        .global-result-item { font-size: 12px; font-family: 'Courier New', Courier, monospace; font-weight: bold; padding: 7px 10px; border-radius: 4px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, background 0.2s; }
+        .global-result-item:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+        .dropdown-menu-links { transition: opacity 0.15s; }
+        .dropdown-menu-links.hidden { display: none; }
+
+        /* Settings & Artists Panel UI */
+        .settings-panel { max-height: 70vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; display: flex; flex-direction: column; min-width: 260px; }
+        .settings-panel::-webkit-scrollbar { display: none; }
+        .settings-header { font-family: 'Courier New', Courier, monospace; font-size: 11px; opacity: 0.8; padding: 4px 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .settings-wallet { font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; padding: 0 10px 4px 10px; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; gap: 8px; min-height: 15px; box-sizing: content-box; line-height: 15px; }
+        .settings-wallet:hover { opacity: 0.7; }
+        .icon-copy { font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: normal; opacity: 0.7; }
+        
+        .settings-ens-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 10px 8px 10px; margin: 0; align-items: center; }
+        .pill-ens { height: auto; min-height: 24px; border-radius: 4px; font-size: 11px; font-family: 'Courier New', Courier, monospace; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: flex-start; padding: 4px 8px; border: 1px dashed currentColor; color: inherit; opacity: 0.5; transition: all 0.2s; user-select: none; box-sizing: border-box; white-space: normal; line-height: 1.2; text-align: left; }
+        .pill-ens.active { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--bg-color); opacity: 1; transition: none; border-style: solid; }
+        
+        .settings-pill-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 10px 8px 10px; margin: 0; align-items: center; }
+        
+        .settings-toggle { height: 24px; border-radius: 4px; font-size: 11px; font-family: 'Courier New', Courier, monospace; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s; user-select: none; background: transparent; border: 1px solid currentColor; opacity: 0.5; color: inherit; box-sizing: border-box; }
+        .settings-toggle.active { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--bg-color); opacity: 1; transition: none; }
+        
+        .hex-input { background: transparent; border: none; outline: none; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: inherit; width: 52px; padding: 0; text-transform: uppercase; opacity: 0.8; margin-left: 6px; margin-right: 4px; }
+        .hex-input:focus { opacity: 1; border-bottom: 1px dotted currentColor; }
+        .copy-hex-btn { cursor: pointer; font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: normal; opacity: 0.7; transition: opacity 0.2s; line-height: 1; }
+        .copy-hex-btn:hover { opacity: 1; }
+
+        .st-icon { font-size: 16px; margin-right: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transform: translateY(1px); }
+        .price-strike.strikethrough { opacity: 0.5; }
+        #sn-priceLogo { position: relative; overflow: visible; }
+        #sn-priceLogo.active::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: currentColor; transform: translateY(-50%); pointer-events: none; }
+        #sn-mints .st-icon { transform: translateY(-2px) !important; }
+        #sn-mutualsOnly .st-icon { transform: translateY(0px); }
+        
+        /* Theme pills inside settings panel: immune to theme changes */
+        #settingsPanel .pill-theme { background: rgba(128,128,128,0.2) !important; border: 1px solid rgba(128,128,128,0.5) !important; color: inherit !important; box-sizing: border-box; }
+        #settingsPanel .pill-theme.active { background: var(--text-color) !important; border: 2px solid var(--text-color) !important; color: var(--bg-color) !important; }
+        #settingsPanel .pill-theme:hover { background: rgba(128,128,128,0.35) !important; border-color: rgba(128,128,128,0.8) !important; }
+        
+        /* Settings sort arrow styling */
+        .settings-sort-arrow { font-weight: bold; font-size: 17px; }
+        @media (min-width: 601px) {
+            .settings-sort-arrow { font-size: 19px; display: inline-block; }
+        }
+
+        /* Artists Panel Specific Styling (Bolted Layout) */
+        #artistsPanel {
+            overflow: hidden; /* Prevent full panel scroll */
+            padding-bottom: 0; /* Let footer handle spacing */
+        }
+        .artists-list-container {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
+            max-height: 300px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            display: flex; flex-direction: column;
+            padding-top: 12px;
+        }
+        .artists-list-container::-webkit-scrollbar { display: none; }
+        .artists-filter-sticky {
+            flex-shrink: 0; /* Do not shrink */
+            background: var(--text-color); padding: 10px 10px 12px 10px;
+            display: flex; flex-direction: column; gap: 8px;
+            border-top: 1px dashed rgba(128,128,128,0.3);
+            margin-top: 0; 
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        #artistSearchInput {
+            background: var(--bg-color); color: var(--text-color);
+            border: none; border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold;
+            padding: 8px 10px; outline: none; width: 100%; box-sizing: border-box;
+        }
+        #artistSearchInput::placeholder { color: var(--text-color); opacity: 0.8; font-weight: normal; font-size: 13px; }
+        .artist-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pill-artist-filter {
+            border: 1px dashed var(--bg-color); color: var(--bg-color);
+            border-radius: 4px; padding: 4px 10px; font-size: 11px; font-family: 'Courier New', Courier, monospace; font-weight: bold;
+            cursor: pointer; opacity: 0.5; transition: all 0.2s; user-select: none;
+            display: flex; align-items: center; justify-content: center; gap: 4px; height: 24px; box-sizing: border-box;
+        }
+        .pill-artist-filter span { position: relative; top: 3px; line-height: 1; }
+        .pill-artist-filter.active {
+            background: var(--bg-color); color: var(--text-color);
+            border-style: solid; opacity: 1;
+        }
+        .pill-artist-filter:hover { opacity: 0.8; }
+        .artist-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; cursor: pointer; color: inherit; text-decoration: none;
+            font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .artist-row:hover { opacity: 1; }
+        .artist-name-txt { opacity: 0.5; }
+        .artist-rel-icon { 
+            font-size: 18px; 
+            opacity: 0.5; 
+            font-family: Arial, sans-serif; 
+            display: inline-block; 
+            transform: translateY(0px); 
+            line-height: 1; 
+        }
+
+        /* Price range filter */
+        .feed-price-range { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .price-input {
+            width: 54px; background: transparent; border: none; border-bottom: 1px solid var(--text-color);
+            outline: none; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold;
+            color: var(--text-color); padding: 2px 0; caret-color: var(--text-color); text-align: center;
+            -moz-appearance: textfield; vertical-align: middle; line-height: 1;
+        }
+        .price-input::-webkit-outer-spin-button, .price-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .price-input::placeholder { opacity: 0.45; font-weight: normal; color: var(--text-color); font-size: 13px; }
+        .price-sep { opacity: 0.5; font-size: 13px; vertical-align: middle; }
+        .price-eth-label { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; opacity: 0.6; vertical-align: middle; }
+
+        /* Modal action row */
+        .modal-actions-row { display: flex; gap: 16px; align-items: center; justify-content: center; opacity: 0.45; }
+        .modal-action { cursor: pointer; font-family: Arial, sans-serif; font-size: 16px; line-height: 1; transition: opacity 0.2s; user-select: none; }
+        .modal-action:hover { opacity: 1; }
+        .modal-action-buy { font-family: 'Rubik Mono One', sans-serif; font-size: 11px; font-weight: normal; cursor: pointer; }
+        .modal-action-owned { font-family: 'Rubik Mono One', sans-serif; font-size: 10px; font-weight: normal; cursor: default; letter-spacing: 0.5px; }
+
+        /* --- HERO --- */
+        .collection-hero { padding: 10px 40px 10px 40px; display: flex; flex-direction: column; text-align: left; align-items: flex-start; }
+        @media (min-width: 601px) {
+            .collection-hero { align-items: stretch; }
+        }
+        .hero-group-1 { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; max-width: 900px; align-self: flex-start; }
+        
+        .collection-title { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; font-family: 'Rubik Mono One', sans-serif; font-size: 22px; margin: 0; font-weight: normal; line-height: 1; text-align: left; }
+        .collection-date { font-family: 'Rubik Mono One', sans-serif; font-size: 11px; opacity: 1; margin-left: 0; display: inline-block; vertical-align: baseline; }
+        
+        .hero-line { font-size: 14px; margin: 0; line-height: 1.2; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; color: var(--text-color); }
+        .collection-artist { align-items: baseline; }
+        .by-text { font-size: 13px; font-weight: bold; }
+        .artist-lockup { display: flex; align-items: baseline; }
+        .artist-lockup a { font-family: 'Rubik Mono One', sans-serif; font-weight: normal; font-size: 13px; text-transform: uppercase; text-decoration: none; color: inherit; }
+        .follower-count { font-size: 15px; font-family: 'Courier New', Courier, monospace; font-weight: bold; opacity: 0.6; margin-left: 4px; }
+        
+        .artist-tag {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 21px;
+            opacity: 0.85;
+            display: inline-block;
+            position: relative;
+            top: 2px;
+            margin-left: 0px;
+            font-weight: bold;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .artist-name-wrap { display: inline; text-decoration: none; }
+        .artist-lockup:hover .artist-name-wrap { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+        .artist-lockup:hover .artist-tag { opacity: 0.75; }
+
+        .stats-row { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+        .stat-item { display: flex; align-items: center; gap: 6px; cursor: pointer; transition: opacity 0.2s; }
+        .stat-icon { font-family: Arial, sans-serif; font-weight: normal; display: inline-flex; align-items: center; justify-content: center; }
+        .stat-icon-eth { font-family: 'Courier New', Courier, monospace; font-size: 14px; }
+        .stat-val { font-family: 'Rubik Mono One', sans-serif; font-size: 11px; line-height: 1; opacity: 1; }
+        
+        .info-rubik { display: inline-block; font-family: 'Rubik Mono One', sans-serif; font-size: 11px; text-transform: uppercase; line-height: 1.6; color: var(--text-color); opacity: 1; max-width: 100%; }
+        .profile-link { cursor: pointer; color: inherit; text-decoration: none !important; transition: opacity 0.2s; }
+        .open-modal-text { opacity: 1; cursor: pointer; transition: opacity 0.2s; margin-left: 2px; text-decoration: underline; text-underline-offset: 3px; }
+        
+        /* OPTICAL UNICODE ADJUSTMENTS */
+        .follow-badge { 
+            font-family: Arial, sans-serif; 
+            margin-left: 2px; 
+            display: inline-block; 
+            cursor: help; 
+            opacity: 0.85; 
+            text-shadow: none;
+            line-height: 0;
+            position: relative;
+        }
+
+        /* ⚭ Mutual, ⚯ Following, ⚬ Followers */
+        .ico-mutual, .ico-following, .ico-followers { 
+            font-size: 22px;
+            font-weight: normal;
+            display: inline-block;
+            line-height: 0;
+            position: relative;
+        }
+
+        /* ⬚ dotted square — stat box icon */
+        .stat-icon-box { font-size: 13px; font-weight: normal; font-family: Arial, sans-serif; display: inline-flex; align-items: center; justify-content: center; text-shadow: 0.25px 0.25px 0 currentColor, -0.25px -0.25px 0 currentColor, 0.25px -0.25px 0 currentColor, -0.25px 0.25px 0 currentColor; }
+        /* ⌗ owners icon — pure brutalist grid symbol */
+        .stat-icon-owners { font-size: 13px; font-weight: normal; font-family: Arial, sans-serif; display: inline-flex; align-items: center; justify-content: center; }
+
+        /* Desktop specific sizes */
+        @media (min-width: 601px) {
+            .notif-list { max-height: 168px; } /* Exactly limits desktop pings cutoff cleanly */
+            .follow-badge { margin-left: 2px; }
+            .ico-mutual, .ico-following, .ico-followers { font-size: 22px; top: 2px; }
+            .info-rubik .ico-mutual, .info-rubik .ico-following, .info-rubik .ico-followers { font-size: 22px; top: 3px; }
+            .info-rubik .artist-tag { top: 3px; }
+            .stat-icon-box { font-size: 19px; text-shadow: 0.10px 0.10px 0 currentColor, -0.25px -0.25px 0 currentColor, 0.25px -0.25px 0 currentColor, -0.25px 0.25px 0 currentColor; }
+            .stat-icon-owners { font-size: 14px; text-shadow: none; }
+            .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
+            .meta-owner { font-size: 13px; opacity: 0.7; }
+            
+            #sn-mutualsOnly .st-icon { font-size: 20px; transform: translateY(1px); } 
+            #sn-mints .st-icon { font-size: 18px !important; transform: translateY(-1px) !important; }
+            /* Artist filter pill icons - desktop sizes and vertical nudge */
+            .pill-artist-filter[data-rel="mutual"] span { font-size: 15px; transform: translateY(-3px); display: inline-block; }
+            .pill-artist-filter[data-rel="following"] span { font-size: 13px; transform: translateY(-4px); display: inline-block; }
+            .pill-artist-filter[data-rel="followers"] span { font-size: 13px; transform: translateY(-4px); display: inline-block; }
+        }
+
+        /* Mobile overrides */
+        @media (max-width: 600px) {
+            .user-icon { position: relative; top: 1px; }
+            .nav-ico-followers { font-size: 22px !important; }
+            .nav-follower-stats .nav-ico { line-height: 0; position: relative; top: -2px; }
+            .global-search-input::placeholder { font-size: 12px; }
+            .search-input::placeholder { font-size: 12px; }
+            .stat-icon-owners { font-size: 23px; position: relative; top: -2px; }
+            .stat-icon-box { font-size: 14px; }
+            .artist-lockup .ico-mutual { top: 0px; }
+            .artist-lockup .ico-following, .artist-lockup .ico-followers { top: 2px; }
+            .info-rubik { line-height: 1.25 !important; display: inline-block; padding-top: 4px; font-size: 11px !important; }
+            .info-rubik .ico-mutual, .info-rubik .ico-following, .info-rubik .ico-followers { font-size: 16px !important; top: -2px; line-height: 0; }
+            .info-rubik .follow-badge { line-height: 0; display: inline-flex; align-items: center; vertical-align: middle; }
+            .info-rubik .artist-tag { line-height: 0; display: inline-block; vertical-align: middle; top: -2px; }
+            .artist-lockup .artist-tag { font-size: 25px; top: 2px; }
+            .f-time { width: 60px; font-size: 11px; }
+            .f-type { width: 44px; font-size: 11px; }
+            .feed-row { gap: 8px; }
+            .f-content .ico-mutual, .f-content .ico-following, .f-content .ico-followers { top: 2px; }
+            .f-content .artist-tag { top: 2px; font-size: 23px; }
+            .feed-sort-dollar { font-weight: bold !important; }
+            .modal-fields { grid-template-columns: minmax(80px, 25%) 1fr; width: 100%; }
+            .mf-val { width: 100%; justify-content: space-between; word-break: break-all; }
+            
+            /* Settings Panel Mobile Overrides */
+            #sn-profileTheme .st-icon { font-size: 14px !important; }
+            .settings-toggle .st-icon { transform: translateY(-1px); }
+            .settings-sort-arrow { transform: translateY(-2px); display: inline-block; }
+            .balance-toggle-icon { font-size: 19px !important; top: 0px !important; }
+            
+            /* Mobile-only ping icon nudges */
+            #sn-mints .st-icon { transform: translateY(1px) !important; }
+            #sn-lists .st-icon, #sn-offers .st-icon, #sn-xfers .st-icon { transform: translateY(0px) !important; }
+            #sn-mutualsOnly .st-icon { transform: translateY(-1px) !important; }
+
+            /* Artists Menu Specific Overrides */
+            #artistsList { max-height: 280px; }
+            .artist-rel-icon[title="Followers"] { font-size: 22px !important; transform: translateY(1px); }
+            .artist-rel-icon[title="Following"] { font-size: 16px !important; transform: translateY(1px); }
+            .artist-rel-icon[title="Mutual"]    { font-size: 18px !important; transform: translateY(1px); }
+            .pill-artist-filter[data-rel="followers"] span { font-size: 15px; }
+        }
+
+        .hero-group-2 { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+        @media (min-width: 601px) {
+            .hero-group-2 { align-items: stretch; }
+        }
+        .action-row { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; align-self: flex-start; }
+
+
+        .btn-mint {
+            background-color: var(--mint-bg); background-image: var(--mint-bg-img); color: var(--mint-text); border: 1px solid var(--mint-border);
+            padding: 0 24px; height: 46px; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .mint-lbl { font-family: 'Rubik Mono One', sans-serif; font-size: 16px; font-weight: normal; }
+        .mint-price { font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; opacity: 0.85; }
+
+        .btn-soundtrack {
+            background: var(--bg-color); color: var(--text-color); border: 1px solid var(--text-color);
+            padding: 0 12px; height: 28px; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold;
+            cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-icon-play { font-family: Arial, sans-serif; font-size: 10px; line-height: 0; display: inline-flex; align-items: center; justify-content: center; }
+
+        /* TRAITS & SORTS */
+        .traits-ui { max-width: 1400px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; align-self: flex-start; }
+        @media (min-width: 601px) {
+            .traits-ui { width: 100%; }
+        }
+        .traits-header-bar { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .stats-container { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+
+        .pill { display: flex; gap: 6px; padding: 0 10px; height: 28px; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; user-select: none; align-items: center; font-size: 12px; font-weight: bold; box-sizing: border-box; }
+        
+        .pill-l1 { background-color: var(--pill-l1-bg); background-image: var(--pill-l1-bg-img); color: var(--pill-l1-text); border: 1px solid var(--pill-l1-border); }
+        .pill-l1.active { background-color: var(--bg-color); background-image: none; color: var(--text-color); border-color: var(--text-color); opacity: 1 !important; }
+        .pill-l1.dimmed { opacity: 0.7; }
+        .pill-l1 .badge { background: var(--bg-color); color: var(--text-color); border-radius: 4px; padding: 0 5px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 0; box-sizing: border-box; }
+        .pill-l1.active .badge { background: var(--text-color); color: var(--bg-color); }
+        
+        .pill-l2 { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); }
+        .pill-l2.active { background: var(--text-color); color: var(--bg-color); border: 1px solid var(--text-color); opacity: 1 !important; }
+        .pill-l2.dimmed { opacity: 0.7; }
+        
+        .pill-l3 { background: var(--stat-bg); color: var(--text-color); border: 1px solid transparent; }
+        .pill-l3.active { background: var(--stat-active-bg); color: var(--stat-active-text); border: 1px solid var(--stat-active-bg); }
+        .pill-l3.dimmed { opacity: 0.6; }
+        .pill-l3.is-zero { opacity: 0.6; background: transparent; border: 1px dashed rgba(120,120,120,0.5); }
+
+        .sort-bar { display: flex; align-items: center; gap: 16px; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; color: var(--text-color); flex-wrap: wrap; margin: 0; align-self: flex-start; }
+        .theme-pills { display: flex; gap: 6px; margin-right: 6px; }
+        .pill-theme { background: var(--stat-bg); border: 1px solid var(--border-color); color: var(--text-color); width: 32px; height: 28px; padding: 0; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .pill-theme span { font-size: 18px; font-weight: normal; font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; }
+        .pill-theme.active { border-color: var(--text-color); background: var(--text-color); color: var(--bg-color); }
+        
+        .sort-btn { cursor: pointer; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; opacity: 0.7; }
+        .sort-btn.active { opacity: 1; color: var(--accent); }
+        .sort-btn.active .sort-lbl { text-decoration: underline; text-underline-offset: 4px; }
+        .sort-arrow { font-size: 15px; font-family: Arial, sans-serif; font-weight: normal; display: inline-block; }
+
+        /* Search btn */
+        .search-btn { cursor: pointer; font-size: 22px; font-family: Arial, sans-serif; opacity: 0.7; transition: opacity 0.2s, text-decoration: 0.2s; user-select: none; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; height: 28px; margin-left: 5px; font-weight: normal; text-decoration: none; }
+        .search-btn.active { opacity: 1; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; font-weight: normal; }
+        @media (max-width: 600px) { .search-btn { font-size: 26px; margin-left: 5px; } }
+
+        #traitCategories { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+
+        .search-row {
+            display: none; align-items: center; gap: 10px; padding: 0 0 4px 0;
+        }
+        .search-row.open { display: flex; width: 100%; max-width: 480px; }
+        @media (min-width: 601px) {
+            .search-row.open { max-width: 467px; }
+        }
+        .search-input {
+            flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--text-color);
+            outline: none; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold;
+            color: var(--text-color); padding: 4px 0; caret-color: var(--text-color); min-width: 0;
+        }
+        .search-input::placeholder { opacity: 0.65; font-weight: normal; color: var(--text-color); font-size: 13px; }
+        .search-clear { cursor: pointer; opacity: 0.6; font-family: Arial, sans-serif; font-size: 16px; line-height: 1; transition: opacity 0.2s; flex-shrink: 0; color: var(--text-color); }
+        .search-clear:hover { opacity: 1; }
+
+        @media (min-width: 601px) { .sort-bar { font-size: 14px; } }
+
+        /* --- GRID & FEED --- */
+        #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 10px 40px 100px 40px; min-height: 100vh; align-items: start; align-content: start; }
+        .edition-card { display: flex; flex-direction: column; gap: 8px; align-self: start; }
+        .edition-card.hidden { display: none !important; }
+        .edition-card.search-hidden { display: none !important; }
+
+        .edition-content { cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; gap: 8px; }
+
+        .canvas-wrapper { width: 100%; background: #ccc; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+        .edition-canvas { display: block; width: 100%; height: auto; opacity: 0; transition: opacity 0.5s ease-in; }
+        .edition-canvas.visible { opacity: 1; }
+
+        .hover-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; z-index: 10; }
+        .hover-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000000; opacity: 0.85; }
+        .hover-icons { position: relative; z-index: 1; display: flex; gap: 16px; }
+        .hi-icon { font-size: 18px; font-family: Arial, sans-serif; line-height: 1; color: #e0e0e0; transition: transform 0.2s; }
+        .hi-icon.active-star { color: #fff; }
+
+        .meta { font-size: 12px; display: flex; justify-content: space-between; align-items: center; padding-top: 6px; padding-bottom: 14px; color: var(--text-color); height: 20px; box-sizing: content-box; position: relative; }
+        .meta-id { font-family: 'Rubik Mono One', sans-serif; font-size: 12px; font-weight: normal; display: flex; align-items: center; }
+        
+        .badge-owned {
+            display: inline-flex; width: 14px; height: 14px; border-radius: 50%;
+            border: 1px solid var(--text-color); background: transparent; color: var(--text-color);
+            align-items: center; justify-content: center; margin-left: 6px;
+        }
+        .css-check {
+            display: block; width: 3px; height: 6px; border-bottom: 1px solid currentColor; border-right: 1px solid currentColor;
+            transform: rotate(45deg); margin-bottom: 2px;
+        }
+
+        .meta-owner { opacity: 0.6; font-family: 'Courier New', Courier, monospace; font-weight: bold; white-space: nowrap; transition: opacity 0.3s; }
+        .price-trigger { cursor: pointer; text-decoration: none; font-family: 'Rubik Mono One', sans-serif; font-weight: normal; opacity: 1; }
+
+        /* Activity Feed Style */
+        #activity-feed { display: none; padding: 10px 40px 100px 40px; }
+        .feed-list { display: flex; flex-direction: column; max-width: 800px; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; }
+        .feed-row { display: flex; gap: 15px; padding: 12px 0; position: relative; align-items: flex-start; color: var(--text-color); transition: background 0.2s, padding-left 0.2s; }
+        .feed-line { position: absolute; left: 6px; top: 30px; bottom: -12px; width: 1px; border-left: 1px dashed var(--border-color); }
+        .feed-row:last-child .feed-line { display: none; }
+        .f-icon-wrap { width: 14px; text-align: center; font-size: 18px; font-family: Arial, sans-serif; z-index: 1; opacity: 0.9; }
+        .f-time { width: 90px; opacity: 0.5; flex-shrink: 0; white-space: nowrap; }
+        .f-type { width: 65px; text-transform: uppercase; flex-shrink: 0; }
+        .f-content { flex: 1; }
+        .f-content .ico-mutual, .f-content .ico-following, .f-content .ico-followers { line-height: 0; position: relative; top: 3px; }
+        .f-content .artist-tag { line-height: 0; position: relative; top: 3px; }
+        .f-highlight { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+        /* --- MODALS --- */
+        .platform-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--modal-bg); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
+            padding: calc(60px + env(safe-area-inset-top)) 20px 20px 20px; box-sizing: border-box; opacity: 0; transition: opacity 0.3s, background 0.3s; color: var(--text-color);
+        }
+        .platform-modal.active { display: flex; opacity: 1; }
+        #modal { justify-content: flex-start; }
+
+        .modal-canvas-wrap { flex: 1; width: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; position: relative; }
+        #modalCanvas { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,0.25); user-select: none; }
+        
+        .modal-info { flex-shrink: 0; margin-top: 16px; padding-bottom: env(safe-area-inset-bottom, 15px); width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .modal-title { font-family: 'Rubik Mono One', sans-serif; font-weight: normal; font-size: 20px; text-align: center; }
+        .modal-theme-row { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .modal-buy-row { display: flex; justify-content: center; margin-top: 12px; }
+        
+        .modal-fields-wrap { display: flex; justify-content: center; width: 100%; }
+        .modal-fields { display: grid; grid-template-columns: max-content max-content; gap: 10px 15px; font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; align-items: center; }
+        .mf-lbl { text-align: right; opacity: 0.6; text-transform: uppercase; }
+        
+        .mf-val { 
+            display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: max-content; box-sizing: border-box;
+            background: var(--stat-bg); padding: 8px 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--border-color); color: var(--text-color);
+        }
+        .mf-val.hover-link { cursor: pointer; transition: all 0.2s; justify-content: flex-start; }
+        .mf-copy { cursor: pointer; font-family: Arial, sans-serif; line-height: 1; text-decoration: none; opacity: 0.7; transition: opacity 0.2s, color 0.2s; flex-shrink: 0; }
+
+        .collectors-list { max-height: 250px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior: contain; }
+        .collectors-list::-webkit-scrollbar { display: none; }
+        .modal-stats-bottom { margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; opacity: 0.8; text-align: center;}
+
+        .close-hint { position: absolute; top: max(20px, env(safe-area-inset-top)); right: 30px; font-size: 30px; cursor: pointer; color: var(--text-color); z-index: 1002; font-family: Arial, sans-serif; }
+
+        .modal-nav-pill {
+            width: 32px; height: 32px; border-radius: 4px; cursor: pointer; user-select: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--stat-bg); border: 1px solid var(--border-color); color: var(--text-color);
+            font-size: 18px; font-family: Arial, sans-serif; transition: all 0.2s; flex-shrink: 0;
+            line-height: 1;
+        }
+        
+        /* HOVER FIX FOR MOBILE & DYNAMIC DARK MODE */
+        @media (hover: hover) {
+            .pd-logo-wrap:hover, .nav-controls:hover { opacity: 1 !important; }
+            .petey-bubble a:hover { opacity: 0.6; }
+            .btn-user:hover { color: var(--btn-user-hover); opacity: 1; }
+            .user-dropdown a:hover { border-left: 2px solid var(--bg-color); background: rgba(128,128,128,0.2); color: inherit; }
+            .dropdown-pill:hover { background: var(--bg-color); color: var(--text-color); transform: translateY(-1px); }
+            .scroll-arrow:hover { opacity: 1; color: inherit; }
+            .notif-item:hover { background: rgba(128,128,128,0.2); }
+            .stat-item:hover { opacity: 0.7; }
+            .profile-link:hover { opacity: 0.6; text-decoration: underline !important; text-underline-offset: 3px; }
+            .open-modal-text:hover { opacity: 0.6; }
+            .btn-mint:hover { opacity: 0.8; transform: translateY(-1px); }
+            .btn-soundtrack:hover { background: var(--text-color); color: var(--bg-color); }
+            .pill:hover { transform: translateY(-1px); }
+            .pill-theme:hover { transform: translateY(-1px); border-color: var(--text-color); }
+            .sort-btn:hover { opacity: 1; color: var(--accent); }
+            .search-btn:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+            .edition-content:hover { transform: translateY(-2px); }
+            .hi-icon:hover { transform: translateY(-3px); color: #fff; }
+            .edition-content:hover .hover-overlay { opacity: 1; }
+            .price-trigger:hover { text-decoration: underline; text-underline-offset: 3px; }
+            .feed-row:hover { background: var(--stat-bg); padding-left: 10px; border-radius: 4px; }
+            .f-highlight:hover { opacity: 0.6; }
+            .mf-val.hover-link:hover { color: var(--bg-color); background: var(--text-color); }
+            .mf-copy:hover { opacity: 1; color: var(--accent); }
+            .nav-arrow:hover { opacity: 1; }
+            .search-clear:hover { opacity: 1; }
+            .modal-nav-pill:hover { border-color: var(--text-color); opacity: 1; }
+            
+            /* Clean touch states for UI settings */
+            .settings-wallet:hover { opacity: 0.7; }
+            .settings-toggle:hover { opacity: 0.8; }
+            .pill-ens:hover { opacity: 0.8; border-style: solid; }
+            .balance-toggle-icon:hover { opacity: 1 !important; }
+            .pill-artist-filter:hover { opacity: 0.8; }
+            .artist-row:hover { opacity: 1; background: transparent; }
+        }
+        .modal-nav-pill:active { transform: scale(0.92); }
+
+        /* --- MOBILE --- */
+        @media (max-width: 600px) {
+            .navbar { padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px; }
+            .collection-hero { padding: 10px 20px 20px 20px; }
+            #gallery, #activity-feed { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 10px 20px; }
+            .platform-modal { padding: calc(60px + env(safe-area-inset-top)) 20px 20px 20px; }
+            
+            .hero-group-2 { gap: 16px; } 
+            .traits-header-bar { flex-direction: column; }
+            .sort-bar { gap: 15px; margin-top: 0; }
+            .pill-theme.t-light span, .pill-theme.t-dark span { font-size: 22px; }
+        }
+        @media (pointer: coarse) {
+            .nav-arrow { display: none; }
+            .hover-overlay { display: none; }
+        }
+        body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="pd-logo-wrap">
+            <div class="pd-logo" onclick="triggerEasterEgg(this)">
+                <svg class="logo-default" viewBox="0 0 761 655" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M85.2021 548.561C42.8699 529.988 15.6745 498.753 4.19883 454.463C1.48652 443.995 0.274671 432.855 0.244021 422.019C-0.0236921 327.349 -0.138982 232.675 0.255934 138.005C0.54681 68.2708 52.8591 9.92044 122.093 1.22737C128.083 0.475297 134.204 0.613785 140.264 0.603791C175.854 0.545177 211.443 0.598222 247.032 0.55311C370.084 0.397073 493.136 0.268937 616.187 0.000470443C641.114 -0.0539179 664.926 4.60223 686.744 16.7622C729.923 40.8271 755.566 77.412 759.522 126.875C761.87 156.23 760.704 185.883 760.754 215.403C760.868 282.494 760.87 349.586 760.668 416.677C760.605 437.544 757.771 457.979 748.71 477.184C727.938 521.211 693.705 547.895 645.88 556.789C636.911 558.457 627.619 558.964 618.471 559.006C569.559 559.235 520.645 559.196 471.731 559.083C467.266 559.073 464.145 560.266 461.121 563.704C436.981 591.159 412.59 618.395 388.391 645.798C378.113 657.437 364.265 658.326 353.773 646.799C333.506 624.535 313.712 601.841 293.735 579.312C288.937 573.901 284.484 568.14 279.288 563.147C277.067 561.014 273.355 559.337 270.31 559.321C227.855 559.096 185.396 559.009 142.941 559.297C123.079 559.432 104.097 555.667 85.2021 548.561Z" fill="currentColor"/>
+                    <path d="M564.413 318.773C555.823 317.223 547.291 315.061 538.632 314.244C517.392 312.239 498.825 318.448 484.023 334.217C481.368 337.046 479.939 336.415 477.387 334.249C472.203 329.851 467.097 325.037 461.162 321.904C440.592 311.044 418.923 311.324 397.503 318.615C376.076 325.909 360.791 340.458 354.626 362.568C349.523 380.87 349.701 399.887 353.682 418.343C359.769 446.564 381.205 464.964 410.61 469.341C436.248 473.158 459.824 470.164 478.296 449.641C481.259 446.349 483.009 448.684 484.929 450.646C491.699 457.565 499.109 463.403 508.531 466.482C522.601 471.081 536.778 471.095 551.349 469.393C577.445 466.344 601.157 447.291 606.842 421.584C609.543 409.373 609.216 396.409 609.52 383.768C610.225 354.439 593.273 329.264 564.413 318.773ZM293.97 270.436C304.87 263.703 313.412 254.807 319.121 243.255C330.605 220.02 328.412 195.353 326.627 170.769C326.335 166.735 325.16 162.689 323.888 158.815C315.53 133.362 298.551 116.884 272.121 111.537C253.092 107.687 233.884 107.554 216.063 116.838C194.33 128.16 180.8 146.181 178.048 170.566C176.374 185.406 176.917 200.617 177.739 215.591C178.943 237.537 188.442 255.882 207.135 267.713C234.885 285.275 263.982 284.555 293.97 270.436ZM348.806 312.356C391.815 248.872 435.897 186.106 477.553 120.908C465.934 119.774 454.846 120.106 443.791 119.639C438.018 119.394 434.67 121.278 431.414 126.12C396.717 177.729 361.947 229.292 326.806 280.599C285.48 340.934 243.763 401.002 202.245 461.206C201.337 462.524 200.775 464.08 199.579 466.468C214.173 466.468 227.617 466.599 241.052 466.298C242.692 466.261 244.713 464.196 245.83 462.571C280.051 412.77 314.181 362.906 348.806 312.356Z" fill="var(--bg-color)" stroke="var(--bg-color)" stroke-width="1.5"/>
+                    <path d="M507.266 410.237C506.947 398.666 505.667 387.443 506.861 376.489C508.487 361.575 520.49 353.604 537.53 354.185C550.555 354.63 561.421 364.77 562.428 378.491C563.126 388.011 563.056 397.654 562.449 407.186C561.691 419.107 553.013 427.626 540.709 429.728C523.198 432.721 513.649 427.265 507.266 410.237Z" fill="currentColor"/>
+                    <path d="M444.737 425.35C434.349 431.954 423.524 432.537 413.125 427.669C402.753 422.813 398.864 413.051 398.51 402.069C398.259 394.282 398.135 386.396 399.052 378.685C400.753 364.387 411.955 354.729 425.125 354.126C443.139 353.301 452.558 363.567 454.084 378.15C455.187 388.693 454.813 399.608 453.342 410.111C452.604 415.382 447.949 420.103 444.737 425.35Z" fill="currentColor"/>
+                    <path d="M278.519 194.495C277.378 204.322 277.17 213.805 274.859 222.745C272.113 233.368 264.783 237.631 253.212 237.735C240.318 237.852 233.177 233.613 229.29 223.142C224.817 211.096 225.515 198.537 226.23 186.048C226.518 181.002 227.018 175.882 228.217 170.99C231.199 158.815 238.713 153.213 251.95 152.618C264.255 152.064 271.812 156.478 275.274 168.588C277.587 176.677 277.522 185.446 278.519 194.495Z" fill="currentColor"/>
+                </svg>
+                <span class="logo-price" style="display:none; height: 28px; width: auto; align-items: center; justify-content: center;">
+                    <svg height="100%" width="auto" viewBox="0 0 517 403" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M402.943 0.000288893C418.273 -0.0331421 432.917 2.83163 446.334 10.3132C472.888 25.1195 488.658 47.629 491.091 78.0617C492.535 96.1232 491.818 114.368 491.849 132.53C491.919 173.809 491.92 215.089 491.796 256.368C491.757 269.206 490.014 281.78 484.442 293.596C471.668 320.684 450.615 337.102 421.204 342.574C415.688 343.601 409.974 343.912 404.348 343.938C374.268 344.079 344.186 344.055 314.106 343.986C311.36 343.979 309.44 344.713 307.581 346.829C292.735 363.721 277.735 380.478 262.853 397.339C256.532 404.499 248.016 405.046 241.563 397.954C229.099 384.256 216.927 370.293 204.642 356.432C201.691 353.103 198.952 349.558 195.757 346.486C194.391 345.174 192.108 344.142 190.236 344.132C164.126 343.993 138.015 343.94 111.906 344.117C99.6913 344.2 88.0179 341.884 76.3977 337.512C50.3642 326.084 33.6398 306.866 26.5824 279.616C24.9144 273.175 24.169 266.321 24.1501 259.654C23.9855 201.407 23.9145 143.157 24.1573 84.9102C24.3362 42.0049 56.5072 6.10359 99.0847 0.754953C102.768 0.29223 106.533 0.377761 110.26 0.371612C132.147 0.335549 154.033 0.368124 175.92 0.340368C251.594 0.244364 327.269 0.165467 402.943 0.000288893Z" fill="#FF0055"/>
+                        <path d="M56.14 138.002C64.9133 138.002 72.5667 139.495 79.1 142.482C85.6333 145.468 90.6267 149.528 94.08 154.662C97.5333 159.795 99.26 165.535 99.26 171.882C99.26 182.335 95.9933 190.548 89.46 196.522C82.9267 202.402 71.82 205.342 56.14 205.342H37.66V232.222C37.66 233.248 37.2867 234.135 36.54 234.882C35.7933 235.628 34.9067 236.002 33.88 236.002H3.78C2.75333 236.002 1.86666 235.628 1.12 234.882C0.373328 234.135 0 233.248 0 232.222V141.782C0 140.755 0.373328 139.868 1.12 139.122C1.86666 138.375 2.75333 138.002 3.78 138.002H56.14ZM55.58 179.442C57.82 179.442 59.5933 178.788 60.9 177.482C62.2067 176.082 62.86 174.262 62.86 172.022C62.86 169.688 62.2067 167.775 60.9 166.282C59.5933 164.788 57.82 164.042 55.58 164.042H37.8V179.442H55.58Z" fill="#FFE600"/>
+                        <path d="M203.785 231.662C203.972 232.035 204.065 232.455 204.065 232.922C204.065 233.762 203.739 234.508 203.085 235.162C202.525 235.722 201.825 236.002 200.985 236.002H169.205C167.899 236.002 166.685 235.675 165.565 235.022C164.539 234.368 163.792 233.528 163.325 232.502L151.005 204.782H139.245V232.222C139.245 233.248 138.872 234.135 138.125 234.882C137.379 235.628 136.492 236.002 135.465 236.002H105.225C104.199 236.002 103.312 235.628 102.565 234.882C101.819 234.135 101.445 233.248 101.445 232.222V141.782C101.445 140.755 101.819 139.868 102.565 139.122C103.312 138.375 104.199 138.002 105.225 138.002H159.685C168.085 138.002 175.412 139.355 181.665 142.062C188.012 144.768 192.865 148.688 196.225 153.822C199.585 158.955 201.265 164.975 201.265 171.882C201.265 184.575 196.365 193.768 186.565 199.462L203.785 231.662ZM156.745 178.882C158.799 178.882 160.385 178.228 161.505 176.922C162.625 175.522 163.185 173.795 163.185 171.742C163.185 169.688 162.625 167.915 161.505 166.422C160.479 164.835 158.892 164.042 156.745 164.042H139.245V178.882H156.745Z" fill="#FFE600"/>
+                        <path d="M273.591 207.302H298.931C299.957 207.302 300.844 207.675 301.591 208.422C302.337 209.168 302.711 210.055 302.711 211.082V232.222C302.711 233.248 302.337 234.135 301.591 234.882C300.844 235.628 299.957 236.002 298.931 236.002H210.171C209.144 236.002 208.257 235.628 207.511 234.882C206.764 234.135 206.391 233.248 206.391 232.222V211.082C206.391 210.055 206.764 209.168 207.511 208.422C208.257 207.675 209.144 207.302 210.171 207.302H235.791V166.702H210.171C209.144 166.702 208.257 166.328 207.511 165.582C206.764 164.835 206.391 163.948 206.391 162.922V141.782C206.391 140.755 206.764 139.868 207.511 139.122C208.257 138.375 209.144 138.002 210.171 138.002H298.931C299.957 138.002 300.844 138.375 301.591 139.122C302.337 139.868 302.711 140.755 302.711 141.782V162.922C302.711 163.948 302.337 164.835 301.591 165.582C300.844 166.328 299.957 166.702 298.931 166.702H273.591V207.302Z" fill="#FFE600"/>
+                        <path d="M348.016 198.202C348.016 202.028 349.276 204.968 351.796 207.022C354.409 209.075 357.909 210.102 362.296 210.102C366.216 210.102 369.109 209.448 370.976 208.142C372.843 206.835 374.429 204.875 375.736 202.262C376.949 199.835 378.583 198.622 380.636 198.622H410.876C411.716 198.622 412.416 198.948 412.976 199.602C413.629 200.162 413.956 200.862 413.956 201.702C413.956 207.395 412.043 212.995 408.216 218.502C404.389 223.915 398.556 228.442 390.716 232.082C382.969 235.628 373.496 237.402 362.296 237.402C352.309 237.402 343.396 235.908 335.556 232.922C327.809 229.842 321.649 225.175 317.076 218.922C312.503 212.575 310.216 204.688 310.216 195.262V178.742C310.216 169.315 312.503 161.475 317.076 155.222C321.649 148.875 327.809 144.208 335.556 141.222C343.396 138.142 352.309 136.602 362.296 136.602C373.496 136.602 382.969 138.422 390.716 142.062C398.556 145.608 404.389 150.135 408.216 155.642C412.043 161.055 413.956 166.608 413.956 172.302C413.956 173.142 413.629 173.888 412.976 174.542C412.416 175.102 411.716 175.382 410.876 175.382H380.636C378.583 175.382 376.949 174.168 375.736 171.742C374.429 169.128 372.843 167.168 370.976 165.862C369.109 164.555 366.216 163.902 362.296 163.902C357.909 163.902 354.409 164.928 351.796 166.982C349.276 169.035 348.016 171.975 348.016 175.802V198.202Z" fill="#FFE600"/>
+                        <path d="M512.601 208.702C513.628 208.702 514.515 209.075 515.261 209.822C516.008 210.568 516.381 211.455 516.381 212.482V232.222C516.381 233.248 516.008 234.135 515.261 234.882C514.515 235.628 513.628 236.002 512.601 236.002H424.121C423.095 236.002 422.208 235.628 421.461 234.882C420.715 234.135 420.341 233.248 420.341 232.222V141.782C420.341 140.755 420.715 139.868 421.461 139.122C422.208 138.375 423.095 138.002 424.121 138.002H511.201C512.228 138.002 513.115 138.375 513.861 139.122C514.608 139.868 514.981 140.755 514.981 141.782V161.522C514.981 162.548 514.608 163.435 513.861 164.182C513.115 164.928 512.228 165.302 511.201 165.302H456.741V174.122H503.501C504.528 174.122 505.415 174.495 506.161 175.242C506.908 175.988 507.281 176.875 507.281 177.902V196.102C507.281 197.128 506.908 198.015 506.161 198.762C505.415 199.508 504.528 199.882 503.501 199.882H456.741V208.702H512.601Z" fill="#FFE600"/>
+                    </svg>
+                </span>
+            </div>
+            <div class="petey-bubble" id="peteyBubble">
+                <a href="https://pdsim.netlify.app/collection" class="pb-home">HOME</a>
+                <a href="https://pdsim.netlify.app/collection" class="pb-price">$PRICE</a>
+            </div>
+        </div>
+
+        <div class="nav-controls user-menu-wrapper">
+            <button class="btn-user" id="btnUser" aria-label="Toggle User Menu">
+                <span class="user-icon">⟠&#xFE0E;</span>
+                <span class="user-text">@brendon</span>
+            </button>
+            <div class="dropdown-stack">
+                <div class="user-dropdown">
+                    <!-- Global Search at top -->
+                    <div class="global-search-wrap">
+                        <!-- Dormant state: looks like a nav item -->
+                        <div class="search-dormant-label" id="searchDormant" onclick="activateSearch()">
+                            <svg class="globe-icon" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+                                <ellipse cx="50" cy="50" rx="44" ry="44"/>
+                                <ellipse cx="50" cy="50" rx="18" ry="44" transform="rotate(20 50 50)"/>
+                                <ellipse cx="50" cy="50" rx="36" ry="44" transform="rotate(20 50 50)"/>
+                                <ellipse cx="50" cy="32" rx="38" ry="10" transform="rotate(10 50 50)"/>
+                                <ellipse cx="50" cy="50" rx="44" ry="12" transform="rotate(10 50 50)"/>
+                                <ellipse cx="50" cy="68" rx="38" ry="10" transform="rotate(10 50 50)"/>
+                            </svg>
+                            <span class="search-dormant-text">Global Search</span>
+                        </div>
+                        <!-- Active state: inset grey bar -->
+                        <div class="global-search-field" id="searchActive" style="display:none;">
+                            <svg class="globe-icon" id="globeIcon" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+                                <ellipse cx="50" cy="50" rx="44" ry="44"/>
+                                <ellipse cx="50" cy="50" rx="18" ry="44" transform="rotate(20 50 50)"/>
+                                <ellipse cx="50" cy="50" rx="36" ry="44" transform="rotate(20 50 50)"/>
+                                <ellipse cx="50" cy="32" rx="38" ry="10" transform="rotate(10 50 50)"/>
+                                <ellipse cx="50" cy="50" rx="44" ry="12" transform="rotate(10 50 50)"/>
+                                <ellipse cx="50" cy="68" rx="38" ry="10" transform="rotate(10 50 50)"/>
+                            </svg>
+                            <input class="global-search-input" id="globalSearchInput" type="text" placeholder="type to search pd" autocomplete="off" enterkeyhint="done" oninput="handleGlobalSearch(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" />
+                        </div>
+                        <div class="global-search-results" id="globalSearchResults"></div>
+                    </div>
+                    <div class="dropdown-menu-links" id="dropdownMenuLinks" style="margin-top:-4px;">
+                        <a href="https://pdsim.netlify.app/profile" style="display: flex; align-items: center; justify-content: flex-start;">
+                            Profile 
+                            <span class="nav-follower-stats">
+                                <span class="nav-ico nav-ico-followers" title="Followers">⚬&#xFE0E;</span> &nbsp;<b onclick="openFollowersModal('followers')">850</b> 
+                                <span class="nav-ico nav-ico-following" style="margin-left:12px;" title="Following">⚯&#xFE0E;</span> &nbsp;<b onclick="openFollowersModal('following')">2.2k</b>
+                            </span>
+                        </a>
+                        <a href="#" onclick="openArtists(); return false;">Artists</a>
+                        <a href="https://discord.pricediscussion.com" target="_blank">Discord</a>
+                        <a href="#" onclick="openSettings(); return false;">Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-pill">Log Out <span class="logout-icon">↬&#xFE0E;</span></button>
+                    </div>
+
+                    <!-- Settings Panel -->
+                    <div id="settingsPanel" class="settings-panel" style="display:none; position: relative;">
+                        <div class="scroll-arrow" role="button" tabindex="0" onclick="closeSettings()" style="padding: 4px 10px 0 10px; font-size: 18px;">←&#xFE0E;</div>
+                        
+                        <!-- 1. WALLET -->
+                        <div class="settings-header">WALLET</div>
+                        <div class="settings-wallet" onclick="copyWallet(this)" data-orig="0x1234...abcd">
+                            0x1234...abcd <span class="icon-copy">⧉&#xFE0E;</span>
+                        </div>
+                        <div class="settings-ens-row">
+                            <div class="pill-ens active" onclick="selectENS(this)">↳ pricediscussion.eth</div>
+                            <div class="pill-ens" onclick="selectENS(this)">↳ brendon.eth</div>
+                        </div>
+                        <div class="settings-ens-row price-held-row" onclick="toggleBalance()" style="cursor: pointer; user-select: none; opacity: 0.6; font-size: 11px; margin-top: -6px; display: flex; align-items: center; gap: 6px;">
+                            <span id="priceBalanceText">17,450.54</span> PRICE
+                            <span class="balance-toggle-icon" style="font-size: 14px; position: relative; top: -1px; opacity: 0.8; transition: opacity 0.2s;" title="Toggle Balance Visibility">⊚&#xFE0E;</span>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- 2. MY PD -->
+                        <div class="settings-header">MY PD</div>
+                        <div class="settings-pill-row">
+                            <label class="settings-toggle" id="sn-profileTheme" style="position:relative; cursor:pointer;" title="Choose Profile Theme" onclick="toggleProfileTheme(event)">
+                                <span class="st-icon">◩&#xFE0E;</span> PROFILE THEME
+                                <input type="color" id="profileColorPicker" style="position:absolute; opacity:0; width:1px; height:1px; bottom:0; left:50%;" value="#FF0033" oninput="syncProfileHex(this.value)">
+                            </label>
+                            <input type="text" id="profileHexInput" value="#FF0033" class="hex-input" maxlength="7" spellcheck="false" oninput="syncProfileColor(this.value)" onchange="syncProfileColor(this.value)" />
+                            <span class="copy-hex-btn" onclick="copyProfileHex()">⧉&#xFE0E;</span>
+                        </div>
+                        <div class="settings-pill-row" style="padding-top: 0;">
+                            <div class="settings-toggle" id="sn-pureLight" onclick="togglePure('light')"><span class="st-icon">◻&#xFE0E;</span> PURE LIGHT</div>
+                            <div class="settings-toggle" id="sn-pureDark" onclick="togglePure('dark')"><span class="st-icon">◼&#xFE0E;</span> PURE DARK</div>
+                            <div class="settings-toggle" id="sn-priceLogo" onclick="togglePriceLogo()" style="padding: 0 4px; min-width: 0; width: auto;"><span class="st-icon price-strike" style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: bold; line-height: 1; letter-spacing: 0; margin: 0 2px;">‰&#xFE0E;</span></div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- 3. DEFAULT THEME -->
+                        <div class="settings-header">DEFAULT THEME</div>
+                        <div class="settings-pill-row theme-pills">
+                            <div class="pill-theme t-artist" role="button" tabindex="0" onclick="setAndSaveTheme('artist')" id="st-artist" title="Artist Default"><span>◩&#xFE0E;</span></div>
+                            <div class="pill-theme t-light" role="button" tabindex="0" onclick="setAndSaveTheme('light')" id="st-light" title="Light"><span>◻&#xFE0E;</span></div>
+                            <div class="pill-theme t-dark" role="button" tabindex="0" onclick="setAndSaveTheme('dark')" id="st-dark" title="Dark"><span>◼&#xFE0E;</span></div>
+                            <div class="pill-theme t-orange" role="button" tabindex="0" onclick="setAndSaveTheme('orange')" id="st-orange" title="Orange"><span>▨&#xFE0E;</span></div>
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- 4. DEFAULT SORT -->
+                        <div class="settings-header">DEFAULT SORT</div>
+                        <div class="settings-pill-row">
+                            <div class="settings-toggle" id="ss-id" onclick="setAndSaveSort('id', event)"># ID</div>
+                            <div class="settings-toggle" id="ss-price" onclick="setAndSaveSort('price', event)">&#36; PRICE</div>
+                            <div class="settings-toggle" id="ss-feed" onclick="setAndSaveSort('feed', event)">FEED</div>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <!-- 5. MY PINGS -->
+                        <div class="settings-header">MY PINGS</div>
+                        <div class="settings-pill-row">
+                            <div class="settings-toggle" id="sn-mints" onclick="toggleNotif('mints')"><span class="st-icon">✶&#xFE0E;</span> MINTS</div>
+                            <div class="settings-toggle" id="sn-lists" onclick="toggleNotif('lists')"><span class="st-icon">✹&#xFE0E;</span> LISTS</div>
+                            <div class="settings-toggle" id="sn-offers" onclick="toggleNotif('offers')"><span class="st-icon">✦&#xFE0E;</span> OFFERS</div>
+                            <div class="settings-toggle" id="sn-xfers" onclick="toggleNotif('xfers')"><span class="st-icon">✸&#xFE0E;</span> XFERS</div>
+                            <div class="settings-toggle" id="sn-mutualsOnly" onclick="toggleNotif('mutualsOnly')"><span class="st-icon">⚭&#xFE0E;</span> MUTUALS</div>
+                        </div>
+                        
+                        <div style="height: 10px;"></div>
+                    </div>
+
+                    <!-- Artists Panel -->
+                    <div id="artistsPanel" class="settings-panel" style="display:none; position: relative;">
+                        <div class="scroll-arrow" style="flex-shrink: 0; padding: 4px 10px 0 10px; font-size: 18px;" role="button" tabindex="0" onclick="closeArtists()">←&#xFE0E;</div>
+                        
+                        <div class="settings-header" style="flex-shrink: 0;">PD ARTISTS</div>
+
+                        
+                        <div id="artistsList" class="artists-list-container">
+                            <!-- JS populated -->
+                        </div>
+
+                        <div class="artists-filter-sticky">
+                            <input type="text" id="artistSearchInput" placeholder="[ type to filter ]" autocomplete="off" oninput="filterArtists()" spellcheck="false" />
+                            <div class="artist-filter-pills">
+                                <div class="pill-artist-filter" data-rel="mutual" onclick="toggleArtistFilter(this, 'mutual')"><span>⚭&#xFE0E;</span> Mutuals</div>
+                                <div class="pill-artist-filter" data-rel="following" onclick="toggleArtistFilter(this, 'following')"><span>⚯&#xFE0E;</span> Following</div>
+                                <div class="pill-artist-filter" data-rel="followers" onclick="toggleArtistFilter(this, 'followers')"><span>⚬&#xFE0E;</span> Followers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="user-dropdown notifications-box">
+                    <div class="notif-header">PINGS <span style="font-family: 'Courier New', Courier, monospace; font-size: 11px; margin-left: 6px;">(8)</span></div>
+                    <div class="dropdown-divider"></div>
+                    <div class="scroll-arrow" role="button" tabindex="0" onclick="scrollNotifs(-1)">⇡&#xFE0E;</div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-item"><span class="n-icon">✶&#xFE0E;</span> <span>@matty collected #14</span></div>
+                        <div class="notif-item"><span class="n-icon">✹&#xFE0E;</span> <span>@atlasforge listed #22</span></div>
+                        <div class="notif-item"><span class="n-icon">✦&#xFE0E;</span> <span>@Darold offered 0.5 ETH</span></div>
+                        <div class="notif-item"><span class="n-icon">✸&#xFE0E;</span> <span>@trinity transferred #12</span></div>
+                        <div class="notif-item"><span class="n-icon">✶&#xFE0E;</span> <span>@gmoney collected #88</span></div>
+                        <div class="notif-item"><span class="n-icon">✹&#xFE0E;</span> <span>@snowfro listed #1</span></div>
+                        <div class="notif-item"><span class="n-icon">✦&#xFE0E;</span> <span>@cspok offered 1.2 ETH</span></div>
+                        <div class="notif-item"><span class="n-icon">✸&#xFE0E;</span> <span>@XCOPY transferred #42</span></div>
+                    </div>
+                    <div class="scroll-arrow" role="button" tabindex="0" onclick="scrollNotifs(1)">⇣&#xFE0E;</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="collection-hero" aria-label="Collection Info">
+            <div class="hero-group-1">
+                <h1 class="collection-title">
+                    <span>KIKI</span><span class="collection-date">MAR 17 2026</span>
+                </h1>
+                
+                <div class="hero-line collection-artist">
+                    <span class="by-text">By</span> 
+                    <div class="artist-lockup">
+                        <span class="artist-name-wrap"><a href="/profile/brendon">@Brendon</a><span class="artist-tag" aria-label="artist">✺</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span></span><span class="follower-count">2.2k</span>
+                    </div>
+                </div>
+                
+                <div class="hero-line info-line">
+                    <span class="info-rubik">Collected by <a class="profile-link">@matty</a><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>, <a class="profile-link">@atlasforge</a>, <a class="profile-link">@rudxane</a><span class="artist-tag">✺</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span> <span class="open-modal-text" onclick="openCollectorsModal()">& 42 Others You Know</span></span>
+                </div>
+
+                <div class="hero-line stats-row">
+                    <span class="stat-item"><span class="stat-icon stat-icon-box">⬚&#xFE0E;</span> <span class="stat-val">2222/2222</span></span>
+                    <span class="stat-item stat-item-vol"><span class="stat-icon-eth">⟠&#xFE0E;</span> <span class="stat-val stat-val-vol">14.2 VOL</span></span>
+                    <span class="stat-item stat-item-owners" role="button" tabindex="0" onclick="openCollectorsModal()"><span class="stat-icon stat-icon-owners">⌗&#xFE0E;</span> <span class="stat-val stat-val-owners">1528 OWNERS</span></span>
+                </div>
+            </div>
+
+            <div class="hero-group-2">
+                <div class="action-row">
+                    <button class="btn-mint">
+                        <span class="mint-lbl">BUY</span>
+                        <span class="mint-price">(0.014 ETH)</span>
+                    </button>
+                    <a href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC" target="_blank" class="btn-soundtrack">
+                        <span class="btn-icon-play">▶&#xFE0E;</span> SOUNDTRACK
+                    </a>
+                </div>
+                
+                <div class="traits-ui">
+                    <div class="traits-header-bar">
+                        <div class="stats-container" id="traitCategories"></div>
+                    </div>
+                    
+                    <div class="stats-container" id="traitSubCategories" style="display: none;"></div>
+                    <div class="stats-container" id="statsOutput" style="display: none;"></div>
+                </div>
+                
+                <div class="sort-bar" id="sortOptions">
+                    <!-- Injected by JS -->
+                </div>
+                <div class="search-row" id="searchRow">
+                    <input class="search-input" id="searchInput" type="text" placeholder="# id, collector..." autocomplete="off" enterkeyhint="done" oninput="applySearch()" onkeydown="if(event.key==='Enter'){this.blur();}" />
+                    <span class="feed-price-range" id="feedPriceRange">
+                        <input class="price-input" id="feedPriceMin" type="number" placeholder="min" step="0.001" min="0" enterkeyhint="done" oninput="currentSort.startsWith('feed') ? renderFeed() : applySearch()" onkeydown="if(event.key==='Enter'){this.blur();}" />
+                        <span class="price-sep">–</span>
+                        <input class="price-input" id="feedPriceMax" type="number" placeholder="max" step="0.001" min="0" enterkeyhint="done" oninput="currentSort.startsWith('feed') ? renderFeed() : applySearch()" onkeydown="if(event.key==='Enter'){this.blur();}" />
+                        <span class="price-eth-label">ETH</span>
+                    </span>
+                    <span class="search-clear" onclick="closeSearch()" title="Clear">✕&#xFE0E;</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="gallery" aria-label="Gallery"></section>
+        
+        <section id="activity-feed" aria-label="Activity Feed">
+            <div class="feed-list" id="feedList">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- ARTWORK MODAL -->
+    <div id="modal" class="platform-modal" role="dialog" aria-modal="true">
+        <div class="close-hint" role="button" tabindex="0" onclick="closeModal()">&times;&#xFE0E;</div>
+        <div class="modal-canvas-wrap">
+            <canvas id="modalCanvas"></canvas>
+        </div>
+        <div class="modal-info">
+            <div class="modal-title" id="mTitle"></div>
+            <div class="modal-detail" id="mDetail"></div>
+        </div>
+    </div>
+
+    <!-- OWNERS MODAL -->
+    <div id="collectorsModal" class="platform-modal" role="dialog" aria-modal="true">
+        <div class="close-hint" role="button" tabindex="0" onclick="closeCollectorsModal()">&times;&#xFE0E;</div>
+        <div class="modal-info" style="margin-top: 0; max-width: 300px;">
+            <div class="modal-title" style="margin-bottom: 0;">OWNERS</div>
+            <div class="scroll-arrow dark-arrow" role="button" tabindex="0" onclick="scrollCollectors(-1)">⇡&#xFE0E;</div>
+            <div class="modal-fields-wrap collectors-list" id="collectorsList">
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; text-align: left; padding: 10px; font-weight: bold; font-family: 'Courier New', Courier, monospace;">
+                    <span class="hover-link" role="link" tabindex="0">You (3)</span>
+                    <span class="hover-link" role="link" tabindex="0">@matty (14)</span>
+                    <span class="hover-link" role="link" tabindex="0">@atlasforge (9)</span>
+                    <span class="hover-link" role="link" tabindex="0">@Darold (7)</span>
+                    <span class="hover-link" role="link" tabindex="0">@gmoney (5)</span>
+                    <span class="hover-link" role="link" tabindex="0">@thefunnyguys (4)</span>
+                    <span class="hover-link" role="link" tabindex="0">@ClownVamp (4)</span>
+                    <span class="hover-link" role="link" tabindex="0">@OtherDarold (3)</span>
+                    <span class="hover-link" role="link" tabindex="0">@Trinity (3)</span>
+                    <span class="hover-link" role="link" tabindex="0">@willpop (2)</span>
+                    <span class="hover-link" role="link" tabindex="0">@cspok (2)</span>
+                    <span class="hover-link" role="link" tabindex="0">@siggi<span class="artist-tag">✺</span> (2)</span>
+                    <span class="hover-link" role="link" tabindex="0">@CCDDBB<span class="artist-tag">✺</span> (1)</span>
+                </div>
+            </div>
+            <div class="scroll-arrow dark-arrow" role="button" tabindex="0" onclick="scrollCollectors(1)">⇣&#xFE0E;</div>
+            <div class="modal-stats-bottom">UNIQUE COLLECTORS: 68%</div>
+        </div>
+    </div>
+
+    <!-- FOLLOWERS/FOLLOWING/MUTUALS MODAL -->
+    <div id="followersModal" class="platform-modal" role="dialog" aria-modal="true">
+        <div class="close-hint" role="button" tabindex="0" onclick="closeFollowersModal()">&times;&#xFE0E;</div>
+        <div class="modal-info" style="margin-top: 0; max-width: 320px; width: 100%;">
+            <div style="display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; flex-wrap: wrap;">
+                <div class="pill pill-l2" id="fmTab-followers" role="button" tabindex="0" onclick="switchFollowersTab('followers')" style="cursor:pointer;">⚬&#xFE0E; FOLLOWERS</div>
+                <div class="pill pill-l2" id="fmTab-following" role="button" tabindex="0" onclick="switchFollowersTab('following')" style="cursor:pointer;">⚯&#xFE0E; FOLLOWING</div>
+                <div class="pill pill-l2" id="fmTab-mutuals" role="button" tabindex="0" onclick="switchFollowersTab('mutuals')" style="cursor:pointer;">⚭&#xFE0E; MUTUALS</div>
+            </div>
+            <div class="collectors-list" id="followersListWrap" style="max-height: 280px; width: 100%;">
+                <div id="followersList" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; text-align: left; padding: 6px 10px; font-weight: bold; font-family: 'Courier New', Courier, monospace;"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // =========================================================================
+    //    _______       __          __                  __   
+    //   |__   __|     | |         | |                 | |  
+    //      | |  __ _  | |__   ___ | |_  _ __  __ _  ___| |_ 
+    //      | | / _` | | '_ \ / __|| __|| '__|/ _` |/ __| __|
+    //      | || (_| | | |_) |\__ \| |_ | |  | (_| |\__ \ |_ 
+    //      |_| \__,_| |_.__/ |___/ \__||_|   \__,_||___/\__|
+    //                                                      
+    //   :: The DOM Matrix Title Generator (Tabstract) ::
+    // =========================================================================
+
+    const COLLECTION_TITLE = "KIKI";
+    const ARTIST_TAG = `<span class="artist-tag" aria-label="artist">✺</span>`;
+    
+    const tabstractSets =[['☱','☲','☳','☴','☵','☶'], // Phase Lines['█', '▓', '▒', '░', '▄', '▀', '▌', '▐'], // Block Noise['│', '┃', '┆', '┇', '┊', '┋'], // Fiber Optic['⡀', '⡄', '⡆', '⡇', '⣇', '⣧', '⣷', '⣿'], // Punch Card['◧', '◨', '◩', '◪', '◫', '◰', '◱', '◲', '◳'], // Geomancer['├', '┬', '┴', '┼', '┌', '┐', '└', '┘', '─'], // The Grid['⊕', '⊖', '⊗', '⊘', '⊙', '⊚', '⊛', '⊜'], // Targeting System
+        // --- Mixed / Hybrid Palettes ---['▚', '⣿', '▞', '⣷', '▤', '⣧', '▥', '⣇'], // Braille Tear['◭', '☱', '◮', '☲', '◐', '☳', '◑', '☴'], // Lunar Shift['▏', '░', '▎', '▒', '▍', '▓', '▌', '█'], // Audio Pulse Overdrive['⇡', '│', '⇣', '┃', '⇢', '┆', '⇠', '┇'], // Vector Stream['⊚', '◰', '⊛', '◱', '⊜', '◲', '⊙', '◳']  // Geometric Cryptography
+    ];
+    
+    const chosenSet = tabstractSets[Math.floor(Math.random() * tabstractSets.length)];
+    let titleTabstract = '';
+    for(let i=0; i<6; i++) titleTabstract += chosenSet[Math.floor(Math.random() * chosenSet.length)];
+    document.title = `Price Discussion ⋮ ${COLLECTION_TITLE} ⋮ ${titleTabstract}`;
+
+    window.triggerEasterEgg = function(el) { 
+        el.classList.toggle('rotated'); 
+        currentFaviconRotated = el.classList.contains('rotated');
+        checkNavFade();
+        const root = document.documentElement;
+        updateFavicon(root.style.getPropertyValue('--bg-color'), root.style.getPropertyValue('--text-color'), currentFaviconText, currentFaviconAlert, false, currentFaviconRotated);
+    }
+
+    window.toggleStar = function(e, el) {
+        e.stopPropagation();
+        if(el.dataset.starred === 'true') {
+            el.dataset.starred = 'false';
+            el.innerHTML = '☆&#xFE0E;';
+            el.classList.remove('active-star');
+        } else {
+            el.dataset.starred = 'true';
+            el.innerHTML = '★&#xFE0E;';
+            el.classList.add('active-star');
+        }
+    }
+
+    // --- APP UI TWEAKS ---
+    const menuWrapper = document.querySelector('.user-menu-wrapper');
+    const btnUser = document.querySelector('.btn-user');
+    
+    let currentFaviconText = '‰';
+    let currentFaviconAlert = false;
+    let currentFaviconRotated = false;
+    let hasUnreadEvents = false;
+
+    // --- DYNAMIC FAVICON ENGINE ---
+    window.updateFavicon = function(bg, fg, text, isAlert = false, isEthPing = false, isRotated = false) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.save();
+        ctx.translate(32, 32);
+        if (isRotated) ctx.rotate(-90 * Math.PI / 180);
+        ctx.translate(-32, -32);
+
+        if (isEthPing) {
+            ctx.fillStyle = '#FF0033'; // Hothurt Red
+            ctx.font = "bold 50px 'Courier New', monospace";
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText('⟠', 32, 36); 
+        } else if (pdNotifs && pdNotifs.priceLogo) {
+            // Price Logo Override
+            const svgStr = `<svg width="517" height="403" viewBox="0 0 517 403" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M402.943 0.000288893C418.273 -0.0331421 432.917 2.83163 446.334 10.3132C472.888 25.1195 488.658 47.629 491.091 78.0617C492.535 96.1232 491.818 114.368 491.849 132.53C491.919 173.809 491.92 215.089 491.796 256.368C491.757 269.206 490.014 281.78 484.442 293.596C471.668 320.684 450.615 337.102 421.204 342.574C415.688 343.601 409.974 343.912 404.348 343.938C374.268 344.079 344.186 344.055 314.106 343.986C311.36 343.979 309.44 344.713 307.581 346.829C292.735 363.721 277.735 380.478 262.853 397.339C256.532 404.499 248.016 405.046 241.563 397.954C229.099 384.256 216.927 370.293 204.642 356.432C201.691 353.103 198.952 349.558 195.757 346.486C194.391 345.174 192.108 344.142 190.236 344.132C164.126 343.993 138.015 343.94 111.906 344.117C99.6913 344.2 88.0179 341.884 76.3977 337.512C50.3642 326.084 33.6398 306.866 26.5824 279.616C24.9144 273.175 24.169 266.321 24.1501 259.654C23.9855 201.407 23.9145 143.157 24.1573 84.9102C24.3362 42.0049 56.5072 6.10359 99.0847 0.754953C102.768 0.29223 106.533 0.377761 110.26 0.371612C132.147 0.335549 154.033 0.368124 175.92 0.340368C251.594 0.244364 327.269 0.165467 402.943 0.000288893Z" fill="#FF0055"/><path d="M56.14 138.002C64.9133 138.002 72.5667 139.495 79.1 142.482C85.6333 145.468 90.6267 149.528 94.08 154.662C97.5333 159.795 99.26 165.535 99.26 171.882C99.26 182.335 95.9933 190.548 89.46 196.522C82.9267 202.402 71.82 205.342 56.14 205.342H37.66V232.222C37.66 233.248 37.2867 234.135 36.54 234.882C35.7933 235.628 34.9067 236.002 33.88 236.002H3.78C2.75333 236.002 1.86666 235.628 1.12 234.882C0.373328 234.135 0 233.248 0 232.222V141.782C0 140.755 0.373328 139.868 1.12 139.122C1.86666 138.375 2.75333 138.002 3.78 138.002H56.14ZM55.58 179.442C57.82 179.442 59.5933 178.788 60.9 177.482C62.2067 176.082 62.86 174.262 62.86 172.022C62.86 169.688 62.2067 167.775 60.9 166.282C59.5933 164.788 57.82 164.042 55.58 164.042H37.8V179.442H55.58Z" fill="#FFE600"/><path d="M203.785 231.662C203.972 232.035 204.065 232.455 204.065 232.922C204.065 233.762 203.739 234.508 203.085 235.162C202.525 235.722 201.825 236.002 200.985 236.002H169.205C167.899 236.002 166.685 235.675 165.565 235.022C164.539 234.368 163.792 233.528 163.325 232.502L151.005 204.782H139.245V232.222C139.245 233.248 138.872 234.135 138.125 234.882C137.379 235.628 136.492 236.002 135.465 236.002H105.225C104.199 236.002 103.312 235.628 102.565 234.882C101.819 234.135 101.445 233.248 101.445 232.222V141.782C101.445 140.755 101.819 139.868 102.565 139.122C103.312 138.375 104.199 138.002 105.225 138.002H159.685C168.085 138.002 175.412 139.355 181.665 142.062C188.012 144.768 192.865 148.688 196.225 153.822C199.585 158.955 201.265 164.975 201.265 171.882C201.265 184.575 196.365 193.768 186.565 199.462L203.785 231.662ZM156.745 178.882C158.799 178.882 160.385 178.228 161.505 176.922C162.625 175.522 163.185 173.795 163.185 171.742C163.185 169.688 162.625 167.915 161.505 166.422C160.479 164.835 158.892 164.042 156.745 164.042H139.245V178.882H156.745Z" fill="#FFE600"/><path d="M273.591 207.302H298.931C299.957 207.302 300.844 207.675 301.591 208.422C302.337 209.168 302.711 210.055 302.711 211.082V232.222C302.711 233.248 302.337 234.135 301.591 234.882C300.844 235.628 299.957 236.002 298.931 236.002H210.171C209.144 236.002 208.257 235.628 207.511 234.882C206.764 234.135 206.391 233.248 206.391 232.222V211.082C206.391 210.055 206.764 209.168 207.511 208.422C208.257 207.675 209.144 207.302 210.171 207.302H235.791V166.702H210.171C209.144 166.702 208.257 166.328 207.511 165.582C206.764 164.835 206.391 163.948 206.391 162.922V141.782C206.391 140.755 206.764 139.868 207.511 139.122C208.257 138.375 209.144 138.002 210.171 138.002H298.931C299.957 138.002 300.844 138.375 301.591 139.122C302.337 139.868 302.711 140.755 302.711 141.782V162.922C302.711 163.948 302.337 164.835 301.591 165.582C300.844 166.328 299.957 166.702 298.931 166.702H273.591V207.302Z" fill="#FFE600"/><path d="M348.016 198.202C348.016 202.028 349.276 204.968 351.796 207.022C354.409 209.075 357.909 210.102 362.296 210.102C366.216 210.102 369.109 209.448 370.976 208.142C372.843 206.835 374.429 204.875 375.736 202.262C376.949 199.835 378.583 198.622 380.636 198.622H410.876C411.716 198.622 412.416 198.948 412.976 199.602C413.629 200.162 413.956 200.862 413.956 201.702C413.956 207.395 412.043 212.995 408.216 218.502C404.389 223.915 398.556 228.442 390.716 232.082C382.969 235.628 373.496 237.402 362.296 237.402C352.309 237.402 343.396 235.908 335.556 232.922C327.809 229.842 321.649 225.175 317.076 218.922C312.503 212.575 310.216 204.688 310.216 195.262V178.742C310.216 169.315 312.503 161.475 317.076 155.222C321.649 148.875 327.809 144.208 335.556 141.222C343.396 138.142 352.309 136.602 362.296 136.602C373.496 136.602 382.969 138.422 390.716 142.062C398.556 145.608 404.389 150.135 408.216 155.642C412.043 161.055 413.956 166.608 413.956 172.302C413.956 173.142 413.629 173.888 412.976 174.542C412.416 175.102 411.716 175.382 410.876 175.382H380.636C378.583 175.382 376.949 174.168 375.736 171.742C374.429 169.128 372.843 167.168 370.976 165.862C369.109 164.555 366.216 163.902 362.296 163.902C357.909 163.902 354.409 164.928 351.796 166.982C349.276 169.035 348.016 171.975 348.016 175.802V198.202Z" fill="#FFE600"/><path d="M512.601 208.702C513.628 208.702 514.515 209.075 515.261 209.822C516.008 210.568 516.381 211.455 516.381 212.482V232.222C516.381 233.248 516.008 234.135 515.261 234.882C514.515 235.628 513.628 236.002 512.601 236.002H424.121C423.095 236.002 422.208 235.628 421.461 234.882C420.715 234.135 420.341 233.248 420.341 232.222V141.782C420.341 140.755 420.715 139.868 421.461 139.122C422.208 138.375 423.095 138.002 424.121 138.002H511.201C512.228 138.002 513.115 138.375 513.861 139.122C514.608 139.868 514.981 140.755 514.981 141.782V161.522C514.981 162.548 514.608 163.435 513.861 164.182C513.115 164.928 512.228 165.302 511.201 165.302H456.741V174.122H503.501C504.528 174.122 505.415 174.495 506.161 175.242C506.908 175.988 507.281 176.875 507.281 177.902V196.102C507.281 197.128 506.908 198.015 506.161 198.762C505.415 199.508 504.528 199.882 503.501 199.882H456.741V208.702H512.601Z" fill="#FFE600"/></svg>`;
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(-64, -64, 128, 128);
+                // Placed perfectly in center using the already applied rotation matrix
+                ctx.drawImage(img, 6, 12, 52, 40);
+                ctx.restore();
+                const link = document.getElementById('dynamic-favicon');
+                if (link) link.href = canvas.toDataURL("image/png");
+            };
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+            return;
+        } else {
+            ctx.fillStyle = isAlert ? '#FF0033' : bg;
+            
+            ctx.save();
+            ctx.scale(0.084, 0.084);
+            ctx.translate(0, 50); 
+            const bubblePath = new Path2D("M85.2021 548.561C42.8699 529.988 15.6745 498.753 4.19883 454.463C1.48652 443.995 0.274671 432.855 0.244021 422.019C-0.0236921 327.349 -0.138982 232.675 0.255934 138.005C0.54681 68.2708 52.8591 9.92044 122.093 1.22737C128.083 0.475297 134.204 0.613785 140.264 0.603791C175.854 0.545177 211.443 0.598222 247.032 0.55311C370.084 0.397073 493.136 0.268937 616.187 0.000470443C641.114 -0.0539179 664.926 4.60223 686.744 16.7622C729.923 40.8271 755.566 77.412 759.522 126.875C761.87 156.23 760.704 185.883 760.754 215.403C760.868 282.494 760.87 349.586 760.668 416.677C760.605 437.544 757.771 457.979 748.71 477.184C727.938 521.211 693.705 547.895 645.88 556.789C636.911 558.457 627.619 558.964 618.471 559.006C569.559 559.235 520.645 559.196 471.731 559.083C467.266 559.073 464.145 560.266 461.121 563.704C436.981 591.159 412.59 618.395 388.391 645.798C378.113 657.437 364.265 658.326 353.773 646.799C333.506 624.535 313.712 601.841 293.735 579.312C288.937 573.901 284.484 568.14 279.288 563.147C277.067 561.014 273.355 559.337 270.31 559.321C227.855 559.096 185.396 559.009 142.941 559.297C123.079 559.432 104.097 555.667 85.2021 548.561Z");
+            ctx.fill(bubblePath);
+            
+            // Draw exact vector logo symbol if default text
+            if (text === '‰' && !isAlert) {
+                ctx.fillStyle = fg;
+                const innerSymbol = new Path2D("M564.413 318.773C555.823 317.223 547.291 315.061 538.632 314.244C517.392 312.239 498.825 318.448 484.023 334.217C481.368 337.046 479.939 336.415 477.387 334.249C472.203 329.851 467.097 325.037 461.162 321.904C440.592 311.044 418.923 311.324 397.503 318.615C376.076 325.909 360.791 340.458 354.626 362.568C349.523 380.87 349.701 399.887 353.682 418.343C359.769 446.564 381.205 464.964 410.61 469.341C436.248 473.158 459.824 470.164 478.296 449.641C481.259 446.349 483.009 448.684 484.929 450.646C491.699 457.565 499.109 463.403 508.531 466.482C522.601 471.081 536.778 471.095 551.349 469.393C577.445 466.344 601.157 447.291 606.842 421.584C609.543 409.373 609.216 396.409 609.52 383.768C610.225 354.439 593.273 329.264 564.413 318.773ZM293.97 270.436C304.87 263.703 313.412 254.807 319.121 243.255C330.605 220.02 328.412 195.353 326.627 170.769C326.335 166.735 325.16 162.689 323.888 158.815C315.53 133.362 298.551 116.884 272.121 111.537C253.092 107.687 233.884 107.554 216.063 116.838C194.33 128.16 180.8 146.181 178.048 170.566C176.374 185.406 176.917 200.617 177.739 215.591C178.943 237.537 188.442 255.882 207.135 267.713C234.885 285.275 263.982 284.555 293.97 270.436ZM348.806 312.356C391.815 248.872 435.897 186.106 477.553 120.908C465.934 119.774 454.846 120.106 443.791 119.639C438.018 119.394 434.67 121.278 431.414 126.12C396.717 177.729 361.947 229.292 326.806 280.599C285.48 340.934 243.763 401.002 202.245 461.206C201.337 462.524 200.775 464.08 199.579 466.468C214.173 466.468 227.617 466.599 241.052 466.298C242.692 466.261 244.713 464.196 245.83 462.571C280.051 412.77 314.181 362.906 348.806 312.356Z");
+                ctx.fill(innerSymbol);
+                ctx.fillStyle = bg;
+                const hole1 = new Path2D("M507.266 410.237C506.947 398.666 505.667 387.443 506.861 376.489C508.487 361.575 520.49 353.604 537.53 354.185C550.555 354.63 561.421 364.77 562.428 378.491C563.126 388.011 563.056 397.654 562.449 407.186C561.691 419.107 553.013 427.626 540.709 429.728C523.198 432.721 513.649 427.265 507.266 410.237Z");
+                const hole2 = new Path2D("M444.737 425.35C434.349 431.954 423.524 432.537 413.125 427.669C402.753 422.813 398.864 413.051 398.51 402.069C398.259 394.282 398.135 386.396 399.052 378.685C400.753 364.387 411.955 354.729 425.125 354.126C443.139 353.301 452.558 363.567 454.084 378.15C455.187 388.693 454.813 399.608 453.342 410.111C452.604 415.382 447.949 420.103 444.737 425.35Z");
+                const hole3 = new Path2D("M278.519 194.495C277.378 204.322 277.17 213.805 274.859 222.745C272.113 233.368 264.783 237.631 253.212 237.735C240.318 237.852 233.177 233.613 229.29 223.142C224.817 211.096 225.515 198.537 226.23 186.048C226.518 181.002 227.018 175.882 228.217 170.99C231.199 158.815 238.713 153.213 251.95 152.618C264.255 152.064 271.812 156.478 275.274 168.588C277.587 176.677 277.522 185.446 278.519 194.495Z");
+                ctx.fill(hole1); ctx.fill(hole2); ctx.fill(hole3);
+            }
+            ctx.restore();
+            
+            // Draw text only if it's not the logo default
+            if (text !== '‰' || isAlert) {
+                ctx.fillStyle = isAlert ? '#FFFFFF' : fg;
+                ctx.font = "bold 26px Arial, sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(text, 34, 30);
+            }
+        }
+        
+        ctx.restore();
+        
+        const link = document.getElementById('dynamic-favicon');
+        if (link && !(pdNotifs && pdNotifs.priceLogo)) {
+            link.href = canvas.toDataURL("image/png");
+        }
+    }
+
+    btnUser.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const root = document.documentElement;
+        if(menuWrapper.classList.contains('active')) {
+            menuWrapper.classList.remove('active');
+            btnUser.classList.remove('expanded');
+        } else {
+            menuWrapper.classList.add('active');
+            btnUser.classList.add('expanded');
+            
+            // Bips & Pops: Quick Connect Ping on Favicon (Big Red ETH)
+            updateFavicon(null, null, null, false, true, currentFaviconRotated);
+            setTimeout(() => {
+                updateFavicon(root.style.getPropertyValue('--bg-color'), root.style.getPropertyValue('--text-color'), currentFaviconText, currentFaviconAlert, false, currentFaviconRotated);
+            }, 2000);
+        }
+        checkNavFade();
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!menuWrapper.contains(e.target)) {
+            menuWrapper.classList.remove('active'); btnUser.classList.remove('expanded'); checkNavFade();
+        }
+    });
+
+    window.checkNavFade = function() {
+        const y = window.scrollY;
+        const logoWrap = document.querySelector('.pd-logo-wrap');
+        const logo = document.querySelector('.pd-logo');
+        const navCtrls = document.querySelector('.nav-controls');
+        
+        if (y > 150 && !menuWrapper.classList.contains('active') && !logo.classList.contains('rotated')) {
+            logoWrap.classList.add('nav-faded'); navCtrls.classList.add('nav-faded');
+        } else {
+            logoWrap.classList.remove('nav-faded'); navCtrls.classList.remove('nav-faded');
+        }
+    }
+    window.addEventListener('scroll', checkNavFade);
+
+    window.scrollNotifs = function(dir) { document.getElementById('notifList').scrollBy({ top: dir * 60, behavior: 'smooth' }); }
+    window.scrollCollectors = function(dir) { document.getElementById('collectorsList').scrollBy({ top: dir * 100, behavior: 'smooth' }); }
+
+    // --- ADAPTIVE UI ENGINE ---
+    const ARTIST_COLOR = '#FF0055'; 
+    let currentTheme = 'artist';
+    let currentModalBg = 'rgba(255,0,85,0.98)';
+    const THEMES = { 'artist': ARTIST_COLOR, 'light': '#e0e0e0', 'dark': '#1a1a1a', 'orange': '#ff6600' };
+
+    // Settings Integration Logic + MY PD Pure Modes
+    let pdNotifs = { mints: true, lists: true, offers: true, xfers: true, mutualsOnly: true, pure_light: false, pure_dark: false, priceLogo: false };
+    let profileThemeActive = false;
+
+    try {
+        const savedNotifs = localStorage.getItem('pd_settings_notifs');
+        if (savedNotifs) pdNotifs = { ...pdNotifs, ...JSON.parse(savedNotifs) };
+    } catch(e) {}
+
+    window.setTheme = function(themeKey) {
+        currentTheme = themeKey;
+        let bgHex = THEMES[themeKey] || themeKey;
+        
+        // Apply MY PD Pure Modes
+        if (themeKey === 'light') {
+            bgHex = pdNotifs.pure_light ? '#ffffff' : '#e0e0e0';
+        } else if (themeKey === 'dark') {
+            bgHex = pdNotifs.pure_dark ? '#000000' : '#1a1a1a';
+        }
+
+        const hex = bgHex.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16) || 0;
+        const g = parseInt(hex.substr(2, 2), 16) || 0;
+        const b = parseInt(hex.substr(4, 2), 16) || 0;
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        const isLight = yiq >= 128; 
+
+        const textColor = isLight ? '#111111' : '#e0e0e0';
+        const statBg = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)';
+        const statActiveBg = isLight ? '#000000' : '#e0e0e0';
+        const statActiveText = isLight ? '#e0e0e0' : '#000000';
+        const modalBg = `rgba(${r},${g},${b},0.98)`;
+        const btnUserHover = isLight ? '#ffffff' : '#888888';
+
+        let mintBg = '#111111'; let mintText = '#e0e0e0'; let mintBorder = '#111111'; let mintBgImg = 'none';
+        let pillL1Bg = textColor; let pillL1BgImg = 'none'; let pillL1Text = bgHex; let pillL1Border = textColor;
+
+        if (themeKey === 'dark') {
+            mintBg = '#e0e0e0'; mintText = '#111111'; mintBorder = '#e0e0e0'; 
+            pillL1Bg = '#111111'; pillL1Text = '#e0e0e0'; pillL1Border = '#e0e0e0';
+            pillL1BgImg = 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
+        }
+
+        const root = document.documentElement;
+        root.style.setProperty('--bg-color', bgHex);
+        root.style.setProperty('--text-color', textColor);
+        root.style.setProperty('--border-color', isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)');
+        root.style.setProperty('--accent', textColor);
+        root.style.setProperty('--modal-bg', modalBg);
+        root.style.setProperty('--stat-bg', statBg);
+        root.style.setProperty('--stat-active-bg', statActiveBg);
+        root.style.setProperty('--stat-active-text', statActiveText);
+        root.style.setProperty('--mint-bg', mintBg);
+        root.style.setProperty('--mint-bg-img', mintBgImg);
+        root.style.setProperty('--mint-text', mintText);
+        root.style.setProperty('--mint-border', mintBorder);
+        root.style.setProperty('--pill-l1-bg', pillL1Bg);
+        root.style.setProperty('--pill-l1-bg-img', pillL1BgImg);
+        root.style.setProperty('--pill-l1-text', pillL1Text);
+        root.style.setProperty('--pill-l1-border', pillL1Border);
+        root.style.setProperty('--btn-user-hover', btnUserHover);
+
+        // Force modal background repaint
+        root.style.setProperty('--modal-bg', modalBg);
+        const modalEl = document.getElementById('modal');
+        if (modalEl) { modalEl.style.background = modalBg; modalEl.style.backgroundColor = modalBg; }
+        const collectorsModalEl = document.getElementById('collectorsModal');
+        if (collectorsModalEl) { collectorsModalEl.style.background = modalBg; collectorsModalEl.style.backgroundColor = modalBg; }
+        const followersModalEl = document.getElementById('followersModal');
+        if (followersModalEl) { followersModalEl.style.background = modalBg; followersModalEl.style.backgroundColor = modalBg; }
+
+        document.getElementById('theme-color-meta').setAttribute('content', bgHex);
+        document.body.style.backgroundColor = bgHex;
+        currentModalBg = modalBg;
+        updateFavicon(bgHex, textColor, currentFaviconText, currentFaviconAlert, false, currentFaviconRotated);
+        renderSortUI();
+        if (typeof renderSettingsUI === 'function') renderSettingsUI();
+        
+        // Modal re-render hook
+        if (currentModalId !== null && document.getElementById('modal').classList.contains('active')) {
+            const thClass = c => currentTheme === c ? 'active' : '';
+            const isOwned = metaCache[currentModalId] && metaCache[currentModalId].ownerDisplay === '@Brendon';
+            const hasPrice = metaCache[currentModalId] && metaCache[currentModalId].price;
+            document.getElementById('mDetail').innerHTML = `
+                <div class="modal-theme-row">
+                    <div class="modal-nav-pill" role="button" tabindex="0" aria-label="Previous" onclick="prevModal()">&#x25C0;&#xFE0E;</div>
+                    <div class="pill-theme t-artist ${thClass('artist')}" role="button" tabindex="0" onclick="setTheme('artist')" title="Artist Default"><span>◩&#xFE0E;</span></div>
+                    <div class="pill-theme t-light ${thClass('light')}" role="button" tabindex="0" onclick="setTheme('light')" title="Light"><span>◻&#xFE0E;</span></div>
+                    <div class="pill-theme t-dark ${thClass('dark')}" role="button" tabindex="0" onclick="setTheme('dark')" title="Dark"><span>◼&#xFE0E;</span></div>
+                    <div class="pill-theme t-orange ${thClass('orange')}" role="button" tabindex="0" onclick="setTheme('orange')" title="Orange"><span>▨&#xFE0E;</span></div>
+                    <div class="modal-nav-pill" role="button" tabindex="0" aria-label="Next" onclick="nextModal()">&#x25B6;&#xFE0E;</div>
+                </div>
+                ${hasPrice ? `<div class="modal-buy-row"><button class="btn-mint" style="height:40px;padding:0 24px;flex-direction:row;gap:8px;box-shadow:none;"><span style="font-family:'Rubik Mono One',sans-serif;font-size:14px;font-weight:normal;">BUY NOW</span><span style="font-size:13px;font-family:'Courier New',Courier,monospace;font-weight:bold;opacity:0.85;">(${metaCache[currentModalId].price})</span></button></div>` : ''}
+            `;
+        }
+    }
+
+
+    const TOTAL_EDITIONS = 1000;
+    const THUMB_WIDTH = 300;
+    const RUN_OFFSET = Math.floor(Math.random() * 999999999);
+    const BANNED_GROUPTHINK_VARIANTS = ['blade', 'organic', 'star', 'bolt'];
+
+    const mockNames = ['@matty', '@atlasforge', '@Darold', '@CozomoMedici', '@gmoney', '@0xVGB', '@snowfro', '@thefunnyguys', '@ClownVamp', '@willpop', '@siggi', '@CCDDBB'];
+
+    const MAIN_PALETTES = ["VID", "LAVALAMP", "RENDEZVOUS", "LSD", "NEONDRIFT", "FOLD"];
+    const WEIGHT_MAIN = 50;
+    const WEIGHT_SPECIAL = 12;
+
+    const RAW_PALS = [
+        {n:"VID",b:"#FFFFFF",g:"#FFFFFF",k:"#000000",o:"#FF0000",nv:1},{n:"LAVALAMP",b:"#D81B60",g:"#D81B60",k:"#D600FF",o:"#FF1744"},{n:"RENDEZVOUS",b:"#F0C993",g:"#F0C993",k:"#06EB8E",o:"#B7EA08",nv:1},{n:"LSD",b:"#9400d3",g:"#9400d3",k:"#00ff7f",o:"#ff4500",nv:1},{n:"NEONDRIFT",b:"#D600FF",g:"#D600FF",k:"#000080",o:"#FF0000",nv:1},{n:"FOLD",b:"#00FF66",g:"#00FF66",k:"#4B0C51",o:"#00FFD5",nv:1},{n:"782",b:"#13716B",g:"#13716B",k:"#1B9D89",o:"#FF3341",nv:1},{n:"AESTHETE",b:"#0066FF",g:"#0066FF",k:"#FF9900",o:"#FF00E6",nv:1},{n:"AFILM",b:"#3DD2E9",g:"#3DD2E9",k:"#45E021",o:"#F5B6DB",nv:1},{n:"ATTENTION",b:"#0D4AF2",g:"#0D4AF2",k:"#E600FF",o:"#FFE600",nv:1},{n:"ATTODRIFT",b:"#D2A614",g:"#D2A614",k:"#1440D2",o:"#9FD214",nv:1},{n:"AXIS",b:"#FFFF00",g:"#FFFF00",k:"#000000",o:"#0000FF",nv:1},{n:"BB",b:"#FF0000",g:"#FF0000",k:"#AA5500",o:"#311B92",nv:1},{n:"BEACH",b:"#000000",g:"#000000",k:"#00FFCC",o:"#FF0099",nv:1},{n:"BERRY2",b:"#FF0055",g:"#FF0055",k:"#FF1493",o:"#0000FF",nv:1},{n:"BIT",b:"#ADFF2F",g:"#ADFF2F",k:"#D8BFD8",o:"#FF0000",nv:1},{n:"BLUNTDREG",b:"#FC0BF6",g:"#FC0BF6",k:"#E96C45",o:"#E0AF86",nv:1},{n:"BLUNTVOID",b:"#9BFFA6",g:"#9BFFA6",k:"#00FF4C",o:"#8500FF",nv:1},{n:"BONEPULSE",b:"#660066",g:"#660066",k:"#808080",o:"#FF1493",nv:1},{n:"CHEWY",b:"#6B8E23",g:"#6B8E23",k:"#ADFF2F",o:"#FF0000",nv:1},{n:"COOKIES",b:"#EE82EE",g:"#EE82EE",k:"#FF6347",o:"#121212",nv:1},{n:"CRYPTOCURRENCY",b:"#A71DE7",g:"#A71DE7",k:"#F32B35",o:"#AAB305",nv:1},{n:"CYBERGEM",b:"#132AF4",g:"#132AF4",k:"#8C02EB",o:"#011D6D",nv:1},{n:"DARKHUNT",b:"#95FF00",g:"#95FF00",k:"#6A00FF",o:"#00FFEA",nv:1},{n:"DOOM",b:"#A7D279",g:"#A7D279",k:"#000000",o:"#00FF00",nv:1},{n:"EGOMATH",b:"#488BE7",g:"#488BE7",k:"#EE65D7",o:"#971689",nv:1},{n:"EGOTOOL",b:"#9041AA",g:"#9041AA",k:"#2F53F4",o:"#5240F2",nv:1},{n:"ERROR",b:"#481655",g:"#481655",k:"#290C2C",o:"#5CFF33",nv:1},{n:"EXPERIENCE",b:"#FF4500",g:"#FF4500",k:"#FF1493",o:"#CD5C5C",nv:1},{n:"FOGOFWAR",b:"#88918D",g:"#88918D",k:"#FF335F",o:"#898084",nv:1},{n:"FRESHSLAG",b:"#BC8F8F",g:"#BC8F8F",k:"#FF1493",o:"#006400",nv:1},{n:"FUMEGEM",b:"#FF1744",g:"#FF1744",k:"#5500FF",o:"#1E90FF",nv:1},{n:"GNOSIS",b:"#454628",g:"#454628",k:"#6D3BE9",o:"#EC1D11",nv:1},{n:"GRID",b:"#0000FF",g:"#0000FF",k:"#FFFFFF",o:"#FF0000",nv:1},{n:"GTA4",b:"#C86432",g:"#C86432",k:"#B056FA",o:"#000000",nv:1},{n:"HAZE2",b:"#B899D4",g:"#B899D4",k:"#BDD993",o:"#354B46",nv:1},{n:"HAZE3",b:"#75EEF7",g:"#75EEF7",k:"#0DDC3F",o:"#BD8AC5",nv:1},{n:"HELIUMGLAND",b:"#6200EA",g:"#6200EA",k:"#FF4081",o:"#2E002E",nv:1},{n:"HIGHBOT",b:"#EE82EE",g:"#EE82EE",k:"#00FF7F",o:"#40E0D0",nv:1},{n:"HOPIUM",b:"#FF00FF",g:"#FF00FF",k:"#DC143C",o:"#2E8B57",nv:1},{n:"HOTHURT",b:"#EE82EE",g:"#EE82EE",k:"#FFD700",o:"#FF0055",nv:1},{n:"HUH",b:"#E9967A",g:"#E9967A",k:"#20B2AA",o:"#9370DB",nv:1},{n:"HYPNO",b:"#00FFA1",g:"#00FFA1",k:"#FFFFFF",o:"#000000",nv:1},{n:"LINEN",b:"#F6B95A",g:"#F6B95A",k:"#5005CA",o:"#ACFD29",nv:1},{n:"MACHINEELF",b:"#00FF7F",g:"#00FF7F",k:"#FF00FF",o:"#FFFF00",nv:1},{n:"MARROW",b:"#FF1744",g:"#FF1744",k:"#FF1493",o:"#708090",nv:1},{n:"MESMER",b:"#FF4500",g:"#FF4500",k:"#E6E6FA",o:"#D500F9",nv:1},{n:"MIXEDDRINK",b:"#FF00FF",g:"#FF00FF",k:"#F44336",o:"#00FFCC",nv:1},{n:"MOIST",b:"#0100FF",g:"#0100FF",k:"#4A1036",o:"#D098A0",nv:1},{n:"MYTHOUGHTS",b:"#FAD1E5",g:"#FAD1E5",k:"#FCFF33",o:"#F7BAD8",nv:1},{n:"NUMB",b:"#4E3226",g:"#4E3226",k:"#5E4625",o:"#0003FF",nv:1},{n:"OKC",b:"#0000FF",g:"#0000FF",k:"#000000",o:"#FF6347",nv:1},{n:"OMNIFORM",b:"#D293B1",g:"#D293B1",k:"#C06892",o:"#3D1A2B",nv:1},{n:"OOZE",b:"#FF0055",g:"#FF0055",k:"#5500FF",o:"#00FF55",nv:1},{n:"ORDER",b:"#51DC6E",g:"#51DC6E",k:"#29EEA6",o:"#99B85C",nv:1},{n:"PLASMA",b:"#3F51B5",g:"#3F51B5",k:"#FF4081",o:"#002147",nv:1},{n:"POISON",b:"#741A43",g:"#741A43",k:"#4B1124",o:"#33FFA3",nv:1},{n:"PRECOGNITION",b:"#FAD1E5",g:"#FAD1E5",k:"#F7BAD8",o:"#33FF9C",nv:1},{n:"PUREHEAT",b:"#84FF00",g:"#84FF00",k:"#D4FF00",o:"#9900FF",nv:1},{n:"RIPE",b:"#457359",g:"#457359",k:"#FF5F33",o:"#C5FF33",nv:1},{n:"ROOT",b:"#D81B60",g:"#D81B60",k:"#6200EA",o:"#3D0C02",nv:1},{n:"RURALLUSH",b:"#1EBFD1",g:"#1EBFD1",k:"#23E279",o:"#4702F8",nv:1},{n:"SENSITIVE",b:"#1D00FF",g:"#1D00FF",k:"#C10E85",o:"#394837",nv:1},{n:"SEX",b:"#00FFFF",g:"#00FFFF",k:"#EE82EE",o:"#00FF7F",nv:1},{n:"SIMPLE",b:"#1941C8",g:"#1941C8",k:"#8607F3",o:"#747474",nv:1},{n:"SMOKEBREAK",b:"#5D4037",g:"#5D4037",k:"#2E0854",o:"#304FFE",nv:1},{n:"SMS",b:"#1E90FF",g:"#1E90FF",k:"#00FF00",o:"#FF1493",nv:1},{n:"SOFT",b:"#391797",g:"#391797",k:"#2D106A",o:"#C9FF33",nv:1},{n:"SYRUP",b:"#B2FF59",g:"#B2FF59",k:"#304FFE",o:"#D50000",nv:1},{n:"T",b:"#D500F9",g:"#D500F9",k:"#002200",o:"#FF6600",nv:1},{n:"TELEPATHY",b:"#708090",g:"#708090",k:"#BDB76B",o:"#FF1493",nv:1},{n:"TELESTHESIA",b:"#006AFF",g:"#006AFF",k:"#FF9500",o:"#FF00EA",nv:1},{n:"THUNDER",b:"#A0522D",g:"#A0522D",k:"#FF0000",o:"#0a0005",nv:1},{n:"TINDER",b:"#B388FF",g:"#B388FF",k:"#E1BEE7",o:"#FF0000",nv:1},{n:"TOAST",b:"#EE82EE",g:"#EE82EE",k:"#0055FF",o:"#FF9900",nv:1},{n:"TUNEPASTE",b:"#FF1493",g:"#FF1493",k:"#008080",o:"#8B008B",nv:1},{n:"VAIN2",b:"#4DCCE5",g:"#4DCCE5",k:"#EF80B6",o:"#371F47",nv:1},{n:"VHS",b:"#FF0055",g:"#FF0055",k:"#0055FF",o:"#FF9900",nv:1},{n:"VISION",b:"#0C6BF5",g:"#0C6BF5",k:"#6A5081",o:"#743664",nv:1},{n:"WASH",b:"#FF00FF",g:"#FF00FF",k:"#AA00FF",o:"#40E0D0",nv:1},{n:"WAVEDEATH",b:"#d4aaf2",g:"#d4aaf2",k:"#000000",o:"#444444",nv:1},{n:"WEIRDPOSE",b:"#D2691E",g:"#D2691E",k:"#FFFF00",o:"#FF0000",nv:1},{n:"WHAT",b:"#BDB76B",g:"#BDB76B",k:"#FF1493",o:"#1E90FF",nv:1},{n:"ZAP",b:"#ffd700",g:"#ffd700",k:"#0000ff",o:"#ff0000",nv:1},{n:"ZEPTOALLOY",b:"#800000",g:"#800000",k:"#000080",o:"#FF0000",nv:1},{n:"ZERORISK",b:"#BDB76B",g:"#BDB76B",k:"#000000",o:"#4B0082",nv:1},{n:"BAG",b:"#F21C27",g:"#F21C27",k:"#6A09F1",o:"#31A30A",nv:0},{n:"CRUSH",b:"#050005",g:"#050005",k:"#D600FF",o:"#FF0099"},{n:"DEEP",b:"#000005",g:"#000005",k:"#FF6600",o:"#0055FF"},{n:"ENERGY",b:"#2F4F4F",g:"#2F4F4F",k:"#AA00FF",o:"#FF9900"},{n:"HOLOGRAM",b:"#000000",g:"#000000",k:"#00FFFF",o:"#7FFFD4"},{n:"NOSKY",b:"#000000",g:"#000000",k:"#652565",o:"#4414F0",nv:0},{n:"NOTREAL",b:"#48062F",g:"#48062F",k:"#00FFC2",o:"#8A36FF"},{n:"PATIENCE",b:"#000000",g:"#000000",k:"#3A122B",o:"#BADA01",nv:0},{n:"SHROOMY",b:"#1A001A",g:"#1A001A",k:"#00FF99",o:"#FF99CC"},{n:"THERMAL",b:"#000000",g:"#000000",k:"#FF3300",o:"#FFD700"},{n:"TOMATO",b:"#080000",g:"#000000",k:"#00FF66",o:"#FF4400"},{n:"ULTRALINK",b:"#091406",g:"#091406",k:"#66FF8C",o:"#D2FF4D"},{n:"VAMPIRE",b:"#000000",g:"#000000",k:"#FF0000",o:"#E0E0E0"},{n:"ZEPTOCASH",b:"#3f0a06",g:"#3f0a06",k:"#2dff60",o:"#a0a185",w:4},
+    ];
+
+    const PALETTES = RAW_PALS.map(p => {
+        let weight = WEIGHT_SPECIAL;
+        if (MAIN_PALETTES.includes(p.n)) weight = WEIGHT_MAIN;
+        return { name: p.n, bg: p.b, gap: p.g, kiki: p.k, bouba: p.o, weight: weight, void: p.p === 1, noVoid: p.nv === 1 };
+    });
+
+    const RATIOS = [1.6, 2.35, 2.35, 2.75, 3.2, 1.33, 1, 0.75];
+    const paletteSubCats = {};
+    PALETTES.forEach(p => { paletteSubCats[p.name] = MAIN_PALETTES.includes(p.name) ? 'Main' : 'Special'; });
+
+    const mockModes = ["STANDARD", "VOID"];
+    const mockStates = ['NONE', 'FLIPFLOPPER', 'PEOPLEPLEASER', 'SPELLCASTER', 'ACQUIESCENCE', 'GROUPTHINK', 'RAGEBAIT', 'GHOSTED', 'TOTALINVERSION'];
+
+    function mulberry32(a) {
+        return function() {
+            var t = a += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    function generateFakeWallet(id) {
+        let seed = id * 1234567 + RUN_OFFSET;
+        let h1 = (Math.imul(seed, 2654435761) >>> 0).toString(16).padStart(8, '0');
+        let h2 = (Math.imul(seed+1, 2654435761) >>> 0).toString(16).padStart(8, '0');
+        let h3 = (Math.imul(seed+2, 2654435761) >>> 0).toString(16).padStart(8, '0');
+        let h4 = (Math.imul(seed+3, 2654435761) >>> 0).toString(16).padStart(8, '0');
+        let h5 = (Math.imul(seed+4, 2654435761) >>> 0).toString(16).padStart(8, '0');
+        return { full: '0x'+h1+h2+h3+h4+h5, short: '0x'+h1.substring(0,4)+'...'+h5.substring(4,8) };
+    }
+
+    class KikiEngine {
+        constructor(seed) { this.R = mulberry32(seed + RUN_OFFSET); }
+        rand(min, max) { return this.R() * (max - min) + min; }
+        randInt(min, max) { return Math.floor(this.rand(min, max)); }
+        pick(arr) { return arr[Math.floor(this.R() * arr.length)]; }
+        pickWeighted(arr) { const total = arr.reduce((acc, item) => acc + item.weight, 0); let sum = 0; const r = this.R() * total; for(let item of arr) { sum += item.weight; if (r <= sum) return item; } return arr[0]; }
+        dist(x1,y1,x2,y2) { return Math.hypot(x2-x1, y2-y1); }
+        createOrganicKikiDNA(isClean) { const points = isClean ? this.randInt(12,20) : this.randInt(16,40); const starFactor = isClean ? this.rand(0.6,0.9) : this.R(); const biasStrength = Math.pow(this.R(), 2); const biasAngle = this.rand(0, Math.PI*2); let dna = []; for(let i=0; i<points; i++) { const a = (Math.PI*2*i)/points; let r = this.rand(0.5,1.5); if (i%2===0) r = r*(1-starFactor)+(1.6*starFactor); else r = r*(1-starFactor)+(0.4*starFactor); if (biasStrength > 0.1) { let diff=Math.abs(a-biasAngle); if(diff>Math.PI) diff=(Math.PI*2)-diff; r += (1-(diff/Math.PI))*biasStrength*1.5; } if (!isClean) r += this.rand(-0.05,0.05); r = Math.max(0.3, Math.min(r, 8.0)); dna.push({a, r}); } dna.variant = 'organic'; return dna; }
+        createGeometricKikiDNA(variant) { let dna = []; const rot = this.rand(0, Math.PI*2); if (variant === 'manager') { const pts=60, hullVar=this.randInt(2,5); for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=(1.8+0.8*Math.cos(a))*1.2;if(i%hullVar===0)r+=(1.2*1.2);else r+=(this.rand(0.1,0.4)*1.2);dna.push({a,r});} } else if (variant==='u_beam') { const w=0.1;dna.push({a:rot,r:2.5});dna.push({a:rot+Math.PI/2-0.1,r:w});dna.push({a:rot+Math.PI/2,r:w});dna.push({a:rot+Math.PI,r:2.5});dna.push({a:rot+Math.PI*1.5-0.1,r:w});dna.push({a:rot+Math.PI*1.5,r:w}); } else if (variant==='u_chevron') { dna.push({a:rot,r:2.0});dna.push({a:rot+2.5,r:1.5});dna.push({a:rot+Math.PI,r:0.2});dna.push({a:rot-2.5,r:1.5}); } else if (variant==='u_antenna') { const pts=8;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=(i===0||i===4)?2.2:0.4;if(i===2||i===6)r=1.0;dna.push({a,r});} } else if (variant==='u_shard') { const pts=7;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=(i===0)?2.8:0.5;dna.push({a,r});} } else if (variant==='u_circuit') { const pts=12;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=(i%4===0)?1.8:0.8;if(i===0)r=2.4;dna.push({a,r});} } else if (variant==='u_sawtooth') { const pts=30;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;dna.push({a,r:1.6});dna.push({a:a+0.1,r:1.0});} } else if (variant==='u_shatter') { const pts=12;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=this.rand(0.5,2.5);dna.push({a,r});} } else if (variant==='touch') { dna.push({a:rot,r:2.5});dna.push({a:rot+Math.PI*0.5,r:0.2});dna.push({a:rot+Math.PI,r:2.5});dna.push({a:rot+Math.PI*1.5,r:0.2}); } else if (variant==='star') { const points=4;for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points+rot;dna.push({a,r:2.0});dna.push({a:a+(Math.PI/points),r:0.4});} } else if (variant==='blade') { const points=24;for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points+rot;dna.push({a,r:1.5});dna.push({a:a+(Math.PI/points)*0.8,r:1.1});} } else if (variant==='bolt') { const pts=7;for(let i=0;i<pts;i++){const a=(Math.PI*2*i)/pts+rot;let r=(i%2===0)?1.8:0.6;r*=this.rand(0.5,1.5);dna.push({a,r});} } else if (variant==='triangle_fat') { [{a:0+rot,r:0.7},{a:(Math.PI*0.7)+rot,r:1.3},{a:(Math.PI*1.3)+rot,r:1.3}].forEach(p=>dna.push(p)); } else { const sides=this.pick([5,6,8]);for(let i=0;i<sides;i++){const a=(Math.PI*2*i)/sides+rot;dna.push({a,r:1.4});}variant='poly'; } dna.forEach(p=>p.r=Math.min(p.r,8.0)); dna.variant=variant; return dna; }
+        createBoubaDNA(variant) { let dna=[]; const points=60; const rot=this.rand(0,Math.PI*2); if(variant==='manager'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=(2.0+0.6*Math.sin(3*a)+0.4*Math.cos(7*a)+0.2*Math.sin(2*a))*1.2;dna.push({a:a+rot,r});}
+        }else if(variant==='u_puddle'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.1*Math.sin(a*3)+0.5*Math.sin(a);dna.push({a:a+rot,r:r*0.8});}
+        }else if(variant==='u_amoeba'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.2+0.3*Math.sin(3*a)+0.2*Math.cos(5*a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_orbit'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.6*Math.cos(a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_melt'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0;if(a>0&&a<Math.PI)r=1.5*Math.sin(a);else r=0.8;dna.push({a:a+rot,r:Math.max(0.5,r)});}
+        }else if(variant==='u_yolk'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.4+0.05*Math.sin(12*a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_worm'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=0.8+0.6*Math.sin(a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_bubble'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.5*Math.sin(3*a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_capsule'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.8*Math.pow(Math.abs(Math.cos(a)),4);dna.push({a:a+rot,r});}
+        }else if(variant==='u_eclipse'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.5*(1-0.5*Math.sin(a));if(a>Math.PI&&a<2*Math.PI)r*=0.4;dna.push({a:a+rot,r});}
+        }else if(variant==='u_larva'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.2*Math.sin(6*a)+0.4*Math.cos(a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_pudding'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.2;if(a>0&&a<Math.PI)r+=0.4*Math.sin(a);dna.push({a:a+rot,r});}
+        }else if(variant==='u_wormhole'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.5*(1-Math.cos(a));r=Math.max(0.2,r);dna.push({a:a+rot,r:r*0.6});}
+        }else if(variant==='drop'){for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.5*Math.pow(Math.sin(a/2),0.7);r=Math.max(0.1,r);dna.push({a:a+rot+Math.PI,r});}
+        }else if(variant==='clover'){const leaves=this.pick([3,4]);for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;let r=1.0+0.6*Math.abs(Math.cos(leaves*a*0.5));dna.push({a:a+rot,r});}
+        }else if(variant==='squircle'){const exponent=4;for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;const denom=Math.pow(Math.pow(Math.abs(Math.cos(a)),exponent)+Math.pow(Math.abs(Math.sin(a)),exponent),1/exponent);let r=1.4/denom;dna.push({a:a+rot,r});}
+        }else{for(let i=0;i<points;i++){const a=(Math.PI*2*i)/points;const r=1.0+0.3*Math.sin(3*a+rot)+0.2*Math.cos(5*a+rot*2);dna.push({a:a+rot,r:Math.max(0.3,r)});}}
+        dna.variant=variant; return dna; }
+        getStandardDNA(type) { if(type==='kiki'){const v=this.pick(['organic','manager','u_beam','u_chevron','u_antenna','u_shard','u_circuit','u_sawtooth','u_shatter','touch','star','blade','bolt','triangle_fat']);return v==='organic'?this.createOrganicKikiDNA(this.R()>0.5):this.createGeometricKikiDNA(v);}else{return this.createBoubaDNA(this.pick(['default','manager','u_puddle','u_amoeba','u_orbit','u_melt','u_yolk','u_worm','u_bubble','u_capsule','u_eclipse','u_larva','u_pudding','u_wormhole','drop','clover','squircle']));}}
+        getBossDNA(type,variant){if(type==='kiki'){if(variant==='manager')return this.createGeometricKikiDNA('manager');return this.createOrganicKikiDNA(false);}else{return this.createBoubaDNA(variant==='manager'?'manager':'squircle');}}
+        calc() {
+            const pal=this.pickWeighted(PALETTES);
+            const ar=this.pick(RATIOS);
+            const voidRoll=this.R();
+            let renderMode='standard';
+            if(!pal.noVoid&&voidRoll<0.15)renderMode='void';
+            else if(pal.void)renderMode='standard';
+            const encounterTypes=['standard','standard','standard','standard','same_dna','boss'];
+            const encounterType=this.pick(encounterTypes);
+            const bossVariants=['manager','u_puddle','u_amoeba'];
+            const bossVariant=this.pick(bossVariants);
+            const addEnt=(type,rx,ry,zoom,dna)=>{
+                const gapGene=this.rand(0.2,0.95);
+                const scale=this.rand(0.7,1.4);
+                const pupilTypes=['round','slit','goat','cross','ring','star_pupil','x_pupil','void'];
+                const pupil=this.pick(pupilTypes);
+                const isExpTarget=this.R()>0.5;
+                entities.push({type,rx,ry,dna,scale,gapGene,pupil,isExpTarget});
+            };
+            const zoomLevel=this.rand(0.25,0.55);
+            const entities=[];
+            const p1={x:this.rand(0.2,0.5),y:this.rand(0.25,0.75)};
+            const p2={x:this.rand(0.5,0.8),y:this.rand(0.25,0.75)};
+            const expTargetType=this.R()>0.5?'kiki':'bouba';
+            if(encounterType==='boss'){const isKB=this.R()>0.5;if(isKB){addEnt('kiki',p1.x,p1.y,zoomLevel,this.getBossDNA('kiki',bossVariant));addEnt('bouba',p2.x,p2.y,zoomLevel,this.getStandardDNA('bouba'));}else{addEnt('kiki',p1.x,p1.y,zoomLevel,this.getStandardDNA('kiki'));addEnt('bouba',p2.x,p2.y,zoomLevel,this.getBossDNA('bouba',bossVariant));}}
+            else if(encounterType==='same_dna'){const sharedDNA=this.getStandardDNA('kiki');addEnt('kiki',p1.x,p1.y,zoomLevel,sharedDNA);addEnt('bouba',p2.x,p2.y,zoomLevel,sharedDNA);}
+            else{addEnt('kiki',p1.x,p1.y,zoomLevel,this.getStandardDNA('kiki'));addEnt('bouba',p2.x,p2.y,zoomLevel,this.getStandardDNA('bouba'));}
+            let mutation='NONE';
+            const mutRoll=this.R();
+            if(mutRoll<0.10)mutation='FLIPFLOPPER';
+            else if(mutRoll<0.15)mutation='PEOPLEPLEASER';
+            else if(mutRoll<0.175)mutation='SPELLCASTER';
+            else if(mutRoll<0.225)mutation='ACQUIESCENCE';
+            else if(mutRoll<0.275)mutation='GROUPTHINK';
+            else if(mutRoll<0.300)mutation='RAGEBAIT';
+            if(mutation==='GROUPTHINK'){const kE=entities.find(e=>e.type==='kiki');if(kE&&kE.dna&&kE.dna.variant&&BANNED_GROUPTHINK_VARIANTS.includes(kE.dna.variant))mutation='NONE';}
+            return {aspectRatio:ar, palette:pal, entities, zoomLevel, renderMode, mutation};
+        }
+        traceShape(ctx,cx,cy,dna,r,type,extra={}) { if(!isFinite(cx)||!isFinite(cy)||!isFinite(r)) return false; const maxDist=extra.maxDist||1, normR=r/maxDist, mutation=extra.mutation||'NONE'; const pts=dna.map((pt,i)=>{ let m_a=pt.a, m_r=pt.r; if(mutation==='PEOPLEPLEASER'&&type==='bouba'){let t=Math.min(1.0,normR*1.3);t=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;m_r=m_r*(1-t)+1.2*t;} if(mutation==='RAGEBAIT'&&type==='bouba'){if(i%2===0)m_r+=Math.pow(normR,1.8)*6.0;} return{x:cx+Math.cos(m_a)*(m_r*r),y:cy+Math.sin(m_a)*(m_r*r)}; }); if(pts.some(p=>!isFinite(p.x)||!isFinite(p.y))) return false; if(type==='kiki'){pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.closePath();}else{const f=pts[0],l=pts[pts.length-1];ctx.moveTo((l.x+f.x)/2,(l.y+f.y)/2);for(let i=0;i<pts.length;i++){const n=pts[(i+1)%pts.length],c=pts[i];ctx.quadraticCurveTo(c.x,c.y,(c.x+n.x)/2,(c.y+n.y)/2);}ctx.closePath();} return true; }
+        drawShape(ctx,cx,cy,dna,r,color,type,extra={}) { ctx.beginPath(); if(this.traceShape(ctx,cx,cy,dna,r,type,extra)){ctx.fillStyle=color;ctx.fill();} }
+        drawPupil(ctx,x,y,size,type,coreColor) { let color='#FFF'; const c=coreColor.toUpperCase(); const isBright=(c==='#FFFFFF'||c==='#FFF'||c==='#E0E0E0'||c==='#88CCFF'||c==='#CCFF00'||c==='#FFFF00'||c==='#FFD700'); if(isBright) color='#000'; else if(type==='void') color='#000'; ctx.fillStyle=color; if(type==='slit'){const w=size*0.4,h=size*1.8;ctx.fillRect(x-w/2,y-h/2,w,h);}else if(type==='goat'){const w=size*2.0,h=size*0.5;ctx.fillRect(x-w/2,y-h/2,w,h);}else if(type==='cross'){const w=size*0.3,h=size*1.8;ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillRect(x-h/2,y-w/2,h,w);}else if(type==='ring'){ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();ctx.fillStyle=coreColor;ctx.beginPath();ctx.arc(x,y,size*0.5,0,Math.PI*2);ctx.fill();}else if(type==='star_pupil'){for(let j=0;j<4;j++){ctx.save();ctx.translate(x,y);ctx.rotate(j*Math.PI/4);ctx.fillRect(-size*0.15,-size,size*0.3,size*2);ctx.restore();}}else if(type==='x_pupil'){ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillRect(-size*0.15,-size,size*0.3,size*2);ctx.fillRect(-size,-size*0.15,size*2,size*0.3);ctx.restore();}else{ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();} }
+        render(canvas, width) { const data=this.calc(); const W=width, H=W/data.aspectRatio, MIN_DIM=Math.min(W,H); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,W,H); const {palette,entities,zoomLevel,renderMode,mutation}=data; ctx.fillStyle=palette.bg; ctx.fillRect(0,0,W,H); if(mutation==='TOTALINVERSION') canvas.style.filter='invert(1) hue-rotate(180deg)'; else canvas.style.filter='none'; if(mutation==='GHOSTED'){ctx.globalCompositeOperation='hard-light';ctx.globalAlpha=0.40;} const absEntities=entities.map(e=>({...e,x:e.rx*W,y:e.ry*H})); let globalMaxDist=0; const corners=[{x:0,y:0},{x:W,y:0},{x:W,y:H},{x:0,y:H}]; absEntities.forEach(e=>{corners.forEach(c=>{const d=this.dist(e.x,e.y,c.x,c.y);if(d>globalMaxDist)globalMaxDist=d;})}); const bandCount=Math.floor(this.randInt(7,22)*Math.max(1,data.aspectRatio*0.8)); const step=(globalMaxDist*1.1)/bandCount; const baseCoreSize=MIN_DIM*0.04; let ringRadii=[]; for(let r=baseCoreSize+step;r<globalMaxDist*1.5;r+=step) ringRadii.push(r); ringRadii.reverse(); let overlapR=null, bThick=0; if(ringRadii.length>0){bThick=MIN_DIM*this.rand(0.02,0.05);let targetR=MIN_DIM*this.rand(0.35,0.55);overlapR=ringRadii.reduce((prev,curr)=>Math.abs(curr-targetR)<Math.abs(prev-targetR)?curr:prev);} ringRadii.forEach((r,idx)=>{ if(r===overlapR){ctx.save();ctx.globalAlpha=1.0;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,W,bThick);ctx.fillRect(0,H-bThick,W,bThick);ctx.fillRect(0,0,bThick,H);ctx.fillRect(W-bThick,0,bThick,H);ctx.restore();} let extra={maxDist:globalMaxDist,mutation:mutation}; absEntities.forEach(e=>{ if(mutation==='GROUPTHINK'&&e.type==='kiki'&&idx%3!==0) return; let currentGapGene=e.gapGene; if(mutation==='ACQUIESCENCE'&&e.isExpTarget) currentGapGene=0.05+0.85*Math.pow(r/globalMaxDist,1.5); let gapR=r-(step*(1-currentGapGene)); let mappedR=r, mappedGapR=gapR; if(mutation==='SPELLCASTER'&&e.type==='bouba'){mappedR=Math.pow(r/globalMaxDist,2.0)*globalMaxDist;mappedGapR=Math.pow(gapR/globalMaxDist,2.0)*globalMaxDist;const minThickness=MIN_DIM*0.018;if(mappedR-mappedGapR<minThickness)mappedGapR=mappedR-minThickness;} let shapeCol,gapCol; if(renderMode==='wireframe'){shapeCol=palette.bg;gapCol=(e.type==='kiki'?palette.kiki:palette.bouba);}else{shapeCol=e.type==='kiki'?palette.kiki:palette.bouba;gapCol=palette.gap;} if(shapeCol===gapCol) shapeCol=(e.type==='kiki'?palette.kiki:palette.bouba); if(mutation==='FLIPFLOPPER'&&idx%2===0) shapeCol=palette.bg; this.drawShape(ctx,e.x,e.y,e.dna,mappedR*e.scale,shapeCol,e.type,extra); this.drawShape(ctx,e.x,e.y,e.dna,mappedGapR*e.scale,gapCol,e.type,extra); }); }); absEntities.forEach(e=>{ let coreCol=renderMode==='wireframe'?palette.bg:(e.type==='kiki'?palette.kiki:palette.bouba); e.finalColor=coreCol; this.drawShape(ctx,e.x,e.y,e.dna,baseCoreSize*e.scale,coreCol,e.type,{maxDist:globalMaxDist,mutation}); }); absEntities.forEach(e=>{const pSize=Math.max(4,(MIN_DIM*0.012)*e.scale);this.drawPupil(ctx,e.x,e.y,pSize,e.pupil,e.finalColor);}); ctx.globalAlpha=1.0; ctx.globalCompositeOperation='source-over'; return data; }
+    }
+
+    const metaCache = {}; let currentModalId = null; 
+    const traitData = {}; let activeFilters = {}; 
+    let activeCategory = null; let activeSubFilter = 'All'; let currentSort = 'id-asc'; 
+
+    // --- GOD-MODE FEED STRUCTURE ---
+    const GodModeDict = {
+        'Event': { 'Sales':['✶ Mints', '✹ Lists'], 'Offers':['✦ Item Offers', '✦ Coll. Offers'], 'Other':['✸ Xfers'] },
+        'Network': { 'My Circle':['⚭ Mutuals', '⚯ Following', '⚬ Followers'], 'Global':['Top Holders', 'New Wallets'] },
+        'Traits': { 'Palette': PALETTES.map(p=>p.name), 'Mode': mockModes, 'State': mockStates },
+        'Market': { 'Primary':['Native'], 'Secondary':['Blur', 'OpenSea', 'OTC', 'Magic Eden'] }
+    };
+    
+    const activeFeedFilters = { 'Event': new Set(), 'Network': new Set(), 'Palette': new Set(), 'Mode': new Set(), 'State': new Set(), 'Market': new Set() };
+    const feedDataCounters = { 'Event': {}, 'Network': {}, 'Palette': {}, 'Mode': {}, 'State': {}, 'Market': {} };
+
+    let activeFeedCategory = null; 
+    let activeFeedSubFilter = 'All';
+
+    // Artist indicators: ☽ during cooldown, 🌣 when active — randomised per artist
+    const MOON = `<span class="artist-tag" title="In cooldown">☽</span>`;
+    const SUN  = `<span class="artist-tag" title="Active">🌣</span>`;
+    const A1 = SUN;   // snowfro — active
+    const A2 = MOON;  // XCOPY, CCDDBB — in cooldown
+    const A3 = SUN;   // siggi — active
+
+    // Augmented mock events with relational data, timestamps, and mock prices
+    const now = Date.now();
+    const mockEvents =[
+        { id: 14, icon: '✶', eTrait: '✶ Mints', nTrait: '⚭ Mutuals', sTrait: 'Native', time: '12:04 PM', timestamp: now - 100000, price: 0.05, type: 'MINT', detail: '<span class="f-highlight">@matty</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span> collected <span class="f-highlight">#14</span>' },
+        { id: 22, icon: '✹', eTrait: '✹ Lists', nTrait: '⚯ Following', sTrait: 'Blur', time: '11:45 AM', timestamp: now - 200000, price: 0.4, type: 'LIST', detail: '<span class="f-highlight">@atlasforge</span><span class="follow-badge"><span class="ico-following" title="You follow them">⚯&#xFE0E;</span></span> listed <span class="f-highlight">#22</span> for 0.4 ETH' },
+        { id: 8, icon: '✦', eTrait: '✦ Item Offers', nTrait: '⚭ Mutuals', sTrait: 'OpenSea', time: '10:30 AM', timestamp: now - 300000, price: 0.5, type: 'OFFER', detail: '<span class="f-highlight">@Darold</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span> offered 0.5 ETH on <span class="f-highlight">#8</span>' },
+        { id: 48, icon: '✶', eTrait: '✶ Mints', nTrait: '⚭ Mutuals', sTrait: 'Native', time: '08:00 AM', timestamp: now - 500000, price: 0.05, type: 'MINT', detail: '<span class="f-highlight">@gmoney</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span> collected <span class="f-highlight">#48</span>' },
+        { id: 1, icon: '✹', eTrait: '✹ Lists', nTrait: 'Top Holders', sTrait: 'Magic Eden', time: 'Yesterday', timestamp: now - 86400000, price: 2.0, type: 'LIST', detail: '<span class="f-highlight">@snowfro</span><span class="artist-tag">✺</span> listed <span class="f-highlight">#1</span> for 2.0 ETH' },
+        { id: 42, icon: '✸', eTrait: '✸ Xfers', nTrait: '⚭ Mutuals', sTrait: 'OTC', time: 'Yesterday', timestamp: now - 90000000, price: 0, type: 'XFER', detail: '<span class="f-highlight">@XCOPY</span><span class="artist-tag">✺</span><span class="follow-badge"><span class="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span> transferred <span class="f-highlight">#42</span>' }
+    ];
+
+    const gallery = document.getElementById('gallery');
+    const activityFeed = document.getElementById('activity-feed');
+    const modal = document.getElementById('modal');
+    const collectorsModal = document.getElementById('collectorsModal');
+    const modalCanvas = document.getElementById('modalCanvas');
+    const mTitle = document.getElementById('mTitle');
+    const mDetail = document.getElementById('mDetail');
+    
+    window.unlockScroll = function() {
+        const scrollY = parseInt(document.body.dataset.scrollY || '0');
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        document.body.style.backgroundColor = '';
+        window.scrollTo(0, scrollY);
+    }
+
+    window.filterAndClose = function(cat, name) {
+        Object.keys(activeFilters).forEach(c => activeFilters[c].clear());
+        activeFilters[cat].add(name);
+        activeCategory = cat;
+        if (cat === 'Palette') activeSubFilter = 'All';
+        renderTraitUI(); updateGalleryUI(); closeModal();
+    }
+    
+    window.closeModal = function() { modal.classList.remove('active'); currentModalId = null; unlockScroll(); }
+    window.openCollectorsModal = function() {
+        collectorsModal.classList.add('active');
+        if (!document.body.classList.contains('modal-open')) {
+            document.body.dataset.scrollY = window.scrollY; document.body.classList.add('modal-open'); document.body.style.top = `-${window.scrollY}px`;
+        }
+        document.body.style.backgroundColor = currentModalBg;
+    }
+    window.closeCollectorsModal = function() { collectorsModal.classList.remove('active'); unlockScroll(); }
+
+    // --- FOLLOWERS / FOLLOWING / MUTUALS MODAL ---
+    const mockFollowers = ['@matty', '@atlasforge', '@gmoney', '@snowfro', '@Darold', '@CozomoMedici', '@0xVGB', '@thefunnyguys', '@ClownVamp', '@willpop', '@siggi', '@CCDDBB', '@Trinity', '@cspok', '@rudxane', '@piterpasma'];
+    const mockFollowing = ['@matty', '@atlasforge', '@snowfro', '@rudxane', '@siggi', '@piterpasma', '@mattdesl', '@ykx', '@ixshells', '@tylerxhobbs'];
+    const mockMutuals = ['@matty', '@atlasforge', '@rudxane', '@siggi', '@piterpasma'];
+    let currentFollowersTab = 'followers';
+
+    window.openFollowersModal = function(tab) {
+        currentFollowersTab = tab || 'followers';
+        renderFollowersModal();
+        const fm = document.getElementById('followersModal');
+        if (fm) { fm.classList.add('active'); }
+        if (!document.body.classList.contains('modal-open')) {
+            document.body.dataset.scrollY = window.scrollY;
+            document.body.classList.add('modal-open');
+            document.body.style.top = `-${window.scrollY}px`;
+        }
+        document.body.style.backgroundColor = currentModalBg;
+    }
+    window.closeFollowersModal = function() {
+        const fm = document.getElementById('followersModal');
+        if (fm) fm.classList.remove('active');
+        unlockScroll();
+    }
+    window.switchFollowersTab = function(tab) {
+        currentFollowersTab = tab;
+        renderFollowersModal();
+    }
+    function renderFollowersModal() {
+        const tabs = ['followers', 'following', 'mutuals'];
+        tabs.forEach(t => {
+            const el = document.getElementById('fmTab-' + t);
+            if (el) el.classList.toggle('active', t === currentFollowersTab);
+        });
+        const data = currentFollowersTab === 'followers' ? mockFollowers : currentFollowersTab === 'following' ? mockFollowing : mockMutuals;
+        const list = document.getElementById('followersList');
+        if (list) list.innerHTML = data.map(name => `<span class="hover-link" role="link" tabindex="0">${name}</span>`).join('');
+    }
+
+    function getActiveFilters(filterState) {
+        return Object.keys(filterState).filter(cat => filterState[cat].size > 0);
+    }
+
+    function init() {
+        try {
+            // Setup Gallery Traits
+            traitData['Palette'] = {}; traitData['Mode'] = {}; traitData['State'] = {};
+            Object.keys(traitData).forEach(cat => activeFilters[cat] = new Set());
+            
+            PALETTES.forEach(p => traitData['Palette'][p.name] = 0);
+            mockModes.forEach(m => traitData['Mode'][m] = 0);
+            mockStates.forEach(s => traitData['State'][s] = 0);
+
+            for(let i = 1; i <= TOTAL_EDITIONS; i++) {
+                const tempEngine = new KikiEngine(i);
+                const data = tempEngine.calc();
+                
+                const pal = data.palette.name;
+                const rm = data.renderMode === 'standard' ? 'STANDARD' : 'VOID';
+                const mut = data.mutation;
+
+                const isListed = Math.random() < 0.25;
+                const rawEth = Math.random() * 0.5 + 0.01;
+                const mockPrice = isListed ? parseFloat(rawEth.toFixed(3)) + ' ETH' : null;
+                const wallets = generateFakeWallet(i);
+
+                const isName = Math.random() < 0.35 || i <= 3;
+                let ownerDisplay = wallets.short;
+                if (i <= 3) ownerDisplay = '@Brendon'; else if (isName) ownerDisplay = mockNames[i % mockNames.length];
+
+                metaCache[i] = { pal, rm, mut, price: mockPrice, rawPrice: rawEth, ownerDisplay, ownerWalletFull: wallets.full };
+
+                traitData['Palette'][pal] = (traitData['Palette'][pal] || 0) + 1;
+                traitData['Mode'][rm] = (traitData['Mode'][rm] || 0) + 1;
+                traitData['State'][mut] = (traitData['State'][mut] || 0) + 1;
+
+                const article = document.createElement('article');
+                article.className = 'edition-card';
+                article.dataset.mintId = i; article.dataset.traitPalette = pal; article.dataset.traitMode = rm; article.dataset.traitState = mut;
+                article.dataset.price = mockPrice ? rawEth : -1;
+                article.dataset.aspectRatio = data.aspectRatio;
+
+                const contentInner = document.createElement('div');
+                contentInner.className = 'edition-content'; contentInner.onclick = () => openModal(i);
+
+                const wrap = document.createElement('div'); wrap.className = 'canvas-wrapper'; wrap.dataset.id = i;
+                wrap.style.aspectRatio = `${data.aspectRatio} / 1`;
+                const cvs = document.createElement('canvas'); cvs.className = 'edition-canvas';
+                const overlay = document.createElement('div'); overlay.className = 'hover-overlay';
+                overlay.innerHTML = `
+                    <div class="hover-bg"></div>
+                    <div class="hover-icons">
+                        <span class="hi-icon" title="Star" onclick="toggleStar(event, this)" data-starred="false">☆&#xFE0E;</span>
+                        <span class="hi-icon" title="Wishlist">✛&#xFE0E;</span>
+                        <span class="hi-icon" title="Add to Album">◰&#xFE0E;</span>
+                    </div>
+                `;
+                
+                wrap.appendChild(cvs); wrap.appendChild(overlay); contentInner.appendChild(wrap);
+                const meta = document.createElement('div'); meta.className = 'meta';
+                
+                let metaOwnerStr = mockPrice ? `<span class="meta-owner price-trigger" onclick="openModal(${i}); event.stopPropagation();">${mockPrice}</span>` : `<a class="meta-owner profile-link" onclick="event.stopPropagation()">${metaCache[i].ownerDisplay}</a>`;
+                let metaIdStr = `<span class="meta-id">#${i}${i <= 3 ? ` <span class="badge-owned" title="Owned by You"><span class="css-check"></span></span>` : ``}</span>`;
+
+                meta.innerHTML = `${metaIdStr}${metaOwnerStr}`;
+                contentInner.appendChild(meta); article.appendChild(contentInner); gallery.appendChild(article);
+            }
+
+            // Map token attributes to mockEvents so we can filter Feed by them
+            mockEvents.forEach(e => {
+                const tokenMeta = metaCache[e.id] || { pal: 'VID', rm: 'STANDARD', mut: 'NONE' };
+                e.aPalette = tokenMeta.pal; e.aMode = tokenMeta.rm; e.aState = tokenMeta.mut;
+                
+                feedDataCounters['Event'][e.eTrait] = (feedDataCounters['Event'][e.eTrait] || 0) + 1;
+                feedDataCounters['Network'][e.nTrait] = (feedDataCounters['Network'][e.nTrait] || 0) + 1;
+                feedDataCounters['Palette'][e.aPalette] = (feedDataCounters['Palette'][e.aPalette] || 0) + 1;
+                feedDataCounters['Mode'][e.aMode] = (feedDataCounters['Mode'][e.aMode] || 0) + 1;
+                feedDataCounters['State'][e.aState] = (feedDataCounters['State'][e.aState] || 0) + 1;
+                feedDataCounters['Market'][e.sTrait] = (feedDataCounters['Market'][e.sTrait] || 0) + 1;
+            });
+
+            // Configure dynamic floor price Buy Button
+            let lowestFloor = Infinity; let lowestId = null;
+            for (let i = 1; i <= TOTAL_EDITIONS; i++) {
+                if (metaCache[i].price && metaCache[i].rawPrice < lowestFloor) {
+                    lowestFloor = metaCache[i].rawPrice; lowestId = i;
+                }
+            }
+            const buyBtn = document.querySelector('.btn-mint');
+            if (lowestId !== null) {
+                buyBtn.onclick = () => openModal(lowestId);
+                document.querySelector('.mint-price').innerText = `(${lowestFloor.toFixed(3)} ETH)`;
+            } else {
+                buyBtn.style.opacity = '0.5'; buyBtn.style.cursor = 'not-allowed';
+                document.querySelector('.mint-price').innerText = `(SOLD OUT)`;
+            }
+
+            renderSortUI(); renderTraitUI(); initObserver();
+        } catch (e) { console.error(e); }
+    }
+
+    function renderFeed() {
+        let displayEvents =[...mockEvents];
+        
+        // Feed 4-State Cycle Sort Logic
+        if (currentSort === 'feed-time-desc') displayEvents.sort((a,b) => b.timestamp - a.timestamp);
+        if (currentSort === 'feed-time-asc') displayEvents.sort((a,b) => a.timestamp - b.timestamp);
+        if (currentSort === 'feed-price-desc') displayEvents.sort((a,b) => b.price - a.price);
+        if (currentSort === 'feed-price-asc') displayEvents.sort((a,b) => a.price - b.price);
+
+        // Text search filter on feed
+        if (_searchQuery) {
+            displayEvents = displayEvents.filter(e => {
+                const text = (e.detail || '').replace(/<[^>]+>/g, '').toLowerCase();
+                return text.includes(_searchQuery) || String(e.id).includes(_searchQuery) || (e.type || '').toLowerCase().includes(_searchQuery);
+            });
+        }
+
+        // Price range filter
+        const minInput = document.getElementById('feedPriceMin');
+        const maxInput = document.getElementById('feedPriceMax');
+        const minVal = minInput ? parseFloat(minInput.value) : NaN;
+        const maxVal = maxInput ? parseFloat(maxInput.value) : NaN;
+        if (!isNaN(minVal)) displayEvents = displayEvents.filter(e => e.price >= minVal);
+        if (!isNaN(maxVal)) displayEvents = displayEvents.filter(e => e.price <= maxVal);
+
+        // HYBRID AND/OR LOGIC for Feed Filtering
+        const activeFeedCatKeys = Object.keys(activeFeedFilters).filter(cat => activeFeedFilters[cat].size > 0);
+        
+        if (activeFeedCatKeys.length > 0) {
+            displayEvents = displayEvents.filter(e => {
+                let show = true;
+                if (activeFeedFilters['Event'].size > 0 && !activeFeedFilters['Event'].has(e.eTrait)) show = false;
+                if (activeFeedFilters['Network'].size > 0 && !activeFeedFilters['Network'].has(e.nTrait)) show = false;
+                if (activeFeedFilters['Market'].size > 0 && !activeFeedFilters['Market'].has(e.sTrait)) show = false;
+                
+                const attrActive =['Palette', 'Mode', 'State'].filter(k => activeFeedFilters[k].size > 0);
+                if (attrActive.length > 0) {
+                    let attrMatch = true;
+                    for (const k of attrActive) {
+                        const val = k === 'Palette' ? e.aPalette : (k === 'Mode' ? e.aMode : e.aState);
+                        if (!activeFeedFilters[k].has(val)) { attrMatch = false; break; }
+                    }
+                    if (!attrMatch) show = false;
+                }
+                
+                return show;
+            });
+        }
+
+        document.getElementById('feedList').innerHTML = displayEvents.map(e => `
+            <div class="feed-row">
+                <div class="feed-line"></div>
+                <div class="f-icon-wrap">${e.icon}&#xFE0E;</div>
+                <div class="f-time">${e.time}</div>
+                <div class="f-type">${e.type}</div>
+                <div class="f-content">${e.detail}</div>
+            </div>
+        `).join('');
+    }
+
+    function initObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    const target = entry.target; const id = parseInt(target.dataset.id); const canvas = target.querySelector('canvas');
+                    const engine = new KikiEngine(id);
+                    engine.render(canvas, THUMB_WIDTH);
+                    canvas.classList.add('visible'); target.style.background = 'transparent'; observer.unobserve(target);
+                }
+            });
+        }, { rootMargin: "300px 0px" });
+        document.querySelectorAll('.canvas-wrapper').forEach(el => observer.observe(el));
+    }
+
+    window.setCategory = function(cat) {
+        const isFeed = currentSort.startsWith('feed');
+        if (isFeed) {
+            if (activeFeedCategory === cat) activeFeedCategory = null; 
+            else { 
+                activeFeedCategory = cat; 
+                activeFeedSubFilter = cat === 'Traits' ? 'Palette' : 'All'; 
+            }
+        } else {
+            if (activeCategory === cat) activeCategory = null; 
+            else { activeCategory = cat; activeSubFilter = 'All'; }
+        }
+        renderTraitUI();
+    };
+
+    window.setSubFilter = function(sub) {
+        const isFeed = currentSort.startsWith('feed');
+        if (isFeed) {
+            if (activeFeedSubFilter === sub) activeFeedSubFilter = (activeFeedCategory === 'Traits' ? 'Palette' : 'All');
+            else activeFeedSubFilter = sub;
+        } else {
+            if (activeSubFilter === sub) activeSubFilter = 'All';
+            else activeSubFilter = sub;
+        }
+        renderTraitUI();
+    }
+
+    window.toggleFilter = function(internalCatKey, name) {
+        const isFeed = currentSort.startsWith('feed');
+        if (isFeed) {
+            if (activeFeedFilters[internalCatKey].has(name)) activeFeedFilters[internalCatKey].delete(name);
+            else activeFeedFilters[internalCatKey].add(name);
+            renderTraitUI(); renderFeed();
+        } else {
+            if (activeFilters[internalCatKey].has(name)) activeFilters[internalCatKey].delete(name);
+            else activeFilters[internalCatKey].add(name);
+            renderTraitUI(); updateGalleryUI();
+        }
+    };
+
+    window.setSort = function(type) {
+        const FEED_SORTS =['feed-time-desc', 'feed-time-asc', 'feed-price-desc', 'feed-price-asc'];
+
+        if (type === 'feed') {
+            if (currentSort.startsWith('feed')) {
+                let idx = FEED_SORTS.indexOf(currentSort);
+                currentSort = FEED_SORTS[(idx + 1) % FEED_SORTS.length];
+            } else {
+                currentSort = 'feed-time-desc'; // Entry point
+            }
+        } else {
+            if (currentSort.startsWith(type)) { 
+                currentSort = currentSort.endsWith('asc') ? `${type}-desc` : `${type}-asc`; 
+            } else { 
+                currentSort = `${type}-asc`; 
+            }
+        }
+
+        if (currentSort.startsWith('feed')) {
+            document.getElementById('gallery').style.display = 'none';
+            document.getElementById('activity-feed').style.display = 'block';
+            renderFeed();
+        } else {
+            document.getElementById('activity-feed').style.display = 'none';
+            document.getElementById('gallery').style.display = 'grid';
+            sortGallery();
+        }
+        renderSortUI(); renderTraitUI();
+        if (typeof renderSettingsUI === 'function') renderSettingsUI();
+    }
+
+    function sortGallery() {
+        const container = document.getElementById('gallery');
+        const cards = Array.from(container.querySelectorAll('.edition-card'));
+        const[type, dir] = currentSort.split('-'); const mult = dir === 'asc' ? 1 : -1;
+        
+        cards.sort((a, b) => {
+            if(type === 'id') return (parseInt(a.dataset.mintId) - parseInt(b.dataset.mintId)) * mult;
+            else if(type === 'price') {
+                const pa = parseFloat(a.dataset.price); const pb = parseFloat(b.dataset.price);
+                return ((pa === -1 ? Infinity : pa) - (pb === -1 ? Infinity : pb)) * mult;
+            }
+        });
+        cards.forEach(c => container.appendChild(c));
+    }
+
+    function renderSortUI() {
+        const isFeed = currentSort.startsWith('feed');
+        const isRegular = debugPersona === 'default';
+        const idDir = currentSort === 'id-asc' ? '↑&#xFE0E;' : (currentSort === 'id-desc' ? '↓&#xFE0E;' : '');
+        const priceDir = currentSort === 'price-asc' ? '↑&#xFE0E;' : (currentSort === 'price-desc' ? '↓&#xFE0E;' : '');
+        
+        let feedDir = '';
+        let feedDollar = '';
+        if (currentSort === 'feed-time-desc') feedDir = '↓&#xFE0E;';
+        if (currentSort === 'feed-time-asc') feedDir = '↑&#xFE0E;';
+        if (currentSort === 'feed-price-desc') { feedDollar = '<span class="feed-sort-dollar" style="font-family: \'Courier New\', Courier, monospace; font-size: 13px; margin-right: 2px;">$</span>'; feedDir = '↓&#xFE0E;'; }
+        if (currentSort === 'feed-price-asc') { feedDollar = '<span class="feed-sort-dollar" style="font-family: \'Courier New\', Courier, monospace; font-size: 13px; margin-right: 2px;">$</span>'; feedDir = '↑&#xFE0E;'; }
+        
+        const idActive = currentSort.startsWith('id') ? 'active' : '';
+        const priceActive = currentSort.startsWith('price') ? 'active' : '';
+        const fActive = isFeed ? 'active' : '';
+        const thClass = c => currentTheme === c ? 'active' : '';
+
+        // Search icon lives in sort row ONLY for Regular persona + non-feed (when there are no pills to attach to)
+        const searchIsActiveClass = searchActive ? 'active' : '';
+        const sortRowSearchIcon = (isRegular && !isFeed)
+            ? `<div class="search-btn ${searchIsActiveClass}" style="position: relative; top: -2px;" role="button" tabindex="0" title="Search" onclick="toggleSearch()">⌕&#xFE0E;</div>`
+            : '';
+
+        document.getElementById('sortOptions').innerHTML = `
+            <div class="theme-pills">
+                <div class="pill-theme t-artist ${thClass('artist')}" role="button" tabindex="0" onclick="setTheme('artist')" title="Artist Default"><span>◩&#xFE0E;</span></div>
+                <div class="pill-theme t-light ${thClass('light')}" role="button" tabindex="0" onclick="setTheme('light')" title="Light"><span>◻&#xFE0E;</span></div>
+                <div class="pill-theme t-dark ${thClass('dark')}" role="button" tabindex="0" onclick="setTheme('dark')" title="Dark"><span>◼&#xFE0E;</span></div>
+                <div class="pill-theme t-orange ${thClass('orange')}" role="button" tabindex="0" onclick="setTheme('orange')" title="Orange"><span>▨&#xFE0E;</span></div>
+            </div>
+            <div class="sort-btn ${idActive}" role="button" tabindex="0" onclick="setSort('id')">
+                <span class="sort-lbl"># ID</span><span class="sort-arrow">${idDir}</span>
+            </div>
+            <div class="sort-btn ${priceActive}" role="button" tabindex="0" onclick="setSort('price')">
+                <span class="sort-lbl">$ PRICE</span><span class="sort-arrow">${priceDir}</span>
+            </div>
+            <div class="sort-btn ${fActive}" role="button" tabindex="0" onclick="setSort('feed')">
+                <span class="sort-lbl">FEED</span><span class="sort-arrow">${feedDollar}${feedDir}</span>
+            </div>
+            ${sortRowSearchIcon}
+        `;
+    }
+
+    function renderTraitUI() {
+        const isFeed = currentSort.startsWith('feed');
+        const isRegular = debugPersona === 'default';
+
+        // Hide trait wrapper entirely ONLY when Regular + non-feed (so empty gap vanishes)
+        const traitsUI = document.querySelector('.traits-ui');
+        if (traitsUI) {
+            traitsUI.style.display = (isRegular && !isFeed) ? 'none' : 'flex';
+        }
+        
+        // --- LEVEL 1 PILLS ---
+        let l1Html = '';
+        if (isFeed) {
+            // Feed pills: hide Market in Zero state
+            const l1Cats =['Event', 'Network', 'Traits', 'Market'].filter(cat => {
+                if (cat === 'Market' && debugState === 'zero') return false;
+                return true;
+            });
+            l1Html = l1Cats.map((cat, idx) => {
+                let activeCount = 0;
+                if (cat === 'Traits') {
+                    activeCount = activeFeedFilters['Palette'].size + activeFeedFilters['Mode'].size + activeFeedFilters['State'].size;
+                } else {
+                    activeCount = (activeFeedFilters[cat] || new Set()).size;
+                }
+                const badge = (activeCount > 0 && debugState !== 'zero') ? `<span class="badge">${activeCount}</span>` : '';
+                const isActive = cat === activeFeedCategory ? 'active' : '';
+                const isDimmed = activeFeedCategory && cat !== activeFeedCategory ? 'dimmed' : '';
+                const pill = `<div class="pill pill-l1 ${isActive} ${isDimmed}" role="button" tabindex="0" onclick="setCategory('${cat}')"><span class="stat-name">${cat}</span>${badge}</div>`;
+                
+                // Market is last — append search icon in feed mode (both personas)
+                if (idx === l1Cats.length - 1) {
+                    const searchIsActiveClass = searchActive ? 'active' : '';
+                    const searchIconHtml = `<div class="search-btn ${searchIsActiveClass}" role="button" tabindex="0" title="Search" onclick="toggleSearch()">⌕&#xFE0E;</div>`;
+                    return `<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">${pill}${searchIconHtml}</span>`;
+                }
+                return pill;
+            }).join('');
+        } else if (!isRegular || debugState === 'zero') {
+            // PD persona non-feed (or Zero state preview): trait pills + search icon appended to last pill
+            l1Html = Object.keys(traitData).map(cat => {
+                const activeCount = activeFilters[cat].size;
+                const badge = (activeCount > 0 && debugState !== 'zero') ? `<span class="badge">${activeCount}</span>` : '';
+                const isActive = cat === activeCategory ? 'active' : '';
+                const isDimmed = activeCategory && cat !== activeCategory ? 'dimmed' : '';
+                return `<div class="pill pill-l1 ${isActive} ${isDimmed}" role="button" tabindex="0" onclick="setCategory('${cat}')"><span class="stat-name">${cat}</span>${badge}</div>`;
+            }).join('');
+            
+            const searchIsActiveClass = searchActive ? 'active' : '';
+            const searchIconHtml = `<div class="search-btn ${searchIsActiveClass}" role="button" tabindex="0" title="Search" onclick="toggleSearch()">⌕&#xFE0E;</div>`;
+            l1Html += searchIconHtml;
+        }
+        
+        document.getElementById('traitCategories').innerHTML = l1Html;
+        
+        // Restore search input value after re-render
+        const inp = document.getElementById('searchInput');
+        if (inp && _searchQuery) { inp.value = _searchQuery; }
+
+        // --- LEVEL 2 PILLS ---
+        let l2Html = '';
+        if (!isFeed && activeCategory === 'Palette') {
+            const mActive = activeSubFilter === 'Main' ? 'active' : ''; const sActive = activeSubFilter === 'Special' ? 'active' : '';
+            const mDimmed = activeSubFilter !== 'All' && activeSubFilter !== 'Main' ? 'dimmed' : '';
+            const sDimmed = activeSubFilter !== 'All' && activeSubFilter !== 'Special' ? 'dimmed' : '';
+            
+            let mainDot = '', specDot = '';
+            if (debugState !== 'zero') {
+                activeFilters['Palette'].forEach(val => {
+                    if (paletteSubCats[val] === 'Main') mainDot = ' •';
+                    if (paletteSubCats[val] === 'Special') specDot = ' •';
+                });
+            }
+
+            l2Html = `
+                <div class="pill pill-l2 ${mActive} ${mDimmed}" role="button" tabindex="0" onclick="setSubFilter('Main')"><span class="stat-name">↴ Main${mainDot}</span></div>
+                <div class="pill pill-l2 ${sActive} ${sDimmed}" role="button" tabindex="0" onclick="setSubFilter('Special')"><span class="stat-name">↴ Special${specDot}</span></div>
+            `;
+        } else if (isFeed && activeFeedCategory) {
+            const l2Dict = GodModeDict[activeFeedCategory];
+            if (l2Dict) {
+                l2Html = Object.keys(l2Dict).map(sub => {
+                    const isActive = activeFeedSubFilter === sub ? 'active' : '';
+                    const isDimmed = activeFeedSubFilter !== 'All' && activeFeedSubFilter !== sub ? 'dimmed' : '';
+                    
+                    let hasActive = false;
+                    const activeSet = activeFeedFilters[activeFeedCategory === 'Traits' ? sub : activeFeedCategory];
+                    if (activeSet && debugState !== 'zero') {
+                        if (activeFeedCategory === 'Traits') {
+                            hasActive = activeSet.size > 0;
+                        } else {
+                            const allowedNames = l2Dict[sub] ||[];
+                            for (let item of activeSet) { if (allowedNames.includes(item)) { hasActive = true; break; } }
+                        }
+                    }
+                    const dot = hasActive ? ' •' : '';
+
+                    return `<div class="pill pill-l2 ${isActive} ${isDimmed}" role="button" tabindex="0" onclick="setSubFilter('${sub}')"><span class="stat-name">↴ ${sub}${dot}</span></div>`;
+                }).join('');
+            }
+        }
+        document.getElementById('traitSubCategories').innerHTML = l2Html;
+        document.getElementById('traitSubCategories').style.display = l2Html ? 'flex' : 'none';
+
+        // --- LEVEL 3 PILLS ---
+        const activeCat = isFeed ? activeFeedCategory : activeCategory;
+        if (!activeCat) { document.getElementById('statsOutput').innerHTML = ''; document.getElementById('statsOutput').style.display = 'none'; return; }
+        document.getElementById('statsOutput').style.display = 'flex';
+
+        let l3Items =[];
+        if (isFeed) {
+            if (activeCat === 'Traits') {
+                const internalKey = activeFeedSubFilter === 'All' ? 'Palette' : activeFeedSubFilter; 
+                // Zero state prepopulates trait names with 0 counts
+                if (debugState === 'zero') {
+                    l3Items = GodModeDict['Traits'][internalKey].map(name => ({ internalKey, name, count: 0 }));
+                } else {
+                    const rawItems = Object.entries(feedDataCounters[internalKey] || {}).sort((a,b) => b[1] - a[1]);
+                    l3Items = rawItems.map(([name, count]) => ({ internalKey, name, count }));
+                }
+            } else {
+                const l2Dict = GodModeDict[activeCat];
+                let allowedNames =[];
+                if (activeFeedSubFilter === 'All') {
+                    Object.values(l2Dict).forEach(arr => allowedNames.push(...arr));
+                } else {
+                    allowedNames = l2Dict[activeFeedSubFilter] ||[];
+                }
+                
+                if (debugState === 'zero') {
+                    l3Items = allowedNames.map(name => ({ internalKey: activeCat, name, count: 0 }));
+                } else {
+                    const rawItems = Object.entries(feedDataCounters[activeCat] || {}).sort((a,b) => b[1] - a[1]);
+                    rawItems.filter(([name]) => allowedNames.includes(name)).forEach(([name, count]) => {
+                        l3Items.push({ internalKey: activeCat, name, count });
+                    });
+                }
+            }
+        } else {
+            if (debugState === 'zero') {
+                let names = Object.keys(traitData[activeCat]);
+                if (activeCat === 'Palette' && activeSubFilter !== 'All') names = names.filter(name => paletteSubCats[name] === activeSubFilter);
+                l3Items = names.map(name => ({ internalKey: activeCat, name, count: 0 }));
+            } else {
+                let entries = Object.entries(traitData[activeCat]).sort((a,b) => b[1] - a[1]);
+                if (activeCat === 'Palette' && activeSubFilter !== 'All') entries = entries.filter(([name]) => paletteSubCats[name] === activeSubFilter);
+                l3Items = entries.map(([name, count]) => ({ internalKey: activeCat, name, count }));
+            }
+        }
+
+        document.getElementById('statsOutput').innerHTML = l3Items.map(item => {
+            let classes = 'pill pill-l3';
+            if (item.count === 0) classes += ' is-zero';
+            const filterSet = isFeed ? activeFeedFilters[item.internalKey] : activeFilters[item.internalKey];
+            if (filterSet && filterSet.size > 0) {
+                if (filterSet.has(item.name)) classes += ' active'; else classes += ' dimmed';
+            }
+            return `<div class="${classes}" role="button" tabindex="0" onclick="toggleFilter('${item.internalKey}', '${item.name}')"><span class="stat-name">${isFeed && activeCat !== 'Traits' ? item.name : '↳ ' + item.name}</span><span class="stat-count">${item.count}</span></div>`;
+        }).join('');
+    }
+
+    function updateGalleryUI() {
+        const cards = document.querySelectorAll('.edition-card');
+        const activeCats = getActiveFilters(activeFilters);
+
+        cards.forEach(card => {
+            let shouldShow = true;
+            for (const cat of activeCats) {
+                // Intra-category OR, Inter-category AND
+                if (!activeFilters[cat].has(card.dataset['trait' + cat])) { 
+                    shouldShow = false; break; 
+                }
+            }
+            if (shouldShow) card.classList.remove('hidden'); else card.classList.add('hidden');
+        });
+    }
+
+    function openModal(id) {
+        currentModalId = id;
+        const engine = new KikiEngine(id);
+        engine.render(modalCanvas, 600);
+        mTitle.innerHTML = `<span class="hover-link" role="button" tabindex="0" onclick="closeModal()">${COLLECTION_TITLE}</span> #${id}`;
+        
+        
+        const thClass = c => currentTheme === c ? 'active' : '';
+        const isOwned = metaCache[id] && metaCache[id].ownerDisplay === '@Brendon';
+        const hasPrice = metaCache[id] && metaCache[id].price;
+
+        mDetail.innerHTML = `
+            <div class="modal-theme-row">
+                <div class="modal-nav-pill" role="button" tabindex="0" aria-label="Previous" onclick="prevModal()">&#x25C0;&#xFE0E;</div>
+                <div class="pill-theme t-artist ${thClass('artist')}" role="button" tabindex="0" onclick="setTheme('artist')" title="Artist Default"><span>◩&#xFE0E;</span></div>
+                <div class="pill-theme t-light ${thClass('light')}" role="button" tabindex="0" onclick="setTheme('light')" title="Light"><span>◻&#xFE0E;</span></div>
+                <div class="pill-theme t-dark ${thClass('dark')}" role="button" tabindex="0" onclick="setTheme('dark')" title="Dark"><span>◼&#xFE0E;</span></div>
+                <div class="pill-theme t-orange ${thClass('orange')}" role="button" tabindex="0" onclick="setTheme('orange')" title="Orange"><span>▨&#xFE0E;</span></div>
+                <div class="modal-nav-pill" role="button" tabindex="0" aria-label="Next" onclick="nextModal()">&#x25B6;&#xFE0E;</div>
+            </div>
+            ${hasPrice ? `<div class="modal-buy-row"><button class="btn-mint" style="height:40px;padding:0 24px;flex-direction:row;gap:8px;box-shadow:none;"><span style="font-family:'Rubik Mono One',sans-serif;font-size:14px;font-weight:normal;">BUY NOW</span><span style="font-size:13px;font-family:'Courier New',Courier,monospace;font-weight:bold;opacity:0.85;">(${metaCache[id].price})</span></button></div>` : ''}
+        `;
+        
+        modal.classList.add('active');
+        if (!document.body.classList.contains('modal-open')) { document.body.dataset.scrollY = window.scrollY; document.body.classList.add('modal-open'); document.body.style.top = `-${window.scrollY}px`; }
+        document.body.style.backgroundColor = currentModalBg;
+    }
+    
+    function getVisibleIDs() { return Array.from(document.querySelectorAll('.edition-card:not(.hidden)')).map(c => parseInt(c.dataset.mintId)); }
+    function nextModal() {
+        if(currentModalId === null) return;
+        const visible = getVisibleIDs(); if(visible.length === 0) return;
+        let idx = visible.indexOf(currentModalId); if(idx === -1) { openModal(visible[0]); return; }
+        openModal(visible[idx + 1 >= visible.length ? 0 : idx + 1]);
+    }
+    function prevModal() {
+        if(currentModalId === null) return;
+        const visible = getVisibleIDs(); if(visible.length === 0) return;
+        let idx = visible.indexOf(currentModalId); if(idx === -1) { openModal(visible[0]); return; }
+        openModal(visible[idx - 1 < 0 ? visible.length - 1 : idx - 1]);
+    }
+
+    document.querySelectorAll('.platform-modal').forEach(m => {
+        m.onclick = (e) => { if(e.target === m) { if(m.id === 'modal') closeModal(); if(m.id === 'collectorsModal') closeCollectorsModal(); if(m.id === 'followersModal') closeFollowersModal(); } };
+    });
+    window.addEventListener('keydown', (e) => { if(!modal.classList.contains('active')) return; if(e.key === "ArrowRight") nextModal(); if(e.key === "ArrowLeft") prevModal(); if(e.key === "Escape") closeModal(); });
+
+    let touchStartX = 0; let touchStartY = 0; let swiping = false;
+    modal.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; swiping = false; }, {passive: true});
+    modal.addEventListener('touchmove', e => { const dx = Math.abs(e.changedTouches[0].screenX - touchStartX); const dy = Math.abs(e.changedTouches[0].screenY - touchStartY); if (dx > dy && dx > 10) { swiping = true; e.preventDefault(); } }, {passive: false});
+    modal.addEventListener('touchend', e => { const touchEndX = e.changedTouches[0].screenX; if (touchStartX - touchEndX > 50) nextModal(); if (touchEndX - touchStartX > 50) prevModal(); }, {passive: true});
+
+    // --- SEARCH ---
+    let searchActive = false;
+    let _searchQuery = '';
+
+    // Dynamic placeholder: id, collector + first two trait category names
+    function getSearchPlaceholder() {
+        const cats = Object.keys(traitData);
+        const extras = cats.slice(0, 2).map(c => c.toLowerCase());
+        return '# id, collector' + (extras.length ? ', ' + extras.join(', ') + '...' : '...');
+    }
+
+    window.toggleSearch = function() {
+        searchActive = !searchActive;
+        const row = document.getElementById('searchRow');
+        if (row) {
+            row.classList.toggle('open', searchActive);
+            // Update placeholder dynamically
+            const inp = document.getElementById('searchInput');
+            if (inp) inp.placeholder = getSearchPlaceholder();
+        }
+        if (!searchActive) { clearSearch(); }
+        renderSortUI();
+        renderTraitUI();
+        if (searchActive) {
+            setTimeout(() => { const inp = document.getElementById('searchInput'); if(inp) inp.focus(); }, 50);
+        }
+    }
+
+    window.closeSearch = function() {
+        // X button — closes search fully in both gallery and feed mode
+        searchActive = false;
+        clearSearch();
+        const row = document.getElementById('searchRow');
+        if (row) row.classList.remove('open');
+        renderSortUI();
+        renderTraitUI();
+        if (currentSort.startsWith('feed')) renderFeed();
+    }
+
+    window.applySearch = function() {
+        const inp = document.getElementById('searchInput');
+        if (!inp) return;
+        _searchQuery = inp.value.trim().toLowerCase();
+        if (currentSort.startsWith('feed')) {
+            renderFeed();
+        } else {
+            const minVal = parseFloat(document.getElementById('feedPriceMin')?.value);
+            const maxVal = parseFloat(document.getElementById('feedPriceMax')?.value);
+            document.querySelectorAll('.edition-card').forEach(card => {
+                const id = card.dataset.mintId;
+                const pal = (card.dataset.traitPalette || '').toLowerCase();
+                const mode = (card.dataset.traitMode || '').toLowerCase();
+                const state = (card.dataset.traitState || '').toLowerCase();
+                const owner = (card.querySelector('.meta-owner') ? card.querySelector('.meta-owner').textContent : '').toLowerCase();
+                const textMatch = !_searchQuery || id.includes(_searchQuery) || pal.includes(_searchQuery) || mode.includes(_searchQuery) || state.includes(_searchQuery) || owner.includes(_searchQuery);
+                const cardPrice = parseFloat(card.dataset.price);
+                const priceMatch = (isNaN(minVal) || cardPrice >= minVal) && (isNaN(maxVal) || cardPrice <= maxVal);
+                card.classList.toggle('search-hidden', !textMatch || !priceMatch);
+            });
+        }
+    }
+
+    window.clearSearch = function() {
+        _searchQuery = '';
+        const inp = document.getElementById('searchInput');
+        if (inp) inp.value = '';
+        const minInp = document.getElementById('feedPriceMin');
+        const maxInp = document.getElementById('feedPriceMax');
+        if (minInp) minInp.value = '';
+        if (maxInp) maxInp.value = '';
+        document.querySelectorAll('.edition-card').forEach(c => c.classList.remove('search-hidden'));
+    }
+
+    // Global Search Context Restoration Tracking
+    let activeDropdownPanel = null; // 'settings' | 'artists' | null
+    let isGlobalSearching = false;
+
+    // Global search handler — actively dominates UI but seamlessly restores context
+    window.handleGlobalSearch = function(val) {
+        const results = document.getElementById('globalSearchResults');
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const notifsBox = document.querySelector('.notifications-box');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const artistsPanel = document.getElementById('artistsPanel');
+
+        if (!results) return;
+
+        if (!val.trim()) {
+            results.innerHTML = '';
+            results.classList.remove('has-results');
+            isGlobalSearching = false;
+            
+            // Restore UI context based on where they were
+            if (activeDropdownPanel === 'settings') {
+                if (settingsPanel) settingsPanel.style.display = 'flex';
+                if (menuLinks) menuLinks.classList.add('hidden');
+                if (notifsBox) notifsBox.style.display = 'none';
+            } else if (activeDropdownPanel === 'artists') {
+                if (artistsPanel) artistsPanel.style.display = 'flex';
+                if (menuLinks) menuLinks.classList.add('hidden');
+                if (notifsBox) notifsBox.style.display = 'none';
+            } else {
+                if (settingsPanel) settingsPanel.style.display = 'none';
+                if (artistsPanel) artistsPanel.style.display = 'none';
+                if (menuLinks) menuLinks.classList.remove('hidden');
+                if (notifsBox) notifsBox.style.display = '';
+            }
+            return;
+        }
+        
+        // Locking down initial state on first keystroke
+        if (!isGlobalSearching) {
+            if (settingsPanel && settingsPanel.style.display === 'flex') activeDropdownPanel = 'settings';
+            else if (artistsPanel && artistsPanel.style.display === 'flex') activeDropdownPanel = 'artists';
+            else activeDropdownPanel = null;
+            
+            isGlobalSearching = true;
+        }
+
+        // Search active -> hide all underlying states
+        if (menuLinks) menuLinks.classList.add('hidden');
+        if (notifsBox) notifsBox.style.display = 'none';
+        if (settingsPanel) settingsPanel.style.display = 'none';
+        if (artistsPanel) artistsPanel.style.display = 'none';
+        
+        const dummies =[
+            `⌕ @${val} — collector`,
+            `⌕ "${val}" — palette match`,
+            `⌕ #${Math.floor(Math.random()*1000)+1} — token`,
+        ];
+        results.innerHTML = dummies.map(d => `<div class="global-result-item">${d}</div>`).join('');
+        results.classList.add('has-results');
+    }
+
+    // Globe click-to-focus
+    const globeIconEl = document.getElementById('globeIcon');
+    const globalSearchInputEl = document.getElementById('globalSearchInput');
+    if (globeIconEl && globalSearchInputEl) {
+        globeIconEl.addEventListener('click', () => globalSearchInputEl.focus());
+    }
+
+    // Search dormant/active toggle
+    window.activateSearch = function() {
+        const dormant = document.getElementById('searchDormant');
+        const active = document.getElementById('searchActive');
+        const input = document.getElementById('globalSearchInput');
+        if (dormant) dormant.style.display = 'none';
+        if (active) active.style.display = 'flex';
+        if (input) { input.focus(); input.click(); }
+    }
+
+    window.openSettings = function() {
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const notifsBox = document.querySelector('.notifications-box');
+        if (menuLinks) menuLinks.style.display = 'none';
+        if (notifsBox) notifsBox.style.display = 'none';
+        if (settingsPanel) settingsPanel.style.display = 'flex';
+        renderSettingsUI();
+    }
+
+    window.closeSettings = function() {
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const notifsBox = document.querySelector('.notifications-box');
+        const searchInput = document.getElementById('globalSearchInput');
+        const hasSearch = searchInput && searchInput.value.trim() !== '';
+
+        if (settingsPanel) settingsPanel.style.display = 'none';
+        
+        if (menuLinks) {
+            menuLinks.style.display = ''; 
+            if (hasSearch) menuLinks.classList.add('hidden'); else menuLinks.classList.remove('hidden');
+        }
+        if (notifsBox) {
+            notifsBox.style.display = hasSearch ? 'none' : '';
+        }
+    }
+
+    // Balance visibility toggle
+    let balanceHidden = false;
+    window.toggleBalance = function() {
+        balanceHidden = !balanceHidden;
+        const textEl = document.getElementById('priceBalanceText');
+        const iconEl = document.querySelector('.balance-toggle-icon');
+        if (!textEl || !iconEl) return;
+        if (balanceHidden) {
+            textEl.innerText = '***';
+            iconEl.innerHTML = '⊘&#xFE0E;';
+        } else {
+            textEl.innerText = '17,450.54';
+            iconEl.innerHTML = '⊚&#xFE0E;';
+        }
+    }
+
+    window.copyWallet = function(el) {
+        const fullAddress = "0x1234567890abcdef1234567890abcdef12345678";
+        const origText = "0x1234...abcd <span class=\"icon-copy\">⧉&#xFE0E;</span>";
+        
+        navigator.clipboard.writeText(fullAddress).then(() => {
+            el.innerHTML = "✓&#xFE0E; COPIED";
+            setTimeout(() => { el.innerHTML = origText; }, 1500);
+        }).catch(() => {
+            el.innerHTML = "✓&#xFE0E; COPIED";
+            setTimeout(() => { el.innerHTML = origText; }, 1500);
+        });
+    }
+
+    window.selectENS = function(el) {
+        // Toggle the clicked element off if it's already active (behaves like a ping pill now)
+        const isCurrentlyActive = el.classList.contains('active');
+        document.querySelectorAll('.pill-ens').forEach(p => p.classList.remove('active'));
+        if (!isCurrentlyActive) {
+            el.classList.add('active');
+        }
+    }
+
+    window.setAndSaveTheme = function(theme) {
+        localStorage.setItem('pd_settings_theme', theme);
+        setTheme(theme);
+    }
+
+    window.setAndSaveSort = function(sortStr, event) {
+        if (event) event.stopPropagation();
+        setSort(sortStr);
+        localStorage.setItem('pd_settings_sort', currentSort);
+        renderSettingsUI();
+    }
+
+    window.toggleNotif = function(key) {
+        pdNotifs[key] = !pdNotifs[key];
+        localStorage.setItem('pd_settings_notifs', JSON.stringify(pdNotifs));
+        renderSettingsUI();
+    }
+
+    window.togglePure = function(mode) {
+        const stateKey = 'pure_' + mode;
+        pdNotifs[stateKey] = !pdNotifs[stateKey];
+        localStorage.setItem('pd_settings_notifs', JSON.stringify(pdNotifs));
+        renderSettingsUI();
+        if (pdNotifs[stateKey]) {
+            setAndSaveTheme(mode); 
+        } else {
+            setTheme(localStorage.getItem('pd_settings_theme') || 'artist'); 
+        }
+    }
+
+    window.togglePriceLogo = function() {
+        pdNotifs.priceLogo = !pdNotifs.priceLogo;
+        localStorage.setItem('pd_settings_notifs', JSON.stringify(pdNotifs));
+        
+        // Update logo UI
+        const defaultLogo = document.querySelector('.logo-default');
+        const priceLogo = document.querySelector('.logo-price');
+        if (pdNotifs.priceLogo) {
+            defaultLogo.style.display = 'none';
+            priceLogo.style.display = 'flex';
+        } else {
+            defaultLogo.style.display = '';
+            priceLogo.style.display = 'none';
+        }
+        
+        // Force favicon update
+        const root = document.documentElement;
+        updateFavicon(root.style.getPropertyValue('--bg-color'), root.style.getPropertyValue('--text-color'), currentFaviconText, currentFaviconAlert, false, currentFaviconRotated);
+        
+        renderSettingsUI();
+    }
+
+    // Custom Profile Theme Toggles & Sync
+    window.toggleProfileTheme = function(e) {
+        if (e.target.tagName.toLowerCase() === 'input') return;
+        const wasActive = profileThemeActive;
+        profileThemeActive = !profileThemeActive;
+        // Only open color picker when activating, not deactivating
+        if (!wasActive && profileThemeActive) {
+            const picker = document.getElementById('profileColorPicker');
+            if (picker) setTimeout(() => picker.click(), 50);
+        }
+        renderSettingsUI();
+    }
+    
+    window.syncProfileHex = function(val) {
+        profileThemeActive = true;
+        document.getElementById('profileHexInput').value = val.toUpperCase();
+        renderSettingsUI();
+    }
+    
+    window.syncProfileColor = function(val) {
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+            document.getElementById('profileColorPicker').value = val;
+            profileThemeActive = true;
+            renderSettingsUI();
+        }
+    }
+    
+    window.copyProfileHex = function() {
+        const input = document.getElementById('profileHexInput');
+        const origVal = input.value;
+        navigator.clipboard.writeText(origVal).then(() => {
+            input.value = "COPIED";
+            setTimeout(() => { input.value = origVal; }, 1500);
+        });
+    }
+
+    window.renderSettingsUI = function() {['artist', 'light', 'dark', 'orange'].forEach(t => {
+            const el = document.getElementById('st-' + t);
+            if(el) { el.classList.toggle('active', currentTheme === t); }
+        });['mints', 'lists', 'offers', 'xfers', 'mutualsOnly', 'pure_light', 'pure_dark'].forEach(k => {
+            let idKey = k;
+            if (k === 'pure_light') idKey = 'pureLight';
+            if (k === 'pure_dark') idKey = 'pureDark';
+            const el = document.getElementById('sn-' + idKey);
+            if(el) { el.classList.toggle('active', !!pdNotifs[k]); }
+        });
+        
+        // Handle Price Logo special visual state
+        const snPriceLogo = document.getElementById('sn-priceLogo');
+        if (snPriceLogo) {
+            snPriceLogo.classList.toggle('active', !!pdNotifs.priceLogo);
+            const stIcon = snPriceLogo.querySelector('.st-icon');
+            if (stIcon) stIcon.classList.toggle('strikethrough', !!pdNotifs.priceLogo);
+        }
+        
+        const ptEl = document.getElementById('sn-profileTheme');
+        if (ptEl) ptEl.classList.toggle('active', profileThemeActive);
+
+        // Sort pills with direction indicators matching main sort row
+        const idDir = currentSort === 'id-asc' ? ' <span class="settings-sort-arrow">↑&#xFE0E;</span>' : (currentSort === 'id-desc' ? ' <span class="settings-sort-arrow">↓&#xFE0E;</span>' : '');
+        const priceDir = currentSort === 'price-asc' ? ' <span class="settings-sort-arrow">↑&#xFE0E;</span>' : (currentSort === 'price-desc' ? ' <span class="settings-sort-arrow">↓&#xFE0E;</span>' : '');
+        let feedLabel = 'FEED';
+        if (currentSort === 'feed-time-desc') feedLabel = 'FEED <span class="settings-sort-arrow">↓&#xFE0E;</span>';
+        else if (currentSort === 'feed-time-asc') feedLabel = 'FEED <span class="settings-sort-arrow">↑&#xFE0E;</span>';
+        else if (currentSort === 'feed-price-desc') feedLabel = 'FEED $ <span class="settings-sort-arrow">↓&#xFE0E;</span>';
+        else if (currentSort === 'feed-price-asc') feedLabel = 'FEED $ <span class="settings-sort-arrow">↑&#xFE0E;</span>';
+        const ssId = document.getElementById('ss-id');
+        const ssPrice = document.getElementById('ss-price');
+        const ssFeed = document.getElementById('ss-feed');
+        if (ssId) { ssId.innerHTML = '# ID' + idDir; ssId.classList.toggle('active', currentSort.startsWith('id')); }
+        if (ssPrice) { ssPrice.innerHTML = '$ PRICE' + priceDir; ssPrice.classList.toggle('active', currentSort.startsWith('price')); }
+        if (ssFeed) { ssFeed.innerHTML = feedLabel; ssFeed.classList.toggle('active', currentSort.startsWith('feed')); }
+    }
+
+    // --- ARTISTS PANEL ENGINE ---
+    const mockArtistNames =[
+        'packy', 'shvembldr', 'tylerxhobbs', 'snowfro', 'dmitricherniak', 'xfar', 'brendon', 'matty', 
+        'atlasforge', 'rudxane', 'gmoney', 'darold', 'clownvamp', 'trinity', 
+        'willpop', 'cspok', 'siggi', 'ccddbb', 'piterpasma', 'richardnadal', 'mattdesl', 'ykx', 
+        'lorem', 'ixshells', 'generative', 'algorithm', 'noise', 'pixel', 
+        'vector', 'crypto', 'punk', 'ape', 'toadz', 'nouns', 'mfers', 'rekt', 'moon', 'hodl', 
+        'fren', 'gm', 'gn', 'wagmi', 'ngmi', 'vibes', 'based', 'degen'
+    ];
+    let generatedArtists = [];
+    const relTypes =['mutual', 'following', 'followers'];
+    const relIcons = { 'mutual': '⚭&#xFE0E;', 'following': '⚯&#xFE0E;', 'followers': '⚬&#xFE0E;' };
+    
+    mockArtistNames.forEach((name, i) => {
+        generatedArtists.push({ name: '@' + name, rel: relTypes[i % 3] });
+    });
+    // Sort alphabetically for realism
+    generatedArtists.sort((a,b) => a.name.localeCompare(b.name));
+
+    window.renderArtistsList = function() {
+        const container = document.getElementById('artistsList');
+        if(!container) return;
+        const searchInput = document.getElementById('artistSearchInput');
+        const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+        const activeRels = Array.from(document.querySelectorAll('.pill-artist-filter.active')).map(el => el.dataset.rel);
+        
+        const filtered = generatedArtists.filter(a => {
+            const matchesSearch = a.name.toLowerCase().includes(searchVal);
+            const matchesRel = activeRels.length === 0 || activeRels.includes(a.rel);
+            return matchesSearch && matchesRel;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="padding: 15px 10px; font-size: 12px; font-family: 'Courier New', Courier, monospace; opacity: 0.5; text-align: center;">No matches found.</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(a => `
+            <a href="https://pdsim.netlify.app" class="artist-row">
+                <span class="artist-name-txt">${a.name}</span>
+                <span class="artist-rel-icon" data-rel-type="${a.rel}" title="${a.rel.charAt(0).toUpperCase() + a.rel.slice(1)}">${relIcons[a.rel]}</span>
+            </a>
+        `).join('');
+    }
+
+    window.toggleArtistFilter = function(el, rel) {
+        el.classList.toggle('active');
+        renderArtistsList();
+    }
+
+    window.filterArtists = function() {
+        renderArtistsList();
+    }
+
+    window.openArtists = function() {
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const artistsPanel = document.getElementById('artistsPanel');
+        const notifsBox = document.querySelector('.notifications-box');
+        if (menuLinks) menuLinks.style.display = 'none';
+        if (notifsBox) notifsBox.style.display = 'none';
+        if (artistsPanel) artistsPanel.style.display = 'flex';
+        renderArtistsList();
+    }
+
+    window.closeArtists = function() {
+        const menuLinks = document.getElementById('dropdownMenuLinks');
+        const artistsPanel = document.getElementById('artistsPanel');
+        const notifsBox = document.querySelector('.notifications-box');
+        const searchInput = document.getElementById('globalSearchInput');
+        const hasSearch = searchInput && searchInput.value.trim() !== '';
+
+        if (artistsPanel) artistsPanel.style.display = 'none';
+        
+        if (menuLinks) {
+            menuLinks.style.display = ''; 
+            if (hasSearch) menuLinks.classList.add('hidden'); else menuLinks.classList.remove('hidden');
+        }
+        if (notifsBox) {
+            notifsBox.style.display = hasSearch ? 'none' : '';
+        }
+    }
+
+    // Call render once to prepopulate
+    renderArtistsList();
+
+
+    // Reset search & settings to dormant when menu closes
+    const origToggleMenu = window.toggleMenu;
+    const menuWrapperEl = document.querySelector('.user-menu-wrapper');
+    if (menuWrapperEl) {
+        const observer = new MutationObserver(() => {
+            if (!menuWrapperEl.classList.contains('active')) {
+                const dormant = document.getElementById('searchDormant');
+                const active = document.getElementById('searchActive');
+                const input = document.getElementById('globalSearchInput');
+                if (dormant) dormant.style.display = 'flex';
+                if (active) active.style.display = 'none';
+                if (input) { input.value = ''; handleGlobalSearch(''); }
+                
+                isGlobalSearching = false;
+                activeDropdownPanel = null;
+                closeSettings();
+                closeArtists();
+            }
+        });
+        observer.observe(menuWrapperEl, { attributes: true, attributeFilter:['class'] });
+    }
+
+    // --- DEBUG BAR ---
+    let debugState = 'minting';
+    let debugPersona = 'pd';
+
+    function applyDebugMode() {
+        const heroArtist = document.querySelector('.hero-line.collection-artist');
+        const buyBtn = document.querySelector('.btn-mint');
+        const soundtrackBtn = document.querySelector('.btn-soundtrack');
+        const traitsHeaderBar = document.querySelector('.traits-header-bar');
+        const collectedLine = document.querySelector('.hero-line.info-line');
+        const gallery = document.getElementById('gallery');
+        const activityFeed = document.getElementById('activity-feed');
+
+        // Persona
+        if (debugPersona === 'default') {
+            setTheme('light');
+        } else {
+            const savedTheme = localStorage.getItem('pd_settings_theme') || 'artist';
+            setTheme(savedTheme);
+            if (soundtrackBtn) soundtrackBtn.style.display = '';
+        }
+
+        document.body.classList.toggle('persona-default', debugPersona === 'default');
+
+        // State
+        const TOTAL = 2222;
+        const MINTING_COUNT = Math.floor(TOTAL * 0.25);
+
+        if (debugState === 'zero') {
+            if (collectedLine) collectedLine.style.display = 'none';
+            if (gallery) Array.from(gallery.children).forEach(el => el.style.display = 'none');
+            if (activityFeed) activityFeed.style.display = 'none';
+            updateStatEditions(0, TOTAL, true);
+        } else if (debugState === 'minting') {
+            if (collectedLine) collectedLine.style.display = '';
+            if (buyBtn) { buyBtn.style.display = ''; const lbl = buyBtn.querySelector('.mint-lbl'); if (lbl) lbl.textContent = 'MINT'; }
+            if (gallery) Array.from(gallery.children).forEach((el, i) => el.style.display = i < MINTING_COUNT ? '' : 'none');
+            if (activityFeed) activityFeed.style.display = '';
+            updateStatEditions(MINTING_COUNT, TOTAL, false);
+        } else {
+            if (collectedLine) collectedLine.style.display = '';
+            if (buyBtn) { buyBtn.style.display = ''; const lbl = buyBtn.querySelector('.mint-lbl'); if (lbl) lbl.textContent = 'BUY'; }
+            if (gallery) Array.from(gallery.children).forEach(el => el.style.display = '');
+            if (activityFeed) activityFeed.style.display = '';
+            updateStatEditions(TOTAL, TOTAL, false);
+        }
+
+        document.querySelectorAll('[data-debug-state]').forEach(b => {
+            b.classList.toggle('debug-active', b.dataset.debugState === debugState);
+        });
+        document.querySelectorAll('[data-debug-persona]').forEach(b => {
+            b.classList.toggle('debug-active', b.dataset.debugPersona === debugPersona);
+        });
+
+        renderSortUI();
+        renderTraitUI();
+    }
+
+    function updateStatEditions(minted, total, forceZero = false) {
+        const statVals = document.querySelectorAll('.stat-val');
+        if (statVals[0]) statVals[0].textContent = `${minted}/${total}`;
+        if (forceZero) {
+            if (statVals[1]) statVals[1].textContent = `0 VOL`;
+            if (statVals[2]) statVals[2].textContent = `0 OWNERS`;
+        } else {
+            if (statVals[1]) statVals[1].textContent = `14.2 VOL`;
+            if (statVals[2]) statVals[2].textContent = `1528 OWNERS`;
+        }
+    }
+
+    window.setDebugState = function(val) { debugState = val; applyDebugMode(); }
+    window.setDebugPersona = function(val) { debugPersona = val; applyDebugMode(); }
+
+    const initialTheme = localStorage.getItem('pd_settings_theme') || 'artist';
+    setTheme(initialTheme);
+    
+    setTimeout(() => {
+        init();
+        
+        const savedSort = localStorage.getItem('pd_settings_sort');
+        if (savedSort) {
+            currentSort = savedSort;
+            if (currentSort.startsWith('feed')) {
+                document.getElementById('gallery').style.display = 'none';
+                document.getElementById('activity-feed').style.display = 'block';
+                renderFeed();
+            } else {
+                document.getElementById('activity-feed').style.display = 'none';
+                document.getElementById('gallery').style.display = 'grid';
+                sortGallery();
+            }
+            renderSortUI();
+            renderTraitUI();
+            if (typeof renderSettingsUI === 'function') renderSettingsUI();
+        }
+        
+        // Setup initial Price Logo view
+        if (pdNotifs && pdNotifs.priceLogo) {
+            document.querySelector('.logo-default').style.display = 'none';
+            document.querySelector('.logo-price').style.display = 'flex';
+        }
+
+        applyDebugMode();
+    }, 50);
+
+</script>
+
+<style>
+    .debug-bar {
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 20px 40px 40px 40px;
+    }
+    @media (max-width: 600px) { .debug-bar { padding: 20px 20px 40px 20px; } }
+    .debug-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .debug-pill {
+        background: var(--stat-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        height: 28px; padding: 0 12px;
+        border-radius: 4px; cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px; font-weight: bold;
+        letter-spacing: 0.03em; user-select: none;
+    }
+    .debug-pill.debug-active {
+        border-color: var(--text-color);
+        background: var(--text-color);
+        color: var(--bg-color);
+    }
+</style>
+
+<div class="debug-bar">
+    <div class="debug-row">
+        <div class="debug-pill" data-debug-state="zero" onclick="setDebugState('zero')">Zero</div>
+        <div class="debug-pill debug-active" data-debug-state="minting" onclick="setDebugState('minting')">Minting</div>
+        <div class="debug-pill" data-debug-state="soldout" onclick="setDebugState('soldout')">Sold Out</div>
+    </div>
+    <div class="debug-row">
+        <div class="debug-pill debug-active" data-debug-persona="pd" onclick="setDebugPersona('pd')">PD</div>
+        <div class="debug-pill" data-debug-persona="default" onclick="setDebugPersona('default')">Regular</div>
+    </div>
+</div>
+
+</body>
+</html>
+<!-- --- END OF FILE: index.html --- -->
