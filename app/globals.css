@@ -2739,13 +2739,17 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
     display: inline-block;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
     line-height: 1.6;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
+}
+/* "COLLECTED BY" label — Courier New for just the two-word prefix */
+.collected-by-label {
+    font-family: 'Courier New', Courier, monospace;
 }
 .collected-sprite {
     font-family: 'Courier New', Courier, monospace;
