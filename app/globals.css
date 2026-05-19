@@ -2740,10 +2740,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .info-rubik {
     display: inline-block;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.6;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
@@ -2859,26 +2858,34 @@ body.persona-default .stats-row-2 { display: none !important; }
     opacity: 0.85;
 }
 .btn-soundtrack {
-    background: transparent;
+    background: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--text-color);
     padding: 0 12px;
-    height: 34px;
-    cursor: pointer;
-    border-radius: 3px;
+    height: 28px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.65;
-    transition: opacity 0.2s;
+    gap: 6px;
+    text-decoration: none;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
 }
-.btn-soundtrack:hover { opacity: 1; }
+.btn-soundtrack:hover { background: var(--text-color); color: var(--bg-color); }
+.btn-icon-play {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* ── PROFILE MORE TAB — stats moved from hero ───────────── */
 .more-tab-stats {
