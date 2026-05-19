@@ -2741,15 +2741,16 @@ body.persona-default .stats-row-2 { display: none !important; }
     display: inline-block;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
-    text-transform: uppercase;
     line-height: 1.6;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
 }
-/* "COLLECTED BY" label — Courier New for just the two-word prefix */
+/* "COLLECTED BY" label — matches .by-text exactly (sim line 2506) */
 .collected-by-label {
     font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
 }
 .collected-sprite {
     font-family: 'Courier New', Courier, monospace;
