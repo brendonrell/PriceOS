@@ -470,7 +470,7 @@ export default function OutputPreview() {
         if (meta.isOwnedByBrendon) {
             actionLabel = <>LIST</>;          // no price on LIST — cost basis is personal
             hasCalc = true;
-            calcIcon = '\u273A';              // ✺ showcase icon
+            calcIcon = '\u2446\uFE0E';         // ⑆ showcase icon
             calcTitle = 'Add to Showcase';
             calcMode = 'showcase';
         } else if (meta.price) {
@@ -531,8 +531,6 @@ export default function OutputPreview() {
                     className="output-canvas"
                     onClick={() => {
                         if (id == null) return;
-                        close();
-                        window.scrollTo(0, 0);
                         router.push(`/${id}`);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -578,7 +576,7 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => {
-                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/${id}`); }
+                                    if (id != null) router.push(`/${id}`);
                                 }}
                             >
                                 {title}
@@ -609,7 +607,7 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => {
-                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/${id}`); }
+                                    if (id != null) router.push(`/${id}`);
                                 }}
                             >
                                 Artwork Page &#x2197;&#xFE0E;

@@ -281,7 +281,7 @@ export default function CalcSheet({ config, onClose }: Props) {
 
                 <div className="calc-sheet-divider"></div>
                 <div className="calc-sheet-section-label">
-                    P&amp;L if flipped at floor
+                    PnL if sold at floor
                 </div>
 
                 <div className="calc-sheet-line">
