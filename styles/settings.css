@@ -311,7 +311,9 @@
    sizing. */
 .showcase-toggle-btn {
     font-size: 18px;
-    margin-left: 10px;
+    margin-left: 6px;
+    position: relative;
+    top: 1px;
 }
 
 /* Mobile per-id .st-icon overrides — sim 2238 block ported.
