@@ -170,49 +170,13 @@ function ProfilePageBodyInner() {
                     </div>
 
                     <div className="profile-tabs-row" id="profileTabsRow">
-                        <div
-                            className={`pill pill-l1${onCreated ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setActiveTab('created')}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setActiveTab('created');
-                                }
-                            }}
-                            title="Created — artist's minted projects"
-                        >
+                        <div className={`pill pill-l1${onCreated ? ' active' : ''}`} role="button" tabIndex={0} onClick={() => setActiveTab('created')}>
                             <span className="stat-name">Created</span>
                         </div>
-                        <div
-                            className={`pill pill-l1${onCollected ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setActiveTab('collected')}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setActiveTab('collected');
-                                }
-                            }}
-                            title="Collected — outputs held"
-                        >
+                        <div className={`pill pill-l1${onCollected ? ' active' : ''}`} role="button" tabIndex={0} onClick={() => setActiveTab('collected')}>
                             <span className="stat-name">Collected</span>
                         </div>
-                        <div
-                            className={`pill pill-l1${onMore ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setActiveTab('more')}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setActiveTab('more');
-                                }
-                            }}
-                            title="More — Starred / Wishlists / Albums"
-                        >
+                        <div className={`pill pill-l1${onMore ? ' active' : ''}`} role="button" tabIndex={0} onClick={() => setActiveTab('more')}>
                             <span className="stat-name">+ More</span>
                         </div>
                     </div>
@@ -221,69 +185,45 @@ function ProfilePageBodyInner() {
                         <div className="more-tab-stats">
                             <div className="hero-line stats-row stats-row-2">
                                 <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Followers')}
-                                    >◎&#xFE0E;</span>{' '}
+                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Followers')}>◎&#xFE0E;</span>{' '}
                                     <span className="stat-val">89</span>
                                 </span>
                                 <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Following')}
-                                    >⊙&#xFE0E;</span>{' '}
+                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Following')}>⊙&#xFE0E;</span>{' '}
                                     <span className="stat-val">34</span>
                                 </span>
                                 <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Anchor — coming soon')}
-                                    >⚓&#xFE0E;</span>{' '}
+                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Anchor — coming soon')}>⚓&#xFE0E;</span>{' '}
                                     <span className="stat-val stat-val-empty">—</span>
                                 </span>
                             </div>
 
-                            <a
-                                role="button"
-                                tabIndex={isAuthed ? 0 : -1}
+                            <button
+                                type="button"
                                 className={!isAuthed ? 'auth-gated' : undefined}
                                 style={{
                                     cursor: 'pointer',
                                     fontFamily: 'Courier New, monospace',
                                     marginTop: 14,
-                                    display: 'inline-block',
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
                                 }}
-                                onClick={(e) => {
-                                    e.preventDefault();
+                                onClick={() => {
                                     if (!isAuthed) return;
                                     showToast('Discord linking test entry added');
                                 }}
-                                onKeyDown={(e) => {
-                                    if (!isAuthed) return;
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        showToast('Discord linking test entry added');
-                                    }
-                                }}
                             >
                                 Link Discord
-                            </a>
+                            </button>
                         </div>
                     )}
 
-                    <TraitsUI
-                        visible={onMore}
-                        hideSortBar
-                        profilePills={profilePills}
-                    />
+                    <TraitsUI visible={onMore} hideSortBar profilePills={profilePills} />
                 </div>
             </section>
 
-            <section
-                id="gallery"
-                aria-label="Gallery"
-                style={{ display: galleryVisible ? undefined : 'none' }}
-            >
+            <section id="gallery" aria-label="Gallery" style={{ display: galleryVisible ? undefined : 'none' }}>
                 {galleryIds.map((id) => (
                     <ArtworkCard key={id} id={id} />
                 ))}
