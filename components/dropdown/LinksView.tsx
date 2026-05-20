@@ -61,17 +61,8 @@ export function LinksView() {
 
     const isAuthed = !!siweAddress;
 
-    /* Profile link target. Uses live SIWE address when authenticated;
-       falls back to `/brendon` when not. The fallback is unreachable
-       in the gated logged-out state (pointer-events: none + no href
-       when not authed) but kept as a defensive default. */
     const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
 
-    /* S3 — real gas data from /api/gas (edge-cached 12s). LinksView only
-       mounts while the user dropdown is open, so `useGasData(true)`
-       polls only while the user is looking at the menu. Clicking the
-       widget opens the GasTrackerModal — full 3-card view. Works
-       logged-out per Tier 1 lead-magnet spec. */
     const gas = useGasData(true);
     const gasValue = gas.data
         ? gas.data.standardGwei < 10
@@ -87,35 +78,16 @@ export function LinksView() {
     };
 
     const handleConnectWallet = () => {
-        /* RK's ModalContext only exposes `openConnectModal` as a real
-           function when connectionStatus is 'disconnected' or
-           'unauthenticated' (node_modules/@rainbow-me/rainbowkit/dist/
-           index.js:6355). When it's undefined, the user is already
-           in a wallet-connected state we can't open the connect
-           modal from. Toast tells them to retry rather than
-           swallowing the click. */
         if (!openConnectModal) {
             showToast('Wallet not ready — refresh and try again');
             return;
         }
-        /* No closeMenu, no preventDefault, no stopPropagation. RK
-           modal renders via createPortal to document.body with
-           z-index 2147483646 (rainbowkit/dist/index.css) so it
-           layers above the dropdown without needing the dropdown
-           out of the way. PR1 shipped a closeMenu() before this
-           call; on iOS PWA that suppressed the modal render
-           entirely (menu closed, no modal). Original pre-PR1 code
-           didn't closeMenu either — the dropdown closes naturally
-           when the user interacts with the RK modal (mousedown
-           outside .user-menu-wrapper). */
+
         openConnectModal();
     };
 
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">
-            {/* Profile row — link + follower/following stats split.
-                See top-of-file PARKED DEVIATION block on flex: 1.
-                S2: gated when !isAuthed (visible preview, inert). */}
             <div
                 id="profileRow"
                 className={!isAuthed ? 'auth-gated' : undefined}
@@ -124,20 +96,12 @@ export function LinksView() {
                     alignItems: 'center',
                 }}
             >
-                {/* PARKED DEVIATION: flex: 1 pushes the stats to the
-                    right edge of the row instead of clustering them
-                    next to "Profile" (sim's natural layout). */}
                 <a
                     href={isAuthed ? profileHref : undefined}
                     style={{ flex: 1 }}
                 >
                     Profile
                 </a>
-                {/* Each side (followers OR following) is a SINGLE click
-                    target that wraps the icon + number together. Tapping
-                    the icon OR the number opens the same FollowersModal
-                    tab. Hover treatment shifts to opacity-only so it
-                    stays theme-aware on every theme. */}
                 {isAuthed && (
                 <span
                     className="nav-follower-stats"
@@ -203,27 +167,6 @@ export function LinksView() {
                 rel="noopener noreferrer"
             >
                 Discord
-            </a>
-
-            <a
-                role="button"
-                tabIndex={isAuthed ? 0 : -1}
-                className={!isAuthed ? 'auth-gated' : undefined}
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                    e.preventDefault();
-                    if (!isAuthed) return;
-                    showToast('Discord linking test entry added');
-                }}
-                onKeyDown={(e) => {
-                    if (!isAuthed) return;
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        showToast('Discord linking test entry added');
-                    }
-                }}
-            >
-                Link Discord
             </a>
 
             <a
