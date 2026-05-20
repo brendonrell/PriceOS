@@ -92,15 +92,56 @@ export function WalletSection() {
     const isAuthed = !!siweAddress;
     const gatedClass = isAuthed ? '' : ' auth-gated';
 
-    /* S3 — live wallet display. Multi-ENS list parks until the indexer
-       lands; for now we show the single primary ENS (if one resolves)
-       per address. When !isAuthed, fall back to PLACEHOLDER_* so the
-       S2 gated-preview shape stays intact. */
+    /* S3 — live wallet ENS detection.
+       Primary: query the ENS subgraph for ALL names registered to this address.
+       Fallback: useEnsName (primary ENS reverse record) if subgraph unavailable. */
     const ensQuery = useEnsName({
         address: (siweAddress ?? undefined) as `0x${string}` | undefined,
         chainId: 1,
     });
-    const ensName = ensQuery.data ?? null;
+    const ensFallback = ensQuery.data ?? null;
+    const [ensSubgraphNames, setEnsSubgraphNames] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!siweAddress) { setEnsSubgraphNames([]); return; }
+        const addr = siweAddress.toLowerCase();
+        const query = `{
+            account(id: "${addr}") {
+                registrations(first: 100, orderBy: registrationDate, orderDirection: desc) {
+                    domain { name }
+                }
+                wrappedDomains(first: 100) {
+                    domain { name }
+                }
+            }
+        }`;
+        fetch('https://api.thegraph.com/subgraphs/name/ensdomains/ens', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query }),
+        })
+            .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+            .then((data) => {
+                const seen = new Set<string>();
+                const names: string[] = [];
+                const acc = data?.data?.account;
+                if (acc) {
+                    for (const r of (acc.registrations ?? [])) {
+                        const n = r?.domain?.name;
+                        if (n && !seen.has(n)) { seen.add(n); names.push(n); }
+                    }
+                    for (const r of (acc.wrappedDomains ?? [])) {
+                        const n = r?.domain?.name;
+                        if (n && !seen.has(n)) { seen.add(n); names.push(n); }
+                    }
+                }
+                setEnsSubgraphNames(names);
+            })
+            .catch(() => {
+                /* subgraph unavailable — fallback to primary ENS below */
+                setEnsSubgraphNames([]);
+            });
+    }, [siweAddress]);
 
     const priceBalance = usePriceBalance(siweAddress);
 
@@ -110,11 +151,12 @@ export function WalletSection() {
     const fullAddress = isAuthed && siweAddress
         ? siweAddress
         : PLACEHOLDER_FULL_ADDRESS;
-    const ensPills: string[] = isAuthed
-        ? ensName
-            ? [ensName]
-            : []
-        : PLACEHOLDER_ENS_PILLS;
+    /* Prefer subgraph names (full list); fall back to primary ENS reverse
+       record if the subgraph returned nothing (e.g. first load or error). */
+    const ensNamesLive = ensSubgraphNames.length > 0
+        ? ensSubgraphNames
+        : (ensFallback ? [ensFallback] : []);
+    const ensPills: string[] = isAuthed ? ensNamesLive : PLACEHOLDER_ENS_PILLS;
     const balanceDisplay = isAuthed
         ? priceBalance.balanceFormatted ?? '—'
         : PLACEHOLDER_BALANCE;

@@ -52,7 +52,7 @@ export function MyPingsRow() {
                     active={notifs.pingToasts}
                     onClick={handlePingToasts}
                     icon={'⇡\uFE0E'}
-                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    iconStyle={{ fontSize: '14px', lineHeight: '1', marginRight: 0 }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle

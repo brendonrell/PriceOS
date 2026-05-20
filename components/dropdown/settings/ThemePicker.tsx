@@ -25,7 +25,7 @@ interface PillSpec {
 }
 
 const PILLS: PillSpec[] = [
-    { key: 'artist',  cls: 't-artist',  title: 'Artist Custom',     glyph: '◩\uFE0E' },
+    { key: 'artist',  cls: 't-artist',  title: 'Custom Colour',     glyph: '◩\uFE0E' },
     { key: 'light',   cls: 't-light',   title: 'Light Mode',        glyph: '◻\uFE0E' },
     { key: 'dark',    cls: 't-dark',    title: 'Dark Mode',         glyph: '◼\uFE0E' },
     { key: 'orange',  cls: 't-orange',  title: 'Orange Mode',       glyph: '▨\uFE0E' },

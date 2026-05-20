@@ -369,7 +369,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <div style={{ position: 'relative' }}>
                         <SettingsToggle
                             id="sn-profileTheme"
-                            active={theme === 'artist'}
+                            active={false}
                             title="Profile Theme"
                             icon={'◩\uFE0E'}
                             label="PROFILE THEME"
