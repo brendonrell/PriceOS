@@ -22,7 +22,7 @@ import ArtworkCard from '../ArtworkCard';
 import TraitsUI, { type ProfilePill } from '../project/TraitsUI';
 
 type ProfileTab = 'created' | 'collected' | 'more';
-type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'discord';
+type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 
 const CREATED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const COLLECTED_IDS = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
@@ -70,15 +70,6 @@ function ProfilePageBodyInner() {
             label: 'Albums',
             active: moreL1 === 'albums',
             onClick: () => setMoreL1('albums'),
-        },
-        {
-            key: 'discord',
-            label: 'Link Discord',
-            active: false,
-            onClick: () => {
-                if (!isAuthed) return;
-                showToast('Discord linking test entry added');
-            },
         },
     ];
 
@@ -251,6 +242,32 @@ function ProfilePageBodyInner() {
                                     <span className="stat-val stat-val-empty">—</span>
                                 </span>
                             </div>
+
+                            <a
+                                role="button"
+                                tabIndex={isAuthed ? 0 : -1}
+                                className={!isAuthed ? 'auth-gated' : undefined}
+                                style={{
+                                    cursor: 'pointer',
+                                    fontFamily: 'Courier New, monospace',
+                                    marginTop: 14,
+                                    display: 'inline-block',
+                                }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!isAuthed) return;
+                                    showToast('Discord linking test entry added');
+                                }}
+                                onKeyDown={(e) => {
+                                    if (!isAuthed) return;
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        showToast('Discord linking test entry added');
+                                    }
+                                }}
+                            >
+                                Link Discord
+                            </a>
                         </div>
                     )}
 
