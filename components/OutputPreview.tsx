@@ -235,6 +235,7 @@ export default function OutputPreview() {
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
 
+
     /* chat #4 — D011. Modal mute overlay reads its label state from the
        same muteStore that ArtworkCard subscribes to, so the modal label
        and the underlying card's .muted class stay in lockstep. Replaces
@@ -254,6 +255,22 @@ export default function OutputPreview() {
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
+
+    /* Note active state — filled/bold icon when a note exists for this token. */
+    const [hasNote, setHasNote] = useState(false);
+    useEffect(() => {
+        const check = () => {
+            if (id == null) { setHasNote(false); return; }
+            try {
+                const raw = localStorage.getItem('pd_token_notes');
+                const notes = raw ? JSON.parse(raw) : {};
+                setHasNote(!!(notes[id] && String(notes[id]).trim()));
+            } catch { setHasNote(false); }
+        };
+        check();
+        window.addEventListener('pd:notes-changed', check);
+        return () => window.removeEventListener('pd:notes-changed', check);
+    }, [id]);
     const isMutedNow = id != null && mutedSet.has(id);
 
     /* chat #4 — sim 7370-7385 hammerSwing animation on the modal overlay.
@@ -515,13 +532,15 @@ export default function OutputPreview() {
             </div>
 
             <div
-                className={`modal-pin-hint${isPinned ? ' pinned' : ''}`}
+                className={`modal-pin-hint${hasNote ? ' pinned' : ''}`}
                 role="button"
                 tabIndex={0}
-                onClick={togglePin}
-                title="Grail Pin"
+                onClick={() => {
+                    if (currentModalId !== null) openOutputNoteEditor(currentModalId);
+                }}
+                title={hasNote ? 'Edit Note' : 'Add Note'}
             >
-                {`\u27DF${VS15}`}
+                {`\u229F${VS15}`}
             </div>
 
             <div className="modal-canvas-wrap">
@@ -636,23 +655,11 @@ export default function OutputPreview() {
                                 {`\u25F0${VS15}`}
                             </span>
                             <span
-                                className="modal-pill"
-                                title="Note"
-                                onClick={() => {
-                                    /* D015 (chat #5) — sim 5395:
-                                       openNotePrompt(event, currentModalId).
-                                       Output-kind branch of NotePromptContext;
-                                       opens with empty initialValue → edit
-                                       mode for fresh notes, view-mode for
-                                       already-saved (NotePromptModal reads
-                                       initialValue from pd_token_notes via
-                                       the provider). */
-                                    if (currentModalId !== null) {
-                                        openOutputNoteEditor(currentModalId);
-                                    }
-                                }}
+                                className={`modal-pill${isPinned ? ' active' : ''}`}
+                                title="Grail Pin"
+                                onClick={togglePin}
                             >
-                                {`\u229F${VS15}`}
+                                {`\u27DF${VS15}`}
                             </span>
                             <span
                                 className="modal-pill"
