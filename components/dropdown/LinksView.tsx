@@ -207,6 +207,27 @@ export function LinksView() {
 
             <a
                 role="button"
+                tabIndex={isAuthed ? 0 : -1}
+                className={!isAuthed ? 'auth-gated' : undefined}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!isAuthed) return;
+                    showToast('Discord linking test entry added');
+                }}
+                onKeyDown={(e) => {
+                    if (!isAuthed) return;
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        showToast('Discord linking test entry added');
+                    }
+                }}
+            >
+                Link Discord
+            </a>
+
+            <a
+                role="button"
                 tabIndex={0}
                 style={{ cursor: 'pointer' }}
                 onClick={(e) => {
