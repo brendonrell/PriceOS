@@ -736,86 +736,65 @@ function ProjectPageBodyInner() {
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/claude">@claude</a>
-                                <span
-                                    className="artist-tag"
-                                    aria-label="artist"
-                                >
-                                    {'✺\uFE0E'}
-                                </span>
-                                <span className="follow-badge">
-                                    <span className="ico-mutual" title="Mutual">
-                                        ⚭&#xFE0E;
-                                    </span>
-                                </span>
+                                <a href="/profile/claude">@Claude</a>
+                                <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
+                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             </span>
-                            <span className="follower-count">32</span>
+                            <span className="follower-count">2.2k</span>
                         </div>
                     </div>
 
                     <div className="hero-line info-line">
                         <span className="info-rubik">
-                            <span className="collected-by-label">Collected by</span>{' '}
-                            <a className="profile-link">@piterpasma</a>
+                            Collected by{' '}
+                            <a className="profile-link">@matty</a>
+                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            {', '}
+                            <a className="profile-link">@atlasforge</a>
                             {', '}
                             <a className="profile-link">@rudxane</a>
-                            {', '}
-                            <a className="profile-link">@trinity</a>
-                            {' and '}
-                            <span style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}>
-                                {'42 people you follow'}
+                            <span className="artist-tag">{'✺\uFE0E'}</span>
+                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            {' '}
+                            <span
+                                className="open-modal-text"
+                                style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}
+                                onClick={() => open('collectors')}
+                            >
+                                &amp; 42 Others You Know
                             </span>
                         </span>
                     </div>
-
-                    {/* Sim ~5121: stats grid wraps two stats-rows in a single
-                        3-column grid so columns align across rows. Row 2
-                        is "your relationship to this Project" (Collected,
-                        Spent, Anchor) — hidden via CSS for logged-out
-                        users. We render it always at v0; persona gating
-                        is out of scope. */}
-                    <div className="stats-grid">
-                        <div className="hero-line stats-row">
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Outputs Minted / Total Supply')}
-                                >
-                                    ⬚&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">198/222</span>
-                            </span>
-                            <span className="stat-item stat-item-vol">
-                                <span
-                                    className="stat-icon stat-icon-eth"
-                                    {...iconToastProps('Total Volume')}
-                                >⟠&#xFE0E;</span>{' '}
-                                <span className="stat-val stat-val-vol">14.5 VOL</span>
-                            </span>
-                            <span className="stat-item stat-item-owners">
-                                <span
-                                    className="stat-icon stat-icon-owners"
-                                    {...iconToastProps('Collectors')}
-                                >
-                                    ⌗&#xFE0E;
-                                </span>{' '}
-                                <span
-                                    className="stat-val stat-val-owners"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => open('collectors')}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            open('collectors');
-                                        }
-                                    }}
-                                >
-                                    67 PPL
-                                </span>
-                            </span>
-                        </div>
-
+                    {/* Stats row — matches collection.html single-row layout */}
+                    <div className="hero-line stats-row">
+                        <span className="stat-item">
+                            <span
+                                className="stat-icon stat-icon-box"
+                                {...iconToastProps('Outputs Minted / Total Supply')}
+                            >
+                                ⬚&#xFE0E;
+                            </span>{' '}
+                            <span className="stat-val">198/222</span>
+                        </span>
+                        <span className="stat-item stat-item-vol">
+                            <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
+                            <span className="stat-val stat-val-vol">14.5 VOL</span>
+                        </span>
+                        <span
+                            className="stat-item stat-item-owners"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => open('collectors')}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    open('collectors');
+                                }
+                            }}
+                        >
+                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
+                            <span className="stat-val stat-val-owners">67 PPL</span>
+                        </span>
                     </div>
                 </div>
 
@@ -840,14 +819,14 @@ function ProjectPageBodyInner() {
                                     : '(SOLD OUT)'}
                             </span>
                         </button>
-                        <button
+                        <a
+                            href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="btn-soundtrack"
-                            title="Play Project Soundtrack"
-                            onClick={() => showToast('Soundtrack — coming soon')}
                         >
-                            <span className="btn-icon-play">▶&#xFE0E;</span>
-                            <span>SOUNDTRACK</span>
-                        </button>
+                            <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
+                        </a>
                     </div>
 
                     {/* Sim 5161-5165: project tab pills (Showcase /
