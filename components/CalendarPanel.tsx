@@ -20,6 +20,7 @@
 import { useEffect, useMemo } from 'react';
 import {
   CAL_EVENTS,
+  CAL_MONTH_NAMES,
   CAL_MONTH_SHORT,
   CAL_TODAY,
   CAL_TODOS,
@@ -96,6 +97,9 @@ export default function CalendarPanel() {
               title="Previous month"
             >
               {'\u25C0\uFE0E'}
+            </span>
+            <span className="cal-month-label" id="calMonthLabel">
+              {CAL_MONTH_NAMES[viewM]} {viewY}
             </span>
             <span
               className="cal-nav"
