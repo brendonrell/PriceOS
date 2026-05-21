@@ -96,7 +96,7 @@ export default function FollowersModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'followers';
 
-    const [tab, setTab] = useState<FollowersTab>('followers');
+    const [activeTabs, setActiveTabs] = useState<Set<FollowersTab>>(new Set(['followers']));
 
     /* Sync tab from payload on each open. The opener (LinksView)
        passes 'followers' or 'following'; switchFollowersTab afterwards
@@ -104,8 +104,8 @@ export default function FollowersModal() {
     useEffect(() => {
         if (!isOpen) return;
         const payload = openModal?.payload;
-        if (isTab(payload)) setTab(payload);
-        else setTab('followers');
+        if (isTab(payload)) setActiveTabs(new Set([payload]));
+        else setActiveTabs(new Set(['followers']));
     }, [isOpen, openModal]);
 
     const onBackdropClick = useCallback(
@@ -115,7 +115,8 @@ export default function FollowersModal() {
         [close]
     );
 
-    const rows = DATA[tab];
+    const rows = Array.from(activeTabs).flatMap(t => DATA[t])
+        .filter((v, i, a) => a.indexOf(v) === i);
 
     return (
         <div
@@ -149,6 +150,7 @@ export default function FollowersModal() {
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
+                        alignItems: 'flex-start',
                         gap: 6,
                         marginBottom: 12,
                     }}
@@ -157,20 +159,35 @@ export default function FollowersModal() {
                         <div
                             key={t.key}
                             id={`fmTab-${t.key}`}
-                            className={`pill pill-l2${tab === t.key ? ' active' : ''}`}
+                            className={`pill pill-l2${activeTabs.has(t.key) ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setTab(t.key)}
+                            onClick={() => setActiveTabs(prev => {
+                                const next = new Set(prev);
+                                if (next.has(t.key)) {
+                                    if (next.size > 1) next.delete(t.key);
+                                } else {
+                                    next.add(t.key);
+                                }
+                                return next;
+                            })}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setTab(t.key);
+                                    setActiveTabs(prev => {
+                                        const next = new Set(prev);
+                                        if (next.has(t.key)) {
+                                            if (next.size > 1) next.delete(t.key);
+                                        } else {
+                                            next.add(t.key);
+                                        }
+                                        return next;
+                                    });
                                 }
                             }}
                             style={{ cursor: 'pointer' }}
                         >
-                            {t.icon}
-                            {VS15} {t.label}
+                            <span className="fm-icon">{t.icon}{VS15}</span>{' '}{t.label}
                         </div>
                     ))}
                 </div>
