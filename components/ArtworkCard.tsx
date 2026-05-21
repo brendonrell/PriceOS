@@ -380,6 +380,7 @@ export default function ArtworkCard({
        intercepts events differently. */
     const listed = meta?.price != null;
     const ownerDisplay = meta?.ownerDisplay ?? '';
+    const ownedByBrendon = meta?.isOwnedByBrendon ?? false;
 
     /* Build 22 — sim 8100-8104. Floor-relative pct stamped as data-pct
        on .meta-owner.price-trigger. Body.pricelens-mode CSS swaps the
@@ -711,7 +712,7 @@ export default function ArtworkCard({
                             >
                                 {'\u27DF\uFE0E'}
                             </span>
-                            {listed && (
+                            {listed && !ownedByBrendon && (
                                 <span
                                     className="hi-icon hi-cart"
                                     title="Add to Cart"
@@ -720,13 +721,13 @@ export default function ArtworkCard({
                                     {'\u25A2\uFE0E'}
                                 </span>
                             )}
-                            {id <= 3 && (
+                            {ownedByBrendon && (
                                 <span
                                     className="hi-icon hi-showcase"
                                     title="Add to Showcase"
                                     onClick={stubAction('Added to Showcase')}
                                 >
-                                    {'✺︎'}
+                                    {'\u2446\uFE0E'}
                                 </span>
                             )}
                             <span
