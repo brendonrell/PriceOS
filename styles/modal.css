@@ -168,6 +168,15 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
          0.4px -0.4px 0 currentColor,
         -0.4px  0.4px 0 currentColor;
 }
+/* Activated state — fills solid when the token is pinned (or any future
+   pill gains a boolean active state). Inverts bg/color like a pressed key.
+   opacity: 1 so it reads full-weight whether hovered or not. */
+.modal-pill.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    opacity: 1;
+}
 
 
 /* ── OWNER + ARTWORK PAGE LINKS ROW (below pills) ─────────── */
@@ -400,6 +409,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
         background: var(--text-color);
         color: var(--bg-color);
     }
+    .modal-pill.active:hover { opacity: 1; }
     .modal-nav-pill:hover {
         border-color: var(--text-color);
         opacity: 1;
