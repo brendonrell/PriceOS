@@ -120,10 +120,24 @@ html, body {
 /* Sticky-footer pattern. Body is the flex column container; main
    expands to consume all remaining space so the footer parks at
    the viewport bottom on short pages and at the end of content on
-   tall ones. Mirrors sim exactly: `flex: 1` = grow + shrink, basis 0. */
+   tall ones. Mirrors sim exactly: `flex: 1` = grow + shrink, basis 0.
+
+   IMPORTANT: RainbowKitProvider (when a theme prop is passed) injects
+   a <div data-rk> directly inside <body>, sitting between body and
+   <main>. This breaks the body flex chain. The [data-rk] rule below
+   threads it back through: it becomes a flex column that fills body,
+   so its own children (Navbar, main, Footer) form the real flex stack. */
 body {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+[data-rk] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     min-height: 100vh;
     min-height: 100dvh;
 }
@@ -1258,8 +1272,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 .pings-header-row {
     display: flex;
     align-items: center;
-    flex: 1;
-    min-width: 0;
+    width: 100%;
     overflow: hidden;
     gap: 8px;
 }
@@ -1269,25 +1282,9 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     align-items: center;
     gap: 4px;
 }
-/* Wrapper takes the flex space; the rail inside is absolutely
-   positioned so translate3d only moves the visual — layout is
-   unaffected and overflow:hidden correctly clips the scrolling
-   content. Mirrors the .tape-wrap / .tape-rail pattern. */
-.pings-tape-wrap {
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    overflow: hidden;
-    align-self: stretch;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-}
 .pings-tape-inline {
-    position: absolute;
-    left: 0; top: 0;
-    display: flex;
-    align-items: center;
-    height: 100%;
+    flex: 1;
+    overflow: hidden;
     white-space: nowrap;
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
@@ -1295,6 +1292,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     line-height: 1.2;
     color: inherit;
     will-change: transform;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
 
 
