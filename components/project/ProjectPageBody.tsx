@@ -729,14 +729,14 @@ function ProjectPageBodyInner() {
                 <div className="hero-group-1">
                     <h1 className="project-title">
                         <span>{project.title}</span>
-                        <span className="project-date">MAR 17 2026</span>
+                        <span className="project-date">JUL 09 2026</span>
                     </h1>
 
                     <div className="hero-line project-artist">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/brendon">@Brendon</a>
+                                <a href="/profile/opus4-6">@Opus4-6</a>
                                 <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
                                 <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             </span>
