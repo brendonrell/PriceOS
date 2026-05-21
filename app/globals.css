@@ -1301,7 +1301,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     user-select: none;
     flex-shrink: 0;
     flex-wrap: wrap;
-    margin-top: auto;
 }
 
 @media (max-width: 600px) {
