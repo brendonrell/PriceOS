@@ -104,7 +104,7 @@ import {
     type State as WagmiState,
 } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { wagmiConfig } from '../../lib/wallet/wagmiConfig';
 import {
@@ -503,7 +503,12 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
 
     return (
         <RainbowKitProvider
-            theme={undefined}
+            theme={darkTheme({
+                accentColor: '#FF0055',
+                accentColorForeground: '#ffffff',
+                borderRadius: 'small',
+                fontStack: 'system',
+            })}
             appInfo={{ appName: 'Price Discussion' }}
             modalSize="compact"
         >
