@@ -282,6 +282,11 @@ const PREHYDRATION_SCRIPT = `
     } catch (e) {
         // Swallow — corrupted localStorage shouldn't take down the app.
     }
+    // FOUC: theme vars and body-mode classes are now in place.
+    // Reveal the page by overriding the stylesheet's html { opacity: 0 }
+    // with an inline opacity: 1 (inline always wins the cascade).
+    // Runs outside the try/catch so it fires even after a storage error.
+    document.documentElement.style.opacity = '1';
 })();
 `.trim();
 

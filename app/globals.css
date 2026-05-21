@@ -104,6 +104,21 @@
 html {
     height: 100%;
 }
+/* ── FOUC PREVENTION ───────────────────────────────────────────
+   The page starts invisible. The prehydration script in layout.tsx
+   (first element inside <body>, runs synchronously) applies the
+   correct --bg-color CSS var, theme-* body classes, and tape-*
+   body classes, then sets html.style.opacity = '1' to reveal the
+   page. This closes two flash windows in one move:
+     1. Purple (#C488FF artist default) bg visible before the script
+        overrides --bg-color for the user's saved theme.
+     2. .tape-wrap visible (CSS-shown by default) before the script
+        adds body.tape-off for users who have tape disabled.
+   The inline style set by the script overrides this stylesheet rule
+   and is not touched by React hydration (no style prop on <html>
+   in layout.tsx). No-JS: this is a web3 app; JS is required. */
+html { opacity: 0; }
+
 html, body {
     margin: 0;
     padding: 0;
