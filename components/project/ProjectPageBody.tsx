@@ -793,7 +793,7 @@ function ProjectPageBodyInner() {
                             }}
                         >
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">1528 OWNERS</span>
+                            <span className="stat-val stat-val-owners">1528 PPL</span>
                         </span>
                     </div>
                 </div>
