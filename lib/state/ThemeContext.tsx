@@ -258,6 +258,12 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
        deterministically. Sim does this verbatim — keep parity. */
     body.style.backgroundColor = bg;
 
+    // Update PWA theme-color meta so iOS chrome reflects artist/hashsyn
+    // colour changes (applyTheme handles named themes; applyBgHex handles
+    // custom-colour and hashsyn paths that bypass applyTheme).
+    const tcMeta = document.querySelector('meta[name="theme-color"]');
+    if (tcMeta) tcMeta.setAttribute('content', bg);
+
     // Body class flags read by various theme-conditional CSS rules.
     body.classList.toggle('theme-dark',    key === 'dark');
     body.classList.toggle('theme-light',   key === 'light');
