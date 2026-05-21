@@ -132,23 +132,24 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     }, []);
 
     /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the
-       address bar shows/hides, causing the layout to resize on scroll
-       and on app resume. Fix: pin --app-height to visualViewport.height
-       (which is stable) and sync on every viewport resize + pageshow. */
+       address bar shows/hides. We pin --app-height once on mount and
+       update only on orientationchange (genuine layout flip).
+       Removed: visualViewport resize + pageshow re-sync. ChatGPT
+       identified those as the cause of the tiny scroll offset on load:
+       the resize fires after first paint, mutates root geometry, and
+       the browser compensates by nudging scroll position — opposite
+       direction on desktop vs iOS. orientationchange is safe because
+       the user has already lifted their finger and a repaint is expected. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const vv = window.visualViewport;
-        const sync = () => {
+        const set = () => {
             const h = vv ? vv.height : window.innerHeight;
             document.documentElement.style.setProperty('--app-height', `${h}px`);
         };
-        sync();
-        vv?.addEventListener('resize', sync);
-        window.addEventListener('pageshow', sync);
-        return () => {
-            vv?.removeEventListener('resize', sync);
-            window.removeEventListener('pageshow', sync);
-        };
+        set();
+        window.addEventListener('orientationchange', set);
+        return () => window.removeEventListener('orientationchange', set);
     }, []);
 
     return (
