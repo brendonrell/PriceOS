@@ -32,6 +32,7 @@ import { useEffect, useRef } from 'react';
 import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
@@ -69,8 +70,14 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 }
 
 export function Ticker() {
+    const { notifs } = usePdNotifs();
     const railRef = useRef<HTMLDivElement | null>(null);
     const items = tapeFeedItems();
+
+    // React gate — no DOM rendered when tape is off, so there's nothing
+    // to flash before the prehydration script fires. Mirrors the pattern
+    // used by every other optional feature (calendar, TapeBox, etc.).
+    if (notifs.menutape === 0) return null;
 
     useEffect(() => {
         const rail = railRef.current;
