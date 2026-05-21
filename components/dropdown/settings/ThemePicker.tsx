@@ -15,6 +15,7 @@
  */
 
 import { useTheme, type ThemeKey } from '../../../lib/state/ThemeContext';
+import { useToast } from '../../../lib/state/ToastContext';
 
 interface PillSpec {
     key: NonNullable<ThemeKey>;
@@ -43,8 +44,19 @@ const PILLS: PillSpec[] = [
     },
 ];
 
+const THEME_NAMES: Record<NonNullable<ThemeKey>, string> = {
+    artist:  'Artist Custom',
+    light:   'Light Mode',
+    dark:    'Dark Mode',
+    orange:  'Orange Mode',
+    hashsyn: 'Hash Synesthesia',
+    blue:    'Blueberry Mode',
+    red:     'Cherry Mode',
+};
+
 export function ThemePicker() {
     const { theme, setTheme } = useTheme();
+    const { showToast } = useToast();
 
     return (
         <>
@@ -61,6 +73,7 @@ export function ThemePicker() {
                         onClick={(e) => {
                             e.stopPropagation();
                             setTheme(p.key);
+                            showToast('Theme: ' + THEME_NAMES[p.key]);
                         }}
                     >
                         <span style={p.glyphStyle}>{p.glyph}</span>

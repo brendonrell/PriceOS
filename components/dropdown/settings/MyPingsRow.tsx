@@ -32,7 +32,16 @@ export function MyPingsRow() {
     const gatedClass = isAuthed ? '' : ' auth-gated';
 
     const togglePingCat = (key: keyof typeof notifs.pings) => {
-        update({ pings: { ...notifs.pings, [key]: !notifs.pings[key] } });
+        const PING_LABELS: Record<string, string> = {
+            mints:   'Mints Pings',
+            lists:   'Lists Pings',
+            offers:  'Offers Pings',
+            xfers:   'Xfers Pings',
+            mutuals: 'Mutuals Only',
+        };
+        const next = !notifs.pings[key];
+        update({ pings: { ...notifs.pings, [key]: next } });
+        showToast(`${PING_LABELS[key] ?? key} ${next ? 'ON' : 'OFF'}`);
     };
 
     const handlePingToasts = () => {
@@ -99,7 +108,11 @@ export function MyPingsRow() {
                     id="sn-nightmode"
                     title="Silent Mode"
                     active={notifs.nightmode}
-                    onClick={() => toggle('nightmode')}
+                    onClick={() => {
+                        const next = !notifs.nightmode;
+                        toggle('nightmode');
+                        showToast(`Silent Mode ${next ? 'ON' : 'OFF'}`);
+                    }}
                     icon={'⏾\uFE0E'}
                     iconBare
                     iconStyle={{ fontSize: '12px', lineHeight: '1' }}

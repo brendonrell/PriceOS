@@ -80,15 +80,14 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
     }, []);
     const toggleShowcaseMode = () => {
-        setShowcaseModeState((prev) => {
-            const next = prev === 'static' ? 'generative' : 'static';
-            try {
-                localStorage.setItem(SHOWCASE_KEY, next);
-            } catch {
-                /* ignore */
-            }
-            return next;
-        });
+        const next = showcaseMode === 'static' ? 'generative' : 'static';
+        try {
+            localStorage.setItem(SHOWCASE_KEY, next);
+        } catch {
+            /* ignore */
+        }
+        setShowcaseModeState(next);
+        showToast(`Showcase Mode: ${next === 'generative' ? 'Generative' : 'Static'}`);
     };
 
     // Keep the hex field synced to the live color whenever the user

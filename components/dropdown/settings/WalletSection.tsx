@@ -394,7 +394,9 @@ export function WalletSection() {
                 onClick={(e) => {
                     e.stopPropagation();
                     if (!isAuthed) return;
-                    setBalanceHidden((v) => !v);
+                    const next = !balanceHidden;
+                    setBalanceHidden(next);
+                    showToast(next ? 'Balance Hidden' : 'Balance Visible');
                 }}
                 role="button"
                 tabIndex={isAuthed ? 0 : -1}

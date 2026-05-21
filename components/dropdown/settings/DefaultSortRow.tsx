@@ -27,7 +27,15 @@
 
 import type { ReactNode } from 'react';
 import { useSort, type SortKey } from '../../../lib/state/SortContext';
+import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
+
+const SORT_NAMES: Record<SortKey, string> = {
+    id:    '# ID',
+    price: '$ Price',
+    feed:  'Feed',
+    fog:   'Fog',
+};
 
 const SORTS: Array<{ key: SortKey; title: string }> = [
     { key: 'id',    title: 'Sort by ID' },
@@ -38,6 +46,7 @@ const SORTS: Array<{ key: SortKey; title: string }> = [
 
 export function DefaultSortRow() {
     const { sort, dir, feedKind, cycleSort } = useSort();
+    const { showToast } = useToast();
 
     /* Sim 10492-10498 — pill labels are HTML-built per family with
        direction arrow inside .settings-sort-arrow when active. */
@@ -98,7 +107,10 @@ export function DefaultSortRow() {
                            and its `transform: translateY(-3px)` (sim 1675)
                            visually misaligns vs the pill's baseline. */
                         bareLabel
-                        onClick={() => cycleSort(s.key)}
+                        onClick={() => {
+                            cycleSort(s.key);
+                            showToast('Default Sort: ' + SORT_NAMES[s.key]);
+                        }}
                     />
                 ))}
             </div>

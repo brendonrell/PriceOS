@@ -103,7 +103,10 @@ export function WorkspaceSwitcher() {
             onSubmit: (vals) => {
                 if (!vals) return; // cancel / backdrop close
                 const trimmed = vals[0]?.trim();
-                if (trimmed) saveCurrentAsNewWorkspace(trimmed);
+                if (trimmed) {
+                    saveCurrentAsNewWorkspace(trimmed);
+                    showToast('SAVED');
+                }
             },
         });
     };
@@ -125,7 +128,10 @@ export function WorkspaceSwitcher() {
                         key={w.id}
                         workspace={w}
                         active={w.id === activeId}
-                        onTap={() => loadWorkspace(w.id)}
+                        onTap={() => {
+                            loadWorkspace(w.id);
+                            showToast(w.name.toUpperCase());
+                        }}
                         onLongPress={(rect) => {
                             justOpenedRef.current = true;
                             setPopover({ wsId: w.id, rect });
@@ -171,6 +177,7 @@ export function WorkspaceSwitcher() {
                         onClick={(e) => {
                             e.stopPropagation();
                             saveCurrentToWorkspace(ws.id);
+                            showToast('SAVED TO ' + ws.name.toUpperCase());
                             closePopover();
                         }}
                     >
@@ -182,6 +189,7 @@ export function WorkspaceSwitcher() {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 restoreDefaultWorkspace(ws.id);
+                                showToast('RESTORED');
                                 closePopover();
                             }}
                         >
@@ -193,6 +201,7 @@ export function WorkspaceSwitcher() {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 deleteWorkspace(ws.id);
+                                showToast('DELETED');
                                 closePopover();
                             }}
                         >
