@@ -86,18 +86,20 @@ export function PingsBox() {
                         <span className="notif-count">(8)</span>
                     </span>
                     {tapeOn && (
-                        <div
-                            className="menu-tape-rail-h pings-tape-inline"
-                            ref={railRef}
-                            aria-label="Menu Tape"
-                        >
-                            {items.map((item, i) => (
-                                <RailItem key={`a-${i}`} item={item} />
-                            ))}
-                            <span className="tape-sep-outer">··</span>
-                            {items.map((item, i) => (
-                                <RailItem key={`b-${i}`} item={item} />
-                            ))}
+                        <div className="pings-tape-wrap">
+                            <div
+                                className="menu-tape-rail-h pings-tape-inline"
+                                ref={railRef}
+                                aria-label="Menu Tape"
+                            >
+                                {items.map((item, i) => (
+                                    <RailItem key={`a-${i}`} item={item} />
+                                ))}
+                                <span className="tape-sep-outer">··</span>
+                                {items.map((item, i) => (
+                                    <RailItem key={`b-${i}`} item={item} />
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
