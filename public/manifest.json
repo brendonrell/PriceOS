@@ -1,6 +1,6 @@
 {
   "name": "Price Discussion",
-  "short_name": "Price Discussion",
+  "short_name": "$PRICE",
   "description": "Price Discussion",
   "start_url": "/",
   "display": "standalone",
