@@ -87,12 +87,16 @@ function GlobeIcon({ id }: { id?: string }) {
             strokeWidth="5" strokeLinecap="round"
             aria-hidden="true"
         >
+            {/* outer circle */}
             <ellipse cx="50" cy="50" rx="44" ry="44" />
-            <ellipse cx="50" cy="50" rx="18" ry="44" transform="rotate(20 50 50)" />
-            <ellipse cx="50" cy="50" rx="36" ry="44" transform="rotate(20 50 50)" />
-            <ellipse cx="50" cy="32" rx="38" ry="10" transform="rotate(10 50 50)" />
-            <ellipse cx="50" cy="50" rx="44" ry="12" transform="rotate(10 50 50)" />
-            <ellipse cx="50" cy="68" rx="38" ry="10" transform="rotate(10 50 50)" />
+            {/* longitudes: central meridian (no tilt) + offset meridian (slight opposing tilt)
+                keeps both curves converging toward the same poles → coherent sphere axis */}
+            <ellipse cx="50" cy="50" rx="17" ry="44" />
+            <ellipse cx="50" cy="50" rx="36" ry="44" transform="rotate(-12 50 50)" />
+            {/* latitudes: small consistent tilt for 3-D reading */}
+            <ellipse cx="50" cy="32" rx="38" ry="10" transform="rotate(8 50 50)" />
+            <ellipse cx="50" cy="50" rx="44" ry="12" transform="rotate(8 50 50)" />
+            <ellipse cx="50" cy="68" rx="38" ry="10" transform="rotate(8 50 50)" />
         </svg>
     );
 }
