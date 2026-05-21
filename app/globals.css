@@ -3665,6 +3665,10 @@ body.theme-dark .canvas-wrapper {
     display: inline-block;
 }
 .hi-icon.active-star { color: #fff; }
+/* Note icon runs smaller than the other hover icons — the ⊟ glyph
+   reads clearly at 14px and sits in better visual balance with the
+   surrounding row. Two standard steps below the 18px baseline. */
+.hi-icon.hi-note { font-size: 14px; }
 /* Brendon-list-3 chat A item 1a — note icon always visible on hover.
    Sim deviation: sim 2382 gates .hi-note to body.notes-mode only. Brendon
    wants quick-note creation available from any card hover regardless of
@@ -3728,7 +3732,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .hover-overlay { display: none; }
 }
 @media (max-width: 600px) {
-    .hi-icon.hi-note { font-size: 26px !important; }
+    .hi-icon.hi-note { font-size: 14px !important; }
 }
 
 /* ── PRICE LENS ⊛ — sim 3934-3949 ──
