@@ -32,12 +32,13 @@ import { useModal } from '../lib/state/ModalContext';
 
 const VS15 = '\uFE0E';
 
-type FollowersTab = 'followers' | 'following' | 'mutuals';
+type FollowersTab = 'followers' | 'following' | 'mutuals' | 'projects';
 
 const TABS: { key: FollowersTab; label: string; icon: string }[] = [
     { key: 'followers', label: 'FOLLOWERS', icon: '\u26AC' },
     { key: 'following', label: 'FOLLOWING', icon: '\u26AF' },
     { key: 'mutuals', label: 'MUTUALS', icon: '\u26AD' },
+    { key: 'projects', label: 'PROJECTS', icon: '\u2B1A' },
 ];
 
 const MOCK_FOLLOWERS = [
@@ -84,10 +85,11 @@ const DATA: Record<FollowersTab, string[]> = {
     followers: MOCK_FOLLOWERS,
     following: MOCK_FOLLOWING,
     mutuals: MOCK_MUTUALS,
+    projects: [],
 };
 
 function isTab(v: unknown): v is FollowersTab {
-    return v === 'followers' || v === 'following' || v === 'mutuals';
+    return v === 'followers' || v === 'following' || v === 'mutuals' || v === 'projects';
 }
 
 export default function FollowersModal() {
@@ -146,10 +148,9 @@ export default function FollowersModal() {
                 <div
                     style={{
                         display: 'flex',
+                        flexDirection: 'column',
                         gap: 6,
                         marginBottom: 12,
-                        justifyContent: 'flex-start',
-                        flexWrap: 'wrap',
                     }}
                 >
                     {TABS.map((t) => (
@@ -166,7 +167,7 @@ export default function FollowersModal() {
                                     setTab(t.key);
                                 }
                             }}
-                            style={{ cursor: 'pointer', minWidth: 90 }}
+                            style={{ cursor: 'pointer' }}
                         >
                             {t.icon}
                             {VS15} {t.label}
