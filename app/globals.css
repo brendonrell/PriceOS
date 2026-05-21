@@ -1258,7 +1258,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 .pings-header-row {
     display: flex;
     align-items: center;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     gap: 8px;
 }
