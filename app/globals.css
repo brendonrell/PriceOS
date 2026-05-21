@@ -1303,6 +1303,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     line-height: 1.2;
     color: inherit;
     will-change: transform;
+    padding-top: 1px;
 }
 
 
