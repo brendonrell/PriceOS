@@ -1277,9 +1277,22 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     align-items: center;
     gap: 4px;
 }
+/* Wrapper takes the flex space; the rail inside is absolutely
+   positioned so translate3d only moves the visual — layout is
+   unaffected and overflow:hidden correctly clips the scrolling
+   content. Mirrors the .tape-wrap / .tape-rail pattern. */
+.pings-tape-wrap {
+    position: relative;
+    align-self: stretch;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+}
 .pings-tape-inline {
-    flex: 1;
-    overflow: hidden;
+    position: absolute;
+    left: 0; top: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
     white-space: nowrap;
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
@@ -1287,8 +1300,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     line-height: 1.2;
     color: inherit;
     will-change: transform;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
 
 
