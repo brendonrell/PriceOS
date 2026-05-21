@@ -1282,7 +1282,10 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    unaffected and overflow:hidden correctly clips the scrolling
    content. Mirrors the .tape-wrap / .tape-rail pattern. */
 .pings-tape-wrap {
+    flex: 1;
+    min-width: 0;
     position: relative;
+    overflow: hidden;
     align-self: stretch;
     -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
