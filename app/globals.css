@@ -1020,7 +1020,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 
 .notifications-box.is-open .notif-list {
-    min-height: 96px;
+    min-height: 128px;
 }
 @media (min-width: 601px) {
     .notifications-box.is-open .notif-list {
@@ -1029,12 +1029,11 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 
 .notif-list {
-    max-height: 96px;
+    max-height: 128px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
-    padding-bottom: 5px;
 }
 .notif-list::-webkit-scrollbar { display: none; }
 
@@ -3388,29 +3387,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 @media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
 
-/* ── PORT-ONLY: "Search Filter ON" chip ─────────────────────────
-   Not in sim (only fires as a toast at sim 8861). Renders when
-   TraitsContext.hasActiveFilter is true. Pinned bottom-right so it
-   doesn't push gallery layout. Removable in one line if a sim spec
-   later defines this surface differently. */
-.search-filter-chip {
-    position: fixed;
-    right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    z-index: 80;
-    padding: 6px 12px;
-    border-radius: 4px;
-    background: var(--text-color);
-    color: var(--bg-color);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 0.04em;
-    border: 1px solid var(--text-color);
-    pointer-events: none;
-    user-select: none;
-}
-
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 .search-row {
     display: none;
@@ -4860,7 +4836,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
    tappable to open the standard Day Note editor via NotePromptContext. */
 .tbc-ev-daynote {
     display: inline-flex; align-items: center; justify-content: center;
-    background: #fff; color: #000;
+    background: transparent; color: currentColor;
     border-radius: 3px;
     padding: 2px 5px 0 5px;
     font-family: 'Courier New', Courier, monospace;
@@ -4871,7 +4847,19 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     user-select: none;
     transition: opacity 0.2s, transform 0.1s;
 }
+/* Illuminated (dim) when no note — visible but clearly inactive */
+.tbc-ev-daynote--empty {
+    opacity: 0.35;
+}
+/* Filled in with white bg + bold when a note exists */
+.tbc-ev-daynote--active {
+    background: #fff;
+    color: #000;
+    font-weight: bold;
+    opacity: 1;
+}
 .tbc-ev-daynote:hover { opacity: 0.85; }
+.tbc-ev-daynote--empty:hover { opacity: 0.6; }
 .tbc-ev-daynote:active { transform: scale(0.92); }
 
 /* Topbarcal close × — pill bg is var(--text-color), so the close
