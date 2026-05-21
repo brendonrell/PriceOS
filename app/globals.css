@@ -3307,22 +3307,21 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-autoscroll .st-icon   { font-size: 16px !important; }
     #sn-echo .st-icon         { font-size: 20px !important; }
 
-    /* Vertical: lift the glyphs sitting LOW in the pill (∅ ◒ ⍢ ⚔ ⍖)
-       with negative top; drop the ones sitting HIGH (▣ @ ⏥) with
-       positive top; leave the geometric-symmetric ones (z ⛶ ⌾)
-       on the baseline. */
-    #sn-anon .st-icon         { position: relative; top: -1px; }
-    #sn-zen .st-icon          { position: relative; top: 0; }
-    #sn-sticker .st-icon      { position: relative; top: 1px; }
+    /* Vertical nudges — eyeballed from mobile screenshot.
+       All icons use align-items:center as baseline; these correct
+       glyphs whose optical centre is off-centre in their em-box. */
+    #sn-anon .st-icon         { position: relative; top: 1px; }
+    #sn-zen .st-icon          { position: relative; top: 1px; }
+    #sn-sticker .st-icon      { position: relative; top: 0; }
     #sn-zerocontext .st-icon  { position: relative; top: 0; }
-    #sn-pricelens .st-icon    { position: relative; top: 0; }
-    #sn-echo .st-icon         { position: relative; top: 1px; }
-    #sn-sentiment .st-icon    { position: relative; top: -1px; }
-    #sn-asciiId .st-icon      { position: relative; top: -2px; }
-    #sn-degen .st-icon        { position: relative; top: -1px; }
-    #sn-redacted .st-icon     { position: relative; top: 1px; }
-    #sn-tape .st-icon         { position: relative; top: 1px; }
-    #sn-autoscroll .st-icon   { position: relative; top: -1px; }
+    #sn-pricelens .st-icon    { position: relative; top: 1px; }
+    #sn-echo .st-icon         { position: relative; top: 2px; }
+    #sn-sentiment .st-icon    { position: relative; top: 0; }
+    #sn-asciiId .st-icon      { position: relative; top: 0; }
+    #sn-degen .st-icon        { position: relative; top: 0; }
+    #sn-redacted .st-icon     { position: relative; top: 0; }
+    #sn-tape .st-icon         { position: relative; top: 0; }
+    #sn-autoscroll .st-icon   { position: relative; top: 1px; }
 
     /* ── Spell Book row (sb-) — untouched in this pass ─────────────
        These are a different surface and weren't in IMG_3825. Leaving
