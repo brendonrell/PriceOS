@@ -12,12 +12,13 @@
  * a parallel CSS port.
  */
 
-import { useState, type KeyboardEvent } from 'react';
+import { useState, useEffect, type KeyboardEvent } from 'react';
 import {
     TraitsProvider,
 } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI, { type ProfilePill } from '../project/TraitsUI';
 
@@ -31,6 +32,8 @@ function ProfilePageBodyInner() {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
+    const { notifs } = usePdNotifs();
+    const isZen = notifs.zenMode;
 
     const [activeTab, setActiveTab] = useState<ProfileTab>('created');
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
@@ -52,7 +55,7 @@ function ProfilePageBodyInner() {
     const onCollected = activeTab === 'collected';
     const onMore = activeTab === 'more';
 
-    const profilePills: ProfilePill[] = [
+    const allProfilePills: ProfilePill[] = [
         {
             key: 'starred',
             label: 'Starred',
@@ -72,6 +75,24 @@ function ProfilePageBodyInner() {
             onClick: () => setMoreL1('albums'),
         },
     ];
+
+    /* Zen mode: only Albums is shown under + More. The feature pills
+       (Starred, Wishlists) involve price-adjacent social signals that
+       zen strips. Also ensure the active sub-tab is always albums
+       when zen is on so the user doesn't land on a hidden state. */
+    const profilePills = isZen
+        ? allProfilePills.filter((p) => p.key === 'albums')
+        : allProfilePills;
+
+    // If zen turns on while the user is on a now-hidden sub-tab, snap to albums.
+    // useEffect avoids calling setState during render.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+        if (isZen && moreL1 !== 'albums') {
+            setMoreL1('albums');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isZen]);
 
     const galleryVisible = onCreated || onCollected;
     const galleryIds = onCreated ? CREATED_IDS : COLLECTED_IDS;
