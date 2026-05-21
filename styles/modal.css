@@ -64,6 +64,8 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     user-select: none;
     display: block;
     -webkit-touch-callout: default;
+    /* Extra canvas height from moving owner+artwork links below pill row */
+    min-height: min(50vw, 280px);
 }
 
 /* Desktop breathing room — reservation matches sim's 300px below
@@ -165,6 +167,35 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
         -0.4px -0.4px 0 currentColor,
          0.4px -0.4px 0 currentColor,
         -0.4px  0.4px 0 currentColor;
+}
+
+
+/* ── OWNER + ARTWORK PAGE LINKS ROW (below pills) ─────────── */
+.modal-links-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.5;
+    padding: 2px 20px 0 20px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.modal-link-item { letter-spacing: 0.3px; }
+.modal-link-sep { opacity: 0.5; }
+.modal-links-row .hover-link {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 0.15s;
+}
+@media (hover: hover) {
+    .modal-links-row .hover-link:hover { opacity: 1; }
 }
 
 
@@ -286,8 +317,10 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
    default) so it reads as the secondary action; .pinned ramps to 1. */
 .modal-pin-hint {
     position: absolute;
-    top: calc(max(20px, env(safe-area-inset-top)) + 31px);
-    right: 70px;
+    /* Offset compensates for the extra padding so the icon stays in the
+       same visual spot while the touch target grows outward. */
+    top: calc(max(20px, env(safe-area-inset-top)) + 19px);
+    right: 58px;
     font-size: 22px;
     line-height: 1;
     cursor: pointer;
@@ -295,16 +328,27 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     opacity: 0.7;
     z-index: 1002;
     font-family: 'Courier New', Courier, monospace;
-    border-radius: 3px;
-    transition: opacity 0.2s, transform 0.2s, background 0.15s, color 0.15s, padding 0.15s;
+    border-radius: 5px;
+    /* Larger transparent padding = fat-finger safe tap area */
+    padding: 12px;
+    margin: -12px;
+    transition: opacity 0.2s, background 0.15s, color 0.15s;
     -webkit-tap-highlight-color: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 .modal-pin-hint.pinned {
+    /* Active note: dark paper look — always black/white regardless of theme */
     opacity: 1;
-    transform: scale(1.05);
-    background: var(--text-color);
-    color: var(--bg-color);
-    padding: 2px 5px;
+    background: #111111;
+    color: #ffffff;
+    padding: 4px 8px;
+    margin: 0;
+    font-weight: bold;
+    border-radius: 4px;
+    top: calc(max(20px, env(safe-area-inset-top)) + 27px);
+    right: 66px;
 }
 
 

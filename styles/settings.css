@@ -9,7 +9,11 @@
    (max-width: 600px) override below nullifies the cap so the
    outer dropdown stack handles it on small screens (sim 634-636). */
 .settings-panel {
-    max-height: 78vh;
+    /* Use dvh (dynamic viewport height) which excludes browser chrome;
+       subtract safe-area-inset-bottom so bottom buttons never clip under
+       the home indicator / iOS chrome. Nudged to 74% to keep panel edge
+       well clear of the iOS colour-sampling zone at the bottom. */
+    max-height: calc(74dvh - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -18,6 +22,7 @@
     width: 100%;
     box-sizing: border-box;
     margin-top: -4px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
 }
 .settings-panel::-webkit-scrollbar { display: none; }
 @media (max-width: 600px) {
@@ -71,6 +76,10 @@
     padding: 4px 10px 8px 10px;
     margin: 0;
     align-items: center;
+    /* Enforce max 2 pill rows in collapsed state (2×24px pill + 6px gap + 12px padding = 66px).
+       Long ENS names that would cause a 3rd row are clipped. */
+    max-height: 66px;
+    overflow: hidden;
 }
 
 /* ENS expanded — sim's two-row horizontal-scroll strip. The accompanying
@@ -84,6 +93,8 @@
 .settings-ens-row.ens-expanded {
     flex-wrap: nowrap;
     align-items: center;
+    max-height: none;
+    overflow: visible;
 }
 .ens-scroll-viewport {
     flex: 1 1 auto;
