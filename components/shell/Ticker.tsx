@@ -74,17 +74,16 @@ export function Ticker() {
     const railRef = useRef<HTMLDivElement | null>(null);
     const items = tapeFeedItems();
 
-    // React gate — no DOM rendered when tape is off, so there's nothing
-    // to flash before the prehydration script fires. Mirrors the pattern
-    // used by every other optional feature (calendar, TapeBox, etc.).
-    if (notifs.menutape === 0) return null;
-
     useEffect(() => {
         const rail = railRef.current;
         if (!rail) return;
         const unsubscribe = subscribeTapeRail(rail);
         return unsubscribe;
     }, []);
+
+    // React gate — all hooks above, early return below. No DOM rendered
+    // when tape is off so there's nothing to flash on load.
+    if (notifs.menutape === 0) return null;
 
     return (
         <div className="tape-wrap" id="tapeWrap" aria-hidden="true">
