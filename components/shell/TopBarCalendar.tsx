@@ -208,27 +208,25 @@ function TopBarCalendarEventStrip({
     const parts: React.ReactElement[] = [];
     let key = 0;
 
-    if (dayNote) {
-        parts.push(
-            <span
-                key={`dn-${key++}`}
-                className="tbc-ev-daynote"
-                role="button"
-                tabIndex={0}
-                onClick={(e) => { e.stopPropagation(); onDayNoteClick(); }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onDayNoteClick();
-                    }
-                }}
-                title="Edit Day Note"
-            >
-                ⊟{'\uFE0E'}
-            </span>
-        );
-    }
+    parts.push(
+        <span
+            key={`dn-${key++}`}
+            className={`tbc-ev-daynote${dayNote ? ' tbc-ev-daynote--active' : ' tbc-ev-daynote--empty'}`}
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onDayNoteClick(); }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDayNoteClick();
+                }
+            }}
+            title={dayNote ? 'Edit Day Note' : 'Add Day Note'}
+        >
+            ⊟{'\uFE0E'}
+        </span>
+    );
 
     for (const t of todos) {
         if (parts.length > 0) {
