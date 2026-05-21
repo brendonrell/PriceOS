@@ -1270,6 +1270,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .pings-tape-inline {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     font-family: 'Courier New', Courier, monospace;
