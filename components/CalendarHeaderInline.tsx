@@ -8,6 +8,10 @@
  * height never changes on swap (height-lock is critical — the menu
  * backboard must not jiggle).
  *
+ * Nav arrows have been moved into CalendarPanel above the grid so they
+ * align precisely with the grid edges. This component now renders only
+ * the centered month/year label.
+ *
  * Mount this from wherever the dropdown's top-row is rendered:
  *   {activePanel === 'calendar'
  *     ? <CalendarHeaderInline />
@@ -18,45 +22,13 @@ import { useCalendar } from '../lib/calendar/CalendarContext';
 import { CAL_MONTH_NAMES } from '../lib/calendar/data';
 
 export default function CalendarHeaderInline() {
-  const { viewY, viewM, navMonth } = useCalendar();
+  const { viewY, viewM } = useCalendar();
   const monthLabel = `${CAL_MONTH_NAMES[viewM]} ${viewY}`;
 
   return (
     <div className="cal-header-inline">
-      <span
-        className="cal-nav"
-        role="button"
-        tabIndex={0}
-        onClick={(e) => { e.stopPropagation(); navMonth(-1); }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            navMonth(-1);
-          }
-        }}
-        title="Previous month"
-      >
-        {'\u25C0\uFE0E'}
-      </span>
       <span className="cal-month-label" id="calMonthLabel">
         {monthLabel}
-      </span>
-      <span
-        className="cal-nav"
-        role="button"
-        tabIndex={0}
-        onClick={(e) => { e.stopPropagation(); navMonth(1); }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            navMonth(1);
-          }
-        }}
-        title="Next month"
-      >
-        {'\u25B6\uFE0E'}
       </span>
     </div>
   );
