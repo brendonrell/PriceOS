@@ -2566,6 +2566,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: flex;
     align-items: center;
     gap: 6px;
+    cursor: pointer;
     transition: opacity 0.2s;
 }
 .stat-icon {
@@ -2574,11 +2575,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* Brendon 2026-05-11 — stats grid behavior:
-       icon tap fires toast describing the stat (universal);
-       value tap is inert except for PPL + Anchor which open modals.
-       Cursor moved off the outer .stat-item onto interactive bits only. */
-    cursor: pointer;
 }
 .stat-icon-eth {
     font-family: 'Courier New', Courier, monospace;
@@ -2632,22 +2628,13 @@ body.persona-default .stats-row-2 { display: none !important; }
    the full stat-item, but inside each cell the icon now sits in a
    consistent ~22px slot so the visual centers stack. Mobile gets a
    tighter slot to match the smaller font-sizes. */
-.stats-row .stat-icon-box,
-.stats-row .stat-icon-eth,
-.stats-row .stat-icon-owners,
+.stats-grid .stats-row .stat-icon-box,
+.stats-grid .stats-row .stat-icon-eth,
+.stats-grid .stats-row .stat-icon-owners,
 .stats-row-2 .stat-icon-owned,
 .stats-row-2 .stat-icon-spent {
     min-width: 22px;
     justify-content: center;
-    /* Brendon S5 May 11 — vertical grid alignment. Each .stat-icon's
-       intrinsic height tracks its font-size (13-23px depending on
-       class). That makes grid row 1's height jump above row 2's
-       (row 1's # owners glyph is 23px on mobile while row 2's icons
-       are 14-15px), producing visible vertical drift between rows.
-       Lock every icon slot to a uniform height with line-height:1
-       so cell heights match regardless of font-size. Glyphs still
-       receive their per-class font-size for visual weight; only the
-       container box stops growing. */
     height: 22px;
     line-height: 1;
 }
@@ -2667,9 +2654,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-icon-spent,
 .stats-row-2 .stat-item-anchor .stat-icon-box { justify-content: flex-start; }
 @media (max-width: 600px) {
-    .stats-row .stat-icon-box,
-    .stats-row .stat-icon-eth,
-    .stats-row .stat-icon-owners,
+    .stats-grid .stats-row .stat-icon-box,
+    .stats-grid .stats-row .stat-icon-eth,
+    .stats-grid .stats-row .stat-icon-owners,
     .stats-row-2 .stat-icon-owned,
     .stats-row-2 .stat-icon-spent {
         min-width: 18px;
