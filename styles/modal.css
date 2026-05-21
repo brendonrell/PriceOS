@@ -20,7 +20,7 @@
 
 
 /* ── BODY LOCK ────────────────────────────────────────────── */
-body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+body.modal-open { overflow: hidden; touch-action: none; }
 
 
 /* ── MODAL SCAFFOLD ───────────────────────────────────────── */
