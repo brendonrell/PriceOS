@@ -58,6 +58,50 @@ import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/st
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 
+/* ── Sort toast helpers ──────────────────────────────────────────────────
+   Mirror sim 8360's sortLabels + currentSort pattern. We compute the
+   NEXT sort key before calling cycleSort (React state is async, so we
+   can't read sort/dir/feedKind after the call). Pure function — no side
+   effects. */
+const SORT_LABELS: Record<string, string> = {
+    'id-asc':          'ID Ascending',
+    'id-desc':         'ID Descending',
+    'price-asc':       'Price Ascending',
+    'price-desc':      'Price Descending',
+    'feed-time-desc':  'Feed: Latest',
+    'feed-time-asc':   'Feed: Earliest',
+    'feed-price-desc': 'Feed: Highest',
+    'feed-price-asc':  'Feed: Lowest',
+    'fog':             'Fog — tap to reveal',
+};
+
+function computeNextSortKey(
+    target: SortKey,
+    sort: SortKey,
+    dir: SortDir,
+    feedKind: FeedKind,
+): string {
+    if (target === 'fog') return sort === 'fog' ? 'id-asc' : 'fog';
+    if (target === 'feed') {
+        if (sort !== 'feed') return 'feed-time-desc';
+        if (feedKind === 'time' && dir === 'desc') return 'feed-time-asc';
+        if (feedKind === 'time' && dir === 'asc')  return 'feed-price-desc';
+        if (feedKind === 'price' && dir === 'desc') return 'feed-price-asc';
+        return 'feed-time-desc'; // price-asc wraps
+    }
+    // id or price
+    if (sort === target) return `${target}-${dir === 'asc' ? 'desc' : 'asc'}`;
+    return `${target}-asc`;
+}
+
+/* Theme names for the sort-bar view-mode pills (mirrors ThemePicker.tsx). */
+const SORT_BAR_THEME_NAMES: Record<string, string> = {
+    artist:  'Artist Custom',
+    light:   'Light Mode',
+    dark:    'Dark Mode',
+    orange:  'Orange Mode',
+};
+
 /* PD-persona dynamic trait categories (sim ~8517 — Network/Fate/Breadcrumb
    are pinned separately so they're excluded here). Display labels follow
    sim's STRATA-rebrand mapping at sim 8524 (Gateway → Layer, Spectrum →
@@ -247,6 +291,21 @@ export default function TraitsUI({
     const { sort, dir, feedKind, cycleSort } = useSort();
     const { theme, setTheme } = useTheme();
     const { persona } = usePersona();
+
+    /* Wraps cycleSort with a sim-parity toast (sim 8361). Computes the
+       NEXT sort key before calling cycleSort so the toast reflects what
+       the sort will become, not the stale current value. */
+    const cycleSortWithToast = (family: SortKey) => {
+        const nextKey = computeNextSortKey(family, sort, dir, feedKind);
+        cycleSort(family);
+        showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
+    };
+
+    /* Wraps setTheme with a toast (mirrors ThemePicker.tsx). */
+    const setThemeWithToast = (key: ThemeKey) => {
+        setTheme(key);
+        if (key) showToast('Theme: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
+    };
 
     /* D006 (sim 8470) — `.traits-ui` hides only when Regular persona AND
        not on feed. The `.sort-bar` is NOT touched by sim 8470 — sim's
@@ -762,7 +821,7 @@ export default function TraitsUI({
                                     category={l3FilterCat}
                                     onClick={() => {
                                         toggleFilter(l3FilterCat, value);
-                                        showToast('Search Filter ON');
+                                        showToast('Search Filter ' + (isActive ? 'OFF' : 'ON'));
                                     }}
                                 />
                             );
@@ -785,11 +844,11 @@ export default function TraitsUI({
                             }`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setTheme(t.key)}
+                            onClick={() => setThemeWithToast(t.key)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setTheme(t.key);
+                                    setThemeWithToast(t.key);
                                 }
                             }}
                             title={t.title}
@@ -817,7 +876,7 @@ export default function TraitsUI({
                         active={sort === 'id'}
                         dir={dir}
                         feedKind={feedKind}
-                        onClick={() => cycleSort('id')}
+                        onClick={() => cycleSortWithToast('id')}
                     />
                     <SortBtn
                         label={'$\u202FPRICE'}
@@ -825,7 +884,7 @@ export default function TraitsUI({
                         active={sort === 'price'}
                         dir={dir}
                         feedKind={feedKind}
-                        onClick={() => cycleSort('price')}
+                        onClick={() => cycleSortWithToast('price')}
                     />
                     <SortBtn
                         label="FEED"
@@ -833,7 +892,7 @@ export default function TraitsUI({
                         active={sort === 'feed'}
                         dir={dir}
                         feedKind={feedKind}
-                        onClick={() => cycleSort('feed')}
+                        onClick={() => cycleSortWithToast('feed')}
                     />
                     {/* D007 (sim 8438) — search-btn lives in the sort row
                         ONLY for Regular persona on non-feed (when
