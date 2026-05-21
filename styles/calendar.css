@@ -21,23 +21,23 @@
    of .search-dormant-label so the top row is visually identical. The explicit
    min-height below is shared with .search-dormant-label to eliminate the 1px
    natural-height difference that was leaking through even with parent height-lock. */
+/* Pure height-lock spacer — month label + arrows now live in CalendarPanel
+   above the grid so they align with grid edges. */
 .cal-header-inline {
-    display: flex; align-items: center; justify-content: center;
-    padding: 8px 4px; flex: 1 1 auto;
-    font-family: 'Courier New', Courier, monospace;
-    color: var(--bg-color); user-select: none;
+    flex: 1 1 auto;
     min-height: 38px; box-sizing: border-box;
 }
-.cal-header-inline .cal-month-label {
-    font-size: 13.5px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;
-}
-/* Nav arrows live here now — inside cal-grid-wrap so they align exactly
-   with the left/right edges of the day grid, not the wider header row. */
+/* Month switcher row — inside cal-grid-wrap, arrows pin to grid edges, label centered. */
 .cal-nav-row {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 2px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--bg-color);
 }
-.cal-header-inline .cal-nav:hover { opacity: 1; }
+.cal-nav-row .cal-month-label {
+    font-size: 13.5px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;
+    text-align: center; flex: 1;
+}
 
 
 /* ── CALENDAR PANEL ──
