@@ -4,62 +4,6 @@
 @import '../styles/modal.css';
 @import '../styles/modal-build4.css';
 
-/* ============================================================
-   RainbowKit theme vars — injected manually so RainbowKitProvider
-   can run with theme={undefined}, which prevents it from rendering
-   a <div data-rk> wrapper around the entire app. That wrapper broke
-   the body flex chain (body → [data-rk] div → Navbar/main/Footer),
-   causing the footer to hug content instead of sitting at the
-   viewport bottom. By owning these vars here we get identical
-   RainbowKit modal styling with zero DOM impact.
-   Values match: darkTheme({ accentColor:'#FF0055', accentColorForeground:'#ffffff',
-   borderRadius:'small', fontStack:'system' })
-   ============================================================ */
-:root {
-    --rk-blurs-modalOverlay: blur(0px);
-    --rk-fonts-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    --rk-radii-actionButton: 4px;
-    --rk-radii-connectButton: 4px;
-    --rk-radii-menuButton: 4px;
-    --rk-radii-modal: 8px;
-    --rk-radii-modalMobile: 8px;
-    --rk-colors-accentColor: #FF0055;
-    --rk-colors-accentColorForeground: #ffffff;
-    --rk-colors-actionButtonBorder: rgba(255, 255, 255, 0.04);
-    --rk-colors-actionButtonBorderMobile: rgba(255, 255, 255, 0.08);
-    --rk-colors-actionButtonSecondaryBackground: rgba(255, 255, 255, 0.08);
-    --rk-colors-closeButton: rgba(224, 232, 255, 0.6);
-    --rk-colors-closeButtonBackground: rgba(255, 255, 255, 0.08);
-    --rk-colors-connectButtonBackground: #1A1B1F;
-    --rk-colors-connectButtonBackgroundError: #FF494A;
-    --rk-colors-connectButtonInnerBackground: linear-gradient(0deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.15));
-    --rk-colors-connectButtonText: #FFF;
-    --rk-colors-connectButtonTextError: #FFF;
-    --rk-colors-connectionIndicator: #30E000;
-    --rk-colors-downloadBottomCardBackground: linear-gradient(126deg, rgba(0, 0, 0, 0) 9.49%, rgba(120, 120, 120, 0.2) 71.04%), #1A1B1F;
-    --rk-colors-downloadTopCardBackground: linear-gradient(126deg, rgba(120, 120, 120, 0.2) 9.49%, rgba(0, 0, 0, 0) 71.04%), #1A1B1F;
-    --rk-colors-error: #FF494A;
-    --rk-colors-generalBorder: rgba(255, 255, 255, 0.08);
-    --rk-colors-generalBorderDim: rgba(255, 255, 255, 0.04);
-    --rk-colors-menuItemBackground: rgba(224, 232, 255, 0.1);
-    --rk-colors-modalBackdrop: rgba(0, 0, 0, 0.5);
-    --rk-colors-modalBackground: #1A1B1F;
-    --rk-colors-modalBorder: rgba(255, 255, 255, 0.08);
-    --rk-colors-modalText: #FFF;
-    --rk-colors-modalTextDim: rgba(224, 232, 255, 0.3);
-    --rk-colors-modalTextSecondary: rgba(255, 255, 255, 0.6);
-    --rk-colors-profileAction: rgba(224, 232, 255, 0.1);
-    --rk-colors-profileActionHover: rgba(224, 232, 255, 0.2);
-    --rk-colors-profileForeground: rgba(224, 232, 255, 0.05);
-    --rk-colors-selectedOptionBorder: rgba(224, 232, 255, 0.1);
-    --rk-colors-standby: #FFD641;
-    --rk-shadows-connectButton: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    --rk-shadows-dialog: 0px 8px 32px rgba(0, 0, 0, 0.32);
-    --rk-shadows-profileDetailsAction: 0px 2px 6px rgba(37, 41, 46, 0.04);
-    --rk-shadows-selectedOption: 0px 2px 6px rgba(0, 0, 0, 0.24);
-    --rk-shadows-selectedWallet: 0px 2px 6px rgba(0, 0, 0, 0.24);
-    --rk-shadows-walletLogo: 0px 2px 16px rgba(0, 0, 0, 0.16);
-}
 
 /* ============================================================
    PriceOS — globals.css
@@ -181,6 +125,14 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+[data-rk] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     min-height: 100vh;
     min-height: 100dvh;
 }
@@ -3315,12 +3267,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-sticker .st-icon      { position: relative; top: 0; }
     #sn-zerocontext .st-icon  { position: relative; top: 0; }
     #sn-pricelens .st-icon    { position: relative; top: 1px; }
-    #sn-echo .st-icon         { position: relative; top: 2px; }
+    #sn-echo .st-icon         { position: relative; top: 1px; }
     #sn-sentiment .st-icon    { position: relative; top: 0; }
     #sn-asciiId .st-icon      { position: relative; top: 0; }
     #sn-degen .st-icon        { position: relative; top: 0; }
-    #sn-redacted .st-icon     { position: relative; top: 0; }
-    #sn-tape .st-icon         { position: relative; top: 0; }
+    #sn-redacted .st-icon     { position: relative; top: -1px; }
+    #sn-tape .st-icon         { position: relative; top: -1px; }
     #sn-autoscroll .st-icon   { position: relative; top: 1px; }
 
     /* ── Spell Book row (sb-) — untouched in this pass ─────────────
