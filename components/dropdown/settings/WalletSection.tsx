@@ -93,25 +93,43 @@ export function WalletSection() {
     const gatedClass = isAuthed ? '' : ' auth-gated';
 
     /* S3 — live wallet ENS detection.
-       Primary: query the ENS subgraph for ALL names registered to this address.
-       Fallback: useEnsName (primary ENS reverse record) if subgraph unavailable. */
+       Uses account.domains (current registry ownership) NOT registrations
+       (which persist after transfers). Filters expired names client-side.
+       Cache: read from localStorage on mount for instant display, refresh
+       async so the panel always loads immediately. */
     const ensQuery = useEnsName({
         address: (siweAddress ?? undefined) as `0x${string}` | undefined,
         chainId: 1,
     });
     const ensFallback = ensQuery.data ?? null;
-    const [ensSubgraphNames, setEnsSubgraphNames] = useState<string[]>([]);
+    const ENS_CACHE_KEY = 'pd_ens_cache';
+    const [ensSubgraphNames, setEnsSubgraphNames] = useState<string[]>(() => {
+        // Instant: read from cache on first render
+        if (typeof window === 'undefined') return [];
+        try {
+            const raw = localStorage.getItem(ENS_CACHE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw) as { addr: string; names: string[]; ts: number };
+            // Cache valid for 5 minutes
+            if (Date.now() - parsed.ts < 5 * 60 * 1000) return parsed.names;
+        } catch { /* ignore */ }
+        return [];
+    });
 
     useEffect(() => {
         if (!siweAddress) { setEnsSubgraphNames([]); return; }
         const addr = siweAddress.toLowerCase();
+        const nowSecs = Math.floor(Date.now() / 1000);
+        // Query domains (current ownership in ENS registry), not registrations
         const query = `{
             account(id: "${addr}") {
-                registrations(first: 100, orderBy: registrationDate, orderDirection: desc) {
-                    domain { name }
+                domains(first: 100, where: { parent_not: null }) {
+                    name
+                    expiryDate
+                    owner { id }
                 }
                 wrappedDomains(first: 100) {
-                    domain { name }
+                    domain { name expiryDate }
                 }
             }
         }`;
@@ -126,19 +144,34 @@ export function WalletSection() {
                 const names: string[] = [];
                 const acc = data?.data?.account;
                 if (acc) {
-                    for (const r of (acc.registrations ?? [])) {
-                        const n = r?.domain?.name;
-                        if (n && !seen.has(n)) { seen.add(n); names.push(n); }
+                    // domains: current registry owner — filter expired and non-.eth
+                    for (const d of (acc.domains ?? [])) {
+                        const n = d?.name;
+                        const exp = d?.expiryDate ? Number(d.expiryDate) : null;
+                        // Skip expired (expiryDate in the past) and non-.eth names
+                        if (!n || !n.endsWith('.eth')) continue;
+                        if (exp !== null && exp < nowSecs) continue;
+                        if (!seen.has(n)) { seen.add(n); names.push(n); }
                     }
+                    // wrappedDomains: NameWrapper ownership — also filter expired
                     for (const r of (acc.wrappedDomains ?? [])) {
                         const n = r?.domain?.name;
-                        if (n && !seen.has(n)) { seen.add(n); names.push(n); }
+                        const exp = r?.domain?.expiryDate ? Number(r.domain.expiryDate) : null;
+                        if (!n || !n.endsWith('.eth')) continue;
+                        if (exp !== null && exp < nowSecs) continue;
+                        if (!seen.has(n)) { seen.add(n); names.push(n); }
                     }
                 }
                 setEnsSubgraphNames(names);
+                // Cache for instant next load
+                try {
+                    localStorage.setItem(ENS_CACHE_KEY, JSON.stringify({
+                        addr, names, ts: Date.now(),
+                    }));
+                } catch { /* ignore quota */ }
             })
             .catch(() => {
-                /* subgraph unavailable — fallback to primary ENS below */
+                /* subgraph unavailable — fall back to primary ENS */
                 setEnsSubgraphNames([]);
             });
     }, [siweAddress]);
