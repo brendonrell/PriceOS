@@ -602,36 +602,6 @@ export default function OutputPreview() {
                             </span>
                             {' '}#{id}
                         </div>
-                        <div className="modal-artist" id="mArtist">
-                            by @claude
-                        </div>
-                        <div className="modal-artist" id="mOwner">
-                            {meta.isOwnedByBrendon ? (
-                                <>
-                                    owned by you{' '}
-                                    <span
-                                        className="owner-self-check"
-                                        aria-label="this is you"
-                                    >
-                                        &#x2713;
-                                    </span>
-                                </>
-                            ) : (
-                                `owned by ${meta.ownerDisplay}`
-                            )}
-                        </div>
-                        <div className="modal-artist" id="mArtworkLink">
-                            <span
-                                className="hover-link"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => {
-                                    if (id != null) router.push(`/${id}`);
-                                }}
-                            >
-                                Artwork Page &#x2197;&#xFE0E;
-                            </span>
-                        </div>
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className="modal-pill"
@@ -676,6 +646,38 @@ export default function OutputPreview() {
                                 {`\u2197${VS15}`}
                             </span>
                         </div>
+                    </div>
+
+                    {/* Owner + Artwork Page — single row below pill buttons.
+                        Camel Caps per Brendon spec. Freed a row → canvas is taller. */}
+                    <div className="modal-links-row" id="mLinksRow">
+                        <span className="modal-link-item" id="mOwner">
+                            {meta.isOwnedByBrendon ? (
+                                <>
+                                    Owned By You{' '}
+                                    <span
+                                        className="owner-self-check"
+                                        aria-label="this is you"
+                                    >
+                                        &#x2713;
+                                    </span>
+                                </>
+                            ) : (
+                                `Owned By ${meta.ownerDisplay}`
+                            )}
+                        </span>
+                        <span className="modal-link-sep" aria-hidden="true">·</span>
+                        <span
+                            className="modal-link-item hover-link"
+                            id="mArtworkLink"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => {
+                                if (id != null) router.push(`/${id}`);
+                            }}
+                        >
+                            Artwork Page &#x2197;&#xFE0E;
+                        </span>
                     </div>
 
                     <div className="modal-bottom-bar" id="mBottomBar">
