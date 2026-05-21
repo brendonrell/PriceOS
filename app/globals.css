@@ -2488,8 +2488,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .project-title {
     display: flex;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
     gap: 12px;
     align-items: baseline;
     font-family: var(--font-rubik-mono), sans-serif;
@@ -2515,8 +2513,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
     gap: 6px;
     color: var(--text-color);
 }
@@ -2533,10 +2529,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .follower-count {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    font-weight: normal;
-    opacity: 1;
-    margin-left: 0;
+    font-size: 15px;
+    font-weight: bold;
+    opacity: 0.6;
+    margin-left: 4px;
 }
 
 .artist-tag {
@@ -2565,8 +2561,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     gap: 18px;
     align-items: center;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
 }
 .stat-item {
     display: flex;
