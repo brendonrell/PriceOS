@@ -2722,6 +2722,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     display: inline-block;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
+    text-transform: uppercase;
     line-height: 1.6;
     color: var(--text-color);
     opacity: 1;
@@ -4387,7 +4388,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     }
     .info-rubik .ico-mutual,
     .info-rubik .ico-following,
-    .info-rubik .ico-followers { font-size: 16px !important; }
+    .info-rubik .ico-followers { font-size: 16px !important; top: -2px; line-height: 0; }
     .info-rubik .follow-badge {
         line-height: 0;
         display: inline-flex;
@@ -4395,8 +4396,10 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         vertical-align: middle;
     }
     .info-rubik .artist-tag {
+        line-height: 0;
         display: inline-block;
         vertical-align: middle;
+        top: -2px;
     }
     .artist-lockup .artist-tag { font-size: 25px; }
     .stat-icon-owners {
