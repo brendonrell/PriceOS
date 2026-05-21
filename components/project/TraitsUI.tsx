@@ -52,6 +52,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useMemo } from 'react';
+import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
@@ -242,6 +243,7 @@ export default function TraitsUI({
         setPriceMax,
         hasActiveFilter,
     } = useTraits();
+    const { showToast } = useToast();
     const { sort, dir, feedKind, cycleSort } = useSort();
     const { theme, setTheme } = useTheme();
     const { persona } = usePersona();
@@ -758,9 +760,10 @@ export default function TraitsUI({
                                     dimmed={dimmed}
                                     isZero={count === 0}
                                     category={l3FilterCat}
-                                    onClick={() =>
-                                        toggleFilter(l3FilterCat, value)
-                                    }
+                                    onClick={() => {
+                                        toggleFilter(l3FilterCat, value);
+                                        showToast('Search Filter ON');
+                                    }}
                                 />
                             );
                         })}
@@ -944,15 +947,7 @@ export default function TraitsUI({
                 fires this string as a toast at sim 8861. Added per Build
                 13 brief; class is namespaced so the rest of the sim port
                 stays clean. */}
-            {hasActiveFilter && (
-                <div
-                    className="search-filter-chip"
-                    role="status"
-                    aria-live="polite"
-                >
-                    Search Filter ON
-                </div>
-            )}
+
         </>
     );
 }
