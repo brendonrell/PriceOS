@@ -2023,6 +2023,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 .portfolio-list-container {
     flex: 1 1 auto;
+    overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
     /* Sim line 1865: 232px after BUDGETS section was added (~48px above). */
@@ -4566,7 +4567,12 @@ body.zen-mode #todosBox { display: none !important; }
 body.zen-mode #gallery .meta { display: none !important; }
 body.zen-mode .project-hero { padding-top: 6px !important; padding-bottom: 6px !important; }
 body.zen-mode .modal-action-btn { pointer-events: none; cursor: default; font-size: 0 !important; }
+body.zen-mode .modal-action-btn-calc { display: none !important; }
 body.zen-mode .modal-artist { display: none !important; }
+/* Hide all price surfaces not covered by the gallery .meta rule. */
+body.zen-mode .stats-row-2 { display: none !important; }
+body.zen-mode .price-memory-ghost { display: none !important; }
+body.zen-mode .feed-price-range { display: none !important; }
 
 /* ── BUILD 23 — MUTE OVERLAY — sim 2387-2486 ──
    Hammer mode flips every .output-card into a "tap-to-mute" target —
@@ -5328,21 +5334,16 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 
 /* ============================================================
-   S4 page 3234 — ZEN MODE PILL CUSTOM COLOR
+   S4 page 3234 — ZEN MODE PILL
    ============================================================
-   Active state of the Zen Mode toggle in MyPdSection paints Attention
-   Yellow (#FFE600) — PD's secondary brand color, signalling the "quiet
-   surface" workspace at a glance. Every other settings-toggle.active
-   pill (Anon, Sticker, Echo, etc.) keeps the theme-default fill
-   (purple on the artist theme, --bg-color elsewhere), so the user
-   reads Zen as the one switch that's branded loudly.
-   Specificity: #sn-zen.active beats .settings-toggle.active without
-   needing !important. */
-#sn-zen.active {
-    background: #FFE600;
-    color: #000000;
-    border-color: #FFE600;
-}
+   The Zen Mode toggle in MyPdSection uses the standard
+   .settings-toggle.active fill (theme-default: --bg-color fill
+   + --text-color label) — same as every other mode pill.
+   The previous #sn-zen.active override painted Attention Yellow
+   (#FFE600) to visually signal the "Zen" default workspace, but
+   Zen Mode and the Zen workspace are independent: a workspace
+   named "Zen" doesn't require Zen Mode, and Zen Mode works on
+   any workspace. Removed to prevent the implied coupling. */
 
 
 /* ============================================================
