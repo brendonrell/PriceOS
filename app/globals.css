@@ -2575,7 +2575,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     transition: opacity 0.2s;
 }
 .stat-icon {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Arial, sans-serif;
     font-weight: normal;
     display: inline-flex;
     align-items: center;
@@ -2716,7 +2716,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stat-icon-box {
     font-size: 13px;
     font-weight: normal;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Arial, sans-serif;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2730,7 +2730,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 .stat-icon-owners {
     font-size: 13px;
     font-weight: normal;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Arial, sans-serif;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2800,7 +2800,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 
 /* Follow badge — sim ~2140-2156 */
 .follow-badge {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Arial, sans-serif;
     margin-left: 2px;
     display: inline-block;
     cursor: help;
@@ -2815,6 +2815,15 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-size: 22px;
     font-weight: normal;
     display: inline-block;
+    line-height: 0;
+    position: relative;
+}
+/* Desktop: top offset + larger stat-icon-box — matches collection.html @media(min-width:601px) */
+@media (min-width: 601px) {
+    .ico-mutual, .ico-following, .ico-followers { top: 2px; }
+    .info-rubik .ico-mutual, .info-rubik .ico-following, .info-rubik .ico-followers { top: 3px; }
+    .info-rubik .artist-tag { top: 3px; }
+    .stat-icon-box { font-size: 19px; }
 }
 
 /* ── HERO GROUP 2 / ACTION ROW / MINT — sim ~2226-2244 ───── */
@@ -3567,7 +3576,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     position: relative;
 }
 body.theme-dark .canvas-wrapper {
-    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.14);
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.07);
 }
 
 /* Build 35 — BET-06 virtualization port. Opacity transition mirrors
