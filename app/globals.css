@@ -102,7 +102,7 @@
 
 /* ── BASE RESET ──────────────────────────────────────────── */
 html {
-    min-height: 100%;
+    height: 100%;
 }
 html, body {
     margin: 0;
@@ -120,10 +120,7 @@ html, body {
 /* Sticky-footer pattern. Body is the flex column container; main
    expands to consume all remaining space so the footer parks at
    the viewport bottom on short pages and at the end of content on
-   tall ones. `flex: 1 0 auto` (vs the previous `flex: 1` which is
-   shorthand for `1 1 0`) is the canonical sticky-footer growth
-   rule — main never shrinks below its content height, and grows
-   to fill any remaining body height. */
+   tall ones. Mirrors sim exactly: `flex: 1` = grow + shrink, basis 0. */
 body {
     display: flex;
     flex-direction: column;
@@ -132,7 +129,7 @@ body {
 }
 
 main {
-    flex: 1 0 auto;
+    flex: 1;
 }
 
 button {
