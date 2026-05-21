@@ -310,7 +310,7 @@ export function GlobalSearchBar() {
                                 }
                             }}
                         >
-                            {notifs.menutape !== 0 ? '▰' : '▱'}{'\uFE0E'}
+                            {'▰\uFE0E'}
                         </span>
                         <span
                             className={`dm-icon dm-icon-topbarcal${notifs.topBarCalendar ? ' active' : ''}`}
