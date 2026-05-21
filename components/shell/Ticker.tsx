@@ -32,7 +32,6 @@ import { useEffect, useRef } from 'react';
 import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
@@ -70,7 +69,6 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 }
 
 export function Ticker() {
-    const { notifs } = usePdNotifs();
     const railRef = useRef<HTMLDivElement | null>(null);
     const items = tapeFeedItems();
 
@@ -80,10 +78,6 @@ export function Ticker() {
         const unsubscribe = subscribeTapeRail(rail);
         return unsubscribe;
     }, []);
-
-    // React gate — all hooks above, early return below. No DOM rendered
-    // when tape is off so there's nothing to flash on load.
-    if (notifs.menutape === 0) return null;
 
     return (
         <div className="tape-wrap" id="tapeWrap" aria-hidden="true">
