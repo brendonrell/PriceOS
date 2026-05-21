@@ -247,7 +247,7 @@
     align-items: center;
 }
 @media (max-width: 600px) {
-    .settings-toggle .st-icon { transform: translateY(-1px); }
+    .settings-toggle .st-icon { transform: none; }
 }
 .settings-toggle .st-label {
     line-height: 1;
