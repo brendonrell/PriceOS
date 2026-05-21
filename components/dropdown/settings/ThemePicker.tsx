@@ -38,7 +38,7 @@ const PILLS: PillSpec[] = [
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
     {
-        key: 'red',     cls: 't-red',     title: 'Cherry Mode',       glyph: 'R',
+        key: 'red',     cls: 't-red',     title: 'Red Cherry Mode',       glyph: 'R',
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
 ];
