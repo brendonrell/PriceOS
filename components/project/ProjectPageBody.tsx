@@ -729,14 +729,14 @@ function ProjectPageBodyInner() {
                 <div className="hero-group-1">
                     <h1 className="project-title">
                         <span>{project.title}</span>
-                        <span className="project-date">AUG 14 2026</span>
+                        <span className="project-date">MAR 17 2026</span>
                     </h1>
 
                     <div className="hero-line project-artist">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/claude">@Claude</a>
+                                <a href="/profile/brendon">@Brendon</a>
                                 <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
                                 <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             </span>
@@ -774,11 +774,11 @@ function ProjectPageBodyInner() {
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">198/222</span>
+                            <span className="stat-val">555/2222</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-vol">14.5 VOL</span>
+                            <span className="stat-val stat-val-vol">14.2 VOL</span>
                         </span>
                         <span
                             className="stat-item stat-item-owners"
@@ -793,7 +793,7 @@ function ProjectPageBodyInner() {
                             }}
                         >
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">67 PPL</span>
+                            <span className="stat-val stat-val-owners">1528 OWNERS</span>
                         </span>
                     </div>
                 </div>
