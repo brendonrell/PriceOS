@@ -102,73 +102,76 @@ function ProfilePageBodyInner() {
             <section className="project-hero" aria-label="Profile Info">
                 <div className="hero-group-1">
                     <h1 className="project-title">
-                        <span>@CTO</span>
-                        <span className="artist-tag" aria-label="artist">
-                            {'✺\uFE0E'}
-                        </span>
+                        <span>@CTO<span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span></span>
                         <span className="project-date">APR 2025</span>
                     </h1>
 
-                    <div className="hero-line">
-                        <span className="info-rubik">
-                            via cto.eth{' '}
-                            <span className="artist-tag" aria-label="active">
-                                {'☼\uFE0E'}
+                    <div className="hero-line project-artist">
+                        <span className="by-text">Via</span>{' '}
+                        <div className="artist-lockup">
+                            <span className="artist-name-wrap">
+                                <a href="/profile/cto">cto.eth</a>
+                                <span className="artist-tag" aria-label="active">{'☼\uFE0E'}</span>
                             </span>
-                        </span>
+                        </div>
                     </div>
 
                     <div className="hero-line info-line">
                         <span className="info-rubik">
-                            followed by{' '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@piterpasma</a>
-                            </span>
+                            Followed by{' '}
+                            <a className="profile-link">@matty</a>
+                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             {', '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@rudxane</a>
-                                <span className="artist-tag" aria-label="artist">
-                                    {'✺\uFE0E'}
-                                </span>
-                            </span>
+                            <a className="profile-link">@atlasforge</a>
                             {', '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@gmoney</a>
+                            <a className="profile-link">@rudxane</a>
+                            <span className="artist-tag">{'✺\uFE0E'}</span>
+                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            {' '}
+                            <span
+                                className="open-modal-text"
+                                style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}
+                                onClick={() => showToast('Followers — coming soon')}
+                            >
+                                &amp; 42 Others You Know
                             </span>
                         </span>
                     </div>
 
-                    <div className="stats-grid">
-                        <div className="hero-line stats-row">
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Outputs Collected')}
-                                >
-                                    ⬚&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">142</span>
-                            </span>
-                            <span className="stat-item stat-item-vol">
-                                <span
-                                    className="stat-icon stat-icon-eth"
-                                    {...iconToastProps('Volume Spent')}
-                                >
-                                    ⟠&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val stat-val-vol">3.2 ETH</span>
-                            </span>
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Stat 3 — coming soon')}
-                                >
-                                    ◈&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val stat-val-empty"></span>
-                            </span>
-                        </div>
-
+                    <div className="hero-line stats-row">
+                        <span className="stat-item">
+                            <span
+                                className="stat-icon stat-icon-box"
+                                {...iconToastProps('Outputs Collected')}
+                            >
+                                ⬚&#xFE0E;
+                            </span>{' '}
+                            <span className="stat-val">142</span>
+                        </span>
+                        <span className="stat-item stat-item-vol">
+                            <span
+                                className="stat-icon-eth"
+                                {...iconToastProps('Volume Spent')}
+                            >
+                                ⟠&#xFE0E;
+                            </span>{' '}
+                            <span className="stat-val stat-val-vol">3.2 ETH</span>
+                        </span>
+                        <span
+                            className="stat-item stat-item-owners"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => showToast('Followers — coming soon')}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    showToast('Followers — coming soon');
+                                }
+                            }}
+                        >
+                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Followers')}>⌗&#xFE0E;</span>{' '}
+                            <span className="stat-val stat-val-owners">67 PPL</span>
+                        </span>
                     </div>
                 </div>
 
