@@ -4802,6 +4802,10 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     box-sizing: border-box;
     white-space: nowrap;
     overflow: hidden;
+    /* Height lock — tallest natural state is the topbarcal-icon at 18px
+       + 5px top/bottom padding = 28px. Fixed here so the top bar row
+       never shifts height regardless of event content. */
+    height: 28px;
 }
 .topbarcal-icon {
     /* Sim line 1230-1236 — +2 size steps + 1px down nudge for
@@ -4920,7 +4924,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 .topbarcal-close:hover { opacity: 1; }
 
 @media (max-width: 600px) {
-    .topbarcal-pill { padding: 4px 10px; gap: 7px; font-size: 12px; }
+    .topbarcal-pill { padding: 4px 10px; gap: 7px; font-size: 12px; height: 28px; }
     /* Sim 1331-1339 — mobile tightening: gaps halved, arrow icon
        hidden to free horizontal room for the strip itself. */
     .topbarcal-icon { display: none; }
