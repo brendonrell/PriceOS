@@ -68,33 +68,39 @@
 }
 
 
-/* ENS pills row */
+/* ENS pills row — outer flex row container.
+   max-height / overflow live on .ens-pills-clip (inner), NOT here,
+   so the …more button (a flex sibling of .ens-pills-clip) is never
+   swallowed by overflow:hidden when long pill names push to 3 rows. */
 .settings-ens-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-wrap: nowrap;
+    gap: 0;
     padding: 4px 10px 8px 10px;
     margin: 0;
     align-items: center;
-    /* Enforce max 2 pill rows in collapsed state (2×24px pill + 6px gap + 12px padding = 66px).
-       Long ENS names that would cause a 3rd row are clipped. */
-    max-height: 66px;
+}
+
+/* Collapsed pill container — owns the 2-row overflow clipping.
+   Sits inside .settings-ens-row as flex: 1 1 auto so it takes all
+   available width, leaving the …more button at natural width. */
+.ens-pills-clip {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    /* 2 pill rows: 2×24px pill height + 1×6px gap = 54px */
+    max-height: 54px;
     overflow: hidden;
 }
 
-/* ENS expanded — sim's two-row horizontal-scroll strip. The accompanying
-   WalletSection.tsx rebuild (F1b) reshapes the row DOM on expand into:
-       row → .ens-scroll-viewport → .ens-scroll-stack → 2× .ens-scroll-row
-   splitting pills across the two rows. The viewport owns the horizontal
-   scroll; pills keep their natural content widths via flex-shrink: 0 +
-   white-space: nowrap, which extends the scroll track as needed.
-   Collapse flattens back to the default flex-wrap row.
-   These rules are inert until F1b ships — safe to land alone. */
+/* ENS expanded — two-row horizontal-scroll strip.
+   Row reshapes to: .ens-scroll-viewport (flex:1 1 auto) + …hide button.
+   flex-wrap already nowrap on base rule; align-items already center. */
 .settings-ens-row.ens-expanded {
-    flex-wrap: nowrap;
     align-items: center;
-    max-height: none;
-    overflow: visible;
 }
 .ens-scroll-viewport {
     flex: 1 1 auto;
@@ -152,6 +158,10 @@
     opacity: 1;
     transition: none;
     border-style: solid;
+}
+
+.pill-ens em {
+    font-style: italic;
 }
 
 .ens-more-btn {
