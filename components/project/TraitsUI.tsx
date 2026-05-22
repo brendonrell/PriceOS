@@ -821,7 +821,6 @@ export default function TraitsUI({
                                     category={l3FilterCat}
                                     onClick={() => {
                                         toggleFilter(l3FilterCat, value);
-                                        showToast('Search Filter ' + (isActive ? 'OFF' : 'ON'));
                                     }}
                                 />
                             );
