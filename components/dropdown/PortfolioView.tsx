@@ -315,11 +315,11 @@ export function PortfolioView() {
                     id="portfolioMainPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setTab('portfolio')}
+                    onClick={() => { if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio ON'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setTab('portfolio');
+                            if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio ON'); }
                         }
                     }}
                     title="Main Portfolio"
@@ -332,11 +332,11 @@ export function PortfolioView() {
                     id="portfolioShadowPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setTab('shadow')}
+                    onClick={() => { if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio ON'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setTab('shadow');
+                            if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio ON'); }
                         }
                     }}
                     title="Shadow Portfolio"
@@ -349,11 +349,11 @@ export function PortfolioView() {
                     id="portfolioDollarToggle"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setShowDollar((v) => !v)}
+                    onClick={() => { const next = !showDollar; setShowDollar(next); showToast('Estimates ' + (next ? 'ON' : 'OFF')); }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setShowDollar((v) => !v);
+                            const next = !showDollar; setShowDollar(next); showToast('Estimates ' + (next ? 'ON' : 'OFF'));
                         }
                     }}
                     title="Toggle floor-based value estimates"
