@@ -327,10 +327,13 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         []
     );
 
-    const toggleMyNotes = useCallback(
-        () => setMyNotesActive((v) => !v),
-        []
-    );
+    const toggleMyNotes = useCallback(() => {
+        setMyNotesActive((v) => {
+            const next = !v;
+            showToast('My Notes ' + (next ? 'ON' : 'OFF'));
+            return next;
+        });
+    }, [showToast]);
     /* Sim 6625-6643: toggleBurnPile toasts on every flip ("Burn Pile ON" /
        "Burn Pile OFF"). Random burn-pick draw + #gallery.burn-mode class
        are owned by app/art/[slug]/page.tsx (F61 effect at sim
@@ -403,9 +406,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
                 inp?.focus();
             }, 50);
         }
-        // sim 8861: 'Search Filter ON' / 'Search Filter OFF'.
-        showToast('Search Filter ' + (next ? 'ON' : 'OFF'));
-    }, [searchActive, showToast]);
+        // No toast — the search bar appearing/disappearing is unambiguous
+        // labelled UI. Brendon: "obvious, don't toast it."
+    }, [searchActive]);
 
     const closeSearch = useCallback(() => {
         setSearchActive(false);
