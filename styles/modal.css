@@ -77,7 +77,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-height: calc(100vh - 300px);
     }
     /* Note icon 2 font-sizes smaller on desktop */
-    .modal-pin-hint { font-size: 16px; }
+    #modal .modal-pin-hint { font-size: 16px; }
 }
 
 
@@ -221,7 +221,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .dp-title {
     text-align: center;
     font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     letter-spacing: 0.5px;
     padding: 4px 6px 6px 6px;
     word-break: break-word;
