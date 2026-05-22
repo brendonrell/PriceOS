@@ -668,101 +668,100 @@ export default function OutputPreview() {
                                 className={`modal-pill${detailsOpen ? ' active' : ''}`}
                                 title="Details"
                                 onClick={() => setDetailsOpen((o) => !o)}
-                                style={{ position: 'relative' }}
                             >
                                 {`\u2197${VS15}`}
-                                {detailsOpen && (
-                                    <div
-                                        ref={detailsPopoverRef}
-                                        className="details-popover"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        {/* Artwork title — Rubik Mono One, centered */}
-                                        <div className="dp-title">
-                                            {title} #{id}
-                                        </div>
-                                        {/* Artist row */}
-                                        <div className="dp-row">
-                                            <span className="dp-label">Artist</span>
-                                            <span className="dp-value">
-                                                <a
-                                                    href="/profile/claude"
-                                                    className="dp-link"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    @claude
-                                                </a>
+                            </span>
+                            {detailsOpen && (
+                                <div
+                                    ref={detailsPopoverRef}
+                                    className="details-popover"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {/* Artwork title — Rubik Mono One, centered */}
+                                    <div className="dp-title">
+                                        {title} #{id}
+                                    </div>
+                                    {/* Artist row */}
+                                    <div className="dp-row">
+                                        <span className="dp-label">Artist</span>
+                                        <span className="dp-value">
+                                            <a
+                                                href="/profile/claude"
+                                                className="dp-link"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                @claude
+                                            </a>
+                                        </span>
+                                    </div>
+                                    {/* Owner row */}
+                                    <div className="dp-row">
+                                        <span className="dp-label">Owner</span>
+                                        <span className="dp-value">
+                                            <span className="dp-addr">
+                                                {meta.isOwnedByBrendon
+                                                    ? 'You'
+                                                    : meta.ownerDisplay}
                                             </span>
-                                        </div>
-                                        {/* Owner row */}
-                                        <div className="dp-row">
-                                            <span className="dp-label">Owner</span>
-                                            <span className="dp-value">
-                                                <span className="dp-addr">
-                                                    {meta.isOwnedByBrendon
-                                                        ? 'You'
-                                                        : meta.ownerDisplay}
-                                                </span>
-                                                {!meta.isOwnedByBrendon && meta.ownerDisplay && (
-                                                    <button
-                                                        className="dp-copy-btn"
-                                                        title="Copy address"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigator.clipboard
-                                                                .writeText(meta.ownerDisplay ?? '')
-                                                                .then(() => showToast('Address Copied'))
-                                                                .catch(() => showToast('Copy failed'));
-                                                        }}
-                                                    >
-                                                        ⧉{VS15}
-                                                    </button>
-                                                )}
-                                            </span>
-                                        </div>
-                                        {/* Artwork Page row */}
-                                        <div className="dp-row">
-                                            <span className="dp-label">Artwork Page</span>
-                                            <span className="dp-value">
-                                                <button
-                                                    className="dp-link-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (id != null) {
-                                                            setDetailsOpen(false);
-                                                            router.push(`/${id}`);
-                                                        }
-                                                    }}
-                                                >
-                                                    Open {`\u2197${VS15}`}
-                                                </button>
-                                            </span>
-                                        </div>
-                                        {/* Copy URL row */}
-                                        <div className="dp-row">
-                                            <span className="dp-label">Copy URL</span>
-                                            <span className="dp-value">
+                                            {!meta.isOwnedByBrendon && meta.ownerDisplay && (
                                                 <button
                                                     className="dp-copy-btn"
-                                                    title="Copy artwork URL"
+                                                    title="Copy address"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const url = id != null
-                                                            ? `${window.location.origin}/${id}`
-                                                            : window.location.href;
                                                         navigator.clipboard
-                                                            .writeText(url)
-                                                            .then(() => showToast('URL Copied'))
+                                                            .writeText(meta.ownerDisplay ?? '')
+                                                            .then(() => showToast('Address Copied'))
                                                             .catch(() => showToast('Copy failed'));
                                                     }}
                                                 >
                                                     ⧉{VS15}
                                                 </button>
-                                            </span>
-                                        </div>
+                                            )}
+                                        </span>
                                     </div>
-                                )}
-                            </span>
+                                    {/* Artwork Page row */}
+                                    <div className="dp-row">
+                                        <span className="dp-label">Artwork Page</span>
+                                        <span className="dp-value">
+                                            <button
+                                                className="dp-link-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (id != null) {
+                                                        setDetailsOpen(false);
+                                                        router.push(`/${id}`);
+                                                    }
+                                                }}
+                                            >
+                                                Open {`\u2197${VS15}`}
+                                            </button>
+                                        </span>
+                                    </div>
+                                    {/* Copy URL row */}
+                                    <div className="dp-row">
+                                        <span className="dp-label">Copy URL</span>
+                                        <span className="dp-value">
+                                            <button
+                                                className="dp-copy-btn"
+                                                title="Copy artwork URL"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const url = id != null
+                                                        ? `${window.location.origin}/${id}`
+                                                        : window.location.href;
+                                                    navigator.clipboard
+                                                        .writeText(url)
+                                                        .then(() => showToast('URL Copied'))
+                                                        .catch(() => showToast('Copy failed'));
+                                                }}
+                                            >
+                                                ⧉{VS15}
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
