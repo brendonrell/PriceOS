@@ -111,7 +111,6 @@ function ProfilePageBodyInner() {
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
                                 <a href="/profile/cto">cto.eth</a>
-                                <span className="artist-tag" aria-label="active">{'☼\uFE0E'}</span>
                             </span>
                         </div>
                     </div>
@@ -125,7 +124,6 @@ function ProfilePageBodyInner() {
                             <a className="profile-link">@atlasforge</a>
                             {', '}
                             <a className="profile-link">@rudxane</a>
-                            <span className="artist-tag">{'✺\uFE0E'}</span>
                             <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             {' '}
                             <span
