@@ -48,16 +48,17 @@
 .calendar-panel {
     display: none; flex-direction: column;
     padding: 0 4px 2px 4px; gap: 2px;
-    /* Match dropdownMenuLinks' inline margin-top:-4px so the parent user-dropdown
-       height is identical whether links or calendar is the active child. */
-    margin-top: -4px;
+    /* Pull up to fill the gasWidgetRow space (38px min-height + 4px top padding)
+       that is now an empty spacer when the calendar is open, plus the original
+       -4px that matched dropdownMenuLinks. */
+    margin-top: -46px;
     font-family: 'Courier New', Courier, monospace;
     color: var(--bg-color);
     /* Locked to same height as dropdown-menu-links via shared CSS var.
        Both elements in the same slot render IDENTICAL heights → backboard
        can never change size on toggle. */
-    height: var(--pd-menu-height);
-    max-height: var(--pd-menu-height);
+    height: calc(var(--pd-menu-height) + 42px);
+    max-height: calc(var(--pd-menu-height) + 42px);
     box-sizing: border-box;
     overflow: hidden;
 }
