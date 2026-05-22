@@ -122,6 +122,7 @@ import { fetchUserRow } from '../../lib/wallet/accountClient';
 import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
+import { startEnsLookup } from '../../lib/engines/ensEngine';
 
 interface WalletProvidersProps {
     children: ReactNode;
@@ -478,6 +479,13 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             setMainSpriteIdentity(null, null);
         };
     }, [siweAddress, userRow]);
+
+    /* ENS prefetch — fires on every siweAddress change so ENS names
+       are loaded before the user opens Settings. The engine caches to
+       localStorage (5-min TTL) for instant warm-start on next mount. */
+    useEffect(() => {
+        startEnsLookup(siweAddress);
+    }, [siweAddress]);
 
     /* SignInModal is visible when wagmi has a connected address but
        no SIWE session yet, AND we're past the initial cookie hydration
