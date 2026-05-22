@@ -33,9 +33,9 @@
     margin-bottom: 2px;
     font-family: 'Courier New', Courier, monospace;
     color: var(--bg-color);
-    padding: 0 2px;
 }
-.cal-nav-row .cal-month-label {
+.cal-nav-row .cal-nav:first-child { padding-left: 0; }
+.cal-nav-row .cal-nav:last-child { padding-right: 0; }
     font-size: 13.5px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;
     text-align: center; flex: 1;
 }
