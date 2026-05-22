@@ -207,7 +207,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: normal;
     letter-spacing: 0.4px;
     box-sizing: border-box;
@@ -221,11 +221,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .dp-title {
     text-align: center;
     font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 11px;
+    font-size: 14px;
     letter-spacing: 0.5px;
     padding: 4px 6px 6px 6px;
     word-break: break-word;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
     margin-bottom: 2px;
 }
 .dp-row {
@@ -248,7 +247,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     gap: 5px;
     min-width: 0;
     justify-content: flex-end;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.2px;
 }
@@ -285,7 +284,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     border: none;
     color: inherit;
     font-family: inherit;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1;
     cursor: pointer;
     padding: 0 2px;
