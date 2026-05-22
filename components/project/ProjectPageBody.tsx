@@ -838,11 +838,11 @@ function ProjectPageBodyInner() {
                             id="ctab-showcase"
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('showcase')}
+                            onClick={() => { setActiveTab('showcase'); showToast('TAB: Showcase'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('showcase');
+                                    setActiveTab('showcase'); showToast('TAB: Showcase');
                                 }
                             }}
                             title="Curated Showcase of Featured Outputs"
@@ -854,11 +854,11 @@ function ProjectPageBodyInner() {
                             id="ctab-artworks"
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('artworks')}
+                            onClick={() => { setActiveTab('artworks'); showToast('TAB: Artworks'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('artworks');
+                                    setActiveTab('artworks'); showToast('TAB: Artworks');
                                 }
                             }}
                             title="Browse All Artworks in the Project"
@@ -870,11 +870,11 @@ function ProjectPageBodyInner() {
                             id="ctab-albums"
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('albums')}
+                            onClick={() => { setActiveTab('albums'); showToast('TAB: + More'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('albums');
+                                    setActiveTab('albums'); showToast('TAB: + More');
                                 }
                             }}
                             title="More — curated sections"
