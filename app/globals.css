@@ -2055,12 +2055,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
-    /* Sim line 1865: 232px after BUDGETS section was added (~48px above). */
-    max-height: 232px;
+    /* Sim line 1865: 232px after BUDGETS section was added (~48px above).
+       Budget row now uses the same 2-row collapse system as ENS, which
+       can occupy up to 2 pill rows instead of 1 — subtract 1 row
+       (24px pill + 6px gap = 30px) to compensate: 232 − 30 = 202px. */
+    max-height: 202px;
     /* G item 13 — Brendon deviation. min-height matches max-height for
        same-height parity with Settings + Artists panels. See
        .artists-list-container note above. */
-    min-height: 232px;
+    min-height: 202px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
