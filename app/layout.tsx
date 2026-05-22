@@ -379,7 +379,7 @@ export default async function RootLayout({
                 />
                 <meta name="theme-color" content="#111111" />
             </head>
-            <body>
+            <body suppressHydrationWarning>
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
                 <WalletProviders
                     initialState={initialState}
