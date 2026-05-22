@@ -179,32 +179,106 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 
-/* ── OWNER + ARTWORK PAGE LINKS ROW (below pills) ─────────── */
-.modal-links-row {
+/* ── DETAILS POPOVER (↗ pill → connect-menu-style float) ─── */
+/* Anchored to the ↗ pill span (position:relative on the pill).
+   Floats above the pill row; matches the .user-dropdown palette
+   (inverted bg/color, Courier, border-radius 4px, 8px padding).
+   z-index 10 clears the pill row siblings; the pill itself sits
+   inside .platform-modal (z-index 1000) so no stacking escape
+   is needed. Width is fixed at 220px — wide enough for a full
+   truncated address + copy glyph without wrapping. */
+.details-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    box-sizing: border-box;
+    /* Animate in — matches .dropdown-stack transition feel */
+    animation: dp-fade-in 0.15s ease;
+}
+@keyframes dp-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.dp-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    padding: 5px 6px;
     gap: 8px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    font-weight: bold;
-    opacity: 0.5;
-    padding: 2px 20px 0 20px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-    width: 100%;
-    box-sizing: border-box;
+    border-radius: 3px;
 }
-.modal-link-item { letter-spacing: 0.3px; }
-.modal-link-sep { opacity: 0.5; }
-.modal-links-row .hover-link {
-    cursor: pointer;
+.dp-label {
+    opacity: 0.55;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+}
+.dp-value {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    justify-content: flex-end;
+}
+.dp-addr {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90px;
+    letter-spacing: 0.2px;
+}
+.dp-link {
+    color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.dp-link-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+.dp-copy-btn {
+    background: none;
+    border: 1px solid var(--bg-color);
+    color: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+    opacity: 0.7;
     transition: opacity 0.15s;
+    flex-shrink: 0;
 }
 @media (hover: hover) {
-    .modal-links-row .hover-link:hover { opacity: 1; }
+    .dp-copy-btn:hover { opacity: 1; }
+    .dp-link-btn:hover { opacity: 0.8; }
+    .dp-link:hover { opacity: 0.8; }
 }
 
 
