@@ -711,7 +711,7 @@ export default function OutputPreview() {
                                                                 .catch(() => showToast('Copy failed'));
                                                         }}
                                                     >
-                                                        ⎘{VS15}
+                                                        ⧉{VS15}
                                                     </button>
                                                 )}
                                             </span>
@@ -752,7 +752,7 @@ export default function OutputPreview() {
                                                             .catch(() => showToast('Copy failed'));
                                                     }}
                                                 >
-                                                    ⎘{VS15}
+                                                    ⧉{VS15}
                                                 </button>
                                             </span>
                                         </div>
