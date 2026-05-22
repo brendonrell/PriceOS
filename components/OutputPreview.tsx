@@ -293,6 +293,8 @@ export default function OutputPreview() {
     useEffect(() => {
         if (!detailsOpen) return;
         const handler = (e: MouseEvent) => {
+            const bottomBar = document.getElementById('mBottomBar');
+            if (bottomBar && bottomBar.contains(e.target as Node)) return;
             if (
                 detailsPopoverRef.current &&
                 !detailsPopoverRef.current.contains(e.target as Node) &&
