@@ -20,7 +20,6 @@
 import { useEffect, useMemo } from 'react';
 import {
   CAL_EVENTS,
-  CAL_MONTH_NAMES,
   CAL_MONTH_SHORT,
   CAL_TODAY,
   CAL_TODOS,
@@ -38,7 +37,7 @@ export default function CalendarPanel() {
   const {
     viewY, viewM, selY, selM, selD,
     todosMode, dayNotes,
-    selectDay, jumpToToday, toggleTodos, navMonth,
+    selectDay, jumpToToday, toggleTodos,
   } = useCalendar();
 
   const { openDayNoteEditor } = useNotePrompt();
@@ -81,43 +80,6 @@ export default function CalendarPanel() {
     <div className="calendar-panel active" id="calendarPanel">
       <div className="cal-body">
         <div className="cal-grid-wrap">
-          <div className="cal-nav-row">
-            <span
-              className="cal-nav"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); navMonth(-1); }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  navMonth(-1);
-                }
-              }}
-              title="Previous month"
-            >
-              {'\u25C0\uFE0E'}
-            </span>
-            <span className="cal-month-label" id="calMonthLabel">
-              {CAL_MONTH_NAMES[viewM]} {viewY}
-            </span>
-            <span
-              className="cal-nav"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); navMonth(1); }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  navMonth(1);
-                }
-              }}
-              title="Next month"
-            >
-              {'\u25B6\uFE0E'}
-            </span>
-          </div>
           <div className="cal-weekday-row">
             <span>M</span><span>T</span><span>W</span><span>T</span>
             <span>F</span><span>S</span><span>S</span>
