@@ -2565,7 +2565,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 
 .artist-tag {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Courier New', Courier, monospace !important;
     font-size: 21px;
     opacity: 0.85;
     display: inline-block;
@@ -3762,6 +3762,8 @@ body.hammer-mode .hover-overlay { display: none !important; }
 }
 @media (max-width: 600px) {
     .hi-icon.hi-note { font-size: 14px !important; }
+    /* Showcase icon: bump 0.5 font sizes larger on mobile only (18px base → 27px) */
+    .hi-icon.hi-showcase { font-size: 27px !important; }
 }
 
 /* ── PRICE LENS ⊛ — sim 3934-3949 ──
@@ -4429,7 +4431,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         vertical-align: middle;
         top: -2px;
     }
-    .artist-lockup .artist-tag { font-size: 25px; }
+    .artist-lockup .artist-tag { font-size: 25px; vertical-align: middle; }
     .stat-icon-owners {
         font-size: 23px;
         position: relative;
@@ -5124,24 +5126,17 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 
 /* Input field inside bar pill (Incognito ENS). Transparent against
    the pill's filled background. Sim 1342-1348.
-   S4 page 3234 — width 100 → 70 (sim carve-out) so the centered
-   incognito pill stops colliding with the right-aligned RPC pill on
-   narrow viewports. Combined with the #incognitoPill padding tighten
-   below they cohabitate at viewport widths where sim's defaults overlap. */
+   Sim parity: .bar-center-wrap uses position:absolute + left:50% so
+   the incognito pill floats centered independently of the right-aligned
+   RPC pill — no horizontal competition, no width carve-out needed. */
 .bar-pill-input {
     background: transparent; border: none;
     color: var(--bg-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px; font-weight: bold; width: 70px; outline: none;
+    font-size: 13px; font-weight: bold; width: 100px; outline: none;
     padding: 0; line-height: 1;
 }
 .bar-pill-input::placeholder { opacity: 0.4; color: var(--bg-color); }
-
-/* S4 page 3234 — #incognitoPill padding tightened from .hammer-bar-pill's
-   default 4px 12px → 4px 8px + gap 6 (was 8) so the pill takes less
-   horizontal room and the RPC pill stops colliding. Only this pill —
-   #hammerBarPill keeps its hefty padding via .hammer-pill-hefty. */
-#incognitoPill { padding: 4px 8px; gap: 6px; }
 
 /* ⌁ + ⚇ icons in WalletSection. Sim 1349-1359. .rpc-active is
    applied by WalletSection when either engine is active — adds the
