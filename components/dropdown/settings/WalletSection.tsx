@@ -12,8 +12,11 @@
  *   - 17,450.54 PRICE | balance-toggle eyeball
  *
  * Collapsed ENS row (default):
- *   Flat flex-wrap of the first 3 pills (active pill bumped in if it sits
- *   beyond the cutoff) + the …more button.
+ *   .ens-pills-clip (overflow-hidden, 2-row max) holds the visible pills;
+ *   the …more button sits OUTSIDE the clip as a flex sibling so it is
+ *   never swallowed by the overflow — fixes the "…more disappears when
+ *   pills push to 3 rows" bug. Active pill is always first; rest are
+ *   alphabetical.
  *
  * Expanded ENS row (after tapping …more):
  *   DOM reshapes to a single nowrap container holding a scroll viewport
@@ -32,6 +35,17 @@
  *   pills total. Pills keep natural widths via flex-shrink: 0 + nowrap;
  *   viewport scrolls horizontally as needed.
  *
+ * ENS names display:
+ *   Subdomains (any ENS with more than 2 dot-separated parts) render the
+ *   sub-part in italic: *brendon*.dcl.eth. Top-level and second-level
+ *   names (name.eth) render plainly.
+ *
+ * ENS data source:
+ *   Loaded by ensEngine (lib/engines/ensEngine.ts) which is triggered from
+ *   WalletProviders on siweAddress change — so data is ready before the
+ *   settings panel ever opens. WalletSection subscribes to the engine;
+ *   no fetch happens inside this component.
+ *
  * S2 logged-out preview:
  *   The entire section is auth-gated when !isAuthed — every top-level
  *   child gets the `.auth-gated` class (opacity 0.4 + pointer-events:
@@ -44,10 +58,7 @@
  *   When isAuthed, the displayed values pull from live sources rather
  *   than hardcoded mocks:
  *     - handle      → shortAddr(siweAddress)
- *     - ensPills    → useEnsName({ address, chainId: 1 }) — wraps the
- *                     single resolved primary ENS in an array; empty
- *                     when no ENS resolves. Multi-ENS list parks
- *                     until the indexer ships.
+ *     - ensPills    → ensEngine (subgraph query, localStorage-cached)
  *     - balance     → usePriceBalance(siweAddress).balanceFormatted
  *                     (one-shot per address per Tier 2 cost arch — no
  *                     polling on per-user data)
@@ -55,8 +66,7 @@
  *   gated preview keeps its full shape under the auth-gated class.
  */
 
-import { useEffect, useState } from 'react';
-import { useEnsName } from 'wagmi';
+import React, { useEffect, useState } from 'react';
 import {
     isIncognitoActive,
     subscribeIncognito,
@@ -71,11 +81,12 @@ import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { usePriceBalance } from '../../../lib/hooks/usePriceBalance';
+import { getEnsNames, subscribeEnsNames } from '../../../lib/engines/ensEngine';
 
 /* Placeholder values shown while !isAuthed so the S2 logged-out preview
    keeps its full shape (opacity 0.4 + pointer-events: none — the gating
    class handles the inertness). When authed, these are replaced with
-   live data from siweAddress / useEnsName / usePriceBalance. */
+   live data from siweAddress / ensEngine / usePriceBalance. */
 const PLACEHOLDER_HANDLE = '0x1234...abcd';
 const PLACEHOLDER_FULL_ADDRESS = '0x1234567890abcdef1234567890abcdef1234abcd';
 const PLACEHOLDER_ENS_PILLS = ['name.eth', 'name.pricediscussion.eth'];
@@ -85,6 +96,19 @@ function shortAddr(addr: string): string {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+/**
+ * Render an ENS name with its subdomain part in italic.
+ * brendon.dcl.eth → <em>brendon</em>.dcl.eth
+ * name.eth        → name.eth  (no change — only 2 parts)
+ */
+function ensLabel(ens: string): React.ReactNode {
+    const parts = ens.split('.');
+    if (parts.length <= 2) return ens;
+    const sub = parts.slice(0, parts.length - 2).join('.');
+    const base = parts.slice(parts.length - 2).join('.');
+    return <><em>{sub}</em>.{base}</>;
+}
+
 export function WalletSection() {
     const { showToast } = useToast();
     const { notifs, toggle: toggleNotif } = usePdNotifs();
@@ -92,89 +116,16 @@ export function WalletSection() {
     const isAuthed = !!siweAddress;
     const gatedClass = isAuthed ? '' : ' auth-gated';
 
-    /* S3 — live wallet ENS detection.
-       Uses account.domains (current registry ownership) NOT registrations
-       (which persist after transfers). Filters expired names client-side.
-       Cache: read from localStorage on mount for instant display, refresh
-       async so the panel always loads immediately. */
-    const ensQuery = useEnsName({
-        address: (siweAddress ?? undefined) as `0x${string}` | undefined,
-        chainId: 1,
-    });
-    const ensFallback = ensQuery.data ?? null;
-    const ENS_CACHE_KEY = 'pd_ens_cache';
-    const [ensSubgraphNames, setEnsSubgraphNames] = useState<string[]>(() => {
-        // Instant: read from cache on first render
-        if (typeof window === 'undefined') return [];
-        try {
-            const raw = localStorage.getItem(ENS_CACHE_KEY);
-            if (!raw) return [];
-            const parsed = JSON.parse(raw) as { addr: string; names: string[]; ts: number };
-            // Cache valid for 5 minutes
-            if (Date.now() - parsed.ts < 5 * 60 * 1000) return parsed.names;
-        } catch { /* ignore */ }
-        return [];
-    });
-
+    /* ENS names from engine. Engine is fed by WalletProviders on
+       siweAddress change so data is ready before this component mounts.
+       useState initialiser reads current engine state for instant warm
+       display; subscribeEnsNames keeps in sync if a background fetch
+       completes after mount. */
+    const [ensNames, setEnsNames] = useState<string[]>(() => getEnsNames());
     useEffect(() => {
-        if (!siweAddress) { setEnsSubgraphNames([]); return; }
-        const addr = siweAddress.toLowerCase();
-        const nowSecs = Math.floor(Date.now() / 1000);
-        // Query domains (current ownership in ENS registry), not registrations
-        const query = `{
-            account(id: "${addr}") {
-                domains(first: 100, where: { parent_not: null }) {
-                    name
-                    expiryDate
-                    owner { id }
-                }
-                wrappedDomains(first: 100) {
-                    domain { name expiryDate }
-                }
-            }
-        }`;
-        fetch('https://api.thegraph.com/subgraphs/name/ensdomains/ens', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query }),
-        })
-            .then((r) => r.ok ? r.json() : Promise.reject(r.status))
-            .then((data) => {
-                const seen = new Set<string>();
-                const names: string[] = [];
-                const acc = data?.data?.account;
-                if (acc) {
-                    // domains: current registry owner — filter expired and non-.eth
-                    for (const d of (acc.domains ?? [])) {
-                        const n = d?.name;
-                        const exp = d?.expiryDate ? Number(d.expiryDate) : null;
-                        // Skip expired (expiryDate in the past) and non-.eth names
-                        if (!n || !n.endsWith('.eth')) continue;
-                        if (exp !== null && exp < nowSecs) continue;
-                        if (!seen.has(n)) { seen.add(n); names.push(n); }
-                    }
-                    // wrappedDomains: NameWrapper ownership — also filter expired
-                    for (const r of (acc.wrappedDomains ?? [])) {
-                        const n = r?.domain?.name;
-                        const exp = r?.domain?.expiryDate ? Number(r.domain.expiryDate) : null;
-                        if (!n || !n.endsWith('.eth')) continue;
-                        if (exp !== null && exp < nowSecs) continue;
-                        if (!seen.has(n)) { seen.add(n); names.push(n); }
-                    }
-                }
-                setEnsSubgraphNames(names);
-                // Cache for instant next load
-                try {
-                    localStorage.setItem(ENS_CACHE_KEY, JSON.stringify({
-                        addr, names, ts: Date.now(),
-                    }));
-                } catch { /* ignore quota */ }
-            })
-            .catch(() => {
-                /* subgraph unavailable — fall back to primary ENS */
-                setEnsSubgraphNames([]);
-            });
-    }, [siweAddress]);
+        setEnsNames(getEnsNames());
+        return subscribeEnsNames((names) => setEnsNames(names));
+    }, []);
 
     const priceBalance = usePriceBalance(siweAddress);
 
@@ -184,20 +135,11 @@ export function WalletSection() {
     const fullAddress = isAuthed && siweAddress
         ? siweAddress
         : PLACEHOLDER_FULL_ADDRESS;
-    /* Prefer subgraph names (full list); fall back to primary ENS reverse
-       record if the subgraph returned nothing (e.g. first load or error). */
-    const ensNamesLive = ensSubgraphNames.length > 0
-        ? ensSubgraphNames
-        : (ensFallback ? [ensFallback] : []);
-    const ensPills: string[] = isAuthed ? ensNamesLive : PLACEHOLDER_ENS_PILLS;
-    const balanceDisplay = isAuthed
-        ? priceBalance.balanceFormatted ?? '—'
-        : PLACEHOLDER_BALANCE;
+
+    const rawPills: string[] = isAuthed ? ensNames : PLACEHOLDER_ENS_PILLS;
 
     // F2: ENS pills behave as a toggle — tapping the active pill again
-    // deselects it (no active pill). Mirrors sim's selectENS, which removes
-    // the active class from all pills, then re-adds it only if the click
-    // target wasn't already active. So `activeEns` can be null.
+    // deselects it (no active pill). Mirrors sim's selectENS.
     const [activeEns, setActiveEns] = useState<string | null>(null);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
@@ -206,19 +148,28 @@ export function WalletSection() {
        pill when one becomes available, clear it if the current active
        pill disappears (e.g., wallet swap). */
     useEffect(() => {
-        if (ensPills.length === 0) {
+        if (rawPills.length === 0) {
             if (activeEns !== null) setActiveEns(null);
             return;
         }
-        if (activeEns === null || !ensPills.includes(activeEns)) {
-            setActiveEns(ensPills[0]);
+        if (activeEns === null || !rawPills.includes(activeEns)) {
+            setActiveEns(rawPills[0]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ensPills.join('|')]);
+    }, [rawPills.join('|')]);
 
-    // Build 33 — engine state mirrors. Both engines are session-only
-    // singletons; on first hydrate they read `false`, then stay
-    // subscribed for any toggle from this or another mount point.
+    /* Build the display-order pill list:
+       - Active pill first (always visible, always at position 0).
+       - Remaining pills sorted alphabetically.
+       This order applies to both collapsed and expanded states. */
+    const sortedRest = [...rawPills]
+        .filter((n) => n !== activeEns)
+        .sort((a, b) => a.localeCompare(b));
+    const ensPills: string[] = activeEns && rawPills.includes(activeEns)
+        ? [activeEns, ...sortedRest]
+        : [...rawPills].sort((a, b) => a.localeCompare(b));
+
+    // Build 33 — engine state mirrors.
     const [rpcActive, setRpcActive] = useState(false);
     const [incognitoActive, setIncognitoActive] = useState(false);
     useEffect(() => {
@@ -239,9 +190,6 @@ export function WalletSection() {
 
     const handleIncognito = () => {
         const nowActive = engineToggleIncognito();
-        // Turning Incognito ON deactivates Hammer (mutually exclusive
-        // top-bar modes). Reverse direction is handled inside spell
-        // logic; not our concern here.
         if (nowActive && notifs.spell_hammer) {
             toggleNotif('spell_hammer');
         }
@@ -249,10 +197,6 @@ export function WalletSection() {
     };
 
     const handleCopyWallet = async () => {
-        // Brendon item 16 (chat A) — copy was wired to clipboard but
-        // gave zero feedback ("the copy icon does nothing, or at least
-        // it doesnt react"). Toast on success + on clipboard failure
-        // so the user always sees the click registered.
         try {
             await navigator.clipboard?.writeText(fullAddress);
             showToast('Wallet Address Copied');
@@ -261,24 +205,18 @@ export function WalletSection() {
         }
     };
 
-    // Only show the …more affordance when there are more than 3 pills.
+    const balanceDisplay = isAuthed
+        ? priceBalance.balanceFormatted ?? '—'
+        : PLACEHOLDER_BALANCE;
+
+    // Show …more only when there are more than 3 pills.
     const showMoreBtn = ensPills.length > 3;
 
-    // Which pills are visible in the collapsed state — first 3 pills,
-    // bumping the active one in if it's beyond the cutoff.
-    const collapsedVisible = (() => {
-        if (ensPills.length <= 3) return new Set(ensPills);
-        const visible = new Set<string>();
-        if (activeEns && ensPills.indexOf(activeEns) >= 0) visible.add(activeEns);
-        for (const p of ensPills) {
-            if (visible.size >= 3) break;
-            visible.add(p);
-        }
-        return visible;
-    })();
+    // Collapsed visible set — first 3 pills (active is always first
+    // in ensPills so it's naturally included).
+    const collapsedVisible = new Set(ensPills.slice(0, 3));
 
     // Expanded state pill split — first half → row 1, second half → row 2.
-    // Math.ceil biases row 1 to one more pill when the count is odd.
     const splitIndex = Math.ceil(ensPills.length / 2);
     const pillsRow1 = ensPills.slice(0, splitIndex);
     const pillsRow2 = ensPills.slice(splitIndex);
@@ -295,7 +233,7 @@ export function WalletSection() {
                     setActiveEns((prev) => (prev === ens ? null : ens));
                 }}
             >
-                ↳ {ens}
+                ↳ {ensLabel(ens)}
             </button>
         );
     };
@@ -383,7 +321,14 @@ export function WalletSection() {
                     </>
                 ) : (
                     <>
-                        {ensPills.filter((p) => collapsedVisible.has(p)).map(renderPill)}
+                        {/* .ens-pills-clip owns the 2-row overflow clipping.
+                            …more lives OUTSIDE it so it is never swallowed
+                            by overflow:hidden when pills push to 3 rows. */}
+                        <div className="ens-pills-clip">
+                            {ensPills
+                                .filter((p) => collapsedVisible.has(p))
+                                .map(renderPill)}
+                        </div>
                         {moreButton}
                     </>
                 )}
@@ -403,10 +348,6 @@ export function WalletSection() {
                 style={{
                     cursor: 'pointer',
                     userSelect: 'none',
-                    /* Inline opacity beats class specificity — apply
-                       the 0.6 secondary-info dim only when not gated,
-                       so .auth-gated's 0.4 wins in the logged-out
-                       preview. */
                     ...(isAuthed ? { opacity: 0.6 } : {}),
                     fontSize: 11,
                     marginTop: -6,
