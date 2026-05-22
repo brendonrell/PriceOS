@@ -282,14 +282,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 .dp-copy-btn {
     background: none;
-    border: 1px solid var(--bg-color);
+    border: none;
     color: inherit;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 15px;
     line-height: 1;
     cursor: pointer;
-    padding: 2px 5px;
-    border-radius: 3px;
+    padding: 0 2px;
     opacity: 0.7;
     transition: opacity 0.15s;
     flex-shrink: 0;
