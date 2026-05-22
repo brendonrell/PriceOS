@@ -117,6 +117,18 @@ export function PortfolioView() {
         setBudgets(getBudgets());
         return subscribeBudgets((next) => setBudgets(next));
     }, []);
+
+    /* Budget row expand/collapse — same 2-row scroll system as ENS. */
+    const [budgetsExpanded, setBudgetsExpanded] = useState(false);
+    /* Show …more when there are more than 2 budget pills (+ Add takes
+       one slot in the collapsed 3-item cap, so 2 budget pills fill rows). */
+    const showBudgetMore = budgets.list.length > 2;
+    /* Collapsed: first 2 budget pills (+ Add is always prepended below). */
+    const collapsedBudgets = budgets.list.slice(0, 2);
+    /* Expanded split: ceil(N/2) to row 1, rest to row 2. */
+    const budgetSplitIndex = Math.ceil(budgets.list.length / 2);
+    const budgetPillsRow1 = budgets.list.slice(0, budgetSplitIndex);
+    const budgetPillsRow2 = budgets.list.slice(budgetSplitIndex);
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
 
@@ -249,44 +261,153 @@ export function PortfolioView() {
             <div className="settings-header" style={{ flexShrink: 0 }}>
                 BUDGETS
             </div>
-            <div className="settings-ens-row" id="budgetsRow" style={{ flexShrink: 0 }}>
-                {budgets.list.map((b, i) => {
-                    const isActive = i === budgets.activeIdx;
-                    const title = `${b.name} — ${pfFmtEth(b.eth)}`;
-                    return (
-                        <div
-                            key={`${b.name}-${i}`}
-                            className={`pill-ens${isActive ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title={title}
-                            onClick={() => toggleBudget(i)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    toggleBudget(i);
-                                }
-                            }}
-                        >
-                            {b.name}
+            <div
+                className={`settings-ens-row${budgetsExpanded ? ' ens-expanded' : ''}`}
+                id="budgetsRow"
+                style={{ flexShrink: 0 }}
+            >
+                {budgetsExpanded ? (
+                    <>
+                        <div className="ens-scroll-viewport">
+                            <div className="ens-scroll-stack">
+                                <div className="ens-scroll-row">
+                                    {/* + Add always leads row 1 in expanded state */}
+                                    <div
+                                        className="pill-ens pill-budget-add"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={addBudget}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                addBudget();
+                                            }
+                                        }}
+                                        title="Add budget"
+                                    >
+                                        + Add
+                                    </div>
+                                    {budgetPillsRow1.map((b, i) => {
+                                        const isActive = i === budgets.activeIdx;
+                                        return (
+                                            <div
+                                                key={`${b.name}-${i}`}
+                                                className={`pill-ens${isActive ? ' active' : ''}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                                onClick={() => toggleBudget(i)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        toggleBudget(i);
+                                                    }
+                                                }}
+                                            >
+                                                {b.name}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="ens-scroll-row">
+                                    {budgetPillsRow2.map((b, i) => {
+                                        const realIdx = budgetSplitIndex + i;
+                                        const isActive = realIdx === budgets.activeIdx;
+                                        return (
+                                            <div
+                                                key={`${b.name}-${realIdx}`}
+                                                className={`pill-ens${isActive ? ' active' : ''}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                                onClick={() => toggleBudget(realIdx)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        toggleBudget(realIdx);
+                                                    }
+                                                }}
+                                            >
+                                                {b.name}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
-                    );
-                })}
-                <div
-                    className="pill-ens pill-budget-add"
-                    role="button"
-                    tabIndex={0}
-                    onClick={addBudget}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            addBudget();
-                        }
-                    }}
-                    title="Add budget"
-                >
-                    + Add
-                </div>
+                        {showBudgetMore && (
+                            <button
+                                type="button"
+                                className="ens-more-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setBudgetsExpanded(false);
+                                }}
+                                title="Collapse budget list"
+                            >
+                                …hide
+                            </button>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        {/* .ens-pills-clip owns 2-row overflow clipping.
+                            + Add is first (always row 1, never clipped).
+                            …more lives outside the clip as a sibling. */}
+                        <div className="ens-pills-clip">
+                            {/* + Add always pinned first */}
+                            <div
+                                className="pill-ens pill-budget-add"
+                                role="button"
+                                tabIndex={0}
+                                onClick={addBudget}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        addBudget();
+                                    }
+                                }}
+                                title="Add budget"
+                            >
+                                + Add
+                            </div>
+                            {collapsedBudgets.map((b, i) => {
+                                const isActive = i === budgets.activeIdx;
+                                return (
+                                    <div
+                                        key={`${b.name}-${i}`}
+                                        className={`pill-ens${isActive ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                        onClick={() => toggleBudget(i)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                toggleBudget(i);
+                                            }
+                                        }}
+                                    >
+                                        {b.name}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {showBudgetMore && (
+                            <button
+                                type="button"
+                                className="ens-more-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setBudgetsExpanded(true);
+                                }}
+                                title="Show all budgets"
+                            >
+                                …more
+                            </button>
+                        )}
+                    </>
+                )}
             </div>
             <div className="dropdown-divider" style={{ flexShrink: 0 }} />
 
