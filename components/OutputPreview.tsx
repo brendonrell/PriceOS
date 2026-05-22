@@ -282,6 +282,31 @@ export default function OutputPreview() {
        doesn't strand a half-finished animation. */
     const [swinging, setSwinging] = useState(false);
     const swingTimerRef = useRef<number | null>(null);
+
+    /* Details popover — toggled by the ↗ pill (renamed "Details").
+       Closes on outside click via a document-level mousedown listener
+       bound while the popover is open. pillRowRef anchors the popover
+       position so it floats above the pill row regardless of screen size. */
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const detailsPopoverRef = useRef<HTMLDivElement | null>(null);
+    const detailsPillRef = useRef<HTMLSpanElement | null>(null);
+    useEffect(() => {
+        if (!detailsOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (
+                detailsPopoverRef.current &&
+                !detailsPopoverRef.current.contains(e.target as Node) &&
+                detailsPillRef.current &&
+                !detailsPillRef.current.contains(e.target as Node)
+            ) {
+                setDetailsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [detailsOpen]);
+    /* Close details popover whenever the modal navigates to a new token. */
+    useEffect(() => { setDetailsOpen(false); }, [id]);
     useEffect(() => {
         return () => {
             if (swingTimerRef.current != null) {
@@ -639,45 +664,102 @@ export default function OutputPreview() {
                                 {`\u274D${VS15}`}
                             </span>
                             <span
-                                className="modal-pill"
-                                title="Share"
-                                onClick={() => showToast('COPIED')}
+                                ref={detailsPillRef}
+                                className={`modal-pill${detailsOpen ? ' active' : ''}`}
+                                title="Details"
+                                onClick={() => setDetailsOpen((o) => !o)}
+                                style={{ position: 'relative' }}
                             >
                                 {`\u2197${VS15}`}
+                                {detailsOpen && (
+                                    <div
+                                        ref={detailsPopoverRef}
+                                        className="details-popover"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {/* Artist row */}
+                                        <div className="dp-row">
+                                            <span className="dp-label">Artist</span>
+                                            <span className="dp-value">
+                                                <a
+                                                    href="/profile/claude"
+                                                    className="dp-link"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    @claude
+                                                </a>
+                                            </span>
+                                        </div>
+                                        {/* Owner row */}
+                                        <div className="dp-row">
+                                            <span className="dp-label">Owner</span>
+                                            <span className="dp-value">
+                                                <span className="dp-addr">
+                                                    {meta.isOwnedByBrendon
+                                                        ? 'You'
+                                                        : meta.ownerDisplay}
+                                                </span>
+                                                {!meta.isOwnedByBrendon && meta.ownerDisplay && (
+                                                    <button
+                                                        className="dp-copy-btn"
+                                                        title="Copy address"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigator.clipboard
+                                                                .writeText(meta.ownerDisplay ?? '')
+                                                                .then(() => showToast('Address Copied'))
+                                                                .catch(() => showToast('Copy failed'));
+                                                        }}
+                                                    >
+                                                        ⎘{VS15}
+                                                    </button>
+                                                )}
+                                            </span>
+                                        </div>
+                                        {/* Artwork Page row */}
+                                        <div className="dp-row">
+                                            <span className="dp-label">Artwork Page</span>
+                                            <span className="dp-value">
+                                                <button
+                                                    className="dp-link-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (id != null) {
+                                                            setDetailsOpen(false);
+                                                            router.push(`/${id}`);
+                                                        }
+                                                    }}
+                                                >
+                                                    Open {`\u2197${VS15}`}
+                                                </button>
+                                            </span>
+                                        </div>
+                                        {/* Copy URL row */}
+                                        <div className="dp-row">
+                                            <span className="dp-label">Copy URL</span>
+                                            <span className="dp-value">
+                                                <button
+                                                    className="dp-copy-btn"
+                                                    title="Copy artwork URL"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const url = id != null
+                                                            ? `${window.location.origin}/${id}`
+                                                            : window.location.href;
+                                                        navigator.clipboard
+                                                            .writeText(url)
+                                                            .then(() => showToast('URL Copied'))
+                                                            .catch(() => showToast('Copy failed'));
+                                                    }}
+                                                >
+                                                    ⎘{VS15}
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </span>
                         </div>
-                    </div>
-
-                    {/* Owner + Artwork Page — single row below pill buttons.
-                        Camel Caps per Brendon spec. Freed a row → canvas is taller. */}
-                    <div className="modal-links-row" id="mLinksRow">
-                        <span className="modal-link-item" id="mOwner">
-                            {meta.isOwnedByBrendon ? (
-                                <>
-                                    Owned By You{' '}
-                                    <span
-                                        className="owner-self-check"
-                                        aria-label="this is you"
-                                    >
-                                        &#x2713;
-                                    </span>
-                                </>
-                            ) : (
-                                `Owned By ${meta.ownerDisplay}`
-                            )}
-                        </span>
-                        <span className="modal-link-sep" aria-hidden="true">·</span>
-                        <span
-                            className="modal-link-item hover-link"
-                            id="mArtworkLink"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => {
-                                if (id != null) router.push(`/${id}`);
-                            }}
-                        >
-                            Artwork Page &#x2197;&#xFE0E;
-                        </span>
                     </div>
 
                     <div className="modal-bottom-bar" id="mBottomBar">
