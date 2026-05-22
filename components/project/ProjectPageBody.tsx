@@ -753,7 +753,6 @@ function ProjectPageBodyInner() {
                             <a className="profile-link">@atlasforge</a>
                             {', '}
                             <a className="profile-link">@rudxane</a>
-                            <span className="artist-tag">{'✺\uFE0E'}</span>
                             <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             {' '}
                             <span
