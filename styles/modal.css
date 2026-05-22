@@ -76,6 +76,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-width: calc(100vw - 120px);
         max-height: calc(100vh - 300px);
     }
+    /* Note icon 2 font-sizes smaller on desktop */
+    .modal-pin-hint { font-size: 16px; }
 }
 
 
@@ -142,6 +144,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
     flex-wrap: wrap;
     justify-content: center;
     padding: 6px 0 0 0;
+    position: relative;
+    z-index: 5;
 }
 .modal-pill {
     display: inline-flex;
@@ -201,9 +205,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     gap: 2px;
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    letter-spacing: 0.4px;
     box-sizing: border-box;
     /* Animate in — matches .dropdown-stack transition feel */
     animation: dp-fade-in 0.15s ease;
@@ -266,7 +271,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     border: 1px solid var(--bg-color);
     color: inherit;
     font-family: inherit;
-    font-size: 14px;
+    font-size: inherit;
     line-height: 1;
     cursor: pointer;
     padding: 2px 5px;
