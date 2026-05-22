@@ -388,6 +388,7 @@
     color: inherit;
     opacity: 0.8;
     padding: 0;
+    padding-right: 8px;
     text-transform: uppercase;
     text-align: right;
     flex: 1 1 auto;
@@ -415,6 +416,9 @@
     opacity: 0.7;
     transition: opacity 0.2s;
     line-height: 1;
+    padding: 8px 6px;
+    margin: -8px -6px;
+    flex-shrink: 0;
 }
 .setup-code-copy:hover { opacity: 1; }
 

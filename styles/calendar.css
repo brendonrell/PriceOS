@@ -165,17 +165,21 @@
 .cal-daynote-btn {
     display: inline-flex; align-items: center; justify-content: center;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px; line-height: 1;
+    font-size: 16px; line-height: 1;
     cursor: pointer; user-select: none;
-    opacity: 0.35;
+    opacity: 0.65;
     transition: opacity 0.2s, transform 0.1s;
-    padding: 0 2px;
+    padding: 6px 4px;
+    margin: -6px -4px;
     font-weight: normal; letter-spacing: 0;
     color: inherit;
 }
-.cal-daynote-btn:hover { opacity: 0.75; }
+.cal-daynote-btn:hover { opacity: 0.85; }
 .cal-daynote-btn:active { transform: scale(0.92); }
-.cal-daynote-btn.has-note { opacity: 0.95; }
+.cal-daynote-btn.has-note {
+    opacity: 1;
+    font-weight: bold;
+}
 /* APR 28: Day Note row — pinned to the top of the selected day's
    events list (above to-dos and events) when a Day Note exists for
    the day. White-pill background with dark text reads as a physical
