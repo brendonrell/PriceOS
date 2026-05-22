@@ -677,6 +677,10 @@ export default function OutputPreview() {
                                         className="details-popover"
                                         onClick={(e) => e.stopPropagation()}
                                     >
+                                        {/* Artwork title — Rubik Mono One, centered */}
+                                        <div className="dp-title">
+                                            {title} #{id}
+                                        </div>
                                         {/* Artist row */}
                                         <div className="dp-row">
                                             <span className="dp-label">Artist</span>
