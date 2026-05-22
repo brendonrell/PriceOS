@@ -1,19 +1,19 @@
-// Chain read via Alchemy JSON-RPC. Set PRICE_TOKEN_ADDRESS in env once the
-// $PRICE ERC-20 contract is deployed. No indexer required — this is a direct
-// eth_call to the contract's balanceOf(address).
+// Chain read via Alchemy JSON-RPC. PRICE_TOKEN_ADDRESS defaults to the
+// deployed $PRICE ERC-20; override in .env.local if needed.
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
 
-export const revalidate = 10; // $PRICE balance: 10s
+export const revalidate = 10; // $PRICE balance: 10s edge-cache
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 
 // keccak256("balanceOf(address)").slice(0, 10)
 const BALANCE_OF_SELECTOR = '0x70a08231';
-const PRICE_DECIMALS = 18;
+// keccak256("decimals()").slice(0, 10)
+const DECIMALS_SELECTOR = '0x313ce567';
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const PRICE_DECIMALS_FALLBACK = 18;
 
 export interface PriceBalanceResponse {
   address: string;
@@ -23,20 +23,17 @@ export interface PriceBalanceResponse {
   decimals: number;
 }
 
-function alchemyUrl(): string {
+function getAlchemyUrl(): string {
   const key = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
   if (!key) throw new Error('NEXT_PUBLIC_ALCHEMY_API_KEY is not set');
   return `https://eth-mainnet.g.alchemy.com/v2/${key}`;
 }
 
-function tokenAddress(): string {
+function getTokenAddress(): string {
   const a = process.env.PRICE_TOKEN_ADDRESS;
-  if (!a || !ADDRESS_RE.test(a)) {
-    // Until the contract ships, return the zero address so callers get a
-    // structured response with balance: 0 rather than a 500.
-    return ZERO_ADDRESS;
-  }
-  return a.toLowerCase();
+  if (a && ADDRESS_RE.test(a)) return a.toLowerCase();
+  // $PRICE ERC-20 on Ethereum mainnet. Override via PRICE_TOKEN_ADDRESS in .env.local.
+  return '0x04da8100226f5c5ecdb0c08cfaf2b60277b94f87';
 }
 
 function encodeBalanceOf(address: string): string {
@@ -55,61 +52,62 @@ function formatUnits(weiHex: string, decimals: number): string {
   return `${whole.toString()}.${fractionStr}`;
 }
 
+async function fetchDecimals(contract: string, url: string): Promise<number> {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 2, method: 'eth_call',
+        params: [{ to: contract, data: DECIMALS_SELECTOR }, 'latest'],
+      }),
+    });
+    const json = (await res.json()) as { result?: string };
+    if (json.result && json.result !== '0x') return Number(BigInt(json.result));
+  } catch { /* fall through to default */ }
+  return PRICE_DECIMALS_FALLBACK;
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { address: string } }
 ): Promise<NextResponse> {
   const address = params.address.toLowerCase();
-  if (!ADDRESS_RE.test(address)) {
-    return badRequest('Invalid Ethereum address');
-  }
+  if (!ADDRESS_RE.test(address)) return badRequest('Invalid Ethereum address');
 
-  const contract = tokenAddress();
-
-  // Pre-deployment short-circuit: contract not configured yet.
-  if (contract === ZERO_ADDRESS) {
-    const response: PriceBalanceResponse = {
-      address,
-      token_address: contract,
-      balance_wei: '0',
-      balance_formatted: '0',
-      decimals: PRICE_DECIMALS,
-    };
-    return NextResponse.json(response);
-  }
+  const contract = getTokenAddress();
+  const url = getAlchemyUrl();
 
   try {
-    const res = await fetch(alchemyUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_call',
-        params: [
-          { to: contract, data: encodeBalanceOf(address) },
-          'latest',
-        ],
+    // Fetch balance and decimals in parallel
+    const [balRes, decimals] = await Promise.all([
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 1, method: 'eth_call',
+          params: [{ to: contract, data: encodeBalanceOf(address) }, 'latest'],
+        }),
+        next: { revalidate: 10 },
       }),
-      next: { revalidate: 10 },
-    });
+      fetchDecimals(contract, url),
+    ]);
 
-    if (!res.ok) return serverError(`Alchemy returned ${res.status}`);
-    const json = (await res.json()) as {
+    if (!balRes.ok) return serverError(`Alchemy returned ${balRes.status}`);
+    const json = (await balRes.json()) as {
       result?: string;
       error?: { message: string };
     };
     if (json.error) return serverError(`Alchemy error: ${json.error.message}`);
     if (!json.result) return serverError('Alchemy returned no result');
 
-    const response: PriceBalanceResponse = {
+    return NextResponse.json({
       address,
       token_address: contract,
       balance_wei: BigInt(json.result).toString(),
-      balance_formatted: formatUnits(json.result, PRICE_DECIMALS),
-      decimals: PRICE_DECIMALS,
-    };
-    return NextResponse.json(response);
+      balance_formatted: formatUnits(json.result, decimals),
+      decimals,
+    } satisfies PriceBalanceResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
