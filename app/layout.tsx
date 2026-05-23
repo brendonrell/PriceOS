@@ -41,7 +41,7 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import { WalletProviders } from '../components/wallet/WalletProviders';
-import { getSession } from '../lib/auth/siwe';
+import { getSSRThemeStyle } from '../lib/ssrTheme';
 
 export const metadata: Metadata = {
     title: 'Price Discussion',
@@ -291,6 +291,8 @@ export default async function RootLayout({
         storage: { key: 'wagmi' },
     } as unknown as WagmiConfigType;
     const cookieHeader = headers().get('cookie') ?? '';
+    const pathname = headers().get('x-invoke-path') ?? headers().get('x-pathname') ?? '/';
+    const ssrThemeStyle = getSSRThemeStyle(cookieHeader, pathname);
     const initialState = cookieToInitialState(SSR_COOKIE_CONFIG_STUB, cookieHeader);
 
     let initialAuth: string | null | undefined;
@@ -340,11 +342,16 @@ export default async function RootLayout({
                 />
                 <meta name="theme-color" content="#111111" />
                 {/*
-                  Pre-hydration script — MUST stay in <head> so the browser
-                  executes it before first paint. Reads localStorage to apply
-                  the correct theme CSS vars and body classes synchronously,
-                  eliminating the purple flash + tape-visible flash that occurs
-                  when this runs in <body> after SSR HTML has already painted.
+                  SSR theme vars — computed server-side from pd_c_theme +
+                  pd_c_artist_color cookies. Inlined here so the correct
+                  CSS vars are baked into the HTML before any paint.
+                  Eliminates the flash entirely for returning users.
+                  First-time visitors (no cookie) still get :root defaults.
+                */}
+                <style dangerouslySetInnerHTML={{ __html: ssrThemeStyle }} />
+                {/*
+                  Pre-hydration script — runs in <head> to block paint and
+                  handle edge cases (no cookie yet, profile pages, etc).
                 */}
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
             </head>
