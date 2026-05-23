@@ -12,7 +12,7 @@
  *     · title + .project-artist + .info-rubik
  *     · stats-row + stats-row-2
  *     · BUY (action-row)
- *     · profile tabs (Showcase / Artworks / + More)
+ *     · project tabs (Project Showcase / Artworks / + More)
  *   - .traits-ui + .sort-bar + .search-row              → sim 5167-5193
  *   - #gallery (1..222 ArtworkCards)                    → sim 5195
  *                                                          (sim populates
@@ -28,7 +28,7 @@
  * Tab routing follows sim's switchCollectionTab (sim ~13134) — sim's
  * function name kept verbatim as a sim-reference, even though our tab
  * type is ProjectTab:
- *   - showcase  → gallery visible (.showcase-mode), no traits/sort/feed
+ *   - project-showcase  → gallery visible, no picks yet (feature TBD), no traits/sort/feed
  *   - artworks  → gallery or activity-feed (depending on
  *                 currentSort.startsWith('feed')), traits-ui + sort-bar
  *                 visible
@@ -56,7 +56,7 @@
  * "Output" = individual minted unit, "Token" = ERC-721 chain primitive
  * only. Internal refs to "tokens" / "tokenIds" in this file are
  * preserved where they shadow sim's internal JS variable names
- * (e.g. visibleTokenIds, _showcasePicks); they are not chain-primitive
+ * (e.g. visibleTokenIds, _projectShowcasePicks); they are not chain-primitive
  * references — they're React state-cluster names mirroring sim's
  * naming for sim-diff legibility.
  */
@@ -286,26 +286,6 @@ function ProjectPageBodyInner() {
        ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
     const [anchorEth, setAnchorEth] = useState<number | null>(null);
 
-    /* Build 21 — Showcase pick (sim 13113-13130 + applyShowcasePicks
-       at sim 13130). On Showcase tab the gallery carries .showcase-mode
-       which CSS-hides every .output-card except those marked
-       .showcase-pick (globals.css 2690-2692). Sim picks 6 random ids
-       once per page session and stamps the class on those cards. We
-       use a lazy useState initializer so the random draw runs exactly
-       once on mount — re-renders (filter changes, sort changes, tab
-       switches) reuse the same set, mirroring sim's _showcasePicks
-       array which only resets on full page reload. */
-    const [projectShowcasePicks] = useState<Set<number>>(() => {
-        const ids: number[] = [];
-        for (let i = 1; i <= project.totalOutputs; i++) ids.push(i);
-        // Fisher-Yates — sim 13119-13122 verbatim
-        for (let i = ids.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [ids[i], ids[j]] = [ids[j], ids[i]];
-        }
-        return new Set(ids.slice(0, 6));
-    });
-
     /* Build 22 — Breadcrumb sample (sim 7145-7157). 5 random ids from
        the first 200 tokens, drawn once per page session, marked as
        "recently visited" via a small dot on the bottom-right of the
@@ -457,7 +437,7 @@ function ProjectPageBodyInner() {
     }, [project]);
 
     /* Sim's tab visibility table (sim ~13150):
-         showcase  → gallery, no feed/traits/sort/albums
+         project-showcase  → gallery, no feed/traits/sort/albums
          artworks  → gallery (or activity-feed if sort starts with 'feed'),
                      traits/sort visible
          albums    → albums-panel only
@@ -518,7 +498,7 @@ function ProjectPageBodyInner() {
           - 'price' → ascending listed price, unlisted shoved to the
                       end via Infinity, id as stable tiebreaker
           - 'feed'  → reverse id (gallery is hidden when feed sort fires
-                      on Artworks tab; on Showcase tab the gallery still
+                      on Artworks tab; on Project Showcase tab the gallery still
                       renders so we still apply the sort)
           - 'fog'   → falls through to ascending id
        ─────────────────────────────────────────────────────────────────── */
@@ -828,13 +808,13 @@ function ProjectPageBodyInner() {
                         </a>
                     </div>
 
-                    {/* Sim 5161-5165: project tab pills (Showcase /
+                    {/* Sim 5161-5165: project tab pills (Project Showcase /
                         Artworks / + More). Visibility logic mirrors
                         switchCollectionTab (sim ~13134). */}
                     <div className="profile-tabs-row" id="projectTabsRow">
                         <div
                             className={`pill pill-l1${onShowcaseTab ? ' active' : ''}`}
-                            id="ctab-showcase"
+                            id="ctab-project-showcase"
                             role="button"
                             tabIndex={0}
                             onClick={() => { setActiveTab('project-showcase'); showToast('TAB: Showcase'); }}
@@ -844,7 +824,7 @@ function ProjectPageBodyInner() {
                                     setActiveTab('project-showcase'); showToast('TAB: Showcase');
                                 }
                             }}
-                            title="Curated Showcase of Featured Outputs"
+                            title="Project Showcase — curation feature coming soon"
                         >
                             <span className="stat-name">Showcase</span>
                         </div>
@@ -895,7 +875,7 @@ function ProjectPageBodyInner() {
                 (~8155). In React: one ArtworkCard per visible token id —
                 Build 19 wires the visible set to TraitsContext (filter +
                 search + price range) and SortContext (sort family).
-                showcase-mode class follows sim's switchCollectionTab toggle
+                project-showcase tab — no showcase-mode class applied (feature not yet implemented)
                 (sim ~13150) — CSS uses :nth-child gating to limit visible
                 tiles, so we still mount the full filtered list and just
                 flag the parent. */}
@@ -903,11 +883,6 @@ function ProjectPageBodyInner() {
                 id="gallery"
                 aria-label="Gallery"
                 className={[
-                    onShowcaseTab ? 'project-showcase-mode' : null,
-                    /* F61 (BUG-30) — sim 6635: burnPileActive adds
-                       `burn-mode` to #gallery; CSS in globals.css
-                       (sim 2320-2321) dims every .output-card except
-                       those carrying .burn-pick. */
                     burnPileActive ? 'burn-mode' : null,
                 ].filter(Boolean).join(' ') || undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
@@ -916,7 +891,6 @@ function ProjectPageBodyInner() {
                     <ArtworkCard
                         key={id}
                         id={id}
-                        projectShowcasePick={projectShowcasePicks.has(id)}
                         isBreadcrumb={breadcrumbSample.has(id)}
                         burnPick={burnPicks.has(id)}
                     />
