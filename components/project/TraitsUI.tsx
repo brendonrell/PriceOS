@@ -51,11 +51,11 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
-import { applyBgHex, type ThemeKey } from '../../lib/state/ThemeContext';
+import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 
 /* ── Sort toast helpers ──────────────────────────────────────────────────
@@ -289,17 +289,8 @@ export default function TraitsUI({
     } = useTraits();
     const { showToast } = useToast();
     const { sort, dir, feedKind, cycleSort } = useSort();
+    const { theme, setTheme } = useTheme();
     const { persona } = usePersona();
-
-    /* Project-page theme picker is independent of the global default theme.
-       It applies CSS vars directly without touching ThemeContext or
-       localStorage — so picking Dark on a project page never overwrites
-       the user's global theme preference. Local state only. */
-    const [projectTheme, setProjectTheme] = useState<ThemeKey>(null);
-
-    const PROJECT_THEMES: Record<string, string> = {
-        artist: '#C488FF', light: '#e0e0e0', dark: '#1a1a1a', orange: '#ff6600',
-    };
 
     /* Wraps cycleSort with a sim-parity toast (sim 8361). Computes the
        NEXT sort key before calling cycleSort so the toast reflects what
@@ -310,11 +301,9 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* Project theme picker — applies CSS vars directly, never persists.
-       Completely independent of the global ThemeContext / localStorage. */
+    /* Wraps setTheme with a toast (mirrors ThemePicker.tsx). */
     const setThemeWithToast = (key: ThemeKey) => {
-        setProjectTheme(key);
-        applyBgHex(PROJECT_THEMES[key ?? 'artist'] ?? '#C488FF', key);
+        setTheme(key);
         if (key) showToast('Theme: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
     };
 
@@ -850,7 +839,7 @@ export default function TraitsUI({
                         <div
                             key={t.key ?? 'default'}
                             className={`pill-theme ${t.cls}${
-                                projectTheme === t.key ? ' active' : ''
+                                theme === t.key ? ' active' : ''
                             }`}
                             role="button"
                             tabIndex={0}
