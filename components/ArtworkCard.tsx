@@ -130,7 +130,7 @@ interface ArtworkCardProps {
        through here so the Showcase tab actually renders 6 tiles instead
        of an empty grid. Optional + defaults to false so the Artworks
        tab path is unchanged. */
-    showcasePick?: boolean;
+    projectShowcasePick?: boolean;
     /* Build 22 — sim 8072-8082. Page picks 5 random ids per session as
        "recently visited" breadcrumbs and stamps a ⬤ sticker on each.
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
@@ -161,7 +161,7 @@ const MOCK_FLOOR_ETH = 0.042;
 
 export default function ArtworkCard({
     id,
-    showcasePick = false,
+    projectShowcasePick = false,
     isBreadcrumb = false,
     burnPick = false,
 }: ArtworkCardProps) {
@@ -497,7 +497,7 @@ export default function ArtworkCard({
        (boxed-tape tag, sim 2444-2457). */
     const articleClass =
         'output-card' +
-        (showcasePick ? ' showcase-pick' : '') +
+        (projectShowcasePick ? ' project-showcase-pick' : '') +
         (muted ? ' muted' : '') +
         /* F61 (BUG-30) — sim 6634 stamps .burn-pick on selected cards
            when Burn Pile is on. Always rendered when the prop is true;
