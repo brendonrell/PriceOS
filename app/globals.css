@@ -4435,7 +4435,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     }
     .info-rubik .ico-mutual,
     .info-rubik .ico-following,
-    .info-rubik .ico-followers { font-size: 16px !important; top: -2px; line-height: 0; }
+    .info-rubik .ico-followers { font-size: 16px !important; top: -1px; line-height: 0; }
     .info-rubik .follow-badge {
         line-height: 0;
         display: inline-flex;
