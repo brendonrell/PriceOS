@@ -4,7 +4,7 @@
  * TraitsUI
  *
  * Renders the three sibling blocks that sit between the .profile-tabs-row
- * (Showcase / Artworks / + More) and the gallery section (sim 5168-5189):
+ * (Project Showcase / Artworks / + More) and the gallery section (sim 5168-5189):
  *
  *   1. .traits-ui            — header bar of filter pills
  *      └ .traits-header-bar  — flex-wrap row, dynamic pill content
@@ -233,7 +233,7 @@ export interface ProfilePill {
 
 interface TraitsUIProps {
     /* Whether the block should render at all. Sim hides .traits-ui +
-       .sort-bar when the active tab is Showcase or Albums (sim 13150).
+       .sort-bar when the active tab is Project Showcase or Albums (sim 13150).
        The page passes `onArtworksTab` here. */
     visible: boolean;
     /* Profile Page v0 — hides ONLY the sort surfaces:
