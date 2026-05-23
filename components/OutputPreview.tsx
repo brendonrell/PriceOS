@@ -307,8 +307,6 @@ export default function OutputPreview() {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [detailsOpen]);
-    /* Close details popover whenever the modal navigates to a new token. */
-    useEffect(() => { setDetailsOpen(false); }, [id]);
     useEffect(() => {
         return () => {
             if (swingTimerRef.current != null) {
@@ -692,7 +690,7 @@ export default function OutputPreview() {
                                                 className="dp-link"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                @claude
+                                                <span className="dp-value-text">@claude</span>
                                             </a>
                                         </span>
                                     </div>
@@ -700,7 +698,7 @@ export default function OutputPreview() {
                                     <div className="dp-row">
                                         <span className="dp-label">Owner</span>
                                         <span className="dp-value">
-                                            <span className="dp-addr">
+                                            <span className="dp-addr dp-value-text">
                                                 {meta.isOwnedByBrendon
                                                     ? 'You'
                                                     : meta.ownerDisplay}
@@ -736,14 +734,30 @@ export default function OutputPreview() {
                                                     }
                                                 }}
                                             >
-                                                Open {`\u2197${VS15}`}
+                                                <span className="dp-value-text">Open {`\u2197${VS15}`}</span>
                                             </button>
                                         </span>
                                     </div>
-                                    {/* Copy URL row */}
+                                    {/* Share URL row */}
                                     <div className="dp-row">
-                                        <span className="dp-label">Copy URL</span>
+                                        <span className="dp-label">Share URL</span>
                                         <span className="dp-value">
+                                            <button
+                                                className="dp-link-btn"
+                                                title="Copy artwork URL"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const url = id != null
+                                                        ? `${window.location.origin}/${id}`
+                                                        : window.location.href;
+                                                    navigator.clipboard
+                                                        .writeText(url)
+                                                        .then(() => showToast('URL Copied'))
+                                                        .catch(() => showToast('Copy failed'));
+                                                }}
+                                            >
+                                                <span className="dp-value-text">Copy</span>
+                                            </button>
                                             <button
                                                 className="dp-copy-btn"
                                                 title="Copy artwork URL"
