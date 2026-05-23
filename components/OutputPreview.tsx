@@ -684,7 +684,6 @@ export default function OutputPreview() {
                                     {/* Artist row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artist</span>
-                                        <span className="dp-dots" aria-hidden="true" />
                                         <span className="dp-value">
                                             <a href="/profile/claude" className="dp-link" onClick={(e) => e.stopPropagation()}>
                                                 <span className="dp-value-text">@claude</span>
@@ -694,13 +693,12 @@ export default function OutputPreview() {
                                     {/* Owner row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Owner</span>
-                                        <span className="dp-dots" aria-hidden="true" />
                                         <span className="dp-value">
-                                            <span className="dp-addr dp-value-text">
-                                                {meta.isOwnedByBrendon ? 'You' : meta.ownerDisplay}
+                                            <span className="dp-value-text">
+                                                {meta.isOwnedByBrendon ? 'You' : meta.ownerFull}
                                             </span>
-                                            {!meta.isOwnedByBrendon && meta.ownerDisplay && (
-                                                <button className="dp-copy-btn" title="Copy address" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(meta.ownerDisplay ?? '').then(() => showToast('Address Copied')).catch(() => showToast('Copy failed')); }}>
+                                            {!meta.isOwnedByBrendon && meta.ownerFull && (
+                                                <button className="dp-copy-btn" title="Copy address" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(meta.ownerFull ?? '').then(() => showToast('Address Copied')).catch(() => showToast('Copy failed')); }}>
                                                     ⧉{VS15}
                                                 </button>
                                             )}
@@ -709,7 +707,6 @@ export default function OutputPreview() {
                                     {/* Artwork Page row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artwork Page</span>
-                                        <span className="dp-dots" aria-hidden="true" />
                                         <span className="dp-value">
                                             <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); router.push(`/${id}`); } }}>
                                                 <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
@@ -719,7 +716,6 @@ export default function OutputPreview() {
                                     {/* Share URL row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Share URL</span>
-                                        <span className="dp-dots" aria-hidden="true" />
                                         <span className="dp-value">
                                             <button className="dp-link-btn" title="Copy artwork URL" onClick={(e) => { e.stopPropagation(); const url = id != null ? `${window.location.origin}/${id}` : window.location.href; navigator.clipboard.writeText(url).then(() => showToast('URL Copied')).catch(() => showToast('Copy failed')); }}>
                                                 <span className="dp-value-text">Copy</span>
