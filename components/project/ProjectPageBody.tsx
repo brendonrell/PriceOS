@@ -307,6 +307,22 @@ function ProjectPageBodyInner() {
         return new Set(picks);
     });
 
+    /* ProjectShowcase tab (sim ~13110-13131). Pick 6 random ids once per
+       page session — stable across tab switches, exactly as sim keeps
+       `_showcasePicks` stable and only resets on page load.
+       Picks from the full 1..totalOutputs universe (same as sim picking
+       from all rendered cards before any filter is applied). */
+    const [projectShowcasePicks] = useState<Set<number>>(() => {
+        const total = project.totalOutputs;
+        const all: number[] = [];
+        for (let i = 1; i <= total; i++) all.push(i);
+        for (let i = all.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [all[i], all[j]] = [all[j], all[i]];
+        }
+        return new Set(all.slice(0, 6));
+    });
+
     /* F61 (BUG-30) — Burn Pile gallery effect (sim 6625-6643).
        When `burnPileActive` flips ON, sim picks 3 random gallery cards
        and stamps `.burn-pick` on them; the gallery itself gets
@@ -875,15 +891,16 @@ function ProjectPageBodyInner() {
                 (~8155). In React: one ArtworkCard per visible token id —
                 Build 19 wires the visible set to TraitsContext (filter +
                 search + price range) and SortContext (sort family).
-                project-showcase tab — no showcase-mode class applied (feature not yet implemented)
-                (sim ~13150) — CSS uses :nth-child gating to limit visible
-                tiles, so we still mount the full filtered list and just
-                flag the parent. */}
+                ProjectShowcase tab (sim ~13150): gallery gets
+                .project-showcase-mode; 6 random picks from page-load carry
+                .project-showcase-pick; CSS hides all other cards + their
+                .meta. Full list still mounted — CSS does the filtering. */}
             <section
                 id="gallery"
                 aria-label="Gallery"
                 className={[
                     burnPileActive ? 'burn-mode' : null,
+                    onShowcaseTab ? 'project-showcase-mode' : null,
                 ].filter(Boolean).join(' ') || undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
@@ -891,6 +908,7 @@ function ProjectPageBodyInner() {
                     <ArtworkCard
                         key={id}
                         id={id}
+                        projectShowcasePick={projectShowcasePicks.has(id)}
                         isBreadcrumb={breadcrumbSample.has(id)}
                         burnPick={burnPicks.has(id)}
                     />
