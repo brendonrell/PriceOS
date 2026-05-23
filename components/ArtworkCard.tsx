@@ -124,13 +124,13 @@ import {
 interface ArtworkCardProps {
     id: number;
     /* Build 21 — sim 13113-13130 + globals.css :2690.
-       When the parent gallery has `.showcase-mode`, every .output-card
-       is hidden via display:none unless it also carries .showcase-pick.
-       The page picks 6 random ids once on mount and passes showcasePick
-       through here so the Showcase tab actually renders 6 tiles instead
+       When the parent gallery has `.project-showcase-mode` (not yet active — feature TBD), every .output-card
+       will hide non-picked cards. Currently unused — project showcase curation is future work.
+       userShowcasePick prop is reserved for user profile showcase (separate feature).
+       Project showcase tab currently shows all artworks with no filtering.
        of an empty grid. Optional + defaults to false so the Artworks
        tab path is unchanged. */
-    projectShowcasePick?: boolean;
+    // Project showcase feature not yet implemented — reserved for future use.
     /* Build 22 — sim 8072-8082. Page picks 5 random ids per session as
        "recently visited" breadcrumbs and stamps a ⬤ sticker on each.
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
@@ -161,7 +161,7 @@ const MOCK_FLOOR_ETH = 0.042;
 
 export default function ArtworkCard({
     id,
-    projectShowcasePick = false,
+    userShowcasePick = false,
     isBreadcrumb = false,
     burnPick = false,
 }: ArtworkCardProps) {
@@ -497,7 +497,6 @@ export default function ArtworkCard({
        (boxed-tape tag, sim 2444-2457). */
     const articleClass =
         'output-card' +
-        (projectShowcasePick ? ' project-showcase-pick' : '') +
         (muted ? ' muted' : '') +
         /* F61 (BUG-30) — sim 6634 stamps .burn-pick on selected cards
            when Burn Pile is on. Always rendered when the prop is true;
@@ -724,8 +723,8 @@ export default function ArtworkCard({
                             {ownedByBrendon && (
                                 <span
                                     className="hi-icon hi-showcase"
-                                    title="Add to Showcase"
-                                    onClick={stubAction('Added to Showcase')}
+                                    title="Add to User Showcase"
+                                    onClick={stubAction('Added to User Showcase')}
                                 >
                                     {'\u2446\uFE0E'}
                                 </span>
