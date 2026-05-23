@@ -67,7 +67,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 
 ## Status
 
-URL architecture and nomenclature both locked May 9 2026 (see sections below). API surfaces (project, output, feed, search, stats, artist, follows, notifications, price, user) scaffolded with typed mock responses; production data lands when the indexer is live. Project page renders sim's hero lockup + gallery at `/art/[slug]`; profile shells render at `/{handle}` and sub-routes. Wallet auth, mint flow, and calendar internals are the next surfaces.
+URL architecture and nomenclature both locked (see sections below). API surfaces (project, output, feed, search, stats, artist, follows, notifications, price, user) scaffolded with typed mock responses; production data lands when the indexer is live. Project page renders sim's hero lockup + gallery at `/art/[slug]`; profile shells render at `/{handle}` and sub-routes. Wallet auth, mint flow, and calendar internals are the next surfaces.
 
 ## Nomenclature
 
