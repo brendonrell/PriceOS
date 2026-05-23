@@ -23,7 +23,7 @@
    natural-height difference that was leaking through even with parent height-lock. */
 .cal-header-inline {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 0; padding: 8px 8px 8px 8px; flex: 0 0 66%;
+    gap: 0; padding: 8px 8px 8px 2px; flex: 0 0 66%;
     font-family: 'Courier New', Courier, monospace;
     color: var(--bg-color); user-select: none;
     min-height: 38px; box-sizing: border-box;
