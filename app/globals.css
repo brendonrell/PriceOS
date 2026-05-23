@@ -3542,14 +3542,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
-#gallery.project-showcase-mode .output-card { display: none !important; }
-#gallery.project-showcase-mode .output-card.project-showcase-pick { display: flex !important; }
-#gallery.project-showcase-mode .output-card.project-showcase-pick .meta { display: none !important; }
-#gallery.project-showcase-mode {
-    min-height: 0;
-    padding-bottom: 40px;
-}
-
 /* F61 (BUG-30) — Burn Pile gallery effect (sim 2320-2321 verbatim).
    When `burnPileActive` flips ON, page.tsx adds `burn-mode` to #gallery
    and stamps `.burn-pick` on 3 random cards via ArtworkCard's burnPick
