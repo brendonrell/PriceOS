@@ -24,9 +24,14 @@ export interface PriceBalanceResponse {
 }
 
 function getAlchemyUrl(): string {
+  // Prefer the full RPC URL (same env var the gas route uses) so both
+  // routes work from a single env var. Fall back to constructing from
+  // the bare API key if only that is set.
+  const rpcUrl = process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL;
+  if (rpcUrl) return rpcUrl;
   const key = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-  if (!key) throw new Error('NEXT_PUBLIC_ALCHEMY_API_KEY is not set');
-  return `https://eth-mainnet.g.alchemy.com/v2/${key}`;
+  if (key) return `https://eth-mainnet.g.alchemy.com/v2/${key}`;
+  throw new Error('Neither NEXT_PUBLIC_ALCHEMY_RPC_URL nor NEXT_PUBLIC_ALCHEMY_API_KEY is set');
 }
 
 function getTokenAddress(): string {
