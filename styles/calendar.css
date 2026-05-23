@@ -22,18 +22,20 @@
    min-height below is shared with .search-dormant-label to eliminate the 1px
    natural-height difference that was leaking through even with parent height-lock. */
 .cal-header-inline {
-    display: flex; align-items: center; justify-content: flex-start;
-    gap: 14px; padding: 8px 10px; flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0; padding: 8px 10px; flex: 1 1 auto;
     font-family: 'Courier New', Courier, monospace;
     color: var(--bg-color); user-select: none;
     min-height: 38px; box-sizing: border-box;
 }
 .cal-header-inline .cal-month-label {
-    font-size: 14px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;
+    font-size: 13px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;
+    flex: 1 1 auto; text-align: center;
 }
 .cal-header-inline .cal-nav {
     font-size: 11px; opacity: 0.7; cursor: pointer;
     padding: 2px 4px; transition: opacity 0.2s;
+    flex: 0 0 auto;
 }
 .cal-header-inline .cal-nav:hover { opacity: 1; }
 
@@ -314,7 +316,7 @@
 
 @media (max-width: 600px) {
     .cal-day { font-size: 11.5px; height: 23px; }
-    .cal-month-label { font-size: 14px; }
+    .cal-month-label { font-size: 13px; }
     .cal-day-col-header { font-size: 11px; }
     .cal-day-col-events { font-size: 13px; }
     .cal-event-time { font-size: 12px; }
