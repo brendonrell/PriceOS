@@ -82,7 +82,7 @@ import {
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
 
-type ProjectTab = 'showcase' | 'artworks' | 'albums';
+type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
 /* Sim mockEvents shape (sim ~7412). Full payload kept lean — sim's six
    seed rows, matched to the .feed-row / .feed-line / .f-icon-wrap /
@@ -279,7 +279,7 @@ function ProjectPageBodyInner() {
         },
     });
     const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive } = useTraits();
-    const [activeTab, setActiveTab] = useState<ProjectTab>('showcase');
+    const [activeTab, setActiveTab] = useState<ProjectTab>('project-showcase');
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
        window event below. Drives both the .stat-val text rendering for the
@@ -295,7 +295,7 @@ function ProjectPageBodyInner() {
        once on mount — re-renders (filter changes, sort changes, tab
        switches) reuse the same set, mirroring sim's _showcasePicks
        array which only resets on full page reload. */
-    const [showcasePicks] = useState<Set<number>>(() => {
+    const [projectShowcasePicks] = useState<Set<number>>(() => {
         const ids: number[] = [];
         for (let i = 1; i <= project.totalOutputs; i++) ids.push(i);
         // Fisher-Yates — sim 13119-13122 verbatim
@@ -464,7 +464,7 @@ function ProjectPageBodyInner() {
        Translated directly into booleans below. */
     const onArtworksTab = activeTab === 'artworks';
     const onAlbumsTab = activeTab === 'albums';
-    const onShowcaseTab = activeTab === 'showcase';
+    const onShowcaseTab = activeTab === 'project-showcase';
     const feedActive = onArtworksTab && sort === 'feed';
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
     const feedVisible = onArtworksTab && feedActive;
@@ -837,11 +837,11 @@ function ProjectPageBodyInner() {
                             id="ctab-showcase"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTab('showcase'); showToast('TAB: Showcase'); }}
+                            onClick={() => { setActiveTab('project-showcase'); showToast('TAB: Showcase'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('showcase'); showToast('TAB: Showcase');
+                                    setActiveTab('project-showcase'); showToast('TAB: Showcase');
                                 }
                             }}
                             title="Curated Showcase of Featured Outputs"
@@ -903,7 +903,7 @@ function ProjectPageBodyInner() {
                 id="gallery"
                 aria-label="Gallery"
                 className={[
-                    onShowcaseTab ? 'showcase-mode' : null,
+                    onShowcaseTab ? 'project-showcase-mode' : null,
                     /* F61 (BUG-30) — sim 6635: burnPileActive adds
                        `burn-mode` to #gallery; CSS in globals.css
                        (sim 2320-2321) dims every .output-card except
@@ -916,7 +916,7 @@ function ProjectPageBodyInner() {
                     <ArtworkCard
                         key={id}
                         id={id}
-                        showcasePick={showcasePicks.has(id)}
+                        projectShowcasePick={projectShowcasePicks.has(id)}
                         isBreadcrumb={breadcrumbSample.has(id)}
                         burnPick={burnPicks.has(id)}
                     />
