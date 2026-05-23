@@ -326,7 +326,10 @@ body.sentiment-on .sentiment-widget {
 @media (max-width: 600px) {
     .sentiment-widget { font-size: 22px; }
     #sentimentIcon { font-size: 22px; }
-    body:not(.tape-off) .sentiment-widget { margin-left: 18px; }
+    body.tape-faded .sentiment-widget,
+    body.tape-standard .sentiment-widget,
+    body.tape-bold .sentiment-widget,
+    body.tape-framed .sentiment-widget { margin-left: 18px; }
 }
 
 /* Brendon S5 — sentiment weather glyphs render at very different intrinsic
@@ -1373,6 +1376,10 @@ body.zen-mode .priceos-footer { display: none !important; }
     user-select: none; pointer-events: none;
     -webkit-mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+    /* Hidden by default — tape-off is the zero state. Shown only when an
+       active tape mode class is present. This prevents the tape flashing
+       visible during SSR before the pre-hydration script sets body classes. */
+    display: none;
 }
 
 .tape-rail {
@@ -1398,7 +1405,14 @@ body.zen-mode .priceos-footer { display: none !important; }
     body.sentiment-on .tape-wrap { margin-left: 48px; }
 }
 
-body.tape-off .tape-wrap,
+/* Tape is hidden by default (see .tape-wrap above).
+   Show it only when an active mode class is present. */
+body.tape-faded .tape-wrap,
+body.tape-standard .tape-wrap,
+body.tape-bold .tape-wrap,
+body.tape-framed .tape-wrap { display: block; }
+
+/* zen-mode and zero-context-mode override active tape back to hidden. */
 body.zen-mode .tape-wrap,
 body.zero-context-mode .tape-wrap { display: none !important; }
 
