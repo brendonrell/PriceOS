@@ -3550,6 +3550,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    considered for the burn. */
 #gallery.burn-mode .output-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
 #gallery.burn-mode .output-card.burn-pick { opacity: 1; pointer-events: auto; }
+/* ProjectShowcase tab (sim ~2352-2356, renamed to project-showcase-* naming).
+   When the Project Showcase tab is active, #gallery gets .project-showcase-mode;
+   only .project-showcase-pick cards are shown, their .meta is hidden,
+   and min-height is collapsed so there is no dead scroll. */
+#gallery.project-showcase-mode .output-card { display: none !important; }
+#gallery.project-showcase-mode .output-card.project-showcase-pick { display: flex !important; }
+#gallery.project-showcase-mode .output-card.project-showcase-pick .meta { display: none !important; }
+#gallery.project-showcase-mode { min-height: 0; padding-bottom: 40px; }
 
 .output-content {
     position: relative;
