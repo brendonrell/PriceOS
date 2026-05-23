@@ -351,48 +351,43 @@ export function PortfolioView() {
                     </>
                 ) : (
                     <>
-                        {/* .ens-pills-clip owns 2-row overflow clipping.
-                            + Add is first (always row 1, never clipped).
-                            …more lives outside the clip as a sibling. */}
-                        <div className="ens-pills-clip">
-                            {/* + Add always pinned first */}
-                            <div
-                                className="pill-ens pill-budget-add"
-                                role="button"
-                                tabIndex={0}
-                                onClick={addBudget}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        addBudget();
-                                    }
-                                }}
-                                title="Add budget"
-                            >
-                                + Add
-                            </div>
-                            {collapsedBudgets.map((b, i) => {
-                                const isActive = i === budgets.activeIdx;
-                                return (
-                                    <div
-                                        key={`${b.name}-${i}`}
-                                        className={`pill-ens${isActive ? ' active' : ''}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        title={`${b.name} — ${pfFmtEth(b.eth)}`}
-                                        onClick={() => toggleBudget(i)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                toggleBudget(i);
-                                            }
-                                        }}
-                                    >
-                                        {b.name}
-                                    </div>
-                                );
-                            })}
+                        {/* + Add always pinned first */}
+                        <div
+                            className="pill-ens pill-budget-add"
+                            role="button"
+                            tabIndex={0}
+                            onClick={addBudget}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    addBudget();
+                                }
+                            }}
+                            title="Add budget"
+                        >
+                            + Add
                         </div>
+                        {collapsedBudgets.map((b, i) => {
+                            const isActive = i === budgets.activeIdx;
+                            return (
+                                <div
+                                    key={`${b.name}-${i}`}
+                                    className={`pill-ens${isActive ? ' active' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                    onClick={() => toggleBudget(i)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            toggleBudget(i);
+                                        }
+                                    }}
+                                >
+                                    {b.name}
+                                </div>
+                            );
+                        })}
                         {showBudgetMore && (
                             <button
                                 type="button"
