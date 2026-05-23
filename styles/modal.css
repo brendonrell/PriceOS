@@ -76,8 +76,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-width: calc(100vw - 120px);
         max-height: calc(100vh - 300px);
     }
-    /* Note icon 2 font-sizes smaller on desktop */
-    #modal .modal-pin-hint { font-size: 16px; }
+    /* Note icon 2 font-sizes smaller on desktop, nudged down 4px */
+    #modal .modal-pin-hint { font-size: 16px; top: calc(max(20px, env(safe-area-inset-top)) + 23px); }
 }
 
 
@@ -254,9 +254,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     opacity: 0.25;
     margin: 0 6px;
     min-width: 12px;
-    align-self: center;
+    align-self: flex-end;
     position: relative;
-    top: -1px;
+    top: -4px;
+    font-weight: normal;
 }
 .dp-value {
     display: flex;
