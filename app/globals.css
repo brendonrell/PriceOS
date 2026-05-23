@@ -2564,7 +2564,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .project-artist { align-items: baseline; }
 .by-text { font-size: 13px; font-weight: bold; }
-.artist-lockup { display: flex; align-items: center; }
+.artist-lockup { display: flex; align-items: baseline; }
 .artist-lockup a {
     font-family: var(--font-rubik-mono), sans-serif;
     font-weight: normal;
@@ -2587,6 +2587,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0.85;
     display: inline-block;
     position: relative;
+    top: 2px;
     margin-left: 0px;
     font-weight: bold;
     letter-spacing: -0.5px;
@@ -4447,7 +4448,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         vertical-align: middle;
         top: -2px;
     }
-    .artist-lockup .artist-tag { font-size: 25px; vertical-align: middle; }
+    .artist-lockup .artist-tag { font-size: 25px; }
     .stat-icon-owners {
         font-size: 23px;
         position: relative;
