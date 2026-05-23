@@ -279,8 +279,17 @@ function ProjectPageBodyInner() {
         },
     });
     const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive } = useTraits();
-    const [activeTab, setActiveTab] = useState<ProjectTab>('project-showcase');
-    /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
+    const [activeTab, setActiveTab] = useState<ProjectTab>(() => {
+        try {
+            const saved = window.localStorage.getItem('pd_project_tab');
+            if (saved === 'artworks' || saved === 'albums') return saved;
+        } catch {}
+        return 'project-showcase';
+    });
+    const setActiveTabPersisted = (tab: ProjectTab) => {
+        try { window.localStorage.setItem('pd_project_tab', tab); } catch {}
+        setActiveTab(tab);
+    };    /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
        window event below. Drives both the .stat-val text rendering for the
        ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
@@ -845,11 +854,11 @@ function ProjectPageBodyInner() {
                             id="ctab-project-showcase"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTab('project-showcase'); showToast('TAB: Showcase'); }}
+                            onClick={() => { setActiveTabPersisted('project-showcase'); showToast('TAB: Showcase'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('project-showcase'); showToast('TAB: Showcase');
+                                    setActiveTabPersisted('project-showcase'); showToast('TAB: Showcase');
                                 }
                             }}
                             title="Project Showcase — curation feature coming soon"
@@ -861,11 +870,11 @@ function ProjectPageBodyInner() {
                             id="ctab-artworks"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTab('artworks'); showToast('TAB: Artworks'); }}
+                            onClick={() => { setActiveTabPersisted('artworks'); showToast('TAB: Artworks'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('artworks'); showToast('TAB: Artworks');
+                                    setActiveTabPersisted('artworks'); showToast('TAB: Artworks');
                                 }
                             }}
                             title="Browse All Artworks in the Project"
@@ -877,11 +886,11 @@ function ProjectPageBodyInner() {
                             id="ctab-albums"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTab('albums'); showToast('TAB: + More'); }}
+                            onClick={() => { setActiveTabPersisted('albums'); showToast('TAB: + More'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTab('albums'); showToast('TAB: + More');
+                                    setActiveTabPersisted('albums'); showToast('TAB: + More');
                                 }
                             }}
                             title="More — curated sections"
