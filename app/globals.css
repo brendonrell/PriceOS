@@ -579,6 +579,11 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
        inset. Sim 187. */
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
+@media (max-width: 600px) {
+    .dropdown-stack {
+        padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    }
+}
 .dropdown-stack::-webkit-scrollbar { display: none; }
 
 .user-menu-wrapper.active .dropdown-stack {
