@@ -575,6 +575,8 @@ export default function OutputPreview() {
                     className="output-canvas"
                     onClick={() => {
                         if (id == null) return;
+                        close();
+                        window.scrollTo(0, 0);
                         router.push(`/${id}`);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -620,7 +622,7 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => {
-                                    if (id != null) router.push(`/${id}`);
+                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/${id}`); }
                                 }}
                             >
                                 {title}
@@ -708,7 +710,7 @@ export default function OutputPreview() {
                                     <div className="dp-row">
                                         <span className="dp-label">Artwork Page</span>
                                         <span className="dp-value">
-                                            <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); router.push(`/${id}`); } }}>
+                                            <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); close(); window.scrollTo(0, 0); router.push(`/${id}`); } }}>
                                                 <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
                                             </button>
                                         </span>
