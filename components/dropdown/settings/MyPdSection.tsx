@@ -59,35 +59,35 @@ export function MyPdSection({ onTripleTap }: Props) {
     const editingHexRef = useRef(false);
     const colorPickerRef = useRef<HTMLInputElement | null>(null);
 
-    /* Profile Page v0 — Showcase mode toggle. Sits to the right of the
+    /* Profile Page v0 — User Showcase mode toggle. Sits to the right of the
        copy-hex button. ⑆ = static (default, user-ordered, doesn't
        change), ⑇ = generative (randomized order each visit). Visual
-       toggle only for v0 — Showcase grid wiring lands when persistence
-       + slot model arrive. Persisted to localStorage `pd_showcase_mode`
+       toggle only for v0 — User Showcase grid wiring lands when persistence
+       + slot model arrive. Persisted to localStorage `pd_user_showcase_mode`
        so the picked mode survives reload. SSR-safe via the typeof
        window guard pattern useArtistColor uses. */
-    const SHOWCASE_KEY = 'pd_showcase_mode';
-    const [showcaseMode, setShowcaseModeState] = useState<'static' | 'generative'>('static');
+    const USER_SHOWCASE_KEY = 'pd_user_showcase_mode';
+    const [userShowcaseMode, setUserShowcaseModeState] = useState<'static' | 'generative'>('static');
     useEffect(() => {
         if (typeof window === 'undefined') return;
         try {
-            const raw = localStorage.getItem(SHOWCASE_KEY);
+            const raw = localStorage.getItem(USER_SHOWCASE_KEY);
             if (raw === 'generative' || raw === 'static') {
-                setShowcaseModeState(raw);
+                setUserShowcaseModeState(raw);
             }
         } catch {
             /* ignore */
         }
     }, []);
-    const toggleShowcaseMode = () => {
-        const next = showcaseMode === 'static' ? 'generative' : 'static';
+    const toggleUserShowcaseMode = () => {
+        const next = userShowcaseMode === 'static' ? 'generative' : 'static';
         try {
-            localStorage.setItem(SHOWCASE_KEY, next);
+            localStorage.setItem(USER_SHOWCASE_KEY, next);
         } catch {
             /* ignore */
         }
-        setShowcaseModeState(next);
-        showToast(`Showcase Mode: ${next === 'generative' ? 'Generative' : 'Static'}`);
+        setUserShowcaseModeState(next);
+        showToast(`User Showcase Mode: ${next === 'generative' ? 'Generative' : 'Static'}`);
     };
 
     // Keep the hex field synced to the live color whenever the user
@@ -457,33 +457,33 @@ export function MyPdSection({ onTripleTap }: Props) {
                     >
                         ⧉{'\uFE0E'}
                     </span>
-                    {/* Profile Page v0 — Showcase mode toggle. Lives
+                    {/* Profile Page v0 — User Showcase mode toggle. Lives
                         right of the copy-hex button per spec. Glyph
                         flips on tap: ⑆ static (default) ↔ ⑇ generative.
-                        Visual + persistence only for v0; the Showcase
+                        Visual + persistence only for v0; the User Showcase
                         grid that reads this flag lands when the slot
-                        model + Add-to-Showcase action arrive. */}
+                        model + Add-to-User-Showcase action arrive. */}
                     <span
-                        className="copy-hex-btn showcase-toggle-btn"
+                        className="copy-hex-btn user-showcase-toggle-btn"
                         title={
-                            showcaseMode === 'static'
-                                ? 'Showcase Mode — Static'
-                                : 'Showcase Mode — Generative'
+                            userShowcaseMode === 'static'
+                                ? 'User Showcase Mode — Static'
+                                : 'User Showcase Mode — Generative'
                         }
                         role="button"
                         tabIndex={0}
                         onClick={(e) => {
                             e.stopPropagation();
-                            toggleShowcaseMode();
+                            toggleUserShowcaseMode();
                         }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                toggleShowcaseMode();
+                                toggleUserShowcaseMode();
                             }
                         }}
                     >
-                        {showcaseMode === 'static' ? '⑆' : '⑇'}
+                        {userShowcaseMode === 'static' ? '⑆' : '⑇'}
                         {'\uFE0E'}
                     </span>
                 </div>
