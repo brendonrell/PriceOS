@@ -2564,7 +2564,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .project-artist { align-items: baseline; }
 .by-text { font-size: 13px; font-weight: bold; }
-.artist-lockup { display: flex; align-items: baseline; }
+.artist-lockup { display: flex; align-items: center; }
 .artist-lockup a {
     font-family: var(--font-rubik-mono), sans-serif;
     font-weight: normal;
@@ -2587,7 +2587,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0.85;
     display: inline-block;
     position: relative;
-    top: 2px;
     margin-left: 0px;
     font-weight: bold;
     letter-spacing: -0.5px;
@@ -3543,10 +3542,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
-#gallery.showcase-mode .output-card { display: none !important; }
-#gallery.showcase-mode .output-card.showcase-pick { display: flex !important; }
-#gallery.showcase-mode .output-card.showcase-pick .meta { display: none !important; }
-#gallery.showcase-mode {
+#gallery.project-showcase-mode .output-card { display: none !important; }
+#gallery.project-showcase-mode .output-card.project-showcase-pick { display: flex !important; }
+#gallery.project-showcase-mode .output-card.project-showcase-pick .meta { display: none !important; }
+#gallery.project-showcase-mode {
     min-height: 0;
     padding-bottom: 40px;
 }
