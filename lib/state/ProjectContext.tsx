@@ -135,7 +135,13 @@ function buildOutputMeta(id: number): OutputMeta {
             .padStart(4, '0');
         ownerDisplay = '0x' + hex.slice(0, 4) + '\u2026' + tail;
     }
-    const ownerFull = isMine ? '@Brendon' : '0x' + ((id * 2654435761) >>> 0).toString(16).padStart(8, '0') + ((id * 31 + (id % 17) * 13) % 0xffff).toString(16).padStart(4, '0');
+    const ownerFull = isMine ? '@Brendon' : '0x' + [
+        (id * 2654435761) >>> 0,
+        (id * 1664525 + 1013904223) >>> 0,
+        (id * 214013 + 2531011) >>> 0,
+        (id * 22695477 + 1) >>> 0,
+        (id * 1103515245 + 12345) >>> 0,
+    ].map(n => n.toString(16).padStart(8, '0')).join('').slice(0, 40);
 
     /* Build 19: three independent LCG-style draws — distinct multipliers
        so Layer/Mineral/Fate aren't correlated by id. Modulo each pool's
