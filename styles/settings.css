@@ -83,6 +83,7 @@
    Row reshapes to: .ens-scroll-viewport (flex:1 1 auto) + …hide button.
    Override wrap to nowrap so scroll viewport + button sit side-by-side. */
 .settings-ens-row.ens-expanded {
+    flex-wrap: nowrap;
     align-items: center;
 }
 .ens-scroll-viewport {
