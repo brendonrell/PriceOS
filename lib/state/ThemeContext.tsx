@@ -310,12 +310,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             /* ignore */
         }
         setThemeState(savedTheme);
-        // Mirror to cookie so server can inject correct CSS vars on next load.
-        try {
-            if (savedTheme) {
-                document.cookie = `pd_c_theme=${savedTheme}; path=/; max-age=31536000; SameSite=Lax`;
-            }
-        } catch { /* ignore */ }
 
         const isProjectPage = pathname?.startsWith('/art/') ?? false;
         /* Profile Page v0 — pathname is a profile page when the first
@@ -383,10 +377,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             // boots Dot rather than a stale bg.
             if (key === null || key === 'hashsyn') {
                 localStorage.removeItem(STORAGE_KEY);
-                document.cookie = 'pd_c_theme=; path=/; max-age=0; SameSite=Lax';
             } else {
                 localStorage.setItem(STORAGE_KEY, key);
-                document.cookie = `pd_c_theme=${key}; path=/; max-age=31536000; SameSite=Lax`;
             }
         } catch {
             // ignore quota / private mode
