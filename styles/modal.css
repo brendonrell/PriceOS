@@ -514,6 +514,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
     #priceosModal { padding-left: 8px; padding-right: 8px; }
     /* Modal note button — bumped icon size + vertical-align: middle on mobile. (sim 3072) */
     .modal-note-btn { font-size: 26px !important; vertical-align: middle; }
+    /* Star/pill icon row — 1 size larger on mobile */
+    .modal-pill { font-size: 22px; }
     /* Showcase icon in CTA calc tab — 2 steps larger on mobile to match desktop bump */
     .modal-action-btn-calc { font-size: 19px; }
 }
