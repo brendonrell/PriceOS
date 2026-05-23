@@ -71,7 +71,6 @@ export function useArtistColor() {
         }
         try {
             document.documentElement.style.setProperty('--artist-accent', c);
-            document.cookie = `pd_c_artist_color=${encodeURIComponent(c)}; path=/; max-age=31536000; SameSite=Lax`;
         } catch {
             /* ignore */
         }
@@ -98,7 +97,6 @@ export function useArtistColor() {
         setColorState(upper);
         try {
             localStorage.setItem(STORAGE_KEY, upper);
-            document.cookie = `pd_c_artist_color=${encodeURIComponent(upper)}; path=/; max-age=31536000; SameSite=Lax`;
         } catch {
             /* ignore */
         }
