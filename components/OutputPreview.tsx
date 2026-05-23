@@ -694,8 +694,8 @@ export default function OutputPreview() {
                                     <div className="dp-row">
                                         <span className="dp-label">Owner</span>
                                         <span className="dp-value">
-                                            <span className="dp-value-text">
-                                                {meta.isOwnedByBrendon ? 'You' : meta.ownerFull}
+                                            <span className="dp-value-text dp-addr">
+                                                {meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull)}
                                             </span>
                                             {!meta.isOwnedByBrendon && meta.ownerFull && (
                                                 <button className="dp-copy-btn" title="Copy address" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(meta.ownerFull ?? '').then(() => showToast('Address Copied')).catch(() => showToast('Copy failed')); }}>
