@@ -41,6 +41,7 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import { WalletProviders } from '../components/wallet/WalletProviders';
+import { getSession } from '../lib/auth/siwe';
 import { getSSRThemeStyle } from '../lib/ssrTheme';
 
 export const metadata: Metadata = {
