@@ -249,6 +249,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     letter-spacing: 0.3px;
     font-weight: bold;
 }
+.dp-value {
     display: flex;
     align-items: center;
     gap: 5px;
