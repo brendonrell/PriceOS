@@ -319,18 +319,18 @@
     transition: opacity 0.2s;
     line-height: 1;
 }
-.copy-hex-btn:not(.showcase-toggle-btn) {
+.copy-hex-btn:not(.user-showcase-toggle-btn) {
     position: relative;
     top: 2px;
 }
 .copy-hex-btn:hover { opacity: 1; }
 
-/* Showcase mode toggle (⑆ static / ⑇ generative) — sits right of the
+/* User Showcase mode toggle (⑆ static / ⑇ generative) — sits right of the
    copy-hex button. Bumped one size up + extra left margin so it
    doesn't crowd the copy icon (fat-finger spacing). Both glyph
    variants share this rule via the class — there's no per-variant
    sizing. */
-.showcase-toggle-btn {
+.user-showcase-toggle-btn {
     font-size: 18px;
     margin-left: 6px;
     position: relative;
