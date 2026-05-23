@@ -4184,7 +4184,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .more-replay-wrap,
 .more-genome-wrap,
 .more-seal-wrap,
-.more-disagree-wrap {
+.more-disagree-wrap,
+.more-price-stats-row {
     padding: 0 40px 20px 40px;
     max-width: min(62.5vw, 900px);
     box-sizing: border-box;
@@ -4201,7 +4202,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .more-replay-wrap,
     .more-genome-wrap,
     .more-seal-wrap,
-    .more-disagree-wrap {
+    .more-disagree-wrap,
+    .more-price-stats-row {
         padding: 0 20px 20px 20px;
         max-width: none;
     }
