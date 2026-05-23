@@ -3911,7 +3911,7 @@ body.budget-step-line #gallery .output-card .budget-step-v-overlay {
    CSS appends it verbatim after the anchor glyph. \2693\FE0E = ⚓ with
    VS15 text-presentation selector. Courier so the secondary delta is
    visually distinguishable from the Rubik Mono One primary price. */
-body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
+body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger[data-anchor-delta]::before {
     content: '\2693\FE0E' attr(data-anchor-delta) '  ';
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
@@ -3920,10 +3920,10 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
     opacity: 0.7;
 }
 @media (max-width: 600px) {
-    body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before {
+    body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger[data-anchor-delta]::before {
         display: none;
     }
-    body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::after {
+    body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger[data-anchor-delta]::after {
         content: '\2693\FE0E' attr(data-anchor-delta);
         font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
@@ -3935,12 +3935,12 @@ body.anchor-active #gallery .meta-owner.price-trigger[data-anchor-delta]::before
         text-align: right;
         margin-top: 1px;
     }
-    body.anchor-active #gallery .meta {
+    body.anchor-active #gallery:not(.project-showcase-mode) .meta {
         height: auto;
         min-height: 20px;
         align-items: flex-start;
     }
-    body.anchor-active #gallery .meta-owner.price-trigger {
+    body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger {
         text-align: right;
         line-height: 1.2;
     }
@@ -4454,7 +4454,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         position: relative;
         top: -2px;
     }
-    .stat-icon-box { font-size: 14px; }
+    .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }
     .f-time { width: 60px; font-size: 11px; }
     .f-type { width: 44px; font-size: 11px; }
