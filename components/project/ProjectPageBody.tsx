@@ -962,12 +962,40 @@ function ProjectPageBodyInner() {
                 aria-label="More"
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
-                {/* PRICE STATS — stats-row-2 restored here from hero.
+                {/* REPLAY — sim 5207-5228 */}
+                <div className="more-section-header">REPLAY</div>
+                <div className="more-replay-wrap">
+                    <div
+                        className="more-replay-card"
+                        onClick={() =>
+                            showToast('Replay — design sprint pending')
+                        }
+                    >
+                        <div className="more-replay-timeline">
+                            <div className="mr-tl-bar" />
+                            <div className="mr-tl-playhead" />
+                            <div className="mr-tl-events">
+                                {Array.from({ length: 11 }).map((_, i) => (
+                                    <span className="mr-tl-ev" key={i} />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="more-replay-meta">
+                            <span className="mr-play">▶&#xFE0E;</span>
+                            <span className="mr-speed">1x</span>
+                            <span className="mr-speed mr-speed-dim">5x</span>
+                            <span className="mr-speed mr-speed-dim">22x</span>
+                            <span className="mr-range">AUG 14 → TODAY</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* MORE STATS — stats-row-2 restored here from hero.
                     Percent Listed, Floor Price, and Anchor. The ⚓ anchor
                     tap opens the ValuePrompt to set / clear your reference
                     price. Moved out of the hero into +More so it is
                     accessible without crowding the main hero on mobile. */}
-                <div className="more-section-header">PRICE STATS</div>
+                <div className="more-section-header">MORE STATS</div>
                 <div className="more-price-stats-row stats-row stats-row-2">
                     <span className="stat-item">
                         <span
@@ -1032,34 +1060,6 @@ function ProjectPageBodyInner() {
                                 : ''}
                         </span>
                     </span>
-                </div>
-
-                {/* REPLAY — sim 5207-5228 */}
-                <div className="more-section-header">REPLAY</div>
-                <div className="more-replay-wrap">
-                    <div
-                        className="more-replay-card"
-                        onClick={() =>
-                            showToast('Replay — design sprint pending')
-                        }
-                    >
-                        <div className="more-replay-timeline">
-                            <div className="mr-tl-bar" />
-                            <div className="mr-tl-playhead" />
-                            <div className="mr-tl-events">
-                                {Array.from({ length: 11 }).map((_, i) => (
-                                    <span className="mr-tl-ev" key={i} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="more-replay-meta">
-                            <span className="mr-play">▶&#xFE0E;</span>
-                            <span className="mr-speed">1x</span>
-                            <span className="mr-speed mr-speed-dim">5x</span>
-                            <span className="mr-speed mr-speed-dim">22x</span>
-                            <span className="mr-range">AUG 14 → TODAY</span>
-                        </div>
-                    </div>
                 </div>
 
                 {/* ALBUMS — sim 5230-5244 */}
