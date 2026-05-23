@@ -59,13 +59,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
     max-width: 100%;
     max-height: 100%;
     width: auto;
+    height: auto;
+    align-self: center;
     object-fit: contain;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     user-select: none;
     display: block;
     -webkit-touch-callout: default;
-    /* Extra canvas height from moving owner+artwork links below pill row */
-    min-height: min(50vw, 280px);
 }
 
 /* Desktop breathing room — reservation matches sim's 300px below
@@ -76,7 +76,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-width: calc(100vw - 120px);
         max-height: calc(100vh - 300px);
     }
-    /* Note icon 2 font-sizes smaller on desktop, nudged 2px above 4px-down position */
+    /* Note icon 2 font-sizes smaller on desktop, nudged 2px up to re-centre at 16px */
     #modal .modal-pin-hint { font-size: 16px; top: calc(max(20px, env(safe-area-inset-top)) + 21px); }
 }
 
@@ -164,13 +164,6 @@ body.modal-open { overflow: hidden; touch-action: none; }
     opacity: 0.7;
     background: transparent;
     transition: opacity 0.2s, background 0.2s, color 0.2s;
-    /* APR 21: 4-direction text-shadow thickens the Unicode glyphs so
-       they read clearly against red theme backgrounds on mobile. */
-    text-shadow:
-         0.4px  0.4px 0 currentColor,
-        -0.4px -0.4px 0 currentColor,
-         0.4px -0.4px 0 currentColor,
-        -0.4px  0.4px 0 currentColor;
 }
 /* Activated state — fills solid when the token is pinned (or any future
    pill gains a boolean active state). Inverts bg/color like a pressed key.
@@ -315,7 +308,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)) 20px;
+    padding: 12px 20px calc(6px + env(safe-area-inset-bottom, 0px)) 20px;
     box-sizing: border-box;
 }
 
@@ -363,7 +356,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     width: 36px;
     flex-shrink: 0;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: bold;
     cursor: pointer;
     display: inline-flex;
@@ -433,30 +426,23 @@ body.modal-open { overflow: hidden; touch-action: none; }
     line-height: 1;
     cursor: pointer;
     color: var(--text-color);
-    opacity: 0.7;
+    /* Inactive: dimmed so "no note" state is obvious; active just lifts to full opacity */
+    opacity: 0.3;
     z-index: 1002;
     font-family: 'Courier New', Courier, monospace;
     border-radius: 5px;
     /* Larger transparent padding = fat-finger safe tap area */
     padding: 12px;
     margin: -12px;
-    transition: opacity 0.2s, background 0.15s, color 0.15s;
+    transition: opacity 0.2s;
     -webkit-tap-highlight-color: transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
+/* Active note: simply full opacity — no layout changes so icon never jumps */
 .modal-pin-hint.pinned {
-    /* Active note: dark paper look — always black/white regardless of theme */
     opacity: 1;
-    background: #111111;
-    color: #ffffff;
-    padding: 4px 8px;
-    margin: 0;
-    font-weight: bold;
-    border-radius: 4px;
-    top: calc(max(20px, env(safe-area-inset-top)) + 27px);
-    right: 66px;
 }
 
 
@@ -528,6 +514,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
     #priceosModal { padding-left: 8px; padding-right: 8px; }
     /* Modal note button — bumped icon size + vertical-align: middle on mobile. (sim 3072) */
     .modal-note-btn { font-size: 26px !important; vertical-align: middle; }
+    /* Showcase icon in CTA calc tab — 2 steps larger on mobile to match desktop bump */
+    .modal-action-btn-calc { font-size: 19px; }
 }
 
 
