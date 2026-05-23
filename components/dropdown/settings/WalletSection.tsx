@@ -12,11 +12,10 @@
  *   - 17,450.54 PRICE | balance-toggle eyeball
  *
  * Collapsed ENS row (default):
- *   .ens-pills-clip (overflow-hidden, 2-row max) holds the visible pills;
- *   the …more button sits OUTSIDE the clip as a flex sibling so it is
- *   never swallowed by the overflow — fixes the "…more disappears when
- *   pills push to 3 rows" bug. Active pill is always first; rest are
- *   alphabetical.
+ *   Flat flex-wrap row — up to 3 pills render as direct children, followed
+ *   by …more inline. Active pill is always first; rest are alphabetical.
+ *   No wrapper div needed: we render only the visible set so there is
+ *   nothing to clip.
  *
  * Expanded ENS row (after tapping …more):
  *   DOM reshapes to a single nowrap container holding a scroll viewport
@@ -321,14 +320,9 @@ export function WalletSection() {
                     </>
                 ) : (
                     <>
-                        {/* .ens-pills-clip owns the 2-row overflow clipping.
-                            …more lives OUTSIDE it so it is never swallowed
-                            by overflow:hidden when pills push to 3 rows. */}
-                        <div className="ens-pills-clip">
-                            {ensPills
-                                .filter((p) => collapsedVisible.has(p))
-                                .map(renderPill)}
-                        </div>
+                        {ensPills
+                            .filter((p) => collapsedVisible.has(p))
+                            .map(renderPill)}
                         {moreButton}
                     </>
                 )}
