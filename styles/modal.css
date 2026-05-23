@@ -76,8 +76,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-width: calc(100vw - 120px);
         max-height: calc(100vh - 300px);
     }
-    /* Note icon 2 font-sizes smaller on desktop, 4px below original position */
-    #modal .modal-pin-hint { font-size: 16px; top: calc(max(20px, env(safe-area-inset-top)) + 23px); }
+    /* Note icon 2 font-sizes smaller on desktop, nudged 2px above 4px-down position */
+    #modal .modal-pin-hint { font-size: 16px; top: calc(max(20px, env(safe-area-inset-top)) + 21px); }
 }
 
 
@@ -236,11 +236,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
     border-radius: 3px;
 }
 .dp-row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 6px;
-    gap: 0;
+    gap: 12px;
     min-height: 28px;
 }
 .dp-label {
@@ -249,25 +249,6 @@ body.modal-open { overflow: hidden; touch-action: none; }
     letter-spacing: 0.3px;
     font-weight: bold;
 }
-.dp-dots {
-    flex: 1;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: normal;
-    letter-spacing: 2px;
-    overflow: hidden;
-    white-space: nowrap;
-    opacity: 1;
-    margin: 0 6px;
-    align-self: flex-end;
-    position: relative;
-    top: -5px;
-    color: inherit;
-}
-.dp-dots::after {
-    content: '···············································································';
-}
-.dp-value {
     display: flex;
     align-items: center;
     gap: 5px;
