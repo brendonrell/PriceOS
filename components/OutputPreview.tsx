@@ -500,21 +500,21 @@ export default function OutputPreview() {
 
     /* Action button label + Calc-tab visibility.
        BUY:        ƒ calc tab (buy price analysis)   → adds to cart
-       LIST:       ✺ showcase tab                    → add to showcase
+       LIST:       ✺ user showcase tab                → add to user showcase
        MAKE OFFER: ƒ calc tab (offer price analysis) → offer flow */
     let actionLabel: ReactNode = null;
     let hasCalc = false;
     let calcIcon = '\u0192';        // ƒ default
     let calcTitle = 'The Calc';
-    let calcMode: 'buy' | 'showcase' | 'offer' = 'buy';
+    let calcMode: 'buy' | 'user-showcase' | 'offer' = 'buy';
 
     if (meta) {
         if (meta.isOwnedByBrendon) {
             actionLabel = <>LIST</>;          // no price on LIST — cost basis is personal
             hasCalc = true;
-            calcIcon = '\u2446\uFE0E';         // ⑆ showcase icon
-            calcTitle = 'Add to Showcase';
-            calcMode = 'showcase';
+            calcIcon = '\u2446\uFE0E';         // ⑆ user showcase icon
+            calcTitle = 'Add to User Showcase';
+            calcMode = 'user-showcase';
         } else if (meta.price) {
             actionLabel = (
                 <>
@@ -768,8 +768,8 @@ export default function OutputPreview() {
                                 className="modal-action-btn-calc"
                                 id="mActionCalc"
                                 onClick={() => {
-                                    if (calcMode === 'showcase') {
-                                        showToast('Add to Showcase — coming soon');
+                                    if (calcMode === 'user-showcase') {
+                                        showToast('Add to User Showcase — coming soon');
                                     } else if (calcMode === 'offer') {
                                         showToast('Offer Calc — coming soon');
                                     } else if (id != null && meta) {
