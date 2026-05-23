@@ -123,14 +123,12 @@ import {
 
 interface ArtworkCardProps {
     id: number;
-    /* Build 21 — sim 13113-13130 + globals.css :2690.
-       When the parent gallery has `.project-showcase-mode` (not yet active — feature TBD), every .output-card
-       will hide non-picked cards. Currently unused — project showcase curation is future work.
-       userShowcasePick prop is reserved for user profile showcase (separate feature).
-       Project showcase tab currently shows all artworks with no filtering.
-       of an empty grid. Optional + defaults to false so the Artworks
-       tab path is unchanged. */
-    // Project showcase feature not yet implemented — reserved for future use.
+    /* ProjectShowcase tab (sim ~13113-13130). Page picks 6 random ids per
+       session as the project showcase and passes this flag down; the card
+       wears `.project-showcase-pick` so #gallery.project-showcase-mode CSS
+       (globals.css ~3553) shows only picks and hides their .meta.
+       Optional + defaults to false so the Artworks tab path is unchanged. */
+    projectShowcasePick?: boolean;
     /* Build 22 — sim 8072-8082. Page picks 5 random ids per session as
        "recently visited" breadcrumbs and stamps a ⬤ sticker on each.
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
@@ -161,7 +159,7 @@ const MOCK_FLOOR_ETH = 0.042;
 
 export default function ArtworkCard({
     id,
-    userShowcasePick = false,
+    projectShowcasePick = false,
     isBreadcrumb = false,
     burnPick = false,
 }: ArtworkCardProps) {
@@ -503,6 +501,10 @@ export default function ArtworkCard({
            CSS gating on #gallery.burn-mode (sim 2320-2321) handles
            visibility — outside burn-mode the class is inert. */
         (burnPick ? ' burn-pick' : '') +
+        /* ProjectShowcase tab (sim ~13128-13130). CSS on
+           #gallery.project-showcase-mode hides all cards except those
+           wearing this class. Outside project-showcase-mode it is inert. */
+        (projectShowcasePick ? ' project-showcase-pick' : '') +
         /* F50 (BUG-02) — sim 12397-12399. The article wears `.grail-pinned`
            whenever this id is in the grail set; downstream CSS (none yet,
            but the class is the contractual hook future styling reads)
