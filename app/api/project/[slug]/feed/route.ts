@@ -50,7 +50,7 @@ export async function GET(
 
   const events: EventRow[] = Array.from({ length: limit }, (_, i) => {
     const type = TYPES[i % TYPES.length];
-    const tokenIdNum = ((i * 13) % 222) + 1;
+    const tokenIdNum = ((i * 13) % 500) + 1;
     return {
       id: `evt_${params.slug}_${i}_${now}`,
       type,
