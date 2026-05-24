@@ -86,12 +86,14 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         if (!loader || !logo) return;
 
         const BREATHE_MS  = 1800; // must match pdBreathe duration
+        const MIN_MS      = 2700; // minimum time loader stays on screen
         const now         = performance.now();
         // Peak is at 50% of cycle. Find ms until next peak.
         const cyclePos    = (now % BREATHE_MS) / BREATHE_MS; // 0–1
-        const msToNext    = cyclePos <= 0.5
+        const msToNextRaw = cyclePos <= 0.5
             ? (0.5 - cyclePos) * BREATHE_MS
             : (1.5 - cyclePos) * BREATHE_MS;
+        const msToNext    = Math.max(msToNextRaw, MIN_MS);
 
         const isMobile   = window.innerWidth <= 600;
         const navLeft    = isMobile ? 20 : 40;
