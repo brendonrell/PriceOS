@@ -276,11 +276,17 @@ const LOADER_HTML = `<style>
   }
   #pd-loader {
     position: fixed;
-    top: env(safe-area-inset-top);
-    bottom: env(safe-area-inset-bottom);
-    left: 0;
-    right: 0;
+    inset: 0;
     z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  #pd-loader-panel {
+    width: 100%;
+    height: 50vh;
     background: #000;
     display: flex;
     align-items: center;
@@ -295,13 +301,15 @@ const LOADER_HTML = `<style>
   }
 </style>
 <div id="pd-loader">
-  <svg id="pd-loader-logo" viewBox="0 0 761 655" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="${LOADER_SVG_PATHS[0]}" fill="currentColor"/>
-    <path d="${LOADER_SVG_PATHS[1]}" fill="#000" stroke="#000" stroke-width="1.5"/>
-    <path d="${LOADER_SVG_PATHS[2]}" fill="currentColor"/>
-    <path d="${LOADER_SVG_PATHS[3]}" fill="currentColor"/>
-    <path d="${LOADER_SVG_PATHS[4]}" fill="currentColor"/>
-  </svg>
+  <div id="pd-loader-panel">
+    <svg id="pd-loader-logo" viewBox="0 0 761 655" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="${LOADER_SVG_PATHS[0]}" fill="currentColor"/>
+      <path d="${LOADER_SVG_PATHS[1]}" fill="#000" stroke="#000" stroke-width="1.5"/>
+      <path d="${LOADER_SVG_PATHS[2]}" fill="currentColor"/>
+      <path d="${LOADER_SVG_PATHS[3]}" fill="currentColor"/>
+      <path d="${LOADER_SVG_PATHS[4]}" fill="currentColor"/>
+    </svg>
+  </div>
 </div>`.trim();
 
 /*
