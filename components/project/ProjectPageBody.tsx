@@ -980,7 +980,7 @@ function ProjectPageBodyInner() {
                     alignment match the hero stats row exactly. */}
                 <div className="more-section-header">MORE STATS</div>
                 <div className="hero-group-1 more-price-stats-row">
-                    <div className="hero-line stats-row stats-row-2">
+                    <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span
                                 className="stat-icon stat-icon-box stat-icon-owned"
