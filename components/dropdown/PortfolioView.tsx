@@ -75,6 +75,7 @@ import {
 } from '../../lib/data/mockPortfolio';
 import {
     addBudget as engineAddBudget,
+    deleteBudget as engineDeleteBudget,
     getBudgets,
     subscribeBudgets,
     toggleActiveBudget,
@@ -152,6 +153,15 @@ export function PortfolioView() {
             const label = budgets.list[idx]?.name ?? '';
             toggleActiveBudget(idx);
             showToast(isActive ? 'Budget OFF' : `Budget: ${label}`);
+        },
+        [budgets, showToast]
+    );
+
+    const deleteBudget = useCallback(
+        (idx: number) => {
+            const label = budgets.list[idx]?.name ?? '';
+            engineDeleteBudget(idx);
+            showToast(`Budget deleted: ${label}`);
         },
         [budgets, showToast]
     );
@@ -292,7 +302,7 @@ export function PortfolioView() {
                                         return (
                                             <div
                                                 key={`${b.name}-${i}`}
-                                                className={`pill-ens${isActive ? ' active' : ''}`}
+                                                className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                                 role="button"
                                                 tabIndex={0}
                                                 title={`${b.name} — ${pfFmtEth(b.eth)}`}
@@ -305,6 +315,14 @@ export function PortfolioView() {
                                                 }}
                                             >
                                                 {b.name}
+                                                <span
+                                                    className="pill-budget-delete"
+                                                    title="Delete budget"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteBudget(i);
+                                                    }}
+                                                >×</span>
                                             </div>
                                         );
                                     })}
@@ -316,7 +334,7 @@ export function PortfolioView() {
                                         return (
                                             <div
                                                 key={`${b.name}-${realIdx}`}
-                                                className={`pill-ens${isActive ? ' active' : ''}`}
+                                                className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                                 role="button"
                                                 tabIndex={0}
                                                 title={`${b.name} — ${pfFmtEth(b.eth)}`}
@@ -329,6 +347,14 @@ export function PortfolioView() {
                                                 }}
                                             >
                                                 {b.name}
+                                                <span
+                                                    className="pill-budget-delete"
+                                                    title="Delete budget"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteBudget(realIdx);
+                                                    }}
+                                                >×</span>
                                             </div>
                                         );
                                     })}
