@@ -288,7 +288,7 @@ const LOADER_HTML = `<style>
     width: auto;
     color: #FFE600;
     opacity: 0.15;
-    animation: pdBreathe 1.1s ease-in-out infinite;
+    animation: pdBreathe 1.8s ease-in-out infinite;
   }
 </style>
 <script>document.documentElement.style.background='#000';</script>
