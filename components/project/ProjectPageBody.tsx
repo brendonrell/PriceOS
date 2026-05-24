@@ -14,7 +14,7 @@
  *     · BUY (action-row)
  *     · project tabs (Project Showcase / Artworks / + More)
  *   - .traits-ui + .sort-bar + .search-row              → sim 5167-5193
- *   - #gallery (1..222 ArtworkCards)                    → sim 5195
+ *   - #gallery (1..500 ArtworkCards)                    → sim 5195
  *                                                          (sim populates
  *                                                          via renderFeed
  *                                                          ~8155)
@@ -799,7 +799,7 @@ function ProjectPageBodyInner() {
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">555/2222</span>
+                            <span className="stat-val">500/2222</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
@@ -818,7 +818,7 @@ function ProjectPageBodyInner() {
                             }}
                         >
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">1528 PPL</span>
+                            <span className="stat-val stat-val-owners">412 PPL</span>
                         </span>
                     </div>
                 </div>
@@ -998,7 +998,7 @@ function ProjectPageBodyInner() {
                                 ⊡&#xFE0E;
                             </span>{' '}
                             <span className="stat-val" id="statOwnedVal">
-                                57% listed
+                                30% listed
                             </span>
                         </span>
                         <span className="stat-item">
