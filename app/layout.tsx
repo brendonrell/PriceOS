@@ -269,10 +269,9 @@ const LOADER_SVG_PATHS = [
  *   3. Element removed
  */
 const LOADER_HTML = `<style>
-  @keyframes pdBreathe {
-    0%   { opacity: 0.15; }
-    50%  { opacity: 1; }
-    100% { opacity: 0.15; }
+  @keyframes pdDotWave {
+    0%, 100% { opacity: 0.15; }
+    50%       { opacity: 1; }
   }
   #pd-loader {
     position: fixed;
@@ -292,23 +291,23 @@ const LOADER_HTML = `<style>
     align-items: center;
     justify-content: center;
   }
-  #pd-loader-logo {
-    height: 28px;
-    width: auto;
+  #pd-loader-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
     color: #FFE600;
-    opacity: 0.15;
-    animation: pdBreathe 1.2s ease-in-out infinite;
+    letter-spacing: 0.08em;
   }
+  #pd-loader-text .pd-dot {
+    display: inline-block;
+    animation: pdDotWave 1.2s ease-in-out infinite;
+  }
+  #pd-loader-text .pd-dot:nth-child(1) { animation-delay: 0s; }
+  #pd-loader-text .pd-dot:nth-child(2) { animation-delay: 0.2s; }
+  #pd-loader-text .pd-dot:nth-child(3) { animation-delay: 0.4s; }
 </style>
 <div id="pd-loader">
   <div id="pd-loader-panel">
-    <svg id="pd-loader-logo" viewBox="0 0 761 655" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="${LOADER_SVG_PATHS[0]}" fill="currentColor"/>
-      <path d="${LOADER_SVG_PATHS[1]}" fill="#000" stroke="#000" stroke-width="1.5"/>
-      <path d="${LOADER_SVG_PATHS[2]}" fill="currentColor"/>
-      <path d="${LOADER_SVG_PATHS[3]}" fill="currentColor"/>
-      <path d="${LOADER_SVG_PATHS[4]}" fill="currentColor"/>
-    </svg>
+    <span id="pd-loader-text">Loading<span class="pd-dot">.</span><span class="pd-dot">.</span><span class="pd-dot">.</span></span>
   </div>
 </div>`.trim();
 
