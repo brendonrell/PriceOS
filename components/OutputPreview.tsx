@@ -710,7 +710,7 @@ export default function OutputPreview() {
                                         <span className="dp-label">Owner</span>
                                         <span className="dp-value">
                                             <span className="dp-value-text dp-addr">
-                                                {meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull)}
+                                                {ownerCopied ? '✓ COPIED' : (meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull))}
                                             </span>
                                             {!meta.isOwnedByBrendon && meta.ownerFull && (
                                                 <button className="dp-copy-btn" title="Copy address" onClick={(e) => {
@@ -722,7 +722,7 @@ export default function OutputPreview() {
                                                     };
                                                     navigator.clipboard.writeText(meta.ownerFull ?? '').then(write).catch(write);
                                                 }}>
-                                                    {ownerCopied ? <>✓{VS15}</> : <>⧉{VS15}</>}
+                                                    ⧉{VS15}
                                                 </button>
                                             )}
                                         </span>
@@ -762,7 +762,7 @@ export default function OutputPreview() {
                                                 };
                                                 navigator.clipboard.writeText(url).then(write).catch(write);
                                             }}>
-                                                {urlCopied ? <>✓{VS15}</> : <>⧉{VS15}</>}
+                                                ⧉{VS15}
                                             </button>
                                         </span>
                                     </div>
