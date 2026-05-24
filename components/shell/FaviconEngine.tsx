@@ -146,6 +146,14 @@ export function FaviconEngine() {
             isRotated: rotated,
             priceLogoOverride: notifs.priceLogo,
         });
+
+        // Sync Safari browser chrome colour to the live bg — sim line 6859.
+        // FaviconEngine already fires on every theme change so this keeps the
+        // URL-bar / status-bar tint in lockstep with the page background.
+        if (bg) {
+            const tcm = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+            if (tcm) tcm.setAttribute('content', bg);
+        }
     }, [theme, notifs.priceLogo, rotated, ethPing]);
 
     return null;
