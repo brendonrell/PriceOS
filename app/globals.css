@@ -988,7 +988,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    ============================================================ */
 .notifications-box {
     width: 100%;
-    padding-top: 0;
     padding-bottom: 8px;
     box-sizing: border-box;
     background: var(--text-color);
