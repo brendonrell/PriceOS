@@ -222,6 +222,20 @@ export function unregisterCanvas(id: number): void {
     publishStats();
 }
 
+/* forceRenderIds — bypass IntersectionObserver for a specific set of ids.
+   Used by the project-showcase tab to ensure picked cards are painted
+   even if they were never scrolled into view. */
+export function forceRenderIds(ids: Set<number>): void {
+    if (typeof window === 'undefined') return;
+    ids.forEach((id) => {
+        const reg = registry.get(id);
+        if (!reg) return;
+        if (active.has(id)) return; // already painted
+        renderQueue.push(reg);
+    });
+    if (renderQueue.length > 0) scheduleDrain();
+}
+
 /* Optional dev export — same shape as window.__pdCanvas, callable from
    anywhere in the app (a future debug panel, a test, etc.) without
    reaching for globals. */
