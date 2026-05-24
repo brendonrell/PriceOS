@@ -985,6 +985,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     cursor: pointer;
     user-select: none;
     transition: opacity 0.2s;
+    min-height: 36px;
 }
 .notif-header:hover { opacity: 1; }
 
