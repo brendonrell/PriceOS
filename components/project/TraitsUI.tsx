@@ -655,7 +655,7 @@ export default function TraitsUI({
                                             onClick={toggleBurnPile}
                                         />
                                         <IconBtn
-                                            cls="epoch-btn"
+                                            cls="multiselect-btn"
                                             glyph={'❐\uFE0E'}
                                             title="Multi-Select"
                                             active={multiSelectActive}
