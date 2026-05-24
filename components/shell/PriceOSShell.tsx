@@ -75,61 +75,62 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
 
-    /* Loading screen dismissal — fires on first shell mount, the earliest
-       point React has hydrated and the app is ready to show.
-
-       Exit sequence (sequential, not parallel):
-         1. Logo flies from center to navbar position + shrinks (400ms)
-         2. Logo fades out (150ms)
-         3. Overlay fades to transparent (200ms)
-         4. Element removed from DOM */
+    /* Loading screen dismiss — waits for the breath animation to reach
+       its peak (opacity 1), then fires the magnetic suck + unified fade.
+       html background is cleared in sync so browser chrome bars fade
+       as one with the overlay — no chunked pop. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
-        const wrap   = document.getElementById('pd-loader-wrap');
-        if (!loader || !wrap) return;
+        const logo   = document.getElementById('pd-loader-logo');
+        if (!loader || !logo) return;
 
-        const isMobile  = window.innerWidth <= 600;
-        const navPadLeft = isMobile ? 20 : 40;
-        const navPadTop  = isMobile ? 15 : 25;
-        const logoSize   = 54;
-        const targetSize = 28;
+        const BREATHE_MS  = 1800; // must match pdBreathe duration
+        const now         = performance.now();
+        // Peak is at 50% of cycle. Find ms until next peak.
+        const cyclePos    = (now % BREATHE_MS) / BREATHE_MS; // 0–1
+        const msToNext    = cyclePos <= 0.5
+            ? (0.5 - cyclePos) * BREATHE_MS
+            : (1.5 - cyclePos) * BREATHE_MS;
 
-        const centerX = window.innerWidth  / 2 - logoSize / 2;
-        const centerY = window.innerHeight / 2 - logoSize / 2;
-        const targetX = navPadLeft;
-        const targetY = navPadTop + 8;
+        const isMobile   = window.innerWidth <= 600;
+        const navLeft    = isMobile ? 20 : 40;
+        const navTop     = isMobile ? 23 : 33; // padding + 8px margin
+        const logoSize   = 28;
+        const fromX      = window.innerWidth  / 2 - logoSize / 2;
+        const fromY      = window.innerHeight / 2 - logoSize / 2;
+        const dx         = navLeft - fromX;
+        const dy         = navTop  - fromY;
 
-        const dx    = targetX - centerX;
-        const dy    = targetY - centerY;
-        const scale = targetSize / logoSize;
-        const easing = 'cubic-bezier(0.4, 0, 0.2, 1)';
+        const t = setTimeout(() => {
+            // Stop the breathe, snap to full opacity for the suck
+            logo.style.animation = 'none';
+            logo.style.opacity   = '1';
 
-        // Step 1: fly to navbar position
-        const fly = wrap.animate(
-            [
-                { transform: 'translate(0, 0) scale(1)' },
-                { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
-            ],
-            { duration: 400, easing, fill: 'forwards' }
-        );
-
-        fly.onfinish = () => {
-            // Step 2: fade the logo out
-            const fadeWrap = wrap.animate(
-                [{ opacity: 1 }, { opacity: 0 }],
-                { duration: 150, easing: 'ease-in', fill: 'forwards' }
+            // Magnetic suck — fast ease-in acceleration
+            const suck = logo.animate(
+                [
+                    { transform: 'translate(0,0)',            opacity: 1 },
+                    { transform: `translate(${dx}px,${dy}px)`, opacity: 0 },
+                ],
+                { duration: 320, easing: 'cubic-bezier(0.4,0,1,1)', fill: 'forwards' }
             );
 
-            fadeWrap.onfinish = () => {
-                // Step 3: fade the black overlay
-                const fadeOverlay = loader.animate(
+            suck.onfinish = () => {
+                // Fade the overlay and html background as one unified surface
+                document.documentElement.style.transition = 'background 400ms ease';
+                document.documentElement.style.background = '';
+                loader.animate(
                     [{ opacity: 1 }, { opacity: 0 }],
-                    { duration: 200, easing: 'ease-out', fill: 'forwards' }
-                );
-                fadeOverlay.onfinish = () => loader.remove();
+                    { duration: 400, easing: 'ease-out', fill: 'forwards' }
+                ).onfinish = () => {
+                    loader.remove();
+                    document.documentElement.style.transition = '';
+                };
             };
-        };
+        }, msToNext);
+
+        return () => clearTimeout(t);
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
