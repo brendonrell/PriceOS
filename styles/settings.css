@@ -9,12 +9,8 @@
    (max-width: 600px) override below nullifies the cap so the
    outer dropdown stack handles it on small screens (sim 634-636). */
 .settings-panel {
-    /* Use dvh (dynamic viewport height) which excludes browser chrome;
-       subtract safe-area-inset-bottom so bottom buttons never clip under
-       the home indicator / iOS chrome. Nudged to 74% to keep panel edge
-       well clear of the iOS colour-sampling zone at the bottom. */
     max-height: calc(74dvh - env(safe-area-inset-bottom, 0px));
-    overflow-y: auto;
+    overflow: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
     display: flex;
@@ -22,14 +18,20 @@
     width: 100%;
     box-sizing: border-box;
     margin-top: -4px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .settings-panel::-webkit-scrollbar { display: none; }
+.settings-scroll-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: 4px;
+}
+.settings-scroll-body::-webkit-scrollbar { display: none; }
 @media (max-width: 600px) {
     .settings-panel {
         max-height: calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
-        overflow-y: auto;
-        padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
     }
 }
 
@@ -479,8 +481,12 @@
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 5px 0;
+    padding: 5px 0 calc(5px + env(safe-area-inset-bottom, 0px)) 0;
     margin-top: 0;
+    flex-shrink: 0;
+    background: var(--text-color);
+    position: sticky;
+    bottom: 0;
 }
 
 .ws-dot {
