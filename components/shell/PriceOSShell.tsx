@@ -77,25 +77,22 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
 
     /* Loading screen dismissal — fires on first shell mount, the earliest
        point React has hydrated and the app is ready to show.
-       
-       The spin lives purely in CSS on #pd-loader-svg (isolated child).
-       The exit is driven by the Web Animations API on the overlay and
-       wrap separately — this way they never interfere with each other.
-       
-       Exit sequence:
-         1. Overlay fades to black→transparent (500ms)
-         2. Simultaneously: logo scales down + flies to navbar position
-         3. On finish: remove the whole element */
+
+       Exit sequence (sequential, not parallel):
+         1. Logo flies from center to navbar position + shrinks (400ms)
+         2. Logo fades out (150ms)
+         3. Overlay fades to transparent (200ms)
+         4. Element removed from DOM */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
-        const wrap = document.getElementById('pd-loader-wrap');
+        const wrap   = document.getElementById('pd-loader-wrap');
         if (!loader || !wrap) return;
 
-        const isMobile = window.innerWidth <= 600;
+        const isMobile  = window.innerWidth <= 600;
         const navPadLeft = isMobile ? 20 : 40;
         const navPadTop  = isMobile ? 15 : 25;
-        const logoSize   = 72;
+        const logoSize   = 54;
         const targetSize = 28;
 
         const centerX = window.innerWidth  / 2 - logoSize / 2;
@@ -103,29 +100,36 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         const targetX = navPadLeft;
         const targetY = navPadTop + 8;
 
-        const dx = targetX - centerX;
-        const dy = targetY - centerY;
+        const dx    = targetX - centerX;
+        const dy    = targetY - centerY;
         const scale = targetSize / logoSize;
-
-        const dur = 480;
         const easing = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-        // Fade + blur the whole overlay
-        loader.animate(
-            [{ opacity: 1 }, { opacity: 0 }],
-            { duration: dur, easing: 'ease-in', fill: 'forwards' }
-        );
-
-        // Shrink + fly the logo wrap
-        const done = wrap.animate(
+        // Step 1: fly to navbar position
+        const fly = wrap.animate(
             [
-                { transform: 'translate(0, 0) scale(1)',           opacity: 1 },
-                { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 0 },
+                { transform: 'translate(0, 0) scale(1)' },
+                { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
             ],
-            { duration: dur, easing, fill: 'forwards' }
+            { duration: 400, easing, fill: 'forwards' }
         );
 
-        done.onfinish = () => loader.remove();
+        fly.onfinish = () => {
+            // Step 2: fade the logo out
+            const fadeWrap = wrap.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 150, easing: 'ease-in', fill: 'forwards' }
+            );
+
+            fadeWrap.onfinish = () => {
+                // Step 3: fade the black overlay
+                const fadeOverlay = loader.animate(
+                    [{ opacity: 1 }, { opacity: 0 }],
+                    { duration: 200, easing: 'ease-out', fill: 'forwards' }
+                );
+                fadeOverlay.onfinish = () => loader.remove();
+            };
+        };
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
