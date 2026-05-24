@@ -3430,11 +3430,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: center;
 }
 
-/* Multi-select icon (epoch-btn) shares the burn-btn / search-btn rules.
-   Aliasing here so the existing sim glyph render stays consistent. */
-.epoch-btn {
+/* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
+.multiselect-btn {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -3449,13 +3448,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-weight: normal;
     text-decoration: none;
 }
-.epoch-btn.active {
+.multiselect-btn.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
 }
-@media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
+@media (max-width: 600px) { .multiselect-btn { font-size: 24px; } }
+@media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
+@media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 .search-row {
