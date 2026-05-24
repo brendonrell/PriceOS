@@ -985,6 +985,14 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .notif-header:hover { opacity: 1; }
 
+/* Mobile only: nudge label up 2px when box is collapsed */
+@media (max-width: 600px) {
+    .notifications-box:not(.is-open) .notif-header {
+        position: relative;
+        top: -2px;
+    }
+}
+
 .notif-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px; margin-left: 6px;
