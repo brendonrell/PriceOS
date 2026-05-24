@@ -75,47 +75,57 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
 
-    /* Loading screen dismissal — fires on first shell mount, which is
-       the earliest point React has hydrated and the app is ready to show.
-       We calculate where the navbar logo will land (top-left, accounting
-       for safe-area + navbar padding) and pass it as a CSS var so the
-       logo animates to the right spot. The overlay fades out in parallel.
-       A short rAF delay lets the browser paint the app frame first so
-       the user never sees a flash of unstyled content under the loader. */
+    /* Loading screen dismissal — fires on first shell mount, the earliest
+       point React has hydrated and the app is ready to show.
+       
+       The spin lives purely in CSS on #pd-loader-svg (isolated child).
+       The exit is driven by the Web Animations API on the overlay and
+       wrap separately — this way they never interfere with each other.
+       
+       Exit sequence:
+         1. Overlay fades to black→transparent (500ms)
+         2. Simultaneously: logo scales down + flies to navbar position
+         3. On finish: remove the whole element */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
-        if (!loader) return;
+        const wrap = document.getElementById('pd-loader-wrap');
+        if (!loader || !wrap) return;
 
-        // Calculate the navbar logo's destination position relative to
-        // the loader logo's current centered position.
         const isMobile = window.innerWidth <= 600;
         const navPadLeft = isMobile ? 20 : 40;
-        const navPadTop = isMobile ? 15 : 25;
-        const logoSize = 72; // loader logo size in px
-        const targetSize = 28; // final navbar logo size in px
+        const navPadTop  = isMobile ? 15 : 25;
+        const logoSize   = 72;
+        const targetSize = 28;
 
-        // Center of viewport (where loader logo currently sits)
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-
-        // Top-left of where the logo lands in the navbar
+        const centerX = window.innerWidth  / 2 - logoSize / 2;
+        const centerY = window.innerHeight / 2 - logoSize / 2;
         const targetX = navPadLeft;
-        const targetY = navPadTop + 8; // +8 for margin-top on pd-logo-wrap
+        const targetY = navPadTop + 8;
 
-        // Delta from center to target (in terms of logo top-left)
-        const deltaX = targetX - (centerX - logoSize / 2);
-        const deltaY = targetY - (centerY - logoSize / 2);
+        const dx = targetX - centerX;
+        const dy = targetY - centerY;
+        const scale = targetSize / logoSize;
 
-        loader.style.setProperty('--pd-logo-x', `${deltaX}px`);
-        loader.style.setProperty('--pd-logo-y', `${deltaY}px`);
+        const dur = 480;
+        const easing = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-        requestAnimationFrame(() => {
-            loader.classList.add('pd-loader--exit');
-            loader.addEventListener('transitionend', () => {
-                loader.remove();
-            }, { once: true });
-        });
+        // Fade + blur the whole overlay
+        loader.animate(
+            [{ opacity: 1 }, { opacity: 0 }],
+            { duration: dur, easing: 'ease-in', fill: 'forwards' }
+        );
+
+        // Shrink + fly the logo wrap
+        const done = wrap.animate(
+            [
+                { transform: 'translate(0, 0) scale(1)',           opacity: 1 },
+                { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 0 },
+            ],
+            { duration: dur, easing, fill: 'forwards' }
+        );
+
+        done.onfinish = () => loader.remove();
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
