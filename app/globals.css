@@ -992,9 +992,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
-    padding-top: 8px;
-    padding-left: 8px;
-    padding-right: 8px;
 }
 @media (max-width: 600px) {
     .notifications-box { padding-bottom: 2px; }
