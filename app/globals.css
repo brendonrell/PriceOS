@@ -985,11 +985,11 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .notif-header:hover { opacity: 1; }
 
-/* Mobile only: nudge label up 2px when box is collapsed */
+/* Mobile only: nudge label up 1px when box is collapsed */
 @media (max-width: 600px) {
     .notifications-box:not(.is-open) .notif-header {
         position: relative;
-        top: -2px;
+        top: -1px;
     }
 }
 
