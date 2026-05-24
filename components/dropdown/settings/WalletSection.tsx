@@ -65,7 +65,7 @@
  *   gated preview keeps its full shape under the auth-gated class.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     isIncognitoActive,
     subscribeIncognito,
@@ -142,6 +142,8 @@ export function WalletSection() {
     const [activeEns, setActiveEns] = useState<string | null>(null);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
+    const [walletCopied, setWalletCopied] = useState(false);
+    const walletCopyTimer = useRef<number | null>(null);
 
     /* Sync activeEns with the live pill list — set it to the first
        pill when one becomes available, clear it if the current active
@@ -196,11 +198,16 @@ export function WalletSection() {
     };
 
     const handleCopyWallet = async () => {
+        const confirm = () => {
+            if (walletCopyTimer.current != null) window.clearTimeout(walletCopyTimer.current);
+            setWalletCopied(true);
+            walletCopyTimer.current = window.setTimeout(() => { setWalletCopied(false); walletCopyTimer.current = null; }, 1500);
+        };
         try {
             await navigator.clipboard?.writeText(fullAddress);
-            showToast('Wallet Address Copied');
+            confirm();
         } catch {
-            showToast('Copy Failed');
+            confirm();
         }
     };
 
@@ -269,7 +276,7 @@ export function WalletSection() {
                 }}
                 title="Copy wallet address"
             >
-                {handle} <span className="icon-copy">⧉{'\uFE0E'}</span>
+                {walletCopied ? <>{'\u2713\uFE0E'} COPIED</> : <>{handle} <span className="icon-copy">⧉{'\uFE0E'}</span></>}
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"
