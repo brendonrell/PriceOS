@@ -1123,7 +1123,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     color: inherit;
 }
 @media (max-width: 600px) {
-    .scroll-arrow:last-child { padding-bottom: 0; padding-top: 2px; }
+    .scroll-arrow:last-child { padding-bottom: 6px; padding-top: 2px; }
 }
 
 
