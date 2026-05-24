@@ -76,23 +76,17 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useNavFade();
 
     /* Loading screen dismiss — fires as soon as the app is ready (this
-       component has mounted). Simple fade-out, no minimum delay, no
-       magnetic suck. Browser chrome bar fades in sync via the html
-       background transition. */
+       component has mounted). Loader only covers the safe-area content
+       zone so browser chrome is never touched and never re-samples. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
         if (!loader) return;
 
-        document.documentElement.style.transition = 'background 350ms ease';
-        document.documentElement.style.background = '';
         loader.animate(
             [{ opacity: 1 }, { opacity: 0 }],
             { duration: 350, easing: 'ease-out', fill: 'forwards' }
-        ).onfinish = () => {
-            loader.remove();
-            document.documentElement.style.transition = '';
-        };
+        ).onfinish = () => loader.remove();
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
