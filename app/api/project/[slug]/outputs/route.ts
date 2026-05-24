@@ -41,7 +41,7 @@ const MOCK_HOLDERS = [
 
 const DEFAULT_PAGE_SIZE = 24;
 const MAX_PAGE_SIZE = 100;
-const MOCK_TOTAL = 222;
+const MOCK_TOTAL = 500;
 
 export async function GET(
   req: NextRequest,
