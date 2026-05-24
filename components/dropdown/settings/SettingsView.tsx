@@ -80,45 +80,47 @@ export function SettingsView() {
             id="settingsPanel"
             style={panelStyle}
         >
-            <div
-                className="scroll-arrow"
-                role="button"
-                tabIndex={0}
-                title="Back"
-                style={{ padding: '4px 10px 0 10px', fontSize: '18px' }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setSpellBookActive(false);
-                    setView('links');
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+            <div className="settings-scroll-body">
+                <div
+                    className="scroll-arrow"
+                    role="button"
+                    tabIndex={0}
+                    title="Back"
+                    style={{ padding: '4px 10px 0 10px', fontSize: '18px' }}
+                    onClick={(e) => {
+                        e.stopPropagation();
                         setSpellBookActive(false);
                         setView('links');
-                    }
-                }}
-            >
-                ←{'\uFE0E'}
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSpellBookActive(false);
+                            setView('links');
+                        }
+                    }}
+                >
+                    ←{'\uFE0E'}
+                </div>
+
+                <WalletSection />
+
+                <div className="dropdown-divider" />
+
+                {spellBookActive ? (
+                    <SpellBookSection onTripleTap={() => setSpellBookActive(false)} />
+                ) : (
+                    <>
+                        <MyPdSection onTripleTap={() => setSpellBookActive(true)} />
+                        <div className="dropdown-divider" />
+                        <ThemePicker />
+                        <div className="dropdown-divider" />
+                        <DefaultSortRow />
+                        <div className="dropdown-divider" />
+                        <MyPingsRow />
+                    </>
+                )}
             </div>
-
-            <WalletSection />
-
-            <div className="dropdown-divider" />
-
-            {spellBookActive ? (
-                <SpellBookSection onTripleTap={() => setSpellBookActive(false)} />
-            ) : (
-                <>
-                    <MyPdSection onTripleTap={() => setSpellBookActive(true)} />
-                    <div className="dropdown-divider" />
-                    <ThemePicker />
-                    <div className="dropdown-divider" />
-                    <DefaultSortRow />
-                    <div className="dropdown-divider" />
-                    <MyPingsRow />
-                </>
-            )}
 
             <WorkspaceSwitcher />
         </div>
