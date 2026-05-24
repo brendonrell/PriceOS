@@ -276,7 +276,10 @@ const LOADER_HTML = `<style>
   }
   #pd-loader {
     position: fixed;
-    inset: 0;
+    top: env(safe-area-inset-top);
+    bottom: env(safe-area-inset-bottom);
+    left: 0;
+    right: 0;
     z-index: 99999;
     background: #000;
     display: flex;
@@ -291,7 +294,6 @@ const LOADER_HTML = `<style>
     animation: pdBreathe 1.2s ease-in-out infinite;
   }
 </style>
-<script>document.documentElement.style.background='#000';</script>
 <div id="pd-loader">
   <svg id="pd-loader-logo" viewBox="0 0 761 655" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="${LOADER_SVG_PATHS[0]}" fill="currentColor"/>
