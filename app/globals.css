@@ -150,6 +150,29 @@ button {
 
 
 /* ============================================================
+   iOS 26.1 PWA LIQUID GLASS FIX — sim 64-72
+   Fixed pseudo-element exactly env(safe-area-inset-top) tall.
+   backdrop-filter blurs scrolling content behind the notch so
+   artwork shows through with frosted glass instead of a hard
+   black bar. z-index 9999 sits above all surfaces; pointer-
+   events:none so taps fall through to navbar controls below.
+   ============================================================ */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* ============================================================
    NAVBAR
    ============================================================ */
 .navbar {
