@@ -971,6 +971,82 @@ function ProjectPageBodyInner() {
                 aria-label="More"
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
+                {/* MORE STATS — stats-row-2 restored here from hero.
+                    Percent Listed, Floor Price, and Anchor. The ⚓ anchor
+                    tap opens the ValuePrompt to set / clear your reference
+                    price. Moved out of the hero into +More so it is
+                    accessible without crowding the main hero on mobile. */}
+                <div className="more-section-header">MORE STATS</div>
+                <div className="more-price-stats-row">
+                    <div className="stats-grid">
+                        <div className="stats-row stats-row-2">
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-owned"
+                                    {...iconToastProps('Percent Listed')}
+                                >
+                                    ⊡&#xFE0E;
+                                </span>{' '}
+                                <span className="stat-val" id="statOwnedVal">
+                                    57%
+                                </span>
+                            </span>
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-spent"
+                                    {...iconToastProps('Floor Price')}
+                                >
+                                    ↨&#xFE0E;
+                                </span>{' '}
+                                <span className="stat-val" id="statSpentVal">
+                                    {lowestFloor !== null
+                                        ? `${lowestFloor.toFixed(2)} ETH`
+                                        : '—'}
+                                </span>
+                            </span>
+                            <span className="stat-item stat-item-anchor">
+                                <span
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Your Personal Reference Price')}
+                                >
+                                    ⚓&#xFE0E;
+                                </span>{' '}
+                                <span
+                                    className={
+                                        anchorEth != null
+                                            ? 'stat-val'
+                                            : 'stat-val stat-val-empty'
+                                    }
+                                    id="statAnchorVal"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Tap to set"
+                                    data-anchor-key={project.title}
+                                    onClick={(e) => {
+                                        const key =
+                                            e.currentTarget.dataset.anchorKey ||
+                                            project.title;
+                                        openAnchorPrompt({ key, label: key });
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            const key =
+                                                e.currentTarget.dataset.anchorKey ||
+                                                project.title;
+                                            openAnchorPrompt({ key, label: key });
+                                        }
+                                    }}
+                                >
+                                    {anchorEth != null
+                                        ? `${anchorEth} ETH`
+                                        : ''}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* REPLAY — sim 5207-5228 */}
                 <div className="more-section-header">REPLAY</div>
                 <div className="more-replay-wrap">
@@ -997,78 +1073,6 @@ function ProjectPageBodyInner() {
                             <span className="mr-range">AUG 14 → TODAY</span>
                         </div>
                     </div>
-                </div>
-
-                {/* MORE STATS — stats-row-2 restored here from hero.
-                    Percent Listed, Floor Price, and Anchor. The ⚓ anchor
-                    tap opens the ValuePrompt to set / clear your reference
-                    price. Moved out of the hero into +More so it is
-                    accessible without crowding the main hero on mobile. */}
-                <div className="more-section-header">MORE STATS</div>
-                <div className="more-price-stats-row stats-row stats-row-2">
-                    <span className="stat-item">
-                        <span
-                            className="stat-icon stat-icon-box stat-icon-owned"
-                            {...iconToastProps('Percent Listed')}
-                        >
-                            ⊡&#xFE0E;
-                        </span>{' '}
-                        <span className="stat-val" id="statOwnedVal">
-                            57%
-                        </span>
-                    </span>
-                    <span className="stat-item">
-                        <span
-                            className="stat-icon stat-icon-box stat-icon-spent"
-                            {...iconToastProps('Floor Price')}
-                        >
-                            ↨&#xFE0E;
-                        </span>{' '}
-                        <span className="stat-val" id="statSpentVal">
-                            {lowestFloor !== null
-                                ? `${lowestFloor.toFixed(2)} ETH`
-                                : '—'}
-                        </span>
-                    </span>
-                    <span className="stat-item stat-item-anchor">
-                        <span
-                            className="stat-icon stat-icon-box"
-                            {...iconToastProps('Your Personal Reference Price')}
-                        >
-                            ⚓&#xFE0E;
-                        </span>{' '}
-                        <span
-                            className={
-                                anchorEth != null
-                                    ? 'stat-val'
-                                    : 'stat-val stat-val-empty'
-                            }
-                            id="statAnchorVal"
-                            role="button"
-                            tabIndex={0}
-                            title="Tap to set"
-                            data-anchor-key={project.title}
-                            onClick={(e) => {
-                                const key =
-                                    e.currentTarget.dataset.anchorKey ||
-                                    project.title;
-                                openAnchorPrompt({ key, label: key });
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    const key =
-                                        e.currentTarget.dataset.anchorKey ||
-                                        project.title;
-                                    openAnchorPrompt({ key, label: key });
-                                }
-                            }}
-                        >
-                            {anchorEth != null
-                                ? `${anchorEth} ETH`
-                                : ''}
-                        </span>
-                    </span>
                 </div>
 
                 {/* ALBUMS — sim 5230-5244 */}
