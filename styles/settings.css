@@ -156,11 +156,14 @@
 
 .pill-budget-delete {
     font-size: 13px;
+    font-weight: bold;
     line-height: 1;
-    opacity: 0.45;
+    opacity: 0.5;
     cursor: pointer;
     flex-shrink: 0;
     transition: opacity 0.15s;
+    display: inline-flex;
+    align-items: center;
 }
 .pill-budget-delete:hover { opacity: 1; }
 
