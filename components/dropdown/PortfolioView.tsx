@@ -407,7 +407,7 @@ export function PortfolioView() {
                             return (
                                 <div
                                     key={`${b.name}-${i}`}
-                                    className={`pill-ens${isActive ? ' active' : ''}`}
+                                    className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                     role="button"
                                     tabIndex={0}
                                     title={`${b.name} — ${pfFmtEth(b.eth)}`}
@@ -420,6 +420,14 @@ export function PortfolioView() {
                                     }}
                                 >
                                     {b.name}
+                                    <span
+                                        className="pill-budget-delete"
+                                        title="Delete budget"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteBudget(i);
+                                        }}
+                                    >×</span>
                                 </div>
                             );
                         })}
