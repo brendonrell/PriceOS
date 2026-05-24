@@ -971,41 +971,15 @@ function ProjectPageBodyInner() {
                 aria-label="More"
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
-                {/* REPLAY — sim 5207-5228 */}
-                <div className="more-section-header">REPLAY</div>
-                <div className="more-replay-wrap">
-                    <div
-                        className="more-replay-card"
-                        onClick={() =>
-                            showToast('Replay — design sprint pending')
-                        }
-                    >
-                        <div className="more-replay-timeline">
-                            <div className="mr-tl-bar" />
-                            <div className="mr-tl-playhead" />
-                            <div className="mr-tl-events">
-                                {Array.from({ length: 11 }).map((_, i) => (
-                                    <span className="mr-tl-ev" key={i} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="more-replay-meta">
-                            <span className="mr-play">▶&#xFE0E;</span>
-                            <span className="mr-speed">1x</span>
-                            <span className="mr-speed mr-speed-dim">5x</span>
-                            <span className="mr-speed mr-speed-dim">22x</span>
-                            <span className="mr-range">AUG 14 → TODAY</span>
-                        </div>
-                    </div>
-                </div>
-
                 {/* MORE STATS — stats-row-2 restored here from hero.
                     Percent Listed, Floor Price, and Anchor. The ⚓ anchor
                     tap opens the ValuePrompt to set / clear your reference
                     price. Moved out of the hero into +More so it is
-                    accessible without crowding the main hero on mobile. */}
+                    accessible without crowding the main hero on mobile.
+                    Styled with hero-line stats-row so spacing and icon
+                    alignment match the hero stats row exactly. */}
                 <div className="more-section-header">MORE STATS</div>
-                <div className="more-price-stats-row stats-row stats-row-2">
+                <div className="more-price-stats-row hero-line stats-row stats-row-2">
                     <span className="stat-item">
                         <span
                             className="stat-icon stat-icon-box stat-icon-owned"
@@ -1014,7 +988,7 @@ function ProjectPageBodyInner() {
                             ⊡&#xFE0E;
                         </span>{' '}
                         <span className="stat-val" id="statOwnedVal">
-                            57%
+                            57% listed
                         </span>
                     </span>
                     <span className="stat-item">
@@ -1026,7 +1000,7 @@ function ProjectPageBodyInner() {
                         </span>{' '}
                         <span className="stat-val" id="statSpentVal">
                             {lowestFloor !== null
-                                ? `${lowestFloor.toFixed(2)} ETH`
+                                ? `${lowestFloor.toFixed(2)} ETH floor`
                                 : '—'}
                         </span>
                     </span>
@@ -1069,6 +1043,34 @@ function ProjectPageBodyInner() {
                                 : ''}
                         </span>
                     </span>
+                </div>
+
+                {/* REPLAY — sim 5207-5228 */}
+                <div className="more-section-header">REPLAY</div>
+                <div className="more-replay-wrap">
+                    <div
+                        className="more-replay-card"
+                        onClick={() =>
+                            showToast('Replay — design sprint pending')
+                        }
+                    >
+                        <div className="more-replay-timeline">
+                            <div className="mr-tl-bar" />
+                            <div className="mr-tl-playhead" />
+                            <div className="mr-tl-events">
+                                {Array.from({ length: 11 }).map((_, i) => (
+                                    <span className="mr-tl-ev" key={i} />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="more-replay-meta">
+                            <span className="mr-play">▶&#xFE0E;</span>
+                            <span className="mr-speed">1x</span>
+                            <span className="mr-speed mr-speed-dim">5x</span>
+                            <span className="mr-speed mr-speed-dim">22x</span>
+                            <span className="mr-range">AUG 14 → TODAY</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* ALBUMS — sim 5230-5244 */}
