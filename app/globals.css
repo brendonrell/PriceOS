@@ -2744,7 +2744,8 @@ body.persona-default .stats-row-2 { display: none !important; }
    against Rubik Mono One value text in adjacent cells.
    S4 page 3234 (clean-fix, NOT sim) — width +30% (36 → 47) so the empty
    affordance reads at a glance and doesn't look like a hyphen artifact. */
-.stats-row-2 .stat-val.stat-val-empty {
+.stats-row-2 .stat-val.stat-val-empty,
+.stat-item-anchor .stat-val.stat-val-empty {
     display: inline-block;
     width: 47px;
     height: 9px;
