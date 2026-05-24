@@ -146,6 +146,12 @@ const PREHYDRATION_SCRIPT = `
             root.style.setProperty('--pill-l1-border', pillL1Border);
             root.style.setProperty('--pill-l1-bg-img', pillL1BgImg);
             root.style.setProperty('--pill-l1-active-bg-img', pillL1ActiveBgImg);
+
+            // Sync Safari browser chrome colour to the live bg — sim line 6859.
+            // Without this Safari latches onto the static #111111 and repaints
+            // its URL-bar/status-bar with a visible delay after the loader exits.
+            var tcm = document.getElementById('theme-color-meta');
+            if (tcm) tcm.setAttribute('content', bg);
         }
 
         if (profileBoot) {
@@ -388,7 +394,7 @@ export default async function RootLayout({
                     name="apple-mobile-web-app-title"
                     content="Price Discussion"
                 />
-                <meta name="theme-color" content="#111111" />
+                <meta name="theme-color" id="theme-color-meta" content="#111111" />
                 {/*
                   Pre-hydration script — MUST stay in <head> so the browser
                   executes it before first paint. Reads localStorage to apply
