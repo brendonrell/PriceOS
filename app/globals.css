@@ -512,14 +512,15 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     line-height: 1;
     cursor: pointer;
     color: var(--text-color);
-    opacity: 0.7;
+    opacity: 0.25;
+    font-weight: normal;
     z-index: 1002;
     font-family: 'Courier New', Courier, monospace;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: opacity 0.2s, transform 0.2s, font-weight 0.1s;
     -webkit-tap-highlight-color: transparent;
 }
-.modal-pin-hint:hover { opacity: 1; }
-.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); }
+.modal-pin-hint:hover { opacity: 0.6; }
+.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); font-weight: bold; }
 
 .btn-user {
     background: var(--text-color);
