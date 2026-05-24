@@ -81,6 +81,7 @@ import {
     subscribeBudgets,
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
+import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -716,6 +717,14 @@ function ProjectPageBodyInner() {
             applyStepLine(priceAscRef.current);
         });
     }, []);
+
+    /* Force-paint showcase picks that may never have scrolled into view.
+       Fires whenever the showcase tab becomes active so grey placeholders
+       don't show. forceRenderIds bypasses the IntersectionObserver and
+       directly queues the picked canvases for idle-time rendering. */
+    useEffect(() => {
+        if (onShowcaseTab) forceRenderIds(projectShowcasePicks);
+    }, [onShowcaseTab, projectShowcasePicks]);
 
     /* F61 (BUG-30) — re-pick on burnPileActive flip ON.
        Sim 6629-6635 takes a fresh random sample of 3 cards each time
