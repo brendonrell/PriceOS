@@ -163,7 +163,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             // ignore
         }
         copyingRef.current = true;
-        setInputValue('COPIED');
+        setInputValue('✓ COPIED');
         window.setTimeout(() => {
             copyingRef.current = false;
             setInputValue(currentCode);
@@ -448,7 +448,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                                 // ignore
                             }
                             copyingHexRef.current = true;
-                            setHexField('COPIED');
+                            setHexField('✓ COPIED');
                             window.setTimeout(() => {
                                 copyingHexRef.current = false;
                                 setHexField(artistColor);
