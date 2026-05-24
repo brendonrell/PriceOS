@@ -38,9 +38,9 @@ export async function GET(
     artist_address: '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
     title: 'PRISMS',
     description:
-      'Preview project on Price Discussion. 222 Outputs, each with a Layer, a Mineral, and a Fate.',
+      'Preview project on Price Discussion. 2222 Outputs, each with a Layer, a Mineral, and a Fate.',
     minted_count: 187,
-    max_supply: 222,
+    max_supply: 2222,
     floor_price_eth: '0.0091',
     volume_eth: '24.713',
     all_time_high_eth: '0.42',
