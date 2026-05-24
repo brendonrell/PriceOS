@@ -150,30 +150,6 @@ button {
 
 
 /* ============================================================
-   SAFE-AREA FROSTED OVERLAY — sim 65-72
-   Fixed pseudo-element exactly the height of env(safe-area-inset-top)
-   (the notch / Dynamic Island zone). backdrop-filter blurs the
-   scrolling content behind it so artwork shows through with frosted
-   glass rather than a hard black bar. z-index 9999 keeps it above
-   every surface; pointer-events:none so taps fall through to the
-   navbar controls below.
-   ============================================================ */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-top);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    z-index: 9999;
-    pointer-events: none;
-}
-
-/* ============================================================
    NAVBAR
    ============================================================ */
 .navbar {
@@ -512,15 +488,14 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     line-height: 1;
     cursor: pointer;
     color: var(--text-color);
-    opacity: 0.25;
-    font-weight: normal;
+    opacity: 0.7;
     z-index: 1002;
     font-family: 'Courier New', Courier, monospace;
-    transition: opacity 0.2s, transform 0.2s, font-weight 0.1s;
+    transition: opacity 0.2s, transform 0.2s;
     -webkit-tap-highlight-color: transparent;
 }
-.modal-pin-hint:hover { opacity: 0.6; }
-.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); font-weight: bold; }
+.modal-pin-hint:hover { opacity: 1; }
+.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); }
 
 .btn-user {
     background: var(--text-color);
@@ -633,7 +608,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     box-sizing: border-box;
     flex-shrink: 0;
 }
-
 
 .user-dropdown a {
     color: inherit;
@@ -993,9 +967,9 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
-}
-@media (max-width: 600px) {
-    .notifications-box { padding-bottom: 2px; }
+    padding-top: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 .notif-header {
@@ -1010,6 +984,9 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     transition: opacity 0.2s;
 }
 .notif-header:hover { opacity: 1; }
+@media (max-width: 600px) {
+    .notif-header, .notes-header, .pings-label { position: relative; top: -2px; }
+}
 
 .notif-count {
     font-family: 'Courier New', Courier, monospace;
@@ -1144,9 +1121,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     transition: opacity 0.2s, color 0.2s;
     user-select: none;
     color: inherit;
-}
-@media (max-width: 600px) {
-    .scroll-arrow:last-child { padding-bottom: 6px; padding-top: 2px; }
 }
 
 
@@ -2744,8 +2718,7 @@ body.persona-default .stats-row-2 { display: none !important; }
    against Rubik Mono One value text in adjacent cells.
    S4 page 3234 (clean-fix, NOT sim) — width +30% (36 → 47) so the empty
    affordance reads at a glance and doesn't look like a hyphen artifact. */
-.stats-row-2 .stat-val.stat-val-empty,
-.stat-item-anchor .stat-val.stat-val-empty {
+.stats-row-2 .stat-val.stat-val-empty {
     display: inline-block;
     width: 47px;
     height: 9px;
@@ -3386,7 +3359,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 @media (max-width: 600px) { .burn-btn { font-size: 22px; } }
 @media (hover: hover) {
-    .burn-btn:hover { opacity: 1; }
+    .burn-btn:hover {
+        opacity: 1;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-thickness: 1px;
+    }
 }
 .search-btn {
     cursor: pointer;
@@ -3413,7 +3391,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-weight: normal;
 }
 @media (max-width: 600px) { .search-btn { font-size: 22px; position: relative; top: 2px; } }
-@media (hover: hover) { .search-btn:hover { opacity: 1; } }
 
 /* ── TRAIT CATEGORIES CONTAINER — sim 2327 ── */
 #traitCategories {
@@ -3425,8 +3402,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: center;
 }
 
-/* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
-.multiselect-btn {
+/* Multi-select icon (epoch-btn) shares the burn-btn / search-btn rules.
+   Aliasing here so the existing sim glyph render stays consistent. */
+.epoch-btn {
     cursor: pointer;
     font-size: 18px;
     font-family: 'Courier New', Courier, monospace;
@@ -3443,15 +3421,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-weight: normal;
     text-decoration: none;
 }
-.multiselect-btn.active {
+.epoch-btn.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
 }
-@media (max-width: 600px) { .multiselect-btn { font-size: 22px; } }
-@media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
-@media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
+@media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 .search-row {
