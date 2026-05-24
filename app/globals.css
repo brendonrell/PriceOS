@@ -5220,7 +5220,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 5px 0 2px 0;
+    padding: 0;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
