@@ -150,6 +150,20 @@
     border-style: solid;
 }
 
+.pill-budget {
+    gap: 5px;
+}
+
+.pill-budget-delete {
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0.45;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+}
+.pill-budget-delete:hover { opacity: 1; }
+
 .pill-ens em {
     font-style: italic;
 }
