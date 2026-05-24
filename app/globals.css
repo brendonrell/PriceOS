@@ -150,6 +150,30 @@ button {
 
 
 /* ============================================================
+   SAFE-AREA FROSTED OVERLAY — sim 65-72
+   Fixed pseudo-element exactly the height of env(safe-area-inset-top)
+   (the notch / Dynamic Island zone). backdrop-filter blurs the
+   scrolling content behind it so artwork shows through with frosted
+   glass rather than a hard black bar. z-index 9999 keeps it above
+   every surface; pointer-events:none so taps fall through to the
+   navbar controls below.
+   ============================================================ */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* ============================================================
    NAVBAR
    ============================================================ */
 .navbar {
