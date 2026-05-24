@@ -168,7 +168,7 @@ export function PortfolioView() {
                 onSubmit: (vals) => {
                     if (!vals) return; // cancelled
                     engineDeleteBudget(idx);
-                    showToast(`Budget deleted: ${label}`);
+                    showToast(`"${label}" Budget: DELETED`);
                 },
             });
         },
