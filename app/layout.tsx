@@ -301,7 +301,7 @@ const LOADER_HTML = `<style>
   }
   #pd-loader-text span {
     display: inline-block;
-    animation: pdLetterWave 0.8s ease-in-out infinite;
+    animation: pdLetterWave 0.55s ease-in-out infinite;
   }
   #pd-loader-text span:nth-child(1) { animation-delay: 0.0s; }
   #pd-loader-text span:nth-child(2) { animation-delay: 0.07s; }
