@@ -160,10 +160,18 @@ export function PortfolioView() {
     const deleteBudget = useCallback(
         (idx: number) => {
             const label = budgets.list[idx]?.name ?? '';
-            engineDeleteBudget(idx);
-            showToast(`Budget deleted: ${label}`);
+            openValuePrompt({
+                title: `Delete budget <em>${label}</em>?`,
+                fields: [],
+                submit: 'Delete',
+                onSubmit: (vals) => {
+                    if (!vals) return; // cancelled
+                    engineDeleteBudget(idx);
+                    showToast(`Budget deleted: ${label}`);
+                },
+            });
         },
-        [budgets, showToast]
+        [budgets, openValuePrompt, showToast]
     );
 
     /**
