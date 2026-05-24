@@ -5227,6 +5227,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    position: relative;
+    top: 2px;
 }
 .ws-dot {
     position: relative;
