@@ -288,6 +288,10 @@ export default function OutputPreview() {
        bound while the popover is open. pillRowRef anchors the popover
        position so it floats above the pill row regardless of screen size. */
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [ownerCopied, setOwnerCopied] = useState(false);
+    const [urlCopied, setUrlCopied] = useState(false);
+    const ownerCopyTimer = useRef<number | null>(null);
+    const urlCopyTimer = useRef<number | null>(null);
     const detailsPopoverRef = useRef<HTMLDivElement | null>(null);
     const detailsPillRef = useRef<HTMLSpanElement | null>(null);
     useEffect(() => {
@@ -312,6 +316,14 @@ export default function OutputPreview() {
             if (swingTimerRef.current != null) {
                 window.clearTimeout(swingTimerRef.current);
                 swingTimerRef.current = null;
+            }
+            if (ownerCopyTimer.current != null) {
+                window.clearTimeout(ownerCopyTimer.current);
+                ownerCopyTimer.current = null;
+            }
+            if (urlCopyTimer.current != null) {
+                window.clearTimeout(urlCopyTimer.current);
+                urlCopyTimer.current = null;
             }
         };
     }, []);
@@ -486,14 +498,15 @@ export default function OutputPreview() {
         showToast(`${collName} #${id} GRAIL PINNED`);
     }, [id, title, showToast]);
 
-    /* Backdrop click closes only when the click lands on the modal element
-       itself, not bubbled from a child. Mirrors sim's onclick guard at
-       sim.html line 8825. */
+    /* Backdrop click intentionally does NOT close the modal.
+       Only the X (.close-hint) or an outbound navigation action closes it.
+       Sim had a backdrop-click guard (sim 8825); we deviate here per
+       Brendon: clicking outside the artwork area should do nothing. */
     const onBackdropClick = useCallback(
-        (e: ReactMouseEvent<HTMLDivElement>) => {
-            if (e.target === e.currentTarget) close();
+        (_e: ReactMouseEvent<HTMLDivElement>) => {
+            // no-op — intentional
         },
-        [close]
+        []
     );
 
     const isPinned = id != null && grailPins.includes(id);
@@ -700,8 +713,16 @@ export default function OutputPreview() {
                                                 {meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull)}
                                             </span>
                                             {!meta.isOwnedByBrendon && meta.ownerFull && (
-                                                <button className="dp-copy-btn" title="Copy address" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(meta.ownerFull ?? '').then(() => showToast('Address Copied')).catch(() => showToast('Copy failed')); }}>
-                                                    ⧉{VS15}
+                                                <button className="dp-copy-btn" title="Copy address" onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const write = () => {
+                                                        if (ownerCopyTimer.current != null) window.clearTimeout(ownerCopyTimer.current);
+                                                        setOwnerCopied(true);
+                                                        ownerCopyTimer.current = window.setTimeout(() => { setOwnerCopied(false); ownerCopyTimer.current = null; }, 1500);
+                                                    };
+                                                    navigator.clipboard.writeText(meta.ownerFull ?? '').then(write).catch(write);
+                                                }}>
+                                                    {ownerCopied ? <>✓{VS15}</> : <>⧉{VS15}</>}
                                                 </button>
                                             )}
                                         </span>
@@ -719,11 +740,29 @@ export default function OutputPreview() {
                                     <div className="dp-row">
                                         <span className="dp-label">Share URL</span>
                                         <span className="dp-value">
-                                            <button className="dp-link-btn" title="Copy artwork URL" onClick={(e) => { e.stopPropagation(); const url = id != null ? `${window.location.origin}/${id}` : window.location.href; navigator.clipboard.writeText(url).then(() => showToast('URL Copied')).catch(() => showToast('Copy failed')); }}>
-                                                <span className="dp-value-text">Copy</span>
+                                            <button className="dp-link-btn" title="Copy artwork URL" onClick={(e) => {
+                                                e.stopPropagation();
+                                                const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
+                                                const write = () => {
+                                                    if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
+                                                    setUrlCopied(true);
+                                                    urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
+                                                };
+                                                navigator.clipboard.writeText(url).then(write).catch(write);
+                                            }}>
+                                                <span className="dp-value-text">{urlCopied ? '✓ COPIED' : 'Copy'}</span>
                                             </button>
-                                            <button className="dp-copy-btn" title="Copy artwork URL" onClick={(e) => { e.stopPropagation(); const url = id != null ? `${window.location.origin}/${id}` : window.location.href; navigator.clipboard.writeText(url).then(() => showToast('URL Copied')).catch(() => showToast('Copy failed')); }}>
-                                                ⧉{VS15}
+                                            <button className="dp-copy-btn" title="Copy artwork URL" onClick={(e) => {
+                                                e.stopPropagation();
+                                                const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
+                                                const write = () => {
+                                                    if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
+                                                    setUrlCopied(true);
+                                                    urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
+                                                };
+                                                navigator.clipboard.writeText(url).then(write).catch(write);
+                                            }}>
+                                                {urlCopied ? <>✓{VS15}</> : <>⧉{VS15}</>}
                                             </button>
                                         </span>
                                     </div>
