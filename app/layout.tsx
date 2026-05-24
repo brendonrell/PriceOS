@@ -269,7 +269,7 @@ const LOADER_SVG_PATHS = [
  *   3. Element removed
  */
 const LOADER_HTML = `<style>
-  @keyframes pdDotWave {
+  @keyframes pdLetterWave {
     0%, 100% { opacity: 0.15; }
     50%       { opacity: 1; }
   }
@@ -293,21 +293,26 @@ const LOADER_HTML = `<style>
   }
   #pd-loader-text {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    font-size: 12px;
+    font-weight: bold;
     color: #FFE600;
     letter-spacing: 0.08em;
   }
-  #pd-loader-text .pd-dot {
+  #pd-loader-text span {
     display: inline-block;
-    animation: pdDotWave 1.2s ease-in-out infinite;
+    animation: pdLetterWave 1.2s ease-in-out infinite;
   }
-  #pd-loader-text .pd-dot:nth-child(1) { animation-delay: 0s; }
-  #pd-loader-text .pd-dot:nth-child(2) { animation-delay: 0.2s; }
-  #pd-loader-text .pd-dot:nth-child(3) { animation-delay: 0.4s; }
+  #pd-loader-text span:nth-child(1) { animation-delay: 0.0s; }
+  #pd-loader-text span:nth-child(2) { animation-delay: 0.1s; }
+  #pd-loader-text span:nth-child(3) { animation-delay: 0.2s; }
+  #pd-loader-text span:nth-child(4) { animation-delay: 0.3s; }
+  #pd-loader-text span:nth-child(5) { animation-delay: 0.4s; }
+  #pd-loader-text span:nth-child(6) { animation-delay: 0.5s; }
+  #pd-loader-text span:nth-child(7) { animation-delay: 0.6s; }
 </style>
 <div id="pd-loader">
   <div id="pd-loader-panel">
-    <span id="pd-loader-text">Loading<span class="pd-dot">.</span><span class="pd-dot">.</span><span class="pd-dot">.</span></span>
+    <span id="pd-loader-text"><span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span></span>
   </div>
 </div>`.trim();
 
