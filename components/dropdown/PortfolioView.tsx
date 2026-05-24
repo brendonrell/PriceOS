@@ -65,6 +65,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
+import type { ValuePromptField } from '../../lib/state/ValuePromptContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import {
     PORTFOLIO_DATA,
@@ -162,7 +163,7 @@ export function PortfolioView() {
             const label = budgets.list[idx]?.name ?? '';
             openValuePrompt({
                 title: `Delete budget <em>${label}</em>?`,
-                fields: [],
+                fields: [] as ValuePromptField[],
                 submit: 'Delete',
                 onSubmit: (vals) => {
                     if (!vals) return; // cancelled
