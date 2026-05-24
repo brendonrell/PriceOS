@@ -995,13 +995,14 @@ function ProjectPageBodyInner() {
                         <span className="stat-item">
                             <span
                                 className="stat-icon stat-icon-box stat-icon-spent"
+                                style={{ fontSize: '9px' }}
                                 {...iconToastProps('Floor Price')}
                             >
                                 ↨&#xFE0E;
                             </span>{' '}
                             <span className="stat-val" id="statSpentVal">
                                 {lowestFloor !== null
-                                    ? `${lowestFloor.toFixed(2)} ETH floor`
+                                    ? `${lowestFloor.toFixed(2)} ETH`
                                     : '—'}
                             </span>
                         </span>
