@@ -75,6 +75,49 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
 
+    /* Loading screen dismissal — fires on first shell mount, which is
+       the earliest point React has hydrated and the app is ready to show.
+       We calculate where the navbar logo will land (top-left, accounting
+       for safe-area + navbar padding) and pass it as a CSS var so the
+       logo animates to the right spot. The overlay fades out in parallel.
+       A short rAF delay lets the browser paint the app frame first so
+       the user never sees a flash of unstyled content under the loader. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const loader = document.getElementById('pd-loader');
+        if (!loader) return;
+
+        // Calculate the navbar logo's destination position relative to
+        // the loader logo's current centered position.
+        const isMobile = window.innerWidth <= 600;
+        const navPadLeft = isMobile ? 20 : 40;
+        const navPadTop = isMobile ? 15 : 25;
+        const logoSize = 72; // loader logo size in px
+        const targetSize = 28; // final navbar logo size in px
+
+        // Center of viewport (where loader logo currently sits)
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        // Top-left of where the logo lands in the navbar
+        const targetX = navPadLeft;
+        const targetY = navPadTop + 8; // +8 for margin-top on pd-logo-wrap
+
+        // Delta from center to target (in terms of logo top-left)
+        const deltaX = targetX - (centerX - logoSize / 2);
+        const deltaY = targetY - (centerY - logoSize / 2);
+
+        loader.style.setProperty('--pd-logo-x', `${deltaX}px`);
+        loader.style.setProperty('--pd-logo-y', `${deltaY}px`);
+
+        requestAnimationFrame(() => {
+            loader.classList.add('pd-loader--exit');
+            loader.addEventListener('transitionend', () => {
+                loader.remove();
+            }, { once: true });
+        });
+    }, []);
+
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
        exactly: OR navigator.standalone (iOS-only, ignores display-mode
        media query) with matchMedia('(display-mode: standalone)'). One-shot
