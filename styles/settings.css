@@ -26,7 +26,11 @@
 }
 .settings-panel::-webkit-scrollbar { display: none; }
 @media (max-width: 600px) {
-    .settings-panel { max-height: none; overflow-y: visible; }
+    .settings-panel {
+        max-height: calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
+        padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 
