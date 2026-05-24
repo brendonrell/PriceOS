@@ -284,9 +284,10 @@ const LOADER_HTML = `<style>
     -webkit-backdrop-filter: blur(18px);
   }
   #pd-loader-panel {
-    width: 100%;
-    height: 50vh;
     background: #000;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -300,15 +301,15 @@ const LOADER_HTML = `<style>
   }
   #pd-loader-text span {
     display: inline-block;
-    animation: pdLetterWave 1.2s ease-in-out infinite;
+    animation: pdLetterWave 0.8s ease-in-out infinite;
   }
   #pd-loader-text span:nth-child(1) { animation-delay: 0.0s; }
-  #pd-loader-text span:nth-child(2) { animation-delay: 0.1s; }
-  #pd-loader-text span:nth-child(3) { animation-delay: 0.2s; }
-  #pd-loader-text span:nth-child(4) { animation-delay: 0.3s; }
-  #pd-loader-text span:nth-child(5) { animation-delay: 0.4s; }
-  #pd-loader-text span:nth-child(6) { animation-delay: 0.5s; }
-  #pd-loader-text span:nth-child(7) { animation-delay: 0.6s; }
+  #pd-loader-text span:nth-child(2) { animation-delay: 0.07s; }
+  #pd-loader-text span:nth-child(3) { animation-delay: 0.14s; }
+  #pd-loader-text span:nth-child(4) { animation-delay: 0.21s; }
+  #pd-loader-text span:nth-child(5) { animation-delay: 0.28s; }
+  #pd-loader-text span:nth-child(6) { animation-delay: 0.35s; }
+  #pd-loader-text span:nth-child(7) { animation-delay: 0.42s; }
 </style>
 <div id="pd-loader">
   <div id="pd-loader-panel">
