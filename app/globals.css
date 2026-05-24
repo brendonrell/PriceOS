@@ -1002,7 +1002,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     font-size: 11px;
     opacity: 0.8;
     padding: 4px 10px;
-    margin-top: 4px;
     font-weight: bold;
     letter-spacing: 1px;
     display: flex; align-items: center;
@@ -5221,8 +5220,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 5px 0;
-    margin-top: 4px;
+    padding: 5px 0 2px 0;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
