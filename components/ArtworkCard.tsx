@@ -81,10 +81,7 @@ import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import {
-    getTokenArtSpec,
-    paintPlaceholder,
-} from '../lib/art/placeholderRenderer';
+import { renderPrisms } from '../lib/art/prismsEngine';
 import {
     registerCanvas,
     unregisterCanvas,
@@ -330,23 +327,17 @@ export default function ArtworkCard({
         if (!canvas || !wrapper) return;
 
         const render = () => {
-            /* Artwork Swap — profile.html 1727–1732 + 1749 port. Spec
-               is purely id-derived (collection by id-mod-N, angle by
-               id*37+15) so the paint is stable across reloads + virt-
-               ualizer evictions. Canvas intrinsic dims = 400 × (400 /
-               ratio); .output-canvas width:100%/height:auto in
-               globals.css scales it to fit the wrapper, which itself
-               carries inline aspectRatio matching this spec. */
-            const spec = getTokenArtSpec(id);
-            const W = 400;
-            const H = Math.round(W / spec.ratio);
-            canvas.width = W;
-            canvas.height = H;
-
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-
-            paintPlaceholder(ctx, W, H, spec);
+            /* Prisms engine — verbatim port of KikiEngine from
+               reference/Prismsdemo.html. renderPrisms sets canvas
+               width/height internally (aspect ratio is determined by
+               the engine's weighted RATIOS pick, seeded on id so every
+               token produces the same artwork on every render). The
+               wrapper's inline aspectRatio is updated after paint so
+               CSS scales it correctly. */
+            const ratio = renderPrisms(canvas, id, 400);
+            if (wrapper) {
+                wrapper.style.aspectRatio = String(ratio);
+            }
         };
 
         registerCanvas({ id, wrapper, canvas, render });
@@ -545,7 +536,7 @@ export default function ArtworkCard({
                    the same handler covers both inputs. hashSynApplyHex
                    no-ops when the engine isn't enabled, so this is
                    inert under every other theme. */
-                onPointerEnter={() => hashSynApplyHex(getTokenArtSpec(id).c1)}
+                onPointerEnter={() => hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`)}
             >
                 <div
                     ref={wrapperRef}
@@ -559,7 +550,7 @@ export default function ArtworkCard({
                        Gallery #gallery rule already carries align-items:
                        start / align-content: start so varied heights
                        lay out cleanly with no further CSS work. */
-                    style={{ aspectRatio: `${getTokenArtSpec(id).ratio} / 1` }}
+                    style={{}}
                 >
                     <canvas
                         ref={canvasRef}
