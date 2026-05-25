@@ -276,7 +276,26 @@ export function WalletSection() {
                 }}
                 title="Copy wallet address"
             >
-                {walletCopied ? <>{'\u2713\uFE0E'} COPIED</> : <>{handle} <span className="icon-copy">⧉{'\uFE0E'}</span></>}
+                {/* Keep both states in the DOM at fixed width so the row
+                    never reflows on copy. The address string is always the
+                    widest content; COPIED sits in an absolutely-positioned
+                    overlay so it inherits that width without shifting
+                    the incognito/ping buttons beside it. */}
+                <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                    <span style={{ visibility: walletCopied ? 'hidden' : 'visible' }}>
+                        {handle} <span className="icon-copy">⧉{'\uFE0E'}</span>
+                    </span>
+                    <span style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        width: '100%',
+                        visibility: walletCopied ? 'visible' : 'hidden',
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {'\u2713\uFE0E'} COPIED
+                    </span>
+                </span>
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"
