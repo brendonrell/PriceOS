@@ -275,13 +275,21 @@ const LOADER_HTML = `<style>
   }
   #pd-loader {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
+    /* Hoist onto GPU compositor so iOS PWA layout reflows
+       (safe-area insets settling, dvh recalc, body growth)
+       never reposition this element. */
+    transform: translateZ(0);
+    will-change: opacity;
   }
   #pd-loader-panel {
     background: #000;
