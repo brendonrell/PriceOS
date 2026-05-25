@@ -280,7 +280,6 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-color);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
   }
