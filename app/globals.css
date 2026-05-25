@@ -2573,6 +2573,66 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     margin-left: 0;
     display: inline-block;
     vertical-align: baseline;
+    cursor: pointer;
+}
+.project-date:hover { opacity: 0.7; }
+
+.project-date-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.priceday-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 220px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.4px;
+    box-sizing: border-box;
+    animation: pd-drop-in 0.15s ease;
+}
+@keyframes pd-drop-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.priceday-popover .dp-title {
+    font-size: 20px;
+    padding: 2px 6px 0 6px;
+    margin-bottom: 0;
+}
+.pd-sub {
+    text-align: center;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 9px;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    padding-bottom: 6px;
+}
+.pd-section-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.5;
+    padding: 8px 6px 2px 6px;
+    text-transform: uppercase;
+}
+.priceday-popover .dp-row {
+    padding: 2px 6px;
+    min-height: 22px;
+    font-size: 11px;
 }
 
 .hero-line {
