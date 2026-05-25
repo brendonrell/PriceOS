@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import { Rubik_Mono_One, Inter } from 'next/font/google';
 import { cookieToInitialState, type Config as WagmiConfigType } from 'wagmi';
@@ -47,6 +47,22 @@ export const metadata: Metadata = {
     title: 'Price Discussion',
     description:
         'A web3 social platform where the community discussing secondary prices is the product. Browse projects, track grail pins, and explore generative art.',
+};
+
+/* Next.js App Router canonical way to set the viewport meta tag.
+   The manual <meta name="viewport"> tag in JSX causes Next.js to
+   emit TWO viewport tags — its own auto-generated one (without
+   viewport-fit=cover) plus the manual one. The browser honours
+   whichever comes last, which was Next.js's, silently dropping
+   viewport-fit=cover and preventing the page from extending behind
+   the iOS notch/home-indicator. Exporting `viewport` here lets
+   Next.js emit a single canonical tag with all fields correct. */
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
 };
 
 const PREHYDRATION_SCRIPT = `
@@ -404,10 +420,7 @@ export default async function RootLayout({
                 */}
                 <link rel="apple-touch-icon" href="/icon-180px.png" />
                 <link rel="manifest" href="/manifest.json" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
-                />
+
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta
                     name="apple-mobile-web-app-status-bar-style"
