@@ -103,6 +103,12 @@
 
 /* ── BASE RESET ──────────────────────────────────────────── */
 html {
+    /* viewport-fit=cover makes the html element fill the full screen
+       including behind the notch and home indicator. height:100% here
+       (not 100dvh) so it stretches to the cover viewport, not the
+       safe-area-clamped dvh. No content shifts — only the background
+       bleeds into the chrome zones. Mirrors sim which has no explicit
+       height on html at all (inherits full cover viewport naturally). */
     height: 100%;
 }
 html, body {
@@ -121,20 +127,21 @@ html, body {
 /* Sticky-footer pattern. Body is the flex column container; main
    expands to consume all remaining space so the footer parks at
    the viewport bottom on short pages and at the end of content on
-   tall ones. Mirrors sim exactly: `flex: 1` = grow + shrink, basis 0. */
+   tall ones. Mirrors sim exactly: `flex: 1` = grow + shrink, basis 0.
+   min-height: 100% (not 100dvh) so body fills the full cover viewport
+   that html establishes — dvh is clamped to the safe area on iOS and
+   would prevent the background from reaching the notch/indicator. */
 body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100%;
 }
 
 [data-rk] {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100%;
 }
 
 main {
@@ -150,12 +157,12 @@ button {
 
 
 /* ============================================================
-   iOS 26.1 PWA LIQUID GLASS FIX — sim 64-72
+   NOTCH / SAFE-AREA FILL — sim 64-72
    Fixed pseudo-element exactly env(safe-area-inset-top) tall.
-   backdrop-filter blurs scrolling content behind the notch so
-   artwork shows through with frosted glass instead of a hard
-   black bar. z-index 9999 sits above all surfaces; pointer-
-   events:none so taps fall through to navbar controls below.
+   Solid bg-color fill — always consistent on Safari and PWA,
+   no intermittent frosted-glass drop-out, no art cutoff.
+   Mirrors sim's reliable behaviour. z-index 9999 sits above
+   all surfaces; pointer-events:none so taps fall through.
    ============================================================ */
 body::before {
     content: '';
@@ -164,10 +171,7 @@ body::before {
     left: 0;
     right: 0;
     height: env(safe-area-inset-top);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    background-color: var(--bg-color);
     z-index: 9999;
     pointer-events: none;
 }
