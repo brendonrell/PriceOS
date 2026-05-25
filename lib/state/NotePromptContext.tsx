@@ -220,6 +220,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     else delete next[prompt.name];
                     return next;
                 });
+                window.dispatchEvent(new Event('pd:artist-notes-changed'));
                 showToast(
                     trimmed
                         ? `Artist note saved \u2014 ${prompt.name}`
