@@ -779,8 +779,7 @@ function ProjectPageBodyInner() {
                             >JUL 09 2026</span>
                             {priceDayOpen && (
                                 <div className="priceday-popover">
-                                    <div className="dp-title">#47</div>
-                                    <div className="pd-sub">PRICEDAY</div>
+                                    <div className="dp-title">PRICEDAY #47</div>
 
                                     <div className="pd-section-header">MINTED THIS DAY</div>
                                     <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
