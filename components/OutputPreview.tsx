@@ -91,10 +91,8 @@ import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import {
-    getTokenArtSpec,
-    paintPlaceholder,
-} from '../lib/art/placeholderRenderer';
+import { renderPrisms } from '../lib/art/prismsEngine';
+
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
     getGrails,
@@ -436,17 +434,9 @@ export default function OutputPreview() {
            out at intrinsic size under the modal's max-width / max-
            height clamps. */
         const w = window.innerWidth >= 601 ? 800 : 600;
-        const spec = getTokenArtSpec(id);
-        const H = Math.round(w / spec.ratio);
-        canvas.width = w;
-        canvas.height = H;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        paintPlaceholder(ctx, w, H, spec);
+        const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
-        hashSynApplyHex(spec.c1);
+        hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
     }, [isOpen, id]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
