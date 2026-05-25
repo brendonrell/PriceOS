@@ -1967,8 +1967,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: absolute;
     inset: 0;
     margin: auto;
-    width: 16px;
-    height: 16px;
+    margin-top: -1px;
+    width: 14px;
+    height: 14px;
     background: #ffffff;
     border-radius: 0;
     z-index: -1;
@@ -2655,7 +2656,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .pd-section-header {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 1px;
     opacity: 1;
@@ -2663,6 +2664,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     text-transform: uppercase;
     border-bottom: 1px solid rgba(128,128,128,0.35);
     margin-bottom: 2px;
+}
+/* Empty spacer row after each section's content block */
+.pd-section-end {
+    height: 8px;
 }
 .priceday-popover .dp-row {
     padding: 2px 6px;
