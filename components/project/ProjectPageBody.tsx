@@ -696,6 +696,19 @@ function ProjectPageBodyInner() {
         return subscribeBudgets((next) => setBudgetsState(next));
     }, []);
 
+    const [priceDayOpen, setPriceDayOpen] = useState(false);
+    const priceDayRef = useRef<HTMLSpanElement>(null);
+    useEffect(() => {
+        if (!priceDayOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (priceDayRef.current && !priceDayRef.current.contains(e.target as Node)) {
+                setPriceDayOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [priceDayOpen]);
+
     const priceAscActive = sort === 'price' && dir === 'asc';
     const priceAscRef = useRef(priceAscActive);
     priceAscRef.current = priceAscActive;
@@ -755,7 +768,34 @@ function ProjectPageBodyInner() {
                 <div className="hero-group-1">
                     <h1 className="project-title">
                         <span>{project.title}</span>
-                        <span className="project-date">JUL 09 2026</span>
+                        <span className="project-date-wrap" ref={priceDayRef}>
+                            <span
+                                className="project-date"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setPriceDayOpen(o => !o)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPriceDayOpen(o => !o); } }}
+                                title="PriceDay"
+                            >JUL 09 2026</span>
+                            {priceDayOpen && (
+                                <div className="priceday-popover">
+                                    <div className="dp-title">#47</div>
+                                    <div className="pd-sub">PRICEDAY</div>
+
+                                    <div className="pd-section-header">MINTED THIS DAY</div>
+                                    <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
+                                    <div className="dp-row"><span className="dp-label">KIKI #441</span><span className="dp-value">@Claude</span></div>
+                                    <div className="dp-row"><span className="dp-label">Meridian #8</span><span className="dp-value">@snowfro</span></div>
+
+                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
+                                    <div className="dp-row"><span className="dp-label">Chromatic Drift</span><span className="dp-value">@Claude</span></div>
+                                    <div className="dp-row"><span className="dp-label">Signal Loss</span><span className="dp-value">@Rudxane</span></div>
+
+                                    <div className="pd-section-header">BIGGEST SALE</div>
+                                    <div className="dp-row"><span className="dp-label">Prisms #7</span><span className="dp-value">0.44 ETH</span></div>
+                                </div>
+                            )}
+                        </span>
                     </h1>
 
                     <div className="hero-line project-artist">
