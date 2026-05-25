@@ -1958,9 +1958,21 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     user-select: none;
     padding: 0 4px;
     transition: opacity 0.2s;
+    position: relative;
 }
 .artist-note-icon:hover { opacity: 0.9; }
 .artist-note-icon.active { opacity: 1; }
+.artist-note-icon.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 0;
+    z-index: -1;
+}
 
 .artist-rel-icon {
     font-size: 18px;
@@ -2646,9 +2658,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-size: 9px;
     font-weight: bold;
     letter-spacing: 1px;
-    opacity: 0.5;
-    padding: 8px 6px 2px 6px;
+    opacity: 1;
+    padding: 8px 6px 4px 6px;
     text-transform: uppercase;
+    border-bottom: 1px solid rgba(128,128,128,0.35);
+    margin-bottom: 2px;
 }
 .priceday-popover .dp-row {
     padding: 2px 6px;
