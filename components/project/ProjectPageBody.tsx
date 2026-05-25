@@ -697,6 +697,7 @@ function ProjectPageBodyInner() {
     }, []);
 
     const [priceDayOpen, setPriceDayOpen] = useState(false);
+    const [priceDayPos, setPriceDayPos] = useState<{ top: number; left: number } | null>(null);
     const priceDayRef = useRef<HTMLSpanElement>(null);
     useEffect(() => {
         if (!priceDayOpen) return;
@@ -708,6 +709,28 @@ function ProjectPageBodyInner() {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [priceDayOpen]);
+
+    const openPriceDay = () => {
+        if (priceDayOpen) { setPriceDayOpen(false); return; }
+        if (priceDayRef.current) {
+            const rect = priceDayRef.current.getBoundingClientRect();
+            const POPOVER_WIDTH = 260;
+            const MARGIN = 8;
+            const MOBILE_BP = 600;
+            let left: number;
+            if (window.innerWidth < MOBILE_BP) {
+                // Center in viewport on mobile
+                left = (window.innerWidth - POPOVER_WIDTH) / 2;
+            } else {
+                // Align right edge of popover to right edge of trigger (opens left)
+                left = rect.right - POPOVER_WIDTH;
+                // Clamp so it never clips either side
+                left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
+            }
+            setPriceDayPos({ top: rect.bottom + 4, left });
+        }
+        setPriceDayOpen(true);
+    };
 
     const priceAscActive = sort === 'price' && dir === 'asc';
     const priceAscRef = useRef(priceAscActive);
@@ -773,12 +796,12 @@ function ProjectPageBodyInner() {
                                 className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => setPriceDayOpen(o => !o)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPriceDayOpen(o => !o); } }}
+                                onClick={openPriceDay}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPriceDay(); } }}
                                 title="PriceDay"
                             >JUL 09 2026</span>
-                            {priceDayOpen && (
-                                <div className="priceday-popover">
+                            {priceDayOpen && priceDayPos && (
+                                <div className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
                                     <div className="dp-title">PRICEDAY #47</div>
                                     <div className="dp-title-spacer" />
 
