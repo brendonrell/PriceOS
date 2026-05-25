@@ -2309,6 +2309,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0;
     transition: opacity 0.2s, transform 0.2s;
     z-index: 9999;
+    text-align: center;
 }
 .ens-copy-toast.mounted { display: block; }
 .ens-copy-toast.mounted.show {
