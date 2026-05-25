@@ -722,8 +722,8 @@ function ProjectPageBodyInner() {
                 // Center in viewport on mobile
                 left = (window.innerWidth - POPOVER_WIDTH) / 2;
             } else {
-                // Align right edge of popover to right edge of trigger (opens left)
-                left = rect.right - POPOVER_WIDTH;
+                // Center popover under the trigger
+                left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
                 // Clamp so it never clips either side
                 left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
             }
