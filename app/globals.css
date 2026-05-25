@@ -4496,6 +4496,25 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 .mdg-label-r { opacity: 0.6; }
 
+/* ── PHONE LANDSCAPE HERO FIX ────────────────────────────────────
+   Portrait mobile hits max-width:600px above. Landscape phones
+   (~844px wide, ~390px tall) miss that breakpoint entirely and
+   inherit desktop rules — notably the min-width:601px block that
+   bumps .ico-* and .stat-icon-box to larger sizes, making the
+   "Collected by" row oversized. This query targets phones in
+   landscape only (max-height:500px excludes tablets/iPads).
+   ────────────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+    .ico-mutual,
+    .ico-following,
+    .ico-followers { font-size: 22px; top: 0; }
+    .info-rubik .ico-mutual,
+    .info-rubik .ico-following,
+    .info-rubik .ico-followers { font-size: 16px !important; top: -1px; }
+    .info-rubik .artist-tag { top: -2px; }
+    .stat-icon-box { font-size: 13px; }
+}
+
 /* ── PROJECT PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
 @media (max-width: 600px) {
     .project-hero { padding: 10px 20px 20px 20px; }
