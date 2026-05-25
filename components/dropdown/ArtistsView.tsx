@@ -41,7 +41,7 @@
  *   All filters AND together; multiple rel chips OR within their group.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import { useToast } from '../../lib/state/ToastContext';
@@ -96,8 +96,21 @@ export function ArtistsView() {
 
     // Pinned: array (preserves insertion order) backed by localStorage.
     const [pinned, setPinned] = useLocalStorage<string[]>('pd_artist_pinned', []);
-    // Notes: map name → text.
-    const [notes] = useLocalStorage<Record<string, string>>('pd_artist_notes', {});
+    // Notes: map name → text. Re-reads from localStorage whenever
+    // NotePromptContext dispatches 'pd:artist-notes-changed' so the icon
+    // active state updates immediately after saving without a page reload.
+    const readNotes = () => {
+        try {
+            const raw = window.localStorage.getItem('pd_artist_notes');
+            return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+        } catch { return {}; }
+    };
+    const [notes, setNotes] = useState<Record<string, string>>(readNotes);
+    useEffect(() => {
+        const sync = () => setNotes(readNotes());
+        window.addEventListener('pd:artist-notes-changed', sync);
+        return () => window.removeEventListener('pd:artist-notes-changed', sync);
+    }, []);
 
     const [search, setSearch] = useState('');
     const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
