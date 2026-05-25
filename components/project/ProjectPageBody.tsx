@@ -809,13 +809,16 @@ function ProjectPageBodyInner() {
                                     <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
                                     <div className="dp-row"><span className="dp-label">KIKI #441</span><span className="dp-value">@Claude</span></div>
                                     <div className="dp-row"><span className="dp-label">Meridian #8</span><span className="dp-value">@snowfro</span></div>
+                                    <div className="pd-section-end" />
 
                                     <div className="pd-section-header">UPLOADED THIS DAY</div>
                                     <div className="dp-row"><span className="dp-label">Chromatic Drift</span><span className="dp-value">@Claude</span></div>
                                     <div className="dp-row"><span className="dp-label">Signal Loss</span><span className="dp-value">@Rudxane</span></div>
+                                    <div className="pd-section-end" />
 
                                     <div className="pd-section-header">BIGGEST SALE</div>
                                     <div className="dp-row"><span className="dp-label">Prisms #7</span><span className="dp-value">0.44 ETH</span></div>
+                                    <div className="pd-section-end" />
                                 </div>
                             )}
                         </span>
