@@ -280,8 +280,8 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
   }
   #pd-loader-panel {
     background: #000;
