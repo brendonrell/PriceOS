@@ -518,7 +518,21 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     -webkit-tap-highlight-color: transparent;
 }
 .modal-pin-hint:hover { opacity: 1; }
-.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); }
+.modal-pin-hint.pinned {
+    opacity: 1;
+    transform: scale(1.1);
+}
+.modal-pin-hint.pinned::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 0;
+    z-index: -1;
+}
 
 .btn-user {
     background: var(--text-color);
@@ -3395,7 +3409,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-sentiment .st-icon    { font-size: 15px !important; }
     #sn-asciiId .st-icon      { font-size: 15px !important; }
     #sn-degen .st-icon        { font-size: 16px !important; }
-    #sn-redacted .st-icon     { font-size: 14px !important; }
+    #sn-redacted .st-icon     { font-size: 13px !important; }
     #sn-autoscroll .st-icon   { font-size: 16px !important; }
     #sn-echo .st-icon         { font-size: 20px !important; }
 
