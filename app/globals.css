@@ -2583,10 +2583,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 
 .priceday-popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    min-width: 220px;
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    top: 160px;
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
@@ -2595,7 +2595,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     flex-direction: column;
     gap: 0;
     z-index: 200;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: normal;
