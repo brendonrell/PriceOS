@@ -203,6 +203,17 @@ export function MyPdSection({ onTripleTap }: Props) {
         showToast(`${label} ${next ? 'ON' : 'OFF'}`);
     };
 
+    /* Negative-flag variant — asciiId and sticker are stored inverted:
+       flag=false means feature ON, flag=true means feature OFF (NASC /
+       NSTK in SetupCode). Toast and active state must be flipped so the
+       UI reads correctly: pressing when feature is ON toasts "...OFF",
+       pressing when feature is OFF toasts "...ON". */
+    const toggleWithToastNeg = (key: keyof PdNotifs, label: string) => {
+        const next = !notifs[key];
+        toggle(key);
+        showToast(`${label} ${next ? 'OFF' : 'ON'}`);
+    };
+
     /* Brendon list item 7 — Pure Light / Pure Dark mode parity.
        Sim 9308-9320 togglePure(mode):
          1. Flip pdNotifs.pure_light / pdNotifs.pure_dark.
@@ -546,7 +557,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-sticker"
                         title="Sticker Mode"
                         active={notifs.sticker}
-                        onClick={() => toggleWithToast('sticker', 'Sticker Mode')}
+                        onClick={() => toggleWithToastNeg('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 2px' }}
                         iconClassName="sticker-strike"
@@ -597,7 +608,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-asciiId"
                         title="ASCII-ID"
                         active={notifs.asciiId}
-                        onClick={() => toggleWithToast('asciiId', 'ASCII-ID')}
+                        onClick={() => toggleWithToastNeg('asciiId', 'ASCII-ID')}
                         icon={'⍢\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
