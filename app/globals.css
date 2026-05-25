@@ -2574,8 +2574,16 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: inline-block;
     vertical-align: baseline;
     cursor: pointer;
+    transition: color 0.1s, -webkit-text-stroke 0.1s;
 }
 .project-date:hover { opacity: 0.7; }
+/* Outline-only style when priceday popover is open — visually links
+   the date trigger to the modal it spawned. */
+.project-date.pd-active {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--text-color);
+    opacity: 1;
+}
 
 .project-date-wrap {
     position: relative;
@@ -2583,11 +2591,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 
 .priceday-popover {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    top: 80px;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 260px;
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
@@ -2602,16 +2609,16 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-weight: normal;
     letter-spacing: 0.4px;
     box-sizing: border-box;
-    animation: pd-drop-in 0.15s ease;
-}
-@keyframes pd-drop-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    /* No animation — instant pop like the details modal */
 }
 .priceday-popover .dp-title {
     font-size: 20px;
     padding: 2px 6px 0 6px;
     margin-bottom: 0;
+}
+/* Empty spacer row between title and content */
+.priceday-popover .dp-title-spacer {
+    height: 8px;
 }
 .pd-sub {
     text-align: center;
