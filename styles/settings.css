@@ -344,6 +344,14 @@
     top: 1px;
 }
 
+/* User Showcase toggle — mobile only: 1 size larger + nudge left 2px. */
+@media (max-width: 600px) {
+    .user-showcase-toggle-btn {
+        font-size: 20px;
+        margin-left: 4px;
+    }
+}
+
 /* Mobile per-id .st-icon overrides — sim 2238 block ported.
    Desktop sizing comes from each pill's inline iconStyle prop in
    MyPdSection / SpellBookSection (built off the desktop screenshot).
