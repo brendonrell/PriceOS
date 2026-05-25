@@ -75,18 +75,38 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
 
-    /* Loading screen dismiss — fires as soon as the app is ready (this
-       component has mounted). Loader only covers the safe-area content
-       zone so browser chrome is never touched and never re-samples. */
+    /* Loading screen dismiss — waits for fonts + theme paint to fully
+       settle before fading out. The previous approach fired on shell
+       mount which was too early: the theme CSS vars are applied by
+       the prehydration script but ThemeContext's useEffect runs after
+       first paint, sometimes producing a visible flash. Holding until
+       requestAnimationFrame fires (one full paint cycle) + a minimum
+       floor of 600ms ensures the stored theme is rendered before the
+       loader exits. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
         if (!loader) return;
 
-        loader.animate(
-            [{ opacity: 1 }, { opacity: 0 }],
-            { duration: 350, easing: 'ease-out', fill: 'forwards' }
-        ).onfinish = () => loader.remove();
+        const MIN_MS = 600;
+        const start = performance.now();
+
+        // Wait for fonts + first paint cycle, then enforce minimum floor
+        const dismiss = () => {
+            const elapsed = performance.now() - start;
+            const remaining = Math.max(0, MIN_MS - elapsed);
+            setTimeout(() => {
+                loader.animate(
+                    [{ opacity: 1 }, { opacity: 0 }],
+                    { duration: 350, easing: 'ease-out', fill: 'forwards' }
+                ).onfinish = () => loader.remove();
+            }, remaining);
+        };
+
+        // Two rAF passes: first guarantees the browser has committed
+        // the prehydration theme paint; second gives ThemeContext's
+        // useEffect a chance to run before we start the floor timer.
+        requestAnimationFrame(() => requestAnimationFrame(dismiss));
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
