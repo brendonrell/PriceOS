@@ -84,7 +84,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
                 [{ opacity: 1 }, { opacity: 0 }],
                 { duration: 350, easing: 'ease-out', fill: 'forwards' }
             ).onfinish = () => loader.remove();
-        }, 1800);
+        }, 600);
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
