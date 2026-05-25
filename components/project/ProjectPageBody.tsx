@@ -770,7 +770,7 @@ function ProjectPageBodyInner() {
                         <span>{project.title}</span>
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
-                                className="project-date"
+                                className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => setPriceDayOpen(o => !o)}
@@ -780,6 +780,7 @@ function ProjectPageBodyInner() {
                             {priceDayOpen && (
                                 <div className="priceday-popover">
                                     <div className="dp-title">PRICEDAY #47</div>
+                                    <div className="dp-title-spacer" />
 
                                     <div className="pd-section-header">MINTED THIS DAY</div>
                                     <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
