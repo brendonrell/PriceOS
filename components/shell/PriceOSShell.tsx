@@ -75,38 +75,94 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
 
-    /* Loading screen dismiss — waits for fonts + theme paint to fully
-       settle before fading out. The previous approach fired on shell
-       mount which was too early: the theme CSS vars are applied by
-       the prehydration script but ThemeContext's useEffect runs after
-       first paint, sometimes producing a visible flash. Holding until
-       requestAnimationFrame fires (one full paint cycle) + a minimum
-       floor of 600ms ensures the stored theme is rendered before the
-       loader exits. */
+    /* Loading screen dismiss — polls until ThemeContext has committed
+       its theme paint, then fades out.
+
+       Root cause of the flash: PriceOSShell is a child of ThemeProvider,
+       so PriceOSShell's useEffect fires BEFORE ThemeContext's useEffect
+       (React fires effects bottom-up: children before parents). A fixed
+       delay or rAF count can't guarantee ThemeContext has run.
+
+       Strategy: read what --bg-color SHOULD be from localStorage (same
+       logic as the prehydration script), then poll getComputedStyle on
+       rAF until the live CSS var matches — that's the exact moment
+       ThemeContext's applyBgHex has committed. Hard cap at 1200ms so a
+       cold-boot with no stored theme still exits promptly. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const loader = document.getElementById('pd-loader');
         if (!loader) return;
 
-        const MIN_MS = 600;
-        const start = performance.now();
-
-        // Wait for fonts + first paint cycle, then enforce minimum floor
-        const dismiss = () => {
-            const elapsed = performance.now() - start;
-            const remaining = Math.max(0, MIN_MS - elapsed);
-            setTimeout(() => {
-                loader.animate(
-                    [{ opacity: 1 }, { opacity: 0 }],
-                    { duration: 350, easing: 'ease-out', fill: 'forwards' }
-                ).onfinish = () => loader.remove();
-            }, remaining);
+        const getExpectedBg = (): string | null => {
+            try {
+                const pathname = window.location.pathname;
+                const firstSeg = (pathname.match(/^\/([^/]+)/)?.[1] ?? '').toLowerCase();
+                const isProjectPage = pathname.startsWith('/art/');
+                const isProfilePage =
+                    firstSeg.length > 0 &&
+                    firstSeg !== 'art' &&
+                    firstSeg !== 'api' &&
+                    !/^\d+$/.test(firstSeg) &&
+                    /^[@a-z0-9_-]+$/i.test(firstSeg);
+                let saved = localStorage.getItem('pd_settings_theme');
+                if (saved === 'hashsyn') saved = null;
+                if (isProfilePage && saved === null) return '#FFE600';
+                const theme = saved ?? (isProjectPage || !isProfilePage ? 'artist' : null);
+                if (!theme) return null;
+                const THEMES: Record<string, string> = {
+                    artist: '#C488FF', light: '#e0e0e0', dark: '#1a1a1a',
+                    orange: '#ff6600', blue: '#3D9EFF', red: '#FF0033',
+                };
+                let bg = THEMES[theme] ?? null;
+                if (!bg) return null;
+                if (theme === 'artist') {
+                    const c = localStorage.getItem('pd_artist_color');
+                    if (c && /^#[0-9A-F]{6}$/i.test(c)) bg = c.toUpperCase();
+                }
+                if (theme === 'light') {
+                    const n = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
+                    if (n?.pure_light) bg = '#ffffff';
+                }
+                if (theme === 'dark') {
+                    const n = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
+                    if (n?.pure_dark) bg = '#000000';
+                }
+                return bg.toUpperCase();
+            } catch { return null; }
         };
 
-        // Two rAF passes: first guarantees the browser has committed
-        // the prehydration theme paint; second gives ThemeContext's
-        // useEffect a chance to run before we start the floor timer.
-        requestAnimationFrame(() => requestAnimationFrame(dismiss));
+        const doFade = () => {
+            loader.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 350, easing: 'ease-out', fill: 'forwards' }
+            ).onfinish = () => loader.remove();
+        };
+
+        const expectedBg = getExpectedBg();
+        if (!expectedBg) {
+            requestAnimationFrame(() => requestAnimationFrame(doFade));
+            return;
+        }
+
+        const norm = (h: string) =>
+            h.replace(/\s/g, '').replace('#', '').toLowerCase().padStart(6, '0');
+        const target = norm(expectedBg);
+        const deadline = performance.now() + 1200;
+        let rafId: number;
+
+        const poll = () => {
+            const live = norm(
+                getComputedStyle(document.documentElement)
+                    .getPropertyValue('--bg-color').trim()
+            );
+            if (live === target || performance.now() >= deadline) {
+                doFade();
+            } else {
+                rafId = requestAnimationFrame(poll);
+            }
+        };
+        rafId = requestAnimationFrame(poll);
+        return () => cancelAnimationFrame(rafId);
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
