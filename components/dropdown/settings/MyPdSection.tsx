@@ -87,7 +87,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             /* ignore */
         }
         setUserShowcaseModeState(next);
-        showToast(`User Showcase Mode: ${next === 'generative' ? 'Generative' : 'Static'}`);
+        showToast(next === 'generative' ? 'Showcase: GENERATIVE MODE ON' : 'Showcase: STATIC MODE ON');
     };
 
     // Keep the hex field synced to the live color whenever the user
