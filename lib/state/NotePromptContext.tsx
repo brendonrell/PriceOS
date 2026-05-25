@@ -237,6 +237,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     else delete next[key];
                     return next;
                 });
+                window.dispatchEvent(new Event('pd:notes-changed'));
                 showToast(trimmed ? 'Note SAVED' : 'Note REMOVED');
             }
             setPrompt(null);
