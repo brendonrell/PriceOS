@@ -76,8 +76,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-width: calc(100vw - 120px);
         max-height: calc(100vh - 300px);
     }
-    /* Note icon desktop: match X top exactly, neutralise the padding/margin touch-target trick that shifts position on desktop */
-    #modal .modal-pin-hint { font-size: 16px; top: calc(max(20px, env(safe-area-inset-top)) + 30px); margin: 0; padding: 8px; }
+    /* Desktop: match sim.html exactly — 22px icon, +6px nudge aligns visual centre with the 30px X, no padding/margin offset needed */
+    #modal .modal-pin-hint { font-size: 22px; top: calc(max(20px, env(safe-area-inset-top)) + 6px); padding: 0; margin: 0; }
 }
 
 
