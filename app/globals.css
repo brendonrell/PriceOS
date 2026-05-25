@@ -2584,9 +2584,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 .priceday-popover {
     position: fixed;
-    left: 20px;
-    right: 20px;
-    top: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    top: 80px;
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
