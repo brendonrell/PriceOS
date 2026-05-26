@@ -77,6 +77,7 @@ import {
 import {
     addBudget as engineAddBudget,
     deleteBudget as engineDeleteBudget,
+    updateBudget as engineUpdateBudget,
     getBudgets,
     subscribeBudgets,
     toggleActiveBudget,
@@ -144,11 +145,10 @@ export function PortfolioView() {
     // exist in sim. See sim 10927-11030 — every artist + project +
     // artwork is emitted unconditionally.
 
-    /* Sync body class so CSS can gate portfolio visibility globally. */
-    useEffect(() => {
-        document.body.classList.toggle('portfolio-hidden', portfolioHidden);
-        return () => { document.body.classList.remove('portfolio-hidden'); };
-    }, [portfolioHidden]);
+    /* When portfolio is hidden, replace financial values with stars.
+       Structure (categories, artists, project names, token IDs) stays
+       visible — only numbers and budget names are starred (phase 1). */
+    const pfHide = (val: string) => (portfolioHidden ? '***' : val);
 
     const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
 
@@ -179,6 +179,32 @@ export function PortfolioView() {
                     if (!vals) return; // cancelled
                     engineDeleteBudget(idx);
                     showToast(`"${label}" Budget: DELETED`);
+                },
+            });
+        },
+        [budgets, openValuePrompt, showToast]
+    );
+
+    const editBudget = useCallback(
+        (idx: number) => {
+            const b = budgets.list[idx];
+            if (!b) return;
+            openValuePrompt({
+                title: 'EDIT BUDGET',
+                help: 'Update the name or ETH cap for this budget.',
+                fields: [
+                    { label: 'NAME', placeholder: 'e.g. Real Budget', value: b.name },
+                    { label: 'ETH', placeholder: '0.25', inputmode: 'decimal', value: String(b.eth) },
+                ],
+                submit: 'Save',
+                onSubmit: (vals) => {
+                    if (!vals) return;
+                    const name = (vals[0] || '').trim();
+                    if (!name) { showToast('Name required'); return; }
+                    const v = parseFloat(vals[1] || '');
+                    if (!(v > 0) || !isFinite(v)) { showToast('Invalid ETH amount'); return; }
+                    engineUpdateBudget(idx, name, v);
+                    showToast(`Budget updated: ${name}`);
                 },
             });
         },
@@ -324,7 +350,7 @@ export function PortfolioView() {
                                                 className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                                 role="button"
                                                 tabIndex={0}
-                                                title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                                title={`${pfHide(b.name)} — ${pfHide(pfFmtEth(b.eth))}`}
                                                 onClick={() => toggleBudget(i)}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -333,8 +359,16 @@ export function PortfolioView() {
                                                     }
                                                 }}
                                             >
-                                                {b.name}
-                                                <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
+                                                {pfHide(b.name)}
+                                                <span className="pill-budget-eth">{pfHide(pfFmtEth(b.eth))}</span>
+                                                <span
+                                                    className="pill-budget-edit"
+                                                    title="Edit budget"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        editBudget(i);
+                                                    }}
+                                                >{'\u270e\ufe0e'}</span>
                                                 <span
                                                     className="pill-budget-delete"
                                                     title="Delete budget"
@@ -357,7 +391,7 @@ export function PortfolioView() {
                                                 className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                                 role="button"
                                                 tabIndex={0}
-                                                title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                                title={`${pfHide(b.name)} — ${pfHide(pfFmtEth(b.eth))}`}
                                                 onClick={() => toggleBudget(realIdx)}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -366,8 +400,16 @@ export function PortfolioView() {
                                                     }
                                                 }}
                                             >
-                                                {b.name}
-                                                <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
+                                                {pfHide(b.name)}
+                                                <span className="pill-budget-eth">{pfHide(pfFmtEth(b.eth))}</span>
+                                                <span
+                                                    className="pill-budget-edit"
+                                                    title="Edit budget"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        editBudget(realIdx);
+                                                    }}
+                                                >{'\u270e\ufe0e'}</span>
                                                 <span
                                                     className="pill-budget-delete"
                                                     title="Delete budget"
@@ -422,7 +464,7 @@ export function PortfolioView() {
                                     className={`pill-ens pill-budget${isActive ? ' active' : ''}`}
                                     role="button"
                                     tabIndex={0}
-                                    title={`${b.name} — ${pfFmtEth(b.eth)}`}
+                                    title={`${pfHide(b.name)} — ${pfHide(pfFmtEth(b.eth))}`}
                                     onClick={() => toggleBudget(i)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
@@ -431,8 +473,16 @@ export function PortfolioView() {
                                         }
                                     }}
                                 >
-                                    {b.name}
-                                    <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
+                                    {pfHide(b.name)}
+                                    <span className="pill-budget-eth">{pfHide(pfFmtEth(b.eth))}</span>
+                                    <span
+                                        className="pill-budget-edit"
+                                        title="Edit budget"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            editBudget(i);
+                                        }}
+                                    >{'\u270e\ufe0e'}</span>
                                     <span
                                         className="pill-budget-delete"
                                         title="Delete budget"
@@ -478,7 +528,7 @@ export function PortfolioView() {
                     visibility: showDollar ? 'visible' : 'hidden',
                 }}
             >
-                EST. {pfFmtEth(grandTotal)}
+                EST. {pfHide(pfFmtEth(grandTotal))}
             </div>
 
             <div className="portfolio-pills-row">
@@ -588,7 +638,7 @@ export function PortfolioView() {
                                     </span>
                                     {showDollar && (
                                         <span className="pf-est" style={{ marginLeft: 'auto' }}>
-                                            {pfFmtEth(catEst)}
+                                            {pfHide(pfFmtEth(catEst))}
                                         </span>
                                     )}
                                 </div>
@@ -605,6 +655,7 @@ export function PortfolioView() {
                                                 artistName={art.name}
                                                 artistSum={artistSum}
                                                 showDollar={showDollar}
+                                                portfolioHidden={portfolioHidden}
                                                 projects={art.projects}
                                             />
                                         );
@@ -616,7 +667,7 @@ export function PortfolioView() {
                                             <span className="pf-leader" />
                                             {showDollar && (
                                                 <span className="pf-est">
-                                                    {pfFmtEth(n.price)}
+                                                    {pfHide(pfFmtEth(n.price))}
                                                 </span>
                                             )}
                                         </div>
@@ -699,20 +750,23 @@ function PortfolioArtistRows({
     artistName,
     artistSum,
     showDollar,
+    portfolioHidden,
     projects,
 }: {
     artistName: string;
     artistSum: number;
     showDollar: boolean;
+    portfolioHidden: boolean;
     projects: PortfolioProject[];
 }) {
+    const pfHide = (val: string) => (portfolioHidden ? '***' : val);
     return (
         <>
             <div className="pf-artist">
                 <span className="pf-label">{artistName}</span>
                 {showDollar && (
                     <span className="pf-est" style={{ marginLeft: 'auto' }}>
-                        {pfFmtEth(artistSum)}
+                        {pfHide(pfFmtEth(artistSum))}
                     </span>
                 )}
             </div>
@@ -725,7 +779,7 @@ function PortfolioArtistRows({
                             <span className="pf-label">{coll.name}</span>
                             {showDollar && (
                                 <span className="pf-est" style={{ marginLeft: 'auto' }}>
-                                    {pfFmtEth(collSum)}
+                                    {pfHide(pfFmtEth(collSum))}
                                 </span>
                             )}
                         </div>
@@ -735,7 +789,7 @@ function PortfolioArtistRows({
                                 <span className="pf-leader" />
                                 {showDollar && (
                                     <span className="pf-est">
-                                        {pfFmtEth(coll.floor)}
+                                        {pfHide(pfFmtEth(coll.floor))}
                                     </span>
                                 )}
                             </div>
