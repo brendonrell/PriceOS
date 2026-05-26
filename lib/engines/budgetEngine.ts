@@ -209,6 +209,21 @@ export function addBudget(name: string, eth: number): number {
 }
 
 /**
+ * Update the name and ETH value of the budget at idx in-place.
+ * Active index is preserved unchanged. No-op if idx is out of range.
+ */
+export function updateBudget(idx: number, name: string, eth: number): boolean {
+    hydrate();
+    if (idx < 0 || idx >= state.list.length) return false;
+    const list = state.list.slice();
+    list[idx] = { name, eth };
+    state = { ...state, list };
+    persist();
+    emit();
+    return true;
+}
+
+/**
  * Delete the budget at idx. If it was active, deactivate; if a higher idx
  * was active, decrement so the same budget stays active. Mirrors sim
  * 11923-11933 long-press delete branch.
