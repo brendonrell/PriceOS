@@ -20,6 +20,11 @@
  * → composed: "(ง •̀_•́)ง" — the design seed the entire pool layout
  * is built around.
  *
+ * Turn arm selection (load-bearing — do NOT alter):
+ *   turnArmIndex = Math.floor(chunkArms / arms.length) % turnArms.length
+ *   For the standin wallet: Math.floor(19197 / 12) % 2 = 1599 % 2 = 1
+ *   → INSTIGATOR_TURN_ARMS[1] = 'ヽ' — the sim's AWAKE_L arm exactly.
+ *
  * Vibe mapping:
  *   vibe_1 = SPRITE_DATA[0] = Observer    (arms-down deadpan)
  *   vibe_2 = SPRITE_DATA[1] = Instigator  (dukes up — standin lives here)
@@ -31,6 +36,10 @@
  * renders outside bracketR (no leading space). Positional asymmetry,
  * not character asymmetry. scaleX(-1) mirroring flips the entire
  * sprite as one figure.
+ *
+ * Turn arms follow the same symmetric rule — both sides flip to the
+ * same turn arm char on a glyph-swap turn. CSS-mirror turns leave
+ * arms unchanged (arm-stable).
  *
  * Eyebrow combining-diacritic system: each brow entry is a pair of
  * combining marks (browL, browR) that attach to the base eye char to
@@ -56,6 +65,12 @@ export interface VibeSlots {
     /** 12 single arm chars — rendered in BOTH L and R positions
         (asymmetric placement, symmetric character). */
     arms: readonly string[];
+    /** Turn-arm variants — used when the sprite does a glyph-swap turn
+        (facing left, mirrorMode === false). Same character both sides
+        (symmetric rule preserved). Selection:
+          Math.floor(chunkArms / arms.length) % turnArms.length
+        INSTIGATOR_TURN_ARMS[1] = 'ヽ' is load-bearing (standin wallet). */
+    turnArms: readonly string[];
     /** 30 single eye base chars — combining brow attaches at compose. */
     eyes: readonly string[];
     /** 12 brow pairs [L, R] — combining diacritics. browL stacks on
@@ -157,6 +172,14 @@ const OBSERVER_ARMS: readonly string[] = [
     '\u2E33',  // 11 ⸳
 ];
 
+/* Observer turn arms — glyph-swap turn variants. Deadpan vibe keeps
+   a quiet register even mid-turn: '~' is a barely-there sway; "'"
+   is a minimal upward flick. Neither breaks the Observer's stillness. */
+const OBSERVER_TURN_ARMS: readonly string[] = [
+    '~',  // 0 — sway
+    "'",  // 1 — upward flick
+];
+
 /* Observer trail = empty across all 12 entries per spec ("trail empty"). */
 const OBSERVER_TRAILS: readonly string[] = [
     '', '', '', '', '', '', '', '', '', '', '', '',
@@ -207,6 +230,15 @@ const INSTIGATOR_ARMS: readonly string[] = [
     '\u0E07',  // 9  ง ── STANDIN
     '\u3063',  // 10 っ
     '\u0E05',  // 11 ค
+];
+
+/* Instigator turn arms — glyph-swap turn variants. LOAD-BEARING:
+   selector = Math.floor(19197 / 12) % 2 = 1. Brendon's wallet MUST
+   land on turnArms[1] = 'ヽ' — the exact AWAKE_L arm from the sim
+   standin '(ง •̀_•́)ง' → 'ヽ(•́_•̀ヽ)'. Do NOT reorder. */
+const INSTIGATOR_TURN_ARMS: readonly string[] = [
+    '\u1557',  // 0 ᕗ — leaning forward combat
+    '\u30FD',  // 1 ヽ — sim AWAKE_L arm (LOAD-BEARING: standin wallet)
 ];
 
 /* Instigator trails — mostly empty per spec ("trail mostly empty.
@@ -274,6 +306,15 @@ const HACKER_ARMS: readonly string[] = [
     '*',       // 11
 ];
 
+/* Hacker turn arms — glyph-swap turn variants. Both are outside the
+   primary arm pool: '{' reads as a reaching/opening gesture; '~'
+   signals approximation/motion. Both feel native to the code vibe
+   and read as clearly different from the primary arm on a turn. */
+const HACKER_TURN_ARMS: readonly string[] = [
+    '{',  // 0 — reaching/opening bracket
+    '~',  // 1 — motion/wave
+];
+
 /* Hacker trails — tech lines per spec (─ ═ ┄ ~ extended). */
 const HACKER_TRAILS: readonly string[] = [
     '\u2500',  // 0  ─
@@ -337,6 +378,16 @@ const MYSTIC_ARMS: readonly string[] = [
     '\u2739',  // 11 ✹
 ];
 
+/* Mystic turn arms — glyph-swap turn variants. Energy/wave chars that
+   sell the "wizard mid-cast / redirecting spell" read: '∿' is a
+   sine-wave (energy in motion); '⟿' is a flowing arrow (momentum).
+   Both feel distinct from the static sparkle primary arms — a clear
+   visual event on turn that fits the esoteric vibe. */
+const MYSTIC_TURN_ARMS: readonly string[] = [
+    '\u223F',  // 0 ∿ — sine wave (energy flowing)
+    '\u27FF',  // 1 ⟿ — flowing arrow (momentum/direction)
+];
+
 /* Mystic trails — energy/wave glyphs per spec (∿ ⌇ 〜 ⟿ ⤳ extended). */
 const MYSTIC_TRAILS: readonly string[] = [
     '\u223F',  // 0  ∿
@@ -389,6 +440,7 @@ export const SPRITE_DATA: readonly VibeSlots[] = [
     {
         brackets: BRACKETS,
         arms: OBSERVER_ARMS,
+        turnArms: OBSERVER_TURN_ARMS,
         eyes: EYES,
         brows: [...SHARED_BROWS_BASE, ...OBSERVER_BROW_EXTRAS],
         mouths: OBSERVER_MOUTHS,
@@ -398,6 +450,7 @@ export const SPRITE_DATA: readonly VibeSlots[] = [
     {
         brackets: BRACKETS,
         arms: INSTIGATOR_ARMS,
+        turnArms: INSTIGATOR_TURN_ARMS,
         eyes: EYES,
         brows: [...SHARED_BROWS_BASE, ...INSTIGATOR_BROW_EXTRAS],
         mouths: INSTIGATOR_MOUTHS,
@@ -407,6 +460,7 @@ export const SPRITE_DATA: readonly VibeSlots[] = [
     {
         brackets: BRACKETS,
         arms: HACKER_ARMS,
+        turnArms: HACKER_TURN_ARMS,
         eyes: EYES,
         brows: [...SHARED_BROWS_BASE, ...HACKER_BROW_EXTRAS],
         mouths: HACKER_MOUTHS,
@@ -416,6 +470,7 @@ export const SPRITE_DATA: readonly VibeSlots[] = [
     {
         brackets: BRACKETS,
         arms: MYSTIC_ARMS,
+        turnArms: MYSTIC_TURN_ARMS,
         eyes: EYES,
         brows: [...SHARED_BROWS_BASE, ...MYSTIC_BROW_EXTRAS],
         mouths: MYSTIC_MOUTHS,

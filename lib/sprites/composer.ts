@@ -5,7 +5,7 @@
  * composed sprite string + its parts. All math is deterministic:
  * same wallet + same vibe → same sprite, every time.
  *
- * Composition (8 render slots in order, 6 data slots driven by hash):
+ * Composition (8 render slots in order, 6 data slots driven by hash):\
  *   [bracketL] [armL+NBSP] [eyeL+browL] [mouth] [eyeR+browR] [bracketR] [armR] [trail]
  *
  * Hash chunking (per design-seed redesign, CEO-locked 2026-05-13):
@@ -34,6 +34,15 @@
  *   blinking → eyeL='-', eyeR='-' (both eyes closed, brows stripped)
  *   yawning  → mouth='o' (open mouth)
  *   sleeping → eyeL='z', mouth='z', eyeR='z' (three z's, one per slot)
+ *
+ * Turn arm override (turned=true):
+ *   Applied when the engine does a glyph-swap turn (facing left,
+ *   mirrorMode=false). Selects the turn arm via:
+ *     Math.floor(chunkArms / arms.length) % turnArms.length
+ *   Both armL and armR flip to the turn arm char (symmetric rule
+ *   preserved). CSS scaleX(-1) still applies on top in the engine.
+ *   turned is ignored when sleeping or yawning (those frames stay
+ *   upright and arms don't animate during sleep/yawn).
  *
  * The per-slot single-character pattern for sleep matters: consumers
  * render eyes and mouth in a fixed-width inline-block so blink / yawn /
@@ -89,6 +98,11 @@ function _normaliseAddress(walletAddress: string): string | null {
  * Compose a deterministic PriceSprite for a wallet+vibe pair under
  * the given animation state.
  *
+ * @param turned  When true, swaps armL/armR to the wallet's deterministic
+ *                turn arm variant. Used by the engine on glyph-swap turns
+ *                (facing left, mirrorMode=false). Ignored during sleeping
+ *                and yawning — the engine already gates this.
+ *
  * Returns null when the wallet address is malformed (too short or
  * non-hex). Callers should treat null as "no sprite available" and
  * render nothing rather than a fallback glyph.
@@ -97,6 +111,7 @@ export function composeSprite(
     walletAddress: string,
     vibe: PriceSpriteVibe,
     animState: SpriteAnimState = 'awake',
+    turned = false,
 ): ComposedSprite | null {
     const hex = _normaliseAddress(walletAddress);
     if (hex === null) return null;
@@ -110,23 +125,33 @@ export function composeSprite(
     const chunkMouth    = parseInt(hex.substring(16, 20), 16);
     const chunkTrail    = parseInt(hex.substring(20, 24), 16);
 
-    const bracket = slots.brackets[chunkBrackets % slots.brackets.length];
-    const arm     = slots.arms[chunkArms % slots.arms.length];
-    const eyeBase = slots.eyes[chunkEyes % slots.eyes.length];
-    const brow    = slots.brows[chunkBrows % slots.brows.length];
-    const mouth   = slots.mouths[chunkMouth % slots.mouths.length];
-    const trail   = slots.trails[chunkTrail % slots.trails.length];
+    const bracket  = slots.brackets[chunkBrackets % slots.brackets.length];
+    const arm      = slots.arms[chunkArms % slots.arms.length];
+    const eyeBase  = slots.eyes[chunkEyes % slots.eyes.length];
+    const brow     = slots.brows[chunkBrows % slots.brows.length];
+    const mouth    = slots.mouths[chunkMouth % slots.mouths.length];
+    const trail    = slots.trails[chunkTrail % slots.trails.length];
+
+    /* Turn arm — upper bits of the same chunkArms value, so no extra
+       hash data needed and the selection is fully deterministic.
+       Math.floor(chunkArms / arms.length) strips the bits used by the
+       primary arm selection; % turnArms.length maps into the turn pool. */
+    const turnArmIdx = Math.floor(chunkArms / slots.arms.length) % slots.turnArms.length;
+    const turnArm    = slots.turnArms[turnArmIdx];
+
+    /* Active arm: normal or turn variant. */
+    const activeArm = turned ? turnArm : arm;
 
     /* Base parts at awake state. eyeL/eyeR are grapheme clusters
        (base + combining mark). armL carries trailing NBSP. */
     let parts: SpriteParts = {
         bracketL: bracket[0],
-        armL: arm + ARM_SPACE,
+        armL: activeArm + ARM_SPACE,
         eyeL: eyeBase + brow[0],
         mouth,
         eyeR: eyeBase + brow[1],
         bracketR: bracket[1],
-        armR: arm,
+        armR: activeArm,
         trail,
     };
 
