@@ -161,29 +161,21 @@
     flex-shrink: 0;
 }
 
-.pill-portfolio-hide-all {
-    margin-left: auto;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}
-
-/* Bare hide-all icon — no pill chrome, floats to right of filter pills row. */
-.portfolio-hide-icon {
-    margin-left: auto;
-    font-size: 14px;
-    opacity: 0.5;
-    cursor: pointer;
+/* Edit pencil — sits between the ETH value and the × delete.
+   Extra padding on each side for fat-finger tap targets. */
+.pill-budget-edit {
+    font-size: 11px;
     line-height: 1;
+    opacity: 0.45;
+    cursor: pointer;
+    flex-shrink: 0;
     transition: opacity 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
     display: inline-flex;
     align-items: center;
-    flex-shrink: 0;
+    padding: 0 5px;
+    margin-left: 2px;
 }
-.portfolio-hide-icon:hover { opacity: 1; }
+.pill-budget-edit:hover { opacity: 1; }
 
 .pill-budget-delete {
     font-size: 13px;
@@ -195,6 +187,7 @@
     transition: opacity 0.15s;
     display: inline-flex;
     align-items: center;
+    padding: 0 4px;
 }
 .pill-budget-delete:hover { opacity: 1; }
 
