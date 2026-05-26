@@ -433,7 +433,8 @@ export default function OutputPreview() {
            container has no fixed aspect-ratio rule so the canvas lays
            out at intrinsic size under the modal's max-width / max-
            height clamps. */
-        const w = window.innerWidth >= 601 ? Math.max(800, window.innerWidth - 120) : 600;
+        /* Sim uses window.innerWidth directly as renderWidth (sim line 8726) — match exactly. */
+        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
         const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
@@ -446,16 +447,32 @@ export default function OutputPreview() {
        opened from mobile teleported the page to top. Lifted in S1. */
 
     /* Prev/next nav. Sim cycles through the visible-cards array; without
-       a gallery yet, we walk the full Output range with wrap-around. */
+       a gallery yet, we walk the full Output range with wrap-around.
+       Sim renders the canvas synchronously inside openModal() — no state
+       round-trip. Mirror that by rendering imperatively here before
+       setCurrentModalId so the art swaps on the same frame as the press. */
+    const renderToCanvas = useCallback((nextId: number) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
+        renderPrisms(canvas, nextId, w);
+        canvas.classList.add('visible');
+        hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
+    }, []);
+
     const goNext = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id >= totalOutputs ? 1 : id + 1);
-    }, [id, totalOutputs, setCurrentModalId]);
+        const nextId = id >= totalOutputs ? 1 : id + 1;
+        renderToCanvas(nextId);
+        setCurrentModalId(nextId);
+    }, [id, totalOutputs, setCurrentModalId, renderToCanvas]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
-        setCurrentModalId(id <= 1 ? totalOutputs : id - 1);
-    }, [id, totalOutputs, setCurrentModalId]);
+        const nextId = id <= 1 ? totalOutputs : id - 1;
+        renderToCanvas(nextId);
+        setCurrentModalId(nextId);
+    }, [id, totalOutputs, setCurrentModalId, renderToCanvas]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {
