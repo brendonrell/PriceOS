@@ -154,6 +154,21 @@
     gap: 5px;
 }
 
+.pill-budget-eth {
+    opacity: 0.55;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.pill-portfolio-hide-all {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
 .pill-budget-delete {
     font-size: 13px;
     font-weight: bold;
