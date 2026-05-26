@@ -568,7 +568,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="Echo Chamber"
                         active={notifs.echo}
                         onClick={() => toggleWithToast('echo', 'Echo Chamber')}
-                        icon={'⊛\uFE0E'}
+                        icon={'⊚\uFE0E'}
                         iconStyle={{ fontSize: '16px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />

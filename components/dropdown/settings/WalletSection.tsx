@@ -391,7 +391,10 @@ export function WalletSection() {
                         transition: 'opacity 0.2s',
                     }}
                 >
-                    {balanceHidden ? '⊘\uFE0E' : '⊚\uFE0E'}
+                    {/* Predictive icon: shows what pressing will DO.
+                        Visible → ⊘ (pressing will hide).
+                        Hidden  → ⊙ (pressing will reveal). */}
+                    {balanceHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
                 </span>
             </div>
         </>
