@@ -37,8 +37,11 @@
  * Mirror behaviour:
  *   - standin: _facing/_mirrorMode swap between AWAKE_R/BLINK_R and
  *     AWAKE_L/BLINK_L glyphs (the kaomoji has hand-authored mirrors).
- *   - composed: no glyph swap — pure CSS scaleX(-1). Brackets and
- *     asymmetric arms flip correctly under the transform.
+ *   - composed: CSS scaleX(-1) for the L variant. On glyph-swap turns
+ *     (_mirrorMode=false, _facing=-1) the arm chars also flip to the
+ *     wallet's deterministic turn arm variant — same character both
+ *     sides (symmetric rule). CSS-mirror turns (_mirrorMode=true) are
+ *     arm-stable; only the CSS flip applies.
  *
  * In both modes sleeping/yawning frames are NEVER mirrored (transform
  * stays scaleX(1)) so literal "zzz" text doesn't render reversed.
@@ -126,14 +129,17 @@ function _computeFrame(): SpriteFrame {
     const isLeft = _facing === -1;
     const isAsleep = _state === 'sleeping' || _state === 'yawning';
 
-    /* Identity path — composed sprite. No glyph-level mirror; rely on
-       CSS scaleX(-1) for the L variant. Sleeping/yawning frames stay
-       upright so " zzz " reads correctly. */
+    /* Identity path — composed sprite. On glyph-swap turns
+       (_mirrorMode=false) the arm chars flip to the turn variant;
+       CSS-mirror turns stay arm-stable. Sleeping/yawning frames stay
+       upright so " zzz " reads correctly and arms never turn mid-sleep. */
     if (_identity !== null) {
+        const isTurned = isLeft && !_mirrorMode && !isAsleep;
         const composed = composeSprite(
             _identity.walletAddress,
             _identity.vibe,
             _stateToAnim(_state),
+            isTurned,
         );
         /* composeSprite returns null only on malformed addresses; the
            identity setter validates before assigning so this is a
