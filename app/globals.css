@@ -659,6 +659,13 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     cursor: pointer;
 }
 
+/* Tighten inner nav links (Discord → Settings) by 2px without
+   touching the Profile row (owns its own height via #profileRow)
+   or the space below Settings (divider + pill). */
+#dropdownMenuLinks a:not(#profileRow a) {
+    height: 28px;
+}
+
 /* F30 — extend the F29 "absorb the slack" pattern from accordions to full-panel
    views (settings/artists/portfolio). When user-dropdown contains a settings
    panel or panel-placeholder, no accordions are rendered as siblings inside
@@ -1474,6 +1481,13 @@ body.tape-framed .tape-rail {
 /* ============================================================
    FOLLOWERS MODAL TABS
    ============================================================ */
+/* Top-align the entire modal content (not centered). */
+#followersModal {
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 20px;
+    padding-right: 20px;
+}
 /* Pills flow left-aligned, content-width (no stretching). */
 #followersModal .modal-info > div:first-child {
     align-items: flex-start;
@@ -4885,9 +4899,8 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     white-space: nowrap;
     overflow: hidden;
     /* Height lock — tallest natural state is the topbarcal-icon at 18px
-       + 5px top/bottom padding = 28px. Fixed here so the top bar row
-       never shifts height regardless of event content. */
-    height: 28px;
+       + 5px top/bottom padding = 28px. Reduced by 2px per design pass. */
+    height: 26px;
 }
 .topbarcal-icon {
     /* Sim line 1230-1236 — +2 size steps + 1px down nudge for
