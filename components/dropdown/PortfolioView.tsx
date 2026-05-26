@@ -133,12 +133,22 @@ export function PortfolioView() {
     const budgetPillsRow2 = budgets.list.slice(budgetSplitIndex);
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
+    const [portfolioHidden, setPortfolioHidden] = useLocalStorage<boolean>(
+        'pd_portfolio_hidden',
+        false
+    );
 
     // Sim has no expand/collapse — the entire tree renders flat. F58
     // dropped the expanded-keys Set and toggleExpand callback that the
     // pre-F58 port carried over from a tree-widget pattern that didn't
     // exist in sim. See sim 10927-11030 — every artist + project +
     // artwork is emitted unconditionally.
+
+    /* Sync body class so CSS can gate portfolio visibility globally. */
+    useEffect(() => {
+        document.body.classList.toggle('portfolio-hidden', portfolioHidden);
+        return () => { document.body.classList.remove('portfolio-hidden'); };
+    }, [portfolioHidden]);
 
     const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
 
@@ -324,6 +334,7 @@ export function PortfolioView() {
                                                 }}
                                             >
                                                 {b.name}
+                                                <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
                                                 <span
                                                     className="pill-budget-delete"
                                                     title="Delete budget"
@@ -356,6 +367,7 @@ export function PortfolioView() {
                                                 }}
                                             >
                                                 {b.name}
+                                                <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
                                                 <span
                                                     className="pill-budget-delete"
                                                     title="Delete budget"
@@ -420,6 +432,7 @@ export function PortfolioView() {
                                     }}
                                 >
                                     {b.name}
+                                    <span className="pill-budget-eth">{pfFmtEth(b.eth)}</span>
                                     <span
                                         className="pill-budget-delete"
                                         title="Delete budget"
@@ -647,6 +660,35 @@ export function PortfolioView() {
                             {p.label}
                         </div>
                     ))}
+                    <div
+                        className="pill-portfolio-filter pill-portfolio-hide-all"
+                        role="button"
+                        tabIndex={0}
+                        title={portfolioHidden ? 'Show portfolio' : 'Hide portfolio'}
+                        onClick={() => {
+                            const next = !portfolioHidden;
+                            setPortfolioHidden(next);
+                            showToast(next ? 'Portfolio Hidden' : 'Portfolio Visible');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                const next = !portfolioHidden;
+                                setPortfolioHidden(next);
+                                showToast(next ? 'Portfolio Hidden' : 'Portfolio Visible');
+                            }
+                        }}
+                    >
+                        {/* Predictive icon: shows what pressing will DO.
+                            Visible → ⊘ (pressing will hide).
+                            Hidden  → ⊙ (pressing will reveal). */}
+                        <span
+                            className="balance-toggle-icon"
+                            style={{ fontSize: 14, position: 'relative', top: -1, opacity: 0.8 }}
+                        >
+                            {portfolioHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
