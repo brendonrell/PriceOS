@@ -169,6 +169,22 @@
     gap: 3px;
 }
 
+/* Bare hide-all icon — no pill chrome, floats to right of filter pills row. */
+.portfolio-hide-icon {
+    margin-left: auto;
+    font-size: 14px;
+    opacity: 0.5;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.portfolio-hide-icon:hover { opacity: 1; }
+
 .pill-budget-delete {
     font-size: 13px;
     font-weight: bold;
