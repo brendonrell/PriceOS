@@ -659,12 +659,6 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     cursor: pointer;
 }
 
-/* Tighten inner nav links (Discord → Settings) by 2px without
-   touching the Profile row (owns its own height via #profileRow)
-   or the space below Settings (divider + pill). */
-#dropdownMenuLinks a:not(#profileRow a) {
-    height: 28px;
-}
 
 /* F30 — extend the F29 "absorb the slack" pattern from accordions to full-panel
    views (settings/artists/portfolio). When user-dropdown contains a settings
