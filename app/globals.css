@@ -315,7 +315,7 @@ body.is-pwa .navbar {
 .sentiment-widget {
     display: none; align-items: center;
     position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
-    margin-left: 7px;
+    margin-left: 9px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 18px; line-height: 1;
     color: var(--text-color); opacity: 0.75;
@@ -339,7 +339,7 @@ body.sentiment-on .sentiment-widget {
     body.tape-faded .sentiment-widget,
     body.tape-standard .sentiment-widget,
     body.tape-bold .sentiment-widget,
-    body.tape-framed .sentiment-widget { margin-left: 14px; }
+    body.tape-framed .sentiment-widget { margin-left: 16px; }
 }
 
 /* Brendon S5 — sentiment weather glyphs render at very different intrinsic
@@ -1082,8 +1082,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    classes; the port unified them under .notif-list (AccordionBox owns
    all four — Tape/Pings/Todos/Notes), so a single rule covers it. */
 @media (min-width: 601px) {
-    .notif-list { max-height: 163px; }
-    .notes-list { max-height: 163px; }
+    .notif-list { max-height: 159px; }
+    .notes-list { max-height: 159px; }
 }
 
 .notif-item {
