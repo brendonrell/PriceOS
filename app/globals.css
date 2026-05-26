@@ -3958,19 +3958,6 @@ body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.searc
 /* ── BUDGET STEP LINE — removed. The opacity fade (above) is sufficient
    to show the budget cutoff. Grid lines removed per design cleanup. */
 
-/* ── PORTFOLIO HIDDEN — hides all portfolio content when the hide toggle
-   is active. Grand total uses visibility:hidden to preserve layout height.
-   The filter bar (search + pills) stays visible so the user can unhide. */
-body.portfolio-hidden #portfolioPanel .portfolio-grand-total,
-body.portfolio-hidden #portfolioPanel #portfolioList,
-body.portfolio-hidden #portfolioPanel .settings-header,
-body.portfolio-hidden #portfolioPanel #budgetsRow,
-body.portfolio-hidden #portfolioPanel .dropdown-divider,
-body.portfolio-hidden #portfolioPanel .portfolio-pills-row {
-    visibility: hidden;
-    pointer-events: none;
-}
-
 /* ── ANCHOR DELTA — sim 4045-4072 ──
    When the user has set a personal reference price for any project,
    every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
@@ -4912,8 +4899,8 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     white-space: nowrap;
     overflow: hidden;
     /* Height lock — tallest natural state is the topbarcal-icon at 18px
-       + 5px top/bottom padding = 28px. Reduced by 2px per design pass. */
-    height: 26px;
+       + 5px top/bottom padding = 28px. Reduced by 4px per design pass. */
+    height: 24px;
 }
 .topbarcal-icon {
     /* Sim line 1230-1236 — +2 size steps + 1px down nudge for
