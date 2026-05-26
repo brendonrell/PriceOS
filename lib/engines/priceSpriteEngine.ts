@@ -145,7 +145,11 @@ function _computeFrame(): SpriteFrame {
            identity setter validates before assigning so this is a
            safety net. Fall through to standin on null. */
         if (composed !== null) {
-            const transform = (isLeft && !isAsleep)
+            /* Glyph-swap turns (isTurned) already carry the direction
+               signal in the arm char — do NOT also CSS flip or the arm
+               reads backwards. CSS flip only on mirror-mode turns,
+               matching the standin transform rule exactly. */
+            const transform = (_mirrorMode && isLeft && !isAsleep)
                 ? 'scaleX(-1)'
                 : 'scaleX(1)';
             return {
