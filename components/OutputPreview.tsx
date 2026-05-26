@@ -433,7 +433,7 @@ export default function OutputPreview() {
            container has no fixed aspect-ratio rule so the canvas lays
            out at intrinsic size under the modal's max-width / max-
            height clamps. */
-        const w = window.innerWidth >= 601 ? 800 : 600;
+        const w = window.innerWidth >= 601 ? Math.max(800, window.innerWidth - 120) : 600;
         const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
