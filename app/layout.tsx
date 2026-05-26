@@ -295,10 +295,18 @@ const LOADER_HTML = `<style>
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Pre-account for the iOS PWA status bar inset so the panel
+       sits at the true visual centre from the very first frame.
+       Without this, safe-area-inset-top settles after paint and
+       the viewport height grows, shifting the flexbox centre down
+       by that amount — visible as a single downward jump in PWA. */
+    padding-top: env(safe-area-inset-top, 0px);
+    box-sizing: border-box;
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
     /* Hoist onto GPU compositor so iOS PWA layout reflows

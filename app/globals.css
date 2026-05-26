@@ -1965,11 +1965,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .artist-note-icon.active::before {
     content: '';
     position: absolute;
-    inset: 0;
-    margin: auto;
-    margin-top: -1px;
-    width: 14px;
-    height: 14px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 1px));
+    width: 13px;
+    height: 13px;
     background: #ffffff;
     border-radius: 0;
     z-index: -1;
