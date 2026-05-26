@@ -660,8 +660,9 @@ export function PortfolioView() {
                             {p.label}
                         </div>
                     ))}
-                    <div
-                        className="pill-portfolio-filter pill-portfolio-hide-all"
+                    {/* Bare hide-all icon — no pill, tucked to right edge. */}
+                    <span
+                        className="portfolio-hide-icon"
                         role="button"
                         tabIndex={0}
                         title={portfolioHidden ? 'Show portfolio' : 'Hide portfolio'}
@@ -679,16 +680,8 @@ export function PortfolioView() {
                             }
                         }}
                     >
-                        {/* Predictive icon: shows what pressing will DO.
-                            Visible → ⊘ (pressing will hide).
-                            Hidden  → ⊙ (pressing will reveal). */}
-                        <span
-                            className="balance-toggle-icon"
-                            style={{ fontSize: 14, position: 'relative', top: -1, opacity: 0.8 }}
-                        >
-                            {portfolioHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
-                        </span>
-                    </div>
+                        {portfolioHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
+                    </span>
                 </div>
             </div>
         </div>
