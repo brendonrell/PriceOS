@@ -164,7 +164,7 @@
 /* Edit pencil — sits between the ETH value and the × delete.
    Extra padding on each side for fat-finger tap targets. */
 .pill-budget-edit {
-    font-size: 11px;
+    font-size: 15px;
     line-height: 1;
     opacity: 0.45;
     cursor: pointer;
@@ -178,7 +178,7 @@
 .pill-budget-edit:hover { opacity: 1; }
 
 .pill-budget-delete {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: bold;
     line-height: 1;
     opacity: 0.5;
@@ -190,6 +190,24 @@
     padding: 0 4px;
 }
 .pill-budget-delete:hover { opacity: 1; }
+
+/* Hide toggle — bare icon, no pill chrome. margin-left: auto pushes it
+   to the right edge while filter pills stay left-aligned. */
+.portfolio-hide-icon {
+    margin-left: auto;
+    font-size: 18px;
+    opacity: 0.5;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 4px;
+}
+.portfolio-hide-icon:hover { opacity: 1; }
 
 .pill-ens em {
     font-style: italic;
