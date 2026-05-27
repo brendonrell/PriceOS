@@ -1076,7 +1076,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 @media (min-width: 601px) {
     .notifications-box.is-open .notif-list {
-        min-height: 163px;
+        min-height: 152px;
     }
 }
 
