@@ -535,6 +535,13 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     border-radius: 0;
     z-index: -1;
 }
+@media (max-width: 600px) {
+    .modal-pin-hint.pinned::before {
+        width: 13px;
+        height: 13px;
+        margin-top: -1px;
+    }
+}
 
 .btn-user {
     background: var(--text-color);
@@ -1983,6 +1990,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     background: #ffffff;
     border-radius: 0;
     z-index: -1;
+}
+@media (max-width: 600px) {
+    .artist-note-icon.active::before {
+        width: 11px;
+        height: 11px;
+        transform: translate(calc(-50% - 1px), calc(-50% - 2px));
+    }
 }
 
 .artist-rel-icon {
