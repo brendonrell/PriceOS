@@ -210,6 +210,14 @@ export default function NotePromptModal({
         <div
           className="note-prompt-view"
           dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(initialValue) }}
+          onClick={(e) => {
+            const target = (e.target as HTMLElement).closest('a[data-external]');
+            if (target) {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open((target as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
+            }
+          }}
         />
         <div className="note-prompt-actions">
           <button

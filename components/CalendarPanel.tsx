@@ -221,6 +221,14 @@ export default function CalendarPanel() {
                   </span>
                   <span
                     dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(dayNote) }}
+                    onClick={(e) => {
+                      const target = (e.target as HTMLElement).closest('a[data-external]');
+                      if (target) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open((target as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
                   />
                 </div>
               </div>
