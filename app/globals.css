@@ -537,8 +537,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 @media (max-width: 600px) {
     .modal-pin-hint.pinned::before {
-        width: 13px;
-        height: 13px;
+        width: 12px;
+        height: 12px;
         inset: 0 0 2px 0;
     }
 }
@@ -623,7 +623,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     /* Bottom padding INSIDE the scroll area — ensures the last item can be
        scrolled clear of both the iOS bottom toolbar AND the home-indicator
        inset. Sim 187. */
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
 }
 @media (max-width: 600px) {
     .dropdown-stack {
@@ -1738,7 +1738,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    PriceSpriteModal, GasTrackerModal. */
 .close-hint {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top));
+    top: calc(max(20px, env(safe-area-inset-top)) - 1px);
     right: 30px;
     font-size: 30px;
     cursor: pointer;
@@ -3901,6 +3901,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .scroll-arrow:hover { opacity: 1; }
     .notif-item:hover { background: rgba(128,128,128,0.2); }
     .hi-icon:hover { transform: translateY(-3px); color: #fff; }
+    .hi-icon.hi-note:hover { transform: translateY(-2px); }
     .output-content:hover .hover-overlay { opacity: 1; }
     .search-clear:hover { opacity: 1; }
     .pill-artist-filter:hover {
