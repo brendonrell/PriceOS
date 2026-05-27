@@ -539,7 +539,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     .modal-pin-hint.pinned::before {
         width: 13px;
         height: 13px;
-        margin-top: -1px;
+        inset: 0 0 2px 0;
     }
 }
 
