@@ -66,7 +66,8 @@ export function buildMonthCells(viewY: number, viewM: number): CalCell[] {
  * Render a Day Note string with light markdown.
  * Mirrors the sim's renderNoteMarkdown for **bold**, _italic_, `code`.
  * Returns sanitized HTML — only emits the three tags above plus escaped
- * angle-brackets for everything else.
+ * angle-brackets for everything else. URLs are linkified as <a> tags
+ * with data-external so the delegated handler can open them natively.
  */
 export function renderNoteMarkdown(s: string): string {
   if (!s) return '';
@@ -75,7 +76,12 @@ export function renderNoteMarkdown(s: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  return escaped
+  // Linkify URLs before other markdown so markers inside URLs aren't mangled.
+  const linked = escaped.replace(
+    /(https?:\/\/[^\s&<>"]+)/g,
+    '<a class="note-ext-link" href="$1" data-external="1">$1</a>'
+  );
+  return linked
     .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
     .replace(/_([^_]+?)_/g, '<em>$1</em>')
     .replace(/`([^`]+?)`/g, '<code>$1</code>');
