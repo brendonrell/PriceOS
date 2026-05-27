@@ -88,6 +88,8 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
             if (!target) return;
             const wrapper = document.querySelector('.user-menu-wrapper');
             if (wrapper && wrapper.contains(target)) return;
+            const petey = document.querySelector('.pd-logo-wrap');
+            if (petey && petey.contains(target)) return;
             setMenuOpen(false);
             setView('links');
         };
