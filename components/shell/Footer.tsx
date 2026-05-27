@@ -34,7 +34,7 @@ export function Footer() {
                     About PD
                 </span>
                 <span className="priceos-sep">·</span>
-                <a className="priceos-link" href="https://discord.gg/mJteKZmg28" target="_blank" rel="noopener noreferrer">
+                <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}>
                     Join Our Discord
                 </a>
                 <span className="priceos-sep">·</span>
