@@ -1217,6 +1217,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 .note-id { opacity: 1; flex-shrink: 0; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; white-space: nowrap; }
 .note-icon-glyph { font-size: 13px; flex-shrink: 0; opacity: 0.7; font-family: 'Courier New', Courier, monospace; }
 .note-text { opacity: 1; line-height: 1.4; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-ext-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; word-break: break-all; }
 .note-divider { height: 1px; background: rgba(128,128,128,0.2); margin: 2px 10px; }
 
 
@@ -2702,6 +2703,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     padding: 2px 6px;
     min-height: 22px;
     font-size: 11px;
+}
+.priceday-popover .dp-label {
+    font-style: italic;
 }
 
 .hero-line {
