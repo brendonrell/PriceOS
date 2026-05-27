@@ -912,8 +912,7 @@ function ProjectPageBodyInner() {
                         </button>
                         <a
                             href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            onClick={(e) => { e.preventDefault(); window.open('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC', '_blank', 'noopener,noreferrer'); }}
                             className="btn-soundtrack"
                         >
                             <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
