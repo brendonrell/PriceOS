@@ -1076,7 +1076,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 @media (min-width: 601px) {
     .notifications-box.is-open .notif-list {
-        min-height: 152px;
+        min-height: 124px;
     }
 }
 
@@ -1094,8 +1094,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    classes; the port unified them under .notif-list (AccordionBox owns
    all four — Tape/Pings/Todos/Notes), so a single rule covers it. */
 @media (min-width: 601px) {
-    .notif-list { max-height: 152px; }
-    .notes-list { max-height: 152px; }
+    .notif-list { max-height: 124px; }
+    .notes-list { max-height: 124px; }
 }
 
 .notif-item {
