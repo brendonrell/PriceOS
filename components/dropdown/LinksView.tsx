@@ -163,8 +163,7 @@ export function LinksView() {
 
             <a
                 href="https://discord.gg/mJteKZmg28"
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}
             >
                 Discord
             </a>
