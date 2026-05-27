@@ -533,7 +533,7 @@ export default function OutputPreview() {
             actionLabel = <>LIST</>;          // no price on LIST — cost basis is personal
             hasCalc = true;
             calcIcon = '\u2446\uFE0E';         // ⑆ user showcase icon
-            calcTitle = 'Add to User Showcase';
+            calcTitle = 'Add to Your Showcase';
             calcMode = 'user-showcase';
         } else if (meta.price) {
             actionLabel = (
@@ -817,7 +817,7 @@ export default function OutputPreview() {
                                 id="mActionCalc"
                                 onClick={() => {
                                     if (calcMode === 'user-showcase') {
-                                        showToast('Add to User Showcase — coming soon');
+                                        showToast('Add to Your Showcase — coming soon');
                                     } else if (calcMode === 'offer') {
                                         showToast('Offer Calc — coming soon');
                                     } else if (id != null && meta) {

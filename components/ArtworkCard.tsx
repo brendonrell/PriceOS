@@ -716,8 +716,8 @@ export default function ArtworkCard({
                             {ownedByBrendon && (
                                 <span
                                     className="hi-icon hi-showcase"
-                                    title="Add to User Showcase"
-                                    onClick={stubAction('Added to User Showcase')}
+                                    title="Add to Your Showcase"
+                                    onClick={stubAction('Added to Your Showcase')}
                                 >
                                     {'\u2446\uFE0E'}
                                 </span>
