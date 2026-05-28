@@ -545,8 +545,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         flex-direction: row;
         align-items: stretch;
         padding: 0;
-        padding-left: env(safe-area-inset-left, 0px);
-        padding-right: env(safe-area-inset-right, 0px);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 
     /* Canvas takes all remaining width; height is full viewport */
@@ -577,7 +577,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        padding: calc(env(safe-area-inset-top, 0px) + 44px) 12px 80px 12px;
+        padding: 44px 12px 80px 12px;
         box-sizing: border-box;
         gap: 4px;
         border-left: 1px solid rgba(128, 128, 128, 0.2);
@@ -607,7 +607,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
         bottom: 0;
         right: 0;
         width: 230px;
-        padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 8px) 12px;
+        padding: 8px 12px 8px 12px;
         gap: 6px;
         border-top: 1px solid rgba(128, 128, 128, 0.2);
         background: var(--modal-bg);
@@ -631,13 +631,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
     /* Close × and note pin reposition to top-right of info column */
     #modal .close-hint {
-        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        top: 8px;
         right: 10px;
         font-size: 24px;
     }
 
     #modal .modal-pin-hint {
-        top: calc(env(safe-area-inset-top, 0px) + 10px);
+        top: 10px;
         right: 38px;
         font-size: 18px;
     }
@@ -651,7 +651,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 
-
+/* ============================================================
+   CALC SHEET — sim id #calcSheet (sim.html 2703-2838 + 5018-5067).
    Slide-up bottom sheet on mobile, centred card on desktop. Opened by
    the ƒ tab inside the compound action button (BUY-state only).
 
