@@ -789,6 +789,54 @@ export default function OutputPreview() {
                         >
                             {`\u25C0${VS15}`}
                         </div>
+                        {/* Landscape-only pill row — sits between ◀ and the CTA.
+                            Hidden in portrait via CSS; the portrait pill row inside
+                            .modal-info is hidden in landscape via CSS. No details
+                            popover here — landscape is too tight for it. */}
+                        <div className="modal-pill-row modal-pill-row--ls" aria-hidden="true">
+                            <span
+                                className="modal-pill"
+                                title="Star"
+                                onClick={() => showToast('Starred')}
+                            >
+                                {`\u2606${VS15}`}
+                            </span>
+                            <span
+                                className="modal-pill"
+                                title="Wishlist"
+                                onClick={() => showToast('Added to Wishlist')}
+                            >
+                                {`\u271B${VS15}`}
+                            </span>
+                            <span
+                                className="modal-pill"
+                                title="Add to Album"
+                                onClick={() => showToast('Add to Album')}
+                            >
+                                {`\u25F0${VS15}`}
+                            </span>
+                            <span
+                                className={`modal-pill${isPinned ? ' active' : ''}`}
+                                title="Grail Pin"
+                                onClick={togglePin}
+                            >
+                                {`\u27DF${VS15}`}
+                            </span>
+                            <span
+                                className="modal-pill"
+                                title="Add to To-Do"
+                                onClick={() => showToast('Added to To-Dos')}
+                            >
+                                {`\u274D${VS15}`}
+                            </span>
+                            <span
+                                className={`modal-pill${detailsOpen ? ' active' : ''}`}
+                                title="Details"
+                                onClick={() => setDetailsOpen((o) => !o)}
+                            >
+                                {`\u2197${VS15}`}
+                            </span>
+                        </div>
                         <div
                             className={`modal-action-btn-wrap${hasCalc ? ' has-calc' : ''}`}
                             id="mActionBtnWrap"
