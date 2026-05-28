@@ -60,7 +60,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     max-width: 100%;
     max-height: 100%;
     width: auto;
-    height: 100%; /* iOS Safari needs explicit height to resolve max-height:100% */
+    height: auto;
     align-self: center;
     object-fit: contain;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
@@ -69,20 +69,15 @@ body.modal-open { overflow: hidden; touch-action: none; }
     -webkit-touch-callout: default;
 }
 
-/* Landscape pill row — hidden in portrait. Defined here so the landscape
-   media query's display:flex can override it. The actual rule is placed
-   after .modal-pill-row below to win the cascade (equal specificity,
-   later position wins). */
-
 /* ── MOBILE LANDSCAPE — artwork modal ─────────────────────────
    Triggered when the phone is rotated: typically max-height ≤ 500px
    and max-width ≤ 900px (rules out landscape desktop/tablets).
 
    Layout goals:
    1. Canvas fills all space above the single bottom bar.
-   2. .modal-info (title + portrait pill row) disappears — no room.
-   3. The portrait pill row is replaced by .modal-pill-row--ls, which
-      is injected inside the bottom bar between ◀ and the CTA.
+   2. .modal-info (title) disappears — no vertical room.
+   3. #mPillRow moves inline into the bottom bar between ◀ and CTA.
+      CSS order:0 + width:auto overrides the portrait order:-1 + width:100%.
    4. Bottom bar order: [◀] [pills] [CTA+ƒ] [▶].
    5. CSS-only transition — no JS orientation listener needed.
    ──────────────────────────────────────────────────────────────── */
@@ -97,26 +92,26 @@ body.modal-open { overflow: hidden; touch-action: none; }
         max-height: 100%;
         max-width: 100%;
         width: auto;
-        height: 100%;
+        height: auto;
         object-fit: contain;
     }
 
-    /* Hide title + portrait pill row — no vertical room. */
+    /* Hide title section — pill row moves inline into the bottom bar. */
     #modal .modal-info { display: none; }
-    #mPillRow          { display: none; }
 
-    /* Landscape pill row — visible only here. */
-    .modal-pill-row--ls {
-        display: flex !important;
+    /* Pill row — compact, inline between ◀ and CTA in landscape. */
+    #modal #mPillRow {
+        order: 0;
+        width: auto;
         flex-wrap: nowrap;
         gap: 5px;
         padding: 0;
-        flex-shrink: 1;
-        min-width: 0;
         align-items: center;
         align-self: center;
+        flex-shrink: 1;
+        min-width: 0;
     }
-    .modal-pill-row--ls .modal-pill {
+    #modal #mPillRow .modal-pill {
         width: 32px;
         height: 30px;
         font-size: 16px;
@@ -152,7 +147,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 /* Extra-tight landscape (e.g. iPhone SE landscape, ~320px tall). */
 @media (orientation: landscape) and (max-height: 380px) and (max-width: 900px) {
-    .modal-pill-row--ls .modal-pill {
+    #modal #mPillRow .modal-pill {
         width: 28px;
         height: 28px;
         font-size: 14px;
@@ -246,9 +241,6 @@ body.modal-open { overflow: hidden; touch-action: none; }
     position: relative;
     z-index: 5;
 }
-/* Hidden in portrait. !important beats the cascade position game —
-   the landscape media query uses !important too to flip it back. */
-.modal-pill-row--ls { display: none !important; }
 .modal-pill {
     display: inline-flex;
     align-items: center;
@@ -407,11 +399,22 @@ body.modal-open { overflow: hidden; touch-action: none; }
     flex-shrink: 0;
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 10px;
     padding: 12px 20px calc(6px + env(safe-area-inset-bottom, 0px)) 20px;
     box-sizing: border-box;
+}
+/* Portrait: pill row is order:-1 so it floats to its own top row within
+   the bottom bar, above [◀ CTA ▶]. Landscape overrides this to order:0
+   so it sits inline in the single bar row. */
+#modal #mPillRow {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 6px 0 0 0;
 }
 
 @media (min-width: 601px) {
