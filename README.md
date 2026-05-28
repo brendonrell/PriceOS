@@ -1,7 +1,7 @@
 # PriceOS
 
 
-Front end for the **Price Discussion** platform — a web3 social platform where the community discussing secondary prices is the product. PD is **filtered**, not curated: artist whitelist as a quality floor, but no gatekeeping in the social layer.
+Front end for the **Price Discussion** platform — a web3 social platform where the community discussing secondary prices is the product. PD is **filtered**, not curated: artist whitelist as a quality floor, but there's no gatekeeping in the social layer.
 
 - **Stack:** Next.js 14 (App Router) · React 18 · TypeScript · raw CSS
 - **Deploy:** Vercel (auto-deploys `main`; `dev` for previews)
