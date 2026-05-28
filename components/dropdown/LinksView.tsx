@@ -51,6 +51,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useGasData } from '../../lib/hooks/useGasData';
+import { openExternalLink } from '../../lib/pwa/openExternalLink';
 
 export function LinksView() {
     const { setView, closeMenu } = useDropdown();
@@ -163,7 +164,7 @@ export function LinksView() {
 
             <a
                 href="https://discord.gg/mJteKZmg28"
-                onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}
+                onClick={(e) => { e.preventDefault(); openExternalLink('https://discord.gg/mJteKZmg28'); }}
             >
                 Discord
             </a>
