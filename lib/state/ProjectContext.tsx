@@ -67,9 +67,8 @@ export interface ProjectState {
 const ProjectCtx = createContext<ProjectState | null>(null);
 
 const PROJECT_TITLE = 'PRISMS';
-/* 2222 is the full collection supply; 500 are shown in the gallery
-   for this build (the indexer page-loads the rest when ready). */
-const TOTAL_OUTPUTS = 500;
+/* Full collection supply — all 2222 outputs shown in the gallery. */
+const TOTAL_OUTPUTS = 2222;
 
 /* Mock project floor — sim reads this from the BUY button's
    .mint-price element on the project page. The Project Page
