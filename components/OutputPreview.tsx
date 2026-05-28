@@ -419,19 +419,6 @@ export default function OutputPreview() {
     /* Canvas placeholder render. Real ArtEngine wiring is its own ship;
        this paints a stable HSL gradient + radial glow + #id stamp so the
        modal looks alive and prev/next nav reads as distinct tokens. */
-
-    /* In landscape on a phone the canvas region is height-constrained, not
-       width-constrained. Rendering at innerWidth produces a canvas far wider
-       than the container; the CSS max-height clamp then squashes it tiny.
-       Instead render at innerHeight in landscape-phone so the art fills
-       the vertical space that's actually available. */
-    const getModalRenderWidth = useCallback(() => {
-        const isPhone = Math.min(window.innerWidth, window.innerHeight) <= 500;
-        const isLandscape = window.innerWidth > window.innerHeight;
-        if (isPhone && isLandscape) return Math.max(window.innerHeight, 400);
-        return window.innerWidth >= 601 ? window.innerWidth : 600;
-    }, []);
-
     useEffect(() => {
         if (!isOpen || id == null) return;
         const canvas = canvasRef.current;
@@ -446,11 +433,12 @@ export default function OutputPreview() {
            container has no fixed aspect-ratio rule so the canvas lays
            out at intrinsic size under the modal's max-width / max-
            height clamps. */
-        const w = getModalRenderWidth();
-        renderPrisms(canvas, id, w);
+        /* Sim uses window.innerWidth directly as renderWidth (sim line 8726) — match exactly. */
+        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
+        const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
-    }, [isOpen, id, getModalRenderWidth]);
+    }, [isOpen, id]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
        effect so every modal inherits the dance (sim openModal/closeModal
@@ -466,28 +454,11 @@ export default function OutputPreview() {
     const renderToCanvas = useCallback((nextId: number) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const w = getModalRenderWidth();
+        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
         renderPrisms(canvas, nextId, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
-    }, [getModalRenderWidth]);
-
-    /* Re-render the canvas when the device rotates so art fills the new
-       dominant axis. iOS fires orientationchange before innerWidth updates;
-       the 120ms defer lets the browser finish the reflow first. */
-    useEffect(() => {
-        if (!isOpen || id == null) return;
-        const handleRotation = () => {
-            setTimeout(() => { if (id != null) renderToCanvas(id); }, 120);
-        };
-        const nav = window.screen?.orientation;
-        if (nav) {
-            nav.addEventListener('change', handleRotation);
-            return () => nav.removeEventListener('change', handleRotation);
-        }
-        window.addEventListener('orientationchange', handleRotation);
-        return () => window.removeEventListener('orientationchange', handleRotation);
-    }, [isOpen, id, renderToCanvas]);
+    }, []);
 
     const goNext = useCallback(() => {
         if (id == null) return;
