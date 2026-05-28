@@ -41,6 +41,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { renderNoteMarkdown } from '../lib/calendar/utils';
+import { openExternalLink } from '../lib/pwa/openExternalLink';
 
 interface NotePromptModalProps {
   open: boolean;
@@ -215,7 +216,7 @@ export default function NotePromptModal({
             if (target) {
               e.preventDefault();
               e.stopPropagation();
-              window.open((target as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
+              openExternalLink((target as HTMLAnchorElement).href);
             }
           }}
         />
