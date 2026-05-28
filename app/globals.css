@@ -2929,6 +2929,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
+    /* Prevent iOS Safari from auto-inflating this small text when the
+       device rotates to landscape. The html-level rule isn't specific
+       enough to protect individual inline elements on iOS. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 /* "COLLECTED BY" label — matches .by-text exactly (sim line 2506) */
 .collected-by-label {
@@ -4498,26 +4503,6 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .info-rubik .ico-followers { font-size: 16px !important; top: -1px; }
     .info-rubik .artist-tag { top: -2px; }
     .stat-icon-box { font-size: 13px; }
-
-    /* ── Collected-by / Held-by line: clamp to mobile-portrait sizes.
-       Landscape phones (~844px wide) satisfy min-width:601px and
-       inherit the desktop block. The real culprit is the bare
-       .ico-mutual/following/followers rule at 22px (base, no media
-       query) inflating the line-height of .info-rubik. Pull it back
-       to portrait-mobile size so the "Collected by / Held by" row
-       doesn't tower over everything. */
-    .info-rubik {
-        font-size: 11px !important;
-        line-height: 1.4 !important;
-    }
-    .ico-mutual,
-    .ico-following,
-    .ico-followers { font-size: 16px !important; }
-    .info-rubik .ico-mutual,
-    .info-rubik .ico-following,
-    .info-rubik .ico-followers { font-size: 14px !important; }
-    /* Tighten hero spacing in landscape */
-    .hero-line.info-line { margin-top: 2px; }
 }
 
 /* ── PROJECT PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
