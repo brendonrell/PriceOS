@@ -866,7 +866,7 @@ function ProjectPageBodyInner() {
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">500/2222</span>
+                            <span className="stat-val">2222/2222</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
