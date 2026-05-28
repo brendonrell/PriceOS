@@ -1496,6 +1496,10 @@ body.tape-framed .tape-rail {
     padding-left: 20px;
     padding-right: 20px;
 }
+/* Left-align modal-info container itself, overriding global center. */
+#followersModal .modal-info {
+    align-items: flex-start;
+}
 /* Pills flow left-aligned, content-width (no stretching). */
 #followersModal .modal-info > div:first-child {
     align-items: flex-start;
