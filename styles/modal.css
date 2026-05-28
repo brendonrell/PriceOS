@@ -68,14 +68,95 @@ body.modal-open { overflow: hidden; touch-action: none; }
     -webkit-touch-callout: default;
 }
 
-/* Phone landscape — canvas was getting a tiny max-height because
-   the flex parent had no explicit height to resolve 100% against.
-   Switch to 100vh so the art fills the available vertical space. */
-@media (orientation: landscape) and (max-height: 500px) {
-    #modalCanvas {
-        max-height: 100vh;
-        max-width: 100%;
+/* ── MOBILE LANDSCAPE — artwork modal ─────────────────────────
+   Triggered when the phone is rotated: typically max-height ≤ 500px
+   and max-width ≤ 900px (rules out landscape desktop/tablets).
+
+   Layout goals:
+   1. Canvas fills all space above the single bottom bar.
+   2. .modal-info (title + portrait pill row) disappears — no room.
+   3. The portrait pill row is replaced by .modal-pill-row--ls, which
+      is injected inside the bottom bar between ◀ and the CTA.
+   4. Bottom bar order: [◀] [pills] [CTA+ƒ] [▶].
+   5. CSS-only transition — no JS orientation listener needed.
+   ──────────────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+    /* Canvas: fills every pixel above the bar. */
+    #modal .modal-canvas-wrap {
+        flex: 1 1 0%;
+        min-height: 0;
+        padding: 8px 12px 4px 12px;
     }
+    #modalCanvas {
+        max-height: 100%;
+        max-width: 100%;
+        width: auto;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Hide title + portrait pill row — no vertical room. */
+    #modal .modal-info { display: none; }
+    #mPillRow          { display: none; }
+
+    /* Landscape pill row — visible only here. */
+    .modal-pill-row--ls {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 5px;
+        padding: 0;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+    .modal-pill-row--ls .modal-pill {
+        width: 32px;
+        height: 30px;
+        font-size: 16px;
+    }
+
+    /* Bottom bar: tight single row [◀] [pills] [CTA+ƒ] [▶]. */
+    #modal .modal-bottom-bar {
+        gap: 6px;
+        padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px)) 12px;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+        justify-content: center;
+    }
+
+    /* Compact CTA so pills have room. */
+    #modal .modal-action-btn {
+        width: 140px;
+        height: 30px;
+        font-size: 12px;
+    }
+    #modal .modal-action-btn-calc {
+        height: 30px;
+        width: 30px;
+        font-size: 15px;
+    }
+    #modal .modal-nav-pill {
+        width: 28px;
+        height: 30px;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+}
+
+/* Extra-tight landscape (e.g. iPhone SE landscape, ~320px tall). */
+@media (orientation: landscape) and (max-height: 380px) and (max-width: 900px) {
+    .modal-pill-row--ls .modal-pill {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+    #modal .modal-action-btn {
+        width: 120px;
+        height: 28px;
+        font-size: 11px;
+    }
+    #modal .modal-action-btn-calc { height: 28px; width: 28px; }
+    #modal .modal-nav-pill        { width: 26px; height: 28px; }
+    #modal .modal-bottom-bar      { gap: 4px; }
 }
 
 /* Desktop breathing room — reservation matches sim's 300px below
@@ -148,6 +229,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 
 /* ── PILL ROW (Star · Wishlist · Album · Note · ToDo · Share) ─ */
+
+/* Landscape duplicate — hidden by default; the landscape media query
+   below reveals it inside the bottom bar. */
+.modal-pill-row--ls { display: none; }
+
 .modal-pill-row {
     display: flex;
     gap: 8px;
