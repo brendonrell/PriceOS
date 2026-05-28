@@ -68,10 +68,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     -webkit-touch-callout: default;
 }
 
-/* Landscape pill row — hidden by default (portrait). Must be defined
-   BEFORE the landscape media query so the media query's display:flex
-   wins via cascade order, not specificity. */
-.modal-pill-row--ls { display: none; }
+/* Landscape pill row — hidden in portrait. Defined here so the landscape
+   media query's display:flex can override it. The actual rule is placed
+   after .modal-pill-row below to win the cascade (equal specificity,
+   later position wins). */
 
 /* ── MOBILE LANDSCAPE — artwork modal ─────────────────────────
    Triggered when the phone is rotated: typically max-height ≤ 500px
@@ -112,6 +112,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
         padding: 0;
         flex-shrink: 1;
         min-width: 0;
+        align-items: center;
+        align-self: center;
     }
     .modal-pill-row--ls .modal-pill {
         width: 32px;
@@ -243,6 +245,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     position: relative;
     z-index: 5;
 }
+/* Hidden in portrait — must come after .modal-pill-row so this wins
+   the cascade over its display:flex (equal specificity, later wins).
+   The landscape media query then overrides back to display:flex. */
+.modal-pill-row--ls { display: none; }
 .modal-pill {
     display: inline-flex;
     align-items: center;
