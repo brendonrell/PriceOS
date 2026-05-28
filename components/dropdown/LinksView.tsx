@@ -50,7 +50,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useGasData } from '../../lib/hooks/useGasData';
+// import { useGasData } from '../../lib/hooks/useGasData'; // gas disabled
 import { openExternalLink } from '../../lib/pwa/openExternalLink';
 
 export function LinksView() {
@@ -64,12 +64,8 @@ export function LinksView() {
 
     const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
 
-    const gas = useGasData(true);
-    const gasValue = gas.data
-        ? gas.data.standardGwei < 10
-            ? gas.data.standardGwei.toFixed(2)
-            : gas.data.standardGwei.toFixed(1)
-        : '—';
+    // const gas = useGasData(true); // gas disabled
+    const gasValue = '—';
 
     const handleLogOut = async (e: React.MouseEvent) => {
         e.preventDefault();
