@@ -649,6 +649,22 @@ export default function OutputPreview() {
                             </span>
                             {' '}#{id}
                         </div>
+                    </div>
+
+                    <div className="modal-bottom-bar" id="mBottomBar">
+                        <div
+                            className="modal-nav-pill"
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Previous"
+                            title="Previous"
+                            onClick={goPrev}
+                        >
+                            {`\u25C0${VS15}`}
+                        </div>
+                        {/* Pill row — single source of truth. Portrait: floats to own
+                            top row via CSS order:-1 + width:100%. Landscape: sits
+                            inline between ◀ and CTA via CSS order:0 + width:auto. */}
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className="modal-pill"
@@ -699,11 +715,9 @@ export default function OutputPreview() {
                                     className="details-popover"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    {/* Artwork title — Rubik Mono One, centered */}
                                     <div className="dp-title">
                                         {title} #{id}
                                     </div>
-                                    {/* Artist row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artist</span>
                                         <span className="dp-value">
@@ -712,7 +726,6 @@ export default function OutputPreview() {
                                             </a>
                                         </span>
                                     </div>
-                                    {/* Owner row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Owner</span>
                                         <span className="dp-value">
@@ -734,7 +747,6 @@ export default function OutputPreview() {
                                             )}
                                         </span>
                                     </div>
-                                    {/* Artwork Page row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artwork Page</span>
                                         <span className="dp-value">
@@ -743,7 +755,6 @@ export default function OutputPreview() {
                                             </button>
                                         </span>
                                     </div>
-                                    {/* Share URL row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Share URL</span>
                                         <span className="dp-value">
@@ -775,67 +786,6 @@ export default function OutputPreview() {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    </div>
-
-                    <div className="modal-bottom-bar" id="mBottomBar">
-                        <div
-                            className="modal-nav-pill"
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Previous"
-                            title="Previous"
-                            onClick={goPrev}
-                        >
-                            {`\u25C0${VS15}`}
-                        </div>
-                        {/* Landscape-only pill row — sits between ◀ and the CTA.
-                            Hidden in portrait via CSS; the portrait pill row inside
-                            .modal-info is hidden in landscape via CSS. No details
-                            popover here — landscape is too tight for it. */}
-                        <div className="modal-pill-row modal-pill-row--ls" aria-hidden="true">
-                            <span
-                                className="modal-pill"
-                                title="Star"
-                                onClick={() => showToast('Starred')}
-                            >
-                                {`\u2606${VS15}`}
-                            </span>
-                            <span
-                                className="modal-pill"
-                                title="Wishlist"
-                                onClick={() => showToast('Added to Wishlist')}
-                            >
-                                {`\u271B${VS15}`}
-                            </span>
-                            <span
-                                className="modal-pill"
-                                title="Add to Album"
-                                onClick={() => showToast('Add to Album')}
-                            >
-                                {`\u25F0${VS15}`}
-                            </span>
-                            <span
-                                className={`modal-pill${isPinned ? ' active' : ''}`}
-                                title="Grail Pin"
-                                onClick={togglePin}
-                            >
-                                {`\u27DF${VS15}`}
-                            </span>
-                            <span
-                                className="modal-pill"
-                                title="Add to To-Do"
-                                onClick={() => showToast('Added to To-Dos')}
-                            >
-                                {`\u274D${VS15}`}
-                            </span>
-                            <span
-                                className={`modal-pill${detailsOpen ? ' active' : ''}`}
-                                title="Details"
-                                onClick={() => setDetailsOpen((o) => !o)}
-                            >
-                                {`\u2197${VS15}`}
-                            </span>
                         </div>
                         <div
                             className={`modal-action-btn-wrap${hasCalc ? ' has-calc' : ''}`}
