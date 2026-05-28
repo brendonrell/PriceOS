@@ -82,6 +82,7 @@ import {
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
 import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
+import { openExternalLink } from '../../lib/pwa/openExternalLink';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -912,7 +913,7 @@ function ProjectPageBodyInner() {
                         </button>
                         <a
                             href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC"
-                            onClick={(e) => { e.preventDefault(); window.open('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC', '_blank', 'noopener,noreferrer'); }}
+                            onClick={(e) => { e.preventDefault(); openExternalLink('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC'); }}
                             className="btn-soundtrack"
                         >
                             <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
