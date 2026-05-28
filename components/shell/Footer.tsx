@@ -1,17 +1,14 @@
 'use client';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
-import { useGasData } from '../../lib/hooks/useGasData';
+// import { useGasData } from '../../lib/hooks/useGasData'; // gas disabled
 import { openExternalLink } from '../../lib/pwa/openExternalLink';
 
 export function Footer() {
     const { showToast } = useToast();
     const { open } = useModal();
-    const { data } = useGasData(true);
-
-    const gweiText = data
-        ? `${data.standardGwei < 10 ? data.standardGwei.toFixed(2) : data.standardGwei.toFixed(1)} gwei`
-        : '— gwei';
+    // const { data } = useGasData(true); // gas disabled
+    const gweiText = '— gwei';
 
     const blockText = data
         ? `Blk ${data.blockNumber.toLocaleString()}`
