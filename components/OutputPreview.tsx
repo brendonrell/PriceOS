@@ -649,22 +649,6 @@ export default function OutputPreview() {
                             </span>
                             {' '}#{id}
                         </div>
-                    </div>
-
-                    <div className="modal-bottom-bar" id="mBottomBar">
-                        <div
-                            className="modal-nav-pill"
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Previous"
-                            title="Previous"
-                            onClick={goPrev}
-                        >
-                            {`\u25C0${VS15}`}
-                        </div>
-                        {/* Pill row — single source of truth. Portrait: floats to own
-                            top row via CSS order:-1 + width:100%. Landscape: sits
-                            inline between ◀ and CTA via CSS order:0 + width:auto. */}
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className="modal-pill"
@@ -715,9 +699,11 @@ export default function OutputPreview() {
                                     className="details-popover"
                                     onClick={(e) => e.stopPropagation()}
                                 >
+                                    {/* Artwork title — Rubik Mono One, centered */}
                                     <div className="dp-title">
                                         {title} #{id}
                                     </div>
+                                    {/* Artist row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artist</span>
                                         <span className="dp-value">
@@ -726,6 +712,7 @@ export default function OutputPreview() {
                                             </a>
                                         </span>
                                     </div>
+                                    {/* Owner row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Owner</span>
                                         <span className="dp-value">
@@ -747,6 +734,7 @@ export default function OutputPreview() {
                                             )}
                                         </span>
                                     </div>
+                                    {/* Artwork Page row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Artwork Page</span>
                                         <span className="dp-value">
@@ -755,6 +743,7 @@ export default function OutputPreview() {
                                             </button>
                                         </span>
                                     </div>
+                                    {/* Share URL row */}
                                     <div className="dp-row">
                                         <span className="dp-label">Share URL</span>
                                         <span className="dp-value">
@@ -786,6 +775,19 @@ export default function OutputPreview() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="modal-bottom-bar" id="mBottomBar">
+                        <div
+                            className="modal-nav-pill"
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Previous"
+                            title="Previous"
+                            onClick={goPrev}
+                        >
+                            {`\u25C0${VS15}`}
                         </div>
                         <div
                             className={`modal-action-btn-wrap${hasCalc ? ' has-calc' : ''}`}

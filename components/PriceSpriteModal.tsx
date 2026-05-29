@@ -148,11 +148,11 @@ export default function PriceSpriteModal() {
                     </span>
                 </div>
 
-                {/* PriceRank — live from useAuth().accountLevel. ⓿ for 0,
+                {/* Level — live from useAuth().accountLevel. ⓿ for 0,
                     ❶ for 1. Curve extension lifts this through ❷❸❹❺❻❼❽❾❿
                     (U+2776..U+277F) when the level system expands. */}
                 <div className="ps-level-row">
-                    <div className="ps-level-label">PRICERANK</div>
+                    <div className="ps-level-label">LEVEL</div>
                     <div className="ps-level-value">
                         {accountLevel === 0 ? '\u24FF' : '\u2776'}
                     </div>

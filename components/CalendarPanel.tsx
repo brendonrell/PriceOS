@@ -32,7 +32,6 @@ import {
   dateKey,
   renderNoteMarkdown,
 } from '../lib/calendar/utils';
-import { openExternalLink } from '../lib/pwa/openExternalLink';
 
 export default function CalendarPanel() {
   const {
@@ -227,7 +226,7 @@ export default function CalendarPanel() {
                       if (target) {
                         e.preventDefault();
                         e.stopPropagation();
-                        openExternalLink((target as HTMLAnchorElement).href);
+                        window.open((target as HTMLAnchorElement).href, '_blank', 'noopener,noreferrer');
                       }
                     }}
                   />
