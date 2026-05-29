@@ -82,7 +82,6 @@ import {
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
 import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
-import { openExternalLink } from '../../lib/pwa/openExternalLink';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -866,7 +865,7 @@ function ProjectPageBodyInner() {
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">2222/2222</span>
+                            <span className="stat-val">500/2222</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
@@ -913,7 +912,7 @@ function ProjectPageBodyInner() {
                         </button>
                         <a
                             href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC"
-                            onClick={(e) => { e.preventDefault(); openExternalLink('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC'); }}
+                            onClick={(e) => { e.preventDefault(); window.open('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC', '_blank', 'noopener,noreferrer'); }}
                             className="btn-soundtrack"
                         >
                             <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
