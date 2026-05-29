@@ -76,6 +76,7 @@ const THEME_TO_TOKEN: Record<NonNullable<ThemeKey>, string> = {
     hashsyn: 'HASH',
     blue:    'BLUE',
     red:     'REDD',
+    haze:    'HAZE',
 };
 
 const TOKEN_TO_THEME: Record<string, ThemeKey> = Object.fromEntries(
