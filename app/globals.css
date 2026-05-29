@@ -2,6 +2,7 @@
 @import '../styles/notePrompt.css';
 @import '../styles/settings.css';
 @import '../styles/modal.css';
+@import '../styles/modal-build4.css';
 
 
 /* ============================================================
@@ -1495,10 +1496,6 @@ body.tape-framed .tape-rail {
     align-items: flex-start;
     padding-left: 20px;
     padding-right: 20px;
-}
-/* Left-align modal-info container itself, overriding global center. */
-#followersModal .modal-info {
-    align-items: flex-start;
 }
 /* Pills flow left-aligned, content-width (no stretching). */
 #followersModal .modal-info > div:first-child {
@@ -5064,7 +5061,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 .topbarcal-close:hover { opacity: 1; }
 
 @media (max-width: 600px) {
-    .topbarcal-pill { padding: 4px 10px; gap: 7px; font-size: 12px; height: 26px; }
+    .topbarcal-pill { padding: 4px 10px; gap: 7px; font-size: 12px; height: 28px; }
     /* Sim 1331-1339 — mobile tightening: gaps halved, arrow icon
        hidden to free horizontal room for the strip itself. */
     .topbarcal-icon { display: none; }
