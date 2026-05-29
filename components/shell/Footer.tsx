@@ -1,14 +1,16 @@
 'use client';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
-// import { useGasData } from '../../lib/hooks/useGasData'; // gas disabled
-import { openExternalLink } from '../../lib/pwa/openExternalLink';
+import { useGasData } from '../../lib/hooks/useGasData';
 
 export function Footer() {
     const { showToast } = useToast();
     const { open } = useModal();
-    // const { data } = useGasData(true); // gas disabled
-    const gweiText = '— gwei';
+    const { data } = useGasData(true);
+
+    const gweiText = data
+        ? `${data.standardGwei < 10 ? data.standardGwei.toFixed(2) : data.standardGwei.toFixed(1)} gwei`
+        : '— gwei';
 
     const blockText = data
         ? `Blk ${data.blockNumber.toLocaleString()}`
@@ -32,7 +34,7 @@ export function Footer() {
                     About PD
                 </span>
                 <span className="priceos-sep">·</span>
-                <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); openExternalLink('https://discord.gg/mJteKZmg28'); }}>
+                <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}>
                     Join Our Discord
                 </a>
                 <span className="priceos-sep">·</span>
