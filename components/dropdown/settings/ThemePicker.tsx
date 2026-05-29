@@ -8,12 +8,19 @@
  * Seven theme pills, each backed by ThemeContext. Click switches the
  * site theme (--bg-color and --text-color flip with YIQ contrast).
  *
+ * Triple-tap the "DEFAULT THEME" header to reveal Haze mode in-place:
+ * the header becomes "HAZE" and the pill row swaps for a hex picker.
+ * Haze is a normal ThemeKey — same as orange/blue/red — except its bg
+ * hex is user-chosen and read from localStorage via getHazeBg() in
+ * ThemeContext. Triple-tap the "HAZE" header to flip back.
+ *
  * Picker layout matches the sim verbatim, including the per-pill icon
  * styling tweaks for the textual ones (B, R) and the Hash-Synesthesia
  * three-dot glyph. The active state is rendered by the .pill-theme.active
  * CSS rule when the current theme matches the pill's key.
  */
 
+import { useRef, useState } from 'react';
 import { useTheme, type ThemeKey } from '../../../lib/state/ThemeContext';
 import { useToast } from '../../../lib/state/ToastContext';
 
@@ -39,7 +46,7 @@ const PILLS: PillSpec[] = [
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
     {
-        key: 'red',     cls: 't-red',     title: 'Red Cherry Mode',       glyph: 'R',
+        key: 'red',     cls: 't-red',     title: 'Red Cherry Mode',   glyph: 'R',
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
 ];
@@ -52,15 +59,211 @@ const THEME_NAMES: Record<NonNullable<ThemeKey>, string> = {
     hashsyn: 'Hash Synesthesia',
     blue:    'Blueberry Mode',
     red:     'Cherry Mode',
+    haze:    'Haze',
 };
+
+const HAZE_COLOR_KEY = 'pd_haze_color';
+const HAZE_DEFAULT   = '#888888';
+const HEX_RE         = /^#[0-9A-F]{6}$/i;
+
+function readHazeColor(): string {
+    if (typeof window === 'undefined') return HAZE_DEFAULT;
+    try {
+        const saved = localStorage.getItem(HAZE_COLOR_KEY);
+        if (saved && HEX_RE.test(saved)) return saved.toUpperCase();
+    } catch { /* ignore */ }
+    return HAZE_DEFAULT;
+}
 
 export function ThemePicker() {
     const { theme, setTheme } = useTheme();
     const { showToast } = useToast();
 
+    // Triple-tap state — local to this row only
+    const [hazeMode, setHazeMode] = useState(false);
+    const tapState = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
+
+    const handleHeaderTap = () => {
+        const now = Date.now();
+        const s = tapState.current;
+        if (now - s.lastTap > 600) {
+            s.count = 1;
+        } else {
+            s.count += 1;
+        }
+        s.lastTap = now;
+        if (s.count >= 3) {
+            s.count = 0;
+            setHazeMode((v) => !v);
+        }
+    };
+
+    // Haze hex picker state
+    const [hazeHex, setHazeHex] = useState<string>(() => readHazeColor());
+    const hazePickerRef   = useRef<HTMLInputElement | null>(null);
+    const editingHexRef   = useRef(false);
+    const copyingHexRef   = useRef(false);
+
+    const applyHazeHex = (hex: string) => {
+        const upper = hex.toUpperCase();
+        try { localStorage.setItem(HAZE_COLOR_KEY, upper); } catch { /* ignore */ }
+        // If haze is already the active theme, re-apply immediately so the
+        // bg updates live as the user picks — same as setTheme('haze') would
+        // do, but without resetting persistence state.
+        if (theme === 'haze') setTheme('haze');
+    };
+
+    if (hazeMode) {
+        return (
+            <>
+                <div
+                    className="settings-header"
+                    style={{ cursor: 'pointer', userSelect: 'none' }}
+                    title="Triple-tap to go back"
+                    onClick={handleHeaderTap}
+                >
+                    HAZE
+                </div>
+                <div className="settings-pill-row">
+                    {/* Haze theme pill — activates the theme */}
+                    <button
+                        type="button"
+                        id="st-haze"
+                        className={`pill-theme t-haze${theme === 'haze' ? ' active' : ''}`}
+                        title="Haze Mode"
+                        aria-pressed={theme === 'haze'}
+                        style={theme !== 'haze' ? { backgroundColor: hazeHex, opacity: 0.8 } : { backgroundColor: hazeHex }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setTheme('haze');
+                            showToast('Theme: Haze');
+                        }}
+                    >
+                        <span style={{
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontSize: 9,
+                            fontWeight: 'bold',
+                            letterSpacing: 0,
+                        }}>HZ</span>
+                    </button>
+
+                    {/* Hidden native color picker */}
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            ref={hazePickerRef}
+                            type="color"
+                            id="hazeColorPicker"
+                            value={hazeHex}
+                            onChange={(e) => {
+                                const hex = e.target.value.toUpperCase();
+                                setHazeHex(hex);
+                                applyHazeHex(hex);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            style={{
+                                position: 'absolute',
+                                opacity: 0,
+                                width: '1px',
+                                height: '1px',
+                                bottom: 0,
+                                left: '50%',
+                                pointerEvents: 'none',
+                            }}
+                        />
+                        {/* Swatch button that opens the picker */}
+                        <button
+                            type="button"
+                            className="pill-theme"
+                            title="Pick colour"
+                            style={{
+                                backgroundColor: hazeHex,
+                                border: '1px solid currentColor',
+                                opacity: 0.9,
+                                width: 32,
+                                height: 28,
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                hazePickerRef.current?.click();
+                            }}
+                        >
+                            <span style={{
+                                fontFamily: "'Courier New', Courier, monospace",
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                            }}>◩{'\uFE0E'}</span>
+                        </button>
+                    </div>
+
+                    {/* Visible hex text input */}
+                    <input
+                        type="text"
+                        id="hazeHexInput"
+                        value={hazeHex}
+                        className="hex-input"
+                        maxLength={7}
+                        spellCheck={false}
+                        onClick={(e) => e.stopPropagation()}
+                        onFocus={() => { editingHexRef.current = true; }}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            setHazeHex(v);
+                            if (HEX_RE.test(v)) applyHazeHex(v);
+                        }}
+                        onBlur={() => {
+                            editingHexRef.current = false;
+                            if (!HEX_RE.test(hazeHex)) {
+                                setHazeHex(readHazeColor());
+                            } else {
+                                setHazeHex(hazeHex.toUpperCase());
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                (e.currentTarget as HTMLInputElement).blur();
+                            } else if (e.key === 'Escape') {
+                                setHazeHex(readHazeColor());
+                                (e.currentTarget as HTMLInputElement).blur();
+                            }
+                        }}
+                    />
+
+                    {/* Copy hex button */}
+                    <span
+                        className="copy-hex-btn"
+                        title="Copy Hex"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            try { navigator.clipboard?.writeText(hazeHex); } catch { /* ignore */ }
+                            copyingHexRef.current = true;
+                            setHazeHex('✓ COPIED');
+                            window.setTimeout(() => {
+                                copyingHexRef.current = false;
+                                setHazeHex(readHazeColor());
+                            }, 1500);
+                        }}
+                    >
+                        ⧉{'\uFE0E'}
+                    </span>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
-            <div className="settings-header">DEFAULT THEME</div>
+            <div
+                className="settings-header"
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title="Triple-tap for Haze mode"
+                onClick={handleHeaderTap}
+            >
+                DEFAULT THEME
+            </div>
             <div className="settings-pill-row theme-pills">
                 {PILLS.map((p) => (
                     <button
