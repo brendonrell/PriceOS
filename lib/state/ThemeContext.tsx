@@ -48,6 +48,7 @@ export type ThemeKey =
     | 'blue'
     | 'red'
     | 'hashsyn'
+    | 'haze'
     | null; // null = factory default (Dot)
 
 const THEMES: Record<NonNullable<ThemeKey>, string> = {
@@ -66,6 +67,9 @@ const THEMES: Record<NonNullable<ThemeKey>, string> = {
     blue:    '#3D9EFF',
     red:     '#FF0033',
     hashsyn: '#7B2FFF',
+    /* Haze — user-chosen bg color, same persistence pattern as artist.
+       THEMES.haze is the fallback when no custom hex has been saved. */
+    haze:    '#888888',
 };
 
 /* F64 (BUG-28) — when the active theme is 'artist', the bg hex comes from
@@ -85,6 +89,20 @@ function getArtistBg(): string {
         /* ignore */
     }
     return THEMES.artist;
+}
+
+/* Haze — same pattern as artist. Storage key: `pd_haze_color`. Falls
+   back to THEMES.haze (#888888) when no custom hex has been saved. */
+const HAZE_COLOR_KEY = 'pd_haze_color';
+function getHazeBg(): string {
+    if (typeof window === 'undefined') return THEMES.haze;
+    try {
+        const saved = localStorage.getItem(HAZE_COLOR_KEY);
+        if (saved && ARTIST_HEX_RE.test(saved)) return saved.toUpperCase();
+    } catch {
+        /* ignore */
+    }
+    return THEMES.haze;
 }
 
 /* Brendon list item 7 — Pure Light / Pure Dark mode parity (sim 6798-6803).
@@ -148,7 +166,7 @@ function isRedBg(bgHex: string): boolean {
 
 /** Apply a theme to the documentElement and body classes. */
 function applyTheme(key: ThemeKey) {
-    let bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : THEMES[key]);
+    let bg = key === null ? DOT : (key === 'artist' ? getArtistBg() : key === 'haze' ? getHazeBg() : THEMES[key]);
     /* Brendon list item 7 — sim 6798-6803. Override standard light/dark
        bg with the pure variant when the corresponding flag is set. */
     if (key === 'light' || key === 'dark') {
@@ -272,6 +290,7 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
     body.classList.toggle('theme-red',     key === 'red');
     body.classList.toggle('theme-hashsyn', key === 'hashsyn');
     body.classList.toggle('theme-artist',  key === 'artist');
+    body.classList.toggle('theme-haze',    key === 'haze');
     body.classList.toggle('bg-is-red',     isRedBg(bg));
 
     // Update PWA theme-color meta if present.
