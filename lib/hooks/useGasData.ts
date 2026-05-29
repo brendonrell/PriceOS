@@ -3,132 +3,85 @@
 /*
  * useGasData — client-side poller for the /api/gas edge route.
  *
- * Module-level singleton cache — all consumers (LinksView, Footer,
- * GasTrackerModal) share one fetch and one interval. Menu open never
- * triggers a network call if data fetched < 12s ago. Alchemy quota
- * is only consumed by the singleton tick, not once per consumer mount.
+ * Polls every 12s while `active` is true, pauses when the tab is
+ * hidden, and triggers an immediate refresh when visibility returns.
+ * The edge route is itself cached at 12s globally, so coincident
+ * polls from many clients collapse to a single Alchemy fetch per
+ * window — see Tier 2 cost arch (page 2kyd6gx6-3234).
  *
- * Singleton behaviour:
- *   - First subscriber starts the 12s interval and fires an immediate
- *     tick ONLY if cache is empty or stale (> 12s old).
- *   - Subsequent subscribers receive the cached value immediately via
- *     useState initialiser — no extra fetch, no loading flash.
- *   - Last subscriber stops the interval.
- *   - visibilitychange shared at module level — one listener total.
+ * Consumers:
+ *   - LinksView gas widget: useGasData(true) while the user dropdown
+ *     is open (LinksView only mounts in that state, so the active
+ *     flag is effectively "dropdown open").
+ *   - GasTrackerModal: useGasData(isOpen) — only polls while the
+ *     modal is open.
  *
- * The `active` flag is preserved so GasTrackerModal can still pause
- * polling when closed. An inactive consumer won't prevent the interval
- * from stopping when all active consumers unmount.
+ * The `active` gate matters: without it, every mounted consumer
+ * would tick on its own 12s interval forever, hammering the local
+ * route cache and counting against Vercel invocations even when no
+ * UI is showing the data.
  */
 
 import { useEffect, useState } from 'react';
 
 export interface GasData {
-    baseFeeGwei:  number;
+    baseFeeGwei: number;
     standardGwei: number;
-    fastGwei:     number;
-    rapidGwei:    number;
-    ethUsd:       number;
-    blockNumber:  number;
-    fetchedAt:    number;
+    fastGwei: number;
+    rapidGwei: number;
+    ethUsd: number;
+    blockNumber: number;
+    fetchedAt: number;
 }
 
 interface UseGasDataReturn {
-    data:    GasData | null;
+    data: GasData | null;
     loading: boolean;
-    error:   string | null;
+    error: string | null;
 }
 
-const POLL_MS   = 12_000;
-const STALE_MS  = 12_000;
-
-// ── Module-level singleton ────────────────────────────────────────────
-
-type Listener = (data: GasData | null, loading: boolean, error: string | null) => void;
-
-let _cache:      GasData | null = null;
-let _loading                    = false;
-let _error:      string | null  = null;
-let _interval:   ReturnType<typeof setInterval> | null = null;
-let _visAttached                = false;
-const _listeners                = new Set<Listener>();
-let _activeCount                = 0;  // consumers with active=true
-
-function _notify(): void {
-    _listeners.forEach(fn => fn(_cache, _loading, _error));
-}
-
-async function _tick(): Promise<void> {
-    if (typeof document !== 'undefined' && document.hidden) return;
-    // Skip if cache is still fresh
-    if (_cache && Date.now() - _cache.fetchedAt < STALE_MS) return;
-    _loading = true;
-    _notify();
-    try {
-        const res  = await fetch('/api/gas');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        _cache   = (await res.json()) as GasData;
-        _error   = null;
-    } catch (err) {
-        _error = err instanceof Error ? err.message : 'fetch failed';
-    } finally {
-        _loading = false;
-        _notify();
-    }
-}
-
-function _onVis(): void {
-    if (typeof document !== 'undefined' && !document.hidden) _tick();
-}
-
-function _startSingleton(): void {
-    if (_interval !== null) return;
-    _interval = setInterval(_tick, POLL_MS);
-    if (!_visAttached && typeof document !== 'undefined') {
-        document.addEventListener('visibilitychange', _onVis);
-        _visAttached = true;
-    }
-    _tick();
-}
-
-function _stopSingleton(): void {
-    if (_interval !== null) { clearInterval(_interval); _interval = null; }
-    if (_visAttached && typeof document !== 'undefined') {
-        document.removeEventListener('visibilitychange', _onVis);
-        _visAttached = false;
-    }
-}
-
-// ── Hook ─────────────────────────────────────────────────────────────
+const POLL_MS = 12_000;
 
 export function useGasData(active: boolean): UseGasDataReturn {
-    // Seed from cache immediately — no loading flash for returning consumers.
-    const [data,    setData]    = useState<GasData | null>(_cache);
-    const [loading, setLoading] = useState(_loading);
-    const [error,   setError]   = useState<string | null>(_error);
+    const [data, setData] = useState<GasData | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const listener: Listener = (d, l, e) => {
-            setData(d);
-            setLoading(l);
-            setError(e);
-        };
-        _listeners.add(listener);
+        if (!active) return;
+        let cancelled = false;
 
-        if (active) {
-            _activeCount++;
-            if (_activeCount === 1) _startSingleton();
-            else if (_cache && Date.now() - _cache.fetchedAt >= STALE_MS) _tick();
-        }
-
-        return () => {
-            _listeners.delete(listener);
-            if (active) {
-                _activeCount = Math.max(0, _activeCount - 1);
-                if (_activeCount === 0) _stopSingleton();
+        const tick = async () => {
+            if (typeof document !== 'undefined' && document.hidden) return;
+            setLoading(true);
+            try {
+                const res = await fetch('/api/gas');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const json = (await res.json()) as GasData;
+                if (cancelled) return;
+                setData(json);
+                setError(null);
+            } catch (err) {
+                if (cancelled) return;
+                setError(err instanceof Error ? err.message : 'fetch failed');
+            } finally {
+                if (!cancelled) setLoading(false);
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        tick();
+        const id = setInterval(tick, POLL_MS);
+
+        const onVis = () => {
+            if (!document.hidden) tick();
+        };
+        document.addEventListener('visibilitychange', onVis);
+
+        return () => {
+            cancelled = true;
+            clearInterval(id);
+            document.removeEventListener('visibilitychange', onVis);
+        };
     }, [active]);
 
     return { data, loading, error };
