@@ -144,6 +144,11 @@ interface TraitsContextValue {
     multiSelectActive: boolean;
     toggleMultiSelect: () => void;
 
+    /* Multi-select selection set */
+    selectedIds: ReadonlySet<number>;
+    toggleSelected: (id: number) => void;
+    clearSelected: () => void;
+
     /* Search row */
     searchActive: boolean;
     toggleSearch: () => void;
@@ -180,6 +185,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const [myNotesActive, setMyNotesActive] = useState(false);
     const [burnPileActive, setBurnPileActive] = useState(false);
     const [multiSelectActive, setMultiSelectActive] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<ReadonlySet<number>>(
+        () => new Set<number>()
+    );
     const [searchActive, setSearchActive] = useState(false);
     const [searchQuery, setSearchQueryState] = useState('');
     const [priceMin, setPriceMinState] = useState('');
@@ -362,6 +370,19 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         });
     }, [showToast]);
 
+    const toggleSelected = useCallback((id: number) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    }, []);
+
+    const clearSelected = useCallback(() => {
+        setSelectedIds(new Set<number>());
+    }, []);
+
     /* Sim's toggleSearch flips `.search-row.open` and clears the query
        when collapsing. closeSearch is the explicit ✕ path.
        ────────────────────────────────────────────────────────────────────
@@ -485,6 +506,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             toggleBurnPile,
             multiSelectActive,
             toggleMultiSelect,
+            selectedIds,
+            toggleSelected,
+            clearSelected,
             searchActive,
             toggleSearch,
             closeSearch,
@@ -514,6 +538,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             toggleBurnPile,
             multiSelectActive,
             toggleMultiSelect,
+            selectedIds,
+            toggleSelected,
+            clearSelected,
             searchActive,
             toggleSearch,
             closeSearch,
