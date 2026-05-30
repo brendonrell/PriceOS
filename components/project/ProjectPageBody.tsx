@@ -74,7 +74,6 @@ import {
 } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from './TraitsUI';
-import { MsActionBar } from '../shell/MsActionBar';
 import {
     applyStepLine,
     getBudgets,
@@ -1300,7 +1299,6 @@ function ProjectPageBodyInner() {
 export default function ProjectPageBody() {
     return (
         <TraitsProvider>
-            <MsActionBar />
             <ProjectPageBodyInner />
         </TraitsProvider>
     );
