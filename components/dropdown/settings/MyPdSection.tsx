@@ -376,15 +376,23 @@ export function MyPdSection({ onTripleTap }: Props) {
                     writes the current color to the clipboard and swaps
                     the field to "COPIED" for 1500ms. */}
                 <div className="settings-pill-row">
-                    <div style={{ position: 'relative' }}>
-                        <SettingsToggle
-                            id="sn-profileTheme"
-                            active={false}
-                            title="Profile Theme"
-                            icon={'◩\uFE0E'}
-                            label="PROFILE THEME"
-                            onClick={() => colorPickerRef.current?.click()}
-                        />
+                    {/* F64 (BUG-28) — iOS native colour picker fix.
+                        Sim 4610-4613 wraps the hidden <input type="color">
+                        inside a <label> — a label click is a trusted user
+                        gesture on iOS so the native picker fires. A
+                        programmatic ref.click() is untrusted and blocked.
+                        Replicated here: <label htmlFor> on the pill,
+                        hidden input lives inside it. No onClick needed. */}
+                    <label
+                        htmlFor="profileColorPicker"
+                        className="settings-toggle"
+                        id="sn-profileTheme"
+                        title="Choose Profile Theme"
+                        style={{ position: 'relative', cursor: 'pointer' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <span className="st-icon" aria-hidden="true">◩{'\uFE0E'}</span>
+                        <span className="st-label">PROFILE THEME</span>
                         <input
                             ref={colorPickerRef}
                             type="color"
@@ -404,7 +412,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                                 pointerEvents: 'none',
                             }}
                         />
-                    </div>
+                    </label>
                     <input
                         type="text"
                         id="profileHexInput"
