@@ -39,6 +39,11 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
+import {
+    enableHazeVariation,
+    disableHazeVariation,
+    type HazeVariation,
+} from '../engines/hazeEngine';
 
 export type ThemeKey =
     | 'artist'
@@ -104,6 +109,32 @@ function getHazeBg(): string {
     }
     return THEMES.haze;
 }
+
+/* Haze variation — persists like any other theme preference.
+   Valid values: 'tint' | 'drift' | 'pulse' | 'chromatic'. Absent or
+   unrecognised means no variation (plain solid colour). */
+const HAZE_VARIATION_KEY = 'pd_haze_variation';
+const VALID_VARIATIONS: HazeVariation[] = ['tint', 'drift', 'pulse', 'chromatic'];
+export function getHazeVariation(): HazeVariation | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const saved = localStorage.getItem(HAZE_VARIATION_KEY);
+        if (saved && (VALID_VARIATIONS as string[]).includes(saved)) {
+            return saved as HazeVariation;
+        }
+    } catch { /* ignore */ }
+    return null;
+}
+export function setHazeVariation(v: HazeVariation | null): void {
+    try {
+        if (v === null) {
+            localStorage.removeItem(HAZE_VARIATION_KEY);
+        } else {
+            localStorage.setItem(HAZE_VARIATION_KEY, v);
+        }
+    } catch { /* ignore */ }
+}
+
 
 /* Brendon list item 7 — Pure Light / Pure Dark mode parity (sim 6798-6803).
    When the active theme is 'light' AND pdNotifs.pure_light is true, the bg
@@ -359,6 +390,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             applyBgHex('#FFE600', null);
         } else {
             applyTheme(savedTheme);
+            // Boot haze variation engine if haze is the saved theme
+            // and a variation is stored — same as any other persistent
+            // theme preference.
+            if (savedTheme === 'haze') {
+                const variation = getHazeVariation();
+                if (variation) {
+                    enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+                }
+            }
         }
     }, [pathname]);
 
@@ -380,9 +420,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             disableHashSyn();
         }
 
+        // Leaving haze — tear down any running variation engine.
+        if (prev === 'haze' && key !== 'haze') {
+            disableHazeVariation(getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+        }
+
         if (key === 'hashsyn') {
             applyBgHex(HASHSYN_SEED, 'hashsyn');
             enableHashSyn((hex) => applyBgHex(hex, 'hashsyn'));
+        } else if (key === 'haze') {
+            // Apply base colour first, then start variation if one is saved.
+            applyTheme(key);
+            const variation = getHazeVariation();
+            if (variation) {
+                enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+            }
         } else {
             // Apply on every page including /art/*. The prior suppression
             // branch (project pages ignore picks) made the picker a no-op
