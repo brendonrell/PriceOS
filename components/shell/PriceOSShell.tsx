@@ -70,6 +70,7 @@ import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
 import GasTrackerModal from '../GasTrackerModal';
 import CartPanel from '../CartPanel';
+import { MsActionBar } from './MsActionBar';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
@@ -169,6 +170,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <Backgrounds />
             <FaviconEngine />
             <Navbar />
+            <MsActionBar />
             <main>{children}</main>
             <Footer />
             <ActionToast />
