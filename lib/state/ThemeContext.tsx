@@ -309,18 +309,8 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
        propagate before the engine's first sample lapped it). Inline
        writes always win the cascade for the bg-color rule on body, so
        both the seed (#6a1fc2) and engine-sampled hexes apply
-       deterministically. Sim does this verbatim — keep parity.
-       HOWEVER: the inline write bypasses the CSS transition on body
-       (transition: background-color 0.3s) which is what drives the
-       smooth fade between themes. For hashsyn we keep the inline write
-       because it cycles rapidly via the engine and the transition would
-       fight it; for every other theme we clear the inline style and let
-       the CSS var + transition handle it so all themes fade in uniformly. */
-    if (key === 'hashsyn') {
-        body.style.backgroundColor = bg;
-    } else {
-        body.style.backgroundColor = '';
-    }
+       deterministically. Sim does this verbatim — keep parity. */
+    body.style.backgroundColor = bg;
 
     // Update PWA theme-color meta so iOS chrome reflects artist/hashsyn
     // colour changes (applyTheme handles named themes; applyBgHex handles
