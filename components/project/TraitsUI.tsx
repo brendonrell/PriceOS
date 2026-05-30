@@ -57,6 +57,7 @@ import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/stat
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
+import { useCart } from '../../lib/state/CartContext';
 
 /* ── Sort toast helpers ──────────────────────────────────────────────────
    Mirror sim 8360's sortLabels + currentSort pattern. We compute the
@@ -276,6 +277,8 @@ export default function TraitsUI({
         toggleBurnPile,
         multiSelectActive,
         toggleMultiSelect,
+        selectedIds,
+        clearSelected,
         searchActive,
         toggleSearch,
         closeSearch,
@@ -1006,7 +1009,85 @@ export default function TraitsUI({
                 13 brief; class is namespaced so the rest of the sim port
                 stays clean. */}
 
+            {/* Multi-select action row — same slot + open/close as
+                .search-row. Opens when multiSelectActive is true.
+                Pills are reverse-styled vs trait pills. Add to Cart
+                is wired; all others stub to toast for now. */}
+            <MultiSelectRow
+                open={multiSelectActive}
+                selectedIds={selectedIds}
+                clearSelected={clearSelected}
+            />
+
         </>
+    );
+}
+
+/* ── MultiSelectRow ────────────────────────────────────────────────── */
+
+interface MultiSelectRowProps {
+    open: boolean;
+    selectedIds: ReadonlySet<number>;
+    clearSelected: () => void;
+}
+
+function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProps) {
+    const { showToast } = useToast();
+    const { add: cartAdd, has: cartHas } = useCart();
+
+    if (!open) return null;
+
+    const count = selectedIds.size;
+    const countLabel = count > 0 ? ` (${count})` : '';
+
+    const handleAddToCart = () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        let added = 0;
+        selectedIds.forEach((id) => {
+            if (!cartHas(id)) { cartAdd(id); added++; }
+        });
+        if (added === 0) showToast('All selected items already in cart');
+        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
+    };
+
+    const stub = (label: string) => () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        showToast(`${label} · ${count} item${count === 1 ? '' : 's'} — coming soon`);
+    };
+
+    const actions: { label: string; onClick: () => void }[] = [
+        { label: `Add to Cart${countLabel}`, onClick: handleAddToCart },
+        { label: 'Star',           onClick: stub('Star') },
+        { label: 'Wishlist',       onClick: stub('Wishlist') },
+        { label: 'Add to Album',   onClick: stub('Add to Album') },
+        { label: 'Add Note',       onClick: stub('Add Note') },
+        { label: 'Make To-Do',     onClick: stub('Make To-Do') },
+        { label: 'Grail Pin',      onClick: stub('Grail Pin') },
+        { label: 'Make Offer',     onClick: stub('Make Offer') },
+        { label: 'List',           onClick: stub('List') },
+        { label: 'Transfer',       onClick: stub('Transfer') },
+    ];
+
+    return (
+        <div className="ms-action-row open">
+            {actions.map((a) => (
+                <button
+                    key={a.label}
+                    className="ms-action-pill"
+                    onClick={a.onClick}
+                    title={a.label}
+                >
+                    {a.label}
+                </button>
+            ))}
+            <button
+                className="ms-action-pill ms-deselect-all"
+                onClick={clearSelected}
+                title="Deselect All"
+            >
+                Deselect All
+            </button>
+        </div>
     );
 }
 
