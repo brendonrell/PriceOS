@@ -3594,6 +3594,86 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
+/* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
+/* Opens in the same slot as .search-row (directly below the sort-bar)
+   when multi-select mode is active. Pills are reverse-styled vs regular
+   trait pills: bg=var(--text-color), text=var(--bg-color). */
+
+.ms-action-row {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 0 8px 0;
+    width: 100%;
+    align-items: center;
+}
+.ms-action-row.open {
+    display: flex;
+}
+
+/* Reverse pill: filled text-color bg, bg-color text.
+   Inverse of a normal trait pill at rest. */
+.ms-action-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 11px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    user-select: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: opacity 0.12s;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+}
+.ms-action-pill:hover  { opacity: 0.75; }
+.ms-action-pill:active { opacity: 0.5;  }
+
+/* Deselect All — hollow/secondary treatment */
+.ms-action-pill.ms-deselect-all {
+    background-color: transparent;
+    color: var(--text-color);
+    border-color: var(--text-color);
+    opacity: 0.5;
+}
+.ms-action-pill.ms-deselect-all:hover  { opacity: 0.85; }
+.ms-action-pill.ms-deselect-all:active { opacity: 0.6;  }
+
+/* ── SELECTED CARD STATE ─────────────────────────────────────────────── */
+
+/* Crosshair cursor on all cards while multi-select mode is active */
+.output-card.ms-eligible { cursor: crosshair; }
+
+/* Selected cards: solid outline on canvas-wrapper */
+.output-card.ms-selected .canvas-wrapper {
+    outline: 2px solid var(--text-color);
+    outline-offset: -2px;
+    border-radius: 3px;
+}
+
+/* ▣ badge — top-left of canvas-wrapper (mirrors grail-badge top-right).
+   U+25A3: white square containing black small square — the filled/selected
+   companion to the ❐ (U+2750) mode icon in the sort bar. */
+.ms-check-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--text-color);
+    text-shadow:
+        0 0 3px var(--bg-color),
+        0 0 6px var(--bg-color);
+}
+
 .search-row {
     display: none;
     align-items: center;
