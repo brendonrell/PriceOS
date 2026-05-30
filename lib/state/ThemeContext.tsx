@@ -114,7 +114,7 @@ function getHazeBg(): string {
    Valid values: 'tint' | 'drift' | 'pulse' | 'chromatic'. Absent or
    unrecognised means no variation (plain solid colour). */
 const HAZE_VARIATION_KEY = 'pd_haze_variation';
-const VALID_VARIATIONS: HazeVariation[] = ['tint', 'drift', 'pulse', 'chromatic'];
+const VALID_VARIATIONS: HazeVariation[] = ['tint', 'drift', 'pulse', 'pure'];
 export function getHazeVariation(): HazeVariation | null {
     if (typeof window === 'undefined') return null;
     try {
@@ -222,7 +222,12 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
     const body = document.body;
 
     const bg = bgHex;
-    const text = resolveTextColor(bg);
+    // When a haze variation is running, hazeEngine snapshots the initial
+    // --text-color into data-haze-text so buttons/text stay the same
+    // polarity throughout animation (no black↔white flicker as the bg
+    // sweeps mid-luminance hues). Read it here; fall back to normal YIQ.
+    const lockedText = key === 'haze' ? (root.dataset.hazeText ?? null) : null;
+    const text = lockedText ?? resolveTextColor(bg);
 
     /* RGB triplet for modal-bg rgba string (sim 6816). */
     const hex = bg.replace('#', '');
