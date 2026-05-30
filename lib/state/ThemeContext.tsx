@@ -282,10 +282,15 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
         pillL1Bg = '#111111';
         pillL1Text = MATRIX;
         pillL1Border = MATRIX;
+        /* SVG data-URI tiled patterns replace the repeating-linear-gradient.
+           The browser rasterizes the tile once and composites it as a GPU
+           texture, so scroll never triggers a repaint of the gradient.
+           Visually identical: 45-deg diagonal stripes, same colour/opacity/
+           pitch as the original gradients. */
         pillL1BgImg =
-            'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
+            "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0JyBoZWlnaHQ9JzQnPjxkZWZzPjxwYXR0ZXJuIGlkPSdoJyB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBwYXR0ZXJuVHJhbnNmb3JtPSdyb3RhdGUoNDUpJz48cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PScyJyBmaWxsPSdyZ2JhKDIyNCwyMjQsMjI0LDAuMTUpJy8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBmaWxsPSd1cmwoJTIzaCknLz48L3N2Zz4=')";
         pillL1ActiveBgImg =
-            'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
+            "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyJyBoZWlnaHQ9JzInPjxkZWZzPjxwYXR0ZXJuIGlkPSdoJyB3aWR0aD0nMicgaGVpZ2h0PScyJyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBwYXR0ZXJuVHJhbnNmb3JtPSdyb3RhdGUoNDUpJz48cmVjdCB3aWR0aD0nMicgaGVpZ2h0PScxJyBmaWxsPSdyZ2JhKDIyNCwyMjQsMjI0LDAuNTUpJy8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0nMicgaGVpZ2h0PScyJyBmaWxsPSd1cmwoJTIzaCknLz48L3N2Zz4=')";
     }
 
     root.style.setProperty('--modal-bg', modalBg);
