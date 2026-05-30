@@ -628,8 +628,14 @@ export default function ArtworkCard({
                                     : 'Mute'}
                         </span>
                     </div>
-                    {/* Build 22 — sim 8041-8057 hover overlay. */}
-                    <div className="hover-overlay">
+                    {/* Build 22 — sim 8041-8057 hover overlay.
+                        Hidden in multi-select mode so the card
+                        reads clean and the ms-badge is the only
+                        interactive surface. */}
+                    <div className={
+                        'hover-overlay' +
+                        (multiSelectActive ? ' ms-hidden' : '')
+                    }>
                         <div className="hover-bg" />
                         <div className="hover-icons">
                             <span
@@ -741,14 +747,20 @@ export default function ArtworkCard({
                             </span>
                         </div>
                     </div>
-                    {/* Multi-select badge: ▣ (U+25A3, white square
-                        containing black small square) — filled companion
-                        to the ❐ (U+2750) mode icon, reads as "selected".
-                        Top-left of canvas-wrapper, mirroring grail-badge
-                        top-right. */}
-                    {isSelected && (
-                        <span className="ms-check-badge" aria-hidden="true">
-                            {'\u25A3\uFE0E'}
+                    {/* Multi-select badge — shown on every card while
+                        ms mode is active. ❐ (U+2750) = unselected;
+                        ▣ (U+25A3) = selected. Top-right of
+                        canvas-wrapper so it aligns with the ❐ icon
+                        in the sort bar. */}
+                    {multiSelectActive && (
+                        <span
+                            className={
+                                'ms-check-badge' +
+                                (isSelected ? ' ms-check-badge--on' : '')
+                            }
+                            aria-hidden="true"
+                        >
+                            {isSelected ? '\u25A3\uFE0E' : '\u2750\uFE0E'}
                         </span>
                     )}
                     {/* F50 (BUG-02) — sim 12401-12409. When this token
