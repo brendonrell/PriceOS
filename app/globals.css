@@ -3596,8 +3596,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 /* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
 /* Opens in the same slot as .search-row (directly below the sort-bar)
-   when multi-select mode is active. Pills are reverse-styled vs regular
-   trait pills: bg=var(--text-color), text=var(--bg-color). */
+   when multi-select mode is active. */
 
 .ms-action-row {
     display: none;
@@ -3611,8 +3610,29 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     display: flex;
 }
 
-/* Reverse pill: filled text-color bg, bg-color text.
-   Inverse of a normal trait pill at rest. */
+/* Count pill — display only, no hover/click state */
+.ms-count-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 11px;
+    height: 28px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    user-select: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    /* Hollow — same visual weight as action pills */
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    opacity: 0.45;
+}
+
+/* Action pills — HOLLOW (border only, transparent bg).
+   Swapped from initial draft per Brendon feedback. */
 .ms-action-pill {
     display: inline-flex;
     align-items: center;
@@ -3628,22 +3648,22 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     white-space: nowrap;
     box-sizing: border-box;
     transition: opacity 0.12s;
-    background-color: var(--text-color);
-    color: var(--bg-color);
-    border: 1px solid var(--text-color);
-}
-.ms-action-pill:hover  { opacity: 0.75; }
-.ms-action-pill:active { opacity: 0.5;  }
-
-/* Deselect All — hollow/secondary treatment */
-.ms-action-pill.ms-deselect-all {
     background-color: transparent;
     color: var(--text-color);
-    border-color: var(--text-color);
-    opacity: 0.5;
+    border: 1px solid var(--text-color);
 }
-.ms-action-pill.ms-deselect-all:hover  { opacity: 0.85; }
-.ms-action-pill.ms-deselect-all:active { opacity: 0.6;  }
+.ms-action-pill:hover  { opacity: 0.7; }
+.ms-action-pill:active { opacity: 0.45; }
+
+/* Deselect All — FILLED (solid bg). Swapped from initial draft. */
+.ms-action-pill.ms-deselect-all {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    opacity: 0.85;
+}
+.ms-action-pill.ms-deselect-all:hover  { opacity: 1; }
+.ms-action-pill.ms-deselect-all:active { opacity: 0.7; }
 
 /* ── SELECTED CARD STATE ─────────────────────────────────────────────── */
 
@@ -3657,21 +3677,35 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     border-radius: 3px;
 }
 
-/* ▣ badge — top-left of canvas-wrapper (mirrors grail-badge top-right).
-   U+25A3: white square containing black small square — the filled/selected
-   companion to the ❐ (U+2750) mode icon in the sort bar. */
+/* Hide hover-overlay in multi-select mode — the ms-badge is the only
+   interactive surface; hover-overlay would compete and confuse. */
+.hover-overlay.ms-hidden {
+    display: none !important;
+}
+
+/* ms-check-badge — top-right of canvas-wrapper.
+   ❐ (U+2750) when unselected, ▣ (U+25A3) when selected.
+   Two font sizes larger than the previous draft (was 16px → now 20px).
+   Text-shadow halos it against any artwork colour. */
 .ms-check-badge {
     position: absolute;
     top: 6px;
-    left: 6px;
+    right: 6px;
     z-index: 10;
     pointer-events: none;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1;
     color: var(--text-color);
     text-shadow:
-        0 0 3px var(--bg-color),
-        0 0 6px var(--bg-color);
+        0 0 4px var(--bg-color),
+        0 0 8px var(--bg-color),
+        0 0 2px var(--bg-color);
+    transition: color 0.1s;
+}
+/* Selected state — accent colour so the swap is unmissable */
+.ms-check-badge.ms-check-badge--on {
+    color: var(--text-color);
+    opacity: 1;
 }
 
 .search-row {
