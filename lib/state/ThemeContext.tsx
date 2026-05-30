@@ -282,15 +282,10 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
         pillL1Bg = '#111111';
         pillL1Text = MATRIX;
         pillL1Border = MATRIX;
-        /* SVG data-URI tiled patterns replace the repeating-linear-gradient.
-           The browser rasterizes the tile once and composites it as a GPU
-           texture, so scroll never triggers a repaint of the gradient.
-           Visually identical: 45-deg diagonal stripes, same colour/opacity/
-           pitch as the original gradients. */
         pillL1BgImg =
-            "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0JyBoZWlnaHQ9JzQnPjxkZWZzPjxwYXR0ZXJuIGlkPSdoJyB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBwYXR0ZXJuVHJhbnNmb3JtPSdyb3RhdGUoNDUpJz48cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PScyJyBmaWxsPSdyZ2JhKDIyNCwyMjQsMjI0LDAuMTUpJy8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBmaWxsPSd1cmwoJTIzaCknLz48L3N2Zz4=')";
+            'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
         pillL1ActiveBgImg =
-            "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyJyBoZWlnaHQ9JzInPjxkZWZzPjxwYXR0ZXJuIGlkPSdoJyB3aWR0aD0nMicgaGVpZ2h0PScyJyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBwYXR0ZXJuVHJhbnNmb3JtPSdyb3RhdGUoNDUpJz48cmVjdCB3aWR0aD0nMicgaGVpZ2h0PScxJyBmaWxsPSdyZ2JhKDIyNCwyMjQsMjI0LDAuNTUpJy8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0nMicgaGVpZ2h0PScyJyBmaWxsPSd1cmwoJTIzaCknLz48L3N2Zz4=')";
+            'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
     }
 
     root.style.setProperty('--modal-bg', modalBg);
@@ -314,8 +309,18 @@ export function applyBgHex(bgHex: string, key: ThemeKey) {
        propagate before the engine's first sample lapped it). Inline
        writes always win the cascade for the bg-color rule on body, so
        both the seed (#6a1fc2) and engine-sampled hexes apply
-       deterministically. Sim does this verbatim — keep parity. */
-    body.style.backgroundColor = bg;
+       deterministically. Sim does this verbatim — keep parity.
+       HOWEVER: the inline write bypasses the CSS transition on body
+       (transition: background-color 0.3s) which is what drives the
+       smooth fade between themes. For hashsyn we keep the inline write
+       because it cycles rapidly via the engine and the transition would
+       fight it; for every other theme we clear the inline style and let
+       the CSS var + transition handle it so all themes fade in uniformly. */
+    if (key === 'hashsyn') {
+        body.style.backgroundColor = bg;
+    } else {
+        body.style.backgroundColor = '';
+    }
 
     // Update PWA theme-color meta so iOS chrome reflects artist/hashsyn
     // colour changes (applyTheme handles named themes; applyBgHex handles
