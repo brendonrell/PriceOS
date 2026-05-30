@@ -37,6 +37,7 @@
 
 const STORAGE_KEY = 'pd_grail_pins';
 const MAX_PINS = 5;
+export const MAX_GRAIL_PINS = MAX_PINS;
 
 type Listener = (pins: readonly number[]) => void;
 
