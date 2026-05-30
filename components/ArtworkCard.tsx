@@ -113,6 +113,7 @@ import {
 import { useCart } from '../lib/state/CartContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+import { useTraits } from '../lib/state/TraitsContext';
 import {
     getActiveBudgetEth,
     subscribeBudgets,
@@ -227,6 +228,7 @@ export default function ArtworkCard({
        toast branch + `add` for the mutation. Toast strings mirror sim
        11827 (already-in-cart) + 11834 (added) verbatim. */
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
+    const { multiSelectActive, selectedIds, toggleSelected } = useTraits();
 
     /* sim 7295-7310 — when toggleMute flips Mute → MUTED, the label first
        shows ⟙ + .punch-hammer for 700ms (the swing keyframe), then
@@ -353,6 +355,10 @@ export default function ArtworkCard({
        L78 + L123). Reading from notifs avoids touching document.body
        in the click path. */
     const handleOpen = () => {
+        if (multiSelectActive) {
+            toggleSelected(id);
+            return;
+        }
         if (notifs.spell_hammer) {
             runMuteToggle();
             return;
@@ -484,6 +490,7 @@ export default function ArtworkCard({
        carries .muted (which hides it outside hammer-mode per sim 2390),
        and the label text flips to "Muted" with .muted-final styling
        (boxed-tape tag, sim 2444-2457). */
+    const isSelected = selectedIds.has(id);
     const articleClass =
         'output-card' +
         (muted ? ' muted' : '') +
@@ -506,7 +513,9 @@ export default function ArtworkCard({
            active budget exists and this card's listed price ≤ cap.
            body.budget-active CSS keys off the inverse — non-.in-budget
            cards drop to opacity 0.22 (sim 3957-3964). */
-        (inBudget ? ' in-budget' : '');
+        (inBudget ? ' in-budget' : '') +
+        (isSelected ? ' ms-selected' : '') +
+        (multiSelectActive ? ' ms-eligible' : '');
 
     return (
         <article
@@ -732,6 +741,16 @@ export default function ArtworkCard({
                             </span>
                         </div>
                     </div>
+                    {/* Multi-select badge: ▣ (U+25A3, white square
+                        containing black small square) — filled companion
+                        to the ❐ (U+2750) mode icon, reads as "selected".
+                        Top-left of canvas-wrapper, mirroring grail-badge
+                        top-right. */}
+                    {isSelected && (
+                        <span className="ms-check-badge" aria-hidden="true">
+                            {'\u25A3\uFE0E'}
+                        </span>
+                    )}
                     {/* F50 (BUG-02) — sim 12401-12409. When this token
                         is in the grail set, paint a small ⟟ glyph in the
                         top-right of the canvas-wrapper (.grail-badge CSS
