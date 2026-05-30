@@ -50,7 +50,7 @@
  * to separate files would just add repo files for ~20-line helpers.
  */
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
@@ -58,7 +58,6 @@ import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/st
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
-import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
 import { useProject } from '../../lib/state/ProjectContext';
 
 /* ── Sort toast helpers ──────────────────────────────────────────────────
@@ -1011,6 +1010,16 @@ export default function TraitsUI({
                 13 brief; class is namespaced so the rest of the sim port
                 stays clean. */}
 
+            {/* Multi-select action row — same slot + open/close as
+                .search-row. Opens when multiSelectActive is true.
+                Pills are reverse-styled vs trait pills. Add to Cart
+                is wired; all others stub to toast for now. */}
+            <MultiSelectRow
+                open={multiSelectActive}
+                selectedIds={selectedIds}
+                clearSelected={clearSelected}
+            />
+
         </>
     );
 }
@@ -1049,13 +1058,8 @@ interface MultiSelectRowProps {
 
 function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProps) {
     const { showToast } = useToast();
-    const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
+    const { add: cartAdd, has: cartHas } = useCart();
     const { outputs } = useProject();
-    const [pinnedSet, setPinnedSet] = useState<readonly number[]>(() => getGrails());
-    useEffect(() => {
-        setPinnedSet(getGrails());
-        return subscribeGrails((next) => setPinnedSet(next));
-    }, []);
 
     if (!open) return null;
 
@@ -1064,14 +1068,11 @@ function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProp
 
     // Classify the selection
     const ids = Array.from(selectedIds);
-    const allOwned  = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
-    const anyOwned  = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
-    const allListed = ids.every(id => outputs.get(id)?.price != null);
+    const allOwned   = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const anyOwned   = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const allListed  = ids.every(id => outputs.get(id)?.price != null);
 
-    // Grail pin capacity: hide pill if selection exceeds remaining slots
-    const availablePinSlots = MAX_GRAIL_PINS - pinnedSet.length;
-    const grailPinAvailable = allOwned && count <= availablePinSlots;
-
+    // Actions that are always available
     const stub = (label: string) => () => {
         if (count === 0) { showToast('Select items first'); return; }
         showToast(`${label} · ${countLabel} — coming soon`);
@@ -1083,27 +1084,23 @@ function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProp
         ids.forEach((id) => {
             if (!cartHas(id)) { cartAdd(id); added++; }
         });
-        if (added === 0) {
-            showToast('All selected items already in cart');
-        } else {
-            showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
-        }
-        // Open cart panel so user sees what they just added
-        openCartPanel();
+        if (added === 0) showToast('All selected items already in cart');
+        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
     };
 
     interface Action { label: string; onClick: () => void; }
     const actions: Action[] = [];
 
-    // Universal — Add Note excluded (doesn't make sense in batch)
+    // Universal
     actions.push(
         { label: 'Star',         onClick: stub('Star') },
         { label: 'Wishlist',     onClick: stub('Wishlist') },
         { label: 'Add to Album', onClick: stub('Add to Album') },
+        { label: 'Add Note',     onClick: stub('Add Note') },
         { label: 'Make To-Do',   onClick: stub('Make To-Do') },
     );
 
-    // Not-owned only
+    // Not-owned actions — hide if any selected item is owned
     if (!anyOwned && allListed) {
         actions.push({ label: 'Add to Cart', onClick: handleAddToCart });
     }
@@ -1111,19 +1108,18 @@ function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProp
         actions.push({ label: 'Make Offer', onClick: stub('Make Offer') });
     }
 
-    // Owned-only — List and Transfer are mutually exclusive per-action
+    // Owned-only actions — only if ALL selected are owned
     if (allOwned) {
-        if (grailPinAvailable) {
-            actions.push({ label: 'Grail Pin', onClick: stub('Grail Pin') });
-        }
         actions.push(
-            { label: 'List',     onClick: stub('List') },
-            { label: 'Transfer', onClick: stub('Transfer') },
+            { label: 'Grail Pin', onClick: stub('Grail Pin') },
+            { label: 'List',      onClick: stub('List') },
+            { label: 'Transfer',  onClick: stub('Transfer') },
         );
     }
 
     return (
         <div className="ms-action-row open">
+            {/* Count display — first item, no action */}
             <span className="ms-count-pill">
                 {count === 0 ? 'Select outputs' : countLabel}
             </span>
