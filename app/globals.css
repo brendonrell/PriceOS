@@ -3598,36 +3598,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Opens in the same slot as .search-row (directly below the sort-bar)
    when multi-select mode is active. */
 
-/* ── MS STICKY BAR ───────────────────────────────────────────────────── */
-/* Sits directly below the navbar in DOM order. Both navbar and this bar
-   are position:sticky top:0 — source-order stacking means the bar
-   tucks under the navbar naturally without needing a top offset calc.
-   z-index:99 keeps it below navbar (100) but above gallery content. */
-.ms-sticky-bar {
-    position: sticky;
-    top: 0;
-    z-index: 99;
-    width: 100%;
-    pointer-events: none;   /* pass-through when hidden */
-}
-.ms-sticky-bar-inner {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    padding: 8px 40px;
-    pointer-events: auto;
-    /* Match the navbar's backdrop: same bg-color so it reads as a
-       continuation of the header, not a floating overlay. */
-    background: var(--bg-color);
-    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
-}
-@media (max-width: 600px) {
-    .ms-sticky-bar-inner {
-        padding: 8px 20px;
-    }
-}
-
 .ms-action-row {
     display: none;
     flex-wrap: wrap;
@@ -3700,19 +3670,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Crosshair cursor on all cards while multi-select mode is active */
 .output-card.ms-eligible { cursor: crosshair; }
 
-/* Selected cards: inset box-shadow instead of outline so it isn't
-   clipped by .canvas-wrapper's overflow:hidden on iOS/Safari mobile.
-   outline is painted outside the box and gets clipped; box-shadow with
-   a negative spread is painted inside the border edge and survives. */
+/* Selected cards: solid outline on canvas-wrapper */
 .output-card.ms-selected .canvas-wrapper {
-    box-shadow:
-        inset 0 0 0 2px var(--text-color),
-        0 4px 10px rgba(0, 0, 0, 0.1);
-}
-body.theme-dark .output-card.ms-selected .canvas-wrapper {
-    box-shadow:
-        inset 0 0 0 2px var(--text-color),
-        0 2px 20px rgba(255, 255, 255, 0.07);
+    outline: 2px solid var(--text-color);
+    outline-offset: -2px;
+    border-radius: 3px;
 }
 
 /* Hide hover-overlay in multi-select mode — the ms-badge is the only
