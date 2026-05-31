@@ -1,54 +1,26 @@
 'use client';
 
 /*
- * priceSpriteEngine — Ship 1 (PriceSprite + Signup + Levels)
+ * priceSpriteEngine — animation state machine.
  *
- * Module singleton driving the visible "main" sprite — the menu sprite
- * in UserMenuButtons and the modal hero in PriceSpriteModal. Both
- * surfaces subscribe to the same engine so they share frame state.
+ * Base cadence (sim-verbatim):
+ *   blink  2800+rand×3200 ms; 160 ms
+ *   turn   10000+rand×10000 ms; 800+rand×1500 hold
+ *   idle   45000+rand×30000 ms → goSleep
+ *   yawn→sleep 1600 ms; sleep 20000+rand×15000 ms
  *
- * Two render modes:
- *   1. Standin (no identity set)  — sim-faithful kaomoji at sim.html
- *      12090–12231, preserved verbatim. Default behaviour; renders
- *      the same `(ง •̀_•́)ง` family that's been on dev since Batch I.
- *      `hasIdentity` flag on each frame is false in this mode.
+ * Action animations:
+ *   throw  all vibes   22000+rand×18000 ms; 400-800 ms  (arm+CSS flip)
+ *   argue  vibe_2 only 18000+rand×14000 ms; 800-1600 ms (arms up, MAD brows)
+ *   cast   vibe_4 only 20000+rand×15000 ms; 1200-1800 ms (energy arms, sparkle brows)
  *
- *   2. Composed (identity set)    — wallet + vibe → deterministic
- *      8-slot composition via lib/sprites/composer.ts. Activated by
- *      setMainSpriteIdentity(walletAddress, vibe). `hasIdentity` flag
- *      flips to true. Ship 2 wires SIWE state into this setter and
- *      gates UI visibility on the flag.
+ * Each action has its own end-timer (not shared with _stateTimer) to
+ * prevent any possibility of timer cross-contamination.
  *
- * The state machine (blink / turn / yawn / sleep cadence) is shared
- * between modes. Mode only affects what `_computeFrame()` returns for
- * a given state.
- *
- * Cadence verbatim from sim:
- *   blink:  scheduleBlink → 2800 + Math.random()*3200 ms; 160ms duration
- *   turn:   scheduleTurn  → 10000 + Math.random()*10000 ms; 800 + Math.random()*1500 hold
- *   idle:   resetIdleTimer → 45000 + Math.random()*30000 ms before goSleep
- *   yawn → sleep transition: 1600ms
- *   sleep duration: 20000 + Math.random()*15000 ms
- *
- * Visibility: visibilitychange listener pauses all chains on hidden
- * and restarts them on visible. Frame state is preserved across
- * pause; on resume the chains restart fresh from the current state.
- *
- * Mirror behaviour:
- *   - standin: _facing/_mirrorMode swap between AWAKE_R/BLINK_R and
- *     AWAKE_L/BLINK_L glyphs (the kaomoji has hand-authored mirrors).
- *   - composed: CSS scaleX(-1) for the L variant. On glyph-swap turns
- *     (_mirrorMode=false, _facing=-1) the arm chars also flip to the
- *     wallet's deterministic turn arm variant — same character both
- *     sides (symmetric rule). CSS-mirror turns (_mirrorMode=true) are
- *     arm-stable; only the CSS flip applies.
- *
- * In both modes sleeping/yawning frames are NEVER mirrored (transform
- * stays scaleX(1)) so literal "zzz" text doesn't render reversed.
- *
- * wake() is a no-op when no subscribers. UserMenuButtons calls it on
- * menu open so a sleeping/yawning sprite snaps awake when the user
- * opens the connect menu (sim 12213-12219 btnUser handler).
+ * Turn transform:
+ *   glyph-swap (_mirrorMode=false): arm chars change, no CSS flip
+ *   css-mirror (_mirrorMode=true):  arm stable, scaleX(-1)
+ *   throwing: arm chars change AND scaleX(-1) — the "throw down"
  */
 
 import {
@@ -61,214 +33,210 @@ import { type PriceSpriteVibe } from '../sprites/vibes';
 export { type SpriteAnimState, type SpriteParts };
 
 export interface SpriteFrame {
-    face: string;
-    transform: string; // 'scaleX(1)' | 'scaleX(-1)'
-    sleeping: boolean;
-    /**
-     * True when the engine is rendering the user's composed sprite
-     * (identity set via setMainSpriteIdentity). False when rendering
-     * the standin kaomoji. Ship 2 gates UI visibility on this flag —
-     * a logged-out user has no identity and should see no sprite.
-     */
+    face:        string;
+    transform:   string;
+    sleeping:    boolean;
     hasIdentity: boolean;
-    /**
-     * Per-slot parts of the composed sprite. Present only in composed
-     * mode (hasIdentity === true). Consumers render each slot in a
-     * fixed-width inline-block so blink / yawn / sleep character
-     * swaps don't squish the sprite. Null in standin mode — the
-     * standin's kaomoji structure doesn't map cleanly to the 8-slot
-     * shape and the hand-authored mirror glyphs balance widths
-     * naturally, so consumers fall back to rendering `face` as a
-     * single string when parts is null.
-     */
-    parts: SpriteParts | null;
+    parts:       SpriteParts | null;
+    shadesLens:  string | null;
 }
 
-/* Standin kaomoji — sim 12100-12105 verbatim. Codepoints verified
-   against sim.html. Do NOT tidy or "normalize"; the combining accents
-   on •̀ / •́ are intentional and the mirror-mode logic depends on the
-   exact glyph shapes. */
-const STANDIN_AWAKE_R = '(ง •̀_•́)ง';
-const STANDIN_AWAKE_L = 'ヽ(•́_•̀ヽ)';
+const STANDIN_AWAKE_R = '(ง •\u0300_•\u0301)ง';
+const STANDIN_AWAKE_L = '\u30FD(•\u0301_•\u0300\u30FD)';
 const STANDIN_BLINK_R = '(ง -_-)ง';
-const STANDIN_BLINK_L = 'ヽ(-_-ヽ)';
-const STANDIN_YAWN_R  = '(ง ᵕ_ᵕ)ง';
+const STANDIN_BLINK_L = '\u30FD(-_-\u30FD)';
+const STANDIN_YAWN_R  = '(ง \u1D15_\u1D15)ง';
 const STANDIN_SLEEP_R = '(ง zzz)ง';
 
-type State = 'awake' | 'blinking' | 'yawning' | 'sleeping';
+type State = 'awake' | 'blinking' | 'yawning' | 'sleeping'
+           | 'arguing' | 'throwing' | 'casting';
 
-let _facing: 1 | -1 = 1;
-let _mirrorMode = false;
-let _state: State = 'awake';
+let _facing:     1 | -1 = 1;
+let _mirrorMode  = false;
+let _state:      State  = 'awake';
+let _armVariant: 0 | 1  = 0;
 
-let _identity: {
-    walletAddress: string;
-    vibe: PriceSpriteVibe;
-} | null = null;
+let _identity: { walletAddress: string; vibe: PriceSpriteVibe } | null = null;
 
-let _idleTimer: ReturnType<typeof setTimeout> | null = null;
-let _blinkTimer: ReturnType<typeof setTimeout> | null = null;
-let _turnTimer: ReturnType<typeof setTimeout> | null = null;
-let _stateTimer: ReturnType<typeof setTimeout> | null = null; // turn-hold / blink-end / yawn-end / sleep-end
+// Base timers
+let _idleTimer:   ReturnType<typeof setTimeout> | null = null;
+let _blinkTimer:  ReturnType<typeof setTimeout> | null = null;
+let _turnTimer:   ReturnType<typeof setTimeout> | null = null;
+let _stateTimer:  ReturnType<typeof setTimeout> | null = null; // blink/yawn/sleep durations
 
-const _subscribers = new Set<() => void>();
-let _visListenerAttached = false;
-let _running = false;
+// Action schedulers
+let _throwSchedTimer:  ReturnType<typeof setTimeout> | null = null;
+let _argueSchedTimer:  ReturnType<typeof setTimeout> | null = null;
+let _castSchedTimer:   ReturnType<typeof setTimeout> | null = null;
+
+// Action end timers (separate from _stateTimer to avoid cross-contamination)
+let _throwEndTimer: ReturnType<typeof setTimeout> | null = null;
+let _argueEndTimer: ReturnType<typeof setTimeout> | null = null;
+let _castEndTimer:  ReturnType<typeof setTimeout> | null = null;
+
+const _subs = new Set<() => void>();
+let _visAttached = false;
+let _running     = false;
 
 function _emit(): void {
-    _subscribers.forEach((fn) => {
-        try { fn(); } catch { /* subscriber error must not break the loop */ }
-    });
-}
-
-function _stateToAnim(state: State): SpriteAnimState {
-    return state;
+    _subs.forEach(fn => { try { fn(); } catch { /* isolate */ } });
 }
 
 function _computeFrame(): SpriteFrame {
-    const isLeft = _facing === -1;
-    const isAsleep = _state === 'sleeping' || _state === 'yawning';
+    const isLeft     = _facing === -1;
+    const isAsleep   = _state === 'sleeping' || _state === 'yawning';
+    const isThrowing = _state === 'throwing';
 
-    /* Identity path — composed sprite. On glyph-swap turns
-       (_mirrorMode=false) the arm chars flip to the turn variant;
-       CSS-mirror turns stay arm-stable. Sleeping/yawning frames stay
-       upright so " zzz " reads correctly and arms never turn mid-sleep. */
     if (_identity !== null) {
-        const isTurned = isLeft && !_mirrorMode && !isAsleep;
+        const isAction = _state === 'arguing' || isThrowing || _state === 'casting';
+        const isTurned =
+            (isLeft && !_mirrorMode && !isAsleep) ||
+            isThrowing || _state === 'arguing' || _state === 'casting';
+
         const composed = composeSprite(
             _identity.walletAddress,
             _identity.vibe,
-            _stateToAnim(_state),
+            _state as SpriteAnimState,
             isTurned,
+            isAction ? _armVariant : undefined,
         );
-        /* composeSprite returns null only on malformed addresses; the
-           identity setter validates before assigning so this is a
-           safety net. Fall through to standin on null. */
         if (composed !== null) {
-            /* Glyph-swap turns (isTurned) already carry the direction
-               signal in the arm char — do NOT also CSS flip or the arm
-               reads backwards. CSS flip only on mirror-mode turns,
-               matching the standin transform rule exactly. */
-            const transform = (_mirrorMode && isLeft && !isAsleep)
-                ? 'scaleX(-1)'
-                : 'scaleX(1)';
+            const transform =
+                (_mirrorMode && isLeft && !isAsleep) || isThrowing
+                    ? 'scaleX(-1)' : 'scaleX(1)';
             return {
-                face: composed.fullString,
-                transform,
-                sleeping: isAsleep,
-                hasIdentity: true,
-                parts: composed.parts,
+                face: composed.fullString, transform,
+                sleeping: isAsleep, hasIdentity: true,
+                parts: composed.parts, shadesLens: composed.shadesLens,
             };
         }
     }
 
-    /* Standin path — sim 12117-12120 verbatim glyph swap. */
+    // Standin path
+    const sl = isLeft || isThrowing;
     let face: string;
-    if (_state === 'sleeping')      face = STANDIN_SLEEP_R;
-    else if (_state === 'yawning')  face = STANDIN_YAWN_R;
-    else if (_state === 'blinking') face = (_mirrorMode || !isLeft) ? STANDIN_BLINK_R : STANDIN_BLINK_L;
-    else                            face = (_mirrorMode || !isLeft) ? STANDIN_AWAKE_R : STANDIN_AWAKE_L;
-    /* sim 12126-12132 — skip the CSS flip when sleeping/yawning so the
-       literal "zzz" letters don't render mirrored (unreadable). */
-    const transform = (_mirrorMode && isLeft && !isAsleep) ? 'scaleX(-1)' : 'scaleX(1)';
-    return { face, transform, sleeping: isAsleep, hasIdentity: false, parts: null };
+    if      (_state === 'sleeping')                        face = STANDIN_SLEEP_R;
+    else if (_state === 'yawning')                         face = STANDIN_YAWN_R;
+    else if (_state === 'blinking')                        face = (_mirrorMode || !sl) ? STANDIN_BLINK_R : STANDIN_BLINK_L;
+    else if (_state === 'arguing' || _state === 'casting') face = STANDIN_AWAKE_R;
+    else                                                   face = (_mirrorMode || !sl) ? STANDIN_AWAKE_R : STANDIN_AWAKE_L;
+    const transform = (_mirrorMode && isLeft && !isAsleep) || isThrowing ? 'scaleX(-1)' : 'scaleX(1)';
+    return { face, transform, sleeping: isAsleep, hasIdentity: false, parts: null, shadesLens: null };
 }
 
 function _clearAll(): void {
-    if (_idleTimer)  { clearTimeout(_idleTimer);  _idleTimer  = null; }
-    if (_blinkTimer) { clearTimeout(_blinkTimer); _blinkTimer = null; }
-    if (_turnTimer)  { clearTimeout(_turnTimer);  _turnTimer  = null; }
-    if (_stateTimer) { clearTimeout(_stateTimer); _stateTimer = null; }
+    const timers = [
+        _idleTimer, _blinkTimer, _turnTimer, _stateTimer,
+        _throwSchedTimer, _argueSchedTimer, _castSchedTimer,
+        _throwEndTimer,   _argueEndTimer,   _castEndTimer,
+    ];
+    timers.forEach(t => { if (t) clearTimeout(t); });
+    _idleTimer = _blinkTimer = _turnTimer = _stateTimer =
+    _throwSchedTimer = _argueSchedTimer = _castSchedTimer =
+    _throwEndTimer   = _argueEndTimer   = _castEndTimer   = null;
 }
 
-/* sim 12146-12150 */
+// ── Base cadence ─────────────────────────────────────────────────────
+
 function _blink(): void {
     if (_state !== 'awake') return;
-    _state = 'blinking';
-    _emit();
+    _state = 'blinking'; _emit();
     _stateTimer = setTimeout(() => {
-        if (_state === 'blinking') {
-            _state = 'awake';
-            _emit();
-        }
+        if (_state === 'blinking') { _state = 'awake'; _emit(); }
     }, 160);
 }
 
-/* sim 12152-12161 */
 function _turn(): void {
     if (_state !== 'awake') return;
-    /* Standin needs the random L-vs-R glyph swap; composed flips via
-       CSS regardless of _mirrorMode. Keeping both flags so the
-       standin path stays sim-faithful. */
     _mirrorMode = Math.random() < 0.5;
-    _facing = -1;
-    _emit();
-    const holdTime = 800 + Math.random() * 1500;
+    _facing = -1; _emit();
     _stateTimer = setTimeout(() => {
-        if (_state === 'awake') {
-            _facing = 1;
-            _mirrorMode = false;
-            _emit();
-        }
-    }, holdTime);
+        if (_state === 'awake') { _facing = 1; _mirrorMode = false; _emit(); }
+    }, 800 + Math.random() * 1500);
 }
 
-/* sim 12163-12170 */
 function _goSleep(): void {
     if (_state !== 'awake') return;
-    _state = 'yawning';
-    _emit();
+    _state = 'yawning'; _emit();
     _stateTimer = setTimeout(() => {
-        _state = 'sleeping';
-        _emit();
+        _state = 'sleeping'; _emit();
         _stateTimer = setTimeout(_wakeUp, 20000 + Math.random() * 15000);
     }, 1600);
 }
 
-/* sim 12172-12175 */
 function _wakeUp(): void {
-    _state = 'awake';
-    _facing = 1;
-    _mirrorMode = false;
-    _emit();
+    _state = 'awake'; _facing = 1; _mirrorMode = false; _emit();
     _resetIdleTimer();
 }
 
-/* sim 12177-12180 */
 function _resetIdleTimer(): void {
     if (_idleTimer) clearTimeout(_idleTimer);
     _idleTimer = setTimeout(_goSleep, 45000 + Math.random() * 30000);
 }
 
-/* sim 12182-12185 */
 function _scheduleBlink(): void {
     if (_blinkTimer) clearTimeout(_blinkTimer);
-    _blinkTimer = setTimeout(() => {
-        _blink();
-        _scheduleBlink();
-    }, 2800 + Math.random() * 3200);
+    _blinkTimer = setTimeout(() => { _blink(); _scheduleBlink(); }, 2800 + Math.random() * 3200);
 }
 
-/* sim 12187-12190 */
 function _scheduleTurn(): void {
     if (_turnTimer) clearTimeout(_turnTimer);
-    _turnTimer = setTimeout(() => {
-        _turn();
-        _scheduleTurn();
-    }, 10000 + Math.random() * 10000);
+    _turnTimer = setTimeout(() => { _turn(); _scheduleTurn(); }, 10000 + Math.random() * 10000);
 }
+
+// ── Action animations ────────────────────────────────────────────────
+
+function _scheduleThrow(): void {
+    if (_throwSchedTimer) clearTimeout(_throwSchedTimer);
+    _throwSchedTimer = setTimeout(() => {
+        if (_state !== 'awake') { _scheduleThrow(); return; }
+        _armVariant = Math.random() < 0.5 ? 0 : 1;
+        _state = 'throwing'; _emit();
+        if (_throwEndTimer) clearTimeout(_throwEndTimer);
+        _throwEndTimer = setTimeout(() => {
+            if (_state === 'throwing') { _state = 'awake'; _emit(); }
+            _scheduleThrow();
+        }, 400 + Math.random() * 400);
+    }, 22000 + Math.random() * 18000);
+}
+
+function _scheduleArgue(): void {
+    if (_argueSchedTimer) clearTimeout(_argueSchedTimer);
+    _argueSchedTimer = setTimeout(() => {
+        if (_identity?.vibe !== 'vibe_2' || _state !== 'awake') { _scheduleArgue(); return; }
+        _armVariant = Math.random() < 0.5 ? 0 : 1;
+        _state = 'arguing'; _emit();
+        if (_argueEndTimer) clearTimeout(_argueEndTimer);
+        _argueEndTimer = setTimeout(() => {
+            if (_state === 'arguing') { _state = 'awake'; _emit(); }
+            _scheduleArgue();
+        }, 800 + Math.random() * 800);
+    }, 18000 + Math.random() * 14000);
+}
+
+function _scheduleCast(): void {
+    if (_castSchedTimer) clearTimeout(_castSchedTimer);
+    _castSchedTimer = setTimeout(() => {
+        if (_identity?.vibe !== 'vibe_4' || _state !== 'awake') { _scheduleCast(); return; }
+        _armVariant = Math.random() < 0.5 ? 0 : 1;
+        _state = 'casting'; _emit();
+        if (_castEndTimer) clearTimeout(_castEndTimer);
+        _castEndTimer = setTimeout(() => {
+            if (_state === 'casting') { _state = 'awake'; _emit(); }
+            _scheduleCast();
+        }, 1200 + Math.random() * 600);
+    }, 20000 + Math.random() * 15000);
+}
+
+// ── Lifecycle ────────────────────────────────────────────────────────
 
 function _onVisibility(): void {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
         _clearAll();
     } else if (_running) {
-        /* Restart the schedule chains. State is preserved — if the
-           sprite was sleeping when the tab hid, it's still sleeping
-           when the tab returns. The idle-timer restart wakes it up
-           on its normal cadence. */
-        _scheduleBlink();
-        _scheduleTurn();
+        _scheduleBlink(); _scheduleTurn();
+        _scheduleThrow(); _scheduleArgue(); _scheduleCast();
         if (_state === 'awake') _resetIdleTimer();
     }
 }
@@ -276,15 +244,13 @@ function _onVisibility(): void {
 function _start(): void {
     if (_running) return;
     _running = true;
-    if (typeof document !== 'undefined' && !_visListenerAttached) {
+    if (typeof document !== 'undefined' && !_visAttached) {
         document.addEventListener('visibilitychange', _onVisibility);
-        _visListenerAttached = true;
+        _visAttached = true;
     }
-    /* Don't blast an initial _emit — the mounting subscriber pulls
-       the current frame via getSpriteFrame() before subscribing. */
     if (typeof document === 'undefined' || !document.hidden) {
-        _scheduleBlink();
-        _scheduleTurn();
+        _scheduleBlink(); _scheduleTurn();
+        _scheduleThrow(); _scheduleArgue(); _scheduleCast();
         _resetIdleTimer();
     }
 }
@@ -293,99 +259,42 @@ function _stop(): void {
     if (!_running) return;
     _running = false;
     _clearAll();
-    if (typeof document !== 'undefined' && _visListenerAttached) {
+    if (typeof document !== 'undefined' && _visAttached) {
         document.removeEventListener('visibilitychange', _onVisibility);
-        _visListenerAttached = false;
+        _visAttached = false;
     }
 }
 
-/**
- * Get the current sprite frame. Stable between transitions.
- */
-export function getSpriteFrame(): SpriteFrame {
-    return _computeFrame();
-}
+// ── Public API ───────────────────────────────────────────────────────
 
-/**
- * Subscribe to sprite frame changes. Returns an unsubscribe fn.
- * Engine auto-starts on first subscriber, auto-stops on last.
- */
+export function getSpriteFrame():     SpriteFrame      { return _computeFrame(); }
+export function getSpriteAnimState(): SpriteAnimState  { return _state; }
+
 export function subscribeSprite(fn: () => void): () => void {
-    _subscribers.add(fn);
-    if (_subscribers.size === 1) _start();
-    return () => {
-        _subscribers.delete(fn);
-        if (_subscribers.size === 0) _stop();
-    };
+    _subs.add(fn);
+    if (_subs.size === 1) _start();
+    return () => { _subs.delete(fn); if (_subs.size === 0) _stop(); };
 }
 
-/**
- * Snap the sprite awake. No-op when no subscribers. Called from
- * UserMenuButtons when the connect menu opens (sim 12213-12219).
- * If already awake, just resets the idle timer so the user gets a
- * full cycle of attention before the next yawn.
- */
 export function wakeSprite(): void {
-    if (_subscribers.size === 0) return;
-    if (_state === 'sleeping' || _state === 'yawning') {
-        _wakeUp();
-    } else {
-        _resetIdleTimer();
-    }
+    if (_subs.size === 0) return;
+    if (_state === 'sleeping' || _state === 'yawning') _wakeUp();
+    else _resetIdleTimer();
 }
 
-/**
- * Bind (or unbind) the main sprite to a wallet + vibe identity. When
- * both args are non-null, subsequent frames render the user's
- * composed sprite and `hasIdentity` flips to true on the next emit.
- * Pass (null, null) to detach — frames revert to the standin and
- * `hasIdentity` flips back to false.
- *
- * No-op when the identity is unchanged. Emits on actual change so
- * subscribers re-read the frame.
- *
- * Ship 2 wires this to SIWE state: on successful sign-in with a
- * claimed @name and price_sprite, call with (siweAddress, vibe);
- * on sign-out, call with (null, null).
- */
 export function setMainSpriteIdentity(
     walletAddress: string | null,
     vibe: PriceSpriteVibe | null,
 ): void {
-    const next = (walletAddress && vibe)
-        ? { walletAddress, vibe }
-        : null;
-    /* No-op shortcut on identical assignment. */
-    if (
-        _identity === null && next === null
-    ) return;
-    if (
-        _identity !== null
-        && next !== null
-        && _identity.walletAddress === next.walletAddress
-        && _identity.vibe === next.vibe
-    ) return;
+    const next = walletAddress && vibe ? { walletAddress, vibe } : null;
+    if (_identity === null && next === null) return;
+    if (_identity && next &&
+        _identity.walletAddress === next.walletAddress &&
+        _identity.vibe === next.vibe) return;
     _identity = next;
     _emit();
 }
 
-/**
- * Read the current main-sprite identity. Returns null when no
- * identity is bound (logged-out / pre-claim state).
- */
-export function getMainSpriteIdentity(): {
-    walletAddress: string;
-    vibe: PriceSpriteVibe;
-} | null {
+export function getMainSpriteIdentity(): { walletAddress: string; vibe: PriceSpriteVibe } | null {
     return _identity;
-}
-
-/**
- * Read the current animation state from the shared state machine.
- * Used by the AccountCreateModal quadrants so their 4 preview
- * sprites animate in lockstep with the menu sprite — each quadrant
- * passes this state to composeSprite() per frame.
- */
-export function getSpriteAnimState(): SpriteAnimState {
-    return _state;
 }
