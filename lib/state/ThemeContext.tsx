@@ -395,14 +395,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             applyBgHex('#FFE600', null);
         } else {
             applyTheme(savedTheme);
-            // Boot haze variation engine if haze is the saved theme
-            // and a variation is stored — same as any other persistent
-            // theme preference.
+            // Boot haze variation engine and texture overlay if haze
+            // is the saved theme — same as any other persistent pref.
             if (savedTheme === 'haze') {
                 const variation = getHazeVariation();
                 if (variation) {
                     enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
                 }
+                // Restore TXT texture overlay
+                try {
+                    const txt = localStorage.getItem('pd_haze_txt');
+                    if (txt === 'grain' || txt === 'lines' || txt === 'dots') {
+                        document.documentElement.dataset.hazeTxt = txt;
+                    }
+                } catch { /* ignore */ }
             }
         }
     }, [pathname]);
@@ -428,6 +434,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         // Leaving haze — tear down any running variation engine.
         if (prev === 'haze' && key !== 'haze') {
             disableHazeVariation(getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+            // Clear texture overlay — TXT is a haze-only feature
+            if (typeof document !== 'undefined')
+                delete document.documentElement.dataset.hazeTxt;
         }
 
         if (key === 'hashsyn') {
