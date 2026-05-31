@@ -404,8 +404,7 @@ html[data-haze-txt] body::after {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 9998;
-    mix-blend-mode: overlay;
+    z-index: 0;
 }
 
 html[data-haze-txt="lines"] body::after {
@@ -414,13 +413,13 @@ html[data-haze-txt="lines"] body::after {
         currentColor 0px, currentColor 1px,
         transparent 1px, transparent 6px
     );
-    opacity: 0.15;
+    opacity: 0.06;
 }
 
 html[data-haze-txt="dots"] body::after {
     background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
     background-size: 8px 8px;
-    opacity: 0.18;
+    opacity: 0.08;
 }
 
 html[data-haze-txt="stripes"] body::after {
@@ -429,7 +428,7 @@ html[data-haze-txt="stripes"] body::after {
         currentColor 0px, currentColor 1px,
         transparent 1px, transparent 3px
     );
-    opacity: 0.12;
+    opacity: 0.05;
 }
 
 html[data-haze-txt="weave"] body::after {
@@ -437,7 +436,7 @@ html[data-haze-txt="weave"] body::after {
         repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px),
         repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px);
     background-size: 8px 8px;
-    opacity: 0.12;
+    opacity: 0.04;
 }
 
 html[data-haze-txt="brick"] body::after {
@@ -445,7 +444,7 @@ html[data-haze-txt="brick"] body::after {
         repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 5px),
         repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 10px);
     background-size: 10px 6px;
-    opacity: 0.12;
+    opacity: 0.05;
 }
 
 html[data-haze-txt="chevron"] body::after {
@@ -453,7 +452,7 @@ html[data-haze-txt="chevron"] body::after {
         repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px),
         repeating-linear-gradient(45deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px);
     background-size: 16px 16px;
-    opacity: 0.13;
+    opacity: 0.05;
 }
 
 html[data-haze-txt="mesh"] body::after {
@@ -461,7 +460,7 @@ html[data-haze-txt="mesh"] body::after {
         repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 4px),
         repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 4px);
     background-size: 4px 4px;
-    opacity: 0.10;
+    opacity: 0.04;
 }
 
 html[data-haze-txt="dash"] body::after {
@@ -470,7 +469,7 @@ html[data-haze-txt="dash"] body::after {
         currentColor 0px, currentColor 2px,
         transparent 2px, transparent 6px
     );
-    opacity: 0.13;
+    opacity: 0.05;
 }
 
 html[data-haze-txt="hatch"] body::after {
@@ -479,7 +478,7 @@ html[data-haze-txt="hatch"] body::after {
         currentColor 0px, currentColor 1px,
         transparent 1px, transparent 5px
     );
-    opacity: 0.15;
+    opacity: 0.06;
 }
 
 html[data-haze-txt="grid"] body::after {
@@ -487,7 +486,7 @@ html[data-haze-txt="grid"] body::after {
         repeating-linear-gradient(0deg, transparent, transparent 2px, currentColor 2px, currentColor 3px),
         repeating-linear-gradient(90deg, transparent, transparent 2px, currentColor 2px, currentColor 3px);
     background-size: 4px 4px;
-    opacity: 0.12;
+    opacity: 0.05;
 }
 
 
