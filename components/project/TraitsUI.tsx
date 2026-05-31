@@ -600,15 +600,18 @@ export default function TraitsUI({
                                     }
                                 />
 
-                                {/* My Notes → icon button in the sort-bar icon
-                                    cluster. Glyph ⊟ (U+229F) matches the note
+                                {/* My Notes → pill matching the Recent (Breadcrumb)
+                                    pill shape. Glyph ⊟ (U+229F) matches the note
                                     icon in the card hover overlay. */}
-                                <IconBtn
-                                    cls="notes-filter-btn"
-                                    glyph={"\u229F\uFE0E"}
-                                    title="My Notes — show only outputs with notes"
+                                <BarPill
+                                    label={"\u229F\uFE0E"}
                                     active={myNotesActive}
+                                    dimmed={
+                                        activeCategory !== null
+                                    }
                                     onClick={toggleMyNotes}
+                                    title="My Notes — show only outputs with notes"
+                                    extraClass="pill-notes"
                                 />
 
                                 {/* Recent + icon cluster — sim 8551-8557.
