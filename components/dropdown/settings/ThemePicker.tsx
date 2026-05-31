@@ -3,23 +3,19 @@
 /*
  * ThemePicker — DEFAULT THEME section.
  *
- * Triple-tap the header to reveal the hidden Haze Mode row in-place.
- * Triple-tap "HAZE MODE" to return to the standard picker.
+ * Triple-tap header → Haze Mode row. Triple-tap "HAZE MODE" → back.
  *
- * Haze row layout (mirrors the Profile Theme row in MY PD):
- *   ◩ HZ    — SettingsToggle pill (activates haze theme). Same icon/
- *              label style as PL / PD pills. ◩ icon = profile-theme icon.
- *   ◩ label — iOS-safe <label htmlFor> swatch that opens the native
- *              colour picker (sim 4610-4613 pattern — no .click() call).
+ * Haze row:
+ *   HZ pill    — SettingsToggle, label only (no icon), activates haze.
+ *   ◩ swatch   — iOS-safe <label htmlFor> with larger ◩ icon.
+ *                Opens native colour picker (sim 4610-4613 pattern).
  *   hex input
- *   ⧉       — copy hex (copy-hex-btn, same as profile row)
- *   ≋       — variation cycle (copy-hex-btn user-showcase-toggle-btn,
- *              bare icon — no pill border). Cycles Tint → Drift → Pulse
- *              → Pure → Tint → ... Glyph style changes per state:
- *              Tint=bold, Drift=italic, Pulse=underline, Pure=strikethrough.
- *              No OFF state — only switching to another theme stops it.
+ *   ⧉          — copy hex (copy-hex-btn)
+ *   ≋/≊/≅/≃/≂ — variation cycle (haze-variation-btn class, bare icon).
+ *                Pure(≋) is default/resting. No toast on pure.
+ *                Cycle: pure(≋) → tint(≊) → drift(≅) → pulse(≃) → chromatic(≂) → pure(≋)
  *
- * Toasts: "Haze Mode (Tint)" / "Haze Mode (Drift)" / etc.
+ * Toasts: "Haze Mode (Tint)" / "Haze Mode (Drift)" / etc. Silent on pure.
  */
 
 import { useRef, useState } from 'react';
@@ -54,42 +50,34 @@ const PILLS: PillSpec[] = [
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 13, fontWeight: 'normal' },
     },
     {
-        key: 'blue',  cls: 't-blue',  title: 'Blueberry Mode',  glyph: 'B',
+        key: 'blue', cls: 't-blue', title: 'Blueberry Mode', glyph: 'B',
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
     {
-        key: 'red',   cls: 't-red',   title: 'Red Cherry Mode', glyph: 'R',
+        key: 'red', cls: 't-red', title: 'Red Cherry Mode', glyph: 'R',
         glyphStyle: { fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 },
     },
 ];
 
 const THEME_NAMES: Record<NonNullable<ThemeKey>, string> = {
-    artist:  'Artist Custom',
-    light:   'Light Mode',
-    dark:    'Dark Mode',
-    orange:  'Orange Mode',
-    hashsyn: 'Hash Synesthesia',
-    blue:    'Blueberry Mode',
-    red:     'Cherry Mode',
-    haze:    'Haze Mode',
+    artist: 'Artist Custom', light: 'Light Mode', dark: 'Dark Mode',
+    orange: 'Orange Mode', hashsyn: 'Hash Synesthesia',
+    blue: 'Blueberry Mode', red: 'Cherry Mode', haze: 'Haze Mode',
 };
 
-// 4-state cycle — no OFF, just wraps Tint→Drift→Pulse→Pure→Tint
-const VARIATION_CYCLE: HazeVariation[] = ['tint', 'drift', 'pulse', 'pure'];
+const VARIATION_CYCLE: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];
 
 const VARIATION_LABELS: Record<HazeVariation, string> = {
-    tint:  'Tint',
-    drift: 'Drift',
-    pulse: 'Pulse',
-    pure:  'Pure',
+    pure: 'Pure', tint: 'Tint', drift: 'Drift', pulse: 'Pulse', chromatic: 'Chromatic',
 };
 
-// Text style per variation state — applied to the ≋ glyph
-const VARIATION_GLYPH_STYLE: Record<HazeVariation, React.CSSProperties> = {
-    tint:  { fontWeight: 'bold' },
-    drift: { fontStyle: 'italic' },
-    pulse: { textDecoration: 'underline' },
-    pure:  { textDecoration: 'line-through' },
+// Each state gets its own Unicode glyph — all same font/size so baseline aligns
+const VARIATION_GLYPHS: Record<HazeVariation, string> = {
+    pure:      '\u224B\uFE0E', // ≋
+    tint:      '\u224A\uFE0E', // ≊
+    drift:     '\u2245\uFE0E', // ≅
+    pulse:     '\u2243\uFE0E', // ≃
+    chromatic: '\u2242\uFE0E', // ≂
 };
 
 const HAZE_COLOR_KEY = 'pd_haze_color';
@@ -109,7 +97,6 @@ export function ThemePicker() {
     const { theme, setTheme } = useTheme();
     const { showToast } = useToast();
 
-    // Triple-tap to reveal/hide haze row
     const [hazeMode, setHazeMode] = useState(false);
     const tapState = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
 
@@ -119,64 +106,34 @@ export function ThemePicker() {
         if (now - s.lastTap > 600) s.count = 1;
         else s.count += 1;
         s.lastTap = now;
-        if (s.count >= 3) {
-            s.count = 0;
-            setHazeMode((v) => !v);
-        }
+        if (s.count >= 3) { s.count = 0; setHazeMode((v) => !v); }
     };
 
-    // Haze hex state
     const [hazeHex, setHazeHex] = useState<string>(() => readHazeColor());
     const editingHexRef = useRef(false);
     const copyingHexRef = useRef(false);
 
-    // Variation — read from storage on mount; null means first tap will
-    // start at Tint (index 0). If a variation is already saved, the
-    // next tap advances from its current position.
-    const [variation, setVariationState] = useState<HazeVariation | null>(
-        () => getHazeVariation()
+    // Default to 'pure' if nothing stored
+    const [variation, setVariationState] = useState<HazeVariation>(
+        () => getHazeVariation() ?? 'pure'
     );
 
     const applyHazeHex = (hex: string) => {
-        const upper = hex.toUpperCase();
-        try { localStorage.setItem(HAZE_COLOR_KEY, upper); } catch { /* ignore */ }
-        // setTheme('haze') re-resolves getHazeBg() and re-enables the
-        // variation engine with the new base colour.
+        try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
         if (theme === 'haze') setTheme('haze');
     };
 
     const handleVariationCycle = (e: React.MouseEvent) => {
         e.stopPropagation();
-
-        // Advance: if no variation active yet, start at index 0 (Tint).
-        // Otherwise advance from current position.
-        const currentIdx = variation !== null
-            ? VARIATION_CYCLE.indexOf(variation)
-            : -1;
-        const nextIdx = (currentIdx + 1) % VARIATION_CYCLE.length;
-        const next = VARIATION_CYCLE[nextIdx];
-
+        const next = VARIATION_CYCLE[(VARIATION_CYCLE.indexOf(variation) + 1) % VARIATION_CYCLE.length];
         setVariationState(next);
         setHazeVariation(next);
-
-        const base = readHazeColor();
-        enableHazeVariation(next, base, (hex) => applyBgHex(hex, 'haze'));
-
-        showToast(`Haze Mode (${VARIATION_LABELS[next]})`);
-
-        // Ensure haze is the active theme
+        enableHazeVariation(next, readHazeColor(), (hex) => applyBgHex(hex, 'haze'));
+        if (next !== 'pure') showToast(`Haze Mode (${VARIATION_LABELS[next]})`);
         if (theme !== 'haze') setTheme('haze');
     };
 
     if (hazeMode) {
-        // ≋ base style — always Courier, 16px (matches copy-hex-btn)
-        const variationGlyphStyle: React.CSSProperties = {
-            fontFamily: "'Courier New', Courier, monospace",
-            fontSize: 16,
-            lineHeight: 1,
-            ...(variation ? VARIATION_GLYPH_STYLE[variation] : {}),
-        };
-
         return (
             <>
                 <div
@@ -188,20 +145,19 @@ export function ThemePicker() {
                     HAZE MODE
                 </div>
                 <div className="settings-pill-row">
-                    {/* ◩ HZ — activates haze theme. Same style as PL/PD. */}
+
+                    {/* HZ — label only, no icon */}
                     <SettingsToggle
                         id="st-haze"
                         active={theme === 'haze'}
                         title="Haze Mode"
-                        icon={'◩\uFE0E'}
+                        icon=""
                         label="HZ"
-                        onClick={() => {
-                            setTheme('haze');
-                            showToast('Theme: Haze Mode');
-                        }}
+                        onClick={() => { setTheme('haze'); showToast('Theme: Haze Mode'); }}
                     />
 
-                    {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 */}
+                    {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
+                        Larger ◩ icon (14px) placed on the swatch where it belongs. */}
                     <label
                         htmlFor="hazeColorPicker"
                         className="pill-theme"
@@ -222,9 +178,12 @@ export function ThemePicker() {
                     >
                         <span style={{
                             fontFamily: "'Courier New', Courier, monospace",
-                            fontSize: 10,
+                            fontSize: 14,
                             fontWeight: 'bold',
                             pointerEvents: 'none',
+                            lineHeight: 1,
+                            position: 'relative',
+                            top: '1px',
                         }}>◩{'\uFE0E'}</span>
                         <input
                             type="color"
@@ -239,13 +198,9 @@ export function ThemePicker() {
                             tabIndex={-1}
                             aria-hidden="true"
                             style={{
-                                position: 'absolute',
-                                opacity: 0,
-                                width: '1px',
-                                height: '1px',
-                                bottom: 0,
-                                left: '50%',
-                                pointerEvents: 'none',
+                                position: 'absolute', opacity: 0,
+                                width: '1px', height: '1px',
+                                bottom: 0, left: '50%', pointerEvents: 'none',
                             }}
                         />
                     </label>
@@ -267,23 +222,19 @@ export function ThemePicker() {
                         }}
                         onBlur={() => {
                             editingHexRef.current = false;
-                            if (!HEX_RE.test(hazeHex)) {
-                                setHazeHex(readHazeColor());
-                            } else {
-                                setHazeHex(hazeHex.toUpperCase());
-                            }
+                            if (!HEX_RE.test(hazeHex)) setHazeHex(readHazeColor());
+                            else setHazeHex(hazeHex.toUpperCase());
                         }}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                (e.currentTarget as HTMLInputElement).blur();
-                            } else if (e.key === 'Escape') {
+                            if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
+                            else if (e.key === 'Escape') {
                                 setHazeHex(readHazeColor());
                                 (e.currentTarget as HTMLInputElement).blur();
                             }
                         }}
                     />
 
-                    {/* ⧉ copy — same class as profile row */}
+                    {/* ⧉ copy */}
                     <span
                         className="copy-hex-btn"
                         title="Copy Hex"
@@ -299,25 +250,21 @@ export function ThemePicker() {
                                 setHazeHex(readHazeColor());
                             }, 1500);
                         }}
-                    >
-                        ⧉{'\uFE0E'}
-                    </span>
+                    >⧉{'\uFE0E'}</span>
 
-                    {/* ≋ variation — bare icon, no pill border.
-                        Sits right of ⧉ like the showcase toggle sits
-                        right of ⧉ in the profile row. Text style changes
-                        per state: bold / italic / underline / strikethrough. */}
+                    {/* Variation glyph — bare icon, haze-variation-btn class.
+                        Pure=≋ Tint=≊ Drift=≅ Pulse=≃ Chromatic=≂
+                        All Courier, same size — consistent vertical alignment. */}
                     <span
-                        className="copy-hex-btn user-showcase-toggle-btn"
-                        title={variation
+                        className="haze-variation-btn"
+                        title={variation !== 'pure'
                             ? `Haze Mode (${VARIATION_LABELS[variation]}) — tap to cycle`
                             : 'Tap to enable variation'}
                         role="button"
                         tabIndex={0}
-                        style={variationGlyphStyle}
                         onClick={handleVariationCycle}
                     >
-                        ≋{'\uFE0E'}
+                        {VARIATION_GLYPHS[variation]}
                     </span>
                 </div>
             </>
