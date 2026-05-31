@@ -74,7 +74,7 @@ const THEMES: Record<NonNullable<ThemeKey>, string> = {
     hashsyn: '#7B2FFF',
     /* Haze — user-chosen bg color, same persistence pattern as artist.
        THEMES.haze is the fallback when no custom hex has been saved. */
-    haze:    '#888888',
+    haze:    '#25EC00',
 };
 
 /* F64 (BUG-28) — when the active theme is 'artist', the bg hex comes from
@@ -97,7 +97,7 @@ function getArtistBg(): string {
 }
 
 /* Haze — same pattern as artist. Storage key: `pd_haze_color`. Falls
-   back to THEMES.haze (#888888) when no custom hex has been saved. */
+   back to THEMES.haze (#25EC00) when no custom hex has been saved. */
 const HAZE_COLOR_KEY = 'pd_haze_color';
 function getHazeBg(): string {
     if (typeof window === 'undefined') return THEMES.haze;
