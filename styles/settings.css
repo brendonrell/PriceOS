@@ -410,9 +410,10 @@ html[data-haze-txt] body::after {
 
 html[data-haze-txt="grain"] body::after {
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-    opacity: 0.12;
+        repeating-linear-gradient(0deg, transparent, transparent 2px, currentColor 2px, currentColor 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, currentColor 2px, currentColor 3px);
+    background-size: 4px 4px;
+    opacity: 0.05;
 }
 
 html[data-haze-txt="lines"] body::after {
