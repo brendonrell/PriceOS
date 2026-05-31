@@ -84,6 +84,34 @@ const HAZE_COLOR_KEY = 'pd_haze_color';
 const HAZE_DEFAULT   = '#888888';
 const HEX_RE         = /^#[0-9A-F]{6}$/i;
 
+// TXT texture overlay — independent of variation, persists same as theme prefs
+const HAZE_TXT_KEY = 'pd_haze_txt';
+type HazeTxt = 'grain' | 'lines' | 'dots';
+const TXT_CYCLE: Array<HazeTxt | null> = [null, 'grain', 'lines', 'dots'];
+const TXT_LABELS: Record<HazeTxt, string> = { grain: 'Grain', lines: 'Lines', dots: 'Dots' };
+
+function readHazeTxt(): HazeTxt | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const saved = localStorage.getItem(HAZE_TXT_KEY);
+        if (saved === 'grain' || saved === 'lines' || saved === 'dots') return saved;
+    } catch { /* ignore */ }
+    return null;
+}
+
+function applyHazeTxt(txt: HazeTxt | null): void {
+    if (typeof document === 'undefined') return;
+    if (txt === null) {
+        delete document.documentElement.dataset.hazeTxt;
+    } else {
+        document.documentElement.dataset.hazeTxt = txt;
+    }
+    try {
+        if (txt === null) localStorage.removeItem(HAZE_TXT_KEY);
+        else localStorage.setItem(HAZE_TXT_KEY, txt);
+    } catch { /* ignore */ }
+}
+
 function readHazeColor(): string {
     if (typeof window === 'undefined') return HAZE_DEFAULT;
     try {
@@ -117,6 +145,26 @@ export function ThemePicker() {
     const [variation, setVariationState] = useState<HazeVariation>(
         () => getHazeVariation() ?? 'pure'
     );
+
+    // TXT texture — independent overlay, co-exists with any variation
+    const [txt, setTxtState] = useState<HazeTxt | null>(() => {
+        const saved = readHazeTxt();
+        // Boot: apply stored texture to DOM immediately
+        if (typeof document !== 'undefined' && saved) {
+            document.documentElement.dataset.hazeTxt = saved;
+        }
+        return saved;
+    });
+
+    const handleTxtCycle = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const currentIdx = TXT_CYCLE.indexOf(txt);
+        const next = TXT_CYCLE[(currentIdx + 1) % TXT_CYCLE.length];
+        setTxtState(next);
+        applyHazeTxt(next);
+        if (next !== null) showToast(`Haze Mode (${TXT_LABELS[next]})`);
+        if (theme !== 'haze') setTheme('haze');
+    };
 
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
@@ -154,6 +202,15 @@ export function ThemePicker() {
                         icon=""
                         label="HZ"
                         onClick={() => { setTheme('haze'); showToast('Theme: Haze Mode'); }}
+                    />
+
+                    {/* TXT — texture overlay, independent of variation */}
+                    <SettingsToggle
+                        id="st-haze-txt"
+                        active={txt !== null}
+                        title={txt ? `Texture: ${TXT_LABELS[txt]} — tap to cycle` : 'Tap to enable texture'}
+                        label="TXT"
+                        onClick={handleTxtCycle}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
