@@ -114,7 +114,7 @@ function getHazeBg(): string {
    Valid values: 'tint' | 'drift' | 'pulse' | 'chromatic'. Absent or
    unrecognised means no variation (plain solid colour). */
 const HAZE_VARIATION_KEY = 'pd_haze_variation';
-const VALID_VARIATIONS: HazeVariation[] = ['tint', 'drift', 'pulse', 'pure'];
+const VALID_VARIATIONS: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];
 export function getHazeVariation(): HazeVariation | null {
     if (typeof window === 'undefined') return null;
     try {
