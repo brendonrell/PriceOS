@@ -3594,6 +3594,157 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
+/* ── NOTES FILTER ICON BUTTON ──────────────────────────────────────── */
+/* ⊟ (U+229F) in the sort-bar icon cluster. Same sizing/rhythm as
+   the burn-btn / multiselect-btn it sits beside. */
+.notes-filter-btn {
+    cursor: pointer;
+    font-size: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 28px;
+    width: 26px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.notes-filter-btn.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+@media (max-width: 600px) { .notes-filter-btn { font-size: 22px; } }
+@media (hover: hover)     { .notes-filter-btn:hover { opacity: 1; } }
+
+/* ── MY NOTES EMPTY STATE ───────────────────────────────────────────── */
+.my-notes-empty-state {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    box-sizing: border-box;
+}
+.my-notes-empty-msg {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: var(--text-color);
+    opacity: 0.4;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+/* ── MULTI-SELECT FLOATING ACTION BAR ───────────────────────────────── */
+/* Fixed at the bottom of the viewport, centred near the toast zone.
+   Styled as the artwork modal CTA compound button
+   (modal-action-btn-wrap from styles/modal.css):
+     left  — main pill: action name, click executes it
+     arrow — small tab on the main pill's right edge, cycles to next action
+     right — count tab (same height, narrower, lighter border) */
+.ms-float-bar {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    pointer-events: auto;
+    /* Subtle lift so it reads over cards */
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.22));
+}
+@media (max-width: 600px) {
+    .ms-float-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Outer wrap fuses main pill + cycle arrow exactly like
+   modal-action-btn-wrap fuses BUY + calc tab */
+.ms-float-wrap {
+    display: inline-flex;
+    align-items: stretch;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Main pill — action name */
+.ms-float-action {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 36px;
+    padding: 0 20px;
+    min-width: 160px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-action:hover { opacity: 0.8; }
+.ms-float-action:active { opacity: 0.65; }
+
+/* Cycle arrow tab — right edge of the main pill, hairline separator */
+.ms-float-cycle {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-left: 1px solid color-mix(in srgb, var(--bg-color) 25%, transparent);
+    height: 36px;
+    width: 32px;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-cycle:hover  { opacity: 1; }
+.ms-float-cycle:active { opacity: 0.65; }
+
+/* Count tab — separate pill to the right, same height */
+.ms-float-count {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 36px;
+    padding: 0 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 4px;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-count:hover  { opacity: 1; }
+.ms-float-count:active { opacity: 0.65; }
+
 /* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
 /* Opens in the same slot as .search-row (directly below the sort-bar)
    when multi-select mode is active. */
@@ -3670,10 +3821,16 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Crosshair cursor on all cards while multi-select mode is active */
 .output-card.ms-eligible { cursor: crosshair; }
 
-/* Selected cards: solid outline on canvas-wrapper */
-.output-card.ms-selected .canvas-wrapper {
+/* Selected cards: outline on .output-content (the direct parent of
+   .canvas-wrapper). .canvas-wrapper has overflow:hidden + border-radius
+   which creates a WebKit stacking context that clips child outlines on
+   iOS Safari. Moving the ring one level up — to .output-content, which
+   has neither overflow:hidden nor border-radius — means WebKit never
+   clips it. The ring sits flush against the canvas edge on both
+   desktop and mobile. */
+.output-card.ms-selected .output-content {
     outline: 2px solid var(--text-color);
-    outline-offset: -2px;
+    outline-offset: 0px;
     border-radius: 3px;
 }
 
