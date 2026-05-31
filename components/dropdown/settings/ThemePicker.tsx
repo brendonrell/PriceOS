@@ -88,7 +88,7 @@ const HEX_RE         = /^#[0-9A-F]{6}$/i;
 const HAZE_TXT_KEY = 'pd_haze_txt';
 type HazeTxt = 'grain' | 'lines' | 'dots';
 const TXT_CYCLE: Array<HazeTxt | null> = [null, 'grain', 'lines', 'dots'];
-const TXT_LABELS: Record<HazeTxt, string> = { grain: 'Grain', lines: 'Lines', dots: 'Dots' };
+const TXT_LABELS: Record<HazeTxt, string> = { grain: 'Grid', lines: 'Lines', dots: 'Dots' };
 
 function readHazeTxt(): HazeTxt | null {
     if (typeof window === 'undefined') return null;
@@ -193,13 +193,14 @@ export function ThemePicker() {
                 </div>
                 <div className="settings-pill-row">
 
-                    {/* HZ — label only, no icon */}
+                    {/* HZ — label only, bareLabel so no st-label wrapper,
+                        no icon prop so no st-icon span with margin-right */}
                     <SettingsToggle
                         id="st-haze"
                         active={theme === 'haze'}
                         title="Haze Mode"
-                        icon=""
                         label="HZ"
+                        bareLabel
                         onClick={() => { setTheme('haze'); showToast('Theme: Haze Mode'); }}
                     />
 
