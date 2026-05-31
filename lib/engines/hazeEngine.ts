@@ -3,21 +3,20 @@
 /*
  * hazeEngine — Haze Mode variation engine.
  *
- * Four named variations (no OFF state — switching away from the haze
- * theme is the only way to stop):
+ * Five states. Pure is the default/resting state (no animation loop).
+ * Cycle order: pure → tint → drift → pulse → chromatic → pure → ...
  *
- *   tint   — analogous hue shift ±30°, applied as one-shot on each enable.
- *   drift  — hue oscillates ±40° around base over ~30s, rAF sine loop.
- *   pulse  — lightness/saturation breathes on a ~4s sine cycle.
- *   pure   — full hue-wheel rotation locked to base S+L. ~20s/rev.
+ *   pure      — resting state. Restores base hex, stops any loop.
+ *   tint      — one-shot analogous hue shift ±30° (4 steps).
+ *   drift     — hue oscillates ±40° around base, ~30s sine loop.
+ *   pulse     — lightness/saturation breathes, ~4s sine loop.
+ *   chromatic — full hue-wheel rotation at base S+L, ~20s/rev loop.
  *
- * YIQ lock:
- *   On enable(), we snapshot the current --text-color (DOT or MATRIX)
- *   and write it to data-haze-text on <html>. applyBgHex() in
- *   ThemeContext reads this when key === 'haze' and skips the YIQ
- *   recalculation, keeping buttons/text the same polarity throughout
- *   the animation. On disable() we clear data-haze-text so the next
- *   theme switch recomputes normally.
+ * YIQ lock (tint/drift/pulse/chromatic only):
+ *   On enable(), snapshot --text-color into data-haze-text on <html>.
+ *   applyBgHex() reads this when key==='haze' to skip YIQ recalculation,
+ *   preventing buttons flipping black↔white during animation.
+ *   Cleared on disableHazeVariation() and when entering pure state.
  */
 
 type ApplyHex = (hex: string) => void;
@@ -75,13 +74,12 @@ function hslToHex(h: number, s: number, l: number): string {
     ).toUpperCase();
 }
 
-// ── YIQ lock helpers ─────────────────────────────────────────────────
+// ── YIQ lock ──────────────────────────────────────────────────────────
 
 function snapshotTextColor(): void {
     if (typeof document === 'undefined') return;
     const current = getComputedStyle(document.documentElement)
-        .getPropertyValue('--text-color')
-        .trim();
+        .getPropertyValue('--text-color').trim();
     if (current) document.documentElement.dataset.hazeText = current;
 }
 
@@ -101,6 +99,15 @@ function stopLoop(): void {
         cancelAnimationFrame(_rafId);
         _rafId = null;
     }
+}
+
+// ── Pure ──────────────────────────────────────────────────────────────
+
+function enablePure(baseHex: string, applyHex: ApplyHex): void {
+    stopLoop();
+    _applyHex = null;
+    releaseTextColorLock();
+    applyHex(baseHex);
 }
 
 // ── Tint ──────────────────────────────────────────────────────────────
@@ -125,12 +132,10 @@ function enableDrift(baseHex: string, applyHex: ApplyHex): void {
     const [h, s, l] = rgbToHsl(r, g, b);
     const start = performance.now();
     const PERIOD = 30000;
-
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
-        const offset = Math.sin(t * Math.PI * 2) * 40;
-        applyHex(hslToHex(h + offset, s, l));
+        applyHex(hslToHex(h + Math.sin(t * Math.PI * 2) * 40, s, l));
         _rafId = requestAnimationFrame(frame);
     };
     _rafId = requestAnimationFrame(frame);
@@ -145,7 +150,6 @@ function enablePulse(baseHex: string, applyHex: ApplyHex): void {
     const [h, s, l] = rgbToHsl(r, g, b);
     const start = performance.now();
     const PERIOD = 4000;
-
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
@@ -156,16 +160,15 @@ function enablePulse(baseHex: string, applyHex: ApplyHex): void {
     _rafId = requestAnimationFrame(frame);
 }
 
-// ── Pure ──────────────────────────────────────────────────────────────
+// ── Chromatic ─────────────────────────────────────────────────────────
 
-function enablePure(baseHex: string, applyHex: ApplyHex): void {
+function enableChromatic(baseHex: string, applyHex: ApplyHex): void {
     stopLoop();
     _applyHex = applyHex;
     const [r, g, b] = hexToRgb(baseHex);
     const [, s, l] = rgbToHsl(r, g, b);
     const start = performance.now();
     const PERIOD = 20000;
-
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
@@ -177,31 +180,24 @@ function enablePure(baseHex: string, applyHex: ApplyHex): void {
 
 // ── Public API ────────────────────────────────────────────────────────
 
-export type HazeVariation = 'tint' | 'drift' | 'pulse' | 'pure';
+export type HazeVariation = 'pure' | 'tint' | 'drift' | 'pulse' | 'chromatic';
 
-/**
- * Enable a variation. Snapshots --text-color for YIQ lock before
- * starting so buttons stay their initial polarity throughout animation.
- */
 export function enableHazeVariation(
     variation: HazeVariation,
     baseHex: string,
     applyHex: ApplyHex
 ): void {
-    snapshotTextColor();
+    if (variation !== 'pure') snapshotTextColor();
     _tintStep = 0;
     switch (variation) {
-        case 'tint':  enableTint(baseHex, applyHex);  break;
-        case 'drift': enableDrift(baseHex, applyHex); break;
-        case 'pulse': enablePulse(baseHex, applyHex); break;
-        case 'pure':  enablePure(baseHex, applyHex);  break;
+        case 'pure':      enablePure(baseHex, applyHex);      break;
+        case 'tint':      enableTint(baseHex, applyHex);      break;
+        case 'drift':     enableDrift(baseHex, applyHex);     break;
+        case 'pulse':     enablePulse(baseHex, applyHex);     break;
+        case 'chromatic': enableChromatic(baseHex, applyHex); break;
     }
 }
 
-/**
- * Tear down — clears YIQ lock and restores base hex.
- * Called by ThemeContext when the user picks a different theme.
- */
 export function disableHazeVariation(baseHex: string, applyHex: ApplyHex): void {
     stopLoop();
     _applyHex = null;
