@@ -3529,11 +3529,56 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
 @media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
-/* ── MY NOTES PILL ───────────────────────────────────────────── */
-/* ⊟ (U+229F) pill in the sort-bar — same pill-l1 shape as Recent.
-   No extra sizing overrides needed: pill-l1 base handles it.
-   .pill-notes.active uses the standard pill-l1.active inversion. */
-@media (hover: hover) { .pill-notes:hover { opacity: 0.85; } }
+/* ── SORT-BAR ICON PILLS (Recent + My Notes) ──────────────────── */
+/* pill-breadcrumb (◷ Recent) and pill-notes (⊟ My Notes) live in the
+   same row as burn-btn / multiselect-btn / search-btn and must look
+   identical in size. Strip the pill chrome (padding, border, background)
+   and match the icon-button metrics exactly: 18px glyph, 28×26px box. */
+.pill-breadcrumb,
+.pill-notes {
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+    height: 28px;
+    width: 26px;
+    padding: 0;
+    border: none;
+    background: transparent !important;
+    background-image: none !important;
+    border-radius: 0;
+    opacity: 0.7;
+    gap: 0;
+}
+/* Badge (count) hidden at icon size — no room */
+.pill-breadcrumb .badge,
+.pill-notes .badge {
+    display: none;
+}
+/* Active: full opacity + underline to match burn/multiselect pattern */
+.pill-breadcrumb.active,
+.pill-notes.active {
+    opacity: 1;
+    background: transparent !important;
+    background-image: none !important;
+    border: none;
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+/* Dimmed: match icon-btn dimmed state */
+.pill-breadcrumb.dimmed,
+.pill-notes.dimmed {
+    opacity: 0.4;
+}
+@media (max-width: 600px) {
+    .pill-breadcrumb,
+    .pill-notes { font-size: 24px; width: auto; }
+}
+@media (hover: hover) {
+    .pill-breadcrumb:hover,
+    .pill-notes:hover { opacity: 1; }
+}
 
 /* ── MY NOTES EMPTY STATE ─────────────────────────────────────── */
 .my-notes-empty-state {
