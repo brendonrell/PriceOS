@@ -396,7 +396,7 @@
 /* ── Haze TXT texture overlays ───────────────────────────────────────
    Applied via data-haze-txt on <html>. Overlaid on body as a
    pseudo-element so they co-exist with any bg-color or variation.
-   Three textures: grain (noise), lines (diagonal), dots (grid).
+   Three textures: grid (crosshatch), lines (diagonal), dots (grid).
    Pointer-events: none so clicks pass through. */
 
 html[data-haze-txt] body::after {
