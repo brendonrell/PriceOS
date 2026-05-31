@@ -1,187 +1,152 @@
 /**
  * PriceSprite composer — pure, deterministic.
  *
- * Takes a wallet address + vibe + animation state and returns the
- * composed sprite string + its parts. All math is deterministic:
- * same wallet + same vibe → same sprite, every time.
+ * Animation states:
+ *   awake    → base sprite
+ *   blinking → eyeL='-' eyeR='-'
+ *   yawning  → mouth='o', brows → flat macron (no angry yawn)
+ *   sleeping → eyeL='z' mouth='z' eyeR='z'
+ *   arguing  → Instigator (vi=1) only: turn arms up, MAD brows locked
+ *   throwing → all vibes: turn arm; engine applies CSS flip
+ *   casting  → Mystic (vi=3) only: energy arms, sparkle-focus brows
  *
- * Composition (8 render slots in order, 6 data slots driven by hash):\
- *   [bracketL] [armL+NBSP] [eyeL+browL] [mouth] [eyeR+browR] [bracketR] [armR] [trail]
+ * Brow swap on awake glyph-swap turns (sim-faithful):
+ *   browL↔browR when turned=true && animState='awake'.
  *
- * Hash chunking (per design-seed redesign, CEO-locked 2026-05-13):
- *   strip 0x, take first 24 hex chars, slice into 6 × 4-char chunks:
- *     chunk[0] = brackets    (hex[0:4])
- *     chunk[1] = arms        (hex[4:8])
- *     chunk[2] = eyes        (hex[8:12])
- *     chunk[3] = brows       (hex[12:16])
- *     chunk[4] = mouth       (hex[16:20])
- *     chunk[5] = trail       (hex[20:24])
- *   each chunk → parseInt(chunk, 16) % slotArray.length → slot index.
+ * armVariant: undefined=hash-derived (deterministic turns);
+ *             0|1=engine random (action animations, 2 poses each).
  *
- * Per-slot composition rules:
- *   armL = arm + NBSP (\u00A0) — the trailing NBSP renders inside
- *     bracketL to give the figure room to "occupy" the bracket.
- *     NBSP because regular spaces collapse under default HTML
- *     whitespace rules.
- *   armR = arm — same character as armL, but no leading whitespace.
- *     Positional asymmetry, symmetric character.
- *   eyeL = eyeBase + browL — combining diacritic stacks on base char
- *     to form a single grapheme cluster (1ch wide in monospace).
- *   eyeR = eyeBase + browR — same construction, browR mark.
- *
- * Animation overrides (CEO-locked):
- *   awake    → original composed sprite
- *   blinking → eyeL='-', eyeR='-' (both eyes closed, brows stripped)
- *   yawning  → mouth='o' (open mouth)
- *   sleeping → eyeL='z', mouth='z', eyeR='z' (three z's, one per slot)
- *
- * Turn arm override (turned=true):
- *   Applied when the engine does a glyph-swap turn (facing left,
- *   mirrorMode=false). Selects the turn arm via:
- *     Math.floor(chunkArms / arms.length) % turnArms.length
- *   Both armL and armR flip to the turn arm char (symmetric rule
- *   preserved). CSS scaleX(-1) still applies on top in the engine.
- *   turned is ignored when sleeping or yawning (those frames stay
- *   upright and arms don't animate during sleep/yawn).
- *
- * The per-slot single-character pattern for sleep matters: consumers
- * render eyes and mouth in a fixed-width inline-block so blink / yawn /
- * sleep don't squish the sprite as character widths change.
- *
- * Mirroring is the consumer's job (CSS scaleX(-1)) — the composer
- * never flips glyphs. The whole sprite mirrors as one figure.
+ * Shades: hex[24:28] → SHADES_POOL. Non-null = arms outside brackets,
+ *   ⌐ inside bracketL, lens replaces eyes. Mouth still animates.
  */
 
-import { SPRITE_DATA } from './data';
+import { SPRITE_DATA, SHADES_POOL, SHADES_EARPIECE } from './data';
 import { vibeToIndex, type PriceSpriteVibe } from './vibes';
 
-export type SpriteAnimState = 'awake' | 'blinking' | 'yawning' | 'sleeping';
+export type SpriteAnimState =
+    | 'awake' | 'blinking' | 'yawning' | 'sleeping'
+    | 'arguing' | 'throwing' | 'casting';
 
-/** Non-breaking space appended to armL so the bracketL → armL → eyeL
-    visual gap survives HTML whitespace collapsing. */
-const ARM_SPACE = '\u00A0';
+const ARM_SPACE    = '\u00A0';
+const BROW_SLEEPY  = '\u0304'; // macron    — yawn
+const BROW_MAD_L   = '\u0300'; // grave     — argue left
+const BROW_MAD_R   = '\u0301'; // acute     — argue right
+const BROW_SPARKLE = '\u0307'; // dot-above — cast
 
 export interface SpriteParts {
     bracketL: string;
-    /** Arm char + trailing NBSP — renders inside bracketL. */
-    armL: string;
-    /** Eye base + browL combining mark — one grapheme cluster. */
-    eyeL: string;
-    mouth: string;
-    /** Eye base + browR combining mark — one grapheme cluster. */
-    eyeR: string;
+    armL:     string;
+    eyeL:     string;
+    mouth:    string;
+    eyeR:     string;
     bracketR: string;
-    /** Arm char only — renders outside bracketR. */
-    armR: string;
-    /** Optional trail char after armR — usually empty for Observer/Instigator. */
-    trail: string;
+    armR:     string;
+    trail:    string;
 }
 
 export interface ComposedSprite {
     fullString: string;
-    parts: SpriteParts;
+    parts:      SpriteParts;
+    shadesLens: string | null;
 }
 
-/**
- * Strip leading 0x (case-insensitive) and lower-case the rest so the
- * composition is checksum-independent. Returns null when the address
- * has fewer than 24 usable hex chars (6 × 4-char chunks).
- */
-function _normaliseAddress(walletAddress: string): string | null {
-    const stripped = walletAddress.toLowerCase().replace(/^0x/, '');
-    if (stripped.length < 24) return null;
-    if (!/^[0-9a-f]+$/.test(stripped.slice(0, 24))) return null;
-    return stripped;
+function _norm(addr: string): string | null {
+    const s = addr.toLowerCase().replace(/^0x/, '');
+    if (s.length < 24 || !/^[0-9a-f]+$/.test(s.slice(0, 24))) return null;
+    return s;
 }
 
-/**
- * Compose a deterministic PriceSprite for a wallet+vibe pair under
- * the given animation state.
- *
- * @param turned  When true, swaps armL/armR to the wallet's deterministic
- *                turn arm variant. Used by the engine on glyph-swap turns
- *                (facing left, mirrorMode=false). Ignored during sleeping
- *                and yawning — the engine already gates this.
- *
- * Returns null when the wallet address is malformed (too short or
- * non-hex). Callers should treat null as "no sprite available" and
- * render nothing rather than a fallback glyph.
- */
 export function composeSprite(
     walletAddress: string,
-    vibe: PriceSpriteVibe,
-    animState: SpriteAnimState = 'awake',
-    turned = false,
+    vibe:          PriceSpriteVibe,
+    animState:     SpriteAnimState = 'awake',
+    turned         = false,
+    armVariant?:   0 | 1,
 ): ComposedSprite | null {
-    const hex = _normaliseAddress(walletAddress);
-    if (hex === null) return null;
+    const hex = _norm(walletAddress);
+    if (!hex) return null;
 
     const slots = SPRITE_DATA[vibeToIndex(vibe)];
+    const vi    = vibeToIndex(vibe);
 
-    const chunkBrackets = parseInt(hex.substring(0, 4), 16);
-    const chunkArms     = parseInt(hex.substring(4, 8), 16);
-    const chunkEyes     = parseInt(hex.substring(8, 12), 16);
-    const chunkBrows    = parseInt(hex.substring(12, 16), 16);
-    const chunkMouth    = parseInt(hex.substring(16, 20), 16);
-    const chunkTrail    = parseInt(hex.substring(20, 24), 16);
+    const cBr  = parseInt(hex.substring(0,  4), 16);
+    const cArm = parseInt(hex.substring(4,  8), 16);
+    const cEye = parseInt(hex.substring(8,  12), 16);
+    const cBw  = parseInt(hex.substring(12, 16), 16);
+    const cMo  = parseInt(hex.substring(16, 20), 16);
+    const cTr  = parseInt(hex.substring(20, 24), 16);
 
-    const bracket  = slots.brackets[chunkBrackets % slots.brackets.length];
-    const arm      = slots.arms[chunkArms % slots.arms.length];
-    const eyeBase  = slots.eyes[chunkEyes % slots.eyes.length];
-    const brow     = slots.brows[chunkBrows % slots.brows.length];
-    const mouth    = slots.mouths[chunkMouth % slots.mouths.length];
-    const trail    = slots.trails[chunkTrail % slots.trails.length];
+    const bracket = slots.brackets[cBr  % slots.brackets.length];
+    const arm     = slots.arms    [cArm % slots.arms.length];
+    const eyeBase = slots.eyes    [cEye % slots.eyes.length];
+    const brow    = slots.brows   [cBw  % slots.brows.length];
+    const mouth   = slots.mouths  [cMo  % slots.mouths.length];
+    const trail   = slots.trails  [cTr  % slots.trails.length];
 
-    /* Turn arm — upper bits of the same chunkArms value, so no extra
-       hash data needed and the selection is fully deterministic.
-       Math.floor(chunkArms / arms.length) strips the bits used by the
-       primary arm selection; % turnArms.length maps into the turn pool. */
-    const turnArmIdx = Math.floor(chunkArms / slots.arms.length) % slots.turnArms.length;
-    const turnArm    = slots.turnArms[turnArmIdx];
+    const taIdx  = armVariant !== undefined
+        ? armVariant
+        : Math.floor(cArm / slots.arms.length) % slots.turnArms.length;
+    const turnArm = slots.turnArms[taIdx];
+    const active  = turned ? turnArm : arm;
 
-    /* Active arm: normal or turn variant. */
-    const activeArm = turned ? turnArm : arm;
+    // ── Shades ──────────────────────────────────────────────────────
+    const lens = hex.length >= 28
+        ? (SHADES_POOL[parseInt(hex.substring(24, 28), 16) % SHADES_POOL.length] ?? null)
+        : null;
 
-    /* Base parts at awake state. eyeL/eyeR are grapheme clusters
-       (base + combining mark). armL carries trailing NBSP. */
+    if (lens !== null) {
+        let mo = mouth;
+        if (animState === 'yawning')  mo = 'o';
+        if (animState === 'sleeping') mo = 'z';
+        const full = active + bracket[0] + SHADES_EARPIECE + lens + mo + lens + bracket[1] + active + trail;
+        return {
+            fullString: full,
+            parts: { bracketL: bracket[0], armL: active, eyeL: lens,
+                     mouth: mo, eyeR: lens, bracketR: bracket[1], armR: active, trail },
+            shadesLens: lens,
+        };
+    }
+
+    // ── Normal ───────────────────────────────────────────────────────
+    const swap = turned && animState === 'awake'; // brow-swap on glyph-swap turns
     let parts: SpriteParts = {
         bracketL: bracket[0],
-        armL: activeArm + ARM_SPACE,
-        eyeL: eyeBase + brow[0],
+        armL:     active + ARM_SPACE,
+        eyeL:     eyeBase + (swap ? brow[1] : brow[0]),
         mouth,
-        eyeR: eyeBase + brow[1],
+        eyeR:     eyeBase + (swap ? brow[0] : brow[1]),
         bracketR: bracket[1],
-        armR: activeArm,
+        armR:     active,
         trail,
     };
 
-    /* Animation overrides. The full string is rebuilt at the end so
-       any override (or combination) reflects in fullString without
-       needing to re-derive parts. Eye overrides strip the combining
-       brow — the override char is the whole cluster. */
     switch (animState) {
-        case 'awake':
-            break;
-        case 'blinking':
-            parts = { ...parts, eyeL: '-', eyeR: '-' };
-            break;
+        case 'awake':    break;
+        case 'blinking': parts = { ...parts, eyeL: '-', eyeR: '-' }; break;
         case 'yawning':
-            parts = { ...parts, mouth: 'o' };
+            parts = { ...parts, mouth: 'o',
+                eyeL: eyeBase + BROW_SLEEPY, eyeR: eyeBase + BROW_SLEEPY };
             break;
-        case 'sleeping':
-            parts = { ...parts, eyeL: 'z', mouth: 'z', eyeR: 'z' };
+        case 'sleeping': parts = { ...parts, eyeL: 'z', mouth: 'z', eyeR: 'z' }; break;
+        case 'arguing':
+            if (vi !== 1) break;
+            parts = { ...parts, armL: turnArm + ARM_SPACE, armR: turnArm,
+                eyeL: eyeBase + BROW_MAD_L, eyeR: eyeBase + BROW_MAD_R };
+            break;
+        case 'throwing':
+            parts = { ...parts, armL: turnArm + ARM_SPACE, armR: turnArm };
+            break;
+        case 'casting':
+            if (vi !== 3) break;
+            parts = { ...parts, armL: turnArm + ARM_SPACE, armR: turnArm,
+                eyeL: eyeBase + BROW_SPARKLE, eyeR: eyeBase + BROW_SPARKLE };
             break;
     }
 
-    const fullString =
-        parts.bracketL
-        + parts.armL
-        + parts.eyeL
-        + parts.mouth
-        + parts.eyeR
-        + parts.bracketR
-        + parts.armR
-        + parts.trail;
-
-    return { fullString, parts };
+    return {
+        fullString: parts.bracketL + parts.armL + parts.eyeL +
+                    parts.mouth + parts.eyeR + parts.bracketR + parts.armR + parts.trail,
+        parts,
+        shadesLens: null,
+    };
 }
