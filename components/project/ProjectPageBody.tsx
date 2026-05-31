@@ -279,7 +279,7 @@ function ProjectPageBodyInner() {
             }
         },
     });
-    const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive } = useTraits();
+    const { activeFilters, searchQuery, priceMin, priceMax, burnPileActive, myNotesActive } = useTraits();
     const [activeTab, setActiveTab] = useState<ProjectTab>(() => {
         try {
             const saved = window.localStorage.getItem('pd_project_tab');
@@ -596,6 +596,22 @@ function ProjectPageBodyInner() {
                 if (priceNum != null && priceNum > maxVal) return false;
             }
 
+            // 4. My Notes — hide outputs without a saved note.
+            //    Reads from the same localStorage key used by
+            //    NotePromptContext ('pd_token_notes') so no new
+            //    context plumbing is needed.
+            if (myNotesActive) {
+                try {
+                    const raw = typeof localStorage !== 'undefined'
+                        ? localStorage.getItem('pd_token_notes')
+                        : null;
+                    const notes: Record<string, string> = raw ? JSON.parse(raw) : {};
+                    if (!notes[String(id)]) return false;
+                } catch {
+                    return false;
+                }
+            }
+
             return true;
         });
 
@@ -624,7 +640,7 @@ function ProjectPageBodyInner() {
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
+    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
@@ -982,6 +998,16 @@ function ProjectPageBodyInner() {
                 </div>
             </section>
 
+            {/* My Notes empty state — shown when the notes filter is active
+                but no outputs have notes yet. Sits above the (empty) gallery. */}
+            {myNotesActive && visibleTokenIds.length === 0 && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">
+                        You haven&rsquo;t created any Artwork Notes yet
+                    </span>
+                </div>
+            )}
+
             {/* Sim 5195: gallery section. JS-populated in sim via renderFeed
                 (~8155). In React: one ArtworkCard per visible token id —
                 Build 19 wires the visible set to TraitsContext (filter +
@@ -992,6 +1018,7 @@ function ProjectPageBodyInner() {
                 .meta. Full list still mounted — CSS does the filtering. */}
             <section
                 id="gallery"
+                data-my-notes={myNotesActive ? '1' : undefined}
                 aria-label="Gallery"
                 className={[
                     burnPileActive ? 'burn-mode' : null,
