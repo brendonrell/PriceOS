@@ -25,7 +25,8 @@ import { vibeToIndex, type PriceSpriteVibe } from './vibes';
 
 export type SpriteAnimState =
     | 'awake' | 'blinking' | 'yawning' | 'sleeping'
-    | 'arguing' | 'throwing' | 'casting';
+    | 'arguing' | 'throwing' | 'casting'
+    | 'void';   // deep sleep — ∅…∅ face, arms at rest. Ultra-rare easter egg.
 
 const ARM_SPACE    = '\u00A0';
 const BROW_SLEEPY  = '\u0304'; // macron    — yawn
@@ -140,6 +141,16 @@ export function composeSprite(
             if (vi !== 3) break;
             parts = { ...parts, armL: turnArm + ARM_SPACE, armR: turnArm,
                 eyeL: eyeBase + BROW_SPARKLE, eyeR: eyeBase + BROW_SPARKLE };
+            break;
+        case 'void':
+            // Deep sleep — ∅ eyes, … mouth, arms back to rest position.
+            // Applies to all vibes identically (no vibe gate).
+            parts = { ...parts,
+                armL: arm + ARM_SPACE,  // back to normal (non-raised)
+                armR: arm,
+                eyeL: '\u2205',         // ∅ empty set
+                mouth: '\u2026',        // … trailing off
+                eyeR: '\u2205' };       // ∅ empty set
             break;
     }
 
