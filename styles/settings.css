@@ -438,6 +438,7 @@ html[data-haze-txt="dots"] body::after {
 }
 
 
+/* User Showcase mode toggle — sits right of the
    copy-hex button. Bumped one size up + extra left margin so it
    doesn't crowd the copy icon (fat-finger spacing). Both glyph
    variants share this rule via the class — there's no per-variant
