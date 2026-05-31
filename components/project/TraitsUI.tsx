@@ -50,7 +50,7 @@
  * to separate files would just add repo files for ~20-line helpers.
  */
 
-import type { CSSProperties, ReactNode } from 'react';
+import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
@@ -59,6 +59,7 @@ import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useProject } from '../../lib/state/ProjectContext';
+import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
 
 /* ── Sort toast helpers ──────────────────────────────────────────────────
    Mirror sim 8360's sortLabels + currentSort pattern. We compute the
@@ -599,15 +600,15 @@ export default function TraitsUI({
                                     }
                                 />
 
-                                {/* My Notes — sim 8550 (toggle, not category swap) */}
-                                <BarPill
-                                    label="My Notes"
+                                {/* My Notes → icon button in the sort-bar icon
+                                    cluster. Glyph ⊟ (U+229F) matches the note
+                                    icon in the card hover overlay. */}
+                                <IconBtn
+                                    cls="notes-filter-btn"
+                                    glyph={"\u229F\uFE0E"}
+                                    title="My Notes — show only outputs with notes"
                                     active={myNotesActive}
-                                    dimmed={
-                                        activeCategory !== null && !myNotesActive
-                                    }
                                     onClick={toggleMyNotes}
-                                    title="My Notes"
                                 />
 
                                 {/* Recent + icon cluster — sim 8551-8557.
@@ -633,7 +634,7 @@ export default function TraitsUI({
                                         }}
                                     >
                                         <BarPill
-                                            label="Recent"
+                                            label={"\u25F7\uFE0E"}
                                             active={activeCategory === 'Breadcrumb'}
                                             dimmed={
                                                 activeCategory !== null &&
@@ -1010,17 +1011,130 @@ export default function TraitsUI({
                 13 brief; class is namespaced so the rest of the sim port
                 stays clean. */}
 
-            {/* Multi-select action row — same slot + open/close as
-                .search-row. Opens when multiSelectActive is true.
-                Pills are reverse-styled vs trait pills. Add to Cart
-                is wired; all others stub to toast for now. */}
-            <MultiSelectRow
-                open={multiSelectActive}
-                selectedIds={selectedIds}
-                clearSelected={clearSelected}
-            />
+            {/* Multi-select floating action bar — fixed at the bottom
+                of the viewport, styled as the artwork modal CTA button.
+                Only rendered when multiSelectActive is true. */}
+            <MsFloatBar />
 
         </>
+    );
+}
+
+/* ── MsFloatBar ─────────────────────────────────────────────────────── */
+/*
+ * Floating multi-select action bar. Styled as the artwork modal CTA
+ * button (modal-action-btn-wrap pattern from styles/modal.css):
+ *   left side  — action label + ▾ arrow; clicking cycles to next action
+ *   right side — selected count tab (modal-action-btn-calc style)
+ *
+ * Fixed at the bottom of the viewport, centred, near the toast zone.
+ * Renders null when multiSelectActive is false (zero layout cost).
+ */
+function MsFloatBar() {
+    const { multiSelectActive, selectedIds, clearSelected } = useTraits();
+    const { showToast } = useToast();
+    const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
+    const { outputs } = useProject();
+    const [pinnedSet, setPinnedSet] = React.useState<readonly number[]>(() => getGrails());
+    const [actionIdx, setActionIdx] = React.useState(0);
+
+    React.useEffect(() => {
+        setPinnedSet(getGrails());
+        return subscribeGrails((next) => setPinnedSet(next));
+    }, []);
+
+    // Reset action index when mode turns off or selection changes shape
+    React.useEffect(() => {
+        if (!multiSelectActive) setActionIdx(0);
+    }, [multiSelectActive]);
+
+    if (!multiSelectActive) return null;
+
+    const count = selectedIds.size;
+    const countLabel = count === 1 ? '1 output' : `${count} outputs`;
+    const ids = Array.from(selectedIds);
+
+    const allOwned  = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const anyOwned  = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const allListed = ids.every(id => outputs.get(id)?.price != null);
+    const availablePinSlots = MAX_GRAIL_PINS - pinnedSet.length;
+    const grailPinAvailable = allOwned && count > 0 && count <= availablePinSlots;
+
+    const stub = (label: string) => () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        showToast(`${label} · ${countLabel} — coming soon`);
+    };
+
+    const handleAddToCart = () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        let added = 0;
+        ids.forEach((id) => { if (!cartHas(id)) { cartAdd(id); added++; } });
+        if (added === 0) showToast('All selected items already in cart');
+        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
+        openCartPanel();
+    };
+
+    interface Action { label: string; exec: () => void; }
+    const actions: Action[] = [];
+
+    // Universal
+    actions.push(
+        { label: 'Star',         exec: stub('Star') },
+        { label: 'Wishlist',     exec: stub('Wishlist') },
+        { label: 'Add to Album', exec: stub('Add to Album') },
+        { label: 'Make To-Do',   exec: stub('Make To-Do') },
+    );
+    // Not-owned only
+    if (!anyOwned && allListed) actions.push({ label: 'Add to Cart',  exec: handleAddToCart });
+    if (!anyOwned)              actions.push({ label: 'Make Offer',   exec: stub('Make Offer') });
+    // Owned only
+    if (allOwned) {
+        if (grailPinAvailable) actions.push({ label: 'Grail Pin',      exec: stub('Grail Pin') });
+        actions.push(
+            { label: 'List/Re-List', exec: stub('List/Re-List') },
+            { label: 'Transfer',     exec: stub('Transfer') },
+        );
+    }
+    // Always last
+    actions.push({ label: 'Deselect All', exec: clearSelected });
+
+    const safeIdx = actions.length > 0 ? actionIdx % actions.length : 0;
+    const current = actions[safeIdx];
+
+    const cycleAction = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setActionIdx((i) => (i + 1) % actions.length);
+    };
+
+    return (
+        <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+            {/* Main pill — action label + cycle arrow */}
+            <div className="ms-float-wrap">
+                <button
+                    className="ms-float-action"
+                    onClick={current ? current.exec : undefined}
+                    title={current?.label}
+                >
+                    <span className="ms-float-label">{current?.label ?? '—'}</span>
+                </button>
+                <button
+                    className="ms-float-cycle"
+                    onClick={cycleAction}
+                    title="Change action"
+                    aria-label="Cycle action"
+                >
+                    {'▾︎'}
+                </button>
+            </div>
+            {/* Count tab */}
+            <button
+                className="ms-float-count"
+                onClick={clearSelected}
+                title="Deselect all"
+            >
+                {count === 0 ? '—' : countLabel}
+            </button>
+        </div>
     );
 }
 
@@ -1112,7 +1226,7 @@ function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProp
     if (allOwned) {
         actions.push(
             { label: 'Grail Pin', onClick: stub('Grail Pin') },
-            { label: 'List',      onClick: stub('List') },
+            { label: 'List/Re-List', onClick: stub('List/Re-List') },
             { label: 'Transfer',  onClick: stub('Transfer') },
         );
     }
