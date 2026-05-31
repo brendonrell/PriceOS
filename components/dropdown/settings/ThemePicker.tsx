@@ -156,8 +156,7 @@ export function ThemePicker() {
         return saved;
     });
 
-    const handleTxtCycle = (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleTxtCycle = () => {
         const currentIdx = TXT_CYCLE.indexOf(txt);
         const next = TXT_CYCLE[(currentIdx + 1) % TXT_CYCLE.length];
         setTxtState(next);
