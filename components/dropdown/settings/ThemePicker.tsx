@@ -81,20 +81,32 @@ const VARIATION_GLYPHS: Record<HazeVariation, string> = {
 };
 
 const HAZE_COLOR_KEY = 'pd_haze_color';
-const HAZE_DEFAULT   = '#888888';
+const HAZE_DEFAULT   = '#25EC00';
 const HEX_RE         = /^#[0-9A-F]{6}$/i;
 
 // TXT texture overlay — independent of variation, persists same as theme prefs
 const HAZE_TXT_KEY = 'pd_haze_txt';
-type HazeTxt = 'grain' | 'lines' | 'dots';
-const TXT_CYCLE: Array<HazeTxt | null> = [null, 'grain', 'lines', 'dots'];
-const TXT_LABELS: Record<HazeTxt, string> = { grain: 'Grid', lines: 'Lines', dots: 'Dots' };
+type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'weave' | 'brick' | 'chevron' | 'mesh' | 'cross' | 'dash' | 'hatch';
+const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'weave', 'brick', 'chevron', 'mesh', 'cross', 'dash', 'hatch'];
+const TXT_LABELS: Record<HazeTxt, string> = {
+    lines:   'LINES',
+    dots:    'DOTS',
+    grid:    'GRID',
+    stripes: 'STRIPES',
+    weave:   'WEAVE',
+    brick:   'BRICK',
+    chevron: 'CHEVRON',
+    mesh:    'MESH',
+    cross:   'CROSS',
+    dash:    'DASH',
+    hatch:   'HATCH',
+};
 
 function readHazeTxt(): HazeTxt | null {
     if (typeof window === 'undefined') return null;
     try {
         const saved = localStorage.getItem(HAZE_TXT_KEY);
-        if (saved === 'grain' || saved === 'lines' || saved === 'dots') return saved;
+        if (saved && (TXT_CYCLE as Array<string | null>).includes(saved)) return saved as HazeTxt;
     } catch { /* ignore */ }
     return null;
 }
@@ -161,7 +173,7 @@ export function ThemePicker() {
         const next = TXT_CYCLE[(currentIdx + 1) % TXT_CYCLE.length];
         setTxtState(next);
         applyHazeTxt(next);
-        if (next !== null) showToast(`Haze Mode (${TXT_LABELS[next]})`);
+        if (next !== null) showToast(`Haze Mode Texture: ${TXT_LABELS[next]}`);
         if (theme !== 'haze') setTheme('haze');
     };
 
@@ -208,8 +220,7 @@ export function ThemePicker() {
                     <SettingsToggle
                         id="st-haze-txt"
                         active={txt !== null}
-                        title={txt ? `Texture: ${TXT_LABELS[txt]} — tap to cycle` : 'Tap to enable texture'}
-                        label="TXT"
+                        title={txt ? `Texture: ${TXT_LABELS[txt]} — tap to cycle` : 'Tap to enable texture'}                        label="TXT"
                         onClick={handleTxtCycle}
                     />
 
