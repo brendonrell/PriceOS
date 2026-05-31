@@ -60,15 +60,15 @@ const PILLS: PillSpec[] = [
 ];
 
 const THEME_NAMES: Record<NonNullable<ThemeKey>, string> = {
-    artist: 'Artist Custom', light: 'Light Mode', dark: 'Dark Mode',
-    orange: 'Orange Mode', hashsyn: 'Hash Synesthesia',
-    blue: 'Blueberry Mode', red: 'Cherry Mode', haze: 'Haze Mode',
+    artist: 'ARTIST CUSTOM', light: 'LIGHT MODE', dark: 'DARK MODE',
+    orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
+    blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
 };
 
 const VARIATION_CYCLE: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];
 
 const VARIATION_LABELS: Record<HazeVariation, string> = {
-    pure: 'Pure', tint: 'Tint', drift: 'Drift', pulse: 'Pulse', chromatic: 'Chromatic',
+    pure: 'PURE', tint: 'TINT', drift: 'DRIFT', pulse: 'PULSE', chromatic: 'CHROMATIC',
 };
 
 // Each state gets its own Unicode glyph — all same font/size so baseline aligns
@@ -86,8 +86,8 @@ const HEX_RE         = /^#[0-9A-F]{6}$/i;
 
 // TXT texture overlay — independent of variation, persists same as theme prefs
 const HAZE_TXT_KEY = 'pd_haze_txt';
-type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'weave' | 'brick' | 'chevron' | 'mesh' | 'cross' | 'dash' | 'hatch';
-const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'weave', 'brick', 'chevron', 'mesh', 'cross', 'dash', 'hatch'];
+type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'weave' | 'brick' | 'chevron' | 'mesh' | 'dash' | 'hatch';
+const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'weave', 'brick', 'chevron', 'mesh', 'dash', 'hatch'];
 const TXT_LABELS: Record<HazeTxt, string> = {
     lines:   'LINES',
     dots:    'DOTS',
@@ -97,7 +97,6 @@ const TXT_LABELS: Record<HazeTxt, string> = {
     brick:   'BRICK',
     chevron: 'CHEVRON',
     mesh:    'MESH',
-    cross:   'CROSS',
     dash:    'DASH',
     hatch:   'HATCH',
 };
@@ -173,7 +172,7 @@ export function ThemePicker() {
         const next = TXT_CYCLE[(currentIdx + 1) % TXT_CYCLE.length];
         setTxtState(next);
         applyHazeTxt(next);
-        if (next !== null) showToast(`Haze Mode Texture: ${TXT_LABELS[next]}`);
+        showToast(`Haze Mode Texture: ${next !== null ? TXT_LABELS[next] : 'OFF'}`);
         if (theme !== 'haze') setTheme('haze');
     };
 
@@ -188,7 +187,7 @@ export function ThemePicker() {
         setVariationState(next);
         setHazeVariation(next);
         enableHazeVariation(next, readHazeColor(), (hex) => applyBgHex(hex, 'haze'));
-        if (next !== 'pure') showToast(`Haze Mode (${VARIATION_LABELS[next]})`);
+        showToast(`Haze Mode: ${VARIATION_LABELS[next]}`);
         if (theme !== 'haze') setTheme('haze');
     };
 
@@ -213,7 +212,7 @@ export function ThemePicker() {
                         title="Haze Mode"
                         label="HZ"
                         bareLabel
-                        onClick={() => { setTheme('haze'); showToast('Theme: Haze Mode'); }}
+                        onClick={() => { setTheme('haze'); showToast('Default Theme: HAZE MODE'); }}
                     />
 
                     {/* TXT — texture overlay, independent of variation */}
@@ -361,7 +360,7 @@ export function ThemePicker() {
                         onClick={(e) => {
                             e.stopPropagation();
                             setTheme(p.key);
-                            showToast('Theme: ' + THEME_NAMES[p.key]);
+                            showToast('Default Theme: ' + THEME_NAMES[p.key]);
                         }}
                     >
                         <span style={p.glyphStyle}>{p.glyph}</span>
