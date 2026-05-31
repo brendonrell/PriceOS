@@ -374,6 +374,25 @@
 }
 .copy-hex-btn:hover { opacity: 1; }
 
+/* Haze variation cycle icon (≋ ≊ ≅ ≃ ≂) — bare, sits right of ⧉.
+   Same pattern as user-showcase-toggle-btn. Mobile gets +1px. */
+.haze-variation-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    line-height: 1;
+    position: relative;
+    top: 1px;
+    margin-left: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+.haze-variation-btn:hover { opacity: 1; }
+@media (max-width: 600px) {
+    .haze-variation-btn { font-size: 19px; }
+}
+
 /* User Showcase mode toggle (⑆ static / ⑇ generative) — sits right of the
    copy-hex button. Bumped one size up + extra left margin so it
    doesn't crowd the copy icon (fat-finger spacing). Both glyph
