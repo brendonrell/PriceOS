@@ -156,7 +156,9 @@ function _turn(forceGlyphSwap = false): void {
         else if (_identity?.vibe === 'vibe_4') _state = 'casting';
         // Observer/Hacker: state='awake', arm change via CSS flip only
     } else {
-        _mirrorMode = Math.random() < 0.5;
+        // Plain turns always CSS-flip — sprite clearly faces LEFT, no arm change.
+        // Glyph-swap arm animation is reserved for action turns and throws only.
+        _mirrorMode = true;
     }
     _facing = -1;
     _emit();
