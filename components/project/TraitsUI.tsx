@@ -1082,6 +1082,7 @@ function MsFloatBar() {
     const [pinnedSet, setPinnedSet] = React.useState<readonly number[]>(() => getGrails());
     const [popupOpen, setPopupOpen] = React.useState(false);
     const [activeAction, setActiveAction] = React.useState<string | null>(null);
+    const [confirmOpen, setConfirmOpen] = React.useState(false);
 
     React.useEffect(() => {
         setPinnedSet(getGrails());
@@ -1089,7 +1090,7 @@ function MsFloatBar() {
     }, []);
 
     React.useEffect(() => {
-        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); }
+        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); setConfirmOpen(false); }
     }, [multiSelectActive]);
 
     if (!multiSelectActive) return null;
@@ -1147,6 +1148,12 @@ function MsFloatBar() {
 
     const handleExec = () => {
         if (count === 0) return;
+        setPopupOpen(false);
+        setConfirmOpen(true);
+    };
+
+    const handleConfirm = () => {
+        setConfirmOpen(false);
         const action = actions.find(a => a.label === current);
         action?.exec();
     };
@@ -1175,6 +1182,29 @@ function MsFloatBar() {
                                 {a.label === current && <span className="ms-popup-card-check">✓</span>}
                             </button>
                         ))}
+                    </div>
+                )}
+                {/* Confirmation card — floats above the action pill,
+                    same visual style as the action picker. Own classes. */}
+                {confirmOpen && (
+                    <div className="ms-confirm-card">
+                        <div className="ms-confirm-question">
+                            {current} {count === 1 ? '1 output' : `${count} outputs`}?
+                        </div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onPointerDown={() => setConfirmOpen(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onPointerDown={handleConfirm}
+                            >
+                                Confirm
+                            </button>
+                        </div>
                     </div>
                 )}
                 <div className="ms-float-wrap">
