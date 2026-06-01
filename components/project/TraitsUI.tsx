@@ -581,7 +581,7 @@ export default function TraitsUI({
                                     Build 16: same toggle-off semantics as the dynamic
                                     pills above. */}
                                 <BarPill
-                                    label="Fate"
+                                    label={"\u4DF2\uFE0E"}
                                     active={activeCategory === 'Fate'}
                                     dimmed={
                                         activeCategory !== null &&
@@ -593,7 +593,8 @@ export default function TraitsUI({
                                             ? clearActiveCategory
                                             : () => setActiveCategory('Fate')
                                     }
-                                    title="Fate Filter — iChing Destines"
+                                    title="Fate Filter — iChing Thunder/Shock"
+                                    extraClass="pill-fate-icon"
                                 />
 
                                 {/* My Network — sim 8549.
