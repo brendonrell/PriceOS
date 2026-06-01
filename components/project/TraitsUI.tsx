@@ -672,6 +672,7 @@ export default function TraitsUI({
                                             title="Recent — recently-seen tokens"
                                             extraClass="pill-breadcrumb"
                                         />
+                                        <span style={{ marginLeft: 6, display: 'inline-flex' }}>
                                         <IconBtn
                                             cls="burn-btn"
                                             glyph={'⏚\uFE0E'}
@@ -679,6 +680,7 @@ export default function TraitsUI({
                                             active={presetRowActive}
                                             onClick={togglePresetRow}
                                         />
+                                        </span>
                                         <IconBtn
                                             cls="multiselect-btn"
                                             glyph={'❐\uFE0E'}
@@ -1131,10 +1133,8 @@ function MsFloatBar() {
             { label: 'Transfer',     exec: stub('Transfer') },
         );
     }
-    actions.push({ label: 'Deselect All', exec: clearSelected });
-
     const current = count === 0
-        ? 'Multi-Select'
+        ? 'Select'
         : (activeAction ?? 'Add to Album');
 
     const handleSelect = (action: Action) => {
