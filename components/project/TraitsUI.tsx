@@ -595,7 +595,7 @@ export default function TraitsUI({
                                             ? clearActiveCategory
                                             : () => setActiveCategory('Fate')
                                     }
-                                    title="Fate Filter — iChing Thunder/Shock"
+                                    title="Token Fate"
                                     extraClass="pill-fate-icon"
                                 />
 
