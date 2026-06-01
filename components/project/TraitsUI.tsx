@@ -1141,6 +1141,129 @@ function MsFloatBar() {
     );
 }
 
+/* ── MultiSelectRow ────────────────────────────────────────────────── */
+/*
+ * Action availability rules (informed by OpenSea / objkt.com patterns):
+ *
+ *   UNIVERSAL (any selection, any mix):
+ *     Star · Wishlist · Add to Album · Add Note · Make To-Do
+ *
+ *   NOT-OWNED only (listed tokens you don't own):
+ *     Add to Cart · Make Offer
+ *
+ *   OWNED only (tokens you own):
+ *     Grail Pin · List · Transfer
+ *     — List and Transfer are mutually exclusive per-action (you can't
+ *       trigger both at once; show both pills but stub notes conflict).
+ *
+ *   MIXED selection: universal actions only + whichever ownership-
+ *     specific actions apply to the whole set (e.g. all owned → show
+ *     List + Transfer; any not-owned → hide List/Transfer; any owned →
+ *     hide Add to Cart).
+ *
+ * Count pill ("N outputs") is first — display only, no onClick.
+ * Pill style SWAPPED vs first draft:
+ *   • action pills  → hollow (border only, transparent bg)
+ *   • Deselect All  → filled (solid bg = text-color)
+ */
+
+interface MultiSelectRowProps {
+    open: boolean;
+    selectedIds: ReadonlySet<number>;
+    clearSelected: () => void;
+}
+
+function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProps) {
+    const { showToast } = useToast();
+    const { add: cartAdd, has: cartHas } = useCart();
+    const { outputs } = useProject();
+
+    if (!open) return null;
+
+    const count = selectedIds.size;
+    const countLabel = count === 1 ? '1 output' : `${count} outputs`;
+
+    // Classify the selection
+    const ids = Array.from(selectedIds);
+    const allOwned   = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const anyOwned   = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
+    const allListed  = ids.every(id => outputs.get(id)?.price != null);
+
+    // Actions that are always available
+    const stub = (label: string) => () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        showToast(`${label} · ${countLabel} — coming soon`);
+    };
+
+    const handleAddToCart = () => {
+        if (count === 0) { showToast('Select items first'); return; }
+        let added = 0;
+        ids.forEach((id) => {
+            if (!cartHas(id)) { cartAdd(id); added++; }
+        });
+        if (added === 0) showToast('All selected items already in cart');
+        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
+    };
+
+    interface Action { label: string; onClick: () => void; }
+    const actions: Action[] = [];
+
+    // Universal
+    actions.push(
+        { label: 'Star',         onClick: stub('Star') },
+        { label: 'Wishlist',     onClick: stub('Wishlist') },
+        { label: 'Add to Album', onClick: stub('Add to Album') },
+        { label: 'Add Note',     onClick: stub('Add Note') },
+        { label: 'Make To-Do',   onClick: stub('Make To-Do') },
+    );
+
+    // Not-owned actions — hide if any selected item is owned
+    if (!anyOwned && allListed) {
+        actions.push({ label: 'Add to Cart', onClick: handleAddToCart });
+    }
+    if (!anyOwned) {
+        actions.push({ label: 'Make Offer', onClick: stub('Make Offer') });
+    }
+
+    // Owned-only actions — only if ALL selected are owned
+    if (allOwned) {
+        actions.push(
+            { label: 'Grail Pin', onClick: stub('Grail Pin') },
+            { label: 'List/Re-List', onClick: stub('List/Re-List') },
+            { label: 'Transfer',  onClick: stub('Transfer') },
+        );
+    }
+
+    return (
+        <div className="ms-action-row open">
+            {/* Count display — first item, no action */}
+            <span className="ms-count-pill">
+                {count === 0 ? 'Select outputs' : countLabel}
+            </span>
+            {count > 0 && actions.map((a) => (
+                <button
+                    key={a.label}
+                    className="ms-action-pill"
+                    onClick={a.onClick}
+                    title={a.label}
+                >
+                    {a.label}
+                </button>
+            ))}
+            {count > 0 && (
+                <button
+                    className="ms-action-pill ms-deselect-all"
+                    onClick={clearSelected}
+                    title="Deselect All"
+                >
+                    Deselect All
+                </button>
+            )}
+        </div>
+    );
+}
+
+
 /* ── Sub-components ─────────────────────────────────────────────────── */
 
 interface BarPillProps {
