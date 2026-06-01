@@ -86,17 +86,13 @@ const HEX_RE         = /^#[0-9A-F]{6}$/i;
 
 // TXT texture overlay — independent of variation, persists same as theme prefs
 const HAZE_TXT_KEY = 'pd_haze_txt';
-type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'weave' | 'brick' | 'chevron' | 'mesh' | 'dash' | 'hatch';
-const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'weave', 'brick', 'chevron', 'mesh', 'dash', 'hatch'];
+type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'dash' | 'hatch';
+const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'dash', 'hatch'];
 const TXT_LABELS: Record<HazeTxt, string> = {
     lines:   'LINES',
     dots:    'DOTS',
     grid:    'GRID',
     stripes: 'STRIPES',
-    weave:   'WEAVE',
-    brick:   'BRICK',
-    chevron: 'CHEVRON',
-    mesh:    'MESH',
     dash:    'DASH',
     hatch:   'HATCH',
 };
