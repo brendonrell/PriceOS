@@ -3658,15 +3658,18 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: stretch;
     gap: 8px;
     pointer-events: auto;
-    /* Always keep at least 16px clear on each side */
-    max-width: calc(100vw - 32px);
     /* Subtle lift so it reads over cards */
     filter: drop-shadow(0 4px 16px rgba(0,0,0,0.22));
     /* Needed so ms-popup-card positions relative to the bar */
     isolation: isolate;
 }
+/* On narrow screens where the bar would touch the edges,
+   clamp it with a max-width that guarantees 16px each side */
 @media (max-width: 600px) {
-    .ms-float-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .ms-float-bar {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        max-width: calc(100vw - 32px);
+    }
 }
 
 /* Outer wrap fuses main pill + cycle arrow exactly like
@@ -3687,7 +3690,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     border: none;
     height: 36px;
     padding: 0 20px;
-    width: 148px;
+    width: 172px;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 13px;
     font-weight: normal;
@@ -3804,8 +3807,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     opacity: 1;
 }
 .ms-popup-card-check {
-    opacity: 0.6;
-    font-size: 11px;
+    opacity: 1;
+    font-size: 13px;
     font-weight: bold;
     flex-shrink: 0;
 }
