@@ -52,6 +52,7 @@
 
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
@@ -60,6 +61,15 @@ import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useProject } from '../../lib/state/ProjectContext';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
+import {
+    getPresets,
+    getLoadedIndex,
+    savePreset,
+    deletePreset,
+    setLoadedIndex,
+    subscribePresets,
+    type PresetEntry,
+} from '../../lib/pins/presetStore';
 
 /* ── Sort toast helpers ──────────────────────────────────────────────────
    Mirror sim 8360's sortLabels + currentSort pattern. We compute the
@@ -275,8 +285,9 @@ export default function TraitsUI({
         toggleFilter,
         myNotesActive,
         toggleMyNotes,
-        burnPileActive,
-        toggleBurnPile,
+        presetRowActive,
+        togglePresetRow,
+        applyPreset,
         multiSelectActive,
         toggleMultiSelect,
         selectedIds,
@@ -293,9 +304,11 @@ export default function TraitsUI({
         hasActiveFilter,
     } = useTraits();
     const { showToast } = useToast();
-    const { sort, dir, feedKind, cycleSort } = useSort();
+    const { sort, dir, feedKind, cycleSort, setSort, applySort } = useSort();
     const { theme, setTheme } = useTheme();
     const { persona } = usePersona();
+    const pathname = usePathname();
+    const collectionSlug = pathname.split('/').filter(Boolean).pop() ?? '';
 
     /* Wraps cycleSort with a sim-parity toast (sim 8361). Computes the
        NEXT sort key before calling cycleSort so the toast reflects what
@@ -661,9 +674,9 @@ export default function TraitsUI({
                                         <IconBtn
                                             cls="burn-btn"
                                             glyph={'⏚\uFE0E'}
-                                            title="Burn Pile"
-                                            active={burnPileActive}
-                                            onClick={toggleBurnPile}
+                                            title="Gallery Presets"
+                                            active={presetRowActive}
+                                            onClick={togglePresetRow}
                                         />
                                         <IconBtn
                                             cls="multiselect-btn"
@@ -937,6 +950,27 @@ export default function TraitsUI({
                 )}
             </div>
 
+            {/* .preset-row — Gallery View Presets. Sits between the
+                sort-bar and the search-row so both can be open at once.
+                Driven by presetRowActive (⏚ button). */}
+            <PresetRow
+                open={presetRowActive}
+                slug={collectionSlug}
+                sort={sort}
+                dir={dir}
+                feedKind={feedKind}
+                applySort={applySort}
+                applyPreset={applyPreset}
+                activeFilters={activeFilters}
+                activeCategory={activeCategory}
+                activeFeedCategory={activeFeedCategory}
+                activeSubFilter={activeSubFilter}
+                myNotesActive={myNotesActive}
+                searchQuery={searchQuery}
+                priceMin={priceMin}
+                priceMax={priceMax}
+            />
+
             {/* .search-row — sim 5180-5189. The .open modifier mirrors
                 sim's toggleSearch (sim ~8843) — without it the row's
                 display:none rule keeps it collapsed. */}
@@ -1165,127 +1199,192 @@ function MsFloatBar() {
     );
 }
 
-/* ── MultiSelectRow ────────────────────────────────────────────────── */
+/* ── PresetRow ─────────────────────────────────────────────────────── */
 /*
- * Action availability rules (informed by OpenSea / objkt.com patterns):
+ * Gallery View Presets row. Repurposed from MultiSelectRow — same
+ * position in the render tree (between sort-bar and search-row),
+ * same open/close pattern.
  *
- *   UNIVERSAL (any selection, any mix):
- *     Star · Wishlist · Add to Album · Add Note · Make To-Do
+ * Layout: [SAVE] [① Preset Name ✕] [② Preset Name ✕] [③ Preset Name ✕]
  *
- *   NOT-OWNED only (listed tokens you don't own):
- *     Add to Cart · Make Offer
+ * Pill style: dashed border when idle (signals "snapshot slot"),
+ * solid border + inverted bg when that preset is the currently-loaded
+ * view. A ✕ on each pill deletes that slot.
  *
- *   OWNED only (tokens you own):
- *     Grail Pin · List · Transfer
- *     — List and Transfer are mutually exclusive per-action (you can't
- *       trigger both at once; show both pills but stub notes conflict).
+ * Numbered index prefixes (①②③) make slots scannable without a label.
  *
- *   MIXED selection: universal actions only + whichever ownership-
- *     specific actions apply to the whole set (e.g. all owned → show
- *     List + Transfer; any not-owned → hide List/Transfer; any owned →
- *     hide Add to Cart).
- *
- * Count pill ("N outputs") is first — display only, no onClick.
- * Pill style SWAPPED vs first draft:
- *   • action pills  → hollow (border only, transparent bg)
- *   • Deselect All  → filled (solid bg = text-color)
+ * The SAVE pill always captures the current full gallery state into the
+ * next available slot (or replaces the oldest). presetStore owns all
+ * persistence and auto-naming.
  */
 
-interface MultiSelectRowProps {
+const SLOT_GLYPHS = ['①', '②', '③'] as const;
+
+interface PresetRowProps {
     open: boolean;
-    selectedIds: ReadonlySet<number>;
-    clearSelected: () => void;
+    slug: string;
+    /* Current sort state — needed both for snapshot and for apply */
+    sort: import('../../lib/state/SortContext').SortKey;
+    dir: import('../../lib/state/SortContext').SortDir;
+    feedKind: import('../../lib/state/SortContext').FeedKind;
+    applySort: (
+        sort: import('../../lib/state/SortContext').SortKey,
+        dir: import('../../lib/state/SortContext').SortDir,
+        feedKind: import('../../lib/state/SortContext').FeedKind,
+    ) => void;
+    applyPreset: (state: Parameters<import('../../lib/state/TraitsContext').TraitsContextValue['applyPreset']>[0]) => void;
+    /* Current traits/search/price state — for snapshot */
+    activeFilters: import('../../lib/state/TraitsContext').ActiveFilters;
+    activeCategory: import('../../lib/state/TraitsContext').TraitCategory | null;
+    activeFeedCategory: import('../../lib/state/TraitsContext').FeedCategory | null;
+    activeSubFilter: string;
+    myNotesActive: boolean;
+    searchQuery: string;
+    priceMin: string;
+    priceMax: string;
 }
 
-function MultiSelectRow({ open, selectedIds, clearSelected }: MultiSelectRowProps) {
+function PresetRow({
+    open,
+    slug,
+    sort,
+    dir,
+    feedKind,
+    applySort,
+    applyPreset,
+    activeFilters,
+    activeCategory,
+    activeFeedCategory,
+    activeSubFilter,
+    myNotesActive,
+    searchQuery,
+    priceMin,
+    priceMax,
+}: PresetRowProps) {
     const { showToast } = useToast();
-    const { add: cartAdd, has: cartHas } = useCart();
-    const { outputs } = useProject();
+    const [presets, setPresets] = React.useState<readonly PresetEntry[]>(
+        () => getPresets(slug)
+    );
+    const [loadedIndex, setLoadedIndexState] = React.useState<number>(
+        () => getLoadedIndex(slug)
+    );
+
+    React.useEffect(() => {
+        return subscribePresets(slug, (next: readonly PresetEntry[], idx: number) => {
+            setPresets(next);
+            setLoadedIndexState(idx);
+        });
+    }, [slug]);
 
     if (!open) return null;
 
-    const count = selectedIds.size;
-    const countLabel = count === 1 ? '1 output' : `${count} outputs`;
+    const handleSave = () => {
+        // Serialise activeFilters Sets → arrays for JSON storage
+        const filtersSnapshot = Object.fromEntries(
+            Object.entries(activeFilters).map(([k, v]) => [k, Array.from(v as Set<string>)])
+        ) as Record<import('../../lib/state/TraitsContext').TraitCategory, string[]>;
 
-    // Classify the selection
-    const ids = Array.from(selectedIds);
-    const allOwned   = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
-    const anyOwned   = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
-    const allListed  = ids.every(id => outputs.get(id)?.price != null);
-
-    // Actions that are always available
-    const stub = (label: string) => () => {
-        if (count === 0) { showToast('Select items first'); return; }
-        showToast(`${label} · ${countLabel} — coming soon`);
-    };
-
-    const handleAddToCart = () => {
-        if (count === 0) { showToast('Select items first'); return; }
-        let added = 0;
-        ids.forEach((id) => {
-            if (!cartHas(id)) { cartAdd(id); added++; }
+        const { result, index } = savePreset(slug, {
+            sort, dir, feedKind,
+            activeFilters: filtersSnapshot,
+            activeCategory,
+            activeFeedCategory,
+            activeSubFilter,
+            myNotesActive,
+            searchQuery,
+            priceMin,
+            priceMax,
         });
-        if (added === 0) showToast('All selected items already in cart');
-        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
+        const slotLabel = SLOT_GLYPHS[index] ?? `${index + 1}`;
+        showToast(`PRESET ${slotLabel} ${result === 'replaced' ? 'REPLACED' : 'SAVED'}`);
     };
 
-    interface Action { label: string; onClick: () => void; }
-    const actions: Action[] = [];
+    const handleRecall = (index: number, preset: PresetEntry) => {
+        const s = preset.state;
+        applySort(s.sort, s.dir, s.feedKind);
+        // Reconstruct Sets from the stored string arrays
+        const restoredFilters = Object.fromEntries(
+            Object.entries(s.activeFilters).map(([k, arr]) => [k, new Set(arr as string[])])
+        ) as unknown as import('../../lib/state/TraitsContext').ActiveFilters;
+        applyPreset({
+            activeFilters: restoredFilters,
+            activeCategory: s.activeCategory,
+            activeFeedCategory: s.activeFeedCategory,
+            activeSubFilter: s.activeSubFilter,
+            myNotesActive: s.myNotesActive,
+            searchQuery: s.searchQuery,
+            priceMin: s.priceMin,
+            priceMax: s.priceMax,
+        });
+        setLoadedIndex(slug, index);
+        const slotLabel = SLOT_GLYPHS[index] ?? `${index + 1}`;
+        showToast(`PRESET ${slotLabel} LOADED`);
+    };
 
-    // Universal
-    actions.push(
-        { label: 'Star',         onClick: stub('Star') },
-        { label: 'Wishlist',     onClick: stub('Wishlist') },
-        { label: 'Add to Album', onClick: stub('Add to Album') },
-        { label: 'Add Note',     onClick: stub('Add Note') },
-        { label: 'Make To-Do',   onClick: stub('Make To-Do') },
-    );
-
-    // Not-owned actions — hide if any selected item is owned
-    if (!anyOwned && allListed) {
-        actions.push({ label: 'Add to Cart', onClick: handleAddToCart });
-    }
-    if (!anyOwned) {
-        actions.push({ label: 'Make Offer', onClick: stub('Make Offer') });
-    }
-
-    // Owned-only actions — only if ALL selected are owned
-    if (allOwned) {
-        actions.push(
-            { label: 'Grail Pin', onClick: stub('Grail Pin') },
-            { label: 'List/Re-List', onClick: stub('List/Re-List') },
-            { label: 'Transfer',  onClick: stub('Transfer') },
-        );
-    }
+    const handleDelete = (e: React.MouseEvent, index: number) => {
+        e.stopPropagation();
+        deletePreset(slug, index);
+        const slotLabel = SLOT_GLYPHS[index] ?? `${index + 1}`;
+        showToast(`PRESET ${slotLabel} CLEARED`);
+    };
 
     return (
-        <div className="ms-action-row open">
-            {/* Count display — first item, no action */}
-            <span className="ms-count-pill">
-                {count === 0 ? 'Select outputs' : countLabel}
-            </span>
-            {count > 0 && actions.map((a) => (
-                <button
-                    key={a.label}
-                    className="ms-action-pill"
-                    onClick={a.onClick}
-                    title={a.label}
+        <div className="preset-row open">
+            {/* SAVE pill — always present */}
+            <button
+                className="pill-preset pill-preset--save"
+                onClick={handleSave}
+                title="Save current view as preset"
+            >
+                SAVE
+            </button>
+
+            {/* Preset slots — up to 3 */}
+            {presets.map((preset, index) => {
+                const isLoaded = loadedIndex === index;
+                return (
+                    <button
+                        key={index}
+                        className={`pill-preset${isLoaded ? ' pill-preset--loaded' : ''}`}
+                        onClick={() => handleRecall(index, preset)}
+                        title={`Load: ${preset.name}`}
+                    >
+                        <span className="pill-preset__index">{SLOT_GLYPHS[index]}</span>
+                        <span className="pill-preset__name">{preset.name}</span>
+                        <span
+                            className="pill-preset__delete"
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => handleDelete(e, index)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleDelete(e as unknown as React.MouseEvent, index);
+                                }
+                            }}
+                            title="Clear preset"
+                            aria-label="Clear preset"
+                        >
+                            ✕&#xFE0E;
+                        </span>
+                    </button>
+                );
+            })}
+
+            {/* Empty slot indicators */}
+            {Array.from({ length: 3 - presets.length }).map((_, i) => (
+                <span
+                    key={`empty-${i}`}
+                    className="pill-preset pill-preset--empty"
+                    title="Empty preset slot"
                 >
-                    {a.label}
-                </button>
+                    {SLOT_GLYPHS[presets.length + i]}
+                </span>
             ))}
-            {count > 0 && (
-                <button
-                    className="ms-action-pill ms-deselect-all"
-                    onClick={clearSelected}
-                    title="Deselect All"
-                >
-                    Deselect All
-                </button>
-            )}
         </div>
     );
 }
+
 
 
 /* ── Sub-components ─────────────────────────────────────────────────── */
