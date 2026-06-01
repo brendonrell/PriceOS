@@ -148,11 +148,13 @@ function _turn(forceGlyphSwap = false): void {
     if (_state !== 'awake') return;
 
     if (forceGlyphSwap) {
-        _mirrorMode = false;
+        // Action turns always CSS-flip — sprite clearly faces LEFT, not forward.
+        // Arm animation still fires via _state=arguing/casting hitting isTurned.
+        _mirrorMode = true;
         _armVariant = Math.random() < 0.5 ? 0 : 1;
         if      (_identity?.vibe === 'vibe_2') _state = 'arguing';
         else if (_identity?.vibe === 'vibe_4') _state = 'casting';
-        // Observer/Hacker: state stays 'awake'; isTurned via isLeft&&!mirrorMode
+        // Observer/Hacker: state='awake', arm change via CSS flip only
     } else {
         _mirrorMode = Math.random() < 0.5;
     }
@@ -165,8 +167,8 @@ function _turn(forceGlyphSwap = false): void {
             _state = 'awake'; _facing = 1; _mirrorMode = false; _emit();
         }
     }, forceGlyphSwap
-        ? 1200 + Math.random() * 2000   // action turns hold 1.2–3.2s
-        : 800  + Math.random() * 1500); // plain turns hold 0.8–2.3s
+        ? 1200 + Math.random() * 2000
+        : 800  + Math.random() * 1500);
 }
 
 function _goSleep(): void {
@@ -253,6 +255,9 @@ function _onVisibility(): void {
 function _start(): void {
     if (_running) return;
     _running = true;
+    // Always reset to clean awake state — prevents stuck facing/state
+    // if subscription rebuilds mid-animation (navigation, remount).
+    _state = 'awake'; _facing = 1; _mirrorMode = false; _armVariant = 0;
     if (typeof document !== 'undefined' && !_visAttached) {
         document.addEventListener('visibilitychange', _onVisibility);
         _visAttached = true;
