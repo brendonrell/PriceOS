@@ -1112,25 +1112,18 @@ function MsFloatBar() {
 
     return (
         <>
-            {/* Fullscreen popup overlay — rendered outside the float bar
-                so it covers the whole viewport. Uses pointerdown on items
-                so the tap registers before the overlay's own close handler. */}
-            {popupOpen && (
-                <div
-                    className="ms-popup-overlay"
-                    onPointerDown={() => setPopupOpen(false)}
-                >
-                    <div
-                        className="ms-popup-sheet"
-                        onPointerDown={e => e.stopPropagation()}
-                    >
-                        <div className="ms-popup-header">Action</div>
+            {/* Floating compound pill */}
+            <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                {/* Anchored action picker — floats above the bar, matches details-popover style */}
+                {popupOpen && (
+                    <div className="ms-popup-card">
+                        <div className="ms-popup-card-header">Action</div>
                         {actions.map((a) => (
                             <button
                                 key={a.label}
                                 className={
-                                    'ms-popup-item' +
-                                    (a.label === current ? ' ms-popup-item--active' : '')
+                                    'ms-popup-card-item' +
+                                    (a.label === current ? ' ms-popup-card-item--active' : '')
                                 }
                                 onPointerDown={() => {
                                     setActiveAction(a.label);
@@ -1138,20 +1131,11 @@ function MsFloatBar() {
                                 }}
                             >
                                 {a.label}
+                                {a.label === current && <span className="ms-popup-card-check">✓</span>}
                             </button>
                         ))}
-                        <button
-                            className="ms-popup-cancel"
-                            onPointerDown={() => setPopupOpen(false)}
-                        >
-                            Cancel
-                        </button>
                     </div>
-                </div>
-            )}
-
-            {/* Floating compound pill */}
-            <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                )}
                 <div className="ms-float-wrap">
                     <button
                         className="ms-float-action"
