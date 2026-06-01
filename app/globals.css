@@ -1429,12 +1429,6 @@ body.tape-framed .tape-rail {
 /* ============================================================
    FOLLOWERS MODAL TABS
    ============================================================ */
-#followersModal {
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding-left: 20px;
-    padding-right: 20px;
-}
 /* Pills flow left-aligned, content-width (no stretching). */
 #followersModal .modal-info > div:first-child {
     align-items: flex-start;
@@ -1919,29 +1913,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     user-select: none;
     padding: 0 4px;
     transition: opacity 0.2s;
-    position: relative;
 }
 .artist-note-icon:hover { opacity: 0.9; }
 .artist-note-icon.active { opacity: 1; }
-.artist-note-icon.active::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, calc(-50% - 1px));
-    width: 13px;
-    height: 13px;
-    background: #ffffff;
-    border-radius: 0;
-    z-index: -1;
-}
-@media (max-width: 600px) {
-    .artist-note-icon.active::before {
-        width: 11px;
-        height: 11px;
-        transform: translate(calc(-50% - 1px), calc(-50% - 2px));
-    }
-}
 
 .artist-rel-icon {
     font-size: 18px;
@@ -2568,76 +2542,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     margin-left: 0;
     display: inline-block;
     vertical-align: baseline;
-    cursor: pointer;
-    transition: color 0.1s, -webkit-text-stroke 0.1s;
-}
-.project-date:hover { opacity: 0.7; }
-.project-date.pd-active {
-    color: transparent;
-    -webkit-text-stroke: 1px var(--text-color);
-    opacity: 1;
-}
-
-.project-date-wrap {
-    position: relative;
-    display: inline-block;
-}
-
-.priceday-popover {
-    position: fixed;
-    width: 260px;
-    background: var(--text-color);
-    color: var(--bg-color);
-    border-radius: 4px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    z-index: 200;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: normal;
-    letter-spacing: 0.4px;
-    box-sizing: border-box;
-}
-.priceday-popover .dp-title {
-    font-size: 16px;
-    padding: 2px 6px 0 6px;
-    margin-bottom: 0;
-}
-.priceday-popover .dp-title-spacer {
-    height: 8px;
-}
-.pd-sub {
-    text-align: center;
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 9px;
-    letter-spacing: 1px;
-    opacity: 0.6;
-    padding-bottom: 6px;
-}
-.pd-section-header {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    opacity: 1;
-    padding: 8px 6px 4px 6px;
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(128,128,128,0.35);
-    margin-bottom: 2px;
-}
-.pd-section-end {
-    height: 8px;
-}
-.priceday-popover .dp-row {
-    padding: 2px 6px;
-    min-height: 22px;
-    font-size: 11px;
-}
-.priceday-popover .dp-label {
-    font-style: italic;
 }
 
 .hero-line {
@@ -3483,7 +3387,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     text-decoration-thickness: 1px;
     font-weight: normal;
 }
-@media (max-width: 600px) { .search-btn { font-size: 24px; position: relative; top: 2px; } }
+@media (max-width: 600px) { .search-btn { font-size: 22px; position: relative; top: 2px; } }
 
 /* ── TRAIT CATEGORIES CONTAINER — sim 2327 ── */
 #traitCategories {
@@ -3495,10 +3399,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: center;
 }
 
-/* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
-.multiselect-btn {
+/* Multi-select icon (epoch-btn) shares the burn-btn / search-btn rules.
+   Aliasing here so the existing sim glyph render stays consistent. */
+.epoch-btn {
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     font-family: 'Courier New', Courier, monospace;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -3513,76 +3418,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-weight: normal;
     text-decoration: none;
 }
-.multiselect-btn.active {
+.epoch-btn.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
 }
-@media (max-width: 600px) { .multiselect-btn { font-size: 24px; } }
-@media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
-@media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
-
-/* ── NOTES FILTER ICON BUTTON ─────────────────────────────────────────────────────── */
-/* ⊟ (U+229F) in the sort-bar icon cluster. Same sizing/rhythm as
-   the burn-btn / multiselect-btn it sits beside. */
-.notes-filter-btn {
-    cursor: pointer;
-    font-size: 20px;
-    font-family: 'Courier New', Courier, monospace;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    user-select: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    flex-shrink: 0;
-    height: 28px;
-    width: 26px;
-    font-weight: normal;
-    text-decoration: none;
-}
-.notes-filter-btn.active {
-    opacity: 1;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 1px;
-}
-@media (max-width: 600px) { .notes-filter-btn { font-size: 22px; } }
-@media (hover: hover)     { .notes-filter-btn:hover { opacity: 1; } }
-
-/* ── MY NOTES EMPTY STATE ──────────────────────────────────────────────────────────── */
-.my-notes-empty-state {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px;
-    box-sizing: border-box;
-}
-.my-notes-empty-msg {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    color: var(--text-color);
-    opacity: 0.4;
-    text-align: center;
-    letter-spacing: 0.02em;
-}
-
-/* ── PILL BREADCRUMB + PILL NOTES FONT SIZE ───────────────────────────────── */
-/* Override base .pill font-size (12px) so the clock and note glyphs
-   render at the same visual size as the icon buttons beside them. */
-.pill-breadcrumb,
-.pill-notes {
-    font-size: 20px;
-}
-@media (max-width: 600px) {
-    .pill-breadcrumb,
-    .pill-notes {
-        font-size: 24px;
-    }
-}
+@media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
 .search-row {
