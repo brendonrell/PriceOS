@@ -359,7 +359,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const togglePresetRow = useCallback(() => {
         setPresetRowActive((v) => {
             const next = !v;
-            showToast('Presets ' + (next ? 'ON' : 'OFF'));
+            showToast('Grid Preset ' + (next ? 'ON' : 'OFF'));
             return next;
         });
     }, [showToast]);
