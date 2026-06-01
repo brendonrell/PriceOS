@@ -40,7 +40,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     color: var(--text-color);
 }
 .platform-modal.active { display: flex; opacity: 1; }
-#modal { justify-content: flex-start; }
+#modal { justify-content: flex-start; align-items: stretch; }
 
 
 /* ── CANVAS REGION ────────────────────────────────────────── */
