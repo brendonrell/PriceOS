@@ -84,41 +84,6 @@ const HAZE_COLOR_KEY = 'pd_haze_color';
 const HAZE_DEFAULT   = '#25EC00';
 const HEX_RE         = /^#[0-9A-F]{6}$/i;
 
-// TXT texture overlay — independent of variation, persists same as theme prefs
-const HAZE_TXT_KEY = 'pd_haze_txt';
-type HazeTxt = 'lines' | 'dots' | 'grid' | 'stripes' | 'dash' | 'hatch';
-const TXT_CYCLE: Array<HazeTxt | null> = [null, 'lines', 'dots', 'grid', 'stripes', 'dash', 'hatch'];
-const TXT_LABELS: Record<HazeTxt, string> = {
-    lines:   'LINES',
-    dots:    'DOTS',
-    grid:    'GRID',
-    stripes: 'STRIPES',
-    dash:    'DASH',
-    hatch:   'HATCH',
-};
-
-function readHazeTxt(): HazeTxt | null {
-    if (typeof window === 'undefined') return null;
-    try {
-        const saved = localStorage.getItem(HAZE_TXT_KEY);
-        if (saved && (TXT_CYCLE as Array<string | null>).includes(saved)) return saved as HazeTxt;
-    } catch { /* ignore */ }
-    return null;
-}
-
-function applyHazeTxt(txt: HazeTxt | null): void {
-    if (typeof document === 'undefined') return;
-    if (txt === null) {
-        delete document.documentElement.dataset.hazeTxt;
-    } else {
-        document.documentElement.dataset.hazeTxt = txt;
-    }
-    try {
-        if (txt === null) localStorage.removeItem(HAZE_TXT_KEY);
-        else localStorage.setItem(HAZE_TXT_KEY, txt);
-    } catch { /* ignore */ }
-}
-
 function readHazeColor(): string {
     if (typeof window === 'undefined') return HAZE_DEFAULT;
     try {
@@ -152,25 +117,6 @@ export function ThemePicker() {
     const [variation, setVariationState] = useState<HazeVariation>(
         () => getHazeVariation() ?? 'pure'
     );
-
-    // TXT texture — independent overlay, co-exists with any variation
-    const [txt, setTxtState] = useState<HazeTxt | null>(() => {
-        const saved = readHazeTxt();
-        // Boot: apply stored texture to DOM immediately
-        if (typeof document !== 'undefined' && saved) {
-            document.documentElement.dataset.hazeTxt = saved;
-        }
-        return saved;
-    });
-
-    const handleTxtCycle = () => {
-        const currentIdx = TXT_CYCLE.indexOf(txt);
-        const next = TXT_CYCLE[(currentIdx + 1) % TXT_CYCLE.length];
-        setTxtState(next);
-        applyHazeTxt(next);
-        showToast(`Haze Mode Texture: ${next !== null ? TXT_LABELS[next] : 'OFF'}`);
-        if (theme !== 'haze') setTheme('haze');
-    };
 
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
@@ -209,14 +155,6 @@ export function ThemePicker() {
                         label="HZ"
                         bareLabel
                         onClick={() => { setTheme('haze'); showToast('Default Theme: HAZE MODE'); }}
-                    />
-
-                    {/* TXT — texture overlay, independent of variation */}
-                    <SettingsToggle
-                        id="st-haze-txt"
-                        active={txt !== null}
-                        title={txt ? `Texture: ${TXT_LABELS[txt]} — tap to cycle` : 'Tap to enable texture'}                        label="TXT"
-                        onClick={handleTxtCycle}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
