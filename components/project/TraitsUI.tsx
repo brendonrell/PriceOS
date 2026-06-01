@@ -1052,14 +1052,6 @@ function MsFloatBar() {
         if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); }
     }, [multiSelectActive]);
 
-    // Close popup on outside click
-    React.useEffect(() => {
-        if (!popupOpen) return;
-        const handler = () => setPopupOpen(false);
-        document.addEventListener('pointerdown', handler);
-        return () => document.removeEventListener('pointerdown', handler);
-    }, [popupOpen]);
-
     if (!multiSelectActive) return null;
 
     const count = selectedIds.size;
@@ -1119,14 +1111,20 @@ function MsFloatBar() {
     };
 
     return (
-        <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
-            {/* Popup — opens upward above the bar */}
+        <>
+            {/* Fullscreen popup overlay — rendered outside the float bar
+                so it covers the whole viewport. Uses pointerdown on items
+                so the tap registers before the overlay's own close handler. */}
             {popupOpen && (
                 <div
-                    className="ms-popup"
-                    onPointerDown={e => e.stopPropagation()}
+                    className="ms-popup-overlay"
+                    onPointerDown={() => setPopupOpen(false)}
                 >
-                    <div className="ms-popup-inner">
+                    <div
+                        className="ms-popup-sheet"
+                        onPointerDown={e => e.stopPropagation()}
+                    >
+                        <div className="ms-popup-header">Action</div>
                         {actions.map((a) => (
                             <button
                                 key={a.label}
@@ -1134,43 +1132,52 @@ function MsFloatBar() {
                                     'ms-popup-item' +
                                     (a.label === current ? ' ms-popup-item--active' : '')
                                 }
-                                onClick={() => handleSelect(a)}
+                                onPointerDown={() => {
+                                    setActiveAction(a.label);
+                                    setPopupOpen(false);
+                                }}
                             >
                                 {a.label}
                             </button>
                         ))}
+                        <button
+                            className="ms-popup-cancel"
+                            onPointerDown={() => setPopupOpen(false)}
+                        >
+                            Cancel
+                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Main compound pill */}
-            <div className="ms-float-wrap">
+            {/* Floating compound pill */}
+            <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                <div className="ms-float-wrap">
+                    <button
+                        className="ms-float-action"
+                        onClick={handleExec}
+                        title={current ?? undefined}
+                    >
+                        <span className="ms-float-label">{current ?? '—'}</span>
+                    </button>
+                    <button
+                        className="ms-float-arrow"
+                        onClick={(e) => { e.stopPropagation(); setPopupOpen(v => !v); }}
+                        title="Choose action"
+                        aria-label="Choose action"
+                    >
+                        {'▾︎'}
+                    </button>
+                </div>
                 <button
-                    className="ms-float-action"
-                    onClick={handleExec}
-                    title={current ?? undefined}
+                    className="ms-float-count"
+                    onClick={clearSelected}
+                    title="Deselect all"
                 >
-                    <span className="ms-float-label">{current ?? '—'}</span>
-                </button>
-                <button
-                    className="ms-float-arrow"
-                    onClick={(e) => { e.stopPropagation(); setPopupOpen(v => !v); }}
-                    title="Choose action"
-                    aria-label="Choose action"
-                >
-                    {'▾︎'}
+                    {count === 0 ? '—' : countLabel}
                 </button>
             </div>
-
-            {/* Count tab */}
-            <button
-                className="ms-float-count"
-                onClick={clearSelected}
-                title="Deselect all"
-            >
-                {count === 0 ? '—' : countLabel}
-            </button>
-        </div>
+        </>
     );
 }
 
