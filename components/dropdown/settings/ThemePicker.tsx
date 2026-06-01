@@ -267,6 +267,21 @@ export function ThemePicker() {
                     >
                         {VARIATION_GLYPHS[variation]}
                     </span>
+
+                    {/* ⩇/⩆ — reset to default green. ⩇ when default is active, ⩆ otherwise. */}
+                    <span
+                        className="haze-variation-btn"
+                        title={hazeHex === HAZE_DEFAULT ? 'Default colour active' : 'Reset to default colour'}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setHazeHex(HAZE_DEFAULT);
+                            applyHazeHex(HAZE_DEFAULT);
+                        }}
+                    >
+                        {hazeHex === HAZE_DEFAULT ? '\u2A47\uFE0E' : '\u2A46\uFE0E'}
+                    </span>
                 </div>
             </>
         );
