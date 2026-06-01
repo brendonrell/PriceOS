@@ -405,21 +405,24 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         if (state.priceMax !== undefined)
             setPriceMaxState(state.priceMax);
     }, []);
-    /* Sim 7196-7200: toggleMultiSelect flips body.multi-select-mode AND
-       toasts. The body-class write makes `.multi-select-mode` CSS rules
+    /* Sim 7196-7200: toggleMultiSelect flips body.multi-select-mode.
+       The body-class write makes `.multi-select-mode` CSS rules
        (sim 4607 + others — selection sticky-bar, breadcrumb chip mode)
-       light up. Pre-chat-B the React port flipped state only; the body
-       class + toast were missing, so multi-select was visually inert. */
+       light up. No toast — the float bar itself signals the mode.
+       Turning OFF also clears all selected IDs so ms-selected boxes
+       are removed from every card immediately. */
     const toggleMultiSelect = useCallback(() => {
         setMultiSelectActive((v) => {
             const next = !v;
             if (typeof document !== 'undefined') {
                 document.body.classList.toggle('multi-select-mode', next);
             }
-            showToast('Multi-Select ' + (next ? 'ON' : 'OFF'));
+            if (!next) {
+                setSelectedIds(new Set<number>());
+            }
             return next;
         });
-    }, [showToast]);
+    }, []);
 
     const toggleSelected = useCallback((id: number) => {
         setSelectedIds((prev) => {
