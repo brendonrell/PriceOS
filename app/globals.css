@@ -3816,6 +3816,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-size: 16px;
     line-height: 1;
 }
+.pill.pill-l1.pill-fate-icon .stat-name {
+    position: relative;
+    top: 2px;
+}
 
 /* Count tab — separate pill to the right, same height */
 .ms-float-count {
