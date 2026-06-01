@@ -3818,7 +3818,70 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     }
 }
 
-/* ── NOTES PILL ICON SIZE ────────────────────────────────────────────── */
+/* ── CONFIRM CARD ────────────────────────────────────────────────────── */
+/* Floats above the action pill when the user taps Execute.
+   Own independent classes — ms-confirm-* — nothing shared with
+   ms-popup-card-* or any other component. Same visual DNA:
+   inverted bg/color, Courier New, border-radius 4px. */
+.ms-confirm-card {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    width: 210px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 12px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 210;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    box-sizing: border-box;
+    animation: ms-popup-card-in 0.15s ease;
+}
+.ms-confirm-question {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+    text-align: center;
+    padding: 0 4px;
+}
+.ms-confirm-btns {
+    display: flex;
+    gap: 6px;
+}
+.ms-confirm-btn {
+    flex: 1;
+    height: 28px;
+    border-radius: 3px;
+    border: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s;
+}
+.ms-confirm-btn--cancel {
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+    color: var(--bg-color);
+}
+.ms-confirm-btn--cancel:active { opacity: 0.6; }
+@media (hover: hover) {
+    .ms-confirm-btn--cancel:hover { opacity: 0.7; }
+}
+.ms-confirm-btn--ok {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+.ms-confirm-btn--ok:active { opacity: 0.7; }
+@media (hover: hover) {
+    .ms-confirm-btn--ok:hover { opacity: 0.85; }
+}
 /* Makes the ⊟ glyph in the My Notes pill the same visual size as the
    multiselect icon. Independent class — does NOT touch pill-l1 base. */
 .pill.pill-l1.pill-notes-icon .stat-name,
