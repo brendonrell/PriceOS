@@ -402,13 +402,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                 if (variation) {
                     enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
                 }
-                // Restore TXT texture overlay
-                try {
-                    const txt = localStorage.getItem('pd_haze_txt');
-                    if (txt === 'grain' || txt === 'lines' || txt === 'dots') {
-                        document.documentElement.dataset.hazeTxt = txt;
-                    }
-                } catch { /* ignore */ }
             }
         }
     }, [pathname]);
@@ -434,13 +427,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         // Leaving haze — tear down any running variation engine.
         if (prev === 'haze' && key !== 'haze') {
             disableHazeVariation(getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
-        }
-
-        // Always clear texture overlay when not on haze — covers the case
-        // where TXT was active, user switched to another theme, then did
-        // something else (e.g. stargazing) before the DOM was cleaned up.
-        if (key !== 'haze' && typeof document !== 'undefined') {
-            delete document.documentElement.dataset.hazeTxt;
         }
 
         if (key === 'hashsyn') {
