@@ -40,7 +40,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
     color: var(--text-color);
 }
 .platform-modal.active { display: flex; opacity: 1; }
-#modal { justify-content: flex-start; align-items: stretch; }
+#modal { justify-content: flex-start; }
 
 
 /* ── CANVAS REGION ────────────────────────────────────────── */
@@ -58,7 +58,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 #modalCanvas {
     max-width: 100%;
     max-height: 100%;
-    width: auto;
+    width: auto !important;
     height: auto;
     align-self: center;
     object-fit: contain;
