@@ -141,14 +141,6 @@ interface ArtworkCardProps {
        triggers globals.css 2390 (`body:not(.hammer-mode) .output-card.muted
        { display: none }`) to hide muted cards outside hammer-mode and
        2444-2457 (`.muted-final` boxed-tape label) inside it. */
-    /* F61 (BUG-30) — sim 6629-6635 picks 3 random cards each time Burn
-       Pile flips on and stamps `.burn-pick` on them; the gallery itself
-       gets `.burn-mode` (sim 6635) so CSS in globals.css (sim 2320-2321)
-       dims every card except the picks. The page owns the random draw
-       (it has the visibleTokenIds set + the on-edge useEffect); this
-       prop just tells the card whether to wear the class. Optional +
-       defaults to false. */
-    burnPick?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -159,7 +151,6 @@ export default function ArtworkCard({
     id,
     projectShowcasePick = false,
     isBreadcrumb = false,
-    burnPick = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -494,11 +485,6 @@ export default function ArtworkCard({
     const articleClass =
         'output-card' +
         (muted ? ' muted' : '') +
-        /* F61 (BUG-30) — sim 6634 stamps .burn-pick on selected cards
-           when Burn Pile is on. Always rendered when the prop is true;
-           CSS gating on #gallery.burn-mode (sim 2320-2321) handles
-           visibility — outside burn-mode the class is inert. */
-        (burnPick ? ' burn-pick' : '') +
         /* ProjectShowcase tab (sim ~13128-13130). CSS on
            #gallery.project-showcase-mode hides all cards except those
            wearing this class. Outside project-showcase-mode it is inert. */
