@@ -59,6 +59,7 @@ import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/st
 import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import { useProject } from '../../lib/state/ProjectContext';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
 import {
@@ -304,6 +305,7 @@ export default function TraitsUI({
         hasActiveFilter,
     } = useTraits();
     const { showToast } = useToast();
+    const { isAuthenticated } = useAuth();
     const { sort, dir, feedKind, cycleSort, setSort, applySort } = useSort();
     const { theme, setTheme } = useTheme();
     const { persona } = usePersona();
@@ -597,8 +599,8 @@ export default function TraitsUI({
                                     extraClass="pill-fate-icon"
                                 />
 
-                                {/* My Network — sim 8549.
-                                    Build 16: toggle-off via clearActiveCategory. */}
+                                {/* My Network — only shown when logged in */}
+                                {isAuthenticated && (
                                 <BarPill
                                     label="My Network"
                                     active={activeCategory === 'Network'}
@@ -613,13 +615,10 @@ export default function TraitsUI({
                                             : () => setActiveCategory('Network')
                                     }
                                 />
+                                )}
 
-                                {/* My Notes — BarPill with ⊟ glyph (U+229F)
-                                    as the label. Same pill-l1 style as all
-                                    other trait pills. extraClass adds only
-                                    the font-size so the glyph matches the
-                                    multiselect icon weight. NOT linked to
-                                    any other component's styles. */}
+                                {/* My Notes — only shown when logged in */}
+                                {isAuthenticated && (
                                 <BarPill
                                     label={"\u229F\uFE0E"}
                                     active={myNotesActive}
@@ -630,6 +629,7 @@ export default function TraitsUI({
                                     title="My Notes"
                                     extraClass="pill-notes-icon"
                                 />
+                                )}
 
                                 {/* Recent + icon cluster — sim 8551-8557.
                                     Wrapped in inline-flex so they stay together when
@@ -653,6 +653,8 @@ export default function TraitsUI({
                                             gap: 8,
                                         }}
                                     >
+                                        {/* Recent — only shown when logged in */}
+                                        {isAuthenticated && (
                                         <BarPill
                                             label={"\u25F7\uFE0E"}
                                             active={activeCategory === 'Breadcrumb'}
@@ -672,6 +674,7 @@ export default function TraitsUI({
                                             title="Recent — recently-seen tokens"
                                             extraClass="pill-breadcrumb"
                                         />
+                                        )}
                                         <span style={{ marginLeft: 6, display: 'inline-flex' }}>
                                         <IconBtn
                                             cls="burn-btn"
