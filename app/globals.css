@@ -1429,7 +1429,6 @@ body.tape-framed .tape-rail {
 /* ============================================================
    FOLLOWERS MODAL TABS
    ============================================================ */
-/* Top-align the entire modal content (not centered). */
 #followersModal {
     justify-content: flex-start;
     align-items: flex-start;
@@ -2573,8 +2572,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     transition: color 0.1s, -webkit-text-stroke 0.1s;
 }
 .project-date:hover { opacity: 0.7; }
-/* Outline-only style when priceday popover is open — visually links
-   the date trigger to the modal it spawned. */
 .project-date.pd-active {
     color: transparent;
     -webkit-text-stroke: 1px var(--text-color);
@@ -2587,7 +2584,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 
 .priceday-popover {
-    position: fixed; /* coords set by JS */
+    position: fixed;
     width: 260px;
     background: var(--text-color);
     color: var(--bg-color);
@@ -2603,14 +2600,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-weight: normal;
     letter-spacing: 0.4px;
     box-sizing: border-box;
-    /* No animation — instant pop like the details modal */
 }
 .priceday-popover .dp-title {
     font-size: 16px;
     padding: 2px 6px 0 6px;
     margin-bottom: 0;
 }
-/* Empty spacer row between title and content */
 .priceday-popover .dp-title-spacer {
     height: 8px;
 }
@@ -2633,7 +2628,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     border-bottom: 1px solid rgba(128,128,128,0.35);
     margin-bottom: 2px;
 }
-/* Empty spacer row after each section’s content block */
 .pd-section-end {
     height: 8px;
 }
@@ -3504,7 +3498,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
 .multiselect-btn {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -3529,58 +3523,36 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
 @media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
-/* ── SORT-BAR ICON PILLS (Recent + My Notes) ──────────────────── */
-/* pill-breadcrumb (◷ Recent) and pill-notes (⊟ My Notes) live in the
-   same row as burn-btn / multiselect-btn / search-btn and must look
-   identical in size. Strip the pill chrome (padding, border, background)
-   and match the icon-button metrics exactly: 18px glyph, 28×26px box. */
-.pill-breadcrumb,
-.pill-notes {
-    font-size: 18px;
+/* ── NOTES FILTER ICON BUTTON ─────────────────────────────────────────────────────── */
+/* ⊟ (U+229F) in the sort-bar icon cluster. Same sizing/rhythm as
+   the burn-btn / multiselect-btn it sits beside. */
+.notes-filter-btn {
+    cursor: pointer;
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
-    font-weight: normal;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
     height: 28px;
     width: 26px;
-    padding: 0;
-    border: none;
-    background: transparent !important;
-    background-image: none !important;
-    border-radius: 0;
-    opacity: 0.7;
-    gap: 0;
+    font-weight: normal;
+    text-decoration: none;
 }
-/* Badge (count) hidden at icon size — no room */
-.pill-breadcrumb .badge,
-.pill-notes .badge {
-    display: none;
-}
-/* Active: full opacity + underline to match burn/multiselect pattern */
-.pill-breadcrumb.active,
-.pill-notes.active {
+.notes-filter-btn.active {
     opacity: 1;
-    background: transparent !important;
-    background-image: none !important;
-    border: none;
-    color: var(--text-color);
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
 }
-/* Dimmed: match icon-btn dimmed state */
-.pill-breadcrumb.dimmed,
-.pill-notes.dimmed {
-    opacity: 0.4;
-}
-@media (max-width: 600px) {
-    .pill-breadcrumb,
-    .pill-notes { font-size: 24px; width: auto; }
-}
-@media (hover: hover) {
-    .pill-breadcrumb:hover,
-    .pill-notes:hover { opacity: 1; }
-}
+@media (max-width: 600px) { .notes-filter-btn { font-size: 22px; } }
+@media (hover: hover)     { .notes-filter-btn:hover { opacity: 1; } }
 
-/* ── MY NOTES EMPTY STATE ─────────────────────────────────────── */
+/* ── MY NOTES EMPTY STATE ──────────────────────────────────────────────────────────── */
 .my-notes-empty-state {
     width: 100%;
     display: flex;
@@ -3595,6 +3567,21 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     color: var(--text-color);
     opacity: 0.4;
     text-align: center;
+    letter-spacing: 0.02em;
+}
+
+/* ── PILL BREADCRUMB + PILL NOTES FONT SIZE ───────────────────────────────── */
+/* Override base .pill font-size (12px) so the clock and note glyphs
+   render at the same visual size as the icon buttons beside them. */
+.pill-breadcrumb,
+.pill-notes {
+    font-size: 20px;
+}
+@media (max-width: 600px) {
+    .pill-breadcrumb,
+    .pill-notes {
+        font-size: 24px;
+    }
 }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
