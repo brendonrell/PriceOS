@@ -3658,6 +3658,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: stretch;
     gap: 8px;
     pointer-events: auto;
+    /* Always keep at least 16px clear on each side */
+    max-width: calc(100vw - 32px);
     /* Subtle lift so it reads over cards */
     filter: drop-shadow(0 4px 16px rgba(0,0,0,0.22));
     /* Needed so ms-popup-card positions relative to the bar */
@@ -3709,7 +3711,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     border: none;
     border-left: 1px solid color-mix(in srgb, var(--bg-color) 25%, transparent);
     height: 36px;
-    width: 32px;
+    width: 42px;
     flex-shrink: 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
@@ -3804,7 +3806,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .ms-popup-card-check {
     opacity: 0.6;
     font-size: 11px;
+    font-weight: bold;
     flex-shrink: 0;
+}
+@media (max-width: 600px) {
+    .ms-popup-card-check {
+        font-size: 15px;
+    }
 }
 
 /* ── NOTES PILL ICON SIZE ────────────────────────────────────────────── */
@@ -3824,10 +3832,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         font-size: 15px;
     }
 }
-/* Fate icon only: −1px on mobile too. */
+/* Fate icon only: −1px on mobile too, and nudge up 1px (base is top:2px). */
 @media (max-width: 600px) {
     .pill.pill-l1.pill-fate-icon .stat-name {
         font-size: 15px;
+        top: 1px;
     }
 }
 /* Clock (breadcrumb) only: +1px and nudge down 1px on desktop. */
