@@ -3677,14 +3677,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     flex-shrink: 0;
 }
 
-/* Main pill — action name */
+/* Main pill — action name. Fixed width sized to longest option
+   (List/Re-List) so the bar never shifts width as selection changes. */
 .ms-float-action {
     background: var(--text-color);
     color: var(--bg-color);
     border: none;
     height: 36px;
     padding: 0 20px;
-    min-width: 160px;
+    width: 148px;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 13px;
     font-weight: normal;
@@ -3734,7 +3735,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     position: absolute;
     bottom: calc(100% + 10px);
     left: 0;
-    min-width: 200px;
+    width: 180px;
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
@@ -3816,12 +3817,19 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-size: 16px;
     line-height: 1;
 }
+/* Fate and Notes icons only: −1px on desktop. Clock (breadcrumb) unchanged. */
+@media (min-width: 601px) {
+    .pill.pill-l1.pill-notes-icon .stat-name,
+    .pill.pill-l1.pill-fate-icon .stat-name {
+        font-size: 15px;
+    }
+}
 .pill.pill-l1.pill-fate-icon .stat-name {
     position: relative;
     top: 2px;
 }
 
-/* Count tab — separate pill to the right, same height */
+/* Count tab — display only, no interaction */
 .ms-float-count {
     background: var(--text-color);
     color: var(--bg-color);
@@ -3831,18 +3839,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: bold;
-    cursor: pointer;
+    cursor: default;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
     border-radius: 4px;
     opacity: 0.85;
-    transition: opacity 0.2s;
-    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
-.ms-float-count:hover  { opacity: 1; }
-.ms-float-count:active { opacity: 0.65; }
 
 /* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
 /* Opens in the same slot as .search-row (directly below the sort-bar)
