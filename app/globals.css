@@ -3824,6 +3824,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         font-size: 15px;
     }
 }
+/* Fate icon only: −1px on mobile too. */
+@media (max-width: 600px) {
+    .pill.pill-l1.pill-fate-icon .stat-name {
+        font-size: 15px;
+    }
+}
 /* Clock (breadcrumb) only: +1px and nudge down 1px on desktop. */
 @media (min-width: 601px) {
     .pill.pill-l1.pill-breadcrumb .stat-name {
