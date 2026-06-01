@@ -434,9 +434,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         // Leaving haze — tear down any running variation engine.
         if (prev === 'haze' && key !== 'haze') {
             disableHazeVariation(getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
-            // Clear texture overlay — TXT is a haze-only feature
-            if (typeof document !== 'undefined')
-                delete document.documentElement.dataset.hazeTxt;
+        }
+
+        // Always clear texture overlay when not on haze — covers the case
+        // where TXT was active, user switched to another theme, then did
+        // something else (e.g. stargazing) before the DOM was cleaned up.
+        if (key !== 'haze' && typeof document !== 'undefined') {
+            delete document.documentElement.dataset.hazeTxt;
         }
 
         if (key === 'hashsyn') {
