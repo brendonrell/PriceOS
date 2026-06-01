@@ -418,7 +418,7 @@ html[data-haze-txt="lines"] body::after {
 
 html[data-haze-txt="dots"] body::after {
     background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
-    background-size: 8px 8px;
+    background-size: 4px 4px;
     opacity: 0.08;
 }
 
@@ -429,38 +429,6 @@ html[data-haze-txt="stripes"] body::after {
         transparent 1px, transparent 3px
     );
     opacity: 0.05;
-}
-
-html[data-haze-txt="weave"] body::after {
-    background-image:
-        repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px),
-        repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px);
-    background-size: 8px 8px;
-    opacity: 0.04;
-}
-
-html[data-haze-txt="brick"] body::after {
-    background-image:
-        repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 5px),
-        repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 10px);
-    background-size: 10px 6px;
-    opacity: 0.05;
-}
-
-html[data-haze-txt="chevron"] body::after {
-    background-image:
-        repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px),
-        repeating-linear-gradient(45deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 8px);
-    background-size: 16px 16px;
-    opacity: 0.05;
-}
-
-html[data-haze-txt="mesh"] body::after {
-    background-image:
-        repeating-linear-gradient(0deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 4px),
-        repeating-linear-gradient(90deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 4px);
-    background-size: 4px 4px;
-    opacity: 0.04;
 }
 
 html[data-haze-txt="dash"] body::after {
