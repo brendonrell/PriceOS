@@ -433,8 +433,11 @@ export default function OutputPreview() {
            container has no fixed aspect-ratio rule so the canvas lays
            out at intrinsic size under the modal's max-width / max-
            height clamps. */
-        /* Sim uses window.innerWidth directly as renderWidth (sim line 8726) — match exactly. */
-        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
+        /* Sim uses window.innerWidth directly as renderWidth (sim line 8726) — match exactly.
+           Use the larger of innerWidth/innerHeight so landscape mobile renders at full width
+           rather than the short portrait dimension (which falls into the 600px fallback). */
+        const vw = Math.max(window.innerWidth, window.innerHeight);
+        const w = vw >= 601 ? vw : 600;
         const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
@@ -454,7 +457,8 @@ export default function OutputPreview() {
     const renderToCanvas = useCallback((nextId: number) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const w = window.innerWidth >= 601 ? window.innerWidth : 600;
+        const vw = Math.max(window.innerWidth, window.innerHeight);
+        const w = vw >= 601 ? vw : 600;
         renderPrisms(canvas, nextId, w);
         canvas.classList.add('visible');
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
