@@ -99,7 +99,7 @@ function emptyFilters(): ActiveFilters {
     };
 }
 
-interface TraitsContextValue {
+export interface TraitsContextValue {
     /* Header-bar filter pills */
     activeCategory: TraitCategory | null;
     setActiveCategory: (c: TraitCategory | null) => void;
@@ -139,8 +139,21 @@ interface TraitsContextValue {
     /* Toggle pills sitting at the right end of the header bar */
     myNotesActive: boolean;
     toggleMyNotes: () => void;
-    burnPileActive: boolean;
-    toggleBurnPile: () => void;
+    presetRowActive: boolean;
+    togglePresetRow: () => void;
+    applyPreset: (state: {
+        sort?: import('./SortContext').SortKey;
+        dir?: import('./SortContext').SortDir;
+        feedKind?: import('./SortContext').FeedKind;
+        activeFilters?: Partial<ActiveFilters>;
+        activeCategory?: TraitCategory | null;
+        activeFeedCategory?: FeedCategory | null;
+        activeSubFilter?: string;
+        myNotesActive?: boolean;
+        searchQuery?: string;
+        priceMin?: string;
+        priceMax?: string;
+    }) => void;
     multiSelectActive: boolean;
     toggleMultiSelect: () => void;
 
@@ -183,7 +196,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const [activeFilters, setActiveFiltersState] =
         useState<ActiveFilters>(emptyFilters);
     const [myNotesActive, setMyNotesActive] = useState(false);
-    const [burnPileActive, setBurnPileActive] = useState(false);
+    const [presetRowActive, setPresetRowActive] = useState(false);
     const [multiSelectActive, setMultiSelectActive] = useState(false);
     const [selectedIds, setSelectedIds] = useState<ReadonlySet<number>>(
         () => new Set<number>()
@@ -342,18 +355,56 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             return next;
         });
     }, [showToast]);
-    /* Sim 6625-6643: toggleBurnPile toasts on every flip ("Burn Pile ON" /
-       "Burn Pile OFF"). Random burn-pick draw + #gallery.burn-mode class
-       are owned by app/art/[slug]/page.tsx (F61 effect at sim
-       6629-6635). Toast was missing here pre-chat-B — the pill went
-       active but the user got no audible-equivalent confirmation. */
-    const toggleBurnPile = useCallback(() => {
-        setBurnPileActive((v) => {
+    /* Gallery View Presets — ⏚ button toggles the preset row open/closed. */
+    const togglePresetRow = useCallback(() => {
+        setPresetRowActive((v) => {
             const next = !v;
-            showToast('Burn Pile ' + (next ? 'ON' : 'OFF'));
+            showToast('Presets ' + (next ? 'ON' : 'OFF'));
             return next;
         });
     }, [showToast]);
+
+    /* applyPreset — batch-restores a full gallery view snapshot.
+       Sort fields are applied via callbacks injected at call time
+       (TraitsUI passes setSort/setDir/setFeedKind from SortContext).
+       Trait/search/price fields are owned by this context so we set
+       them directly. The sort injector pattern avoids a context
+       dependency cycle (SortContext ↔ TraitsContext). */
+    const applyPreset = useCallback((state: {
+        activeFilters?: Partial<ActiveFilters>;
+        activeCategory?: TraitCategory | null;
+        activeFeedCategory?: FeedCategory | null;
+        activeSubFilter?: string;
+        myNotesActive?: boolean;
+        searchQuery?: string;
+        priceMin?: string;
+        priceMax?: string;
+    }) => {
+        if (state.activeCategory !== undefined)
+            setActiveCategoryState(state.activeCategory);
+        if (state.activeFeedCategory !== undefined)
+            setActiveFeedCategoryState(state.activeFeedCategory);
+        if (state.activeSubFilter !== undefined)
+            setActiveSubFilterState(state.activeSubFilter);
+        if (state.activeFilters !== undefined) {
+            setActiveFiltersState((prev) => {
+                const next = { ...prev };
+                (Object.keys(state.activeFilters!) as TraitCategory[]).forEach((k) => {
+                    const arr = state.activeFilters![k];
+                    if (arr !== undefined) next[k] = new Set(arr);
+                });
+                return next;
+            });
+        }
+        if (state.myNotesActive !== undefined)
+            setMyNotesActive(state.myNotesActive);
+        if (state.searchQuery !== undefined)
+            setSearchQueryState(state.searchQuery);
+        if (state.priceMin !== undefined)
+            setPriceMinState(state.priceMin);
+        if (state.priceMax !== undefined)
+            setPriceMaxState(state.priceMax);
+    }, []);
     /* Sim 7196-7200: toggleMultiSelect flips body.multi-select-mode AND
        toasts. The body-class write makes `.multi-select-mode` CSS rules
        (sim 4607 + others — selection sticky-bar, breadcrumb chip mode)
@@ -456,7 +507,6 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         setActiveSubFilterState('All');
         setActiveFiltersState(emptyFilters());
         setMyNotesActive(false);
-        setBurnPileActive(false);
         setMultiSelectActive(false);
         if (typeof document !== 'undefined') {
             document.body.classList.remove('multi-select-mode');
@@ -483,7 +533,6 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         activeFeedCategory !== null ||
         anyValueFiltersActive ||
         myNotesActive ||
-        burnPileActive ||
         searchQuery.trim() !== '' ||
         priceMin.trim() !== '' ||
         priceMax.trim() !== '';
@@ -502,8 +551,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             toggleFilter,
             myNotesActive,
             toggleMyNotes,
-            burnPileActive,
-            toggleBurnPile,
+            presetRowActive,
+            togglePresetRow,
+            applyPreset,
             multiSelectActive,
             toggleMultiSelect,
             selectedIds,
@@ -534,8 +584,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             toggleFilter,
             myNotesActive,
             toggleMyNotes,
-            burnPileActive,
-            toggleBurnPile,
+            presetRowActive,
+            togglePresetRow,
+            applyPreset,
             multiSelectActive,
             toggleMultiSelect,
             selectedIds,

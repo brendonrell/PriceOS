@@ -63,6 +63,8 @@ interface SortContextValue {
     setSort: (s: SortKey) => void;
     /** Sim-faithful click handler — cycles direction within the family. */
     cycleSort: (s: SortKey) => void;
+    /** Restore a full sort snapshot (used by Gallery View Presets). */
+    applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind) => void;
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
@@ -175,9 +177,15 @@ export function SortProvider({ children }: { children: ReactNode }) {
         }
     }, [sort, dir, feedKind]);
 
+    const applySort = useCallback((s: SortKey, d: SortDir, fk: FeedKind) => {
+        setSortState(s);
+        setDir(d);
+        setFeedKind(fk);
+    }, []);
+
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort }),
-        [sort, dir, feedKind, setSort, cycleSort]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;
