@@ -1133,7 +1133,9 @@ function MsFloatBar() {
     }
     actions.push({ label: 'Deselect All', exec: clearSelected });
 
-    const current = activeAction ?? (actions[0]?.label ?? null);
+    const current = count === 0
+        ? 'Multi-Select'
+        : (activeAction ?? 'Add to Album');
 
     const handleSelect = (action: Action) => {
         setActiveAction(action.label);
@@ -1141,6 +1143,7 @@ function MsFloatBar() {
     };
 
     const handleExec = () => {
+        if (count === 0) return;
         const action = actions.find(a => a.label === current);
         action?.exec();
     };
@@ -1175,9 +1178,9 @@ function MsFloatBar() {
                     <button
                         className="ms-float-action"
                         onClick={handleExec}
-                        title={current ?? undefined}
+                        title={count === 0 ? undefined : (current ?? undefined)}
                     >
-                        <span className="ms-float-label">{current ?? '—'}</span>
+                        <span className="ms-float-label">{current}</span>
                     </button>
                     <button
                         className="ms-float-arrow"
@@ -1188,13 +1191,10 @@ function MsFloatBar() {
                         {'▾︎'}
                     </button>
                 </div>
-                <button
-                    className="ms-float-count"
-                    onClick={clearSelected}
-                    title="Deselect all"
-                >
+                {/* Display-only count — no click action */}
+                <div className="ms-float-count">
                     {count === 0 ? '—' : countLabel}
-                </button>
+                </div>
             </div>
         </>
     );
