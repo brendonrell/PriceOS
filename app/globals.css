@@ -3810,7 +3810,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Makes the ⊟ glyph in the My Notes pill the same visual size as the
    multiselect icon. Independent class — does NOT touch pill-l1 base. */
 .pill.pill-l1.pill-notes-icon .stat-name,
-.pill.pill-l1.pill-breadcrumb .stat-name {
+.pill.pill-l1.pill-breadcrumb .stat-name,
+.pill.pill-l1.pill-fate-icon .stat-name {
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
     line-height: 1;
