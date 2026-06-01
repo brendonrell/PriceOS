@@ -3660,6 +3660,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     pointer-events: auto;
     /* Subtle lift so it reads over cards */
     filter: drop-shadow(0 4px 16px rgba(0,0,0,0.22));
+    /* Needed so ms-popup-card positions relative to the bar */
+    isolation: isolate;
 }
 @media (max-width: 600px) {
     .ms-float-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
@@ -3723,86 +3725,86 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .ms-float-arrow:active { opacity: 0.65; }
 
 /* ── ACTION POPUP ────────────────────────────────────────────────────── */
-/* Fixed fullscreen overlay — same approach as the artwork details modal
-   but entirely independent CSS (ms-popup-* classes, nothing shared).
-   Black background, Courier New, clear tap targets. */
-.ms-popup-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 300;
-    background: rgba(0, 0, 0, 0.72);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.ms-popup-sheet {
-    width: 100%;
-    max-width: 480px;
-    background: #111111;
-    border-radius: 12px 12px 0 0;
-    overflow: hidden;
+/* Anchored card that floats above the float bar — visually matches the
+   details-popover in the artwork modal (inverted bg/color, Courier New,
+   border-radius 4px, dp-row-style rows). No overlay. No backdrop. No
+   fullscreen takeover. Completely independent classes — ms-popup-card-*
+   — nothing shared with details-popover or any other component. */
+.ms-popup-card {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    min-width: 200px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-}
-.ms-popup-header {
+    gap: 2px;
+    z-index: 210;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.4px;
+    box-sizing: border-box;
+    animation: ms-popup-card-in 0.15s ease;
+}
+@keyframes ms-popup-card-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ms-popup-card-header {
+    text-align: center;
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.5px;
+    padding: 4px 6px 6px 6px;
+    opacity: 0.5;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
-    padding: 16px 20px 8px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 2px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
 }
-.ms-popup-item {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    color: #e0e0e0;
-    background: transparent;
+.ms-popup-card-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    min-height: 28px;
+    gap: 12px;
+    background: none;
     border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    padding: 16px 20px;
-    text-align: left;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
     cursor: pointer;
-    display: block;
+    border-radius: 3px;
     width: 100%;
     box-sizing: border-box;
+    text-align: left;
+    white-space: nowrap;
     transition: background 0.1s;
     -webkit-tap-highlight-color: transparent;
-    /* Minimum 44px tap target */
-    min-height: 44px;
-    line-height: 1.2;
 }
-.ms-popup-item:last-child { border-bottom: none; }
-.ms-popup-item:active { background: rgba(255, 255, 255, 0.1); }
+.ms-popup-card-item:active {
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+}
 @media (hover: hover) {
-    .ms-popup-item:hover { background: rgba(255, 255, 255, 0.07); }
+    .ms-popup-card-item:hover {
+        background: color-mix(in srgb, var(--bg-color) 10%, transparent);
+    }
 }
-.ms-popup-item--active {
-    color: #ffffff;
-    font-weight: bold;
+.ms-popup-card-item--active {
+    opacity: 1;
 }
-.ms-popup-item--active::after {
-    content: ' \2713';
+.ms-popup-card-check {
     opacity: 0.6;
+    font-size: 11px;
+    flex-shrink: 0;
 }
-.ms-popup-cancel {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
-    background: transparent;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 14px 20px;
-    text-align: center;
-    cursor: pointer;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
-.ms-popup-cancel:active { background: rgba(255, 255, 255, 0.07); }
 
 /* ── NOTES PILL ICON SIZE ────────────────────────────────────────────── */
 /* Makes the ⊟ glyph in the My Notes pill the same visual size as the
