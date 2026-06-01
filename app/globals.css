@@ -4051,6 +4051,108 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     vertical-align: middle;
 }
 
+/* ── GALLERY VIEW PRESETS ROW ───────────────────────────────────────
+   .preset-row sits between .sort-bar and .search-row. Both rows can
+   be open simultaneously — each uses display:none/flex toggled by
+   an .open modifier, so they stack independently.
+   ─────────────────────────────────────────────────────────────────── */
+.preset-row {
+    display: none;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 0 6px 0;
+    width: 100%;
+}
+.preset-row.open {
+    display: flex;
+}
+
+/* Base pill — shared by SAVE, filled slots, and empty slots */
+.pill-preset {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+    transition: opacity 0.15s;
+    /* Dashed border = "snapshot slot" signal */
+    background: transparent;
+    color: var(--text-color);
+    border: 1px dashed var(--text-color);
+}
+@media (hover: hover) {
+    .pill-preset:hover { opacity: 0.7; }
+}
+.pill-preset:active { opacity: 0.45; }
+
+/* SAVE pill — solid border, slightly distinct weight */
+.pill-preset--save {
+    border-style: solid;
+    opacity: 0.65;
+}
+.pill-preset--save:hover { opacity: 1; }
+
+/* Loaded preset — solid border + inverted bg signals "this view is active" */
+.pill-preset--loaded {
+    border-style: solid;
+    background: var(--text-color);
+    color: var(--bg-color);
+    opacity: 1;
+}
+@media (hover: hover) {
+    .pill-preset--loaded:hover { opacity: 0.85; }
+}
+
+/* Empty slot — no cursor, dimmer, not interactive */
+.pill-preset--empty {
+    cursor: default;
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+/* Slot index glyph ①②③ */
+.pill-preset__index {
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+.pill-preset--loaded .pill-preset__index {
+    opacity: 0.75;
+}
+
+/* Preset name — truncates if too long */
+.pill-preset__name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Delete ✕ — sits inside the pill, slightly dimmed until hover */
+.pill-preset__delete {
+    flex-shrink: 0;
+    opacity: 0.45;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+    padding: 2px 0 2px 2px;
+    transition: opacity 0.12s;
+}
+@media (hover: hover) {
+    .pill-preset__delete:hover { opacity: 1; }
+}
+.pill-preset--loaded .pill-preset__delete {
+    opacity: 0.55;
+}
+
 /* ── GALLERY GRID + EDITION CARDS — sim ~2346-2365 + ~3018-3032 ── */
 #gallery {
     display: grid;
@@ -4068,14 +4170,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
-/* F61 (BUG-30) — Burn Pile gallery effect (sim 2320-2321 verbatim).
-   When `burnPileActive` flips ON, page.tsx adds `burn-mode` to #gallery
-   and stamps `.burn-pick` on 3 random cards via ArtworkCard's burnPick
-   prop. The dimmed cards stay clickable visually only — pointer-events
-   off prevents accidental modal-opens on cards that aren't being
-   considered for the burn. */
-#gallery.burn-mode .output-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
-#gallery.burn-mode .output-card.burn-pick { opacity: 1; pointer-events: auto; }
 /* ProjectShowcase tab (sim ~2352-2356, renamed to project-showcase-* naming).
    When the Project Showcase tab is active, #gallery gets .project-showcase-mode;
    only .project-showcase-pick cards are shown, their .meta is hidden,
@@ -5101,6 +5195,7 @@ body.zen-mode .stats-row,
 body.zen-mode .action-row,
 body.zen-mode .traits-ui,
 body.zen-mode .sort-bar,
+body.zen-mode .preset-row,
 body.zen-mode .search-row,
 body.zen-mode .project-date,
 body.zen-mode #pingsBox { display: none !important; }
