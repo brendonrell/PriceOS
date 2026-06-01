@@ -600,15 +600,21 @@ export default function TraitsUI({
                                     }
                                 />
 
-                                {/* My Notes → icon button in the sort-bar icon
-                                    cluster. Glyph ⊟ (U+229F) matches the note
-                                    icon in the card hover overlay. */}
-                                <IconBtn
-                                    cls="notes-filter-btn"
-                                    glyph={"\u229F\uFE0E"}
-                                    title="My Notes — show only outputs with notes"
+                                {/* My Notes — BarPill with ⊟ glyph (U+229F)
+                                    as the label. Same pill-l1 style as all
+                                    other trait pills. extraClass adds only
+                                    the font-size so the glyph matches the
+                                    multiselect icon weight. NOT linked to
+                                    any other component's styles. */}
+                                <BarPill
+                                    label={"\u229F\uFE0E"}
                                     active={myNotesActive}
+                                    dimmed={
+                                        activeCategory !== null && !myNotesActive
+                                    }
                                     onClick={toggleMyNotes}
+                                    title="My Notes"
+                                    extraClass="pill-notes-icon"
                                 />
 
                                 {/* Recent + icon cluster — sim 8551-8557.
@@ -1022,13 +1028,11 @@ export default function TraitsUI({
 
 /* ── MsFloatBar ─────────────────────────────────────────────────────── */
 /*
- * Floating multi-select action bar. Styled as the artwork modal CTA
- * button (modal-action-btn-wrap pattern from styles/modal.css):
- *   left side  — action label + ▾ arrow; clicking cycles to next action
- *   right side — selected count tab (modal-action-btn-calc style)
- *
- * Fixed at the bottom of the viewport, centred, near the toast zone.
- * Renders null when multiSelectActive is false (zero layout cost).
+ * Floating bar: left pill = current action label + ▾ opens a popup,
+ * right tab = count (click to deselect all).
+ * Popup is an independent modal-style list in Courier New — same look
+ * as the links view but entirely separate CSS classes (ms-popup-*).
+ * No shared classes with any other modal/overlay in the codebase.
  */
 function MsFloatBar() {
     const { multiSelectActive, selectedIds, clearSelected } = useTraits();
@@ -1036,17 +1040,25 @@ function MsFloatBar() {
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const { outputs } = useProject();
     const [pinnedSet, setPinnedSet] = React.useState<readonly number[]>(() => getGrails());
-    const [actionIdx, setActionIdx] = React.useState(0);
+    const [popupOpen, setPopupOpen] = React.useState(false);
+    const [activeAction, setActiveAction] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         setPinnedSet(getGrails());
         return subscribeGrails((next) => setPinnedSet(next));
     }, []);
 
-    // Reset action index when mode turns off or selection changes shape
     React.useEffect(() => {
-        if (!multiSelectActive) setActionIdx(0);
+        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); }
     }, [multiSelectActive]);
+
+    // Close popup on outside click
+    React.useEffect(() => {
+        if (!popupOpen) return;
+        const handler = () => setPopupOpen(false);
+        document.addEventListener('pointerdown', handler);
+        return () => document.removeEventListener('pointerdown', handler);
+    }, [popupOpen]);
 
     if (!multiSelectActive) return null;
 
@@ -1077,55 +1089,79 @@ function MsFloatBar() {
     interface Action { label: string; exec: () => void; }
     const actions: Action[] = [];
 
-    // Universal
     actions.push(
         { label: 'Star',         exec: stub('Star') },
         { label: 'Wishlist',     exec: stub('Wishlist') },
         { label: 'Add to Album', exec: stub('Add to Album') },
         { label: 'Make To-Do',   exec: stub('Make To-Do') },
     );
-    // Not-owned only
     if (!anyOwned && allListed) actions.push({ label: 'Add to Cart',  exec: handleAddToCart });
     if (!anyOwned)              actions.push({ label: 'Make Offer',   exec: stub('Make Offer') });
-    // Owned only
     if (allOwned) {
-        if (grailPinAvailable) actions.push({ label: 'Grail Pin',      exec: stub('Grail Pin') });
+        if (grailPinAvailable)  actions.push({ label: 'Grail Pin',    exec: stub('Grail Pin') });
         actions.push(
             { label: 'List/Re-List', exec: stub('List/Re-List') },
             { label: 'Transfer',     exec: stub('Transfer') },
         );
     }
-    // Always last
     actions.push({ label: 'Deselect All', exec: clearSelected });
 
-    const safeIdx = actions.length > 0 ? actionIdx % actions.length : 0;
-    const current = actions[safeIdx];
+    const current = activeAction ?? (actions[0]?.label ?? null);
 
-    const cycleAction = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setActionIdx((i) => (i + 1) % actions.length);
+    const handleSelect = (action: Action) => {
+        setActiveAction(action.label);
+        setPopupOpen(false);
+    };
+
+    const handleExec = () => {
+        const action = actions.find(a => a.label === current);
+        action?.exec();
     };
 
     return (
         <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
-            {/* Main pill — action label + cycle arrow */}
+            {/* Popup — opens upward above the bar */}
+            {popupOpen && (
+                <div
+                    className="ms-popup"
+                    onPointerDown={e => e.stopPropagation()}
+                >
+                    <div className="ms-popup-inner">
+                        {actions.map((a) => (
+                            <button
+                                key={a.label}
+                                className={
+                                    'ms-popup-item' +
+                                    (a.label === current ? ' ms-popup-item--active' : '')
+                                }
+                                onClick={() => handleSelect(a)}
+                            >
+                                {a.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Main compound pill */}
             <div className="ms-float-wrap">
                 <button
                     className="ms-float-action"
-                    onClick={current ? current.exec : undefined}
-                    title={current?.label}
+                    onClick={handleExec}
+                    title={current ?? undefined}
                 >
-                    <span className="ms-float-label">{current?.label ?? '—'}</span>
+                    <span className="ms-float-label">{current ?? '—'}</span>
                 </button>
                 <button
-                    className="ms-float-cycle"
-                    onClick={cycleAction}
-                    title="Change action"
-                    aria-label="Cycle action"
+                    className="ms-float-arrow"
+                    onClick={(e) => { e.stopPropagation(); setPopupOpen(v => !v); }}
+                    title="Choose action"
+                    aria-label="Choose action"
                 >
                     {'▾︎'}
                 </button>
             </div>
+
             {/* Count tab */}
             <button
                 className="ms-float-count"
