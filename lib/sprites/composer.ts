@@ -26,7 +26,8 @@ import { vibeToIndex, type PriceSpriteVibe } from './vibes';
 export type SpriteAnimState =
     | 'awake' | 'blinking' | 'yawning' | 'sleeping'
     | 'arguing' | 'throwing' | 'casting'
-    | 'void';   // deep sleep — ∅…∅ face, arms at rest. Ultra-rare easter egg.
+    | 'void'    // first deep state: ◡‿◡ — peaceful dreaming, warm not dead
+    | 'astral'; // second deep state: ∞⌇∞ — cosmic/transcendent. The "wow".
 
 const ARM_SPACE    = '\u00A0';
 const BROW_SLEEPY  = '\u0304'; // macron    — yawn
@@ -143,14 +144,23 @@ export function composeSprite(
                 eyeL: eyeBase + BROW_SPARKLE, eyeR: eyeBase + BROW_SPARKLE };
             break;
         case 'void':
-            // Deep sleep — ∅ eyes, … mouth, arms back to rest position.
-            // Applies to all vibes identically (no vibe gate).
+            // Dreaming — peaceful, warm, not dead. ◡ = closed half-circle eye.
             parts = { ...parts,
-                armL: arm + ARM_SPACE,  // back to normal (non-raised)
-                armR: arm,
-                eyeL: '\u2205',         // ∅ empty set
-                mouth: '\u2026',        // … trailing off
-                eyeR: '\u2205' };       // ∅ empty set
+                armL: arm + ARM_SPACE, armR: arm,
+                eyeL: '\u25E1',   // ◡ lower half-circle — peaceful closed eye
+                mouth: '\u203F',  // ‿ undertie — gentle dreaming smile
+                eyeR: '\u25E1' }; // ◡
+            break;
+        case 'astral':
+            // Transcendent — ∞ eyes, ⌇ mouth, double brackets = vibrating frame.
+            // All vibes. The "wow" easter egg. Arms at rest.
+            parts = { ...parts,
+                bracketL: bracket[0] + bracket[0],  // (( double
+                bracketR: bracket[1] + bracket[1],  // )) double
+                armL: arm + ARM_SPACE, armR: arm,
+                eyeL: '\u221E',   // ∞ infinity
+                mouth: '\u2307',  // ⌇ wavy line
+                eyeR: '\u221E' }; // ∞
             break;
     }
 
