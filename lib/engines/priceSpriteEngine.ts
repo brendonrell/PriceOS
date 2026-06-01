@@ -3,30 +3,26 @@
 /*
  * priceSpriteEngine — animation state machine.
  *
- * Cadence:
- *   turn     8-16s   fires every cycle; 75% plain, 25% action-with-arms
- *   throw    60-120s rare forward-facing action (CSS flip + arm variant)
- *   idle     90-150s before goSleep (doubled from sim for easter-egg depth)
- *   yawn→sleep  1600ms transition
- *   sleep→void  20-35s of sleep before going deeper
- *   void     30-45s  ultra-rare deep state: ∅…∅ face, arms at rest
- *   void→wake  wakeUp()
+ * Cadence (all intervals tuned for natural feel, not mechanical):
+ *   turn     20-35s   75% plain / 25% action-with-arms
+ *   throw    150-300s ultra-rare forward-facing action (CSS flip)
+ *   idle     120-180s before goSleep
+ *   yawn→sleep  1600ms
+ *   sleep→void  30-60s  (dreaming — ◡‿◡, warm)
+ *   void→astral 45-90s  (transcendent — ((∞⌇∞)), double brackets)
+ *   astral→wake 20-40s
+ *   Total to see void:   ~3-5 min idle. Total to see astral: ~5-10 min.
  *
- * Turn breakdown (25% action):
- *   Plain turn: 50/50 glyph-swap or CSS-mirror, no brow change.
- *   Action turn: forced glyph-swap, armVariant random 0|1.
- *     vibe_2 → arguing state (MAD brows)
- *     vibe_4 → casting state (sparkle brows)
- *     others → awake state but glyph-swap arm shows via isTurned
+ * Action turns (25%): forced glyph-swap, arm char changes.
+ *   vibe_2 → arguing (MAD brows locked)
+ *   vibe_4 → casting (sparkle brows)
+ *   others → awake + glyph-swap arm shows via isTurned, no brow change
  *
- * Turn transform:
- *   glyph-swap (!mirrorMode): arm chars change, no CSS flip
- *   css-mirror (mirrorMode):  arm stable, scaleX(-1)
- *   throwing:  arm chars change AND scaleX(-1)
+ * Throw: arm changes + CSS flip. Natural brows preserved (no override).
+ *   "Angry" wallet like the standin keeps angry brows through the throw.
  *
- * Timer isolation: _turnEndTimer is separate from _stateTimer
- * (blink/sleep). This prevents turn-hold being cancelled by a blink
- * that fires mid-turn. Each action animation also has its own end-timer.
+ * Timer isolation: _turnEndTimer separate from _stateTimer (blink/sleep)
+ * to prevent blink mid-turn from cancelling the turn-return.
  */
 
 import {
@@ -53,10 +49,12 @@ const STANDIN_BLINK_R = '(ง -_-)ง';
 const STANDIN_BLINK_L = '\u30FD(-_-\u30FD)';
 const STANDIN_YAWN_R  = '(ง \u1D15_\u1D15)ง';
 const STANDIN_SLEEP_R = '(ง zzz)ง';
-const STANDIN_VOID_R  = '(ง \u2205\u2026\u2205)ง'; // (ง ∅…∅)ง
+const STANDIN_VOID_R  = '(ง \u25E1\u203F\u25E1)ง';   // (ง ◡‿◡)ง
+const STANDIN_ASTRAL_R = '((ง \u221E\u2307\u221E)ง)'; // ((ง ∞⌇∞)ง)
 
 type State = 'awake' | 'blinking' | 'yawning' | 'sleeping'
-           | 'arguing' | 'throwing' | 'casting' | 'void';
+           | 'arguing' | 'throwing' | 'casting'
+           | 'void' | 'astral';
 
 let _facing:     1 | -1 = 1;
 let _mirrorMode  = false;
@@ -68,11 +66,11 @@ let _identity: { walletAddress: string; vibe: PriceSpriteVibe } | null = null;
 let _idleTimer:       ReturnType<typeof setTimeout> | null = null;
 let _blinkTimer:      ReturnType<typeof setTimeout> | null = null;
 let _turnTimer:       ReturnType<typeof setTimeout> | null = null;
-let _stateTimer:      ReturnType<typeof setTimeout> | null = null; // blink dur + yawn→sleep
-let _turnEndTimer:    ReturnType<typeof setTimeout> | null = null; // turn hold (isolated)
+let _stateTimer:      ReturnType<typeof setTimeout> | null = null; // blink + yawn→sleep
+let _turnEndTimer:    ReturnType<typeof setTimeout> | null = null; // isolated turn hold
 let _throwSchedTimer: ReturnType<typeof setTimeout> | null = null;
 let _throwEndTimer:   ReturnType<typeof setTimeout> | null = null;
-let _voidTimer:       ReturnType<typeof setTimeout> | null = null; // sleep→void + void dur
+let _deepTimer:       ReturnType<typeof setTimeout> | null = null; // sleep→void, void→astral, astral→wake
 
 const _subs = new Set<() => void>();
 let _visAttached = false;
@@ -84,8 +82,8 @@ function _emit(): void {
 
 function _computeFrame(): SpriteFrame {
     const isLeft   = _facing === -1;
-    // void is treated as asleep: no flip, sleeping=true, no isTurned
-    const isAsleep = _state === 'sleeping' || _state === 'yawning' || _state === 'void';
+    const isAsleep = _state === 'sleeping' || _state === 'yawning'
+                  || _state === 'void'     || _state === 'astral';
     const isThrowing = _state === 'throwing';
 
     if (_identity !== null) {
@@ -116,7 +114,8 @@ function _computeFrame(): SpriteFrame {
     // Standin path
     const sl = isLeft || isThrowing;
     let face: string;
-    if      (_state === 'void')                            face = STANDIN_VOID_R;
+    if      (_state === 'astral')                          face = STANDIN_ASTRAL_R;
+    else if (_state === 'void')                            face = STANDIN_VOID_R;
     else if (_state === 'sleeping')                        face = STANDIN_SLEEP_R;
     else if (_state === 'yawning')                         face = STANDIN_YAWN_R;
     else if (_state === 'blinking')                        face = (_mirrorMode || !sl) ? STANDIN_BLINK_R : STANDIN_BLINK_L;
@@ -128,10 +127,10 @@ function _computeFrame(): SpriteFrame {
 
 function _clearAll(): void {
     [_idleTimer, _blinkTimer, _turnTimer, _stateTimer,
-     _turnEndTimer, _throwSchedTimer, _throwEndTimer, _voidTimer]
+     _turnEndTimer, _throwSchedTimer, _throwEndTimer, _deepTimer]
         .forEach(t => { if (t) clearTimeout(t); });
     _idleTimer = _blinkTimer = _turnTimer = _stateTimer =
-    _turnEndTimer = _throwSchedTimer = _throwEndTimer = _voidTimer = null;
+    _turnEndTimer = _throwSchedTimer = _throwEndTimer = _deepTimer = null;
 }
 
 // ── Base cadence ─────────────────────────────────────────────────────
@@ -139,15 +138,12 @@ function _clearAll(): void {
 function _blink(): void {
     if (_state !== 'awake') return;
     _state = 'blinking'; _emit();
-    // _stateTimer used only for blink + yawn/sleep transitions
     if (_stateTimer) clearTimeout(_stateTimer);
     _stateTimer = setTimeout(() => {
         if (_state === 'blinking') { _state = 'awake'; _emit(); }
     }, 160);
 }
 
-/** @param forceGlyphSwap true = action turn (25%): glyph-swap, arm animation,
- *  vibe-specific brow change. false = plain turn (75%): random mirror/swap. */
 function _turn(forceGlyphSwap = false): void {
     if (_state !== 'awake') return;
 
@@ -156,25 +152,21 @@ function _turn(forceGlyphSwap = false): void {
         _armVariant = Math.random() < 0.5 ? 0 : 1;
         if      (_identity?.vibe === 'vibe_2') _state = 'arguing';
         else if (_identity?.vibe === 'vibe_4') _state = 'casting';
-        // Observer/Hacker: state stays 'awake'; isTurned fires via isLeft&&!mirrorMode
+        // Observer/Hacker: state stays 'awake'; isTurned via isLeft&&!mirrorMode
     } else {
         _mirrorMode = Math.random() < 0.5;
     }
     _facing = -1;
     _emit();
 
-    // Isolated turn-end timer — blink cannot cancel this
     if (_turnEndTimer) clearTimeout(_turnEndTimer);
     _turnEndTimer = setTimeout(() => {
         if (_state === 'awake' || _state === 'arguing' || _state === 'casting') {
-            _state = 'awake';
-            _facing = 1;
-            _mirrorMode = false;
-            _emit();
+            _state = 'awake'; _facing = 1; _mirrorMode = false; _emit();
         }
     }, forceGlyphSwap
-        ? 1200 + Math.random() * 2000   // action turns hold 1.2-3.2s
-        : 800  + Math.random() * 1500); // plain turns hold 0.8-2.3s
+        ? 1200 + Math.random() * 2000   // action turns hold 1.2–3.2s
+        : 800  + Math.random() * 1500); // plain turns hold 0.8–2.3s
 }
 
 function _goSleep(): void {
@@ -183,30 +175,36 @@ function _goSleep(): void {
     if (_stateTimer) clearTimeout(_stateTimer);
     _stateTimer = setTimeout(() => {
         _state = 'sleeping'; _emit();
-        // After 20-35s of sleep → void
-        if (_voidTimer) clearTimeout(_voidTimer);
-        _voidTimer = setTimeout(() => {
+        // Sleep → void (dreaming) after 30-60s
+        if (_deepTimer) clearTimeout(_deepTimer);
+        _deepTimer = setTimeout(() => {
             if (_state !== 'sleeping') return;
             _state = 'void'; _emit();
-            // Void lasts 30-45s then wakes
-            if (_voidTimer) clearTimeout(_voidTimer);
-            _voidTimer = setTimeout(() => {
-                if (_state === 'void') _wakeUp();
-            }, 30000 + Math.random() * 15000);
-        }, 20000 + Math.random() * 15000);
+            // Void → astral (transcendent) after 45-90s
+            if (_deepTimer) clearTimeout(_deepTimer);
+            _deepTimer = setTimeout(() => {
+                if (_state !== 'void') return;
+                _state = 'astral'; _emit();
+                // Astral holds 20-40s then wakes
+                if (_deepTimer) clearTimeout(_deepTimer);
+                _deepTimer = setTimeout(() => {
+                    if (_state === 'astral') _wakeUp();
+                }, 20000 + Math.random() * 20000);
+            }, 45000 + Math.random() * 45000);
+        }, 30000 + Math.random() * 30000);
     }, 1600);
 }
 
 function _wakeUp(): void {
-    if (_voidTimer) { clearTimeout(_voidTimer); _voidTimer = null; }
+    if (_deepTimer) { clearTimeout(_deepTimer); _deepTimer = null; }
     _state = 'awake'; _facing = 1; _mirrorMode = false; _emit();
     _resetIdleTimer();
 }
 
 function _resetIdleTimer(): void {
     if (_idleTimer) clearTimeout(_idleTimer);
-    // Doubled from sim — sleep is an easter egg, 90-150s of idle to reach it
-    _idleTimer = setTimeout(_goSleep, 90000 + Math.random() * 60000);
+    // 120-180s idle before sleeping — deeply buried, easter-egg territory
+    _idleTimer = setTimeout(_goSleep, 120000 + Math.random() * 60000);
 }
 
 function _scheduleBlink(): void {
@@ -214,19 +212,18 @@ function _scheduleBlink(): void {
     _blinkTimer = setTimeout(() => { _blink(); _scheduleBlink(); }, 2800 + Math.random() * 3200);
 }
 
-/** Turn fires every 8-16s. 75% plain, 25% arm-action (glyph-swap + brows). */
+/* Turn fires every 20-35s. 75% plain (just look away),
+   25% action (glyph-swap with arm animation + vibe brows). */
 function _scheduleTurn(): void {
     if (_turnTimer) clearTimeout(_turnTimer);
     _turnTimer = setTimeout(() => {
-        if (_state === 'awake') {
-            _turn(Math.random() < 0.25);
-        }
+        if (_state === 'awake') _turn(Math.random() < 0.25);
         _scheduleTurn();
-    }, 8000 + Math.random() * 8000);
+    }, 20000 + Math.random() * 15000);
 }
 
-/** Throw — ultra-rare forward-facing action, 1-2 min cadence.
- *  CSS flip + turn arm = the "throw down" effect.  */
+/* Throw — 2.5-5 min cadence. Forward-facing action. Natural brows
+   preserved — wallet with angry brows keeps them through the throw. */
 function _scheduleThrow(): void {
     if (_throwSchedTimer) clearTimeout(_throwSchedTimer);
     _throwSchedTimer = setTimeout(() => {
@@ -238,7 +235,7 @@ function _scheduleThrow(): void {
             if (_state === 'throwing') { _state = 'awake'; _emit(); }
             _scheduleThrow();
         }, 400 + Math.random() * 400);
-    }, 60000 + Math.random() * 60000);
+    }, 150000 + Math.random() * 150000);
 }
 
 // ── Lifecycle ────────────────────────────────────────────────────────
@@ -248,9 +245,7 @@ function _onVisibility(): void {
     if (document.hidden) {
         _clearAll();
     } else if (_running) {
-        _scheduleBlink();
-        _scheduleTurn();
-        _scheduleThrow();
+        _scheduleBlink(); _scheduleTurn(); _scheduleThrow();
         if (_state === 'awake') _resetIdleTimer();
     }
 }
@@ -263,10 +258,7 @@ function _start(): void {
         _visAttached = true;
     }
     if (typeof document === 'undefined' || !document.hidden) {
-        _scheduleBlink();
-        _scheduleTurn();
-        _scheduleThrow();
-        _resetIdleTimer();
+        _scheduleBlink(); _scheduleTurn(); _scheduleThrow(); _resetIdleTimer();
     }
 }
 
@@ -293,7 +285,8 @@ export function subscribeSprite(fn: () => void): () => void {
 
 export function wakeSprite(): void {
     if (_subs.size === 0) return;
-    if (_state === 'sleeping' || _state === 'yawning' || _state === 'void') _wakeUp();
+    if (_state === 'sleeping' || _state === 'yawning' ||
+        _state === 'void'     || _state === 'astral') _wakeUp();
     else _resetIdleTimer();
 }
 
