@@ -2925,7 +2925,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.6;
+    line-height: 1.2;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
@@ -5095,18 +5095,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .ico-followers { font-size: 22px; }
 }
 
-/* ── LANDSCAPE PHONE: undo 22px icon bump from min-width:601px above.
-   Phones in landscape (~844px wide) satisfy min-width:601px and inherit
-   the 22px ico-* size, bloating the Collected-by row. This override must
-   come AFTER the min-width:601px block so it wins in the cascade. */
-@media (min-width: 601px) and (orientation: landscape) and (max-height: 500px) {
-    .info-rubik .ico-mutual,
-    .info-rubik .ico-following,
-    .info-rubik .ico-followers { font-size: 14px !important; top: -1px; line-height: 0; }
-    .ico-mutual,
-    .ico-following,
-    .ico-followers { font-size: 14px !important; }
-}
+
 
 /* ============================================================
    BUILD 11 — Project page CSS gap port
