@@ -817,25 +817,31 @@ function ProjectPageBodyInner() {
                         </div>
                     </div>
 
-                    <div className="hero-line info-line">
-                        <span className="info-rubik">
-                            Collected by{' '}
-                            <a className="profile-link">@matty</a>
-                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                    <div className="hero-line project-artist info-line">
+                        <span className="by-text">Collected by</span>{' '}
+                        <div className="artist-lockup">
+                            <span className="artist-name-wrap">
+                                <a className="profile-link">@matty</a>
+                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            </span>
                             {', '}
-                            <a className="profile-link">@atlasforge</a>
+                            <span className="artist-name-wrap">
+                                <a className="profile-link">@atlasforge</a>
+                            </span>
                             {', '}
-                            <a className="profile-link">@rudxane</a>
-                            <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            <span className="artist-name-wrap">
+                                <a className="profile-link">@rudxane</a>
+                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                            </span>
                             {' '}
                             <span
-                                className="open-modal-text"
+                                className="artist-name-wrap open-modal-text"
                                 style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}
                                 onClick={() => open('collectors')}
                             >
                                 &amp; 42 Others You Know
                             </span>
-                        </span>
+                        </div>
                     </div>
                     {/* Stats row — matches collection.html single-row layout */}
                     <div className="hero-line stats-row">
