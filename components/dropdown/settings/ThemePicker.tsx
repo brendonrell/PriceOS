@@ -271,7 +271,7 @@ export function ThemePicker() {
                     {/* ⩇/⩆ — reset to default green. ⩇ when default is active, ⩆ otherwise. */}
                     <span
                         className="haze-variation-btn"
-                        title={hazeHex === HAZE_DEFAULT ? 'Default colour active' : 'Reset to default colour'}
+                        title={hazeHex === HAZE_DEFAULT ? 'Default Haze active' : 'Reset to Default Haze'}
                         role="button"
                         tabIndex={0}
                         onClick={(e) => {
