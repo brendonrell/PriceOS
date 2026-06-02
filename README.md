@@ -107,3 +107,5 @@ The URL prefix `/art/` is a public-facing brand asset; the entity noun is "proje
 ## Routes
 
 `/` (home), `/art/[slug]` (project page), and `/{handle}` (profile page) render. Profile sub-routes at `/{handle}/collected|anointed|wishlist|starred|notes|albums` exist as placeholder bodies. Wallet auth, full mint flow, and the calendar surfaces are the next ships.
+
+
