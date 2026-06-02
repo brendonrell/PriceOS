@@ -2964,18 +2964,18 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.6;
+    line-height: 1.2;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
-/* "COLLECTED BY" label — sim line 2074: same font/weight as .info-rubik */
+/* "COLLECTED BY" label — matches .by-text exactly (sim line 2506) */
 .collected-by-label {
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 11px;
-    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
 }
 .collected-sprite {
     font-family: 'Courier New', Courier, monospace;
