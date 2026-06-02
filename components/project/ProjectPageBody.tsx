@@ -817,31 +817,19 @@ function ProjectPageBodyInner() {
                         </div>
                     </div>
 
-                    <div className="hero-line project-artist info-line">
-                        <span className="by-text">Collected by</span>{' '}
-                        <div className="artist-lockup">
-                            <span className="artist-name-wrap">
-                                <a className="profile-link">@matty</a>
-                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                            </span>
-                            {', '}
-                            <span className="artist-name-wrap">
-                                <a className="profile-link">@atlasforge</a>
-                            </span>
-                            {', '}
-                            <span className="artist-name-wrap">
-                                <a className="profile-link">@rudxane</a>
-                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                            </span>
-                            {' '}
-                            <span
-                                className="artist-name-wrap open-modal-text"
-                                style={{ textDecoration: 'underline', textUnderlineOffset: '2px', cursor: 'pointer' }}
-                                onClick={() => open('collectors')}
-                            >
-                                &amp; 42 Others You Know
-                            </span>
-                        </div>
+                    <div className="hero-line collected-by-row info-line">
+                        <span className="cbr-label">Collected by</span>{' '}
+                        <a className="cbr-name">@matty</a>
+                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                        {', '}
+                        <a className="cbr-name">@atlasforge</a>
+                        {', '}
+                        <a className="cbr-name">@rudxane</a>
+                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                        {' '}
+                        <span className="cbr-others" onClick={() => open('collectors')}>
+                            &amp; 42 Others You Know
+                        </span>
                     </div>
                     {/* Stats row — matches collection.html single-row layout */}
                     <div className="hero-line stats-row">
