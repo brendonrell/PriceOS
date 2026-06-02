@@ -2948,6 +2948,8 @@ body.persona-default .stats-row-2 { display: none !important; }
 .profile-link {
     cursor: pointer;
     color: inherit;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-weight: normal;
     text-decoration: none !important;
     transition: opacity 0.2s;
 }
@@ -2965,7 +2967,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 }
 .collected-pair:hover::after { opacity: 0.6; }
 .collected-pair:hover .profile-link { opacity: 0.6; }
-.open-modal-text { opacity: 1; cursor: pointer; transition: opacity 0.2s; margin-left: 2px; text-decoration: underline; text-underline-offset: 3px; }
+.open-modal-text { font-family: var(--font-rubik-mono), sans-serif; font-weight: normal; opacity: 1; cursor: pointer; transition: opacity 0.2s; margin-left: 2px; text-decoration: underline; text-underline-offset: 3px; }
 
 /* Follow badge — sim ~2140-2156 */
 .follow-badge {
