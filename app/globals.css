@@ -2924,7 +2924,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
     display: inline-block;
-    font-family: var(--font-rubik-mono), sans-serif;
+    font-family: 'Rubik Mono One', var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     font-weight: normal;
     text-transform: uppercase;
