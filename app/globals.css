@@ -2757,7 +2757,44 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
 
-
+/* ── COLLECTED BY row ─────────────────────────────────────── */
+.collected-by-row {
+    flex-wrap: wrap;
+    align-items: baseline;
+    row-gap: 2px;
+    column-gap: 4px;
+}
+.cbr-label {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-color);
+}
+.cbr-name {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.cbr-name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+.cbr-others {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    color: inherit;
+}
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
 .stats-row {
@@ -2927,20 +2964,37 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.6;
+    line-height: 1.2;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+/* "COLLECTED BY" label — matches .by-text exactly (sim line 2506) */
+.collected-by-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+.collected-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-right: 0;
+    display: inline-block;
+    line-height: 1;
 }
 .collected-pair {
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 0 6px;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--bg-color) 88%, var(--text-color) 12%);
-    margin: 0 1px;
+    gap: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    margin: 0;
     line-height: 1;
     position: relative;
 }
@@ -2953,9 +3007,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .collected-pair::after {
     content: '';
     position: absolute;
-    left: 6px;
-    right: 6px;
-    bottom: -3px;
+    left: 0;
+    right: 0;
+    bottom: -2px;
     height: 1px;
     background: currentColor;
     opacity: 0;
@@ -2963,8 +3017,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     pointer-events: none;
 }
 .collected-pair:hover::after { opacity: 0.6; }
-.collected-pair:hover .profile-link { opacity: 0.6; }
-.open-modal-text { opacity: 1; cursor: pointer; transition: opacity 0.2s; margin-left: 2px; text-decoration: underline; text-underline-offset: 3px; }
+.collected-pair:hover .collected-sprite,
+.collected-pair:hover .profile-link {
+    text-decoration: none !important;
+    opacity: 0.6;
+}
 
 /* Follow badge — sim ~2140-2156 */
 .follow-badge {
