@@ -150,6 +150,29 @@ button {
 
 
 /* ============================================================
+   iOS 26.1 PWA LIQUID GLASS FIX — sim 64-72
+   Fixed pseudo-element exactly env(safe-area-inset-top) tall.
+   backdrop-filter blurs scrolling content behind the notch so
+   artwork shows through with frosted glass instead of a hard
+   black bar. z-index 9999 sits above all surfaces; pointer-
+   events:none so taps fall through to navbar controls below.
+   ============================================================ */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* ============================================================
    NAVBAR
    ============================================================ */
 .navbar {
@@ -292,7 +315,7 @@ body.is-pwa .navbar {
 .sentiment-widget {
     display: none; align-items: center;
     position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
-    margin-left: 10px;
+    margin-left: 9px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 18px; line-height: 1;
     color: var(--text-color); opacity: 0.75;
@@ -316,7 +339,7 @@ body.sentiment-on .sentiment-widget {
     body.tape-faded .sentiment-widget,
     body.tape-standard .sentiment-widget,
     body.tape-bold .sentiment-widget,
-    body.tape-framed .sentiment-widget { margin-left: 18px; }
+    body.tape-framed .sentiment-widget { margin-left: 16px; }
 }
 
 /* Brendon S5 — sentiment weather glyphs render at very different intrinsic
@@ -324,21 +347,23 @@ body.sentiment-on .sentiment-widget {
    font-size overrides bring them to a uniform visual scale. data-sentiment
    attribute is set on #sentimentIcon by PeteyLogo. Adjust per glyph;
    sim has no equivalent rules — sim deviation, baseline first pass. */
-#sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 17px; }  /* ☼ rays slightly large */
-#sentimentIcon[data-sentiment="Bull"]         { font-size: 17px; }  /* ☀ bold sun */
-#sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 15px; }  /* ⛅ wide compound glyph */
-#sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 18px; }  /* ☁ cloud reads smaller */
-#sentimentIcon[data-sentiment="Bear"]         { font-size: 16px; }  /* ⛆ rain — tall with lines */
-#sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 17px; }  /* ☂ umbrella — vertical */
-#sentimentIcon[data-sentiment="Capitulation"] { font-size: 19px; }  /* ☈ thunderstorm reads small */
+#sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 16px; }  /* ☼ rays */
+#sentimentIcon[data-sentiment="Bull"]         { font-size: 16px; }  /* ☀ bold sun */
+#sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 16px; }  /* ⛅ compound glyph */
+#sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 16px; }  /* ☁ cloud */
+#sentimentIcon[data-sentiment="Bear"]         { font-size: 16px; }  /* ⛈ thunder cloud and rain */
+#sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 16px; }  /* ☂ umbrella */
+#sentimentIcon[data-sentiment="Capitulation"] { font-size: 17px; }  /* ☈ thunderstorm — reads slightly small */
+#sentimentIcon[data-sentiment="Neutral"]      { font-size: 16px; }  /* ☽ first quarter moon */
 @media (max-width: 600px) {
-    #sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 21px; }
-    #sentimentIcon[data-sentiment="Bull"]         { font-size: 21px; }
-    #sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 19px; }
-    #sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 22px; }
+    #sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Bull"]         { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 20px; }
     #sentimentIcon[data-sentiment="Bear"]         { font-size: 20px; }
-    #sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 21px; }
-    #sentimentIcon[data-sentiment="Capitulation"] { font-size: 23px; }
+    #sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Capitulation"] { font-size: 21px; }
+    #sentimentIcon[data-sentiment="Neutral"]      { font-size: 20px; }
 }
 
 
@@ -495,7 +520,33 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     -webkit-tap-highlight-color: transparent;
 }
 .modal-pin-hint:hover { opacity: 1; }
-.modal-pin-hint.pinned { opacity: 1; transform: scale(1.1); }
+.modal-pin-hint.pinned {
+    opacity: 1;
+    transform: scale(1.1);
+}
+@media (min-width: 601px) {
+    .modal-pin-hint.pinned {
+        font-weight: 900;
+    }
+}
+.modal-pin-hint.pinned::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 0;
+    z-index: -1;
+}
+@media (max-width: 600px) {
+    .modal-pin-hint.pinned::before {
+        width: 12px;
+        height: 12px;
+        inset: 0 0 2px 0;
+    }
+}
 
 .btn-user {
     background: var(--text-color);
@@ -577,7 +628,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     /* Bottom padding INSIDE the scroll area — ensures the last item can be
        scrolled clear of both the iOS bottom toolbar AND the home-indicator
        inset. Sim 187. */
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
 }
 @media (max-width: 600px) {
     .dropdown-stack {
@@ -621,6 +672,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     box-sizing: border-box;
     cursor: pointer;
 }
+
 
 /* F30 — extend the F29 "absorb the slack" pattern from accordions to full-panel
    views (settings/artists/portfolio). When user-dropdown contains a settings
@@ -985,6 +1037,14 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .notif-header:hover { opacity: 1; }
 
+/* Mobile only: nudge label up 0.5px when box is collapsed */
+@media (max-width: 600px) {
+    .notifications-box:not(.is-open) .notif-header {
+        position: relative;
+        top: -0.5px;
+    }
+}
+
 .notif-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px; margin-left: 6px;
@@ -1016,7 +1076,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 @media (min-width: 601px) {
     .notifications-box.is-open .notif-list {
-        min-height: 168px;
+        min-height: 124px;
     }
 }
 
@@ -1034,8 +1094,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    classes; the port unified them under .notif-list (AccordionBox owns
    all four — Tape/Pings/Todos/Notes), so a single rule covers it. */
 @media (min-width: 601px) {
-    .notif-list { max-height: 168px; }
-    .notes-list { max-height: 168px; }
+    .notif-list { max-height: 124px; }
+    .notes-list { max-height: 124px; }
 }
 
 .notif-item {
@@ -1157,6 +1217,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 .note-id { opacity: 1; flex-shrink: 0; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; white-space: nowrap; }
 .note-icon-glyph { font-size: 13px; flex-shrink: 0; opacity: 0.7; font-family: 'Courier New', Courier, monospace; }
 .note-text { opacity: 1; line-height: 1.4; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-ext-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; word-break: break-all; }
 .note-divider { height: 1px; background: rgba(128,128,128,0.2); margin: 2px 10px; }
 
 
@@ -1394,7 +1455,7 @@ body.zen-mode .priceos-footer { display: none !important; }
     .tape-wrap { height: 20px; font-size: 12px; line-height: 20px; margin: 0 10px; }
     .tape-sep-outer { padding: 0 8px; }
     .tape-sep-inner { padding: 0 4px; }
-    body.sentiment-on .tape-wrap { margin-left: 48px; }
+    body.sentiment-on .tape-wrap { margin-left: 44px; }
 }
 
 /* Tape is hidden by default (see .tape-wrap above).
@@ -1429,6 +1490,13 @@ body.tape-framed .tape-rail {
 /* ============================================================
    FOLLOWERS MODAL TABS
    ============================================================ */
+/* Top-align the entire modal content (not centered). */
+#followersModal {
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 20px;
+    padding-right: 20px;
+}
 /* Pills flow left-aligned, content-width (no stretching). */
 #followersModal .modal-info > div:first-child {
     align-items: flex-start;
@@ -1676,7 +1744,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    PriceSpriteModal, GasTrackerModal. */
 .close-hint {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top));
+    top: calc(max(20px, env(safe-area-inset-top)) - 1px);
     right: 30px;
     font-size: 30px;
     cursor: pointer;
@@ -1913,9 +1981,29 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     user-select: none;
     padding: 0 4px;
     transition: opacity 0.2s;
+    position: relative;
 }
 .artist-note-icon:hover { opacity: 0.9; }
 .artist-note-icon.active { opacity: 1; }
+.artist-note-icon.active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 1px));
+    width: 13px;
+    height: 13px;
+    background: #ffffff;
+    border-radius: 0;
+    z-index: -1;
+}
+@media (max-width: 600px) {
+    .artist-note-icon.active::before {
+        width: 11px;
+        height: 11px;
+        transform: translate(calc(-50% - 1px), calc(-50% - 2px));
+    }
+}
 
 .artist-rel-icon {
     font-size: 18px;
@@ -2278,6 +2366,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0;
     transition: opacity 0.2s, transform 0.2s;
     z-index: 9999;
+    text-align: center;
 }
 .ens-copy-toast.mounted { display: block; }
 .ens-copy-toast.mounted.show {
@@ -2542,6 +2631,81 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     margin-left: 0;
     display: inline-block;
     vertical-align: baseline;
+    cursor: pointer;
+    transition: color 0.1s, -webkit-text-stroke 0.1s;
+}
+.project-date:hover { opacity: 0.7; }
+/* Outline-only style when priceday popover is open — visually links
+   the date trigger to the modal it spawned. */
+.project-date.pd-active {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--text-color);
+    opacity: 1;
+}
+
+.project-date-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.priceday-popover {
+    position: fixed; /* coords set by JS */
+    width: 260px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.4px;
+    box-sizing: border-box;
+    /* No animation — instant pop like the details modal */
+}
+.priceday-popover .dp-title {
+    font-size: 16px;
+    padding: 2px 6px 0 6px;
+    margin-bottom: 0;
+}
+/* Empty spacer row between title and content */
+.priceday-popover .dp-title-spacer {
+    height: 8px;
+}
+.pd-sub {
+    text-align: center;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 9px;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    padding-bottom: 6px;
+}
+.pd-section-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 1;
+    padding: 8px 6px 4px 6px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(128,128,128,0.35);
+    margin-bottom: 2px;
+}
+/* Empty spacer row after each section's content block */
+.pd-section-end {
+    height: 8px;
+}
+.priceday-popover .dp-row {
+    padding: 2px 6px;
+    min-height: 22px;
+    font-size: 11px;
+}
+.priceday-popover .dp-label {
+    font-style: italic;
 }
 
 .hero-line {
@@ -2765,6 +2929,8 @@ body.persona-default .stats-row-2 { display: none !important; }
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 /* "COLLECTED BY" label — matches .by-text exactly (sim line 2506) */
 .collected-by-label {
@@ -3297,7 +3463,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-sentiment .st-icon    { font-size: 15px !important; }
     #sn-asciiId .st-icon      { font-size: 15px !important; }
     #sn-degen .st-icon        { font-size: 16px !important; }
-    #sn-redacted .st-icon     { font-size: 14px !important; }
+    #sn-redacted .st-icon     { font-size: 13px !important; }
     #sn-autoscroll .st-icon   { font-size: 16px !important; }
     #sn-echo .st-icon         { font-size: 20px !important; }
 
@@ -3365,7 +3531,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .search-btn {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -3387,7 +3553,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     text-decoration-thickness: 1px;
     font-weight: normal;
 }
-@media (max-width: 600px) { .search-btn { font-size: 22px; position: relative; top: 2px; } }
+@media (max-width: 600px) { .search-btn { font-size: 24px; position: relative; top: 2px; } }
 
 /* ── TRAIT CATEGORIES CONTAINER — sim 2327 ── */
 #traitCategories {
@@ -3399,11 +3565,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: center;
 }
 
-/* Multi-select icon (epoch-btn) shares the burn-btn / search-btn rules.
-   Aliasing here so the existing sim glyph render stays consistent. */
-.epoch-btn {
+/* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
+.multiselect-btn {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -3418,15 +3583,388 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-weight: normal;
     text-decoration: none;
 }
-.epoch-btn.active {
+.multiselect-btn.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
 }
-@media (max-width: 600px) { .epoch-btn { font-size: 22px; } }
+@media (max-width: 600px) { .multiselect-btn { font-size: 24px; } }
+@media (min-width: 601px) { .multiselect-btn { position: relative; top: 2px; } }
+@media (hover: hover) { .multiselect-btn:hover { opacity: 1; } }
 
 /* ── SEARCH ROW — sim ~2329-2345 + ~2016-2026 ────────────── */
+/* ── NOTES FILTER ICON BUTTON ──────────────────────────────────────── */
+/* ⊟ (U+229F) in the sort-bar icon cluster. Same sizing/rhythm as
+   the burn-btn / multiselect-btn it sits beside. */
+.notes-filter-btn {
+    cursor: pointer;
+    font-size: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    height: 28px;
+    width: 26px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.notes-filter-btn.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+}
+@media (max-width: 600px) { .notes-filter-btn { font-size: 22px; } }
+@media (hover: hover)     { .notes-filter-btn:hover { opacity: 1; } }
+
+/* ── MY NOTES EMPTY STATE ───────────────────────────────────────────── */
+.my-notes-empty-state {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    box-sizing: border-box;
+}
+.my-notes-empty-msg {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: var(--text-color);
+    opacity: 0.4;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+/* ── MULTI-SELECT FLOATING ACTION BAR ───────────────────────────────── */
+/* Fixed at the bottom of the viewport, centred near the toast zone.
+   Styled as the artwork modal CTA compound button
+   (modal-action-btn-wrap from styles/modal.css):
+     left  — main pill: action name, click executes it
+     arrow — small tab on the main pill's right edge, cycles to next action
+     right — count tab (same height, narrower, lighter border) */
+.ms-float-bar {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    pointer-events: auto;
+    /* Subtle lift so it reads over cards */
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.22));
+    /* Needed so ms-popup-card positions relative to the bar */
+    isolation: isolate;
+}
+@media (max-width: 600px) {
+    .ms-float-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Outer wrap fuses main pill + cycle arrow exactly like
+   modal-action-btn-wrap fuses BUY + calc tab */
+.ms-float-wrap {
+    display: inline-flex;
+    align-items: stretch;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Main pill — action name */
+.ms-float-action {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 36px;
+    padding: 0 20px;
+    min-width: 160px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px;
+    font-weight: normal;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-action:hover { opacity: 0.8; }
+.ms-float-action:active { opacity: 0.65; }
+
+/* Arrow tab — right edge of the main pill, opens the action popup */
+.ms-float-arrow {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-left: 1px solid color-mix(in srgb, var(--bg-color) 25%, transparent);
+    height: 36px;
+    width: 32px;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-arrow:hover  { opacity: 1; }
+.ms-float-arrow:active { opacity: 0.65; }
+
+/* ── ACTION POPUP ────────────────────────────────────────────────────── */
+/* Anchored card that floats above the float bar — visually matches the
+   details-popover in the artwork modal (inverted bg/color, Courier New,
+   border-radius 4px, dp-row-style rows). No overlay. No backdrop. No
+   fullscreen takeover. Completely independent classes — ms-popup-card-*
+   — nothing shared with details-popover or any other component. */
+.ms-popup-card {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    min-width: 200px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 210;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.4px;
+    box-sizing: border-box;
+    animation: ms-popup-card-in 0.15s ease;
+}
+@keyframes ms-popup-card-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ms-popup-card-header {
+    text-align: center;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 4px 6px 6px 6px;
+    opacity: 0.5;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+}
+.ms-popup-card-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    min-height: 28px;
+    gap: 12px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    border-radius: 3px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    white-space: nowrap;
+    transition: background 0.1s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-popup-card-item:active {
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+}
+@media (hover: hover) {
+    .ms-popup-card-item:hover {
+        background: color-mix(in srgb, var(--bg-color) 10%, transparent);
+    }
+}
+.ms-popup-card-item--active {
+    opacity: 1;
+}
+.ms-popup-card-check {
+    opacity: 0.6;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+/* ── NOTES PILL ICON SIZE ────────────────────────────────────────────── */
+/* Makes the ⊟ glyph in the My Notes pill the same visual size as the
+   multiselect icon. Independent class — does NOT touch pill-l1 base. */
+.pill.pill-l1.pill-notes-icon .stat-name,
+.pill.pill-l1.pill-breadcrumb .stat-name,
+.pill.pill-l1.pill-fate-icon .stat-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1;
+}
+.pill.pill-l1.pill-fate-icon .stat-name {
+    position: relative;
+    top: 2px;
+}
+
+/* Count tab — separate pill to the right, same height */
+.ms-float-count {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    height: 36px;
+    padding: 0 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 4px;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ms-float-count:hover  { opacity: 1; }
+.ms-float-count:active { opacity: 0.65; }
+
+/* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
+/* Opens in the same slot as .search-row (directly below the sort-bar)
+   when multi-select mode is active. */
+
+.ms-action-row {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 0 8px 0;
+    width: 100%;
+    align-items: center;
+}
+.ms-action-row.open {
+    display: flex;
+}
+
+/* Count pill — display only, no hover/click state */
+.ms-count-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 11px;
+    height: 28px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    user-select: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    /* Hollow — same visual weight as action pills */
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    opacity: 0.45;
+}
+
+/* Action pills — HOLLOW (border only, transparent bg).
+   Swapped from initial draft per Brendon feedback. */
+.ms-action-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 11px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    user-select: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: opacity 0.12s;
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+}
+.ms-action-pill:hover  { opacity: 0.7; }
+.ms-action-pill:active { opacity: 0.45; }
+
+/* Deselect All — FILLED (solid bg). Swapped from initial draft. */
+.ms-action-pill.ms-deselect-all {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    opacity: 0.85;
+}
+.ms-action-pill.ms-deselect-all:hover  { opacity: 1; }
+.ms-action-pill.ms-deselect-all:active { opacity: 0.7; }
+
+/* ── SELECTED CARD STATE ─────────────────────────────────────────────── */
+
+/* Crosshair cursor on all cards while multi-select mode is active */
+.output-card.ms-eligible { cursor: crosshair; }
+
+/* Selected cards: outset box-shadow on .canvas-wrapper.
+   outline works on desktop but iOS Safari clips it via the
+   overflow:hidden + border-radius stacking context.
+   Outset box-shadow is painted outside the element box and
+   is NOT clipped by overflow:hidden — identical result on
+   desktop and mobile. */
+.output-card.ms-selected .canvas-wrapper {
+    box-shadow: 0 0 0 2px var(--text-color);
+}
+
+/* Hide hover-overlay in multi-select mode — the ms-badge is the only
+   interactive surface; hover-overlay would compete and confuse. */
+.hover-overlay.ms-hidden {
+    display: none !important;
+}
+
+/* ms-check-badge — top-right of canvas-wrapper.
+   ❐ (U+2750) when unselected, ▣ (U+25A3) when selected.
+   Two font sizes larger than the previous draft (was 16px → now 20px).
+   Text-shadow halos it against any artwork colour. */
+.ms-check-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 20px;
+    line-height: 1;
+    /* Courier New renders U+2750 and U+25A3 as clean outline glyphs.
+       VS15 (U+FE0E) in the JSX forces text presentation but some
+       system fonts still fall back to a filled block — Courier New
+       does not. */
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    text-shadow:
+        0 0 4px var(--bg-color),
+        0 0 8px var(--bg-color),
+        0 0 2px var(--bg-color);
+    transition: color 0.1s;
+}
+.ms-check-badge.ms-check-badge--on {
+    color: var(--text-color);
+    opacity: 1;
+}
+
 .search-row {
     display: none;
     align-items: center;
@@ -3518,6 +4056,108 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     vertical-align: middle;
 }
 
+/* ── GALLERY VIEW PRESETS ROW ───────────────────────────────────────
+   .preset-row sits between .sort-bar and .search-row. Both rows can
+   be open simultaneously — each uses display:none/flex toggled by
+   an .open modifier, so they stack independently.
+   ─────────────────────────────────────────────────────────────────── */
+.preset-row {
+    display: none;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 0 6px 0;
+    width: 100%;
+}
+.preset-row.open {
+    display: flex;
+}
+
+/* Base pill — shared by SAVE, filled slots, and empty slots */
+.pill-preset {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+    transition: opacity 0.15s;
+    /* Dashed border = "snapshot slot" signal */
+    background: transparent;
+    color: var(--text-color);
+    border: 1px dashed var(--text-color);
+}
+@media (hover: hover) {
+    .pill-preset:hover { opacity: 0.7; }
+}
+.pill-preset:active { opacity: 0.45; }
+
+/* SAVE pill — solid border, slightly distinct weight */
+.pill-preset--save {
+    border-style: solid;
+    opacity: 0.65;
+}
+.pill-preset--save:hover { opacity: 1; }
+
+/* Loaded preset — solid border + inverted bg signals "this view is active" */
+.pill-preset--loaded {
+    border-style: solid;
+    background: var(--text-color);
+    color: var(--bg-color);
+    opacity: 1;
+}
+@media (hover: hover) {
+    .pill-preset--loaded:hover { opacity: 0.85; }
+}
+
+/* Empty slot — no cursor, dimmer, not interactive */
+.pill-preset--empty {
+    cursor: default;
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+/* Slot index glyph ①②③ */
+.pill-preset__index {
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+.pill-preset--loaded .pill-preset__index {
+    opacity: 0.75;
+}
+
+/* Preset name — truncates if too long */
+.pill-preset__name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Delete ✕ — sits inside the pill, slightly dimmed until hover */
+.pill-preset__delete {
+    flex-shrink: 0;
+    opacity: 0.45;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+    padding: 2px 0 2px 2px;
+    transition: opacity 0.12s;
+}
+@media (hover: hover) {
+    .pill-preset__delete:hover { opacity: 1; }
+}
+.pill-preset--loaded .pill-preset__delete {
+    opacity: 0.55;
+}
+
 /* ── GALLERY GRID + EDITION CARDS — sim ~2346-2365 + ~3018-3032 ── */
 #gallery {
     display: grid;
@@ -3535,14 +4175,6 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
-/* F61 (BUG-30) — Burn Pile gallery effect (sim 2320-2321 verbatim).
-   When `burnPileActive` flips ON, page.tsx adds `burn-mode` to #gallery
-   and stamps `.burn-pick` on 3 random cards via ArtworkCard's burnPick
-   prop. The dimmed cards stay clickable visually only — pointer-events
-   off prevents accidental modal-opens on cards that aren't being
-   considered for the burn. */
-#gallery.burn-mode .output-card { opacity: 0.30; pointer-events: none; transition: opacity 0.3s; }
-#gallery.burn-mode .output-card.burn-pick { opacity: 1; pointer-events: auto; }
 /* ProjectShowcase tab (sim ~2352-2356, renamed to project-showcase-* naming).
    When the Project Showcase tab is active, #gallery gets .project-showcase-mode;
    only .project-showcase-pick cards are shown, their .meta is hidden,
@@ -3745,6 +4377,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .scroll-arrow:hover { opacity: 1; }
     .notif-item:hover { background: rgba(128,128,128,0.2); }
     .hi-icon:hover { transform: translateY(-3px); color: #fff; }
+    .hi-icon.hi-note:hover { transform: translateY(-2px); }
     .output-content:hover .hover-overlay { opacity: 1; }
     .search-clear:hover { opacity: 1; }
     .pill-artist-filter:hover {
@@ -3809,88 +4442,8 @@ body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.searc
     opacity: 0.22;
     transition: opacity 0.3s;
 }
-/* ── BUDGET STEP LINE — sim 3966-4043 ──
-   Only rendered when body.budget-step-line is active (set by JS when sort is
-   price-ascending AND a budget is active). Traces the jagged cutoff across the
-   grid as ONE continuous line, thicker for visibility.
-
-   APR 24 — thicker + continuous rework.
-   Prior version (APR 23): two disconnected 1px bottom-borders on the cutoff
-   row and the row above. Visually read as two floating lines, not a step.
-   Now: horizontals extend into the column gap (left/right by 20px = #gallery's
-   grid gap) so each row's segment reads as one unbroken stroke across the
-   full width. At the cutoff column, a vertical overlay div sits on L card
-   (the last in-budget card) spanning from the high horizontal's Y down to
-   the low horizontal's Y — connecting the two segments into a proper step.
-   All strokes 2px at 0.7 opacity. */
-body.budget-step-line #gallery .output-card.budget-step-l,
-body.budget-step-line #gallery .output-card.budget-step-r {
-    position: relative;
-}
-body.budget-step-line #gallery .output-card.budget-step-l::after {
-    /* Low horizontal — bottom of cards in the cutoff row. Extends 20px to
-       the right to bridge the grid column gap and connect to the next
-       step-l card (or to the L card's corner + vertical). The rightmost
-       step-l card = L itself, whose right:-20px lands exactly at the
-       column after L's right edge; its corresponding vertical overlay
-       (added via JS) covers from there back to L.right. */
-    content: '';
-    position: absolute;
-    left: 0;
-    right: -20px;
-    bottom: -11px; /* centered in the 20px grid gap: -20/2 + 1 */
-    height: 2px;
-    background: var(--text-color);
-    opacity: 0.7;
-    pointer-events: none;
-    z-index: 2;
-}
-body.budget-step-line #gallery .output-card.budget-step-r::after {
-    /* High horizontal — bottom of the row above the cutoff row, starting
-       at L.right (not at the step-r card's own left). Extends 20px LEFT
-       into the column gap so it meets L card's vertical overlay. Also
-       extends right by 20px to chain through subsequent step-r cards
-       along the whole row. */
-    content: '';
-    position: absolute;
-    left: -20px;
-    right: -20px;
-    bottom: -11px;
-    height: 2px;
-    background: var(--text-color);
-    opacity: 0.7;
-    pointer-events: none;
-    z-index: 2;
-}
-/* Vertical connector — sits on L card as an absolutely-positioned child
-   div. Injected by applyStepLine() only when the cutoff is mid-row AND a
-   row above exists (i.e. an actual step is needed; no vertical when the
-   cutoff falls at an exact row boundary). Spans from high horizontal's Y
-   down to low horizontal's Y. Width 2px, centred on L's right edge. */
-body.budget-step-line #gallery .output-card {
-    /* L card always needs position:relative when step-line is active so an
-       overlay child positions correctly. Safe to blanket-apply — cheap, and
-       .output-card is already position:relative in several other modes. */
-    position: relative;
-}
-body.budget-step-line #gallery .output-card .budget-step-v-overlay {
-    position: absolute;
-    /* Horizontals are drawn with bottom: -11px; height: 2px — the 2px line
-       sits in the y range [parent.bottom + 9, parent.bottom + 11]. For the
-       vertical to meet both horizontals, it needs to span:
-         top    = top of step-r line    = Y_{K-1 bottom} + 9  = L.top - 11
-         bottom = bottom of step-l line = Y_K bottom    + 11 = L.bottom + 11
-       Relative to L card: top: -11px, bottom: -11px. Width 2px centred on
-       L's right edge via right: -1px. */
-    top: -11px;
-    bottom: -11px;
-    right: -1px;
-    width: 2px;
-    background: var(--text-color);
-    opacity: 0.7;
-    pointer-events: none;
-    z-index: 2;
-}
+/* ── BUDGET STEP LINE — removed. The opacity fade (above) is sufficient
+   to show the budget cutoff. Grid lines removed per design cleanup. */
 
 /* ── ANCHOR DELTA — sim 4045-4072 ──
    When the user has set a personal reference price for any project,
@@ -4395,6 +4948,45 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 .mdg-label-r { opacity: 0.6; }
 
+/* ── PHONE LANDSCAPE HERO FIX ────────────────────────────────────
+   Portrait mobile hits max-width:600px above. Landscape phones
+   (~844px wide, ~390px tall) miss that breakpoint entirely and
+   inherit desktop rules — notably the min-width:601px block that
+   bumps .ico-* and .stat-icon-box to larger sizes, making the
+   "Collected by" row oversized. This query targets phones in
+   landscape only (max-height:500px excludes tablets/iPads).
+   ────────────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+    .ico-mutual,
+    .ico-following,
+    .ico-followers { font-size: 22px; top: 0; }
+    .info-rubik .ico-mutual,
+    .info-rubik .ico-following,
+    .info-rubik .ico-followers { font-size: 16px !important; top: -1px; }
+    .info-rubik .artist-tag { top: -2px; }
+    .stat-icon-box { font-size: 13px; }
+
+    /* ── Collected-by / Held-by line: clamp to mobile-portrait sizes.
+       Landscape phones (~844px wide) satisfy min-width:601px and
+       inherit the desktop block. The real culprit is the bare
+       .ico-mutual/following/followers rule at 22px (base, no media
+       query) inflating the line-height of .info-rubik. Pull it back
+       to portrait-mobile size so the "Collected by / Held by" row
+       doesn't tower over everything. */
+    .info-rubik {
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+    }
+    .ico-mutual,
+    .ico-following,
+    .ico-followers { font-size: 16px !important; }
+    .info-rubik .ico-mutual,
+    .info-rubik .ico-following,
+    .info-rubik .ico-followers { font-size: 14px !important; }
+    /* Tighten hero spacing in landscape */
+    .hero-line.info-line { margin-top: 2px; }
+}
+
 /* ── PROJECT PAGE MOBILE OVERRIDES — sim ~2199-2208, ~3247-3262 ── */
 @media (max-width: 600px) {
     .project-hero { padding: 10px 20px 20px 20px; }
@@ -4503,6 +5095,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .ico-followers { font-size: 22px; }
 }
 
+
+
 /* ============================================================
    BUILD 11 — Project page CSS gap port
    Re-grep of classNames used by app/art/[slug]/page.tsx +
@@ -4608,6 +5202,7 @@ body.zen-mode .stats-row,
 body.zen-mode .action-row,
 body.zen-mode .traits-ui,
 body.zen-mode .sort-bar,
+body.zen-mode .preset-row,
 body.zen-mode .search-row,
 body.zen-mode .project-date,
 body.zen-mode #pingsBox { display: none !important; }
@@ -4814,9 +5409,8 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     white-space: nowrap;
     overflow: hidden;
     /* Height lock — tallest natural state is the topbarcal-icon at 18px
-       + 5px top/bottom padding = 28px. Fixed here so the top bar row
-       never shifts height regardless of event content. */
-    height: 28px;
+       + 5px top/bottom padding = 28px. Reduced by 4px per design pass. */
+    height: 24px;
 }
 .topbarcal-icon {
     /* Sim line 1230-1236 — +2 size steps + 1px down nudge for
@@ -5195,6 +5789,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    position: relative;
+    top: 4px;
 }
 .ws-dot {
     position: relative;
