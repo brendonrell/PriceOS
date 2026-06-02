@@ -817,26 +817,18 @@ function ProjectPageBodyInner() {
                         </div>
                     </div>
 
-                    <div className="hero-line info-line">
-                        <span className="info-rubik">
-                            {'Collected by '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@matty</a>
-                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                            </span>
-                            {', '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@atlasforge</a>
-                            </span>
-                            {', '}
-                            <span className="collected-pair">
-                                <a className="profile-link">@rudxane</a>
-                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                            </span>
-                            {' '}
-                            <span className="open-modal-text" onClick={() => open('collectors')}>
-                                &amp; 42 Others You Know
-                            </span>
+                    <div className="hero-line collected-by-row info-line">
+                        <span className="cbr-label">Collected by</span>{' '}
+                        <a className="cbr-name">@matty</a>
+                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                        {', '}
+                        <a className="cbr-name">@atlasforge</a>
+                        {', '}
+                        <a className="cbr-name">@rudxane</a>
+                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                        {' '}
+                        <span className="cbr-others" onClick={() => open('collectors')}>
+                            &amp; 42 Others You Know
                         </span>
                     </div>
                     {/* Stats row — matches collection.html single-row layout */}
