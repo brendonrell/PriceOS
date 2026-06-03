@@ -23,9 +23,9 @@
  *      --pill-l1-text, --pill-l1-border) are NOT covered by any CSS rule
  *      and rely on this JS write to flip the rest of the UI to purple.
  *
- * Restore is intentionally NOT here — calling setTheme(prevKey) from
- * ThemeContext re-derives every var from the previous theme in one go,
- * which is exactly what sim 9435 does (`setTheme(_stargazingPrevTheme || 'artist')`).
+ * Restore is intentionally NOT here — calling setColorway(prevKey) from
+ * ColorwayContext re-derives every var from the previous theme in one go,
+ * which is exactly what sim 9435 does (`setColorway(_stargazingPrevTheme || 'custom')`).
  */
 
 const STARGAZING_BG = '#0d0618';
@@ -116,7 +116,7 @@ export function applyStargazingVars(): void {
 
     /* PWA theme-color meta (sim 9431). The element is mounted in
        layout.tsx with content="#111111"; we override here on flip-on
-       and the ThemeContext setTheme call on flip-off restores the
+       and the ColorwayContext setTheme call on flip-off restores the
        previous theme's hex. */
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', STARGAZING_BG);
