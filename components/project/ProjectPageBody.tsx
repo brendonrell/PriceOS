@@ -9,7 +9,7 @@
  * sim.html is the fastest way to spot drift:
  *
  *   - .project-hero (.hero-group-1 + .hero-group-2)  → sim 5099-5165
- *     · title + .project-artist + .info-rubik
+ *     · title + .project-custom + .info-rubik
  *     · stats-row + stats-row-2
  *     · BUY (action-row)
  *     · project tabs (Project Showcase / Artworks / + More)
@@ -805,7 +805,7 @@ function ProjectPageBodyInner() {
                         </span>
                     </h1>
 
-                    <div className="hero-line project-artist">
+                    <div className="hero-line project-custom">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">

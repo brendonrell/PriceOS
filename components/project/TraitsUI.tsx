@@ -56,7 +56,7 @@ import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
-import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
+import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -108,7 +108,7 @@ function computeNextSortKey(
     return `${target}-asc`;
 }
 
-/* Theme names for the sort-bar view-mode pills (mirrors ThemePicker.tsx). */
+/* Theme names for the sort-bar view-mode pills (mirrors ColorwayPicker.tsx). */
 const SORT_BAR_THEME_NAMES: Record<string, string> = {
     artist:  'Artist Custom',
     light:   'Light Mode',
@@ -217,15 +217,15 @@ const L3_FLAT_POOL: Partial<Record<TraitCategory, readonly string[]>> = {
 };
 
 /* Themes shown as the four-square cluster on the left of the sort-bar
-   (sim 8443-8446). ThemeContext has more keys, but only these four
+   (sim 8443-8446). ColorwayContext has more keys, but only these four
    render in the sim. */
 const THEME_PILLS: {
-    key: ThemeKey;
+    key: ColorwayKey;
     cls: string;
     glyph: string;
     title: string;
 }[] = [
-    { key: 'artist', cls: 't-artist', glyph: '◩\uFE0E', title: 'Artist Default' },
+    { key: 'custom', cls: 't-custom', glyph: '◩\uFE0E', title: 'Custom Color' },
     { key: 'light',  cls: 't-light',  glyph: '◻\uFE0E', title: 'Light' },
     { key: 'dark',   cls: 't-dark',   glyph: '◼\uFE0E', title: 'Dark' },
     { key: 'orange', cls: 't-orange', glyph: '▨\uFE0E', title: 'Orange' },
@@ -235,7 +235,7 @@ const THEME_PILLS: {
    `+ More` tab, the L1 trait pill cluster is swapped to profile-mode
    pills (Starred / Wishlists / Albums). The sort surfaces (sort-icons
    cluster + sort-btn-group #ID/$PRICE/FEED) are hidden via the sibling
-   `hideSortBar` prop. The view-mode switcher (.theme-pills, four
+   `hideSortBar` prop. The view-mode switcher (.colorway-pills, four
    squares) stays visible. Pill selection is visual-only for v0 — no
    gallery filter wiring behind it. */
 export interface ProfilePill {
@@ -255,7 +255,7 @@ interface TraitsUIProps {
              top-right of #traitCategories
          (2) .sort-btn-group (#ID / $PRICE / FEED) inside .sort-bar
        Keeps visible: L1 trait pills (or profilePills if provided),
-       L2 sub-trait pills, .theme-pills (four-square view-mode switcher
+       L2 sub-trait pills, .colorway-pills (four-square view-mode switcher
        at bottom-left of .sort-bar), themed background. Project page
        passes nothing (defaults to false) and gets the full surface. */
     hideSortBar?: boolean;
@@ -307,7 +307,7 @@ export default function TraitsUI({
     const { showToast } = useToast();
     const { isAuthenticated } = useAuth();
     const { sort, dir, feedKind, cycleSort, setSort, applySort } = useSort();
-    const { theme, setTheme } = useTheme();
+    const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
     const pathname = usePathname();
     const collectionSlug = pathname.split('/').filter(Boolean).pop() ?? '';
@@ -321,9 +321,9 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* Wraps setTheme with a toast (mirrors ThemePicker.tsx). */
-    const setThemeWithToast = (key: ThemeKey) => {
-        setTheme(key);
+    /* Wraps setTheme with a toast (mirrors ColorwayPicker.tsx). */
+    const setColorwayWithToast = (key: ColorwayKey) => {
+        setColorway(key);
         if (key) showToast('Theme: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
     };
 
@@ -864,20 +864,20 @@ export default function TraitsUI({
                 id="sortOptions"
                 style={hiddenStyle}
             >
-                <div className="theme-pills">
+                <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
                         <div
                             key={t.key ?? 'default'}
-                            className={`pill-theme ${t.cls}${
-                                theme === t.key ? ' active' : ''
+                            className={`pill-colorway ${t.cls}${
+                                colorway === t.key ? ' active' : ''
                             }`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setThemeWithToast(t.key)}
+                            onClick={() => setColorwayWithToast(t.key)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setThemeWithToast(t.key);
+                                    setColorwayWithToast(t.key);
                                 }
                             }}
                             title={t.title}
@@ -888,7 +888,7 @@ export default function TraitsUI({
                 </div>
                 {/* Profile Page v0 — .sort-btn-group hides under
                     hideSortBar. The four-square view-mode switcher
-                    (.theme-pills above) stays visible. */}
+                    (.colorway-pills above) stays visible. */}
                 {!hideSortBar && (
                 <div
                     className="sort-btn-group"
