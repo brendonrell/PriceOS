@@ -112,7 +112,7 @@ export function Backgrounds() {
        flipped on. Captured on the ON-edge so flip-off can restore it
        even if the user picked a different theme mid-stargazing. Sim
        9373 captures the same way (`localStorage.getItem('pd_settings_colorway')`).
-       Default 'artist' on first ON to match sim 9435's `|| 'custom'`. */
+       Default 'custom' on first ON to match sim 9435's `|| 'custom'`. */
     const prevThemeRef = useRef<ColorwayKey>(null);
     /* Live mirror of setColorway so the stargazing effect can depend on
        `notifs.stargazing` alone — without this ref, including setColorway
@@ -196,7 +196,7 @@ export function Backgrounds() {
 
        ON-edge (notifs.stargazing true after mount or transition):
          1. Capture the current theme key into prevThemeRef so flip-off
-            can restore it (sim 9373). 'artist' fallback per sim 9435.
+            can restore it (sim 9373). 'custom' fallback per sim 9435.
          2. Seed 380 .star-dot + 3 .shooting-star into #starfield —
             seedStarfield is idempotent so a re-mount with the field
             already populated bails cleanly.
@@ -233,9 +233,9 @@ export function Backgrounds() {
                and timing-correct. */
             try {
                 const saved = localStorage.getItem('pd_settings_colorway');
-                prevThemeRef.current = (saved as ColorwayKey) ?? 'artist';
+                prevThemeRef.current = (saved as ColorwayKey) ?? 'custom';
             } catch {
-                prevThemeRef.current = 'artist';
+                prevThemeRef.current = 'custom';
             }
             seedStarfield(sf);
             applyStargazingVars();
