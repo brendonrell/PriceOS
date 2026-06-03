@@ -106,7 +106,7 @@ function ProfilePageBodyInner() {
                         <span className="project-date">APR 2025</span>
                     </h1>
 
-                    <div className="hero-line project-artist">
+                    <div className="hero-line project-custom">
                         <span className="by-text">Via</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
