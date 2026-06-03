@@ -21,7 +21,7 @@
  *     the navigation. All values verbatim from sim.
  *
  * Sim reads --bg-color and --text-color from documentElement at
- * touchstart and uses the text-colour rgb to build the gradient
+ * touchstart and uses the text-color rgb to build the gradient
  * (text always contrasts bg per the theme system). Same here.
  */
 
@@ -37,7 +37,7 @@ export function mountPtr(): void {
 
     mounted = true;
 
-    // Ambient pull overlay — colour derived from current theme at touch time
+    // Ambient pull overlay — color derived from current theme at touch time
     const overlay = document.createElement('div');
     overlay.style.cssText =
         'position:fixed;top:0;left:0;right:0;' +
@@ -52,7 +52,7 @@ export function mountPtr(): void {
     let ptrTriggered = false;
 
     function setOverlayColor() {
-        // Use the text colour (always contrasts bg per theme) for the
+        // Use the text color (always contrasts bg per colorway) for the
         // gradient so it works on every theme — sim 5650-5657.
         const txt = getComputedStyle(document.documentElement)
             .getPropertyValue('--text-color')
