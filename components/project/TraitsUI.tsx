@@ -324,7 +324,7 @@ export default function TraitsUI({
     /* Wraps setTheme with a toast (mirrors ColorwayPicker.tsx). */
     const setColorwayWithToast = (key: ColorwayKey) => {
         setColorway(key);
-        if (key) showToast('Theme: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
+        if (key) showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
     };
 
     /* D006 (sim 8470) — `.traits-ui` hides only when Regular persona AND
