@@ -35,24 +35,24 @@
 
 
 /* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
-/* Base: Dot (#111111) as the basis color for the site. Attention Yellow
+/* Base: Dot (#111111) as the basis colour for the site. Attention Yellow
    (#FFE600) is no longer the site basis — it lives only as (a) the default
-   artist custom color and (b) the default profile theme color.
+   artist custom colour and (b) the default profile theme colour.
    Per-page themes override this base on render:
-     - Project pages (/art/*): artist's custom color. The prehydration
-       script in app/layout.tsx + ColorwayContext both check pathname and
-       paint the artist hex (from pd_custom_color in localStorage) over
+     - Project pages (/art/*): artist's custom colour. The prehydration
+       script in app/layout.tsx + ThemeContext both check pathname and
+       paint the artist hex (from pd_artist_color in localStorage) over
        this default before first paint and on every route change.
-     - Profile pages (Profile Page v0): profile owner's theme color.
-     - All other pages: user's saved global colorway, or this base if none.
+     - Profile pages (Profile Page v0): profile owner's theme colour.
+     - All other pages: user's saved global theme, or this base if none.
    These CSS defaults only show in the rare window before the
    prehydration script runs — that script paints synchronously based
    on pathname + saved values before first frame. */
 :root {
-    /* Defaults match the artist/custom-color output of paintVars so
+    /* Defaults match the artist/custom-colour output of paintVars so
        the page renders correctly before the pre-hydration script fires.
        The script overwrites these synchronously for users with saved
-       themes; unauthenticated users see exactly this color. */
+       themes; unauthenticated users see exactly this colour. */
     --bg-color:     #C488FF;
     --text-color:   #111111;
     --border-color: rgba(0, 0, 0, 0.15);
@@ -1230,7 +1230,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
    Dropdown context: .user-dropdown sets background:var(--text-color) and
    color:var(--bg-color), so inside the dropdown --bg-color is the visible
-   text color (light/orange) and --text-color is the dark dropdown surface.
+   text colour (light/orange) and --text-color is the dark dropdown surface.
    ────────────────────────────────────────────────────────── */
 #tapeBox .notif-header {
     padding: 4px 0 !important;
@@ -3978,7 +3978,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* ms-check-badge — top-right of canvas-wrapper.
    ❐ (U+2750) when unselected, ▣ (U+25A3) when selected.
    Two font sizes larger than the previous draft (was 16px → now 20px).
-   Text-shadow halos it against any artwork color. */
+   Text-shadow halos it against any artwork colour. */
 .ms-check-badge {
     position: absolute;
     top: 6px;
@@ -4401,7 +4401,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
        a saturated bg, so the white-on-color hover felt jarring). Per
        Brendon, theme-aware = no new color introduced. Opacity-only
        hover keeps the existing color palette and just lifts the
-       button slightly. The --btn-user-hover variable + ColorwayContext
+       button slightly. The --btn-user-hover variable + ThemeContext
        writes are left in place (vestigial but harmless) so removing
        this rule cleanly is one CSS edit. */
     .btn-user:hover { opacity: 0.85; }
@@ -4470,7 +4470,7 @@ body.pricelens-mode .meta-owner.price-trigger::before {
 /* ── BUDGET (ambient in-reach signal) — sim 3952-4043 ──
    F57 (BUG-10). When a user-defined budget is active, every card not-in-budget
    recedes via opacity only (no desaturation — these are generative artworks,
-   dimming their color would disrespect the art). In-budget cards render at
+   dimming their colour would disrespect the art). In-budget cards render at
    full strength so the market stays intact; the user's position within it
    becomes visually clear without filtering anything out. APR 23. */
 body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.search-hidden) {
@@ -4534,7 +4534,7 @@ body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigge
    Ambient multi-color glow AROUND each artwork. Sits behind the card via
    a ::before pseudo on .output-card with negative inset (extends ~16px
    outward). Slowly-rotating conic gradient across 6 theme-compatible
-   hues so every thumbnail reads as haloed in a living, shifting color
+   hues so every thumbnail reads as haloed in a living, shifting colour
    field. CRUCIALLY: does NOT touch .canvas-wrapper, overflow, z-index
    of interior elements, or anything above the card. `isolation: isolate`
    creates a local stacking context so z-index:-1 pushes the halo behind
@@ -5460,7 +5460,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     position: relative; top: 1px; display: inline-block;
 }
 /* 7-day strip — each cell is letter + count. Tap selects a day;
-   selected cell inverts color so it's obvious which day's events
+   selected cell inverts colour so it's obvious which day's events
    the ticker is showing. */
 .topbarcal-days {
     display: inline-flex; align-items: center; gap: 6px;
@@ -5688,7 +5688,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 }
 
 /* RPC ping pill — pure black background, white default text,
-   colored ms readout. Always sits at the right end of the row. */
+   coloured ms readout. Always sits at the right end of the row. */
 .rpc-ping-display {
     display: none; align-items: center; gap: 6px;
     background: #0a0a0a !important; color: #ffffff !important;
@@ -5719,7 +5719,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 .hammer-bar-pill.active { display: inline-flex; }
 
 /* Filtering state for the Hammer pill — sim 1170-1181. Inverted
-   colors signal the muted-only filter is engaged. The wireup for
+   colours signal the muted-only filter is engaged. The wireup for
    toggleMutedFilter() is NOT yet ported (mute UI itself is pending),
    so this rule sits dormant until those land — matches the pattern
    used by SpellBookSection's .hammer-badge slot in Build 32. */
