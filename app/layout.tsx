@@ -68,11 +68,11 @@ export const viewport: Viewport = {
 const PREHYDRATION_SCRIPT = `
 (function () {
     try {
-        // Per-page theme override (sim deviation). Project pages
-        // (/art/*) boot to the artist's custom color when the user
-        // has NOT picked a global theme. Profile pages (/{handle}/*)
+        // Per-page colorway override (sim deviation). Project pages
+        // (/art/*) boot to the custom colorway when the user
+        // has NOT picked a global colorway. Profile pages (/{handle}/*)
         // boot to Attention Yellow (#FFE600) — own slot, NOT linked
-        // to the artist custom color. If the user has a saved pick,
+        // to the custom colorway. If the user has a saved pick,
         // that wins (the picker must work on every page).
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
@@ -96,11 +96,11 @@ const PREHYDRATION_SCRIPT = `
         if (savedTheme === 'hashsyn') savedTheme = null;
 
         var theme = savedTheme;
-        if (colorway === null && isProjectPage) theme = 'artist';
+        if (theme === null && isProjectPage) theme = 'custom';
         // Non-project, non-profile pages (home, etc.) also default to
         // custom color so the site never cold-starts with Dot defaults.
-        if (colorway === null && !isProfilePage) theme = 'artist';
-        var profileBoot = (colorway === null && isProfilePage);
+        if (theme === null && !isProfilePage) theme = 'custom';
+        var profileBoot = (theme === null && isProfilePage);
 
         var COLORWAYS = {
             custom:  '#C488FF',
@@ -112,7 +112,7 @@ const PREHYDRATION_SCRIPT = `
             hashsyn: '#7B2FFF'
         };
 
-        // Helper: write every theme-derived CSS var so the FOH matches
+        // Helper: write every colorway-derived CSS var so the FOH matches
         // applyBgHex post-hydration. Without this, --mint-bg / --pill-l1-bg
         // / --modal-bg etc. fall through to the static globals.css
         // defaults (mint = #111111 / e0e0e0) → the hero CTA flashes black
@@ -172,20 +172,20 @@ const PREHYDRATION_SCRIPT = `
 
         if (profileBoot) {
             // Profile-page boot — paint Attention Yellow with no
-            // theme-* body class. paintVars receives key=null so it
+            // colorway-* body class. paintVars receives key=null so it
             // takes the default light-bg branch (yellow is light, YIQ
             // resolves text to #111111).
             var pBg = '#FFE600';
             var pText = '#111111';
             paintVars(pBg, pText, null);
-        } else if (colorway && COLORWAYS[colorway]) {
-            var bg = COLORWAYS[colorway];
+        } else if (theme && COLORWAYS[theme]) {
+            var bg = COLORWAYS[theme];
 
-            // When theme is 'artist' (project-page boot default OR user
+            // When colorway is 'custom' (project-page boot default OR user
             // pick), read the user's saved custom hex from
             // pd_custom_color so the page paints the picked color
-            // instead of the static COLORWAYS.artist fallback.
-            if (colorway === 'custom') {
+            // instead of the static COLORWAYS.custom fallback.
+            if (theme === 'custom') {
                 try {
                     var savedArtistColor = localStorage.getItem('pd_custom_color');
                     if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
@@ -195,15 +195,15 @@ const PREHYDRATION_SCRIPT = `
             }
 
             // Pure Light / Pure Dark mode override (sim 6798-6803). Project
-            // pages bypass this because theme is forced to 'artist' above
+            // pages bypass this because colorway is forced to 'custom' above
             // when there's no saved pick — if the user explicitly picked
             // light/dark on /art/*, the override still applies.
             var notifs = null;
             try {
                 notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
             } catch (e) { /* ignore */ }
-            if (notifs && colorway === 'light' && notifs.pure_light) bg = '#ffffff';
-            if (notifs && colorway === 'dark'  && notifs.pure_dark)  bg = '#000000';
+            if (notifs && theme === 'light' && notifs.pure_light) bg = '#ffffff';
+            if (notifs && theme === 'dark'  && notifs.pure_dark)  bg = '#000000';
 
             var hex = bg.replace('#', '');
             var r = parseInt(hex.substr(0, 2), 16) || 0;
@@ -212,10 +212,10 @@ const PREHYDRATION_SCRIPT = `
             var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             var text = yiq >= 128 ? '#111111' : '#e0e0e0';
 
-            paintVars(bg, text, colorway);
+            paintVars(bg, text, theme);
 
             if (document.body) {
-                document.body.classList.add('theme-' + colorway);
+                document.body.classList.add('theme-' + theme);
                 if (r > g + 40 && r > b + 40 && r > 100) {
                     document.body.classList.add('bg-is-red');
                 }
@@ -401,7 +401,7 @@ export default async function RootLayout({
             <head>
                 {/*
                   Dynamic favicon — sim line 10. FaviconEngine repaints
-                  this <link>'s href on every theme change / priceLogo
+                  this <link>'s href on every colorway change / priceLogo
                   toggle / alert / ETH ping / rotation event. The static
                   href="/favicon.ico" is the pre-hydration fallback shown
                   before JS runs.
@@ -434,7 +434,7 @@ export default async function RootLayout({
                 {/*
                   Pre-hydration script — MUST stay in <head> so the browser
                   executes it before first paint. Reads localStorage to apply
-                  the correct theme CSS vars and body classes synchronously,
+                  the correct colorway CSS vars and body classes synchronously,
                   eliminating the purple flash + tape-visible flash that occurs
                   when this runs in <body> after SSR HTML has already painted.
                 */}
