@@ -2763,6 +2763,8 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     align-items: baseline;
     row-gap: 2px;
     column-gap: 4px;
+    line-height: 1;
+    overflow: visible;
 }
 .cbr-label {
     font-family: var(--font-rubik-mono), sans-serif;
