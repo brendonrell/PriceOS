@@ -9,7 +9,7 @@
  *
  * Maps every sim call site for window.updateFavicon to a React trigger:
  *
- *   sim 6875  theme change                  → useLayoutEffect on `theme`
+ *   sim 6875  colorway change               → useLayoutEffect on `colorway`
  *   sim 9596  priceLogo settings toggle     → useLayoutEffect on `notifs.priceLogo`
  *   sim 5533  easter-egg rotation toggle    → 'pd:petey-rotated' DOM event
  *   sim 6731  Connect menu open (ETH ping)  → useEffect on `menuOpen` +
@@ -47,7 +47,7 @@ const DEFAULT_TEXT = '\u2030';
 const ETH_PING_DURATION_MS = 2000;
 const ROTATION_EVENT = 'pd:petey-rotated';
 
-/* Read live theme vars off documentElement, same as sim 6734.
+/* Read live colorway vars off documentElement, same as sim 6734.
    Falls back to getComputedStyle if .style.getPropertyValue
    returns empty (the inline read only sees vars set by JS;
    the CSS :root defaults need the computed view). */
@@ -67,7 +67,7 @@ function readThemeColors(): { bg: string | null; fg: string | null } {
 }
 
 export function FaviconEngine() {
-    const { theme } = useColorway();
+    const { colorway } = useColorway();
     const { notifs } = usePdNotifs();
     const { menuOpen } = useDropdown();
 
@@ -134,7 +134,7 @@ export function FaviconEngine() {
     /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
        happen in the same pre-paint window as ColorwayContext's CSS-var write,
        instead of one browser paint later. This closes the "favicon only
-       updates after changing themes" gap on app/page load. */
+       updates after changing colorways" gap on app/page load. */
     useLayoutEffect(() => {
         const { bg, fg } = readThemeColors();
         updateFavicon({
@@ -148,7 +148,7 @@ export function FaviconEngine() {
         });
 
         // Sync Safari browser chrome color to the live bg — sim line 6859.
-        // FaviconEngine already fires on every theme change so this keeps the
+        // FaviconEngine already fires on every colorway change so this keeps the
         // URL-bar / status-bar tint in lockstep with the page background.
         if (bg) {
             const tcm = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');

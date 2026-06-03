@@ -108,9 +108,9 @@ export function Backgrounds() {
     const { open: openModal } = useModal();
     const { colorway, setColorway } = useColorway();
     const starfieldRef = useRef<HTMLDivElement | null>(null);
-    /* Holds the theme key that was active at the moment stargazing
+    /* Holds the colorway key that was active at the moment stargazing
        flipped on. Captured on the ON-edge so flip-off can restore it
-       even if the user picked a different theme mid-stargazing. Sim
+       even if the user picked a different colorway mid-stargazing. Sim
        9373 captures the same way (`localStorage.getItem('pd_settings_colorway')`).
        Default 'custom' on first ON to match sim 9435's `|| 'custom'`. */
     const prevThemeRef = useRef<ColorwayKey>(null);
@@ -195,7 +195,7 @@ export function Backgrounds() {
        random starfield on every pick).
 
        ON-edge (notifs.stargazing true after mount or transition):
-         1. Capture the current theme key into prevThemeRef so flip-off
+         1. Capture the current colorway key into prevThemeRef so flip-off
             can restore it (sim 9373). 'custom' fallback per sim 9435.
          2. Seed 380 .star-dot + 3 .shooting-star into #starfield —
             seedStarfield is idempotent so a re-mount with the field
@@ -204,7 +204,7 @@ export function Backgrounds() {
 
        OFF-edge (notifs.stargazing transitioning true → false):
          1. Clear the starfield container (sim 9434).
-         2. setColorway(prevTheme) — re-derives every theme var in one
+         2. setColorway(prevColorway) — re-derives every colorway var in one
             call, identical to sim 9435.
 
        Boot case (notifs.stargazing already true on first render):
@@ -221,14 +221,14 @@ export function Backgrounds() {
         if (!sf) return;
 
         if (notifs.stargazing) {
-            /* Sim 9373 verbatim: read the persisted theme key out of
+            /* Sim 9373 verbatim: read the persisted colorway key out of
                localStorage at the moment of ON-edge capture. Reading
                from React state instead would be incorrect on the boot
                path — child useEffects run before parent useEffects in
                React's bottom-up effect order, so on first mount with
                stargazing=true at boot, ColorwayProvider's hydration effect
-               hasn't yet written its saved theme into React state and
-               `theme` is still null. localStorage already holds the
+               hasn't yet written its saved colorway into React state and
+               `colorway` is still null. localStorage already holds the
                correct value, so reading it directly is both sim-exact
                and timing-correct. */
             try {
@@ -256,7 +256,7 @@ export function Backgrounds() {
         }
     }, [notifs.stargazing]);
 
-    /* Tracks the last `theme` value the previous render saw so the
+    /* Tracks the last `colorway` value the previous render saw so the
        hydration-edge effect can distinguish:
          • Hydration write (null → saved): ColorwayProvider's mount effect
            setting state for the first time. We DO want stargazing vars
@@ -271,13 +271,13 @@ export function Backgrounds() {
     const lastThemeRef = useRef<ColorwayKey>(null);
     useEffect(() => {
         const prev = lastThemeRef.current;
-        lastThemeRef.current = theme;
+        lastThemeRef.current = colorway;
         if (!notifs.stargazing) return;
         const wasHydration = prev === null && colorway !== null;
         if (wasHydration) {
             applyStargazingVars();
         }
-    }, [notifs.stargazing, theme]);
+    }, [notifs.stargazing, colorway]);
 
     /* Brendon list item 10 — Auto-Scroll lifecycle. Sim 9441-9455 +
        sim 13038 hydration restore. start on flip-on edge, stop on
