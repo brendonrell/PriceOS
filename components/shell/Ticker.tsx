@@ -9,7 +9,7 @@
  *   - body.tape-off:    display none
  *   - body.tape-faded:  partially transparent
  *   - body.tape-bold:   weight 700
- *   - body.tape-framed: filled bar, inverted colours
+ *   - body.tape-framed: filled bar, inverted colors
  *   - default:          standard
  *
  * F52 / BUG-17 — populate the rail with mock tape items and subscribe

@@ -68,7 +68,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
-import { useTheme, type ThemeKey } from '../../lib/state/ThemeContext';
+import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import {
     enableFamiliar,
     disableFamiliar,
@@ -106,18 +106,18 @@ export function Backgrounds() {
     const rafIdRef = useRef<number | null>(null);
     const { notifs } = usePdNotifs();
     const { open: openModal } = useModal();
-    const { theme, setTheme } = useTheme();
+    const { colorway, setColorway } = useColorway();
     const starfieldRef = useRef<HTMLDivElement | null>(null);
     /* Holds the theme key that was active at the moment stargazing
        flipped on. Captured on the ON-edge so flip-off can restore it
        even if the user picked a different theme mid-stargazing. Sim
-       9373 captures the same way (`localStorage.getItem('pd_settings_theme')`).
-       Default 'artist' on first ON to match sim 9435's `|| 'artist'`. */
-    const prevThemeRef = useRef<ThemeKey>(null);
+       9373 captures the same way (`localStorage.getItem('pd_settings_colorway')`).
+       Default 'artist' on first ON to match sim 9435's `|| 'custom'`. */
+    const prevThemeRef = useRef<ColorwayKey>(null);
     /* Live mirror of setTheme so the stargazing effect can depend on
        `notifs.stargazing` alone — without this ref, including setTheme
        in the dep array would re-fire the effect every time setTheme
-       changes identity (it's `useCallback` keyed on theme, so it
+       changes identity (it's `useCallback` keyed on colorway, so it
        changes on every theme pick), re-seeding the starfield with
        fresh random positions on every mid-stargazing theme change.
        Sim's _applyStargazingMode only runs on ON/OFF transitions;
@@ -204,7 +204,7 @@ export function Backgrounds() {
 
        OFF-edge (notifs.stargazing transitioning true → false):
          1. Clear the starfield container (sim 9434).
-         2. setTheme(prevTheme) — re-derives every theme var in one
+         2. setColorway(prevTheme) — re-derives every theme var in one
             call, identical to sim 9435.
 
        Boot case (notifs.stargazing already true on first render):
@@ -226,14 +226,14 @@ export function Backgrounds() {
                from React state instead would be incorrect on the boot
                path — child useEffects run before parent useEffects in
                React's bottom-up effect order, so on first mount with
-               stargazing=true at boot, ThemeProvider's hydration effect
+               stargazing=true at boot, ColorwayProvider's hydration effect
                hasn't yet written its saved theme into React state and
                `theme` is still null. localStorage already holds the
                correct value, so reading it directly is both sim-exact
                and timing-correct. */
             try {
-                const saved = localStorage.getItem('pd_settings_theme');
-                prevThemeRef.current = (saved as ThemeKey) ?? 'artist';
+                const saved = localStorage.getItem('pd_settings_colorway');
+                prevThemeRef.current = (saved as ColorwayKey) ?? 'artist';
             } catch {
                 prevThemeRef.current = 'artist';
             }
@@ -249,7 +249,7 @@ export function Backgrounds() {
                 clearStarfield(sf);
             };
         } else if (prevThemeRef.current !== null) {
-            /* Sim 9433-9436: clear + setTheme(_stargazingPrevTheme || 'artist'). */
+            /* Sim 9433-9436: clear + setColorway(_stargazingPrevTheme || 'custom'). */
             clearStarfield(sf);
             setThemeRef.current(prevThemeRef.current);
             prevThemeRef.current = null;
@@ -258,7 +258,7 @@ export function Backgrounds() {
 
     /* Tracks the last `theme` value the previous render saw so the
        hydration-edge effect can distinguish:
-         • Hydration write (null → saved): ThemeProvider's mount effect
+         • Hydration write (null → saved): ColorwayProvider's mount effect
            setting state for the first time. We DO want stargazing vars
            to win here so a returning user with stargazing-on at last
            unload boots into a fully-purple UI (sim 13037 boot path
@@ -268,12 +268,12 @@ export function Backgrounds() {
            setTheme is just called once and theme vars leak through
            the 9 minor slots not pinned by !important. We match this
            sim quirk by NOT re-applying vars on this transition. */
-    const lastThemeRef = useRef<ThemeKey>(null);
+    const lastThemeRef = useRef<ColorwayKey>(null);
     useEffect(() => {
         const prev = lastThemeRef.current;
         lastThemeRef.current = theme;
         if (!notifs.stargazing) return;
-        const wasHydration = prev === null && theme !== null;
+        const wasHydration = prev === null && colorway !== null;
         if (wasHydration) {
             applyStargazingVars();
         }

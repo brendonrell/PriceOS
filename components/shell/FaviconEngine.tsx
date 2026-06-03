@@ -5,7 +5,7 @@
  *
  * Mount-once component that drives the dynamic favicon. Pure ownership
  * surface — no DOM of its own. Sits inside <PriceOSShell> so it has
- * access to ThemeContext, PdNotifsContext, and DropdownContext.
+ * access to ColorwayContext, PdNotifsContext, and DropdownContext.
  *
  * Maps every sim call site for window.updateFavicon to a React trigger:
  *
@@ -38,7 +38,7 @@
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useTheme } from '../../lib/state/ThemeContext';
+import { useColorway } from '../../lib/state/ColorwayContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { updateFavicon } from '../../lib/favicon/updateFavicon';
@@ -67,7 +67,7 @@ function readThemeColors(): { bg: string | null; fg: string | null } {
 }
 
 export function FaviconEngine() {
-    const { theme } = useTheme();
+    const { theme } = useColorway();
     const { notifs } = usePdNotifs();
     const { menuOpen } = useDropdown();
 
@@ -132,7 +132,7 @@ export function FaviconEngine() {
     }, []);
 
     /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
-       happen in the same pre-paint window as ThemeContext's CSS-var write,
+       happen in the same pre-paint window as ColorwayContext's CSS-var write,
        instead of one browser paint later. This closes the "favicon only
        updates after changing themes" gap on app/page load. */
     useLayoutEffect(() => {
@@ -147,14 +147,14 @@ export function FaviconEngine() {
             priceLogoOverride: notifs.priceLogo,
         });
 
-        // Sync Safari browser chrome colour to the live bg — sim line 6859.
+        // Sync Safari browser chrome color to the live bg — sim line 6859.
         // FaviconEngine already fires on every theme change so this keeps the
         // URL-bar / status-bar tint in lockstep with the page background.
         if (bg) {
             const tcm = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
             if (tcm) tcm.setAttribute('content', bg);
         }
-    }, [theme, notifs.priceLogo, rotated, ethPing]);
+    }, [colorway, notifs.priceLogo, rotated, ethPing]);
 
     return null;
 }

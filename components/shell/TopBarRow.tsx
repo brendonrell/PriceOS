@@ -23,7 +23,7 @@
  *            <.hammer-bar-pill #hammerBarPill>     THE HAMMER  N  ×
  *         </>
  *         <.rpc-ping-display>         ← right-aligned, only when rpc active
- *            ⌁  Nms   (colour tier good/ok/slow)
+ *            ⌁  Nms   (color tier good/ok/slow)
  *         </>
  *      </>
  *   </>
