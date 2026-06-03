@@ -262,11 +262,11 @@ export function MyPdSection({ onTripleTap }: Props) {
             try {
                 const saved = localStorage.getItem('pd_settings_colorway');
                 const valid = saved && (saved === 'custom' || saved === 'light' || saved === 'dark' || saved === 'orange' || saved === 'blue' || saved === 'red')
-                    ? (saved as 'artist' | 'light' | 'dark' | 'orange' | 'blue' | 'red')
+                    ? (saved as 'custom' | 'light' | 'dark' | 'orange' | 'blue' | 'red')
                     : 'custom';
                 setColorway(valid);
             } catch {
-                setColorway('artist');
+                setColorway('custom');
             }
         }
 

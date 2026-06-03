@@ -8,7 +8,7 @@
  * Haze row:
  *   HZ pill    — SettingsToggle, label only (no icon), activates haze.
  *   ◩ swatch   — iOS-safe <label htmlFor> with larger ◩ icon.
- *                Opens native color picker (sim 4610-4613 pattern).
+ *                Opens native colour picker (sim 4610-4613 pattern).
  *   hex input
  *   ⧉          — copy hex (copy-hex-btn)
  *   ≋/≊/≅/≃/≂ — variation cycle (haze-variation-btn class, bare icon).
@@ -41,7 +41,7 @@ interface PillSpec {
 }
 
 const PILLS: PillSpec[] = [
-    { key: 'custom',  cls: 't-custom',  title: 'Custom Color',    glyph: '◩\uFE0E' },
+    { key: 'custom',  cls: 't-custom',  title: 'Custom Colour',   glyph: '◩\uFE0E' },
     { key: 'light',   cls: 't-light',   title: 'Light Mode',      glyph: '◻\uFE0E' },
     { key: 'dark',    cls: 't-dark',    title: 'Dark Mode',       glyph: '◼\uFE0E' },
     { key: 'orange',  cls: 't-orange',  title: 'Orange Mode',     glyph: '▨\uFE0E' },
@@ -59,7 +59,7 @@ const PILLS: PillSpec[] = [
     },
 ];
 
-const COLORWAY_NAMES: Record<NonNullable<ColorwayKey>, string> = {
+const THEME_NAMES: Record<NonNullable<ColorwayKey>, string> = {
     custom: 'CUSTOM COLOR', light: 'LIGHT MODE', dark: 'DARK MODE',
     orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
     blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
@@ -94,7 +94,7 @@ function readHazeColor(): string {
 }
 
 export function ColorwayPicker() {
-    const { colorway, setColorway } = useColorway();
+    const { colorway: theme, setColorway: setTheme } = useColorway();
     const { showToast } = useToast();
 
     const [hazeMode, setHazeMode] = useState(false);
@@ -120,7 +120,7 @@ export function ColorwayPicker() {
 
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
-        if (colorway === 'haze') setColorway('haze');
+        if (theme === 'haze') setTheme('haze');
     };
 
     const handleVariationCycle = (e: React.MouseEvent) => {
@@ -130,7 +130,7 @@ export function ColorwayPicker() {
         setHazeVariation(next);
         enableHazeVariation(next, readHazeColor(), (hex) => applyBgHex(hex, 'haze'));
         showToast(`Haze Mode: ${VARIATION_LABELS[next]}`);
-        if (colorway !== 'haze') setColorway('haze');
+        if (theme !== 'haze') setTheme('haze');
     };
 
     if (hazeMode) {
@@ -150,11 +150,11 @@ export function ColorwayPicker() {
                         no icon prop so no st-icon span with margin-right */}
                     <SettingsToggle
                         id="st-haze"
-                        active={colorway === 'haze'}
+                        active={theme === 'haze'}
                         title="Haze Mode"
                         label="HZ"
                         bareLabel
-                        onClick={() => { setColorway('haze'); showToast('Default Colorway: HAZE MODE'); }}
+                        onClick={() => { setTheme('haze'); showToast('Default Colorway: HAZE MODE'); }}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
@@ -162,7 +162,7 @@ export function ColorwayPicker() {
                     <label
                         htmlFor="hazeColorPicker"
                         className="pill-colorway"
-                        title="Pick color"
+                        title="Pick colour"
                         style={{
                             backgroundColor: hazeHex,
                             border: '1px solid currentColor',
@@ -303,13 +303,13 @@ export function ColorwayPicker() {
                         key={p.key}
                         type="button"
                         id={`st-${p.key}`}
-                        className={`pill-colorway ${p.cls}${colorway === p.key ? ' active' : ''}`}
+                        className={`pill-colorway ${p.cls}${theme === p.key ? ' active' : ''}`}
                         title={p.title}
-                        aria-pressed={colorway === p.key}
+                        aria-pressed={theme === p.key}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setColorway(p.key);
-                            showToast('Default Colorway: ' + COLORWAY_NAMES[p.key]);
+                            setTheme(p.key);
+                            showToast('Default Colorway: ' + THEME_NAMES[p.key]);
                         }}
                     >
                         <span style={p.glyphStyle}>{p.glyph}</span>
