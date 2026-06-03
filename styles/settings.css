@@ -36,7 +36,7 @@
 }
 
 
-/* Section headers (WALLET, MY PD, DEFAULT THEME, etc.) */
+/* Section headers (WALLET, MY PD, DEFAULT COLORWAY, etc.) */
 .settings-header {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
@@ -510,7 +510,7 @@
 
 
 /* Theme pills */
-#settingsPanel .pill-theme {
+#settingsPanel .pill-colorway {
     background: rgba(128,128,128,0.2) !important;
     border: 1px solid currentColor !important;
     color: inherit !important;
@@ -526,18 +526,18 @@
     align-items: center;
     justify-content: center;
 }
-#settingsPanel .pill-theme.active {
+#settingsPanel .pill-colorway.active {
     background: var(--text-color) !important;
     border: 2px solid var(--text-color) !important;
     color: var(--bg-color) !important;
     opacity: 1;
 }
-#settingsPanel .pill-theme:hover {
+#settingsPanel .pill-colorway:hover {
     background: rgba(128,128,128,0.35) !important;
     border-color: var(--text-color) !important;
     opacity: 0.9;
 }
-.pill-theme span {
+.pill-colorway span {
     font-size: 18px;
     font-weight: normal;
     font-family: 'Courier New', Courier, monospace;
@@ -546,8 +546,8 @@
     justify-content: center;
 }
 @media (max-width: 600px) {
-    .pill-theme.t-light span,
-    .pill-theme.t-dark span { font-size: 22px; }
+    .pill-colorway.t-light span,
+    .pill-colorway.t-dark span { font-size: 22px; }
 }
 
 

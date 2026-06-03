@@ -122,9 +122,9 @@
 /* APR 21: to-do dot — Hothurt red (#FF0055) signature marker. Only appears when
    the To-Dos toggle at the calendar footer is active. Bigger than event dots so
    it visually leads the row.
-   APR 22: previously flipped to black on red-dominant themes (body.theme-red /
+   APR 22: previously flipped to black on red-dominant themes (body.colorway-red /
    body.bg-is-red) for contrast. Removed per Brendon — to-do marker should stay
-   Hothurt red regardless of theme as a consistent signature colour. */
+   Hothurt red regardless of theme as a consistent signature color. */
 .cal-day-todo-dot {
     width: 5px; height: 5px; border-radius: 50%;
     background: #FF0055; opacity: 1; flex-shrink: 0;

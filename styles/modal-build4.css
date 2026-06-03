@@ -103,7 +103,7 @@
    .scroll-arrow base + :hover live in app/globals.css (sim 204,
    3211) — used by the dropdown notif scroller in light context.
    The dark-arrow modifier forces the explicit text-color, which
-   matters inside .platform-modal where the inherited colour
+   matters inside .platform-modal where the inherited color
    chain differs from the dropdown surface. */
 .scroll-arrow.dark-arrow { color: var(--text-color); }
 
@@ -259,16 +259,16 @@ body.redacted-mode .collectors-list .hover-link {
     -webkit-text-fill-color: transparent !important;
     text-decoration: none !important;
 }
-body.theme-dark.redacted-mode .modal-title,
-body.theme-dark.redacted-mode .modal-fields .mf-val,
-body.theme-dark.redacted-mode .collectors-list .hover-link {
+body.colorway-dark.redacted-mode .modal-title,
+body.colorway-dark.redacted-mode .modal-fields .mf-val,
+body.colorway-dark.redacted-mode .collectors-list .hover-link {
     background: rgba(224, 224, 224, 0.88) !important;
 }
 
 
 /* ── HOVER STATES  (sim 3228–3229) ─────────────────────────
    Wrapped in @media (hover: hover) per sim — keeps the inverted
-   colour swap from sticking on touch devices after a tap. */
+   color swap from sticking on touch devices after a tap. */
 @media (hover: hover) {
     .mf-val.hover-link:hover {
         color: var(--bg-color);

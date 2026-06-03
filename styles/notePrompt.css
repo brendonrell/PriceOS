@@ -2,7 +2,7 @@
  * Note prompt overlay styles — bottom-sheet on mobile, centred card on desktop.
  *
  * Ported verbatim from sim.html:
- *   lines 2491–2575  — mobile defaults + body.theme-dark variants
+ *   lines 2491–2575  — mobile defaults + body.colorway-dark variants
  *   lines 3002–3016  — @media (min-width: 601px) desktop refinement
  *   lines 3591–3595  — .artist-note-mode artist-sheet sizing
  *
@@ -63,7 +63,7 @@
     transform: translateY(0);
 }
 
-body.theme-dark .note-prompt-box {
+body.colorway-dark .note-prompt-box {
     background: #111111;
     color: #e0e0e0;
 }
@@ -77,7 +77,7 @@ body.theme-dark .note-prompt-box {
     flex-shrink: 0;
 }
 
-body.theme-dark .note-prompt-handle {
+body.colorway-dark .note-prompt-handle {
     background: rgba(255, 255, 255, 0.2);
 }
 
@@ -96,7 +96,7 @@ body.theme-dark .note-prompt-handle {
     -webkit-tap-highlight-color: transparent;
 }
 
-body.theme-dark .note-prompt-close-x {
+body.colorway-dark .note-prompt-close-x {
     color: #e0e0e0;
 }
 
@@ -131,7 +131,7 @@ body.theme-dark .note-prompt-close-x {
     line-height: 1.65;
 }
 
-body.theme-dark .note-prompt-textarea {
+body.colorway-dark .note-prompt-textarea {
     color: #e0e0e0;
     caret-color: #e0e0e0;
     border-bottom-color: rgba(255, 255, 255, 0.12);
@@ -144,7 +144,7 @@ body.theme-dark .note-prompt-textarea {
     font-style: italic;
 }
 
-body.theme-dark .note-prompt-textarea::placeholder {
+body.colorway-dark .note-prompt-textarea::placeholder {
     color: #e0e0e0;
 }
 
@@ -170,7 +170,7 @@ body.theme-dark .note-prompt-textarea::placeholder {
     -webkit-tap-highlight-color: transparent;
 }
 
-body.theme-dark .note-prompt-btn {
+body.colorway-dark .note-prompt-btn {
     color: #e0e0e0;
     border-color: rgba(255, 255, 255, 0.2);
 }
@@ -181,7 +181,7 @@ body.theme-dark .note-prompt-btn {
     border-color: #111111;
 }
 
-body.theme-dark .note-prompt-btn.primary {
+body.colorway-dark .note-prompt-btn.primary {
     background: #e0e0e0;
     color: #111111;
     border-color: #e0e0e0;
@@ -210,7 +210,7 @@ body.theme-dark .note-prompt-btn.primary {
     padding: 8px 0;
 }
 
-body.theme-dark .note-prompt-view {
+body.colorway-dark .note-prompt-view {
     color: #e0e0e0;
 }
 
