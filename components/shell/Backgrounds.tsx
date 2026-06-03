@@ -114,17 +114,17 @@ export function Backgrounds() {
        9373 captures the same way (`localStorage.getItem('pd_settings_colorway')`).
        Default 'artist' on first ON to match sim 9435's `|| 'custom'`. */
     const prevThemeRef = useRef<ColorwayKey>(null);
-    /* Live mirror of setTheme so the stargazing effect can depend on
-       `notifs.stargazing` alone — without this ref, including setTheme
-       in the dep array would re-fire the effect every time setTheme
+    /* Live mirror of setColorway so the stargazing effect can depend on
+       `notifs.stargazing` alone — without this ref, including setColorway
+       in the dep array would re-fire the effect every time setColorway
        changes identity (it's `useCallback` keyed on colorway, so it
-       changes on every theme pick), re-seeding the starfield with
-       fresh random positions on every mid-stargazing theme change.
+       changes on every colorway pick), re-seeding the starfield with
+       fresh random positions on every mid-stargazing colorway change.
        Sim's _applyStargazingMode only runs on ON/OFF transitions;
-       mid-stargazing theme picks leak the new theme's vars over the
+       mid-stargazing colorway picks leak the new colorway's vars over the
        stargazing vars (a sim quirk we match). */
-    const setThemeRef = useRef(setTheme);
-    useEffect(() => { setThemeRef.current = setTheme; }, [setTheme]);
+    const setThemeRef = useRef(setColorway);
+    useEffect(() => { setThemeRef.current = setColorway; }, [setColorway]);
     const [frame, setFrame] = useState<FamiliarFrame>(EMPTY_FRAME);
 
     useEffect(() => {
@@ -189,8 +189,8 @@ export function Backgrounds() {
 
        Depends ONLY on notifs.stargazing so it fires exactly on ON/OFF
        transitions (and once on mount if stargazing is true at boot,
-       which is the sim 13037 hydration restore path). Theme + setTheme
-       are read via live refs above; mid-stargazing theme picks therefore
+       which is the sim 13037 hydration restore path). Colorway + setColorway
+       are read via live refs above; mid-stargazing colorway picks therefore
        don't trigger a re-seed (they would otherwise generate a fresh
        random starfield on every pick).
 
@@ -242,7 +242,7 @@ export function Backgrounds() {
             return () => {
                 /* Cleanup runs on the OFF transition AND on real
                    unmount. Both want the field cleared. The OFF
-                   transition's setTheme restore is handled in the
+                   transition's setColorway restore is handled in the
                    else branch below — the closure here was captured
                    when stargazing was ON, so we only need to clear
                    here, not restore. */
@@ -262,10 +262,10 @@ export function Backgrounds() {
            setting state for the first time. We DO want stargazing vars
            to win here so a returning user with stargazing-on at last
            unload boots into a fully-purple UI (sim 13037 boot path
-           runs _applyStargazingMode AFTER setTheme).
-         • User pick (saved → other): the picker writing a new theme
+           runs _applyStargazingMode AFTER setColorway).
+         • User pick (saved → other): the picker writing a new colorway
            mid-stargazing. Sim does NOT re-apply stargazing here —
-           setTheme is just called once and theme vars leak through
+           setColorway is just called once and colorway vars leak through
            the 9 minor slots not pinned by !important. We match this
            sim quirk by NOT re-applying vars on this transition. */
     const lastThemeRef = useRef<ColorwayKey>(null);
