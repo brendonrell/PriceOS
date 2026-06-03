@@ -67,7 +67,7 @@ export interface DecodeResult {
 // ── Theme tokens ───────────────────────────────────────────────
 // Sim 9713-9716. Order matters only for the "fall back to ARTS"
 // behaviour at sim 9807 — never to the encoded output, which always
-// places exactly one theme token at slot 0.
+// places exactly one colorway token at slot 0.
 const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
     custom:  'ARTS',
     light:   'LITE',
@@ -197,7 +197,7 @@ export function encodeSetupCode(
     sort: SortKey,
     notifs: PdNotifs
 ): string {
-    // Theme — fall back to ARTS if the active theme key is the null Dot
+    // Colorway — fall back to ARTS if the active colorway key is the null Dot
     // default or otherwise unmapped (sim 9807).
     const themeTok = (colorway && COLORWAY_TO_TOKEN[colorway]) || COLORWAY_TO_TOKEN.custom;
 
