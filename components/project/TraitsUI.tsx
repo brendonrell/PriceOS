@@ -321,7 +321,7 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* Wraps setTheme with a toast (mirrors ColorwayPicker.tsx). */
+    /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
     const setColorwayWithToast = (key: ColorwayKey) => {
         setColorway(key);
         if (key) showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
