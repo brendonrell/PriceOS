@@ -8,7 +8,7 @@
  * Forked from ProjectPageBody.tsx (NOT the profile body): the hero
  * markup mirrors project line-for-line so existing globals.css
  * rules paint the surface identically — same `.project-title`,
- * same `.project-artist` lockup (By + artist-name-wrap +
+ * same `.project-custom` lockup (By + artist-name-wrap +
  * artist-tag + follow-badge + follower-count), same `.info-line`
  * "Collected by"-shape chip pattern (here: "Held by"), same
  * `.stats-grid` with class-qualified icons that the CSS sizes
@@ -99,11 +99,11 @@ export default function ArtworkPageBody({
                     </h1>
 
                     {/* Artist line — mirrors ProjectPageBody.tsx exactly
-                        (.project-artist + by-text + artist-lockup +
+                        (.project-custom + by-text + artist-lockup +
                         artist-name-wrap + artist-tag + follow-badge +
                         follower-count). @claude placeholder per the
                         project page convention. */}
-                    <div className="hero-line project-artist">
+                    <div className="hero-line project-custom">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
