@@ -29,7 +29,7 @@
  *
  * No localStorage. Sim 12617-12618 explicitly removes pd_settings_colorway
  * when hashsyn activates — the theme needs live canvases each session.
- * That removal lives in ColorwayContext.setTheme; the engine only handles
+ * That removal lives in ColorwayContext.setColorway; the engine only handles
  * sampling.
  */
 
