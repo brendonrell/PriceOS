@@ -116,7 +116,7 @@ export function applyStargazingVars(): void {
 
     /* PWA theme-color meta (sim 9431). The element is mounted in
        layout.tsx with content="#111111"; we override here on flip-on
-       and the ColorwayContext setTheme call on flip-off restores the
+       and the ColorwayContext setColorway call on flip-off restores the
        previous theme's hex. */
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', STARGAZING_BG);
