@@ -3,8 +3,8 @@
 /*
  * hashSynEngine — port of sim.html 12534-12631 (Hash Synesthesia).
  *
- * The engine samples colours from visible artwork canvases and blends
- * them into the UI accent. ThemeContext owns the actual hex apply via
+ * The engine samples colors from visible artwork canvases and blends
+ * them into the UI accent. ColorwayContext owns the actual hex apply via
  * the callback registered through enableHashSyn(applyHex).
  *
  * Sim references:
@@ -27,9 +27,9 @@
  * pool collapsed empty, so the engine never escaped the seed purple.
  * Reverted here.
  *
- * No localStorage. Sim 12617-12618 explicitly removes pd_settings_theme
+ * No localStorage. Sim 12617-12618 explicitly removes pd_settings_colorway
  * when hashsyn activates — the theme needs live canvases each session.
- * That removal lives in ThemeContext.setTheme; the engine only handles
+ * That removal lives in ColorwayContext.setTheme; the engine only handles
  * sampling.
  */
 
