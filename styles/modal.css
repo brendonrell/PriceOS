@@ -68,16 +68,6 @@ body.modal-open { overflow: hidden; touch-action: none; }
     -webkit-touch-callout: default;
 }
 
-/* Phone landscape — canvas was getting a tiny max-height because
-   the flex parent had no explicit height to resolve 100% against.
-   Switch to 100vh so the art fills the available vertical space. */
-@media (orientation: landscape) and (max-height: 500px) {
-    #modalCanvas {
-        max-height: 100vh;
-        max-width: 100%;
-    }
-}
-
 /* Desktop breathing room — reservation matches sim's 300px below
    the canvas to keep tall artworks from pushing into the title row. */
 @media (min-width: 601px) {
@@ -88,6 +78,17 @@ body.modal-open { overflow: hidden; touch-action: none; }
     }
     /* Desktop: match sim.html exactly — 22px icon, +6px nudge aligns visual centre with the 30px X, no padding/margin offset needed */
     #modal .modal-pin-hint { font-size: 22px; top: calc(max(20px, env(safe-area-inset-top)) + 6px); padding: 0; margin: 0; }
+}
+
+/* Phone landscape — must appear AFTER the min-width:601px desktop block above.
+   Landscape phones (~844px wide, ~390px tall) satisfy both queries simultaneously.
+   Equal specificity means source order decides — this block must be last to win.
+   !important pair used (per codebase convention) as a second safety net. */
+@media (orientation: landscape) and (max-height: 500px) {
+    #modalCanvas {
+        max-height: 100vh !important;
+        max-width: 100% !important;
+    }
 }
 
 
