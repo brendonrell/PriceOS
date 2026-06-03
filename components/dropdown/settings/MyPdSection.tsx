@@ -387,12 +387,12 @@ export function MyPdSection({ onTripleTap }: Props) {
                         htmlFor="profileColorPicker"
                         className="settings-toggle"
                         id="sn-profileTheme"
-                        title="Choose Profile Theme"
+                        title="Choose Profile Colorway"
                         style={{ position: 'relative', cursor: 'pointer' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <span className="st-icon" aria-hidden="true">◩{'\uFE0E'}</span>
-                        <span className="st-label">PROFILE THEME</span>
+                        <span className="st-label">PROFILE COLORWAY</span>
                         <input
                             ref={colorPickerRef}
                             type="color"

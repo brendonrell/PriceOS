@@ -154,7 +154,7 @@ export function ThemePicker() {
                         title="Haze Mode"
                         label="HZ"
                         bareLabel
-                        onClick={() => { setTheme('haze'); showToast('Default Theme: HAZE MODE'); }}
+                        onClick={() => { setTheme('haze'); showToast('Default Colorway: HAZE MODE'); }}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
@@ -295,7 +295,7 @@ export function ThemePicker() {
                 title="Triple-tap for Haze mode"
                 onClick={handleHeaderTap}
             >
-                DEFAULT THEME
+                DEFAULT COLORWAY
             </div>
             <div className="settings-pill-row theme-pills">
                 {PILLS.map((p) => (
@@ -309,7 +309,7 @@ export function ThemePicker() {
                         onClick={(e) => {
                             e.stopPropagation();
                             setTheme(p.key);
-                            showToast('Default Theme: ' + THEME_NAMES[p.key]);
+                            showToast('Default Colorway: ' + THEME_NAMES[p.key]);
                         }}
                     >
                         <span style={p.glyphStyle}>{p.glyph}</span>
