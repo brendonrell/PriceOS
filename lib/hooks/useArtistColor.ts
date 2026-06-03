@@ -17,11 +17,11 @@
  * input, persists the upper-cased value to localStorage, writes
  * `--artist-accent` on documentElement for any consumer that wants to
  * read it as a CSS var, and broadcasts a `pd:artist-color-changed`
- * window event so other hook instances + ThemeContext can react. The
+ * window event so other hook instances + ColorwayContext can react. The
  * hook returns `false` from `setColor` for invalid hex so the caller
  * (the hex text input) can revert its visible value.
  *
- * ThemeContext listens for the same event and re-applies the artist
+ * ColorwayContext listens for the same event and re-applies the custom
  * theme when it's currently active, which is the path that makes the
  * picker actually drive --bg-color / --text-color.
  */
