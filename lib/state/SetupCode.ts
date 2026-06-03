@@ -43,14 +43,14 @@
  */
 
 import type { PdNotifs } from './PdNotifsContext';
-import type { ThemeKey } from './ThemeContext';
+import type { ColorwayKey } from './ColorwayContext';
 import type { SortKey } from './SortContext';
 
 export type DecodedTape = 0 | 1 | 2 | 3 | 4;
 
 /** Map of pdNotifs flag-key → bool patches the decoded code wants applied. */
 export interface DecodedState {
-    theme: ThemeKey | null;
+    colorway: ColorwayKey | null;
     sort: SortKey | null;
     tape: DecodedTape;
     /** Patch object — pdNotifs key → true. Always-truthy by construction. */
@@ -68,8 +68,8 @@ export interface DecodeResult {
 // Sim 9713-9716. Order matters only for the "fall back to ARTS"
 // behaviour at sim 9807 — never to the encoded output, which always
 // places exactly one theme token at slot 0.
-const THEME_TO_TOKEN: Record<NonNullable<ThemeKey>, string> = {
-    artist:  'ARTS',
+const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
+    custom:  'ARTS',
     light:   'LITE',
     dark:    'DARK',
     orange:  'ORNG',
@@ -79,8 +79,8 @@ const THEME_TO_TOKEN: Record<NonNullable<ThemeKey>, string> = {
     haze:    'HAZE',
 };
 
-const TOKEN_TO_THEME: Record<string, ThemeKey> = Object.fromEntries(
-    Object.entries(THEME_TO_TOKEN).map(([k, v]) => [v, k as ThemeKey])
+const TOKEN_TO_COLORWAY: Record<string, ColorwayKey> = Object.fromEntries(
+    Object.entries(COLORWAY_TO_TOKEN).map(([k, v]) => [v, k as ColorwayKey])
 );
 
 // ── Sort tokens (sim 9717-9732) ────────────────────────────────
@@ -193,13 +193,13 @@ export const SETUP_CODE_FLAG_KEYS: ReadonlyArray<keyof PdNotifs> = [
  * side effects, safe to call inside a React render. Sim 9796-9829.
  */
 export function encodeSetupCode(
-    theme: ThemeKey,
+    colorway: ColorwayKey,
     sort: SortKey,
     notifs: PdNotifs
 ): string {
     // Theme — fall back to ARTS if the active theme key is the null Dot
     // default or otherwise unmapped (sim 9807).
-    const themeTok = (theme && THEME_TO_TOKEN[theme]) || THEME_TO_TOKEN.artist;
+    const themeTok = (colorway && COLORWAY_TO_TOKEN[colorway]) || COLORWAY_TO_TOKEN.custom;
 
     // Sort — fall back to IDAS if currentSort isn't in the table (sim 9810).
     const sortTok = SORT_TO_TOKEN[sort] || SORT_TO_TOKEN.id;
@@ -258,7 +258,7 @@ export function decodeSetupCode(raw: string): DecodeResult {
     if (tokens.length < 1) return { ok: false, error: 'Code too short' };
 
     const state: DecodedState = {
-        theme: null,
+        colorway: null,
         sort: null,
         tape: 0,
         flags: {},
@@ -266,8 +266,8 @@ export function decodeSetupCode(raw: string): DecodeResult {
     const unknown: string[] = [];
 
     for (const t of tokens) {
-        if (t in TOKEN_TO_THEME) {
-            state.theme = TOKEN_TO_THEME[t];
+        if (t in TOKEN_TO_COLORWAY) {
+            state.colorway = TOKEN_TO_COLORWAY[t];
         } else if (t in TOKEN_TO_SORT) {
             state.sort = TOKEN_TO_SORT[t];
         } else if (t in TOKEN_TO_TAPE) {
@@ -306,7 +306,7 @@ export function notifsPatchFromDecodedState(state: DecodedState): Partial<PdNoti
 
 // Re-exports for tests / debug usage from outside the workspaces module.
 export const _internal = {
-    THEME_TO_TOKEN, TOKEN_TO_THEME,
+    COLORWAY_TO_TOKEN, TOKEN_TO_COLORWAY,
     SORT_TO_TOKEN, TOKEN_TO_SORT,
     TAPE_TO_TOKEN, TOKEN_TO_TAPE,
     MODE_TOKEN_TO_KEY, MODE_KEY_TO_TOKEN,

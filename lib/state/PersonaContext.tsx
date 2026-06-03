@@ -9,7 +9,7 @@
  * debugPersona === 'default' (sim 12035), which is read by a handful of
  * CSS rules to hide PD-specific surfaces:
  *   - .stats-row-2  (sim 4107 / globals.css 2090) — Owned/Spent/Anchor
- *   - .t-artist     (sim 61) — artist tab on profile
+ *   - .t-custom     (sim 61) — artist tab on profile
  *   - .btn-soundtrack (sim 62) — soundtrack button
  *
  * Build 23 wires the body class only; the matching rules already live in

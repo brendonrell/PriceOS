@@ -46,7 +46,7 @@ import {
     type ReactNode,
 } from 'react';
 import { usePdNotifs } from './PdNotifsContext';
-import { useTheme } from './ThemeContext';
+import { useColorway } from './ColorwayContext';
 import { useSort } from './SortContext';
 import { useToast } from './ToastContext';
 import {
@@ -117,7 +117,7 @@ function freshDefaults(): Workspace[] {
 
 export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const { notifs, update: updateNotifs } = usePdNotifs();
-    const { theme, setTheme } = useTheme();
+    const { colorway, setColorway } = useColorway();
     const { sort, setSort } = useSort();
     const { showToast } = useToast();
 
@@ -194,7 +194,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
 
     const currentCode = useMemo(
         () => encodeSetupCode(theme, sort, notifs),
-        [theme, sort, notifs]
+        [colorway, sort, notifs]
     );
 
     /**
@@ -203,7 +203,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
      * Order matters:
      *   1. Reset every encoded flag to false (so switching codes drops
      *      previously-on flags) — handled by notifsPatchFromDecodedState.
-     *   2. Theme via ThemeContext.setTheme (writes CSS vars + localStorage).
+     *   2. Theme via ColorwayContext.setTheme (writes CSS vars + localStorage).
      *   3. Sort via SortContext.setSort.
      *   4. PdNotifs patch — single update() call, batched.
      *
@@ -213,8 +213,8 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
      */
     const applyDecodedState = useCallback(
         (state: DecodedState) => {
-            if (state.theme) setTheme(state.theme);
-            else setTheme('artist'); // default — ensures theme resets on every workspace load
+            if (state.colorway) setColorway(state.colorway);
+            else setColorway('artist'); // default — ensures theme resets on every workspace load
             if (state.sort)  setSort(state.sort);
             const patch = notifsPatchFromDecodedState(state);
             updateNotifs(patch);
@@ -249,7 +249,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             setActiveId(id);
             showToast('SAVED TO ' + ws.name.toUpperCase());
         },
-        [workspaces, theme, sort, notifs, showToast]
+        [workspaces, colorway, sort, notifs, showToast]
     );
 
     const saveCurrentAsNewWorkspace = useCallback(
@@ -269,7 +269,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             setActiveId(newId);
             showToast('SAVED');
         },
-        [workspaces, theme, sort, notifs, showToast]
+        [workspaces, colorway, sort, notifs, showToast]
     );
 
     const restoreDefaultWorkspace = useCallback(
