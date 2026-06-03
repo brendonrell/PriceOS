@@ -83,10 +83,15 @@ body.modal-open { overflow: hidden; touch-action: none; }
 /* Phone landscape — must appear AFTER the min-width:601px desktop block above.
    Landscape phones (~844px wide, ~390px tall) satisfy both queries simultaneously.
    Equal specificity means source order decides — this block must be last to win.
-   !important pair used (per codebase convention) as a second safety net. */
+   !important pair used (per codebase convention) as a second safety net.
+   overflow:hidden on the wrap is what actually prevents the canvas — which has
+   hard pixel dimensions set by the renderer — from escaping its flex cell. */
 @media (orientation: landscape) and (max-height: 500px) {
+    .modal-canvas-wrap {
+        overflow: hidden;
+    }
     #modalCanvas {
-        max-height: 100vh !important;
+        max-height: 100% !important;
         max-width: 100% !important;
     }
 }
