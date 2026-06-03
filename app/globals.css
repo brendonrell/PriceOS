@@ -2757,6 +2757,47 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
 
+/* ── COLLECTED BY row ─────────────────────────────────────── */
+.collected-by-row {
+    flex-wrap: wrap;
+    align-items: baseline;
+    row-gap: 2px;
+    column-gap: 4px;
+    line-height: 1;
+    overflow: visible;
+}
+.cbr-label {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: var(--text-color);
+}
+.cbr-name {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.cbr-name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+.cbr-others {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    color: inherit;
+}
+
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
 .stats-row {
     display: flex;
@@ -2925,7 +2966,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.6;
+    line-height: 1.2;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
@@ -3241,8 +3282,6 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     color: var(--text-color);
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
     margin: 0;
     align-self: flex-start;
 }

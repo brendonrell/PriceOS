@@ -26,7 +26,7 @@ const inter = Inter({
     display: 'swap',
 });
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
-import { ThemeProvider } from '../lib/state/ThemeContext';
+import { ColorwayProvider } from '../lib/state/ColorwayContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
@@ -69,15 +69,15 @@ const PREHYDRATION_SCRIPT = `
 (function () {
     try {
         // Per-page theme override (sim deviation). Project pages
-        // (/art/*) boot to the artist's custom colour when the user
+        // (/art/*) boot to the artist's custom color when the user
         // has NOT picked a global theme. Profile pages (/{handle}/*)
         // boot to Attention Yellow (#FFE600) — own slot, NOT linked
-        // to the artist custom colour. If the user has a saved pick,
+        // to the artist custom color. If the user has a saved pick,
         // that wins (the picker must work on every page).
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
 
-        // Profile-page detection mirrors ThemeContext's first-segment
+        // Profile-page detection mirrors ColorwayContext's first-segment
         // gate: not 'art', not 'api', not all-digits (output namespace),
         // matches the handle shape.
         var firstSeg = '';
@@ -91,19 +91,19 @@ const PREHYDRATION_SCRIPT = `
             /^[@a-z0-9_-]+$/i.test(firstSeg);
 
         var savedTheme = null;
-        try { savedTheme = localStorage.getItem('pd_settings_theme'); } catch (e) { /* ignore */ }
+        try { savedTheme = localStorage.getItem('pd_settings_colorway'); } catch (e) { /* ignore */ }
         // Hashsyn never persists — sim 12617-12618.
         if (savedTheme === 'hashsyn') savedTheme = null;
 
         var theme = savedTheme;
-        if (theme === null && isProjectPage) theme = 'artist';
+        if (colorway === null && isProjectPage) theme = 'artist';
         // Non-project, non-profile pages (home, etc.) also default to
-        // custom colour so the site never cold-starts with Dot defaults.
-        if (theme === null && !isProfilePage) theme = 'artist';
-        var profileBoot = (theme === null && isProfilePage);
+        // custom color so the site never cold-starts with Dot defaults.
+        if (colorway === null && !isProfilePage) theme = 'artist';
+        var profileBoot = (colorway === null && isProfilePage);
 
-        var THEMES = {
-            artist:  '#C488FF',
+        var COLORWAYS = {
+            custom:  '#C488FF',
             light:   '#e0e0e0',
             dark:    '#1a1a1a',
             orange:  '#ff6600',
@@ -116,7 +116,7 @@ const PREHYDRATION_SCRIPT = `
         // applyBgHex post-hydration. Without this, --mint-bg / --pill-l1-bg
         // / --modal-bg etc. fall through to the static globals.css
         // defaults (mint = #111111 / e0e0e0) → the hero CTA flashes black
-        // until ThemeContext's useEffect runs.
+        // until ColorwayContext's useEffect runs.
         function paintVars(bg, text, key) {
             var root = document.documentElement;
             var hex = bg.replace('#', '');
@@ -163,7 +163,7 @@ const PREHYDRATION_SCRIPT = `
             root.style.setProperty('--pill-l1-bg-img', pillL1BgImg);
             root.style.setProperty('--pill-l1-active-bg-img', pillL1ActiveBgImg);
 
-            // Sync Safari browser chrome colour to the live bg — sim line 6859.
+            // Sync Safari browser chrome color to the live bg — sim line 6859.
             // Without this Safari latches onto the static #111111 and repaints
             // its URL-bar/status-bar with a visible delay after the loader exits.
             var tcm = document.getElementById('theme-color-meta');
@@ -178,16 +178,16 @@ const PREHYDRATION_SCRIPT = `
             var pBg = '#FFE600';
             var pText = '#111111';
             paintVars(pBg, pText, null);
-        } else if (theme && THEMES[theme]) {
-            var bg = THEMES[theme];
+        } else if (colorway && COLORWAYS[colorway]) {
+            var bg = COLORWAYS[colorway];
 
             // When theme is 'artist' (project-page boot default OR user
             // pick), read the user's saved custom hex from
-            // pd_artist_color so the page paints the picked colour
-            // instead of the static THEMES.artist fallback.
-            if (theme === 'artist') {
+            // pd_custom_color so the page paints the picked color
+            // instead of the static COLORWAYS.artist fallback.
+            if (colorway === 'custom') {
                 try {
-                    var savedArtistColor = localStorage.getItem('pd_artist_color');
+                    var savedArtistColor = localStorage.getItem('pd_custom_color');
                     if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
                         bg = savedArtistColor.toUpperCase();
                     }
@@ -202,8 +202,8 @@ const PREHYDRATION_SCRIPT = `
             try {
                 notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
             } catch (e) { /* ignore */ }
-            if (notifs && theme === 'light' && notifs.pure_light) bg = '#ffffff';
-            if (notifs && theme === 'dark'  && notifs.pure_dark)  bg = '#000000';
+            if (notifs && colorway === 'light' && notifs.pure_light) bg = '#ffffff';
+            if (notifs && colorway === 'dark'  && notifs.pure_dark)  bg = '#000000';
 
             var hex = bg.replace('#', '');
             var r = parseInt(hex.substr(0, 2), 16) || 0;
@@ -212,10 +212,10 @@ const PREHYDRATION_SCRIPT = `
             var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             var text = yiq >= 128 ? '#111111' : '#e0e0e0';
 
-            paintVars(bg, text, theme);
+            paintVars(bg, text, colorway);
 
             if (document.body) {
-                document.body.classList.add('theme-' + theme);
+                document.body.classList.add('theme-' + colorway);
                 if (r > g + 40 && r > b + 40 && r > 100) {
                     document.body.classList.add('bg-is-red');
                 }
@@ -349,7 +349,7 @@ const LOADER_HTML = `<style>
  * stays inside it.
  *
  * Build 23 — PersonaProvider mounts at the top of the tree alongside
- * ThemeProvider. Persona has no other context dependencies (it just
+ * ColorwayProvider. Persona has no other context dependencies (it just
  * owns body.persona-default and exposes window.setDebugPersona) so
  * placement is purely organizational.
  *
@@ -446,7 +446,7 @@ export default async function RootLayout({
                     initialState={initialState}
                     initialAuth={initialAuth}
                 >
-                    <ThemeProvider>
+                    <ColorwayProvider>
                         <PersonaProvider>
                             <PdNotifsProvider>
                                 <SortProvider>
@@ -474,7 +474,7 @@ export default async function RootLayout({
                                 </SortProvider>
                             </PdNotifsProvider>
                         </PersonaProvider>
-                    </ThemeProvider>
+                    </ColorwayProvider>
                 </WalletProviders>
             </body>
         </html>
