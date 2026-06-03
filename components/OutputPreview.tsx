@@ -22,7 +22,7 @@
  *
  * Surfaces deferred (each rides with its own ship):
  *   - ArtEngine canvas render → seeded HSL placeholder for now;
- *     each id gets a stable colour triplet so prev/next nav still
+ *     each id gets a stable color triplet so prev/next nav still
  *     reads as "different artwork".
  *   - Calc Sheet → ƒ tab is wired but currently shows placeholder
  *     toast. Sheet renderer is the next ship.
@@ -115,7 +115,7 @@ import { useCart } from '../lib/state/CartContext';
 import type { OutputDetailResponse } from '../app/api/output/[id]/route';
 
 /* iOS variant selector 15 — forces the preceding glyph to render in its
-   text-style form (mono, no emoji colour). Required for every Unicode
+   text-style form (mono, no emoji color). Required for every Unicode
    glyph the modal paints; matches sim's `&#xFE0E;` everywhere. */
 const VS15 = '\uFE0E';
 

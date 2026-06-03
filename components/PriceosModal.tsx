@@ -110,7 +110,7 @@ const CHANGELOG: ChangelogEntry[] = [
         v: 'v1.0.39',
         date: 'APR 28 2026',
         items: [
-            'Artist color persistence + migration (localStorage.pd_artist_color).',
+            'Artist color persistence + migration (localStorage.pd_custom_color).',
             'Workspace default migration (_OLD_DEFAULT_CODES).',
         ],
     },
