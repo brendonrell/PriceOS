@@ -26,7 +26,7 @@
  * workspace's saved code. The Setup Code field tracks live; the workspace
  * stays at its snapshot until explicitly re-saved via SAVE HERE. Init
  * does NOT auto-apply the active workspace's code — other localStorage
- * restores (theme/sort/notifs) already handle resume.
+ * restores (colorway/sort/notifs) already handle resume.
  *
  * Default migration (sim 10170-10188 + _OLD_DEFAULT_CODES at 10133-10141):
  * when a default's shipped code changes, the OLD code goes into the
@@ -193,7 +193,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     }, [workspaces, activeId]);
 
     const currentCode = useMemo(
-        () => encodeSetupCode(theme, sort, notifs),
+        () => encodeSetupCode(colorway, sort, notifs),
         [colorway, sort, notifs]
     );
 
@@ -203,7 +203,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
      * Order matters:
      *   1. Reset every encoded flag to false (so switching codes drops
      *      previously-on flags) — handled by notifsPatchFromDecodedState.
-     *   2. Theme via ColorwayContext.setTheme (writes CSS vars + localStorage).
+     *   2. Colorway via ColorwayContext.setColorway (writes CSS vars + localStorage).
      *   3. Sort via SortContext.setSort.
      *   4. PdNotifs patch — single update() call, batched.
      *
@@ -214,12 +214,12 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const applyDecodedState = useCallback(
         (state: DecodedState) => {
             if (state.colorway) setColorway(state.colorway);
-            else setColorway('artist'); // default — ensures theme resets on every workspace load
+            else setColorway('custom'); // default — ensures colorway resets on every workspace load
             if (state.sort)  setSort(state.sort);
             const patch = notifsPatchFromDecodedState(state);
             updateNotifs(patch);
         },
-        [setTheme, setSort, updateNotifs]
+        [setColorway, setSort, updateNotifs]
     );
 
     const loadWorkspace = useCallback(
@@ -242,7 +242,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         (id: number) => {
             const ws = workspaces.find((w) => w.id === id);
             if (!ws) return;
-            const code = encodeSetupCode(theme, sort, notifs);
+            const code = encodeSetupCode(colorway, sort, notifs);
             setWorkspaces((prev) =>
                 prev.map((w) => (w.id === id ? { ...w, code } : w))
             );
@@ -258,7 +258,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
                 showToast('Workspace cap reached');
                 return;
             }
-            const code = encodeSetupCode(theme, sort, notifs);
+            const code = encodeSetupCode(colorway, sort, notifs);
             const newId =
                 workspaces.reduce((m, w) => Math.max(m, w.id), 0) + 1;
             const trimmed = (name || 'WS' + newId).slice(0, 24);
