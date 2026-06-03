@@ -94,7 +94,7 @@ function readHazeColor(): string {
 }
 
 export function ColorwayPicker() {
-    const { colorway: theme, setColorway: setTheme } = useColorway();
+    const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
     const [hazeMode, setHazeMode] = useState(false);
@@ -120,7 +120,7 @@ export function ColorwayPicker() {
 
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
-        if (theme === 'haze') setTheme('haze');
+        if (colorway === 'haze') setColorway('haze');
     };
 
     const handleVariationCycle = (e: React.MouseEvent) => {
@@ -130,7 +130,7 @@ export function ColorwayPicker() {
         setHazeVariation(next);
         enableHazeVariation(next, readHazeColor(), (hex) => applyBgHex(hex, 'haze'));
         showToast(`Haze Mode: ${VARIATION_LABELS[next]}`);
-        if (theme !== 'haze') setTheme('haze');
+        if (colorway !== 'haze') setColorway('haze');
     };
 
     if (hazeMode) {
@@ -150,11 +150,11 @@ export function ColorwayPicker() {
                         no icon prop so no st-icon span with margin-right */}
                     <SettingsToggle
                         id="st-haze"
-                        active={theme === 'haze'}
+                        active={colorway === 'haze'}
                         title="Haze Mode"
                         label="HZ"
                         bareLabel
-                        onClick={() => { setTheme('haze'); showToast('Default Colorway: HAZE MODE'); }}
+                        onClick={() => { setColorway('haze'); showToast('Default Colorway: HAZE MODE'); }}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
@@ -303,12 +303,12 @@ export function ColorwayPicker() {
                         key={p.key}
                         type="button"
                         id={`st-${p.key}`}
-                        className={`pill-colorway ${p.cls}${theme === p.key ? ' active' : ''}`}
+                        className={`pill-colorway ${p.cls}${colorway === p.key ? ' active' : ''}`}
                         title={p.title}
-                        aria-pressed={theme === p.key}
+                        aria-pressed={colorway === p.key}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setTheme(p.key);
+                            setColorway(p.key);
                             showToast('Default Colorway: ' + THEME_NAMES[p.key]);
                         }}
                     >

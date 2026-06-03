@@ -219,7 +219,7 @@ export function MyPdSection({ onTripleTap }: Props) {
          1. Flip pdNotifs.pure_light / pdNotifs.pure_dark.
          2. Persist to localStorage (the toggle() helper handles this).
          3. Dispatch pd:pure-mode-changed so ColorwayContext re-applies
-            on the active theme key (picks up the bg-hex override).
+            on the active colorway key (picks up the bg-hex override).
          4. If now ON: setAndSaveTheme(mode) — switch theme to light/dark
             AND persist (so the user's saved theme becomes light/dark).
          5. If now OFF: setColorway(savedKey) — restore whatever theme is
@@ -237,7 +237,7 @@ export function MyPdSection({ onTripleTap }: Props) {
         // PdNotifs → LS sync goes through a useEffect that fires AFTER
         // the next commit, but setColorway(mode) below synchronously calls
         // applyColorway which reads LS. So we MUST write the new flag to LS
-        // here, BEFORE setTheme, or applyColorway reads the stale value and
+        // here, BEFORE setColorway, or applyColorway reads the stale value and
         // the bg-hex override misses by one click. The PdNotifs effect
         // will later re-write LS with the same value once the React state
         // commit catches up — safe no-op.
@@ -254,7 +254,7 @@ export function MyPdSection({ onTripleTap }: Props) {
         toggle(stateKey);
 
         if (next) {
-            // Sim 9314 — setAndSaveTheme(mode). setTheme via context
+            // Sim 9314 — setAndSaveColorway(mode). setColorway via context
             // already writes the theme to localStorage in its callback.
             setColorway(mode);
         } else {
@@ -270,7 +270,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             }
         }
 
-        // Belt-and-suspenders re-apply for the case where setTheme above
+        // Belt-and-suspenders re-apply for the case where setColorway above
         // was a no-op (e.g. pure_dark flipping while theme is already
         // 'dark' — setColorway('dark') sees no theme change but applyColorway
         // still needs to fire to pick up the new pure flag).
