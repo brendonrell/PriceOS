@@ -35,24 +35,24 @@
 
 
 /* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
-/* Base: Dot (#111111) as the basis colour for the site. Attention Yellow
+/* Base: Dot (#111111) as the basis color for the site. Attention Yellow
    (#FFE600) is no longer the site basis — it lives only as (a) the default
-   artist custom colour and (b) the default profile theme colour.
+   artist custom color and (b) the default profile theme color.
    Per-page themes override this base on render:
-     - Project pages (/art/*): artist's custom colour. The prehydration
-       script in app/layout.tsx + ThemeContext both check pathname and
-       paint the artist hex (from pd_artist_color in localStorage) over
+     - Project pages (/art/*): artist's custom color. The prehydration
+       script in app/layout.tsx + ColorwayContext both check pathname and
+       paint the artist hex (from pd_custom_color in localStorage) over
        this default before first paint and on every route change.
-     - Profile pages (Profile Page v0): profile owner's theme colour.
-     - All other pages: user's saved global theme, or this base if none.
+     - Profile pages (Profile Page v0): profile owner's theme color.
+     - All other pages: user's saved global colorway, or this base if none.
    These CSS defaults only show in the rare window before the
    prehydration script runs — that script paints synchronously based
    on pathname + saved values before first frame. */
 :root {
-    /* Defaults match the artist/custom-colour output of paintVars so
+    /* Defaults match the artist/custom-color output of paintVars so
        the page renders correctly before the pre-hydration script fires.
        The script overwrites these synchronously for users with saved
-       themes; unauthenticated users see exactly this colour. */
+       themes; unauthenticated users see exactly this color. */
     --bg-color:     #C488FF;
     --text-color:   #111111;
     --border-color: rgba(0, 0, 0, 0.15);
@@ -1230,7 +1230,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
    Dropdown context: .user-dropdown sets background:var(--text-color) and
    color:var(--bg-color), so inside the dropdown --bg-color is the visible
-   text colour (light/orange) and --text-color is the dark dropdown surface.
+   text color (light/orange) and --text-color is the dark dropdown surface.
    ────────────────────────────────────────────────────────── */
 #tapeBox .notif-header {
     padding: 4px 0 !important;
@@ -2718,7 +2718,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     gap: 6px;
     color: var(--text-color);
 }
-.project-artist { align-items: baseline; }
+.project-custom { align-items: baseline; }
 .by-text { font-size: 13px; font-weight: bold; }
 .artist-lockup { display: flex; align-items: baseline; }
 .artist-lockup a {
@@ -2756,47 +2756,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     text-decoration-thickness: 1px;
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
-
-/* ── COLLECTED BY row ─────────────────────────────────────── */
-.collected-by-row {
-    flex-wrap: wrap;
-    align-items: baseline;
-    row-gap: 2px;
-    column-gap: 4px;
-    line-height: 1;
-    overflow: visible;
-}
-.cbr-label {
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 11px;
-    font-weight: normal;
-    text-transform: uppercase;
-    color: var(--text-color);
-}
-.cbr-name {
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 11px;
-    font-weight: normal;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-}
-.cbr-name:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1px;
-}
-.cbr-others {
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-size: 11px;
-    font-weight: normal;
-    text-transform: uppercase;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-    color: inherit;
-}
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
 .stats-row {
@@ -2852,7 +2811,7 @@ body.zen-mode .stats-grid { display: none !important; }
 .stat-val-owners,
 .stats-row-2 .stat-item-anchor .stat-val { cursor: pointer; }
 .stats-row-2 .stat-item-anchor .stat-val:hover { opacity: 0.75; }
-body.persona-default .t-artist { display: none !important; }
+body.persona-default .t-custom { display: none !important; }
 body.persona-default .stats-row-2 { display: none !important; }
 .stats-row-2 .stat-icon-owned,
 .stats-row-2 .stat-icon-spent { font-size: 17px; }
@@ -2966,7 +2925,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.6;
     color: var(--text-color);
     opacity: 1;
     max-width: 100%;
@@ -3282,18 +3241,20 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     color: var(--text-color);
     flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
     margin: 0;
     align-self: flex-start;
 }
 @media (min-width: 601px) { .sort-bar { font-size: 14px; } }
 
 /* ── THEME PILLS (sort-bar left cluster) — sim 2304-2308 ── */
-.theme-pills {
+.colorway-pills {
     display: flex;
     gap: 6px;
     margin-right: 6px;
 }
-.pill-theme {
+.pill-colorway {
     background: var(--stat-bg);
     border: 1px solid var(--border-color);
     color: var(--text-color);
@@ -3307,7 +3268,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     align-items: center;
     justify-content: center;
 }
-.pill-theme span {
+.pill-colorway span {
     font-size: 18px;
     font-weight: normal;
     font-family: 'Courier New', Courier, monospace;
@@ -3315,12 +3276,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     align-items: center;
     justify-content: center;
 }
-.pill-theme.active {
+.pill-colorway.active {
     border-color: var(--text-color);
     background: var(--text-color);
     color: var(--bg-color);
 }
-.theme-br-dot {
+.colorway-br-dot {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
     font-weight: bold;
@@ -3978,7 +3939,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* ms-check-badge — top-right of canvas-wrapper.
    ❐ (U+2750) when unselected, ▣ (U+25A3) when selected.
    Two font sizes larger than the previous draft (was 16px → now 20px).
-   Text-shadow halos it against any artwork colour. */
+   Text-shadow halos it against any artwork color. */
 .ms-check-badge {
     position: absolute;
     top: 6px;
@@ -4242,7 +4203,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: relative;
 }
-body.theme-dark .canvas-wrapper {
+body.colorway-dark .canvas-wrapper {
     box-shadow: 0 2px 20px rgba(255, 255, 255, 0.07);
 }
 
@@ -4401,7 +4362,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
        a saturated bg, so the white-on-color hover felt jarring). Per
        Brendon, theme-aware = no new color introduced. Opacity-only
        hover keeps the existing color palette and just lifts the
-       button slightly. The --btn-user-hover variable + ThemeContext
+       button slightly. The --btn-user-hover variable + ColorwayContext
        writes are left in place (vestigial but harmless) so removing
        this rule cleanly is one CSS edit. */
     .btn-user:hover { opacity: 0.85; }
@@ -4470,7 +4431,7 @@ body.pricelens-mode .meta-owner.price-trigger::before {
 /* ── BUDGET (ambient in-reach signal) — sim 3952-4043 ──
    F57 (BUG-10). When a user-defined budget is active, every card not-in-budget
    recedes via opacity only (no desaturation — these are generative artworks,
-   dimming their colour would disrespect the art). In-budget cards render at
+   dimming their color would disrespect the art). In-budget cards render at
    full strength so the market stays intact; the user's position within it
    becomes visually clear without filtering anything out. APR 23. */
 body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.search-hidden) {
@@ -4534,7 +4495,7 @@ body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigge
    Ambient multi-color glow AROUND each artwork. Sits behind the card via
    a ::before pseudo on .output-card with negative inset (extends ~16px
    outward). Slowly-rotating conic gradient across 6 theme-compatible
-   hues so every thumbnail reads as haloed in a living, shifting colour
+   hues so every thumbnail reads as haloed in a living, shifting color
    field. CRUCIALLY: does NOT touch .canvas-wrapper, overflow, z-index
    of interior elements, or anything above the card. `isolation: isolate`
    creates a local stacking context so z-index:-1 pushes the halo behind
@@ -5050,8 +5011,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         gap: 10px !important;
         flex-wrap: nowrap !important;
     }
-    .pill-theme.t-light span,
-    .pill-theme.t-dark span { font-size: 22px; }
+    .pill-colorway.t-light span,
+    .pill-colorway.t-dark span { font-size: 22px; }
     .info-rubik {
         line-height: 1.25 !important;
         display: inline-block;
@@ -5187,28 +5148,28 @@ body.redacted-mode .collectors-list .hover-link {
     -webkit-text-fill-color: transparent !important;
     text-decoration: none !important;
 }
-body.theme-dark.redacted-mode .modal-title,
-body.theme-dark.redacted-mode .modal-fields .mf-val,
-body.theme-dark.redacted-mode .collectors-list .hover-link { background: rgba(224,224,224,0.88) !important; }
+body.colorway-dark.redacted-mode .modal-title,
+body.colorway-dark.redacted-mode .modal-fields .mf-val,
+body.colorway-dark.redacted-mode .collectors-list .hover-link { background: rgba(224,224,224,0.88) !important; }
 /* Dark Mode: light bars against dark bg */
-body.theme-dark.redacted-mode .user-text,
-body.theme-dark.redacted-mode .settings-wallet,
-body.theme-dark.redacted-mode .pill-ens,
-body.theme-dark.redacted-mode .meta-owner:not(.price-trigger),
-body.theme-dark.redacted-mode .f-highlight,
-body.theme-dark.redacted-mode .modal-artist,
-body.theme-dark.redacted-mode .artist-lockup,
-body.theme-dark.redacted-mode .artist-name-txt,
-body.theme-dark.redacted-mode .notif-item,
-body.theme-dark.redacted-mode .info-line .profile-link,
-body.theme-dark.redacted-mode .info-line .open-modal-text,
-body.theme-dark.redacted-mode .ascii-sprite,
-body.theme-dark.redacted-mode .collected-sprite,
-body.theme-dark.redacted-mode .tape-item,
-body.theme-dark.redacted-mode .cal-event-title,
-body.theme-dark.redacted-mode .cal-event-item,
-body.theme-dark.redacted-mode .topbarcal-events,
-body.theme-dark.redacted-mode .project-title { background: rgba(224,224,224,0.88) !important; }
+body.colorway-dark.redacted-mode .user-text,
+body.colorway-dark.redacted-mode .settings-wallet,
+body.colorway-dark.redacted-mode .pill-ens,
+body.colorway-dark.redacted-mode .meta-owner:not(.price-trigger),
+body.colorway-dark.redacted-mode .f-highlight,
+body.colorway-dark.redacted-mode .modal-artist,
+body.colorway-dark.redacted-mode .artist-lockup,
+body.colorway-dark.redacted-mode .artist-name-txt,
+body.colorway-dark.redacted-mode .notif-item,
+body.colorway-dark.redacted-mode .info-line .profile-link,
+body.colorway-dark.redacted-mode .info-line .open-modal-text,
+body.colorway-dark.redacted-mode .ascii-sprite,
+body.colorway-dark.redacted-mode .collected-sprite,
+body.colorway-dark.redacted-mode .tape-item,
+body.colorway-dark.redacted-mode .cal-event-title,
+body.colorway-dark.redacted-mode .cal-event-item,
+body.colorway-dark.redacted-mode .topbarcal-events,
+body.colorway-dark.redacted-mode .project-title { background: rgba(224,224,224,0.88) !important; }
 
 /* sim 3872-3879 — ANON MODE (project page hides). Hides
    identity-bearing surfaces on the project page when the user
@@ -5235,7 +5196,7 @@ body.anon-mode #artistsPanel .pill-artist-filter[data-rel="followers"] { display
    minimal hero + gallery view. .stats-row hide here is technically
    redundant with the existing .stats-grid rule but matches sim
    verbatim and is harmless. */
-body.zen-mode .project-artist,
+body.zen-mode .project-custom,
 body.zen-mode .info-line,
 body.zen-mode .stats-row,
 body.zen-mode .action-row,
@@ -5460,7 +5421,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     position: relative; top: 1px; display: inline-block;
 }
 /* 7-day strip — each cell is letter + count. Tap selects a day;
-   selected cell inverts colour so it's obvious which day's events
+   selected cell inverts color so it's obvious which day's events
    the ticker is showing. */
 .topbarcal-days {
     display: inline-flex; align-items: center; gap: 6px;
@@ -5688,7 +5649,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 }
 
 /* RPC ping pill — pure black background, white default text,
-   coloured ms readout. Always sits at the right end of the row. */
+   colored ms readout. Always sits at the right end of the row. */
 .rpc-ping-display {
     display: none; align-items: center; gap: 6px;
     background: #0a0a0a !important; color: #ffffff !important;
@@ -5719,7 +5680,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 .hammer-bar-pill.active { display: inline-flex; }
 
 /* Filtering state for the Hammer pill — sim 1170-1181. Inverted
-   colours signal the muted-only filter is engaged. The wireup for
+   colors signal the muted-only filter is engaged. The wireup for
    toggleMutedFilter() is NOT yet ported (mute UI itself is pending),
    so this rule sits dormant until those land — matches the pattern
    used by SpellBookSection's .hammer-badge slot in Build 32. */
