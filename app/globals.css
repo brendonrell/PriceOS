@@ -3280,8 +3280,6 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     color: var(--text-color);
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
     margin: 0;
     align-self: flex-start;
 }
