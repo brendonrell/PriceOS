@@ -12,7 +12,7 @@
  *   IF spellBookActive:
  *     SPELL BOOK section
  *   ELSE:
- *     MY PD section + divider + DEFAULT THEME + divider + DEFAULT SORT
+ *     MY PD section + divider + DEFAULT COLORWAY + divider + DEFAULT SORT
  *     + divider + MY PINGS
  *   ── (no divider) ──
  *   WORKSPACE SWITCHER (always visible at the bottom)
@@ -41,7 +41,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useDropdown } from '../../../lib/state/DropdownContext';
 import { WalletSection } from './WalletSection';
 import { MyPdSection } from './MyPdSection';
-import { ThemePicker } from './ThemePicker';
+import { ColorwayPicker } from './ColorwayPicker';
 import { DefaultSortRow } from './DefaultSortRow';
 import { MyPingsRow } from './MyPingsRow';
 import { SpellBookSection } from './SpellBookSection';
@@ -113,7 +113,7 @@ export function SettingsView() {
                     <>
                         <MyPdSection onTripleTap={() => setSpellBookActive(true)} />
                         <div className="dropdown-divider" />
-                        <ThemePicker />
+                        <ColorwayPicker />
                         <div className="dropdown-divider" />
                         <DefaultSortRow />
                         <div className="dropdown-divider" />

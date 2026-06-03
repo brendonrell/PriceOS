@@ -22,11 +22,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
-import { useTheme } from '../../../lib/state/ThemeContext';
+import { useColorway } from '../../../lib/state/ColorwayContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
-import { useArtistColor } from '../../../lib/hooks/useArtistColor';
+import { useCustomColor } from '../../../lib/hooks/useCustomColor';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { SettingsToggle } from './SettingsToggle';
 
@@ -40,7 +40,7 @@ interface Props {
 
 export function MyPdSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
-    const { theme, setTheme } = useTheme();
+    const { colorway, setColorway } = useColorway();
     const { setSort } = useSort();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
@@ -48,13 +48,13 @@ export function MyPdSection({ onTripleTap }: Props) {
     const isAuthed = !!siweAddress;
 
     /* F64 (BUG-28) — artist-color picker is now live + persistent.
-       useArtistColor owns the storage + migration; this section owns the
+       useCustomColor owns the storage + migration; this section owns the
        UI surface (hidden <input type="color"> wired to the pill, visible
        hex text input with validate-on-blur, copy button). When the active
-       theme is 'artist', ThemeContext re-applies on each color change so
+       theme is 'custom', ColorwayContext re-applies on each color change so
        the page actually responds. */
-    const { color: artistColor, setColor: setArtistColor } = useArtistColor();
-    const [hexField, setHexField] = useState<string>(artistColor);
+    const { color: customColor, setColor: setCustomColor } = useCustomColor();
+    const [hexField, setHexField] = useState<string>(customColor);
     const copyingHexRef = useRef(false);
     const editingHexRef = useRef(false);
     const colorPickerRef = useRef<HTMLInputElement | null>(null);
@@ -65,7 +65,7 @@ export function MyPdSection({ onTripleTap }: Props) {
        toggle only for v0 — User Showcase grid wiring lands when persistence
        + slot model arrive. Persisted to localStorage `pd_user_showcase_mode`
        so the picked mode survives reload. SSR-safe via the typeof
-       window guard pattern useArtistColor uses. */
+       window guard pattern useCustomColor uses. */
     const USER_SHOWCASE_KEY = 'pd_user_showcase_mode';
     const [userShowcaseMode, setUserShowcaseModeState] = useState<'static' | 'generative'>('static');
     useEffect(() => {
@@ -95,8 +95,8 @@ export function MyPdSection({ onTripleTap }: Props) {
     useEffect(() => {
         if (editingHexRef.current) return;
         if (copyingHexRef.current) return;
-        setHexField(artistColor);
-    }, [artistColor]);
+        setHexField(customColor);
+    }, [customColor]);
 
     // Build 26 D12 — setup-code field is now live + interactive.
     // The displayed value tracks `currentCode` (encoded from theme + sort
@@ -218,26 +218,26 @@ export function MyPdSection({ onTripleTap }: Props) {
        Sim 9308-9320 togglePure(mode):
          1. Flip pdNotifs.pure_light / pdNotifs.pure_dark.
          2. Persist to localStorage (the toggle() helper handles this).
-         3. Dispatch pd:pure-mode-changed so ThemeContext re-applies
+         3. Dispatch pd:pure-mode-changed so ColorwayContext re-applies
             on the active theme key (picks up the bg-hex override).
          4. If now ON: setAndSaveTheme(mode) — switch theme to light/dark
             AND persist (so the user's saved theme becomes light/dark).
-         5. If now OFF: setTheme(savedKey) — restore whatever theme is
+         5. If now OFF: setColorway(savedKey) — restore whatever theme is
             in localStorage (which may itself be 'light' or 'dark', but
-            with the pure flag now false, applyTheme returns the standard
+            with the pure flag now false, applyColorway returns the standard
             #e0e0e0 / #1a1a1a bg).
          6. Toast 'Pure Light/Dark ON/OFF'. */
     const togglePure = (mode: 'light' | 'dark') => {
         const stateKey = (mode === 'light' ? 'pure_light' : 'pure_dark') as keyof PdNotifs;
         const next = !notifs[stateKey];
 
-        // CRITICAL ORDERING: applyTheme reads pure_light/pure_dark from
-        // localStorage (ThemeContext lives upstream of PdNotifsContext, so
+        // CRITICAL ORDERING: applyColorway reads pure_light/pure_dark from
+        // localStorage (ColorwayContext lives upstream of PdNotifsContext, so
         // it can't useNotifs() — it reads LS directly). React state +
         // PdNotifs → LS sync goes through a useEffect that fires AFTER
-        // the next commit, but setTheme(mode) below synchronously calls
-        // applyTheme which reads LS. So we MUST write the new flag to LS
-        // here, BEFORE setTheme, or applyTheme reads the stale value and
+        // the next commit, but setColorway(mode) below synchronously calls
+        // applyColorway which reads LS. So we MUST write the new flag to LS
+        // here, BEFORE setTheme, or applyColorway reads the stale value and
         // the bg-hex override misses by one click. The PdNotifs effect
         // will later re-write LS with the same value once the React state
         // commit catches up — safe no-op.
@@ -247,7 +247,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             parsed[stateKey] = next;
             localStorage.setItem('pd_settings_notifs', JSON.stringify(parsed));
         } catch {
-            /* private mode / quota — applyTheme will read whatever LS has,
+            /* private mode / quota — applyColorway will read whatever LS has,
                worst case the override misses one click. */
         }
 
@@ -256,23 +256,23 @@ export function MyPdSection({ onTripleTap }: Props) {
         if (next) {
             // Sim 9314 — setAndSaveTheme(mode). setTheme via context
             // already writes the theme to localStorage in its callback.
-            setTheme(mode);
+            setColorway(mode);
         } else {
-            // Sim 9316 — setTheme(localStorage.getItem('pd_settings_theme') || 'artist').
+            // Sim 9316 — setColorway(localStorage.getItem('pd_settings_colorway') || 'custom').
             try {
-                const saved = localStorage.getItem('pd_settings_theme');
-                const valid = saved && (saved === 'artist' || saved === 'light' || saved === 'dark' || saved === 'orange' || saved === 'blue' || saved === 'red')
+                const saved = localStorage.getItem('pd_settings_colorway');
+                const valid = saved && (saved === 'custom' || saved === 'light' || saved === 'dark' || saved === 'orange' || saved === 'blue' || saved === 'red')
                     ? (saved as 'artist' | 'light' | 'dark' | 'orange' | 'blue' | 'red')
-                    : 'artist';
-                setTheme(valid);
+                    : 'custom';
+                setColorway(valid);
             } catch {
-                setTheme('artist');
+                setColorway('artist');
             }
         }
 
         // Belt-and-suspenders re-apply for the case where setTheme above
         // was a no-op (e.g. pure_dark flipping while theme is already
-        // 'dark' — setTheme('dark') sees no theme change but applyTheme
+        // 'dark' — setColorway('dark') sees no theme change but applyColorway
         // still needs to fire to pick up the new pure flag).
         try {
             window.dispatchEvent(new CustomEvent('pd:pure-mode-changed'));
@@ -376,7 +376,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                     writes the current color to the clipboard and swaps
                     the field to "COPIED" for 1500ms. */}
                 <div className="settings-pill-row">
-                    {/* F64 (BUG-28) — iOS native colour picker fix.
+                    {/* F64 (BUG-28) — iOS native color picker fix.
                         Sim 4610-4613 wraps the hidden <input type="color">
                         inside a <label> — a label click is a trusted user
                         gesture on iOS so the native picker fires. A
@@ -397,8 +397,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                             ref={colorPickerRef}
                             type="color"
                             id="profileColorPicker"
-                            value={artistColor}
-                            onChange={(e) => setArtistColor(e.target.value)}
+                            value={customColor}
+                            onChange={(e) => setCustomColor(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                             tabIndex={-1}
                             aria-hidden="true"
@@ -431,7 +431,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             // complete 6-digit hex; intermediate states
                             // (e.g. "#FF") just update the visible field.
                             if (/^#[0-9A-F]{6}$/i.test(v)) {
-                                setArtistColor(v);
+                                setCustomColor(v);
                             }
                         }}
                         onBlur={() => {
@@ -439,7 +439,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             if (!/^#[0-9A-F]{6}$/i.test(hexField)) {
                                 // Invalid hex on blur — revert to the
                                 // last known good color.
-                                setHexField(artistColor);
+                                setHexField(customColor);
                             } else {
                                 // Normalize casing for valid input.
                                 setHexField(hexField.toUpperCase());
@@ -449,7 +449,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             if (e.key === 'Enter') {
                                 (e.currentTarget as HTMLInputElement).blur();
                             } else if (e.key === 'Escape') {
-                                setHexField(artistColor);
+                                setHexField(customColor);
                                 (e.currentTarget as HTMLInputElement).blur();
                             }
                         }}
@@ -462,7 +462,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={(e) => {
                             e.stopPropagation();
                             try {
-                                navigator.clipboard?.writeText(artistColor);
+                                navigator.clipboard?.writeText(customColor);
                             } catch {
                                 // ignore
                             }
@@ -470,7 +470,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             setHexField('✓ COPIED');
                             window.setTimeout(() => {
                                 copyingHexRef.current = false;
-                                setHexField(artistColor);
+                                setHexField(customColor);
                             }, 1500);
                         }}
                     >
