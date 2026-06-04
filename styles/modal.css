@@ -83,16 +83,54 @@ body.modal-open { overflow: hidden; touch-action: none; }
 /* Phone landscape — must appear AFTER the min-width:601px desktop block above.
    Landscape phones (~844px wide, ~390px tall) satisfy both queries simultaneously.
    Equal specificity means source order decides — this block must be last to win.
-   !important pair used (per codebase convention) as a second safety net.
-   overflow:hidden on the wrap is what actually prevents the canvas — which has
-   hard pixel dimensions set by the renderer — from escaping its flex cell. */
+   #modal is hidden; #modalLandscape takes over with a fresh layout. */
 @media (orientation: landscape) and (max-height: 500px) {
-    .modal-canvas-wrap {
-        overflow: hidden;
+    /* Hide the portrait modal entirely */
+    #modal { display: none !important; }
+
+    /* Show the landscape modal */
+    #modalLandscape.ls-modal {
+        display: none;
+        flex-direction: column;
+        padding: 0;
+        justify-content: flex-start;
     }
-    #modalCanvas {
-        max-height: 100% !important;
-        max-width: 100% !important;
+    #modalLandscape.ls-modal.active {
+        display: flex;
+    }
+
+    /* Canvas fills all space above the bottom bar */
+    .ls-canvas-wrap {
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+    .ls-canvas-wrap #modalCanvasLs {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto !important;
+        height: auto;
+        display: block;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        user-select: none;
+        -webkit-touch-callout: default;
+    }
+
+    /* Bottom bar: single row, all elements inline, no wrapping */
+    .ls-bottom-bar {
+        flex-shrink: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 16px calc(6px + env(safe-area-inset-bottom, 0px)) 16px;
+        box-sizing: border-box;
     }
 }
 
