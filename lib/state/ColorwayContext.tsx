@@ -382,13 +382,14 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             // a CEO miscommunication; the picker has to work everywhere.
             applyBgHex(getCustomBg(), 'custom');
         } else if (isProfilePage && savedColorway === null) {
-            // Profile pages with NO user colorway pick boot to Attention
-            // Yellow. The synthetic `null` key keeps the body class
-            // flags off (no colorway-* class added) — this is the boot
-            // default, not a picker selection. Per-user profile colorway
-            // override (MY PD settings native picker) lands later as a
-            // separate slot from the custom color.
-            applyBgHex('#FFE600', null);
+            // Profile pages with NO user colorway pick boot to Light Mode.
+            // Clean neutral canvas — users are invited to customise via the
+            // Collected tab TraitsUI sort-bar colorway picker.
+            // Previously booted Attention Yellow (#FFE600); changed to light
+            // so new profiles show no colour by default (colorway === 'light'
+            // sets the colorway-light body class correctly).
+            setColorwayState('light');
+            applyColorway('light');
         } else {
             applyColorway(savedColorway);
             // Boot haze variation engine and texture overlay if haze
