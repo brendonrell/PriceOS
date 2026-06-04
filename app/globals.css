@@ -3703,7 +3703,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     isolation: isolate;
 }
 @media (max-width: 600px) {
-    .ms-float-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .ms-float-bar {
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        max-width: calc(100vw - 32px);
+    }
 }
 
 /* Outer wrap fuses main pill + cycle arrow exactly like
@@ -3716,14 +3719,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     flex-shrink: 0;
 }
 
-/* Main pill — action name */
+/* Main pill — fixed width sized to longest option so bar never shifts */
 .ms-float-action {
     background: var(--text-color);
     color: var(--bg-color);
     border: none;
     height: 36px;
     padding: 0 20px;
-    min-width: 160px;
+    width: 172px;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 13px;
     font-weight: normal;
@@ -3740,14 +3743,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .ms-float-action:hover { opacity: 0.8; }
 .ms-float-action:active { opacity: 0.65; }
 
-/* Arrow tab — right edge of the main pill, opens the action popup */
+/* Arrow tab — fattened for easier tap */
 .ms-float-arrow {
     background: var(--text-color);
     color: var(--bg-color);
     border: none;
     border-left: 1px solid color-mix(in srgb, var(--bg-color) 25%, transparent);
     height: 36px;
-    width: 32px;
+    width: 42px;
     flex-shrink: 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
@@ -3764,16 +3767,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .ms-float-arrow:active { opacity: 0.65; }
 
 /* ── ACTION POPUP ────────────────────────────────────────────────────── */
-/* Anchored card that floats above the float bar — visually matches the
-   details-popover in the artwork modal (inverted bg/color, Courier New,
-   border-radius 4px, dp-row-style rows). No overlay. No backdrop. No
-   fullscreen takeover. Completely independent classes — ms-popup-card-*
-   — nothing shared with details-popover or any other component. */
 .ms-popup-card {
     position: absolute;
     bottom: calc(100% + 10px);
     left: 0;
-    min-width: 200px;
+    width: 180px;
     background: var(--text-color);
     color: var(--bg-color);
     border-radius: 4px;
@@ -3836,18 +3834,18 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         background: color-mix(in srgb, var(--bg-color) 10%, transparent);
     }
 }
-.ms-popup-card-item--active {
-    opacity: 1;
-}
+.ms-popup-card-item--active { opacity: 1; }
 .ms-popup-card-check {
-    opacity: 0.6;
-    font-size: 11px;
+    opacity: 1;
+    font-size: 13px;
+    font-weight: bold;
     flex-shrink: 0;
 }
+@media (max-width: 600px) {
+    .ms-popup-card-check { font-size: 15px; }
+}
 
-/* ── NOTES PILL ICON SIZE ────────────────────────────────────────────── */
-/* Makes the ⊟ glyph in the My Notes pill the same visual size as the
-   multiselect icon. Independent class — does NOT touch pill-l1 base. */
+/* ── ICON PILL SIZES ─────────────────────────────────────────────────── */
 .pill.pill-l1.pill-notes-icon .stat-name,
 .pill.pill-l1.pill-breadcrumb .stat-name,
 .pill.pill-l1.pill-fate-icon .stat-name {
@@ -3855,12 +3853,22 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-size: 16px;
     line-height: 1;
 }
-.pill.pill-l1.pill-fate-icon .stat-name {
-    position: relative;
-    top: 2px;
+/* Fate and Notes: −1px on desktop */
+@media (min-width: 601px) {
+    .pill.pill-l1.pill-notes-icon .stat-name,
+    .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; }
 }
+/* Fate: −1px on mobile, nudge up 1px */
+@media (max-width: 600px) {
+    .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; top: 1px; }
+}
+/* Clock: +1px and nudge down 1px on desktop */
+@media (min-width: 601px) {
+    .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; position: relative; top: 1px; }
+}
+.pill.pill-l1.pill-fate-icon .stat-name { position: relative; top: 2px; }
 
-/* Count tab — separate pill to the right, same height */
+/* Count tab — display only, no interaction */
 .ms-float-count {
     background: var(--text-color);
     color: var(--bg-color);
@@ -3870,18 +3878,78 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: bold;
-    cursor: pointer;
+    cursor: default;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
     border-radius: 4px;
     opacity: 0.85;
-    transition: opacity 0.2s;
-    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
-.ms-float-count:hover  { opacity: 1; }
-.ms-float-count:active { opacity: 0.65; }
+
+/* ── CONFIRM CARD ────────────────────────────────────────────────────── */
+/* Floats above the action pill on Execute tap. Own independent classes —
+   ms-confirm-* — nothing shared with ms-popup-card-* or anything else. */
+.ms-confirm-card {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    width: 210px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 12px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 210;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+    box-sizing: border-box;
+    animation: ms-popup-card-in 0.15s ease;
+}
+.ms-confirm-question {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+    text-align: center;
+    padding: 0 4px;
+}
+.ms-confirm-btns {
+    display: flex;
+    gap: 6px;
+}
+.ms-confirm-btn {
+    flex: 1;
+    height: 28px;
+    border-radius: 3px;
+    border: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s;
+}
+.ms-confirm-btn--cancel {
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+    color: var(--bg-color);
+}
+.ms-confirm-btn--cancel:active { opacity: 0.6; }
+@media (hover: hover) {
+    .ms-confirm-btn--cancel:hover { opacity: 0.7; }
+}
+.ms-confirm-btn--ok {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+.ms-confirm-btn--ok:active { opacity: 0.7; }
+@media (hover: hover) {
+    .ms-confirm-btn--ok:hover { opacity: 0.85; }
+}
 
 /* ── MULTI-SELECT ACTION ROW ────────────────────────────────────────── */
 /* Opens in the same slot as .search-row (directly below the sort-bar)
