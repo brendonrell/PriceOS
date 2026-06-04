@@ -250,6 +250,7 @@ export default function OutputPreview() {
     }, []);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasLsRef = useRef<HTMLCanvasElement>(null);
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
@@ -440,6 +441,8 @@ export default function OutputPreview() {
         const w = vw >= 601 ? vw : 600;
         const ratio = renderPrisms(canvas, id, w);
         canvas.classList.add('visible');
+        const canvasLs = canvasLsRef.current;
+        if (canvasLs) { renderPrisms(canvasLs, id, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
     }, [isOpen, id]);
 
@@ -461,6 +464,8 @@ export default function OutputPreview() {
         const w = vw >= 601 ? vw : 600;
         renderPrisms(canvas, nextId, w);
         canvas.classList.add('visible');
+        const canvasLs = canvasLsRef.current;
+        if (canvasLs) { renderPrisms(canvasLs, nextId, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
     }, []);
 
@@ -563,6 +568,7 @@ export default function OutputPreview() {
        emoji presentation. Matches sim's `&#xFE0E;` discipline. */
 
     return (
+        <Fragment>
         <div
             id="modal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
@@ -858,5 +864,164 @@ export default function OutputPreview() {
                 </>
             )}
         </div>
+
+        {/* ── LANDSCAPE MODAL ─────────────────────────────────────────
+            Shown only on phone landscape (CSS: @media orientation:landscape +
+            max-height:500px). Shares all state and handlers with #modal above.
+            Canvas is a separate element (canvasLsRef) painted simultaneously
+            in the same render effects. JSX for pills and bottom bar is an
+            exact copy — same classNames, same handlers, same everything. */}
+        <div
+            id="modalLandscape"
+            className={`platform-modal ls-modal${isOpen ? ' active' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            onClick={onBackdropClick}
+        >
+            <div
+                className="close-hint"
+                role="button"
+                tabIndex={0}
+                onClick={close}
+                title="Close"
+            >
+                {`\u00D7${VS15}`}
+            </div>
+
+            <div
+                className={`modal-pin-hint${hasNote ? ' pinned' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                    if (currentModalId !== null) openOutputNoteEditor(currentModalId);
+                }}
+                title={hasNote ? 'Edit Note' : 'Add Note'}
+            >
+                {`\u229F${VS15}`}
+            </div>
+
+            <div className="ls-canvas-wrap">
+                <canvas
+                    id="modalCanvasLs"
+                    ref={canvasLsRef}
+                    className="output-canvas"
+                    onClick={() => {
+                        if (id == null) return;
+                        close();
+                        window.scrollTo(0, 0);
+                        router.push(`/${id}`);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                    title="Open output page"
+                />
+                <div
+                    className={'mute-overlay' + (swinging ? ' punch-hammer' : '')}
+                    onClick={handleModalMuteTap}
+                >
+                    <span
+                        className={'mute-label' + (!swinging && isMutedNow ? ' muted-final' : '')}
+                    >
+                        {swinging ? `\u27D9${VS15}` : isMutedNow ? 'MUTED' : 'Mute'}
+                    </span>
+                </div>
+            </div>
+
+            {id != null && meta && (
+                <div className="ls-bottom-bar">
+                    <div
+                        className="modal-nav-pill"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Previous"
+                        title="Previous"
+                        onClick={goPrev}
+                    >
+                        {`\u25C0${VS15}`}
+                    </div>
+
+                    <span className="modal-pill" title="Star" onClick={() => showToast('Starred')}>
+                        {`\u2606${VS15}`}
+                    </span>
+                    <span className="modal-pill" title="Wishlist" onClick={() => showToast('Added to Wishlist')}>
+                        {`\u271B${VS15}`}
+                    </span>
+                    <span className="modal-pill" title="Add to Album" onClick={() => showToast('Add to Album')}>
+                        {`\u25F0${VS15}`}
+                    </span>
+                    <span
+                        className={`modal-pill${isPinned ? ' active' : ''}`}
+                        title="Grail Pin"
+                        onClick={togglePin}
+                    >
+                        {`\u27DF${VS15}`}
+                    </span>
+                    <span className="modal-pill" title="Add to To-Do" onClick={() => showToast('Added to To-Dos')}>
+                        {`\u274D${VS15}`}
+                    </span>
+                    <span
+                        className={`modal-pill${detailsOpen ? ' active' : ''}`}
+                        title="Details"
+                        onClick={() => setDetailsOpen((o) => !o)}
+                    >
+                        {`\u2197${VS15}`}
+                    </span>
+
+                    <div className={`modal-action-btn-wrap${hasCalc ? ' has-calc' : ''}`}>
+                        <button
+                            className="modal-action-btn"
+                            onClick={() => {
+                                if (calcMode === 'buy' && id != null) {
+                                    if (cartHas(id)) {
+                                        showToast(`${title} #${id} already in cart`);
+                                    } else {
+                                        cartAdd(id);
+                                        const next = cartItems.length + 1;
+                                        showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
+                                    }
+                                } else {
+                                    showToast('Action — coming soon');
+                                }
+                            }}
+                        >
+                            {actionLabel}
+                        </button>
+                        <button
+                            className="modal-action-btn-calc"
+                            onClick={() => {
+                                if (calcMode === 'user-showcase') {
+                                    showToast('Add to Your Showcase — coming soon');
+                                } else if (calcMode === 'offer') {
+                                    showToast('Offer Calc — coming soon');
+                                } else if (id != null && meta) {
+                                    const priceNum = meta.price ? parseFloat(meta.price) : NaN;
+                                    openCalcSheet({
+                                        tokenId: id,
+                                        projectTitle: title,
+                                        price: Number.isFinite(priceNum) ? priceNum : null,
+                                        floor: floorEth,
+                                    });
+                                }
+                            }}
+                            title={calcTitle}
+                            aria-label={calcTitle}
+                        >
+                            {calcIcon}
+                        </button>
+                    </div>
+
+                    <div
+                        className="modal-nav-pill"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Next"
+                        title="Next"
+                        onClick={goNext}
+                    >
+                        {`\u25B6${VS15}`}
+                    </div>
+                </div>
+            )}
+        </div>
+        </Fragment>
     );
 }
