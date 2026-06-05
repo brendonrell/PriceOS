@@ -33,6 +33,43 @@ import type {
     CreateUserBody,
     CreateUserResponse,
 } from '@/app/api/users/create/route';
+import type { UserRow, UserStatePatch } from '@/lib/supabase';
+
+/**
+ * GET /api/me — the SIWE-auth'd user's own full row, including private state
+ * columns (settings, calendar_state, workspaces, setup_codes, …). This is the
+ * hydration source for "log in anywhere, exactly as you left it." Identity is
+ * the iron-session cookie, so no address is sent. Returns null on 404 (no row
+ * yet); throws on network / 5xx. Unlike fetchUserRow() this is service-role
+ * server-side and carries no follows join, so it works for handled users.
+ */
+export async function fetchMe(): Promise<UserRow | null> {
+    const r = await fetch('/api/me', {
+        method: 'GET',
+        credentials: 'same-origin',
+    });
+    if (r.status === 401 || r.status === 404) return null;
+    if (!r.ok) throw new Error(`fetchMe failed: ${r.status}`);
+    return (await r.json()) as UserRow;
+}
+
+/**
+ * PATCH /api/me — write the caller's own persisted state. Body is a partial
+ * UserStatePatch; the server whitelists writable columns and enforces ownership
+ * from the session address (price_sprite/handle are never touched here).
+ * Returns the updated row. Throws on network / 5xx; 4xx surfaces as a thrown
+ * error too since callers fire-and-forget and only care about success.
+ */
+export async function patchUserState(patch: UserStatePatch): Promise<UserRow> {
+    const r = await fetch('/api/me', {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+    });
+    if (!r.ok) throw new Error(`patchUserState failed: ${r.status}`);
+    return (await r.json()) as UserRow;
+}
 
 /**
  * Fetch the user row for an address. Returns null when the row does
