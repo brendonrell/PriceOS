@@ -317,21 +317,13 @@ function ProjectPageBodyInner() {
         return new Set(picks);
     });
 
-    /* ProjectShowcase tab (sim ~13110-13131). Pick 6 random ids once per
-       page session — stable across tab switches, exactly as sim keeps
-       `_showcasePicks` stable and only resets on page load.
-       Picks from the full 1..totalOutputs universe (same as sim picking
-       from all rendered cards before any filter is applied). */
-    const [projectShowcasePicks] = useState<Set<number>>(() => {
-        const total = project.totalOutputs;
-        const all: number[] = [];
-        for (let i = 1; i <= total; i++) all.push(i);
-        for (let i = all.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [all[i], all[j]] = [all[j], all[i]];
-        }
-        return new Set(all.slice(0, 6));
-    });
+    /* ProjectShowcase tab — a FIXED set of 6 featured ids from the project
+       record (projects.showcase_ids, surfaced via ProjectContext). Stable
+       across loads/tab switches (no more random-per-load pick). */
+    const projectShowcasePicks = useMemo<Set<number>>(
+        () => new Set(project.showcaseIds),
+        [project.showcaseIds],
+    );
 
     /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
        'fog', body.fog-mode CSS blurs every .output-card .canvas-wrapper
