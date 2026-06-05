@@ -33,6 +33,7 @@ import {
     type HandleValidationReason,
 } from '@/lib/handle/validate';
 import { isPriceSpriteVibe, type PriceSpriteVibe } from '@/lib/sprites/vibes';
+import { resolveSprite } from '@/lib/sprites/composer';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,6 +93,19 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     }
     const priceSprite: PriceSpriteVibe = rawSprite;
 
+    /* Freeze the sprite ONCE here, at the only moment we have both the
+       wallet and the vibe. Stored verbatim on the row so every later
+       render reads it instead of re-deriving from the hash. */
+    const priceSpriteResolved = resolveSprite(address, priceSprite);
+    if (priceSpriteResolved === null) {
+        const res: CreateUserResponse = {
+            ok: false,
+            error: 'Invalid wallet address for sprite resolution',
+            reason: 'sprite_invalid',
+        };
+        return NextResponse.json(res, { status: 400 });
+    }
+
     try {
         const supabase = getSupabaseService();
 
@@ -141,6 +155,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
                     address,
                     handle,
                     price_sprite: priceSprite,
+                    price_sprite_resolved: priceSpriteResolved,
                 } as never,
                 { onConflict: 'address' }
             )
