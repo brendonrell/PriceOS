@@ -64,7 +64,7 @@ export interface DecodeResult {
     error?: string;
 }
 
-// ── Theme tokens ───────────────────────────────────────────────
+// ── Colorway tokens ───────────────────────────────────────────────
 // Sim 9713-9716. Order matters only for the "fall back to ARTS"
 // behaviour at sim 9807 — never to the encoded output, which always
 // places exactly one colorway token at slot 0.
@@ -199,7 +199,7 @@ export function encodeSetupCode(
 ): string {
     // Colorway — fall back to ARTS if the active colorway key is the null Dot
     // default or otherwise unmapped (sim 9807).
-    const themeTok = (colorway && COLORWAY_TO_TOKEN[colorway]) || COLORWAY_TO_TOKEN.custom;
+    const colorwayTok = (colorway && COLORWAY_TO_TOKEN[colorway]) || COLORWAY_TO_TOKEN.custom;
 
     // Sort — fall back to IDAS if currentSort isn't in the table (sim 9810).
     const sortTok = SORT_TO_TOKEN[sort] || SORT_TO_TOKEN.id;
@@ -219,7 +219,7 @@ export function encodeSetupCode(
     const tape = notifs.tape;
     const tapeTok = (tape >= 1 && tape <= 4) ? TAPE_TO_TOKEN[tape as 1 | 2 | 3 | 4] : undefined;
 
-    const parts = [themeTok, ...activeTokens, sortTok];
+    const parts = [colorwayTok, ...activeTokens, sortTok];
     if (tapeTok) parts.push(tapeTok);
     return '\u2030' + parts.join('-');
 }
