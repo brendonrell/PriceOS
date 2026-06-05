@@ -215,7 +215,7 @@ const PREHYDRATION_SCRIPT = `
             paintVars(bg, text, theme);
 
             if (document.body) {
-                document.body.classList.add('theme-' + theme);
+                document.body.classList.add('colorway-' + theme);
                 if (r > g + 40 && r > b + 40 && r > 100) {
                     document.body.classList.add('bg-is-red');
                 }
