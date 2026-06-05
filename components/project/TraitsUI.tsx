@@ -11,7 +11,7 @@
  *        ├ #traitCategories   — L1 pills (Layer / Mineral / Fate / Network …)
  *        └ #traitSubCategories — L2 value pills, visible only when an L1
  *          category with a value pool is active (sim 8617-8618)
- *   2. .sort-bar             — theme pills + #ID / $PRICE / FEED sort tabs
+ *   2. .sort-bar             — colorway pills + #ID / $PRICE / FEED sort tabs
  *   3. .search-row           — text search + min/max ETH price-range + ✕
  *
  * In sim these are populated by JS (renderTraitUI sim ~8463 + renderSortUI
@@ -108,7 +108,7 @@ function computeNextSortKey(
     return `${target}-asc`;
 }
 
-/* Theme names for the sort-bar view-mode pills (mirrors ColorwayPicker.tsx). */
+/* Colorway names for the sort-bar view-mode pills (mirrors ColorwayPicker.tsx). */
 const SORT_BAR_THEME_NAMES: Record<string, string> = {
     artist:  'Artist Custom',
     light:   'Light Mode',
@@ -216,7 +216,7 @@ const L3_FLAT_POOL: Partial<Record<TraitCategory, readonly string[]>> = {
     Fate:    OMEN_TRAITS,
 };
 
-/* Themes shown as the four-square cluster on the left of the sort-bar
+/* Colorways shown as the four-square cluster on the left of the sort-bar
    (sim 8443-8446). ColorwayContext has more keys, but only these four
    render in the sim. */
 const THEME_PILLS: {
