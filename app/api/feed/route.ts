@@ -27,7 +27,7 @@ const MOCK_ADDRS = [
   '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
 ];
 
-const PROJECTS = ['kiki'];
+const PROJECTS = ['prisms'];
 
 function isEventType(s: string): s is EventType {
   return (ALL_TYPES as string[]).includes(s);
