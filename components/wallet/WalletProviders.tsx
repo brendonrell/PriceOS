@@ -500,7 +500,7 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
             && userRow.handle !== null
             && userRow.price_sprite !== null;
         if (hasFullIdentity) {
-            setMainSpriteIdentity(siweAddress, userRow.price_sprite);
+            setMainSpriteIdentity(siweAddress, userRow.price_sprite, userRow.price_sprite_resolved ?? null);
         } else {
             setMainSpriteIdentity(null, null);
         }
