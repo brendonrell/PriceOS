@@ -2,7 +2,7 @@
  * lib/effects/stargazing.ts — pure DOM helpers for Stargazing mode.
  *
  * Sim 9367-9437 (`window._applyStargazingMode`) is the source. The
- * orchestration (capture-prev-theme + flip body class + seed + restore)
+ * orchestration (capture-prev-colorway + flip body class + seed + restore)
  * lives in components/shell/Backgrounds.tsx; this module is just the
  * imperative DOM bits, kept side-effect-free at module scope so they
  * can be tree-shaken if the spell ever becomes lazy-loaded.
@@ -24,7 +24,7 @@
  *      and rely on this JS write to flip the rest of the UI to purple.
  *
  * Restore is intentionally NOT here — calling setColorway(prevKey) from
- * ColorwayContext re-derives every var from the previous theme in one go,
+ * ColorwayContext re-derives every var from the previous colorway in one go,
  * which is exactly what sim 9435 does (`setColorway(_stargazingPrevTheme || 'custom')`).
  */
 
@@ -89,7 +89,7 @@ export function clearStarfield(el: HTMLElement): void {
 }
 
 /* Apply the 11 custom props + --modal-bg + theme-color meta (sim 9407-9431).
-   Writes to documentElement.style so the current values survive a theme
+   Writes to documentElement.style so the current values survive a colorway
    pick — body.stargazing-mode's !important rule keeps --bg-color /
    --text-color pinned regardless. Other 9 vars rely on this write because
    no CSS rule exists for them at body.stargazing-mode level. */
@@ -117,7 +117,7 @@ export function applyStargazingVars(): void {
     /* PWA theme-color meta (sim 9431). The element is mounted in
        layout.tsx with content="#111111"; we override here on flip-on
        and the ColorwayContext setColorway call on flip-off restores the
-       previous theme's hex. */
+       previous colorway's hex. */
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', STARGAZING_BG);
 }
