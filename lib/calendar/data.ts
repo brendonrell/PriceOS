@@ -9,7 +9,7 @@
 import type { CalEvent, CalTodo } from './types';
 
 export const CAL_EVENTS: Record<string, CalEvent[]> = {
-  '2026-04-03': [{ time: '10:00', title: 'Kiki genesis drop (anniversary)' }],
+  '2026-04-03': [{ time: '10:00', title: 'Prisms drop (anniversary)' }],
   '2026-04-08': [
     { time: '19:00', title: 'WTBS ep live' },
     { time: '21:30', title: 'Discord voice chat' },
@@ -33,11 +33,11 @@ export const CAL_EVENTS: Record<string, CalEvent[]> = {
  */
 export const CAL_TODOS: Record<string, CalTodo[]> = {
   '2026-04-14': [{ title: 'OFFER Strata #37' }],
-  '2026-04-19': [{ title: 'FLOOR-watch Kiki #88' }],
-  '2026-04-20': [{ title: 'DELIST Kiki #88' }],
-  '2026-05-01': [{ title: 'LIST Kiki #147, #203' }],
-  '2026-06-15': [{ title: 'SEND Kiki #500 → @matty' }],
-  '2026-09-22': [{ title: 'BUY Kiki #22' }],
+  '2026-04-19': [{ title: 'FLOOR-watch Prisms #88' }],
+  '2026-04-20': [{ title: 'DELIST Prisms #88' }],
+  '2026-05-01': [{ title: 'LIST Prisms #147, #203' }],
+  '2026-06-15': [{ title: 'SEND Prisms #500 → @matty' }],
+  '2026-09-22': [{ title: 'BUY Prisms #22' }],
 };
 
 export const CAL_MONTH_NAMES = [
