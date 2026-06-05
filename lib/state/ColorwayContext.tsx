@@ -44,6 +44,10 @@ import {
     disableHazeVariation,
     type HazeVariation,
 } from '../engines/hazeEngine';
+import {
+    pushSettings,
+    USERSTATE_HYDRATED_EVENT,
+} from './userState';
 
 export type ColorwayKey =
     | 'custom'
@@ -455,6 +459,10 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
         } catch {
             // ignore quota / private mode
         }
+
+        // Write-through to the server (source of truth). hashsyn is session-
+        // only, so it persists as null (boot default) just like the cache.
+        pushSettings({ colorway: key === 'hashsyn' ? null : key });
     }, [colorway]);
 
     /* F64 (BUG-28) — when the user picks a new custom color via
@@ -491,6 +499,36 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
         window.addEventListener('pd:pure-mode-changed', handler);
         return () => window.removeEventListener('pd:pure-mode-changed', handler);
     }, [colorway]);
+
+    /* User-state hydration — when a server snapshot lands (login on any
+       device), re-read the saved colorway from the cache (userState has just
+       written it) and re-apply it live so the page restores without a reload.
+       hashsyn is never persisted; haze re-boots its variation engine. */
+    useEffect(() => {
+        const handler = () => {
+            let saved: ColorwayKey = null;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw && raw in COLORWAYS && raw !== 'hashsyn') {
+                    saved = raw as ColorwayKey;
+                }
+            } catch {
+                /* ignore */
+            }
+            setColorwayState(saved);
+            if (saved === 'haze') {
+                applyColorway('haze');
+                const variation = getHazeVariation();
+                if (variation) {
+                    enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+                }
+            } else {
+                applyColorway(saved);
+            }
+        };
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, handler);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, handler);
+    }, []);
 
     const value = useMemo<ColorwayContextValue>(
         () => ({ colorway, setColorway }),
