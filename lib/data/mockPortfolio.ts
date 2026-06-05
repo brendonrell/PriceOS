@@ -74,7 +74,7 @@ export const PORTFOLIO_DATA: Record<PortfolioTab, PortfolioCategory[]> = {
             name: 'STICKER', type: 'tree',
             artists: [
                 { name: '@claude',       projects: [
-                    { name: 'Kiki',                floor: 0.022, tokens: [22, 147, 203] },
+                    { name: 'Prisms',                floor: 0.022, tokens: [22, 147, 203] },
                 ]},
                 { name: '@jackbutcher',  projects: [
                     { name: 'Checks',              floor: 0.18,  tokens: [4721, 5102] },
