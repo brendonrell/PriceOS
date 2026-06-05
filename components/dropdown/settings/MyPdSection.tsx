@@ -52,7 +52,7 @@ export function MyPdSection({ onTripleTap }: Props) {
        useCustomColor owns the storage + migration; this section owns the
        UI surface (hidden <input type="color"> wired to the pill, visible
        hex text input with validate-on-blur, copy button). When the active
-       theme is 'custom', ColorwayContext re-applies on each color change so
+       colorway is 'custom', ColorwayContext re-applies on each color change so
        the page actually responds. */
     const { color: customColor, setColor: setCustomColor } = useCustomColor();
     const [hexField, setHexField] = useState<string>(customColor);
@@ -118,7 +118,7 @@ export function MyPdSection({ onTripleTap }: Props) {
     }, [customColor]);
 
     // Build 26 D12 — setup-code field is now live + interactive.
-    // The displayed value tracks `currentCode` (encoded from theme + sort
+    // The displayed value tracks `currentCode` (encoded from colorway + sort
     // + notifs) unless the user is mid-edit. Enter or blur applies the
     // typed code via WorkspacesContext.applyCode. Copy briefly swaps the
     // value to "COPIED" for 1500ms (sim 7635 — matches copyProfileHex's
@@ -239,9 +239,9 @@ export function MyPdSection({ onTripleTap }: Props) {
          2. Persist to localStorage (the toggle() helper handles this).
          3. Dispatch pd:pure-mode-changed so ColorwayContext re-applies
             on the active colorway key (picks up the bg-hex override).
-         4. If now ON: setAndSaveTheme(mode) — switch theme to light/dark
-            AND persist (so the user's saved theme becomes light/dark).
-         5. If now OFF: setColorway(savedKey) — restore whatever theme is
+         4. If now ON: setAndSaveTheme(mode) — switch colorway to light/dark
+            AND persist (so the user's saved colorway becomes light/dark).
+         5. If now OFF: setColorway(savedKey) — restore whatever colorway is
             in localStorage (which may itself be 'light' or 'dark', but
             with the pure flag now false, applyColorway returns the standard
             #e0e0e0 / #1a1a1a bg).
@@ -274,7 +274,7 @@ export function MyPdSection({ onTripleTap }: Props) {
 
         if (next) {
             // Sim 9314 — setAndSaveColorway(mode). setColorway via context
-            // already writes the theme to localStorage in its callback.
+            // already writes the colorway to localStorage in its callback.
             setColorway(mode);
         } else {
             // Sim 9316 — setColorway(localStorage.getItem('pd_settings_colorway') || 'custom').
@@ -290,8 +290,8 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
 
         // Belt-and-suspenders re-apply for the case where setColorway above
-        // was a no-op (e.g. pure_dark flipping while theme is already
-        // 'dark' — setColorway('dark') sees no theme change but applyColorway
+        // was a no-op (e.g. pure_dark flipping while colorway is already
+        // 'dark' — setColorway('dark') sees no colorway change but applyColorway
         // still needs to fire to pick up the new pure flag).
         try {
             window.dispatchEvent(new CustomEvent('pd:pure-mode-changed'));

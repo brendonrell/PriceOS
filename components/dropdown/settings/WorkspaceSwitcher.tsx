@@ -85,7 +85,7 @@ export function WorkspaceSwitcher() {
         // app's own ValuePromptModal (same modal as the Anchor / Floor /
         // Calc value prompts). NOT a sim port (sim uses window.prompt at
         // 10288), but Brendon explicitly greenlit the swap because the
-        // native prompt is jarring inside an otherwise theme-cohesive UI.
+        // native prompt is jarring inside an otherwise colorway-cohesive UI.
         // openValuePrompt seeds an empty input, slides up the bottom sheet,
         // focuses field 1 after the 280ms transition, and routes Enter →
         // submit / Esc → cancel via the same handlers the Anchor flow uses.
