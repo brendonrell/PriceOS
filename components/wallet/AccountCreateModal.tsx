@@ -39,7 +39,7 @@
  * button re-enables once the user changes the handle.
  *
  * Visual shape mirrors the SignInModal pattern: centred dialog over
- * a fixed dark backdrop, theme-tracking via --bg-color / --text-color.
+ * a fixed dark backdrop, colorway-tracking via --bg-color / --text-color.
  * The sprite chooser is a 2x2 grid above the handle row.
  */
 
