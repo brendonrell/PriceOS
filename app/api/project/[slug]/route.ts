@@ -1,29 +1,25 @@
-// BLOCKED: requires indexer. Replace mock data with Supabase queries
-// once indexer writes to `projects` table (see lib/supabase.ts:ProjectRow).
+// Project outputs — real DB read. Returns per-token ownership from `holders`
+// (joined to `users` for handles) plus project-level total + showcase ids.
+// Listings/last-sale are not modelled yet, so list_price_eth stays null.
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { badRequest } from '@/lib/errors';
+import { badRequest, serverError } from '@/lib/errors';
+import { getSupabaseService } from '@/lib/supabase';
 
-export const revalidate = 15; // Project stats: 15s
+export const revalidate = 60;
 
-export interface ProjectTraitDef {
-  name: string;
-  values: string[];
+export interface OutputOwner {
+  token_id: number;
+  owner: string;
+  owner_handle: string | null;
+  list_price_eth: string | null;
 }
 
-export interface ProjectResponse {
-  id: string;
-  artist_address: string;
-  title: string;
-  description: string;
-  minted_count: number;
-  max_supply: number;
-  floor_price_eth: string;
-  volume_eth: string;
-  all_time_high_eth: string;
-  cooldown_until: string | null;
-  primary_active: boolean;
-  traits: ProjectTraitDef[];
+export interface ProjectOutputsResponse {
+  project_id: string;
+  total: number;
+  showcase_ids: number[];
+  outputs: OutputOwner[];
 }
 
 export async function GET(
@@ -31,26 +27,63 @@ export async function GET(
   { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
   if (!params.slug) return badRequest('Missing project slug');
+  const slug = params.slug.toLowerCase();
 
-  // Mock — placeholder shape; real values come from the indexer.
-  const response: ProjectResponse = {
-    id: params.slug,
-    artist_address: '0xc7e9b3f5a1d8c4b2e6f0a3d5b8c1e4f7a2d6b9c0',
-    title: 'PRISMS',
-    description:
-      'Preview project on Price Discussion. 2222 Outputs, each with a Layer, a Mineral, and a Fate.',
-    minted_count: 187,
-    max_supply: 2222,
-    floor_price_eth: '0.0091',
-    volume_eth: '24.713',
-    all_time_high_eth: '0.42',
-    cooldown_until: null, // null until indexer wires lastProjectTimestamp + 60 days from chain
-    primary_active: true,
-    traits: [
-      { name: 'Layer',   values: ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'] },
-      { name: 'Mineral', values: ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'] },
-      { name: 'Fate',    values: ['SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT', 'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID'] },
-    ],
-  };
-  return NextResponse.json(response);
+  try {
+    const supabase = getSupabaseService();
+
+    const [projectRes, holdersRes] = await Promise.all([
+      supabase
+        .from('projects')
+        .select('minted_count, showcase_ids')
+        .eq('id', slug)
+        .maybeSingle(),
+      supabase
+        .from('holders')
+        .select('token_id, owner_address')
+        .eq('project_id', slug),
+    ]);
+
+    if (projectRes.error) return serverError(projectRes.error.message);
+    if (holdersRes.error) return serverError(holdersRes.error.message);
+
+    const project = projectRes.data as
+      | { minted_count?: number; showcase_ids?: number[] }
+      | null;
+    const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
+
+    // Resolve handles for the (small) set of distinct owners.
+    const addrs = [...new Set(holders.map((h) => h.owner_address.toLowerCase()))];
+    const handleByAddr: Record<string, string | null> = {};
+    if (addrs.length > 0) {
+      const usersRes = await supabase
+        .from('users')
+        .select('address, handle')
+        .in('address', addrs);
+      if (!usersRes.error) {
+        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null }[]) {
+          handleByAddr[u.address.toLowerCase()] = u.handle ?? null;
+        }
+      }
+    }
+
+    const outputs: OutputOwner[] = holders
+      .map((h) => ({
+        token_id: Number(h.token_id),
+        owner: h.owner_address,
+        owner_handle: handleByAddr[h.owner_address.toLowerCase()] ?? null,
+        list_price_eth: null,
+      }))
+      .sort((a, b) => a.token_id - b.token_id);
+
+    const response: ProjectOutputsResponse = {
+      project_id: slug,
+      total: project?.minted_count ?? outputs.length,
+      showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
+      outputs,
+    };
+    return NextResponse.json(response);
+  } catch (err) {
+    return serverError(err instanceof Error ? err.message : 'Unknown error');
+  }
 }
