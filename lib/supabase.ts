@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { PriceSpriteVibe } from './sprites/vibes';
+import type { ResolvedSprite } from './sprites/composer';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Database row types — mirror the Postgres schema exactly.
@@ -74,6 +75,10 @@ export interface UserRow {
   ens_name: string | null;
   handle: string | null;
   price_sprite: PriceSpriteVibe | null;
+  /** Frozen sprite resolution — composed once at signup, read on every
+      render so the wallet hash is never recomputed. Null only for legacy
+      rows predating the freeze (engine falls back to compute for those). */
+  price_sprite_resolved: ResolvedSprite | null;
   account_level: number;
   created_at: string;
 
