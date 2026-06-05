@@ -299,12 +299,6 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Opaque colorway-derived fill — set by the prehydration script via
-       --bg-color before <body> parses. This is the flash-cover: without a
-       solid background the loader only blurs, so iOS Safari 26 samples the
-       transparent backdrop and the chrome-tint flashes in. Fallback #111111
-       matches the static <meta theme-color>. */
-    background: var(--bg-color, #111111);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
     /* Hoist onto GPU compositor so iOS PWA layout reflows
