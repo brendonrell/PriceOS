@@ -18,7 +18,7 @@
  * Tabs: Created / Collected / + More
  *   - Collected tab: full TraitsUI surface (same as project Artworks tab),
  *     backed by COLLECTED_IDS mock data for now
- *   - + More tab: secondary stats row + Discord link (as-is); theme/colorway
+ *   - + More tab: secondary stats row + Discord link (as-is); colorway/colorway
  *     picker removed (now lives in Collected TraitsUI sort-bar)
  *
  * Default colorway: light — handled in ColorwayContext.tsx (profile
