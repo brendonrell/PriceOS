@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * ThemePicker — DEFAULT THEME section.
+ * ThemePicker — DEFAULT COLORWAY section.
  *
  * Triple-tap header → Haze Mode row. Triple-tap "HAZE MODE" → back.
  *
@@ -19,12 +19,12 @@
  */
 
 import { useRef, useState } from 'react';
-import { useTheme, type ThemeKey } from '../../../lib/state/ThemeContext';
+import { useColorway, type ColorwayKey } from '../../../lib/state/ColorwayContext';
 import {
     getHazeVariation,
     setHazeVariation,
     applyBgHex,
-} from '../../../lib/state/ThemeContext';
+} from '../../../lib/state/ColorwayContext';
 import {
     enableHazeVariation,
     type HazeVariation,
@@ -33,7 +33,7 @@ import { SettingsToggle } from './SettingsToggle';
 import { useToast } from '../../../lib/state/ToastContext';
 
 interface PillSpec {
-    key: NonNullable<ThemeKey>;
+    key: NonNullable<ColorwayKey>;
     cls: string;
     title: string;
     glyph: string;
@@ -41,7 +41,7 @@ interface PillSpec {
 }
 
 const PILLS: PillSpec[] = [
-    { key: 'artist',  cls: 't-artist',  title: 'Custom Colour',   glyph: '◩\uFE0E' },
+    { key: 'custom',  cls: 't-custom',  title: 'Custom Color',    glyph: '◩\uFE0E' },
     { key: 'light',   cls: 't-light',   title: 'Light Mode',      glyph: '◻\uFE0E' },
     { key: 'dark',    cls: 't-dark',    title: 'Dark Mode',       glyph: '◼\uFE0E' },
     { key: 'orange',  cls: 't-orange',  title: 'Orange Mode',     glyph: '▨\uFE0E' },
@@ -59,8 +59,8 @@ const PILLS: PillSpec[] = [
     },
 ];
 
-const THEME_NAMES: Record<NonNullable<ThemeKey>, string> = {
-    artist: 'ARTIST CUSTOM', light: 'LIGHT MODE', dark: 'DARK MODE',
+const COLORWAY_NAMES: Record<NonNullable<ColorwayKey>, string> = {
+    custom: 'CUSTOM COLOR', light: 'LIGHT MODE', dark: 'DARK MODE',
     orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
     blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
 };
@@ -94,7 +94,7 @@ function readHazeColor(): string {
 }
 
 export function ThemePicker() {
-    const { theme, setTheme } = useTheme();
+    const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
     const [hazeMode, setHazeMode] = useState(false);
@@ -120,7 +120,7 @@ export function ThemePicker() {
 
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
-        if (theme === 'haze') setTheme('haze');
+        if (colorway === 'haze') setColorway('haze');
     };
 
     const handleVariationCycle = (e: React.MouseEvent) => {
@@ -130,7 +130,7 @@ export function ThemePicker() {
         setHazeVariation(next);
         enableHazeVariation(next, readHazeColor(), (hex) => applyBgHex(hex, 'haze'));
         showToast(`Haze Mode: ${VARIATION_LABELS[next]}`);
-        if (theme !== 'haze') setTheme('haze');
+        if (colorway !== 'haze') setColorway('haze');
     };
 
     if (hazeMode) {
@@ -150,18 +150,18 @@ export function ThemePicker() {
                         no icon prop so no st-icon span with margin-right */}
                     <SettingsToggle
                         id="st-haze"
-                        active={theme === 'haze'}
+                        active={colorway === 'haze'}
                         title="Haze Mode"
                         label="HZ"
                         bareLabel
-                        onClick={() => { setTheme('haze'); showToast('Default Colorway: HAZE MODE'); }}
+                        onClick={() => { setColorway('haze'); showToast('Default Colorway: HAZE MODE'); }}
                     />
 
                     {/* ◩ swatch — iOS-safe <label htmlFor>, sim 4610-4613 pattern.
                         Larger ◩ icon (14px) placed on the swatch where it belongs. */}
                     <label
                         htmlFor="hazeColorPicker"
-                        className="pill-theme"
+                        className="pill-colorway"
                         title="Pick colour"
                         style={{
                             backgroundColor: hazeHex,
@@ -297,19 +297,19 @@ export function ThemePicker() {
             >
                 DEFAULT COLORWAY
             </div>
-            <div className="settings-pill-row theme-pills">
+            <div className="settings-pill-row colorway-pills">
                 {PILLS.map((p) => (
                     <button
                         key={p.key}
                         type="button"
                         id={`st-${p.key}`}
-                        className={`pill-theme ${p.cls}${theme === p.key ? ' active' : ''}`}
+                        className={`pill-colorway ${p.cls}${colorway === p.key ? ' active' : ''}`}
                         title={p.title}
-                        aria-pressed={theme === p.key}
+                        aria-pressed={colorway === p.key}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setTheme(p.key);
-                            showToast('Default Colorway: ' + THEME_NAMES[p.key]);
+                            setColorway(p.key);
+                            showToast('Default Colorway: ' + COLORWAY_NAMES[p.key]);
                         }}
                     >
                         <span style={p.glyphStyle}>{p.glyph}</span>
