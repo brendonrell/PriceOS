@@ -245,9 +245,9 @@
 
 
 /* ── REDACTED-MODE OVERLAYS  (sim 968–980) ─────────────────
-   Privacy theme blacks out PII inside the modals — modal title,
+   Privacy colorway blacks out PII inside the modals — modal title,
    field values, and collector-list links become solid bars.
-   Light theme uses pure black; dark-theme variant lightens to
+   Light colorway uses pure black; dark-colorway variant lightens to
    off-white at 88% so the bar reads against the dark backdrop. */
 body.redacted-mode .modal-title,
 body.redacted-mode .modal-fields .mf-val,

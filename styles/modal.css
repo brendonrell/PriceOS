@@ -536,8 +536,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 .modal-action-price { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; opacity: 0.8; }
 
-/* Remove old buy row and theme row from modal — now handled by bottom bar */
-.modal-theme-row { display: none !important; }
+/* Remove old buy row and colorway row from modal — now handled by bottom bar */
+.modal-colorway-row { display: none !important; }
 .modal-buy-row { display: none !important; }
 
 .modal-stat-glyph { font-size: 14px; }
@@ -612,7 +612,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 .calc-sheet-box {
     /* Inverted palette — same as value-prompt-box. Reads as the dark
-       menu chrome on every theme. */
+       menu chrome on every colorway. */
     background: var(--text-color);
     color: var(--bg-color);
     width: 100%;

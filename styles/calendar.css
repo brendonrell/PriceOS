@@ -122,15 +122,15 @@
 /* APR 21: to-do dot — Hothurt red (#FF0055) signature marker. Only appears when
    the To-Dos toggle at the calendar footer is active. Bigger than event dots so
    it visually leads the row.
-   APR 22: previously flipped to black on red-dominant themes (body.colorway-red /
+   APR 22: previously flipped to black on red-dominant colorways (body.colorway-red /
    body.bg-is-red) for contrast. Removed per Brendon — to-do marker should stay
-   Hothurt red regardless of theme as a consistent signature color. */
+   Hothurt red regardless of colorway as a consistent signature color. */
 .cal-day-todo-dot {
     width: 5px; height: 5px; border-radius: 50%;
     background: #FF0055; opacity: 1; flex-shrink: 0;
 }
 /* To-do row in the day detail column — icon + red text to visually stand out
-   from the ordinary events above it. Hothurt red on every theme (see note above). */
+   from the ordinary events above it. Hothurt red on every colorway (see note above). */
 .cal-event-todo {
     display: flex; align-items: baseline; gap: 6px;
 }
@@ -310,7 +310,7 @@
 .cal-todos-link:hover { opacity: 0.9; }
 /* APR 22: when To-Dos is activated the label also turns Hothurt red (#FF0055) —
    visually links the footer toggle to the red dots + red text-column rows it
-   reveals on the grid above. Stays Hothurt on every theme (no red→black flip) —
+   reveals on the grid above. Stays Hothurt on every colorway (no red→black flip) —
    same consistency rule as the dots + rows above. */
 .cal-todos-link.active { opacity: 1; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; color: #FF0055; }
 
