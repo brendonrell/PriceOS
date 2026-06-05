@@ -530,7 +530,7 @@ export default function ArtworkCard({
                    desktop hover and on first touch on mobile, so
                    the same handler covers both inputs. hashSynApplyHex
                    no-ops when the engine isn't enabled, so this is
-                   inert under every other theme. */
+                   inert under every other colorway. */
                 onPointerEnter={() => hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`)}
             >
                 <div
