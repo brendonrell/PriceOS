@@ -1,41 +1,24 @@
 'use client';
 
 /*
- * ProjectContext
+ * ProjectContext — active project's outputs (PRISMS).
  *
- * Single source of truth for the active project's outputs. Sim's
- * `metaCache` (sim.html line 7138) is a flat object keyed by token id;
- * every surface — modal, gallery cards, Calc Sheet, filter logic —
- * reads from it. The React port mirrors that shape with a frozen
- * `ReadonlyMap<number, OutputMeta>` populated once at provider mount.
- *
- * Today the provider seeds the map with the same deterministic LCG math
- * the prototype has been running inside OutputPreview, so visual state
- * is byte-for-byte identical. When the on-chain indexer ships, only
- * the seeding block changes — every consumer (`useOutputMeta(id)`,
- * future gallery, future Calc) keeps its existing API.
- *
- * Sim refs:
- *   metaCache shape ........ sim.html 7138, 7968–8003
- *   _brendonOwned set ...... sim.html 7967–7968
- *   id-keyed lookup pattern  sim.html 8725–8788, 11598–11599
- *
- * Build 19: added `traits` to OutputMeta so the gallery wiring
- * (TraitsContext → ArtworkCard render) can predicate on Layer / Mineral /
- * Fate. Sim assigns these per token in renderFeed (sim 7986–8002) using
- * Math.random() seeded once at init; we mirror with a deterministic
- * id-based LCG so traits are stable across reloads. Pools match the
- * STRATA-rebrand strings in TraitsUI's VALUE_POOLS (Crust/Mantle/… for
- * Layer, Quartz/Schist/… for Mineral). Fate pool comes from sim's
- * OMEN_TRAITS array (sim ~7999) — TraitsUI VALUE_POOLS.Fate is empty
- * for v0, so no L2 pill toggles a Fate value yet, but the data exists
- * for the day Fate L2 lands.
+ * Source of truth is the DB: ownership comes from `holders` and the
+ * showcase from `projects.showcase_ids`, fetched once on mount via
+ * /api/project/prisms/outputs. To keep first paint instant (no loading
+ * flash), the map is seeded synchronously with the SAME ownership rule the
+ * seed used — odd token ids -> @brendon, even -> @opus46 — so the gallery is
+ * already correct before the fetch lands; the fetch then reconciles against
+ * the authoritative rows (and would correct any drift). Per-token price and
+ * traits stay deterministic placeholders (listings/trait freezing not
+ * modelled yet); only ownership + showcase are DB-backed.
  */
 
 import {
     createContext,
     useContext,
-    useMemo,
+    useEffect,
+    useState,
     type ReactNode,
 } from 'react';
 
@@ -44,17 +27,7 @@ export interface OutputMeta {
     ownerFull: string;
     price: string | null;
     isOwnedByBrendon: boolean;
-    /* Build 19: deterministic mock traits for Layer / Mineral / Fate.
-       Pools match TraitsUI.VALUE_POOLS verbatim for Layer + Mineral so
-       a value the user toggles in the L2 row maps 1:1 to this string.
-       Fate uses sim's 8 OMEN_TRAITS (sim ~7999); TraitsUI's Fate pool
-       is empty in v0, so this field is read-but-not-yet-filtered until
-       Fate L2 pills land. */
-    traits: {
-        Layer: string;
-        Mineral: string;
-        Fate: string;
-    };
+    traits: { Layer: string; Mineral: string; Fate: string };
 }
 
 export interface ProjectState {
@@ -62,93 +35,49 @@ export interface ProjectState {
     totalOutputs: number;
     floorEth: number;
     outputs: ReadonlyMap<number, OutputMeta>;
+    /** Fixed featured ids for the Project Showcase tab (from projects.showcase_ids). */
+    showcaseIds: readonly number[];
 }
 
 const ProjectCtx = createContext<ProjectState | null>(null);
 
+const PROJECT_SLUG = 'prisms';
 const PROJECT_TITLE = 'PRISMS';
-/* 2222 is the full collection supply; 500 are shown in the gallery
-   for this build (the indexer page-loads the rest when ready). */
 const TOTAL_OUTPUTS = 500;
-
-/* Mock project floor — sim reads this from the BUY button's
-   .mint-price element on the project page. The Project Page
-   isn't ported yet, so the prototype Calc uses a constant in the
-   listed-price range. Replace with an indexer-derived value once
-   that surface lands. */
 const MOCK_PROJECT_FLOOR_ETH = 0.014;
 
-/* Sim seeds 8 deterministic Brendon-owned tokens across the grid so the
-   "Me" Network filter has meaningful output without stomping all listings.
-   Sim source: line 7967 — `_brendonOwned = new Set([1,2,3,22,67,112,158,201])`. */
-const BRENDON_OWNED: ReadonlySet<number> = new Set([
-    1, 2, 3, 22, 67, 112, 158, 201,
-]);
+/* The two demo accounts (match the seeded holders rows). */
+const BRENDON_ADDR = '0x65c34afda745c12745db70ffa809311339279395';
+const OPUS_ADDR = '0x0000000000000000000000000000000000000046';
 
-/* Build 19: trait pools. Layer + Mineral mirror TraitsUI.VALUE_POOLS so
-   the L2 value pills the user can toggle line up byte-for-byte with the
-   strings stored on OutputMeta.traits. Fate is sim's OMEN_TRAITS (sim
-   ~7999) — kept here even though TraitsUI doesn't surface a Fate L2 pool
-   yet, so the field is populated and ready when that build lands. Pools
-   are typed `as const` to keep the index types happy without a cast. */
+/* Fixed Project Showcase (matches projects.showcase_ids; chosen once). */
+const FIXED_SHOWCASE: readonly number[] = [22, 88, 147, 256, 383, 491];
+
 const LAYER_POOL = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'] as const;
 const MINERAL_POOL = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'] as const;
 const FATE_POOL = [
-    'SOVEREIGN',
-    'ABUNDANT',
-    'FORTUNE',
-    'ASCENDANT',
-    'BALANCED',
-    'SHADOW',
-    'TRIBULATION',
-    'VOID',
+    'SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT',
+    'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID',
 ] as const;
 
-/**
- * Deterministic mock metadata for one token id. Same id → same shape on
- * every refresh — matches sim's behavior where Math.random() draws are
- * cached in metaCache and reused for the session.
- *
- * Lifted verbatim from OutputPreview's previous inline `getOutputMeta()`
- * (the LCG constants, the `0x____…____` hex tail formula, the listed
- * threshold, the price formatting). Real metadata comes from the
- * on-chain indexer once that workstream lands; this seeding is the
- * throwaway placeholder.
- */
-function buildOutputMeta(id: number): OutputMeta {
-    const isMine = BRENDON_OWNED.has(id);
+function shortAddr(addr: string): string {
+    if (!addr || addr.length < 10) return addr || '';
+    return '0x' + addr.slice(2, 6) + '\u2026' + addr.slice(-4);
+}
 
-    // Two independent LCG-style draws from the id keep listed-ness and
-    // price uncoupled (matches sim's two Math.random() calls in init).
+/* Deterministic per-id meta. Ownership mirrors the seed rule (odd -> brendon,
+   even -> opus46); price + traits are stable placeholders. */
+function buildOutputMeta(id: number): OutputMeta {
+    const isMine = id % 2 === 1;
+
     const r1 = ((id * 9301 + 49297) % 233280) / 233280;
     const r2 = ((id * 31 + 1234567) % 233280) / 233280;
     const isListed = r1 < 0.3;
-    const price = isListed
-        ? (r2 * 0.5 + 0.01).toFixed(3) + ' ETH'
-        : null;
+    const price = isListed ? (r2 * 0.5 + 0.01).toFixed(3) + ' ETH' : null;
 
-    let ownerDisplay: string;
-    if (isMine) {
-        ownerDisplay = '@Brendon';
-    } else {
-        const hex = ((id * 2654435761) >>> 0).toString(16).padStart(8, '0');
-        const tail = ((id * 31 + (id % 17) * 13) % 0xffff)
-            .toString(16)
-            .padStart(4, '0');
-        ownerDisplay = '0x' + hex.slice(0, 4) + '\u2026' + tail;
-    }
-    const ownerFull = isMine ? '@Brendon' : '0x' + [
-        (id * 2654435761) >>> 0,
-        (id * 1664525 + 1013904223) >>> 0,
-        (id * 214013 + 2531011) >>> 0,
-        (id * 22695477 + 1) >>> 0,
-        (id * 1103515245 + 12345) >>> 0,
-    ].map(n => n.toString(16).padStart(8, '0')).join('').slice(0, 40);
+    const ownerDisplay = isMine ? '@brendon' : '@opus46';
+    const ownerFull = isMine ? BRENDON_ADDR : OPUS_ADDR;
 
-    /* Build 19: three independent LCG-style draws — distinct multipliers
-       so Layer/Mineral/Fate aren't correlated by id. Modulo each pool's
-       length to pick a value. Stable across reloads since the only input
-       is the id. */
     const tLayer = (id * 1103 + 12345) % 65536;
     const tMineral = (id * 2087 + 98765) % 65536;
     const tFate = (id * 3469 + 54321) % 65536;
@@ -161,27 +90,72 @@ function buildOutputMeta(id: number): OutputMeta {
     return { ownerDisplay, ownerFull, price, isOwnedByBrendon: isMine, traits };
 }
 
+function buildInitial(): ProjectState {
+    const outputs = new Map<number, OutputMeta>();
+    for (let id = 1; id <= TOTAL_OUTPUTS; id++) outputs.set(id, buildOutputMeta(id));
+    return {
+        title: PROJECT_TITLE,
+        totalOutputs: TOTAL_OUTPUTS,
+        floorEth: MOCK_PROJECT_FLOOR_ETH,
+        outputs,
+        showcaseIds: FIXED_SHOWCASE,
+    };
+}
+
+interface OutputOwnerDTO {
+    token_id: number;
+    owner: string;
+    owner_handle: string | null;
+}
+
 export function ProjectProvider({ children }: { children: ReactNode }) {
-    /* Build the full 222-entry map once at mount. Cheap (low hundreds
-       of entries, pure arithmetic) and stable across re-renders, so
-       every useOutputMeta() consumer reads from the same Map reference
-       and Map.get(id) is O(1). */
-    const value = useMemo<ProjectState>(() => {
-        const outputs = new Map<number, OutputMeta>();
-        for (let id = 1; id <= TOTAL_OUTPUTS; id++) {
-            outputs.set(id, buildOutputMeta(id));
-        }
-        return {
-            title: PROJECT_TITLE,
-            totalOutputs: TOTAL_OUTPUTS,
-            floorEth: MOCK_PROJECT_FLOOR_ETH,
-            outputs,
+    const [state, setState] = useState<ProjectState>(buildInitial);
+
+    /* Reconcile ownership + showcase against the authoritative DB rows. The
+       synchronous seed already matches, so this is a no-op visually unless
+       the rows differ — but it makes the gallery genuinely DB-sourced. */
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/project/${PROJECT_SLUG}/outputs`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number } | null) => {
+                if (cancelled || !data) return;
+                setState((prev) => {
+                    const outputs = new Map(prev.outputs);
+                    for (const o of data.outputs ?? []) {
+                        const meta = outputs.get(o.token_id);
+                        if (!meta) continue;
+                        const addr = (o.owner ?? '').toLowerCase();
+                        const isMine = addr === BRENDON_ADDR;
+                        const ownerDisplay = o.owner_handle ? '@' + o.owner_handle : shortAddr(o.owner ?? '');
+                        outputs.set(o.token_id, {
+                            ...meta,
+                            ownerDisplay,
+                            ownerFull: o.owner ?? meta.ownerFull,
+                            isOwnedByBrendon: isMine,
+                        });
+                    }
+                    const showcaseIds =
+                        Array.isArray(data.showcase_ids) && data.showcase_ids.length
+                            ? data.showcase_ids
+                            : prev.showcaseIds;
+                    return {
+                        ...prev,
+                        outputs,
+                        showcaseIds,
+                        totalOutputs: data.total ?? prev.totalOutputs,
+                    };
+                });
+            })
+            .catch(() => {
+                /* offline / 5xx — the synchronous seed remains in place */
+            });
+        return () => {
+            cancelled = true;
         };
     }, []);
 
-    return (
-        <ProjectCtx.Provider value={value}>{children}</ProjectCtx.Provider>
-    );
+    return <ProjectCtx.Provider value={state}>{children}</ProjectCtx.Provider>;
 }
 
 export function useProject(): ProjectState {
