@@ -92,7 +92,7 @@ const SHARED_BROWS_BASE: readonly (readonly [string, string])[] = [
     ['\u0307','\u0307'],        // 9  dot-above sparkle ← cast override
 ];
 
-// ─── vibe_1 — Observer ────────────────────────────────────────────────
+// ─── observer — Observer ────────────────────────────────────────────────
 
 const OBSERVER_ARMS: readonly string[] = [
     '.', ',', '\u00B8', '_', '-', '\u00B7',
@@ -110,7 +110,7 @@ const OBSERVER_BROW_EXTRAS: readonly (readonly [string, string])[] = [
     ['\u0332','\u0332'], // 11 low-line
 ];
 
-// ─── vibe_2 — Instigator ──────────────────────────────────────────────
+// ─── instigator — Instigator ──────────────────────────────────────────────
 
 /* 12 arms — SIZE LOCKED. arms[9] = 'ง' STANDIN LOCK.
    idx 5: ୧ replaced with ☞ (was backwards-facing). */
@@ -168,7 +168,7 @@ const INSTIGATOR_BROW_EXTRAS: readonly (readonly [string, string])[] = [
     ['\u030F','\u030F'], // 11 dbl-grave brooding
 ];
 
-// ─── vibe_3 — Hacker ──────────────────────────────────────────────────
+// ─── hacker — Hacker ──────────────────────────────────────────────────
 
 /* 13 arms — p added (moved from eye candidates). */
 const HACKER_ARMS: readonly string[] = [
@@ -189,7 +189,7 @@ const HACKER_BROW_EXTRAS: readonly (readonly [string, string])[] = [
     ['\u0346','\u0346'], // 11 bridge-above
 ];
 
-// ─── vibe_4 — Mystic ──────────────────────────────────────────────────
+// ─── mystic — Mystic ──────────────────────────────────────────────────
 
 /* 15 arms — ALL doubled for visual arm-length.
    12 original doubled + ψψ ☽☽ ⊳⊳ from Gemini audit. */
