@@ -28,6 +28,7 @@ import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
 import { useCustomColor } from '../../../lib/hooks/useCustomColor';
 import { useAuth } from '../../../lib/state/AuthContext';
+import { pushState, USERSTATE_HYDRATED_EVENT } from '../../../lib/state/userState';
 import { SettingsToggle } from './SettingsToggle';
 
 interface Props {
@@ -79,6 +80,22 @@ export function MyPdSection({ onTripleTap }: Props) {
             /* ignore */
         }
     }, []);
+    // Re-read showcase_style when a server snapshot hydrates (login on any
+    // device) so the toggle reflects the saved value live.
+    useEffect(() => {
+        const handler = () => {
+            try {
+                const raw = localStorage.getItem(USER_SHOWCASE_KEY);
+                if (raw === 'generative' || raw === 'static') {
+                    setUserShowcaseModeState(raw);
+                }
+            } catch {
+                /* ignore */
+            }
+        };
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, handler);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, handler);
+    }, []);
     const toggleUserShowcaseMode = () => {
         const next = userShowcaseMode === 'static' ? 'generative' : 'static';
         try {
@@ -87,6 +104,8 @@ export function MyPdSection({ onTripleTap }: Props) {
             /* ignore */
         }
         setUserShowcaseModeState(next);
+        // Write-through to the server (source of truth).
+        pushState({ showcase_style: next });
         showToast(next === 'generative' ? 'Showcase: GENERATIVE MODE ON' : 'Showcase: STATIC MODE ON');
     };
 
