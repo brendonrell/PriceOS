@@ -22,7 +22,7 @@
  *
  * Sim reads --bg-color and --text-color from documentElement at
  * touchstart and uses the text-color rgb to build the gradient
- * (text always contrasts bg per the theme system). Same here.
+ * (text always contrasts bg per the colorway system). Same here.
  */
 
 const PTR_THRESHOLD = 100;
@@ -37,7 +37,7 @@ export function mountPtr(): void {
 
     mounted = true;
 
-    // Ambient pull overlay — color derived from current theme at touch time
+    // Ambient pull overlay — color derived from current colorway at touch time
     const overlay = document.createElement('div');
     overlay.style.cssText =
         'position:fixed;top:0;left:0;right:0;' +
@@ -53,7 +53,7 @@ export function mountPtr(): void {
 
     function setOverlayColor() {
         // Use the text color (always contrasts bg per colorway) for the
-        // gradient so it works on every theme — sim 5650-5657.
+        // gradient so it works on every colorway — sim 5650-5657.
         const txt = getComputedStyle(document.documentElement)
             .getPropertyValue('--text-color')
             .trim();
