@@ -44,7 +44,7 @@ export async function GET(
     return badRequest('Invalid Ethereum address');
   }
 
-  // Mock: a Kiki-shaped artist with 41 cooldown days remaining.
+  // Mock: a placeholder artist (Opus 4.6) with 41 cooldown days remaining.
   const cooldownUntilDate = new Date(Date.now() + 41 * 86_400_000);
   const cooldownActive = cooldownUntilDate.getTime() > Date.now();
   const daysRemaining = cooldownActive
@@ -53,15 +53,15 @@ export async function GET(
 
   const response: ArtistResponse = {
     address,
-    ens_name: 'kiki.eth',
-    handle: 'kiki',
+    ens_name: 'opus46.eth',
+    handle: 'opus46',
     cooldown_until: cooldownUntilDate.toISOString(),
     cooldown_active: cooldownActive,
     cooldown_days_remaining: daysRemaining,
     projects: [
       {
-        id: 'kiki',
-        title: 'Kiki',
+        id: 'prisms',
+        title: 'Prisms',
         minted_count: 1847,
         max_supply: 2222,
         floor_price_eth: '0.0091',
