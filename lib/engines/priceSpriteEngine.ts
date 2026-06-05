@@ -27,8 +27,10 @@
 
 import {
     composeSprite,
+    composeResolved,
     type SpriteAnimState,
     type SpriteParts,
+    type ResolvedSprite,
 } from '../sprites/composer';
 import { type PriceSpriteVibe } from '../sprites/vibes';
 
@@ -61,7 +63,7 @@ let _mirrorMode  = false;
 let _state:      State  = 'awake';
 let _armVariant: 0 | 1  = 0;
 
-let _identity: { walletAddress: string; vibe: PriceSpriteVibe } | null = null;
+let _identity: { walletAddress: string; vibe: PriceSpriteVibe; resolved: ResolvedSprite | null } | null = null;
 
 let _idleTimer:       ReturnType<typeof setTimeout> | null = null;
 let _blinkTimer:      ReturnType<typeof setTimeout> | null = null;
@@ -92,13 +94,20 @@ function _computeFrame(): SpriteFrame {
             (isLeft && !_mirrorMode && !isAsleep) ||
             isThrowing || _state === 'arguing' || _state === 'casting';
 
-        const composed = composeSprite(
-            _identity.walletAddress,
-            _identity.vibe,
-            _state as SpriteAnimState,
-            isTurned,
-            isAction ? _armVariant : undefined,
-        );
+        const composed = _identity.resolved
+            ? composeResolved(
+                _identity.resolved,
+                _state as SpriteAnimState,
+                isTurned,
+                isAction ? _armVariant : undefined,
+            )
+            : composeSprite(
+                _identity.walletAddress,
+                _identity.vibe,
+                _state as SpriteAnimState,
+                isTurned,
+                isAction ? _armVariant : undefined,
+            );
         if (composed !== null) {
             const transform =
                 (_mirrorMode && isLeft && !isAsleep) || isThrowing
@@ -152,8 +161,8 @@ function _turn(forceGlyphSwap = false): void {
         // Arm animation still fires via _state=arguing/casting hitting isTurned.
         _mirrorMode = true;
         _armVariant = Math.random() < 0.5 ? 0 : 1;
-        if      (_identity?.vibe === 'vibe_2') _state = 'arguing';
-        else if (_identity?.vibe === 'vibe_4') _state = 'casting';
+        if      (_identity?.vibe === 'instigator') _state = 'arguing';
+        else if (_identity?.vibe === 'mystic')     _state = 'casting';
         // Observer/Hacker: state='awake', arm change via CSS flip only
     } else {
         // Plain turns always CSS-flip — sprite clearly faces LEFT, no arm change.
@@ -300,16 +309,18 @@ export function wakeSprite(): void {
 export function setMainSpriteIdentity(
     walletAddress: string | null,
     vibe: PriceSpriteVibe | null,
+    resolved: ResolvedSprite | null = null,
 ): void {
-    const next = walletAddress && vibe ? { walletAddress, vibe } : null;
+    const next = walletAddress && vibe ? { walletAddress, vibe, resolved } : null;
     if (_identity === null && next === null) return;
     if (_identity && next &&
         _identity.walletAddress === next.walletAddress &&
-        _identity.vibe === next.vibe) return;
+        _identity.vibe === next.vibe &&
+        (_identity.resolved !== null) === (next.resolved !== null)) return;
     _identity = next;
     _emit();
 }
 
-export function getMainSpriteIdentity(): { walletAddress: string; vibe: PriceSpriteVibe } | null {
+export function getMainSpriteIdentity(): { walletAddress: string; vibe: PriceSpriteVibe; resolved: ResolvedSprite | null } | null {
     return _identity;
 }
