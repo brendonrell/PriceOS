@@ -27,7 +27,7 @@
  * Visual shape mirrors the bare RainbowKit verify step from earlier
  * builds: centred dialog with the connected address shown for
  * confirmation, plus the two action buttons. Styling pulls from
- * --bg-color / --text-color so the modal tracks the active theme.
+ * --bg-color / --text-color so the modal tracks the active colorway.
  */
 
 interface Props {
