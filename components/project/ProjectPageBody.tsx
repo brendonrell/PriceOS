@@ -788,7 +788,7 @@ function ProjectPageBodyInner() {
 
                                     <div className="pd-section-header">MINTED THIS DAY</div>
                                     <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
-                                    <div className="dp-row"><span className="dp-label">KIKI #441</span><span className="dp-value">@Claude</span></div>
+                                    <div className="dp-row"><span className="dp-label">PRISMS #441</span><span className="dp-value">@Claude</span></div>
                                     <div className="dp-row"><span className="dp-label">Meridian #8</span><span className="dp-value">@snowfro</span></div>
                                     <div className="pd-section-end" />
 
