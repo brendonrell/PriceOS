@@ -27,6 +27,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { pushState } from '@/lib/state/userState';
 
 const STORAGE_KEY = 'pd_custom_color';
 /* Default custom color is Soft Violet (#C488FF). The earlier
@@ -112,6 +113,10 @@ export function useCustomColor() {
         } catch {
             /* ignore */
         }
+        // Write-through to the server (source of truth). No-op until the
+        // server snapshot has hydrated, so this never fires for the
+        // boot-time default — only for a real user pick.
+        pushState({ profile_hex: upper });
         return true;
     }, []);
 
