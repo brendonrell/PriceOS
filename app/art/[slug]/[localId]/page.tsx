@@ -24,7 +24,7 @@ function isValidLocalId(s: string): boolean {
   if (!/^\d+$/.test(s)) return false;
   const n = Number(s);
   if (!Number.isFinite(n) || n < 1) return false;
-  // Reject leading zeros — `/art/kiki/01` ≠ canonical `/art/kiki/1`
+  // Reject leading zeros — `/art/prisms/01` ≠ canonical `/art/prisms/1`
   if (String(n) !== s) return false;
   return true;
 }
