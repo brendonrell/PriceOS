@@ -7,7 +7,7 @@
  * five views below it:
  *
  *   - links     — Profile / Discord / Artists / Portfolio / Settings / Log Out
- *   - settings  — full Settings panel (wallet/MY PD/themes/sort/pings/spell-book/workspace)
+ *   - settings  — full Settings panel (wallet/MY PD/colorways/sort/pings/spell-book/workspace)
  *   - calendar  — Calendar panel (month grid + day column with events / to-dos)
  *   - artists   — Artists A-Z directory (filter pills + pin/note + scroll list)
  *   - portfolio — Portfolios panel (Budgets + Main/Shadow tabs + tree + filters)
