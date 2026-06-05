@@ -5,6 +5,70 @@ import type { PriceSpriteVibe } from './sprites/vibes';
 // Database row types — mirror the Postgres schema exactly.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-user persisted state shapes (jsonb columns on `users`).
+//
+// These are the typed contracts for the "log in anywhere, exactly as you left
+// it" feature: the server row is the single source of truth and the client
+// caches mirror it. Keep these in sync with the migration that seeds the column
+// defaults — the CHECK on `showcase` enforces exactly 6 slots in Postgres.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Active colorway key. Mirrors ColorwayKey in lib/state/ColorwayContext, minus
+ *  'hashsyn' (never persisted — it needs live canvases per session). */
+export type PersistedColorway =
+  | 'custom'
+  | 'light'
+  | 'dark'
+  | 'orange'
+  | 'blue'
+  | 'red'
+  | 'haze'
+  | null;
+
+export interface PersistedHaze {
+  /** Saved haze base hex (was localStorage `pd_haze_color`). */
+  color: string | null;
+  /** Saved haze variation (was localStorage `pd_haze_variation`). */
+  variation: 'pure' | 'tint' | 'drift' | 'pulse' | 'chromatic' | null;
+}
+
+/** The `settings` jsonb envelope. Small scalar/boolean prefs fold in here;
+ *  larger first-class state (showcase, calendar, workspaces, setup_codes) has
+ *  its own dedicated column. Every field is optional so partial PATCHes merge
+ *  cleanly and old rows ({}) read as all-defaults. */
+export interface UserSettings {
+  /** was localStorage `pd_settings_colorway`. */
+  colorway?: PersistedColorway;
+  /** was localStorage `pd_haze_color` + `pd_haze_variation`. */
+  haze?: PersistedHaze;
+  /** was localStorage `pd_settings_sort` (family key only). */
+  sort?: string | null;
+  /** was localStorage `pd_settings_notifs` (incl. pure_light / pure_dark). */
+  notifs?: Record<string, unknown>;
+}
+
+/** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the
+ *  showcase grid workstream; null = empty slot. */
+export interface Showcase {
+  slots: [
+    ShowcaseSlot | null,
+    ShowcaseSlot | null,
+    ShowcaseSlot | null,
+    ShowcaseSlot | null,
+    ShowcaseSlot | null,
+    ShowcaseSlot | null,
+  ];
+}
+export interface ShowcaseSlot {
+  project_id: string;
+  token_id: string;
+}
+
+/** Static (user-ordered) vs generative (randomised each visit). The DB column
+ *  defaults to 'grid' on legacy rows; read it as 'static' for back-compat. */
+export type ShowcaseStyle = 'static' | 'generative';
+
 export interface UserRow {
   address: string;
   ens_name: string | null;
@@ -12,6 +76,36 @@ export interface UserRow {
   price_sprite: PriceSpriteVibe | null;
   account_level: number;
   created_at: string;
+
+  // ── Per-user persisted state (the user-state feature) ───────────────────────
+  /** Custom / profile color hex (was localStorage `pd_custom_color`). */
+  profile_hex: string | null;
+  price_rank: number;
+  familiar_config: Record<string, unknown> | null;
+  showcase: Showcase;
+  /** Stored as text; 'grid' on legacy rows maps to 'static' on read. */
+  showcase_style: string;
+  settings: UserSettings;
+  calendar_state: Record<string, unknown>;
+  grid_presets: Record<string, unknown>;
+  workspaces: Record<string, unknown>;
+  setup_codes: Record<string, unknown>;
+}
+
+/** The subset of columns a user may write to their own row via
+ *  PATCH /api/me. Identity columns (address, handle, created_at), curve
+ *  columns (account_level, price_rank), and price_sprite are intentionally
+ *  excluded — they mutate through their own dedicated endpoints. */
+export interface UserStatePatch {
+  profile_hex?: string | null;
+  showcase?: Showcase;
+  showcase_style?: ShowcaseStyle;
+  settings?: UserSettings;
+  calendar_state?: Record<string, unknown>;
+  grid_presets?: Record<string, unknown>;
+  workspaces?: Record<string, unknown>;
+  setup_codes?: Record<string, unknown>;
+  familiar_config?: Record<string, unknown> | null;
 }
 
 export interface FollowRow {
