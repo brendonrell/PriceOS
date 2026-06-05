@@ -136,7 +136,7 @@ function drainQueue(): void {
         /* Brendon list item 14 — sim 8230-8234. Notify the hashsyn
            engine so it can debounce a resample once the new canvas
            pixels are paintable. No-op when hashsyn isn't the active
-           theme — engine bails on null _onApplyHex. */
+           colorway — engine bails on null _onApplyHex. */
         hashSynNotifyCanvasPaint();
         enforceLruCap();
     });
