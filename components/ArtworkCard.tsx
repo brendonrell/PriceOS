@@ -320,13 +320,12 @@ export default function ArtworkCard({
         if (!canvas || !wrapper) return;
 
         const render = () => {
-            /* Prisms engine — verbatim port of KikiEngine from
-               reference/Prismsdemo.html. renderPrisms sets canvas
-               width/height internally (aspect ratio is determined by
-               the engine's weighted RATIOS pick, seeded on id so every
-               token produces the same artwork on every render). The
-               wrapper's inline aspectRatio is updated after paint so
-               CSS scales it correctly. */
+            /* Placeholder gradient art — renderPrisms sets canvas
+               width/height internally and returns the aspect ratio
+               (seeded on id so every token paints the same gradient on
+               every render). The wrapper's inline aspectRatio is updated
+               after paint so CSS scales it correctly. Real per-project art
+               replaces this when artist upload lands. */
             const ratio = renderPrisms(canvas, id, 400);
             if (wrapper) {
                 wrapper.style.aspectRatio = String(ratio);
