@@ -28,7 +28,7 @@
  * Reverted here.
  *
  * No localStorage. Sim 12617-12618 explicitly removes pd_settings_colorway
- * when hashsyn activates — the theme needs live canvases each session.
+ * when hashsyn activates — the colorway needs live canvases each session.
  * That removal lives in ColorwayContext.setColorway; the engine only handles
  * sampling.
  */
@@ -169,7 +169,7 @@ export function hashSynNotifyCanvasPaint(): void {
  * sampling. Used for per-card pointer triggers (ArtworkCard hover/tap)
  * and, once ArtworkModal v0 lands, the modal-open lock (sim 8800:
  * openModal calls `_origSetTheme(data.palette.c1)` when hashsyn is the
- * current theme — deterministic, single-frame, zero gate failures on
+ * current colorway — deterministic, single-frame, zero gate failures on
  * near-gray or near-black canvases). The retry cascade and scroll +
  * paint-notify resamples still run; this is the per-token override
  * that gives hashsyn a reactive surface before the muddy channel-mean
@@ -212,7 +212,7 @@ export function enableHashSyn(applyHex: (hex: string) => void): void {
     });
 }
 
-/** Tear down the engine — used when the user picks a different theme. */
+/** Tear down the engine — used when the user picks a different colorway. */
 export function disableHashSyn(): void {
     _onApplyHex = null;
     _retryTimers.forEach((t) => clearTimeout(t));

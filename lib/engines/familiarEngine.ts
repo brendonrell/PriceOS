@@ -311,7 +311,7 @@ export function enableFamiliar(): void {
         _outlined = false;
         _outlineColor = null;
         /* Outline: ~25% per sim 12908. Palette keyed to body bg
-           luminance so the outline stays legible on every theme.
+           luminance so the outline stays legible on every colorway.
            Dark bg → bright palette; light/warm bg → deep palette.
            Verbatim from sim 12909-12923. */
         if (Math.random() < 0.25) {
