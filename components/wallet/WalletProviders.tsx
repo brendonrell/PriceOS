@@ -118,7 +118,8 @@ import {
 import { AuthContextProvider } from '../../lib/state/AuthContext';
 import { SignInModal } from './SignInModal';
 import { AccountCreateModal } from './AccountCreateModal';
-import { fetchUserRow } from '../../lib/wallet/accountClient';
+import { fetchUserRow, fetchMe } from '../../lib/wallet/accountClient';
+import { hydrateFromRow, resetUserState } from '../../lib/state/userState';
 import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
@@ -421,6 +422,34 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
                    for v0 the user can re-trigger via sign-out + sign-
                    in. */
                 if (!cancelled) setUserRow(undefined);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [siweAddress]);
+
+    /* User-state hydration — "log in anywhere, exactly as you left it."
+       Decoupled from the needsSignup fetch above so it can't regress the
+       signup flow, and so it survives the follows-join issue on the public
+       /api/user route (fetchMe hits /api/me: service-role, own row, no join).
+       On SIWE settle it pulls the caller's own row (incl. private state
+       columns) and reconciles it into the local caches + live contexts;
+       server wins. On sign-out / address change it drops the hydration guard
+       so the next identity gets a clean overwrite. */
+    useEffect(() => {
+        if (!siweAddress) {
+            resetUserState();
+            return;
+        }
+        let cancelled = false;
+        fetchMe()
+            .then((row) => {
+                if (cancelled || !row) return;
+                hydrateFromRow(row);
+            })
+            .catch(() => {
+                /* Offline / 5xx — the existing caches remain as the last-seen
+                   mirror; a later sign-in retries. */
             });
         return () => {
             cancelled = true;
