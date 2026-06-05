@@ -95,12 +95,12 @@ const PREHYDRATION_SCRIPT = `
         // Hashsyn never persists — sim 12617-12618.
         if (savedTheme === 'hashsyn') savedTheme = null;
 
-        var theme = savedTheme;
-        if (theme === null && isProjectPage) theme = 'custom';
+        var colorway = savedTheme;
+        if (colorway === null && isProjectPage) colorway = 'custom';
         // Non-project, non-profile pages (home, etc.) also default to
         // custom color so the site never cold-starts with Dot defaults.
-        if (theme === null && !isProfilePage) theme = 'custom';
-        var profileBoot = (theme === null && isProfilePage);
+        if (colorway === null && !isProfilePage) colorway = 'custom';
+        var profileBoot = (colorway === null && isProfilePage);
 
         var COLORWAYS = {
             custom:  '#C488FF',
@@ -178,14 +178,14 @@ const PREHYDRATION_SCRIPT = `
             var pBg = '#FFE600';
             var pText = '#111111';
             paintVars(pBg, pText, null);
-        } else if (theme && COLORWAYS[theme]) {
-            var bg = COLORWAYS[theme];
+        } else if (colorway && COLORWAYS[colorway]) {
+            var bg = COLORWAYS[colorway];
 
             // When colorway is 'custom' (project-page boot default OR user
             // pick), read the user's saved custom hex from
             // pd_custom_color so the page paints the picked color
             // instead of the static COLORWAYS.custom fallback.
-            if (theme === 'custom') {
+            if (colorway === 'custom') {
                 try {
                     var savedArtistColor = localStorage.getItem('pd_custom_color');
                     if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
@@ -202,8 +202,8 @@ const PREHYDRATION_SCRIPT = `
             try {
                 notifs = JSON.parse(localStorage.getItem('pd_settings_notifs') || 'null');
             } catch (e) { /* ignore */ }
-            if (notifs && theme === 'light' && notifs.pure_light) bg = '#ffffff';
-            if (notifs && theme === 'dark'  && notifs.pure_dark)  bg = '#000000';
+            if (notifs && colorway === 'light' && notifs.pure_light) bg = '#ffffff';
+            if (notifs && colorway === 'dark'  && notifs.pure_dark)  bg = '#000000';
 
             var hex = bg.replace('#', '');
             var r = parseInt(hex.substr(0, 2), 16) || 0;
@@ -212,10 +212,10 @@ const PREHYDRATION_SCRIPT = `
             var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             var text = yiq >= 128 ? '#111111' : '#e0e0e0';
 
-            paintVars(bg, text, theme);
+            paintVars(bg, text, colorway);
 
             if (document.body) {
-                document.body.classList.add('colorway-' + theme);
+                document.body.classList.add('colorway-' + colorway);
                 if (r > g + 40 && r > b + 40 && r > 100) {
                     document.body.classList.add('bg-is-red');
                 }

@@ -14,7 +14,7 @@
 
    Layered structure (top to bottom):
      1. Brand tokens
-     2. Functional theme tokens
+     2. Functional colorway tokens
      3. Base reset + iOS PWA fixes
      4. Navbar (Petey logo, ticker, user menu wrapper)
      5. Connect Menu — dropdown stack + main user-dropdown
@@ -34,17 +34,17 @@
 }
 
 
-/* ── FUNCTIONAL TOKENS (theme-driven) ─────────────────────── */
+/* ── FUNCTIONAL TOKENS (colorway-driven) ─────────────────────── */
 /* Base: Dot (#111111) as the basis colour for the site. Attention Yellow
    (#FFE600) is no longer the site basis — it lives only as (a) the default
-   artist custom colour and (b) the default profile theme colour.
-   Per-page themes override this base on render:
+   artist custom colour and (b) the default profile colorway colour.
+   Per-page colorways override this base on render:
      - Project pages (/art/*): artist's custom colour. The prehydration
-       script in app/layout.tsx + ThemeContext both check pathname and
+       script in app/layout.tsx + ColorwayContext both check pathname and
        paint the artist hex (from pd_artist_color in localStorage) over
        this default before first paint and on every route change.
-     - Profile pages (Profile Page v0): profile owner's theme colour.
-     - All other pages: user's saved global theme, or this base if none.
+     - Profile pages (Profile Page v0): profile owner's colorway colour.
+     - All other pages: user's saved global colorway, or this base if none.
    These CSS defaults only show in the rare window before the
    prehydration script runs — that script paints synchronously based
    on pathname + saved values before first frame. */
@@ -52,7 +52,7 @@
     /* Defaults match the artist/custom-colour output of paintVars so
        the page renders correctly before the pre-hydration script fires.
        The script overwrites these synchronously for users with saved
-       themes; unauthenticated users see exactly this colour. */
+       colorways; unauthenticated users see exactly this colour. */
     --bg-color:     #C488FF;
     --text-color:   #111111;
     --border-color: rgba(0, 0, 0, 0.15);
@@ -498,7 +498,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    the same size and just gets slightly more visible. We go beyond
    sim parity with `transform: scale(1.1)` on .pinned so the pin
    visibly grows when the artwork is pinned; clearer affordance,
-   theme-agnostic, no new color introduced.
+   colorway-agnostic, no new color introduced.
 
    Logged in Post-Sim Backlog as a deliberate sim deviation. */
 .modal-pin-hint {
@@ -897,7 +897,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
    underline by default; we run the same pattern on the wrapper so the
    icon + number lift together. The prior color: var(--hothurt) red
    hover (chat A item 19) was a sim deviation that read jarring on
-   most themes; replaced with theme-agnostic opacity ramp.
+   most colorways; replaced with colorway-agnostic opacity ramp.
 
    .nav-follower-stats margin-left zeroed because #profileRow now
    carries its own padding — the 12px gap to the label was sim's
@@ -1584,7 +1584,7 @@ body.stargazing-mode .user-dropdown a { color: #c5a8f0; }
 body.stargazing-mode .user-dropdown a:hover { background: rgba(197, 168, 240, 0.08); }
 
 /* Force platform-modal backgrounds to dark when stargazing is active.
-   Without this, a previously-selected theme leaves inline backgroundColor on the modal element
+   Without this, a previously-selected colorway leaves inline backgroundColor on the modal element
    (set by setTheme + openModal) which leaks through. !important beats the inline style. */
 body.stargazing-mode .platform-modal {
     background: #0d0618 !important;
@@ -2381,7 +2381,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    Reusable bottom-sheet for 1- or 2-field value entry. Inverted
    palette (bg: var(--text-color), fg: var(--bg-color)) — matches
    the .user-dropdown inversion so it reads as the same terminal-
-   style dark surface across every theme. Used by Budget Add and
+   style dark surface across every colorway. Used by Budget Add and
    future Anchor + 2-field prompts. Two-stage visibility via
    .mounted (display: flex) + .active (opacity 1 + slide-up).
 */
@@ -2404,7 +2404,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 
 .value-prompt-box {
-    /* Inverted palette — matches .user-dropdown pattern. On any theme
+    /* Inverted palette — matches .user-dropdown pattern. On any colorway
        this reads as the dark menu chrome. */
     background: var(--text-color);
     color: var(--bg-color);
@@ -2478,7 +2478,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .value-prompt-input {
     background: transparent;
     border: none;
-    /* Translucent fg underline — sits correctly on any theme. */
+    /* Translucent fg underline — sits correctly on any colorway. */
     border-bottom: 1.5px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
     outline: none;
     font-family: 'Courier New', Courier, monospace;
@@ -4463,13 +4463,13 @@ body.hammer-mode .hover-overlay { display: none !important; }
 @media (hover: hover) {
     .petey-bubble a:hover { opacity: 0.7; }
     /* Brendon-list-2 chat F item 2 — sim 3202 / 6817 sets
-       --btn-user-hover to #ffffff on light themes and #888888 on dark
-       themes. Both reads as "rolls white" against most theme bgs
-       (the yellow / red / blue / orange themes all have light text on
+       --btn-user-hover to #ffffff on light colorways and #888888 on dark
+       colorways. Both reads as "rolls white" against most colorway bgs
+       (the yellow / red / blue / orange colorways all have light text on
        a saturated bg, so the white-on-color hover felt jarring). Per
-       Brendon, theme-aware = no new color introduced. Opacity-only
+       Brendon, colorway-aware = no new color introduced. Opacity-only
        hover keeps the existing color palette and just lifts the
-       button slightly. The --btn-user-hover variable + ThemeContext
+       button slightly. The --btn-user-hover variable + ColorwayContext
        writes are left in place (vestigial but harmless) so removing
        this rule cleanly is one CSS edit. */
     .btn-user:hover { opacity: 0.85; }
@@ -4601,7 +4601,7 @@ body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigge
 /* ── AURA — sim 3693-3731 ──
    Ambient multi-color glow AROUND each artwork. Sits behind the card via
    a ::before pseudo on .output-card with negative inset (extends ~16px
-   outward). Slowly-rotating conic gradient across 6 theme-compatible
+   outward). Slowly-rotating conic gradient across 6 colorway-compatible
    hues so every thumbnail reads as haloed in a living, shifting colour
    field. CRUCIALLY: does NOT touch .canvas-wrapper, overflow, z-index
    of interior elements, or anything above the card. `isolation: isolate`
@@ -5557,7 +5557,7 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 /* Sim 1268-1285 — Top Bar Calendar to-do markers. Day cell gets a
    small Hothurt-red dot before the count when the To-Dos overlay
    is on and that day has scheduled to-dos. Events ticker prepends
-   "❍ title" rows in Hothurt red. Both stay Hothurt on every theme. */
+   "❍ title" rows in Hothurt red. Both stay Hothurt on every colorway. */
 .tbcd-todo-dot {
     display: inline-block;
     width: 4px; height: 4px;
@@ -5942,7 +5942,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .ws-add.faded { opacity: 0.15; cursor: not-allowed; }
 
 /* Long-press popover — keeps its own dark surface so it reads
-   against any theme. Sits above the dot, position: fixed (uses
+   against any colorway. Sits above the dot, position: fixed (uses
    viewport coords, so it positions correctly relative to the dot
    regardless of scroll position inside the Settings dropdown). */
 .ws-popover {
@@ -5995,7 +5995,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 
 /* ── GAS TRACKER MODAL ──────────────────────────────────────
    S3 — Etherscan-style 3-card modal (.platform-modal scaffold +
-   .modal-info container live in styles/modal.css). Theme-aware via
+   .modal-info container live in styles/modal.css). Colorway-aware via
    existing tokens — --bg-color / --text-color / --hothurt /
    --attention. Rubik Mono One on labels (matches platform's display
    face), Courier on numbers (matches every other tabular surface).
@@ -6085,7 +6085,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    S4 page 3234 — ZEN MODE PILL
    ============================================================
    The Zen Mode toggle in MyPdSection uses the standard
-   .settings-toggle.active fill (theme-default: --bg-color fill
+   .settings-toggle.active fill (colorway-default: --bg-color fill
    + --text-color label) — same as every other mode pill.
    The previous #sn-zen.active override painted Attention Yellow
    (#FFE600) to visually signal the "Zen" default workspace, but
@@ -6103,9 +6103,9 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    surface that previously lived in RainbowKit's auth adapter
    "Verify" step. SignInModal.tsx owns the markup; this styles it.
    Backdrop is a fixed overlay above everything (z-index pegged
-   above modal-open scroll-lock surfaces). Theme-tracking via the
+   above modal-open scroll-lock surfaces). Colorway-tracking via the
    --bg-color / --text-color vars so the modal stays consistent
-   across theme picks (including hashsyn as it samples). */
+   across colorway picks (including hashsyn as it samples). */
 .signin-modal-backdrop {
     position: fixed;
     inset: 0;
