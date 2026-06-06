@@ -37,8 +37,7 @@ import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
-import { fetchUserByHandle } from '../../lib/wallet/accountClient';
-import type { UserProfileResponse } from '../../app/api/user/[address]/route';
+import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
  * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
@@ -53,6 +52,7 @@ function formatMemberSince(iso: string): string {
             month: 'short',
             day: '2-digit',
             year: 'numeric',
+            timeZone: 'UTC',
         })
         .replace(',', '')
         .toUpperCase();
@@ -64,7 +64,13 @@ type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 const CREATED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const COLLECTED_IDS = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 
-function ProfilePageBodyInner({ handle }: { handle: string }) {
+function ProfilePageBodyInner({
+    handle,
+    initialUser,
+}: {
+    handle: string;
+    initialUser: UserProfileData;
+}) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
@@ -73,22 +79,24 @@ function ProfilePageBodyInner({ handle }: { handle: string }) {
     const { sort, dir } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
-    // ── Real user row (wired from DB via /api/user/by-handle) ─────────
-    // Handle is permanent + 1:1 with a wallet, so it's the stable key.
-    // Backed values rendered live: handle, member-since (created_at),
-    // follower/following counts. Unbacked stats (volume, created/collected
-    // counts, mutuals row) stay placeholder until their data exists.
-    const [user, setUser] = useState<UserProfileResponse | null>(null);
-    useEffect(() => {
-        let active = true;
-        fetchUserByHandle(handle)
-            .then((row) => { if (active) setUser(row); })
-            .catch(() => { if (active) setUser(null); });
-        return () => { active = false; };
-    }, [handle]);
+    // Real user row — fetched server-side from the handle in the URL and
+    // passed in, so the hero renders real values on first paint (no popin).
+    const user = initialUser;
 
-    const displayHandle = user?.handle ?? handle;
-    const memberSince = user ? formatMemberSince(user.created_at) : '';
+    const displayHandle = user.handle ?? handle;
+    const memberSince = formatMemberSince(user.created_at);
+
+    // Identity row: chosen ENS if set, else the truncated wallet address.
+    const viaLabel = user.ens_name
+        ? user.ens_name
+        : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
+    const followerCount = user.follower_count;
+
+    // Social row (Twitter model): "Followed by X, Y, and N others you follow".
+    // Names = people the viewer follows who also follow this profile. Empty
+    // until the follows-intersection lands; row hides when empty.
+    const mutuals: string[] = [];
+    const mutualOthers: number = 0;
 
     const [activeTab, setActiveTab] = useState<ProfileTab>('created');
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
@@ -232,30 +240,32 @@ function ProfilePageBodyInner({ handle }: { handle: string }) {
                         <span className="by-text">Via</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/cto">cto.eth</a>
-                                <span className="follow-badge">
-                                    <span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span>
-                                </span>
+                                <a href={`/${displayHandle}`}>{viaLabel}</a>
                             </span>
-                            <span className="follower-count">67</span>
+                            <span className="follower-count">{followerCount}</span>
                         </div>
                     </div>
                 }
                 socialRow={
+                    mutuals.length > 0 ? (
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by</span>{' '}
-                        <a className="cbr-name">@matty</a>
-                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                        {', '}
-                        <a className="cbr-name">@atlasforge</a>
-                        {', '}
-                        <a className="cbr-name">@rudxane</a>
-                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                        {' '}
-                        <span className="cbr-others" onClick={() => showToast('Followers — coming soon')}>
-                            &amp; 42 Others You Know
-                        </span>
+                        {mutuals.map((m, i) => (
+                            <span key={m}>
+                                {i > 0 && ', '}
+                                <a className="cbr-name" href={`/${m}`}>@{m}</a>
+                            </span>
+                        ))}
+                        {mutualOthers > 0 && (
+                            <>
+                                {' '}
+                                <span className="cbr-others">
+                                    &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
+                                </span>
+                            </>
+                        )}
                     </div>
+                    ) : undefined
                 }
                 statsRow={
                     <div className="hero-line stats-row">
@@ -422,10 +432,16 @@ function ProfilePageBodyInner({ handle }: { handle: string }) {
     );
 }
 
-export default function ProfilePageBody({ handle }: { handle: string }) {
+export default function ProfilePageBody({
+    handle,
+    initialUser,
+}: {
+    handle: string;
+    initialUser: UserProfileData;
+}) {
     return (
         <TraitsProvider>
-            <ProfilePageBodyInner handle={handle} />
+            <ProfilePageBodyInner handle={handle} initialUser={initialUser} />
         </TraitsProvider>
     );
 }
