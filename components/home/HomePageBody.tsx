@@ -203,7 +203,7 @@ export default function HomePageBody() {
                 {/* Tab row — same pill markup as the project page (sim 5161). */}
                 <div className="profile-tabs-row" id="homeTabsRow">
                     {tab('new', 'New Art')}
-                    {tab('sales', 'Sales Feed')}
+                    {tab('sales', 'Sales')}
                     {tab('shuffle', 'Shuffle')}
                 </div>
             </Hero>
