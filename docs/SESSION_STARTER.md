@@ -31,12 +31,14 @@ If a call comes back empty or errors: suspect **your lookup term / ID first**
 (connectors expect exact, often digit-only IDs and resolve names fuzzily), then
 auth, then the service.
 
-## 3. Git workflow (CEO-simple)
-- **We work on the `dev` branch.** Land changes there.
-- The CEO does **not** do GitHub steps. When work is done: commit, merge to
-  `dev`, push. No PR, no buttons to click unless explicitly asked.
-- Old habit was "upload files to main" via the GitHub UI — don't rely on that;
-  use `dev` + push from the session.
+## 3. Git workflow — CEO approves every change
+- **We work on the `dev` branch**, but the CEO approves before anything lands.
+- Flow: do work on a branch → **open a PR into `dev`** → send the CEO the PR
+  link → CEO taps **Merge** (that tap IS the approval) → only then it's live.
+- **Never merge to `dev` yourself unless the CEO explicitly says so.** Default
+  is: open the PR, wait.
+- A PR is just a screen showing the changes + a green Merge button. That is the
+  approval gate.
 
 ## 4. Context hygiene
 - One chat ≈ one cohesive task. Start a fresh chat for unrelated work.
