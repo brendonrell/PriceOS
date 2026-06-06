@@ -78,6 +78,14 @@ function sanitisePatch(
     const body = raw as Record<string, unknown>;
     const patch: UserStatePatch = {};
 
+    if ('ens_name' in body) {
+        const v = body.ens_name;
+        if (v !== null && !(typeof v === 'string' && v.length > 0 && v.length <= 255)) {
+            return { ok: false, reason: 'ens_name must be a non-empty string (max 255) or null' };
+        }
+        patch.ens_name = v === null ? null : (v as string);
+    }
+
     if ('profile_hex' in body) {
         const v = body.profile_hex;
         if (v !== null && !(typeof v === 'string' && HEX_RE.test(v))) {
