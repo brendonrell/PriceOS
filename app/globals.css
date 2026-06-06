@@ -548,6 +548,17 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     }
 }
 
+/* Landscape phones (~844px wide) miss the max-width:600 shrink above and
+   would otherwise show the full 16px desktop square. Match the portrait
+   mobile size so the active-note square stays small in landscape. */
+@media (orientation: landscape) and (max-height: 500px) {
+    .modal-pin-hint.pinned::before {
+        width: 12px;
+        height: 12px;
+        inset: 0 0 2px 0;
+    }
+}
+
 .btn-user {
     background: var(--text-color);
     color: var(--bg-color);
