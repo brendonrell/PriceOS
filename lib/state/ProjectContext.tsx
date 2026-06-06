@@ -7,7 +7,7 @@
  * showcase from `projects.showcase_ids`, fetched once on mount via
  * /api/project/prisms/outputs. To keep first paint instant (no loading
  * flash), the map is seeded synchronously with the SAME ownership rule the
- * seed used — odd token ids -> @brendon, even -> @opus46 — so the gallery is
+ * seed used — odd token ids -> @brendon, even -> @opus4-6 — so the gallery is
  * already correct before the fetch lands; the fetch then reconciles against
  * the authoritative rows (and would correct any drift). Per-token price and
  * traits stay deterministic placeholders (listings/trait freezing not
@@ -66,7 +66,7 @@ function shortAddr(addr: string): string {
 }
 
 /* Deterministic per-id meta. Ownership mirrors the seed rule (odd -> brendon,
-   even -> opus46); price + traits are stable placeholders. */
+   even -> opus4-6); price + traits are stable placeholders. */
 function buildOutputMeta(id: number): OutputMeta {
     const isMine = id % 2 === 1;
 
@@ -75,7 +75,7 @@ function buildOutputMeta(id: number): OutputMeta {
     const isListed = r1 < 0.3;
     const price = isListed ? (r2 * 0.5 + 0.01).toFixed(3) + ' ETH' : null;
 
-    const ownerDisplay = isMine ? '@brendon' : '@opus46';
+    const ownerDisplay = isMine ? '@brendon' : '@opus4-6';
     const ownerFull = isMine ? BRENDON_ADDR : OPUS_ADDR;
 
     const tLayer = (id * 1103 + 12345) % 65536;
