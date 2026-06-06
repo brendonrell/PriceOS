@@ -118,6 +118,20 @@ html, body {
     font-size: 13px;
 }
 
+/* ROOT FIX for the recurring "text blows up huge in landscape" bug.
+   iOS Safari's text autosizing ("font boosting") inflates certain text in
+   landscape even when text-size-adjust:100% is set on html/body — the
+   property doesn't reliably reach every element through inheritance, which
+   is why individual elements (e.g. the Collected-by row) had to carry their
+   own copy. Pinning it on EVERY element opts every node out of boosting, so
+   no text can ever be inflated again regardless of where it lives. */
+*,
+*::before,
+*::after {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 /* Sticky-footer pattern. Body is the flex column container; main
    expands to consume all remaining space so the footer parks at
    the viewport bottom on short pages and at the end of content on
