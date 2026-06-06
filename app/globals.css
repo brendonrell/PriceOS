@@ -2789,6 +2789,18 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
 
+/* Artist badge inside the big Rubik title (profile hero @handle✺):
+   the base .artist-tag top:2px is tuned for the small identity row and
+   rides high against the 22px title caps. Re-center to the cap box:
+   18px tag, nudged down to sit on the title's vertical midline. */
+.project-title .artist-tag {
+    position: relative;
+    top: 3px;
+    font-size: 18px;
+    vertical-align: baseline;
+    margin-left: 1px;
+}
+
 /* ── COLLECTED BY row ─────────────────────────────────────── */
 .collected-by-row {
     flex-wrap: wrap;
