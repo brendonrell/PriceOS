@@ -122,9 +122,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
         position: relative;
         box-sizing: border-box;
         padding:
-            calc(env(safe-area-inset-top, 0px) + 12px)
+            16px
             calc(env(safe-area-inset-right, 0px) + 64px)
-            20px
+            16px
             calc(env(safe-area-inset-left, 0px) + 64px);
     }
     .ls-canvas-wrap #modalCanvasLs {
