@@ -298,6 +298,7 @@ body.colorway-dark .note-prompt-view {
     .note-prompt-box {
         width: min(560px, 88vw);
         max-width: 560px;
+        min-height: 0;
         max-height: 88vh;
         border-radius: 12px;
         padding: 14px 18px 16px 18px;
