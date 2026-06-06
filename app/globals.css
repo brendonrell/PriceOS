@@ -2769,6 +2769,25 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     margin-left: 4px;
 }
 
+/* Identity-row copy icon (profile hero) — reuses the settings .icon-copy
+   glyph; adds a gap + pointer affordance + subtle dim that lifts on hover. */
+.id-copy {
+    margin-left: 5px;
+    cursor: pointer;
+    opacity: 0.55;
+    font-family: 'Courier New', Courier, monospace;
+    transition: opacity 0.12s ease;
+}
+.id-copy:hover { opacity: 0.85; }
+
+/* The 0x address prefix renders in all-caps Rubik on the identity row,
+   where an uppercase "X" reads poorly. Force this single glyph lowercase
+   and shrink it slightly so "0x" parses cleanly while the hex stays caps. */
+.addr-x {
+    text-transform: lowercase;
+    font-size: 0.75em;
+}
+
 .artist-tag {
     font-family: 'Courier New', Courier, monospace !important;
     font-size: 21px;
