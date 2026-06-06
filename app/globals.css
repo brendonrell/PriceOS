@@ -6477,3 +6477,49 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .account-create-modal-btn-primary:hover:not(:disabled) {
     opacity: 0.88;
 }
+
+/* ── Home carousels (test-phase) ─────────────────────────────────────
+   Per-project rows on the home/index page. Each row reuses the global
+   .output-card tile (so it matches the project-page gallery visually),
+   but the track scrolls horizontally (flex nowrap + overflow-x) instead
+   of the #gallery wrap. Scales to N rows; one (PRISMS) is wired for now. */
+.home-carousel-row {
+    margin: 0 0 28px;
+}
+.home-carousel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 10px;
+    padding: 0 16px;
+}
+.home-carousel-title {
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.home-carousel-title:hover {
+    text-decoration: underline;
+}
+.home-carousel-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 16px 10px;
+}
+.home-carousel-track .output-card {
+    flex: 0 0 auto;
+    width: min(62vw, 240px);
+    scroll-snap-align: start;
+}
+/* Hide the horizontal scrollbar — swipe/drag is the affordance. */
+.home-carousel-track::-webkit-scrollbar {
+    height: 0;
+    background: transparent;
+}
