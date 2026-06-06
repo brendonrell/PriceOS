@@ -50,17 +50,20 @@ never `TO public`.
 
 Everything in §3 "free rein" needs **no** approval. These are the few taps that do:
 
-1. **Merge** a branch into `dev` or `main`. The Merge tap **is** the approval.
-   **Never merge to `dev`/`main` myself** unless Brendon explicitly says so.
+1. **Merge** a branch into `dev` or `main`. Approval = **Brendon's explicit
+   confirmation in chat** ("approved" / "push it"). Claude then performs the
+   merge. **Never merge without that chat confirmation.**
 2. **On-chain deploys** — Sepolia/mainnet contract pushes (Brendon does these on
    mobile via Remix + MetaMask / WalletConnect). Never automated.
 3. **Prod data / money** — any write to the live Supabase or anything touching
    real funds. Surface, don't execute.
 
-**Delivery process (the one Brendon wants):** Claude pushes a feature branch and
-**opens a PR into `dev`** → GitHub **pings Brendon's iOS app** → Brendon reads the
-summary against the diff → **taps the green Merge button.** That tap is the
-approval. No zips, no manual uploads. Never merge it myself.
+**Delivery process (current — Brendon's call 2026-06-06):** Claude pushes a
+feature branch and **opens a PR into `dev`** — the PR stays the record + the
+reviewable diff. Claude summarizes the change in chat → **Brendon confirms in
+chat** → **Claude performs the merge.** Brendon does NOT need to tap the green
+button; his chat confirmation is the approval. No zips. Never merge without an
+explicit chat confirmation.
 
 ## 5. Source-of-truth precedence
 
