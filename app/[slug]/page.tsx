@@ -12,12 +12,13 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSlug } from '@/lib/slug';
+import { getUserProfileByHandle } from '@/lib/profile/getUserProfileByHandle';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
 type Props = { params: { slug: string } };
 
-export default function SlugRootPage({ params }: Props) {
+export default async function SlugRootPage({ params }: Props) {
   const r = resolveSlug(params.slug);
   if (r.kind === 'invalid') notFound();
 
@@ -31,10 +32,13 @@ export default function SlugRootPage({ params }: Props) {
     return <ArtworkPageBody globalId={r.globalId} />;
   }
 
-  // Profile kind — Profile Page v0 body.
-  // Sub-routes: /collected, /anointed, /wishlist, /starred, /notes,
-  // /albums. (Collection → Collected lock landed with this build.)
-  return <ProfilePageBody handle={r.handle} />;
+  // Profile kind — fetch the full row server-side from the handle in the
+  // URL so the body renders real values on first paint (no client-fetch
+  // popin). 404 when the handle has no row.
+  const initialUser = await getUserProfileByHandle(r.handle);
+  if (!initialUser) notFound();
+
+  return <ProfilePageBody handle={r.handle} initialUser={initialUser} />;
 }
 
 export function generateMetadata({ params }: Props): Metadata {
