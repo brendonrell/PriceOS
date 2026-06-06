@@ -74,6 +74,7 @@ import {
 } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from './TraitsUI';
+import Hero from '../hero/Hero';
 import {
     applyStepLine,
     getBudgets,
@@ -760,8 +761,9 @@ function ProjectPageBodyInner() {
 
     return (
         <>
-            <section className="project-hero" aria-label="Project Info">
-                <div className="hero-group-1">
+            <Hero
+                ariaLabel="Project Info"
+                titleRow={
                     <h1 className="project-title">
                         <span>{project.title}</span>
                         <span className="project-date-wrap" ref={priceDayRef}>
@@ -796,7 +798,8 @@ function ProjectPageBodyInner() {
                             )}
                         </span>
                     </h1>
-
+                }
+                identityRow={
                     <div className="hero-line project-custom">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
@@ -808,7 +811,8 @@ function ProjectPageBodyInner() {
                             <span className="follower-count">2.2k</span>
                         </div>
                     </div>
-
+                }
+                socialRow={
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Collected by</span>{' '}
                         <a className="cbr-name">@matty</a>
@@ -823,7 +827,8 @@ function ProjectPageBodyInner() {
                             &amp; 42 Others You Know
                         </span>
                     </div>
-                    {/* Stats row — matches collection.html single-row layout */}
+                }
+                statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span
@@ -854,10 +859,9 @@ function ProjectPageBodyInner() {
                             <span className="stat-val stat-val-owners">412 PPL</span>
                         </span>
                     </div>
-                </div>
-
-                <div className="hero-group-2">
-                    <div className="action-row">
+                }
+            >
+                <div className="action-row">
                         <button
                             className="btn-mint"
                             title="Buy the Lowest Listed Output"
@@ -946,8 +950,7 @@ function ProjectPageBodyInner() {
                         gating mirrors sim's switchCollectionTab — only
                         the Artworks tab shows trait/sort surfaces. */}
                     <TraitsUI visible={traitsAndSortVisible} />
-                </div>
-            </section>
+            </Hero>
 
             {/* My Notes empty state — shown when the notes filter is active
                 but no outputs have notes yet. Sits above the (empty) gallery. */}
