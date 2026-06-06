@@ -2642,7 +2642,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .hero-row {
     display: flex;
     flex-direction: column;
+    margin: 0;
+    line-height: 1;
 }
+/* The title band carries the tall Rubik title (+ artist-tag on profiles).
+   Pin its content box so the tag/title glyphs never inflate the band and
+   shift the gap to the identity row — spacing stays identical across pages. */
+.hero-row-title { line-height: 1; }
+.hero-row-title .project-title { line-height: 1; }
+.hero-row-title .artist-tag { line-height: 0; }
 
 .project-title {
     display: flex;
@@ -3026,7 +3034,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
    the box/ETH icons at the shared 13px. Bump to optically match them. */
-.stat-icon-followers { font-size: 20px; }
+.stat-icon-followers { font-size: 22px; }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -5259,7 +5267,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
             -0.25px 0.25px 0 currentColor;
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
-    .stat-icon-followers { font-size: 21px; }
+    .stat-icon-followers { font-size: 23px; }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
