@@ -157,7 +157,7 @@ export default function HomePageBody() {
                 ariaLabel="Price Discussion"
                 titleRow={
                     <h1 className="project-title">
-                        <span>Price Discussion</span>
+                        <span>PD</span>
                         <PriceDaySlot />
                     </h1>
                 }
