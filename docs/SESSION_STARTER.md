@@ -31,7 +31,14 @@ If a call comes back empty or errors: suspect **your lookup term / ID first**
 (connectors expect exact, often digit-only IDs and resolve names fuzzily), then
 auth, then the service.
 
-## 3. Context hygiene
+## 3. Git workflow (CEO-simple)
+- **We work on the `dev` branch.** Land changes there.
+- The CEO does **not** do GitHub steps. When work is done: commit, merge to
+  `dev`, push. No PR, no buttons to click unless explicitly asked.
+- Old habit was "upload files to main" via the GitHub UI — don't rely on that;
+  use `dev` + push from the session.
+
+## 4. Context hygiene
 - One chat ≈ one cohesive task. Start a fresh chat for unrelated work.
 - A long but focused chat is fine — context auto-compacts. Reset only when
   answers start repeating, contradicting earlier decisions, or "forgetting"
