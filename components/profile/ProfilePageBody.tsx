@@ -36,7 +36,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
-import Hero from '../hero/hero';
+import Hero from '../hero/Hero';
 import { fetchUserByHandle } from '../../lib/wallet/accountClient';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 
