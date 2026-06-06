@@ -57,9 +57,10 @@ Everything in §3 "free rein" needs **no** approval. These are the few taps that
 3. **Prod data / money** — any write to the live Supabase or anything touching
    real funds. Surface, don't execute.
 
-Delivery: push to the feature branch → give Brendon a tight summary → he reads it
-against the diff → merges if aligned. (Legacy flow was hand-delivered zips; only
-produce a zip if Brendon asks for one.)
+**Delivery process (the one Brendon wants):** Claude pushes a feature branch and
+**opens a PR into `dev`** → GitHub **pings Brendon's iOS app** → Brendon reads the
+summary against the diff → **taps the green Merge button.** That tap is the
+approval. No zips, no manual uploads. Never merge it myself.
 
 ## 5. Source-of-truth precedence
 
