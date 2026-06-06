@@ -36,7 +36,27 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
-import Hero from '../hero/Hero';
+import Hero from '../hero/hero';
+import { fetchUserByHandle } from '../../lib/wallet/accountClient';
+import type { UserProfileResponse } from '../../app/api/user/[address]/route';
+
+/**
+ * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
+ * date slot — e.g. "2026-05-13T..." → "MAY 13 2026". Matches the project
+ * page's PriceDay date format (JUL 09 2026).
+ */
+function formatMemberSince(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d
+        .toLocaleDateString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+        })
+        .replace(',', '')
+        .toUpperCase();
+}
 
 type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
@@ -44,7 +64,7 @@ type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 const CREATED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const COLLECTED_IDS = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 
-function ProfilePageBodyInner() {
+function ProfilePageBodyInner({ handle }: { handle: string }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
@@ -52,6 +72,23 @@ function ProfilePageBodyInner() {
     const isZen = notifs.zenMode;
     const { sort, dir } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
+
+    // ── Real user row (wired from DB via /api/user/by-handle) ─────────
+    // Handle is permanent + 1:1 with a wallet, so it's the stable key.
+    // Backed values rendered live: handle, member-since (created_at),
+    // follower/following counts. Unbacked stats (volume, created/collected
+    // counts, mutuals row) stay placeholder until their data exists.
+    const [user, setUser] = useState<UserProfileResponse | null>(null);
+    useEffect(() => {
+        let active = true;
+        fetchUserByHandle(handle)
+            .then((row) => { if (active) setUser(row); })
+            .catch(() => { if (active) setUser(null); });
+        return () => { active = false; };
+    }, [handle]);
+
+    const displayHandle = user?.handle ?? handle;
+    const memberSince = user ? formatMemberSince(user.created_at) : '';
 
     const [activeTab, setActiveTab] = useState<ProfileTab>('created');
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
@@ -149,7 +186,7 @@ function ProfilePageBodyInner() {
                 titleRow={
                     <h1 className="project-title">
                         <span>
-                            @CTO
+                            @{displayHandle}
                             <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
                         </span>
                         <span className="project-date-wrap" ref={priceDayRef}>
@@ -165,7 +202,7 @@ function ProfilePageBodyInner() {
                                     }
                                 }}
                                 title="Member Since"
-                            >APR 2025</span>
+                            >{memberSince || '\u2014'}</span>
                             {priceDayOpen && priceDayPos && (
                                 <div
                                     className="priceday-popover"
@@ -175,8 +212,8 @@ function ProfilePageBodyInner() {
                                     <div className="dp-title-spacer" />
                                     <div className="pd-section-header">JOINED</div>
                                     <div className="dp-row">
-                                        <span className="dp-label">APR 2025</span>
-                                        <span className="dp-value">@CTO</span>
+                                        <span className="dp-label">{memberSince || '\u2014'}</span>
+                                        <span className="dp-value">@{displayHandle}</span>
                                     </div>
                                     <div className="pd-section-end" />
                                     <div className="pd-section-header">FIRST COLLECT</div>
@@ -385,10 +422,10 @@ function ProfilePageBodyInner() {
     );
 }
 
-export default function ProfilePageBody() {
+export default function ProfilePageBody({ handle }: { handle: string }) {
     return (
         <TraitsProvider>
-            <ProfilePageBodyInner />
+            <ProfilePageBodyInner handle={handle} />
         </TraitsProvider>
     );
 }
