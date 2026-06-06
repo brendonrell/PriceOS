@@ -90,6 +90,25 @@ export async function fetchUserRow(
 }
 
 /**
+ * Fetch the user row for a handle. Handles are permanently 1:1 with a
+ * wallet and never change, so this is the stable lookup for the public
+ * profile page (which is addressed by handle, e.g. /cto). Returns null
+ * when no row matches the handle (server returns 404); throws on any
+ * other non-2xx so callers don't conflate "no user" with "server error."
+ */
+export async function fetchUserByHandle(
+    handle: string
+): Promise<UserProfileResponse | null> {
+    const r = await fetch(`/api/user/by-handle/${handle.toLowerCase()}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+    });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(`fetchUserByHandle failed: ${r.status}`);
+    return (await r.json()) as UserProfileResponse;
+}
+
+/**
  * Live handle availability check. Server validates format first
  * (cheap), then falls through to a uniqueness lookup. Both failure
  * modes come back as 200 with available=false + a `reason` token;
