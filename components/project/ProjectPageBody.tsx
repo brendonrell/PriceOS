@@ -74,7 +74,7 @@ import {
 } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from './TraitsUI';
-import Hero from '../hero/Hero';
+import Hero from '../hero/hero';
 import {
     applyStepLine,
     getBudgets,
