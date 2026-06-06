@@ -9,7 +9,7 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - **Workflow:** Gemini designs (HTML/CSS/JS prototype) → Opus 4.7 ports faithfully to React.
 - **Build verification:** Active maintenance should always branch from validated production-safe commits before deployment.
 
-## Full Technical Stack
+## Full Technical Stack:
 
 ### Frontend
 - Next.js 14
@@ -66,15 +66,15 @@ Front end for the **Price Discussion** platform — a web3 social platform where
 - Claude / Opus
 - Multi-LLM assisted product and engineering workflows
 
-## Status
+## Status:
 
 API surfaces (project, output, feed, search, stats, artist, follows, notifications, price, user) scaffolded with typed mock responses; production data lands when the indexer is live. Project page renders sim's hero lockup + gallery at `/art/[slug]`; profile shells render at `/{handle}` and sub-routes. Wallet auth, mint flow, and calendar internals are the next surfaces.
 
-## Nomenclature
+## Nomenclature:
 
 Single source of truth: ClickUp doc `2kyd6gx6-994` page `2kyd6gx6-3274` (Platform Nomenclature).
 
-## URL Architecture
+## URL Architecture:
 
 Quick map:
 
@@ -95,7 +95,7 @@ Quick map:
 
 The URL prefix `/art/` is a public-facing brand asset; the entity noun is "project." URL doesn't have to match the internal noun.
 
-## Brand tokens (CSS vars, defined in `app/globals.css`)
+## Brand tokens (CSS vars, defined in `app/globals.css`):
 
 | Token | Value | Role |
 |---|---|---|
@@ -104,7 +104,7 @@ The URL prefix `/art/` is a public-facing brand asset; the entity noun is "proje
 | `--dot` | `#111111` | Brand black |
 | `--matrix` | `#E0E0E0` | Brand off-white |
 
-## Routes
+## Routes:
 
 `/` (home), `/art/[slug]` (project page), and `/{handle}` (profile page) render. Profile sub-routes at `/{handle}/collected|anointed|wishlist|starred|notes|albums` exist as placeholder bodies. Wallet auth, full mint flow, and the calendar surfaces are the next ships.
 
