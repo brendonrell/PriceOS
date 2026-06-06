@@ -53,8 +53,8 @@ export async function GET(
 
   const response: ArtistResponse = {
     address,
-    ens_name: 'opus46.eth',
-    handle: 'opus46',
+    ens_name: 'opus4-6.eth',
+    handle: 'opus4-6',
     cooldown_until: cooldownUntilDate.toISOString(),
     cooldown_active: cooldownActive,
     cooldown_days_remaining: daysRemaining,
