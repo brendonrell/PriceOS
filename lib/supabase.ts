@@ -98,10 +98,12 @@ export interface UserRow {
 }
 
 /** The subset of columns a user may write to their own row via
- *  PATCH /api/me. Identity columns (address, handle, created_at), curve
- *  columns (account_level, price_rank), and price_sprite are intentionally
- *  excluded — they mutate through their own dedicated endpoints. */
+ *  PATCH /api/me. ens_name (user-chosen display ENS) is writable here.
+ *  Hard identity columns (address, handle, created_at), curve columns
+ *  (account_level, price_rank), and price_sprite stay excluded — they
+ *  mutate through their own dedicated paths. */
 export interface UserStatePatch {
+  ens_name?: string | null;
   profile_hex?: string | null;
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;
