@@ -346,7 +346,7 @@ function ProfilePageBodyInner({
                                 }
                             }}
                         >
-                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Followers')}>⌗&#xFE0E;</span>{' '}
+                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
                             <span className="stat-val stat-val-owners">67 PPL</span>
                         </span>
                     </div>
