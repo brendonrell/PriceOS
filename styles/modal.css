@@ -105,7 +105,12 @@ body.modal-open { overflow: hidden; touch-action: none; }
         display: flex;
     }
 
-    /* Canvas fills all space above the bottom bar */
+    /* Canvas fills the space above the bottom bar, with symmetric side
+       gutters: the right clears the X / note buttons, the left mirrors it
+       to clear the notch / Dynamic Island so the artwork stays centered.
+       Per-side safe-area insets handle the physical cutout; overflow is
+       visible so the drop-shadow isn't clipped, with bottom room before
+       the bar. */
     .ls-canvas-wrap {
         flex: 1;
         width: 100%;
@@ -113,8 +118,14 @@ body.modal-open { overflow: hidden; touch-action: none; }
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
+        overflow: visible;
         position: relative;
+        box-sizing: border-box;
+        padding:
+            calc(env(safe-area-inset-top, 0px) + 12px)
+            calc(env(safe-area-inset-right, 0px) + 64px)
+            20px
+            calc(env(safe-area-inset-left, 0px) + 64px);
     }
     .ls-canvas-wrap #modalCanvasLs {
         max-width: 100%;
