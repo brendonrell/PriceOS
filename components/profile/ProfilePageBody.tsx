@@ -92,6 +92,29 @@ function ProfilePageBodyInner({
         : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
     const followerCount = user.follower_count;
 
+    // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
+    // address (row shows truncated, copy gives the whole thing — same as the
+    // settings wallet copy). Inline checkmark swap for 1.5s.
+    const copyValue = user.ens_name ?? user.address;
+    const [idCopied, setIdCopied] = useState(false);
+    const idCopyTimer = useRef<number | null>(null);
+    const handleCopyIdentity = async () => {
+        const confirm = () => {
+            if (idCopyTimer.current != null) window.clearTimeout(idCopyTimer.current);
+            setIdCopied(true);
+            idCopyTimer.current = window.setTimeout(() => {
+                setIdCopied(false);
+                idCopyTimer.current = null;
+            }, 1500);
+        };
+        try {
+            await navigator.clipboard?.writeText(copyValue);
+            confirm();
+        } catch {
+            confirm();
+        }
+    };
+
     // Social row (Twitter model): "Followed by X, Y, and N others you follow".
     // Names = people the viewer follows who also follow this profile. Empty
     // until the follows-intersection lands; row hides when empty.
@@ -240,7 +263,31 @@ function ProfilePageBodyInner({
                         <span className="by-text">Via</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href={`/${displayHandle}`}>{viaLabel}</a>
+                                <a href={`/${displayHandle}`}>
+                                    {user.ens_name ? (
+                                        viaLabel
+                                    ) : (
+                                        <>
+                                            0<span className="addr-x">x</span>
+                                            {viaLabel.slice(2)}
+                                        </>
+                                    )}
+                                </a>
+                                <span
+                                    className="icon-copy id-copy"
+                                    role="button"
+                                    tabIndex={0}
+                                    title={`Copy ${user.ens_name ? 'ENS' : 'wallet address'}`}
+                                    onClick={(e) => { e.preventDefault(); handleCopyIdentity(); }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            handleCopyIdentity();
+                                        }
+                                    }}
+                                >
+                                    {idCopied ? '\u2713\uFE0E' : '⧉\uFE0E'}
+                                </span>
                             </span>
                             <span className="follower-count">{followerCount}</span>
                         </div>
