@@ -81,6 +81,8 @@ import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { usePriceBalance } from '../../../lib/hooks/usePriceBalance';
 import { getEnsNames, subscribeEnsNames } from '../../../lib/engines/ensEngine';
+import { fetchMe } from '../../../lib/wallet/accountClient';
+import { pushState } from '../../../lib/state/userState';
 
 /* Placeholder values shown while !isAuthed so the S2 logged-out preview
    keeps its full shape (opacity 0.4 + pointer-events: none — the gating
@@ -140,6 +142,24 @@ export function WalletSection() {
     // F2: ENS pills behave as a toggle — tapping the active pill again
     // deselects it (no active pill). Mirrors sim's selectENS.
     const [activeEns, setActiveEns] = useState<string | null>(null);
+    // Saved ENS from the user's own row — seeds the active pill on mount so
+    // the profile's chosen ENS survives reload. null until loaded.
+    const [savedEns, setSavedEns] = useState<string | null>(null);
+    const savedEnsLoaded = useRef(false);
+    useEffect(() => {
+        if (!isAuthed) return;
+        let active = true;
+        fetchMe()
+            .then((row) => {
+                if (active && row) {
+                    savedEnsLoaded.current = true;
+                    setSavedEns(row.ens_name);
+                    if (row.ens_name) setActiveEns(row.ens_name);
+                }
+            })
+            .catch(() => {});
+        return () => { active = false; };
+    }, [isAuthed]);
     const [ensExpanded, setEnsExpanded] = useState(false);
     const [balanceHidden, setBalanceHidden] = useState(false);
     const [walletCopied, setWalletCopied] = useState(false);
@@ -153,11 +173,16 @@ export function WalletSection() {
             if (activeEns !== null) setActiveEns(null);
             return;
         }
+        // If the user has a saved ENS that's still in the pill list, it wins
+        // over the first-pill default.
+        if (savedEns && rawPills.includes(savedEns)) {
+            if (activeEns !== savedEns && !savedEnsLoaded.current) return;
+        }
         if (activeEns === null || !rawPills.includes(activeEns)) {
-            setActiveEns(rawPills[0]);
+            setActiveEns(savedEns && rawPills.includes(savedEns) ? savedEns : rawPills[0]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawPills.join('|')]);
+    }, [rawPills.join('|'), savedEns]);
 
     /* Build the display-order pill list:
        - Active pill first (always visible, always at position 0).
@@ -236,7 +261,14 @@ export function WalletSection() {
                 className={`pill-ens${isActive ? ' active' : ''}`}
                 onClick={(e) => {
                     e.stopPropagation();
-                    setActiveEns((prev) => (prev === ens ? null : ens));
+                    setActiveEns((prev) => {
+                        const next = prev === ens ? null : ens;
+                        // Persist the chosen ENS (or null to clear) so the
+                        // public profile reflects it. Fire-and-forget.
+                        pushState({ ens_name: next });
+                        setSavedEns(next);
+                        return next;
+                    });
                 }}
             >
                 ↳ {ensLabel(ens)}
