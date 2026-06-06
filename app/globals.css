@@ -6523,3 +6523,12 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     height: 0;
     background: transparent;
 }
+/* Placeholder body for home tabs whose content isn't built yet. */
+.home-tab-placeholder {
+    padding: 48px 16px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    opacity: 0.55;
+    color: var(--text-color);
+}

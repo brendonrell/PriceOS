@@ -4,14 +4,20 @@
  * HomePageBody — the PD home / index surface.
  *
  * Built as a delta off the project page (collection-as-template): same
- * <Hero> chrome, different center. Where the project page's body is one
- * wrapping #gallery, home is a vertical stack of per-project carousels —
- * each project's recent outputs scroll horizontally instead of wrapping.
+ * <Hero> chrome + same tab row, different center. Where the project
+ * page's body is one wrapping #gallery, home is a vertical stack of
+ * per-project carousels — each project's recent outputs scroll
+ * horizontally instead of wrapping.
  *
  * Test-phase scope: only the one project we have (PRISMS) is wired, via
  * the global ProjectProvider. The structure already loops over a project
  * list, so adding the other ~30 projects later is data, not rework
  * (Art Blocks model — the site hosts many projects).
+ *
+ * Tabs (Brendon: every page gets them). Home tabs:
+ *   - Artwork (main, default) → the carousels
+ *   - Albums / + More         → present but placeholder; their home
+ *                               content is a CEO call, not invented here.
  *
  * Hero rows (Brendon's spec):
  *   - title    : "Price Discussion" + live date (PriceDaySlot)
@@ -20,8 +26,8 @@
  *   - stats    : platform-wide stats (roughed in; detail later)
  *
  * ArtworkCard calls useTraits(), which throws outside a TraitsProvider —
- * so the carousels are wrapped in one here. The trait UI itself isn't
- * rendered on home; the card just reads multiSelectActive (false).
+ * so the body is wrapped in one here. The trait UI itself isn't rendered
+ * on home; the card just reads multiSelectActive (false).
  */
 
 import { useEffect, useState } from 'react';
@@ -30,6 +36,7 @@ import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { useProject } from '../../lib/state/ProjectContext';
+import { useToast } from '../../lib/state/ToastContext';
 
 /* Outputs per carousel (Brendon: 6). */
 const CAROUSEL_SIZE = 6;
@@ -44,6 +51,8 @@ const FEATURE_ROTATE_MS = 2600;
 /* Platform stats — rough test-phase placeholders. Wire to /api/stats later. */
 const PLATFORM_STATS = { projects: 1, minted: 500, volumeEth: '14.2' };
 
+type HomeTab = 'artwork' | 'albums' | 'more';
+
 interface HomeProject {
     slug: string;
     title: string;
@@ -53,6 +62,9 @@ interface HomeProject {
 
 export default function HomePageBody() {
     const project = useProject();
+    const { showToast } = useToast();
+
+    const [activeTab, setActiveTab] = useState<HomeTab>('artwork');
 
     /* Rotating "Featuring" lead credit. */
     const [featIdx, setFeatIdx] = useState(0);
@@ -77,6 +89,27 @@ export default function HomePageBody() {
     const projects: HomeProject[] = [
         { slug: 'prisms', title: project.title, ids: recentIds },
     ].slice(0, MAX_HOME_PROJECTS);
+
+    const tab = (id: HomeTab, label: string) => (
+        <div
+            className={`pill pill-l1${activeTab === id ? ' active' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+                setActiveTab(id);
+                showToast(`TAB: ${label}`);
+            }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveTab(id);
+                    showToast(`TAB: ${label}`);
+                }
+            }}
+        >
+            <span className="stat-name">{label}</span>
+        </div>
+    );
 
     return (
         <TraitsProvider>
@@ -126,26 +159,48 @@ export default function HomePageBody() {
                         </span>
                     </div>
                 }
-            />
+            >
+                {/* Tab row — same pill markup as the project page (sim 5161). */}
+                <div className="profile-tabs-row" id="homeTabsRow">
+                    {tab('artwork', 'Artwork')}
+                    {tab('albums', 'Albums')}
+                    {tab('more', '+ More')}
+                </div>
+            </Hero>
 
-            {projects.map((p) => (
-                <section
-                    className="home-carousel-row"
-                    key={p.slug}
-                    aria-label={`${p.title} — recent outputs`}
-                >
-                    <div className="home-carousel-head">
-                        <a className="home-carousel-title" href={`/art/${p.slug}`}>
-                            {p.title}
-                        </a>
-                    </div>
-                    <div className="home-carousel-track">
-                        {p.ids.map((id) => (
-                            <ArtworkCard key={id} id={id} />
-                        ))}
-                    </div>
+            {/* Artwork tab — per-project carousels. */}
+            {activeTab === 'artwork' &&
+                projects.map((p) => (
+                    <section
+                        className="home-carousel-row"
+                        key={p.slug}
+                        aria-label={`${p.title} — recent outputs`}
+                    >
+                        <div className="home-carousel-head">
+                            <a className="home-carousel-title" href={`/art/${p.slug}`}>
+                                {p.title}
+                            </a>
+                        </div>
+                        <div className="home-carousel-track">
+                            {p.ids.map((id) => (
+                                <ArtworkCard key={id} id={id} />
+                            ))}
+                        </div>
+                    </section>
+                ))}
+
+            {/* Albums / + More — present on every page per spec; home
+                content is a CEO call, placeholder until decided. */}
+            {activeTab === 'albums' && (
+                <section className="home-tab-placeholder" aria-label="Albums">
+                    Albums — coming soon
                 </section>
-            ))}
+            )}
+            {activeTab === 'more' && (
+                <section className="home-tab-placeholder" aria-label="More">
+                    More — coming soon
+                </section>
+            )}
         </TraitsProvider>
     );
 }
