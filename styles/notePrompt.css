@@ -111,6 +111,11 @@ body.colorway-dark .note-prompt-close-x {
     text-transform: uppercase;
     font-weight: bold;
     padding-right: 28px; /* don't overlap X button */
+    /* Pin against iOS Safari landscape font-boosting — same proven fix as
+       the Collected-by row (.info-rubik). The html/body value doesn't
+       reliably reach this element, so set it directly. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .note-prompt-textarea {
