@@ -6523,12 +6523,31 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     height: 0;
     background: transparent;
 }
-/* Placeholder body for home tabs whose content isn't built yet. */
-.home-tab-placeholder {
-    padding: 48px 16px;
-    text-align: center;
-    font-size: 13px;
+/* Shuffle tab — randomized output grid + re-roll button. */
+.home-shuffle-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 16px 10px;
+}
+.home-shuffle-btn {
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 12px;
     letter-spacing: 0.04em;
-    opacity: 0.55;
     color: var(--text-color);
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.home-shuffle-btn:hover {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+}
+.home-shuffle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+    align-items: start;
+    padding: 0 16px 16px;
 }

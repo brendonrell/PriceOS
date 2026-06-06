@@ -1,36 +1,30 @@
 'use client';
 
 /*
- * HomePageBody — the PD home / index surface.
+ * HomePageBody — the PD home / index surface (logged-out first impression).
  *
- * Built as a delta off the project page (collection-as-template): same
- * <Hero> chrome + same tab row, different center. Where the project
- * page's body is one wrapping #gallery, home is a vertical stack of
- * per-project carousels — each project's recent outputs scroll
- * horizontally instead of wrapping.
+ * Delta off the project page (collection-as-template): same <Hero> chrome
+ * + same tab row, different center.
+ *
+ * Home tabs are the three surfaces that are neither curated nor gameable
+ * (Brendon's call — the platform stays neutral, nothing rankable to game):
+ *   - What's New (default) → per-project carousels of recent outputs
+ *                            (chronological truth)
+ *   - Sales Feed           → real secondary sales across the platform
+ *                            (money-backed truth; mock now, indexer later)
+ *   - Shuffle              → randomized discovery, re-rolls on demand
+ *                            (no ranking = nothing to game)
  *
  * Test-phase scope: only the one project we have (PRISMS) is wired, via
- * the global ProjectProvider. The structure already loops over a project
- * list, so adding the other ~30 projects later is data, not rework
- * (Art Blocks model — the site hosts many projects).
- *
- * Tabs (Brendon: every page gets them). Home tabs:
- *   - Artwork (main, default) → the carousels
- *   - Albums / + More         → present but placeholder; their home
- *                               content is a CEO call, not invented here.
- *
- * Hero rows (Brendon's spec):
- *   - title    : "Price Discussion" + live date (PriceDaySlot)
- *   - identity : By @brendon
- *   - social   : rotating "Featuring @artist & N others"
- *   - stats    : platform-wide stats (roughed in; detail later)
+ * the global ProjectProvider. The carousel list + sales feed loop over
+ * data, so adding the other ~30 projects + real sales later is data, not
+ * rework (Art Blocks model).
  *
  * ArtworkCard calls useTraits(), which throws outside a TraitsProvider —
- * so the body is wrapped in one here. The trait UI itself isn't rendered
- * on home; the card just reads multiSelectActive (false).
+ * so the body is wrapped in one here. The trait UI isn't rendered on home.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
@@ -43,6 +37,8 @@ const CAROUSEL_SIZE = 6;
 /* Projects shown on home (Brendon: ~30). Only one is wired in the test
    phase; this caps the list once more projects land. */
 const MAX_HOME_PROJECTS = 30;
+/* Tiles in the Shuffle grid. */
+const SHUFFLE_SIZE = 12;
 
 /* Rotating "Featuring" credits — test-phase handles. */
 const FEATURED_ARTISTS = ['@brendon', '@opus4-6', '@snowfro', '@claude', '@rudxane'];
@@ -51,7 +47,7 @@ const FEATURE_ROTATE_MS = 2600;
 /* Platform stats — rough test-phase placeholders. Wire to /api/stats later. */
 const PLATFORM_STATS = { projects: 1, minted: 500, volumeEth: '14.2' };
 
-type HomeTab = 'artwork' | 'albums' | 'more';
+type HomeTab = 'new' | 'sales' | 'shuffle';
 
 interface HomeProject {
     slug: string;
@@ -60,11 +56,31 @@ interface HomeProject {
     ids: number[];
 }
 
+/* Mock platform sales — test-phase. Real secondary sales land when the
+   indexer is live; shape mirrors the project-page activity feed so the
+   swap is a data change, not a markup change. */
+interface SaleRow {
+    id: number;
+    time: string;
+    buyer: string;
+    project: string;
+    token: number;
+    priceEth: string;
+}
+const MOCK_SALES: SaleRow[] = [
+    { id: 1, time: '12:04 PM', buyer: '@matty', project: 'Prisms', token: 442, priceEth: '0.44' },
+    { id: 2, time: '11:31 AM', buyer: '@atlasforge', project: 'Meridian', token: 18, priceEth: '1.20' },
+    { id: 3, time: '10:58 AM', buyer: '@gmoney', project: 'Strata', token: 207, priceEth: '0.31' },
+    { id: 4, time: '10:12 AM', buyer: '@rudxane', project: 'Prisms', token: 88, priceEth: '0.62' },
+    { id: 5, time: '09:40 AM', buyer: '@snowfro', project: 'Understory', token: 5, priceEth: '2.05' },
+    { id: 6, time: '08:55 AM', buyer: '@darold', project: 'Signal Loss', token: 134, priceEth: '0.18' },
+];
+
 export default function HomePageBody() {
     const project = useProject();
     const { showToast } = useToast();
 
-    const [activeTab, setActiveTab] = useState<HomeTab>('artwork');
+    const [activeTab, setActiveTab] = useState<HomeTab>('new');
 
     /* Rotating "Featuring" lead credit. */
     const [featIdx, setFeatIdx] = useState(0);
@@ -90,6 +106,20 @@ export default function HomePageBody() {
         { slug: 'prisms', title: project.title, ids: recentIds },
     ].slice(0, MAX_HOME_PROJECTS);
 
+    /* Shuffle — a random sample of output ids, re-rolled by the version
+       bump. Random, so there's no ranking to game. */
+    const [shuffleSeed, setShuffleSeed] = useState(0);
+    const shuffleIds = useMemo(() => {
+        const picks = new Set<number>();
+        const max = project.totalOutputs;
+        while (picks.size < Math.min(SHUFFLE_SIZE, max)) {
+            picks.add(1 + Math.floor(Math.random() * max));
+        }
+        return [...picks];
+        // shuffleSeed is the re-roll trigger.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [project.totalOutputs, shuffleSeed]);
+
     const tab = (id: HomeTab, label: string) => (
         <div
             className={`pill pill-l1${activeTab === id ? ' active' : ''}`}
@@ -109,6 +139,16 @@ export default function HomePageBody() {
         >
             <span className="stat-name">{label}</span>
         </div>
+    );
+
+    const saleDetail = (s: SaleRow): ReactNode => (
+        <>
+            <span className="f-highlight">{s.buyer}</span> bought{' '}
+            <span className="f-highlight">
+                {s.project} #{s.token}
+            </span>{' '}
+            for {s.priceEth} ETH
+        </>
     );
 
     return (
@@ -162,14 +202,14 @@ export default function HomePageBody() {
             >
                 {/* Tab row — same pill markup as the project page (sim 5161). */}
                 <div className="profile-tabs-row" id="homeTabsRow">
-                    {tab('artwork', 'Artwork')}
-                    {tab('albums', 'Albums')}
-                    {tab('more', '+ More')}
+                    {tab('new', "What's New")}
+                    {tab('sales', 'Sales')}
+                    {tab('shuffle', 'Shuffle')}
                 </div>
             </Hero>
 
-            {/* Artwork tab — per-project carousels. */}
-            {activeTab === 'artwork' &&
+            {/* What's New — per-project carousels of recent outputs. */}
+            {activeTab === 'new' &&
                 projects.map((p) => (
                     <section
                         className="home-carousel-row"
@@ -189,16 +229,40 @@ export default function HomePageBody() {
                     </section>
                 ))}
 
-            {/* Albums / + More — present on every page per spec; home
-                content is a CEO call, placeholder until decided. */}
-            {activeTab === 'albums' && (
-                <section className="home-tab-placeholder" aria-label="Albums">
-                    Albums — coming soon
+            {/* Sales Feed — real secondary sales platform-wide (mock now).
+                Reuses the project-page activity-feed markup. */}
+            {activeTab === 'sales' && (
+                <section id="activity-feed" aria-label="Sales Feed">
+                    <div className="feed-list">
+                        {MOCK_SALES.map((s) => (
+                            <div className="feed-row" key={s.id}>
+                                <div className="feed-line" />
+                                <div className="f-icon-wrap">✸&#xFE0E;</div>
+                                <div className="f-time">{s.time}</div>
+                                <div className="f-type">SALE</div>
+                                <div className="f-content">{saleDetail(s)}</div>
+                            </div>
+                        ))}
+                    </div>
                 </section>
             )}
-            {activeTab === 'more' && (
-                <section className="home-tab-placeholder" aria-label="More">
-                    More — coming soon
+
+            {/* Shuffle — randomized discovery, re-rolls on demand. */}
+            {activeTab === 'shuffle' && (
+                <section aria-label="Shuffle">
+                    <div className="home-shuffle-bar">
+                        <button
+                            className="home-shuffle-btn"
+                            onClick={() => setShuffleSeed((s) => s + 1)}
+                        >
+                            ⟳&#xFE0E; Shuffle
+                        </button>
+                    </div>
+                    <div className="home-shuffle-grid">
+                        {shuffleIds.map((id) => (
+                            <ArtworkCard key={`${shuffleSeed}-${id}`} id={id} />
+                        ))}
+                    </div>
                 </section>
             )}
         </TraitsProvider>
