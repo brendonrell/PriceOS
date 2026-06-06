@@ -36,6 +36,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
+import Hero from '../hero/Hero';
 
 type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
@@ -143,11 +144,9 @@ function ProfilePageBodyInner() {
 
     return (
         <>
-            <section className="project-hero" aria-label="Profile Info">
-                {/* ── hero-group-1: transplanted from ProjectPageBody ─────── */}
-                <div className="hero-group-1">
-
-                    {/* Title line */}
+            <Hero
+                ariaLabel="Profile Info"
+                titleRow={
                     <h1 className="project-title">
                         <span>
                             @CTO
@@ -190,8 +189,8 @@ function ProfilePageBodyInner() {
                             )}
                         </span>
                     </h1>
-
-                    {/* Identity line — "Via [handle]" */}
+                }
+                identityRow={
                     <div className="hero-line project-custom">
                         <span className="by-text">Via</span>{' '}
                         <div className="artist-lockup">
@@ -204,8 +203,8 @@ function ProfilePageBodyInner() {
                             <span className="follower-count">67</span>
                         </div>
                     </div>
-
-                    {/* Social line — "Followed by" (identical structure to project's "Collected by") */}
+                }
+                socialRow={
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by</span>{' '}
                         <a className="cbr-name">@matty</a>
@@ -220,8 +219,8 @@ function ProfilePageBodyInner() {
                             &amp; 42 Others You Know
                         </span>
                     </div>
-
-                    {/* Stats line */}
+                }
+                statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span
@@ -257,10 +256,8 @@ function ProfilePageBodyInner() {
                             <span className="stat-val stat-val-owners">67 PPL</span>
                         </span>
                     </div>
-                </div>
-
-                {/* ── hero-group-2: action row + tabs + TraitsUI ──────────── */}
-                <div className="hero-group-2">
+                }
+            >
                     <div className="action-row">
                         <button
                             className="btn-mint"
@@ -372,8 +369,7 @@ function ProfilePageBodyInner() {
                         For now backed by COLLECTED_IDS mock data; full predicate wiring lands
                         when real per-user collection data is available. */}
                     <TraitsUI visible={onCollected} />
-                </div>
-            </section>
+            </Hero>
 
             {/* Gallery — Created or Collected depending on active tab */}
             <section
