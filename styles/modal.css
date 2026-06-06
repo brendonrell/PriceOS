@@ -42,6 +42,12 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .platform-modal.active { display: flex; opacity: 1; }
 #modal { justify-content: flex-start; }
 
+/* Landscape modal is gated to phone-landscape only. Without this base
+   rule it inherits .platform-modal.active (display:flex) and overlays the
+   portrait #modal everywhere. The @media (orientation:landscape) block
+   below re-shows it via the higher-specificity .active selector. */
+#modalLandscape.ls-modal { display: none; }
+
 
 /* ── CANVAS REGION ────────────────────────────────────────── */
 .modal-canvas-wrap {
