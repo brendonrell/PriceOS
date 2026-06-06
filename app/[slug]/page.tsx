@@ -34,7 +34,7 @@ export default function SlugRootPage({ params }: Props) {
   // Profile kind — Profile Page v0 body.
   // Sub-routes: /collected, /anointed, /wishlist, /starred, /notes,
   // /albums. (Collection → Collected lock landed with this build.)
-  return <ProfilePageBody />;
+  return <ProfilePageBody handle={r.handle} />;
 }
 
 export function generateMetadata({ params }: Props): Metadata {
