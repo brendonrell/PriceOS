@@ -2623,6 +2623,27 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     align-self: flex-start;
 }
 
+/* ── HERO ROW BANDS (shared shell — components/hero/Hero.tsx) ──────
+   Each of the four hero rows is wrapped in a .hero-row band so the
+   shell owns row structure + spacing in ONE place; pages only fill
+   the slots. The bands sit in group-1's flex column and inherit its
+   `gap` for the uniform vertical rhythm. Per-row alignment still
+   comes from the inner content classes (.project-title,
+   .project-custom, .collected-by-row, .stats-row), which are
+   untouched — the band is a transparent passthrough by default.
+
+   To re-space the hero site-wide, either change `.hero-group-1 gap`
+   (uniform rhythm) or add a margin to a specific band below. Example:
+   to open the gap between the title and identity rows everywhere,
+   set `.hero-row-identity { margin-top: Npx; }` here — it lands on
+   every page that uses the shell, zero per-page edits. The bands
+   start with no extra spacing so introducing the shell is visually
+   identical to the old hand-rolled hero. */
+.hero-row {
+    display: flex;
+    flex-direction: column;
+}
+
 .project-title {
     display: flex;
     flex-wrap: wrap;
