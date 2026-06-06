@@ -296,16 +296,14 @@ export default function OutputPreview() {
     useEffect(() => {
         if (!detailsOpen) return;
         const handler = (e: MouseEvent) => {
-            const bottomBar = document.getElementById('mBottomBar');
-            if (bottomBar && bottomBar.contains(e.target as Node)) return;
-            if (
-                detailsPopoverRef.current &&
-                !detailsPopoverRef.current.contains(e.target as Node) &&
-                detailsPillRef.current &&
-                !detailsPillRef.current.contains(e.target as Node)
-            ) {
-                setDetailsOpen(false);
-            }
+            const t = e.target as HTMLElement | null;
+            if (!t) return;
+            // Click inside either modal's popover → keep open.
+            if (t.closest('.details-popover')) return;
+            // Click inside either bottom bar (includes the details pill that
+            // toggles it) → keep open; the pill's own onClick handles toggle.
+            if (t.closest('#mBottomBar, .ls-bottom-bar')) return;
+            setDetailsOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
@@ -567,6 +565,89 @@ export default function OutputPreview() {
        parsing surprises and to keep iOS Safari from upgrading them to
        emoji presentation. Matches sim's `&#xFE0E;` discipline. */
 
+    /* Shared details-popover body — rendered inside both the portrait
+       (#modal) and landscape (#modalLandscape) popover wrappers so the two
+       stay in lockstep. Null when there's no active output to describe. */
+    const detailsRows =
+        id != null && meta ? (
+            <>
+                {/* Artwork title — Rubik Mono One, centered */}
+                <div className="dp-title">
+                    {title} #{id}
+                </div>
+                {/* Artist row */}
+                <div className="dp-row">
+                    <span className="dp-label">Artist</span>
+                    <span className="dp-value">
+                        <a href="/profile/claude" className="dp-link" onClick={(e) => e.stopPropagation()}>
+                            <span className="dp-value-text">@claude</span>
+                        </a>
+                    </span>
+                </div>
+                {/* Owner row */}
+                <div className="dp-row">
+                    <span className="dp-label">Owner</span>
+                    <span className="dp-value">
+                        <span className="dp-value-text dp-addr">
+                            {ownerCopied ? '✓ COPIED' : (meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull))}
+                        </span>
+                        {!meta.isOwnedByBrendon && meta.ownerFull && (
+                            <button className="dp-copy-btn" title="Copy address" onClick={(e) => {
+                                e.stopPropagation();
+                                const write = () => {
+                                    if (ownerCopyTimer.current != null) window.clearTimeout(ownerCopyTimer.current);
+                                    setOwnerCopied(true);
+                                    ownerCopyTimer.current = window.setTimeout(() => { setOwnerCopied(false); ownerCopyTimer.current = null; }, 1500);
+                                };
+                                navigator.clipboard.writeText(meta.ownerFull ?? '').then(write).catch(write);
+                            }}>
+                                ⧉{VS15}
+                            </button>
+                        )}
+                    </span>
+                </div>
+                {/* Artwork Page row */}
+                <div className="dp-row">
+                    <span className="dp-label">Artwork Page</span>
+                    <span className="dp-value">
+                        <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); close(); window.scrollTo(0, 0); router.push(`/${id}`); } }}>
+                            <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
+                        </button>
+                    </span>
+                </div>
+                {/* Share URL row */}
+                <div className="dp-row">
+                    <span className="dp-label">Share URL</span>
+                    <span className="dp-value">
+                        <button className="dp-link-btn" title="Copy artwork URL" onClick={(e) => {
+                            e.stopPropagation();
+                            const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
+                            const write = () => {
+                                if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
+                                setUrlCopied(true);
+                                urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
+                            };
+                            navigator.clipboard.writeText(url).then(write).catch(write);
+                        }}>
+                            <span className="dp-value-text">{urlCopied ? '✓ COPIED' : 'Copy'}</span>
+                        </button>
+                        <button className="dp-copy-btn" title="Copy artwork URL" onClick={(e) => {
+                            e.stopPropagation();
+                            const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
+                            const write = () => {
+                                if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
+                                setUrlCopied(true);
+                                urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
+                            };
+                            navigator.clipboard.writeText(url).then(write).catch(write);
+                        }}>
+                            ⧉{VS15}
+                        </button>
+                    </span>
+                </div>
+            </>
+        ) : null;
+
     return (
         <Fragment>
         <div
@@ -709,80 +790,7 @@ export default function OutputPreview() {
                                     className="details-popover"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    {/* Artwork title — Rubik Mono One, centered */}
-                                    <div className="dp-title">
-                                        {title} #{id}
-                                    </div>
-                                    {/* Artist row */}
-                                    <div className="dp-row">
-                                        <span className="dp-label">Artist</span>
-                                        <span className="dp-value">
-                                            <a href="/profile/claude" className="dp-link" onClick={(e) => e.stopPropagation()}>
-                                                <span className="dp-value-text">@claude</span>
-                                            </a>
-                                        </span>
-                                    </div>
-                                    {/* Owner row */}
-                                    <div className="dp-row">
-                                        <span className="dp-label">Owner</span>
-                                        <span className="dp-value">
-                                            <span className="dp-value-text dp-addr">
-                                                {ownerCopied ? '✓ COPIED' : (meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull))}
-                                            </span>
-                                            {!meta.isOwnedByBrendon && meta.ownerFull && (
-                                                <button className="dp-copy-btn" title="Copy address" onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const write = () => {
-                                                        if (ownerCopyTimer.current != null) window.clearTimeout(ownerCopyTimer.current);
-                                                        setOwnerCopied(true);
-                                                        ownerCopyTimer.current = window.setTimeout(() => { setOwnerCopied(false); ownerCopyTimer.current = null; }, 1500);
-                                                    };
-                                                    navigator.clipboard.writeText(meta.ownerFull ?? '').then(write).catch(write);
-                                                }}>
-                                                    ⧉{VS15}
-                                                </button>
-                                            )}
-                                        </span>
-                                    </div>
-                                    {/* Artwork Page row */}
-                                    <div className="dp-row">
-                                        <span className="dp-label">Artwork Page</span>
-                                        <span className="dp-value">
-                                            <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); close(); window.scrollTo(0, 0); router.push(`/${id}`); } }}>
-                                                <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
-                                            </button>
-                                        </span>
-                                    </div>
-                                    {/* Share URL row */}
-                                    <div className="dp-row">
-                                        <span className="dp-label">Share URL</span>
-                                        <span className="dp-value">
-                                            <button className="dp-link-btn" title="Copy artwork URL" onClick={(e) => {
-                                                e.stopPropagation();
-                                                const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
-                                                const write = () => {
-                                                    if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
-                                                    setUrlCopied(true);
-                                                    urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
-                                                };
-                                                navigator.clipboard.writeText(url).then(write).catch(write);
-                                            }}>
-                                                <span className="dp-value-text">{urlCopied ? '✓ COPIED' : 'Copy'}</span>
-                                            </button>
-                                            <button className="dp-copy-btn" title="Copy artwork URL" onClick={(e) => {
-                                                e.stopPropagation();
-                                                const url = id != null ? `${window.location.origin}/${id}` : window.location.href;
-                                                const write = () => {
-                                                    if (urlCopyTimer.current != null) window.clearTimeout(urlCopyTimer.current);
-                                                    setUrlCopied(true);
-                                                    urlCopyTimer.current = window.setTimeout(() => { setUrlCopied(false); urlCopyTimer.current = null; }, 1500);
-                                                };
-                                                navigator.clipboard.writeText(url).then(write).catch(write);
-                                            }}>
-                                                ⧉{VS15}
-                                            </button>
-                                        </span>
-                                    </div>
+                                    {detailsRows}
                                 </div>
                             )}
                         </div>
@@ -925,6 +933,15 @@ export default function OutputPreview() {
                     </span>
                 </div>
             </div>
+
+            {detailsOpen && detailsRows && (
+                <div
+                    className="details-popover ls-details-popover"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {detailsRows}
+                </div>
+            )}
 
             {id != null && meta && (
                 <div className="ls-bottom-bar">
