@@ -111,9 +111,15 @@ body.colorway-dark .note-prompt-close-x {
     text-transform: uppercase;
     font-weight: bold;
     padding-right: 28px; /* don't overlap X button */
-    /* Pin against iOS Safari landscape font-boosting — same proven fix as
-       the Collected-by row (.info-rubik). The html/body value doesn't
-       reliably reach this element, so set it directly. */
+    /* iOS Safari landscape font-boosting only inflates WIDE block-level
+       text. The Collected-by row (.info-rubik) beat this by being a
+       content-width inline-block span, not a full-width block — that
+       structural shape is the actual fix, not text-size-adjust. Mirror it:
+       shrink the label to its content width (align-self stops the flex
+       stretch) so the autosizer has no wide block to inflate. */
+    display: inline-block;
+    align-self: flex-start;
+    max-width: 100%;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
