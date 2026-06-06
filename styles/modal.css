@@ -122,9 +122,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
         position: relative;
         box-sizing: border-box;
         padding:
-            16px
+            28px
             calc(env(safe-area-inset-right, 0px) + 64px)
-            16px
+            12px
             calc(env(safe-area-inset-left, 0px) + 64px);
     }
     .ls-canvas-wrap #modalCanvasLs {
@@ -148,6 +148,20 @@ body.modal-open { overflow: hidden; touch-action: none; }
         gap: 8px;
         padding: 8px 16px calc(6px + env(safe-area-inset-bottom, 0px)) 16px;
         box-sizing: border-box;
+    }
+
+    /* Details popover in landscape: shoved to the right gutter with a small
+       edge buffer so the centered / portrait artwork stays visible behind
+       it. ID-scoped to outspecify the base .details-popover (which is
+       defined later in source). */
+    #modalLandscape .ls-details-popover {
+        position: absolute;
+        left: auto;
+        right: calc(env(safe-area-inset-right, 0px) + 12px);
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+        width: min(300px, 46vw);
+        max-height: calc(100% - 96px);
+        overflow-y: auto;
     }
 }
 

@@ -289,3 +289,22 @@ body.colorway-dark .note-prompt-view {
         font-size: 12px;
     }
 }
+
+/* Landscape phones: the note prompt becomes a centered compact dialog
+   instead of a full-width bottom sheet, which is far too tall/wide on a
+   short landscape viewport. Appended last so these win on source order. */
+@media (orientation: landscape) and (max-height: 500px) {
+    .note-prompt-wrap { align-items: center; }
+    .note-prompt-box {
+        width: min(560px, 88vw);
+        max-width: 560px;
+        max-height: 88vh;
+        border-radius: 12px;
+        padding: 14px 18px 16px 18px;
+        gap: 10px;
+        transform: translateY(12px);
+    }
+    .note-prompt-wrap.active .note-prompt-box { transform: translateY(0); }
+    .note-prompt-textarea { min-height: 60px; font-size: 15px; }
+    .note-prompt-actions { margin-bottom: 4px; }
+}
