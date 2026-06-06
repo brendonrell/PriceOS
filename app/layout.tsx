@@ -76,6 +76,7 @@ const PREHYDRATION_SCRIPT = `
         // that wins (the picker must work on every page).
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
+        var isHomePage = pathname === '/' || pathname === '';
 
         // Profile-page detection mirrors ColorwayContext's first-segment
         // gate: not 'art', not 'api', not all-digits (output namespace),
@@ -190,6 +191,9 @@ const PREHYDRATION_SCRIPT = `
                     var savedArtistColor = localStorage.getItem('pd_custom_color');
                     if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
                         bg = savedArtistColor.toUpperCase();
+                    } else if (isHomePage) {
+                        // Home's custom default = brand Attention yellow.
+                        bg = '#FFE600';
                     }
                 } catch (e) { /* ignore */ }
             }

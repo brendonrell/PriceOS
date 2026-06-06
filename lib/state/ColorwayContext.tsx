@@ -89,15 +89,15 @@ const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
    malformed. SSR-safe via the `typeof window` guard. */
 const CUSTOM_COLOR_KEY = 'pd_custom_color';
 const HEX_RE = /^#[0-9A-F]{6}$/i;
-function getCustomBg(): string {
-    if (typeof window === 'undefined') return COLORWAYS.custom;
+function getCustomBg(fallback: string = COLORWAYS.custom): string {
+    if (typeof window === 'undefined') return fallback;
     try {
         const saved = localStorage.getItem(CUSTOM_COLOR_KEY);
         if (saved && HEX_RE.test(saved)) return saved.toUpperCase();
     } catch {
         /* ignore */
     }
-    return COLORWAYS.custom;
+    return fallback;
 }
 
 /* Haze — same pattern as custom. Storage key: `pd_haze_color`. Falls
@@ -168,6 +168,7 @@ function readPureFlags(): { pure_light: boolean; pure_dark: boolean } {
 
 const DOT    = '#111111';
 const MATRIX = '#e0e0e0';
+const ATTENTION = '#FFE600'; // brand yellow — home's default custom fill
 
 const STORAGE_KEY = 'pd_settings_colorway';
 
@@ -378,6 +379,7 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             firstSeg !== 'api' &&
             !/^\d+$/.test(firstSeg) &&
             /^[@a-z0-9_-]+$/i.test(firstSeg);
+        const isHomePage = pathname === '/';
 
         if (isProjectPage && savedColorway === null) {
             // Project pages with NO user colorway pick boot to the
@@ -394,6 +396,11 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             // sets the colorway-light body class correctly).
             setColorwayState('light');
             applyColorway('light');
+        } else if (isHomePage && savedColorway === null) {
+            // Home boots the custom colorway with brand Attention yellow
+            // (#FFE600) as its default fill — overridden by a saved custom
+            // hex or an explicit colorway pick (logged-in user settings).
+            applyBgHex(getCustomBg(ATTENTION), 'custom');
         } else {
             applyColorway(savedColorway);
             // Boot haze variation engine and texture overlay if haze
