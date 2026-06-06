@@ -165,11 +165,21 @@ const L2_DICT: Record<
     TraitCategory | 'Traits',
     Record<string, readonly string[]>
 > = {
-    /* Non-feed L1s with no L2 sub-bucketing — L3 reads from a flat pool
-       (computed below as L3_FLAT_POOL). Empty L2_DICT entry keeps the
-       L2 row hidden (sim 8617-8618). */
-    Layer:      {},
-    Mineral:    {},
+    /* Layer / Mineral subtraits (PD subtrait feature — derived grouping,
+       same pattern as collection.html's paletteSubCats Main/Special: the
+       L3 value's bucket membership IS its subtrait, no per-token data).
+       Layer → Surface / Deep by geological depth; Mineral → Crystalline /
+       Foliated by structure. Every LAYERS / MINERALS leaf appears in
+       exactly one bucket so 'All' concat reproduces the flat pool. */
+    Layer: {
+        'Surface': ['Crust', 'Sediment', 'Drift'],
+        'Deep':    ['Mantle', 'Bedrock', 'Vein'],
+    },
+    Mineral: {
+        'Crystalline': ['Quartz', 'Pyrite', 'Onyx'],
+        'Foliated':    ['Schist', 'Slate', 'Mica'],
+    },
+    /* Fate stays flat — no subtrait. */
     Fate:       {},
 
     /* Non-feed L1s that DO sub-bucket. For Network, sim renders L2 narrows
