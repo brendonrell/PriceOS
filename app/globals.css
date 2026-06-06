@@ -2818,6 +2818,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: relative;
     top: 0;
     font-size: 20px;
+    line-height: 0;
 }
 
 /* ── COLLECTED BY row ─────────────────────────────────────── */
@@ -3025,7 +3026,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
    the box/ETH icons at the shared 13px. Bump to optically match them. */
-.stat-icon-followers { font-size: 17px; }
+.stat-icon-followers { font-size: 20px; }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -5258,7 +5259,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
             -0.25px 0.25px 0 currentColor;
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
-    .stat-icon-followers { font-size: 18px; }
+    .stat-icon-followers { font-size: 21px; }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
