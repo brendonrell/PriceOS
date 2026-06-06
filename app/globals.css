@@ -2777,8 +2777,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0.55;
     font-family: 'Courier New', Courier, monospace;
     transition: opacity 0.12s ease;
+    text-decoration: none;
+    display: inline-block;
 }
 .id-copy:hover { opacity: 0.85; }
+.artist-lockup:hover .id-copy { text-decoration: none; }
 
 /* The 0x address prefix renders in all-caps Rubik on the identity row,
    where an uppercase "X" reads poorly. Force this single glyph lowercase
