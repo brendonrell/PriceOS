@@ -2032,7 +2032,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 0.22;
     margin: 0 8px;
     position: relative;
-    top: 3px;
+    top: -2px;
 }
 
 .artist-status-icon {
@@ -2789,16 +2789,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
 
-/* Artist badge inside the big Rubik title (profile hero @handle✺):
-   the base .artist-tag top:2px is tuned for the small identity row and
-   rides high against the 22px title caps. Re-center to the cap box:
-   18px tag, nudged down to sit on the title's vertical midline. */
+/* Artist badge inside the big Rubik title (profile hero @handle): the base
+   .artist-tag top:2px is tuned for the small identity row and rides high
+   against the 22px title caps. Re-center to the cap box. */
 .project-title .artist-tag {
     position: relative;
-    top: 3px;
+    top: -2px;
     font-size: 18px;
-    vertical-align: baseline;
-    margin-left: 1px;
 }
 
 /* ── COLLECTED BY row ─────────────────────────────────────── */
@@ -4802,12 +4799,12 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .f-content .ico-followers {
     line-height: 0;
     position: relative;
-    top: 3px;
+    top: -2px;
 }
 .f-content .artist-tag {
     line-height: 0;
     position: relative;
-    top: 3px;
+    top: -2px;
 }
 .f-highlight {
     text-decoration: underline;
