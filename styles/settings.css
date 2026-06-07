@@ -1,0 +1,628 @@
+/* PriceOS — settings.css | Extracted from globals.css 2026-04-30 ship 7/8. Imported by globals.css. */
+
+/* ============================================================
+   SETTINGS PANEL (NEW in step 4)
+   ============================================================
+   Desktop default: 78vh internal cap (sim 632). Sim runs this in
+   addition to .dropdown-stack's outer clamp — the panel scrolls
+   internally via flex within whichever bound binds first. Mobile
+   (max-width: 600px) override below nullifies the cap so the
+   outer dropdown stack handles it on small screens (sim 634-636). */
+.settings-panel {
+    max-height: calc(74dvh - env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: -4px;
+}
+.settings-panel::-webkit-scrollbar { display: none; }
+.settings-scroll-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    padding-bottom: 4px;
+}
+.settings-scroll-body::-webkit-scrollbar { display: none; }
+@media (max-width: 600px) {
+    .settings-panel {
+        max-height: calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+
+/* Section headers (WALLET, MY PD, DEFAULT COLORWAY, etc.) */
+.settings-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    opacity: 0.8;
+    padding: 4px 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+/* Wallet handle row */
+.settings-wallet {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 0 10px 4px 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 15px;
+    box-sizing: content-box;
+    line-height: 15px;
+    color: inherit;
+}
+.settings-wallet:hover { opacity: 0.7; }
+
+.icon-copy {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+
+/* ENS pills row — flat flex-wrap container. Pills + …more are direct
+   children in collapsed state; …more sits inline after the visible set. */
+.settings-ens-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+/* ENS expanded — two-row horizontal-scroll strip.
+   Row reshapes to: .ens-scroll-viewport (flex:1 1 auto) + …hide button.
+   Override wrap to nowrap so scroll viewport + button sit side-by-side. */
+.settings-ens-row.ens-expanded {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.ens-scroll-viewport {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+.ens-scroll-viewport::-webkit-scrollbar { display: none; }
+.ens-scroll-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+    width: max-content;
+}
+.ens-scroll-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+.ens-scroll-row .pill-ens {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.pill-ens {
+    height: auto;
+    min-height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    border: 1px dashed currentColor;
+    background: transparent;
+    color: inherit;
+    opacity: 0.5;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    user-select: none;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: left;
+}
+.pill-ens.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+    border-style: solid;
+}
+
+.pill-budget {
+    gap: 5px;
+}
+
+.pill-budget-eth {
+    opacity: 0.55;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+/* Edit pencil — sits between the ETH value and the × delete.
+   Extra padding on each side for fat-finger tap targets. */
+.pill-budget-edit {
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.45;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 5px;
+    margin-left: 2px;
+}
+.pill-budget-edit:hover { opacity: 1; }
+
+.pill-budget-delete {
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    opacity: 0.5;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 4px;
+}
+.pill-budget-delete:hover { opacity: 1; }
+
+/* Hide toggle — bare icon, no pill chrome. margin-left: auto pushes it
+   to the right edge while filter pills stay left-aligned. */
+.portfolio-hide-icon {
+    margin-left: auto;
+    font-size: 18px;
+    opacity: 0.5;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 4px;
+}
+.portfolio-hide-icon:hover { opacity: 1; }
+
+.pill-ens em {
+    font-style: italic;
+}
+
+.ens-more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: inherit;
+    opacity: 0.6;
+    padding: 4px 8px;
+    height: 24px;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: transparent;
+    transition: opacity 0.2s;
+    flex: 0 0 auto;
+}
+.ens-more-btn:hover { opacity: 1; }
+
+
+/* Balance row */
+.balance-toggle-icon {
+    font-size: 14px;
+    position: relative;
+    top: -1px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+@media (max-width: 600px) {
+    .balance-toggle-icon { font-size: 19px !important; top: 0px !important; }
+}
+
+
+/* Generic settings pill row (used by MY PD modes, default sort, MY PINGS) */
+.settings-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    margin: 0;
+    align-items: center;
+}
+
+
+/* Settings toggle pill — the workhorse.
+   F49 (BUG-13): removed `gap: 4px`. Sim's .settings-toggle (sim 711) has no
+   gap — the icon→label spacing is the .st-icon's `margin-right: 4px`
+   (sim 885 / globals.css 2525-2533) only. Adding a 4px flex gap on top of
+   that pushed every pill 4px wider than sim, and across a 6-pill row inside
+   the 310px dropdown the cumulative drift was forcing pills (and the ENS
+   …more affordance) to wrap. Drop the gap and pills land at sim widths,
+   the row stops compressing, and …more no longer truncates. */
+.settings-toggle {
+    height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    transition: background 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    user-select: none;
+    background: transparent;
+    border: 1px solid currentColor;
+    opacity: 0.5;
+    color: inherit;
+    box-sizing: border-box;
+}
+.settings-toggle:hover { opacity: 0.8; }
+.settings-toggle.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+    transition: none;
+}
+.settings-toggle.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+.settings-toggle .st-icon {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+@media (max-width: 600px) {
+    .settings-toggle .st-icon { transform: none; }
+}
+.settings-toggle .st-label {
+    line-height: 1;
+}
+
+/* Sort arrow inside settings — bare rule (sim 1675) sets the typography
+   defaults; @media (min-width: 601px) at sim 1677 bumps font-size on
+   desktop; @media (max-width: 600px) at sim 2216 nudges transform on
+   mobile. R lands the base; Q laid in the overrides. */
+.settings-sort-arrow { font-weight: bold; font-size: 17px; display: inline-block; transform: translateY(-3px); }
+@media (min-width: 601px) {
+    .settings-sort-arrow { font-size: 19px; display: inline-block; }
+}
+@media (max-width: 600px) {
+    .settings-sort-arrow { transform: translateY(-2px); display: inline-block; }
+}
+.sharp-glyph {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    font-synthesis: none;
+}
+
+
+/* The redacted-mode @ glyph reads cleaner in Arial */
+#sn-redacted .st-icon {
+    font-family: Arial, 'Helvetica Neue', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0;
+}
+
+
+/* Hex input + copy button (Profile colorway color) */
+.hex-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    width: 52px;
+    padding: 0;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-left: 6px;
+    margin-right: 4px;
+}
+.hex-input:focus {
+    opacity: 1;
+    border-bottom: 1px dotted currentColor;
+}
+.copy-hex-btn {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: normal;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+.copy-hex-btn:not(.user-showcase-toggle-btn) {
+    position: relative;
+    top: 2px;
+}
+.copy-hex-btn:hover { opacity: 1; }
+
+/* Haze variation cycle icon (≋ ≊ ≅ ≃ ≂) — bare, sits right of ⧉.
+   Same pattern as user-showcase-toggle-btn. Mobile gets +1px. */
+.haze-variation-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    line-height: 1;
+    position: relative;
+    top: 1px;
+    margin-left: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+.haze-variation-btn:hover { opacity: 1; }
+@media (max-width: 600px) {
+    .haze-variation-btn { font-size: 19px; }
+}
+
+/* User Showcase mode toggle — sits right of the
+   copy-hex button. Bumped one size up + extra left margin so it
+   doesn't crowd the copy icon (fat-finger spacing). Both glyph
+   variants share this rule via the class — there's no per-variant
+   sizing. */
+.user-showcase-toggle-btn {
+    font-size: 18px;
+    margin-left: 6px;
+    position: relative;
+    top: 1px;
+}
+
+/* User Showcase toggle — mobile only: 1 size larger + nudge left 2px. */
+@media (max-width: 600px) {
+    .user-showcase-toggle-btn {
+        font-size: 20px;
+        margin-left: 4px;
+    }
+}
+
+/* Mobile per-id .st-icon overrides — sim 2238 block ported.
+   Desktop sizing comes from each pill's inline iconStyle prop in
+   MyPdSection / SpellBookSection (built off the desktop screenshot).
+   Mobile has a different optical balance for several glyphs, so sim
+   overrides them individually here. !important is needed to win
+   over the inline iconStyle font-size. */
+@media (max-width: 600px) {
+    #sn-redacted .st-icon { font-size: 13px !important; }
+    #sn-anon .st-icon,
+    #sn-zen .st-icon { font-size: 14px !important; }
+    #sn-sticker .st-icon { font-size: 15px !important; }
+    #sn-zerocontext .st-icon,
+    #sn-sentiment .st-icon { font-size: 15px !important; }
+    #sn-asciiId .st-icon,
+    #sn-degen .st-icon,
+    #sn-autoscroll .st-icon { font-size: 14px !important; }
+    #sn-echo .st-icon,
+    #sn-stargazing .st-icon {
+        font-size: 21px !important;
+        position: relative;
+        top: 2px;
+    }
+    #sn-mutualsOnly .st-icon {
+        font-size: 20px !important;
+        transform: translateY(1px) !important;
+    }
+    #sn-mints .st-icon {
+        font-size: 18px !important;
+        transform: translateY(-1px) !important;
+    }
+    #sn-profileTheme .st-icon { font-size: 14px !important; }
+    .pill-artist-filter[data-rel="starred"] span {
+        font-size: 14px;
+        display: inline-block;
+        transform: translateY(-1px);
+    }
+    .balance-toggle-icon {
+        font-size: 19px !important;
+        top: 0px !important;
+    }
+}
+
+
+/* Setup Code field (next to MY PD header) */
+.setup-code-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    gap: 4px;
+}
+.setup-code-row .settings-header { padding: 0; flex: 0 0 auto; }
+.setup-code-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.8;
+    padding: 0;
+    padding-right: 8px;
+    text-transform: uppercase;
+    text-align: right;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow-x: auto;
+    text-overflow: clip;
+    scrollbar-width: none;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px dotted transparent;
+    margin-left: 8px;
+}
+.setup-code-input::-webkit-scrollbar { display: none; }
+.setup-code-input:focus {
+    opacity: 1;
+    border-bottom-color: currentColor;
+}
+.setup-code-copy {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+    padding: 8px 6px;
+    margin: -8px -6px;
+    flex-shrink: 0;
+}
+.setup-code-copy:hover { opacity: 1; }
+
+
+/* Colorway pills */
+#settingsPanel .pill-colorway {
+    background: rgba(128,128,128,0.2) !important;
+    border: 1px solid currentColor !important;
+    color: inherit !important;
+    box-sizing: border-box;
+    opacity: 0.6;
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#settingsPanel .pill-colorway.active {
+    background: var(--text-color) !important;
+    border: 2px solid var(--text-color) !important;
+    color: var(--bg-color) !important;
+    opacity: 1;
+}
+#settingsPanel .pill-colorway:hover {
+    background: rgba(128,128,128,0.35) !important;
+    border-color: var(--text-color) !important;
+    opacity: 0.9;
+}
+.pill-colorway span {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 600px) {
+    .pill-colorway.t-light span,
+    .pill-colorway.t-dark span { font-size: 22px; }
+}
+
+
+/* Spell Book — wraps the pills with consistent gap + padding */
+.spell-book-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 10px 8px 10px;
+    align-items: center;
+}
+
+
+/* Workspace switcher (footer of Settings panel) */
+.workspace-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px)) 0;
+    margin-top: 0;
+    flex-shrink: 0;
+    background: var(--text-color);
+    position: sticky;
+    bottom: 0;
+}
+
+.ws-dot {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+.ws-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: var(--bg-color);
+    border-radius: 50%;
+    opacity: 0.4;
+    transition: opacity 0.18s, width 0.18s, height 0.18s;
+}
+.ws-dot:hover::before { opacity: 0.7; }
+.ws-dot.active::before {
+    width: 6px;
+    height: 6px;
+    opacity: 1;
+}
+
+.ws-add {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-add:hover:not(.faded) { opacity: 0.9; }
+.ws-add.faded { opacity: 0.15; cursor: not-allowed; }
+
