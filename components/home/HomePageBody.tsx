@@ -94,6 +94,58 @@ export default function HomePageBody() {
     const lead = FEATURED_ARTISTS[featIdx];
     const otherCount = FEATURED_ARTISTS.length - 1;
 
+    /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
+       already swipes natively; this gives desktop mouse users a grab-drag.
+       A drag past a few px swallows the trailing click so it doesn't open
+       the card modal. Re-binds when the New Art tab (re)mounts the tracks. */
+    useEffect(() => {
+        if (activeTab !== 'new') return;
+        const tracks = Array.from(
+            document.querySelectorAll<HTMLElement>('.home-carousel-track'),
+        );
+        const cleanups = tracks.map((track) => {
+            let down = false;
+            let moved = false;
+            let startX = 0;
+            let startLeft = 0;
+            const onDown = (e: MouseEvent) => {
+                down = true;
+                moved = false;
+                startX = e.pageX;
+                startLeft = track.scrollLeft;
+                track.classList.add('dragging');
+            };
+            const onMove = (e: MouseEvent) => {
+                if (!down) return;
+                const dx = e.pageX - startX;
+                if (Math.abs(dx) > 4) moved = true;
+                e.preventDefault();
+                track.scrollLeft = startLeft - dx;
+            };
+            const onUp = () => {
+                if (!down) return;
+                down = false;
+                track.classList.remove('dragging');
+                if (moved) {
+                    const swallow = (ev: Event) => {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                    };
+                    track.addEventListener('click', swallow, { capture: true, once: true });
+                }
+            };
+            track.addEventListener('mousedown', onDown);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+            return () => {
+                track.removeEventListener('mousedown', onDown);
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+            };
+        });
+        return () => cleanups.forEach((c) => c());
+    }, [activeTab]);
+
     /* 6 most recent outputs = the highest ids (sequential mint order),
        newest first. */
     const recentIds = Array.from(

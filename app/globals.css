@@ -6512,15 +6512,23 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     padding: 4px 40px 10px;
+    /* No visible scrollbar — touch swipes, mouse drags (JS handler). */
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* legacy Edge/IE */
+    cursor: grab;
+}
+.home-carousel-track.dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;         /* don't fight the drag */
 }
 .home-carousel-track .output-card {
     flex: 0 0 auto;
     width: min(62vw, 240px);
     scroll-snap-align: start;
 }
-/* Hide the horizontal scrollbar — swipe/drag is the affordance. */
 .home-carousel-track::-webkit-scrollbar {
     height: 0;
+    width: 0;
     background: transparent;
 }
 /* Shuffle tab — randomized output grid + re-roll button. */
