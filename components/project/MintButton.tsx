@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { MINT_FEE_ETH } from '../../lib/project/registry';
 
 const MAX_PER_MINT = 22;
 
@@ -37,7 +38,10 @@ export default function MintButton({
   const [result, setResult] = useState<{ count: number; balance: number } | null>(null);
 
   const max = Math.min(MAX_PER_MINT, Math.max(1, remaining));
-  const total = (mintPrice * qty).toFixed(3);
+  // Total = (mint price + platform mint fee) × qty. Fee is $0 for now but
+  // always part of the math + shown, so turning it on flows straight through.
+  const perOutput = mintPrice + MINT_FEE_ETH;
+  const total = (perOutput * qty).toFixed(3);
 
   const start = () => {
     if (!siweAddress) { showToast('Connect your wallet to mint'); return; }
@@ -92,6 +96,9 @@ export default function MintButton({
           <span className="mint-lbl">CONFIRM</span>
           <span className="mint-price">({total} ETH)</span>
         </button>
+        <span className="mint-fee-note" style={{ fontSize: 10, opacity: 0.7 }}>
+          incl. {(MINT_FEE_ETH * qty).toFixed(3)} ETH fee
+        </span>
         <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
       </div>
     );
@@ -100,7 +107,7 @@ export default function MintButton({
   const label =
     phase === 'minting' ? 'MINTING…' : phase === 'done' ? `MINTED ✓ ×${result?.count ?? ''}` : 'MINT';
   const price =
-    phase === 'done' && result ? `(${result.balance} ETH left)` : `(${mintPrice} ETH)`;
+    phase === 'done' && result ? `(${result.balance} ETH left)` : `(${perOutput} ETH)`;
 
   return (
     <button

@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
-import { getProject } from '@/lib/project/registry';
+import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +46,9 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
     if (remaining <= 0) return badRequest('Sold out');
     qty = Math.min(qty, remaining);
     const price = def.mintPriceEth;
-    const cost = price * qty;
+    // Total = (mint price + platform mint fee) per Output. Both $0 for now,
+    // but the fee is plumbed everywhere so flipping it on flows through.
+    const cost = (price + MINT_FEE_ETH) * qty;
 
     // Balance gate (lenient: unknown wallet with no row may still mint in sim).
     const userRes = await supabase
