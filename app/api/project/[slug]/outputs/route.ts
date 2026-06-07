@@ -1,89 +1,146 @@
-// BLOCKED: requires indexer. Replace mock data with Supabase queries once
-// indexer writes to an `outputs` table (output-level state derived from chain
-// events: minter, current owner, traits frozen at mint, current listing).
+// Project outputs + stats — real DB read. Returns per-token ownership from
+// `holders` (joined to `users` for handles), active listing prices, the project
+// minted count + showcase ids, and aggregate stats (collectors, volume, floor)
+// plus a follow-graph "collected by" (collectors the viewer follows).
+//
+// This is the ONE canonical project-outputs endpoint, fetched by
+// lib/state/ProjectContext.tsx. (It replaced an old indexer-mock stub that
+// hardcoded total: 500, which forced every project to read as SOLD OUT.)
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { badRequest } from '@/lib/errors';
+import { badRequest, serverError } from '@/lib/errors';
+import { getSupabaseService } from '@/lib/supabase';
+import { verifySiweSession } from '@/lib/auth/siwe';
 
-export const revalidate = 300; // Output traits: 5 min
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
-export type OutputTraits = Record<string, string>;
-
-export interface OutputSummary {
-  id: string;
-  project_id: string;
+export interface OutputOwner {
   token_id: number;
   owner: string;
-  minter: string;
+  owner_handle: string | null;
   list_price_eth: string | null;
-  last_sale_eth: string | null;
-  traits: OutputTraits;
+}
+
+export interface ProjectStats {
+  /** Distinct owner wallets. */
+  collectors: number;
+  /** Trading volume in ETH (sum of priced events). */
+  volume_eth: string;
+  /** Lowest active listing, or null. */
+  floor_eth: string | null;
+  /** Collectors the viewer follows (handles, @-prefixed). Empty if signed out
+      or following none — the hero "Collected by" row is follow-graph only. */
+  collected_by_following: string[];
 }
 
 export interface ProjectOutputsResponse {
   project_id: string;
+  /** Minted count (NOT total supply). The hero reads this as
+      `mintedCount`; sold-out is mintedCount >= maxSupply, where maxSupply
+      comes from the registry. A fresh project returns 0 here. */
   total: number;
-  page: number;
-  page_size: number;
-  outputs: OutputSummary[];
+  showcase_ids: number[];
+  outputs: OutputOwner[];
+  stats: ProjectStats;
 }
-
-const LAYERS = ['Crust', 'Mantle', 'Bedrock', 'Sediment', 'Vein', 'Drift'];
-const MINERALS = ['Quartz', 'Schist', 'Slate', 'Pyrite', 'Onyx', 'Mica'];
-const FATES = ['SOVEREIGN', 'ABUNDANT', 'FORTUNE', 'ASCENDANT', 'BALANCED', 'SHADOW', 'TRIBULATION', 'VOID'];
-
-const MOCK_HOLDERS = [
-  '0x9ab3f82a3c1e7b5dba8f2c6e1d4b7a9c3e6f0a8b',
-  '0x5d4e2f1c8a7b6c9e3d0f2a8b5c7d4e1f9a6b3c2e',
-  '0x2f8a5c1e7b3d9a6c4f0b8d2e5a1c7f4b9d3e6c0a',
-  '0xe1c4a7d2f9b6e3a5c8f1d4b7e0a3c6f9b2d5e8a1',
-];
-
-const DEFAULT_PAGE_SIZE = 24;
-const MAX_PAGE_SIZE = 100;
-const MOCK_TOTAL = 500;
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ): Promise<NextResponse> {
   if (!params.slug) return badRequest('Missing project slug');
+  const slug = params.slug.toLowerCase();
 
-  const url = new URL(req.url);
-  const page = Math.max(1, Number(url.searchParams.get('page') ?? '1'));
-  const pageSize = Math.min(
-    MAX_PAGE_SIZE,
-    Math.max(1, Number(url.searchParams.get('page_size') ?? DEFAULT_PAGE_SIZE))
-  );
+  try {
+    const supabase = getSupabaseService();
 
-  const start = (page - 1) * pageSize;
-  const end = Math.min(start + pageSize, MOCK_TOTAL);
-  const count = Math.max(0, end - start);
+    const [projectRes, holdersRes, listingsRes, eventsRes] = await Promise.all([
+      supabase.from('projects').select('minted_count, showcase_ids').eq('id', slug).maybeSingle(),
+      supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
+      supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true),
+      supabase.from('events').select('price_eth').eq('project_id', slug).not('price_eth', 'is', null),
+    ]);
 
-  const outputs: OutputSummary[] = Array.from({ length: count }, (_, i) => {
-    const tokenId = start + i + 1;
-    return {
-      id: `${params.slug}-${tokenId}`,
-      project_id: params.slug,
-      token_id: tokenId,
-      owner: MOCK_HOLDERS[tokenId % MOCK_HOLDERS.length],
-      minter: MOCK_HOLDERS[(tokenId + 1) % MOCK_HOLDERS.length],
-      list_price_eth: tokenId % 7 === 0 ? '0.0091' : null,
-      last_sale_eth: tokenId % 3 === 0 ? '0.0088' : null,
-      traits: {
-        Layer:   LAYERS[tokenId % LAYERS.length],
-        Mineral: MINERALS[tokenId % MINERALS.length],
-        Fate:    FATES[tokenId % FATES.length],
+    if (projectRes.error) return serverError(projectRes.error.message);
+    if (holdersRes.error) return serverError(holdersRes.error.message);
+
+    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[] } | null;
+    const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
+
+    const priceByToken: Record<string, string> = {};
+    let floor: number | null = null;
+    for (const l of (listingsRes.data ?? []) as { token_id: string; price_eth: number | string }[]) {
+      const p = Number(l.price_eth);
+      priceByToken[String(l.token_id)] = String(l.price_eth);
+      if (floor === null || p < floor) floor = p;
+    }
+
+    let volume = 0;
+    for (const e of (eventsRes.data ?? []) as { price_eth: number | string | null }[]) {
+      volume += Number(e.price_eth ?? 0);
+    }
+
+    // Resolve handles for the (small) set of distinct owners.
+    const addrs = [...new Set(holders.map((h) => h.owner_address.toLowerCase()))];
+    const handleByAddr: Record<string, string | null> = {};
+    if (addrs.length > 0) {
+      const usersRes = await supabase.from('users').select('address, handle').in('address', addrs);
+      if (!usersRes.error) {
+        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null }[]) {
+          handleByAddr[u.address.toLowerCase()] = u.handle ?? null;
+        }
+      }
+    }
+
+    // Follow-graph "collected by": collectors whose @name the viewer follows.
+    const collectedByFollowing: string[] = [];
+    const viewer = await verifySiweSession(req);
+    if (viewer) {
+      const meRes = await supabase.from('users').select('handle').eq('address', viewer).maybeSingle();
+      const myHandle = (meRes.data as { handle?: string | null } | null)?.handle ?? null;
+      if (myHandle) {
+        const followsRes = await supabase
+          .from('follows')
+          .select('following_name')
+          .eq('follower_name', myHandle);
+        const following = new Set(
+          ((followsRes.data ?? []) as { following_name: string }[]).map((f) => f.following_name.toLowerCase()),
+        );
+        const collectorHandles = [
+          ...new Set(
+            Object.values(handleByAddr).filter((h): h is string => !!h).map((h) => h.toLowerCase()),
+          ),
+        ];
+        for (const h of collectorHandles) {
+          if (following.has(h)) collectedByFollowing.push(`@${h}`);
+        }
+      }
+    }
+
+    const outputs: OutputOwner[] = holders
+      .map((h) => ({
+        token_id: Number(h.token_id),
+        owner: h.owner_address,
+        owner_handle: handleByAddr[h.owner_address.toLowerCase()] ?? null,
+        list_price_eth: priceByToken[String(h.token_id)] ?? null,
+      }))
+      .sort((a, b) => a.token_id - b.token_id);
+
+    const response: ProjectOutputsResponse = {
+      project_id: slug,
+      total: project?.minted_count ?? outputs.length,
+      showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
+      outputs,
+      stats: {
+        collectors: addrs.length,
+        volume_eth: String(Number(volume.toFixed(4))),
+        floor_eth: floor === null ? null : String(floor),
+        collected_by_following: collectedByFollowing,
       },
     };
-  });
-
-  const response: ProjectOutputsResponse = {
-    project_id: params.slug,
-    total: MOCK_TOTAL,
-    page,
-    page_size: pageSize,
-    outputs,
-  };
-  return NextResponse.json(response);
+    return NextResponse.json(response);
+  } catch (err) {
+    return serverError(err instanceof Error ? err.message : 'Unknown error');
+  }
 }

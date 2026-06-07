@@ -23,7 +23,7 @@ import {
 } from 'react';
 import { getProject, outputTraits, renderArtwork } from '../project/registry';
 import type { OutputTraits } from '../project/types';
-import type { ProjectStats } from '../../app/api/project/[slug]/route';
+import type { ProjectStats } from '../../app/api/project/[slug]/outputs/route';
 
 const EMPTY_STATS: ProjectStats = { collectors: 0, volume_eth: '0', floor_eth: null, collected_by_following: [] };
 
