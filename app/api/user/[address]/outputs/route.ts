@@ -19,6 +19,9 @@ export interface UserHolding {
   token_id: number;
   /** Active listing price in ETH, or null if not listed. */
   list_price_eth: string | null;
+  /** Mint event timestamp (Unix seconds) — the Output's "birth", source for
+   *  the PriceDay and Natal Chart platform traits. Null if no MINT event. */
+  mint_ts: number | null;
 }
 
 export interface UserOutputsResponse {
@@ -49,14 +52,25 @@ export async function GET(
     // by price). Fetch per held project (≤ a couple) and key by project:token.
     const heldProjects = [...new Set(rows.map((r) => r.project_id))];
     const priceByKey: Record<string, string> = {};
+    const mintTsByKey: Record<string, number> = {};
     if (heldProjects.length > 0) {
-      const listRes = await supabase
-        .from('listings')
-        .select('project_id, token_id, price_eth')
-        .in('project_id', heldProjects)
-        .eq('active', true);
+      const [listRes, mintRes] = await Promise.all([
+        supabase
+          .from('listings')
+          .select('project_id, token_id, price_eth')
+          .in('project_id', heldProjects)
+          .eq('active', true),
+        supabase
+          .from('events')
+          .select('project_id, token_id, timestamp')
+          .in('project_id', heldProjects)
+          .eq('type', 'MINT'),
+      ]);
       for (const l of (listRes.data ?? []) as { project_id: string; token_id: string | number; price_eth: number | string }[]) {
         priceByKey[`${l.project_id}:${l.token_id}`] = String(l.price_eth);
+      }
+      for (const m of (mintRes.data ?? []) as { project_id: string; token_id: string | number; timestamp: number | string }[]) {
+        mintTsByKey[`${m.project_id}:${m.token_id}`] = Number(m.timestamp);
       }
     }
 
@@ -65,6 +79,7 @@ export async function GET(
         slug: r.project_id,
         token_id: Number(r.token_id),
         list_price_eth: priceByKey[`${r.project_id}:${r.token_id}`] ?? null,
+        mint_ts: mintTsByKey[`${r.project_id}:${r.token_id}`] ?? null,
       }))
       .sort((a, b) => a.slug.localeCompare(b.slug) || a.token_id - b.token_id);
 

@@ -16,6 +16,24 @@ import { renderPrisms, prismsTraits, prismsSchema } from '../art/engines/prisms'
 import { renderOracle, oracleTraits, oracleSchema } from '../art/engines/oracle';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate } from './fate';
+import { priceDayNumber } from '../priceday/priceday';
+import { natalChart } from './natal';
+
+/* Platform trait names — stamped on EVERY Output of EVERY Project, so they ride
+   into the token metadata (ERC-721 attributes) and surface on OpenSea as well
+   as PD. `outputTraits()` is the single source of truth for an Output's full
+   attribute set (PD trait UI + the eventual tokenURI). Order is chronological
+   by "birth": identity (Artist › Project), then the mint-moment trio
+   (PriceDay › Natal Sun/Moon/Rising › Fate). */
+export const PLATFORM_TRAIT = {
+  artist: 'Artist',
+  project: 'Project',
+  priceDay: 'PriceDay',
+  sun: 'Sun',
+  moon: 'Moon',
+  rising: 'Rising',
+  fate: 'Fate',
+} as const;
 
 /* Platform mint fee (the on-chain ~$2 Arweave storage fee, PDProject.sol).
    Simulated across the board but $0 for now — flip this when fees turn on. */
@@ -103,11 +121,39 @@ export function renderArtwork(
   return { aspect: res.aspect, traits: { ...res.traits, Fate: outputFate(slug, tokenId) } };
 }
 
-/** Full per-Output traits (artist traits + Fate), without painting. */
-export function outputTraits(slug: string, tokenId: number): OutputTraits {
+/**
+ * Full per-Output traits — the canonical attribute set for an Output, in
+ * birth-order: Artist › Project › (artist-defined traits) › PriceDay › Natal
+ * (Sun/Moon/Rising) › Fate.
+ *
+ * Artist, Project and Fate are deterministic from (slug, tokenId). PriceDay and
+ * the Natal chart are functions of the MINT MOMENT, so pass `mintMs` (the mint
+ * event's Unix-ms timestamp) to include them; omit it and you get the
+ * deterministic subset (callers without a timestamp stay valid).
+ */
+export function outputTraits(
+  slug: string,
+  tokenId: number,
+  mintMs?: number,
+): OutputTraits {
   const project = getProject(slug);
-  const artist = project ? project.traitsOf(tokenId) : {};
-  return { ...artist, Fate: outputFate(slug, tokenId) };
+  const out: OutputTraits = {};
+  if (project) {
+    out[PLATFORM_TRAIT.artist] = `@${project.artistHandle}`;
+    out[PLATFORM_TRAIT.project] = `@${project.slug}`;
+  }
+  // Artist-defined (project-specific) traits keep their authored order.
+  Object.assign(out, project ? project.traitsOf(tokenId) : {});
+  // Mint-moment traits (only when the birth timestamp is known).
+  if (mintMs != null && Number.isFinite(mintMs)) {
+    out[PLATFORM_TRAIT.priceDay] = `#${priceDayNumber(new Date(mintMs))}`;
+    const chart = natalChart(mintMs);
+    out[PLATFORM_TRAIT.sun] = chart.sun;
+    out[PLATFORM_TRAIT.moon] = chart.moon;
+    out[PLATFORM_TRAIT.rising] = chart.rising;
+  }
+  out[PLATFORM_TRAIT.fate] = outputFate(slug, tokenId);
+  return out;
 }
 
 /** Merged trait schema (artist traits + Fate) for the filter UI. */

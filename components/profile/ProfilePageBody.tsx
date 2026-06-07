@@ -40,6 +40,7 @@ import FollowButton from './FollowButton';
 import ProjectCard from './ProjectCard';
 import { projectsByArtist, getProject, outputTraits } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -65,11 +66,13 @@ type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 
 /** One collected Output, from /api/user/[address]/outputs. */
-interface Holding { slug: string; token_id: number; list_price_eth: string | null; }
-
-/* Feed/special filter categories that don't map to an Output's trait values —
-   skipped by the Collected-tab predicate. */
-const SPECIAL_CATS = new Set(['Network', 'Breadcrumb', 'Event', 'Market']);
+interface Holding {
+    slug: string;
+    token_id: number;
+    list_price_eth: string | null;
+    /** Mint event timestamp (Unix seconds) — source for PriceDay + Natal. */
+    mint_ts: number | null;
+}
 
 function ProfilePageBodyInner({
     handle,
@@ -156,13 +159,32 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
     }, [user.address]);
 
-    /* Collected-tab search + filter + sort, over the real holdings. Mirrors the
-       project page's gallery predicate (ProjectPageBody), but cross-project:
-       traits come from the registry per Output (outputTraits), price from the
-       live listing. Search matches "{slug} #{id}" so a project name OR an id
-       both narrow. Trait pills come from the active Project's schema (TraitsUI),
-       so they filter shared traits like Fate across both projects. */
-    const visibleCollected = useMemo(() => {
+    /* Enrich each held Output with its full platform traits (Artist/Project/
+       PriceDay/Natal/Fate — PriceDay + Natal need the mint timestamp) and live
+       listed status. Both the facet bar and the predicate read this, so they
+       can never diverge. */
+    const enriched = useMemo<EnrichedHolding[]>(
+        () =>
+            holdings
+                .filter((h) => getProject(h.slug))
+                .map((h) => ({
+                    slug: h.slug,
+                    token_id: h.token_id,
+                    list_price_eth: h.list_price_eth,
+                    listed: h.list_price_eth != null,
+                    traits: outputTraits(
+                        h.slug,
+                        h.token_id,
+                        h.mint_ts != null ? h.mint_ts * 1000 : undefined,
+                    ),
+                })),
+        [holdings],
+    );
+
+    /* Collected-tab search + filter + sort over the enriched holdings. Filters
+       by the platform facets (facetValueOf), searches @artist / @project / id,
+       ranges on listing price, sorts by id or price. */
+    const visibleCollected = useMemo<EnrichedHolding[]>(() => {
         const minVal = parseFloat(priceMin);
         const maxVal = parseFloat(priceMax);
         const hasMin = !Number.isNaN(minVal);
@@ -170,26 +192,23 @@ function ProfilePageBodyInner({
         const q = searchQuery.trim().toLowerCase();
         const activeCats = Object.keys(activeFilters).filter((c) => activeFilters[c].size > 0);
 
-        const filtered = holdings.filter((h) => {
-            if (!getProject(h.slug)) return false;
+        const filtered = enriched.filter((h) => {
             const priceNum = h.list_price_eth ? parseFloat(h.list_price_eth) : null;
-
-            if (activeCats.length) {
-                const traits = outputTraits(h.slug, h.token_id);
-                for (const cat of activeCats) {
-                    if (SPECIAL_CATS.has(cat)) continue;
-                    const v = traits[cat];
-                    if (v === undefined || !activeFilters[cat].has(v)) return false;
-                }
+            for (const cat of activeCats) {
+                const v = facetValueOf(cat, h);
+                if (v === undefined || !activeFilters[cat].has(v)) return false;
             }
-            if (q && !`${h.slug} #${h.token_id}`.toLowerCase().includes(q)) return false;
+            if (q) {
+                const hay = `${h.traits.Artist ?? ''} ${h.traits.Project ?? ''} #${h.token_id}`.toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
             if (hasMin && (priceNum == null || priceNum < minVal)) return false;
             if (hasMax && priceNum != null && priceNum > maxVal) return false;
             return true;
         });
 
         const dirMult = dir === 'asc' ? 1 : -1;
-        const byId = (a: Holding, b: Holding) =>
+        const byId = (a: EnrichedHolding, b: EnrichedHolding) =>
             a.slug === b.slug ? (a.token_id - b.token_id) * dirMult : a.slug.localeCompare(b.slug);
         if (sort === 'price') {
             filtered.sort((a, b) => {
@@ -201,7 +220,7 @@ function ProfilePageBodyInner({
             filtered.sort(byId);
         }
         return filtered;
-    }, [holdings, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
+    }, [enriched, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
 
     /* Group the filtered/sorted holdings by Project for rendering. Each group
        renders inside its own ProjectProvider so ArtworkCard paints the right
@@ -554,11 +573,12 @@ function ProfilePageBodyInner({
                         />
                     )}
 
-                    {/* Collected tab: full TraitsUI — same surface as project Artworks tab.
-                        End goal: sort/filter the user's cross-project collection (OpenSea-style).
-                        For now backed by COLLECTED_IDS mock data; full predicate wiring lands
-                        when real per-user collection data is available. */}
-                    <TraitsUI visible={onCollected} />
+                    {/* Collected tab: platform-facet filter over the wallet's real
+                        holdings (Artist · Project · PriceDay · Natal · Fate · Status).
+                        Distinct from the project page's per-Project trait pills — a
+                        collection spans independent projects, so it filters on the
+                        platform facets every Output carries. */}
+                    {onCollected && <ProfileFacetBar holdings={enriched} />}
             </Hero>
 
             {/* Gallery — Created or Collected depending on active tab */}
