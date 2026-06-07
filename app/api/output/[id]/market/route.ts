@@ -56,10 +56,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { slug, tokenId } = parsed;
   try {
     const db = getSupabaseService();
-    const [holder, listing, offers] = await Promise.all([
+    const [holder, listing, offers, lastSale, proj] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db.from('offers').select('id, bidder_address, price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('status', 'open').order('price_eth', { ascending: false }),
+      db.from('events').select('price_eth, timestamp').eq('project_id', slug).eq('token_id', tokenId).eq('type', 'XFER').order('timestamp', { ascending: false }).limit(1).maybeSingle(),
+      db.from('projects').select('floor_price_eth').eq('id', slug).maybeSingle(),
     ]);
     const owner = (holder.data as { owner_address?: string } | null)?.owner_address ?? null;
     let ownerHandle: string | null = null;
@@ -84,6 +86,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         bidder: o.bidder_address,
         price_eth: String(o.price_eth),
       })),
+      last_sale: (lastSale.data as { price_eth?: number } | null)?.price_eth != null
+        ? String((lastSale.data as unknown as { price_eth: number }).price_eth)
+        : null,
+      floor: (proj.data as { floor_price_eth?: number } | null)?.floor_price_eth != null
+        ? String((proj.data as unknown as { floor_price_eth: number }).floor_price_eth)
+        : null,
       viewer,
     });
   } catch (err) {

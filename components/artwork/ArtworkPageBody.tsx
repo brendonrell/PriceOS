@@ -37,10 +37,16 @@
  * parked. Both URLs render the same body once that mapping lands.
  */
 
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { getProject } from '../../lib/project/registry';
 import ArtworkCard from '../ArtworkCard';
+
+function shortAddr(a: string | null): string {
+    if (!a || a.length < 10) return a || '—';
+    return '0x' + a.slice(2, 6) + '…' + a.slice(-4);
+}
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';
 
@@ -91,6 +97,24 @@ export default function ArtworkPageBody({
     const numberPart = typeof localId === 'number' ? localId : globalId;
     const titleLabel = `${projectName} #${numberPart}`;
 
+    /* Live market stats for this Output. */
+    const slug = (projectSlug ?? 'prisms').toLowerCase();
+    const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
+    const [market, setMarket] = useState<{
+        owner: string | null; owner_handle: string | null;
+        listing: { price_eth: string } | null;
+        last_sale: string | null; floor: string | null;
+    } | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/output/${slug}-${numberPart}/market`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setMarket(d); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [slug, numberPart]);
+    const heldBy = market?.owner_handle ? `@${market.owner_handle}` : shortAddr(market?.owner ?? null);
+
     return (
         <ProjectProvider slug={projectSlug}>
             <section className="project-hero" aria-label="Artwork Info">
@@ -108,7 +132,7 @@ export default function ArtworkPageBody({
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/claude">@claude</a>
+                                <a href={`/${artistHandle}`}>@{artistHandle}</a>
                                 <span
                                     className="artist-tag"
                                     aria-label="artist"
@@ -136,7 +160,7 @@ export default function ArtworkPageBody({
                                 <span className="collected-sprite">
                                     (⌐■_■)
                                 </span>
-                                <a className="profile-link">@cto</a>
+                                <a className="profile-link">{heldBy}</a>
                             </span>
                         </span>
                     </div>
@@ -166,7 +190,7 @@ export default function ArtworkPageBody({
                                     {...iconToastProps('Last Sale')}
                                 >⟠&#xFE0E;</span>{' '}
                                 <span className="stat-val stat-val-vol">
-                                    0.038 ETH
+                                    {market?.last_sale ? `${market.last_sale} ETH` : '—'}
                                 </span>
                             </span>
                             <span className="stat-item stat-item-owners">
@@ -210,7 +234,7 @@ export default function ArtworkPageBody({
                                 >
                                     ↨&#xFE0E;
                                 </span>{' '}
-                                <span className="stat-val">0.042 ETH</span>
+                                <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
                             </span>
                             <span className="stat-item stat-item-anchor">
                                 <span
@@ -248,7 +272,7 @@ export default function ArtworkPageBody({
                             onClick={() => showToast('Buy — coming soon')}
                         >
                             <span className="mint-lbl">BUY</span>
-                            <span className="mint-price">(0.042 ETH)</span>
+                            <span className="mint-price">({market?.listing?.price_eth ?? market?.floor ?? '—'} ETH)</span>
                         </button>
                     </div>
 
