@@ -10,6 +10,12 @@ win** — update this file in place and note it.
 
 ## 0. Session protocol — read first, every chat
 
+> **Brendon's review surface = the dev preview:
+> `https://price-os-git-dev-pricediscussion.vercel.app`.** When he says "the
+> app" / "the home page" / "what it looks like", he means THIS url (it tracks
+> `dev`). Verify changes here before claiming them done. Never tell him it's his
+> local settings/cache — diagnose the code/deploy.
+
 A fresh chat is briefed automatically by the **SessionStart hook**
 (`.claude/session-start.sh`), which prints into context:
 
@@ -126,6 +132,13 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+- **NEVER blame Brendon's settings / cache / browser / device.** Default
+  assumption for any bug: it's our code or our deploy, and it's ours to fix.
+  Reproduce against the dev preview and find the real cause. "It's your
+  localStorage / stale cache / your pick" is banned as a first response — only
+  raise environment after code + deploy are ruled out *with evidence*, and even
+  then frame it as something we eliminate, never as user error. This rule exists
+  because it kept happening; it must not happen again.
 - **Concise, CEO/product-level — not a dev briefing.** Lead with the decision,
   the impact, the trade-off. Brendon is highly savvy but not a developer: skip
   the line-by-line mechanics unless asked, never dumb it down. Drop to deep
