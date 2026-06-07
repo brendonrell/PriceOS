@@ -375,6 +375,10 @@ function paint(canvas: HTMLCanvasElement, tokenId: number, width: number, r: () 
   }
 }
 
+/** Oracle is always square — its aspect-ratio palette (w/h) is just [1].
+    Single source for the registry's `aspects` (empty-state ghost grid). */
+export const ORACLE_ASPECTS: readonly number[] = [1];
+
 export const renderOracle: EngineFn = (canvas, tokenId, width): RenderResult => {
   const r = seededRng(tokenId);
   const p = castOracle(r);

@@ -76,6 +76,7 @@ import {
     type TraitCategory,
 } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
+import GhostCard from './GhostCard';
 import MintButton from './MintButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
@@ -333,13 +334,35 @@ function ProjectPageBodyInner() {
         return new Set(picks);
     });
 
-    /* ProjectShowcase tab — a FIXED set of 6 featured ids from the project
-       record (projects.showcase_ids, surfaced via ProjectContext). Stable
-       across loads/tab switches (no more random-per-load pick). */
-    const projectShowcasePicks = useMemo<Set<number>>(
-        () => new Set(project.showcaseIds),
-        [project.showcaseIds],
-    );
+    /* ProjectShowcase tab — the artist's curated set of featured ids from the
+       project record (projects.showcase_ids, via ProjectContext). Until the
+       artist curates (empty set), auto-feed the FIRST 6 MINTS (lowest minted
+       ids) so the Showcase is never empty post-launch; the artist overrides
+       later by setting showcase_ids. Stable across loads/tab switches. */
+    const projectShowcasePicks = useMemo<Set<number>>(() => {
+        if (project.showcaseIds.length > 0) return new Set(project.showcaseIds);
+        const firstMints = [...project.outputs.keys()].sort((a, b) => a - b).slice(0, 6);
+        return new Set(firstMints);
+    }, [project.showcaseIds, project.outputs]);
+
+    /* Empty-state ghost grid. While a project is unminted (0 Outputs) the
+       gallery would be a void; instead we render placeholder frames whose
+       shapes are SAMPLED from the project's own aspect palette (no art, no
+       phantom seeds). 18 in Artworks, the first 6 flagged for the Showcase
+       tab. Gone the instant the first Output mints. Aspects are picked by a
+       deterministic hash of the index (SSR-safe — no hydration mismatch). */
+    const GHOST_TOTAL = 18;
+    const GHOST_SHOWCASE = 6;
+    const showGhosts = project.totalOutputs === 0;
+    const ghostSpecs = useMemo(() => {
+        if (!showGhosts) return [];
+        const aspects = def?.aspects && def.aspects.length ? def.aspects : [1];
+        return Array.from({ length: GHOST_TOTAL }, (_, i) => {
+            const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
+            const aspect = aspects[Math.floor(h * aspects.length) % aspects.length];
+            return { aspect, showcasePick: i < GHOST_SHOWCASE };
+        });
+    }, [showGhosts, def]);
 
     /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
        'fog', body.fog-mode CSS blurs every .output-card .canvas-wrapper
@@ -1010,14 +1033,23 @@ function ProjectPageBodyInner() {
                 ].filter(Boolean).join(' ') || undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
-                {visibleTokenIds.map((id) => (
-                    <ArtworkCard
-                        key={id}
-                        id={id}
-                        projectShowcasePick={projectShowcasePicks.has(id)}
-                        isBreadcrumb={breadcrumbSample.has(id)}
-                    />
-                ))}
+                {showGhosts
+                    ? ghostSpecs.map((g, i) => (
+                        <GhostCard
+                            key={`ghost-${i}`}
+                            aspect={g.aspect}
+                            showcasePick={g.showcasePick}
+                            index={i}
+                        />
+                    ))
+                    : visibleTokenIds.map((id) => (
+                        <ArtworkCard
+                            key={id}
+                            id={id}
+                            projectShowcasePick={projectShowcasePicks.has(id)}
+                            isBreadcrumb={breadcrumbSample.has(id)}
+                        />
+                    ))}
             </section>
 
             {/* Sim 5199-5203: activity feed. Mock rows seeded from sim's

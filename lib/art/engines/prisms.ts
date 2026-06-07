@@ -52,6 +52,10 @@ const RATIOS: readonly { ratio: number; label: string; w: number }[] = [
 ];
 const ASPECT_LABELS = ['Tall', 'Portrait', 'Square', 'Landscape', 'Wide', 'Panorama'];
 
+/** The project's aspect-ratio palette (w/h) — single source for the registry's
+    `aspects` (empty-state ghost grid samples real proportions from this). */
+export const PRISMS_ASPECTS: readonly number[] = RATIOS.map((r) => r.ratio);
+
 const FLOWS = ['Linear', 'Linear', 'Linear', 'Radial', 'Radial', 'Conic'];
 const FLOW_VALUES = ['Linear', 'Radial', 'Conic'];
 

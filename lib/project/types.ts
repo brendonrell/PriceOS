@@ -111,6 +111,10 @@ export interface ProjectDef {
   soundtrack: Soundtrack | null;
   /** Artist trait taxonomy (traits → subtraits → values). May be empty. */
   traitSchema: TraitSchema;
+  /** The project's aspect-ratio palette (w/h), sourced from its engine. Used
+      by the empty-state ghost grid to sample placeholder shapes that match the
+      real Outputs' proportions — no art is rendered. */
+  aspects: readonly number[];
   /** Paints an Output's Artwork, returns aspect + artist traits. */
   render: EngineFn;
   /** Derives an Output's artist traits without painting. */

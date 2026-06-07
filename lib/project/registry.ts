@@ -12,8 +12,8 @@
  */
 
 import type { ProjectDef, TraitSchema, OutputTraits, TraitDef } from './types';
-import { renderPrisms, prismsTraits, prismsSchema } from '../art/engines/prisms';
-import { renderOracle, oracleTraits, oracleSchema } from '../art/engines/oracle';
+import { renderPrisms, prismsTraits, prismsSchema, PRISMS_ASPECTS } from '../art/engines/prisms';
+import { renderOracle, oracleTraits, oracleSchema, ORACLE_ASPECTS } from '../art/engines/oracle';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -58,6 +58,7 @@ const PRISMS: ProjectDef = {
   colorway: '#5A2EA6',
   mintPriceEth: 0,
   soundtrack: null,
+  aspects: PRISMS_ASPECTS,
   traitSchema: prismsSchema,
   render: renderPrisms,
   traitsOf: prismsTraits,
@@ -73,6 +74,7 @@ const ORACLE: ProjectDef = {
   soundtrack: oraclePlaylist
     ? { playlistId: oraclePlaylist, label: 'Wardruna — Kvitravn' }
     : null,
+  aspects: ORACLE_ASPECTS,
   traitSchema: oracleSchema,
   render: renderOracle,
   traitsOf: oracleTraits,
