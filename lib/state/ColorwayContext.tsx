@@ -335,6 +335,53 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     body.classList.toggle('bg-is-red',        isRedBg(bg));
 }
 
+/* Single source of truth for "what does THIS path paint?" — used by BOTH the
+   initial boot effect AND the server-hydration handler, so the two can never
+   diverge. (That divergence WAS the home-stays-orange bug: boot painted
+   Attention Yellow, then hydration repainted the shared custom slot — the
+   user's #FF6600 profile hex — right over it on every load.)
+   Performs the paint and returns the colorway key to store in state. */
+function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey {
+    const isProjectPage = pathname?.startsWith('/art/') ?? false;
+    /* Profile page: first segment isn't 'art'/'api', isn't all-digits, matches
+       the handle shape. '/' (home) has an empty first segment. */
+    const firstSeg = (pathname?.split('/')[1] ?? '').toLowerCase();
+    const isProfilePage =
+        firstSeg.length > 0 &&
+        firstSeg !== 'art' &&
+        firstSeg !== 'api' &&
+        !/^\d+$/.test(firstSeg) &&
+        /^[@a-z0-9_-]+$/i.test(firstSeg);
+    const isHomePage = pathname === '/';
+
+    if (isProjectPage && saved === null) {
+        // Project page, no pick → artist's custom fill.
+        applyBgHex(getCustomBg(), 'custom');
+        return null;
+    }
+    if (isProfilePage && saved === null) {
+        // Profile page, no pick → Light Mode neutral canvas.
+        applyColorway('light');
+        return 'light';
+    }
+    if (isHomePage && (saved === null || saved === 'custom')) {
+        // Home's custom color = brand Attention Yellow, ALWAYS. Never the
+        // shared pd_custom_color slot (that carries the user's profile hex,
+        // e.g. #FF6600). Covers cold-start AND an explicit 'custom' pick.
+        applyBgHex(ATTENTION, 'custom');
+        return saved;
+    }
+    // Everything else: an explicit colorway pick applies on every page.
+    applyColorway(saved);
+    if (saved === 'haze') {
+        const variation = getHazeVariation();
+        if (variation) {
+            enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
+        }
+    }
+    return saved;
+}
+
 export function ColorwayProvider({ children }: { children: ReactNode }) {
     const [colorway, setColorwayState] = useState<ColorwayKey>(null);
     const pathname = usePathname();
@@ -365,58 +412,9 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
         } catch {
             /* ignore */
         }
-        setColorwayState(savedColorway);
-
-        const isProjectPage = pathname?.startsWith('/art/') ?? false;
-        /* Profile Page v0 — pathname is a profile page when the first
-           segment isn't 'art' or 'api', isn't all-digits (that's the
-           output / global-id namespace), and matches the handle shape.
-           `/` (root home) has empty first segment and falls through. */
-        const firstSeg = (pathname?.split('/')[1] ?? '').toLowerCase();
-        const isProfilePage =
-            firstSeg.length > 0 &&
-            firstSeg !== 'art' &&
-            firstSeg !== 'api' &&
-            !/^\d+$/.test(firstSeg) &&
-            /^[@a-z0-9_-]+$/i.test(firstSeg);
-        const isHomePage = pathname === '/';
-
-        if (isProjectPage && savedColorway === null) {
-            // Project pages with NO user colorway pick boot to the
-            // custom color. Users who've picked a colorway see their pick
-            // here too — the earlier "always custom on /art/*" rule was
-            // a CEO miscommunication; the picker has to work everywhere.
-            applyBgHex(getCustomBg(), 'custom');
-        } else if (isProfilePage && savedColorway === null) {
-            // Profile pages with NO user colorway pick boot to Light Mode.
-            // Clean neutral canvas — users are invited to customise via the
-            // Collected tab TraitsUI sort-bar colorway picker.
-            // Previously booted Attention Yellow (#FFE600); changed to light
-            // so new profiles show no colour by default (colorway === 'light'
-            // sets the colorway-light body class correctly).
-            setColorwayState('light');
-            applyColorway('light');
-        } else if (isHomePage && (savedColorway === null || savedColorway === 'custom')) {
-            // Home's custom color = brand Attention Yellow (#FFE600) — the
-            // owner-chosen fill for this page (Brendon owns the non-artist,
-            // non-profile surfaces). Custom is the platform default, so this
-            // covers BOTH cold-start (savedColorway === null) and an explicit
-            // 'custom' pick. ATTENTION is used directly, NOT the shared
-            // pd_custom_color slot, so home stays brand yellow in custom mode
-            // no matter what hex is saved there. Light/dark/orange picks still
-            // apply on home — they fall through to applyColorway() below.
-            applyBgHex(ATTENTION, 'custom');
-        } else {
-            applyColorway(savedColorway);
-            // Boot haze variation engine and texture overlay if haze
-            // is the saved colorway — same as any other persistent pref.
-            if (savedColorway === 'haze') {
-                const variation = getHazeVariation();
-                if (variation) {
-                    enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
-                }
-            }
-        }
+        // Resolve + paint via the one shared helper (see paintForPath above),
+        // and store whatever colorway it settled on.
+        setColorwayState(paintForPath(savedColorway, pathname));
     }, [pathname]);
 
     /* F53 (BUG-18) — sim's hashsyn seed color is `#6a1fc2` (sim 12620),
@@ -515,6 +513,8 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
     /* User-state hydration — when a server snapshot lands (login on any
        device), re-read the saved colorway from the cache (userState has just
        written it) and re-apply it live so the page restores without a reload.
+       Routes through the SAME paintForPath resolver as boot, so home stays
+       Attention Yellow instead of being repainted with the shared custom slot.
        hashsyn is never persisted; haze re-boots its variation engine. */
     useEffect(() => {
         const handler = () => {
@@ -527,20 +527,11 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             } catch {
                 /* ignore */
             }
-            setColorwayState(saved);
-            if (saved === 'haze') {
-                applyColorway('haze');
-                const variation = getHazeVariation();
-                if (variation) {
-                    enableHazeVariation(variation, getHazeBg(), (hex) => applyBgHex(hex, 'haze'));
-                }
-            } else {
-                applyColorway(saved);
-            }
+            setColorwayState(paintForPath(saved, pathname));
         };
         window.addEventListener(USERSTATE_HYDRATED_EVENT, handler);
         return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, handler);
-    }, []);
+    }, [pathname]);
 
     const value = useMemo<ColorwayContextValue>(
         () => ({ colorway, setColorway }),

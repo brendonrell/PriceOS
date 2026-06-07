@@ -6512,6 +6512,11 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     padding: 4px 40px 10px;
+    /* scroll-snap pulls the first card's start edge to the scrollport start,
+       which otherwise eats the left padding and slams card #1 against the
+       screen edge. scroll-padding-left offsets the snap start by the same
+       inset so the first card lines up with the page (and the row header). */
+    scroll-padding-left: 40px;
     /* No visible scrollbar — touch swipes, mouse drags (JS handler). */
     scrollbar-width: none;          /* Firefox */
     -ms-overflow-style: none;       /* legacy Edge/IE */
@@ -6536,7 +6541,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    hero sits at 20px, so the carousel's left edge doesn't line up on phones. */
 @media (max-width: 600px) {
     .home-carousel-head  { padding: 0 20px; }
-    .home-carousel-track { padding: 4px 20px 10px; }
+    .home-carousel-track { padding: 4px 20px 10px; scroll-padding-left: 20px; }
 }
 /* Shuffle tab — randomized output grid + re-roll button. */
 .home-shuffle-bar {

@@ -10,17 +10,17 @@
 - **Branch:** `claude/home-page-color-carousel-TNXd5`
 - **Updated:** 2026-06-07
 
-## Open task — home page polish (DONE on branch, pending merge to dev)
+## Last task — home page polish (✅ MERGED TO DEV via PR #16)
 
-1. **Home custom color = Attention Yellow (`#FFE600`).** Fixed: home now paints
-   yellow for both cold-start AND an explicit `custom` pick, using ATTENTION
-   directly instead of leaking the shared `pd_custom_color` slot
-   (`ColorwayContext.tsx` ~L399). Light/dark/orange picks still work on home.
-2. **Carousel left edge.** Fixed: carousel head + track now match the page's
-   responsive edge inset — 40px desktop, **20px mobile** (the missing mobile
-   rule was the cause). `app/globals.css` after `.home-carousel-track`.
+1. **Home custom color = Attention Yellow (`#FFE600`).** Home paints yellow for
+   both cold-start AND an explicit `custom` pick, using ATTENTION directly
+   instead of leaking the shared `pd_custom_color` slot (`ColorwayContext.tsx`
+   ~L399). Light/dark/orange picks still work on home.
+2. **Carousel left edge.** Carousel head + track match the page's responsive
+   edge inset — 40px desktop, **20px mobile** (the missing mobile rule was the
+   cause). `app/globals.css` after `.home-carousel-track`.
 
-Build passes locally. Pushed to the feature branch; branch preview deploying.
+Merged to `dev` (squash, PR #16). dev preview rebuilt with both fixes.
 
 ## Process hardening shipped this session
 
@@ -30,17 +30,14 @@ Build passes locally. Pushed to the feature branch; branch preview deploying.
   to `main`. Escape hatch: `PD_ALLOW_MAIN=1 <cmd>` after explicit approval.
 - CLAUDE.md §0 (session protocol, dev-only rule) + §7 (concise CEO-level comms).
 
-## ⚠️ Open item for Brendon — production/main is in a REVERTED state
+## main / production — RESOLVED, clean
 
-- A prior session: Brendon promoted dev→main (`d28fe44`, "all session work"),
-  then a **Claude session committed a revert directly to main** (`44078c7`).
-  Current **production = the revert** — home/yellow/carousel work is NOT on main.
-- dev itself is healthy and has all the work.
-- Decision needed: leave main reverted (clean until a deliberate promotion, per
-  the dev-only rule) or re-promote. **Do not touch main without explicit
-  approval** (guard blocks it anyway).
+- Verified: current `main` tree == pre-promotion `main` tree (`5236c2e`), i.e.
+  the promote→revert churn netted out. **Production is the correct pre-fuckup
+  baseline.** Left untouched on purpose (no prod write for a no-op; guard blocks
+  main anyway). The two promote/revert commits remain in history; content clean.
 
 ## Next step
 
-- Merge this branch's home fixes into `dev` (Brendon's approval) → PR record.
-- Then decide main/production posture (above).
+- Nothing open. Home fixes live in dev; main clean. Pick the next task from the
+  Sepolia test phase (§8 of CLAUDE.md) when ready.

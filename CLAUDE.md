@@ -10,6 +10,12 @@ win** — update this file in place and note it.
 
 ## 0. Session protocol — read first, every chat
 
+> **Brendon's review surface = the dev preview:
+> `https://price-os-git-dev-pricediscussion.vercel.app`.** When he says "the
+> app" / "the home page" / "what it looks like", he means THIS url (it tracks
+> `dev`). Verify changes here before claiming them done. Never tell him it's his
+> local settings/cache — diagnose the code/deploy.
+
 A fresh chat is briefed automatically by the **SessionStart hook**
 (`.claude/session-start.sh`), which prints into context:
 
@@ -30,11 +36,14 @@ contract that keeps it working:
   Brendon's explicit approval in chat.
 - **On a branch mismatch warning, stop and reconcile before working.** Branch
   drift across fatigued chats is the failure this guards against.
-- **Pushing requires Brendon's explicit approval.** Before ANY `git push`,
-  present a concise, **numbered, CEO-level list** of exactly what's being pushed
-  — each item one line: the change + its impact, no dev minutiae. Push only
-  after Brendon says go in chat. Committing locally needs no approval; the gate
-  is the push.
+- **Pushing APP changes requires Brendon's approval; docs/process pushes are
+  pre-approved.** Before pushing anything that touches the **app itself**
+  (product code / behaviour / UI — `app/`, `components/`, `lib/`, API routes,
+  etc.), present a concise **numbered, CEO-level list** (one line each: change +
+  impact, no dev minutiae) and push only after Brendon says go. Pushes that are
+  **docs/process only** — `CLAUDE.md`, `docs/`, `docs/WIP.md`, `.claude/` hooks
+  & settings — are pre-approved: just push and note it. Committing locally never
+  needs approval; the gate is the app-touching push.
 - **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
   decisions · next step). An out-of-date baton is worse than none.
 
@@ -123,6 +132,13 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+- **NEVER blame Brendon's settings / cache / browser / device.** Default
+  assumption for any bug: it's our code or our deploy, and it's ours to fix.
+  Reproduce against the dev preview and find the real cause. "It's your
+  localStorage / stale cache / your pick" is banned as a first response — only
+  raise environment after code + deploy are ruled out *with evidence*, and even
+  then frame it as something we eliminate, never as user error. This rule exists
+  because it kept happening; it must not happen again.
 - **Concise, CEO/product-level — not a dev briefing.** Lead with the decision,
   the impact, the trade-off. Brendon is highly savvy but not a developer: skip
   the line-by-line mechanics unless asked, never dumb it down. Drop to deep
