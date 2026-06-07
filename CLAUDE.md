@@ -8,6 +8,38 @@ win** — update this file in place and note it.
 
 ---
 
+## 0. Session protocol — read first, every chat
+
+A fresh chat is briefed automatically by the **SessionStart hook**
+(`.claude/session-start.sh`), which prints into context:
+
+1. Repo state (branch · head · tree · deps).
+2. **`docs/WIP.md`** — the live task baton (what's in flight right now), plus a
+   **branch-mismatch warning** if you're not on the task's branch.
+3. **`docs/SESSION_STARTER.md`** — the per-session process checklist.
+
+You do not need to be pointed at any of these — they arrive on their own. The
+contract that keeps it working:
+
+- **We work ONLY in `dev`.** Every change is a feature branch off `dev` → PR →
+  `dev`. **`main` is off-limits** except as a discrete, explicit,
+  Brendon-driven task. Hard-enforced: the `PreToolUse` git-guard
+  (`.claude/git-guard.sh`) physically blocks any git write that touches `main`
+  (push to main, or any commit/merge/rebase while on main). The one deliberate
+  main moment uses the escape hatch `PD_ALLOW_MAIN=1 <command>`, and only after
+  Brendon's explicit approval in chat.
+- **On a branch mismatch warning, stop and reconcile before working.** Branch
+  drift across fatigued chats is the failure this guards against.
+- **Pushing requires Brendon's explicit approval.** Before ANY `git push`,
+  present a concise, **numbered, CEO-level list** of exactly what's being pushed
+  — each item one line: the change + its impact, no dev minutiae. Push only
+  after Brendon says go in chat. Committing locally needs no approval; the gate
+  is the push.
+- **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
+  decisions · next step). An out-of-date baton is worse than none.
+
+---
+
 ## 1. What this repo is
 
 **PriceOS** — the Next.js 14 frontend + API for **Price Discussion (PD)**, a
@@ -91,6 +123,10 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+- **Concise, CEO/product-level — not a dev briefing.** Lead with the decision,
+  the impact, the trade-off. Brendon is highly savvy but not a developer: skip
+  the line-by-line mechanics unless asked, never dumb it down. Drop to deep
+  technical detail only on request.
 - Point form for summaries, recaps, status. Talk to Brendon like a smart human.
 - Own mistakes plainly, no blame-shifting, no approval-fishing.
 - Don't ask questions whose answer is already in context.
@@ -98,6 +134,8 @@ explicit chat confirmation.
 
 ## 8. Active workstream pointers
 
+- **Live task baton:** `docs/WIP.md` — what's in flight *right now* (auto-printed
+  by the SessionStart hook; keep it current, see §0).
 - **Sepolia PD test phase** — `docs/sepolia-test-phase.md` (this repo) +
   ClickUp task `86b9v5w77` (urgent). Pre-mainnet rehearsal on testnet; feeds the
   **Mythic Audit Pass** (`86b9v5wj4`), the last gate before mainnet.

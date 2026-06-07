@@ -6531,6 +6531,13 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     width: 0;
     background: transparent;
 }
+/* Mobile: match the page edge inset (.project-hero drops 40px → 20px at
+   ≤600px). Without this the carousel head + first card sit at 40px while the
+   hero sits at 20px, so the carousel's left edge doesn't line up on phones. */
+@media (max-width: 600px) {
+    .home-carousel-head  { padding: 0 20px; }
+    .home-carousel-track { padding: 4px 20px 10px; }
+}
 /* Shuffle tab — randomized output grid + re-roll button. */
 .home-shuffle-bar {
     display: flex;
