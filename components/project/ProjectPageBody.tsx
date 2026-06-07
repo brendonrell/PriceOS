@@ -817,7 +817,7 @@ function ProjectPageBodyInner() {
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href="/profile/opus4-6">@Opus4-6</a>
+                                <a href={`/${def?.artistHandle ?? 'opus4-6'}`}>@{def?.artistHandle ?? 'opus4-6'}</a>
                                 <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
                                 <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                             </span>
