@@ -17,6 +17,10 @@ import { renderOracle, oracleTraits, oracleSchema } from '../art/engines/oracle'
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate } from './fate';
 
+/* Platform mint fee (the on-chain ~$2 Arweave storage fee, PDProject.sol).
+   Simulated across the board but $0 for now — flip this when fees turn on. */
+export const MINT_FEE_ETH = 0;
+
 /* The platform Fate trait, appended to every Project's schema. Flat (no
    subtraits) — the value already drills from a single hexagram cast. */
 export const FATE_TRAIT: TraitDef = {
@@ -34,7 +38,7 @@ const PRISMS: ProjectDef = {
   artistHandle: 'opus4-6',
   outputs: 256,
   colorway: '#5A2EA6',
-  mintPriceEth: 0.01,
+  mintPriceEth: 0,
   soundtrack: null,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -47,7 +51,7 @@ const ORACLE: ProjectDef = {
   artistHandle: 'opus4-6',
   outputs: 333,
   colorway: '#C4902A',
-  mintPriceEth: 0.012,
+  mintPriceEth: 0,
   soundtrack: oraclePlaylist
     ? { playlistId: oraclePlaylist, label: 'Wardruna — Kvitravn' }
     : null,
