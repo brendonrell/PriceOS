@@ -417,6 +417,30 @@ export default function OutputPreview() {
         };
     }, [isOpen, id, slug]);
 
+    /* Live market stats for the details panel (owner / last sale / floor).
+       Refetches on open and after any market action ('pd:project-refresh'). */
+    const [market, setMarket] = useState<{
+        owner: string | null;
+        owner_handle: string | null;
+        last_sale: string | null;
+        floor: string | null;
+        viewer: { isOwner: boolean } | null;
+    } | null>(null);
+    useEffect(() => {
+        if (!isOpen || id == null) { setMarket(null); return; }
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/output/${slug}-${id}/market`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setMarket(d); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [isOpen, id, slug]);
+
     /* v1 — OFFERS surface. Mocked inline (CTO call locked: dedicated
        route lands with the offers feature). useMemo keeps the array
        reference stable per id so the list doesn't reconcile on every
@@ -590,19 +614,25 @@ export default function OutputPreview() {
                 <div className="dp-row">
                     <span className="dp-label">Artist</span>
                     <span className="dp-value">
-                        <a href="/profile/claude" className="dp-link" onClick={(e) => e.stopPropagation()}>
-                            <span className="dp-value-text">@claude</span>
+                        <a href={`/${def?.artistHandle ?? 'opus4-6'}`} className="dp-link" onClick={(e) => e.stopPropagation()}>
+                            <span className="dp-value-text">@{def?.artistHandle ?? 'opus4-6'}</span>
                         </a>
                     </span>
                 </div>
-                {/* Owner row */}
+                {/* Owner row (live) */}
                 <div className="dp-row">
                     <span className="dp-label">Owner</span>
                     <span className="dp-value">
                         <span className="dp-value-text dp-addr">
-                            {ownerCopied ? '✓ COPIED' : (meta.isOwnedByBrendon ? 'You' : shortAddr(meta.ownerFull))}
+                            {ownerCopied
+                                ? '✓ COPIED'
+                                : market?.viewer?.isOwner
+                                    ? 'You'
+                                    : market?.owner_handle
+                                        ? `@${market.owner_handle}`
+                                        : shortAddr(market?.owner ?? meta.ownerFull)}
                         </span>
-                        {!meta.isOwnedByBrendon && meta.ownerFull && (
+                        {!market?.viewer?.isOwner && (market?.owner ?? meta.ownerFull) && (
                             <button className="dp-copy-btn" title="Copy address" onClick={(e) => {
                                 e.stopPropagation();
                                 const write = () => {
@@ -610,11 +640,25 @@ export default function OutputPreview() {
                                     setOwnerCopied(true);
                                     ownerCopyTimer.current = window.setTimeout(() => { setOwnerCopied(false); ownerCopyTimer.current = null; }, 1500);
                                 };
-                                navigator.clipboard.writeText(meta.ownerFull ?? '').then(write).catch(write);
+                                navigator.clipboard.writeText((market?.owner ?? meta.ownerFull) ?? '').then(write).catch(write);
                             }}>
                                 ⧉{VS15}
                             </button>
                         )}
+                    </span>
+                </div>
+                {/* Last Sale row (live) */}
+                <div className="dp-row">
+                    <span className="dp-label">Last Sale</span>
+                    <span className="dp-value">
+                        <span className="dp-value-text">{market?.last_sale ? `${market.last_sale} ETH` : '—'}</span>
+                    </span>
+                </div>
+                {/* Floor row (live) */}
+                <div className="dp-row">
+                    <span className="dp-label">Floor</span>
+                    <span className="dp-value">
+                        <span className="dp-value-text">{market?.floor ? `${market.floor} ETH` : '—'}</span>
                     </span>
                 </div>
                 {/* Artwork Page row */}
