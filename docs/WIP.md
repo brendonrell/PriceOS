@@ -6,10 +6,45 @@
 
 ---
 
-- **Branch:** work merged to `dev` via `claude/site-bug-context-review-Luf2W`
+- **Branch:** `claude/mint-button-flow-GIrXA` (pushed to `dev`)
 - **Updated:** 2026-06-07
 
-## ✅ LANDED THIS SESSION — all merged to `dev`, build-green (VERIFY on dev)
+## ✅ LANDED THIS SESSION (mint-button-flow) — pushed to `dev`, build-green
+
+1. **In-button mint flow finished.** Tap MINT → the same-size **224px** pill
+   SPLITS down the dead centre (single hairline divider) into **qty | CONFIRM**
+   tabs, mirroring the artwork modal CTA (`modal-action-btn-wrap`). CONFIRM is
+   stacked over the ETH amount, all-Courier; **no box** around CONFIRM; ✕ floats
+   in the corner so the split stays centred. Only the choosing face splits — idle
+   MINT stays one solid button. (`components/project/MintButton.tsx`;
+   `.mint-chooser/.mint-seg/.mint-confirm/.mint-cancel` in `globals.css`.)
+2. **Soundtrack is DB-driven.** `projects.soundtrack` → `/api/project/[slug]/outputs`
+   → ProjectContext → page (registry = pre-reconcile fallback only). Prisms' DB
+   soundtrack set to Tycho — "Dive" (`OLAK5uy_nwyosntuUVkKzTCteWIdw0SJZi-XSJeTs`).
+   Edit the column and the SOUNDTRACK button updates; no code change per project.
+3. **Empty-state ghost grid.** An unminted project renders 18 placeholder frames
+   (6 flagged for Showcase) whose aspect ratios are SAMPLED from the project's own
+   palette (`ProjectDef.aspects`, exported from each engine). No art, no phantom
+   seeds (honours the Genome lock). Gone the instant the first Output mints.
+   (`components/project/GhostCard.tsx`.)
+4. **Showcase auto-feeds the first 6 mints** until the artist curates `showcase_ids`.
+5. Pre-mint trait filter bar hidden (no trait spoilers in the ghost state).
+
+### Process locks added this session (CLAUDE.md)
+- **PUSH/APPROVED = merge to `dev` + push `dev`** — never stop at the feature branch.
+- **KNOW, never guess**; check own work via real `npm run build` + compiled-asset
+  inspection; confirm the deploy is current via Vercel MCP before pointing Brendon
+  at it (preview 403s from the container — curl-from-here is not a valid check).
+- It's a two-person shop — keep the loop tight, no babysitting.
+
+### Next / open (not done this session)
+- **Collected-tab "welcome freebie"** (UI-only, vanishes on first real collect) —
+  Brendon's idea, same DNA as the ghosts. Separate ship. Keep it visibly
+  non-canonical (no real traits, can't list/sell).
+- Running **"Easter-egg gen-art"** list in the Atlas (Tabstract / ghosts / 404 /
+  favicon / pull-to-refresh) so they're seeded deliberately.
+
+## ✅ LANDED — PRIOR SESSION (platform traits / Collected facets) — merged to `dev`
 
 1. **orange-in-custom colourway bug** — decoupled (details below).
 2. **SOLD-OUT-at-zero** — project page fetched a stale mock `/outputs` route

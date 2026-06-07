@@ -147,6 +147,23 @@ explicit chat confirmation.
 
 ## 6. Verify before you claim
 
+- **KNOW, never guess (Brendon, 2026-06-07 — hard rule).** Never propose, edit,
+  or push a fix on a hunch about what a file holds or what state the repo/deploy
+  is in. Read the actual file / compiled output FIRST. Guessing wastes Brendon's
+  time and is banned.
+- **Check your own work before saying "done" / "pushed".** For any code change,
+  run the REAL build (`npm run build`) and inspect the COMPILED artifact — e.g.
+  grep `.next/static/css/*.css` for the exact rule — so you KNOW what ships, not
+  what you think you wrote. `tsc --noEmit` clean is necessary, not sufficient.
+  Pixel proof needs a headless browser (not installed in the container; install
+  Playwright only if truly required) — short of that, build + compiled-asset
+  inspection IS the proof.
+- **Confirm the deploy is the one being viewed before pointing Brendon at it.**
+  The recurring rage this session: he screenshots a STALE preview (old commit)
+  and "the fix isn't there." Before claiming a change is visible, confirm the
+  dev deploy is current via the **Vercel MCP deployment status** (authoritative).
+  The dev preview URL **403s from the build container**, so curl-from-here is NOT
+  a valid check — use the Vercel MCP. Never blame his cache/device.
 - Clone + grep before describing repo state. Grep every consumer of a renamed
   export or shape-changed type before declaring file scope.
 - After a Vercel deploy reaches READY, open the dev URL and verify the changed
