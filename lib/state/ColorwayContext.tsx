@@ -82,12 +82,13 @@ const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
     haze:    '#25EC00',
 };
 
-/* F64 (BUG-28) — when the active colorway is 'custom', the bg hex comes from
-   the user's saved pick (lib/hooks/useCustomColor.ts), not the static
-   COLORWAYS.custom constant. The hook owns persistence + migration; this
-   helper just reads the already-migrated value on every applyColorway pass.
-   Falls back to COLORWAYS.custom whenever the saved value is missing or
-   malformed. SSR-safe via the `typeof window` guard. */
+/* The "Custom" colorway's bg slot. Custom = the PAGE OWNER's colour
+   (project page → the project's colorway; home → platform default), read here
+   on every applyColorway pass with COLORWAYS.custom as the fallback.
+   DECOUPLE GUARD: `pd_custom_color` is the Custom colorway ONLY. It is NOT the
+   user's Profile Colorway (`pd_profile_hex` / server `profile_hex`) and NOT
+   Haze Mode (`pd_haze_color`). Those are separate features with their own
+   slots; never read/write one through another. SSR-safe via `typeof window`. */
 const CUSTOM_COLOR_KEY = 'pd_custom_color';
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 function getCustomBg(fallback: string = COLORWAYS.custom): string {
@@ -99,6 +100,22 @@ function getCustomBg(fallback: string = COLORWAYS.custom): string {
         /* ignore */
     }
     return fallback;
+}
+
+/* PROFILE COLORWAY paint source. A profile page is painted with ITS OWNER's
+   colour (their `profile_hex`) when the viewer is on the Custom / default
+   colorway — "Custom = the page owner's colour", and Custom is the platform
+   default. The owner hex is per-profile SERVER data, so (unlike a project's
+   colorway, which paintForPath derives from the URL slug) ColorwayContext
+   can't derive it from the path. The profile page registers it via
+   setActiveProfileHex(); paintForPath reads it here.
+   DECOUPLE GUARD: this is the profile OWNER's colour. It is NOT the viewer's
+   "Custom" slot (`pd_custom_color`) and NOT "Haze Mode" (`pd_haze_color`). */
+let activeProfileHex: string | null = null;
+function getProfileBg(fallback: string = COLORWAYS.custom): string {
+    return activeProfileHex && HEX_RE.test(activeProfileHex)
+        ? activeProfileHex.toUpperCase()
+        : fallback;
 }
 
 /* Haze — same pattern as custom. Storage key: `pd_haze_color`. Falls
@@ -147,7 +164,7 @@ export function setHazeVariation(v: HazeVariation | null): void {
    Same for 'dark' AND pdNotifs.pure_dark forcing #000000. The pure flags
    live in pdNotifs (read from localStorage here so applyColorway can be
    invoked from contexts upstream of PdNotifsProvider — same pattern
-   useCustomColor uses for the custom hex). MyPdSection's pure_light /
+   useProfileHex uses for the profile hex). MyPdSection's pure_light /
    pure_dark pills dispatch a `pd:pure-mode-changed` event after writing
    the flag; ColorwayProvider listens for it and re-runs applyColorway on the
    active key so the bg flips live. */
@@ -173,11 +190,29 @@ const ATTENTION = '#FFE600'; // brand yellow — home's default custom fill
 
 const STORAGE_KEY = 'pd_settings_colorway';
 
+/** Read the viewer's saved colorway pick from localStorage. null = no pick
+ *  (the platform default, which resolves to the Custom / page-owner colour).
+ *  hashsyn never persists (sim 12617-12618) — treat any stored value as unset. */
+function readSavedColorway(): ColorwayKey {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw && raw in COLORWAYS && raw !== 'hashsyn') return raw as ColorwayKey;
+    } catch {
+        /* ignore */
+    }
+    return null;
+}
+
 interface ColorwayContextValue {
     /** Currently active colorway key. null = no pick (Dot default). */
     colorway: ColorwayKey;
     /** Apply a colorway. Pass null to revert to the Dot default. */
     setColorway: (key: ColorwayKey) => void;
+    /** Register the owner colour of the profile page being viewed (its
+     *  `profile_hex`), so the profile renders in its OWNER's colour under the
+     *  Custom / default colorway. Pass null when leaving a profile page. */
+    setActiveProfileHex: (hex: string | null) => void;
 }
 
 const ColorwayContext = createContext<ColorwayContextValue | null>(null);
@@ -339,8 +374,10 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
 /* Single source of truth for "what does THIS path paint?" — used by BOTH the
    initial boot effect AND the server-hydration handler, so the two can never
    diverge. (That divergence WAS the home-stays-orange bug: boot painted
-   Attention Yellow, then hydration repainted the shared custom slot — the
-   user's #FF6600 profile hex — right over it on every load.)
+   Attention Yellow, then hydration repainted the Custom slot with the user's
+   profile hex on every load. That bleed is now structurally impossible —
+   profile_hex hydrates into its own `pd_profile_hex` slot, never the Custom
+   colorway slot. See userState.hydrateFromRow.)
    Performs the paint and returns the colorway key to store in state. */
 function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey {
     const isProjectPage = pathname?.startsWith('/art/') ?? false;
@@ -363,15 +400,20 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         applyBgHex(getProject(projSlug)?.colorway ?? getCustomBg(), 'custom');
         return saved;
     }
-    if (isProfilePage && saved === null) {
-        // Profile page, no pick → Light Mode neutral canvas.
-        applyColorway('light');
-        return 'light';
+    if (isProfilePage && (saved === null || saved === 'custom')) {
+        // Profile page → the profile OWNER's colour (their profile_hex), painted
+        // as the Custom (page-owner) colour. A visitor on the default/Custom
+        // colorway sees the owner's pick; any explicit colorway (dark/light/
+        // orange/haze/…) still wins via the fall-through below. Falls back to
+        // the Custom default when the owner hasn't chosen a colour.
+        applyBgHex(getProfileBg(), 'custom');
+        return saved;
     }
     if (isHomePage && (saved === null || saved === 'custom')) {
-        // Home's custom color = brand Attention Yellow, ALWAYS. Never the
-        // shared pd_custom_color slot (that carries the user's profile hex,
-        // e.g. #FF6600). Covers cold-start AND an explicit 'custom' pick.
+        // Home's Custom colour = brand Attention Yellow, ALWAYS — the platform
+        // default for a page with no specific owner. Covers cold-start AND an
+        // explicit 'custom' pick. (Profile Colorway never reaches here; it
+        // lives in `pd_profile_hex`, not the Custom slot.)
         applyBgHex(ATTENTION, 'custom');
         return saved;
     }
@@ -407,18 +449,9 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
     // treat it as unset and boot Dot — re-picking hashsyn from the
     // picker gives a clean engine start.
     useEffect(() => {
-        let savedColorway: ColorwayKey = null;
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw && raw in COLORWAYS && raw !== 'hashsyn') {
-                savedColorway = raw as ColorwayKey;
-            }
-        } catch {
-            /* ignore */
-        }
         // Resolve + paint via the one shared helper (see paintForPath above),
         // and store whatever colorway it settled on.
-        setColorwayState(paintForPath(savedColorway, pathname));
+        setColorwayState(paintForPath(readSavedColorway(), pathname));
     }, [pathname]);
 
     /* F53 (BUG-18) — sim's hashsyn seed color is `#6a1fc2` (sim 12620),
@@ -479,13 +512,16 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
         pushSettings({ colorway: key === 'hashsyn' ? null : key });
     }, [colorway]);
 
-    /* F64 (BUG-28) — when the user picks a new custom color via
-       useCustomColor.setColor, the hook dispatches `pd:custom-color-changed`.
-       Re-paint only when the active bg IS the custom color — either
-       colorway === 'custom' (explicit pick) or savedColorway === null on a
-       project page (boot default). Picking Dark on /art/prisms means
-       the painted bg is dark, not custom, so a custom-color change
-       must NOT repaint there. */
+    /* Custom colorway live re-paint. Listens for `pd:custom-color-changed`
+       (the Custom colorway's OWN event — the page-owner colour slot
+       `pd_custom_color`) and re-paints only when the active bg IS the Custom
+       colour: colorway === 'custom' (explicit pick) or savedColorway === null
+       on a project page (boot default). Picking Dark on /art/prisms paints
+       dark, not custom, so a Custom change must NOT repaint there.
+       DECOUPLE GUARD: this is NOT the Profile Colorway listener. Changing a
+       user's profile colour fires `pd:profile-hex-changed` and must NOT
+       repaint other pages — that was the bleed. Do not point this at the
+       profile event. */
     useEffect(() => {
         const handler = () => {
             const isProjectPage = pathname?.startsWith('/art/') ?? false;
@@ -522,24 +558,26 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
        hashsyn is never persisted; haze re-boots its variation engine. */
     useEffect(() => {
         const handler = () => {
-            let saved: ColorwayKey = null;
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw && raw in COLORWAYS && raw !== 'hashsyn') {
-                    saved = raw as ColorwayKey;
-                }
-            } catch {
-                /* ignore */
-            }
-            setColorwayState(paintForPath(saved, pathname));
+            setColorwayState(paintForPath(readSavedColorway(), pathname));
         };
         window.addEventListener(USERSTATE_HYDRATED_EVENT, handler);
         return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, handler);
     }, [pathname]);
 
+    /* Register the owner colour of the profile page currently being viewed.
+       Stores it for paintForPath and repaints immediately when the active
+       colorway is the default/Custom on a profile page (so the owner's colour
+       shows, or updates live when the owner edits their own profile). A visitor
+       with an explicit colorway pick is unaffected — paintForPath's
+       fall-through keeps their choice. See ProfilePageBody. */
+    const setActiveProfileHex = useCallback((hex: string | null) => {
+        activeProfileHex = hex && HEX_RE.test(hex) ? hex.toUpperCase() : null;
+        setColorwayState(paintForPath(readSavedColorway(), pathname));
+    }, [pathname]);
+
     const value = useMemo<ColorwayContextValue>(
-        () => ({ colorway, setColorway }),
-        [colorway, setColorway]
+        () => ({ colorway, setColorway, setActiveProfileHex }),
+        [colorway, setColorway, setActiveProfileHex]
     );
 
     return <ColorwayContext.Provider value={value}>{children}</ColorwayContext.Provider>;

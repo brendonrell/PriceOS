@@ -83,7 +83,10 @@ export interface UserRow {
   created_at: string;
 
   // ── Per-user persisted state (the user-state feature) ───────────────────────
-  /** Custom / profile color hex (was localStorage `pd_custom_color`). */
+  /** The user's PROFILE COLORWAY colour — the colour the profile owner picked
+   *  for their own profile. Cached client-side at `pd_profile_hex`. Distinct
+   *  from the "Custom" colorway (`pd_custom_color`) and "Haze Mode"
+   *  (`pd_haze_color`) — never alias them together. */
   profile_hex: string | null;
   price_rank: number;
   familiar_config: Record<string, unknown> | null;
