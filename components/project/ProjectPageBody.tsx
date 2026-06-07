@@ -64,6 +64,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useSort } from '../../lib/state/SortContext';
@@ -266,6 +267,7 @@ function ProjectPageBodyInner() {
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
     const { siweAddress } = useAuth();
+    const { add: cartAdd } = useCart();
 
     /* Registry def for static fields not in ProjectContext (mint price,
        soundtrack). */
@@ -275,17 +277,20 @@ function ProjectPageBodyInner() {
     const soldOut = project.totalOutputs >= project.maxSupply;
 
     const [minting, setMinting] = useState(false);
+    /* The whole mint flow lives in the button — on success we show the minted
+       result inline (no modal), then revert. */
+    const [justMinted, setJustMinted] = useState<{ id: number; balance: number } | null>(null);
     const doMint = async () => {
         if (!siweAddress) { showToast('Connect your wallet to mint'); return; }
-        if (soldOut) { showToast('Sold out'); return; }
+        if (soldOut || minting) return;
         setMinting(true);
         try {
             const r = await fetch(`/api/project/${project.slug}/mint`, { method: 'POST' });
             const j = await r.json().catch(() => ({}));
             if (!r.ok) { showToast(j?.error ? String(j.error) : 'Mint failed'); return; }
-            showToast(`Minted ${project.title} #${j.token_id} · ${j.balance} ETH left`);
+            setJustMinted({ id: j.token_id, balance: j.balance });
             if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
-            open('output', j.token_id, project.slug);
+            window.setTimeout(() => setJustMinted(null), 3500);
         } finally {
             setMinting(false);
         }
@@ -890,29 +895,40 @@ function ProjectPageBodyInner() {
                 }
             >
                 <div className="action-row">
-                        <button
-                            className="btn-mint"
-                            title={soldOut ? 'Sold out' : 'Mint the next Output'}
-                            onClick={doMint}
-                            disabled={minting || soldOut}
-                            style={soldOut ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                        >
-                            <span className="mint-lbl">{minting ? 'MINTING…' : 'MINT'}</span>
-                            <span className="mint-price">
-                                {soldOut ? '(SOLD OUT)' : `(${mintPrice} ETH)`}
-                            </span>
-                        </button>
-                        <button
-                            className="btn-mint"
-                            title="Buy the Lowest Listed Output"
-                            onClick={() => { if (lowestId !== null) open('output', lowestId, project.slug); }}
-                            style={lowestId === null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                        >
-                            <span className="mint-lbl">BUY</span>
-                            <span className="mint-price">
-                                {lowestFloor !== null ? `(${lowestFloor.toFixed(2)} ETH)` : '(NONE LISTED)'}
-                            </span>
-                        </button>
+                        {soldOut ? (
+                            /* Sold out → the mint button becomes BUY (floor):
+                               shows the lowest listing and adds it to the cart. */
+                            <button
+                                className="btn-mint"
+                                title="Buy the floor — adds the lowest-listed Output to your cart"
+                                onClick={() => {
+                                    if (lowestId == null) { showToast('Nothing listed yet'); return; }
+                                    cartAdd(lowestId);
+                                    showToast(`Added ${project.title} #${lowestId} to cart`);
+                                }}
+                                disabled={lowestId == null}
+                                style={lowestId == null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                            >
+                                <span className="mint-lbl">BUY</span>
+                                <span className="mint-price">
+                                    {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
+                                </span>
+                            </button>
+                        ) : (
+                            <button
+                                className="btn-mint"
+                                title="Mint the next Output"
+                                onClick={doMint}
+                                disabled={minting}
+                            >
+                                <span className="mint-lbl">
+                                    {justMinted ? `MINTED #${justMinted.id}` : minting ? 'MINTING…' : 'MINT'}
+                                </span>
+                                <span className="mint-price">
+                                    {justMinted ? `(${justMinted.balance} ETH left)` : `(${mintPrice} ETH)`}
+                                </span>
+                            </button>
+                        )}
                         {soundtrack && (
                             <a
                                 href={playlistWatchUrl(soundtrack.playlistId)}
