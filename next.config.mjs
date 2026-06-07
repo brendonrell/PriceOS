@@ -10,8 +10,11 @@ const nextConfig = {
 
 export default withPWA({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
+  // Disabled for the test phase: the SW caches were pinning stale app bundles
+  // on devices (stuck sold-out / stuck colour). Fresh code must always win.
+  // SwKiller (components/shell/SwKiller.tsx) tears down already-installed SWs.
+  disable: true,
+  register: false,
   skipWaiting: true,
   // Don't cache API routes, auth endpoints, or Supabase calls
   buildExcludes: [/middleware-manifest\.json$/],

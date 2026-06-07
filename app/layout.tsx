@@ -40,6 +40,7 @@ import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
+import SwKiller from '../components/shell/SwKiller';
 import { WalletProviders } from '../components/wallet/WalletProviders';
 import { getSession } from '../lib/auth/siwe';
 
@@ -448,6 +449,7 @@ export default async function RootLayout({
                 <script dangerouslySetInnerHTML={{ __html: PREHYDRATION_SCRIPT }} />
             </head>
             <body suppressHydrationWarning>
+                <SwKiller />
                 <div dangerouslySetInnerHTML={{ __html: LOADER_HTML }} />
                 <WalletProviders
                     initialState={initialState}
