@@ -400,7 +400,9 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             // Home boots the custom colorway with brand Attention yellow
             // (#FFE600) as its default fill — overridden by a saved custom
             // hex or an explicit colorway pick (logged-in user settings).
-            applyBgHex(getCustomBg(ATTENTION), 'custom');
+            // Uses ATTENTION directly (not the shared pd_custom_color slot)
+            // so home is always brand yellow until an explicit pick.
+            applyBgHex(ATTENTION, 'custom');
         } else {
             applyColorway(savedColorway);
             // Boot haze variation engine and texture overlay if haze
