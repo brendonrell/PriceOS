@@ -3180,17 +3180,32 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     opacity: 0.85;
 }
-/* In-button mint flow — the "choosing" face. It REUSES .btn-mint, so it is the
-   exact same pill at the exact same 300px size; only the face inside swaps.
-   Tight, all-Courier so qty stepper · CONFIRM · cancel fit on one line. */
+/* In-button mint flow — the "choosing" face. REUSES .btn-mint (same 224px pill),
+   but SPLITS down the middle into fused tabs like the artwork modal's
+   modal-action-btn-wrap: qty | CONFIRM share one rounded shell divided by a
+   hairline; CONFIRM is FILLED (inverted) so it reads "press me"; ✕ is the slim
+   secondary tab. ONLY this face splits — the idle MINT stays one solid button. */
 .mint-chooser {
-    padding: 0 6px;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;           /* children share the pill's rounded corners */
+}
+.mint-seg {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+}
+/* Left tab — quantity stepper. Equal half with CONFIRM (flex 1 each). */
+.mint-seg-qty {
+    flex: 1 1 0;
+    min-width: 0;
     gap: 2px;
-    justify-content: space-between;
 }
 .mint-step {
     width: 30px;
-    height: 36px;
+    height: 100%;
     flex-shrink: 0;
     border: none;
     background: transparent;
@@ -3200,17 +3215,15 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     line-height: 1;
     cursor: pointer;
-    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s, opacity 0.15s;
-    -webkit-tap-highlight-color: transparent;
 }
-.mint-step:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
+.mint-step:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
 .mint-step:disabled { opacity: 0.3; cursor: default; }
 .mint-qty-val {
-    min-width: 18px;
+    min-width: 16px;
     text-align: center;
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -3218,53 +3231,43 @@ body.persona-default .stats-row-2 { display: none !important; }
     color: var(--mint-text);
     flex-shrink: 0;
 }
+/* Right tab — the hero. Filled (inverted) like the modal action button so it
+   clearly invites the press; hairline divider marks the split. */
 .mint-confirm {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
-    height: 38px;
-    padding: 0 4px;
     border: none;
-    background: transparent;
-    color: var(--mint-text);
+    border-left: 1px solid color-mix(in srgb, var(--mint-text) 22%, transparent);
+    background: var(--mint-text);
+    color: var(--mint-bg);
     cursor: pointer;
-    border-radius: 3px;
-    display: inline-flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     gap: 0;
     line-height: 1.05;
     white-space: nowrap;
-    transition: background 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
 }
-.mint-confirm:hover { background: rgba(255, 255, 255, 0.14); }
-/* CONFIRM stacks over the ETH amount (Courier) to save horizontal width — the
-   idle MINT CTA keeps its own single-line face. */
+.mint-confirm:hover { opacity: 0.85; }
+.mint-confirm:active { opacity: 0.7; }
 .mint-chooser .mint-lbl {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
     font-weight: bold;
 }
-.mint-chooser .mint-price { font-size: 11px; opacity: 0.8; }
+.mint-chooser .mint-price { font-size: 11px; opacity: 0.75; }
+/* Slim secondary tab — cancel. Mirrors the modal's narrow calc tab. */
 .mint-cancel {
-    width: 26px;
-    height: 36px;
-    flex-shrink: 0;
+    flex: 0 0 28px;
     border: none;
+    border-left: 1px solid color-mix(in srgb, var(--mint-text) 22%, transparent);
     background: transparent;
     color: var(--mint-text);
-    opacity: 0.7;
-    border-radius: 3px;
-    font-size: 14px;
+    opacity: 0.6;
+    font-size: 13px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s, opacity 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s, background 0.15s;
 }
-.mint-cancel:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
+.mint-cancel:hover { opacity: 1; background: rgba(255, 255, 255, 0.10); }
 .btn-soundtrack {
     background: var(--bg-color);
     color: var(--text-color);
