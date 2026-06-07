@@ -6,122 +6,83 @@
 
 ---
 
-- **Branch:** `claude/peaceful-noether-Lu4Cw` (off `origin/dev`, clean base)
+- **Branch:** `claude/peaceful-noether-Lu4Cw` (all work below MERGED to `dev`)
 - **Updated:** 2026-06-07
 
-## Current task — Clean platform + 2 real Projects (BIG, in progress)
+## 🔴 TOP PRIORITY (fresh chat): orange-in-custom colourway bug — NOT fixed
 
-Turn the app from a one-project hodgepodge (legacy Kiki art/palettes hiding
-inside "Prisms", used as visuals-only) into a **project-agnostic platform** that
-hosts genuinely mintable Projects. Two tasks, both in scope:
+Symptom (Brendon, verified on dev, his account): default colorway = **custom**,
+but custom paints the SAME orange as **orange mode** (#FF6600). He has declared
+this "fixed" ~5× across chats — DO NOT claim fixed without him verifying on the
+dev URL with HIS logged-in account.
 
-**A. Missing pages:** `/artists` directory · social redirects
-`/discord /twitter /farcaster /x` (302) · `/price` reserved · project-at-root
-`/{slug}` → 301 `/art/{slug}` (one-line flip in `lib/slug.ts`, now safe with
-≥1 live project). **`/settings` stays a modal — NOT a page** (prior Claude
-wrongly assumed otherwise; Brendon corrected).
+**ROOT CAUSE (found, not yet fixed):** the **custom colorway** is being driven
+by the user's **`profile_hex`** (a *separate* concept = personal-profile colour).
+Brendon's `profile_hex = #FF6600`, which is ~identical to orange mode
+(`COLORWAYS.orange = #ff6600`) → custom looks exactly like orange.
+The conflation lives here:
+- `lib/state/userState.ts` → `hydrateFromRow()`: on login it does
+  `profile_hex → localStorage 'pd_custom_color'` + fires `pd:custom-color-changed`.
+- `lib/hooks/useCustomColor.ts` → `setColor()` writes BOTH `pd_custom_color`
+  (the custom colorway value) AND `pushState({ profile_hex })`. Default custom =
+  `#C488FF` (violet); reads `pd_custom_color`.
+- `lib/state/ColorwayContext.tsx` → custom colorway bg = `getCustomBg()` =
+  `pd_custom_color` (so it inherits `profile_hex`). `COLORWAYS.custom=#C488FF`,
+  `COLORWAYS.orange=#ff6600`.
 
-**B. Clean platform + Projects:**
-1. **Project registry** — one standard shape per Project (`lib/project/types.ts`
-   `ProjectDef`): slug · displayName · outputs · colorway · soundtrack ·
-   traitSchema · render engine. Oracle is the template; adding project #3 = one
-   engine file + one DB row.
-2. **Rip Kiki** — kill `lib/art/prismsEngine.ts` Kiki palettes + `kiki/bouba`
-   naming + the `Layer/Mineral/Fate` hardcoded trait names baked across
-   `TraitsContext` / `ProjectContext` / `TraitsUI`. Engine *infrastructure*
-   (canvas pipeline, virtualization, ArtworkCard/OutputPreview) stays.
-3. **Genericize traits/subtraits** — schema comes from the active Project, not
-   hardcoded. `ProjectProvider` is mounted GLOBALLY in `app/layout.tsx` and is
-   prisms-only today; `/art/[slug]` ignores its slug. Must become slug-keyed.
-4. **Prisms reborn** — fresh standalone gradient engine, my own tasteful
-   palettes (not rainbow) + aspect-ratio variance, own traits. 256 Outputs.
-   (Brendon delegated Prisms art to me: "your own palettes/traits, have fun.")
-5. **Oracle** — faithful port of the self-contained engine from the uploaded
-   `oraclev3.html` (333 Outputs, colorway `#C4902A`, soundtrack Wardruna).
-6. **Chainless marketplace sim** — primary **Mint** is ours; ALL secondary
-   (list/buy/offers) models **Seaport/OpenSea** order semantics so the real
-   build is just the OpenSea SDK swapped in. Sim mirrors "everything on PD,
-   nothing OpenSea-only." New DB tables (listings/offers) + sim ETH balance.
-7. **Public Docs page** (the IGNORE-for-internal-truth public docs) — artist-
-   facing "how to structure traits so PD recognizes them."
+**Brendon's intent (LOCK THIS):** `profile_hex` = personal profile colour (his
+is #FF6600, correct). The **custom colorway is its OWN thing** and must NOT be
+the profile hex. → Decouple them: custom colorway uses its own stored value
+(default violet `#C488FF`), independent of `profile_hex`. Remove the
+`profile_hex → pd_custom_color` sync in `userState.ts` AND the
+`pushState({profile_hex})` from the custom-colour picker (or split the picker so
+"Profile colour" ≠ "Custom colorway colour"). Confirm the product split with
+Brendon before coding — there are TWO settings rows: **"PROFILE COLOURWAY"**
+(#FF6600) and **"DEFAULT COLORWAY → custom"**; they currently share one value.
+DB now: `users.brendon.profile_hex=#FF6600, settings.colorway=custom`;
+`opus4-6.profile_hex=null`.
 
-## LOCKED SPEC (from ClickUp SoT — get terms right, Brendon is strict)
-- **Terms:** Project · **Output** (the unit AND the supply count — "333
-  Outputs", never "edition") · Artwork (rendered canvas) · **Colorway** (not
-  "theme") · Mint (user acquires) · Upload (artist adds a Project). Banned:
-  Collection, Edition, Collector-as-generic-noun.
-- **No descriptions.** Artists cannot write prose. Storytelling = traits +
-  soundtrack only. Do not surface `projects.description`.
-- **Soundtrack = public YouTube playlist** (URL or bare playlist id). Normalize
-  fail-soft, never break the page. (`lib/project/soundtrack.ts` ✅ done.)
-- **Trait model (Subtraits SoT 2kyd6gx6-5414): Trait → Subtrait → Value.** A
-  subtrait is a *derived grouping of one trait's values* into named buckets
-  (e.g. `Layer → Surface → {Crust,Sediment,Drift}`), NOT per-token data, NOT a
-  separate axis. Lives in a UI dict (`L2_DICT` in `TraitsUI.tsx`), changeable
-  without re-minting. Traits flat-allowed. Subtraits are a NEW gen-art feature
-  (AB/fxhash use flat features) — Brendon wants them tested on Oracle.
-- **Platform auto-trait — ONLY "Fate" (LOCKED).** Every Output, every Project,
-  gets ONE platform trait regardless of artist traits. The ~50 other atlas
-  items (astrology/lunar/etc.) are Spell Book / overlays, NOT trait-UI traits.
-  - Feature name (internal): **Hash Hexagram**. User-facing trait name:
-    **Fate** (Brendon: "Token"-prefix is banned; "Omen" too serious; Fate is
-    romantic). Values = the 64 distilled single-word Fates (King Wen).
-  - Concept: consult the I Ching at "birth" (mint) → cast ONE primary hexagram
-    → distill to a single dramatic word = the Fate trait value. Changing lines
-    + transformed hexagram kept on the reading for the future Output-page "full
-    reading" (Discord fodder), not shown in the trait. Built ✅ `lib/project/
-    fate.ts` (real King Wen 64, 3-coin method, verified 64 unique codes/words).
-  - Replaces the legacy Kiki "Fate = 8 omens" pill (`pill-fate-icon`, already
-    titled "Token Fate" in TraitsUI → retitle to "Fate").
-- **Visual/design + scope = Brendon's domain.** Code to spec, don't redesign the
-  existing app. Only authored art = the Prisms engine (delegated); Oracle is a
-  faithful port.
+## DONE this session — merged to dev (PRs #19–26), all build-green
+Clean platform + 2 real Projects + chainless market + follow + artist profile:
+- Project **registry** (`lib/project/`), Kiki fully ripped, **Prisms** reborn
+  (256, violet #5A2EA6) + **Oracle** (333, gold #C4902A) — both via per-project
+  art engines (`lib/art/engines/`). Artist = `opus4-6` on both.
+- **Fate** platform trait (I Ching King Wen 64) on every Output —
+  `lib/project/fate.ts`. Trait/subtrait system schema-driven (TraitsUI/Context).
+- **Chainless marketplace**: `POST /api/project/[slug]/mint` (qty ≤ 22 per
+  PDProject contract), `/api/output/[id]/market` (list/cancel/buy/offer/accept),
+  Seaport-style. Mint price + **mint fee** plumbed, both **$0** now
+  (`MINT_FEE_ETH` in registry). In-button mint flow (`MintButton`): pick qty →
+  confirm → progress → toast → revert. Button flips MINT→BUY(floor→cart) at sold-out.
+- **Both projects 0-minted** in DB (fresh mint phase). Real hero stats
+  (collectors/volume/floor) + follow-graph "Collected by". **Follow button** on
+  profiles + live counts (`/api/follows`). Artist profile Created tab shows real
+  Projects (`ProjectCard`).
+- Output stats (owner/last-sale/floor) wired live on modal + output page.
+- **Service worker DISABLED** (`next.config.mjs disable:true`) + `SwKiller`
+  tears down old SWs — fixed the "stuck sold-out / stale bundle" class.
+- Output opens route to `/art/{slug}/{id}` so output pages inherit project colour.
+- `/artists` page. `lib/slug.ts`: `oracle` registered; bare `/{project}`→301.
+
+## OPEN items (after the orange bug)
+- **Slug/URL audit:** all internal links conform EXCEPT logo **`/$price`** (line
+  ~145 `components/shell/PeteyLogo.tsx`) → 404 (invalid slug). Change to `/price`
+  and build reserved routes. Reserved token paths `/price` `/token` + socials
+  `/discord /twitter /x /farcaster` not built (the rule says 302). Socials are
+  currently linked EXTERNALLY direct (footer/LinksView → discord.gg) so no
+  internal 404s there. Need real URLs for twitter/x/farcaster to wire.
+- **Project-follow** (projects followable): needs a `project_follows` table +
+  endpoints + button placement (Brendon's call on placement).
+- **Global `/{number}` output id**: currently assumes prisms (no global
+  id↔(project,localId) map). Per-project `/art/{slug}/{localId}` is correct.
+- Output modal still has some placeholder stats; public Docs trait-guide page
+  not written; hero "JUL 09 2026" date is a PriceDay placeholder.
 
 ## Process / gates
 - App pushes need Brendon's numbered-list approval; docs/process pre-approved.
 - Merge to dev/main only on explicit chat confirmation. Local commits free.
 - git-guard blocks main writes (escape: `PD_ALLOW_MAIN=1`).
-
-## Done + PUSHED to origin/claude/peaceful-noether-Lu4Cw (build-green each)
-- Foundation: `lib/art/rng.ts`, `lib/project/types.ts`, `soundtrack.ts`,
-  `fate.ts` (King Wen 64), `lib/project/registry.ts`, engines
-  `lib/art/engines/{prisms,oracle}.ts`. Kiki engine deleted.
-- **Stage 1** (commit 9d05092): ripped Kiki, Prisms reborn on registry engine;
-  ProjectContext slug-aware + generic traits; TraitsContext/TraitsUI fully
-  schema-driven (no Kiki trait names); Fate pill retitled to "Fate".
-  PRISMS 256 / colorway #5A2EA6 / artist opus4-6; ORACLE artist opus4-6.
-- **Stage 2** (this push): Oracle is a real routable Project.
-  - ModalContext carries `currentModalSlug`; output modal is project-aware.
-  - `buildOutputMetaFor(slug,id)` exported; modal self-derives meta per project.
-  - ProjectPageBody re-provides ProjectProvider with the route slug;
-    ArtworkPageBody too. `/art/[slug]` 404s unknown slugs (registry-validated).
-  - `lib/slug.ts`: registered `oracle`; bare `/{project}` now 301s to
-    `/art/{slug}` (Brendon-approved).
-
-## Stage 3 — DONE (chainless marketplace sim) — build-green
-- **DB (live Supabase zspxpfwlwikdxwavffjn):** migrations added `listings`,
-  `offers`, `users.sim_eth_balance`, `projects.soundtrack` + `mint_price_eth`;
-  fixed a broken `fan_out_event_notifications` trigger (added
-  `notifications.recipient_name`, relaxed `recipient_address`) so event inserts
-  work. Reseeded: prisms (140/256), oracle (180/333), 59 listings, feed events,
-  balances (brendon/opus = 100 ETH).
-- **API:** `POST /api/project/[slug]/mint` (primary). `/api/output/[id]/market`
-  GET + POST(action) = list/cancel/buy/offer/accept (Seaport-style).
-  `/api/project/[slug]/outputs` now returns live listing prices.
-- **UI:** MINT button on project hero (press → owns next Output, balance debits);
-  `MarketActions` in the output modal (buy/list/cancel/offer/accept, prompts for
-  price); hero supply + soundtrack wired to the active Project; `'pd:project-
-  refresh'` event refreshes the gallery after market actions.
-- **`/artists`** directory page added.
-
-## Remaining / parked
-- Output modal still shows some static placeholder stats (last sale, floor,
-  held-by) — not wired to live data yet. Hero "By @Opus4-6" hardcoded (matches).
-- Public Docs page (artist trait guide) — not started.
-- Real SIWE balance widget in chrome — not added (balance shown via toast).
-
-## VERIFY ON DEV (Brendon): once merged to dev, check `/art/prisms` (new art +
-traits + Fate), `/art/oracle` (glyph art, 333), click a card → modal shows the
-right project, `/oracle` → 301 → /art/oracle.
+- **Branch sync gotcha:** dev squash-merges diverge this branch; before new work
+  `git fetch origin dev && git checkout -B <branch> origin/dev`, cherry-pick if needed.
 
 ## main / production — untouched (clean baseline 5236c2e)
