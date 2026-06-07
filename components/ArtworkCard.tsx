@@ -349,7 +349,7 @@ export default function ArtworkCard({
             runMuteToggle();
             return;
         }
-        open('output', id);
+        open('output', id, slug);
     };
 
     /* Sim caption split (sim ~8092):

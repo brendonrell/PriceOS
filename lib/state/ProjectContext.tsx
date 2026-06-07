@@ -70,8 +70,9 @@ function deriveShowcase(total: number): number[] {
 
 /* Deterministic per-id meta. Ownership mirrors the seed rule (odd -> brendon,
    even -> opus4-6); price is a stable placeholder; traits come from the
-   Project's Artwork engine + Fate (registry). */
-function buildOutputMeta(slug: string, id: number): OutputMeta {
+   Project's Artwork engine + Fate (registry). Exported so the global output
+   modal can build meta for any (slug, id) independent of the active route. */
+export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
     const isMine = id % 2 === 1;
 
     const r1 = ((id * 9301 + 49297) % 233280) / 233280;
@@ -92,7 +93,7 @@ function buildInitial(slug: string): ProjectState {
     const def = getProject(slug);
     const total = def?.outputs ?? 0;
     const outputs = new Map<number, OutputMeta>();
-    for (let id = 1; id <= total; id++) outputs.set(id, buildOutputMeta(slug, id));
+    for (let id = 1; id <= total; id++) outputs.set(id, buildOutputMetaFor(slug, id));
     return {
         slug,
         title: def?.displayName ?? slug.toUpperCase(),

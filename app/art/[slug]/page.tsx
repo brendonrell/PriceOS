@@ -3,34 +3,31 @@
 // Mint UI lives inside this page during the mint window;
 // no separate /mint/{slug} route exists.
 //
-// Server component validates the slug + emits metadata, then renders
-// <ProjectPageBody /> (client) for the actual hero + gallery surface.
-// The body reads everything from ProjectContext — slug-data binding
-// lands once the indexer is live and per-slug fetch is wired in.
-// Until then every valid slug renders the same PRISMS demo data.
+// Server component validates the slug against the Project registry + emits
+// metadata, then renders <ProjectPageBody slug> (client). The body re-provides
+// ProjectContext with this slug so the hero/gallery/traits bind to the right
+// Project. Unknown slugs 404.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProjectPageBody from '../../../components/project/ProjectPageBody';
+import { getProject } from '../../../lib/project/registry';
 
 type Props = { params: { slug: string } };
 
-function isValidProjectSlug(s: string): boolean {
-    const lower = s.toLowerCase();
-    return /^[a-z0-9-]+$/.test(lower) && lower.length > 0 && lower.length <= 64;
-}
-
 export default function ProjectPage({ params }: Props) {
-    if (!isValidProjectSlug(params.slug)) notFound();
-    return <ProjectPageBody />;
+    const slug = params.slug.toLowerCase();
+    if (!getProject(slug)) notFound();
+    return <ProjectPageBody slug={slug} />;
 }
 
 export function generateMetadata({ params }: Props): Metadata {
-    if (!isValidProjectSlug(params.slug)) {
+    const slug = params.slug.toLowerCase();
+    const def = getProject(slug);
+    if (!def) {
         return { title: 'Not Found · Price Discussion' };
     }
-    const slug = params.slug.toLowerCase();
     return {
-        title: `${slug} · Price Discussion`,
+        title: `${def.displayName} · Price Discussion`,
         alternates: { canonical: `/art/${slug}` },
     };
 }

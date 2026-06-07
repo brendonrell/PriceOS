@@ -89,7 +89,8 @@ import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
-import { useProject, paintOutput } from '../lib/state/ProjectContext';
+import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
+import { getProject } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
@@ -201,11 +202,18 @@ function buildMockOffers(outputId: number): MockOffer[] {
 }
 
 export default function OutputPreview() {
-    const { openModal, currentModalId, setCurrentModalId, close } = useModal();
+    const { openModal, currentModalId, currentModalSlug, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
-    const { slug, title, totalOutputs, floorEth } = useProject();
+    /* The output modal is global, so its Project is whatever was passed to
+       open('output', id, slug) — falling back to the active route Project. */
+    const proj = useProject();
+    const slug = currentModalSlug ?? proj.slug;
+    const def = getProject(slug);
+    const title = def?.displayName ?? proj.title;
+    const totalOutputs = def?.outputs ?? proj.totalOutputs;
+    const floorEth = proj.floorEth;
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
 
@@ -360,7 +368,11 @@ export default function OutputPreview() {
 
     /* Output metadata — id-keyed lookup over ProjectContext. Returns
        null when the modal is closed or id is unmapped. */
-    const meta = useOutputMeta(id);
+    const globalMeta = useOutputMeta(id);
+    /* When opened with an explicit Project slug, derive meta for that
+       (slug, id) so the modal shows the right Artwork/owner/traits even
+       though it's mounted outside the route's ProjectProvider. */
+    const meta = id != null && currentModalSlug ? buildOutputMetaFor(slug, id) : globalMeta;
 
     /* v1 — HISTORY surface. Fetches /api/output/[id] on isOpen + id
        change and stores the response (history: EventRow[]) for

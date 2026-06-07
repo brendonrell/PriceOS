@@ -82,20 +82,35 @@ wrongly assumed otherwise; Brendon corrected).
 - Merge to dev/main only on explicit chat confirmation. Local commits free.
 - git-guard blocks main writes (escape: `PD_ALLOW_MAIN=1`).
 
-## Done this session (committed locally on the branch; NOT pushed)
-- `lib/art/rng.ts` (mulberry32 + seedFromToken + pick + hashString).
-- `lib/project/types.ts` (ProjectDef + Trait→Subtrait→Value schema).
-- `lib/project/soundtrack.ts` (YouTube playlist normalize, fail-soft).
-- `lib/project/fate.ts` (I Ching Fate engine — King Wen 64, verified).
+## Done + PUSHED to origin/claude/peaceful-noether-Lu4Cw (build-green each)
+- Foundation: `lib/art/rng.ts`, `lib/project/types.ts`, `soundtrack.ts`,
+  `fate.ts` (King Wen 64), `lib/project/registry.ts`, engines
+  `lib/art/engines/{prisms,oracle}.ts`. Kiki engine deleted.
+- **Stage 1** (commit 9d05092): ripped Kiki, Prisms reborn on registry engine;
+  ProjectContext slug-aware + generic traits; TraitsContext/TraitsUI fully
+  schema-driven (no Kiki trait names); Fate pill retitled to "Fate".
+  PRISMS 256 / colorway #5A2EA6 / artist opus4-6; ORACLE artist opus4-6.
+- **Stage 2** (this push): Oracle is a real routable Project.
+  - ModalContext carries `currentModalSlug`; output modal is project-aware.
+  - `buildOutputMetaFor(slug,id)` exported; modal self-derives meta per project.
+  - ProjectPageBody re-provides ProjectProvider with the route slug;
+    ArtworkPageBody too. `/art/[slug]` 404s unknown slugs (registry-validated).
+  - `lib/slug.ts`: registered `oracle`; bare `/{project}` now 301s to
+    `/art/{slug}` (Brendon-approved).
 
-## Next step
-- Build `lib/art/engines/{oracle,prisms}.ts` (Oracle = faithful port of
-  oraclev3.html; Prisms = fresh gradient, my palettes, aspect variance).
-- `lib/project/registry.ts` (both ProjectDefs; merges artist traitSchema +
-  Fate platform trait). Rewire ArtworkCard/OutputPreview to render via slug.
-  Delete `lib/art/prismsEngine.ts` (Kiki rip).
-- Then genericize ProjectContext/TraitsContext (slug-keyed, schema-driven;
-  retitle "Token Fate"→"Fate"). Then DB + Seaport-style marketplace sim. Then
-  /artists + redirects. Then public Docs trait page.
+## Next step (Stage 3+)
+- **DB + chainless marketplace sim** (Seaport/OpenSea semantics): projects rows
+  (prisms 256 + oracle 333), reseed holders/events, soundtrack column, new
+  listings/offers tables + sim ETH balance; wire Mint (primary) + list/buy/offer
+  (secondary). This is the "press mint, get one" milestone.
+- `/artists` directory page.
+- Hero cosmetics still Kiki-ish (e.g. "500/2222" supply string, hardcoded
+  soundtrack URL on project hero) — wire to the active Project. (Brendon's
+  visual domain — confirm before restyling; the numbers are data, safe to fix.)
+- Public Docs page: artist-facing "how to structure traits for PD".
+
+## VERIFY ON DEV (Brendon): once merged to dev, check `/art/prisms` (new art +
+traits + Fate), `/art/oracle` (glyph art, 333), click a card → modal shows the
+right project, `/oracle` → 301 → /art/oracle.
 
 ## main / production — untouched (clean baseline 5236c2e)

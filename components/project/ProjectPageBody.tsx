@@ -62,7 +62,7 @@
  */
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { useProject } from '../../lib/state/ProjectContext';
+import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -1275,10 +1275,15 @@ function ProjectPageBodyInner() {
    useTraits(). Default-exported as ProjectPageBody and consumed by the
    server shell at app/art/[slug]/page.tsx which handles slug validation
    + metadata. */
-export default function ProjectPageBody() {
+export default function ProjectPageBody({ slug }: { slug?: string }) {
+    /* Re-provide ProjectContext with the route's slug so this page's gallery,
+       hero, and trait schema all bind to the correct Project (the global
+       provider in layout.tsx defaults to PRISMS for the rest of the app). */
     return (
-        <TraitsProvider>
-            <ProjectPageBodyInner />
-        </TraitsProvider>
+        <ProjectProvider slug={slug}>
+            <TraitsProvider>
+                <ProjectPageBodyInner />
+            </TraitsProvider>
+        </ProjectProvider>
     );
 }

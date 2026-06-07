@@ -38,6 +38,7 @@ export type Resolved =
    T4 reservation + the @-prefix → /art/{slug} 301 both fire. */
 const PROJECT_SLUGS: ReadonlySet<string> = new Set([
   'prisms',
+  'oracle',
 ]);
 
 /* Shared parser. Both resolveSlug and resolveProfileHandle build on
@@ -114,11 +115,10 @@ export function resolveSlug(slug: string): Resolved {
     };
   }
 
-  // Bare project slug — Project-at-root 301 is deferred. T4 reservation
-  // blocks the slot (no user can claim it), but the URL doesn't paint a
-  // profile body. 404 until the deferred 301 ships.
+  // Bare project slug → 301 to canonical /art/{slug}. (Now live: there is
+  // ≥1 deployed Project, so the friction-reduction redirect is safe.)
   if (p.isProject) {
-    return { kind: 'invalid' };
+    return { kind: 'redirect', to: `/art/${p.handle}` };
   }
 
   return { kind: 'profile', handle: p.handle };
