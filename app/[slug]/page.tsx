@@ -12,7 +12,10 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSlug } from '@/lib/slug';
-import { getUserProfileByHandle } from '@/lib/profile/getUserProfileByHandle';
+import {
+  getUserProfileByHandle,
+  getHandleByAddress,
+} from '@/lib/profile/getUserProfileByHandle';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
@@ -30,6 +33,14 @@ export default async function SlugRootPage({ params }: Props) {
 
   if (r.kind === 'output') {
     return <ArtworkPageBody globalId={r.globalId} />;
+  }
+
+  if (r.kind === 'profileByAddress') {
+    // Wallet-address URL (e.g. the /{siweAddress} profile link in settings).
+    // Canonicalise to the owner's /{handle}, mirroring the @-prefix 301.
+    const handle = await getHandleByAddress(r.address);
+    if (!handle) notFound();
+    redirect(`/${handle}`);
   }
 
   // Profile kind — fetch the full row server-side from the handle in the
@@ -56,6 +67,11 @@ export function generateMetadata({ params }: Props): Metadata {
       title: `#${r.globalId} · Price Discussion`,
       alternates: { canonical: `/${r.globalId}` },
     };
+  }
+  // Address kind 301s to /{handle} at render time — benign title for the
+  // type checker (this metadata is never shown; the redirect short-circuits).
+  if (r.kind === 'profileByAddress') {
+    return { title: 'Price Discussion' };
   }
   return {
     title: `${r.handle} · Price Discussion`,

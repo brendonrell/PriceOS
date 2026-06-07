@@ -9,6 +9,31 @@ export interface UserProfileData extends UserRow {
 
 // Handle shape mirrors lib/slug.ts: ASCII alphanumerics, underscore, hyphen.
 const HANDLE_RE = /^[a-z0-9_-]+$/;
+const ADDRESS_RE = /^0x[0-9a-f]{40}$/;
+
+/**
+ * Resolve a wallet address to its owner's permanent handle. Addresses are
+ * stored lowercase (SIWE session lowercases throughout), so we lowercase the
+ * input and match exactly. Returns null when the address is malformed, has no
+ * row, or the row has no handle. Throws on a real DB error. Anon client, RLS.
+ */
+export async function getHandleByAddress(
+  rawAddress: string
+): Promise<string | null> {
+  const address = rawAddress.toLowerCase();
+  if (!ADDRESS_RE.test(address)) return null;
+
+  const supabase = getSupabaseAnon();
+  const { data, error } = await supabase
+    .from('users')
+    .select('handle')
+    .eq('address', address)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  const row = data as { handle: string | null } | null;
+  return row?.handle ?? null;
+}
 
 /**
  * Look up a public profile by its permanent handle, with follower/following
