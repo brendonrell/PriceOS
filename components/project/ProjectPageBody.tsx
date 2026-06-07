@@ -491,7 +491,11 @@ function ProjectPageBodyInner() {
     const feedActive = onArtworksTab && sort === 'feed';
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
     const feedVisible = onArtworksTab && feedActive;
-    const traitsAndSortVisible = onArtworksTab;
+    /* Pre-mint, the trait filter bar would expose the project's feature names
+       (Palette / Flow / Grain …) — a spoiler before a single Output exists.
+       Hide the whole traits/sort/search bar until something is minted; the
+       ghost grid carries NO traits, only sampled aspect ratios. */
+    const traitsAndSortVisible = onArtworksTab && !showGhosts;
 
     /* Brendon S5 May 11 — feed sort actually sorts. Per sim 8159-8162,
        feedKind='time' sorts by timestamp; feedKind='price' sorts by
