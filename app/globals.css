@@ -3181,14 +3181,15 @@ body.persona-default .stats-row-2 { display: none !important; }
     opacity: 0.85;
 }
 /* In-button mint flow — the "choosing" face. REUSES .btn-mint (same 224px pill),
-   but SPLITS down the middle into fused tabs like the artwork modal's
-   modal-action-btn-wrap: qty | CONFIRM share one rounded shell divided by a
-   hairline; CONFIRM is FILLED (inverted) so it reads "press me"; ✕ is the slim
-   secondary tab. ONLY this face splits — the idle MINT stays one solid button. */
+   SPLIT clean down the DEAD CENTRE by a single hairline into two equal tabs:
+   qty | CONFIRM. Both halves share the same dark fill — NO box around CONFIRM;
+   the divider line IS the split. ✕ floats in the corner so it never pushes the
+   split off-centre. Only this face splits — the idle MINT stays one solid button. */
 .mint-chooser {
     padding: 0;
     gap: 0;
     overflow: hidden;           /* children share the pill's rounded corners */
+    position: relative;         /* anchor for the corner ✕ */
 }
 .mint-seg {
     height: 100%;
@@ -3197,7 +3198,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
 }
-/* Left tab — quantity stepper. Equal half with CONFIRM (flex 1 each). */
+/* Left half — quantity stepper. Exactly half (flex 1 each with CONFIRM). */
 .mint-seg-qty {
     flex: 1 1 0;
     min-width: 0;
@@ -3231,43 +3232,52 @@ body.persona-default .stats-row-2 { display: none !important; }
     color: var(--mint-text);
     flex-shrink: 0;
 }
-/* Right tab — the hero. Filled (inverted) like the modal action button so it
-   clearly invites the press; hairline divider marks the split. */
+/* Right half — CONFIRM. SAME dark fill as the qty half; the hairline border-left
+   sitting at the 50% line is the entire "split". No background box. */
 .mint-confirm {
     flex: 1 1 0;
     min-width: 0;
     border: none;
-    border-left: 1px solid color-mix(in srgb, var(--mint-text) 22%, transparent);
-    background: var(--mint-text);
-    color: var(--mint-bg);
+    border-left: 1px solid color-mix(in srgb, var(--mint-text) 32%, transparent);
+    background: transparent;
+    color: var(--mint-text);
     cursor: pointer;
     flex-direction: column;
     gap: 0;
     line-height: 1.05;
     white-space: nowrap;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
 }
-.mint-confirm:hover { opacity: 0.85; }
-.mint-confirm:active { opacity: 0.7; }
+.mint-confirm:hover { background: rgba(255, 255, 255, 0.10); }
+.mint-confirm:active { background: rgba(255, 255, 255, 0.16); }
 .mint-chooser .mint-lbl {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
     font-weight: bold;
 }
 .mint-chooser .mint-price { font-size: 11px; opacity: 0.75; }
-/* Slim secondary tab — cancel. Mirrors the modal's narrow calc tab. */
+/* Cancel — tiny corner glyph, OUT of the flex flow so the divider stays centred. */
 .mint-cancel {
-    flex: 0 0 28px;
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    width: 16px;
+    height: 16px;
     border: none;
-    border-left: 1px solid color-mix(in srgb, var(--mint-text) 22%, transparent);
     background: transparent;
     color: var(--mint-text);
-    opacity: 0.6;
-    font-size: 13px;
+    opacity: 0.45;
+    font-size: 10px;
+    line-height: 1;
     cursor: pointer;
-    transition: opacity 0.15s, background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
-.mint-cancel:hover { opacity: 1; background: rgba(255, 255, 255, 0.10); }
+.mint-cancel:hover { opacity: 1; }
 .btn-soundtrack {
     background: var(--bg-color);
     color: var(--text-color);

@@ -100,7 +100,7 @@ export default function MintButton({
           <span className="mint-lbl">CONFIRM</span>
           <span className="mint-price">({total} ETH){MINT_FEE_ETH > 0 ? ` · incl. ${(MINT_FEE_ETH * qty).toFixed(3)} fee` : ''}</span>
         </button>
-        <button type="button" className="mint-seg mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
+        <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
       </div>
     );
   }
