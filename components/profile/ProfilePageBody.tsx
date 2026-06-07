@@ -37,6 +37,7 @@ import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
+import FollowButton from './FollowButton';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -90,7 +91,24 @@ function ProfilePageBodyInner({
     const viaLabel = user.ens_name
         ? user.ens_name
         : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
-    const followerCount = user.follower_count;
+    /* Live follower/following counts — seeded from the server row, refreshed
+       from /api/follows and on any follow toggle ('pd:follows-changed'). */
+    const [counts, setCounts] = useState<{ followers: number; following: number }>(
+        { followers: user.follower_count, following: 0 },
+    );
+    useEffect(() => {
+        let cancelled = false;
+        const load = () =>
+            fetch(`/api/follows/${user.address.toLowerCase()}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setCounts({ followers: d.follower_count ?? 0, following: d.following_count ?? 0 }); })
+                .catch(() => {});
+        load();
+        const h = () => load();
+        window.addEventListener('pd:follows-changed', h);
+        return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
+    }, [user.address]);
+    const followerCount = counts.followers;
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -347,19 +365,13 @@ function ProfilePageBodyInner({
                             }}
                         >
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
-                            <span className="stat-val stat-val-owners">67 PPL</span>
+                            <span className="stat-val stat-val-owners">{counts.followers} PPL</span>
                         </span>
                     </div>
                 }
             >
                     <div className="action-row">
-                        <button
-                            className="btn-mint"
-                            title="Follow @cto"
-                            onClick={() => showToast('Follow — coming soon')}
-                        >
-                            <span className="mint-lbl">FOLLOW</span>
-                        </button>
+                        <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button
                             className="btn-soundtrack"
                             title="Profile action — coming soon"
@@ -407,11 +419,11 @@ function ProfilePageBodyInner({
                             <div className="hero-line stats-row stats-row-2">
                                 <span className="stat-item">
                                     <span className="stat-icon stat-icon-box" {...iconToastProps('Followers')}>◎&#xFE0E;</span>{' '}
-                                    <span className="stat-val">89</span>
+                                    <span className="stat-val">{counts.followers}</span>
                                 </span>
                                 <span className="stat-item">
                                     <span className="stat-icon stat-icon-box" {...iconToastProps('Following')}>⊙&#xFE0E;</span>{' '}
-                                    <span className="stat-val">34</span>
+                                    <span className="stat-val">{counts.following}</span>
                                 </span>
                                 <span className="stat-item">
                                     <span className="stat-icon stat-icon-box" {...iconToastProps('Anchor — coming soon')}>⚓&#xFE0E;</span>{' '}

@@ -826,20 +826,25 @@ function ProjectPageBodyInner() {
                     </div>
                 }
                 socialRow={
-                    <div className="hero-line collected-by-row info-line">
-                        <span className="cbr-label">Collected by</span>{' '}
-                        <a className="cbr-name">@matty</a>
-                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                        {', '}
-                        <a className="cbr-name">@atlasforge</a>
-                        {', '}
-                        <a className="cbr-name">@rudxane</a>
-                        <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                        {' '}
-                        <span className="cbr-others" onClick={() => open('collectors')}>
-                            &amp; 42 Others You Know
-                        </span>
-                    </div>
+                    /* Twitter-style: only collectors the viewer follows. Hidden
+                       when signed out or following none of this project's
+                       collectors. */
+                    project.stats.collected_by_following.length > 0 ? (
+                        <div className="hero-line collected-by-row info-line">
+                            <span className="cbr-label">Collected by</span>{' '}
+                            {project.stats.collected_by_following.slice(0, 3).map((name, i) => (
+                                <span key={name}>
+                                    {i > 0 ? ', ' : ''}
+                                    <a className="cbr-name" href={`/${name.replace(/^@/, '')}`}>{name}</a>
+                                </span>
+                            ))}
+                            {project.stats.collected_by_following.length > 3 && (
+                                <span className="cbr-others" onClick={() => open('collectors')}>
+                                    {' '}&amp; {project.stats.collected_by_following.length - 3} more you follow
+                                </span>
+                            )}
+                        </div>
+                    ) : null
                 }
                 statsRow={
                     <div className="hero-line stats-row">
@@ -854,7 +859,7 @@ function ProjectPageBodyInner() {
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-vol">14.2 VOL</span>
+                            <span className="stat-val stat-val-vol">{project.stats.volume_eth} VOL</span>
                         </span>
                         <span
                             className="stat-item stat-item-owners"
@@ -869,7 +874,7 @@ function ProjectPageBodyInner() {
                             }}
                         >
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">412 PPL</span>
+                            <span className="stat-val stat-val-owners">{project.stats.collectors} PPL</span>
                         </span>
                     </div>
                 }
