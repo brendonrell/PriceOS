@@ -6494,7 +6494,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     padding: 0 40px;
 }
 .home-carousel-title {
-    font-family: var(--font-rubik-mono), monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
     letter-spacing: 0.04em;
     color: var(--text-color);
