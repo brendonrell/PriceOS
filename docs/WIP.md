@@ -9,6 +9,45 @@
 - **Branch:** work merged to `dev` via `claude/site-bug-context-review-Luf2W`
 - **Updated:** 2026-06-07
 
+## ✅ LANDED THIS SESSION — all merged to `dev`, build-green (VERIFY on dev)
+
+1. **orange-in-custom colourway bug** — decoupled (details below).
+2. **SOLD-OUT-at-zero** — project page fetched a stale mock `/outputs` route
+   hardcoding `total: 500` → always sold out. Wired the real DB route into
+   `/api/project/[slug]/outputs`, deleted the mock + the redundant base route.
+   Now reads real minted/supply (0/256). Applies to both projects.
+3. **Address profile URLs** — `/0x…` and `/@0x…` now resolve → 301 to canonical
+   `/{handle}` (`lib/slug.ts` + `getHandleByAddress`). Fixes the settings
+   profile link (it points at `/{siweAddress}`).
+4. **Profile shows REAL data** — Collected = the wallet's real `holders` rows
+   (`/api/user/[address]/outputs`), Created = real authored Projects, hero stat =
+   real owned count. Empty at fresh state, fills as you mint. Mock arrays gone.
+5. **PLATFORM TRAITS (model change — see lock note)** — every Output now carries,
+   in birth-order: **Artist · Project · PriceDay · Natal (Sun/Moon/Rising) ·
+   Fate**, merged in `registry.outputTraits(slug,id,mintMs?)`. Single source for
+   PD's UI **and** token metadata (→ OpenSea attributes — that's why they're real
+   traits). `lib/project/natal.ts` = deterministic Sun/Moon/Rising from the mint
+   timestamp over **Montreal** (Schlyter low-precision; sign-level). PriceDay via
+   `lib/priceday`. Artist/Project/Fate deterministic; PriceDay/Natal need mint ts.
+6. **Collected facets** (`components/profile/ProfileFacetBar.tsx`) — Artist ·
+   Project · PriceDay · Sun · Moon · Rising · Fate · **Status (Listed/Held)**,
+   value pools drawn from what you OWN, + search (@artist/@project/id) + price +
+   sort. A collection spans independent projects, so it filters on the platform
+   facets every Output shares — NOT any one project's trait schema.
+
+### ⚠️ LOCK CHANGE (Brendon, this session): "Fate is the ONLY platform trait" is
+superseded. Platform traits are now **Artist, Project, PriceDay, Natal, Fate**
+(all real per-Output, in metadata for OpenSea). Celestial layer beyond Natal is
+still Spell Book, not traits.
+
+### Follow-ups (not done this session)
+- Surface the platform traits as pills on the **project page / discovery** (needs
+  per-Output mint timestamps plumbed into ProjectContext, like the profile has).
+- **`tokenURI`/metadata generator** for real OpenSea attributes — `outputTraits()`
+  is the source it will read (lands with the on-chain work).
+- Natal is approximate (sign-level) by design — fine for a flavour trait.
+- Profile per-user **volume** still `—` (not tracked); Hold-Time as a sort idea.
+
 ## ✅ FIXED — orange-in-custom colourway bug (merged to dev, VERIFY on dev)
 
 Was: default colorway **custom** painted the same orange as orange mode because
