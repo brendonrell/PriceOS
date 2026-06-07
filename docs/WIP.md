@@ -37,10 +37,48 @@
   at it (preview 403s from the container — curl-from-here is not a valid check).
 - It's a two-person shop — keep the loop tight, no babysitting.
 
-### Next / open (not done this session)
-- **Collected-tab "welcome freebie"** (UI-only, vanishes on first real collect) —
-  Brendon's idea, same DNA as the ghosts. Separate ship. Keep it visibly
-  non-canonical (no real traits, can't list/sell).
+Also pushed to `dev` this session: CONFIRM/price/✕ size bumps (15/13/22px);
+soundtrack button next to MINT.
+
+## 🔧 COMMITTED LOCALLY, NOT PUSHED — local commit `c376091` (on top of `dev`)
+
+Two things sit in a local commit; decide per item before pushing:
+1. **No-highlight fix (READY — Brendon asked for it).** `user-select:none` +
+   `-webkit-touch-callout:none` platform-wide on tappable glyphs (buttons,
+   `[role=button]`, `.mint-step`, icons) so the +/− and glyphs don't trigger the
+   iOS text-selection / Copy·Look-Up popup. Real text stays selectable.
+   (`app/globals.css`.) Safe to push on its own.
+2. **Petey placeholder art engine (WIP, NOT wired).** `lib/art/engines/petey.ts`
+   — pure-JS canvas, 6 soft styles (bloom/wash/rings/haze/horizon/dust), muted +
+   low-contrast. Just the engine; nothing consumes it yet.
+
+## 🎯 IN FLIGHT — the **Petey placeholder** feature (next session, start here)
+
+**The ask (Brendon, verbatim intent — I misread it 3× this session, READ THIS):**
+- Build a **fake placeholder "project"** that fills a USER's **empty "Collected"
+  tab** (when they hold nothing) — UI-only "welcome" pieces; vanish the moment
+  they collect anything real.
+- **Petey is ONLY the artist** on it. NOTHING else. Do **NOT**: add a "Collected
+  by @petey" row on the project page, add any `/petey` routing/redirect, or
+  **touch the existing empty-state ghosts** (those are done + loved — leave them).
+- **Pure-JS art** (no SVG — SVG was rejected). Soft / inert / **~half-opacity** so
+  it reads as a placeholder, not a real Output.
+- **Give Brendon OPTIONS to pick the visual.** He wants to **review them himself
+  in a standalone HTML file** (built off `petey.ts`, with an opacity slider) —
+  was mid-build when we stopped. Generate it and send it (SendUserFile); he picks
+  a style, THEN wire the chosen one in.
+
+**Integration point (verified):** `components/profile/ProfilePageBody.tsx` ~L594
+— the Collected tab maps `collectedByProject` (real holdings); empty when
+`holdings.length === 0`. That empty branch is where the placeholder renders
+(a small `PeteyPlaceholderCard` painting via `renderPetey`, half-opacity, meta
+`@petey`). Keep it isolated from the registry/ProjectProvider (it's fake).
+
+**Process reminder for next session:** PRESENT a numbered list + get approval
+BEFORE building/pushing (I skipped this and Brendon called it). Don't go token-
+drunk — small steps, confirm scope.
+
+### Backlog (later)
 - Running **"Easter-egg gen-art"** list in the Atlas (Tabstract / ghosts / 404 /
   favicon / pull-to-refresh) so they're seeded deliberately.
 
