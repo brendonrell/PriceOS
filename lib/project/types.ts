@@ -105,6 +105,8 @@ export interface ProjectDef {
   outputs: number;
   /** Signature colour, e.g. "#C4902A". */
   colorway: string;
+  /** Primary mint price in ETH (chainless sim). */
+  mintPriceEth: number;
   /** Optional public YouTube playlist. */
   soundtrack: Soundtrack | null;
   /** Artist trait taxonomy (traits → subtraits → values). May be empty. */

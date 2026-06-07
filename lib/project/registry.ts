@@ -34,6 +34,7 @@ const PRISMS: ProjectDef = {
   artistHandle: 'opus4-6',
   outputs: 256,
   colorway: '#5A2EA6',
+  mintPriceEth: 0.01,
   soundtrack: null,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -46,6 +47,7 @@ const ORACLE: ProjectDef = {
   artistHandle: 'opus4-6',
   outputs: 333,
   colorway: '#C4902A',
+  mintPriceEth: 0.012,
   soundtrack: oraclePlaylist
     ? { playlistId: oraclePlaylist, label: 'Wardruna — Kvitravn' }
     : null,

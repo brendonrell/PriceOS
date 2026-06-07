@@ -36,7 +36,10 @@ export interface OutputMeta {
 export interface ProjectState {
     slug: string;
     title: string;
+    /** Minted count (gallery renders 1..totalOutputs). */
     totalOutputs: number;
+    /** Total supply (mint target). */
+    maxSupply: number;
     floorEth: number;
     outputs: ReadonlyMap<number, OutputMeta>;
     /** Fixed featured ids for the Project Showcase tab. */
@@ -98,6 +101,7 @@ function buildInitial(slug: string): ProjectState {
         slug,
         title: def?.displayName ?? slug.toUpperCase(),
         totalOutputs: total,
+        maxSupply: total,
         floorEth: MOCK_PROJECT_FLOOR_ETH,
         outputs,
         showcaseIds: deriveShowcase(total),
@@ -108,6 +112,7 @@ interface OutputOwnerDTO {
     token_id: number;
     owner: string;
     owner_handle: string | null;
+    list_price_eth: string | null;
 }
 
 export function ProjectProvider({
@@ -125,46 +130,54 @@ export function ProjectProvider({
         setState(buildInitial(lower));
     }, [lower]);
 
-    /* Reconcile ownership + showcase against the authoritative DB rows. */
+    /* Reconcile ownership + listing prices + showcase against the DB. Re-runs
+       on a 'pd:project-refresh' window event (fired after mint / buy / list)
+       so the gallery reflects market changes without a full reload. */
     useEffect(() => {
         let cancelled = false;
-        fetch(`/api/project/${lower}/outputs`)
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number } | null) => {
-                if (cancelled || !data) return;
-                setState((prev) => {
-                    if (prev.slug !== lower) return prev;
-                    const outputs = new Map(prev.outputs);
-                    for (const o of data.outputs ?? []) {
-                        const meta = outputs.get(o.token_id);
-                        if (!meta) continue;
-                        const addr = (o.owner ?? '').toLowerCase();
-                        const isMine = addr === BRENDON_ADDR;
-                        const ownerDisplay = o.owner_handle ? '@' + o.owner_handle : shortAddr(o.owner ?? '');
-                        outputs.set(o.token_id, {
-                            ...meta,
-                            ownerDisplay,
-                            ownerFull: o.owner ?? meta.ownerFull,
-                            isOwnedByBrendon: isMine,
-                        });
-                    }
-                    const showcaseIds =
-                        Array.isArray(data.showcase_ids) && data.showcase_ids.length
-                            ? data.showcase_ids
-                            : prev.showcaseIds;
-                    return {
-                        ...prev,
-                        outputs,
-                        showcaseIds,
-                        totalOutputs: data.total ?? prev.totalOutputs,
-                    };
+        const load = () => {
+            fetch(`/api/project/${lower}/outputs`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number } | null) => {
+                    if (cancelled || !data) return;
+                    setState((prev) => {
+                        if (prev.slug !== lower) return prev;
+                        const outputs = new Map(prev.outputs);
+                        for (const o of data.outputs ?? []) {
+                            const meta = outputs.get(o.token_id);
+                            if (!meta) continue;
+                            const addr = (o.owner ?? '').toLowerCase();
+                            const ownerDisplay = o.owner_handle ? '@' + o.owner_handle : shortAddr(o.owner ?? '');
+                            outputs.set(o.token_id, {
+                                ...meta,
+                                ownerDisplay,
+                                ownerFull: o.owner ?? meta.ownerFull,
+                                isOwnedByBrendon: addr === BRENDON_ADDR,
+                                price: o.list_price_eth ? `${o.list_price_eth} ETH` : null,
+                            });
+                        }
+                        const showcaseIds =
+                            Array.isArray(data.showcase_ids) && data.showcase_ids.length
+                                ? data.showcase_ids
+                                : prev.showcaseIds;
+                        return {
+                            ...prev,
+                            outputs,
+                            showcaseIds,
+                            totalOutputs: data.total ?? prev.totalOutputs,
+                        };
+                    });
+                })
+                .catch(() => {
+                    /* offline / 5xx — the synchronous seed remains in place */
                 });
-            })
-            .catch(() => {
-                /* offline / 5xx — the synchronous seed remains in place */
-            });
+        };
+        load();
+        const onRefresh = () => load();
+        if (typeof window !== 'undefined') window.addEventListener('pd:project-refresh', onRefresh);
         return () => {
             cancelled = true;
+            if (typeof window !== 'undefined') window.removeEventListener('pd:project-refresh', onRefresh);
         };
     }, [lower]);
 

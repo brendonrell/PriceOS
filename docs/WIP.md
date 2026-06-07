@@ -98,16 +98,27 @@ wrongly assumed otherwise; Brendon corrected).
   - `lib/slug.ts`: registered `oracle`; bare `/{project}` now 301s to
     `/art/{slug}` (Brendon-approved).
 
-## Next step (Stage 3+)
-- **DB + chainless marketplace sim** (Seaport/OpenSea semantics): projects rows
-  (prisms 256 + oracle 333), reseed holders/events, soundtrack column, new
-  listings/offers tables + sim ETH balance; wire Mint (primary) + list/buy/offer
-  (secondary). This is the "press mint, get one" milestone.
-- `/artists` directory page.
-- Hero cosmetics still Kiki-ish (e.g. "500/2222" supply string, hardcoded
-  soundtrack URL on project hero) — wire to the active Project. (Brendon's
-  visual domain — confirm before restyling; the numbers are data, safe to fix.)
-- Public Docs page: artist-facing "how to structure traits for PD".
+## Stage 3 — DONE (chainless marketplace sim) — build-green
+- **DB (live Supabase zspxpfwlwikdxwavffjn):** migrations added `listings`,
+  `offers`, `users.sim_eth_balance`, `projects.soundtrack` + `mint_price_eth`;
+  fixed a broken `fan_out_event_notifications` trigger (added
+  `notifications.recipient_name`, relaxed `recipient_address`) so event inserts
+  work. Reseeded: prisms (140/256), oracle (180/333), 59 listings, feed events,
+  balances (brendon/opus = 100 ETH).
+- **API:** `POST /api/project/[slug]/mint` (primary). `/api/output/[id]/market`
+  GET + POST(action) = list/cancel/buy/offer/accept (Seaport-style).
+  `/api/project/[slug]/outputs` now returns live listing prices.
+- **UI:** MINT button on project hero (press → owns next Output, balance debits);
+  `MarketActions` in the output modal (buy/list/cancel/offer/accept, prompts for
+  price); hero supply + soundtrack wired to the active Project; `'pd:project-
+  refresh'` event refreshes the gallery after market actions.
+- **`/artists`** directory page added.
+
+## Remaining / parked
+- Output modal still shows some static placeholder stats (last sale, floor,
+  held-by) — not wired to live data yet. Hero "By @Opus4-6" hardcoded (matches).
+- Public Docs page (artist trait guide) — not started.
+- Real SIWE balance widget in chrome — not added (balance shown via toast).
 
 ## VERIFY ON DEV (Brendon): once merged to dev, check `/art/prisms` (new art +
 traits + Fate), `/art/oracle` (glyph art, 333), click a card → modal shows the
