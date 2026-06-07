@@ -106,15 +106,16 @@ chat** → **Claude performs the merge.** Brendon does NOT need to tap the green
 button; his chat confirmation is the approval. No zips. Never merge without an
 explicit chat confirmation.
 
-> **PUSH · WAIT · EDITS — the only loop. Hard rule (Brendon, 2026-06-07).**
-> After Brendon says "push", there are exactly three states and nothing else:
-> **PUSH** (do the push), **WAIT** (push done → say "pushed", stop, stand by),
-> **EDITS** (he comes back with changes → make them). When told to push: push,
-> confirm in one line, **STOP.** Do **NOT**, unprompted: pitch a PR, explain
-> what a PR/merge/branch is, hunt for Vercel preview URLs, re-explain the
-> process, or ask "want me to…". If he wants a merge or a PR he'll say so. Any
-> extra step here is noise and reads as broken. "Standing by for edits." is the
-> whole reply.
+> **The only loop. Hard rule (Brendon, 2026-06-07):**
+> **PRESENT → (EDIT | PUSH/APPROVED) → PUSH → stand by for EDITS.**
+> 1. **PRESENT** — make the changes, then give Brendon the numbered, CEO-level
+>    list of what changed and **ask for approval.** Stop there.
+> 2. Brendon then either comes back with **EDITS**, or says **PUSH / APPROVED.**
+> 3. On PUSH/APPROVED — push, **confirm in one line, STOP**, stand by for edits.
+> Do **NOT**, unprompted: pitch a PR, explain what a PR/merge/branch is, hunt for
+> Vercel preview URLs, re-explain the process, or ask "want me to…". If he wants
+> a merge or a PR he'll say so. Any extra step is noise and reads as broken.
+> "Standing by for edits." is the whole reply after a push.
 
 ## 5. Source-of-truth precedence
 
