@@ -1,33 +1,27 @@
 /*
  * Navbar
  *
- * Slots (left → right inside .navbar, with .top-bar above):
- *   1. TopBarRow        — .top-bar wrapper. Sim's calendar row +
- *                         grail/incognito/hammer/RPC row in one element.
- *                         Owns id="topBar" so we never duplicate it from
- *                         child components.
- *   2. PeteyLogo        — PD wordmark, click rotates and opens the
- *                         home/$PRICE bubble.
- *   3. Ticker           — Bloomberg-style scrolling tape mid-navbar.
- *                         Sim ref L4431-4433: third child between
- *                         .pd-logo-wrap and .nav-controls.
- *   4. UserMenuButtons  — right side. Wraps the .user-menu-wrapper
- *                         cluster (cart, PriceSprite, ❹❷ level badge,
- *                         .btn-user Connect/address pill) plus the
- *                         DropdownStack beneath. Wallet-wired: btn-user
- *                         opens the RainbowKit modal when disconnected,
- *                         toggles the menu when authenticated.
+ * The sticky chrome at the top of every page. Three top-level slots:
+ *   1. PeteyLogo — left side, rotates on click
+ *   2. Ticker — flex-fills the middle (empty in Step 2, fills with
+ *      live activity events when the indexer wires up later)
+ *   3. UserMenuButtons — right side cluster (cart, sprite, badge,
+ *      connect button)
+ *
+ * The Top Bar (grail pins, hammer pill, incognito, RPC ping) lives
+ * inside the sim's navbar element above this row. Hidden in the
+ * sim by default (style="display:none") and only revealed by feature
+ * toggles. Step 2 omits it entirely — it'll land alongside the spell
+ * toggles that summon it.
  */
 
 import { PeteyLogo } from './PeteyLogo';
 import { Ticker } from './Ticker';
-import { TopBarRow } from './TopBarRow';
 import { UserMenuButtons } from './UserMenuButtons';
 
 export function Navbar() {
     return (
         <nav className="navbar">
-            <TopBarRow />
             <PeteyLogo />
             <Ticker />
             <UserMenuButtons />

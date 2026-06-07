@@ -1,5 +1,3 @@
-'use client';
-
 /*
  * Ticker (The Tape)
  *
@@ -9,91 +7,19 @@
  *   - body.tape-off:    display none
  *   - body.tape-faded:  partially transparent
  *   - body.tape-bold:   weight 700
- *   - body.tape-framed: filled bar, inverted colors
+ *   - body.tape-framed: filled bar, inverted colours
  *   - default:          standard
  *
- * F52 / BUG-17 — populate the rail with mock tape items and subscribe
- * to the shared tape engine for rAF-driven horizontal scroll. Sim
- * 13314-13345 renders + animates the top rail.
- *
- * Rail content is the EVENTS feed from lib/data/tapeEvents (port of
- * sim 13230-13264) rendered twice with an outer separator between, so
- * the engine's modulo-`scrollWidth/2` translate reads as a seamless
- * loop (sim 13317-13318).
- *
- * Mock data note: the same EVENTS list drives both the menu tape
- * (TapeBox) and this top rail. Sim shuffles per render for variety;
- * we render unshuffled for deterministic SSR/CSR alignment. The list
- * is mock and will be replaced by indexer-derived data once that
- * surface lands — shuffling becomes irrelevant at that point.
+ * Step 2 ships the wrapper empty. The actual scrolling rail items
+ * (sales / lists / offers / xfers events) are populated when the
+ * indexer + ticker data wiring lands. Until then the wrap is just
+ * transparent space — which is fine, since tape-off is the default
+ * mode anyway.
  */
-
-import { useEffect, useRef } from 'react';
-import { tapeFeedItems } from '../../lib/data/tapeEvents';
-import type { TapeFeedItem } from '../../lib/data/tapeEvents';
-import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
-
-function RailItem({ item }: { item: TapeFeedItem }) {
-    const boldClass = item.type === 'mint' ? ' bold' : '';
-    return (
-        <span className={`tape-item${boldClass}`}>
-            {item.name && (
-                <>
-                    <b>{item.name}</b>
-                    {item.sigil && (
-                        <span
-                            className="tape-sigil"
-                            style={{ marginLeft: 3 }}
-                        >
-                            {item.sigil}
-                        </span>
-                    )}
-                    {' '}
-                </>
-            )}
-            {item.verb}
-            {' '}
-            <span className="tape-sep-inner">·</span>
-            {' '}
-            {item.coll} #{item.id}
-            {item.price && (
-                <>
-                    {' '}
-                    <span className="tape-sep-inner">·</span>
-                    {' '}
-                    {item.price}
-                </>
-            )}
-        </span>
-    );
-}
-
 export function Ticker() {
-    const railRef = useRef<HTMLDivElement | null>(null);
-    const items = tapeFeedItems();
-
-    useEffect(() => {
-        const rail = railRef.current;
-        if (!rail) return;
-        const unsubscribe = subscribeTapeRail(rail);
-        return unsubscribe;
-    }, []);
-
     return (
         <div className="tape-wrap" id="tapeWrap" aria-hidden="true">
-            <div className="tape-rail" id="tapeRail" ref={railRef}>
-                {/* Sim 13317-13318: rail HTML doubled with an outer
-                    separator between, so the engine's modulo-halfWidth
-                    translate reads as a seamless loop. */}
-                {items.map((item, i) => (
-                    <RailItem key={`a-${i}`} item={item} />
-                ))}
-                <span className="tape-sep-outer">··</span>
-                {items.map((item, i) => (
-                    <RailItem key={`b-${i}`} item={item} />
-                ))}
-                <span className="tape-sep-outer">··</span>
-            </div>
+            <div className="tape-rail" id="tapeRail" />
         </div>
     );
 }

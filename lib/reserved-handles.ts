@@ -9,20 +9,15 @@
  *   T1 — System / framework (hard reserved, never claimable)
  *   T2 — PD brand + AI team (Brendon owns; nobody can ever claim)
  *   T3 — Functional routes (current and future)
- *   T4 — Auto-derived (every deployed project slug, dynamic)
+ *   T4 — Auto-derived (every deployed collection slug, dynamic)
  *
- * T4 is computed at runtime by joining T1-T3 with the live Project
+ * T4 is computed at runtime by joining T1-T3 with the live collection
  * slug list from the indexer (Phase 5+). Until that wiring exists,
  * `RESERVED_HANDLES_STATIC` is the full enforceable set.
  *
- * Decision log:
- *   2026-04-29 — `claude` and `gemini` added to T2 by Brendon,
- *   `opus` and `sonnet` added by inference (the AI-team naming
- *   category — natural extension of the same carve-out).
- *   2026-05-13 — Nomenclature sweep. Locked nouns now: Project /
- *   Output / Artwork / Token / Starred / Collected / Showcase /
- *   Created (Edition banned platform-wide; Outputs replaces it).
- *   See ClickUp Platform Nomenclature SoT (page 2kyd6gx6-3274).
+ * Decision log: 2026-04-29 — `claude` and `gemini` added to T2 by
+ * Brendon, `opus` and `sonnet` added by inference (the AI-team
+ * naming category — natural extension of the same carve-out).
  */
 
 /** T1 — System / framework. Hard-reserved. */
@@ -70,12 +65,10 @@ export const RESERVED_T3 = [
     'feed',
     'home',
     // Profile sub-routes (cannot be a top-level handle)
-    'collected',
-    'showcase',
-    'created',
+    'owned',
     'anointed',
     'wishlist',
-    'starred',
+    'stars',
     'notes',
     'albums',
     // Future-reserved
@@ -119,8 +112,8 @@ export const RESERVED_HANDLES_STATIC: ReadonlySet<string> = new Set([
  * Returns true if `handle` is reserved by the static list, or if it
  * is purely numeric (the `/{globalId}` namespace owns all-digit URLs).
  *
- * For T4 (auto-derived from deployed project slugs), the caller
- * must additionally check against the live project list — this
+ * For T4 (auto-derived from deployed collection slugs), the caller
+ * must additionally check against the live collection list — this
  * function only covers the static tiers.
  */
 export function isReservedHandle(handle: string): boolean {

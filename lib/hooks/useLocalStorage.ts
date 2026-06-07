@@ -4,7 +4,7 @@
  * useLocalStorage
  *
  * A small typed wrapper for ad-hoc localStorage use. The big settings
- * blobs (pdNotifs, colorway) are managed inside their own context providers
+ * blobs (pdNotifs, theme) are managed inside their own context providers
  * so they can sync body classes and CSS vars on change; this hook is for
  * isolated key/value pairs like 'pd_token_notes' or 'pd_day_notes'.
  *

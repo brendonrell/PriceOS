@@ -1,16 +1,22 @@
-// Home / index — `/`.
-// Replaces the prior redirect('/art/prisms') stub with the real home
-// surface: hero (Price Discussion + live PriceDay) + per-project output
-// carousels. Body lives in components/home/HomePageBody (client) so the
-// global provider stack in app/layout.tsx wraps it.
-import type { Metadata } from 'next';
-import HomePageBody from '../components/home/HomePageBody';
+/*
+ * Phase 1 shipped a random-gradient placeholder at / on indigo (#6366F1).
+ * Step 1 of Phase 2 swaps that to a flat Hothurt red placeholder so the
+ * deploy is visibly distinct from Phase 1 — proof step 1 landed correctly.
+ *
+ * The homepage gets replaced with the global feed in a later phase. Until
+ * then this is a presence beacon and a quick visual diff target between
+ * deploys.
+ */
 
-export const metadata: Metadata = {
-    title: 'Price Discussion',
-    alternates: { canonical: '/' },
-};
+export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
-    return <HomePageBody />;
+export default function Home() {
+    return (
+        <div className="placeholder-shell">
+            <div>
+                <div className="placeholder-wordmark">PRICE&nbsp;DISCUSSION</div>
+                <div className="placeholder-tagline">COLLECT · CHAT · DEBATE · PROFIT</div>
+            </div>
+        </div>
+    );
 }
