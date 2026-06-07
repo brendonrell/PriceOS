@@ -30,11 +30,14 @@ contract that keeps it working:
   Brendon's explicit approval in chat.
 - **On a branch mismatch warning, stop and reconcile before working.** Branch
   drift across fatigued chats is the failure this guards against.
-- **Pushing requires Brendon's explicit approval.** Before ANY `git push`,
-  present a concise, **numbered, CEO-level list** of exactly what's being pushed
-  — each item one line: the change + its impact, no dev minutiae. Push only
-  after Brendon says go in chat. Committing locally needs no approval; the gate
-  is the push.
+- **Pushing APP changes requires Brendon's approval; docs/process pushes are
+  pre-approved.** Before pushing anything that touches the **app itself**
+  (product code / behaviour / UI — `app/`, `components/`, `lib/`, API routes,
+  etc.), present a concise **numbered, CEO-level list** (one line each: change +
+  impact, no dev minutiae) and push only after Brendon says go. Pushes that are
+  **docs/process only** — `CLAUDE.md`, `docs/`, `docs/WIP.md`, `.claude/` hooks
+  & settings — are pre-approved: just push and note it. Committing locally never
+  needs approval; the gate is the app-touching push.
 - **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
   decisions · next step). An out-of-date baton is worse than none.
 
