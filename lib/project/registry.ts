@@ -31,8 +31,9 @@ const oraclePlaylist = normalizePlaylistId(
 const PRISMS: ProjectDef = {
   slug: 'prisms',
   displayName: 'PRISMS',
+  artistHandle: 'opus4-6',
   outputs: 256,
-  colorway: '#7a2a8c',
+  colorway: '#5A2EA6',
   soundtrack: null,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -42,6 +43,7 @@ const PRISMS: ProjectDef = {
 const ORACLE: ProjectDef = {
   slug: 'oracle',
   displayName: 'ORACLE',
+  artistHandle: 'opus4-6',
   outputs: 333,
   colorway: '#C4902A',
   soundtrack: oraclePlaylist

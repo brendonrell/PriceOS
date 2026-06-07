@@ -89,9 +89,8 @@ import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
-import { useProject } from '../lib/state/ProjectContext';
+import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import { renderPrisms } from '../lib/art/prismsEngine';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
@@ -206,7 +205,7 @@ export default function OutputPreview() {
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
-    const { title, totalOutputs, floorEth } = useProject();
+    const { slug, title, totalOutputs, floorEth } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
 
@@ -389,7 +388,6 @@ export default function OutputPreview() {
         let cancelled = false;
         setDetail(null);
         setDetailError(false);
-        const slug = title.toLowerCase();
         fetch(`/api/output/${slug}-${id}`)
             .then((r) => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -404,7 +402,7 @@ export default function OutputPreview() {
         return () => {
             cancelled = true;
         };
-    }, [isOpen, id, title]);
+    }, [isOpen, id, slug]);
 
     /* v1 — OFFERS surface. Mocked inline (CTO call locked: dedicated
        route lands with the offers feature). useMemo keeps the array
@@ -437,12 +435,12 @@ export default function OutputPreview() {
            rather than the short portrait dimension (which falls into the 600px fallback). */
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        const ratio = renderPrisms(canvas, id, w);
+        const ratio = paintOutput(canvas, slug, id, w);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
-        if (canvasLs) { renderPrisms(canvasLs, id, w); canvasLs.classList.add('visible'); }
+        if (canvasLs) { paintOutput(canvasLs, slug, id, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
-    }, [isOpen, id]);
+    }, [isOpen, id, slug]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
        effect so every modal inherits the dance (sim openModal/closeModal
@@ -460,12 +458,12 @@ export default function OutputPreview() {
         if (!canvas) return;
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        renderPrisms(canvas, nextId, w);
+        paintOutput(canvas, slug, nextId, w);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
-        if (canvasLs) { renderPrisms(canvasLs, nextId, w); canvasLs.classList.add('visible'); }
+        if (canvasLs) { paintOutput(canvasLs, slug, nextId, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
-    }, []);
+    }, [slug]);
 
     const goNext = useCallback(() => {
         if (id == null) return;

@@ -79,9 +79,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
-import { useProject } from '../lib/state/ProjectContext';
+import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import { renderPrisms } from '../lib/art/prismsEngine';
 import {
     registerCanvas,
     unregisterCanvas,
@@ -154,7 +153,7 @@ export default function ArtworkCard({
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const { title: projectTitle } = useProject();
+    const { title: projectTitle, slug } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const meta = useOutputMeta(id);
@@ -320,13 +319,10 @@ export default function ArtworkCard({
         if (!canvas || !wrapper) return;
 
         const render = () => {
-            /* Placeholder gradient art — renderPrisms sets canvas
-               width/height internally and returns the aspect ratio
-               (seeded on id so every token paints the same gradient on
-               every render). The wrapper's inline aspectRatio is updated
-               after paint so CSS scales it correctly. Real per-project art
-               replaces this when artist upload lands. */
-            const ratio = renderPrisms(canvas, id, 400);
+            /* Per-Project Artwork via the registry engine (deterministic on
+               id). Sets canvas width/height and returns the aspect ratio,
+               which we mirror onto the wrapper so CSS scales it correctly. */
+            const ratio = paintOutput(canvas, slug, id, 400);
             if (wrapper) {
                 wrapper.style.aspectRatio = String(ratio);
             }
@@ -336,7 +332,7 @@ export default function ArtworkCard({
         return () => {
             unregisterCanvas(id);
         };
-    }, [id]);
+    }, [id, slug]);
 
     /* sim 8008-8014 — when hammer-mode is on, tapping the card body
        toggles mute on this token rather than opening the modal. Mode
@@ -573,10 +569,10 @@ export default function ArtworkCard({
                             <span className="d-id">#{id}</span>
                             <div className="d-grid">
                                 <span className="d-cell">
-                                    {meta?.traits.Layer || 'NONE'}
+                                    {Object.values(meta?.traits ?? {})[0] || 'NONE'}
                                 </span>
                                 <span className="d-cell">
-                                    {meta?.traits.Mineral || 'NONE'}
+                                    {Object.values(meta?.traits ?? {})[1] || 'NONE'}
                                 </span>
                             </div>
                             {meta?.price && (

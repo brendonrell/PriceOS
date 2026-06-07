@@ -61,6 +61,7 @@ import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useProject } from '../../lib/state/ProjectContext';
+import { fullTraitSchema } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
 import {
     getPresets,
@@ -120,10 +121,8 @@ const SORT_BAR_THEME_NAMES: Record<string, string> = {
    are pinned separately so they're excluded here). Display labels follow
    sim's STRATA-rebrand mapping at sim 8524 (Gateway → Layer, Spectrum →
    Mineral). For v0 we hard-code the two sim renders today. */
-const DYNAMIC_TRAIT_PILLS: { key: TraitCategory; label: string }[] = [
-    { key: 'Layer',   label: 'Layer'   },
-    { key: 'Mineral', label: 'Mineral' },
-];
+/* L1 trait pills are derived from the active Project schema at render time
+   (see dynamicTraitPills) — no longer hardcoded here. */
 
 /* Chat H item 3 — feed-mode L1 pill row (sim 8475-8509). Four cats:
    Event, My Network (key 'Network'), Traits, Market. Sim 8495-8497
@@ -322,6 +321,50 @@ export default function TraitsUI({
     const pathname = usePathname();
     const collectionSlug = pathname.split('/').filter(Boolean).pop() ?? '';
 
+    /* Trait pills are driven by the ACTIVE Project's schema (registry),
+       not hardcoded Kiki categories. Fate is pinned separately (icon pill),
+       so it's excluded from the dynamic L1 row. The fixed network/feed/market
+       specials come from L2_DICT; the feed-mode 'Traits' wrapper is rebuilt
+       from the Project's trait names. */
+    const { slug: projectSlug } = useProject();
+    const projectTraits = useMemo(
+        () => fullTraitSchema(projectSlug).traits,
+        [projectSlug],
+    );
+    const dynamicTraitPills = useMemo(
+        () => projectTraits.filter((t) => t.name !== 'Fate').map((t) => ({ key: t.name, label: t.name })),
+        [projectTraits],
+    );
+    const traitNames = useMemo(
+        () => projectTraits.filter((t) => t.name !== 'Fate').map((t) => t.name),
+        [projectTraits],
+    );
+    const L2_DICT_DYN = useMemo(() => {
+        const m: Record<string, Record<string, readonly string[]>> = { ...L2_DICT };
+        for (const t of projectTraits) {
+            if (t.subtraits && t.subtraits.length) {
+                m[t.name] = Object.fromEntries(
+                    t.subtraits.map((s) => [s.name, s.values] as [string, readonly string[]]),
+                );
+            }
+        }
+        m['Traits'] = Object.fromEntries(
+            projectTraits
+                .filter((t) => t.name !== 'Fate')
+                .map((t) => [t.name, t.values] as [string, readonly string[]]),
+        );
+        return m;
+    }, [projectTraits]);
+    const L3_FLAT_POOL_DYN = useMemo(() => {
+        const m: Record<string, readonly string[]> = {
+            ...(L3_FLAT_POOL as Record<string, readonly string[]>),
+        };
+        for (const t of projectTraits) {
+            if (!(t.subtraits && t.subtraits.length)) m[t.name] = t.values;
+        }
+        return m;
+    }, [projectTraits]);
+
     /* Wraps cycleSort with a sim-parity toast (sim 8361). Computes the
        NEXT sort key before calling cycleSort so the toast reflects what
        the sort will become, not the stale current value. */
@@ -366,19 +409,12 @@ export default function TraitsUI({
        canonical category keys. Memoized because the source array is
        static; the placeholder string never changes after mount. */
     const searchPlaceholder = useMemo(() => {
-        const cats: TraitCategory[] = [
-            'Layer',
-            'Mineral',
-            'Fate',
-            'Network',
-            'Breadcrumb',
-        ];
-        const extras = cats.slice(0, 2).map((c) => c.toLowerCase());
+        const extras = traitNames.slice(0, 2).map((c) => c.toLowerCase());
         return (
             '# id, collector' +
             (extras.length ? ', ' + extras.join(', ') + '...' : '...')
         );
-    }, []);
+    }, [traitNames]);
 
     const hiddenStyle: CSSProperties | undefined = visible
         ? undefined
@@ -419,7 +455,7 @@ export default function TraitsUI({
     /* L2 sub-bucket labels for the active L1 (sim 8588-8615 + 7390-7395
        GodModeDict). Empty for L1s without sub-bucketing — L2 row hidden. */
     const l2BucketMap: Record<string, readonly string[]> =
-        activeL1 !== null ? L2_DICT[activeL1] ?? {} : {};
+        activeL1 !== null ? L2_DICT_DYN[activeL1] ?? {} : {};
     const l2SubLabels: readonly string[] = Object.keys(l2BucketMap);
     const l2Visible = l2SubLabels.length > 0;
 
@@ -431,13 +467,16 @@ export default function TraitsUI({
         if (activeL1 === null) return [];
         if (l2Visible) {
             if (activeSubFilter === 'All') {
-                /* Sim 8641-8642 — concatenate every sub-bucket's leaves. */
+                /* Feed-mode 'Traits' wrapper defaults to the first trait's
+                   values (each sub-bucket routes to its own Set, so 'All'
+                   can't concat). Other sub-bucketed L1s concat every bucket. */
+                if (activeL1 === 'Traits') return l2BucketMap[traitNames[0]] ?? [];
                 return Object.values(l2BucketMap).flat();
             }
             return l2BucketMap[activeSubFilter] ?? [];
         }
-        /* Flat L1 — Layer / Mineral / Fate. */
-        return L3_FLAT_POOL[activeL1 as TraitCategory] ?? [];
+        /* Flat L1 — a Project trait without subtraits, or Fate. */
+        return L3_FLAT_POOL_DYN[activeL1] ?? [];
     })();
     const l3Visible = l3Pool.length > 0;
 
@@ -451,21 +490,18 @@ export default function TraitsUI({
     const l3FilterCat: TraitCategory | null = (() => {
         if (activeL1 === null) return null;
         if (activeL1 === 'Traits') {
-            /* Sim 8628 — feed-mode Traits L1 routes via sub-filter key. */
-            if (activeSubFilter === 'Spectrum') return 'Mineral';
-            return 'Layer'; /* 'Gateway' default, also fallback */
+            /* Feed-mode Traits routes L3 toggles into the selected trait's
+               Set (sub-filter == trait name); defaults to the first trait. */
+            return activeSubFilter !== 'All' ? activeSubFilter : (traitNames[0] ?? null);
         }
-        /* All other L1 keys are also TraitCategory keys (typed by
-           construction — Event/Market/Network/Layer/Mineral/Fate/
-           Breadcrumb all live in TraitCategory). */
-        return activeL1 as TraitCategory;
+        return activeL1;
     })();
 
     /* Per-category badge counts for L1 pills (sim 8488).
        Sim 8484 — feed-mode 'Traits' badge sums Layer + Mineral counts. */
     const countOf = (cat: TraitCategory): number =>
         activeFilters[cat]?.size ?? 0;
-    const traitsBadgeCount = countOf('Layer') + countOf('Mineral');
+    const traitsBadgeCount = traitNames.reduce((s, n) => s + countOf(n), 0);
 
     /* Sim 8611 — L2 sub-pills get a `•` dot when any L3 leaf within that
        sub-bucket is currently selected. Read against the routed filter
@@ -475,14 +511,12 @@ export default function TraitsUI({
         const bucketLeaves = l2BucketMap[sub] ?? [];
         if (bucketLeaves.length === 0) return false;
         if (activeL1 === 'Traits') {
-            /* Each Traits sub-bucket maps to its own filter Set (sim
-               8604-8608 — feed-mode Traits checks the sub-keyed Set,
-               not a single shared Set). */
-            const subCat: TraitCategory = sub === 'Spectrum' ? 'Mineral' : 'Layer';
-            const set = activeFilters[subCat];
+            /* Each Traits sub-bucket (a trait name) maps to its own Set. */
+            const set = activeFilters[sub];
+            if (!set) return false;
             return bucketLeaves.some((leaf) => set.has(leaf));
         }
-        const set = activeFilters[activeL1 as TraitCategory];
+        const set = activeFilters[activeL1];
         if (!set) return false;
         return bucketLeaves.some((leaf) => set.has(leaf));
     };
@@ -568,7 +602,7 @@ export default function TraitsUI({
                                     drains activeFilters[cat] in the same setState batch
                                     (Build 9 spec residual #4). Clicking an inactive L1
                                     still calls `setActiveCategory(p.key)` to open / swap. */}
-                                {DYNAMIC_TRAIT_PILLS.map((p) => {
+                                {dynamicTraitPills.map((p) => {
                                     const isActive = activeCategory === p.key;
                                     return (
                                         <BarPill
@@ -605,7 +639,7 @@ export default function TraitsUI({
                                             ? clearActiveCategory
                                             : () => setActiveCategory('Fate')
                                     }
-                                    title="Token Fate"
+                                    title="Fate"
                                     extraClass="pill-fate-icon"
                                 />
 
@@ -840,8 +874,8 @@ export default function TraitsUI({
                         l3FilterCat !== null &&
                         l3Pool.map((value) => {
                             const filterSet = activeFilters[l3FilterCat];
-                            const isActive = filterSet.has(value);
-                            const anySelected = filterSet.size > 0;
+                            const isActive = filterSet?.has(value) ?? false;
+                            const anySelected = (filterSet?.size ?? 0) > 0;
                             const dimmed = anySelected && !isActive;
                             /* Mock count — gallery wiring will replace
                                with real per-value counts from token data

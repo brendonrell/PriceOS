@@ -99,6 +99,8 @@ export interface ProjectDef {
   slug: string;
   /** Display name, e.g. "ORACLE". */
   displayName: string;
+  /** Artist handle (no @), e.g. "opus4-6". */
+  artistHandle: string;
   /** Total Outputs (supply). */
   outputs: number;
   /** Signature colour, e.g. "#C4902A". */
