@@ -107,15 +107,26 @@ button; his chat confirmation is the approval. No zips. Never merge without an
 explicit chat confirmation.
 
 > **The only loop. Hard rule (Brendon, 2026-06-07):**
-> **PRESENT → (EDIT | PUSH/APPROVED) → PUSH → stand by for EDITS.**
+> **PRESENT → (EDIT | PUSH/APPROVED) → PUSH-TO-DEV → stand by for EDITS.**
+>
+> **"PUSH" / "APPROVED" MEANS PUSH TO `dev`.** Not the feature branch — `dev`.
+> Brendon does not care about feature branches; the change is not "pushed" until
+> it is **merged into `dev` and `dev` is pushed to origin**, because the dev
+> preview only renders `dev`. So on PUSH/APPROVED, do ALL of it in one shot:
+> commit → fast-forward/merge the work into `dev` → `git push origin dev`. A push
+> that lands only on the feature branch is a FAILED push — it makes nothing show,
+> and that is the exact failure that keeps enraging Brendon. Never stop at the
+> feature branch and report "pushed".
+>
 > 1. **PRESENT** — make the changes, then give Brendon the numbered, CEO-level
 >    list of what changed and **ask for approval.** Stop there.
 > 2. Brendon then either comes back with **EDITS**, or says **PUSH / APPROVED.**
-> 3. On PUSH/APPROVED — push, **confirm in one line, STOP**, stand by for edits.
+> 3. On PUSH/APPROVED — **merge to `dev` and push `dev`**, confirm in one line,
+>    **STOP**, stand by for edits.
 > Do **NOT**, unprompted: pitch a PR, explain what a PR/merge/branch is, hunt for
 > Vercel preview URLs, re-explain the process, or ask "want me to…". If he wants
 > a merge or a PR he'll say so. Any extra step is noise and reads as broken.
-> "Standing by for edits." is the whole reply after a push.
+> "Standing by for edits." is the whole reply after the push to dev.
 
 ## 5. Source-of-truth precedence
 
