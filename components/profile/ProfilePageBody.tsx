@@ -31,6 +31,8 @@ import {
     useTraits,
 } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useColorway } from '../../lib/state/ColorwayContext';
+import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
@@ -85,6 +87,22 @@ function ProfilePageBodyInner({
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
     const user = initialUser;
+
+    /* Profile Colorway — paint this profile in ITS OWNER's colour. The page
+       owner's `profile_hex` is the "Custom" colour for this page, shown to any
+       visitor whose colorway is the default/Custom (an explicit pick still
+       wins — handled in ColorwayContext). When the logged-in user is viewing
+       their OWN profile, use the live hook value so edits in the picker repaint
+       instantly; for anyone else's profile, use the server-provided value. */
+    const { setActiveProfileHex } = useColorway();
+    const { hex: myProfileHex } = useProfileHex();
+    const isOwnProfile =
+        !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
+    const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
+    useEffect(() => {
+        setActiveProfileHex(ownerHex ?? null);
+        return () => setActiveProfileHex(null);
+    }, [ownerHex, setActiveProfileHex]);
 
     const displayHandle = user.handle ?? handle;
     const memberSince = formatMemberSince(user.created_at);
