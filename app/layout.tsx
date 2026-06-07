@@ -187,15 +187,18 @@ const PREHYDRATION_SCRIPT = `
             // pd_custom_color so the page paints the picked color
             // instead of the static COLORWAYS.custom fallback.
             if (colorway === 'custom') {
-                try {
-                    var savedArtistColor = localStorage.getItem('pd_custom_color');
-                    if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
-                        bg = savedArtistColor.toUpperCase();
-                    } else if (isHomePage) {
-                        // Home's custom default = brand Attention yellow.
-                        bg = '#FFE600';
-                    }
-                } catch (e) { /* ignore */ }
+                if (isHomePage) {
+                    // Home's custom default = brand Attention yellow, always
+                    // (ignore the shared pd_custom_color slot).
+                    bg = '#FFE600';
+                } else {
+                    try {
+                        var savedArtistColor = localStorage.getItem('pd_custom_color');
+                        if (savedArtistColor && /^#[0-9A-F]{6}$/i.test(savedArtistColor)) {
+                            bg = savedArtistColor.toUpperCase();
+                        }
+                    } catch (e) { /* ignore */ }
+                }
             }
 
             // Pure Light / Pure Dark mode override (sim 6798-6803). Project
