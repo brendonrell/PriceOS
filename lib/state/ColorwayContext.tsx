@@ -396,12 +396,15 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             // sets the colorway-light body class correctly).
             setColorwayState('light');
             applyColorway('light');
-        } else if (isHomePage && savedColorway === null) {
-            // Home boots the custom colorway with brand Attention yellow
-            // (#FFE600) as its default fill — overridden by a saved custom
-            // hex or an explicit colorway pick (logged-in user settings).
-            // Uses ATTENTION directly (not the shared pd_custom_color slot)
-            // so home is always brand yellow until an explicit pick.
+        } else if (isHomePage && (savedColorway === null || savedColorway === 'custom')) {
+            // Home's custom color = brand Attention Yellow (#FFE600) — the
+            // owner-chosen fill for this page (Brendon owns the non-artist,
+            // non-profile surfaces). Custom is the platform default, so this
+            // covers BOTH cold-start (savedColorway === null) and an explicit
+            // 'custom' pick. ATTENTION is used directly, NOT the shared
+            // pd_custom_color slot, so home stays brand yellow in custom mode
+            // no matter what hex is saved there. Light/dark/orange picks still
+            // apply on home — they fall through to applyColorway() below.
             applyBgHex(ATTENTION, 'custom');
         } else {
             applyColorway(savedColorway);
