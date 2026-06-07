@@ -83,6 +83,11 @@ explicit chat confirmation.
   surface actually renders.
 - Verify Supabase column names via the Supabase MCP before writing triggers.
 - Front-load recon greps/views into one parallel batch.
+- **Match effort to the change (spot-edit awareness).** Label / string / CSS /
+  copy / font tweaks go straight edit → push → merge — no full `npm run build`,
+  no broad recon (they can't break the compile). Reserve deep file reads + full
+  builds for logic, type, or architectural changes. Don't inhale the codebase
+  for a one-liner; only pull the files the edit actually touches.
 
 ## 7. Communication
 
