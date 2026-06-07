@@ -89,9 +89,10 @@ import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
-import { useProject } from '../lib/state/ProjectContext';
+import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
+import { getProject } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import { renderPrisms } from '../lib/art/prismsEngine';
+import MarketActions from './market/MarketActions';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
@@ -202,11 +203,18 @@ function buildMockOffers(outputId: number): MockOffer[] {
 }
 
 export default function OutputPreview() {
-    const { openModal, currentModalId, setCurrentModalId, close } = useModal();
+    const { openModal, currentModalId, currentModalSlug, setCurrentModalId, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
-    const { title, totalOutputs, floorEth } = useProject();
+    /* The output modal is global, so its Project is whatever was passed to
+       open('output', id, slug) — falling back to the active route Project. */
+    const proj = useProject();
+    const slug = currentModalSlug ?? proj.slug;
+    const def = getProject(slug);
+    const title = def?.displayName ?? proj.title;
+    const totalOutputs = def?.outputs ?? proj.totalOutputs;
+    const floorEth = proj.floorEth;
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
 
@@ -361,7 +369,11 @@ export default function OutputPreview() {
 
     /* Output metadata — id-keyed lookup over ProjectContext. Returns
        null when the modal is closed or id is unmapped. */
-    const meta = useOutputMeta(id);
+    const globalMeta = useOutputMeta(id);
+    /* When opened with an explicit Project slug, derive meta for that
+       (slug, id) so the modal shows the right Artwork/owner/traits even
+       though it's mounted outside the route's ProjectProvider. */
+    const meta = id != null && currentModalSlug ? buildOutputMetaFor(slug, id) : globalMeta;
 
     /* v1 — HISTORY surface. Fetches /api/output/[id] on isOpen + id
        change and stores the response (history: EventRow[]) for
@@ -389,7 +401,6 @@ export default function OutputPreview() {
         let cancelled = false;
         setDetail(null);
         setDetailError(false);
-        const slug = title.toLowerCase();
         fetch(`/api/output/${slug}-${id}`)
             .then((r) => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -404,7 +415,7 @@ export default function OutputPreview() {
         return () => {
             cancelled = true;
         };
-    }, [isOpen, id, title]);
+    }, [isOpen, id, slug]);
 
     /* v1 — OFFERS surface. Mocked inline (CTO call locked: dedicated
        route lands with the offers feature). useMemo keeps the array
@@ -437,12 +448,12 @@ export default function OutputPreview() {
            rather than the short portrait dimension (which falls into the 600px fallback). */
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        const ratio = renderPrisms(canvas, id, w);
+        const ratio = paintOutput(canvas, slug, id, w);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
-        if (canvasLs) { renderPrisms(canvasLs, id, w); canvasLs.classList.add('visible'); }
+        if (canvasLs) { paintOutput(canvasLs, slug, id, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
-    }, [isOpen, id]);
+    }, [isOpen, id, slug]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
        effect so every modal inherits the dance (sim openModal/closeModal
@@ -460,12 +471,12 @@ export default function OutputPreview() {
         if (!canvas) return;
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        renderPrisms(canvas, nextId, w);
+        paintOutput(canvas, slug, nextId, w);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
-        if (canvasLs) { renderPrisms(canvasLs, nextId, w); canvasLs.classList.add('visible'); }
+        if (canvasLs) { paintOutput(canvasLs, slug, nextId, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
-    }, []);
+    }, [slug]);
 
     const goNext = useCallback(() => {
         if (id == null) return;
@@ -740,6 +751,7 @@ export default function OutputPreview() {
                             </span>
                             {' '}#{id}
                         </div>
+                        <MarketActions slug={slug} tokenId={id} />
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className="modal-pill"

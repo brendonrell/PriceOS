@@ -47,7 +47,9 @@ interface ModalContextValue {
     openModal: OpenModalState | null;
     /** The currently-displayed output id in the OutputPreview. */
     currentModalId: number | null;
-    open: (name: ModalName, payload?: number | string) => void;
+    /** Project slug for the currently-open output modal (null = active route project). */
+    currentModalSlug: string | null;
+    open: (name: ModalName, payload?: number | string, slug?: string) => void;
     close: () => void;
     /** Set the OutputPreview's output id (for prev/next nav). */
     setCurrentModalId: (id: number | null) => void;
@@ -58,17 +60,20 @@ const ModalContext = createContext<ModalContextValue | null>(null);
 export function ModalProvider({ children }: { children: ReactNode }) {
     const [openModal, setOpenModal] = useState<OpenModalState | null>(null);
     const [currentModalId, setCurrentModalId] = useState<number | null>(null);
+    const [currentModalSlug, setCurrentModalSlug] = useState<string | null>(null);
 
-    const open = useCallback((name: ModalName, payload?: number | string) => {
+    const open = useCallback((name: ModalName, payload?: number | string, slug?: string) => {
         setOpenModal({ name, payload });
         if (name === 'output' && typeof payload === 'number') {
             setCurrentModalId(payload);
+            setCurrentModalSlug(slug ? slug.toLowerCase() : null);
         }
     }, []);
 
     const close = useCallback(() => {
         setOpenModal(null);
         setCurrentModalId(null);
+        setCurrentModalSlug(null);
     }, []);
 
     /* Body class lock + scroll-Y preservation.
@@ -112,8 +117,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, [openModal, close]);
 
     const value = useMemo<ModalContextValue>(
-        () => ({ openModal, currentModalId, open, close, setCurrentModalId }),
-        [openModal, currentModalId, open, close]
+        () => ({ openModal, currentModalId, currentModalSlug, open, close, setCurrentModalId }),
+        [openModal, currentModalId, currentModalSlug, open, close]
     );
 
     return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>;

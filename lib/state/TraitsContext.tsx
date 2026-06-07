@@ -63,40 +63,25 @@ import {
 } from 'react';
 import { useToast } from './ToastContext';
 
-export type TraitCategory =
-    | 'Layer'
-    | 'Mineral'
-    | 'Fate'
-    | 'Network'
-    | 'Breadcrumb'
-    /* Chat H item 3 — feed-mode L1 categories (sim 7391-7395 GodModeDict).
-       'Event' and 'Market' carry their own filter Sets in activeFilters.
-       'Traits' is a feed-mode wrapper L1 (sim 8484) that doesn't carry an
-       own Set — it routes L3 toggles into activeFilters['Layer'] /
-       activeFilters['Mineral'] depending on activeSubFilter. So 'Traits'
-       lives in FeedCategory only, NOT in ActiveFilters. */
-    | 'Event'
-    | 'Market';
+/* A filter category is now any string: the active Project's trait names
+   (Palette, Flow, …, Fate — supplied by the registry schema, no longer
+   hardcoded to Kiki's Layer/Mineral/Fate) plus the fixed feed/network
+   specials ('Network', 'Breadcrumb', 'Event', 'Market'). Sets are created
+   lazily as values are toggled, so TraitsContext needs no knowledge of any
+   one Project's schema. */
+export type TraitCategory = string;
 
 /* Feed-mode L1 categories. Sim 8477:
    `['Event', 'Network', 'Traits', 'Market']`. Disjoint-ish from
    TraitCategory — 'Network' overlaps (same filter Set is used). */
 export type FeedCategory = 'Event' | 'Network' | 'Traits' | 'Market';
 
-export type ActiveFilters = Record<TraitCategory, Set<string>>;
+export type ActiveFilters = Record<string, Set<string>>;
 
-/* Empty filter map factory — used at init and on clearAllFilters. New Set
-   per call so we never share Set references between resets. */
+/* Empty filter map — sets are created lazily by toggleFilter, so the initial
+   map is just empty. */
 function emptyFilters(): ActiveFilters {
-    return {
-        Layer: new Set<string>(),
-        Mineral: new Set<string>(),
-        Fate: new Set<string>(),
-        Network: new Set<string>(),
-        Breadcrumb: new Set<string>(),
-        Event: new Set<string>(),
-        Market: new Set<string>(),
-    };
+    return {};
 }
 
 export interface TraitsContextValue {
@@ -259,11 +244,9 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
        and non-feed) since only one L1 is active at a time. */
     const setActiveFeedCategory = useCallback((c: FeedCategory | null) => {
         setActiveFeedCategoryState(c);
-        if (c === 'Traits') {
-            setActiveSubFilterState('Gateway');
-        } else {
-            setActiveSubFilterState('All');
-        }
+        /* 'All' for every L1; TraitsUI defaults the feed 'Traits' wrapper to
+           the Project's first trait when the sub is 'All'. */
+        setActiveSubFilterState('All');
     }, []);
 
     /* Chat H item 3 — feed-mode L1 clear. Drains the feed-cat-specific
@@ -274,22 +257,15 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
        Traits L1. */
     const clearActiveFeedCategory = useCallback(() => {
         setActiveFeedCategoryState((prevCat) => {
-            if (prevCat !== null) {
-                setActiveFiltersState((prevFilters) => {
-                    if (prevCat === 'Traits') {
-                        return {
-                            ...prevFilters,
-                            Layer: new Set<string>(),
-                            Mineral: new Set<string>(),
-                        };
-                    }
-                    /* prevCat is 'Event' | 'Network' | 'Market' — all in
-                       ActiveFilters keys. */
-                    return {
-                        ...prevFilters,
-                        [prevCat]: new Set<string>(),
-                    };
-                });
+            if (prevCat !== null && prevCat !== 'Traits') {
+                /* 'Event' | 'Network' | 'Market' carry their own Set; drain it.
+                   'Traits' routes L3 into the active Project's trait Sets,
+                   which TraitsContext can't enumerate here — those are left for
+                   clearAllFilters / explicit value toggles to clear. */
+                setActiveFiltersState((prevFilters) => ({
+                    ...prevFilters,
+                    [prevCat]: new Set<string>(),
+                }));
             }
             return null;
         });
@@ -336,7 +312,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const toggleFilter = useCallback(
         (cat: TraitCategory, value: string) => {
             setActiveFiltersState((prev) => {
-                const nextSet = new Set(prev[cat]);
+                const nextSet = new Set(prev[cat] ?? []);
                 if (nextSet.has(value)) {
                     nextSet.delete(value);
                 } else {

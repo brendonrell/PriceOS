@@ -39,6 +39,7 @@
 
 import { useState, type KeyboardEvent } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { ProjectProvider } from '../../lib/state/ProjectContext';
 import ArtworkCard from '../ArtworkCard';
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';
@@ -91,7 +92,7 @@ export default function ArtworkPageBody({
     const titleLabel = `${projectName} #${numberPart}`;
 
     return (
-        <>
+        <ProjectProvider slug={projectSlug}>
             <section className="project-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
                     <h1 className="project-title">
@@ -338,6 +339,6 @@ export default function ArtworkPageBody({
             >
                 <p className="info-rubik">Full details coming soon.</p>
             </section>
-        </>
+        </ProjectProvider>
     );
 }

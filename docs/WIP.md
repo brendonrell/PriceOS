@@ -6,38 +6,122 @@
 
 ---
 
-- **Branch:** `claude/home-page-color-carousel-TNXd5`
+- **Branch:** `claude/peaceful-noether-Lu4Cw` (off `origin/dev`, clean base)
 - **Updated:** 2026-06-07
 
-## Last task — home page (✅ root-caused + MERGED TO DEV, PR #17)
+## Current task — Clean platform + 2 real Projects (BIG, in progress)
 
-1. **Home = Attention Yellow in custom mode.** Real root cause: TWO paint paths
-   (boot + server-hydration) and only boot honored home→yellow; the hydration
-   handler repainted with the shared `pd_custom_color` slot (Brendon's #FF6600
-   profile hex) on every load. Both now route through one `paintForPath`
-   resolver (`ColorwayContext.tsx`) so they can't diverge. Verified via
-   Brendon's settings screenshot: default colorway = custom, profile hex =
-   #FF6600 — settings were correct; home was leaking the profile slot.
-2. **Carousel left edge.** `scroll-snap` pulled card #1 to the screen edge,
-   eating the track's left padding. Fix = `scroll-padding-left` (40px desktop /
-   20px mobile) so the snap start respects the page inset. (`app/globals.css`)
+Turn the app from a one-project hodgepodge (legacy Kiki art/palettes hiding
+inside "Prisms", used as visuals-only) into a **project-agnostic platform** that
+hosts genuinely mintable Projects. Two tasks, both in scope:
 
-Merged to `dev` via PR #17. dev deploy (23b4649) building → verify on
-`https://price-os-git-dev-pricediscussion.vercel.app`.
+**A. Missing pages:** `/artists` directory · social redirects
+`/discord /twitter /farcaster /x` (302) · `/price` reserved · project-at-root
+`/{slug}` → 301 `/art/{slug}` (one-line flip in `lib/slug.ts`, now safe with
+≥1 live project). **`/settings` stays a modal — NOT a page** (prior Claude
+wrongly assumed otherwise; Brendon corrected).
 
-## Hard rule added this session
-- **Never blame Brendon's settings/cache/browser.** Default: it's our code/deploy.
-  (CLAUDE.md §7.) Plus: Brendon's review surface = the dev URL above (CLAUDE.md §0).
+**B. Clean platform + Projects:**
+1. **Project registry** — one standard shape per Project (`lib/project/types.ts`
+   `ProjectDef`): slug · displayName · outputs · colorway · soundtrack ·
+   traitSchema · render engine. Oracle is the template; adding project #3 = one
+   engine file + one DB row.
+2. **Rip Kiki** — kill `lib/art/prismsEngine.ts` Kiki palettes + `kiki/bouba`
+   naming + the `Layer/Mineral/Fate` hardcoded trait names baked across
+   `TraitsContext` / `ProjectContext` / `TraitsUI`. Engine *infrastructure*
+   (canvas pipeline, virtualization, ArtworkCard/OutputPreview) stays.
+3. **Genericize traits/subtraits** — schema comes from the active Project, not
+   hardcoded. `ProjectProvider` is mounted GLOBALLY in `app/layout.tsx` and is
+   prisms-only today; `/art/[slug]` ignores its slug. Must become slug-keyed.
+4. **Prisms reborn** — fresh standalone gradient engine, my own tasteful
+   palettes (not rainbow) + aspect-ratio variance, own traits. 256 Outputs.
+   (Brendon delegated Prisms art to me: "your own palettes/traits, have fun.")
+5. **Oracle** — faithful port of the self-contained engine from the uploaded
+   `oraclev3.html` (333 Outputs, colorway `#C4902A`, soundtrack Wardruna).
+6. **Chainless marketplace sim** — primary **Mint** is ours; ALL secondary
+   (list/buy/offers) models **Seaport/OpenSea** order semantics so the real
+   build is just the OpenSea SDK swapped in. Sim mirrors "everything on PD,
+   nothing OpenSea-only." New DB tables (listings/offers) + sim ETH balance.
+7. **Public Docs page** (the IGNORE-for-internal-truth public docs) — artist-
+   facing "how to structure traits so PD recognizes them."
 
-## Process harness (live, in dev)
-- SessionStart self-brief + branch-mismatch guard (`.claude/session-start.sh`).
-- git-guard blocks all writes to `main` (`.claude/git-guard.sh`); escape hatch
-  `PD_ALLOW_MAIN=1`. Segment-aware so "main" in a commit message doesn't false-block.
-- Push rule: app pushes need Brendon's numbered-list approval; docs/process pre-approved.
+## LOCKED SPEC (from ClickUp SoT — get terms right, Brendon is strict)
+- **Terms:** Project · **Output** (the unit AND the supply count — "333
+  Outputs", never "edition") · Artwork (rendered canvas) · **Colorway** (not
+  "theme") · Mint (user acquires) · Upload (artist adds a Project). Banned:
+  Collection, Edition, Collector-as-generic-noun.
+- **No descriptions.** Artists cannot write prose. Storytelling = traits +
+  soundtrack only. Do not surface `projects.description`.
+- **Soundtrack = public YouTube playlist** (URL or bare playlist id). Normalize
+  fail-soft, never break the page. (`lib/project/soundtrack.ts` ✅ done.)
+- **Trait model (Subtraits SoT 2kyd6gx6-5414): Trait → Subtrait → Value.** A
+  subtrait is a *derived grouping of one trait's values* into named buckets
+  (e.g. `Layer → Surface → {Crust,Sediment,Drift}`), NOT per-token data, NOT a
+  separate axis. Lives in a UI dict (`L2_DICT` in `TraitsUI.tsx`), changeable
+  without re-minting. Traits flat-allowed. Subtraits are a NEW gen-art feature
+  (AB/fxhash use flat features) — Brendon wants them tested on Oracle.
+- **Platform auto-trait — ONLY "Fate" (LOCKED).** Every Output, every Project,
+  gets ONE platform trait regardless of artist traits. The ~50 other atlas
+  items (astrology/lunar/etc.) are Spell Book / overlays, NOT trait-UI traits.
+  - Feature name (internal): **Hash Hexagram**. User-facing trait name:
+    **Fate** (Brendon: "Token"-prefix is banned; "Omen" too serious; Fate is
+    romantic). Values = the 64 distilled single-word Fates (King Wen).
+  - Concept: consult the I Ching at "birth" (mint) → cast ONE primary hexagram
+    → distill to a single dramatic word = the Fate trait value. Changing lines
+    + transformed hexagram kept on the reading for the future Output-page "full
+    reading" (Discord fodder), not shown in the trait. Built ✅ `lib/project/
+    fate.ts` (real King Wen 64, 3-coin method, verified 64 unique codes/words).
+  - Replaces the legacy Kiki "Fate = 8 omens" pill (`pill-fate-icon`, already
+    titled "Token Fate" in TraitsUI → retitle to "Fate").
+- **Visual/design + scope = Brendon's domain.** Code to spec, don't redesign the
+  existing app. Only authored art = the Prisms engine (delegated); Oracle is a
+  faithful port.
 
-## main / production — clean
-- `main` tree == pre-promotion baseline (`5236c2e`); promote→revert netted out.
-  Untouched on purpose. Home fixes live in `dev` only (not promoted).
+## Process / gates
+- App pushes need Brendon's numbered-list approval; docs/process pre-approved.
+- Merge to dev/main only on explicit chat confirmation. Local commits free.
+- git-guard blocks main writes (escape: `PD_ALLOW_MAIN=1`).
 
-## Next step
-- Brendon verifies home (yellow + carousel) on the dev URL once 23b4649 is READY.
+## Done + PUSHED to origin/claude/peaceful-noether-Lu4Cw (build-green each)
+- Foundation: `lib/art/rng.ts`, `lib/project/types.ts`, `soundtrack.ts`,
+  `fate.ts` (King Wen 64), `lib/project/registry.ts`, engines
+  `lib/art/engines/{prisms,oracle}.ts`. Kiki engine deleted.
+- **Stage 1** (commit 9d05092): ripped Kiki, Prisms reborn on registry engine;
+  ProjectContext slug-aware + generic traits; TraitsContext/TraitsUI fully
+  schema-driven (no Kiki trait names); Fate pill retitled to "Fate".
+  PRISMS 256 / colorway #5A2EA6 / artist opus4-6; ORACLE artist opus4-6.
+- **Stage 2** (this push): Oracle is a real routable Project.
+  - ModalContext carries `currentModalSlug`; output modal is project-aware.
+  - `buildOutputMetaFor(slug,id)` exported; modal self-derives meta per project.
+  - ProjectPageBody re-provides ProjectProvider with the route slug;
+    ArtworkPageBody too. `/art/[slug]` 404s unknown slugs (registry-validated).
+  - `lib/slug.ts`: registered `oracle`; bare `/{project}` now 301s to
+    `/art/{slug}` (Brendon-approved).
+
+## Stage 3 — DONE (chainless marketplace sim) — build-green
+- **DB (live Supabase zspxpfwlwikdxwavffjn):** migrations added `listings`,
+  `offers`, `users.sim_eth_balance`, `projects.soundtrack` + `mint_price_eth`;
+  fixed a broken `fan_out_event_notifications` trigger (added
+  `notifications.recipient_name`, relaxed `recipient_address`) so event inserts
+  work. Reseeded: prisms (140/256), oracle (180/333), 59 listings, feed events,
+  balances (brendon/opus = 100 ETH).
+- **API:** `POST /api/project/[slug]/mint` (primary). `/api/output/[id]/market`
+  GET + POST(action) = list/cancel/buy/offer/accept (Seaport-style).
+  `/api/project/[slug]/outputs` now returns live listing prices.
+- **UI:** MINT button on project hero (press → owns next Output, balance debits);
+  `MarketActions` in the output modal (buy/list/cancel/offer/accept, prompts for
+  price); hero supply + soundtrack wired to the active Project; `'pd:project-
+  refresh'` event refreshes the gallery after market actions.
+- **`/artists`** directory page added.
+
+## Remaining / parked
+- Output modal still shows some static placeholder stats (last sale, floor,
+  held-by) — not wired to live data yet. Hero "By @Opus4-6" hardcoded (matches).
+- Public Docs page (artist trait guide) — not started.
+- Real SIWE balance widget in chrome — not added (balance shown via toast).
+
+## VERIFY ON DEV (Brendon): once merged to dev, check `/art/prisms` (new art +
+traits + Fate), `/art/oracle` (glyph art, 333), click a card → modal shows the
+right project, `/oracle` → 301 → /art/oracle.
+
+## main / production — untouched (clean baseline 5236c2e)

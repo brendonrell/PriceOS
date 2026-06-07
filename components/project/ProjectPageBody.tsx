@@ -62,7 +62,10 @@
  */
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { useProject } from '../../lib/state/ProjectContext';
+import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { getProject } from '../../lib/project/registry';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -262,6 +265,31 @@ function ProjectPageBodyInner() {
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
+    const { siweAddress } = useAuth();
+
+    /* Registry def for static fields not in ProjectContext (mint price,
+       soundtrack). */
+    const def = getProject(project.slug);
+    const mintPrice = def?.mintPriceEth ?? 0.01;
+    const soundtrack = def?.soundtrack ?? null;
+    const soldOut = project.totalOutputs >= project.maxSupply;
+
+    const [minting, setMinting] = useState(false);
+    const doMint = async () => {
+        if (!siweAddress) { showToast('Connect your wallet to mint'); return; }
+        if (soldOut) { showToast('Sold out'); return; }
+        setMinting(true);
+        try {
+            const r = await fetch(`/api/project/${project.slug}/mint`, { method: 'POST' });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) { showToast(j?.error ? String(j.error) : 'Mint failed'); return; }
+            showToast(`Minted ${project.title} #${j.token_id} · ${j.balance} ETH left`);
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
+            open('output', j.token_id, project.slug);
+        } finally {
+            setMinting(false);
+        }
+    };
     /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
        stat ("Outputs Minted / Total Supply", etc.); value is inert
        except for PPL (opens collectors modal) and Anchor (opens
@@ -837,7 +865,7 @@ function ProjectPageBodyInner() {
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">500/2222</span>
+                            <span className="stat-val">{project.totalOutputs}/{project.maxSupply}</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
@@ -864,30 +892,37 @@ function ProjectPageBodyInner() {
                 <div className="action-row">
                         <button
                             className="btn-mint"
+                            title={soldOut ? 'Sold out' : 'Mint the next Output'}
+                            onClick={doMint}
+                            disabled={minting || soldOut}
+                            style={soldOut ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                        >
+                            <span className="mint-lbl">{minting ? 'MINTING…' : 'MINT'}</span>
+                            <span className="mint-price">
+                                {soldOut ? '(SOLD OUT)' : `(${mintPrice} ETH)`}
+                            </span>
+                        </button>
+                        <button
+                            className="btn-mint"
                             title="Buy the Lowest Listed Output"
-                            onClick={() => {
-                                if (lowestId !== null) open('output', lowestId);
-                            }}
-                            style={
-                                lowestId === null
-                                    ? { opacity: 0.5, cursor: 'not-allowed' }
-                                    : undefined
-                            }
+                            onClick={() => { if (lowestId !== null) open('output', lowestId, project.slug); }}
+                            style={lowestId === null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                         >
                             <span className="mint-lbl">BUY</span>
                             <span className="mint-price">
-                                {lowestFloor !== null
-                                    ? `(${lowestFloor.toFixed(2)} ETH)`
-                                    : '(SOLD OUT)'}
+                                {lowestFloor !== null ? `(${lowestFloor.toFixed(2)} ETH)` : '(NONE LISTED)'}
                             </span>
                         </button>
-                        <a
-                            href="https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC"
-                            onClick={(e) => { e.preventDefault(); window.open('https://youtube.com/playlist?list=PLCcn8jUjH5jNvd2HHBtCEqK73KoW_Xja_&si=OUkHXLNIYDjT7JzC', '_blank', 'noopener,noreferrer'); }}
-                            className="btn-soundtrack"
-                        >
-                            <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
-                        </a>
+                        {soundtrack && (
+                            <a
+                                href={playlistWatchUrl(soundtrack.playlistId)}
+                                onClick={(e) => { e.preventDefault(); window.open(playlistWatchUrl(soundtrack.playlistId), '_blank', 'noopener,noreferrer'); }}
+                                className="btn-soundtrack"
+                                title={soundtrack.label}
+                            >
+                                <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
+                            </a>
+                        )}
                     </div>
 
                     {/* Sim 5161-5165: project tab pills (Project Showcase /
@@ -1275,10 +1310,15 @@ function ProjectPageBodyInner() {
    useTraits(). Default-exported as ProjectPageBody and consumed by the
    server shell at app/art/[slug]/page.tsx which handles slug validation
    + metadata. */
-export default function ProjectPageBody() {
+export default function ProjectPageBody({ slug }: { slug?: string }) {
+    /* Re-provide ProjectContext with the route's slug so this page's gallery,
+       hero, and trait schema all bind to the correct Project (the global
+       provider in layout.tsx defaults to PRISMS for the rest of the app). */
     return (
-        <TraitsProvider>
-            <ProjectPageBodyInner />
-        </TraitsProvider>
+        <ProjectProvider slug={slug}>
+            <TraitsProvider>
+                <ProjectPageBodyInner />
+            </TraitsProvider>
+        </ProjectProvider>
     );
 }

@@ -1,12 +1,12 @@
 // Project outputs — real DB read. Returns per-token ownership from `holders`
-// (joined to `users` for handles) plus project-level total + showcase ids.
-// Listings/last-sale are not modelled yet, so list_price_eth stays null.
+// (joined to `users` for handles) + active listing prices + project total +
+// showcase ids.
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export interface OutputOwner {
   token_id: number;
@@ -32,7 +32,7 @@ export async function GET(
   try {
     const supabase = getSupabaseService();
 
-    const [projectRes, holdersRes] = await Promise.all([
+    const [projectRes, holdersRes, listingsRes] = await Promise.all([
       supabase
         .from('projects')
         .select('minted_count, showcase_ids')
@@ -42,6 +42,11 @@ export async function GET(
         .from('holders')
         .select('token_id, owner_address')
         .eq('project_id', slug),
+      supabase
+        .from('listings')
+        .select('token_id, price_eth')
+        .eq('project_id', slug)
+        .eq('active', true),
     ]);
 
     if (projectRes.error) return serverError(projectRes.error.message);
@@ -51,6 +56,10 @@ export async function GET(
       | { minted_count?: number; showcase_ids?: number[] }
       | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
+    const priceByToken: Record<string, string> = {};
+    for (const l of (listingsRes.data ?? []) as { token_id: string; price_eth: number | string }[]) {
+      priceByToken[String(l.token_id)] = String(l.price_eth);
+    }
 
     // Resolve handles for the (small) set of distinct owners.
     const addrs = [...new Set(holders.map((h) => h.owner_address.toLowerCase()))];
@@ -72,7 +81,7 @@ export async function GET(
         token_id: Number(h.token_id),
         owner: h.owner_address,
         owner_handle: handleByAddr[h.owner_address.toLowerCase()] ?? null,
-        list_price_eth: null,
+        list_price_eth: priceByToken[String(h.token_id)] ?? null,
       }))
       .sort((a, b) => a.token_id - b.token_id);
 
