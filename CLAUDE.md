@@ -208,3 +208,13 @@ explicit chat confirmation.
 - Canonical path to mainnet: **dev preview → Sepolia smoke → Etherscan verify →
   mainnet Remix deploy.** There is no longer a no-chain cohort beta intermediate
   (the old "PD Preview" workstream, Builds 35–44, was superseded 2026-05-14).
+
+## 9. UX standards (Brendon's product pet peeves → rules)
+
+- **Always feel moving forward — never "is anything happening?" (Brendon,
+  2026-06-07).** Any async/wait surface (mint, buy, list, offer, load, fetch,
+  reveal) must show continuous motion — a spinner, a filling progress bar, a
+  pulse — from the instant the action starts until it resolves. No dead frozen
+  states, no ambiguous pauses. If work is happening, the UI says so and keeps
+  visibly advancing. (The in-button mint progress bar is the reference pattern;
+  apply the same to every future wait state.)

@@ -3252,22 +3252,22 @@ body.persona-default .stats-row-2 { display: none !important; }
 .mint-confirm:active { background: rgba(255, 255, 255, 0.16); }
 .mint-chooser .mint-lbl {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: bold;
 }
-.mint-chooser .mint-price { font-size: 11px; opacity: 0.75; }
-/* Cancel — tiny corner glyph, OUT of the flex flow so the divider stays centred. */
+.mint-chooser .mint-price { font-size: 13px; opacity: 0.82; }
+/* Cancel — corner glyph, OUT of the flex flow so the divider stays centred. */
 .mint-cancel {
     position: absolute;
-    top: 1px;
-    right: 3px;
-    width: 16px;
-    height: 16px;
+    top: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
     border: none;
     background: transparent;
     color: var(--mint-text);
-    opacity: 0.45;
-    font-size: 10px;
+    opacity: 0.55;
+    font-size: 14px;
     line-height: 1;
     cursor: pointer;
     display: inline-flex;
