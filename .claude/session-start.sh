@@ -16,6 +16,9 @@ cd "$ROOT" 2>/dev/null || true
 echo "=== PriceOS session start ==="
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 echo "branch: $BRANCH"
+if [ "$BRANCH" = "main" ]; then
+  echo "!!! ON main — PriceOS works in dev ONLY. Do NOT commit/push here; switch to dev or a feature branch. (git-guard will block main writes.)"
+fi
 echo "head:   $(git log --oneline -1 2>/dev/null)"
 echo "tree:   $(test -z "$(git status --porcelain 2>/dev/null)" && echo clean || echo DIRTY)"
 npm install --no-audit --no-fund >/dev/null 2>&1 \

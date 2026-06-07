@@ -21,6 +21,13 @@ A fresh chat is briefed automatically by the **SessionStart hook**
 You do not need to be pointed at any of these — they arrive on their own. The
 contract that keeps it working:
 
+- **We work ONLY in `dev`.** Every change is a feature branch off `dev` → PR →
+  `dev`. **`main` is off-limits** except as a discrete, explicit,
+  Brendon-driven task. Hard-enforced: the `PreToolUse` git-guard
+  (`.claude/git-guard.sh`) physically blocks any git write that touches `main`
+  (push to main, or any commit/merge/rebase while on main). The one deliberate
+  main moment uses the escape hatch `PD_ALLOW_MAIN=1 <command>`, and only after
+  Brendon's explicit approval in chat.
 - **On a branch mismatch warning, stop and reconcile before working.** Branch
   drift across fatigued chats is the failure this guards against.
 - **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
