@@ -12,6 +12,8 @@ import { notFound } from 'next/navigation';
 import ProjectPageBody from '../../../components/project/ProjectPageBody';
 import { getProject } from '../../../lib/project/registry';
 
+export const dynamic = 'force-dynamic';
+
 type Props = { params: { slug: string } };
 
 export default function ProjectPage({ params }: Props) {
