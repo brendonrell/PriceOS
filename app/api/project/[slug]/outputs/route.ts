@@ -11,6 +11,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
 import { verifySiweSession } from '@/lib/auth/siwe';
+import { normalizePlaylistId } from '@/lib/project/soundtrack';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -41,6 +42,9 @@ export interface ProjectOutputsResponse {
       comes from the registry. A fresh project returns 0 here. */
   total: number;
   showcase_ids: number[];
+  /** Bare YouTube playlist id (normalized) or null — the project's soundtrack,
+      sourced from the DB `projects.soundtrack` column. */
+  soundtrack: string | null;
   outputs: OutputOwner[];
   stats: ProjectStats;
 }
@@ -56,7 +60,7 @@ export async function GET(
     const supabase = getSupabaseService();
 
     const [projectRes, holdersRes, listingsRes, eventsRes] = await Promise.all([
-      supabase.from('projects').select('minted_count, showcase_ids').eq('id', slug).maybeSingle(),
+      supabase.from('projects').select('minted_count, showcase_ids, soundtrack').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
       supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true),
       supabase.from('events').select('price_eth').eq('project_id', slug).not('price_eth', 'is', null),
@@ -65,7 +69,7 @@ export async function GET(
     if (projectRes.error) return serverError(projectRes.error.message);
     if (holdersRes.error) return serverError(holdersRes.error.message);
 
-    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[] } | null;
+    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null } | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
 
     const priceByToken: Record<string, string> = {};
@@ -131,6 +135,7 @@ export async function GET(
       project_id: slug,
       total: project?.minted_count ?? outputs.length,
       showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
+      soundtrack: normalizePlaylistId(project?.soundtrack),
       outputs,
       stats: {
         collectors: addrs.length,

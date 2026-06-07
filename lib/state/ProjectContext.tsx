@@ -47,6 +47,8 @@ export interface ProjectState {
     outputs: ReadonlyMap<number, OutputMeta>;
     /** Fixed featured ids for the Project Showcase tab. */
     showcaseIds: readonly number[];
+    /** YouTube playlist soundtrack (DB-driven, registry as fallback) or null. */
+    soundtrack: { playlistId: string; label: string } | null;
     /** Aggregate hero stats (collectors, volume, floor, recent collectors). */
     stats: ProjectStats;
 }
@@ -102,6 +104,9 @@ function buildInitial(slug: string): ProjectState {
         floorEth: MOCK_PROJECT_FLOOR_ETH,
         outputs: new Map<number, OutputMeta>(),
         showcaseIds: [],
+        // Registry value is the synchronous fallback; the DB reconcile below is
+        // the source of truth and overrides it once /outputs lands.
+        soundtrack: def?.soundtrack ?? null,
         stats: EMPTY_STATS,
     };
 }
@@ -136,7 +141,7 @@ export function ProjectProvider({
         const load = () => {
             fetch(`/api/project/${lower}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats } | null) => {
+                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats; soundtrack?: string | null } | null) => {
                     if (cancelled || !data) return;
                     setState((prev) => {
                         if (prev.slug !== lower) return prev;
@@ -159,10 +164,16 @@ export function ProjectProvider({
                             Array.isArray(data.showcase_ids) && data.showcase_ids.length
                                 ? data.showcase_ids
                                 : prev.showcaseIds;
+                        // DB soundtrack wins; keep the label from the registry
+                        // (DB stores only the playlist id), else a generic one.
+                        const soundtrack = data.soundtrack
+                            ? { playlistId: data.soundtrack, label: prev.soundtrack?.label ?? 'Project Soundtrack' }
+                            : null;
                         return {
                             ...prev,
                             outputs,
                             showcaseIds,
+                            soundtrack,
                             totalOutputs: data.total ?? prev.totalOutputs,
                             stats: data.stats ?? prev.stats,
                         };

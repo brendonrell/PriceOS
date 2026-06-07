@@ -272,7 +272,9 @@ function ProjectPageBodyInner() {
        soundtrack). */
     const def = getProject(project.slug);
     const mintPrice = def?.mintPriceEth ?? 0.01;
-    const soundtrack = def?.soundtrack ?? null;
+    /* Soundtrack is DB-driven (projects.soundtrack) via ProjectContext; the
+       registry value is only the pre-reconcile fallback. */
+    const soundtrack = project.soundtrack;
     const soldOut = project.maxSupply > 0 && project.totalOutputs >= project.maxSupply;
     const remaining = Math.max(0, project.maxSupply - project.totalOutputs);
     /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
