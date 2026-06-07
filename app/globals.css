@@ -3155,6 +3155,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     border: 1px solid var(--mint-border);
     padding: 0 24px;
     height: 46px;
+    /* Fixed footprint so the button NEVER changes size — MINT and the in-button
+       mint flow are the exact same pill; only the face inside swaps. */
+    width: 300px;
+    max-width: 100%;
+    box-sizing: border-box;
     cursor: pointer;
     border-radius: 4px;
     transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
@@ -3174,35 +3179,24 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-weight: bold;
     opacity: 0.85;
 }
-/* In-button mint flow — the "choosing" state. Stays contained to the button's
-   footprint: qty stepper · CONFIRM · cancel on one line, fee note (when the fee
-   is live) wraps to its own line. Never overflows the viewport on mobile. */
+/* In-button mint flow — the "choosing" face. It REUSES .btn-mint, so it is the
+   exact same pill at the exact same 300px size; only the face inside swaps.
+   Tight, all-Courier so qty stepper · CONFIRM · cancel fit on one line. */
 .mint-chooser {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-width: 100%;
-}
-.mint-qty {
-    display: inline-flex;
-    align-items: center;
+    padding: 0 6px;
     gap: 2px;
-    height: 46px;
-    padding: 0 4px;
-    border: 1px solid var(--mint-border);
-    border-radius: 4px;
-    background: var(--bg-color);
-    flex-shrink: 0;
+    justify-content: space-between;
 }
 .mint-step {
     width: 30px;
-    height: 38px;
+    height: 36px;
+    flex-shrink: 0;
     border: none;
     background: transparent;
-    color: var(--text-color);
-    font-family: var(--font-rubik-mono), sans-serif;
+    color: var(--mint-text);
+    font-family: 'Courier New', Courier, monospace;
     font-size: 20px;
+    font-weight: bold;
     line-height: 1;
     cursor: pointer;
     border-radius: 3px;
@@ -3212,45 +3206,61 @@ body.persona-default .stats-row-2 { display: none !important; }
     transition: background 0.15s, opacity 0.15s;
     -webkit-tap-highlight-color: transparent;
 }
-.mint-step:hover:not(:disabled) { background: rgba(127, 127, 127, 0.18); }
+.mint-step:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
 .mint-step:disabled { opacity: 0.3; cursor: default; }
 .mint-qty-val {
-    min-width: 26px;
+    min-width: 18px;
     text-align: center;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
-    color: var(--text-color);
+    color: var(--mint-text);
+    flex-shrink: 0;
 }
 .mint-confirm {
     flex: 1 1 auto;
     min-width: 0;
-    padding: 0 16px;
+    height: 38px;
+    padding: 0 6px;
+    border: none;
+    background: transparent;
+    color: var(--mint-text);
+    cursor: pointer;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
+.mint-confirm:hover { background: rgba(255, 255, 255, 0.14); }
+/* CONFIRM goes Courier inside the flow (the idle MINT CTA keeps its own face). */
+.mint-chooser .mint-lbl {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+.mint-chooser .mint-price { font-size: 12px; }
 .mint-cancel {
-    width: 46px;
-    height: 46px;
+    width: 26px;
+    height: 36px;
     flex-shrink: 0;
-    border: 1px solid var(--mint-border);
-    background: var(--bg-color);
-    color: var(--text-color);
-    border-radius: 4px;
-    font-size: 16px;
+    border: none;
+    background: transparent;
+    color: var(--mint-text);
+    opacity: 0.7;
+    border-radius: 3px;
+    font-size: 14px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s, opacity 0.15s;
     -webkit-tap-highlight-color: transparent;
 }
-.mint-cancel:hover { background: var(--text-color); color: var(--bg-color); }
-.mint-fee-note {
-    flex-basis: 100%;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
-    opacity: 0.7;
-    color: var(--text-color);
-}
+.mint-cancel:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
 .btn-soundtrack {
     background: var(--bg-color);
     color: var(--text-color);
