@@ -30,6 +30,11 @@ contract that keeps it working:
   Brendon's explicit approval in chat.
 - **On a branch mismatch warning, stop and reconcile before working.** Branch
   drift across fatigued chats is the failure this guards against.
+- **Pushing requires Brendon's explicit approval.** Before ANY `git push`,
+  present a concise, **numbered, CEO-level list** of exactly what's being pushed
+  — each item one line: the change + its impact, no dev minutiae. Push only
+  after Brendon says go in chat. Committing locally needs no approval; the gate
+  is the push.
 - **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
   decisions · next step). An out-of-date baton is worse than none.
 
