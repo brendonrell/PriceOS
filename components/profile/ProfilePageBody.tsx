@@ -25,7 +25,7 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import {
     TraitsProvider,
     useTraits,
@@ -38,6 +38,8 @@ import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
+import ProjectCard from './ProjectCard';
+import { projectsByArtist } from '../../lib/project/registry';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -109,6 +111,10 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [user.address]);
     const followerCount = counts.followers;
+
+    /* Projects this user created (they're an artist). The Created tab shows
+       these as Project cards. */
+    const artistProjects = useMemo(() => projectsByArtist(user.handle ?? handle), [user.handle, handle]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -483,9 +489,11 @@ function ProfilePageBodyInner({
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
-                {galleryIds.map((id) => (
-                    <ArtworkCard key={id} id={id} />
-                ))}
+                {onCreated && artistProjects.length > 0
+                    ? artistProjects.map((p) => (
+                          <ProjectCard key={p.slug} slug={p.slug} displayName={p.displayName} outputs={p.outputs} />
+                      ))
+                    : galleryIds.map((id) => <ArtworkCard key={id} id={id} />)}
             </section>
         </>
     );

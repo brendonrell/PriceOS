@@ -68,6 +68,12 @@ export function allProjects(): readonly ProjectDef[] {
   return PROJECTS;
 }
 
+/** Projects created by an artist (by handle). */
+export function projectsByArtist(handle: string): readonly ProjectDef[] {
+  const h = handle.toLowerCase();
+  return PROJECTS.filter((p) => p.artistHandle.toLowerCase() === h);
+}
+
 /** Project by slug (case-insensitive), or null. */
 export function getProject(slug: string): ProjectDef | null {
   return BY_SLUG.get(slug.toLowerCase()) ?? null;
