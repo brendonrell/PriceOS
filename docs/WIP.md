@@ -6,43 +6,37 @@
 
 ---
 
-- **Branch:** `claude/peaceful-noether-Lu4Cw` (all work below MERGED to `dev`)
+- **Branch:** work merged to `dev` via `claude/site-bug-context-review-Luf2W`
 - **Updated:** 2026-06-07
 
-## 🔴 TOP PRIORITY (fresh chat): orange-in-custom colourway bug — NOT fixed
+## ✅ FIXED — orange-in-custom colourway bug (merged to dev, VERIFY on dev)
 
-Symptom (Brendon, verified on dev, his account): default colorway = **custom**,
-but custom paints the SAME orange as **orange mode** (#FF6600). He has declared
-this "fixed" ~5× across chats — DO NOT claim fixed without him verifying on the
-dev URL with HIS logged-in account.
+Was: default colorway **custom** painted the same orange as orange mode because
+the **custom colorway** was driven by the user's **`profile_hex`** (#FF6600).
+Per Brendon's locked intent, `profile_hex` (personal profile colour) and the
+Custom colorway and Haze Mode are now THREE separate features — decoupled.
 
-**ROOT CAUSE (found, not yet fixed):** the **custom colorway** is being driven
-by the user's **`profile_hex`** (a *separate* concept = personal-profile colour).
-Brendon's `profile_hex = #FF6600`, which is ~identical to orange mode
-(`COLORWAYS.orange = #ff6600`) → custom looks exactly like orange.
-The conflation lives here:
-- `lib/state/userState.ts` → `hydrateFromRow()`: on login it does
-  `profile_hex → localStorage 'pd_custom_color'` + fires `pd:custom-color-changed`.
-- `lib/hooks/useCustomColor.ts` → `setColor()` writes BOTH `pd_custom_color`
-  (the custom colorway value) AND `pushState({ profile_hex })`. Default custom =
-  `#C488FF` (violet); reads `pd_custom_color`.
-- `lib/state/ColorwayContext.tsx` → custom colorway bg = `getCustomBg()` =
-  `pd_custom_color` (so it inherits `profile_hex`). `COLORWAYS.custom=#C488FF`,
-  `COLORWAYS.orange=#ff6600`.
+**What shipped (PRs on this branch → dev):**
+- Profile colour renamed off the generic "custom" identity: `useCustomColor` →
+  **`useProfileHex`**, own slot **`pd_profile_hex`**, own event
+  **`pd:profile-hex-changed`**, CSS var `--profile-hex`. Still writes
+  `profile_hex` server-side.
+- `userState.hydrateFromRow` writes `profile_hex` → `pd_profile_hex` only (NOT
+  `pd_custom_color`); fires only `pd:profile-hex-changed`. The login bleed is gone.
+- **Profile Colorway now renders:** a profile page paints in ITS OWNER's
+  `profile_hex` under the default/Custom colorway (`ColorwayContext` +
+  `ProfilePageBody.setActiveProfileHex`). Visitor's explicit pick still wins;
+  own-profile edits repaint live; prehydration boots the Custom default (violet)
+  so no yellow flash.
+- **Naming/decouple guard comments** added across all three features citing each
+  by name so they can't be re-welded. Custom (`pd_custom_color`) + Haze Mode
+  (`pd_haze_color`) untouched.
 
-**Brendon's intent (LOCK THIS):** `profile_hex` = personal profile colour (his
-is #FF6600, correct). The **custom colorway is its OWN thing** and must NOT be
-the profile hex. → Decouple them: custom colorway uses its own stored value
-(default violet `#C488FF`), independent of `profile_hex`. Remove the
-`profile_hex → pd_custom_color` sync in `userState.ts` AND the
-`pushState({profile_hex})` from the custom-colour picker (or split the picker so
-"Profile colour" ≠ "Custom colorway colour"). Confirm the product split with
-Brendon before coding — there are TWO settings rows: **"PROFILE COLOURWAY"**
-(#FF6600) and **"DEFAULT COLORWAY → custom"**; they currently share one value.
-DB now: `users.brendon.profile_hex=#FF6600, settings.colorway=custom`;
-`opus4-6.profile_hex=null`.
+⚠️ Brendon: declared fixed ~5× before — confirm on the dev URL with YOUR
+logged-in account (`profile_hex=#FF6600`) before closing. Custom should now be
+violet, your profile should show your orange, and they move independently.
 
-## DONE this session — merged to dev (PRs #19–26), all build-green
+## DONE earlier this session — merged to dev (PRs #19–26), all build-green
 Clean platform + 2 real Projects + chainless market + follow + artist profile:
 - Project **registry** (`lib/project/`), Kiki fully ripped, **Prisms** reborn
   (256, violet #5A2EA6) + **Oracle** (333, gold #C4902A) — both via per-project
