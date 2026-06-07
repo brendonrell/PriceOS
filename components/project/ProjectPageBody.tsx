@@ -873,13 +873,6 @@ function ProjectPageBodyInner() {
                                 </span>
                             )}
                         </div>
-                    ) : showGhosts ? (
-                        /* Null / premint project — Petey the mascot holds the floor
-                           until real collectors arrive. @petey always forwards home. */
-                        <div className="hero-line collected-by-row info-line">
-                            <span className="cbr-label">Collected by</span>{' '}
-                            <a className="cbr-name" href="/petey">@petey</a>
-                        </div>
                     ) : null
                 }
                 statsRow={
