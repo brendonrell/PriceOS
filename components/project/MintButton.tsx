@@ -86,20 +86,20 @@ export default function MintButton({
 
   if (phase === 'choosing') {
     return (
-      <div className="mint-chooser" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-        <div className="mint-qty" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <button type="button" className="mint-step" aria-label="Fewer" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-          <span className="mint-qty-val" style={{ minWidth: 24, textAlign: 'center' }}>{qty}</span>
-          <button type="button" className="mint-step" aria-label="More" onClick={() => setQty((q) => Math.min(max, q + 1))}>+</button>
+      <div className="mint-chooser">
+        <div className="mint-qty">
+          <button type="button" className="mint-step" aria-label="Fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
+          <span className="mint-qty-val">{qty}</span>
+          <button type="button" className="mint-step" aria-label="More" disabled={qty >= max} onClick={() => setQty((q) => Math.min(max, q + 1))}>+</button>
         </div>
-        <button type="button" className="btn-mint" onClick={confirm}>
+        <button type="button" className="btn-mint mint-confirm" onClick={confirm}>
           <span className="mint-lbl">CONFIRM</span>
           <span className="mint-price">({total} ETH)</span>
         </button>
-        <span className="mint-fee-note" style={{ fontSize: 10, opacity: 0.7 }}>
-          incl. {(MINT_FEE_ETH * qty).toFixed(3)} ETH fee
-        </span>
         <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
+        {MINT_FEE_ETH > 0 && (
+          <span className="mint-fee-note">incl. {(MINT_FEE_ETH * qty).toFixed(3)} ETH fee</span>
+        )}
       </div>
     );
   }
