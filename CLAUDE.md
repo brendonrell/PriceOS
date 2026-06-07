@@ -8,6 +8,26 @@ win** — update this file in place and note it.
 
 ---
 
+## 0. Session protocol — read first, every chat
+
+A fresh chat is briefed automatically by the **SessionStart hook**
+(`.claude/session-start.sh`), which prints into context:
+
+1. Repo state (branch · head · tree · deps).
+2. **`docs/WIP.md`** — the live task baton (what's in flight right now), plus a
+   **branch-mismatch warning** if you're not on the task's branch.
+3. **`docs/SESSION_STARTER.md`** — the per-session process checklist.
+
+You do not need to be pointed at any of these — they arrive on their own. The
+contract that keeps it working:
+
+- **On a branch mismatch warning, stop and reconcile before working.** Branch
+  drift across fatigued chats is the failure this guards against.
+- **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
+  decisions · next step). An out-of-date baton is worse than none.
+
+---
+
 ## 1. What this repo is
 
 **PriceOS** — the Next.js 14 frontend + API for **Price Discussion (PD)**, a
@@ -98,6 +118,8 @@ explicit chat confirmation.
 
 ## 8. Active workstream pointers
 
+- **Live task baton:** `docs/WIP.md` — what's in flight *right now* (auto-printed
+  by the SessionStart hook; keep it current, see §0).
 - **Sepolia PD test phase** — `docs/sepolia-test-phase.md` (this repo) +
   ClickUp task `86b9v5w77` (urgent). Pre-mainnet rehearsal on testnet; feeds the
   **Mythic Audit Pass** (`86b9v5wj4`), the last gate before mainnet.
