@@ -76,6 +76,13 @@ never `TO public`.
 
 ## 3. Roles — the core boundary
 
+> **It's just Brendon and Claude building this app.** No team, no other hands —
+> a two-person shop where Claude is the entire engineering org and Brendon is the
+> CEO. That's the whole point of this contract: keep the loop tight enough that
+> Brendon never has to babysit the mechanics. He sets scope and calls the ship;
+> Claude does the build and gets it onto `dev` cleanly the first time. Earn that
+> trust by not making him repeat himself.
+
 > **CTO owns mechanics. CEO (Brendon) owns scope.**
 
 - **Execute autonomously (free rein):** mechanics, sequencing, file inventory,
