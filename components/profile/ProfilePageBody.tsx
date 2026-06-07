@@ -26,22 +26,19 @@
  */
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
-import {
-    TraitsProvider,
-    useTraits,
-} from '../../lib/state/TraitsContext';
+import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
 import ProjectCard from './ProjectCard';
-import { projectsByArtist } from '../../lib/project/registry';
+import { projectsByArtist, getProject } from '../../lib/project/registry';
+import { ProjectProvider } from '../../lib/state/ProjectContext';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -66,8 +63,8 @@ function formatMemberSince(iso: string): string {
 type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 
-const CREATED_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const COLLECTED_IDS = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+/** One collected Output, from /api/user/[address]/outputs. */
+interface Holding { slug: string; token_id: number; }
 
 function ProfilePageBodyInner({
     handle,
@@ -81,8 +78,6 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, dir } = useSort();
-    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -133,6 +128,41 @@ function ProfilePageBodyInner({
     /* Projects this user created (they're an artist). The Created tab shows
        these as Project cards. */
     const artistProjects = useMemo(() => projectsByArtist(user.handle ?? handle), [user.handle, handle]);
+
+    /* Real collected Outputs (holders rows) for THIS profile's wallet — empty
+       at fresh state, populating as the wallet mints/buys. Spans both projects;
+       grouped by slug for rendering. Re-fetches on 'pd:project-refresh' (fired
+       after a mint / market action) so the gallery updates without a reload. */
+    const [holdings, setHoldings] = useState<Holding[]>([]);
+    useEffect(() => {
+        let cancelled = false;
+        const load = () =>
+            fetch(`/api/user/${user.address.toLowerCase()}/outputs`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { holdings?: Holding[] } | null) => {
+                    if (!cancelled && d?.holdings) setHoldings(d.holdings);
+                })
+                .catch(() => {});
+        load();
+        const onRefresh = () => load();
+        window.addEventListener('pd:project-refresh', onRefresh);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
+    }, [user.address]);
+
+    /* Collected Outputs grouped by Project. Each group renders inside its own
+       ProjectProvider so ArtworkCard paints the right Project's art + meta —
+       the provider is a context-only node (no DOM), so all cards still land as
+       direct children of the single #gallery grid. */
+    const collectedByProject = useMemo(() => {
+        const m = new Map<string, number[]>();
+        for (const h of holdings) {
+            if (!getProject(h.slug)) continue;
+            const arr = m.get(h.slug) ?? [];
+            arr.push(h.token_id);
+            m.set(h.slug, arr);
+        }
+        return [...m.entries()].map(([slug, ids]) => ({ slug, ids: ids.sort((a, b) => a - b) }));
+    }, [holdings]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -225,32 +255,7 @@ function ProfilePageBodyInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
-    // ── Collected gallery: sort + filter pipeline (mirrors project page) ──
-    // For now backed by COLLECTED_IDS mock data.
-    // When real per-user collection data lands, replace the id source here.
-    const visibleCollectedIds = (() => {
-        let ids = [...COLLECTED_IDS];
-
-        // Basic sort (id / price fallback to id for mock data)
-        const dirMult = dir === 'asc' ? 1 : -1;
-        if (sort === 'id' || sort === 'fog') {
-            ids.sort((a, b) => (a - b) * dirMult);
-        } else if (sort === 'feed') {
-            ids.sort((a, b) => b - a);
-        }
-        // price sort: no price data on mock collected ids yet — falls back to id order
-
-        // Search filter: id substring only for now
-        const q = searchQuery.trim().toLowerCase();
-        if (q) {
-            ids = ids.filter((id) => String(id).includes(q));
-        }
-
-        return ids;
-    })();
-
     const galleryVisible = onCreated || onCollected;
-    const galleryIds = onCreated ? CREATED_IDS : visibleCollectedIds;
 
     return (
         <>
@@ -365,7 +370,7 @@ function ProfilePageBodyInner({
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">142</span>
+                            <span className="stat-val">{holdings.length}</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span
@@ -374,7 +379,7 @@ function ProfilePageBodyInner({
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol">3.2 ETH</span>
+                            <span className="stat-val stat-val-vol">—</span>
                         </span>
                         <span
                             className="stat-item stat-item-owners"
@@ -507,11 +512,17 @@ function ProfilePageBodyInner({
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
-                {onCreated && artistProjects.length > 0
+                {onCreated
                     ? artistProjects.map((p) => (
                           <ProjectCard key={p.slug} slug={p.slug} displayName={p.displayName} outputs={p.outputs} />
                       ))
-                    : galleryIds.map((id) => <ArtworkCard key={id} id={id} />)}
+                    : collectedByProject.map(({ slug, ids }) => (
+                          <ProjectProvider key={slug} slug={slug}>
+                              {ids.map((id) => (
+                                  <ArtworkCard key={`${slug}-${id}`} id={id} />
+                              ))}
+                          </ProjectProvider>
+                      ))}
             </section>
         </>
     );
