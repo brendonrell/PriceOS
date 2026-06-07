@@ -44,7 +44,12 @@ contract that keeps it working:
   **docs/process only** — `CLAUDE.md`, `docs/`, `docs/WIP.md`, `.claude/` hooks
   & settings — are pre-approved: just push and note it. Committing locally never
   needs approval; the gate is the app-touching push.
-- **Last thing before ending a session: update `docs/WIP.md`** (branch · task ·
+- **Clean up the mess FIRST, then update `docs/WIP.md` LAST (Brendon, hard rule).**
+  Before writing the baton: resolve the working tree (commit/strip/verify clean —
+  `git status` clean, no stale-index leftovers on `dev`), so the WIP describes the
+  REAL, clean state. Updating WIP while changes are still half-pushed or polluted
+  bakes a lie into the handoff. Order is always: clean & verify → **then** WIP.
+- **Updating `docs/WIP.md` is the very last step of a session** (branch · task ·
   decisions · next step). An out-of-date baton is worse than none.
 
 ---
