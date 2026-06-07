@@ -23,6 +23,9 @@ import {
 } from 'react';
 import { getProject, outputTraits, renderArtwork } from '../project/registry';
 import type { OutputTraits } from '../project/types';
+import type { ProjectStats } from '../../app/api/project/[slug]/route';
+
+const EMPTY_STATS: ProjectStats = { collectors: 0, volume_eth: '0', floor_eth: null, collected_by_following: [] };
 
 export interface OutputMeta {
     ownerDisplay: string;
@@ -44,6 +47,8 @@ export interface ProjectState {
     outputs: ReadonlyMap<number, OutputMeta>;
     /** Fixed featured ids for the Project Showcase tab. */
     showcaseIds: readonly number[];
+    /** Aggregate hero stats (collectors, volume, floor, recent collectors). */
+    stats: ProjectStats;
 }
 
 const ProjectCtx = createContext<ProjectState | null>(null);
@@ -97,6 +102,7 @@ function buildInitial(slug: string): ProjectState {
         floorEth: MOCK_PROJECT_FLOOR_ETH,
         outputs: new Map<number, OutputMeta>(),
         showcaseIds: [],
+        stats: EMPTY_STATS,
     };
 }
 
@@ -130,7 +136,7 @@ export function ProjectProvider({
         const load = () => {
             fetch(`/api/project/${lower}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number } | null) => {
+                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats } | null) => {
                     if (cancelled || !data) return;
                     setState((prev) => {
                         if (prev.slug !== lower) return prev;
@@ -158,6 +164,7 @@ export function ProjectProvider({
                             outputs,
                             showcaseIds,
                             totalOutputs: data.total ?? prev.totalOutputs,
+                            stats: data.stats ?? prev.stats,
                         };
                     });
                 })
