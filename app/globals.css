@@ -3384,7 +3384,7 @@ body.persona-default .stats-row-2 { display: none !important; }
     justify-content: center;
 }
 .pill-colorway span {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: normal;
     font-family: 'Courier New', Courier, monospace;
     display: flex;

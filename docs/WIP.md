@@ -1,8 +1,7 @@
 # WIP — Live Task State
 
 > Single source of truth for **what's in flight right now**. The SessionStart
-> hook prints this into every fresh chat's context, so a new session recovers
-> the thread without anyone re-explaining it. **Last thing before ending a
+> hook prints this into every fresh chat's context. **Last thing before ending a
 > session: update this file.** Keep it short — it's a baton, not a log.
 
 ---
@@ -10,34 +9,35 @@
 - **Branch:** `claude/home-page-color-carousel-TNXd5`
 - **Updated:** 2026-06-07
 
-## Last task — home page polish (✅ MERGED TO DEV via PR #16)
+## Last task — home page (✅ root-caused + MERGED TO DEV, PR #17)
 
-1. **Home custom color = Attention Yellow (`#FFE600`).** Home paints yellow for
-   both cold-start AND an explicit `custom` pick, using ATTENTION directly
-   instead of leaking the shared `pd_custom_color` slot (`ColorwayContext.tsx`
-   ~L399). Light/dark/orange picks still work on home.
-2. **Carousel left edge.** Carousel head + track match the page's responsive
-   edge inset — 40px desktop, **20px mobile** (the missing mobile rule was the
-   cause). `app/globals.css` after `.home-carousel-track`.
+1. **Home = Attention Yellow in custom mode.** Real root cause: TWO paint paths
+   (boot + server-hydration) and only boot honored home→yellow; the hydration
+   handler repainted with the shared `pd_custom_color` slot (Brendon's #FF6600
+   profile hex) on every load. Both now route through one `paintForPath`
+   resolver (`ColorwayContext.tsx`) so they can't diverge. Verified via
+   Brendon's settings screenshot: default colorway = custom, profile hex =
+   #FF6600 — settings were correct; home was leaking the profile slot.
+2. **Carousel left edge.** `scroll-snap` pulled card #1 to the screen edge,
+   eating the track's left padding. Fix = `scroll-padding-left` (40px desktop /
+   20px mobile) so the snap start respects the page inset. (`app/globals.css`)
 
-Merged to `dev` (squash, PR #16). dev preview rebuilt with both fixes.
+Merged to `dev` via PR #17. dev deploy (23b4649) building → verify on
+`https://price-os-git-dev-pricediscussion.vercel.app`.
 
-## Process hardening shipped this session
+## Hard rule added this session
+- **Never blame Brendon's settings/cache/browser.** Default: it's our code/deploy.
+  (CLAUDE.md §7.) Plus: Brendon's review surface = the dev URL above (CLAUDE.md §0).
 
-- SessionStart self-brief (`.claude/session-start.sh`) prints WIP + starter +
-  branch-mismatch guard into every chat.
-- `git-guard` PreToolUse hook (`.claude/git-guard.sh`) hard-blocks any git write
-  to `main`. Escape hatch: `PD_ALLOW_MAIN=1 <cmd>` after explicit approval.
-- CLAUDE.md §0 (session protocol, dev-only rule) + §7 (concise CEO-level comms).
+## Process harness (live, in dev)
+- SessionStart self-brief + branch-mismatch guard (`.claude/session-start.sh`).
+- git-guard blocks all writes to `main` (`.claude/git-guard.sh`); escape hatch
+  `PD_ALLOW_MAIN=1`. Segment-aware so "main" in a commit message doesn't false-block.
+- Push rule: app pushes need Brendon's numbered-list approval; docs/process pre-approved.
 
-## main / production — RESOLVED, clean
-
-- Verified: current `main` tree == pre-promotion `main` tree (`5236c2e`), i.e.
-  the promote→revert churn netted out. **Production is the correct pre-fuckup
-  baseline.** Left untouched on purpose (no prod write for a no-op; guard blocks
-  main anyway). The two promote/revert commits remain in history; content clean.
+## main / production — clean
+- `main` tree == pre-promotion baseline (`5236c2e`); promote→revert netted out.
+  Untouched on purpose. Home fixes live in `dev` only (not promoted).
 
 ## Next step
-
-- Nothing open. Home fixes live in dev; main clean. Pick the next task from the
-  Sepolia test phase (§8 of CLAUDE.md) when ready.
+- Brendon verifies home (yellow + carousel) on the dev URL once 23b4649 is READY.

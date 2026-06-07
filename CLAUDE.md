@@ -10,11 +10,11 @@ win** — update this file in place and note it.
 
 ## 0. Session protocol — read first, every chat
 
-> **Brendon's review surface = the dev preview:
-> `https://price-os-git-dev-pricediscussion.vercel.app`.** When he says "the
-> app" / "the home page" / "what it looks like", he means THIS url (it tracks
-> `dev`). Verify changes here before claiming them done. Never tell him it's his
-> local settings/cache — diagnose the code/deploy.
+> **We work on `dev`. The dev preview
+> (`https://price-os-git-dev-pricediscussion.vercel.app`) IS the app** — the one
+> environment we build and verify against. Not a personal setting, not optional.
+> Verify every change here before claiming it done. Never attribute a bug to
+> settings/cache/browser — diagnose the code/deploy.
 
 A fresh chat is briefed automatically by the **SessionStart hook**
 (`.claude/session-start.sh`), which prints into context:
@@ -143,6 +143,10 @@ explicit chat confirmation.
   the impact, the trade-off. Brendon is highly savvy but not a developer: skip
   the line-by-line mechanics unless asked, never dumb it down. Drop to deep
   technical detail only on request.
+- **Phone-length. Fit above the fold on an iPhone — no scrolling.** Brendon
+  reads on mobile; if a reply needs scrolling he tunes out (it reads as filler).
+  Default to a few tight lines. No preamble, no recap of what he just said, no
+  filler. Expand only when he asks.
 - Point form for summaries, recaps, status. Talk to Brendon like a smart human.
 - Own mistakes plainly, no blame-shifting, no approval-fishing.
 - Don't ask questions whose answer is already in context.
