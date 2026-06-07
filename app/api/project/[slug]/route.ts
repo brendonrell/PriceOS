@@ -7,6 +7,7 @@ import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
 
 export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export interface OutputOwner {
   token_id: number;
