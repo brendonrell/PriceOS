@@ -27,10 +27,12 @@ export default function GhostCard({
     showcasePick?: boolean;
     index?: number;
 }) {
-    // Stagger each ghost's pulse so the grid breathes organically, not in sync.
+    // Stagger each ghost's pulse so the grid breathes organically, not in sync,
+    // and spread a soft hue per card so the empty grid hints at the prism palette.
     const style: CSSProperties = {
         aspectRatio: String(aspect),
         ['--ghost-delay' as string]: `${(index % 6) * 0.32}s`,
+        ['--ghost-h' as string]: String((index * 47 + 200) % 360),
     };
     return (
         <article

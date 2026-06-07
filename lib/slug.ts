@@ -121,6 +121,16 @@ function parseSlug(slug: string): Parsed {
  * leading-zero numerics, and non-positive integers.
  */
 export function resolveSlug(slug: string): Resolved {
+  // Petey is PD's mascot, not a real profile — `/petey` and `/@petey` always
+  // forward to home. (Surfaced as the fake "Collected by" on null projects.)
+  try {
+    if (decodeURIComponent(slug).replace(/^@/, '').toLowerCase() === 'petey') {
+      return { kind: 'redirect', to: '/' };
+    }
+  } catch {
+    /* malformed encoding — fall through to the normal parser */
+  }
+
   const p = parseSlug(slug);
   if (p.kind === 'invalid') return { kind: 'invalid' };
   if (p.kind === 'output') return p;

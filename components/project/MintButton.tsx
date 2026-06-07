@@ -119,6 +119,8 @@ export default function MintButton({
       style={{ position: 'relative', overflow: 'hidden' }}
     >
       {phase === 'minting' && (
+        // The sliding bar — fills left→right as the mint resolves so the button
+        // always reads "moving forward" (CLAUDE.md §9). Brendon's pick over ASCII.
         <span
           aria-hidden
           style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, background: 'rgba(255,255,255,0.28)', transition: 'width 0.9s ease' }}

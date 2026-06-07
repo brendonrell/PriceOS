@@ -3148,6 +3148,26 @@ body.persona-default .stats-row-2 { display: none !important; }
     bottom: 0;
     align-self: flex-start;
 }
+/* No-highlight on tappable controls — kills the iOS text-selection / "Copy ·
+   Find Selection · Look Up" popup that hijacks taps on Unicode glyph buttons
+   (the +/− steppers, icon glyphs, pills). Platform-wide: every button +
+   role=button + known interactive glyph. Real text (prices, names, body copy)
+   stays selectable. (Brendon, 2026-06-07.) */
+button,
+[role="button"],
+.pill,
+.mint-step,
+.mint-cancel,
+.hi-icon,
+.stat-icon,
+.stat-icon-eth,
+.stat-icon-box {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
 .btn-mint {
     background-color: var(--mint-bg);
     background-image: var(--mint-bg-img);
