@@ -3156,8 +3156,9 @@ body.persona-default .stats-row-2 { display: none !important; }
     padding: 0 24px;
     height: 46px;
     /* Fixed footprint so the button NEVER changes size — MINT and the in-button
-       mint flow are the exact same pill; only the face inside swaps. */
-    width: 300px;
+       mint flow are the exact same pill; only the face inside swaps. Stacking
+       CONFIRM over the ETH amount lets this stay tight. */
+    width: 224px;
     max-width: 100%;
     box-sizing: border-box;
     cursor: pointer;
@@ -3221,28 +3222,31 @@ body.persona-default .stats-row-2 { display: none !important; }
     flex: 1 1 auto;
     min-width: 0;
     height: 38px;
-    padding: 0 6px;
+    padding: 0 4px;
     border: none;
     background: transparent;
     color: var(--mint-text);
     cursor: pointer;
     border-radius: 3px;
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 0;
+    line-height: 1.05;
     white-space: nowrap;
     transition: background 0.15s;
     -webkit-tap-highlight-color: transparent;
 }
 .mint-confirm:hover { background: rgba(255, 255, 255, 0.14); }
-/* CONFIRM goes Courier inside the flow (the idle MINT CTA keeps its own face). */
+/* CONFIRM stacks over the ETH amount (Courier) to save horizontal width — the
+   idle MINT CTA keeps its own single-line face. */
 .mint-chooser .mint-lbl {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
 }
-.mint-chooser .mint-price { font-size: 12px; }
+.mint-chooser .mint-price { font-size: 11px; opacity: 0.8; }
 .mint-cancel {
     width: 26px;
     height: 36px;
