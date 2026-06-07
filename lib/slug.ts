@@ -4,6 +4,8 @@
  * The PriceOS root namespace is shared by:
  *   /{number}    → Output (global PD ID, fxhash model)
  *   /{handle}    → Profile (canonical)
+ *   /0x{40-hex}  → Profile by wallet address → 301 → /{handle} (canonical)
+ *   /@0x{40-hex} → same (address, @-prefixed) → 301 → /{handle}
  *   /@{handle}   → 301 → /{handle} (alias; @ is the alternative form)
  *   /@{project}  → 301 → /art/{project} (T4 project slug match)
  *
@@ -29,6 +31,7 @@ import { isReservedHandle } from './reserved-handles';
 export type Resolved =
   | { kind: 'output'; globalId: number }
   | { kind: 'profile'; handle: string }
+  | { kind: 'profileByAddress'; address: string }
   | { kind: 'redirect'; to: string }
   | { kind: 'invalid' };
 
@@ -45,8 +48,15 @@ const PROJECT_SLUGS: ReadonlySet<string> = new Set([
    this so the validation rules stay in one place. */
 type Parsed =
   | { kind: 'output'; globalId: number }
+  | { kind: 'address'; address: string }
   | { kind: 'handle'; handle: string; wasAtPrefixed: boolean; isProject: boolean }
   | { kind: 'invalid' };
+
+/* A 40-hex EVM wallet address, e.g. /0x6b…f3. NOTE: an address also passes the
+   handle regex below (it's all [0-9a-f]), so it MUST be matched first or it
+   gets looked up as a handle and 404s. Addresses resolve to their owner's
+   profile (the page 301s to the canonical /{handle}). */
+const ADDRESS_RE = /^0x[0-9a-f]{40}$/i;
 
 function parseSlug(slug: string): Parsed {
   if (!slug || slug.length === 0) {
@@ -77,9 +87,17 @@ function parseSlug(slug: string): Parsed {
     return { kind: 'output', globalId };
   }
 
-  // Strip leading @ (alias form: /@brendon, /@prisms).
+  // Strip leading @ (alias form: /@brendon, /@prisms, /@0x…).
   const wasAtPrefixed = decoded.startsWith('@');
   const stripped = wasAtPrefixed ? decoded.slice(1) : decoded;
+
+  // Wallet address (bare or @-prefixed) → owner's profile. Matched before the
+  // handle check because a 0x-address satisfies the handle regex too. Both
+  // /0x… and /@0x… land here; the page 301s to the canonical /{handle}.
+  if (ADDRESS_RE.test(stripped)) {
+    return { kind: 'address', address: stripped.toLowerCase() };
+  }
+
   const handle = stripped.toLowerCase();
 
   // Validate handle shape: ASCII alphanumerics, underscore, hyphen.
@@ -106,6 +124,10 @@ export function resolveSlug(slug: string): Resolved {
   const p = parseSlug(slug);
   if (p.kind === 'invalid') return { kind: 'invalid' };
   if (p.kind === 'output') return p;
+
+  // Wallet address → resolve to the owner's profile (page canonicalises to
+  // /{handle}). Parallels the @-prefix → canonical-URL behaviour.
+  if (p.kind === 'address') return { kind: 'profileByAddress', address: p.address };
 
   // @-prefix always 301s to canonical form.
   if (p.wasAtPrefixed) {
