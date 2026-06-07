@@ -38,6 +38,7 @@ import {
     type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
+import { getProject } from '../project/registry';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 import {
     enableHazeVariation,
@@ -354,10 +355,13 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         /^[@a-z0-9_-]+$/i.test(firstSeg);
     const isHomePage = pathname === '/';
 
-    if (isProjectPage && saved === null) {
-        // Project page, no pick → artist's custom fill.
-        applyBgHex(getCustomBg(), 'custom');
-        return null;
+    if (isProjectPage && (saved === null || saved === 'custom')) {
+        // Project page → the PROJECT's own colorway (e.g. Prisms #5A2EA6,
+        // Oracle #C4902A), never the user's profile hex. An explicit non-custom
+        // pick (dark/light/blue/…) still wins via the fall-through below.
+        const projSlug = (pathname?.split('/')[2] ?? '').toLowerCase();
+        applyBgHex(getProject(projSlug)?.colorway ?? getCustomBg(), 'custom');
+        return saved;
     }
     if (isProfilePage && saved === null) {
         // Profile page, no pick → Light Mode neutral canvas.

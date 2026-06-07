@@ -63,7 +63,6 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
-import { useAuth } from '../../lib/state/AuthContext';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
@@ -77,6 +76,7 @@ import {
     type TraitCategory,
 } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
+import MintButton from './MintButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
 import {
@@ -266,7 +266,6 @@ function ProjectPageBodyInner() {
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
-    const { siweAddress } = useAuth();
     const { add: cartAdd } = useCart();
 
     /* Registry def for static fields not in ProjectContext (mint price,
@@ -275,26 +274,7 @@ function ProjectPageBodyInner() {
     const mintPrice = def?.mintPriceEth ?? 0.01;
     const soundtrack = def?.soundtrack ?? null;
     const soldOut = project.totalOutputs >= project.maxSupply;
-
-    const [minting, setMinting] = useState(false);
-    /* The whole mint flow lives in the button — on success we show the minted
-       result inline (no modal), then revert. */
-    const [justMinted, setJustMinted] = useState<{ id: number; balance: number } | null>(null);
-    const doMint = async () => {
-        if (!siweAddress) { showToast('Connect your wallet to mint'); return; }
-        if (soldOut || minting) return;
-        setMinting(true);
-        try {
-            const r = await fetch(`/api/project/${project.slug}/mint`, { method: 'POST' });
-            const j = await r.json().catch(() => ({}));
-            if (!r.ok) { showToast(j?.error ? String(j.error) : 'Mint failed'); return; }
-            setJustMinted({ id: j.token_id, balance: j.balance });
-            if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
-            window.setTimeout(() => setJustMinted(null), 3500);
-        } finally {
-            setMinting(false);
-        }
-    };
+    const remaining = Math.max(0, project.maxSupply - project.totalOutputs);
     /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
        stat ("Outputs Minted / Total Supply", etc.); value is inert
        except for PPL (opens collectors modal) and Anchor (opens
@@ -915,19 +895,12 @@ function ProjectPageBodyInner() {
                                 </span>
                             </button>
                         ) : (
-                            <button
-                                className="btn-mint"
-                                title="Mint the next Output"
-                                onClick={doMint}
-                                disabled={minting}
-                            >
-                                <span className="mint-lbl">
-                                    {justMinted ? `MINTED #${justMinted.id}` : minting ? 'MINTING…' : 'MINT'}
-                                </span>
-                                <span className="mint-price">
-                                    {justMinted ? `(${justMinted.balance} ETH left)` : `(${mintPrice} ETH)`}
-                                </span>
-                            </button>
+                            <MintButton
+                                slug={project.slug}
+                                projectTitle={project.title}
+                                mintPrice={mintPrice}
+                                remaining={remaining}
+                            />
                         )}
                         {soundtrack && (
                             <a

@@ -60,17 +60,6 @@ function shortAddr(addr: string): string {
     return '0x' + addr.slice(2, 6) + '…' + addr.slice(-4);
 }
 
-/* Six evenly-spread featured ids within the supply (valid for any count). */
-function deriveShowcase(total: number): number[] {
-    if (total <= 0) return [];
-    const out: number[] = [];
-    for (let k = 1; k <= 6; k++) {
-        const id = Math.max(1, Math.min(total, Math.round((total * k) / 7)));
-        if (!out.includes(id)) out.push(id);
-    }
-    return out;
-}
-
 /* Deterministic per-id meta. Ownership mirrors the seed rule (odd -> brendon,
    even -> opus4-6); price is a stable placeholder; traits come from the
    Project's Artwork engine + Fate (registry). Exported so the global output
@@ -94,17 +83,20 @@ export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
 
 function buildInitial(slug: string): ProjectState {
     const def = getProject(slug);
-    const total = def?.outputs ?? 0;
-    const outputs = new Map<number, OutputMeta>();
-    for (let id = 1; id <= total; id++) outputs.set(id, buildOutputMetaFor(slug, id));
+    const supply = def?.outputs ?? 0;
+    // Start empty — metas are built lazily for the minted Outputs the DB
+    // reconcile returns. (Eagerly building every possible Output's meta —
+    // art + Fate cast — on mount blocked first paint, esp. mobile Safari.)
+    // `totalOutputs` (minted count) starts at 0 and is filled by the reconcile;
+    // starting it at supply would flash a sold-out state before the fetch lands.
     return {
         slug,
         title: def?.displayName ?? slug.toUpperCase(),
-        totalOutputs: total,
-        maxSupply: total,
+        totalOutputs: 0,
+        maxSupply: supply,
         floorEth: MOCK_PROJECT_FLOOR_ETH,
-        outputs,
-        showcaseIds: deriveShowcase(total),
+        outputs: new Map<number, OutputMeta>(),
+        showcaseIds: [],
     };
 }
 
@@ -144,8 +136,9 @@ export function ProjectProvider({
                         if (prev.slug !== lower) return prev;
                         const outputs = new Map(prev.outputs);
                         for (const o of data.outputs ?? []) {
-                            const meta = outputs.get(o.token_id);
-                            if (!meta) continue;
+                            // Build meta lazily for minted Outputs (deterministic
+                            // art/traits/Fate), then overlay live owner + price.
+                            const meta = outputs.get(o.token_id) ?? buildOutputMetaFor(lower, o.token_id);
                             const addr = (o.owner ?? '').toLowerCase();
                             const ownerDisplay = o.owner_handle ? '@' + o.owner_handle : shortAddr(o.owner ?? '');
                             outputs.set(o.token_id, {
