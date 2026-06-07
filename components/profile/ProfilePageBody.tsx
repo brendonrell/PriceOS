@@ -26,19 +26,21 @@
  */
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
-import { TraitsProvider } from '../../lib/state/TraitsContext';
+import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
 import ProjectCard from './ProjectCard';
-import { projectsByArtist, getProject } from '../../lib/project/registry';
+import { projectsByArtist, getProject, outputTraits } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -64,7 +66,13 @@ type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 
 /** One collected Output, from /api/user/[address]/outputs. */
-interface Holding { slug: string; token_id: number; }
+interface Holding {
+    slug: string;
+    token_id: number;
+    list_price_eth: string | null;
+    /** Mint event timestamp (Unix seconds) — source for PriceDay + Natal. */
+    mint_ts: number | null;
+}
 
 function ProfilePageBodyInner({
     handle,
@@ -78,6 +86,8 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
+    const { sort, dir } = useSort();
+    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -149,20 +159,84 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
     }, [user.address]);
 
-    /* Collected Outputs grouped by Project. Each group renders inside its own
-       ProjectProvider so ArtworkCard paints the right Project's art + meta —
-       the provider is a context-only node (no DOM), so all cards still land as
-       direct children of the single #gallery grid. */
+    /* Enrich each held Output with its full platform traits (Artist/Project/
+       PriceDay/Natal/Fate — PriceDay + Natal need the mint timestamp) and live
+       listed status. Both the facet bar and the predicate read this, so they
+       can never diverge. */
+    const enriched = useMemo<EnrichedHolding[]>(
+        () =>
+            holdings
+                .filter((h) => getProject(h.slug))
+                .map((h) => ({
+                    slug: h.slug,
+                    token_id: h.token_id,
+                    list_price_eth: h.list_price_eth,
+                    listed: h.list_price_eth != null,
+                    traits: outputTraits(
+                        h.slug,
+                        h.token_id,
+                        h.mint_ts != null ? h.mint_ts * 1000 : undefined,
+                    ),
+                })),
+        [holdings],
+    );
+
+    /* Collected-tab search + filter + sort over the enriched holdings. Filters
+       by the platform facets (facetValueOf), searches @artist / @project / id,
+       ranges on listing price, sorts by id or price. */
+    const visibleCollected = useMemo<EnrichedHolding[]>(() => {
+        const minVal = parseFloat(priceMin);
+        const maxVal = parseFloat(priceMax);
+        const hasMin = !Number.isNaN(minVal);
+        const hasMax = !Number.isNaN(maxVal);
+        const q = searchQuery.trim().toLowerCase();
+        const activeCats = Object.keys(activeFilters).filter((c) => activeFilters[c].size > 0);
+
+        const filtered = enriched.filter((h) => {
+            const priceNum = h.list_price_eth ? parseFloat(h.list_price_eth) : null;
+            for (const cat of activeCats) {
+                const v = facetValueOf(cat, h);
+                if (v === undefined || !activeFilters[cat].has(v)) return false;
+            }
+            if (q) {
+                const hay = `${h.traits.Artist ?? ''} ${h.traits.Project ?? ''} #${h.token_id}`.toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            if (hasMin && (priceNum == null || priceNum < minVal)) return false;
+            if (hasMax && priceNum != null && priceNum > maxVal) return false;
+            return true;
+        });
+
+        const dirMult = dir === 'asc' ? 1 : -1;
+        const byId = (a: EnrichedHolding, b: EnrichedHolding) =>
+            a.slug === b.slug ? (a.token_id - b.token_id) * dirMult : a.slug.localeCompare(b.slug);
+        if (sort === 'price') {
+            filtered.sort((a, b) => {
+                const na = a.list_price_eth ? parseFloat(a.list_price_eth) : Infinity;
+                const nb = b.list_price_eth ? parseFloat(b.list_price_eth) : Infinity;
+                return na !== nb ? (na - nb) * dirMult : byId(a, b);
+            });
+        } else {
+            filtered.sort(byId);
+        }
+        return filtered;
+    }, [enriched, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
+
+    /* Group the filtered/sorted holdings by Project for rendering. Each group
+       renders inside its own ProjectProvider so ArtworkCard paints the right
+       Project's art + meta — the provider is a context-only node (no DOM), so
+       all cards still land as direct children of the single #gallery grid.
+       (Sort is global within each project group; cross-project ordering follows
+       the group order.) */
     const collectedByProject = useMemo(() => {
         const m = new Map<string, number[]>();
-        for (const h of holdings) {
-            if (!getProject(h.slug)) continue;
+        for (const h of visibleCollected) {
             const arr = m.get(h.slug) ?? [];
             arr.push(h.token_id);
             m.set(h.slug, arr);
         }
-        return [...m.entries()].map(([slug, ids]) => ({ slug, ids: ids.sort((a, b) => a - b) }));
-    }, [holdings]);
+        return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
+    }, [visibleCollected]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -499,11 +573,12 @@ function ProfilePageBodyInner({
                         />
                     )}
 
-                    {/* Collected tab: full TraitsUI — same surface as project Artworks tab.
-                        End goal: sort/filter the user's cross-project collection (OpenSea-style).
-                        For now backed by COLLECTED_IDS mock data; full predicate wiring lands
-                        when real per-user collection data is available. */}
-                    <TraitsUI visible={onCollected} />
+                    {/* Collected tab: platform-facet filter over the wallet's real
+                        holdings (Artist · Project · PriceDay · Natal · Fate · Status).
+                        Distinct from the project page's per-Project trait pills — a
+                        collection spans independent projects, so it filters on the
+                        platform facets every Output carries. */}
+                    {onCollected && <ProfileFacetBar holdings={enriched} />}
             </Hero>
 
             {/* Gallery — Created or Collected depending on active tab */}
