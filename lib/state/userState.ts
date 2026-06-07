@@ -30,7 +30,7 @@ import { patchUserState } from '@/lib/wallet/accountClient';
  *  so the prehydration script and existing hydrate paths keep working. */
 export const STATE_CACHE_KEYS = {
     colorway: 'pd_settings_colorway',
-    customColor: 'pd_custom_color',
+    profileHex: 'pd_profile_hex',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -70,12 +70,18 @@ export function hydrateFromRow(row: UserRow): void {
     }
 
     try {
-        // profile_hex → pd_custom_color (+ the event ColorwayContext repaints on).
+        // profile_hex → pd_profile_hex (the user's own PROFILE COLORWAY colour).
+        // DECOUPLE GUARD: profile_hex is the profile owner's colour. It must
+        // NEVER be written into the "Custom" colorway slot (`pd_custom_color`)
+        // or "Haze Mode" (`pd_haze_color`), and must NOT fire those features'
+        // events. Doing so bled a user's profile colour onto every page — the
+        // exact regression this guard exists to stop. Profile colour stays on
+        // the profile; it fires only `pd:profile-hex-changed`.
         if (row.profile_hex && HEX_RE.test(row.profile_hex)) {
             const hex = row.profile_hex.toUpperCase();
-            localStorage.setItem(STATE_CACHE_KEYS.customColor, hex);
+            localStorage.setItem(STATE_CACHE_KEYS.profileHex, hex);
             window.dispatchEvent(
-                new CustomEvent<string>('pd:custom-color-changed', { detail: hex })
+                new CustomEvent<string>('pd:profile-hex-changed', { detail: hex })
             );
         }
 

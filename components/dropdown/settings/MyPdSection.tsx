@@ -26,7 +26,7 @@ import { useColorway } from '../../../lib/state/ColorwayContext';
 import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
-import { useCustomColor } from '../../../lib/hooks/useCustomColor';
+import { useProfileHex } from '../../../lib/hooks/useProfileHex';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { pushState, USERSTATE_HYDRATED_EVENT } from '../../../lib/state/userState';
 import { SettingsToggle } from './SettingsToggle';
@@ -48,14 +48,15 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
 
-    /* F64 (BUG-28) — artist-color picker is now live + persistent.
-       useCustomColor owns the storage + migration; this section owns the
+    /* PROFILE COLORWAY picker — the colour a user picks for their OWN
+       profile page. useProfileHex owns its storage + migration (slot
+       `pd_profile_hex`, server column `profile_hex`); this section owns the
        UI surface (hidden <input type="color"> wired to the pill, visible
-       hex text input with validate-on-blur, copy button). When the active
-       colorway is 'custom', ColorwayContext re-applies on each color change so
-       the page actually responds. */
-    const { color: customColor, setColor: setCustomColor } = useCustomColor();
-    const [hexField, setHexField] = useState<string>(customColor);
+       hex text input with validate-on-blur, copy button).
+       DECOUPLE GUARD: this is NOT the "Custom" colorway and NOT "Haze Mode".
+       It writes only profile_hex — never `pd_custom_color` / `pd_haze_color`. */
+    const { hex: profileHex, setHex: setProfileHex } = useProfileHex();
+    const [hexField, setHexField] = useState<string>(profileHex);
     const copyingHexRef = useRef(false);
     const editingHexRef = useRef(false);
     const colorPickerRef = useRef<HTMLInputElement | null>(null);
@@ -66,7 +67,7 @@ export function MyPdSection({ onTripleTap }: Props) {
        toggle only for v0 — User Showcase grid wiring lands when persistence
        + slot model arrive. Persisted to localStorage `pd_user_showcase_mode`
        so the picked mode survives reload. SSR-safe via the typeof
-       window guard pattern useCustomColor uses. */
+       window guard pattern useProfileHex uses. */
     const USER_SHOWCASE_KEY = 'pd_user_showcase_mode';
     const [userShowcaseMode, setUserShowcaseModeState] = useState<'static' | 'generative'>('static');
     useEffect(() => {
@@ -114,8 +115,8 @@ export function MyPdSection({ onTripleTap }: Props) {
     useEffect(() => {
         if (editingHexRef.current) return;
         if (copyingHexRef.current) return;
-        setHexField(customColor);
-    }, [customColor]);
+        setHexField(profileHex);
+    }, [profileHex]);
 
     // Build 26 D12 — setup-code field is now live + interactive.
     // The displayed value tracks `currentCode` (encoded from colorway + sort
@@ -416,8 +417,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                             ref={colorPickerRef}
                             type="color"
                             id="profileColorPicker"
-                            value={customColor}
-                            onChange={(e) => setCustomColor(e.target.value)}
+                            value={profileHex}
+                            onChange={(e) => setProfileHex(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                             tabIndex={-1}
                             aria-hidden="true"
@@ -450,7 +451,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             // complete 6-digit hex; intermediate states
                             // (e.g. "#FF") just update the visible field.
                             if (/^#[0-9A-F]{6}$/i.test(v)) {
-                                setCustomColor(v);
+                                setProfileHex(v);
                             }
                         }}
                         onBlur={() => {
@@ -458,7 +459,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             if (!/^#[0-9A-F]{6}$/i.test(hexField)) {
                                 // Invalid hex on blur — revert to the
                                 // last known good color.
-                                setHexField(customColor);
+                                setHexField(profileHex);
                             } else {
                                 // Normalize casing for valid input.
                                 setHexField(hexField.toUpperCase());
@@ -468,7 +469,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             if (e.key === 'Enter') {
                                 (e.currentTarget as HTMLInputElement).blur();
                             } else if (e.key === 'Escape') {
-                                setHexField(customColor);
+                                setHexField(profileHex);
                                 (e.currentTarget as HTMLInputElement).blur();
                             }
                         }}
@@ -481,7 +482,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={(e) => {
                             e.stopPropagation();
                             try {
-                                navigator.clipboard?.writeText(customColor);
+                                navigator.clipboard?.writeText(profileHex);
                             } catch {
                                 // ignore
                             }
@@ -489,7 +490,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             setHexField('✓ COPIED');
                             window.setTimeout(() => {
                                 copyingHexRef.current = false;
-                                setHexField(customColor);
+                                setHexField(profileHex);
                             }, 1500);
                         }}
                     >
