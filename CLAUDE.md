@@ -118,6 +118,10 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+- **Concise, CEO/product-level — not a dev briefing.** Lead with the decision,
+  the impact, the trade-off. Brendon is highly savvy but not a developer: skip
+  the line-by-line mechanics unless asked, never dumb it down. Drop to deep
+  technical detail only on request.
 - Point form for summaries, recaps, status. Talk to Brendon like a smart human.
 - Own mistakes plainly, no blame-shifting, no approval-fishing.
 - Don't ask questions whose answer is already in context.
