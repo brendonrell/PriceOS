@@ -66,7 +66,7 @@ const HEXAGRAMS: readonly Hexagram[] = [
   { n: 17, lower: ZHEN, upper: DUI, name: 'Following', fate: 'Pursuit' },
   { n: 18, lower: XUN, upper: GEN, name: 'Work on the Decayed', fate: 'Corruption' },
   { n: 19, lower: DUI, upper: KUN, name: 'Approach', fate: 'Advent' },
-  { n: 20, lower: KUN, upper: XUN, name: 'Contemplation', fate: 'Vigil' },
+  { n: 20, lower: KUN, upper: XUN, name: 'Contemplation', fate: 'Revelation' },
   { n: 21, lower: ZHEN, upper: LI, name: 'Biting Through', fate: 'Reckoning' },
   { n: 22, lower: LI, upper: GEN, name: 'Grace', fate: 'Grace' },
   { n: 23, lower: KUN, upper: GEN, name: 'Splitting Apart', fate: 'Ruin' },
@@ -103,14 +103,14 @@ const HEXAGRAMS: readonly Hexagram[] = [
   { n: 54, lower: DUI, upper: ZHEN, name: 'The Marrying Maiden', fate: 'Betrothal' },
   { n: 55, lower: LI, upper: ZHEN, name: 'Abundance', fate: 'Zenith' },
   { n: 56, lower: GEN, upper: LI, name: 'The Wanderer', fate: 'Exile' },
-  { n: 57, lower: XUN, upper: XUN, name: 'The Gentle Wind', fate: 'Persuasion' },
+  { n: 57, lower: XUN, upper: XUN, name: 'The Gentle Wind', fate: 'Sway' },
   { n: 58, lower: DUI, upper: DUI, name: 'The Joyous Lake', fate: 'Joy' },
   { n: 59, lower: KAN, upper: XUN, name: 'Dispersion', fate: 'Dissolution' },
   { n: 60, lower: DUI, upper: KAN, name: 'Limitation', fate: 'Confinement' },
   { n: 61, lower: DUI, upper: XUN, name: 'Inner Truth', fate: 'Truth' },
   { n: 62, lower: GEN, upper: ZHEN, name: 'Small Excess', fate: 'Caution' },
   { n: 63, lower: LI, upper: KAN, name: 'After Completion', fate: 'Completion' },
-  { n: 64, lower: KAN, upper: LI, name: 'Before Completion', fate: 'Threshold' },
+  { n: 64, lower: KAN, upper: LI, name: 'Before Completion', fate: 'Crossing' },
 ];
 
 /* code (lower | upper<<3) → hexagram, for casting lookup. */
