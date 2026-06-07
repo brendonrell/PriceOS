@@ -26,18 +26,19 @@
  */
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
-import { TraitsProvider } from '../../lib/state/TraitsContext';
+import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
 import ProjectCard from './ProjectCard';
-import { projectsByArtist, getProject } from '../../lib/project/registry';
+import { projectsByArtist, getProject, outputTraits } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
@@ -64,7 +65,11 @@ type ProfileTab = 'created' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
 
 /** One collected Output, from /api/user/[address]/outputs. */
-interface Holding { slug: string; token_id: number; }
+interface Holding { slug: string; token_id: number; list_price_eth: string | null; }
+
+/* Feed/special filter categories that don't map to an Output's trait values —
+   skipped by the Collected-tab predicate. */
+const SPECIAL_CATS = new Set(['Network', 'Breadcrumb', 'Event', 'Market']);
 
 function ProfilePageBodyInner({
     handle,
@@ -78,6 +83,8 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
+    const { sort, dir } = useSort();
+    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -149,20 +156,68 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
     }, [user.address]);
 
-    /* Collected Outputs grouped by Project. Each group renders inside its own
-       ProjectProvider so ArtworkCard paints the right Project's art + meta —
-       the provider is a context-only node (no DOM), so all cards still land as
-       direct children of the single #gallery grid. */
+    /* Collected-tab search + filter + sort, over the real holdings. Mirrors the
+       project page's gallery predicate (ProjectPageBody), but cross-project:
+       traits come from the registry per Output (outputTraits), price from the
+       live listing. Search matches "{slug} #{id}" so a project name OR an id
+       both narrow. Trait pills come from the active Project's schema (TraitsUI),
+       so they filter shared traits like Fate across both projects. */
+    const visibleCollected = useMemo(() => {
+        const minVal = parseFloat(priceMin);
+        const maxVal = parseFloat(priceMax);
+        const hasMin = !Number.isNaN(minVal);
+        const hasMax = !Number.isNaN(maxVal);
+        const q = searchQuery.trim().toLowerCase();
+        const activeCats = Object.keys(activeFilters).filter((c) => activeFilters[c].size > 0);
+
+        const filtered = holdings.filter((h) => {
+            if (!getProject(h.slug)) return false;
+            const priceNum = h.list_price_eth ? parseFloat(h.list_price_eth) : null;
+
+            if (activeCats.length) {
+                const traits = outputTraits(h.slug, h.token_id);
+                for (const cat of activeCats) {
+                    if (SPECIAL_CATS.has(cat)) continue;
+                    const v = traits[cat];
+                    if (v === undefined || !activeFilters[cat].has(v)) return false;
+                }
+            }
+            if (q && !`${h.slug} #${h.token_id}`.toLowerCase().includes(q)) return false;
+            if (hasMin && (priceNum == null || priceNum < minVal)) return false;
+            if (hasMax && priceNum != null && priceNum > maxVal) return false;
+            return true;
+        });
+
+        const dirMult = dir === 'asc' ? 1 : -1;
+        const byId = (a: Holding, b: Holding) =>
+            a.slug === b.slug ? (a.token_id - b.token_id) * dirMult : a.slug.localeCompare(b.slug);
+        if (sort === 'price') {
+            filtered.sort((a, b) => {
+                const na = a.list_price_eth ? parseFloat(a.list_price_eth) : Infinity;
+                const nb = b.list_price_eth ? parseFloat(b.list_price_eth) : Infinity;
+                return na !== nb ? (na - nb) * dirMult : byId(a, b);
+            });
+        } else {
+            filtered.sort(byId);
+        }
+        return filtered;
+    }, [holdings, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
+
+    /* Group the filtered/sorted holdings by Project for rendering. Each group
+       renders inside its own ProjectProvider so ArtworkCard paints the right
+       Project's art + meta — the provider is a context-only node (no DOM), so
+       all cards still land as direct children of the single #gallery grid.
+       (Sort is global within each project group; cross-project ordering follows
+       the group order.) */
     const collectedByProject = useMemo(() => {
         const m = new Map<string, number[]>();
-        for (const h of holdings) {
-            if (!getProject(h.slug)) continue;
+        for (const h of visibleCollected) {
             const arr = m.get(h.slug) ?? [];
             arr.push(h.token_id);
             m.set(h.slug, arr);
         }
-        return [...m.entries()].map(([slug, ids]) => ({ slug, ids: ids.sort((a, b) => a - b) }));
-    }, [holdings]);
+        return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
+    }, [visibleCollected]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the

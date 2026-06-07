@@ -17,6 +17,8 @@ export interface UserHolding {
   /** Project slug (holders.project_id). */
   slug: string;
   token_id: number;
+  /** Active listing price in ETH, or null if not listed. */
+  list_price_eth: string | null;
 }
 
 export interface UserOutputsResponse {
@@ -42,8 +44,28 @@ export async function GET(
     if (error) return serverError(error.message);
 
     const rows = (data ?? []) as { project_id: string; token_id: string | number }[];
+
+    // Active listing prices for the held Outputs (so the profile can sort/filter
+    // by price). Fetch per held project (≤ a couple) and key by project:token.
+    const heldProjects = [...new Set(rows.map((r) => r.project_id))];
+    const priceByKey: Record<string, string> = {};
+    if (heldProjects.length > 0) {
+      const listRes = await supabase
+        .from('listings')
+        .select('project_id, token_id, price_eth')
+        .in('project_id', heldProjects)
+        .eq('active', true);
+      for (const l of (listRes.data ?? []) as { project_id: string; token_id: string | number; price_eth: number | string }[]) {
+        priceByKey[`${l.project_id}:${l.token_id}`] = String(l.price_eth);
+      }
+    }
+
     const holdings: UserHolding[] = rows
-      .map((r) => ({ slug: r.project_id, token_id: Number(r.token_id) }))
+      .map((r) => ({
+        slug: r.project_id,
+        token_id: Number(r.token_id),
+        list_price_eth: priceByKey[`${r.project_id}:${r.token_id}`] ?? null,
+      }))
       .sort((a, b) => a.slug.localeCompare(b.slug) || a.token_id - b.token_id);
 
     const response: UserOutputsResponse = {
