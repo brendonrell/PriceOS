@@ -327,6 +327,14 @@ explicit chat confirmation.
 > it. Assume he's already three steps ahead and answer at that level. When you
 > catch yourself explaining something he obviously grasps, cut it.
 
+> **NO POLLS / MULTIPLE-CHOICE PROMPTS. Hard rule (Brendon, 2026-06-08).** Never
+> use the AskUserQuestion poll UI — the multiple-choice option card is banned. It
+> reads as a model stalling for a tap. When a decision is genuinely Brendon's and
+> you truly can't resolve it from context, the code, or a sensible default, ask
+> it in **one plain line of prose** and stop — no option cards, no "A/B/C" menus.
+> Better still: decide it yourself whenever you reasonably can and state the call.
+> Asking is the rare exception; a poll is never the form it takes.
+
 - **NEVER blame Brendon's settings / cache / browser / device.** Default
   assumption for any bug: it's our code or our deploy, and it's ours to fix.
   Reproduce against the dev preview and find the real cause. "It's your
