@@ -1,5 +1,5 @@
 /*
- * Petey placeholder art — PURE JS canvas (no SVG), the same discipline as the
+ * Magic Hour placeholder art — PURE JS canvas (no SVG), the same discipline as the
  * Prisms / Oracle engines. This is NOT a real Project: it paints the fake
  * "welcome" pieces that fill a user's EMPTY Collected tab until they collect
  * something real. Artist is always @petey (PD's mascot).
@@ -9,7 +9,7 @@
  * gentle placeholder, never as a real collected Output).
  */
 
-export const PETEY_STYLES = [
+export const MAGIC_HOUR_STYLES = [
   'bloom', // centre glow
   'wash', // diagonal pastel sweep
   'rings', // soft concentric rings
@@ -17,7 +17,7 @@ export const PETEY_STYLES = [
   'horizon', // two-tone soft band
   'dust', // faint grain field
 ] as const;
-export type PeteyStyle = (typeof PETEY_STYLES)[number];
+export type MagicHourStyle = (typeof MAGIC_HOUR_STYLES)[number];
 
 /* Tiny self-contained RNG (mulberry32) — keeps this placeholder fully isolated
    from the real per-Project art RNG contract. */
@@ -46,7 +46,7 @@ function paint(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  style: PeteyStyle,
+  style: MagicHourStyle,
   r: () => number,
 ) {
   const pal = PALETTES[Math.floor(r() * PALETTES.length)];
@@ -120,14 +120,14 @@ function paint(
 }
 
 /**
- * Paint a Petey placeholder piece. Square (aspect 1) for clean grid rhythm.
+ * Paint a Magic Hour placeholder piece. Square (aspect 1) for clean grid rhythm.
  * `seed` varies the piece; `style` selects one of the six soft options.
  */
-export function renderPetey(
+export function renderMagicHour(
   canvas: HTMLCanvasElement,
   seed: number,
   width: number,
-  style: PeteyStyle = 'bloom',
+  style: MagicHourStyle = 'bloom',
 ): { aspect: number } {
   const aspect = 1;
   const w = width;
