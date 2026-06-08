@@ -127,20 +127,6 @@ never `TO public`.
 > smallest change that fixes the stated bug is the correct change. When unsure
 > whether something is in scope, it is OUT of scope: ask first.
 
-> **NO AMPUTATION. Removing a thing is NOT a fix. Hard rule (Brendon,
-> 2026-06-08 — "my arm hurts, I'll just cut it off" is NOT problem-solving).**
-> When a feature/property/effect is in the way of a fix, you make it WORK with
-> the fix — you do **NOT** delete, disable, flatten, or strip it to make the
-> problem go away. Deleting the thing that's hard is the lazy non-solution and a
-> trust break. Concrete failure that birthed this rule: asked to make the
-> loading screen cover the full screen, Claude made the frosted overlay **opaque
-> — silently killing the translucency** instead of finding a way to cover full
-> screen AND stay see-through. **Translucency, the readout, the animation, the
-> copy — none of it gets sacrificed to land the fix.** Solve the actual problem
-> while keeping every existing property intact. If you genuinely believe a
-> property must change to fix the bug, **STOP and ask first** — never assume
-> permission to remove. Preserve, don't amputate.
-
 ## 4. The ship gates — the only approvals that matter
 
 Everything in §3 "free rein" needs **no** approval. These are the few taps that do:

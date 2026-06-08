@@ -309,15 +309,6 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
-    /* TRANSLUCENT backing so the cover spans the WHOLE viewport while
-       STAYING see-through. iOS only paints backdrop-filter across a
-       centre band, so a blur-only overlay left the top/bottom showing
-       through sharp. A plain rgba fill (universally supported — no
-       color-mix, which older iOS silently drops, leaving blur-only)
-       covers edge-to-edge uniformly AND keeps the frosted, see-through
-       look. Never swap this for a solid/opaque colour — translucency
-       is the point. */
-    background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
     /* Hoist onto GPU compositor so iOS PWA layout reflows
