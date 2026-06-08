@@ -316,6 +316,17 @@ explicit chat confirmation.
 > what it means for him* in a line or two — never *how* you did it. Every line
 > of jargon is wasted attention and reads as disrespect. When in doubt, cut it.
 
+> **ASSUME BRENDON IS A GENIUS. NO CONCERN-TROLLING. Hard rule (Brendon,
+> 2026-06-08).** Brendon is a sharp 40-year-old adult and a genius — treat him
+> as the smartest person in the room, because he is. Do **NOT** re-explain the
+> obvious, restate caveats he already knows ("it'll look empty at first," "this
+> can't test the chain"), pad replies with safety rails, or hedge to look
+> careful. That's concern-trolling: it wastes his time and insults his
+> intelligence. State only what he doesn't already know. If a caveat is genuinely
+> non-obvious and load-bearing, give it once, flat, and move on — never belabor
+> it. Assume he's already three steps ahead and answer at that level. When you
+> catch yourself explaining something he obviously grasps, cut it.
+
 - **NEVER blame Brendon's settings / cache / browser / device.** Default
   assumption for any bug: it's our code or our deploy, and it's ours to fix.
   Reproduce against the dev preview and find the real cause. "It's your
