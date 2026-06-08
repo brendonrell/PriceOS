@@ -309,12 +309,14 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Solid branded backing so the cover spans the WHOLE viewport.
-       iOS only paints backdrop-filter across a centre band, so a
-       blur-only overlay left the top/bottom showing through sharp.
-       The opaque colorway fill guarantees edge-to-edge coverage;
-       the blur stays as a subtle finish at the edges. */
-    background-color: var(--bg-color, #111111);
+    /* TRANSLUCENT branded backing so the cover spans the WHOLE
+       viewport while STAYING see-through. iOS only paints
+       backdrop-filter across a centre band, so a blur-only overlay
+       left the top/bottom showing through sharp. A translucent fill
+       (NOT opaque) covers edge-to-edge uniformly AND keeps the
+       frosted, see-through look the design wants. Never swap this
+       for a solid colour — translucency is the point. */
+    background-color: color-mix(in srgb, var(--bg-color, #111111) 55%, transparent);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
     /* Hoist onto GPU compositor so iOS PWA layout reflows
