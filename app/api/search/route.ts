@@ -33,9 +33,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return badRequest(`Query must be at least ${MIN_QUERY} characters`);
   }
 
-  // Escape Postgres ILIKE wildcards so user input can't slip a `%` in.
-  const escaped = q.replace(/[%_\\]/g, '\\$&');
-  const pattern = `%${escaped}%`;
+  // Escape ILIKE wildcards AND double-quotes, then wrap each value in double
+  // quotes in the .or() filter below. Without the quotes, a comma / parenthesis
+  // / dot in the query could break out of the ilike filter and inject extra
+  // PostgREST conditions; quoting makes the whole value literal.
+  const escaped = q.replace(/[%_\\]/g, '\\$&').replace(/"/g, '\\"');
+  const pattern = `"%${escaped}%"`;
 
   try {
     const supabase = getSupabaseAnon();

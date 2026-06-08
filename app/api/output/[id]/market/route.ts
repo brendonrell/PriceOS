@@ -9,7 +9,7 @@
 // All money is the sim ETH balance on users.sim_eth_balance. No chain.
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseService } from '@/lib/supabase';
+import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
@@ -37,12 +37,6 @@ async function balanceOf(db: DB, address: string): Promise<{ has: boolean; bal: 
   const r = await db.from('users').select('sim_eth_balance').eq('address', address).maybeSingle();
   if (!r.data) return { has: false, bal: 10 };
   return { has: true, bal: Number((r.data as { sim_eth_balance?: number }).sim_eth_balance ?? 0) };
-}
-
-async function credit(db: DB, address: string, delta: number) {
-  const { has, bal } = await balanceOf(db, address);
-  if (!has) return;
-  await db.from('users').update({ sim_eth_balance: bal + delta } as never).eq('address', address);
 }
 
 function nowSec() {
@@ -141,19 +135,16 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         return NextResponse.json({ ok: true });
       }
       case 'buy': {
-        const l = await db.from('listings').select('price_eth, seller_address').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle();
-        const listing = l.data as { price_eth: number; seller_address: string } | null;
-        if (!listing) return badRequest('Not listed');
-        if (listing.seller_address.toLowerCase() === address) return badRequest('Cannot buy your own Output');
-        const p = Number(listing.price_eth);
-        const { has, bal } = await balanceOf(db, address);
-        if (has && bal < p) return badRequest('Insufficient balance');
-        await db.from('holders').update({ owner_address: address } as never).eq('project_id', slug).eq('token_id', tokenId);
-        await db.from('listings').update({ active: false } as never).eq('project_id', slug).eq('token_id', tokenId);
-        await credit(db, address, -p);
-        await credit(db, listing.seller_address, p);
-        await db.from('events').insert({ type: 'XFER', project_id: slug, token_id: tokenId, from_address: listing.seller_address, to_address: address, price_eth: p, timestamp: nowSec(), sale_direction: 'LIST_FILL' } as never);
-        return NextResponse.json({ ok: true, bought: p });
+        const { data, error } = await db.rpc('app_buy', {
+          p_buyer: address, p_slug: slug, p_token: tokenId,
+        } as never);
+        if (error) return serverError(error.message);
+        const r = data as MoneyOpResult;
+        if (r.error === 'not_listed') return badRequest('Not listed');
+        if (r.error === 'own_output') return badRequest('Cannot buy your own Output');
+        if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
+        if (r.error) return badRequest(r.error);
+        return NextResponse.json({ ok: true, bought: r.bought });
       }
       case 'offer': {
         if (isOwner) return badRequest('Cannot offer on your own Output');
@@ -163,19 +154,16 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         return NextResponse.json({ ok: true, offered: price });
       }
       case 'accept': {
-        if (!isOwner) return badRequest('Only the owner can accept');
         if (!body.offerId) return badRequest('Missing offerId');
-        const o = await db.from('offers').select('bidder_address, price_eth, status').eq('id', body.offerId).maybeSingle();
-        const offer = o.data as { bidder_address: string; price_eth: number; status: string } | null;
-        if (!offer || offer.status !== 'open') return badRequest('Offer not open');
-        const p = Number(offer.price_eth);
-        await db.from('holders').update({ owner_address: offer.bidder_address } as never).eq('project_id', slug).eq('token_id', tokenId);
-        await db.from('listings').update({ active: false } as never).eq('project_id', slug).eq('token_id', tokenId);
-        await db.from('offers').update({ status: 'accepted' } as never).eq('id', body.offerId);
-        await credit(db, offer.bidder_address, -p);
-        await credit(db, address, p);
-        await db.from('events').insert({ type: 'XFER', project_id: slug, token_id: tokenId, from_address: address, to_address: offer.bidder_address, price_eth: p, timestamp: nowSec(), sale_direction: 'OFFER_ACCEPT' } as never);
-        return NextResponse.json({ ok: true, sold: p });
+        const { data, error } = await db.rpc('app_accept_offer', {
+          p_owner: address, p_slug: slug, p_token: tokenId, p_offer_id: body.offerId,
+        } as never);
+        if (error) return serverError(error.message);
+        const r = data as MoneyOpResult;
+        if (r.error === 'not_owner') return badRequest('Only the owner can accept');
+        if (r.error === 'offer_not_open') return badRequest('Offer not open');
+        if (r.error) return badRequest(r.error);
+        return NextResponse.json({ ok: true, sold: r.sold });
       }
       default:
         return badRequest('Unknown action');

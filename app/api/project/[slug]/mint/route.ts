@@ -8,7 +8,7 @@
 // static fields); minted_count comes from the DB.
 
 import { NextResponse } from 'next/server';
-import { getSupabaseService } from '@/lib/supabase';
+import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
@@ -34,60 +34,28 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
   try {
     const supabase = getSupabaseService();
 
-    const projRes = await supabase
-      .from('projects')
-      .select('minted_count')
-      .eq('id', slug)
-      .maybeSingle();
-    if (projRes.error) return serverError(projRes.error.message);
-    const minted = (projRes.data as { minted_count?: number } | null)?.minted_count ?? 0;
-
-    const remaining = def.outputs - minted;
-    if (remaining <= 0) return badRequest('Sold out');
-    qty = Math.min(qty, remaining);
-    const price = def.mintPriceEth;
-    // Total = (mint price + platform mint fee) per Output. Both $0 for now,
-    // but the fee is plumbed everywhere so flipping it on flows through.
-    const cost = (price + MINT_FEE_ETH) * qty;
-
-    // Balance gate (lenient: unknown wallet with no row may still mint in sim).
-    const userRes = await supabase
-      .from('users')
-      .select('sim_eth_balance')
-      .eq('address', address)
-      .maybeSingle();
-    const hasRow = !!userRes.data;
-    const balance = Number((userRes.data as { sim_eth_balance?: number } | null)?.sim_eth_balance ?? 10);
-    if (hasRow && balance < cost) return badRequest('Insufficient balance');
-
-    const ids: number[] = [];
-    for (let i = 1; i <= qty; i++) ids.push(minted + i);
-
-    const holderRows = ids.map((id) => ({ project_id: slug, token_id: String(id), owner_address: address }));
-    const insH = await supabase.from('holders').insert(holderRows as never);
-    if (insH.error) return serverError(insH.error.message);
-
-    const ts = Math.floor(Date.now() / 1000);
-    const eventRows = ids.map((id) => ({
-      type: 'MINT', project_id: slug, token_id: String(id),
-      from_address: null, to_address: address, price_eth: price, timestamp: ts,
-    }));
-    await supabase.from('events').insert(eventRows as never);
-
-    await supabase.from('projects').update({ minted_count: minted + qty } as never).eq('id', slug);
-
-    let newBalance = balance;
-    if (hasRow) {
-      newBalance = balance - cost;
-      await supabase.from('users').update({ sim_eth_balance: newBalance } as never).eq('address', address);
-    }
+    // One atomic, row-locked DB call so supply + balance can't be raced by
+    // two simultaneous mints (no read-then-write gap).
+    const { data, error } = await supabase.rpc('app_mint', {
+      p_address: address,
+      p_slug: slug,
+      p_qty: qty,
+      p_max_supply: def.outputs,
+      p_price: def.mintPriceEth,
+      p_fee: MINT_FEE_ETH,
+    } as never);
+    if (error) return serverError(error.message);
+    const r = data as MoneyOpResult;
+    if (r.error === 'sold_out') return badRequest('Sold out');
+    if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
+    if (r.error) return badRequest(r.error);
 
     return NextResponse.json({
       project_id: slug,
-      minted: ids,
-      count: qty,
-      balance: newBalance,
-      sold_out: minted + qty >= def.outputs,
+      minted: r.minted,
+      count: r.count,
+      balance: r.balance,
+      sold_out: r.sold_out,
     });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

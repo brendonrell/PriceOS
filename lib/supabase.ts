@@ -192,6 +192,20 @@ export interface WishlistRow {
 // Database type — used to parameterize SupabaseClient<Database>.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Result envelope returned by the atomic money RPCs (app_mint / app_buy /
+ *  app_accept_offer). All fields optional; a set `error` means the operation
+ *  was rejected (e.g. 'sold_out', 'insufficient_balance', 'not_listed'). */
+export interface MoneyOpResult {
+  error?: string;
+  ok?: boolean;
+  minted?: number[];
+  count?: number;
+  balance?: number;
+  sold_out?: boolean;
+  bought?: number;
+  sold?: number;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -240,7 +254,25 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      app_mint: {
+        Args: {
+          p_address: string; p_slug: string; p_qty: number;
+          p_max_supply: number; p_price: number; p_fee: number;
+        };
+        Returns: MoneyOpResult;
+      };
+      app_buy: {
+        Args: { p_buyer: string; p_slug: string; p_token: string };
+        Returns: MoneyOpResult;
+      };
+      app_accept_offer: {
+        Args: {
+          p_owner: string; p_slug: string; p_token: string; p_offer_id: string;
+        };
+        Returns: MoneyOpResult;
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
