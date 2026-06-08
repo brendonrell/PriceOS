@@ -309,6 +309,12 @@ const LOADER_HTML = `<style>
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Solid branded backing so the cover spans the WHOLE viewport.
+       iOS only paints backdrop-filter across a centre band, so a
+       blur-only overlay left the top/bottom showing through sharp.
+       The opaque colorway fill guarantees edge-to-edge coverage;
+       the blur stays as a subtle finish at the edges. */
+    background-color: var(--bg-color, #111111);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
     /* Hoist onto GPU compositor so iOS PWA layout reflows
