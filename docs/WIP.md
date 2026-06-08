@@ -42,12 +42,18 @@
 ## 🎯 OPEN / NEXT
 - Nothing in flight on `dev`. Clean slate to pick the next ship.
 
-### ⚠️ Parallel branch — VERIFY before assuming (not on `dev`)
-- A separate chat built **Petey / "Magic Hour" placeholder** work on branch
-  `claude/fake-petey-project-d1skT` (User/Project Showcase, empty-Collected
-  welcome set, bloom engine). It has its OWN preview but is **NOT merged to
-  `dev`**. If picking Petey back up, check that branch's real state first —
-  don't trust the old "IN FLIGHT Petey" spec as current.
+### ⚠️ "Petey" vs Magic Hour — naming RESOLVED (2026-06-08)
+- **The project is "Magic Hour."** **@petey** is its ARTIST (PD's mascot — the
+  speech-bubble logo *named Petey is legit and STAYS*). "Petey" as a **project**
+  name is WRONG — never reintroduce it.
+- **On `dev`:** the Magic Hour placeholder art engine was renamed off the Petey
+  codename (now `lib/art/engines/magicHour.ts`). The @petey artist handle and the
+  Petey mascot logo are deliberately untouched.
+- **Parallel branch `claude/fake-petey-project-d1skT` (NOT merged):** still MIXES
+  "Petey" and "Magic Hour" across ~13 files (e.g. `PeteyPlaceholderCard`,
+  `petey-preview.html`) — its Petey *project*-naming is STALE. The Magic Hour
+  project page/showcase work lives ONLY here. Merge-and-clean vs delete is an
+  open call for Brendon — do NOT trust this branch's Petey naming as current.
 
 ### Backlog (later)
 - Surface platform traits as pills on the project page / discovery (needs
