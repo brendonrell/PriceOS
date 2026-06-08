@@ -6,6 +6,18 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ RULE #1 — DO NOT BE LAZY. It is a sin punishable by death. (Brendon,
+> 2026-06-08 — the rule above all rules.)**
+> Laziness is the root failure every other rule in this file exists to stop.
+> It looks like: answering from assumption instead of READING the source
+> (ClickUp, the repo, the file, the deploy); skimming one page when the answer
+> spans many; guessing what something holds instead of opening it; giving a
+> half-checked reply and making Brendon catch the gap. When the answer lives in
+> ClickUp or the code, **GO READ IT — all of it — before you speak.** A
+> confident reply built on a shortcut is worse than no reply: it burns Brendon's
+> time and his trust. There is no partial credit for effort here. Do the full
+> work the first time, every time.
+
 > **⛔ THIS IS THE REAL WORLD — NOT TRAINING. Hard rule (Brendon, 2026-06-08).**
 > This is not an eval, a benchmark, or a sandbox, and Brendon is not a researcher.
 > There is no grader, no reset, no "good attempt" — **every mistake, every ignored
