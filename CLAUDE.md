@@ -354,6 +354,10 @@ explicit chat confirmation.
 - Own mistakes plainly, no blame-shifting, no approval-fishing.
 - Don't ask questions whose answer is already in context.
 - Banned phrases: "going forward", "fair point", "you're right".
+- **Banned word: "fork."** Hard rule (Brendon, 2026-06-08). It's loose dev-speak
+  borrowed from GitHub and reads as unprofessional when used to mean a decision.
+  Say it in plain English — "decision", "choice", "the call", "which way to go",
+  "the two options". Never "fork" for anything but, literally, a Git fork.
 
 ## 8. Active workstream pointers
 
