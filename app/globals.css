@@ -3187,18 +3187,27 @@ button,
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    /* Tight gap so the Courier price sits right against the Rubik-Mono label
+       (the two different fonts read as one unit, not floated apart). Was 10px
+       — too wide, left a "huge gap" on the MINTING… face. */
+    gap: 4px;
 }
 .mint-lbl {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 16px;
     font-weight: normal;
+    /* Never break across lines. The button is a fixed 224px flex row; on the
+       wider transient faces (MINTING… / MINTED ✓ ×N) flex would otherwise
+       shrink these spans below content width and wrap them — the "(0 ETH)"
+       split-onto-two-lines flash. nowrap pins them to one line. */
+    white-space: nowrap;
 }
 .mint-price {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
     font-weight: bold;
     opacity: 0.85;
+    white-space: nowrap;
 }
 /* In-button mint flow — the "choosing" face. REUSES .btn-mint (same 224px pill),
    SPLIT clean down the DEAD CENTRE by a single hairline into two equal tabs:

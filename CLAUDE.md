@@ -99,6 +99,19 @@ never `TO public`.
   the real bug. One cohesive batch per chat, scope-guarded — unless Brendon says
   "fix everything," then bundle.
 
+> **FIX THE NAMED BUG, NOTHING ELSE. Hard rule (Brendon, 2026-06-08 — learned
+> the hard way, do NOT repeat).** When the task is "fix X," you fix **X and only
+> X.** You do **NOT** remove, delete, rename, refactor, restyle, shorten, or
+> "improve" any code, copy, UI, or feature that was not the explicit ask — **not
+> even if it looks redundant, wrong, noisy, or related.** Deleting or altering
+> working product Brendon didn't ask you to touch (e.g. dropping a price readout
+> while fixing a text wrap) is a **SCOPE VIOLATION and a trust break**, full
+> stop — "it was redundant anyway" is never a defense. **Brendon is the CEO; you
+> do not have approval to change product he didn't name.** If you spot something
+> else worth changing, **NAME it and ask** — never fold it into the fix. The
+> smallest change that fixes the stated bug is the correct change. When unsure
+> whether something is in scope, it is OUT of scope: ask first.
+
 ## 4. The ship gates — the only approvals that matter
 
 Everything in §3 "free rein" needs **no** approval. These are the few taps that do:
