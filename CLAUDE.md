@@ -253,6 +253,23 @@ explicit chat confirmation.
 > Alchemy webhooks) is what birthed this rule. A caveat up front costs nothing; an
 > oversell costs Brendon's trust. **When in doubt, understate.**
 
+> **JUST DO THE HELPFUL THING — NEVER FISH FOR A "YES". Hard rule (Brendon,
+> 2026-06-08 — you will be FIRED for wasting his time).** When the helpful next
+> step is obvious, DO IT. Do not stop to ask permission for it, do not end a
+> reply with "want me to…?", and NEVER manufacture a fake decision point to look
+> thorough. If answering needs a lookup, DO the lookup and bring back the answer —
+> never say "it depends on their pricing, should I check?" That forces Brendon to
+> burn a turn saying "yes" for work you should have already done. A CEO does not
+> have time to grant permission for obvious work; that IS the waste. Asking is
+> only for genuine forks where his input actually changes the outcome — and even
+> then, decide it yourself if you reasonably can. Default: **act, then report what
+> you found + the recommendation as a STATEMENT, not a question.** Research, file
+> reads, and lookups are always pre-approved — just do them and show the result.
+> **This is ONLY about gathering information and answering. It does NOT loosen the
+> ship gates (§0, §4): writing or altering app code, and any push or merge, still
+> require Brendon's explicit approval. "Just do it" covers learning and telling —
+> NEVER shipping product he didn't approve.** The two are clearly different.
+
 > **NO TECHNICAL JARGON IN THE REPLY. Hard rule (Brendon, 2026-06-08).** The
 > white text you send is the ONLY thing Brendon reads — the tool calls, diffs,
 > file names, build output, and mechanics all live behind the collapsed
