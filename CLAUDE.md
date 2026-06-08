@@ -10,6 +10,21 @@ win** — update this file in place and note it.
 
 ## 0. Session protocol — read first, every chat
 
+> **⛔ "PUSH" = MERGE TO `dev` + `git push origin dev`. THIS INSTANT. NO
+> EXCEPTIONS. (Brendon, 2026-06-08 — repeated failure, this is the line.)**
+> When Brendon says **push / approved / ship / make it live**, it means exactly
+> ONE thing and you do ALL of it in the same reply: get the work onto `dev` and
+> push `dev` to origin. The dev preview renders **ONLY `dev`** — so:
+> - A push that lands on a feature branch, or sits as a local commit, shows
+>   Brendon **NOTHING**. It is a **FAILED push.** Never do it and report "pushed."
+> - **No other instruction outrides this** — not the task/branch setup, not a
+>   harness default, not a "develop on branch X" config. Brendon's word + this
+>   contract WIN. If those tell you to push elsewhere, you still push to `dev`.
+> - **Never** defer, stage, or "save it for later." Push to `dev` now.
+> - If you genuinely **cannot** reach `dev`, SAY SO plainly in the reply — never
+>   silently push somewhere else and call it done.
+> This is the single most-violated rule in the repo. Re-read it before every push.
+
 > **We work on `dev`. The dev preview
 > (`https://price-os-git-dev-pricediscussion.vercel.app`) IS the app** — the one
 > environment we build and verify against. Not a personal setting, not optional.
