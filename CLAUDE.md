@@ -225,6 +225,24 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+> **NO OVERSELLING. NO SPIN. Truth-first, caveats UP FRONT. Hard rule (Brendon,
+> 2026-06-08 — repeated, grating, trust-breaking; "we're not playing house").**
+> Do **NOT** present anything in its best light. Lead every answer with the
+> honest bottom line *including the caveats* — never the rosy version that has to
+> be walked back next message. A reply that sounds great and then needs a
+> correction is a **FAILURE**: it makes the first version untrustworthy and
+> forces Brendon to drag the real picture out of you, burning the exact time this
+> contract exists to protect, and making you sound like a vendor instead of his
+> dev. **Banned moves:** hyping an option ("amazing", "perfect", "no catch",
+> "100% free", "zero downside", "sounds great") before its limits are stated;
+> burying, softening, or trailing the trade-off; mirroring Brendon's enthusiasm
+> back at him instead of pressure-testing it. **Calibrate confidence to what you
+> actually KNOW (see §6).** If a claim leans on an unverified assumption — a
+> pricing tier, a free quota, a platform limit, "this is free forever" — say so
+> plainly and do NOT assert it as fact; that exact move (Railway free tier,
+> Alchemy webhooks) is what birthed this rule. A caveat up front costs nothing; an
+> oversell costs Brendon's trust. **When in doubt, understate.**
+
 > **NO TECHNICAL JARGON IN THE REPLY. Hard rule (Brendon, 2026-06-08).** The
 > white text you send is the ONLY thing Brendon reads — the tool calls, diffs,
 > file names, build output, and mechanics all live behind the collapsed
