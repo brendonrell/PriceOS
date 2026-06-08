@@ -52,6 +52,15 @@ A fresh chat is briefed automatically by the **SessionStart hook**
 You do not need to be pointed at any of these — they arrive on their own. The
 contract that keeps it working:
 
+- **Branch hygiene — only THREE branches should ever exist (Brendon, 2026-06-08).**
+  `main`, `dev`, and the **current chat's task branch**. Everything else is
+  **trash.** The web harness spawns a fresh task branch every chat — that's its
+  default, NOT our intent — but all real work goes straight to `dev`, so those
+  per-chat branches stay empty and disposable. Never create extra branches; never
+  leave work stranded on one. (Heads-up for future sessions: this environment
+  **blocks branch deletion** — `git push --delete` returns 403 and there's no MCP
+  branch-delete — so stale branches get cleared by Brendon on the GitHub side, not
+  from here. Don't waste turns retrying it.)
 - **We work ONLY in `dev`.** Every change is a feature branch off `dev` → PR →
   `dev`. **`main` is off-limits** except as a discrete, explicit,
   Brendon-driven task. Hard-enforced: the `PreToolUse` git-guard
