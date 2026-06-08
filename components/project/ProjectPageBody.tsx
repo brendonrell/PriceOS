@@ -91,6 +91,12 @@ import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
+/* How many leading gallery cards paint eagerly (synchronously on mount) so
+   the visible art is "just there" on load. ~2 screenfuls across mobile (2-col)
+   and desktop (4-5 col) layouts; everything past this lazy-loads via the
+   IntersectionObserver crash-guard. */
+const EAGER_GALLERY_COUNT = 24;
+
 /* Sim mockEvents shape (sim ~7412). Full payload kept lean — sim's six
    seed rows, matched to the .feed-row / .feed-line / .f-icon-wrap /
    .f-time / .f-type / .f-content layout (sim ~8204). The detail field
@@ -340,10 +346,17 @@ function ProjectPageBodyInner() {
        ids) so the Showcase is never empty post-launch; the artist overrides
        later by setting showcase_ids. Stable across loads/tab switches. */
     const projectShowcasePicks = useMemo<Set<number>>(() => {
-        if (project.showcaseIds.length > 0) return new Set(project.showcaseIds);
         const firstMints = [...project.outputs.keys()].sort((a, b) => a - b).slice(0, 6);
-        return new Set(firstMints);
-    }, [project.showcaseIds, project.outputs]);
+        /* Curated ids count ONLY if actually minted. A stale/aspirational seed
+           (e.g. showcase_ids pointing at #256 before #256 exists) must never
+           blank the Showcase tab — we drop the unminted ones and, if nothing
+           real survives, auto-feed the first 6 mints. Sound regardless of
+           whatever's sitting in projects.showcase_ids. */
+        const curatedMinted = project.showcaseIds.filter(
+            (id) => id >= 1 && id <= project.totalOutputs
+        );
+        return new Set(curatedMinted.length > 0 ? curatedMinted : firstMints);
+    }, [project.showcaseIds, project.outputs, project.totalOutputs]);
 
     /* Empty-state ghost grid. While a project is unminted (0 Outputs) the
        gallery would be a void; instead we render placeholder frames whose
@@ -1046,12 +1059,17 @@ function ProjectPageBodyInner() {
                             index={i}
                         />
                     ))
-                    : visibleTokenIds.map((id) => (
+                    : visibleTokenIds.map((id, i) => (
                         <ArtworkCard
                             key={id}
                             id={id}
                             projectShowcasePick={projectShowcasePicks.has(id)}
                             isBreadcrumb={breadcrumbSample.has(id)}
+                            /* First screenful paints synchronously on mount —
+                               no observer/idle wait. EAGER_GALLERY_COUNT covers
+                               ~2 screenfuls across mobile + desktop column
+                               counts; the rest lazy-load (OOM crash-guard). */
+                            eager={i < EAGER_GALLERY_COUNT}
                         />
                     ))}
             </section>
@@ -1342,12 +1360,27 @@ function ProjectPageBodyInner() {
    useTraits(). Default-exported as ProjectPageBody and consumed by the
    server shell at app/art/[slug]/page.tsx which handles slug validation
    + metadata. */
-export default function ProjectPageBody({ slug }: { slug?: string }) {
+export default function ProjectPageBody({
+    slug,
+    initialTotal = 0,
+    initialShowcaseIds = [],
+}: {
+    slug?: string;
+    /** Server-seeded minted count (projects.minted_count) — first-paint art. */
+    initialTotal?: number;
+    /** Server-seeded curated showcase ids (projects.showcase_ids). */
+    initialShowcaseIds?: readonly number[];
+}) {
     /* Re-provide ProjectContext with the route's slug so this page's gallery,
        hero, and trait schema all bind to the correct Project (the global
-       provider in layout.tsx defaults to PRISMS for the rest of the app). */
+       provider in layout.tsx defaults to PRISMS for the rest of the app).
+       The server seed makes the minted cards present from the first paint. */
     return (
-        <ProjectProvider slug={slug}>
+        <ProjectProvider
+            slug={slug}
+            initialTotal={initialTotal}
+            initialShowcaseIds={initialShowcaseIds}
+        >
             <TraitsProvider>
                 <ProjectPageBodyInner />
             </TraitsProvider>

@@ -18,6 +18,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from 'react';
@@ -88,22 +89,39 @@ export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
     };
 }
 
-function buildInitial(slug: string): ProjectState {
+function buildInitial(
+    slug: string,
+    /* Server-seeded minted count + showcase. The project page (a server
+       component) reads projects.minted_count/showcase_ids and hands them in,
+       so the gallery renders the REAL minted cards in the very first paint
+       instead of booting at 0 and waiting on a client fetch to fill in (the
+       old ghost→art flip + visible "appear late" gap). Omitted (0 / []) for
+       the global layout provider, which still reconciles client-side. */
+    initialTotal = 0,
+    initialShowcaseIds: readonly number[] = [],
+): ProjectState {
     const def = getProject(slug);
     const supply = def?.outputs ?? 0;
-    // Start empty — metas are built lazily for the minted Outputs the DB
-    // reconcile returns. (Eagerly building every possible Output's meta —
-    // art + Fate cast — on mount blocked first paint, esp. mobile Safari.)
-    // `totalOutputs` (minted count) starts at 0 and is filled by the reconcile;
-    // starting it at supply would flash a sold-out state before the fetch lands.
+    // Build metas for the seeded minted set (1..initialTotal) so those cards
+    // render immediately. This is trait-cast only (cheap, deterministic, no
+    // canvas paint — the canvas is painted by the gallery's eager/lazy
+    // virtualizer), so it's safe on mount even at full supply. Owner + price
+    // are placeholders here and get overlaid by the client reconcile below.
+    const outputs = new Map<number, OutputMeta>();
+    for (let id = 1; id <= initialTotal; id++) {
+        outputs.set(id, buildOutputMetaFor(slug, id));
+    }
     return {
         slug,
         title: def?.displayName ?? slug.toUpperCase(),
-        totalOutputs: 0,
+        // Seeded minted count. 0 (no seed) → ghosts render until the reconcile;
+        // a real seed → real cards from frame one. Never starts at supply, so
+        // no sold-out flash.
+        totalOutputs: initialTotal,
         maxSupply: supply,
         floorEth: MOCK_PROJECT_FLOOR_ETH,
-        outputs: new Map<number, OutputMeta>(),
-        showcaseIds: [],
+        outputs,
+        showcaseIds: initialShowcaseIds,
         // Registry value is the synchronous fallback; the DB reconcile below is
         // the source of truth and overrides it once /outputs lands.
         soundtrack: def?.soundtrack ?? null,
@@ -120,16 +138,32 @@ interface OutputOwnerDTO {
 
 export function ProjectProvider({
     slug = DEFAULT_SLUG,
+    initialTotal = 0,
+    initialShowcaseIds = [],
     children,
 }: {
     slug?: string;
+    /** Server-seeded minted count (projects.minted_count) for first-paint. */
+    initialTotal?: number;
+    /** Server-seeded curated showcase ids (projects.showcase_ids). */
+    initialShowcaseIds?: readonly number[];
     children: ReactNode;
 }) {
     const lower = slug.toLowerCase();
-    const [state, setState] = useState<ProjectState>(() => buildInitial(lower));
+    const [state, setState] = useState<ProjectState>(() =>
+        buildInitial(lower, initialTotal, initialShowcaseIds)
+    );
 
-    /* Rebuild when the active Project changes (route → different slug). */
+    /* Rebuild when the active Project changes (route → different slug). Skip
+       the first run: useState already seeded the initial slug's state (with
+       the server seed), and resetting it here on mount would wipe that seed
+       and reintroduce the empty-gallery flash before the reconcile lands. */
+    const firstRun = useRef(true);
     useEffect(() => {
+        if (firstRun.current) {
+            firstRun.current = false;
+            return;
+        }
         setState(buildInitial(lower));
     }, [lower]);
 

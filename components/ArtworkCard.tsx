@@ -140,6 +140,12 @@ interface ArtworkCardProps {
        triggers globals.css 2390 (`body:not(.hammer-mode) .output-card.muted
        { display: none }`) to hide muted cards outside hammer-mode and
        2444-2457 (`.muted-final` boxed-tape label) inside it. */
+    /* Above-the-fold flag. The page passes eager=true for the first
+       screenful of cards so their canvas paints SYNCHRONOUSLY on mount
+       (virtualizer paintNow) instead of waiting for the IntersectionObserver
+       + rAF queue. This is the "just there on load" path; the lazy tail
+       keeps the OOM crash-guard. Defaults false. */
+    eager?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -150,6 +156,7 @@ export default function ArtworkCard({
     id,
     projectShowcasePick = false,
     isBreadcrumb = false,
+    eager = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -328,11 +335,11 @@ export default function ArtworkCard({
             }
         };
 
-        registerCanvas({ id, wrapper, canvas, render });
+        registerCanvas({ id, wrapper, canvas, render, eager });
         return () => {
             unregisterCanvas(id);
         };
-    }, [id, slug]);
+    }, [id, slug, eager]);
 
     /* sim 8008-8014 — when hammer-mode is on, tapping the card body
        toggles mute on this token rather than opening the modal. Mode

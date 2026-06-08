@@ -4557,8 +4557,12 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     display: block;
     width: 100%;
     height: auto;
+    /* No fade. The canvas stays opacity:0 only until it has pixels, then
+       .visible flips it on INSTANTLY (no transition) — the old 0.5s ease-in
+       was the "pop in" Brendon flagged. Eager cards paint synchronously on
+       mount so opacity:1 lands the same frame; lazy tail cards paint a frame
+       after they cross the prefetch margin, still well before they're seen. */
     opacity: 0;
-    transition: opacity 0.5s ease-in;
 }
 .output-canvas.visible {
     opacity: 1;

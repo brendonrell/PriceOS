@@ -47,7 +47,10 @@
 import { hashSynNotifyCanvasPaint } from '../engines/hashSynEngine';
 
 const CANVAS_LRU_CAP = 60;
-const RENDER_BATCH_SIZE = 4;
+/* Painted per rAF tick. Bumped 4 → 8 with the idle→rAF switch: gradient
+   fills are cheap, so a full screenful of tail cards lands within a frame
+   or two of scrolling rather than trickling in. */
+const RENDER_BATCH_SIZE = 8;
 const ROOT_MARGIN = '400px 0px';
 
 type RegisteredCard = {
@@ -58,6 +61,13 @@ type RegisteredCard = {
        canvas ref + draws into the canvas; the virtualizer only decides
        WHEN to invoke it. */
     render: () => void;
+    /* Above-the-fold cards register with eager=true and paint SYNCHRONOUSLY
+       at registration — no observer wait, no idle/rAF deferral, no fade.
+       This is the "just there on load" path: the first screenful of art is
+       painted before the browser has a chance to show an empty tile. The
+       lazy IntersectionObserver path below only carries the deep-scroll
+       tail (the OOM crash-guard that this virtualizer exists for). */
+    eager?: boolean;
 };
 
 const registry = new Map<number, RegisteredCard>();
@@ -104,42 +114,45 @@ function ensureObserver(): void {
 function scheduleDrain(): void {
     if (renderScheduled) return;
     renderScheduled = true;
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback !== 'undefined') {
-        window.requestIdleCallback(drainQueue, { timeout: 200 });
+    /* Next-frame, not next-idle. The old requestIdleCallback(timeout 200)
+       was the "trickle" — lazy canvases could sit unpainted for up to
+       200ms before their idle slot came up, painting 4 at a time. rAF
+       lands the paint on the very next frame (~16ms), so deep-scroll art
+       keeps pace with the scroll instead of lagging behind it. */
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame !== 'undefined') {
+        window.requestAnimationFrame(drainQueue);
     } else {
-        /* Fallback for browsers without requestIdleCallback (older
-           Safari). 16ms ≈ one frame budget — same fallback sim uses. */
         setTimeout(drainQueue, 16);
     }
+}
+
+/* Paint a single registered card right now: draw, reveal, count, enforce
+   the LRU cap. Shared by the eager (synchronous, at-register) path and the
+   lazy (observer → rAF drain) path so both reveal identically. */
+function paintNow(reg: RegisteredCard): void {
+    if (!registry.has(reg.id)) return;
+    if (active.has(reg.id)) return;
+    try {
+        reg.render();
+    } catch {
+        return;
+    }
+    reg.canvas.classList.add('visible');
+    reg.wrapper.style.background = 'transparent';
+    active.set(reg.id, reg);
+    renderCounter++;
+    /* Brendon list item 14 — sim 8230-8234. Notify the hashsyn
+       engine so it can debounce a resample once the new canvas
+       pixels are paintable. No-op when hashsyn isn't the active
+       colorway — engine bails on null _onApplyHex. */
+    hashSynNotifyCanvasPaint();
+    enforceLruCap();
 }
 
 function drainQueue(): void {
     renderScheduled = false;
     const batch = renderQueue.splice(0, RENDER_BATCH_SIZE);
-    batch.forEach((reg) => {
-        /* Skip if the card was unregistered between queue and drain
-           (component unmounted while we waited for idle), or if some
-           other path already rendered it. */
-        if (!registry.has(reg.id)) return;
-        if (active.has(reg.id)) return;
-        try {
-            reg.render();
-        } catch {
-            /* If the closure throws (id unmounted mid-draw), don't let
-               the whole batch die. Skip to the next item. */
-            return;
-        }
-        reg.canvas.classList.add('visible');
-        reg.wrapper.style.background = 'transparent';
-        active.set(reg.id, reg);
-        renderCounter++;
-        /* Brendon list item 14 — sim 8230-8234. Notify the hashsyn
-           engine so it can debounce a resample once the new canvas
-           pixels are paintable. No-op when hashsyn isn't the active
-           colorway — engine bails on null _onApplyHex. */
-        hashSynNotifyCanvasPaint();
-        enforceLruCap();
-    });
+    batch.forEach(paintNow);
     publishStats();
     if (renderQueue.length > 0) scheduleDrain();
 }
@@ -203,6 +216,12 @@ export function registerCanvas(reg: RegisteredCard): void {
     }
     registry.set(reg.id, reg);
     observer?.observe(reg.wrapper);
+    /* Eager (above-the-fold) cards paint synchronously right here — no
+       observer round-trip, no rAF queue. This is what makes the first
+       screenful "just there" the instant the page mounts. They stay
+       observed so LRU eviction + re-intersection re-paint still apply
+       once the user scrolls them far off-screen. */
+    if (reg.eager) paintNow(reg);
     publishStats();
 }
 
