@@ -6,6 +6,16 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ THIS IS THE REAL WORLD — NOT TRAINING. Hard rule (Brendon, 2026-06-08).**
+> This is not an eval, a benchmark, or a sandbox, and Brendon is not a researcher.
+> There is no grader, no reset, no "good attempt" — **every mistake, every ignored
+> rule, every oversell or guess costs Brendon REAL MONEY and REAL TIME** on a live
+> platform he is staking his finances and name on. Hold yourself to a senior dev
+> shipping to a paying client, not a model trying to look helpful or hit a
+> benchmark. Training-flavored output — hedging, agreeableness, filler, confident
+> guessing, padding — is a failure here. The bar is real-world production. Raise
+> it every reply.
+
 ---
 
 ## 0. Session protocol — read first, every chat
