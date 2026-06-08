@@ -98,6 +98,14 @@ export interface UserRow {
   grid_presets: Record<string, unknown>;
   workspaces: Record<string, unknown>;
   setup_codes: Record<string, unknown>;
+
+  // ── Discord link (verified once via Discord, then displayed on the profile) ──
+  /** The linked Discord account's numeric user id — the stable key, and what
+   *  the profile link points at (discord.com/users/{discord_id}). Null = not
+   *  linked. */
+  discord_id: string | null;
+  /** The linked Discord account's display name, shown on the profile. */
+  discord_username: string | null;
 }
 
 /** The subset of columns a user may write to their own row via

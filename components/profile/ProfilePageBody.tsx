@@ -534,24 +534,56 @@ function ProfilePageBodyInner({
                                 </span>
                             </div>
 
-                            <button
-                                type="button"
-                                className={!isAuthed ? 'auth-gated' : undefined}
-                                style={{
-                                    cursor: 'pointer',
-                                    fontFamily: 'Courier New, monospace',
-                                    marginTop: 14,
-                                    background: 'none',
-                                    border: 'none',
-                                    padding: 0,
-                                }}
-                                onClick={() => {
-                                    if (!isAuthed) return;
-                                    showToast('Discord linking test entry added');
-                                }}
-                            >
-                                Link Discord
-                            </button>
+                            {user.discord_id && user.discord_username ? (
+                                <div style={{ marginTop: 14, fontFamily: 'Courier New, monospace' }}>
+                                    <a
+                                        href={`https://discord.com/users/${user.discord_id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Discord: @{user.discord_username}
+                                    </a>
+                                    {isOwnProfile && (
+                                        <button
+                                            type="button"
+                                            style={{
+                                                marginLeft: 10,
+                                                cursor: 'pointer',
+                                                fontFamily: 'inherit',
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: 0,
+                                                opacity: 0.6,
+                                            }}
+                                            onClick={async () => {
+                                                await fetch('/api/auth/discord', { method: 'DELETE' });
+                                                window.location.reload();
+                                            }}
+                                        >
+                                            (unlink)
+                                        </button>
+                                    )}
+                                </div>
+                            ) : isOwnProfile ? (
+                                <button
+                                    type="button"
+                                    className={!isAuthed ? 'auth-gated' : undefined}
+                                    style={{
+                                        cursor: 'pointer',
+                                        fontFamily: 'Courier New, monospace',
+                                        marginTop: 14,
+                                        background: 'none',
+                                        border: 'none',
+                                        padding: 0,
+                                    }}
+                                    onClick={() => {
+                                        if (!isAuthed) return;
+                                        window.location.href = '/api/auth/discord';
+                                    }}
+                                >
+                                    Link Discord
+                                </button>
+                            ) : null}
                         </div>
                     )}
 

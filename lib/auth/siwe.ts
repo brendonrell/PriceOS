@@ -36,6 +36,9 @@ export interface SiweSession {
   nonce?: string;
   issuedAt?: string;
   chainId?: number;
+  /** One-time CSRF token for the Discord account-link round-trip. Set when the
+   *  user starts linking; checked (and cleared) when Discord redirects back. */
+  discordState?: string;
 }
 
 const SESSION_COOKIE_NAME = 'pd_siwe_session';
