@@ -32,6 +32,7 @@ import {
     useMemo,
     useRef,
     useState,
+    type ReactNode,
 } from 'react';
 import type { CalcSheetConfig } from '../lib/state/CalcSheetContext';
 
@@ -196,19 +197,23 @@ export default function CalcSheet({ config, onClose }: Props) {
        saves a hidden node when calc has never been opened. */
     if (!mounted && !config) return null;
 
-    /* Context line — "<em>COLLECTION</em> #N — listed X.XXX ETH" or the
-       not-listed / no-floor variants. Sim 11603-11612. dangerouslySet-
-       InnerHTML mirrors sim's innerHTML use (italics on project name);
-       caller controls the title string and no user input is interpolated. */
-    let contextHtml = '\u2014';
+    /* Context line — "COLLECTION #N — listed X.XXX ETH" or the
+       not-listed / no-floor variants. Sim 11603-11612. Rendered as JSX
+       (not raw HTML) so the project name — which artists choose — is
+       escaped as text; the italics are kept via a real <em> element. */
+    let contextNode: ReactNode = '\u2014';
     if (renderConfig) {
-        const base = `<em>${renderConfig.projectTitle}</em> #${renderConfig.tokenId}`;
+        const base = (
+            <>
+                <em>{renderConfig.projectTitle}</em> #{renderConfig.tokenId}
+            </>
+        );
         if (renderConfig.price != null) {
-            contextHtml = `${base} \u2014 listed ${renderConfig.price.toFixed(3)} ETH`;
+            contextNode = <>{base} {'\u2014'} listed {renderConfig.price.toFixed(3)} ETH</>;
         } else if (renderConfig.floor != null) {
-            contextHtml = `${base} \u2014 not listed \u00B7 Floor ${renderConfig.floor.toFixed(3)} ETH`;
+            contextNode = <>{base} {'\u2014'} not listed {'\u00B7'} Floor {renderConfig.floor.toFixed(3)} ETH</>;
         } else {
-            contextHtml = base;
+            contextNode = base;
         }
     }
 
@@ -246,11 +251,9 @@ export default function CalcSheet({ config, onClose }: Props) {
                     <span className="calc-sheet-title-glyph">{'\u0192'}</span>
                 </div>
 
-                <div
-                    className="calc-sheet-context"
-                    id="calcSheetContext"
-                    dangerouslySetInnerHTML={{ __html: contextHtml }}
-                />
+                <div className="calc-sheet-context" id="calcSheetContext">
+                    {contextNode}
+                </div>
 
                 <div className="calc-sheet-field">
                     <div className="calc-sheet-field-label">Your offer</div>

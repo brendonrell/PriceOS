@@ -44,6 +44,21 @@ interface Props {
 const FOCUS_DELAY_MS = 280;
 const CLOSE_FADE_MS = 250;
 
+/* The prompt title is an HTML string so callers can italicise a name
+   ("Your Anchor Price for <em>NAME</em>"). NAME can be artist- or
+   user-supplied, so escape the whole string and then re-allow only the
+   bare <em>/</em> wrapper — no other tags, no attributes — so an injected
+   name can't run script or load resources. */
+function emOnlyHtml(s: string): string {
+    const escaped = s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    return escaped
+        .replace(/&lt;em&gt;/g, '<em>')
+        .replace(/&lt;\/em&gt;/g, '</em>');
+}
+
 export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) {
     // Two-stage visibility (sim's .mounted/.active pattern). `mounted` is
     // the React-tree presence flag; `active` is the CSS animation flag.
@@ -170,7 +185,7 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
     // nothing (saves a hidden node when the prompt has never opened).
     if (!mounted && !config) return null;
 
-    const titleHtml = renderConfig?.title ?? '';
+    const titleHtml = emOnlyHtml(renderConfig?.title ?? '');
     const help = renderConfig?.help;
     const submitLabel = renderConfig?.submit ?? 'Save';
     const fields = renderConfig?.fields ?? [];
@@ -206,10 +221,10 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
                 <div
                     className="value-prompt-title"
                     id="valuePromptLabel"
-                    // dangerouslySetInnerHTML mirrors sim's innerHTML usage
-                    // (line 11477) so callers can italicise project
-                    // names. Caller controls the string — no user input
-                    // is interpolated here.
+                    // Title is HTML so callers can italicise a name; the
+                    // string is run through emOnlyHtml() above, which escapes
+                    // everything except a bare <em> wrapper, so an artist- or
+                    // user-supplied name can't inject markup.
                     dangerouslySetInnerHTML={{ __html: titleHtml }}
                 />
                 {help && (
