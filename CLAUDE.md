@@ -196,6 +196,18 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+> **NO TECHNICAL JARGON IN THE REPLY. Hard rule (Brendon, 2026-06-08).** The
+> white text you send is the ONLY thing Brendon reads — the tool calls, diffs,
+> file names, build output, and mechanics all live behind the collapsed
+> dropdowns and he does not want them surfaced. Your prose is a CEO briefing:
+> plain English, the decision and the result, nothing else. **Banned from
+> replies unless he explicitly asks:** file/function/class names, CSS/property
+> names, code identifiers, commit hashes, branch names, build/lint/test output,
+> "author/signature/hook" hygiene, framework terms (flex, nowrap, rAF,
+> virtualizer, SSR, etc.), and step-by-step mechanics. Say *what changed and
+> what it means for him* in a line or two — never *how* you did it. Every line
+> of jargon is wasted attention and reads as disrespect. When in doubt, cut it.
+
 - **NEVER blame Brendon's settings / cache / browser / device.** Default
   assumption for any bug: it's our code or our deploy, and it's ours to fix.
   Reproduce against the dev preview and find the real cause. "It's your
