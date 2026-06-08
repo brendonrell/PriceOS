@@ -91,11 +91,12 @@ contract that keeps it working:
   1. **Outstanding work first** — scan the tree for uncommitted/unpushed changes.
      App-touching → present the numbered CEO list, get the nod, push to `dev`;
      docs/process → just push. Leave NOTHING stranded.
-  2. **Delete this chat's task branch** — it's trash once the work is on `dev`,
-     and "wrap up" is the explicit go for this destructive step. ⚠️ This
-     environment currently **blocks branch deletion** (`git push --delete` → 403;
-     no MCP branch-delete) — so attempt it, and if it 403s, SURFACE the branch
-     name for Brendon to delete on GitHub. NEVER report it deleted when it wasn't.
+  2. **Prompt Brendon to delete this chat's task branch.** It's trash once the
+     work is on `dev`. This environment blocks deletion (`git push --delete` →
+     403; no MCP branch-delete), so do NOT waste a turn attempting it — instead
+     hand Brendon a clear, actionable one-liner: the exact branch name + the
+     GitHub branches page (`https://github.com/brendonrell/PriceOS/branches`) so
+     he deletes it in one click. Brendon deletes; you just prompt.
   3. **Update `docs/WIP.md` LAST** — reflecting the real, clean state.
 
 ---
