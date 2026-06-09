@@ -225,7 +225,7 @@ export default function ArtworkCard({
        toast branch + `add` for the mutation. Toast strings mirror sim
        11827 (already-in-cart) + 11834 (added) verbatim. */
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
-    const { multiSelectActive, selectedIds, toggleSelected } = useTraits();
+    const { multiSelectActive, isSelected: isOutputSelected, toggleSelected } = useTraits();
 
     /* sim 7295-7310 — when toggleMute flips Mute → MUTED, the label first
        shows ⟙ + .punch-hammer for 700ms (the swing keyframe), then
@@ -349,7 +349,7 @@ export default function ArtworkCard({
        in the click path. */
     const handleOpen = () => {
         if (multiSelectActive) {
-            toggleSelected(id);
+            toggleSelected(slug, id);
             return;
         }
         if (notifs.spell_hammer) {
@@ -483,7 +483,7 @@ export default function ArtworkCard({
        carries .muted (which hides it outside hammer-mode per sim 2390),
        and the label text flips to "Muted" with .muted-final styling
        (boxed-tape tag, sim 2444-2457). */
-    const isSelected = selectedIds.has(id);
+    const isSelected = isOutputSelected(slug, id);
     const articleClass =
         'output-card' +
         (muted ? ' muted' : '') +

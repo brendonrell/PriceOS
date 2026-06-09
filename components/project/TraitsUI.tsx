@@ -52,7 +52,6 @@
 
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
-import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
@@ -300,8 +299,6 @@ export default function TraitsUI({
         applyPreset,
         multiSelectActive,
         toggleMultiSelect,
-        selectedIds,
-        clearSelected,
         searchActive,
         toggleSearch,
         closeSearch,
@@ -318,8 +315,6 @@ export default function TraitsUI({
     const { sort, dir, feedKind, cycleSort, setSort, applySort } = useSort();
     const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
-    const pathname = usePathname();
-    const collectionSlug = pathname.split('/').filter(Boolean).pop() ?? '';
 
     /* Trait pills are driven by the ACTIVE Project's schema (registry),
        not hardcoded Kiki categories. Fate is pinned separately (icon pill),
@@ -1005,7 +1000,8 @@ export default function TraitsUI({
                 Driven by presetRowActive (⏚ button). */}
             <PresetRow
                 open={presetRowActive}
-                slug={collectionSlug}
+                slug="project"
+                projectSlug={projectSlug}
                 sort={sort}
                 dir={dir}
                 feedKind={feedKind}
@@ -1119,7 +1115,7 @@ export default function TraitsUI({
  * No shared classes with any other modal/overlay in the codebase.
  */
 function MsFloatBar() {
-    const { multiSelectActive, selectedIds, clearSelected } = useTraits();
+    const { multiSelectActive, selectedItems, selectedCount, clearSelected } = useTraits();
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const { outputs } = useProject();
@@ -1139,9 +1135,11 @@ function MsFloatBar() {
 
     if (!multiSelectActive) return null;
 
-    const count = selectedIds.size;
+    const count = selectedCount;
     const countLabel = count === 1 ? '1 output' : `${count} outputs`;
-    const ids = Array.from(selectedIds);
+    /* Single Project here, so every selected key shares this page's slug —
+       mapping to bare ids keeps the existing outputs.get(id) lookups intact. */
+    const ids = selectedItems.map((it) => it.id);
 
     const allOwned  = ids.length > 0 && ids.every(id => outputs.get(id)?.isOwnedByBrendon ?? false);
     const anyOwned  = ids.some(id => outputs.get(id)?.isOwnedByBrendon ?? false);
@@ -1300,7 +1298,14 @@ const SLOT_GLYPHS = ['①', '②', '③'] as const;
 
 interface PresetRowProps {
     open: boolean;
+    /* Store scope. The project page uses the constant 'project' so the 3
+       Grid Presets are SHARED across every Project (not per-Project) — a
+       deliberate change (WIP decision 3). */
     slug: string;
+    /* The Project actually being viewed. Captured into each saved preset so
+       recall restores trait filters only when you're back on the same Project;
+       the universal parts (sort / price / search) restore on any Project. */
+    projectSlug: string;
     /* Current sort state — needed both for snapshot and for apply */
     sort: import('../../lib/state/SortContext').SortKey;
     dir: import('../../lib/state/SortContext').SortDir;
@@ -1325,6 +1330,7 @@ interface PresetRowProps {
 function PresetRow({
     open,
     slug,
+    projectSlug,
     sort,
     dir,
     feedKind,
@@ -1372,6 +1378,7 @@ function PresetRow({
             searchQuery,
             priceMin,
             priceMax,
+            savedSlug: projectSlug,
         });
         const slotLabel = SLOT_GLYPHS[index] ?? `${index + 1}`;
         showToast(`PRESET ${slotLabel} ${result === 'replaced' ? 'REPLACED' : 'SAVED'}`);
@@ -1379,21 +1386,42 @@ function PresetRow({
 
     const handleRecall = (index: number, preset: PresetEntry) => {
         const s = preset.state;
+        // Universal parts (sort / price / search / notes) always restore.
         applySort(s.sort, s.dir, s.feedKind);
-        // Reconstruct Sets from the stored string arrays
-        const restoredFilters = Object.fromEntries(
-            Object.entries(s.activeFilters).map(([k, arr]) => [k, new Set(arr as string[])])
-        ) as unknown as import('../../lib/state/TraitsContext').ActiveFilters;
-        applyPreset({
-            activeFilters: restoredFilters,
-            activeCategory: s.activeCategory,
-            activeFeedCategory: s.activeFeedCategory,
-            activeSubFilter: s.activeSubFilter,
-            myNotesActive: s.myNotesActive,
-            searchQuery: s.searchQuery,
-            priceMin: s.priceMin,
-            priceMax: s.priceMax,
-        });
+        // Trait filters only make sense on the Project they were captured on
+        // (Layer/Mineral/etc. don't exist on a different Project's schema).
+        // Legacy presets with no savedSlug are treated as same-Project.
+        const sameProject = !s.savedSlug || s.savedSlug === projectSlug;
+        if (sameProject) {
+            // Reconstruct Sets from the stored string arrays
+            const restoredFilters = Object.fromEntries(
+                Object.entries(s.activeFilters).map(([k, arr]) => [k, new Set(arr as string[])])
+            ) as unknown as import('../../lib/state/TraitsContext').ActiveFilters;
+            applyPreset({
+                activeFilters: restoredFilters,
+                activeCategory: s.activeCategory,
+                activeFeedCategory: s.activeFeedCategory,
+                activeSubFilter: s.activeSubFilter,
+                myNotesActive: s.myNotesActive,
+                searchQuery: s.searchQuery,
+                priceMin: s.priceMin,
+                priceMax: s.priceMax,
+            });
+        } else {
+            // Cross-Project recall — restore the universal view, and close any
+            // open trait category so no mismatched trait row dangles. The
+            // preset keeps its stored filters (no data loss) for when you
+            // return to its origin Project.
+            applyPreset({
+                activeCategory: null,
+                activeFeedCategory: null,
+                activeSubFilter: 'All',
+                myNotesActive: s.myNotesActive,
+                searchQuery: s.searchQuery,
+                priceMin: s.priceMin,
+                priceMax: s.priceMax,
+            });
+        }
         setLoadedIndex(slug, index);
         const slotLabel = SLOT_GLYPHS[index] ?? `${index + 1}`;
         showToast(`PRESET ${slotLabel} LOADED`);

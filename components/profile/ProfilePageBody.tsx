@@ -618,7 +618,7 @@ function ProfilePageBodyInner({
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && <ProfileFacetBar holdings={enriched} />}
+                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
             </Hero>
 
             {/* Gallery — Created or Collected depending on active tab */}

@@ -36,6 +36,9 @@ export const STATE_CACHE_KEYS = {
     sort: 'pd_settings_sort',
     notifs: 'pd_settings_notifs',
     showcaseStyle: 'pd_user_showcase_mode',
+    /** Unified Grid View Presets blob `{ [scope]: PresetEntry[] }`. Read +
+     *  written by lib/pins/presetStore. */
+    gridPresets: 'pd_grid_presets',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -101,6 +104,14 @@ export function hydrateFromRow(row: UserRow): void {
 
         if (typeof s.sort === 'string') localStorage.setItem(STATE_CACHE_KEYS.sort, s.sort);
         if (s.notifs) localStorage.setItem(STATE_CACHE_KEYS.notifs, JSON.stringify(s.notifs));
+
+        // grid_presets → unified cache the presetStore reads (Gallery View
+        // Presets). Server wins; presetStore re-reads this key on the
+        // USERSTATE_HYDRATED_EVENT fired just below.
+        localStorage.setItem(
+            STATE_CACHE_KEYS.gridPresets,
+            JSON.stringify(row.grid_presets ?? {})
+        );
 
         window.dispatchEvent(new CustomEvent(USERSTATE_HYDRATED_EVENT));
     } catch {

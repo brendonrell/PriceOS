@@ -84,6 +84,12 @@ function emptyFilters(): ActiveFilters {
     return {};
 }
 
+/* Multi-select key. Slugs are lowercase alnum/hyphen (never contain ':'), so
+   the first ':' is an unambiguous separator when parsing back to slug + id. */
+function selKey(slug: string, id: number): string {
+    return `${slug}:${id}`;
+}
+
 export interface TraitsContextValue {
     /* Header-bar filter pills */
     activeCategory: TraitCategory | null;
@@ -142,9 +148,20 @@ export interface TraitsContextValue {
     multiSelectActive: boolean;
     toggleMultiSelect: () => void;
 
-    /* Multi-select selection set */
-    selectedIds: ReadonlySet<number>;
-    toggleSelected: (id: number) => void;
+    /* Multi-select selection set.
+       ────────────────────────────────────────────────────────────────────
+       Keyed by `${slug}:${id}` — NOT a bare token number. The profile
+       Collected gallery spans many Projects, so the same token number can
+       appear in two Projects at once (Prisms #5 and Oracle #5 are different
+       Outputs). A bare-number Set would select both as one. The composite
+       key makes selection Project-exact everywhere; the project page (a
+       single Project) is unaffected — every key there shares one slug. */
+    selectedKeys: ReadonlySet<string>;
+    /** Parsed view of selectedKeys, for action bars that need slug + id. */
+    selectedItems: ReadonlyArray<{ slug: string; id: number }>;
+    selectedCount: number;
+    toggleSelected: (slug: string, id: number) => void;
+    isSelected: (slug: string, id: number) => boolean;
     clearSelected: () => void;
 
     /* Search row */
@@ -183,8 +200,8 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const [myNotesActive, setMyNotesActive] = useState(false);
     const [presetRowActive, setPresetRowActive] = useState(false);
     const [multiSelectActive, setMultiSelectActive] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<ReadonlySet<number>>(
-        () => new Set<number>()
+    const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(
+        () => new Set<string>()
     );
     const [searchActive, setSearchActive] = useState(false);
     const [searchQuery, setSearchQueryState] = useState('');
@@ -394,24 +411,42 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
                 document.body.classList.toggle('multi-select-mode', next);
             }
             if (!next) {
-                setSelectedIds(new Set<number>());
+                setSelectedKeys(new Set<string>());
             }
             return next;
         });
     }, []);
 
-    const toggleSelected = useCallback((id: number) => {
-        setSelectedIds((prev) => {
+    const toggleSelected = useCallback((slug: string, id: number) => {
+        const key = selKey(slug, id);
+        setSelectedKeys((prev) => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
             return next;
         });
     }, []);
 
+    const isSelected = useCallback(
+        (slug: string, id: number) => selectedKeys.has(selKey(slug, id)),
+        [selectedKeys]
+    );
+
     const clearSelected = useCallback(() => {
-        setSelectedIds(new Set<number>());
+        setSelectedKeys(new Set<string>());
     }, []);
+
+    /* Parsed (slug, id) pairs for the multi-select action bars. Memoized off
+       selectedKeys so it only recomputes when the selection actually changes. */
+    const selectedItems = useMemo(
+        () =>
+            Array.from(selectedKeys).map((k) => {
+                const i = k.indexOf(':');
+                return { slug: k.slice(0, i), id: Number(k.slice(i + 1)) };
+            }),
+        [selectedKeys]
+    );
+    const selectedCount = selectedKeys.size;
 
     /* Sim's toggleSearch flips `.search-row.open` and clears the query
        when collapsing. closeSearch is the explicit ✕ path.
@@ -535,8 +570,11 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             applyPreset,
             multiSelectActive,
             toggleMultiSelect,
-            selectedIds,
+            selectedKeys,
+            selectedItems,
+            selectedCount,
             toggleSelected,
+            isSelected,
             clearSelected,
             searchActive,
             toggleSearch,
@@ -568,8 +606,11 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             applyPreset,
             multiSelectActive,
             toggleMultiSelect,
-            selectedIds,
+            selectedKeys,
+            selectedItems,
+            selectedCount,
             toggleSelected,
+            isSelected,
             clearSelected,
             searchActive,
             toggleSearch,
