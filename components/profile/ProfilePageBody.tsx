@@ -63,7 +63,7 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'created' | 'collected' | 'more';
-type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums';
+type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info';
 
 /** One collected Output, from /api/user/[address]/outputs. */
 interface Holding {
@@ -517,7 +517,33 @@ function ProfilePageBodyInner({
 
                     {/* + More tab content: secondary stats + Discord link.
                         Colorway picker removed — now lives in Collected TraitsUI sort-bar. */}
+                    {/* + More tab: profile sub-nav pills (Starred / Wishlists /
+                        Albums / Info). Rendered first so the pill row sits flush
+                        directly under the main tabs, mirroring the Collected
+                        facet-bar pattern. */}
                     {onMore && (
+                        <TraitsUI
+                            visible={true}
+                            hideSortBar
+                            profilePills={
+                                (isZen
+                                    ? [{ key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') }]
+                                    : [
+                                        { key: 'starred',   label: 'Starred',   active: moreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
+                                        { key: 'wishlists', label: 'Wishlists', active: moreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
+                                        { key: 'albums',    label: 'Albums',    active: moreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'info',      label: 'Info',      active: moreL1 === 'info',      onClick: () => setMoreL1('info')      },
+                                    ]
+                                )
+                            }
+                        />
+                    )}
+
+                    {/* Info sub-tab content: followers / following / anchor + the
+                        Discord link. Previously wedged between the main tabs and the
+                        sub-pill row; now it lives under the Info sub-tab so the pills
+                        sit flush under the main tabs (Collected-tab pattern). */}
+                    {onMore && moreL1 === 'info' && (
                         <div className="more-tab-stats">
                             <div className="hero-line stats-row stats-row-2">
                                 <span className="stat-item">
@@ -585,24 +611,6 @@ function ProfilePageBodyInner({
                                 </button>
                             ) : null}
                         </div>
-                    )}
-
-                    {/* + More tab: profile sub-nav pills (Starred / Wishlists / Albums) */}
-                    {onMore && (
-                        <TraitsUI
-                            visible={true}
-                            hideSortBar
-                            profilePills={
-                                (isZen
-                                    ? [{ key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') }]
-                                    : [
-                                        { key: 'starred',   label: 'Starred',   active: moreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
-                                        { key: 'wishlists', label: 'Wishlists', active: moreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
-                                        { key: 'albums',    label: 'Albums',    active: moreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
-                                    ]
-                                )
-                            }
-                        />
                     )}
 
                     {/* Collected tab: platform-facet filter over the wallet's real
