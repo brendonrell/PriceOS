@@ -37,10 +37,10 @@ import ArtworkCard from '../ArtworkCard';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
-import ProjectCard from './ProjectCard';
-import { projectsByArtist, getProject, outputTraits } from '../../lib/project/registry';
+import { getProject, outputTraits } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
+import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 
 /**
@@ -62,7 +62,7 @@ function formatMemberSince(iso: string): string {
         .toUpperCase();
 }
 
-type ProfileTab = 'created' | 'collected' | 'more';
+type ProfileTab = 'showcase' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info';
 
 /** One collected Output, from /api/user/[address]/outputs. */
@@ -135,9 +135,24 @@ function ProfilePageBodyInner({
     }, [user.address]);
     const followerCount = counts.followers;
 
-    /* Projects this user created (they're an artist). The Created tab shows
-       these as Project cards. */
-    const artistProjects = useMemo(() => projectsByArtist(user.handle ?? handle), [user.handle, handle]);
+    /* Showcase — the user's curated top-6 (users.showcase). Each slot points at
+       one Output (project + token). 'static' keeps the saved order; 'generative'
+       reshuffles once per visit. Empty slots are dropped. Wiring to ADD/curate
+       slots ships later; this renders whatever's saved. */
+    const showcaseSlots = useMemo<ShowcaseSlot[]>(() => {
+        const slots = (user.showcase?.slots ?? []).filter(
+            (s): s is ShowcaseSlot => !!s && !!s.project_id && s.token_id != null && getProject(s.project_id) != null,
+        );
+        if (user.showcase_style === 'generative') {
+            const a = [...slots];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        return slots;
+    }, [user.showcase, user.showcase_style]);
 
     /* Real collected Outputs (holders rows) for THIS profile's wallet — empty
        at fresh state, populating as the wallet mints/buys. Spans both projects;
@@ -267,7 +282,7 @@ function ProfilePageBodyInner({
     const mutuals: string[] = [];
     const mutualOthers: number = 0;
 
-    const [activeTab, setActiveTab] = useState<ProfileTab>('created');
+    const [activeTab, setActiveTab] = useState<ProfileTab>('showcase');
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
 
     const iconToastProps = (label: string) => ({
@@ -319,7 +334,7 @@ function ProfilePageBodyInner({
     };
 
     // ── Tab / sub-tab state ───────────────────────────────────────────
-    const onCreated   = activeTab === 'created';
+    const onShowcase  = activeTab === 'showcase';
     const onCollected = activeTab === 'collected';
     const onMore      = activeTab === 'more';
 
@@ -329,7 +344,7 @@ function ProfilePageBodyInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
-    const galleryVisible = onCreated || onCollected;
+    const galleryVisible = onShowcase || onCollected;
 
     return (
         <>
@@ -487,13 +502,13 @@ function ProfilePageBodyInner({
                     {/* Tab row */}
                     <div className="profile-tabs-row" id="profileTabsRow">
                         <div
-                            className={`pill pill-l1${onCreated ? ' active' : ''}`}
+                            className={`pill pill-l1${onShowcase ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('created')}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('created'); } }}
+                            onClick={() => setActiveTab('showcase')}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('showcase'); } }}
                         >
-                            <span className="stat-name">Created</span>
+                            <span className="stat-name">Showcase</span>
                         </div>
                         <div
                             className={`pill pill-l1${onCollected ? ' active' : ''}`}
@@ -621,15 +636,33 @@ function ProfilePageBodyInner({
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
             </Hero>
 
-            {/* Gallery — Created or Collected depending on active tab */}
+            {/* Showcase empty state — the curated grid is empty (nothing picked
+                yet, or curation not set up). Sits above the (empty) gallery. */}
+            {onShowcase && showcaseSlots.length === 0 && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">
+                        {isOwnProfile
+                            ? 'Your Showcase is empty — curating your top 6 is coming soon'
+                            : `@${displayHandle} hasn’t set up a Showcase yet`}
+                    </span>
+                </div>
+            )}
+
+            {/* Gallery — Showcase or Collected depending on active tab. Each
+                Showcase slot is wrapped in its own ProjectProvider so the curated
+                order is preserved exactly regardless of which project each pick is
+                from (the provider is a context-only node, no DOM, so every card
+                still lands in the single #gallery grid). */}
             <section
                 id="gallery"
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
-                {onCreated
-                    ? artistProjects.map((p) => (
-                          <ProjectCard key={p.slug} slug={p.slug} displayName={p.displayName} outputs={p.outputs} />
+                {onShowcase
+                    ? showcaseSlots.map((slot, i) => (
+                          <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
+                              <ArtworkCard id={Number(slot.token_id)} />
+                          </ProjectProvider>
                       ))
                     : collectedByProject.map(({ slug, ids }) => (
                           <ProjectProvider key={slug} slug={slug}>
