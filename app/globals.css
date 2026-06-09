@@ -6811,3 +6811,28 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .starred-row-unstar:hover {
     opacity: 0.65;
 }
+/* Wishlist row extras (price + quick cart), reusing the shared row layout. */
+.wishlist-row-price {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+.wishlist-row-cart {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.wishlist-row-cart:hover {
+    background: var(--stat-bg);
+}
+.wishlist-row-cart.in-cart {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}

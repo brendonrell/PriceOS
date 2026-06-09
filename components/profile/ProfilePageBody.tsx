@@ -35,7 +35,9 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
+import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import StarredList from './StarredList';
+import WishlistList from './WishlistList';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
@@ -300,6 +302,18 @@ function ProfilePageBodyInner({
         [starredItems],
     );
 
+    /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
+       shown only on your own profile. */
+    const [wishlistItems, setWishlistItems] = useState(() => getWishlistItems());
+    useEffect(() => {
+        setWishlistItems(getWishlistItems());
+        return subscribeWishlist(() => setWishlistItems(getWishlistItems()));
+    }, []);
+    const wishlistValid = useMemo(
+        () => wishlistItems.filter((s) => getProject(s.slug) != null),
+        [wishlistItems],
+    );
+
     const iconToastProps = (label: string) => ({
         role: 'button' as const,
         tabIndex: 0,
@@ -360,6 +374,7 @@ function ProfilePageBodyInner({
     }, [isZen]);
 
     const onStarredTab = onMore && moreL1 === 'starred';
+    const onWishlistTab = onMore && moreL1 === 'wishlists';
     const galleryVisible = onShowcase || onCollected;
 
     return (
@@ -679,6 +694,21 @@ function ProfilePageBodyInner({
                 </div>
             )}
 
+            {/* Wishlist empty / private states. Wishlist is private — only the
+                owner sees it. */}
+            {onWishlistTab && !isOwnProfile && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">Wishlists are private</span>
+                </div>
+            )}
+            {onWishlistTab && isOwnProfile && wishlistValid.length === 0 && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">
+                        Nothing on your wishlist yet — tap the ✛ on a piece you want to buy
+                    </span>
+                </div>
+            )}
+
             {/* Gallery — Showcase or Collected depending on active tab. Each
                 Showcase slot is wrapped in its own ProjectProvider so the curated
                 order is preserved exactly regardless of which project each pick is
@@ -709,6 +739,12 @@ function ProfilePageBodyInner({
                 Artwork modal. Own profile only (Stars are private). */}
             {onStarredTab && isOwnProfile && starredValid.length > 0 && (
                 <StarredList items={starredValid} />
+            )}
+
+            {/* Wishlist — buy-focused row list (price + cart + remove). Own
+                profile only (private). */}
+            {onWishlistTab && isOwnProfile && wishlistValid.length > 0 && (
+                <WishlistList items={wishlistValid} />
             )}
         </>
     );

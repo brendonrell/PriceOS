@@ -109,6 +109,11 @@ import {
     subscribeStarred,
     toggleStar as storeToggleStar,
 } from '../lib/pins/starStore';
+import {
+    getWishlistKeys,
+    subscribeWishlist,
+    toggleWishlist as storeToggleWishlist,
+} from '../lib/pins/wishlistStore';
 import { useCart } from '../lib/state/CartContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
@@ -219,6 +224,17 @@ export default function ArtworkCard({
         return subscribeStarred((next) => setStarredKeys(next));
     }, []);
     const starred = starredKeys.has(`${slug}:${id}`);
+
+    /* Wishlist — "want to buy". Same Project-exact, account-backed store as
+       stars; the heart on the card adds/removes. */
+    const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(
+        () => getWishlistKeys()
+    );
+    useEffect(() => {
+        setWishlistKeys(getWishlistKeys());
+        return subscribeWishlist((next) => setWishlistKeys(next));
+    }, []);
+    const wishlisted = wishlistKeys.has(`${slug}:${id}`);
 
     /* chat #6 D010-cart — sim 11823-11836. CartContext already owns the
        items Set + persistence; ArtworkCard reads `has` for the duplicate-
@@ -450,6 +466,13 @@ export default function ArtworkCard({
         }
     };
 
+    /* Wishlist toggle — add/remove this Output from the buy list. */
+    const handleWishlistClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const result = storeToggleWishlist(slug, id);
+        showToast(result === 'added' ? 'Added to Wishlist' : 'Removed from Wishlist');
+    };
+
     /* chat #6 D010-cart — sim 11823-11836. addToCart's two branches:
        already-in-cart shows "Prisms #22 already in cart" (sim 11827 —
        title-cased project name + ' #' + id + ' already in cart');
@@ -646,9 +669,9 @@ export default function ArtworkCard({
                                 the modal, which is worse than the toast.
                                 Real handler lands when sim adds one. */}
                             <span
-                                className="hi-icon"
-                                title="Wishlist"
-                                onClick={stubAction('Added to Wishlist')}
+                                className={'hi-icon' + (wishlisted ? ' active-star' : '')}
+                                title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                                onClick={handleWishlistClick}
                             >
                                 {'\u271B\uFE0E'}
                             </span>

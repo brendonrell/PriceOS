@@ -51,6 +51,9 @@ export interface UserSettings {
    *  settings envelope (never returned by the public profile read) so a visitor
    *  can't see your stars. Was localStorage `pd_starred` (device-only). */
   starred?: string[];
+  /** Wishlisted Outputs — PRIVATE "want to buy" list, keyed `${slug}:${id}`.
+   *  Same envelope + privacy as `starred`. */
+  wishlist?: string[];
 }
 
 /** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the

@@ -42,6 +42,9 @@ export const STATE_CACHE_KEYS = {
     /** Starred Outputs (`${slug}:${id}` keys). Read + written by starStore;
      *  lives inside the settings envelope server-side. */
     starred: 'pd_starred',
+    /** Wishlisted Outputs (`${slug}:${id}` keys). Read + written by
+     *  wishlistStore; lives inside the settings envelope server-side. */
+    wishlist: 'pd_wishlist',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -108,11 +111,15 @@ export function hydrateFromRow(row: UserRow): void {
         if (typeof s.sort === 'string') localStorage.setItem(STATE_CACHE_KEYS.sort, s.sort);
         if (s.notifs) localStorage.setItem(STATE_CACHE_KEYS.notifs, JSON.stringify(s.notifs));
 
-        // starred → the cache key starStore reads (private bookmarks). Server
-        // wins; starStore re-reads this on the USERSTATE_HYDRATED_EVENT below.
+        // starred / wishlist → the cache keys their stores read (private). Server
+        // wins; each store re-reads on the USERSTATE_HYDRATED_EVENT below.
         localStorage.setItem(
             STATE_CACHE_KEYS.starred,
             JSON.stringify(Array.isArray(s.starred) ? s.starred : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.wishlist,
+            JSON.stringify(Array.isArray(s.wishlist) ? s.wishlist : []),
         );
 
         // grid_presets → unified cache the presetStore reads (Gallery View

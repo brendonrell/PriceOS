@@ -18,12 +18,12 @@
  * Wishlist will reuse this row pattern with a buy/price-focused action set.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { paintOutput } from '../../lib/state/ProjectContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleStar } from '../../lib/pins/starStore';
+import OutputThumb from './OutputThumb';
 
 export interface StarredItem {
     slug: string;
@@ -37,35 +37,6 @@ const SORTS: { key: SortKey; label: string }[] = [
     { key: 'id',      label: '# ID'    },
     { key: 'project', label: 'Project' },
 ];
-
-/* Lazy-painted preview. Paints the generative art only once the thumb scrolls
-   near the viewport, so a large list stays cheap. */
-function OutputThumb({ slug, id, size = 64 }: { slug: string; id: number; size?: number }) {
-    const ref = useRef<HTMLCanvasElement>(null);
-    useEffect(() => {
-        const cv = ref.current;
-        if (!cv) return;
-        let painted = false;
-        const paint = () => {
-            if (painted) return;
-            painted = true;
-            try { paintOutput(cv, slug, id, size * 2); } catch { /* unknown slug — leave blank */ }
-        };
-        const io = new IntersectionObserver(
-            (entries) => { if (entries.some((e) => e.isIntersecting)) { paint(); io.disconnect(); } },
-            { rootMargin: '300px' },
-        );
-        io.observe(cv);
-        return () => io.disconnect();
-    }, [slug, id, size]);
-    return (
-        <canvas
-            ref={ref}
-            className="starred-row-thumb-canvas"
-            style={{ width: size, height: size, display: 'block', borderRadius: 6, background: 'var(--stat-bg)' }}
-        />
-    );
-}
 
 export default function StarredList({ items }: { items: StarredItem[] }) {
     const { open } = useModal();
