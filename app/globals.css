@@ -6836,3 +6836,41 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     color: var(--stat-active-text);
     border-color: var(--stat-active-bg);
 }
+
+/* ── Dev-preview-only "Login Brendon" shortcut ──────────────────────
+   Rendered only on non-production deploys (layout gate) and only on
+   desktop (hidden under 768px below — mobile uses the real wallet).
+   Sits bottom-left, under the loader overlay (99999) but above app
+   content, so it appears once the loader exits. */
+.pd-dev-login {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    z-index: 99998;
+    padding: 7px 12px;
+    font-family: var(--font-inter), sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #111111;
+    background: #FFE600;
+    border: 2px solid #111111;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0.85;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.pd-dev-login:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+.pd-dev-login:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+@media (max-width: 767px) {
+    .pd-dev-login {
+        display: none;
+    }
+}

@@ -42,6 +42,7 @@ import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import SwKiller from '../components/shell/SwKiller';
 import { WalletProviders } from '../components/wallet/WalletProviders';
+import { DevLoginButton } from '../components/dev/DevLoginButton';
 import { getSession } from '../lib/auth/siwe';
 
 export const metadata: Metadata = {
@@ -406,6 +407,12 @@ export default async function RootLayout({
         initialAuth = undefined;
     }
 
+    /* Dev-preview-only "Login Brendon" shortcut. VERCEL_ENV is
+       'production' on main, 'preview' on the dev preview, undefined on
+       localhost — so this renders everywhere EXCEPT production. The
+       /api/auth/dev-login route is gated the same way server-side. */
+    const showDevLogin = process.env.VERCEL_ENV !== 'production';
+
     return (
         <html lang="en" className={`${rubikMono.variable} ${inter.variable}`}>
             <head>
@@ -453,6 +460,7 @@ export default async function RootLayout({
             <body suppressHydrationWarning>
                 <SwKiller />
                 <div dangerouslySetInnerHTML={{ __html: LOADER_HTML }} />
+                {showDevLogin && <DevLoginButton />}
                 <WalletProviders
                     initialState={initialState}
                     initialAuth={initialAuth}
