@@ -39,6 +39,9 @@ export const STATE_CACHE_KEYS = {
     /** Unified Grid View Presets blob `{ [scope]: PresetEntry[] }`. Read +
      *  written by lib/pins/presetStore. */
     gridPresets: 'pd_grid_presets',
+    /** Starred Outputs (`${slug}:${id}` keys). Read + written by starStore;
+     *  lives inside the settings envelope server-side. */
+    starred: 'pd_starred',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -104,6 +107,13 @@ export function hydrateFromRow(row: UserRow): void {
 
         if (typeof s.sort === 'string') localStorage.setItem(STATE_CACHE_KEYS.sort, s.sort);
         if (s.notifs) localStorage.setItem(STATE_CACHE_KEYS.notifs, JSON.stringify(s.notifs));
+
+        // starred → the cache key starStore reads (private bookmarks). Server
+        // wins; starStore re-reads this on the USERSTATE_HYDRATED_EVENT below.
+        localStorage.setItem(
+            STATE_CACHE_KEYS.starred,
+            JSON.stringify(Array.isArray(s.starred) ? s.starred : []),
+        );
 
         // grid_presets → unified cache the presetStore reads (Gallery View
         // Presets). Server wins; presetStore re-reads this key on the

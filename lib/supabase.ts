@@ -47,6 +47,10 @@ export interface UserSettings {
   sort?: string | null;
   /** was localStorage `pd_settings_notifs` (incl. pure_light / pure_dark). */
   notifs?: Record<string, unknown>;
+  /** Starred Outputs — PRIVATE bookmarks, keyed `${slug}:${id}`. Lives in the
+   *  settings envelope (never returned by the public profile read) so a visitor
+   *  can't see your stars. Was localStorage `pd_starred` (device-only). */
+  starred?: string[];
 }
 
 /** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the

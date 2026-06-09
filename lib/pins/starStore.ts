@@ -32,7 +32,9 @@
  * reasoning as grailStore + muteStore — keeps the store free of ToastContext.
  */
 
-const STORAGE_KEY = 'pd_starred';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const STORAGE_KEY = STATE_CACHE_KEYS.starred;
 
 type Listener = (keys: ReadonlySet<string>) => void;
 
@@ -44,37 +46,58 @@ function keyOf(slug: string, id: number): string {
     return `${slug}:${id}`;
 }
 
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    if (typeof window === 'undefined') return;
+function loadFromCache(): Set<string> {
+    const out = new Set<string>();
+    if (typeof window === 'undefined') return out;
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
+        if (!raw) return out;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
             parsed.forEach((k) => {
                 // Only accept composite `slug:id` strings; skip anything else.
-                if (typeof k === 'string' && k.includes(':')) keys.add(k);
+                if (typeof k === 'string' && k.includes(':')) out.add(k);
             });
         }
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    return out;
+}
+
+function hydrate(): void {
+    if (hydrated) return;
+    hydrated = true;
+    keys = loadFromCache();
 }
 
 function persist(): void {
-    if (typeof window === 'undefined') return;
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
-    } catch {
-        /* ignore */
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
+        } catch {
+            /* ignore */
+        }
     }
+    // Account write-through — stars ride in the settings envelope. No-op until an
+    // authed snapshot has hydrated (userState guards this), so a logged-out star
+    // stays on-device and never clobbers the account.
+    pushSettings({ starred: Array.from(keys) });
 }
 
 function emit(): void {
     const snapshot: ReadonlySet<string> = new Set(keys);
     listeners.forEach((l) => l(snapshot));
+}
+
+/* Server snapshot landed (login on any device) — re-read the cache userState
+   just overwrote with the account's stars and refresh subscribers. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = true;
+        keys = loadFromCache();
+        emit();
+    });
 }
 
 export type ToggleStarResult = 'starred' | 'unstarred';
