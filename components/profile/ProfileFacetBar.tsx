@@ -75,6 +75,9 @@ export default function ProfileFacetBar({ holdings }: { holdings: EnrichedHoldin
         setPriceMax,
         hasActiveFilter,
         clearAllFilters,
+        searchActive,
+        toggleSearch,
+        closeSearch,
     } = useTraits();
     const { sort, dir, cycleSort } = useSort();
 
@@ -179,8 +182,52 @@ export default function ProfileFacetBar({ holdings }: { holdings: EnrichedHoldin
                 </div>
             )}
 
-            {/* Search + price range + sort */}
-            <div className="search-row open" id="searchRow" style={{ display: 'flex' }}>
+            {/* Sort row — its own line (matching the project Artworks sort-bar)
+               instead of cramming the sort controls into the search row. */}
+            <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
+                <div
+                    className="sort-btn-group"
+                    style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
+                >
+                <span
+                    className={`sort-btn${sort === 'id' ? ' active' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    title="Sort by ID"
+                    onClick={() => cycleSort('id')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('id'); } }}
+                >
+                    <span className="sort-lbl">{'# ID'}</span>
+                    <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                </span>
+                <span
+                    className={`sort-btn${sort === 'price' ? ' active' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    title="Sort by Price"
+                    onClick={() => cycleSort('price')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('price'); } }}
+                >
+                    <span className="sort-lbl">{'$ PRICE'}</span>
+                    <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                </span>
+                    <div
+                        className={`search-btn${searchActive ? ' active' : ''}`}
+                        style={{ position: 'relative', top: -2 }}
+                        role="button"
+                        tabIndex={0}
+                        title="Search"
+                        onClick={toggleSearch}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSearch(); } }}
+                    >
+                        ⌕&#xFE0E;
+                    </div>
+                </div>
+            </div>
+
+            {/* Search + price range — toggleable row (opened by ⌕), mirroring
+               the project Artworks search-row instead of being pinned open. */}
+            <div className={`search-row${searchActive ? ' open' : ''}`} id="searchRow">
                 <input
                     className="search-input"
                     type="text"
@@ -213,26 +260,14 @@ export default function ProfileFacetBar({ holdings }: { holdings: EnrichedHoldin
                     <span className="price-eth-label">ETH</span>
                 </span>
                 <span
-                    className={`sort-btn${sort === 'id' ? ' active' : ''}`}
+                    className="search-clear"
                     role="button"
                     tabIndex={0}
-                    title="Sort by ID"
-                    onClick={() => cycleSort('id')}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('id'); } }}
+                    onClick={closeSearch}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeSearch(); } }}
+                    title="Clear"
                 >
-                    <span className="sort-lbl">{'# ID'}</span>
-                    <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
-                </span>
-                <span
-                    className={`sort-btn${sort === 'price' ? ' active' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    title="Sort by Price"
-                    onClick={() => cycleSort('price')}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('price'); } }}
-                >
-                    <span className="sort-lbl">{'$ PRICE'}</span>
-                    <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                    ✕&#xFE0E;
                 </span>
             </div>
         </div>
