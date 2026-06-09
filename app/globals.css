@@ -4535,8 +4535,7 @@ body.colorway-dark .canvas-wrapper {
         rgba(255, 255, 255, 0.24) 45%,
         rgba(255, 255, 255, 0.08) 100%);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 4px 10px rgba(0, 0, 0, 0.08);
-    animation: ghostBreathe 3.4s ease-in-out infinite;
-    animation-delay: var(--ghost-delay, 0s);
+    opacity: 0.6;
 }
 body.colorway-dark .ghost-card .ghost-wrapper {
     background: linear-gradient(135deg,
@@ -4544,13 +4543,6 @@ body.colorway-dark .ghost-card .ghost-wrapper {
         rgba(255, 255, 255, 0.13) 45%,
         rgba(255, 255, 255, 0.04) 100%);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 16px rgba(0, 0, 0, 0.18);
-}
-@keyframes ghostBreathe {
-    0%, 100% { opacity: 0.42; }
-    50%      { opacity: 0.82; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .ghost-card .ghost-wrapper { animation: none; opacity: 0.6; }
 }
 
 /* Build 35 — BET-06 virtualization port. Opacity transition mirrors
