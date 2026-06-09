@@ -1,4 +1,4 @@
-import { getSupabaseAnon, type UserRow } from '@/lib/supabase';
+import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
 
 /** Profile row plus follower/following counts — the shape both the
  *  /api/user/by-handle route and the server-rendered profile page use. */
@@ -51,7 +51,7 @@ export async function getUserProfileByHandle(
 
   const { data: user, error: userErr } = await supabase
     .from('users')
-    .select('*')
+    .select(PUBLIC_USER_COLUMNS)
     .eq('handle', handle)
     .maybeSingle();
 

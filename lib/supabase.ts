@@ -298,6 +298,13 @@ function url(): string {
   return u;
 }
 
+/** Columns of `users` the public (anon) key is allowed to read — must stay in
+ *  sync with the column-level GRANT to anon/authenticated in the database.
+ *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
+ *  the whole query (anon has no table-level SELECT, only these columns). */
+export const PUBLIC_USER_COLUMNS =
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, profile_hex, showcase, showcase_style, discord_id, discord_username, created_at';
+
 export function getSupabaseAnon(): SupabaseClient<Database> {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');

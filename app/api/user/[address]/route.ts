@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAnon, type UserRow } from '@/lib/supabase';
+import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +25,7 @@ export async function GET(
 
     const { data: user, error: userErr } = await supabase
       .from('users')
-      .select('*')
+      .select(PUBLIC_USER_COLUMNS)
       .eq('address', address)
       .maybeSingle();
 
