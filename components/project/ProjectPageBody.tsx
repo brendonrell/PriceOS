@@ -930,7 +930,7 @@ function ProjectPageBodyInner() {
                                 title="Buy the floor — adds the lowest-listed Output to your cart"
                                 onClick={() => {
                                     if (lowestId == null) { showToast('Nothing listed yet'); return; }
-                                    cartAdd(lowestId);
+                                    cartAdd(project.slug, lowestId);
                                     showToast(`Added ${project.title} #${lowestId} to cart`);
                                 }}
                                 disabled={lowestId == null}

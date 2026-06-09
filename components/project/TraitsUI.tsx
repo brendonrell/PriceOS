@@ -1155,7 +1155,7 @@ function MsFloatBar() {
     const handleAddToCart = () => {
         if (count === 0) { showToast('Select items first'); return; }
         let added = 0;
-        ids.forEach((id) => { if (!cartHas(id)) { cartAdd(id); added++; } });
+        selectedItems.forEach(({ slug, id }) => { if (!cartHas(slug, id)) { cartAdd(slug, id); added++; } });
         if (added === 0) showToast('All selected items already in cart');
         else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
         openCartPanel();

@@ -46,7 +46,7 @@ import {
     CART_GAS_PER_ITEM,
     CART_FEE_RATE,
 } from '../lib/state/CartContext';
-import { useProject } from '../lib/state/ProjectContext';
+import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
 
 const VS15 = '\uFE0E';
@@ -78,13 +78,14 @@ function thumbStyle(id: number): CSSProperties {
 }
 
 interface RowProps {
+    slug: string;
     id: number;
     projectTitle: string;
     priceStr: string;
-    onRemove: (id: number) => void;
+    onRemove: (slug: string, id: number) => void;
 }
 
-function CartItemRow({ id, projectTitle, priceStr, onRemove }: RowProps) {
+function CartItemRow({ slug, id, projectTitle, priceStr, onRemove }: RowProps) {
     return (
         <div className="cart-item-row" data-mint-id={id}>
             <div
@@ -105,7 +106,7 @@ function CartItemRow({ id, projectTitle, priceStr, onRemove }: RowProps) {
                 tabIndex={0}
                 onClick={(e) => {
                     e.stopPropagation();
-                    onRemove(id);
+                    onRemove(slug, id);
                 }}
                 title="Remove"
             >
@@ -115,9 +116,51 @@ function CartItemRow({ id, projectTitle, priceStr, onRemove }: RowProps) {
     );
 }
 
+/* One Project's cart rows, mounted under that Project's provider so each row
+   reads its OWN live title + listing price (the cart spans many Projects). The
+   group reports its price subtotal up to the panel for the cross-Project total. */
+function CartGroup({
+    slug,
+    ids,
+    onSubtotal,
+    onRemove,
+}: {
+    slug: string;
+    ids: number[];
+    onSubtotal: (slug: string, eth: number) => void;
+    onRemove: (slug: string, id: number) => void;
+}) {
+    const { title, outputs } = useProject();
+    const rows = ids.map((id) => {
+        const meta = outputs.get(id);
+        const eth = parseEth(meta?.price);
+        return { id, eth, priceStr: meta?.price ? eth.toFixed(3) : '\u2014' };
+    });
+    const sub = rows.reduce((a, r) => a + r.eth, 0);
+    useEffect(() => {
+        onSubtotal(slug, sub);
+    }, [slug, sub, onSubtotal]);
+    // Zero this group's contribution only when it leaves the cart (unmount /
+    // slug change), not on every price update.
+    useEffect(() => () => onSubtotal(slug, 0), [slug, onSubtotal]);
+    return (
+        <>
+            {rows.map((r) => (
+                <CartItemRow
+                    key={`${slug}:${r.id}`}
+                    slug={slug}
+                    id={r.id}
+                    projectTitle={title}
+                    priceStr={r.priceStr}
+                    onRemove={onRemove}
+                />
+            ))}
+        </>
+    );
+}
+
 export default function CartPanel() {
     const { items, panelOpen, remove, buyAll, closePanel } = useCart();
-    const { title, outputs } = useProject();
     const { showToast } = useToast();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
@@ -152,22 +195,24 @@ export default function CartPanel() {
         };
     }, [panelOpen]);
 
-    /* Per-row price strings + subtotal — one pass over the project
-       Map. Mirrors sim's _renderCartPanel inline tally (sim 11781–11800). */
-    const { rows, subtotal } = useMemo(() => {
-        let sub = 0;
-        const r: { id: number; priceStr: string }[] = [];
-        for (const id of items) {
-            const meta = outputs.get(id);
-            const eth = parseEth(meta?.price);
-            sub += eth;
-            r.push({
-                id,
-                priceStr: meta?.price ? eth.toFixed(3) : '\u2014',
-            });
+    /* Group the cart by Project so each group mounts under its own provider and
+       reads its own live title + listing price (the cart spans many Projects). */
+    const groups = useMemo(() => {
+        const m = new Map<string, number[]>();
+        for (const it of items) {
+            const arr = m.get(it.slug) ?? [];
+            arr.push(it.id);
+            m.set(it.slug, arr);
         }
-        return { rows: r, subtotal: sub };
-    }, [items, outputs]);
+        return [...m.entries()];
+    }, [items]);
+
+    /* Per-Project subtotals reported up from each group; summed for the total. */
+    const [subs, setSubs] = useState<Record<string, number>>({});
+    const reportSub = useCallback((slug: string, eth: number) => {
+        setSubs((prev) => (prev[slug] === eth ? prev : { ...prev, [slug]: eth }));
+    }, []);
+    const subtotal = groups.reduce((a, [slug]) => a + (subs[slug] ?? 0), 0);
 
     /* Fees model — sim 11815: 8% on subtotal + flat gas × N. */
     const fees = subtotal * CART_FEE_RATE + CART_GAS_PER_ITEM * items.length;
@@ -240,14 +285,15 @@ export default function CartPanel() {
                             Your cart is empty.
                         </div>
                     ) : (
-                        rows.map(({ id, priceStr }) => (
-                            <CartItemRow
-                                key={id}
-                                id={id}
-                                projectTitle={title}
-                                priceStr={priceStr}
-                                onRemove={remove}
-                            />
+                        groups.map(([slug, ids]) => (
+                            <ProjectProvider key={slug} slug={slug}>
+                                <CartGroup
+                                    slug={slug}
+                                    ids={ids}
+                                    onSubtotal={reportSub}
+                                    onRemove={remove}
+                                />
+                            </ProjectProvider>
                         ))
                     )}
                 </div>

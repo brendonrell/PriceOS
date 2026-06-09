@@ -148,7 +148,7 @@ function WishlistRow({
 
     const listed = meta?.price != null;
     const owned = meta?.isOwnedByBrendon ?? false;
-    const inCart = cartHas(id);
+    const inCart = cartHas(slug, id);
 
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -159,7 +159,7 @@ function WishlistRow({
     const handleCart = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (inCart) { showToast('Already in cart'); return; }
-        cartAdd(id);
+        cartAdd(slug, id);
         showToast('Added to cart');
     };
 

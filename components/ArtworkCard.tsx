@@ -485,14 +485,14 @@ export default function ArtworkCard({
        cannot fire on an unlisted card. */
     const handleCartClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (cartHas(id)) {
+        if (cartHas(slug, id)) {
             const collName =
                 projectTitle.charAt(0) +
                 projectTitle.slice(1).toLowerCase();
             showToast(`${collName} #${id} already in cart`);
             return;
         }
-        cartAdd(id);
+        cartAdd(slug, id);
         const next = cartItems.length + 1;
         showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
     };

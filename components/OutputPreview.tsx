@@ -872,10 +872,10 @@ export default function OutputPreview() {
                                 id="mActionBtn"
                                 onClick={() => {
                                     if (calcMode === 'buy' && id != null) {
-                                        if (cartHas(id)) {
+                                        if (cartHas(slug, id)) {
                                             showToast(`${title} #${id} already in cart`);
                                         } else {
-                                            cartAdd(id);
+                                            cartAdd(slug, id);
                                             const next = cartItems.length + 1;
                                             showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
                                         }
@@ -1044,10 +1044,10 @@ export default function OutputPreview() {
                             className="modal-action-btn"
                             onClick={() => {
                                 if (calcMode === 'buy' && id != null) {
-                                    if (cartHas(id)) {
+                                    if (cartHas(slug, id)) {
                                         showToast(`${title} #${id} already in cart`);
                                     } else {
-                                        cartAdd(id);
+                                        cartAdd(slug, id);
                                         const next = cartItems.length + 1;
                                         showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
                                     }

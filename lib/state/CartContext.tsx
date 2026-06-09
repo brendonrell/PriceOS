@@ -18,9 +18,11 @@
  * context. Also matches sim — the cart never goes through openModal();
  * it has its own openCartPanel().
  *
- * Storage key: 'pd_cart' (matches sim verbatim — same key, same shape:
- * JSON-encoded array of token ids). A user who used the prototype keeps
- * their cart through the React port migration.
+ * Storage key: 'pd_cart' (JSON array of `${slug}:${id}` keys). Cart items are
+ * Project-exact — a bare token number collides across Projects (the Cart can
+ * hold pieces from several Projects at once), and the panel must show each
+ * item's correct Project title + live price. Legacy bare-number carts are not
+ * migrated (no slug to place them) — a one-time reset, device-only.
  *
  * Fees model: buyer pays listed sale price as-is on secondary; the 5%
  * royalty is the seller's burden (EIP-2981 → PaymentSplitter). Plus flat
@@ -51,16 +53,22 @@ export const CART_GAS_PER_ITEM = 0.0005; // ETH; flat-per-item mock — sim 1172
 // `mintPrice + currentStorageFeeWei` per item (both sourced from chain).
 export const CART_FEE_RATE = 0;
 
+/** A cart entry — Project-exact. */
+export interface CartItem {
+    slug: string;
+    id: number;
+}
+
 interface CartContextValue {
-    /** Token ids in the cart, sorted ascending. */
-    items: number[];
+    /** Items in the cart, sorted by Project then id. */
+    items: CartItem[];
     /** True if the slide-up panel is open. */
     panelOpen: boolean;
 
-    /** Add a token id; no-op if already present. */
-    add: (id: number) => void;
-    /** Remove a token id; no-op if not present. Auto-closes panel if cart empties. */
-    remove: (id: number) => void;
+    /** Add an Output; no-op if already present. */
+    add: (slug: string, id: number) => void;
+    /** Remove an Output; no-op if not present. Auto-closes panel if cart empties. */
+    remove: (slug: string, id: number) => void;
     /** Empty the cart and persist. */
     clear: () => void;
     /** Mock the buy-all action — clears the cart and closes the panel. Returns the count. */
@@ -71,33 +79,51 @@ interface CartContextValue {
     /** Close the slide-up panel. */
     closePanel: () => void;
 
-    /** True iff id is currently in the cart. */
-    has: (id: number) => boolean;
+    /** True iff (slug, id) is currently in the cart. */
+    has: (slug: string, id: number) => boolean;
 }
 
 const CartCtx = createContext<CartContextValue | null>(null);
 
-function loadFromStorage(): number[] {
+function keyOf(slug: string, id: number): string {
+    return `${slug}:${id}`;
+}
+
+function parseKey(k: string): CartItem {
+    const i = k.indexOf(':');
+    return { slug: k.slice(0, i), id: Number(k.slice(i + 1)) };
+}
+
+/** Dedupe + stable sort (Project then id) so render order is stable. */
+function normalizeKeys(keys: string[]): string[] {
+    return Array.from(new Set(keys)).sort((a, b) => {
+        const ka = parseKey(a);
+        const kb = parseKey(b);
+        return ka.slug === kb.slug ? ka.id - kb.id : ka.slug.localeCompare(kb.slug);
+    });
+}
+
+function loadFromStorage(): string[] {
     if (typeof window === 'undefined') return [];
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
         const arr = JSON.parse(raw);
         if (!Array.isArray(arr)) return [];
-        const ids = arr
-            .map((n) => parseInt(n, 10))
-            .filter((n) => Number.isFinite(n));
-        // Dedup + sort to keep render order stable across sessions.
-        return Array.from(new Set(ids)).sort((a, b) => a - b);
+        // Only accept composite `slug:id` strings; skip legacy bare numbers.
+        const keys = (arr as unknown[]).filter(
+            (k): k is string => typeof k === 'string' && k.includes(':'),
+        );
+        return normalizeKeys(keys);
     } catch {
         return [];
     }
 }
 
-function saveToStorage(ids: number[]) {
+function saveToStorage(keys: string[]) {
     if (typeof window === 'undefined') return;
     try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
     } catch {
         // Quota / private mode — silent. In-memory state still works.
     }
@@ -108,63 +134,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
        mount. Same pattern as useLocalStorage. The btnCart .has-items class
        toggle is downstream of `items.length`, so a one-frame empty state
        on first paint is correct (cart appears as items resolve). */
-    const [items, setItems] = useState<number[]>([]);
+    const [keys, setKeys] = useState<string[]>([]);
     const [panelOpen, setPanelOpen] = useState(false);
 
     useEffect(() => {
         const initial = loadFromStorage();
-        if (initial.length > 0) setItems(initial);
+        if (initial.length > 0) setKeys(initial);
     }, []);
 
-    const persist = useCallback((next: number[]) => {
-        // Single source of truth: every mutation routes through here so
-        // state and storage never drift.
-        const sorted = Array.from(new Set(next)).sort((a, b) => a - b);
-        setItems(sorted);
-        saveToStorage(sorted);
-        return sorted;
+    const items = useMemo(() => keys.map(parseKey), [keys]);
+
+    const add = useCallback((slug: string, id: number) => {
+        if (!slug || !Number.isFinite(id)) return;
+        const key = keyOf(slug, id);
+        setKeys((prev) => {
+            if (prev.includes(key)) return prev;
+            const next = normalizeKeys([...prev, key]);
+            saveToStorage(next);
+            return next;
+        });
     }, []);
 
-    const add = useCallback(
-        (id: number) => {
-            if (!Number.isFinite(id)) return;
-            setItems((prev) => {
-                if (prev.includes(id)) return prev;
-                const next = [...prev, id].sort((a, b) => a - b);
-                saveToStorage(next);
-                return next;
-            });
-        },
-        []
-    );
-
-    const remove = useCallback(
-        (id: number) => {
-            if (!Number.isFinite(id)) return;
-            setItems((prev) => {
-                if (!prev.includes(id)) return prev;
-                const next = prev.filter((n) => n !== id);
-                saveToStorage(next);
-                /* Sim 11848: if the panel is open and the cart just emptied,
-                   close it — keeping the panel over a hidden trigger orphans
-                   the user. We schedule this on next tick so the same render
-                   commit publishes the new items list before the panel closes. */
-                if (next.length === 0) {
-                    queueMicrotask(() => setPanelOpen(false));
-                }
-                return next;
-            });
-        },
-        []
-    );
+    const remove = useCallback((slug: string, id: number) => {
+        const key = keyOf(slug, id);
+        setKeys((prev) => {
+            if (!prev.includes(key)) return prev;
+            const next = prev.filter((k) => k !== key);
+            saveToStorage(next);
+            /* Sim 11848: if the panel is open and the cart just emptied, close it
+               — keeping the panel over a hidden trigger orphans the user. */
+            if (next.length === 0) {
+                queueMicrotask(() => setPanelOpen(false));
+            }
+            return next;
+        });
+    }, []);
 
     const clear = useCallback(() => {
-        persist([]);
-    }, [persist]);
+        setKeys([]);
+        saveToStorage([]);
+    }, []);
 
     const buyAll = useCallback(() => {
         let count = 0;
-        setItems((prev) => {
+        setKeys((prev) => {
             count = prev.length;
             saveToStorage([]);
             return [];
@@ -177,8 +190,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const closePanel = useCallback(() => setPanelOpen(false), []);
 
     const has = useCallback(
-        (id: number) => items.includes(id),
-        [items]
+        (slug: string, id: number) => keys.includes(keyOf(slug, id)),
+        [keys]
     );
 
     /* Escape closes the panel — matches every other modal in the app and
