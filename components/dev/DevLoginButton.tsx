@@ -17,9 +17,14 @@
  */
 
 import { useState } from 'react';
+import { useAuth } from '../../lib/state/AuthContext';
 
 export function DevLoginButton() {
+    const { isAuthenticated } = useAuth();
     const [busy, setBusy] = useState(false);
+
+    /* Once a session is live, the shortcut has done its job — hide it. */
+    if (isAuthenticated) return null;
 
     const handleClick = async () => {
         if (busy) return;

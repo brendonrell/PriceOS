@@ -460,11 +460,11 @@ export default async function RootLayout({
             <body suppressHydrationWarning>
                 <SwKiller />
                 <div dangerouslySetInnerHTML={{ __html: LOADER_HTML }} />
-                {showDevLogin && <DevLoginButton />}
                 <WalletProviders
                     initialState={initialState}
                     initialAuth={initialAuth}
                 >
+                    {showDevLogin && <DevLoginButton />}
                     <ColorwayProvider>
                         <PersonaProvider>
                             <PdNotifsProvider>
