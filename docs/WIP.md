@@ -38,6 +38,20 @@ Shared bits: `OutputThumb` (lazy preview), `.starred-*` row CSS (reused by
 Wishlist). Account-backed stores follow the presetStore pattern (write-through +
 login hydration; stars/wishlist live in the `settings` jsonb, private).
 
+## 🚧 NEXT — contracts workstream (locked 2026-06-09, separate chat)
+Pre-mainnet contract change set is **decided and spec'd** — a fresh dev chat
+builds it in `pd-contracts`. Read these two ClickUp pages first (Smart Contract
+section of the PD Master Brief): **"On-Chain Architecture Decisions —
+2026-06-09"** (what + why, all decisions locked, commit-reveal REJECTED) and
+**"Combined Pre-Mainnet Spec — Registry + On-Chain Thumbnail + URL-Guard"**
+(build blueprint). Summary: per-token on-chain thumbnail replaces Arweave
+entirely; new append-only PDLibraryRegistry (vanilla + p5 + three, gzipped, one
+per Project); URL-guard in createProject; wide fee corridor. Seed/mint flow
+UNCHANGED. Build order: registry → PDProject → PDFactory → linter/bot → audit →
+Sepolia gates → mainnet. **The repo is the authority on what exists; old
+May-14-era ClickUp claims (oracle cascade etc.) are stale — cleanup task
+`86bacbynf`.**
+
 ## 🚧 NEXT — user profile, remaining
 - **Showcase curation wiring.** The "Add to Showcase" buttons (card hover, modal,
   multi-select) are still **"coming soon" toasts** — nothing writes a `showcase`
