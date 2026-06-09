@@ -41,7 +41,8 @@ import WishlistList from './WishlistList';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
-import { getProject, outputTraits } from '../../lib/project/registry';
+import { getProject, outputTraits, allProjects } from '../../lib/project/registry';
+import GhostCard from '../project/GhostCard';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
@@ -157,6 +158,19 @@ function ProfilePageBodyInner({
         }
         return slots;
     }, [user.showcase, user.showcase_style]);
+
+    /* Empty-state ghost frames for the Showcase — same idea as the project's
+       unminted gallery: 6 placeholder frames (matching the 6 Showcase slots),
+       shapes SAMPLED from the projects' aspect palettes (no art, no seeds).
+       Deterministic per index (SSR-safe). Shown when nothing is curated yet. */
+    const showcaseGhosts = useMemo(() => {
+        const pool = allProjects().flatMap((p) => p.aspects);
+        const aspects = pool.length ? pool : [1];
+        return Array.from({ length: 6 }, (_, i) => {
+            const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
+            return aspects[Math.floor(h * aspects.length) % aspects.length];
+        });
+    }, []);
 
     /* Real collected Outputs (holders rows) for THIS profile's wallet — empty
        at fresh state, populating as the wallet mints/buys. Spans both projects;
@@ -667,18 +681,6 @@ function ProfilePageBodyInner({
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
             </Hero>
 
-            {/* Showcase empty state — the curated grid is empty (nothing picked
-                yet, or curation not set up). Sits above the (empty) gallery. */}
-            {onShowcase && showcaseSlots.length === 0 && (
-                <div className="my-notes-empty-state">
-                    <span className="my-notes-empty-msg">
-                        {isOwnProfile
-                            ? 'Your Showcase is empty — curating your top 6 is coming soon'
-                            : `@${displayHandle} hasn’t set up a Showcase yet`}
-                    </span>
-                </div>
-            )}
-
             {/* Starred empty / private states. Stars are private bookmarks —
                 only the owner sees them; a visitor gets the privacy note. */}
             {onStarredTab && !isOwnProfile && (
@@ -720,11 +722,15 @@ function ProfilePageBodyInner({
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {onShowcase
-                    ? showcaseSlots.map((slot, i) => (
-                          <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
-                              <ArtworkCard id={Number(slot.token_id)} />
-                          </ProjectProvider>
-                      ))
+                    ? (showcaseSlots.length > 0
+                        ? showcaseSlots.map((slot, i) => (
+                              <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
+                                  <ArtworkCard id={Number(slot.token_id)} />
+                              </ProjectProvider>
+                          ))
+                        : showcaseGhosts.map((aspect, i) => (
+                              <GhostCard key={`scghost-${i}`} aspect={aspect} index={i} />
+                          )))
                     : collectedByProject.map(({ slug, ids }) => (
                           <ProjectProvider key={slug} slug={slug}>
                               {ids.map((id) => (
