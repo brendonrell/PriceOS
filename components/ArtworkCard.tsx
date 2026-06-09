@@ -105,7 +105,7 @@ import {
    localStorage.pd_starred_ids so virtualization-driven remounts don't
    eat the state. */
 import {
-    getStarredIds,
+    getStarredKeys,
     subscribeStarred,
     toggleStar as storeToggleStar,
 } from '../lib/pins/starStore';
@@ -211,14 +211,14 @@ export default function ArtworkCard({
        DOM; the React port subscribes per-card so reconciliation paints
        the active state on every render — survives remount under
        virtualization (Build 35). */
-    const [starredSet, setStarredSet] = useState<ReadonlySet<number>>(
-        () => getStarredIds()
+    const [starredKeys, setStarredKeys] = useState<ReadonlySet<string>>(
+        () => getStarredKeys()
     );
     useEffect(() => {
-        setStarredSet(getStarredIds());
-        return subscribeStarred((next) => setStarredSet(next));
+        setStarredKeys(getStarredKeys());
+        return subscribeStarred((next) => setStarredKeys(next));
     }, []);
-    const starred = starredSet.has(id);
+    const starred = starredKeys.has(`${slug}:${id}`);
 
     /* chat #6 D010-cart — sim 11823-11836. CartContext already owns the
        items Set + persistence; ArtworkCard reads `has` for the duplicate-
@@ -442,7 +442,7 @@ export default function ArtworkCard({
        .output-content click from also opening the modal. */
     const handleStarClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const result = storeToggleStar(id);
+        const result = storeToggleStar(slug, id);
         if (result === 'starred') {
             showToast(`STARRED #${id}`);
         } else {

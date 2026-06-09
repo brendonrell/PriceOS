@@ -34,6 +34,8 @@ import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import ArtworkCard from '../ArtworkCard';
+import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
+import StarredList from './StarredList';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
@@ -285,6 +287,19 @@ function ProfilePageBodyInner({
     const [activeTab, setActiveTab] = useState<ProfileTab>('showcase');
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
 
+    /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
+       later"). Device-local, keyed slug:id so it spans Projects. Shown only on
+       your own profile; a visitor never sees someone else's stars. */
+    const [starredItems, setStarredItems] = useState(() => getStarredItems());
+    useEffect(() => {
+        setStarredItems(getStarredItems());
+        return subscribeStarred(() => setStarredItems(getStarredItems()));
+    }, []);
+    const starredValid = useMemo(
+        () => starredItems.filter((s) => getProject(s.slug) != null),
+        [starredItems],
+    );
+
     const iconToastProps = (label: string) => ({
         role: 'button' as const,
         tabIndex: 0,
@@ -344,6 +359,7 @@ function ProfilePageBodyInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
+    const onStarredTab = onMore && moreL1 === 'starred';
     const galleryVisible = onShowcase || onCollected;
 
     return (
@@ -648,6 +664,21 @@ function ProfilePageBodyInner({
                 </div>
             )}
 
+            {/* Starred empty / private states. Stars are private bookmarks —
+                only the owner sees them; a visitor gets the privacy note. */}
+            {onStarredTab && !isOwnProfile && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">Stars are private</span>
+                </div>
+            )}
+            {onStarredTab && isOwnProfile && starredValid.length === 0 && (
+                <div className="my-notes-empty-state">
+                    <span className="my-notes-empty-msg">
+                        Nothing starred yet — tap the ☆ on any piece to bookmark it
+                    </span>
+                </div>
+            )}
+
             {/* Gallery — Showcase or Collected depending on active tab. Each
                 Showcase slot is wrapped in its own ProjectProvider so the curated
                 order is preserved exactly regardless of which project each pick is
@@ -672,6 +703,13 @@ function ProfilePageBodyInner({
                           </ProjectProvider>
                       ))}
             </section>
+
+            {/* Starred — a compact bookmark ROW list (not the gallery grid):
+                sortable/filterable rows with a small preview that opens the
+                Artwork modal. Own profile only (Stars are private). */}
+            {onStarredTab && isOwnProfile && starredValid.length > 0 && (
+                <StarredList items={starredValid} />
+            )}
         </>
     );
 }

@@ -1,7 +1,8 @@
 'use client';
 
 /*
- * starStore — chat #6 D010-star (Card hover overlay icons).
+ * starStore — chat #6 D010-star (Card hover overlay icons) + the profile
+ * Starred sub-tab.
  *
  * Sim refs:
  *   sim.html 5536-5551    toggleStar handler (DOM-attribute toggle in sim)
@@ -9,35 +10,39 @@
  *
  * Why a module store and not pure DOM-attribute toggle:
  *   Sim's toggleStar reads/writes data-starred + .active-star directly on
- *   the icon span. That's fine for a static page but breaks under React +
- *   Build 35 virtualization (lib/virtualization/canvasVirtualizer) — every
- *   card unmount/remount loses its DOM-only star state. A module-singleton
- *   store + per-card subscription gives the same end state (icon shows ★
- *   when starred, ☆ when not) and survives remount + cross-surface reads.
- *   Same pattern as grailStore + muteStore.
+ *   the icon span. That breaks under React + Build 35 virtualization — every
+ *   card unmount/remount loses DOM-only state. A module-singleton store +
+ *   per-card subscription gives the same end state and survives remount +
+ *   cross-surface reads. Same pattern as grailStore + muteStore.
  *
  * State shape:
- *   ids: Set<number>   — starred token ids, no cap (sim has no upper bound)
+ *   keys: Set<string>  — starred Outputs, keyed `${slug}:${id}` so a star is
+ *   Project-exact. A bare token number collides across Projects (Prisms #5 vs
+ *   Oracle #5), and the profile Starred tab spans every Project the viewer has
+ *   starred from — so the slug must ride along to render + de-dupe correctly.
  *
- * Persistence: localStorage `pd_starred_ids`. Sim itself doesn't persist
- * stars (DOM-only) — the React port adds persistence because the
- * virtualization-driven remount cycle would otherwise eat star state on
- * every scroll. This is the same sim-deviation logged in muteStore: pure-
- * DOM state in sim → store-backed state in React. Storage key follows the
- * `pd_{kind}_ids` convention (pd_grail_pins, pd_muted_ids, pd_starred_ids).
+ * Persistence: localStorage `pd_starred` (device-local). Stars are PRIVATE
+ * (Platform Nomenclature lock), so they are the VIEWER's own set, shown only on
+ * their own profile. Account-backed (follow-you-across-devices) is a later step.
+ * The legacy bare-number key `pd_starred_ids` is intentionally not migrated —
+ * those entries carry no slug, so they can't be placed in a Project; a one-time
+ * reset, not data loss.
  *
  * Toast text ("STARRED #22" / "UNSTARRED #22") lives in the caller, same
- * reasoning as grailStore + muteStore — keeps the store free of
- * ToastContext dependency.
+ * reasoning as grailStore + muteStore — keeps the store free of ToastContext.
  */
 
-const STORAGE_KEY = 'pd_starred_ids';
+const STORAGE_KEY = 'pd_starred';
 
-type Listener = (ids: ReadonlySet<number>) => void;
+type Listener = (keys: ReadonlySet<string>) => void;
 
-let ids: Set<number> = new Set();
+let keys: Set<string> = new Set();
 let hydrated = false;
 const listeners = new Set<Listener>();
+
+function keyOf(slug: string, id: number): string {
+    return `${slug}:${id}`;
+}
 
 function hydrate(): void {
     if (hydrated) return;
@@ -48,9 +53,9 @@ function hydrate(): void {
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            parsed.forEach((n) => {
-                const id = typeof n === 'number' ? n : parseInt(String(n), 10);
-                if (Number.isFinite(id)) ids.add(id);
+            parsed.forEach((k) => {
+                // Only accept composite `slug:id` strings; skip anything else.
+                if (typeof k === 'string' && k.includes(':')) keys.add(k);
             });
         }
     } catch {
@@ -61,58 +66,61 @@ function hydrate(): void {
 function persist(): void {
     if (typeof window === 'undefined') return;
     try {
-        window.localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(Array.from(ids))
-        );
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
     } catch {
         /* ignore */
     }
 }
 
 function emit(): void {
-    const snapshot: ReadonlySet<number> = new Set(ids);
+    const snapshot: ReadonlySet<string> = new Set(keys);
     listeners.forEach((l) => l(snapshot));
 }
 
 export type ToggleStarResult = 'starred' | 'unstarred';
 
-/** Snapshot of currently starred ids. Triggers hydrate on first call. */
-export function getStarredIds(): ReadonlySet<number> {
+/** Snapshot of currently starred keys (`${slug}:${id}`). Triggers hydrate. */
+export function getStarredKeys(): ReadonlySet<string> {
     hydrate();
-    return ids;
+    return keys;
 }
 
-export function isStarred(id: number): boolean {
+/** Parsed (slug, id) pairs — for the Starred gallery. Insertion-ordered. */
+export function getStarredItems(): ReadonlyArray<{ slug: string; id: number }> {
     hydrate();
-    return ids.has(id);
+    return Array.from(keys).map((k) => {
+        const i = k.indexOf(':');
+        return { slug: k.slice(0, i), id: Number(k.slice(i + 1)) };
+    });
+}
+
+export function isStarred(slug: string, id: number): boolean {
+    hydrate();
+    return keys.has(keyOf(slug, id));
 }
 
 /**
- * Toggle the star state of a token. Returns:
- *   'starred'   — id was added (sim 5546-5550 path)
- *   'unstarred' — id was removed (sim 5541-5544 path)
- *
- * Mirrors sim 5536-5551. Caller owns toast text + class flip on the icon
- * (the .active-star class lives on the rendered span in ArtworkCard).
+ * Toggle the star state of an Output. Returns 'starred' (added) or 'unstarred'
+ * (removed). Mirrors sim 5536-5551. Caller owns toast text + the icon class flip.
  */
-export function toggleStar(id: number): ToggleStarResult {
+export function toggleStar(slug: string, id: number): ToggleStarResult {
     hydrate();
-    if (ids.has(id)) {
-        ids.delete(id);
+    const k = keyOf(slug, id);
+    if (keys.has(k)) {
+        keys.delete(k);
         persist();
         emit();
         return 'unstarred';
     }
-    ids.add(id);
+    keys.add(k);
     persist();
     emit();
     return 'starred';
 }
 
 /**
- * Subscribe to star set changes. Returns an unsubscribe function.
- * Listener receives a fresh snapshot Set, never the live one.
+ * Subscribe to star set changes. Returns an unsubscribe function. Listener
+ * receives a fresh snapshot Set of keys, never the live one.
  */
 export function subscribeStarred(cb: Listener): () => void {
     hydrate();

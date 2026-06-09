@@ -6738,3 +6738,76 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     align-items: start;
     padding: 0 40px 16px;
 }
+
+/* ── Starred / bookmark row list (profile +More → Starred) ─────────────────
+   A compact, sortable + filterable ROW list (not the gallery grid). Themed
+   off the live colorway vars so it matches every mode. Wishlist reuses it. */
+.starred-list {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 12px 48px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.starred-list-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0 12px;
+}
+.starred-list-search {
+    flex: 1 1 200px;
+    min-width: 180px;
+}
+.starred-rows {
+    display: flex;
+    flex-direction: column;
+}
+.starred-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+.starred-row:hover {
+    background: var(--stat-bg);
+}
+.starred-row-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.starred-row-id {
+    font-weight: bold;
+    color: var(--text-color);
+}
+.starred-row-sub {
+    font-size: 12px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.starred-row-fate {
+    flex-shrink: 0;
+    font-size: 11px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.starred-row-unstar {
+    flex-shrink: 0;
+    padding: 4px 6px;
+    font-size: 16px;
+    color: var(--accent);
+    cursor: pointer;
+}
+.starred-row-unstar:hover {
+    opacity: 0.65;
+}
