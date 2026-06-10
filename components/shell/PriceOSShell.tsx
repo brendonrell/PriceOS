@@ -108,14 +108,6 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             document.body.classList.add('is-pwa');
             mountPtr();
         }
-        /* Windows detection → body.is-win (Brendon 2026-06-10, sprite
-           eyebrow fix). Courier New on Windows can't anchor the combining
-           eyebrow marks over the sprite's eyes — they render offset/detached
-           (iOS substitutes a modern font, hence perfect there). CSS scopes
-           a Consolas-first font stack to sprite surfaces on Windows only. */
-        if (/Windows/i.test(window.navigator.userAgent)) {
-            document.body.classList.add('is-win');
-        }
         return () => {
             unmountPtr();
         };
