@@ -81,19 +81,14 @@ interface AuthContextValue {
         future profile-link targets, etc.) read this as the top of the
         user-text priority chain — above ENS, above shortAddr. */
     handle: string | null;
-    /** Account level for the SIWE-auth'd user. Defaults to 0 when no
-        session, while the user-row fetch is in flight, or when the
-        user row has no `account_level` column yet. The DB caps this
-        at 1 for v0 via CHECK; the curve workstream lifts that cap and
-        loosens the constraint. Surfaces (level badge in UserMenuButtons,
-        hero badge in PriceSpriteModal) read this directly. */
-    accountLevel: number;
-    /** PriceRank for the SIWE-auth'd user. **DEFAULT IS 0** (Brendon,
-        2026-06-10 — the agreed spec; the rank-up rules are not designed
-        yet, so every account sits at 0 until that workstream lands).
-        This is `users.price_rank` and is a DIFFERENT axis from
-        accountLevel above — the PriceSpriteModal's PRICERANK readout
-        displays THIS, never accountLevel. */
+    /** PriceRank — THE one and only progression number on PD (Brendon,
+        2026-06-10: "We need this feature to have ONE name: PriceRank.
+        And the default is ZERO."). Backed by `users.price_rank`;
+        defaults to 0 when no session or while the user-row fetch is in
+        flight. There is NO separate "account level" concept — the old
+        users.account_level column is dead and must never be surfaced.
+        Every rank surface (navbar badge, PriceSprite modal readout +
+        XP labels) reads THIS. */
     priceRank: number;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
@@ -114,7 +109,6 @@ interface AuthContextProviderProps {
     siweAddress: string | null;
     isAuthenticating: boolean;
     handle: string | null;
-    accountLevel: number;
     priceRank: number;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
@@ -126,7 +120,6 @@ export function AuthContextProvider({
     siweAddress,
     isAuthenticating,
     handle,
-    accountLevel,
     priceRank,
     needsSignup,
     onAccountCreated,
@@ -143,7 +136,6 @@ export function AuthContextProvider({
             isAuthenticated: !!siweAddress,
             isAuthenticating,
             handle,
-            accountLevel,
             priceRank,
             needsSignup,
             onAccountCreated,
@@ -153,7 +145,6 @@ export function AuthContextProvider({
             siweAddress,
             isAuthenticating,
             handle,
-            accountLevel,
             priceRank,
             needsSignup,
             onAccountCreated,

@@ -111,7 +111,7 @@ export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
-    const { siweAddress, handle, accountLevel, isAuthenticating } = useAuth();
+    const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
     const { showToast } = useToast();
 
     /* ENS resolution — published on the walletBus by the deferred wallet
@@ -260,18 +260,23 @@ export function UserMenuButtons() {
                         </span>
                     </div>
 
+                    {/* PriceRank badge \u2014 users.price_rank, DEFAULT 0
+                        (Brendon 2026-06-10: ONE name, starts at zero).
+                        \u24FF then \u2776..\u277F when rank-up rules exist. */}
                     <span
                         className="ascii-pfp-badge"
                         id="asciiPfpBadge"
-                        aria-label={`Level ${accountLevel}`}
-                        title={`Level ${accountLevel}`}
+                        aria-label={`PriceRank ${priceRank}`}
+                        title={`PriceRank ${priceRank}`}
                         style={{ cursor: 'pointer' }}
                         onClick={(e) => {
                             e.stopPropagation();
                             openModal('priceSprite');
                         }}
                     >
-                        {accountLevel === 0 ? '\u24FF' : '\u2776'}
+                        {priceRank <= 0
+                            ? '\u24FF'
+                            : String.fromCodePoint(0x2775 + Math.min(priceRank, 10))}
                     </span>
                 </>
             )}

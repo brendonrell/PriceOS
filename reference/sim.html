@@ -9309,13 +9309,12 @@
         // Brendon 2026-06-10 — pressing Pure X ALWAYS lands you in X mode.
         // If the flag is on but the theme has drifted elsewhere, a press
         // RE-ASSERTS the mode instead of silently toggling the flag off.
-        // Pure modes are also mutually exclusive.
+        // Pure light + pure dark are INDEPENDENT — both may be ON at once
+        // (each is a per-mode modifier); never touch the other flag.
         const stateKey = 'pure_' + mode;
-        const otherKey = mode === 'light' ? 'pure_dark' : 'pure_light';
         const currentTheme = localStorage.getItem('pd_settings_theme') || 'artist';
         const drifted = pdNotifs[stateKey] && currentTheme !== mode;
         if (!drifted) pdNotifs[stateKey] = !pdNotifs[stateKey];
-        if (pdNotifs[stateKey]) pdNotifs[otherKey] = false;
         localStorage.setItem('pd_settings_notifs', JSON.stringify(pdNotifs));
         renderSettingsUI();
         if (pdNotifs[stateKey]) {

@@ -276,14 +276,14 @@ export function MyPdSection({ onTripleTap }: Props) {
         // the bg-hex override misses by one click. The PdNotifs effect
         // will later re-write LS with the same value once the React state
         // commit catches up — safe no-op.
-        /* Pure modes are mutually exclusive — turning one ON turns the
-           other OFF (you can't be pure light AND pure dark). */
-        const otherKey = (mode === 'light' ? 'pure_dark' : 'pure_light') as keyof PdNotifs;
+        /* NOTE (Brendon 2026-06-10): pure light and pure dark are
+           INDEPENDENT — both may be ON at once. Each one is a per-mode
+           modifier (pure white when in light, pure black when in dark);
+           turning one on must NEVER touch the other. */
         try {
             const raw = localStorage.getItem('pd_settings_notifs');
             const parsed: Record<string, unknown> = raw ? JSON.parse(raw) : {};
             parsed[stateKey] = next;
-            if (next) parsed[otherKey] = false;
             localStorage.setItem('pd_settings_notifs', JSON.stringify(parsed));
         } catch {
             /* private mode / quota — applyColorway will read whatever LS has,
@@ -291,7 +291,6 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
 
         toggle(stateKey);
-        if (next && notifs[otherKey]) toggle(otherKey);
 
         if (next) {
             // Sim 9314 — setAndSaveColorway(mode). setColorway via context

@@ -18,12 +18,12 @@
  * renders per-slot when an identity is bound so blink/yawn/sleep
  * don't squish the sprite.
  *
- * PRICERANK readout is live from useAuth().priceRank (users.price_rank;
- * DEFAULT 0 — Brendon 2026-06-10). The lvl/XP labels are the separate
- * accountLevel axis. Curve and Xbox-style achievements are still
- * deferred to a dedicated workstream; XP bar renders a `-- / --`
- * placeholder until that lands, and the six score-breakdown rows
- * below the bar are still sim-faithful mocks pending the real
+ * PRICERANK is THE one progression number on PD — ONE name, DEFAULT 0
+ * (Brendon 2026-06-10). Readout, badge, and XP labels all read
+ * useAuth().priceRank (users.price_rank). There is no separate
+ * "account level" concept. XP bar renders a `-- / --` placeholder
+ * until the rank-up workstream lands, and the six score-breakdown
+ * rows below the bar are still sim-faithful mocks pending the real
  * user-stats indexer.
  *
  * Surfaces deferred:
@@ -68,7 +68,7 @@ const SCORE_ROWS: readonly ScoreRow[] = [
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const { accountLevel, priceRank } = useAuth();
+    const { priceRank } = useAuth();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
@@ -149,13 +149,12 @@ export default function PriceSpriteModal() {
                     </span>
                 </div>
 
-                {/* PRICERANK — live from useAuth().priceRank, which is
-                    users.price_rank. **DEFAULT IS 0** (Brendon, 2026-06-10
-                    — agreed spec; an earlier build wired this readout to
-                    accountLevel by mistake, which made everyone read rank 1).
-                    ⓿ for 0, then ❶ through ❿ (U+2776..U+277F) once the
-                    rank-up rules exist. accountLevel is a separate axis
-                    (the lvl/XP labels below) and must never feed this. */}
+                {/* PRICERANK — live from useAuth().priceRank
+                    (users.price_rank). **DEFAULT IS 0 — we start at
+                    zero** (Brendon, 2026-06-10). ⓿ for 0, then ❶
+                    through ❿ (U+2776..U+277F) once the rank-up rules
+                    exist. The retired users.account_level column must
+                    never feed any surface. */}
                 <div className="ps-level-row">
                     <div className="ps-level-label">PRICERANK</div>
                     <div className="ps-level-value">
@@ -165,9 +164,10 @@ export default function PriceSpriteModal() {
                     </div>
                 </div>
 
-                {/* Progress bar to next level — XP curve isn't locked yet
-                    so the bar shows 0% and the labels read `-- / -- XP`.
-                    Real wiring follows when the curve workstream lands. */}
+                {/* Progress bar to the next PriceRank — XP curve isn't
+                    locked yet so the bar shows 0% and the labels read
+                    `-- / -- XP`. Real wiring follows when the rank-up
+                    workstream lands. */}
                 <div className="ps-next-wrap">
                     <div className="ps-next-bar">
                         <div
@@ -176,8 +176,8 @@ export default function PriceSpriteModal() {
                         />
                     </div>
                     <div className="ps-next-labels">
-                        <span>{`lvl ${accountLevel} \u00B7 -- / -- XP`}</span>
-                        <span>{`lvl ${accountLevel + 1} \u2192`}</span>
+                        <span>{`rank ${priceRank} \u00B7 -- / -- XP`}</span>
+                        <span>{`rank ${priceRank + 1} \u2192`}</span>
                     </div>
                 </div>
 

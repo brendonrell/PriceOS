@@ -387,7 +387,6 @@ export function WalletProviders({
             siweAddress={siweAddress}
             isAuthenticating={isAuthenticating}
             handle={userRow?.handle ?? null}
-            accountLevel={userRow?.account_level ?? 0}
             priceRank={userRow?.price_rank ?? 0}
             needsSignup={needsSignup}
             onAccountCreated={handleAccountCreated}
