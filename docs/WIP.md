@@ -59,9 +59,8 @@ permanent regression test in `test/integration/LibraryAssembly.t.sol`.
 **OpenSea must be confirmed to swallow the utf8 json envelope at the Sepolia
 F-1 gate — if it chokes, the one-line revert to base64 costs ~+31M gas/read
 (would bust vanilla-geth reads for p5-sized libraries; fine on Alchemy-class
-RPCs).** Also flagged for audit: `</script` is NOT in the locked URL-guard
-ban list (an artist script containing it could break out of its tag; linter
-should catch it pre-gas — consider adding on-chain at audit).
+RPCs).** The `</script` breakout gap in the original locked ban list was
+approved by Brendon and added on-chain 2026-06-10 (13 patterns now).
 
 Next per build order: ④ linter + writer-bot updates (off-chain, this repo /
 bot land) → ⑤ fresh audit pass over the changed surface → ⑥ Sepolia gates
