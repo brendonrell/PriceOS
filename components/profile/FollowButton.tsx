@@ -48,17 +48,17 @@ export default function FollowButton({
   if (isSelf) return null;
 
   const toggle = async () => {
-    if (!me) { showToast('Connect your wallet to follow'); return; }
+    if (!me) { showToast('Wallet: CONNECT TO FOLLOW'); return; }
     setBusy(true);
     try {
       if (following) {
         const r = await fetch(`/api/follows?target=${target}`, { method: 'DELETE' });
         if (r.ok) {
           setFollowing(false);
-          showToast(`Unfollowed ${label}`);
+          showToast(`${label}: UNFOLLOWED`);
           window.dispatchEvent(new Event('pd:follows-changed'));
         } else {
-          showToast('Could not unfollow');
+          showToast('Unfollow: FAILED');
         }
       } else {
         const r = await fetch('/api/follows', {
@@ -68,13 +68,13 @@ export default function FollowButton({
         });
         if (r.status === 201) {
           setFollowing(true);
-          showToast(`Following ${label}`);
+          showToast(`${label}: FOLLOWED`);
           window.dispatchEvent(new Event('pd:follows-changed'));
         } else if (r.status === 204) {
-          showToast(`${label} hasn't claimed an @name yet`);
+          showToast(`${label}: NO @NAME YET`);
         } else {
           const j = await r.json().catch(() => ({}));
-          showToast(j?.error ? String(j.error) : 'Could not follow');
+          showToast(j?.error ? String(j.error) : 'Follow: FAILED');
         }
       }
     } finally {
@@ -85,7 +85,7 @@ export default function FollowButton({
   return (
     <button
       type="button"
-      className="btn-mint"
+      className="btn-mint btn-follow"
       title={following ? `Unfollow ${label}` : `Follow ${label}`}
       onClick={toggle}
       disabled={busy}

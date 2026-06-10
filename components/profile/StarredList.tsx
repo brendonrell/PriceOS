@@ -81,7 +81,7 @@ export default function StarredList({ items }: { items: StarredItem[] }) {
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
         toggleStar(slug, id);
-        showToast(`Removed from Starred`);
+        showToast(`Starred: REMOVED`);
     };
 
     return (

@@ -41,14 +41,14 @@ export function MyPingsRow() {
         };
         const next = !notifs.pings[key];
         update({ pings: { ...notifs.pings, [key]: next } });
-        showToast(`${PING_LABELS[key] ?? key} ${next ? 'ON' : 'OFF'}`);
+        showToast(`${PING_LABELS[key] ?? key}: ${next ? 'ON' : 'OFF'}`);
     };
 
     const handlePingToasts = () => {
         // Toast on every flip.
         const next = !notifs.pingToasts;
         toggle('pingToasts');
-        showToast(`Pingtoasts ${next ? 'ON' : 'OFF'}`);
+        showToast(`Pingtoasts: ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -111,7 +111,7 @@ export function MyPingsRow() {
                     onClick={() => {
                         const next = !notifs.nightmode;
                         toggle('nightmode');
-                        showToast(`Silent Mode ${next ? 'ON' : 'OFF'}`);
+                        showToast(`Silent Mode: ${next ? 'ON' : 'OFF'}`);
                     }}
                     icon={'⏾\uFE0E'}
                     iconBare

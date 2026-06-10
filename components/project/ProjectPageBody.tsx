@@ -929,9 +929,9 @@ function ProjectPageBodyInner() {
                                 className="btn-mint"
                                 title="Buy the floor — adds the lowest-listed Output to your cart"
                                 onClick={() => {
-                                    if (lowestId == null) { showToast('Nothing listed yet'); return; }
+                                    if (lowestId == null) { showToast('Listings: NONE YET'); return; }
                                     cartAdd(project.slug, lowestId);
-                                    showToast(`Added ${project.title} #${lowestId} to cart`);
+                                    showToast(`${project.title} #${lowestId}: ADDED TO CART`);
                                 }}
                                 disabled={lowestId == null}
                                 style={lowestId == null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}

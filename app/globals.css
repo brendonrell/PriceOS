@@ -129,12 +129,18 @@ body {
     min-height: 100dvh;
 }
 
+/* THE FOOTER MYSTERY, solved (2026-06-10). [data-rk] is RainbowKit's
+   wrapper div. It used to wrap the whole app, so it carried the
+   flex-column + min-height sizing. Since the wallet stack went deferred
+   (perf batch), it mounts 1–2s AFTER paint as an EMPTY LAST SIBLING in
+   <body> — and this rule's min-height:100dvh gave that empty div a full
+   viewport of invisible height BELOW the footer. Result: footer correct
+   at first paint, then a screen of dead space appears under it on every
+   page. The sticky-footer chain is body(flex column, min-height:100dvh)
+   → main(flex:1) → footer; [data-rk] only hosts fixed-position wallet
+   modals now and must have NO layout footprint. */
 [data-rk] {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 100vh;
-    min-height: 100dvh;
+    flex: none;
 }
 
 main {
@@ -3106,7 +3112,9 @@ body.persona-default .stats-row-2 { display: none !important; }
     font-family: Arial, sans-serif;
     margin-left: 2px;
     display: inline-block;
-    cursor: help;
+    /* Brendon 2026-06-10: no "?" help cursor on unicode icon glyphs —
+       it reads as a broken element in Chrome. Plain default cursor. */
+    cursor: default;
     opacity: 0.85;
     text-shadow: none;
     line-height: 0;
@@ -3191,6 +3199,14 @@ button,
        (the two different fonts read as one unit, not floated apart). Was 10px
        — too wide, left a "huge gap" on the MINTING… face. */
     gap: 4px;
+}
+
+/* Profile CTA (FollowButton) — decoupled from the project CTA's footprint
+   (Brendon 2026-06-10). The fixed 224px above exists ONLY for the in-button
+   mint progress flow; the profile button goes back to the original sim
+   spec: content-sized via the 24px side padding. */
+.btn-follow {
+    width: auto;
 }
 .mint-lbl {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -4521,6 +4537,32 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 body.colorway-dark .canvas-wrapper {
     box-shadow: 0 2px 20px rgba(255, 255, 255, 0.07);
+}
+
+/* Route-level loading state (app/loading.tsx) — instant feedback on every
+   internal navigation while the next page renders. Three breathing dots,
+   staggered, so the wait always reads as motion (§9). */
+.route-loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50vh;
+}
+.route-loading-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-color);
+    opacity: 0.25;
+    animation: route-loading-breathe 1.1s ease-in-out infinite;
+}
+.route-loading-dot:nth-child(2) { animation-delay: 0.18s; }
+.route-loading-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes route-loading-breathe {
+    0%, 100% { opacity: 0.25; transform: scale(1); }
+    50%      { opacity: 0.8;  transform: scale(1.25); }
 }
 
 /* Empty-state ghost cards (GhostCard.tsx). Placeholder frames shown only while

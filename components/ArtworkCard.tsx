@@ -470,7 +470,7 @@ export default function ArtworkCard({
     const handleWishlistClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         const result = storeToggleWishlist(slug, id);
-        showToast(result === 'added' ? 'Added to Wishlist' : 'Removed from Wishlist');
+        showToast(result === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
     };
 
     /* chat #6 D010-cart — sim 11823-11836. addToCart's two branches:
@@ -489,7 +489,7 @@ export default function ArtworkCard({
             const collName =
                 projectTitle.charAt(0) +
                 projectTitle.slice(1).toLowerCase();
-            showToast(`${collName} #${id} already in cart`);
+            showToast(`${collName} #${id}: ALREADY IN CART`);
             return;
         }
         cartAdd(slug, id);

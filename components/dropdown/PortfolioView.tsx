@@ -163,7 +163,7 @@ export function PortfolioView() {
             const isActive = budgets.activeIdx === idx;
             const label = budgets.list[idx]?.name ?? '';
             toggleActiveBudget(idx);
-            showToast(isActive ? 'Budget OFF' : `Budget: ${label}`);
+            showToast(isActive ? 'Budget: OFF' : `Budget: ${label}`);
         },
         [budgets, showToast]
     );
@@ -200,11 +200,11 @@ export function PortfolioView() {
                 onSubmit: (vals) => {
                     if (!vals) return;
                     const name = (vals[0] || '').trim();
-                    if (!name) { showToast('Name required'); return; }
+                    if (!name) { showToast('Name: REQUIRED'); return; }
                     const v = parseFloat(vals[1] || '');
-                    if (!(v > 0) || !isFinite(v)) { showToast('Invalid ETH amount'); return; }
+                    if (!(v > 0) || !isFinite(v)) { showToast('ETH Amount: INVALID'); return; }
                     engineUpdateBudget(idx, name, v);
-                    showToast(`Budget updated: ${name}`);
+                    showToast(`Budget Updated: ${name}`);
                 },
             });
         },
@@ -229,16 +229,16 @@ export function PortfolioView() {
                 if (!vals) return;
                 const name = (vals[0] || '').trim();
                 if (!name) {
-                    showToast('Name required');
+                    showToast('Name: REQUIRED');
                     return;
                 }
                 const v = parseFloat(vals[1] || '');
                 if (!(v > 0) || !isFinite(v)) {
-                    showToast('Invalid ETH amount');
+                    showToast('ETH Amount: INVALID');
                     return;
                 }
                 engineAddBudget(name, v);
-                showToast(`Budget added: ${name}`);
+                showToast(`Budget Added: ${name}`);
             },
         });
     }, [openValuePrompt, showToast]);
@@ -537,11 +537,11 @@ export function PortfolioView() {
                     id="portfolioMainPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio ON'); } }}
+                    onClick={() => { if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio: ON'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio ON'); }
+                            if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio: ON'); }
                         }
                     }}
                     title="Main Portfolio"
@@ -554,11 +554,11 @@ export function PortfolioView() {
                     id="portfolioShadowPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio ON'); } }}
+                    onClick={() => { if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio: ON'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio ON'); }
+                            if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio: ON'); }
                         }
                     }}
                     title="Shadow Portfolio"
@@ -571,11 +571,11 @@ export function PortfolioView() {
                     id="portfolioDollarToggle"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { const next = !showDollar; setShowDollar(next); showToast('Estimates ' + (next ? 'ON' : 'OFF')); }}
+                    onClick={() => { const next = !showDollar; setShowDollar(next); showToast('Estimates: ' + (next ? 'ON' : 'OFF')); }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            const next = !showDollar; setShowDollar(next); showToast('Estimates ' + (next ? 'ON' : 'OFF'));
+                            const next = !showDollar; setShowDollar(next); showToast('Estimates: ' + (next ? 'ON' : 'OFF'));
                         }
                     }}
                     title="Toggle floor-based value estimates"
@@ -720,14 +720,14 @@ export function PortfolioView() {
                         onClick={() => {
                             const next = !portfolioHidden;
                             setPortfolioHidden(next);
-                            showToast(next ? 'Portfolio Hidden' : 'Portfolio Visible');
+                            showToast(next ? 'Portfolio: HIDDEN' : 'Portfolio: SHOWN');
                         }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 const next = !portfolioHidden;
                                 setPortfolioHidden(next);
-                                showToast(next ? 'Portfolio Hidden' : 'Portfolio Visible');
+                                showToast(next ? 'Portfolio: HIDDEN' : 'Portfolio: SHOWN');
                             }
                         }}
                     >

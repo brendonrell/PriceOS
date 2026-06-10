@@ -204,11 +204,11 @@ export default function ArtworkPageBody({
                                     className="stat-val stat-val-owners"
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => showToast('Ownership history — coming soon')}
+                                    onClick={() => showToast('Ownership History: COMING SOON')}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            showToast('Ownership history — coming soon');
+                                            showToast('Ownership History: COMING SOON');
                                         }
                                     }}
                                 >
@@ -248,11 +248,11 @@ export default function ArtworkPageBody({
                                     role="button"
                                     tabIndex={0}
                                     title="Tap to set"
-                                    onClick={() => showToast('Anchor — coming soon')}
+                                    onClick={() => showToast('Anchor: COMING SOON')}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            showToast('Anchor — coming soon');
+                                            showToast('Anchor: COMING SOON');
                                         }
                                     }}
                                 ></span>
@@ -269,7 +269,7 @@ export default function ArtworkPageBody({
                         <button
                             className="btn-mint"
                             title={`Buy ${titleLabel}`}
-                            onClick={() => showToast('Buy — coming soon')}
+                            onClick={() => showToast('Buy: COMING SOON')}
                         >
                             <span className="mint-lbl">BUY</span>
                             <span className="mint-price">({market?.listing?.price_eth ?? market?.floor ?? '—'} ETH)</span>

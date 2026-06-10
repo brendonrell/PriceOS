@@ -84,7 +84,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
 
     /* Build 29 D28 — every spell flip emits a `<spell.name> ON|OFF`
        toast on click. Mirrors sim 12700:
-         showToast(`${spellNames[key] || key} ${on ? 'ON' : 'OFF'}`);
+         showToast(`${spellNames[key] || key}: ${on ? 'ON' : 'OFF'}`);
 
        Batch G / F56 — the Familiar pill now follows this same path.
        Earlier builds routed the Familiar pill straight to the modal
@@ -95,7 +95,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
     const toggleSpellWithToast = (spell: typeof SPELLS[number]) => {
         const next = !notifs[spell.flag];
         toggle(spell.flag);
-        showToast(`${spell.name} ${next ? 'ON' : 'OFF'}`);
+        showToast(`${spell.name}: ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -139,7 +139,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     onClick={() => {
                         const next = !notifs.stargazing;
                         toggle('stargazing');
-                        showToast(`Stargazing Mode ${next ? 'ON' : 'OFF'}`);
+                        showToast(`Stargazing Mode: ${next ? 'ON' : 'OFF'}`);
                     }}
                     icon={'❇\uFE0E'}
                     label="Stargazing"

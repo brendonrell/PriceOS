@@ -629,7 +629,7 @@ function CollectedMsFloatBar({
     };
     const handleConfirm = () => {
         setConfirmOpen(false);
-        showToast(`${current} · ${countLabel} — coming soon`);
+        showToast(`${current} · ${countLabel}: COMING SOON`);
     };
 
     return (

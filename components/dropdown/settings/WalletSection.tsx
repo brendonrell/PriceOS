@@ -211,7 +211,7 @@ export function WalletSection() {
 
     const handleRpcPing = () => {
         const nowActive = engineToggleRpcPing();
-        showToast(nowActive ? 'RPC Ping ON' : 'RPC Ping OFF');
+        showToast(nowActive ? 'RPC Ping: ON' : 'RPC Ping: OFF');
     };
 
     const handleIncognito = () => {
@@ -219,7 +219,7 @@ export function WalletSection() {
         if (nowActive && notifs.spell_hammer) {
             toggleNotif('spell_hammer');
         }
-        showToast(`Incognito Proxy ${nowActive ? 'ON' : 'OFF'}`);
+        showToast(`Incognito Proxy: ${nowActive ? 'ON' : 'OFF'}`);
     };
 
     const handleCopyWallet = async () => {
@@ -325,7 +325,7 @@ export function WalletSection() {
                         visibility: walletCopied ? 'visible' : 'hidden',
                         whiteSpace: 'nowrap',
                     }}>
-                        {'\u2713\uFE0E'} COPIED
+                        COPIED!
                     </span>
                 </span>
                 <span
@@ -393,7 +393,7 @@ export function WalletSection() {
                     if (!isAuthed) return;
                     const next = !balanceHidden;
                     setBalanceHidden(next);
-                    showToast(next ? 'Balance Hidden' : 'Balance Visible');
+                    showToast(next ? '$PRICE Balance: HIDDEN' : '$PRICE Balance: SHOWN');
                 }}
                 role="button"
                 tabIndex={isAuthed ? 0 : -1}

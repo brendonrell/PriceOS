@@ -88,6 +88,13 @@ interface AuthContextValue {
         loosens the constraint. Surfaces (level badge in UserMenuButtons,
         hero badge in PriceSpriteModal) read this directly. */
     accountLevel: number;
+    /** PriceRank for the SIWE-auth'd user. **DEFAULT IS 0** (Brendon,
+        2026-06-10 — the agreed spec; the rank-up rules are not designed
+        yet, so every account sits at 0 until that workstream lands).
+        This is `users.price_rank` and is a DIFFERENT axis from
+        accountLevel above — the PriceSpriteModal's PRICERANK readout
+        displays THIS, never accountLevel. */
+    priceRank: number;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -108,6 +115,7 @@ interface AuthContextProviderProps {
     isAuthenticating: boolean;
     handle: string | null;
     accountLevel: number;
+    priceRank: number;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -119,6 +127,7 @@ export function AuthContextProvider({
     isAuthenticating,
     handle,
     accountLevel,
+    priceRank,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -135,6 +144,7 @@ export function AuthContextProvider({
             isAuthenticating,
             handle,
             accountLevel,
+            priceRank,
             needsSignup,
             onAccountCreated,
             signOut,
@@ -144,6 +154,7 @@ export function AuthContextProvider({
             isAuthenticating,
             handle,
             accountLevel,
+            priceRank,
             needsSignup,
             onAccountCreated,
             signOut,

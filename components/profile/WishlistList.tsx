@@ -153,14 +153,14 @@ function WishlistRow({
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
         toggleWishlist(slug, id);
-        showToast('Removed from Wishlist');
+        showToast('Wishlist: REMOVED');
     };
 
     const handleCart = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (inCart) { showToast('Already in cart'); return; }
+        if (inCart) { showToast('Cart: ALREADY ADDED'); return; }
         cartAdd(slug, id);
-        showToast('Added to cart');
+        showToast('Cart: ADDED');
     };
 
     return (

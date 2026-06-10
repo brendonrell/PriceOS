@@ -233,7 +233,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             }
             setActiveId(id);
             applyDecodedState(parsed.state);
-            showToast(ws.name.toUpperCase());
+            showToast(`Workspace: ${ws.name.toUpperCase()}`);
         },
         [workspaces, applyDecodedState, showToast]
     );
@@ -247,7 +247,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
                 prev.map((w) => (w.id === id ? { ...w, code } : w))
             );
             setActiveId(id);
-            showToast('SAVED TO ' + ws.name.toUpperCase());
+            showToast('Saved To: ' + ws.name.toUpperCase());
         },
         [workspaces, colorway, sort, notifs, showToast]
     );
@@ -255,7 +255,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const saveCurrentAsNewWorkspace = useCallback(
         (name: string) => {
             if (workspaces.length >= MAX_WORKSPACES) {
-                showToast('Workspace cap reached');
+                showToast('Workspaces: CAP REACHED');
                 return;
             }
             const code = encodeSetupCode(colorway, sort, notifs);
@@ -318,7 +318,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         (raw: string): boolean => {
             const parsed = decodeSetupCode(raw);
             if (!parsed.ok || !parsed.state) {
-                showToast('Invalid Setup Code');
+                showToast('Setup Code: INVALID');
                 return false;
             }
             applyDecodedState(parsed.state);

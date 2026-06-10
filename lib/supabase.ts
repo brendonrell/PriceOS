@@ -305,6 +305,23 @@ function url(): string {
   return u;
 }
 
+// Hard ceiling on any single Supabase request. Without this, a stalled
+// connection (not an error — just silence) blocks forever. Server-side
+// that freezes the whole page render mid-navigation: the click "loads
+// forever" until a manual refresh. 8s matches the /api/gas and /api/price
+// timeout convention.
+const REQUEST_TIMEOUT_MS = 8000;
+
+const timeoutFetch: typeof fetch = (input, init) => {
+  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const callerSignal = init?.signal ?? null;
+  const signal =
+    callerSignal && typeof AbortSignal.any === 'function'
+      ? AbortSignal.any([callerSignal, timeoutSignal])
+      : callerSignal ?? timeoutSignal;
+  return fetch(input, { ...init, signal });
+};
+
 /** Columns of `users` the public (anon) key is allowed to read — must stay in
  *  sync with the column-level GRANT to anon/authenticated in the database.
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
@@ -317,6 +334,7 @@ export function getSupabaseAnon(): SupabaseClient<Database> {
   if (!key) throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');
   return createClient<Database>(url(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: timeoutFetch },
   });
 }
 
@@ -325,5 +343,6 @@ export function getSupabaseService(): SupabaseClient<Database> {
   if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
   return createClient<Database>(url(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: timeoutFetch },
   });
 }

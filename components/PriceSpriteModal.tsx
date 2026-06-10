@@ -18,9 +18,10 @@
  * renders per-slot when an identity is bound so blink/yawn/sleep
  * don't squish the sprite.
  *
- * Level value is live from useAuth().accountLevel (Ship 3) — `⓿` for
- * level 0, `❶` for level 1. Curve and Xbox-style achievements are
- * still deferred to a dedicated workstream; XP bar renders a `-- / --`
+ * PRICERANK readout is live from useAuth().priceRank (users.price_rank;
+ * DEFAULT 0 — Brendon 2026-06-10). The lvl/XP labels are the separate
+ * accountLevel axis. Curve and Xbox-style achievements are still
+ * deferred to a dedicated workstream; XP bar renders a `-- / --`
  * placeholder until that lands, and the six score-breakdown rows
  * below the bar are still sim-faithful mocks pending the real
  * user-stats indexer.
@@ -67,7 +68,7 @@ const SCORE_ROWS: readonly ScoreRow[] = [
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const { accountLevel } = useAuth();
+    const { accountLevel, priceRank } = useAuth();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
@@ -148,13 +149,19 @@ export default function PriceSpriteModal() {
                     </span>
                 </div>
 
-                {/* Level — live from useAuth().accountLevel. ⓿ for 0,
-                    ❶ for 1. Curve extension lifts this through ❷❸❹❺❻❼❽❾❿
-                    (U+2776..U+277F) when the level system expands. */}
+                {/* PRICERANK — live from useAuth().priceRank, which is
+                    users.price_rank. **DEFAULT IS 0** (Brendon, 2026-06-10
+                    — agreed spec; an earlier build wired this readout to
+                    accountLevel by mistake, which made everyone read rank 1).
+                    ⓿ for 0, then ❶ through ❿ (U+2776..U+277F) once the
+                    rank-up rules exist. accountLevel is a separate axis
+                    (the lvl/XP labels below) and must never feed this. */}
                 <div className="ps-level-row">
                     <div className="ps-level-label">PRICERANK</div>
                     <div className="ps-level-value">
-                        {accountLevel === 0 ? '\u24FF' : '\u2776'}
+                        {priceRank <= 0
+                            ? '\u24FF'
+                            : String.fromCodePoint(0x2775 + Math.min(priceRank, 10))}
                     </div>
                 </div>
 
@@ -192,7 +199,7 @@ export default function PriceSpriteModal() {
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
-                            showToast('Identity Plate Export — coming soon');
+                            showToast('Identity Plate Export: COMING SOON');
                         }}
                     >
                         <span className="ps-action-icon">{`\u2348${VS15}`}</span>{' '}

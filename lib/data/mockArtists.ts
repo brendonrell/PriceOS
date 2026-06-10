@@ -20,72 +20,22 @@ export interface MockArtist {
     status: ArtistStatus;
 }
 
-// Sim's exact mockArtistNames roster (line 10510-10517).
+// Real roster (Brendon 2026-06-10: "no more placeholders — just me and
+// opus4-6"). The sim's 46-name placeholder roster is retired; the live
+// platform has exactly two artists until the indexer feeds this for real.
 const MOCK_ARTIST_NAMES = [
-    'packy', 'shvembldr', 'tylerxhobbs', 'snowfro', 'dmitricherniak', 'xfar', 'brendon', 'matty',
-    'atlasforge', 'rudxane', 'gmoney', 'darold', 'clownvamp', 'trinity',
-    'willpop', 'cspok', 'siggi', 'ccddbb', 'piterpasma', 'richardnadal', 'mattdesl', 'ykx',
-    'lorem', 'ixshells', 'generative', 'algorithm', 'noise', 'pixel',
-    'vector', 'crypto', 'punk', 'ape', 'toadz', 'nouns', 'mfers', 'rekt', 'moon', 'hodl',
-    'fren', 'gm', 'gn', 'wagmi', 'ngmi', 'vibes', 'based', 'degen',
+    'brendon', 'opus4-6',
 ];
 
-// Sim line 10526: hardcoded mutuals.
 const HARDCODED_MUTUALS = new Set([
-    'brendon', 'matty', 'atlasforge', 'snowfro', 'rudxane', 'siggi', 'willpop',
+    'brendon', 'opus4-6',
 ]);
 
-// Pre-rolled rel + status, indexed by name. Generated once with sim's
-// distribution (15% mutual outside the hardcoded set, 25% following,
-// 15% followers, 45% none; 50/50 active/cooldown). Frozen here so the
-// roster reads identically across sessions and across SSR/CSR.
+// Pre-rolled rel + status, indexed by name. Frozen so the roster reads
+// identically across sessions and across SSR/CSR.
 const ROLLED: Record<string, { rel: ArtistRel; status: ArtistStatus }> = {
-    packy:          { rel: 'following', status: 'active' },
-    shvembldr:      { rel: 'none',      status: 'cooldown' },
-    tylerxhobbs:    { rel: 'following', status: 'active' },
-    snowfro:        { rel: 'mutual',    status: 'active' },     // hardcoded
-    dmitricherniak: { rel: 'followers', status: 'cooldown' },
-    xfar:           { rel: 'none',      status: 'active' },
-    brendon:        { rel: 'mutual',    status: 'active' },     // hardcoded (self)
-    matty:          { rel: 'mutual',    status: 'active' },     // hardcoded
-    atlasforge:     { rel: 'mutual',    status: 'cooldown' },   // hardcoded
-    rudxane:        { rel: 'mutual',    status: 'active' },     // hardcoded
-    gmoney:         { rel: 'following', status: 'active' },
-    darold:         { rel: 'none',      status: 'cooldown' },
-    clownvamp:      { rel: 'followers', status: 'active' },
-    trinity:        { rel: 'following', status: 'active' },
-    willpop:        { rel: 'mutual',    status: 'active' },     // hardcoded
-    cspok:          { rel: 'following', status: 'cooldown' },
-    siggi:          { rel: 'mutual',    status: 'active' },     // hardcoded
-    ccddbb:         { rel: 'none',      status: 'active' },
-    piterpasma:     { rel: 'following', status: 'cooldown' },
-    richardnadal:   { rel: 'none',      status: 'active' },
-    mattdesl:       { rel: 'followers', status: 'cooldown' },
-    ykx:            { rel: 'none',      status: 'active' },
-    lorem:          { rel: 'none',      status: 'active' },
-    ixshells:       { rel: 'following', status: 'cooldown' },
-    generative:     { rel: 'none',      status: 'active' },
-    algorithm:      { rel: 'followers', status: 'cooldown' },
-    noise:          { rel: 'none',      status: 'active' },
-    pixel:          { rel: 'following', status: 'active' },
-    vector:         { rel: 'none',      status: 'cooldown' },
-    crypto:         { rel: 'none',      status: 'active' },
-    punk:           { rel: 'following', status: 'cooldown' },
-    ape:            { rel: 'followers', status: 'active' },
-    toadz:          { rel: 'none',      status: 'active' },
-    nouns:          { rel: 'following', status: 'cooldown' },
-    mfers:          { rel: 'none',      status: 'active' },
-    rekt:           { rel: 'followers', status: 'cooldown' },
-    moon:           { rel: 'none',      status: 'active' },
-    hodl:           { rel: 'following', status: 'cooldown' },
-    fren:           { rel: 'none',      status: 'active' },
-    gm:             { rel: 'followers', status: 'active' },
-    gn:             { rel: 'none',      status: 'cooldown' },
-    wagmi:          { rel: 'none',      status: 'active' },
-    ngmi:           { rel: 'following', status: 'cooldown' },
-    vibes:          { rel: 'none',      status: 'active' },
-    based:          { rel: 'followers', status: 'active' },
-    degen:          { rel: 'none',      status: 'cooldown' },
+    brendon:   { rel: 'mutual', status: 'active' },
+    'opus4-6': { rel: 'mutual', status: 'active' },
 };
 
 export const MOCK_ARTISTS: MockArtist[] = MOCK_ARTIST_NAMES

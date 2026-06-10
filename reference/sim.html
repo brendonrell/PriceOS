@@ -9306,18 +9306,26 @@
     }
 
     window.togglePure = function(mode) {
+        // Brendon 2026-06-10 — pressing Pure X ALWAYS lands you in X mode.
+        // If the flag is on but the theme has drifted elsewhere, a press
+        // RE-ASSERTS the mode instead of silently toggling the flag off.
+        // Pure modes are also mutually exclusive.
         const stateKey = 'pure_' + mode;
-        pdNotifs[stateKey] = !pdNotifs[stateKey];
+        const otherKey = mode === 'light' ? 'pure_dark' : 'pure_light';
+        const currentTheme = localStorage.getItem('pd_settings_theme') || 'artist';
+        const drifted = pdNotifs[stateKey] && currentTheme !== mode;
+        if (!drifted) pdNotifs[stateKey] = !pdNotifs[stateKey];
+        if (pdNotifs[stateKey]) pdNotifs[otherKey] = false;
         localStorage.setItem('pd_settings_notifs', JSON.stringify(pdNotifs));
         renderSettingsUI();
         if (pdNotifs[stateKey]) {
-            setAndSaveTheme(mode); 
+            setAndSaveTheme(mode);
         } else {
-            setTheme(localStorage.getItem('pd_settings_theme') || 'artist'); 
+            setTheme(localStorage.getItem('pd_settings_theme') || 'artist');
         }
 
-        if (mode === 'light') showToast(`Pure Light ${pdNotifs[stateKey] ? 'ON' : 'OFF'}`);
-        if (mode === 'dark') showToast(`Pure Dark ${pdNotifs[stateKey] ? 'ON' : 'OFF'}`);
+        if (mode === 'light') showToast(`Pure Light: ${pdNotifs[stateKey] ? 'ON' : 'OFF'}`);
+        if (mode === 'dark') showToast(`Pure Dark: ${pdNotifs[stateKey] ? 'ON' : 'OFF'}`);
     }
 
     // ── REDACTED MODE helpers ──

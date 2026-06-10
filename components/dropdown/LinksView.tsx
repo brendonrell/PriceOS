@@ -82,7 +82,7 @@ export function LinksView() {
            queues-and-loads on a cold tap, and falls back to the same toast
            only if the chunk actually failed to load. */
         openConnectModal(() =>
-            showToast('Wallet not ready — refresh and try again'),
+            showToast('Wallet: NOT READY — refresh and try again'),
         );
     };
 

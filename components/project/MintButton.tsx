@@ -44,7 +44,7 @@ export default function MintButton({
   const total = (perOutput * qty).toFixed(3);
 
   const start = () => {
-    if (!siweAddress) { showToast('Connect your wallet to mint'); return; }
+    if (!siweAddress) { showToast('Wallet: CONNECT TO MINT'); return; }
     setQty(1);
     setPhase('choosing');
   };
@@ -71,7 +71,7 @@ export default function MintButton({
     await minShow;
     setPct(100);
     if (!ok) {
-      showToast(j?.error ? String(j.error) : 'Mint failed');
+      showToast(j?.error ? String(j.error) : 'Mint: FAILED');
       setPhase('idle');
       setPct(0);
       return;
@@ -80,7 +80,7 @@ export default function MintButton({
     setResult({ count, balance: Number(j.balance ?? 0) });
     setPhase('done');
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
-    showToast(`Minted ${count} × ${projectTitle} · ${j.balance} ETH left`);
+    showToast(`Minted: ${count} × ${projectTitle} · ${j.balance} ETH left`);
     setTimeout(() => { setPhase('idle'); setPct(0); setResult(null); }, 2800);
   };
 

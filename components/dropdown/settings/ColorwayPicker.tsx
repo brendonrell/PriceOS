@@ -245,7 +245,7 @@ export function ColorwayPicker() {
                             e.stopPropagation();
                             try { navigator.clipboard?.writeText(hazeHex); } catch { /* ignore */ }
                             copyingHexRef.current = true;
-                            setHazeHex('✓ COPIED');
+                            setHazeHex('COPIED!');
                             window.setTimeout(() => {
                                 copyingHexRef.current = false;
                                 setHazeHex(readHazeColor());
@@ -297,15 +297,18 @@ export function ColorwayPicker() {
             >
                 DEFAULT COLORWAY
             </div>
+            {/* One pill is ALWAYS visually selected. A null colorway (no
+                saved preference / logged out) IS the custom-colorway
+                default, so the custom pill shows active for it. */}
             <div className="settings-pill-row colorway-pills">
                 {PILLS.map((p) => (
                     <button
                         key={p.key}
                         type="button"
                         id={`st-${p.key}`}
-                        className={`pill-colorway ${p.cls}${colorway === p.key ? ' active' : ''}`}
+                        className={`pill-colorway ${p.cls}${(colorway ?? 'custom') === p.key ? ' active' : ''}`}
                         title={p.title}
-                        aria-pressed={colorway === p.key}
+                        aria-pressed={(colorway ?? 'custom') === p.key}
                         onClick={(e) => {
                             e.stopPropagation();
                             setColorway(p.key);

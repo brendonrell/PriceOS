@@ -119,14 +119,14 @@ export function ArtistsView() {
         (name: string) => {
             setPinned((prev) => {
                 if (prev.includes(name)) {
-                    showToast(`Unpinned ${name}`);
+                    showToast(`${name}: UNPINNED`);
                     return prev.filter((n) => n !== name);
                 }
                 if (prev.length >= PIN_LIMIT) {
-                    showToast(`Pin limit reached (${PIN_LIMIT})`);
+                    showToast(`Pin Limit: ${PIN_LIMIT} MAX`);
                     return prev;
                 }
-                showToast(`Pinned ${name}`);
+                showToast(`${name}: PINNED`);
                 return [...prev, name];
             });
         },
@@ -233,12 +233,12 @@ export function ArtistsView() {
                                 data-rel={a.rel}
                                 title={relTitle}
                                 onClick={() =>
-                                    showToast(`Profile coming soon — ${a.name}`)
+                                    showToast(`${a.name} Profile: COMING SOON`)
                                 }
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        showToast(`Profile coming soon — ${a.name}`);
+                                        showToast(`${a.name} Profile: COMING SOON`);
                                     }
                                 }}
                             >

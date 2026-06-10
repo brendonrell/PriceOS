@@ -1149,15 +1149,15 @@ function MsFloatBar() {
 
     const stub = (label: string) => () => {
         if (count === 0) { showToast('Select items first'); return; }
-        showToast(`${label} · ${countLabel} — coming soon`);
+        showToast(`${label} · ${countLabel}: COMING SOON`);
     };
 
     const handleAddToCart = () => {
         if (count === 0) { showToast('Select items first'); return; }
         let added = 0;
         selectedItems.forEach(({ slug, id }) => { if (!cartHas(slug, id)) { cartAdd(slug, id); added++; } });
-        if (added === 0) showToast('All selected items already in cart');
-        else showToast(`Added ${added} item${added === 1 ? '' : 's'} to cart`);
+        if (added === 0) showToast('Cart: ALL ALREADY ADDED');
+        else showToast(`Cart: ADDED · ${added} item${added === 1 ? '' : 's'}`);
         openCartPanel();
     };
 

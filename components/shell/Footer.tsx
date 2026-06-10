@@ -30,7 +30,7 @@ export function Footer() {
                 <span className="priceos-block" id="footerBlock">{blockText}</span>
                 <span className="priceos-sep priceos-sep-desktop">·</span>
                 <span className="priceos-footer-break" />
-                <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => showToast('About PD — coming soon')}>
+                <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => showToast('About PD: COMING SOON')}>
                     About PD
                 </span>
                 <span className="priceos-sep">·</span>
@@ -38,7 +38,7 @@ export function Footer() {
                     Join Our Discord
                 </a>
                 <span className="priceos-sep">·</span>
-                <span className="priceos-link" title="Docs" style={{ cursor: 'pointer' }} onClick={() => showToast('Docs — coming soon')}>
+                <span className="priceos-link" title="Docs" style={{ cursor: 'pointer' }} onClick={() => showToast('Docs: COMING SOON')}>
                     Docs
                 </span>
                 <span className="priceos-sep">·</span>

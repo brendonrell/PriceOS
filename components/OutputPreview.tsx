@@ -625,7 +625,7 @@ export default function OutputPreview() {
                     <span className="dp-value">
                         <span className="dp-value-text dp-addr">
                             {ownerCopied
-                                ? '✓ COPIED'
+                                ? 'COPIED!'
                                 : market?.viewer?.isOwner
                                     ? 'You'
                                     : market?.owner_handle
@@ -684,7 +684,7 @@ export default function OutputPreview() {
                             };
                             navigator.clipboard.writeText(url).then(write).catch(write);
                         }}>
-                            <span className="dp-value-text">{urlCopied ? '✓ COPIED' : 'Copy'}</span>
+                            <span className="dp-value-text">{urlCopied ? 'COPIED!' : 'Copy'}</span>
                         </button>
                         <button className="dp-copy-btn" title="Copy artwork URL" onClick={(e) => {
                             e.stopPropagation();
@@ -807,14 +807,14 @@ export default function OutputPreview() {
                             <span
                                 className="modal-pill"
                                 title="Wishlist"
-                                onClick={() => showToast('Added to Wishlist')}
+                                onClick={() => showToast('Wishlist: ADDED')}
                             >
                                 {`\u271B${VS15}`}
                             </span>
                             <span
                                 className="modal-pill"
                                 title="Add to Album"
-                                onClick={() => showToast('Add to Album')}
+                                onClick={() => showToast('Albums: COMING SOON')}
                             >
                                 {`\u25F0${VS15}`}
                             </span>
@@ -828,7 +828,7 @@ export default function OutputPreview() {
                             <span
                                 className="modal-pill"
                                 title="Add to To-Do"
-                                onClick={() => showToast('Added to To-Dos')}
+                                onClick={() => showToast('To-Dos: ADDED')}
                             >
                                 {`\u274D${VS15}`}
                             </span>
@@ -873,14 +873,14 @@ export default function OutputPreview() {
                                 onClick={() => {
                                     if (calcMode === 'buy' && id != null) {
                                         if (cartHas(slug, id)) {
-                                            showToast(`${title} #${id} already in cart`);
+                                            showToast(`${title} #${id}: ALREADY IN CART`);
                                         } else {
                                             cartAdd(slug, id);
                                             const next = cartItems.length + 1;
                                             showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
                                         }
                                     } else {
-                                        showToast('Action — coming soon');
+                                        showToast('Action: COMING SOON');
                                     }
                                 }}
                             >
@@ -891,9 +891,9 @@ export default function OutputPreview() {
                                 id="mActionCalc"
                                 onClick={() => {
                                     if (calcMode === 'user-showcase') {
-                                        showToast('Add to Your Showcase — coming soon');
+                                        showToast('Add to Showcase: COMING SOON');
                                     } else if (calcMode === 'offer') {
-                                        showToast('Offer Calc — coming soon');
+                                        showToast('Offer Calc: COMING SOON');
                                     } else if (id != null && meta) {
                                         const priceNum = meta.price
                                             ? parseFloat(meta.price)
@@ -1015,10 +1015,10 @@ export default function OutputPreview() {
                     <span className="modal-pill" title="Star" onClick={() => showToast('Starred')}>
                         {`\u2606${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Wishlist" onClick={() => showToast('Added to Wishlist')}>
+                    <span className="modal-pill" title="Wishlist" onClick={() => showToast('Wishlist: ADDED')}>
                         {`\u271B${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to Album" onClick={() => showToast('Add to Album')}>
+                    <span className="modal-pill" title="Add to Album" onClick={() => showToast('Albums: COMING SOON')}>
                         {`\u25F0${VS15}`}
                     </span>
                     <span
@@ -1028,7 +1028,7 @@ export default function OutputPreview() {
                     >
                         {`\u27DF${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to To-Do" onClick={() => showToast('Added to To-Dos')}>
+                    <span className="modal-pill" title="Add to To-Do" onClick={() => showToast('To-Dos: ADDED')}>
                         {`\u274D${VS15}`}
                     </span>
                     <span
@@ -1045,14 +1045,14 @@ export default function OutputPreview() {
                             onClick={() => {
                                 if (calcMode === 'buy' && id != null) {
                                     if (cartHas(slug, id)) {
-                                        showToast(`${title} #${id} already in cart`);
+                                        showToast(`${title} #${id}: ALREADY IN CART`);
                                     } else {
                                         cartAdd(slug, id);
                                         const next = cartItems.length + 1;
                                         showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
                                     }
                                 } else {
-                                    showToast('Action — coming soon');
+                                    showToast('Action: COMING SOON');
                                 }
                             }}
                         >
@@ -1062,9 +1062,9 @@ export default function OutputPreview() {
                             className="modal-action-btn-calc"
                             onClick={() => {
                                 if (calcMode === 'user-showcase') {
-                                    showToast('Add to Your Showcase — coming soon');
+                                    showToast('Add to Showcase: COMING SOON');
                                 } else if (calcMode === 'offer') {
-                                    showToast('Offer Calc — coming soon');
+                                    showToast('Offer Calc: COMING SOON');
                                 } else if (id != null && meta) {
                                     const priceNum = meta.price ? parseFloat(meta.price) : NaN;
                                     openCalcSheet({

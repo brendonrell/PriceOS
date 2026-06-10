@@ -183,7 +183,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             // ignore
         }
         copyingRef.current = true;
-        setInputValue('✓ COPIED');
+        setInputValue('COPIED!');
         window.setTimeout(() => {
             copyingRef.current = false;
             setInputValue(currentCode);
@@ -212,15 +212,15 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
     };
 
-    /* Build 29 D28 — every mode toggle now emits a `<Label> ON|OFF`
-       toast on flip. Pattern matches sim 9319 / 9320 / 9599 / 12700:
-       compute the next state at click time (notifs reflects the
-       pre-toggle value) and toast it. The body-class follow-through
-       still rides on PdNotifsContext via useBodyClass.  */
+    /* Build 29 D28 — every mode toggle emits a toast on flip; format is
+       the house standard `Descriptor: STATUS` with the status ALLCAPS
+       (Brendon 2026-06-10). Compute the next state at click time (notifs
+       reflects the pre-toggle value) and toast it. The body-class
+       follow-through still rides on PdNotifsContext via useBodyClass. */
     const toggleWithToast = (key: keyof PdNotifs, label: string) => {
         const next = !notifs[key];
         toggle(key);
-        showToast(`${label} ${next ? 'ON' : 'OFF'}`);
+        showToast(`${label}: ${next ? 'ON' : 'OFF'}`);
     };
 
     /* Negative-flag variant — asciiId and sticker are stored inverted:
@@ -231,7 +231,7 @@ export function MyPdSection({ onTripleTap }: Props) {
     const toggleWithToastNeg = (key: keyof PdNotifs, label: string) => {
         const next = !notifs[key];
         toggle(key);
-        showToast(`${label} ${next ? 'OFF' : 'ON'}`);
+        showToast(`${label}: ${next ? 'OFF' : 'ON'}`);
     };
 
     /* Brendon list item 7 — Pure Light / Pure Dark mode parity.
@@ -249,7 +249,22 @@ export function MyPdSection({ onTripleTap }: Props) {
          6. Toast 'Pure Light/Dark ON/OFF'. */
     const togglePure = (mode: 'light' | 'dark') => {
         const stateKey = (mode === 'light' ? 'pure_light' : 'pure_dark') as keyof PdNotifs;
-        const next = !notifs[stateKey];
+        /* Brendon 2026-06-10 — pressing Pure X ALWAYS lands you in X mode.
+           If the flag is somehow on while the colorway has drifted elsewhere
+           (e.g. pure dark left on, colorway later changed to light), a press
+           must RE-ASSERT dark — not silently toggle the flag off. So: the
+           press only reads as "turn OFF" when the flag is on AND we're
+           actually sitting in that mode. */
+        const drifted = !!notifs[stateKey] && colorway !== mode;
+        const next = drifted ? true : !notifs[stateKey];
+        if (drifted) {
+            setColorway(mode);
+            showToast(`${mode === 'light' ? 'Pure Light' : 'Pure Dark'}: ON`);
+            try {
+                window.dispatchEvent(new CustomEvent('pd:pure-mode-changed'));
+            } catch { /* SSR-safe ignore */ }
+            return;
+        }
 
         // CRITICAL ORDERING: applyColorway reads pure_light/pure_dark from
         // localStorage (ColorwayContext lives upstream of PdNotifsContext, so
@@ -261,10 +276,14 @@ export function MyPdSection({ onTripleTap }: Props) {
         // the bg-hex override misses by one click. The PdNotifs effect
         // will later re-write LS with the same value once the React state
         // commit catches up — safe no-op.
+        /* Pure modes are mutually exclusive — turning one ON turns the
+           other OFF (you can't be pure light AND pure dark). */
+        const otherKey = (mode === 'light' ? 'pure_dark' : 'pure_light') as keyof PdNotifs;
         try {
             const raw = localStorage.getItem('pd_settings_notifs');
             const parsed: Record<string, unknown> = raw ? JSON.parse(raw) : {};
             parsed[stateKey] = next;
+            if (next) parsed[otherKey] = false;
             localStorage.setItem('pd_settings_notifs', JSON.stringify(parsed));
         } catch {
             /* private mode / quota — applyColorway will read whatever LS has,
@@ -272,6 +291,7 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
 
         toggle(stateKey);
+        if (next && notifs[otherKey]) toggle(otherKey);
 
         if (next) {
             // Sim 9314 — setAndSaveColorway(mode). setColorway via context
@@ -300,7 +320,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             /* SSR-safe ignore */
         }
 
-        showToast(`${mode === 'light' ? 'Pure Light' : 'Pure Dark'} ${next ? 'ON' : 'OFF'}`);
+        showToast(`${mode === 'light' ? 'Pure Light' : 'Pure Dark'}: ${next ? 'ON' : 'OFF'}`);
     };
 
     return (
@@ -487,7 +507,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                                 // ignore
                             }
                             copyingHexRef.current = true;
-                            setHexField('✓ COPIED');
+                            setHexField('COPIED!');
                             window.setTimeout(() => {
                                 copyingHexRef.current = false;
                                 setHexField(profileHex);
@@ -583,7 +603,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                     />
                     <SettingsToggle
                         id="sn-sticker"
-                        title="Sticker Mode"
+                        title="Sticker Mode (stickers coming soon)"
                         active={notifs.sticker}
                         onClick={() => toggleWithToastNeg('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}

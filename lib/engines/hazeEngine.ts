@@ -183,7 +183,10 @@ function enableChromatic(baseHex: string, applyHex: ApplyHex): void {
     const [r, g, b] = hexToRgb(baseHex);
     const [, s, l] = rgbToHsl(r, g, b);
     const start = performance.now();
-    const PERIOD = 20000;
+    /* Brendon 2026-06-10: chromatic is AMBIENT — a slow drift around the
+       hue wheel, not a rave. 20s/rev (the sim's original spec) read as
+       way too fast in practice; one full rotation per minute. */
+    const PERIOD = 60000;
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;

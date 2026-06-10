@@ -27,6 +27,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 
 export type ModalName =
     | 'output'
@@ -98,9 +99,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         if (!openModal) return;
         const y = window.scrollY;
         document.body.style.top = `-${y}px`;
-        document.body.classList.add('modal-open');
+        lockBodyScroll();
         return () => {
-            document.body.classList.remove('modal-open');
+            unlockBodyScroll();
             document.body.style.top = '';
             window.scrollTo(0, y);
         };

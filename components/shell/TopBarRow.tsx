@@ -179,7 +179,7 @@ export function TopBarRow() {
         document.body.classList.toggle('muted-filter-active', next);
         setFiltering(next);
         // Sim 12740 — normalized ON/OFF toast format.
-        showToast('Muted Only ' + (next ? 'ON' : 'OFF'));
+        showToast('Muted Only: ' + (next ? 'ON' : 'OFF'));
     };
 
     // Autofocus the ENS input on incognito activation (sim 12519-12522).

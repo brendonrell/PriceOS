@@ -78,7 +78,7 @@ export function WorkspaceSwitcher() {
     const handleAddClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (workspaces.length >= MAX_WORKSPACES) {
-            showToast('Workspace cap reached');
+            showToast('Workspaces: CAP REACHED');
             return;
         }
         // Brendon item 13 (chat A) — replace native window.prompt with the
@@ -130,7 +130,7 @@ export function WorkspaceSwitcher() {
                         active={w.id === activeId}
                         onTap={() => {
                             loadWorkspace(w.id);
-                            showToast(w.name.toUpperCase());
+                            showToast(`Workspace: ${w.name.toUpperCase()}`);
                         }}
                         onLongPress={(rect) => {
                             justOpenedRef.current = true;
@@ -177,7 +177,7 @@ export function WorkspaceSwitcher() {
                         onClick={(e) => {
                             e.stopPropagation();
                             saveCurrentToWorkspace(ws.id);
-                            showToast('SAVED TO ' + ws.name.toUpperCase());
+                            showToast('Saved To: ' + ws.name.toUpperCase());
                             closePopover();
                         }}
                     >

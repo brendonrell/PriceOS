@@ -47,6 +47,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
+import { priceDayNumber, priceDayContents } from '../../lib/priceday/priceday';
 
 /**
  * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
@@ -408,6 +409,20 @@ function ProfilePageBodyInner({
         setPriceDayOpen(true);
     };
 
+    /* The profile date popover is the NORMAL PriceDay almanac (Brendon
+       2026-06-10 — the bespoke "origin" card was never asked for). It shows
+       the PriceDay of the user's join date, with their joining as the first
+       event, then the standard almanac sections for that day. */
+    const joinDate = useMemo(() => {
+        const d = new Date(user.created_at);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }, [user.created_at]);
+    const joinPriceDay = joinDate ? priceDayNumber(joinDate) : null;
+    const joinDayContents = useMemo(
+        () => (joinDate ? priceDayContents(joinDate) : null),
+        [joinDate]
+    );
+
     // ── Tab / sub-tab state ───────────────────────────────────────────
     const onShowcase  = activeTab === 'showcase';
     const onCollected = activeTab === 'collected';
@@ -445,26 +460,48 @@ function ProfilePageBodyInner({
                                         openPriceDay();
                                     }
                                 }}
-                                title="Member Since"
+                                title="PriceDay"
                             >{memberSince || '\u2014'}</span>
-                            {priceDayOpen && priceDayPos && (
+                            {priceDayOpen && priceDayPos && joinDayContents && (
                                 <div
                                     className="priceday-popover"
                                     style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}
                                 >
-                                    <div className="dp-title">MEMBER SINCE</div>
+                                    <div className="dp-title">PRICEDAY #{joinPriceDay}</div>
                                     <div className="dp-title-spacer" />
+
                                     <div className="pd-section-header">JOINED</div>
                                     <div className="dp-row">
                                         <span className="dp-label">{memberSince || '\u2014'}</span>
                                         <span className="dp-value">@{displayHandle}</span>
                                     </div>
                                     <div className="pd-section-end" />
-                                    <div className="pd-section-header">FIRST COLLECT</div>
-                                    <div className="dp-row">
-                                        <span className="dp-label">Prisms #14</span>
-                                        <span className="dp-value">0.05 ETH</span>
-                                    </div>
+
+                                    <div className="pd-section-header">MINTED THIS DAY</div>
+                                    {joinDayContents.minted.map((r, i) => (
+                                        <div className="dp-row" key={`m${i}`}>
+                                            <span className="dp-label">{r.label}</span>
+                                            <span className="dp-value">{r.value}</span>
+                                        </div>
+                                    ))}
+                                    <div className="pd-section-end" />
+
+                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
+                                    {joinDayContents.uploaded.map((r, i) => (
+                                        <div className="dp-row" key={`u${i}`}>
+                                            <span className="dp-label">{r.label}</span>
+                                            <span className="dp-value">{r.value}</span>
+                                        </div>
+                                    ))}
+                                    <div className="pd-section-end" />
+
+                                    <div className="pd-section-header">BIGGEST SALE</div>
+                                    {joinDayContents.biggestSale && (
+                                        <div className="dp-row">
+                                            <span className="dp-label">{joinDayContents.biggestSale.label}</span>
+                                            <span className="dp-value">{joinDayContents.biggestSale.value}</span>
+                                        </div>
+                                    )}
                                     <div className="pd-section-end" />
                                 </div>
                             )}
@@ -476,7 +513,14 @@ function ProfilePageBodyInner({
                         <span className="by-text">Via</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href={`/${displayHandle}`}>
+                                {/* Links to the owner's Etherscan page (Brendon
+                                    2026-06-10) — it used to link to this same
+                                    profile, a circle. */}
+                                <a
+                                    href={`https://etherscan.io/address/${user.address}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     {user.ens_name ? (
                                         viaLabel
                                     ) : (
@@ -551,11 +595,11 @@ function ProfilePageBodyInner({
                             className="stat-item stat-item-owners"
                             role="button"
                             tabIndex={0}
-                            onClick={() => showToast('Followers — coming soon')}
+                            onClick={() => showToast('Followers: COMING SOON')}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    showToast('Followers — coming soon');
+                                    showToast('Followers: COMING SOON');
                                 }
                             }}
                         >
@@ -570,7 +614,7 @@ function ProfilePageBodyInner({
                         <button
                             className="btn-soundtrack"
                             title="Profile action — coming soon"
-                            onClick={() => showToast('Coming soon')}
+                            onClick={() => showToast('Share: COMING SOON')}
                         >
                             <span>SHARE</span>
                         </button>

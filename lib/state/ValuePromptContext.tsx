@@ -40,6 +40,7 @@ import {
 } from 'react';
 import ValuePromptModal from '../../components/ValuePromptModal';
 import { useToast } from './ToastContext';
+import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 
 export interface ValuePromptField {
     label: string;
@@ -116,14 +117,9 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
        Name-prompt close the connect menu when the user taps inside the
        value-prompt sheet. Same pattern as NotePromptContext / ModalContext. */
     useEffect(() => {
-        if (config) {
-            document.body.classList.add('modal-open');
-        } else {
-            document.body.classList.remove('modal-open');
-        }
-        return () => {
-            document.body.classList.remove('modal-open');
-        };
+        if (!config) return;
+        lockBodyScroll();
+        return () => unlockBodyScroll();
     }, [config]);
 
     /* ── D17 anchor helper ──
@@ -209,13 +205,13 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
                         const next = { ...anchors };
                         delete next[key];
                         finalize(next);
-                        showToast('Anchor cleared');
+                        showToast('Anchor: CLEARED');
                         return;
                     }
 
                     const v = parseFloat(trimmed);
                     if (!(v > 0) || !isFinite(v)) {
-                        showToast('Invalid anchor price');
+                        showToast('Anchor: INVALID PRICE');
                         return;
                     }
 
@@ -224,7 +220,7 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
                         const next = { ...anchors };
                         delete next[key];
                         finalize(next);
-                        showToast('Anchor cleared');
+                        showToast('Anchor: CLEARED');
                         return;
                     }
 

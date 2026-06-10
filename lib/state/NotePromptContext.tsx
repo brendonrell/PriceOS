@@ -27,22 +27,11 @@
  * Output label mirrors sim line 5743 — "NOTE FOR: <underlined-clickable>
  * ${PROJECT_TITLE} #${id}</underlined-clickable>".
  *
- * Toast strings — sim's exact wording for each kind:
- *   - 'Day Note SAVED' / 'Day Note REMOVED'                   (sim 5910)
- *   - 'Artist note saved — ${name}' / 'Artist note cleared — ${name}'
- *                                                              (sim 10628;
- *                                                              em-dash, NOT
- *                                                              colon, and
- *                                                              "Artist note"
- *                                                              prefix not
- *                                                              "Note")
- *   - 'Note SAVED' / 'Note REMOVED'                            (sim 5812 —
- *                                                              output kind
- *                                                              ships with NO
- *                                                              prefix; the
- *                                                              caps SAVED /
- *                                                              REMOVED match
- *                                                              the day kind)
+ * Toast strings — house format `Descriptor: STATUS` (Brendon 2026-06-10;
+ * supersedes sim parity for toast wording site-wide):
+ *   - 'Day Note: SAVED' / 'Day Note: REMOVED'
+ *   - 'Artist Note: SAVED — ${name}' / 'Artist Note: CLEARED — ${name}'
+ *   - 'Note: SAVED' / 'Note: REMOVED'                          (output kind)
  *
  * Kind threading: `prompt.kind` is forwarded to <NotePromptModal> so the
  * box element can apply `.artist-note-mode` for the slightly-shorter
@@ -84,6 +73,7 @@ import { CAL_MONTH_SHORT } from '../calendar/data';
 import { useToast } from './ToastContext';
 import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 
 /* Hardcoded to match ProjectContext.tsx:68. Replace with a useProject()
    read once NotePromptProvider is moved inside ProjectProvider OR multi-
@@ -196,14 +186,9 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
        (ModalContext.tsx) but the note prompt manages its own overlay,
        so the gate has to be set here too. */
     useEffect(() => {
-        if (prompt) {
-            document.body.classList.add('modal-open');
-        } else {
-            document.body.classList.remove('modal-open');
-        }
-        return () => {
-            document.body.classList.remove('modal-open');
-        };
+        if (!prompt) return;
+        lockBodyScroll();
+        return () => unlockBodyScroll();
     }, [prompt]);
 
     const handleSave = useCallback(
@@ -211,7 +196,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             if (!prompt) return;
             if (prompt.kind === 'day') {
                 setDayNote(prompt.dayKey, value);
-                showToast(value ? 'Day Note SAVED' : 'Day Note REMOVED');
+                showToast(value ? 'Day Note: SAVED' : 'Day Note: REMOVED');
             } else if (prompt.kind === 'artist') {
                 const trimmed = value.trim();
                 setArtistNotes((prev) => {
@@ -223,8 +208,8 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                 window.dispatchEvent(new Event('pd:artist-notes-changed'));
                 showToast(
                     trimmed
-                        ? `Artist note saved \u2014 ${prompt.name}`
-                        : `Artist note cleared \u2014 ${prompt.name}`
+                        ? `Artist Note: SAVED \u2014 ${prompt.name}`
+                        : `Artist Note: CLEARED \u2014 ${prompt.name}`
                 );
             } else if (prompt.kind === 'output') {
                 /* Sim 5803-5812 — trimmed empty deletes; non-empty saves;
@@ -239,7 +224,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     return next;
                 });
                 window.dispatchEvent(new Event('pd:notes-changed'));
-                showToast(trimmed ? 'Note SAVED' : 'Note REMOVED');
+                showToast(trimmed ? 'Note: SAVED' : 'Note: REMOVED');
             }
             setPrompt(null);
         },

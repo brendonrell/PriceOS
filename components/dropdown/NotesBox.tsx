@@ -71,7 +71,7 @@ export function NotesBox() {
             }
             return next;
         });
-        showToast(`Note ${idStr} Deleted`);
+        showToast(`Note ${idStr}: DELETED`);
     };
 
     const visible = MOCK_NOTES.filter((n) => !deletedIds.has(n.id));

@@ -50,13 +50,13 @@ export default function MarketActions({ slug, tokenId }: { slug: string; tokenId
         });
         const j = await r.json().catch(() => ({}));
         if (!r.ok) {
-          showToast(j?.error ? String(j.error) : 'Action failed');
+          showToast(j?.error ? String(j.error) : 'Action: FAILED');
         } else {
-          if (action === 'list') showToast(`Listed for ${j.listed} ETH`);
-          else if (action === 'cancel') showToast('Listing cancelled');
-          else if (action === 'buy') showToast(`Bought for ${j.bought} ETH`);
+          if (action === 'list') showToast(`Listed: ${j.listed} ETH`);
+          else if (action === 'cancel') showToast('Listing: CANCELLED');
+          else if (action === 'buy') showToast(`Bought: ${j.bought} ETH`);
           else if (action === 'offer') showToast(`Offer placed: ${j.offered} ETH`);
-          else if (action === 'accept') showToast(`Sold for ${j.sold} ETH`);
+          else if (action === 'accept') showToast(`Sold: ${j.sold} ETH`);
           load();
           if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
         }
