@@ -308,7 +308,11 @@ function ProjectPageBodyInner() {
             const saved = window.localStorage.getItem('pd_project_tab');
             if (saved === 'artworks' || saved === 'albums') return saved;
         } catch {}
-        return 'project-showcase';
+        /* Content-aware landing (Brendon 2026-06-10, same rule as profile):
+           an empty Showcase is not a landing page. A minted project's
+           Showcase auto-feeds the first 6 mints (never empty), so the only
+           empty case is a fully unminted project — land that on Artworks. */
+        return project.totalOutputs === 0 ? 'artworks' : 'project-showcase';
     });
     const setActiveTabPersisted = (tab: ProjectTab) => {
         try { window.localStorage.setItem('pd_project_tab', tab); } catch {}

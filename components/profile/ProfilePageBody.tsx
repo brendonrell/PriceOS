@@ -334,7 +334,14 @@ function ProfilePageBodyInner({
     const mutuals: string[] = [];
     const mutualOthers: number = 0;
 
-    const [activeTab, setActiveTab] = useState<ProfileTab>('showcase');
+    /* Default landing tab is content-aware (Brendon 2026-06-10): an empty
+       showcase is not a landing page — land on Collected instead. The
+       Showcase tab itself stays in the row (ghosts show if tapped). Same
+       rule on project pages (Artworks). Initializer only — once mounted,
+       the user's tap wins. */
+    const [activeTab, setActiveTab] = useState<ProfileTab>(() =>
+        showcaseSlots.length > 0 ? 'showcase' : 'collected'
+    );
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
 
     /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
