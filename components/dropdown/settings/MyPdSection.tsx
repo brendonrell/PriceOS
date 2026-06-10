@@ -572,8 +572,16 @@ export function MyPdSection({ onTripleTap }: Props) {
                         onClick={() => toggleWithToast('priceLogo', 'Price Logo')}
                         icon={'‰\uFE0E'}
                         iconStyle={{
+                            /* Inter is REQUIRED here -- it's the exact per-mille
+                               of the Price logo (Brendon; the only Inter use on
+                               the site). 12px bold smudged on Windows: the
+                               webfont is unhinted and the glyph's three tiny
+                               bowls blur below ~13px (sim looked crisp only
+                               because it fell back to a system font there).
+                               13px is the smallest size that renders clean
+                               without changing the button's footprint. */
                             fontFamily: "var(--font-inter), sans-serif",
-                            fontSize: '12px',
+                            fontSize: '13px',
                             fontWeight: 'bold',
                             lineHeight: '1',
                             letterSpacing: 0,

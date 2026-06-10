@@ -434,6 +434,19 @@ body.sentiment-on .sentiment-widget {
     white-space: nowrap; letter-spacing: -0.5px;
     transition: opacity 0.3s;
 }
+
+/* Windows sprite-eyebrow fix (Brendon 2026-06-10). Courier New's combining
+   marks (the sprite eyebrows, U+0300/U+0301 etc.) don't anchor over the eye
+   glyphs on Windows — they render offset or as detached marks. Consolas is
+   on every Windows box and positions combining marks correctly, so sprite
+   surfaces only (navbar sprite, PriceSprite modal hero, Familiar) swap to
+   it under body.is-win. iOS/macOS keep the original stack — they already
+   render the brows perfectly and must not change. */
+body.is-win .ascii-sprite,
+body.is-win .ps-hero-sprite,
+body.is-win .familiar-sprite {
+    font-family: Consolas, 'Courier New', Courier, monospace !important;
+}
 /* Brendon-list-2 chat F item 14 — desktop-only `position: relative;
    top: 2px;` block removed. Was added (Build pre-F) under the theory
    that Courier renders Thai (ง) higher on desktop so the whole sprite
@@ -1990,8 +2003,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 .artist-note-icon {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 20px;
-    font-weight: 900;
+    /* Brendon 2026-06-10: read WAY too big in the rows. The 20px/900
+       sizing was tuned for the old ⫏ glyph; the unified ⊟ glyph is a
+       solid box and takes the output-card note size (.hi-icon.hi-note,
+       14px, normal weight) so it sits right beside the row text. */
+    font-size: 14px;
+    font-weight: normal;
     line-height: 1;
     opacity: 0.28;
     cursor: pointer;
@@ -2008,16 +2025,17 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     top: 50%;
     left: 50%;
     transform: translate(-50%, calc(-50% - 1px));
-    width: 13px;
-    height: 13px;
+    /* Fill square scaled with the 20px → 14px glyph change. */
+    width: 9px;
+    height: 9px;
     background: #ffffff;
     border-radius: 0;
     z-index: -1;
 }
 @media (max-width: 600px) {
     .artist-note-icon.active::before {
-        width: 11px;
-        height: 11px;
+        width: 8px;
+        height: 8px;
         transform: translate(calc(-50% - 1px), calc(-50% - 2px));
     }
 }

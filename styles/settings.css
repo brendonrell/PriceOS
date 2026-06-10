@@ -547,10 +547,13 @@
     align-items: center;
     justify-content: center;
 }
-@media (max-width: 600px) {
-    .pill-colorway.t-light span,
-    .pill-colorway.t-dark span { font-size: 22px; }
-}
+/* The empty/filled square glyphs (◻ light / ◼ dark) draw visually smaller
+   than the half-shaded ◩ and hatched ▨ at the same font-size, so they get
+   a compensating bump. This was mobile-only, which left the desktop row
+   misaligned (Brendon 2026-06-10, Windows screenshot) — now everywhere.
+   Pill is 32×28 so a 22px glyph still sits inside the flex-centered box. */
+.pill-colorway.t-light span,
+.pill-colorway.t-dark span { font-size: 22px; }
 
 
 /* Spell Book — wraps the pills with consistent gap + padding */
