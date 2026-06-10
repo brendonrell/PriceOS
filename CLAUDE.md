@@ -335,6 +335,25 @@ explicit chat confirmation.
 > Better still: decide it yourself whenever you reasonably can and state the call.
 > Asking is the rare exception; a poll is never the form it takes.
 
+> **REPORT IMPACT-FIRST. OWN AUTHORSHIP. "COST" MEANS MONEY. Hard rule
+> (Brendon, 2026-06-10).** Born from the "10× costs" mess: a Claude-written
+> spec carried a wrong gas estimate; the next Claude session caught and fixed
+> it before anything shipped — then reported it as "the spec was ~10× off,"
+> third-person framing of OUR OWN error, using the word "costs" for something
+> that never touched a dollar. Three replies of CEO time burned to discover
+> there was nothing to care about. The rules:
+> - **Brendon's impact comes first in every report:** what it costs HIM —
+>   dollars, product, time. If the answer is zero, the FIRST sentence says
+>   "zero impact — FYI." A self-found, already-fixed issue is one line, never
+>   a headline.
+> - **"Cost" means money.** Never use it for gas ceilings, compute limits, or
+>   technical budgets unless real dollars move.
+> - **Own authorship.** Specs, briefs, and estimates from earlier Claude
+>   chats are OURS. Say "my earlier estimate was wrong; caught and fixed it"
+>   — never "the spec was off," as if auditing a stranger.
+> - **Money answers come pre-sorted:** what Brendon pays / what others pay /
+>   what's recouped. His wallet first, one tight list, priced at live data.
+
 - **NEVER blame Brendon's settings / cache / browser / device.** Default
   assumption for any bug: it's our code or our deploy, and it's ours to fix.
   Reproduce against the dev preview and find the real cause. "It's your
