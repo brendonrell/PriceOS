@@ -6,9 +6,10 @@
 
 ---
 
-- **Branch:** work is on `dev`. Start fresh from `dev`. This chat's task branch
-  `claude/trusting-knuth-uiin6t` is trash once work is on dev — Brendon to
-  delete it on GitHub.
+- **Branch:** work is on `dev`. Start fresh from `dev`. TWO task branches are
+  trash once their work is on dev — Brendon to delete on GitHub:
+  `claude/trusting-knuth-uiin6t` (mega-pass) and `claude/vibrant-curie-61o123`
+  (perf batch).
 - **Updated:** 2026-06-10 (front-end mega-pass session)
 
 ## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-approved)
@@ -114,6 +115,36 @@ The big front-end fix list, ~30 items:
   Visual fixes Brendon must eyeball go up labeled as needing his look.
 - CLAUDE.md gained: NEVER ask permission to ask (raise the question itself
   with a recommendation attached).
+
+## ✅ ALSO SHIPPED TODAY (separate session, earlier on `dev`) — perf batch
+Engineering audit → invisible speed pass, one commit (`52f02ef`), zero
+intended visual change (Brendon approved "implement it all"):
+- **Wallet stack deferred.** wagmi + RainbowKit + connector SDKs out of the
+  first load — `components/wallet/WalletStack.tsx` (dynamic import; mounts
+  on first idle, or instantly on a connect tap) behind the
+  `lib/wallet/walletBus.ts` seam; eager `WalletProviders` runs the auth
+  state machine on server-read SIWE. Root cause fixed too: layout.tsx now
+  imports `cookieToInitialState` from `@wagmi/core` (the `wagmi` barrel was
+  registering every hook as a client entry). `serverSignOut` split into
+  `lib/wallet/siweSession.ts` so siwe+ethers defer as well. **Layout
+  first-load JS: 1958KB → 589KB raw (174KB gz).** Connected-but-unsigned
+  visitors see the verify prompt ~1s later (stack mounts post-paint).
+- **Known fallout, already fixed:** the deferred stack's empty `[data-rk]`
+  div caused the footer dead-space bug — caught and neutralized by the
+  mega-pass session (item 2 above).
+- Engines pause in hidden tabs (familiar tickers, sentiment, rpc-ping);
+  haze loops skip duplicate color writes.
+- Profile holdings + both follow counts ship with the server HTML
+  (`lib/profile/getUserHoldings.ts`, shared with the API route); mount
+  fetches dropped, event refetches kept, client-nav identity reset added.
+- 8s abort guards on Alchemy routes; browser Cache-Control on
+  gas/price/stats (feed skipped — own-action staleness risk).
+- `ethers` + `next-pwa` removed from deps; AuthContext value memoized.
+- **STILL PENDING: real-wallet smoke test (connect → sign → SIWE) on the
+  dev preview post-split** — the mega-pass session worked on top of the
+  split but the wallet flow itself hasn't been exercised end-to-end.
+- Home page: still the `HomePageBody` placeholder — Brendon starting the
+  real one "tomorrow"; expect that as the next front-end session's task.
 
 ## 🗒️ Prior context (still true)
 - Contracts steps 1–3 built + pushed (pd-contracts@main, 220 tests); next:
