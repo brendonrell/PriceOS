@@ -38,6 +38,7 @@ import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import StarredList from './StarredList';
 import WishlistList from './WishlistList';
+import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
@@ -764,12 +765,15 @@ function ProfilePageBodyInner({
                     <span className="my-notes-empty-msg">Stars are private</span>
                 </div>
             )}
+            {/* Zero starred = ghost rows, NO copy (Brendon 2026-06-10:
+                show-don't-tell). Same wrapper classes as the real list so
+                the ghosts sit exactly where rows will. */}
             {onStarredTab && isOwnProfile && starredValid.length === 0 && (
-                <div className="my-notes-empty-state">
-                    <span className="my-notes-empty-msg">
-                        Nothing starred yet — tap the ☆ on any piece to bookmark it
-                    </span>
-                </div>
+                <section className="starred-list" aria-label="Starred (empty)">
+                    <div className="starred-rows">
+                        <GhostRows />
+                    </div>
+                </section>
             )}
 
             {/* Wishlist empty / private states. Wishlist is private — only the
@@ -779,12 +783,13 @@ function ProfilePageBodyInner({
                     <span className="my-notes-empty-msg">Wishlists are private</span>
                 </div>
             )}
+            {/* Zero wishlist = ghost rows, NO copy (same treatment). */}
             {onWishlistTab && isOwnProfile && wishlistValid.length === 0 && (
-                <div className="my-notes-empty-state">
-                    <span className="my-notes-empty-msg">
-                        Nothing on your wishlist yet — tap the ✛ on a piece you want to buy
-                    </span>
-                </div>
+                <section className="starred-list" aria-label="Wishlist (empty)">
+                    <div className="starred-rows">
+                        <GhostRows />
+                    </div>
+                </section>
             )}
 
             {/* Gallery — Showcase or Collected depending on active tab. Each
