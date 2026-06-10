@@ -183,31 +183,31 @@ export function WorkspaceSwitcher() {
                     >
                         SAVE HERE
                     </div>
-                    {ws.isDefault ? (
+                    {/* Defaults keep RESTORE DEFAULT and are ALSO deletable
+                        (Brendon 2026-06-10: defaults are suggestions, not
+                        fixtures — a user may run with zero workspaces). */}
+                    {ws.isDefault && (
                         <div
                             className="ws-popover-item"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 restoreDefaultWorkspace(ws.id);
-                                showToast('RESTORED');
                                 closePopover();
                             }}
                         >
                             RESTORE DEFAULT
                         </div>
-                    ) : (
-                        <div
-                            className="ws-popover-item danger"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                deleteWorkspace(ws.id);
-                                showToast('DELETED');
-                                closePopover();
-                            }}
-                        >
-                            DELETE
-                        </div>
                     )}
+                    <div
+                        className="ws-popover-item danger"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            deleteWorkspace(ws.id);
+                            closePopover();
+                        }}
+                    >
+                        DELETE
+                    </div>
                 </div>
             ) : null}
         </>

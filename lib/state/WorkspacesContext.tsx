@@ -96,7 +96,9 @@ const STORAGE_KEY_ACTIVE = 'pd_active_workspace';
 
 interface WorkspacesContextValue {
     workspaces: Workspace[];
-    activeId: number;
+    /** Null when the user has deleted every workspace (all of them are
+        deletable, defaults included — they're suggestions). */
+    activeId: number | null;
     /** Live-encoded current state — what the Setup Code field shows. */
     currentCode: string;
     loadWorkspace: (id: number) => void;
@@ -122,7 +124,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const { showToast } = useToast();
 
     const [workspaces, setWorkspaces] = useState<Workspace[]>(() => freshDefaults());
-    const [activeId, setActiveId] = useState<number>(1);
+    const [activeId, setActiveId] = useState<number | null>(1);
 
     // Hydrate once on mount. Sim 10147-10168.
     useEffect(() => {
@@ -131,11 +133,12 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             const saved = localStorage.getItem(STORAGE_KEY_LIST);
             if (saved) {
                 const parsed = JSON.parse(saved) as unknown;
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    next = parsed as Workspace[];
-                } else {
-                    next = freshDefaults();
-                }
+                // An EMPTY saved array is a legitimate state — the user
+                // deleted every workspace (defaults included). Only a
+                // missing/corrupt key reseeds the default suggestions.
+                next = Array.isArray(parsed)
+                    ? (parsed as Workspace[])
+                    : freshDefaults();
             } else {
                 next = freshDefaults();
             }
@@ -159,10 +162,17 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        let activeFromStorage = 1;
+        let activeFromStorage: number | null = next.length > 0 ? next[0].id : null;
         try {
             const a = localStorage.getItem(STORAGE_KEY_ACTIVE);
-            if (a) activeFromStorage = parseInt(a, 10) || 1;
+            if (a) {
+                const n = parseInt(a, 10);
+                // Honor a saved id only if that workspace still exists;
+                // an empty list always hydrates to null.
+                if (Number.isFinite(n) && next.some((w) => w.id === n)) {
+                    activeFromStorage = n;
+                }
+            }
         } catch {
             /* ignore */
         }
@@ -186,7 +196,11 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         if (!hydratedRef.current) { hydratedRef.current = true; return; }
         try {
             localStorage.setItem(STORAGE_KEY_LIST, JSON.stringify(workspaces));
-            localStorage.setItem(STORAGE_KEY_ACTIVE, String(activeId));
+            if (activeId === null) {
+                localStorage.removeItem(STORAGE_KEY_ACTIVE);
+            } else {
+                localStorage.setItem(STORAGE_KEY_ACTIVE, String(activeId));
+            }
         } catch {
             /* ignore */
         }
@@ -295,21 +309,31 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
 
     const deleteWorkspace = useCallback(
         (id: number) => {
+            /* Defaults are deletable too (Brendon 2026-06-10): the shipped
+               workspaces are SUGGESTIONS, not fixtures — a user may end up
+               with none at all. The current settings simply stay applied
+               when the last workspace goes; the + button starts fresh. */
             const ws = workspaces.find((w) => w.id === id);
-            if (!ws || ws.isDefault) return;
+            if (!ws) return;
             const next = workspaces.filter((w) => w.id !== id);
             setWorkspaces(next);
             // If this was the active workspace, fall back to the first
-            // remaining and load its state (sim 10262-10269).
-            if (activeId === id && next.length > 0) {
-                const fallback = next[0];
-                const parsed = decodeSetupCode(fallback.code);
-                if (parsed.ok && parsed.state) {
-                    setActiveId(fallback.id);
-                    applyDecodedState(parsed.state);
+            // remaining and load its state (sim 10262-10269). With no
+            // remaining workspaces, clear the active id — live settings
+            // stay exactly as they are.
+            if (activeId === id) {
+                if (next.length > 0) {
+                    const fallback = next[0];
+                    const parsed = decodeSetupCode(fallback.code);
+                    if (parsed.ok && parsed.state) {
+                        setActiveId(fallback.id);
+                        applyDecodedState(parsed.state);
+                    }
+                } else {
+                    setActiveId(null);
                 }
             }
-            showToast('DELETED');
+            showToast('Workspace: DELETED');
         },
         [workspaces, activeId, applyDecodedState, showToast]
     );
