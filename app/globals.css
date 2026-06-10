@@ -6886,19 +6886,16 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .starred-row-unstar:hover {
     opacity: 0.65;
 }
-/* Empty-state ghost rows (GhostRows.tsx) — same footprint as a real
-   .starred-row (64px thumb + meta bars) in the showcase-ghost visual
-   language. No copy: the shape says "this fills up" (Brendon 2026-06-10,
-   show-don't-tell). */
-.ghost-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 6px;
-    pointer-events: none;
-}
+/* Ghost rows (GhostRows.tsx) — 1:1 stand-ins for the REAL populated rows
+   (Brendon 2026-06-10: not generic skeletons). They ride .starred-row, so
+   layout/divider/spacing come from the live row CSS; these rules only add
+   the ghost fills and the variant-specific right-side shapes (fate + star
+   for Starred, price + cart button for Wishlist). No copy anywhere. */
+.ghost-row { pointer-events: none; cursor: default; }
+.ghost-row:hover { background: none; }
 .ghost-row-thumb,
-.ghost-row-bar {
+.ghost-row-bar,
+.ghost-row-cart {
     background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.10) 0%,
         rgba(255, 255, 255, 0.24) 45%,
@@ -6907,29 +6904,37 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     opacity: 0.6;
 }
 body.colorway-dark .ghost-row-thumb,
-body.colorway-dark .ghost-row-bar {
+body.colorway-dark .ghost-row-bar,
+body.colorway-dark .ghost-row-cart {
     background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.05) 0%,
         rgba(255, 255, 255, 0.13) 45%,
         rgba(255, 255, 255, 0.04) 100%);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
+/* Thumb mirrors OutputThumb's 64px / radius-6 canvas footprint. */
 .ghost-row-thumb {
     width: 64px;
     height: 64px;
     border-radius: 6px;
     flex-shrink: 0;
 }
-.ghost-row-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1 1 auto;
-    min-width: 0;
-}
 .ghost-row-bar { border-radius: 3px; height: 12px; }
-.ghost-row-bar-id  { width: 72px; }
-.ghost-row-bar-sub { width: 45%; max-width: 220px; height: 9px; }
+/* "#123" id line (bold 13px) and "Project · @artist" sub line. */
+.ghost-row-bar-id  { width: 56px; }
+.ghost-row-bar-sub { width: 60%; max-width: 240px; height: 9px; margin-top: 2px; }
+/* Right-side fate label (Starred) / price (Wishlist) footprints. */
+.ghost-row-bar-fate  { width: 48px; height: 9px; flex-shrink: 0; }
+.ghost-row-bar-price { width: 64px; height: 11px; flex-shrink: 0; }
+/* The real star glyph, ghost-dim — same slot as .starred-row-unstar. */
+.ghost-row-icon { opacity: 0.3; }
+/* Add-to-Cart button shape — mirrors .wishlist-row-cart's footprint. */
+.ghost-row-cart {
+    width: 92px;
+    height: 26px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
 
 /* Wishlist row extras (price + quick cart), reusing the shared row layout. */
 .wishlist-row-price {

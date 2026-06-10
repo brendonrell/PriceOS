@@ -758,36 +758,25 @@ function ProfilePageBodyInner({
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
             </Hero>
 
-            {/* Starred empty / private states. Stars are private bookmarks —
-                only the owner sees them; a visitor gets the privacy note. */}
-            {onStarredTab && !isOwnProfile && (
-                <div className="my-notes-empty-state">
-                    <span className="my-notes-empty-msg">Stars are private</span>
-                </div>
-            )}
-            {/* Zero starred = ghost rows, NO copy (Brendon 2026-06-10:
-                show-don't-tell). Same wrapper classes as the real list so
-                the ghosts sit exactly where rows will. */}
-            {onStarredTab && isOwnProfile && starredValid.length === 0 && (
-                <section className="starred-list" aria-label="Starred (empty)">
+            {/* Starred / Wishlist — ghost rows, NO copy, for BOTH non-row
+                states (Brendon 2026-06-10, show-don't-tell):
+                  - your own profile with zero items → "this fills up"
+                  - someone else's profile (always — the contents are
+                    private) → private rows reading as shapes.
+                The pills themselves render for every visitor; hiding key
+                visual elements per-viewer is banned. Same wrapper classes
+                as the real list so ghosts sit exactly where rows do. */}
+            {onStarredTab && (!isOwnProfile || starredValid.length === 0) && (
+                <section className="starred-list" aria-label="Starred">
                     <div className="starred-rows">
-                        <GhostRows />
+                        <GhostRows variant="starred" />
                     </div>
                 </section>
             )}
-
-            {/* Wishlist empty / private states. Wishlist is private — only the
-                owner sees it. */}
-            {onWishlistTab && !isOwnProfile && (
-                <div className="my-notes-empty-state">
-                    <span className="my-notes-empty-msg">Wishlists are private</span>
-                </div>
-            )}
-            {/* Zero wishlist = ghost rows, NO copy (same treatment). */}
-            {onWishlistTab && isOwnProfile && wishlistValid.length === 0 && (
-                <section className="starred-list" aria-label="Wishlist (empty)">
+            {onWishlistTab && (!isOwnProfile || wishlistValid.length === 0) && (
+                <section className="starred-list" aria-label="Wishlist">
                     <div className="starred-rows">
-                        <GhostRows />
+                        <GhostRows variant="wishlist" />
                     </div>
                 </section>
             )}

@@ -123,7 +123,7 @@ export default function WishlistList({ items }: { items: WishlistItem[] }) {
                 ))}
                 {/* Empty = ghost rows, no copy (Brendon 2026-06-10: show,
                     don't tell — the row shapes imply "this fills up"). */}
-                {visible.length === 0 && <GhostRows />}
+                {visible.length === 0 && <GhostRows variant="wishlist" />}
             </div>
         </section>
     );
