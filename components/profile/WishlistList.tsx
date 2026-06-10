@@ -24,6 +24,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleWishlist } from '../../lib/pins/wishlistStore';
 import OutputThumb from './OutputThumb';
+import GhostRows from './GhostRows';
 
 export interface WishlistItem {
     slug: string;
@@ -120,11 +121,9 @@ export default function WishlistList({ items }: { items: WishlistItem[] }) {
                         ))}
                     </ProjectProvider>
                 ))}
-                {visible.length === 0 && (
-                    <div className="my-notes-empty-state">
-                        <span className="my-notes-empty-msg">No wishlist pieces match that filter</span>
-                    </div>
-                )}
+                {/* Empty = ghost rows, no copy (Brendon 2026-06-10: show,
+                    don't tell — the row shapes imply "this fills up"). */}
+                {visible.length === 0 && <GhostRows />}
             </div>
         </section>
     );

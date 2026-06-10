@@ -102,6 +102,9 @@
     -webkit-overflow-scrolling: touch;
 }
 .ens-scroll-viewport::-webkit-scrollbar { display: none; }
+/* Drag-to-pan (useDragScroll) — grabbing cursor while a mouse drag is live. */
+.ens-scroll-viewport[data-dragging] { cursor: grabbing; }
+.ens-scroll-viewport[data-dragging] * { cursor: grabbing; }
 .ens-scroll-stack {
     display: inline-flex;
     flex-direction: column;

@@ -24,6 +24,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleStar } from '../../lib/pins/starStore';
 import OutputThumb from './OutputThumb';
+import GhostRows from './GhostRows';
 
 export interface StarredItem {
     slug: string;
@@ -151,11 +152,9 @@ export default function StarredList({ items }: { items: StarredItem[] }) {
                         </span>
                     </div>
                 ))}
-                {visible.length === 0 && (
-                    <div className="my-notes-empty-state">
-                        <span className="my-notes-empty-msg">No starred pieces match that filter</span>
-                    </div>
-                )}
+                {/* Empty = ghost rows, no copy (Brendon 2026-06-10: show,
+                    don't tell — the row shapes imply "this fills up"). */}
+                {visible.length === 0 && <GhostRows />}
             </div>
         </section>
     );

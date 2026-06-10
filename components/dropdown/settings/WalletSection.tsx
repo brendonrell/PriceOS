@@ -83,6 +83,7 @@ import { usePriceBalance } from '../../../lib/hooks/usePriceBalance';
 import { getEnsNames, subscribeEnsNames } from '../../../lib/engines/ensEngine';
 import { fetchMe } from '../../../lib/wallet/accountClient';
 import { pushState } from '../../../lib/state/userState';
+import { useDragScroll } from '../../../lib/hooks/useDragScroll';
 
 /* Placeholder values shown while !isAuthed so the S2 logged-out preview
    keeps its full shape (opacity 0.4 + pointer-events: none — the gating
@@ -161,6 +162,7 @@ export function WalletSection() {
         return () => { active = false; };
     }, [isAuthed]);
     const [ensExpanded, setEnsExpanded] = useState(false);
+    const ensDragRef = useDragScroll<HTMLDivElement>();
     const [balanceHidden, setBalanceHidden] = useState(false);
     const [walletCopied, setWalletCopied] = useState(false);
     const walletCopyTimer = useRef<number | null>(null);
@@ -364,7 +366,10 @@ export function WalletSection() {
             >
                 {ensExpanded ? (
                     <>
-                        <div className="ens-scroll-viewport">
+                        {/* Desktop mouse users pan this row by click-dragging
+                            (useDragScroll) — wheel-only mice have no native
+                            horizontal scroll gesture. Touch is untouched. */}
+                        <div className="ens-scroll-viewport" ref={ensDragRef}>
                             <div className="ens-scroll-stack">
                                 <div className="ens-scroll-row">
                                     {pillsRow1.map(renderPill)}
