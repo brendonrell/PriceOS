@@ -463,6 +463,20 @@ body.sentiment-on .sentiment-widget {
     width: 1ch;
 }
 
+/* Windows-only brow overlay (SpriteEyeSlot / lib/sprites/winBrow.ts).
+   This node only EXISTS in the DOM on Windows user agents — Apple
+   devices never render it, and the eye glyph + font are untouched
+   everywhere. The spacing-twin mark is centered over the eye where
+   Windows Courier New fails to anchor the combining form. */
+.sprite-brow-win {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -55%);
+    line-height: 1;
+    pointer-events: none;
+}
+
 .ascii-pfp-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
     font-size: 22px; font-weight: normal; line-height: 1;

@@ -40,6 +40,7 @@ import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
+import SpriteEyeSlot from './SpriteEyeSlot';
 import {
     getSpriteFrame,
     subscribeSprite,
@@ -134,9 +135,9 @@ export default function PriceSpriteModal() {
                             <>
                                 <span className="ascii-sprite-slot ascii-sprite-slot-bracketL">{frame.parts.bracketL}</span>
                                 <span className="ascii-sprite-slot ascii-sprite-slot-armL">{frame.parts.armL}</span>
-                                <span className="ascii-sprite-slot ascii-sprite-slot-eyeL">{frame.parts.eyeL}</span>
+                                <SpriteEyeSlot className="ascii-sprite-slot ascii-sprite-slot-eyeL" text={frame.parts.eyeL} />
                                 <span className="ascii-sprite-slot ascii-sprite-slot-mouth">{frame.parts.mouth}</span>
-                                <span className="ascii-sprite-slot ascii-sprite-slot-eyeR">{frame.parts.eyeR}</span>
+                                <SpriteEyeSlot className="ascii-sprite-slot ascii-sprite-slot-eyeR" text={frame.parts.eyeR} />
                                 <span className="ascii-sprite-slot ascii-sprite-slot-bracketR">{frame.parts.bracketR}</span>
                                 <span className="ascii-sprite-slot ascii-sprite-slot-armR">{frame.parts.armR}</span>
                                 {frame.parts.trail && (
