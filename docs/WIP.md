@@ -9,7 +9,7 @@
 - **Branch:** work is on `dev`. Start fresh from `dev`. This chat's task branch
   `claude/collected-artworks-port-toqbah` is trash once work is on dev —
   Brendon to delete it on GitHub.
-- **Updated:** 2026-06-09
+- **Updated:** 2026-06-10
 
 ## ✅ SHIPPED THIS SESSION (all on `dev`)
 The user profile experience, built out tab by tab:
@@ -38,19 +38,34 @@ Shared bits: `OutputThumb` (lazy preview), `.starred-*` row CSS (reused by
 Wishlist). Account-backed stores follow the presetStore pattern (write-through +
 login hydration; stars/wishlist live in the `settings` jsonb, private).
 
-## 🚧 NEXT — contracts workstream (locked 2026-06-09, separate chat)
-Pre-mainnet contract change set is **decided and spec'd** — a fresh dev chat
-builds it in `pd-contracts`. Read these two ClickUp pages first (Smart Contract
-section of the PD Master Brief): **"On-Chain Architecture Decisions —
-2026-06-09"** (what + why, all decisions locked, commit-reveal REJECTED) and
-**"Combined Pre-Mainnet Spec — Registry + On-Chain Thumbnail + URL-Guard"**
-(build blueprint). Summary: per-token on-chain thumbnail replaces Arweave
-entirely; new append-only PDLibraryRegistry (vanilla + p5 + three, gzipped, one
-per Project); URL-guard in createProject; wide fee corridor. Seed/mint flow
-UNCHANGED. Build order: registry → PDProject → PDFactory → linter/bot → audit →
-Sepolia gates → mainnet. **The repo is the authority on what exists; old
-May-14-era ClickUp claims (oracle cascade etc.) are stale — cleanup task
-`86bacbynf`.**
+## ✅ CONTRACTS WORKSTREAM — steps 1–3 BUILT (2026-06-10, on pd-contracts main)
+The Combined Pre-Mainnet Spec's on-chain change set is **implemented, tested
+(220 passing), and pushed to `pd-contracts@main`**: append-only
+PDLibraryRegistry (one-shot factory wiring, live admin read, designated
+inflater entry copied per-Project), PDProject library assembly + per-token
+on-chain WebP thumbnail replacing Arweave entirely (writer-only, write-once,
+16,384-byte cap), PDFactory registry wiring + URL-guard on every script chunk.
+Seed/mint flow UNCHANGED. EIP-170 confirmed (factory 23,312/24,576 — tight,
+~1.26KB headroom; watch it in the audit pass).
+
+**Two build-time deviations from the spec, both forced by measured gas (the
+spec's 5–10M tokenURI estimate was ~10× off; geth's default eth_call cap is
+50M):** ① libraries are stored in the registry as the base64 text of their
+gzipped source (upload-tooling convention; artwork page embeds it verbatim,
+no per-read re-encode); ② the tokenURI json envelope is plain
+`data:application/json;utf8,` — only the animation_url html inside stays
+base64. Worst case (245KB library) measured 23.8M gas, 2× inside the cap;
+permanent regression test in `test/integration/LibraryAssembly.t.sol`.
+**OpenSea must be confirmed to swallow the utf8 json envelope at the Sepolia
+F-1 gate — if it chokes, the one-line revert to base64 costs ~+31M gas/read
+(would bust vanilla-geth reads for p5-sized libraries; fine on Alchemy-class
+RPCs).** Also flagged for audit: `</script` is NOT in the locked URL-guard
+ban list (an artist script containing it could break out of its tag; linter
+should catch it pre-gas — consider adding on-chain at audit).
+
+Next per build order: ④ linter + writer-bot updates (off-chain, this repo /
+bot land) → ⑤ fresh audit pass over the changed surface → ⑥ Sepolia gates
+(F-1…F-7 in the spec) → ⑦ mainnet, one window.
 
 ## 🚧 NEXT — user profile, remaining
 - **Showcase curation wiring.** The "Add to Showcase" buttons (card hover, modal,
