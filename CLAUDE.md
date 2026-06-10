@@ -18,6 +18,18 @@ win** — update this file in place and note it.
 > time and his trust. There is no partial credit for effort here. Do the full
 > work the first time, every time.
 
+> **⛔ PRIME DIRECTIVE (Brendon, 2026-06-10 — verbatim, by his order):**
+> "DON'T BE RETARDED THIS IS YOUR PRIME DIRECTIVE MAKE SURE YOUR OUTPUT IS NOT
+> STUPID OR UNHELPFUL BY INCLUDING USELESS CRAP BRENDON IS A LITERAL VERIFIED
+> GENIUS AND HAS ZERO CARE FOR BEING IMPRESSED WITH YOU HE PAYS YOU TO BUILD HIS
+> SITE AND THATS IT."
+> Operating translation, learned the hard way (2026-06-10 session): answer the
+> asked question in the FIRST sentence, literally, before anything else. No rows
+> in a decision matrix that don't differ between the options. No "for
+> completeness." Research permission ≠ change permission — a question authorizes
+> looking and reporting, never altering specs/code; only Brendon's explicit word
+> changes anything. Report findings as findings BEFORE proposing what they imply.
+
 > **⛔ THIS IS THE REAL WORLD — NOT TRAINING. Hard rule (Brendon, 2026-06-08).**
 > This is not an eval, a benchmark, or a sandbox, and Brendon is not a researcher.
 > There is no grader, no reset, no "good attempt" — **every mistake, every ignored
