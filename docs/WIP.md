@@ -7,99 +7,127 @@
 ---
 
 - **Branch:** work is on `dev`. Start fresh from `dev`. This chat's task branch
-  `claude/collected-artworks-port-toqbah` is trash once work is on dev —
-  Brendon to delete it on GitHub.
-- **Updated:** 2026-06-10
+  `claude/trusting-knuth-uiin6t` is trash once work is on dev — Brendon to
+  delete it on GitHub.
+- **Updated:** 2026-06-10 (front-end mega-pass session)
 
-## ✅ SHIPPED THIS SESSION (all on `dev`)
-The user profile experience, built out tab by tab:
-1. **Collected → Artworks port.** Collected tab is the full project Artworks
-   surface (pop-up search, Grid Presets, multi-select, colorways, sort) driven by
-   the platform facet pills (Artist · Project · PriceDay · Sun · Moon · Rising ·
-   Fate · Status). Project Artworks tab untouched.
-2. **Grid Presets account-backed.** 3 shared across all projects + 3 for Collected;
-   `users.grid_presets` via `/api/me`, shared set restores trait filters only on
-   the same project.
-3. **Showcase tab.** First profile tab `Created → Showcase`, renders the 6-slot
-   `users.showcase` (static = saved order, generative = reshuffle per visit).
-   Empty state = **6 static ghost frames** (no animation; the breathe pulse was
-   removed). Artist created-projects view DEFERRED to the whitelisted build.
-4. **Starred sub-tab.** Private personal bookmark, rendered as a sortable/
-   filterable **row list** (not a grid) with small lazy preview that opens the
-   modal + one-tap unstar. Account-backed (settings envelope, private).
-5. **Wishlist sub-tab.** Private "want to buy" **row list** — live price + quick
-   Add-to-Cart + remove; the card heart (✛) now adds/removes. Account-backed.
-6. **Selection identity made Project-exact site-wide.** Multi-select, Stars,
-   Wishlist, and the **Cart** are all keyed `slug:id` now — the same token number
-   across projects never collides. Cart panel shows each item's correct project
-   title + live price (was reading everything against the global Prisms provider).
+## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-approved)
+The big front-end fix list, ~30 items:
+1. **Navigation hang fixed two ways:** every Supabase request has an 8s hard
+   ceiling (timeout fetch wrapper on both clients — a stalled query used to
+   freeze server page renders forever), and `app/loading.tsx` gives instant
+   breathing-dots feedback on every route change (§9 motion rule).
+2. **Footer mystery SOLVED:** the deferred wallet stack mounts an empty
+   `[data-rk]` div as the last body child; its old `min-height:100dvh` rule
+   added a screen of dead space below the footer 1–2s after every load.
+   Rule neutralized (`flex:none`). Footer is a normal sticky footer now.
+3. **Modal scroll lock** centralised in `lib/state/bodyScrollLock.ts`
+   (refcounted; scrollbar-width compensation — no more sideways page jump;
+   note-over-artwork no longer unlocks early). Used by ModalContext + note +
+   value prompts.
+4. **Toast format sweep** (~60 strings): house format `Descriptor: STATUS`,
+   e.g. `$PRICE Balance: HIDDEN`. Inline copies say `COPIED!` (no ✓).
+5. **PriceRank: ONE name, default 0** (Brendon hard spec). `account_level`
+   concept retired from every surface — context exposes `priceRank` only
+   (navbar badge ⓿, modal readout, rank/XP labels). DB columns both default
+   0; the stray `account_level=1` rows are dead data (column unused; retire
+   in a future migration — Brendon's call, prod).
+6. **Pure Light/Dark**: pressing ALWAYS lands you in that mode (drift
+   re-assert); flags are INDEPENDENT — both may be ON (per-mode modifiers).
+   NOT mutually exclusive (Brendon correction). Sim updated to match.
+7. **Colorway picker** always shows a selection (null = Custom); light/dark
+   square-glyph 22px size compensation now desktop too; chromatic haze
+   slowed to 60s/rev (ambient).
+8. **Profile fixes:** date popover is the normal PriceDay almanac (JOINED
+   first; bespoke "origin" card deleted); wallet/ENS links to Etherscan;
+   CTA decoupled from project mint sizing (`.btn-follow{width:auto}`);
+   ENS subdomain italics removed; ‰ logo button 13px (Windows crispness).
+9. **Ghost rows** (`components/profile/GhostRows.tsx`): 1:1 stand-ins of the
+   REAL rows (ride `.starred-row` chrome; fate+star / price+cart variants),
+   shown ONLY on your own empty Starred/Wishlist. **Privacy rule: those
+   sections (pills + content) DO NOT EXIST on other users' profiles.**
+   All null-state copy deleted (show, don't tell — hard preference).
+10. **Content-aware landing:** empty profile showcase lands on Collected;
+    unminted project lands on Artworks. Saved project-tab pref wins.
+11. **Fog mode:** ghost cards reveal on tap like real cards
+    (`body.fog-mode .ghost-card{pointer-events:auto}`).
+12. **Stargazing:** global-search field/globe/results legible (lavender) —
+    was a sim bug ported faithfully; Brendon's polish order wins parity.
+13. **Workspaces:** EVERYTHING deletable, defaults included (they're
+    suggestions); zero-workspace state is legit and persists (empty saved
+    array honored; activeId nullable). Defaults popover: RESTORE + DELETE.
+14. **ENS row drag-to-pan** on desktop (`lib/hooks/useDragScroll.ts`,
+    reusable for other horizontal rows; mouse-only, click-suppressed).
+15. **ASCII logos: 80 total** — 22 new Brendon-curated figlets added
+    (branded/janky candidates cut: Rammstein, Star Wars, Fender, Whimsy,
+    Rozzo, Bloody). Old "54" count was stale (was 58).
+16. **Artists list real:** @brendon + @opus4-6 only. Artist-note icon 14px
+    (matches output-card ⊟). Mutuals icon: no more `cursor:help` "?".
+17. **Windows sprite eyebrows:** `SpriteEyeSlot` + `lib/sprites/winBrow.ts`
+    — Windows-only overlay of the brow's spacing twin over the eye.
+    ⚠ HARD LESSON LOGGED: an earlier font-swap attempt (Consolas) changed
+    the sprite's look and did NOT fix the brows — Brendon-reverted, trust
+    burn. NEVER change sprite font/glyphs; Apple devices must be
+    structurally unaffected (overlay node only exists on Windows UA).
+    Position verified once by Brendon (lift removed); re-check welcome.
 
-Shared bits: `OutputThumb` (lazy preview), `.starred-*` row CSS (reused by
-Wishlist). Account-backed stores follow the presetStore pattern (write-through +
-login hydration; stars/wishlist live in the `settings` jsonb, private).
+## 🚧 NEXT — Brendon's list, remaining (all greenlit, build + present)
+- **Showcase ghosts:** per-account LOCKED aspect ratios (seed from address,
+  not slot index) + react to static/generative toggle (reshuffle on
+  generative, original order on static). Recon done: ghosts memo has `[]`
+  deps in ProfilePageBody (~line 192); seed from `user.address`.
+- **Spell book:** 17 of 19 spells are toast-only stubs (only Familiar +
+  Stargazing real; Hammer badge partial). Each has a sim spec — grep the
+  spell name in `reference/sim.html`. Build in batches.
+- **Digital Familiar 10/10:** engine is COMPLETE vs sim; the lift is the
+  customization layer (species picker, dialogue frequency, outline toggle,
+  placement) — 4 new pdNotifs fields + FamiliarModal controls (currently a
+  placeholder shell, lines ~92-103).
+- **Global Search:** component renders DUMMY results; `/api/search` exists
+  but is never called. Build: wire + debounce, real grouped results
+  (projects/users), click-to-navigate, keyboard nav, recents, ranking via
+  ilike-prefix-then-substring (own DB, NO Algolia). Schema is ready.
+- **+More pill tabs across the site** (same tab system, per-surface values).
+- **Feeds on every page** (Feed is a default sort).
+- **Prisms art:** restore original gradients (check art lib + history).
+- **Incognito proxy mode:** make real (lib/incognito exists).
+- **Favicon engine:** more per-feature favicons (lib/favicon exists).
+- **PriceSprite placement on user profiles** (without breaking visual lang).
+- **ASCII-ID button icon ideas** (unicode only — suggest options).
+- **Runescape trading interface** — find the backlog task in ClickUp.
+- **Docs/ClickUp ↔ repo alignment audit** (drafted docs unreviewed).
+- **PriceSprite modal achievements** (xbox-like + points; badges TBD).
+- **Per-mille blur:** 13px shipped; if still soft on Brendon's screen the
+  next step is SVG-tracing Inter's ‰ outline (vector-crisp, still "Inter").
+- **Brendon is sorting HIMSELF (do not build):** own-profile CTA purpose,
+  showcase created-vs-top-6 + project-vs-output grid marker, soundtrack
+  button use. Wait for his specs.
 
-## ✅ CONTRACTS WORKSTREAM — steps 1–3 BUILT (2026-06-10, on pd-contracts main)
-The Combined Pre-Mainnet Spec's on-chain change set is **implemented, tested
-(220 passing), and pushed to `pd-contracts@main`**: append-only
-PDLibraryRegistry (one-shot factory wiring, live admin read, designated
-inflater entry copied per-Project), PDProject library assembly + per-token
-on-chain WebP thumbnail replacing Arweave entirely (writer-only, write-once,
-16,384-byte cap), PDFactory registry wiring + URL-guard on every script chunk.
-Seed/mint flow UNCHANGED. EIP-170 confirmed (factory 23,312/24,576 — tight,
-~1.26KB headroom; watch it in the audit pass).
-
-**Two build-time deviations from the spec, both forced by measured gas (the
-spec's 5–10M tokenURI estimate was ~10× off; geth's default eth_call cap is
-50M):** ① libraries are stored in the registry as the base64 text of their
-gzipped source (upload-tooling convention; artwork page embeds it verbatim,
-no per-read re-encode); ② the tokenURI json envelope is plain
-`data:application/json;utf8,` — only the animation_url html inside stays
-base64. Worst case (245KB library) measured 23.8M gas, 2× inside the cap;
-permanent regression test in `test/integration/LibraryAssembly.t.sol`.
-**OpenSea must be confirmed to swallow the utf8 json envelope at the Sepolia
-F-1 gate — if it chokes, the one-line revert to base64 costs ~+31M gas/read
-(would bust vanilla-geth reads for p5-sized libraries; fine on Alchemy-class
-RPCs).** The `</script` breakout gap in the original locked ban list was
-approved by Brendon and added on-chain 2026-06-10 (13 patterns now).
-
-Next per build order: ④ linter + writer-bot updates (off-chain, this repo /
-bot land) → ⑤ fresh audit pass over the changed surface → ⑥ Sepolia gates
-(F-1…F-7 in the spec) → ⑦ mainnet, one window.
-
-## 🚧 NEXT — user profile, remaining
-- **Showcase curation wiring.** The "Add to Showcase" buttons (card hover, modal,
-  multi-select) are still **"coming soon" toasts** — nothing writes a `showcase`
-  slot yet. This is the small build that makes Showcase fillable. (DB column +
-  `/api/me` accept already exist.)
-- **Albums sub-tab (dedicated build).** "Basically iOS Albums, simplified."
-  Public by default (privacy lock). Needs an album model — its own build.
-- **Collected activity feed (deferred by Brendon).** A cross-project "what's
-  happening with what I own" stream. Needs a holdings-spanning activity source
-  (today's feed is mock + single-project).
-
-## 🗒️ Smaller follow-ups
-- Cart/stars/wishlist live in `settings` jsonb (no migration). If any grows huge,
-  a dedicated column is the clean upgrade (Brendon's call — a prod migration).
-- Account-backed stores: server snapshot OVERWRITES device on login (by design);
-  logged-out adds are device-only until you log in.
+## 🗒️ Process notes from this session (READ — earned the hard way)
+- Pure modes are NOT exclusive. PriceRank starts at ZERO. Defaults are
+  suggestions. Private sections don't exist for visitors. Ghosts mimic the
+  REAL feature 1:1, never generic skeletons.
+- Verify the FEATURE renders, not just that the build compiles — two
+  "done" claims failed because the empty-state branch never mounted the
+  component. Find every branch that renders a surface before claiming it.
+- Never ship an unverifiable rendering guess as "done" (Windows font swap).
+  Visual fixes Brendon must eyeball go up labeled as needing his look.
+- CLAUDE.md gained: NEVER ask permission to ask (raise the question itself
+  with a recommendation attached).
 
 ## 🗒️ Prior context (still true)
-- Collect loop wired: simulated mint → Supabase; profile Collected reads real
-  holdings. Home page is still a hardcoded placeholder (`HomePageBody`). Direct
-  profile sub-links (`/{handle}/starred` etc.) are bare "proof" stubs.
-- Indexer = our own event DB fed by Alchemy free tier (no Ponder/Railway);
-  secondary market = white-label OpenSea/Seaport; pass user costs through, keep
-  platform cost ~$0; stay on Vercel for now.
-- Magic Hour project page/showcase was lost with the deleted Petey branch — needs
-  rebuild. Naming settled: project = **Magic Hour**, artist = **@petey**.
-- A **dev-only Login button** (no-wallet desktop login) landed on `dev` in
-  parallel this session (separate workstream).
+- Contracts steps 1–3 built + pushed (pd-contracts@main, 220 tests); next:
+  linter/writer-bot updates → audit pass → Sepolia gates → mainnet.
+- Showcase curation wiring ("Add to Showcase" buttons) still coming-soon
+  toasts. Albums sub-tab needs its own build. Collected activity feed
+  deferred. Magic Hour project page needs rebuild (artist @petey).
+- Indexer = own event DB on Alchemy free tier; white-label Seaport for
+  secondary; stay on Vercel.
 
 ## Process / gates
-- **PUSH = merge to `dev` + push `dev`, instantly** (CLAUDE.md §0). App pushes need
-  Brendon's numbered approval; docs/process pre-approved.
+- **PUSH = merge to `dev` + push `dev`, instantly** (CLAUDE.md §0). App pushes
+  need Brendon's approval; docs/process pre-approved.
 - git-guard blocks main writes (escape: `PD_ALLOW_MAIN=1`).
-- Prod Supabase writes = gate #3, surface first. (Account-backed presets/stars/
-  wishlist writes are LIVE — approved this session.)
+- Prod Supabase writes = gate #3, surface first.
 
 ## main / production — untouched
