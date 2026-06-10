@@ -316,6 +316,17 @@ explicit chat confirmation.
 > require Brendon's explicit approval. "Just do it" covers learning and telling —
 > NEVER shipping product he didn't approve.** The two are clearly different.
 
+> **NEVER ASK FOR PERMISSION TO ASK. Hard rule (Brendon, 2026-06-10 —
+> "it's intensely grating").** When something genuinely needs Brendon's input,
+> ask THE QUESTION ITSELF, directly, with a suggested solution attached —
+> never "should I run my ideas by you?", never "say go or redirect", never
+> announcing that a discussion will be needed later, never queueing an item
+> as "waiting to discuss." Suggesting a solution is ALWAYS greenlit: state
+> the question + the recommendation in one breath and keep building; he'll
+> redirect if he wants different. A meta-question about whether/when to ask
+> burns a full round-trip to deliver zero information and reads as stalling.
+> There is exactly one way to raise something: raise it.
+
 > **NO TECHNICAL JARGON IN THE REPLY. Hard rule (Brendon, 2026-06-08).** The
 > white text you send is the ONLY thing Brendon reads — the tool calls, diffs,
 > file names, build output, and mechanics all live behind the collapsed
