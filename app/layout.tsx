@@ -445,6 +445,43 @@ export default async function RootLayout({
                 <link rel="apple-touch-icon" href="/icon-180px.png" />
                 <link rel="manifest" href="/manifest.json" />
 
+                {/*
+                  apple-touch-startup-image — iOS PWA splash screens. iOS
+                  ignores the manifest for these: each device class needs its
+                  own pixel-exact PNG selected via media query (CSS points ×
+                  pixel ratio). All files are generated from
+                  /splash-master.png (1320×2868) by scale-and-center-crop —
+                  regenerate the whole set from the master if the art changes.
+                */}
+                {/* iPhone 17 Pro Max / 16 Pro Max — 440×956 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-master.png" />
+                {/* iPhone 17 / 17 Pro / 16 Pro — 402×874 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1206x2622.png" />
+                {/* iPhone Air — 420×912 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1260x2736.png" />
+                {/* iPhone 16 / 15 / 15 Pro / 14 Pro — 393×852 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1179x2556.png" />
+                {/* iPhone 16 Plus / 15 Plus / 15 Pro Max / 14 Pro Max — 430×932 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1290x2796.png" />
+                {/* iPhone 14 / 13 / 13 Pro / 12 / 12 Pro — 390×844 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1170x2532.png" />
+                {/* iPhone 14 Plus / 13 Pro Max / 12 Pro Max — 428×926 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1284x2778.png" />
+                {/* iPhone 13 mini / 12 mini / 11 Pro / X / XS — 375×812 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1125x2436.png" />
+                {/* iPhone 11 Pro Max / XS Max — 414×896 @3x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash-1242x2688.png" />
+                {/* iPhone 11 / XR — 414×896 @2x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash-828x1792.png" />
+                {/* iPhone SE / 8 — 375×667 @2x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash-750x1334.png" />
+                {/* iPad Pro 12.9" — 1024×1366 @2x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash-2048x2732.png" />
+                {/* iPad Pro 11" / Air — 834×1194 @2x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash-1668x2388.png" />
+                {/* iPad 10.9" — 820×1180 @2x */}
+                <link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash-1640x2360.png" />
+
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta
                     name="apple-mobile-web-app-status-bar-style"
