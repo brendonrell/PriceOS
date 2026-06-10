@@ -8,8 +8,8 @@ const nextConfig = {
 
 // next-pwa removed 2026-06-10 (perf batch). It was already fully disabled
 // (`disable: true` since the test phase — SW caches were pinning stale
-// bundles), so the wrapper was dead config + a dead dependency. SwKiller
-// (components/shell/SwKiller.tsx) still tears down any service workers
-// installed by older builds. If offline/PWA caching is ever re-scoped,
-// reintroduce deliberately with a fresh runtimeCaching design.
+// bundles), so the wrapper was dead config + a dead dependency. Offline
+// support returned 2026-06-10 as a hand-written network-first worker
+// (public/sw.js, registered by components/shell/SwRegistrar.tsx) — no
+// next-pwa, no config here. SwKiller was removed in the same change.
 export default nextConfig;
