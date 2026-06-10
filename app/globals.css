@@ -472,7 +472,11 @@ body.sentiment-on .sentiment-widget {
     position: absolute;
     left: 50%;
     top: 0;
-    transform: translate(-50%, -55%);
+    /* No vertical lift: the spacing marks (ˋ ˊ …) already draw in the
+       TOP zone of their own em box, which lands them right above the
+       eye glyph. The first cut added -55% on top of that and floated
+       them way high (Brendon screenshot, 2026-06-10). */
+    transform: translateX(-50%);
     line-height: 1;
     pointer-events: none;
 }
