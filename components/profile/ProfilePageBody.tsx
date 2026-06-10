@@ -435,8 +435,16 @@ function ProfilePageBodyInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
-    const onStarredTab = onMore && moreL1 === 'starred';
-    const onWishlistTab = onMore && moreL1 === 'wishlists';
+    /* Starred + Wishlists are PRIVATE — on someone else's profile the
+       sections do not exist at all: no pills, no content, no notes
+       (Brendon 2026-06-10). moreL1 can hold a stale private key after
+       navigating own profile → other profile, so clamp it for visitors. */
+    const effMoreL1: ProfileMoreL1 =
+        !isOwnProfile && (moreL1 === 'starred' || moreL1 === 'wishlists')
+            ? 'albums'
+            : moreL1;
+    const onStarredTab = onMore && isOwnProfile && effMoreL1 === 'starred';
+    const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
     const galleryVisible = onShowcase || onCollected;
 
     return (
@@ -664,12 +672,18 @@ function ProfilePageBodyInner({
                             hideSortBar
                             profilePills={
                                 (isZen
-                                    ? [{ key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') }]
+                                    ? [{ key: 'albums', label: 'Albums', active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
-                                        { key: 'starred',   label: 'Starred',   active: moreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
-                                        { key: 'wishlists', label: 'Wishlists', active: moreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
-                                        { key: 'albums',    label: 'Albums',    active: moreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
-                                        { key: 'info',      label: 'Info',      active: moreL1 === 'info',      onClick: () => setMoreL1('info')      },
+                                        /* Starred + Wishlists are private — the
+                                           pills exist on YOUR OWN profile only. */
+                                        ...(isOwnProfile
+                                            ? [
+                                                { key: 'starred',   label: 'Starred',   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
+                                                { key: 'wishlists', label: 'Wishlists', active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
+                                            ]
+                                            : []),
+                                        { key: 'albums',    label: 'Albums',    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                     ]
                                 )
                             }
@@ -680,7 +694,7 @@ function ProfilePageBodyInner({
                         Discord link. Previously wedged between the main tabs and the
                         sub-pill row; now it lives under the Info sub-tab so the pills
                         sit flush under the main tabs (Collected-tab pattern). */}
-                    {onMore && moreL1 === 'info' && (
+                    {onMore && effMoreL1 === 'info' && (
                         <div className="more-tab-stats">
                             <div className="hero-line stats-row stats-row-2">
                                 <span className="stat-item">
@@ -758,22 +772,20 @@ function ProfilePageBodyInner({
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
             </Hero>
 
-            {/* Starred / Wishlist — ghost rows, NO copy, for BOTH non-row
-                states (Brendon 2026-06-10, show-don't-tell):
-                  - your own profile with zero items → "this fills up"
-                  - someone else's profile (always — the contents are
-                    private) → private rows reading as shapes.
-                The pills themselves render for every visitor; hiding key
-                visual elements per-viewer is banned. Same wrapper classes
-                as the real list so ghosts sit exactly where rows do. */}
-            {onStarredTab && (!isOwnProfile || starredValid.length === 0) && (
+            {/* Starred / Wishlist ghost rows — YOUR OWN profile with zero
+                items only (Brendon 2026-06-10: these sections are private
+                and DO NOT EXIST on other users' profiles — no pills, no
+                content, no notes). 1:1 stand-ins of the real rows, no
+                copy; same wrapper classes so ghosts sit exactly where
+                real rows render. */}
+            {onStarredTab && starredValid.length === 0 && (
                 <section className="starred-list" aria-label="Starred">
                     <div className="starred-rows">
                         <GhostRows variant="starred" />
                     </div>
                 </section>
             )}
-            {onWishlistTab && (!isOwnProfile || wishlistValid.length === 0) && (
+            {onWishlistTab && wishlistValid.length === 0 && (
                 <section className="starred-list" aria-label="Wishlist">
                     <div className="starred-rows">
                         <GhostRows variant="wishlist" />
