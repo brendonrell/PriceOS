@@ -43,7 +43,7 @@ interface ChangelogEntry {
 }
 
 /* F54 (BUG-06) — full PRICEOS_LOGOS pool now lives in
-   lib/logos/priceosLogos.ts (54 figlet renders across common/middle/rare
+   lib/logos/priceosLogos.ts (80 figlet renders across common/middle/rare
    tiers, lifted verbatim from sim 7484-7551). Pre-F54 the modal carried
    a hand-curated 6-logo inline subset; the rotation was tiny enough
    that returning users would loop the same figlet within a few opens.
