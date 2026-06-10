@@ -79,9 +79,13 @@
  * through an auth flip in either direction without ejecting the user.
  */
 
-import { useEffect, useState } from 'react';
-import { useEnsName } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import {
+    getWalletEnsName,
+    getWalletEnsNameServer,
+    openConnectModal,
+    subscribeWalletBus,
+} from '../../lib/wallet/walletBus';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -108,20 +112,19 @@ export function UserMenuButtons() {
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, handle, accountLevel, isAuthenticating } = useAuth();
-    const { openConnectModal } = useConnectModal();
     const { showToast } = useToast();
 
-    /* ENS resolution. wagmi's useEnsName hits mainnet (chainId 1
-       pinned — ENS lives on mainnet regardless of which chain a user
-       is connected to). The hook is enabled only when we have an
-       address; otherwise it short-circuits to undefined and the
-       pillText fallback chain handles it. Cache lives in react-query
-       so re-renders don't re-fetch. */
-    const { data: ensName } = useEnsName({
-        address: siweAddress ? (siweAddress as `0x${string}`) : undefined,
-        chainId: 1,
-        query: { enabled: !!siweAddress },
-    });
+    /* ENS resolution — published on the walletBus by the deferred wallet
+       stack, which runs the same mainnet-pinned useEnsName lookup this
+       component made before the 2026-06-10 split (react-query still owns
+       the cache, inside the stack). Null while the stack loads / the
+       lookup is in flight — the pillText fallback chain (shortAddr)
+       covers that window exactly as it covered the in-flight hook. */
+    const ensName = useSyncExternalStore(
+        subscribeWalletBus,
+        getWalletEnsName,
+        getWalletEnsNameServer,
+    );
 
     /* Mirror priceSpriteEngine state into local component state so
        React re-renders on every blink / turn / yawn / sleep frame.
@@ -174,11 +177,13 @@ export function UserMenuButtons() {
         e.stopPropagation();
         if (isAuthenticating) return;
         if (!isAuthed && menuOpen) {
-            if (!openConnectModal) {
-                showToast('Wallet not ready — refresh and try again');
-                return;
-            }
-            openConnectModal();
+            /* Bus-routed since the wallet-stack split: opens immediately
+               when the stack is resident (the common case — it's idle-
+               prefetched), queues-and-loads on a cold tap, and falls back
+               to the same toast only if the chunk actually failed to load. */
+            openConnectModal(() =>
+                showToast('Wallet not ready — refresh and try again'),
+            );
             return;
         }
         toggleMenu();

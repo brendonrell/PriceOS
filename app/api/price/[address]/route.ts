@@ -57,7 +57,11 @@ function formatUnits(weiHex: string, decimals: number): string {
   return `${whole.toString()}.${fractionStr}`;
 }
 
-async function fetchDecimals(contract: string, url: string): Promise<number> {
+async function fetchDecimals(
+  contract: string,
+  url: string,
+  signal?: AbortSignal
+): Promise<number> {
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -66,6 +70,7 @@ async function fetchDecimals(contract: string, url: string): Promise<number> {
         jsonrpc: '2.0', id: 2, method: 'eth_call',
         params: [{ to: contract, data: DECIMALS_SELECTOR }, 'latest'],
       }),
+      signal,
     });
     const json = (await res.json()) as { result?: string };
     if (json.result && json.result !== '0x') return Number(BigInt(json.result));
@@ -83,6 +88,12 @@ export async function GET(
   const contract = getTokenAddress();
   const url = getAlchemyUrl();
 
+  // 8s abort guard — a hung Alchemy connection must not hold the request
+  // open indefinitely. Shared across both parallel calls; on timeout the
+  // catch below returns the same 500 shape as any other upstream failure.
+  const abort = new AbortController();
+  const abortTimer = setTimeout(() => abort.abort(), 8000);
+
   try {
     // Fetch balance and decimals in parallel
     const [balRes, decimals] = await Promise.all([
@@ -94,8 +105,9 @@ export async function GET(
           params: [{ to: contract, data: encodeBalanceOf(address) }, 'latest'],
         }),
         next: { revalidate: 10 },
+        signal: abort.signal,
       }),
-      fetchDecimals(contract, url),
+      fetchDecimals(contract, url, abort.signal),
     ]);
 
     if (!balRes.ok) return serverError(`Alchemy returned ${balRes.status}`);
@@ -106,14 +118,27 @@ export async function GET(
     if (json.error) return serverError(`Alchemy error: ${json.error.message}`);
     if (!json.result) return serverError('Alchemy returned no result');
 
-    return NextResponse.json({
-      address,
-      token_address: contract,
-      balance_wei: BigInt(json.result).toString(),
-      balance_formatted: formatUnits(json.result, decimals),
-      decimals,
-    } satisfies PriceBalanceResponse);
+    return NextResponse.json(
+      {
+        address,
+        token_address: contract,
+        balance_wei: BigInt(json.result).toString(),
+        balance_formatted: formatUnits(json.result, decimals),
+        decimals,
+      } satisfies PriceBalanceResponse,
+      {
+        // Browser-side cache hint matching the 10s edge window — repeat
+        // reads within the window skip the network without serving anything
+        // staler than the edge cache already would.
+        headers: {
+          'Cache-Control':
+            'public, max-age=10, s-maxage=10, stale-while-revalidate=20',
+        },
+      }
+    );
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
+  } finally {
+    clearTimeout(abortTimer);
   }
 }

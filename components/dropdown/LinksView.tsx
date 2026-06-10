@@ -49,7 +49,7 @@ import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { openConnectModal } from '../../lib/wallet/walletBus';
 import { useGasData } from '../../lib/hooks/useGasData';
 
 export function LinksView() {
@@ -57,7 +57,6 @@ export function LinksView() {
     const { open } = useModal();
     const { siweAddress, signOut } = useAuth();
     const { showToast } = useToast();
-    const { openConnectModal } = useConnectModal();
 
     const isAuthed = !!siweAddress;
 
@@ -78,12 +77,13 @@ export function LinksView() {
     };
 
     const handleConnectWallet = () => {
-        if (!openConnectModal) {
-            showToast('Wallet not ready — refresh and try again');
-            return;
-        }
-
-        openConnectModal();
+        /* Bus-routed since the wallet-stack split: opens immediately when
+           the stack is resident (the common case — it's idle-prefetched),
+           queues-and-loads on a cold tap, and falls back to the same toast
+           only if the chunk actually failed to load. */
+        openConnectModal(() =>
+            showToast('Wallet not ready — refresh and try again'),
+        );
     };
 
     return (

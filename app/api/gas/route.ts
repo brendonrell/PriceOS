@@ -106,12 +106,24 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
             },
         ];
 
-        const res = await fetch(alchemyUrl(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(batch),
-            next: { revalidate: 12 },
-        });
+        /* 8s abort guard — without it a hung Alchemy connection holds the
+           request open indefinitely (and the client's poll with it). On
+           timeout the catch below returns the same 500 shape as any other
+           upstream failure; pollers already tolerate transient errors. */
+        const abort = new AbortController();
+        const abortTimer = setTimeout(() => abort.abort(), 8000);
+        let res: Response;
+        try {
+            res = await fetch(alchemyUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(batch),
+                next: { revalidate: 12 },
+                signal: abort.signal,
+            });
+        } finally {
+            clearTimeout(abortTimer);
+        }
 
         if (!res.ok) return serverError(`Alchemy returned ${res.status}`);
 
@@ -175,7 +187,17 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
             fetchedAt: Date.now(),
         };
 
-        return NextResponse.json(response);
+        /* Browser-side cache hint matching the 12s edge window. The data a
+           client could be served from its own cache is never staler than
+           what the edge cache already serves every other client, so
+           freshness semantics are unchanged — repeat polls within the
+           window just skip the network round-trip entirely. */
+        return NextResponse.json(response, {
+            headers: {
+                'Cache-Control':
+                    'public, max-age=12, s-maxage=12, stale-while-revalidate=24',
+            },
+        });
     } catch (err) {
         return serverError(err instanceof Error ? err.message : 'Unknown error');
     }

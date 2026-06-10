@@ -121,6 +121,29 @@ function clearTimer() {
     }
 }
 
+/* Visibility pause (perf batch 2026-06-10). realPing already skips its
+   fetch when the tab is hidden, but the 4-8s timer kept re-arming —
+   wasted wakeups in a backgrounded tab. Stop the cycle on hide; on
+   return, re-arm the normal cadence (no immediate ping — same as a
+   hidden-tab tick landing under the old in-tick skip). Listener attach
+   is lazy + idempotent so module load order stays inert. */
+let visAttached = false;
+
+function onVisibility() {
+    if (!state.active) return;
+    if (document.hidden) {
+        clearTimer();
+    } else if (timer === null) {
+        scheduleNext();
+    }
+}
+
+function ensureVisibilityListener() {
+    if (visAttached || typeof document === 'undefined') return;
+    visAttached = true;
+    document.addEventListener('visibilitychange', onVisibility);
+}
+
 export function isRpcActive(): boolean {
     return state.active;
 }
@@ -147,6 +170,7 @@ export function toggleRpcPing(): boolean {
     }
     state = { active: true, ms: null };
     notify();
+    ensureVisibilityListener();
     // Fire one immediate tick so the pill shows a number right away
     // (matches sim 12492: `_simulateRpc()` called before scheduling).
     // realPing is async; we don't await — the resolve will notify when

@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import { Rubik_Mono_One, Inter } from 'next/font/google';
-import { cookieToInitialState, type Config as WagmiConfigType } from 'wagmi';
+/* Imported from '@wagmi/core' — NOT the 'wagmi' react package — on purpose
+   (perf batch 2026-06-10). The 'wagmi' entry barrel re-exports every
+   'use client' hook module; importing ANYTHING from it in a server
+   component makes Next register the entire hook surface as client entries
+   for this layout, dragging ~380KB of wagmi/viem core into every page's
+   first load. '@wagmi/core' exports the same cookieToInitialState (it's
+   where the function actually lives) with zero client modules attached. */
+import { cookieToInitialState, type Config as WagmiConfigType } from '@wagmi/core';
 import './globals.css';
 
 /*

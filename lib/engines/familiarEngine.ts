@@ -248,15 +248,42 @@ function _handleDocClick(ev: Event) {
     }
 }
 
-function _start() {
+function _startTickers() {
     if (_frameTimer) return;
     _frameTimer = setInterval(_renderFrame, 600);
     _dialogueTimer = setInterval(
         () => _emitDialogue('idle'),
         20000 + Math.random() * 20000,
     );
+}
+
+function _stopTickers() {
+    if (_frameTimer) clearInterval(_frameTimer);
+    if (_dialogueTimer) clearInterval(_dialogueTimer);
+    _frameTimer = null;
+    _dialogueTimer = null;
+}
+
+/* Visibility pause (perf batch 2026-06-10). The frame tick (600ms) and idle
+   dialogue tick keep firing in a backgrounded tab — animating a sprite
+   nobody can see. Pause both on hide, resume on return. Resume re-rolls the
+   dialogue interval — identical to a fresh start, so nothing observable
+   changes. One-shot timers (sleep / scroll / action / bubble-hide) are
+   activity-driven and left alone. */
+function _onVisibility() {
+    if (document.hidden) {
+        _stopTickers();
+    } else {
+        _startTickers();
+    }
+}
+
+function _start() {
+    if (_frameTimer) return;
+    _startTickers();
     window.addEventListener('scroll', _onScroll, { passive: true });
     document.addEventListener('click', _handleDocClick, true);
+    document.addEventListener('visibilitychange', _onVisibility);
     /* Activity reset for sleep timer — any of these inputs counts as
        user being awake-and-around per sim 12866. */
     document.addEventListener('mousemove', _resetSleep, { passive: true });
@@ -266,14 +293,11 @@ function _start() {
 }
 
 function _stop() {
-    if (_frameTimer) clearInterval(_frameTimer);
-    if (_dialogueTimer) clearInterval(_dialogueTimer);
+    _stopTickers();
     if (_sleepTimer) clearTimeout(_sleepTimer);
     if (_scrollRevertTimer) clearTimeout(_scrollRevertTimer);
     if (_actionRevertTimer) clearTimeout(_actionRevertTimer);
     if (_bubbleHideTimer) clearTimeout(_bubbleHideTimer);
-    _frameTimer = null;
-    _dialogueTimer = null;
     _sleepTimer = null;
     _scrollRevertTimer = null;
     _actionRevertTimer = null;
@@ -283,6 +307,7 @@ function _stop() {
     }
     if (typeof document !== 'undefined') {
         document.removeEventListener('click', _handleDocClick, true);
+        document.removeEventListener('visibilitychange', _onVisibility);
         document.removeEventListener('mousemove', _resetSleep);
         document.removeEventListener('keydown', _resetSleep);
         document.removeEventListener('touchstart', _resetSleep);

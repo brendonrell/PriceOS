@@ -3,26 +3,20 @@
 // state, populating the moment the wallet mints or buys (MINT/market writes
 // to the same `holders` table). Service client (holders isn't anon-readable);
 // this is a public read keyed on the address in the path.
+//
+// Core query lives in lib/profile/getUserHoldings (shared with the server-
+// rendered profile page since the 2026-06-10 perf batch); this route stays
+// the client-side refresh path ('pd:project-refresh' after mint / market
+// actions). Response shape unchanged.
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
+import { getUserHoldings, type UserHolding } from '@/lib/profile/getUserHoldings';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const ADDRESS_RE = /^0x[a-f0-9]{40}$/;
-
-export interface UserHolding {
-  /** Project slug (holders.project_id). */
-  slug: string;
-  token_id: number;
-  /** Active listing price in ETH, or null if not listed. */
-  list_price_eth: string | null;
-  /** Mint event timestamp (Unix seconds) — the Output's "birth", source for
-   *  the PriceDay and Natal Chart platform traits. Null if no MINT event. */
-  mint_ts: number | null;
-}
+export type { UserHolding };
 
 export interface UserOutputsResponse {
   address: string;
@@ -35,53 +29,10 @@ export async function GET(
   { params }: { params: { address: string } }
 ): Promise<NextResponse> {
   const address = params.address.toLowerCase();
-  if (!ADDRESS_RE.test(address)) return badRequest('Invalid Ethereum address');
 
   try {
-    const supabase = getSupabaseService();
-    const { data, error } = await supabase
-      .from('holders')
-      .select('project_id, token_id')
-      .eq('owner_address', address);
-
-    if (error) return serverError(error.message);
-
-    const rows = (data ?? []) as { project_id: string; token_id: string | number }[];
-
-    // Active listing prices for the held Outputs (so the profile can sort/filter
-    // by price). Fetch per held project (≤ a couple) and key by project:token.
-    const heldProjects = [...new Set(rows.map((r) => r.project_id))];
-    const priceByKey: Record<string, string> = {};
-    const mintTsByKey: Record<string, number> = {};
-    if (heldProjects.length > 0) {
-      const [listRes, mintRes] = await Promise.all([
-        supabase
-          .from('listings')
-          .select('project_id, token_id, price_eth')
-          .in('project_id', heldProjects)
-          .eq('active', true),
-        supabase
-          .from('events')
-          .select('project_id, token_id, timestamp')
-          .in('project_id', heldProjects)
-          .eq('type', 'MINT'),
-      ]);
-      for (const l of (listRes.data ?? []) as { project_id: string; token_id: string | number; price_eth: number | string }[]) {
-        priceByKey[`${l.project_id}:${l.token_id}`] = String(l.price_eth);
-      }
-      for (const m of (mintRes.data ?? []) as { project_id: string; token_id: string | number; timestamp: number | string }[]) {
-        mintTsByKey[`${m.project_id}:${m.token_id}`] = Number(m.timestamp);
-      }
-    }
-
-    const holdings: UserHolding[] = rows
-      .map((r) => ({
-        slug: r.project_id,
-        token_id: Number(r.token_id),
-        list_price_eth: priceByKey[`${r.project_id}:${r.token_id}`] ?? null,
-        mint_ts: mintTsByKey[`${r.project_id}:${r.token_id}`] ?? null,
-      }))
-      .sort((a, b) => a.slug.localeCompare(b.slug) || a.token_id - b.token_id);
+    const holdings = await getUserHoldings(address);
+    if (holdings === null) return badRequest('Invalid Ethereum address');
 
     const response: UserOutputsResponse = {
       address,

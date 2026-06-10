@@ -55,18 +55,30 @@ function alchemyUrl(): string {
 
 export async function GET(_req: NextRequest): Promise<NextResponse> {
     try {
+        /* 8s abort guard — a hung Alchemy connection must not hold the
+           request open indefinitely. On timeout the catch below returns the
+           same 500 shape as any other upstream failure; the client engine
+           already clamps errors to its 400ms "slow" ceiling. */
+        const abort = new AbortController();
+        const abortTimer = setTimeout(() => abort.abort(), 8000);
         const start = Date.now();
-        const res = await fetch(alchemyUrl(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'eth_blockNumber',
-                params: [],
-            }),
-            next: { revalidate: 4 },
-        });
+        let res: Response;
+        try {
+            res = await fetch(alchemyUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: 1,
+                    method: 'eth_blockNumber',
+                    params: [],
+                }),
+                next: { revalidate: 4 },
+                signal: abort.signal,
+            });
+        } finally {
+            clearTimeout(abortTimer);
+        }
         const ms = Date.now() - start;
 
         if (!res.ok) return serverError(`Alchemy returned ${res.status}`);

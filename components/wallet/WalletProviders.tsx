@@ -3,89 +3,70 @@
 /*
  * WalletProviders — top-of-tree client wrapper for the wallet stack.
  *
- * AUTH FLOW (post-rewrite: auto-sign on connect, sticky session)
+ * ── SPLIT ARCHITECTURE (perf batch 2026-06-10) ──────────────────────
+ * This file is the EAGER half: it ships in the first load and owns the
+ * auth state machine + everything that never needed wagmi. The heavy
+ * half — wagmi + RainbowKit + the connector SDKs (WalletConnect,
+ * MetaMask, Coinbase; the ~1.2MB chunk that used to ride in the root
+ * layout's first load on every page) — lives in WalletStack.tsx behind
+ * a dynamic import, mounted as a SIBLING of the app tree (so the app
+ * never remounts) on first idle after paint, or immediately on the
+ * first connect tap. lib/wallet/walletBus.ts is the seam that lets
+ * deep consumers (UserMenuButtons, LinksView) reach the connect modal
+ * / ENS name without importing the heavy chunk.
+ *
+ * Identity (SIWE) was ALREADY decoupled from connection (see below), so
+ * the eager half can render the full signed-in UI from the server-read
+ * cookie alone; the deferred half only matters when a wallet has to
+ * actually connect or sign.
+ *
+ * AUTH FLOW (auto-sign on connect, sticky session — unchanged)
  *
  *   POPUPS BACK-TO-BACK
- *   1. User taps any connect surface → RK modal opens.
+ *   1. User taps any connect surface → walletBus.openConnectModal() →
+ *      RK modal opens (stack chunk is idle-prefetched long before a
+ *      human reaches the button; a cold tap queues the open and the
+ *      modal appears the moment the chunk lands).
  *   2. User picks a wallet → wagmi connector fires; status flips
- *      'disconnected' → 'connecting'. Our prefetch effect kicks off
- *      a POST /api/auth/nonce in parallel with the wallet's
- *      approval handshake. By the time the user approves in their
- *      wallet, the nonce is in hand — no server roundtrip in the
- *      gap between popup 1 and popup 2.
- *   3. Wallet returns → wagmi flips 'connecting' → 'connected'.
- *      autoSign() fires: builds the SIWE message with the pre-
- *      fetched nonce, pre-fires the iOS-Safari wallet deep-link
- *      (best-effort), and calls wagmi.signMessageAsync. Because the
- *      WC session is still hot from the connect step and the
- *      wallet hasn't yet had time to bounce back to Safari, most
- *      wallets render the sign prompt inside the same wallet
- *      session — user sees popup 1 (connect) and popup 2 (sign)
- *      back-to-back without leaving the wallet UI.
- *   4. User signs → wagmi returns signature → POST /api/auth/siwe
- *      → address persisted in iron-session cookie, local state
- *      flips to authenticated.
+ *      'disconnected' → 'connecting'. The stack prefetches a nonce via
+ *      POST /api/auth/nonce in parallel with the wallet's approval
+ *      handshake.
+ *   3. Wallet returns → wagmi flips to 'connected'. The SignInModal
+ *      (rendered inside the stack — it needs live wagmi state) anchors
+ *      the sign request to a click; autoSign() builds the SIWE message
+ *      with the pre-fetched nonce, pre-fires the iOS deep-link wake,
+ *      and calls wagmi.signMessageAsync.
+ *   4. User signs → signature verified server-side → address persisted
+ *      in the iron-session cookie → this file's state flips to
+ *      authenticated via the onSigned callback.
  *
  *   STICKY SIWE SESSION
- *   The SIWE cookie is the source of truth for "logged in". It
- *   only clears on:
+ *   The SIWE cookie is the source of truth for "logged in". It only
+ *   clears on:
  *     a. Explicit user logout via signOutFull()
- *     b. Address mismatch (security — wagmi connects to a
- *        different address than the one tied to the signed session)
- *     c. Server-side TTL expiry (14 days, refreshed on every
- *        session.save() touch)
+ *     b. Address mismatch (security — wagmi connects to a different
+ *        address than the one tied to the signed session)
+ *     c. Server-side TTL expiry (14 days, refreshed on session.save())
  *
- *   Wagmi connection state is NOT a signal to clear SIWE. If the
- *   wallet disconnects (WalletConnect drops on iOS Safari refresh,
- *   user kills the wallet app, mobile loses network), the SIWE
- *   cookie persists and the UI continues to show the user as
- *   authenticated. Wallet-bound surfaces can prompt for a reconnect
- *   when the user attempts a tx-signing action; read-only views
- *   stay lit from the SIWE address.
+ *   Wagmi connection state is NOT a signal to clear SIWE. If the wallet
+ *   disconnects (WC drops on iOS Safari refresh, user kills the wallet
+ *   app, mobile loses network), the SIWE cookie persists and the UI
+ *   continues to show the user as authenticated. Wallet-bound surfaces
+ *   can prompt for a reconnect when the user attempts a tx-signing
+ *   action; read-only views stay lit from the SIWE address.
  *
- *   This decouples "identity" from "connection". Identity is
- *   server-state, persistent, only torn down on explicit logout.
- *   Connection is wallet-state, ephemeral, restored on-demand.
+ *   This decouples "identity" from "connection". Identity is server-
+ *   state, persistent, only torn down on explicit logout. Connection is
+ *   wallet-state, ephemeral, restored on-demand (and, post-split,
+ *   restored when the deferred stack mounts shortly after paint).
  *
- *   The previous shipped logic cleared the iron-session on wagmi
- *   'disconnected' (gated by a prev-status ref intended to ignore
- *   the initial 'reconnecting' → 'disconnected' transition). The
- *   guard worked for that one path but missed another: when
- *   cookieToInitialState boots wagmi with status='connected'
- *   synchronously from the cookie, the FIRST observed status is
- *   'connected'; if WC then fails to restore and drops to
- *   'disconnected', prev='connected' falls through the guard and
- *   the SIWE cookie gets destroyed. The fix below removes the
- *   wagmi-driven sign-out path entirely rather than chasing every
- *   transition the disconnect can arrive via.
- *
- *   Differences from the previous shipped flow:
- *     - No RainbowKitAuthenticationProvider, no SIWE adapter, no
- *       intermediate "Verify your account" modal step.
- *     - Nonce fetch is pre-positioned during 'connecting', not
- *       blocking after 'connected'.
- *     - signMessageAsync is called directly via wagmi, not routed
- *       through RK's adapter.
- *     - Wagmi 'disconnected' transitions no longer clear the SIWE
- *       cookie. SIWE survives any wagmi state change short of an
- *       explicit signOut or an address swap.
- *
- * SERVER-SIDE HYDRATION (unchanged shape from prior build)
- *   - `initialState` is wagmi's connection state from this
- *     request's cookie header (cookieToInitialState in layout).
- *   - `initialAuth` is the SIWE address from this request's
- *     iron-session cookie (getSession in layout).
- *
- * INNER PROVIDERS' JOB
- *   - holds React state for `siweAddress` and a phase flag
- *     ('hydrating' | 'idle' | 'signing' | 'authenticated')
- *   - prefetches the nonce when wagmi enters 'connecting'
- *   - fires autoSign() on the 'connecting' → 'connected' transition
- *     (user-initiated path; the 'reconnecting' → 'connected'
- *     cookie-restore path does NOT auto-sign)
- *   - watches for address swaps and clears SIWE when the connected
- *     address stops matching the signed-in address
- *   - exposes the Auth context to consumers via AuthProvider
+ * SERVER-SIDE HYDRATION (unchanged shape)
+ *   - `initialState` is wagmi's connection state from this request's
+ *     cookie header (cookieToInitialState in layout) — forwarded to the
+ *     deferred stack untouched.
+ *   - `initialAuth` is the SIWE address from this request's iron-session
+ *     cookie (getSession in layout) — consumed HERE, eagerly, so the
+ *     first paint renders the correct auth state with zero round-trips.
  */
 
 import {
@@ -93,30 +74,12 @@ import {
     useEffect,
     useRef,
     useState,
+    type ComponentType,
     type ReactNode,
 } from 'react';
-import {
-    useAccount,
-    useChainId,
-    useDisconnect,
-    useSignMessage,
-    WagmiProvider,
-    type State as WagmiState,
-} from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import '@rainbow-me/rainbowkit/styles.css';
-import { wagmiConfig } from '../../lib/wallet/wagmiConfig';
-import {
-    buildSiweMessage,
-    fetchNonce,
-    isIosBrowser,
-    serverSignOut,
-    verifySignature,
-    wakeWalletForSignStep,
-} from '../../lib/wallet/siweClient';
+import type { State as WagmiState } from 'wagmi';
+import { serverSignOut } from '../../lib/wallet/siweSession';
 import { AuthContextProvider } from '../../lib/state/AuthContext';
-import { SignInModal } from './SignInModal';
 import { AccountCreateModal } from './AccountCreateModal';
 import { fetchUserRow, fetchMe } from '../../lib/wallet/accountClient';
 import { hydrateFromRow, resetUserState } from '../../lib/state/userState';
@@ -124,6 +87,13 @@ import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
 import { startEnsLookup } from '../../lib/engines/ensEngine';
+import {
+    markStackLoadFailed,
+    markStackLoadRecovered,
+    registerStackLoader,
+    requestWalletDisconnect,
+} from '../../lib/wallet/walletBus';
+import type { WalletStackProps } from './WalletStack';
 
 interface WalletProvidersProps {
     children: ReactNode;
@@ -137,24 +107,6 @@ interface WalletProvidersProps {
     initialAuth?: string | null;
 }
 
-export function WalletProviders({
-    children,
-    initialState,
-    initialAuth,
-}: WalletProvidersProps) {
-    const [queryClient] = useState(() => new QueryClient());
-
-    return (
-        <WagmiProvider config={wagmiConfig} initialState={initialState}>
-            <QueryClientProvider client={queryClient}>
-                <InnerProviders initialAuth={initialAuth}>
-                    {children}
-                </InnerProviders>
-            </QueryClientProvider>
-        </WagmiProvider>
-    );
-}
-
 type AuthPhase =
     /** Initial cookie hydration GET in flight (fallback path only —
         with layout-supplied initialAuth this state never appears). */
@@ -166,20 +118,14 @@ type AuthPhase =
     /** SIWE session active. */
     | 'authenticated';
 
-interface InnerProvidersProps {
-    children: ReactNode;
-    initialAuth?: string | null;
-}
-
-function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
-    const { address, status: wagmiStatus } = useAccount();
-    const { disconnect } = useDisconnect();
-    const { signMessageAsync } = useSignMessage();
-    const chainId = useChainId();
-
+export function WalletProviders({
+    children,
+    initialState,
+    initialAuth,
+}: WalletProvidersProps) {
     /* Server-supplied auth means we already know the answer at first
-       render. `undefined` = fall back to the legacy GET-on-mount
-       path (defensive — env-var failure path, legacy callers). */
+       render. `undefined` = fall back to the legacy GET-on-mount path
+       (defensive — env-var failure path, legacy callers). */
     const hasServerAuth = initialAuth !== undefined;
 
     const [phase, setPhase] = useState<AuthPhase>(() => {
@@ -189,6 +135,54 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
     const [siweAddress, setSiweAddress] = useState<string | null>(() =>
         hasServerAuth ? initialAuth ?? null : null
     );
+
+    /* ── Deferred wallet stack loading ───────────────────────────────
+       The heavy chunk loads on first idle after paint (requestIdleCallback
+       with a timeout floor, setTimeout fallback) — out of the critical
+       path, but resident long before a human reaches a connect button.
+       walletBus can also force the load synchronously-on-tap; either way
+       the import is single-flight. A failed import re-arms so the next
+       tap retries instead of staying dead until refresh. */
+    const [Stack, setStack] = useState<ComponentType<WalletStackProps> | null>(
+        null
+    );
+    const stackLoadStartedRef = useRef(false);
+    const loadStack = useCallback(() => {
+        if (stackLoadStartedRef.current) return;
+        stackLoadStartedRef.current = true;
+        import('./WalletStack')
+            .then((m) => {
+                markStackLoadRecovered();
+                setStack(() => m.default);
+            })
+            .catch(() => {
+                stackLoadStartedRef.current = false;
+                markStackLoadFailed();
+            });
+    }, []);
+
+    useEffect(() => {
+        registerStackLoader(loadStack);
+        type IdleWindow = Window & {
+            requestIdleCallback?: (
+                cb: () => void,
+                opts?: { timeout: number }
+            ) => number;
+            cancelIdleCallback?: (id: number) => void;
+        };
+        const w = window as IdleWindow;
+        let idleId: number | undefined;
+        let timerId: ReturnType<typeof setTimeout> | undefined;
+        if (typeof w.requestIdleCallback === 'function') {
+            idleId = w.requestIdleCallback(loadStack, { timeout: 2500 });
+        } else {
+            timerId = setTimeout(loadStack, 1200);
+        }
+        return () => {
+            if (idleId !== undefined) w.cancelIdleCallback?.(idleId);
+            if (timerId !== undefined) clearTimeout(timerId);
+        };
+    }, [loadStack]);
 
     /* Fallback hydration. Only runs when the layout didn't pass
        initialAuth. With layout wired correctly this branch is dead
@@ -218,169 +212,42 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
         };
     }, [hasServerAuth]);
 
-    /* Nonce prefetch. When wagmi enters 'connecting' (user-initiated
-       connect — distinct from 'reconnecting' which is the auto
-       cookie-restore path) we fire a POST /api/auth/nonce in
-       parallel with the wallet's connection handshake. By the time
-       wagmi flips to 'connected', the nonce is in hand and autoSign
-       can build + sign the SIWE message without a blocking server
-       roundtrip in the gap.
-
-       Stored in a ref because we want fire-and-forget, single
-       in-flight at a time, no re-render on resolve. The promise is
-       consumed by autoSign() below; if it's missing or rejects,
-       autoSign falls back to fetching a fresh nonce inline.
-
-       Reset on 'disconnected' so a subsequent connection attempt
-       re-fetches. Nonces are single-use server-side so an unused
-       prefetch is harmless to leave behind — but resetting keeps
-       the ref's lifecycle obvious. */
-    const noncePromiseRef = useRef<Promise<string> | null>(null);
-    useEffect(() => {
-        if (wagmiStatus === 'connecting' && !noncePromiseRef.current) {
-            noncePromiseRef.current = fetchNonce().catch((e) => {
-                noncePromiseRef.current = null;
-                throw e;
-            });
-        }
-        if (wagmiStatus === 'disconnected') {
-            noncePromiseRef.current = null;
-        }
-    }, [wagmiStatus]);
-
-    /* autoSign — runs the SIWE round-trip and resolves to either
-       'authenticated' (success) or 'idle' (failure, with wagmi
-       disconnect to clear the partially-authed state). The
-       transition watcher below decides when to call this. */
-    const inFlightSignRef = useRef(false);
-    const autoSign = useCallback(async () => {
-        if (inFlightSignRef.current) return;
-        if (!address) return;
-        const targetAddress = address;
-        const targetChainId = chainId;
-        inFlightSignRef.current = true;
+    /* Stack → parent state transitions. Stable identities (setters only)
+       so the stack's effects don't re-fire on every parent render. */
+    const handleSigning = useCallback(() => {
         setPhase('signing');
-        try {
-            let nonce: string;
-            try {
-                nonce = noncePromiseRef.current
-                    ? await noncePromiseRef.current
-                    : await fetchNonce();
-            } catch {
-                nonce = await fetchNonce();
-            }
-            noncePromiseRef.current = null;
-
-            const message = buildSiweMessage({
-                address: targetAddress,
-                chainId: targetChainId,
-                nonce,
-            });
-
-            /* iOS Safari deep-link pre-fire — best-effort. Gesture
-               lineage is weaker here than in the previous "user
-               taps Verify" anchor (we're in a useEffect, not a
-               click handler), but the user JUST returned from
-               approving connection in the wallet and iOS Safari
-               grants post-deep-link returns a brief gesture credit
-               window. When it works, the wallet stays foregrounded
-               and the sign prompt appears in the same session
-               without a Safari bounce. When it doesn't, WC's own
-               redirect can still run downstream. */
-            if (isIosBrowser()) {
-                wakeWalletForSignStep();
-            }
-
-            const signature = await signMessageAsync({ message });
-            const verifiedAddress = await verifySignature(message, signature);
-            if (!verifiedAddress) {
-                throw new Error('SIWE verification failed');
-            }
-            setSiweAddress(verifiedAddress);
-            setPhase('authenticated');
-        } catch {
-            /* Sign rejected, network failed, or verify rejected.
-               Drop phase back to 'idle' but DO NOT disconnect wagmi —
-               the SignInModal stays open (it's keyed off
-               connected-and-not-signed) so the user can tap Sign again
-               without re-running the connect flow. Cancel button is
-               the explicit path back to disconnected. */
+    }, []);
+    const handleSigned = useCallback((verifiedAddress: string) => {
+        setSiweAddress(verifiedAddress);
+        setPhase('authenticated');
+    }, []);
+    const handleSignFailed = useCallback(() => {
+        setSiweAddress(null);
+        setPhase('idle');
+    }, []);
+    /* Address swap (security — see WalletStack watcher): a stale SIWE for
+       the old address must not authorize requests as the new address. */
+    const handleAddressSwap = useCallback(() => {
+        void serverSignOut().finally(() => {
             setSiweAddress(null);
             setPhase('idle');
-        } finally {
-            inFlightSignRef.current = false;
-        }
-    }, [address, chainId, signMessageAsync]);
+        });
+    }, []);
 
-    /* Wagmi-state watcher.
-
-         Address swap: wagmi is 'connected' with an address that
-         doesn't match siweAddress → serverSignOut + clear local.
-         Fires regardless of how we got into 'connected' (user
-         initiated or cookie restore). Security: a stale SIWE for
-         the old address must not authorize requests as the new
-         address.
-
-       Auto-fire-on-connect branch removed (2026-05). Previously this
-       useEffect ran autoSign() on the 'connecting' → 'connected' edge
-       so the signature prompt would land back-to-back with the connect
-       popup. That happy-path worked but had two failure modes Brendon
-       hit repeatedly:
-         a. The sign popup sometimes didn't appear at all (wallet had
-            already bounced back to Safari; useEffect's pseudo-gesture
-            window was cold).
-         b. If the user rejected or the wallet dropped, autoSign would
-            disconnect wagmi — leaving no surface to retry from.
-       The SignInModal renders whenever wagmi reports 'connected' AND
-       siweAddress is unset, anchoring the Sign request to a click. The
-       modal closes on success; on rejection it stays so the user can
-       tap Sign again. Cancel disconnects. */
-    const prevWagmiStatusRef = useRef<typeof wagmiStatus | undefined>(undefined);
-    useEffect(() => {
-        prevWagmiStatusRef.current = wagmiStatus;
-
-        // Address swap.
-        if (
-            wagmiStatus === 'connected' &&
-            address &&
-            siweAddress &&
-            address.toLowerCase() !== siweAddress
-        ) {
-            void serverSignOut().finally(() => {
-                setSiweAddress(null);
-                setPhase('idle');
-            });
-            return;
-        }
-
-        /* All other transitions — including the 'connecting' →
-           'connected' edge — are no-ops here. The SignInModal handles
-           the user-initiated connect → sign sequence via its button.
-           Reconnecting → connected and connected → disconnected
-           remain no-ops for SIWE state too; identity is sticky against
-           wagmi state changes. */
-    }, [wagmiStatus, address, siweAddress]);
-
-    /* Full sign-out: server cookie + local state + wagmi
-       disconnect. The only path (alongside address swap) that
-       clears SIWE. Order matters: setPhase('idle') before
-       disconnect() so a subsequent state-watcher run sees a
-       non-authenticated phase and doesn't try to react. */
+    /* Full sign-out: server cookie + local state + wagmi disconnect (via
+       the bus — queued if the stack isn't mounted yet, in which case
+       there's no live connection worth keeping anyway; the queued
+       disconnect tears down whatever the stack would restore). */
     const signOutFull = useCallback(async () => {
         await serverSignOut();
         setSiweAddress(null);
         setPhase('idle');
-        try {
-            disconnect();
-        } catch {
-            /* swallow — wallet might already be gone */
-        }
-    }, [disconnect]);
+        requestWalletDisconnect();
+    }, []);
 
-    /* isAuthenticating semantic: true during initial cookie
-       hydration AND during an in-flight sign request, so connect
-       surfaces can show a spinner / disable themselves while the
-       auto-sign cycle resolves. */
+    /* isAuthenticating semantic: true during initial cookie hydration AND
+       during an in-flight sign request, so connect surfaces can show a
+       spinner / disable themselves while the auto-sign cycle resolves. */
     const isAuthenticating = phase === 'hydrating' || phase === 'signing';
 
     /* User-row state for Real User Accounts v0.
@@ -394,10 +261,9 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
                      partial row (legacy / hypothetical for v0) and
                      still gates signup.
 
-       Fetched on every siweAddress change. The address-swap branch
-       in the wagmi watcher clears siweAddress before re-fetching, so
-       the cached row from the previous identity never bleeds into
-       the new one. */
+       Fetched on every siweAddress change. The address-swap path clears
+       siweAddress before re-fetching, so the cached row from the
+       previous identity never bleeds into the new one. */
     const [userRow, setUserRow] = useState<
         UserProfileResponse | null | undefined
     >(undefined);
@@ -516,64 +382,34 @@ function InnerProviders({ children, initialAuth }: InnerProvidersProps) {
         startEnsLookup(siweAddress);
     }, [siweAddress]);
 
-    /* SignInModal is visible when wagmi has a connected address but
-       no SIWE session yet, AND we're past the initial cookie hydration
-       (so we don't flash the modal during the auth-cookie GET). The
-       address swap branch above clears siweAddress when the wagmi
-       address stops matching, which re-opens this modal so the user
-       can sign in as the new identity without a manual reconnect. */
-    const signInModalOpen =
-        wagmiStatus === 'connected' &&
-        !!address &&
-        !siweAddress &&
-        phase !== 'hydrating';
-
-    const handleSignInCancel = useCallback(() => {
-        try {
-            disconnect();
-        } catch {
-            /* swallow — wallet might already be gone */
-        }
-        setSiweAddress(null);
-        setPhase('idle');
-    }, [disconnect]);
-
     return (
-        <RainbowKitProvider
-            theme={darkTheme({
-                accentColor: '#FF0055',
-                accentColorForeground: '#ffffff',
-                borderRadius: 'small',
-                fontStack: 'system',
-            })}
-            appInfo={{ appName: 'Price Discussion' }}
-            modalSize="compact"
+        <AuthContextProvider
+            siweAddress={siweAddress}
+            isAuthenticating={isAuthenticating}
+            handle={userRow?.handle ?? null}
+            accountLevel={userRow?.account_level ?? 0}
+            needsSignup={needsSignup}
+            onAccountCreated={handleAccountCreated}
+            signOut={signOutFull}
         >
-            <AuthContextProvider
-                siweAddress={siweAddress}
-                isAuthenticating={isAuthenticating}
-                handle={userRow?.handle ?? null}
-                accountLevel={userRow?.account_level ?? 0}
-                needsSignup={needsSignup}
+            {children}
+            <AccountCreateModal
+                open={needsSignup}
+                address={siweAddress}
                 onAccountCreated={handleAccountCreated}
-                signOut={signOutFull}
-            >
-                {children}
-                <SignInModal
-                    open={signInModalOpen}
-                    address={address ?? null}
+            />
+            {Stack && (
+                <Stack
+                    initialState={initialState}
+                    siweAddress={siweAddress}
+                    hydrating={phase === 'hydrating'}
                     signing={phase === 'signing'}
-                    onSign={() => {
-                        void autoSign();
-                    }}
-                    onCancel={handleSignInCancel}
+                    onSigning={handleSigning}
+                    onSigned={handleSigned}
+                    onSignFailed={handleSignFailed}
+                    onAddressSwap={handleAddressSwap}
                 />
-                <AccountCreateModal
-                    open={needsSignup}
-                    address={siweAddress}
-                    onAccountCreated={handleAccountCreated}
-                />
-            </AuthContextProvider>
-        </RainbowKitProvider>
+            )}
+        </AuthContextProvider>
     );
 }

@@ -82,9 +82,11 @@ interface Holding {
 function ProfilePageBodyInner({
     handle,
     initialUser,
+    initialHoldings,
 }: {
     handle: string;
     initialUser: UserProfileData;
+    initialHoldings: Holding[];
 }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
@@ -121,11 +123,35 @@ function ProfilePageBodyInner({
     const viaLabel = user.ens_name
         ? user.ens_name
         : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
-    /* Live follower/following counts — seeded from the server row, refreshed
-       from /api/follows and on any follow toggle ('pd:follows-changed'). */
+    /* Live follower/following counts — fully seeded from the server row
+       (both counts ship with the page since the 2026-06-10 perf batch; the
+       old seed left `following` at 0 until a mount fetch landed), refreshed
+       from /api/follows on any follow toggle ('pd:follows-changed'). The
+       mount fetch is gone: it re-read the exact counts the server computed
+       on this same request. */
     const [counts, setCounts] = useState<{ followers: number; following: number }>(
-        { followers: user.follower_count, following: 0 },
+        { followers: user.follower_count, following: user.following_count },
     );
+
+    /* Real collected Outputs (holders rows) for THIS profile's wallet —
+       seeded server-side (they ship with the page, so the Collected grid
+       paints on arrival; perf batch 2026-06-10). Declared here, above the
+       identity-reset block that re-seeds it. */
+    const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
+
+    /* Client-nav identity reset — the App Router reuses this component
+       instance when navigating between two profile pages (same segment,
+       new params), so state seeded from props must re-seed when the profile
+       address changes. Render-phase reset, per React's derived-state
+       guidance. Previously the mount fetches papered over this; with those
+       gone the reset has to be explicit. */
+    const [seededFor, setSeededFor] = useState(user.address);
+    if (seededFor !== user.address) {
+        setSeededFor(user.address);
+        setCounts({ followers: user.follower_count, following: user.following_count });
+        setHoldings(initialHoldings);
+    }
+
     useEffect(() => {
         let cancelled = false;
         const load = () =>
@@ -133,7 +159,6 @@ function ProfilePageBodyInner({
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d) => { if (!cancelled && d) setCounts({ followers: d.follower_count ?? 0, following: d.following_count ?? 0 }); })
                 .catch(() => {});
-        load();
         const h = () => load();
         window.addEventListener('pd:follows-changed', h);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
@@ -172,11 +197,15 @@ function ProfilePageBodyInner({
         });
     }, []);
 
-    /* Real collected Outputs (holders rows) for THIS profile's wallet — empty
-       at fresh state, populating as the wallet mints/buys. Spans both projects;
-       grouped by slug for rendering. Re-fetches on 'pd:project-refresh' (fired
-       after a mint / market action) so the gallery updates without a reload. */
-    const [holdings, setHoldings] = useState<Holding[]>([]);
+    /* Holdings refresh wiring (state itself is declared above the identity-
+       reset block). Spans both projects; grouped by slug for rendering.
+       Re-fetches on 'pd:project-refresh' (fired after a mint / market
+       action) so the gallery updates without a reload. The mount fetch only
+       runs when the server seed came back empty — a non-empty seed is the
+       same query, same request; an empty one gets re-verified through the
+       API so a transient server-side read failure can't strand an empty
+       grid (and a genuinely-empty profile just repeats today's cheap
+       no-op fetch). */
     useEffect(() => {
         let cancelled = false;
         const load = () =>
@@ -186,10 +215,13 @@ function ProfilePageBodyInner({
                     if (!cancelled && d?.holdings) setHoldings(d.holdings);
                 })
                 .catch(() => {});
-        load();
+        if (initialHoldings.length === 0) load();
         const onRefresh = () => load();
         window.addEventListener('pd:project-refresh', onRefresh);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
+        // initialHoldings is read once per profile identity; user.address is
+        // the identity key (the reset block re-seeds state on change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user.address]);
 
     /* Enrich each held Output with its full platform traits (Artist/Project/
@@ -759,13 +791,19 @@ function ProfilePageBodyInner({
 export default function ProfilePageBody({
     handle,
     initialUser,
+    initialHoldings,
 }: {
     handle: string;
     initialUser: UserProfileData;
+    initialHoldings: Holding[];
 }) {
     return (
         <TraitsProvider>
-            <ProfilePageBodyInner handle={handle} initialUser={initialUser} />
+            <ProfilePageBodyInner
+                handle={handle}
+                initialUser={initialUser}
+                initialHoldings={initialHoldings}
+            />
         </TraitsProvider>
     );
 }

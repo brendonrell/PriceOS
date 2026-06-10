@@ -94,11 +94,26 @@ let _applyHex: ApplyHex | null = null;
 let _rafId: number | null = null;
 let _tintStep = 0;
 
+/* Last hex pushed through applyHex by an animation loop. Rounding HSL to
+   a 24-bit hex means consecutive frames frequently land on the SAME color
+   (especially near the sine peaks of drift/pulse, where the wave flattens).
+   applyHex repaints the full colorway var set + downstream consumers, so
+   skipping identical frames is a pure no-op eliminator — the rendered
+   color sequence is bit-for-bit unchanged. (Perf batch 2026-06-10.) */
+let _lastLoopHex: string | null = null;
+
+function applyIfChanged(hex: string, applyHex: ApplyHex): void {
+    if (hex === _lastLoopHex) return;
+    _lastLoopHex = hex;
+    applyHex(hex);
+}
+
 function stopLoop(): void {
     if (_rafId !== null) {
         cancelAnimationFrame(_rafId);
         _rafId = null;
     }
+    _lastLoopHex = null;
 }
 
 // ── Pure ──────────────────────────────────────────────────────────────
@@ -135,7 +150,7 @@ function enableDrift(baseHex: string, applyHex: ApplyHex): void {
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
-        applyHex(hslToHex(h + Math.sin(t * Math.PI * 2) * 40, s, l));
+        applyIfChanged(hslToHex(h + Math.sin(t * Math.PI * 2) * 40, s, l), applyHex);
         _rafId = requestAnimationFrame(frame);
     };
     _rafId = requestAnimationFrame(frame);
@@ -154,7 +169,7 @@ function enablePulse(baseHex: string, applyHex: ApplyHex): void {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
         const wave = (Math.sin(t * Math.PI * 2) + 1) / 2;
-        applyHex(hslToHex(h, s + wave * 0.10, l + wave * 0.12));
+        applyIfChanged(hslToHex(h, s + wave * 0.10, l + wave * 0.12), applyHex);
         _rafId = requestAnimationFrame(frame);
     };
     _rafId = requestAnimationFrame(frame);
@@ -172,7 +187,7 @@ function enableChromatic(baseHex: string, applyHex: ApplyHex): void {
     const frame = (now: number) => {
         if (_applyHex !== applyHex) return;
         const t = ((now - start) % PERIOD) / PERIOD;
-        applyHex(hslToHex(t * 360, s, l));
+        applyIfChanged(hslToHex(t * 360, s, l), applyHex);
         _rafId = requestAnimationFrame(frame);
     };
     _rafId = requestAnimationFrame(frame);

@@ -5,12 +5,13 @@
  * the rest of the app.
  *
  * The state itself (`siweAddress`, phase, fetched user row, etc.)
- * lives in WalletProviders' InnerProviders component, where wagmi
- * hooks are wired together with the auto-sign-on-connect
- * orchestration and the post-SIWE account-row fetch. This file just
- * defines the context shape so any component that needs to read auth
- * state can call `useAuth()` without knowing about wagmi, SIWE, or
- * Supabase internals.
+ * lives in WalletProviders (the eager half of the post-split wallet
+ * stack, 2026-06-10); the wagmi-bound orchestration (auto-sign-on-
+ * connect, address-swap watch) lives in the deferred WalletStack and
+ * drives that state through callbacks. This file just defines the
+ * context shape so any component that needs to read auth state can
+ * call `useAuth()` without knowing about wagmi, SIWE, or Supabase
+ * internals.
  *
  * Earlier iterations of this file owned the entire SIWE flow client-
  * side (custom signIn that called signMessageAsync, etc.), which
@@ -59,6 +60,7 @@
 import {
     createContext,
     useContext,
+    useMemo,
     type ReactNode,
 } from 'react';
 import type { UserRow } from '@/lib/supabase';
@@ -122,19 +124,34 @@ export function AuthContextProvider({
     signOut,
     children,
 }: AuthContextProviderProps) {
+    /* Memoized so provider re-renders that don't change any auth field
+       (e.g. the deferred wallet stack mounting inside WalletProviders)
+       don't cascade a new context value through every useAuth consumer.
+       (Perf batch 2026-06-10.) */
+    const value = useMemo(
+        () => ({
+            siweAddress,
+            isAuthenticated: !!siweAddress,
+            isAuthenticating,
+            handle,
+            accountLevel,
+            needsSignup,
+            onAccountCreated,
+            signOut,
+        }),
+        [
+            siweAddress,
+            isAuthenticating,
+            handle,
+            accountLevel,
+            needsSignup,
+            onAccountCreated,
+            signOut,
+        ],
+    );
+
     return (
-        <AuthContext.Provider
-            value={{
-                siweAddress,
-                isAuthenticated: !!siweAddress,
-                isAuthenticating,
-                handle,
-                accountLevel,
-                needsSignup,
-                onAccountCreated,
-                signOut,
-            }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

@@ -106,16 +106,12 @@ export async function verifySignature(
         : null;
 }
 
-export async function serverSignOut(): Promise<void> {
-    try {
-        await fetch('/api/auth/siwe', {
-            method: 'DELETE',
-            credentials: 'same-origin',
-        });
-    } catch {
-        /* swallow — best effort */
-    }
-}
+/* serverSignOut moved to lib/wallet/siweSession.ts (perf batch
+   2026-06-10) — it's a bare fetch with no siwe/ethers dependency, and
+   the eager WalletProviders needs it without pulling this module's
+   heavy import graph. Re-exported here so existing deferred-side
+   imports keep working. */
+export { serverSignOut } from './siweSession';
 
 /* iOS Safari is the failure-mode platform for the WC deep-link
    hasFocus() skip. On Android, WC's redirect runs in user-gesture

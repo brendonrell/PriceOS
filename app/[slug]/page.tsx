@@ -16,6 +16,7 @@ import {
   getUserProfileByHandle,
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
+import { getUserHoldings } from '@/lib/profile/getUserHoldings';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
@@ -49,7 +50,26 @@ export default async function SlugRootPage({ params }: Props) {
   const initialUser = await getUserProfileByHandle(r.handle);
   if (!initialUser) notFound();
 
-  return <ProfilePageBody handle={r.handle} initialUser={initialUser} />;
+  // Holdings ship with the page too (perf batch 2026-06-10) — same query the
+  // /api/user/[address]/outputs route runs, done in-process so the Collected
+  // grid paints on arrival instead of after a client round-trip. The client
+  // still re-fetches via the route on 'pd:project-refresh' (mint / market
+  // actions). Best-effort: a holdings error falls back to the old behavior
+  // (empty seed; nothing renders worse than before this change).
+  let initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> = [];
+  try {
+    initialHoldings = (await getUserHoldings(initialUser.address)) ?? [];
+  } catch {
+    initialHoldings = [];
+  }
+
+  return (
+    <ProfilePageBody
+      handle={r.handle}
+      initialUser={initialUser}
+      initialHoldings={initialHoldings ?? []}
+    />
+  );
 }
 
 export function generateMetadata({ params }: Props): Metadata {

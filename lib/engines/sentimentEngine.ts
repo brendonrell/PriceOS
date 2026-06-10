@@ -61,7 +61,9 @@ function _emit(): void {
 }
 
 function _tick(): void {
-    /* sim 12265 — when hidden, sleep 3s and re-check, no state change */
+    /* Defensive — the visibilitychange handler below clears the timer the
+       moment the tab hides, so a tick should never fire hidden. Sim 12265's
+       in-tick re-check stays as the backstop: no state change while hidden. */
     if (typeof document !== 'undefined' && document.hidden) {
         _timer = setTimeout(_tick, 3000);
         return;
@@ -78,16 +80,41 @@ function _tick(): void {
     _timer = setTimeout(_tick, 3000 + Math.random() * 3000);
 }
 
+/* Visibility pause (perf batch 2026-06-10 — deliberate deviation from the
+   sim's verbatim in-tick check). The sim keeps re-arming a 3s timer while
+   the tab is hidden — harmless on one tab, but it's wasted wakeups in every
+   backgrounded PD tab. We stop the cycle entirely on hide and re-arm 3s
+   after the tab returns — the user-observable behavior is identical (no
+   state change while hidden; next swap ≥3s after return, same as the sim's
+   re-check path). */
+function _onVisibility(): void {
+    if (_subscribers.size === 0) return;
+    if (document.hidden) {
+        if (_timer) {
+            clearTimeout(_timer);
+            _timer = null;
+        }
+    } else if (!_timer) {
+        _timer = setTimeout(_tick, 3000);
+    }
+}
+
 function _start(): void {
     if (_timer) return;
     /* sim 12277 — first swap after 1s so the user sees it change */
     _timer = setTimeout(_tick, 1000);
+    if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', _onVisibility);
+    }
 }
 
 function _stop(): void {
     if (_timer) {
         clearTimeout(_timer);
         _timer = null;
+    }
+    if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', _onVisibility);
     }
 }
 

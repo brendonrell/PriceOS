@@ -74,7 +74,15 @@ export async function GET(): Promise<NextResponse> {
       active_artists: artists.size,
       artists_in_cooldown: inCooldown.size,
     };
-    return NextResponse.json(response);
+    // Browser-side cache hint matching the 60s edge window — repeat reads
+    // within the window skip the network without serving anything staler
+    // than the edge cache already would.
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control':
+          'public, max-age=60, s-maxage=60, stale-while-revalidate=60',
+      },
+    });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
