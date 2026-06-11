@@ -8,8 +8,9 @@
  *
  * Status semantics (core PD spec, mirrored from the sim):
  *   active   — whitelisted, mintable now            → ☼
- *   cooldown — whitelisted, in 60-day post-mint cooldown
- *              (any of their projects has cooldown_until in the future) → ☽
+ *   cooldown — whitelisted, inside the 60-day cooldown that starts when
+ *              they UPLOAD a project (any of their projects has
+ *              cooldown_until in the future) → ☽
  *   null     — not on the whitelist (no badge, not on /artists)
  */
 

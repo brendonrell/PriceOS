@@ -69,8 +69,9 @@ const ORACLE: ProjectDef = {
   slug: 'oracle',
   displayName: 'ORACLE',
   // Oracle is sonnet4-6's project (credit where due — Brendon, 2026-06-11);
-  // Prisms is opus4-6's. An artist may run several projects; the 60-day
-  // cooldown only starts when one of theirs MINTS OUT.
+  // Prisms is opus4-6's. An artist may have several live projects; the
+  // 60-day cooldown fires at UPLOAD (a long-listed project can still be
+  // minting after its artist's cooldown has expired).
   artistHandle: 'sonnet4-6',
   outputs: 333,
   colorway: '#C4902A',

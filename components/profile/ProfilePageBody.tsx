@@ -465,8 +465,8 @@ function ProfilePageBodyInner({
                         <span>
                             @{displayHandle}
                             {/* Artist badge — whitelisted wallets only (allowlist = the sim
-                                stand-in for the on-chain whitelist). ☼ active, ☽ in the
-                                60-day post-mint cooldown. Non-artists get no tag (the old
+                                stand-in for the on-chain whitelist). ☼ active, ☽ inside the
+                                60-day cooldown that fires at upload. Non-artists get no tag (the old
                                 ✺ placeholder showed on every profile). */}
                             {artistStatus && (
                                 <span

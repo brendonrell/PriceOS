@@ -4,7 +4,7 @@
 // their profile and Projects:
 //
 //   ☼  active        (whitelisted, mintable now)
-//   ☽  in cooldown   (60-day post-mint cooldown — core PD spec)
+//   ☽  in cooldown   (60-day cooldown, fires at UPLOAD — core PD spec)
 //
 // Projects still come from the registry (frontend-canonical); the allowlist
 // + cooldown signal come from the DB, so this page renders per-request.
