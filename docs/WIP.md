@@ -27,7 +27,26 @@ Full ClickUp ↔ repo alignment pass (ClickUp task 86bacbynf, closed):
   (01 · Contracts); indexer first live run vs Sepolia (03 · Indexer).
 - **Runescape trading interface FOUND:** it's `FEATURE · The Exchange ⇄`
   (86ba0apqr) — WIP pointer resolved, comment left on the task.
+- **Ideas list split (Brendon's call):** all 113 FEATURE/WOW idea tasks moved
+  out of 02 · PriceOS Backlog into the new **Ideas** list (the empty "Blocked"
+  list renamed — the free plan's list cap is reached, never create lists).
+  Backlog = committed work only (~22 items). Kept in Backlog: Digital Familiar,
+  Fog of War, Aura, Bloodline, The Exchange, the Safari-crash bug.
+- **ClickUp Inbox limitation CONFIRMED (Brendon + ClickUp support):** the MCP
+  acts as Brendon's own account, so everything we create is self-sent —
+  ClickUp routes it to the Inbox "Other" tab, never "Important", by design.
+  Brendon accepts Other-tab as the queue for now. Standing convention anyway:
+  anything needing him = assign + due date + assigned comment (+ reminder).
+  Open options if it grates later: second member seat for Claude (proper
+  notifications) or Google Calendar pings.
 - Backlog truth now lives in ClickUp; this file stays the in-flight baton.
+
+## ⏭️ NEXT SESSION — pick from the ClickUp Backlogs (now true)
+- Front-end: Home page awaits Brendon's spec; otherwise Global Search, spell
+  book batch, showcase ghosts, Albums, Magic Hour, Safari-crash fix.
+- Path to mainnet: writer-bot/linter updates → Mythic Audit Pass → Sepolia
+  (+ indexer first live run) → Kiki review → deploy ceremony.
+- Verification gap: real-wallet SIWE smoke test on dev preview (task exists).
 
 ## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-approved)
 The big front-end fix list, ~30 items:
