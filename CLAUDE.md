@@ -144,6 +144,15 @@ web3 social platform where the community discussing prices is the product.
 | `brendonrell/pd-contracts` | Solidity (PDFactory / PDProject / PaymentSplitter) | `main` |
 | `brendonrell/PriceOS-indexer` | Ponder indexer, **Sepolia-only target**, built but not yet running | `main` |
 | `brendonrell/pd-price-token` | `$PRICE` ERC-20 (built, not deployed) | `main` |
+| `brendonrell/kiki-genart` | **KIKI — the GENESIS PROJECT of PD**, Brendon's own; set aside for now | `main` |
+
+> **⛔ KIKI IS THE GENESIS PROJECT — Brendon's first art project on PD, set
+> aside for now (Brendon, 2026-06-11, after every fresh session misread it).**
+> KIKI is NOT an art engine, NOT a palette, NOT a studio label, NOT sample
+> art. The "old Kiki-palette placeholder" comment in the Prisms engine refers
+> to dead, replaced code. The `kiki-genart` repo is **read-only reference for
+> Brendon's project alone** — never commit demos, samples, tests, or any
+> non-KIKI file there.
 
 On-chain = source of truth (Ethereum). Everything else (Supabase DB/Realtime,
 the API, SIWE actions, the indexer) is off-chain. Supabase project:
