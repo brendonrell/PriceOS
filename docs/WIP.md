@@ -6,11 +6,28 @@
 
 ---
 
-- **Branch:** work is on `dev`. Start fresh from `dev`. TWO task branches are
+- **Branch:** work is on `dev`. Start fresh from `dev`. THREE task branches are
   trash once their work is on dev — Brendon to delete on GitHub:
-  `claude/trusting-knuth-uiin6t` (mega-pass) and `claude/vibrant-curie-61o123`
-  (perf batch).
-- **Updated:** 2026-06-10 (front-end mega-pass session)
+  `claude/trusting-knuth-uiin6t` (mega-pass), `claude/vibrant-curie-61o123`
+  (perf batch), `claude/elegant-carson-vsfayc` (ClickUp alignment — empty).
+- **Updated:** 2026-06-11 (ClickUp alignment session — no app changes)
+
+## ✅ THIS SESSION (2026-06-11) — ClickUp is the PM home again
+Full ClickUp ↔ repo alignment pass (ClickUp task 86bacbynf, closed):
+- **Closed 19 stale tasks** verified done/superseded in the repos: UI scaffold
+  era (Next.js setup, profile page, API routes, pings system + MY PINGS UI),
+  Supabase schema, $PRICE code transfer + Etherscan-ready package, the
+  **PaymentSplitter ratio bug (fixed in the rewrite — 60/40 secondary, 95/5
+  primary)**, the entire no-chain-beta BET/OPS set in 13 · Launch (superseded
+  2026-05-14; SIWE + virtualizer closed as BUILT), plus dupes + settled
+  decisions.
+- **Added 8 tasks mirroring this file's queue:** Home page real build, Global
+  Search wiring, spell-book stubs + polish batch, showcase ghosts, real-wallet
+  SIWE smoke test, Magic Hour rebuild (02 · PriceOS); writer-bot/linter updates
+  (01 · Contracts); indexer first live run vs Sepolia (03 · Indexer).
+- **Runescape trading interface FOUND:** it's `FEATURE · The Exchange ⇄`
+  (86ba0apqr) — WIP pointer resolved, comment left on the task.
+- Backlog truth now lives in ClickUp; this file stays the in-flight baton.
 
 ## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-approved)
 The big front-end fix list, ~30 items:
@@ -95,8 +112,9 @@ The big front-end fix list, ~30 items:
 - **Favicon engine:** more per-feature favicons (lib/favicon exists).
 - **PriceSprite placement on user profiles** (without breaking visual lang).
 - **ASCII-ID button icon ideas** (unicode only — suggest options).
-- **Runescape trading interface** — find the backlog task in ClickUp.
-- **Docs/ClickUp ↔ repo alignment audit** (drafted docs unreviewed).
+- **Runescape trading interface** — ✅ found: FEATURE · The Exchange ⇄ (86ba0apqr).
+- **Docs/ClickUp ↔ repo alignment audit** — ✅ task side done 2026-06-11;
+  drafted ClickUp doc pages still unreviewed.
 - **PriceSprite modal achievements** (xbox-like + points; badges TBD).
 - **Per-mille blur:** 13px shipped; if still soft on Brendon's screen the
   next step is SVG-tracing Inter's ‰ outline (vector-crisp, still "Inter").
