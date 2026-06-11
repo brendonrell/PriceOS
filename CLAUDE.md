@@ -109,6 +109,13 @@ contract that keeps it working:
   bakes a lie into the handoff. Order is always: clean & verify → **then** WIP.
 - **Updating `docs/WIP.md` is the very last step of a session** (branch · task ·
   decisions · next step). An out-of-date baton is worse than none.
+- **ClickUp moves with the work (Brendon, 2026-06-11 — added after the full
+  realignment pass).** ClickUp is the PM home; `docs/WIP.md` is only the
+  in-flight baton. Any session that ships to `dev`, settles a decision, or
+  queues new work updates ClickUp **in the same breath**: close what shipped
+  (with a one-line why), add what got queued, comment what changed scope. Never
+  let the queue live only in WIP/chat — that's what caused the month of drift
+  cleaned up 2026-06-11. End-of-session order: clean tree → ClickUp → WIP last.
 - **"WRAP UP" — the defined end-of-chat ritual (Brendon, 2026-06-08).** When
   Brendon says **"wrap up"** (this chat / this session), that one command IS his
   approval to do these IN ORDER:
