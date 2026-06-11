@@ -1,0 +1,414 @@
+/*
+ * AI sample projects — typed boundary over ./core.
+ *
+ * Each project exports the standard engine triplet (render / traitsOf /
+ * schema / aspects) consumed by lib/project/registry.ts, identical in shape
+ * to Prisms and Oracle. The core engines paint at their own internal
+ * resolution and pick their own aspect per token, so render() paints to an
+ * offscreen canvas and blits into the requested width — engines run
+ * client-side only (types.ts contract), traitsOf() is pure and server-safe
+ * (it replays each engine's leading rng draws; machine-verified against the
+ * renders, 40 seeds per engine).
+ */
+
+import type {
+  EngineFn,
+  TraitsFn,
+  TraitSchema,
+  OutputTraits,
+} from '../../../project/types';
+import * as C from './core';
+
+/* Paint via the core engine at native resolution, blit at requested width. */
+function blit(
+  raw: (cv: HTMLCanvasElement, seed: number) => void,
+  traitsOf: TraitsFn,
+): EngineFn {
+  return (canvas, tokenId, width) => {
+    const off = document.createElement('canvas');
+    raw(off, tokenId);
+    const W = Math.max(1, Math.floor(width));
+    const H = Math.max(1, Math.round((W * off.height) / off.width));
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.drawImage(off, 0, 0, W, H);
+    return { aspect: off.width / off.height, traits: traitsOf(tokenId) };
+  };
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/* ── Full Faith & Credit ────────────────────────────────────────────────── */
+const NATION: Record<string, string> = {
+  classic: 'Engravers', vertical: 'Letterpress', modern: 'Grids', window: 'Hatchers',
+};
+const BANKS = ['BANCO DE LA NIEBLA', 'RESERVE OF THE INTERIOR', 'FIRST MERIDIAN TRUST', 'BANK OF THE SOUTH REACH', 'NATIONAL LYRIC RESERVE', 'TREASURY OF THE LESSER MOONS', 'CAISSE DE PROVIDENCIA', 'STERLING AUTHORITY OF VESPER'];
+export const faithTraits: TraitsFn = (id) => {
+  const c = C.castSpecimen(id);
+  return { Nation: NATION[c.layout], Denomination: String(c.den), Issuer: c.bank };
+};
+export const faithSchema: TraitSchema = {
+  traits: [
+    { name: 'Nation', values: ['Engravers', 'Letterpress', 'Grids', 'Hatchers'] },
+    { name: 'Denomination', values: ['1', '2', '5', '10', '20', '50', '100', '500', '1000'] },
+    { name: 'Issuer', values: BANKS },
+  ],
+};
+export const renderFaith = blit(C.specimen, faithTraits);
+export const FAITH_ASPECTS = [2.21, 0.45, 2.21, 2.5, 1.77] as const;
+
+/* ── Delisted ───────────────────────────────────────────────────────────── */
+const CHART: Record<string, string> = {
+  candles: 'Candles', line: 'Line', area: 'Area', phone: 'Phone', bars: 'Bars',
+};
+const TAPE_PAL = ['Terminal', 'Amber', 'Print', 'Vapor', 'Acid', 'Midnight', 'Harbour'];
+export const delistedTraits: TraitsFn = (id) => {
+  const c = C.castTape(id);
+  return { Chart: CHART[c.kind], Palette: TAPE_PAL[c.ti] };
+};
+export const delistedSchema: TraitSchema = {
+  traits: [
+    { name: 'Chart', values: ['Candles', 'Line', 'Area', 'Phone', 'Bars'] },
+    { name: 'Palette', values: TAPE_PAL },
+  ],
+};
+export const renderDelisted = blit(C.tape, delistedTraits);
+export const DELISTED_ASPECTS = [2.38, 2, 1.48, 0.5] as const;
+
+/* ── The River Disagrees ────────────────────────────────────────────────── */
+const PLAT_PAPER = ['Cool White', 'Mint', 'Peach', 'Sky'];
+export const riverTraits: TraitsFn = (id) => {
+  const c = C.castPlat(id);
+  const fmt = c.fmt.W === 1000 ? 'Portrait' : c.fmt.W === 1240 ? 'Landscape' : 'Square';
+  return { Format: fmt, Paper: PLAT_PAPER[c.si] };
+};
+export const riverSchema: TraitSchema = {
+  traits: [
+    { name: 'Format', values: ['Portrait', 'Landscape', 'Square'] },
+    { name: 'Paper', values: PLAT_PAPER },
+  ],
+};
+export const renderRiver = blit(C.plat, riverTraits);
+export const RIVER_ASPECTS = [0.81, 1.24, 1] as const;
+
+/* ── Stars Nobody Named ─────────────────────────────────────────────────── */
+const SKY = ['Midnight', 'Violet', 'Pine', 'Daylight', 'Harbour', 'Plum'];
+const STARS_COMP: Record<string, string> = { field: 'Field', plani: 'Planisphere', horizon: 'Horizon' };
+export const starsTraits: TraitsFn = (id) => {
+  const c = C.castEphemeris(id);
+  return { Sky: SKY[c.si], Composition: STARS_COMP[c.comp] };
+};
+export const starsSchema: TraitSchema = {
+  traits: [
+    { name: 'Sky', values: SKY },
+    { name: 'Composition', values: ['Field', 'Planisphere', 'Horizon'] },
+  ],
+};
+export const renderStars = blit(C.ephemeris, starsTraits);
+export const STARS_ASPECTS = [0.81, 1.24, 1] as const;
+
+/* ── Thank You, No Refunds ──────────────────────────────────────────────── */
+const STOCK = ['White', 'Canary', 'Pink', 'Blue', 'Mint', 'Violet Ink'];
+export const refundsTraits: TraitsFn = (id) => {
+  const c = C.castReceipt(id);
+  const width = c.W === 380 ? 'Slim' : c.W === 920 ? 'Wide' : 'Standard';
+  const items = c.n <= 7 ? 'Short' : c.n <= 14 ? 'Standard' : 'Long';
+  return { Width: width, Stock: STOCK[c.si], Items: items };
+};
+export const refundsSchema: TraitSchema = {
+  traits: [
+    { name: 'Width', values: ['Slim', 'Standard', 'Wide'] },
+    { name: 'Stock', values: STOCK },
+    { name: 'Items', values: ['Short', 'Standard', 'Long'] },
+  ],
+};
+export const renderRefunds = blit(C.receipt, refundsTraits);
+export const REFUNDS_ASPECTS = [0.42, 0.3, 0.6] as const;
+
+/* ── Elevations ─────────────────────────────────────────────────────────── */
+const WINDOW: Record<string, string> = {
+  '2pane': 'Two-Pane', arch: 'Arched', grid4: 'Four-Grid', strip: 'Strip',
+};
+export const elevationsTraits: TraitsFn = (id) => {
+  const c = C.castFacade(id);
+  const storeys = c.floors <= 5 ? 'Low' : c.floors <= 8 ? 'Mid' : 'High';
+  return { Sheet: c.mode === 'ink' ? 'Ink' : 'Blueprint', Storeys: storeys, Window: WINDOW[c.style] };
+};
+export const elevationsSchema: TraitSchema = {
+  traits: [
+    { name: 'Sheet', values: ['Ink', 'Blueprint'] },
+    { name: 'Storeys', values: ['Low', 'Mid', 'High'] },
+    { name: 'Window', values: ['Two-Pane', 'Arched', 'Four-Grid', 'Strip'] },
+  ],
+};
+export const renderElevations = blit(C.facade, elevationsTraits);
+export const ELEVATIONS_ASPECTS = [0.8, 1, 1.3] as const;
+
+/* ── Dyed In The Wool ───────────────────────────────────────────────────── */
+const DYELOT = ['Indigo & Madder', 'Electric Orchid', 'Signal Gold', 'Madder & Sand', 'Acid Moss', 'Plum Ember', 'Harbour Gold', 'Rose Acid', 'Bone & Flame', 'Night Signal'];
+export const woolTraits: TraitsFn = (id) => {
+  const c = C.castLoom(id);
+  const thread = c.T <= 6 ? 'Fine' : c.T === 8 ? 'Standard' : 'Chunky';
+  return { 'Dye Lot': DYELOT[c.pi2], Motif: cap(c.motif), Weave: c.twill ? 'Twill' : 'Plain', Thread: thread };
+};
+export const woolSchema: TraitSchema = {
+  traits: [
+    { name: 'Dye Lot', values: DYELOT },
+    { name: 'Motif', values: ['Diamond', 'Chevron', 'Band', 'Block'] },
+    { name: 'Weave', values: ['Plain', 'Twill'] },
+    { name: 'Thread', values: ['Fine', 'Standard', 'Chunky'] },
+  ],
+};
+export const renderWool = blit(C.loom, woolTraits);
+export const WOOL_ASPECTS = [0.8, 1.1, 0.93] as const;
+
+/* ── Noise From Below ───────────────────────────────────────────────────── */
+export const belowTraits: TraitsFn = (id) => {
+  const c = C.castCore(id);
+  return { Columns: c.two ? 'Twin' : 'Single', Lamp: c.uv ? 'UV' : 'Field' };
+};
+export const belowSchema: TraitSchema = {
+  traits: [
+    { name: 'Columns', values: ['Single', 'Twin'] },
+    { name: 'Lamp', values: ['Field', 'UV'] },
+  ],
+};
+export const renderBelow = blit(C.core, belowTraits);
+export const BELOW_ASPECTS = [0.4, 0.63] as const;
+
+/* ── Letters Never Sent ─────────────────────────────────────────────────── */
+const FIELD = ['Crimson', 'Cobalt', 'Green', 'Orange', 'Violet', 'Magenta', 'Amber', 'Teal'];
+const FRAME: Record<string, string> = { double: 'Double', thick: 'Bold', dash: 'Dashed' };
+const STAMP_MOTIF: Record<string, string> = {
+  peak: 'Peak', ship: 'Ship', beacon: 'Beacon', bird: 'Bird', cog: 'Cog', wave: 'Wave', star2: 'Star', tree: 'Pine',
+};
+export const lettersTraits: TraitsFn = (id) => {
+  const c = C.castStamp(id);
+  return { Field: FIELD[c.fi], Frame: FRAME[c.fr], Motif: STAMP_MOTIF[c.motif] };
+};
+export const lettersSchema: TraitSchema = {
+  traits: [
+    { name: 'Field', values: FIELD },
+    { name: 'Frame', values: ['Double', 'Bold', 'Dashed'] },
+    { name: 'Motif', values: ['Peak', 'Ship', 'Beacon', 'Bird', 'Cog', 'Wave', 'Star', 'Pine'] },
+  ],
+};
+export const renderLetters = blit(C.stamp, lettersTraits);
+export const LETTERS_ASPECTS = [0.83, 1.21, 1] as const;
+
+/* ── Crosstown ──────────────────────────────────────────────────────────── */
+export const crosstownTraits: TraitsFn = (id) => {
+  const c = C.castTransit(id);
+  return {
+    Paper: c.dark ? 'Night' : 'Day',
+    Pitch: c.G > 40 ? 'Sector' : 'Network',
+    Lines: String(c.nLines),
+  };
+};
+export const crosstownSchema: TraitSchema = {
+  traits: [
+    { name: 'Paper', values: ['Day', 'Night'] },
+    { name: 'Pitch', values: ['Network', 'Sector'] },
+    { name: 'Lines', values: ['3', '4', '5', '6', '7'] },
+  ],
+};
+export const renderCrosstown = blit(C.transit, crosstownTraits);
+export const CROSSTOWN_ASPECTS = [1.24, 0.81, 1] as const;
+
+/* ── Average Contents Forty ─────────────────────────────────────────────── */
+const MB_SCHEME = ['Sky', 'Mint', 'Blush', 'Sage', 'Snow', 'Lavender', 'Pink', 'Ice', 'Bone', 'Navy'];
+export const contentsTraits: TraitsFn = (id) => {
+  const c = C.castMatchbook(id);
+  return { Format: c.fmt.W === 840 ? 'Tall' : 'Wide', Scheme: MB_SCHEME[c.si] };
+};
+export const contentsSchema: TraitSchema = {
+  traits: [
+    { name: 'Format', values: ['Tall', 'Wide'] },
+    { name: 'Scheme', values: MB_SCHEME },
+  ],
+};
+export const renderContents = blit(C.matchbook, contentsTraits);
+export const CONTENTS_ASPECTS = [0.76, 1.31] as const;
+
+/* ── Crossette ──────────────────────────────────────────────────────────── */
+const PYRO_FMT: Record<number, string> = { 1000: 'Plate', 1240: 'Wide', 1050: 'Square', 700: 'Tall', 1500: 'Panorama' };
+const GROUND: Record<string, string> = { hills: 'Hills', city: 'City', water: 'Water', none: 'Open Sky' };
+export const crossetteTraits: TraitsFn = (id) => {
+  const c = C.castPyro(id);
+  return { Format: PYRO_FMT[c.fmt.W], Ground: GROUND[c.ground], Shells: String(c.nb) };
+};
+export const crossetteSchema: TraitSchema = {
+  traits: [
+    { name: 'Format', values: ['Plate', 'Wide', 'Square', 'Tall', 'Panorama'] },
+    { name: 'Ground', values: ['Hills', 'City', 'Water', 'Open Sky'] },
+    { name: 'Shells', values: ['1', '2', '3', '4', '5'] },
+  ],
+};
+export const renderCrossette = blit(C.pyro, crossetteTraits);
+export const CROSSETTE_ASPECTS = [0.81, 1.38, 1, 0.55, 2.14] as const;
+
+/* ── Guaranteed To Grow ─────────────────────────────────────────────────── */
+const PK_SCHEME = ['Amber', 'Sky', 'Coral', 'Green', 'Powder', 'Lavender', 'Night', 'Aqua'];
+export const growTraits: TraitsFn = (id) => {
+  const c = C.castPacket(id);
+  return { Plant: cap(c.plant), Scheme: PK_SCHEME[c.si] };
+};
+export const growSchema: TraitSchema = {
+  traits: [
+    { name: 'Plant', values: ['Radish', 'Carrot', 'Sunflower', 'Tulip', 'Tomato', 'Peas', 'Chili', 'Beet', 'Corn'] },
+    { name: 'Scheme', values: PK_SCHEME },
+  ],
+};
+export const renderGrow = blit(C.packet, growTraits);
+export const GROW_ASPECTS = [0.76] as const;
+
+/* ── Wait Till Next Year ────────────────────────────────────────────────── */
+const WALL = ['Charcoal', 'Walnut', 'Forest', 'Sky', 'Fog', 'Pine', 'Navy', 'Oxblood', 'Mist', 'Wine'];
+const FELT = ['Crimson', 'Royal', 'Green', 'Orange', 'Violet', 'Steel', 'Berry', 'Gold', 'Black'];
+export const nextYearTraits: TraitsFn = (id) => {
+  const c = C.castPennant(id);
+  return { Hang: c.vert ? 'Drop' : 'Banner', Wall: WALL[c.bi], Felt: FELT[c.fi] };
+};
+export const nextYearSchema: TraitSchema = {
+  traits: [
+    { name: 'Hang', values: ['Banner', 'Drop'] },
+    { name: 'Wall', values: WALL },
+    { name: 'Felt', values: FELT },
+  ],
+};
+export const renderNextYear = blit(C.pennant, nextYearTraits);
+export const NEXTYEAR_ASPECTS = [2, 0.56] as const;
+
+/* ── Every Light In Town ────────────────────────────────────────────────── */
+const CUT: Record<string, string> = { flat: 'Disc', sleeve: 'Sleeve', crop: 'Close-Up', stack: 'Stack' };
+const BACKDROP = ['Aqua', 'Cyan', 'Orange', 'Charcoal', 'Magenta', 'Green', 'Gold', 'Pine', 'Wine', 'Sky'];
+export const everyLightTraits: TraitsFn = (id) => {
+  const c = C.castFortyfive(id);
+  return { Cut: CUT[c.mode], Backdrop: BACKDROP[c.bi] };
+};
+export const everyLightSchema: TraitSchema = {
+  traits: [
+    { name: 'Cut', values: ['Disc', 'Sleeve', 'Close-Up', 'Stack'] },
+    { name: 'Backdrop', values: BACKDROP },
+  ],
+};
+export const renderEveryLight = blit(C.fortyfive, everyLightTraits);
+export const EVERYLIGHT_ASPECTS = [1, 0.82, 1.31] as const;
+
+/* ── Nobody's Swimming ──────────────────────────────────────────────────── */
+const WATER = ['Lake', 'Tide', 'Sky', 'Deep', 'Teal'];
+const POOL: Record<string, string> = {
+  rect: 'Rectangle', kidney: 'Kidney', ell: 'L-Shape', lap: 'Lap', round: 'Round',
+};
+export const swimmingTraits: TraitsFn = (id) => {
+  const c = C.castPoolside(id);
+  return { Ground: cap(c.base), Water: WATER[c.wi], Pool: POOL[c.kind] };
+};
+export const swimmingSchema: TraitSchema = {
+  traits: [
+    { name: 'Ground', values: ['Lawn', 'Deck'] },
+    { name: 'Water', values: WATER },
+    { name: 'Pool', values: ['Rectangle', 'Kidney', 'L-Shape', 'Lap', 'Round'] },
+  ],
+};
+export const renderSwimming = blit(C.poolside, swimmingTraits);
+export const SWIMMING_ASPECTS = [0.81, 1.24, 1] as const;
+
+/* ── Between The Lines ──────────────────────────────────────────────────── */
+const PLATES: Record<string, string> = {
+  rings: 'Rings × Rings', ringfan: 'Rings × Fan', fans: 'Fan × Fan', ringgrid: 'Rings × Grid',
+};
+const BTL_SCHEME = ['Cyan/Magenta', 'Acid/Violet', 'Red/Blue', 'Gold/Rose', 'Mint/Orange', 'Green/Magenta', 'Teal/Gold', 'Rose/Acid', 'Orange/Navy'];
+export const betweenTraits: TraitsFn = (id) => {
+  const c = C.castInterference(id);
+  return { Plates: PLATES[c.combo], Scheme: BTL_SCHEME[c.si] };
+};
+export const betweenSchema: TraitSchema = {
+  traits: [
+    { name: 'Plates', values: ['Rings × Rings', 'Rings × Fan', 'Fan × Fan', 'Rings × Grid'] },
+    { name: 'Scheme', values: BTL_SCHEME },
+  ],
+};
+export const renderBetween = blit(C.interference, betweenTraits);
+export const BETWEEN_ASPECTS = [0.81, 1, 1.24] as const;
+
+/* ── Loud On Cheap Paper ────────────────────────────────────────────────── */
+const SCREEN: Record<string, string> = { bayer: 'Bayer', dots: 'Dots', lines: 'Lines', diag: 'Diagonal' };
+const DITHER_COMP: Record<string, string> = {
+  orb: 'Orb', twin: 'Twin', horizon: 'Horizon', diag: 'Diagonal', well: 'Well', bars: 'Bars', rings: 'Rings', wave: 'Wave',
+};
+const RAMP = ['Ember', 'Reef', 'Orchid', 'Jade', 'Glacier', 'Rust', 'Harbour', 'Punch', 'Field', 'Berry'];
+export const cheapPaperTraits: TraitsFn = (id) => {
+  const c = C.castDither(id);
+  return { Screen: SCREEN[c.style], Composition: DITHER_COMP[c.comp], Ramp: RAMP[c.ri] };
+};
+export const cheapPaperSchema: TraitSchema = {
+  traits: [
+    { name: 'Screen', values: ['Bayer', 'Dots', 'Lines', 'Diagonal'] },
+    { name: 'Composition', values: ['Orb', 'Twin', 'Horizon', 'Diagonal', 'Well', 'Bars', 'Rings', 'Wave'] },
+    { name: 'Ramp', values: RAMP },
+  ],
+};
+export const renderCheapPaper = blit(C.dither, cheapPaperTraits);
+export const CHEAPPAPER_ASPECTS = [0.81, 1.24, 1, 0.61] as const;
+
+/* ── Scissors, No Plan ──────────────────────────────────────────────────── */
+const CUT_GROUND = ['Royal', 'Ice', 'Crimson', 'Charcoal', 'Green', 'Amber', 'Snow', 'Plum', 'Navy', 'Pink'];
+export const scissorsTraits: TraitsFn = (id) => {
+  const c = C.castCutout(id);
+  return { Ground: CUT_GROUND[c.si], Layout: cap(c.comp) };
+};
+export const scissorsSchema: TraitSchema = {
+  traits: [
+    { name: 'Ground', values: CUT_GROUND },
+    { name: 'Layout', values: ['Anchor', 'Scatter', 'Totem'] },
+  ],
+};
+export const renderScissors = blit(C.cutout, scissorsTraits);
+export const SCISSORS_ASPECTS = [0.81, 1.24, 1] as const;
+
+/* ── Hard Water ─────────────────────────────────────────────────────────── */
+export const hardWaterTraits: TraitsFn = (id) => {
+  const c = C.castHardwater(id);
+  const bands = c.nb <= 6 ? 'Sparse' : c.nb <= 11 ? 'Stacked' : 'Pinstripe';
+  return { Flow: c.vert ? 'Column' : 'Horizon', Bands: bands };
+};
+export const hardWaterSchema: TraitSchema = {
+  traits: [
+    { name: 'Flow', values: ['Horizon', 'Column'] },
+    { name: 'Bands', values: ['Sparse', 'Stacked', 'Pinstripe'] },
+  ],
+};
+export const renderHardWater = blit(C.hardwater, hardWaterTraits);
+export const HARDWATER_ASPECTS = [0.81, 1.38, 1] as const;
+
+/* ── Turf War ───────────────────────────────────────────────────────────── */
+const CYCLE = ['Pink Gold', 'Electric', 'Ember Teal', 'Meadow', 'Violet Orange', 'Gold Crimson'];
+export const turfWarTraits: TraitsFn = (id) => {
+  const c = C.castTurfwar(id);
+  return { Factions: String(c.k), Cycle: CYCLE[c.ai] };
+};
+export const turfWarSchema: TraitSchema = {
+  traits: [
+    { name: 'Factions', values: ['8', '9', '10', '11', '12', '13', '14', '15'] },
+    { name: 'Cycle', values: CYCLE },
+  ],
+};
+export const renderTurfWar = blit(C.turfwar, turfWarTraits);
+export const TURFWAR_ASPECTS = [0.81, 1, 1.24] as const;
+
+/* ── Avalanche ──────────────────────────────────────────────────────────── */
+export const avalancheTraits: TraitsFn = (id) => {
+  const c = C.castAvalanche(id);
+  const grains = c.grains < 40000 ? 'Light' : c.grains < 56000 ? 'Medium' : 'Heavy';
+  return { Piles: c.two ? 'Two' : 'One', Grains: grains };
+};
+export const avalancheSchema: TraitSchema = {
+  traits: [
+    { name: 'Piles', values: ['One', 'Two'] },
+    { name: 'Grains', values: ['Light', 'Medium', 'Heavy'] },
+  ],
+};
+export const renderAvalanche = blit(C.avalanche, avalancheTraits);
+export const AVALANCHE_ASPECTS = [1] as const;
