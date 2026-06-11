@@ -208,8 +208,8 @@ export default function HomePageBody() {
             <Hero
                 ariaLabel="Price Discussion"
                 titleRow={
-                    <h1 className="project-title">
-                        <span>PD</span>
+                    <h1 className="project-title home-title">
+                        <span>Price Discussion</span>
                         <PriceDaySlot />
                     </h1>
                 }

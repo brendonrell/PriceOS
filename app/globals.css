@@ -6787,6 +6787,9 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 @media (max-width: 600px) {
     .home-carousel-head  { padding: 0 20px; }
     .home-carousel-track { padding: 4px 20px 10px; scroll-padding-left: 20px; }
+    /* The full "Price Discussion" title owns the line on phones — the
+       PriceDay date stamp is hidden (home hero only). */
+    .home-title .project-date-wrap { display: none; }
 }
 /* Shuffle tab — randomized output grid + re-roll button. */
 .home-shuffle-bar {
