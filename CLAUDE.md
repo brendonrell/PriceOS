@@ -116,6 +116,12 @@ contract that keeps it working:
   (with a one-line why), add what got queued, comment what changed scope. Never
   let the queue live only in WIP/chat — that's what caused the month of drift
   cleaned up 2026-06-11. End-of-session order: clean tree → ClickUp → WIP last.
+  **Inbox convention (Brendon, 2026-06-11):** anything needing Brendon's action
+  gets all three — assigned to him + a due date + an **assigned comment** on the
+  task. Assigned comments and due-dated items are what reliably land in his
+  ClickUp Inbox; bare task assignment does not surface. Also: the free plan's
+  **list cap is reached** — never create new lists; reuse/rename (02's "Blocked"
+  became "Ideas", the idea bank — Backlog = committed work only).
 - **"WRAP UP" — the defined end-of-chat ritual (Brendon, 2026-06-08).** When
   Brendon says **"wrap up"** (this chat / this session), that one command IS his
   approval to do these IN ORDER:
