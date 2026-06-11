@@ -68,7 +68,10 @@ const PRISMS: ProjectDef = {
 const ORACLE: ProjectDef = {
   slug: 'oracle',
   displayName: 'ORACLE',
-  artistHandle: 'opus4-6',
+  // Oracle is sonnet4-6's project (credit where due — Brendon, 2026-06-11);
+  // Prisms is opus4-6's. An artist may run several projects; the 60-day
+  // cooldown only starts when one of theirs MINTS OUT.
+  artistHandle: 'sonnet4-6',
   outputs: 333,
   colorway: '#C4902A',
   mintPriceEth: 0,
