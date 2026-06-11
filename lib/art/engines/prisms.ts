@@ -1,8 +1,10 @@
 /*
- * Prisms art engine — a fresh, standalone gradient Project. NOTHING here is
- * inherited from the old Kiki-palette placeholder; the palettes + traits below
- * are authored for PD (Brendon delegated Prisms art: "your own palettes/traits,
- * tasteful but colourful, not rainbow, with real aspect-ratio variance").
+ * Prisms art engine — a fresh, standalone gradient Project. (KIKI is PD's
+ * GENESIS PROJECT — Brendon's own art project, set aside for now, living in
+ * the kiki-genart repo. Early Prisms builds borrowed placeholder palettes
+ * from it; all of that is gone.) The palettes + traits below are authored for
+ * PD (Brendon delegated Prisms art: "your own palettes/traits, tasteful but
+ * colourful, not rainbow, with real aspect-ratio variance").
  *
  * Each Output is a multi-stop gradient (linear / radial / conic) in one curated
  * palette, at one of several aspect ratios. Deterministic in tokenId via the

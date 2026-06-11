@@ -65,7 +65,8 @@ import { useToast } from './ToastContext';
 
 /* A filter category is now any string: the active Project's trait names
    (Palette, Flow, …, Fate — supplied by the registry schema, no longer
-   hardcoded to Kiki's Layer/Mineral/Fate) plus the fixed feed/network
+   hardcoded to the trait names of KIKI, PD's genesis project — Brendon's
+   own, set aside for now) plus the fixed feed/network
    specials ('Network', 'Breadcrumb', 'Event', 'Market'). Sets are created
    lazily as values are toggled, so TraitsContext needs no knowledge of any
    one Project's schema. */

@@ -316,8 +316,9 @@ export default function TraitsUI({
     const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
 
-    /* Trait pills are driven by the ACTIVE Project's schema (registry),
-       not hardcoded Kiki categories. Fate is pinned separately (icon pill),
+    /* Trait pills are driven by the ACTIVE Project's schema (registry), not
+       hardcoded to any one Project's trait names (the old hardcoding was to
+       KIKI, PD's genesis project). Fate is pinned separately (icon pill),
        so it's excluded from the dynamic L1 row. The fixed network/feed/market
        specials come from L2_DICT; the feed-mode 'Traits' wrapper is rebuilt
        from the Project's trait names. */
