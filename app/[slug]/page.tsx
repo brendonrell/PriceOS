@@ -17,6 +17,7 @@ import {
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
 import { getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
@@ -63,11 +64,22 @@ export default async function SlugRootPage({ params }: Props) {
     initialHoldings = [];
   }
 
+  // Artist badge — whitelist + cooldown status from the allowlist (the sim
+  // stand-in for the on-chain whitelist). Best-effort: a lookup error means
+  // no badge, never a broken profile.
+  let artistStatus: Awaited<ReturnType<typeof getArtistStatus>> = null;
+  try {
+    artistStatus = await getArtistStatus(initialUser.address);
+  } catch {
+    artistStatus = null;
+  }
+
   return (
     <ProfilePageBody
       handle={r.handle}
       initialUser={initialUser}
       initialHoldings={initialHoldings ?? []}
+      artistStatus={artistStatus}
     />
   );
 }

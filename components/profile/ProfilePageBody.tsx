@@ -85,10 +85,12 @@ function ProfilePageBodyInner({
     handle,
     initialUser,
     initialHoldings,
+    artistStatus,
 }: {
     handle: string;
     initialUser: UserProfileData;
     initialHoldings: Holding[];
+    artistStatus: 'active' | 'cooldown' | null;
 }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
@@ -462,7 +464,17 @@ function ProfilePageBodyInner({
                     <h1 className="project-title">
                         <span>
                             @{displayHandle}
-                            <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
+                            {/* Artist badge — whitelisted wallets only (allowlist = the sim
+                                stand-in for the on-chain whitelist). ☼ active, ☽ in the
+                                60-day post-mint cooldown. Non-artists get no tag (the old
+                                ✺ placeholder showed on every profile). */}
+                            {artistStatus && (
+                                <span
+                                    className="artist-tag"
+                                    aria-label="artist"
+                                    title={artistStatus === 'cooldown' ? 'Artist — in cooldown' : 'Artist — active'}
+                                >{(artistStatus === 'cooldown' ? '☽' : '☼') + '\uFE0E'}</span>
+                            )}
                         </span>
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
@@ -849,10 +861,12 @@ export default function ProfilePageBody({
     handle,
     initialUser,
     initialHoldings,
+    artistStatus = null,
 }: {
     handle: string;
     initialUser: UserProfileData;
     initialHoldings: Holding[];
+    artistStatus?: 'active' | 'cooldown' | null;
 }) {
     return (
         <TraitsProvider>
@@ -860,6 +874,7 @@ export default function ProfilePageBody({
                 handle={handle}
                 initialUser={initialUser}
                 initialHoldings={initialHoldings}
+                artistStatus={artistStatus}
             />
         </TraitsProvider>
     );

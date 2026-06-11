@@ -2005,6 +2005,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-row.is-pinned { background: rgba(0, 0, 0, 0.05); }
 
+/* /artists directory — whitelist status glyph (☼ active, ☽ cooldown) */
+.artists-page .artist-status { opacity: 0.75; font-size: 14px; line-height: 1; }
+
 .artist-name-txt { opacity: 1; }
 
 .artist-pin-icon {
