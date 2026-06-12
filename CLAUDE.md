@@ -200,6 +200,17 @@ never `TO public`.
   the real bug. One cohesive batch per chat, scope-guarded — unless Brendon says
   "fix everything," then bundle.
 
+> **IDEAS ARE NOT A GO-AHEAD. Hard rule (Brendon, 2026-06-12 — after two
+> overreaches in one day).** When Brendon asks for ideas, options, or
+> opinions — or critiques one of the options — the deliverable is the LIST,
+> full stop. Do **NOT** write code, scaffold, or "get a head start" on any
+> option, and never treat a question about an option ("what's that?") or a
+> constraint ("we can't be biased") as picking one. Build starts ONLY when
+> Brendon explicitly selects an option or says build/go. The day's failures
+> that birthed this: an install pill built off a clarifying question, and a
+> CTA build started off a critique of the options. Discussion mode and build
+> mode are different modes — never switch without his word.
+
 > **FIX THE NAMED BUG, NOTHING ELSE. Hard rule (Brendon, 2026-06-08 — learned
 > the hard way, do NOT repeat).** When the task is "fix X," you fix **X and only
 > X.** You do **NOT** remove, delete, rename, refactor, restyle, shorten, or
