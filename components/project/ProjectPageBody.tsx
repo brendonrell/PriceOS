@@ -68,6 +68,7 @@ import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import {
@@ -303,6 +304,41 @@ function ProjectPageBodyInner() {
         },
     });
     const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive } = useTraits();
+    const { siweAddress } = useAuth();
+
+    /* My Network — REAL filter data (Brendon 2026-06-11). The viewer's
+       follow graph (handles + addresses, lowercased) feeds Mutuals /
+       Following / Followers; Top Holders and New Wallets derive from the
+       reconciled outputs below. */
+    const [netSets, setNetSets] = useState<{ followers: Set<string>; following: Set<string> }>(
+        { followers: new Set(), following: new Set() },
+    );
+    useEffect(() => {
+        if (!siweAddress) { setNetSets({ followers: new Set(), following: new Set() }); return; }
+        let cancelled = false;
+        fetch('/api/follows/' + siweAddress.toLowerCase(), { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !d) return;
+                const norm = (arr: unknown) => new Set(
+                    (Array.isArray(arr) ? (arr as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, '')),
+                );
+                setNetSets({ followers: norm(d.followers), following: norm(d.following) });
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+
+    /* Top 5 holders of THIS project by held count (reconciled owners). */
+    const topHolders = useMemo(() => {
+        const counts = new Map<string, number>();
+        project.outputs.forEach((m) => {
+            const a = (m.ownerFull || '').toLowerCase();
+            if (a) counts.set(a, (counts.get(a) ?? 0) + 1);
+        });
+        return new Set([...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map((e) => e[0]));
+    }, [project.outputs, project.totalOutputs]);
+
     const [activeTab, setActiveTab] = useState<ProjectTab>(() => {
         try {
             const saved = window.localStorage.getItem('pd_project_tab');
@@ -592,13 +628,23 @@ function ProjectPageBodyInner() {
                     continue;
                 }
                 if (cat === 'Network') {
+                    // REAL My Network filtering (Brendon 2026-06-11).
+                    // Owner matches by wallet address OR handle so the
+                    // follow graph (handle-keyed) and holders (address-
+                    // keyed) both resolve.
+                    const ownerAddr = (meta.ownerFull || '').toLowerCase();
+                    const ownerHandle = meta.ownerDisplay.replace(/^@/, '').toLowerCase();
+                    const me = siweAddress ? siweAddress.toLowerCase() : null;
+                    const inSet = (s2: Set<string>) => s2.has(ownerAddr) || s2.has(ownerHandle);
                     let netMatch = false;
-                    if (set.has('Me') && meta.isOwnedByBrendon) netMatch = true;
-                    // Future-proof: any non-'Me' Network value would compare
-                    // against a Network trait; the mock has no such trait
-                    // today, so non-'Me' selections never match. Sim parity
-                    // (sim 8705) — when Network L2 lands, add the trait
-                    // dimension here and the loop handles it.
+                    if (set.has('Me') && me && ownerAddr === me) netMatch = true;
+                    if (!netMatch && set.has('⚯ Following') && inSet(netSets.following)) netMatch = true;
+                    if (!netMatch && set.has('⚬ Followers') && inSet(netSets.followers)) netMatch = true;
+                    if (!netMatch && set.has('⚭ Mutuals')
+                        && inSet(netSets.following) && inSet(netSets.followers)) netMatch = true;
+                    if (!netMatch && set.has('Top Holders') && topHolders.has(ownerAddr)) netMatch = true;
+                    if (!netMatch && set.has('New Wallets') && meta.ownerCreatedAt
+                        && (Date.now() - new Date(meta.ownerCreatedAt).getTime()) < 30 * 86400e3) netMatch = true;
                     if (!netMatch) return false;
                     continue;
                 }
@@ -678,7 +724,7 @@ function ProjectPageBodyInner() {
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive]);
+    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive, siweAddress, netSets, topHolders]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price

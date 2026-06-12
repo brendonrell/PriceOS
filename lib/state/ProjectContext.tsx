@@ -31,6 +31,9 @@ const EMPTY_STATS: ProjectStats = { collectors: 0, volume_eth: '0', floor_eth: n
 export interface OutputMeta {
     ownerDisplay: string;
     ownerFull: string;
+    /** Owner account creation ISO timestamp — null until the /outputs
+        reconcile lands (feeds the My Network 'New Wallets' filter). */
+    ownerCreatedAt: string | null;
     price: string | null;
     isOwnedByBrendon: boolean;
     /** Full traits (artist traits + Fate), keyed by trait name. */
@@ -83,6 +86,7 @@ export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
     return {
         ownerDisplay: isMine ? '@brendon' : '@opus4-6',
         ownerFull: isMine ? BRENDON_ADDR : OPUS_ADDR,
+        ownerCreatedAt: null,
         price,
         isOwnedByBrendon: isMine,
         traits: outputTraits(slug, id),
@@ -133,6 +137,7 @@ interface OutputOwnerDTO {
     token_id: number;
     owner: string;
     owner_handle: string | null;
+    owner_created_at?: string | null;
     list_price_eth: string | null;
 }
 
@@ -190,6 +195,7 @@ export function ProjectProvider({
                                 ...meta,
                                 ownerDisplay,
                                 ownerFull: o.owner ?? meta.ownerFull,
+                                ownerCreatedAt: o.owner_created_at ?? null,
                                 isOwnedByBrendon: addr === BRENDON_ADDR,
                                 price: o.list_price_eth ? `${o.list_price_eth} ETH` : null,
                             });

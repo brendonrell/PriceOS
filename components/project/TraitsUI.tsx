@@ -59,6 +59,7 @@ import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
 import { fullTraitSchema } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
@@ -322,7 +323,7 @@ export default function TraitsUI({
        so it's excluded from the dynamic L1 row. The fixed network/feed/market
        specials come from L2_DICT; the feed-mode 'Traits' wrapper is rebuilt
        from the Project's trait names. */
-    const { slug: projectSlug } = useProject();
+    const { slug: projectSlug, totalOutputs } = useProject();
     const projectTraits = useMemo(
         () => fullTraitSchema(projectSlug).traits,
         [projectSlug],
@@ -351,6 +352,15 @@ export default function TraitsUI({
         );
         return m;
     }, [projectTraits]);
+    /* Fate pills are REAL (Brendon 2026-06-11): only the fates that exist
+       in the MINTED set render as leaves — deterministic outputFate over
+       1..mintedCount, in canonical FATE_VALUES order. Nothing minted →
+       no fate leaves. This replaces the sim's static 8-omen placeholder. */
+    const mintedFates = useMemo(() => {
+        const present = new Set<string>();
+        for (let id = 1; id <= totalOutputs; id++) present.add(outputFate(projectSlug, id));
+        return FATE_VALUES.filter((v) => present.has(v));
+    }, [projectSlug, totalOutputs]);
     const L3_FLAT_POOL_DYN = useMemo(() => {
         const m: Record<string, readonly string[]> = {
             ...(L3_FLAT_POOL as Record<string, readonly string[]>),
@@ -358,8 +368,9 @@ export default function TraitsUI({
         for (const t of projectTraits) {
             if (!(t.subtraits && t.subtraits.length)) m[t.name] = t.values;
         }
+        m['Fate'] = mintedFates;
         return m;
-    }, [projectTraits]);
+    }, [projectTraits, mintedFates]);
 
     /* Wraps cycleSort with a sim-parity toast (sim 8361). Computes the
        NEXT sort key before calling cycleSort so the toast reflects what

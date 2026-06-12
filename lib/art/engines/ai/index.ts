@@ -51,7 +51,11 @@ export const faithTraits: TraitsFn = (id) => {
 export const faithSchema: TraitSchema = {
   traits: [
     { name: 'Nation', values: ['Engravers', 'Letterpress', 'Grids', 'Hatchers'] },
-    { name: 'Denomination', values: ['1', '2', '5', '10', '20', '50', '100', '500', '1000'] },
+    { name: 'Denomination', values: ['1', '2', '5', '10', '20', '50', '100', '500', '1000'],
+      subtraits: [
+        { name: 'Pocket', values: ['1', '2', '5', '10'] },
+        { name: 'Vault', values: ['20', '50', '100', '500', '1000'] },
+      ] },
     { name: 'Issuer', values: BANKS },
   ],
 };
@@ -70,7 +74,11 @@ export const delistedTraits: TraitsFn = (id) => {
 export const delistedSchema: TraitSchema = {
   traits: [
     { name: 'Chart', values: ['Candles', 'Line', 'Area', 'Phone', 'Bars'] },
-    { name: 'Palette', values: TAPE_PAL },
+    { name: 'Palette', values: TAPE_PAL,
+      subtraits: [
+        { name: 'Screen', values: ['Terminal', 'Amber', 'Vapor', 'Acid', 'Midnight', 'Harbour'] },
+        { name: 'Paper', values: ['Print'] },
+      ] },
   ],
 };
 export const renderDelisted = blit(C.tape, delistedTraits);
@@ -101,7 +109,11 @@ export const starsTraits: TraitsFn = (id) => {
 };
 export const starsSchema: TraitSchema = {
   traits: [
-    { name: 'Sky', values: SKY },
+    { name: 'Sky', values: SKY,
+      subtraits: [
+        { name: 'Night', values: ['Midnight', 'Violet', 'Pine', 'Harbour', 'Plum'] },
+        { name: 'Day', values: ['Daylight'] },
+      ] },
     { name: 'Composition', values: ['Field', 'Planisphere', 'Horizon'] },
   ],
 };
@@ -119,7 +131,11 @@ export const refundsTraits: TraitsFn = (id) => {
 export const refundsSchema: TraitSchema = {
   traits: [
     { name: 'Width', values: ['Slim', 'Standard', 'Wide'] },
-    { name: 'Stock', values: STOCK },
+    { name: 'Stock', values: STOCK,
+      subtraits: [
+        { name: 'Plain', values: ['White', 'Violet Ink'] },
+        { name: 'Tinted', values: ['Canary', 'Pink', 'Blue', 'Mint'] },
+      ] },
     { name: 'Items', values: ['Short', 'Standard', 'Long'] },
   ],
 };
@@ -154,7 +170,12 @@ export const woolTraits: TraitsFn = (id) => {
 };
 export const woolSchema: TraitSchema = {
   traits: [
-    { name: 'Dye Lot', values: DYELOT },
+    { name: 'Dye Lot', values: DYELOT,
+      subtraits: [
+        { name: 'Classic', values: ['Indigo & Madder', 'Madder & Sand', 'Bone & Flame'] },
+        { name: 'Electric', values: ['Electric Orchid', 'Acid Moss', 'Rose Acid', 'Night Signal'] },
+        { name: 'Royal', values: ['Signal Gold', 'Plum Ember', 'Harbour Gold'] },
+      ] },
     { name: 'Motif', values: ['Diamond', 'Chevron', 'Band', 'Block'] },
     { name: 'Weave', values: ['Plain', 'Twill'] },
     { name: 'Thread', values: ['Fine', 'Standard', 'Chunky'] },
@@ -189,9 +210,18 @@ export const lettersTraits: TraitsFn = (id) => {
 };
 export const lettersSchema: TraitSchema = {
   traits: [
-    { name: 'Field', values: FIELD },
+    { name: 'Field', values: FIELD,
+      subtraits: [
+        { name: 'Warm', values: ['Crimson', 'Orange', 'Amber', 'Magenta'] },
+        { name: 'Cool', values: ['Cobalt', 'Green', 'Violet', 'Teal'] },
+      ] },
     { name: 'Frame', values: ['Double', 'Bold', 'Dashed'] },
-    { name: 'Motif', values: ['Peak', 'Ship', 'Beacon', 'Bird', 'Cog', 'Wave', 'Star', 'Pine'] },
+    { name: 'Motif', values: ['Peak', 'Ship', 'Beacon', 'Bird', 'Cog', 'Wave', 'Star', 'Pine'],
+      subtraits: [
+        { name: 'Land', values: ['Peak', 'Pine', 'Cog'] },
+        { name: 'Sea', values: ['Ship', 'Beacon', 'Wave'] },
+        { name: 'Sky', values: ['Bird', 'Star'] },
+      ] },
   ],
 };
 export const renderLetters = blit(C.stamp, lettersTraits);
@@ -225,7 +255,12 @@ export const contentsTraits: TraitsFn = (id) => {
 export const contentsSchema: TraitSchema = {
   traits: [
     { name: 'Format', values: ['Tall', 'Wide'] },
-    { name: 'Scheme', values: MB_SCHEME },
+    { name: 'Scheme', values: MB_SCHEME,
+      subtraits: [
+        { name: 'Pale', values: ['Sky', 'Mint', 'Snow', 'Ice', 'Bone'] },
+        { name: 'Tinted', values: ['Blush', 'Sage', 'Lavender', 'Pink'] },
+        { name: 'Dark', values: ['Navy'] },
+      ] },
   ],
 };
 export const renderContents = blit(C.matchbook, contentsTraits);
@@ -240,7 +275,11 @@ export const crossetteTraits: TraitsFn = (id) => {
 };
 export const crossetteSchema: TraitSchema = {
   traits: [
-    { name: 'Format', values: ['Plate', 'Wide', 'Square', 'Tall', 'Panorama'] },
+    { name: 'Format', values: ['Plate', 'Wide', 'Square', 'Tall', 'Panorama'],
+      subtraits: [
+        { name: 'Upright', values: ['Plate', 'Square', 'Tall'] },
+        { name: 'Broad', values: ['Wide', 'Panorama'] },
+      ] },
     { name: 'Ground', values: ['Hills', 'City', 'Water', 'Open Sky'] },
     { name: 'Shells', values: ['1', '2', '3', '4', '5'] },
   ],
@@ -256,7 +295,12 @@ export const growTraits: TraitsFn = (id) => {
 };
 export const growSchema: TraitSchema = {
   traits: [
-    { name: 'Plant', values: ['Radish', 'Carrot', 'Sunflower', 'Tulip', 'Tomato', 'Peas', 'Chili', 'Beet', 'Corn'] },
+    { name: 'Plant', values: ['Radish', 'Carrot', 'Sunflower', 'Tulip', 'Tomato', 'Peas', 'Chili', 'Beet', 'Corn'],
+      subtraits: [
+        { name: 'Root', values: ['Radish', 'Carrot', 'Beet'] },
+        { name: 'Vine', values: ['Tomato', 'Peas', 'Chili'] },
+        { name: 'Bloom', values: ['Sunflower', 'Tulip', 'Corn'] },
+      ] },
     { name: 'Scheme', values: PK_SCHEME },
   ],
 };
@@ -273,7 +317,11 @@ export const nextYearTraits: TraitsFn = (id) => {
 export const nextYearSchema: TraitSchema = {
   traits: [
     { name: 'Hang', values: ['Banner', 'Drop'] },
-    { name: 'Wall', values: WALL },
+    { name: 'Wall', values: WALL,
+      subtraits: [
+        { name: 'Dark', values: ['Charcoal', 'Walnut', 'Forest', 'Pine', 'Navy', 'Oxblood', 'Wine'] },
+        { name: 'Light', values: ['Sky', 'Fog', 'Mist'] },
+      ] },
     { name: 'Felt', values: FELT },
   ],
 };
@@ -290,7 +338,11 @@ export const everyLightTraits: TraitsFn = (id) => {
 export const everyLightSchema: TraitSchema = {
   traits: [
     { name: 'Cut', values: ['Disc', 'Sleeve', 'Close-Up', 'Stack'] },
-    { name: 'Backdrop', values: BACKDROP },
+    { name: 'Backdrop', values: BACKDROP,
+      subtraits: [
+        { name: 'Bright', values: ['Aqua', 'Cyan', 'Orange', 'Magenta', 'Gold', 'Sky'] },
+        { name: 'Deep', values: ['Charcoal', 'Green', 'Pine', 'Wine'] },
+      ] },
   ],
 };
 export const renderEveryLight = blit(C.fortyfive, everyLightTraits);
@@ -309,7 +361,11 @@ export const swimmingSchema: TraitSchema = {
   traits: [
     { name: 'Ground', values: ['Lawn', 'Deck'] },
     { name: 'Water', values: WATER },
-    { name: 'Pool', values: ['Rectangle', 'Kidney', 'L-Shape', 'Lap', 'Round'] },
+    { name: 'Pool', values: ['Rectangle', 'Kidney', 'L-Shape', 'Lap', 'Round'],
+      subtraits: [
+        { name: 'Straight', values: ['Rectangle', 'L-Shape', 'Lap'] },
+        { name: 'Curved', values: ['Kidney', 'Round'] },
+      ] },
   ],
 };
 export const renderSwimming = blit(C.poolside, swimmingTraits);
@@ -347,7 +403,12 @@ export const cheapPaperSchema: TraitSchema = {
   traits: [
     { name: 'Screen', values: ['Bayer', 'Dots', 'Lines', 'Diagonal'] },
     { name: 'Composition', values: ['Orb', 'Twin', 'Horizon', 'Diagonal', 'Well', 'Bars', 'Rings', 'Wave'] },
-    { name: 'Ramp', values: RAMP },
+    { name: 'Ramp', values: RAMP,
+      subtraits: [
+        { name: 'Hot', values: ['Ember', 'Rust', 'Punch', 'Berry'] },
+        { name: 'Cool', values: ['Reef', 'Glacier', 'Harbour', 'Jade'] },
+        { name: 'Neon', values: ['Orchid', 'Field'] },
+      ] },
   ],
 };
 export const renderCheapPaper = blit(C.dither, cheapPaperTraits);
@@ -361,7 +422,11 @@ export const scissorsTraits: TraitsFn = (id) => {
 };
 export const scissorsSchema: TraitSchema = {
   traits: [
-    { name: 'Ground', values: CUT_GROUND },
+    { name: 'Ground', values: CUT_GROUND,
+      subtraits: [
+        { name: 'Loud', values: ['Royal', 'Crimson', 'Green', 'Amber', 'Plum', 'Navy', 'Pink'] },
+        { name: 'Quiet', values: ['Ice', 'Charcoal', 'Snow'] },
+      ] },
     { name: 'Layout', values: ['Anchor', 'Scatter', 'Totem'] },
   ],
 };

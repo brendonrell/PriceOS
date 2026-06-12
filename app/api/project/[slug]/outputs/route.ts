@@ -20,6 +20,9 @@ export interface OutputOwner {
   token_id: number;
   owner: string;
   owner_handle: string | null;
+  /** Owner account creation (users.created_at) — feeds the My Network
+      'New Wallets' filter client-side. Null when the wallet has no row. */
+  owner_created_at: string | null;
   list_price_eth: string | null;
 }
 
@@ -88,11 +91,13 @@ export async function GET(
     // Resolve handles for the (small) set of distinct owners.
     const addrs = [...new Set(holders.map((h) => h.owner_address.toLowerCase()))];
     const handleByAddr: Record<string, string | null> = {};
+    const createdByAddr: Record<string, string | null> = {};
     if (addrs.length > 0) {
-      const usersRes = await supabase.from('users').select('address, handle').in('address', addrs);
+      const usersRes = await supabase.from('users').select('address, handle, created_at').in('address', addrs);
       if (!usersRes.error) {
-        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null }[]) {
+        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null; created_at: string | null }[]) {
           handleByAddr[u.address.toLowerCase()] = u.handle ?? null;
+          createdByAddr[u.address.toLowerCase()] = u.created_at ?? null;
         }
       }
     }
@@ -127,6 +132,7 @@ export async function GET(
         token_id: Number(h.token_id),
         owner: h.owner_address,
         owner_handle: handleByAddr[h.owner_address.toLowerCase()] ?? null,
+        owner_created_at: createdByAddr[h.owner_address.toLowerCase()] ?? null,
         list_price_eth: priceByToken[String(h.token_id)] ?? null,
       }))
       .sort((a, b) => a.token_id - b.token_id);
