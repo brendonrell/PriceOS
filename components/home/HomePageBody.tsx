@@ -317,26 +317,27 @@ export default function HomePageBody() {
                     </div>
                 }
                 socialRow={
-                    /* Two fixed lines (Brendon, 2026-06-12): chips up top,
-                       "& X others" below — the row never reflows as chips
-                       of different widths flap through. */
+                    /* Two fixed lines, one chip per line (Brendon,
+                       2026-06-12): "Featuring [chip]" up top, "[chip] & X
+                       others" below — steady height while chips flap. */
                     <div className="hero-line collected-by-row info-line feat-rotator">
                         <span className="feat-line">
                             <span className="cbr-label">Featuring</span>{' '}
-                            {featNames.map((h, i) => (
-                                <span key={`${featTick}-${h}`}>
-                                    {i > 0 ? ' ' : ''}
-                                    <span
-                                        className="feat-flap"
-                                        style={{ animationDelay: `${i * 130}ms` }}
-                                    >
-                                        <CollectedPair handle={h} />
-                                    </span>
-                                </span>
-                            ))}
+                            <span key={`${featTick}-a-${featNames[0]}`} className="feat-flap">
+                                <CollectedPair handle={featNames[0]} />
+                            </span>
                         </span>
-                        <span className="feat-line cbr-others">
-                            &amp; {featOthers} others
+                        <span className="feat-line">
+                            {featNames[1] && (
+                                <span
+                                    key={`${featTick}-b-${featNames[1]}`}
+                                    className="feat-flap"
+                                    style={{ animationDelay: '130ms' }}
+                                >
+                                    <CollectedPair handle={featNames[1]} />
+                                </span>
+                            )}{' '}
+                            <span className="cbr-others">&amp; {featOthers} others</span>
                         </span>
                     </div>
                 }
