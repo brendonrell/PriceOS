@@ -2005,6 +2005,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-row.is-pinned { background: rgba(0, 0, 0, 0.05); }
 
+/* Home by-line follower stat (⚬ N beside @brendon) */
+.by-follower-stats { font-family: 'Courier New', Courier, monospace; font-size: 13px;
+    opacity: 0.8; margin-left: 12px; white-space: nowrap; }
+.by-follower-stats b { font-weight: bold; }
+
 /* /artists directory — whitelist status glyph (☼ active, ☽ cooldown) */
 .artists-page .artist-status { opacity: 0.75; font-size: 14px; line-height: 1; }
 

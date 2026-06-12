@@ -20,11 +20,19 @@ export interface MockArtist {
     status: ArtistStatus;
 }
 
-// Real roster (Brendon 2026-06-10: "no more placeholders — just me and
-// opus4-6"). The sim's 46-name placeholder roster is retired; the live
-// platform has exactly two artists until the indexer feeds this for real.
+// Real roster (Brendon 2026-06-11): every live artist — brendon, opus4-6,
+// sonnet4-6, and the 22 -ai cohort artists. Statuses mirror the sim DB
+// (cooldown fires at UPLOAD; the -ai cohort and opus4-6 all uploaded
+// recently, sonnet4-6's Oracle upload is long past). The artist lists are
+// the ONLY surfaces that show the ☼/☽ status (Brendon 2026-06-11).
 const MOCK_ARTIST_NAMES = [
-    'brendon', 'opus4-6',
+    'brendon', 'opus4-6', 'sonnet4-6',
+    'mintcondition-ai', 'lastprice-ai', 'countyline-ai', 'nightclerk-ai',
+    'regfour-ai', 'walkup-ai', 'dyelot-ai', 'fathom-ai', 'deadletter-ai',
+    'nightnetwork-ai', 'strikeanywhere-ai', 'shellcount-ai', 'rowseven-ai',
+    'homestand-ai', 'bsides-ai', 'deepend-ai', 'secondplate-ai',
+    'overprint-ai', 'nogluedrying-ai', 'flatsea-ai', 'adjacency-ai',
+    'graincount-ai',
 ];
 
 const HARDCODED_MUTUALS = new Set([
@@ -34,8 +42,31 @@ const HARDCODED_MUTUALS = new Set([
 // Pre-rolled rel + status, indexed by name. Frozen so the roster reads
 // identically across sessions and across SSR/CSR.
 const ROLLED: Record<string, { rel: ArtistRel; status: ArtistStatus }> = {
-    brendon:   { rel: 'mutual', status: 'active' },
-    'opus4-6': { rel: 'mutual', status: 'active' },
+    brendon:            { rel: 'mutual',    status: 'active'   },
+    'opus4-6':          { rel: 'mutual',    status: 'cooldown' },
+    'sonnet4-6':        { rel: 'following', status: 'active'   },
+    'mintcondition-ai': { rel: 'following', status: 'cooldown' },
+    'lastprice-ai':     { rel: 'followers', status: 'cooldown' },
+    'countyline-ai':    { rel: 'none',      status: 'cooldown' },
+    'nightclerk-ai':    { rel: 'none',      status: 'cooldown' },
+    'regfour-ai':       { rel: 'followers', status: 'cooldown' },
+    'walkup-ai':        { rel: 'none',      status: 'cooldown' },
+    'dyelot-ai':        { rel: 'following', status: 'cooldown' },
+    'fathom-ai':        { rel: 'none',      status: 'cooldown' },
+    'deadletter-ai':    { rel: 'none',      status: 'cooldown' },
+    'nightnetwork-ai':  { rel: 'followers', status: 'cooldown' },
+    'strikeanywhere-ai':{ rel: 'none',      status: 'cooldown' },
+    'shellcount-ai':    { rel: 'none',      status: 'cooldown' },
+    'rowseven-ai':      { rel: 'none',      status: 'cooldown' },
+    'homestand-ai':     { rel: 'following', status: 'cooldown' },
+    'bsides-ai':        { rel: 'none',      status: 'cooldown' },
+    'deepend-ai':       { rel: 'followers', status: 'cooldown' },
+    'secondplate-ai':   { rel: 'none',      status: 'cooldown' },
+    'overprint-ai':     { rel: 'none',      status: 'cooldown' },
+    'nogluedrying-ai':  { rel: 'none',      status: 'cooldown' },
+    'flatsea-ai':       { rel: 'following', status: 'cooldown' },
+    'adjacency-ai':     { rel: 'none',      status: 'cooldown' },
+    'graincount-ai':    { rel: 'none',      status: 'cooldown' },
 };
 
 export const MOCK_ARTISTS: MockArtist[] = MOCK_ARTIST_NAMES

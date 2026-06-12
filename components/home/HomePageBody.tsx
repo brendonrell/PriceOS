@@ -84,6 +84,21 @@ export default function HomePageBody() {
 
     /* Rotating "Featuring" lead credit. */
     const [featIdx, setFeatIdx] = useState(0);
+
+    /* By-line follower count — @brendon's live number beside the home hero
+       name (Brendon 2026-06-11). Best-effort: renders only once loaded. */
+    const [byFollowers, setByFollowers] = useState<number | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/user/by-handle/brendon', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (!cancelled && d && typeof d.follower_count === 'number')
+                    setByFollowers(d.follower_count);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, []);
     useEffect(() => {
         const t = setInterval(
             () => setFeatIdx((i) => (i + 1) % FEATURED_ARTISTS.length),
@@ -223,6 +238,12 @@ export default function HomePageBody() {
                                     {'✺︎'}
                                 </span>
                             </span>
+                            {byFollowers !== null && (
+                                <span className="by-follower-stats" title="Followers">
+                                    <span className='stat-icon stat-icon-followers'>{'\u26AC\uFE0E'}</span>{' '}
+                                    <b>{byFollowers}</b>
+                                </span>
+                            )}
                         </div>
                     </div>
                 }

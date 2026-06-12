@@ -465,15 +465,11 @@ function ProfilePageBodyInner({
                         <span>
                             @{displayHandle}
                             {/* Artist badge — whitelisted wallets only (allowlist = the sim
-                                stand-in for the on-chain whitelist). ☼ active, ☽ inside the
-                                60-day cooldown that fires at upload. Non-artists get no tag (the old
-                                ✺ placeholder showed on every profile). */}
+                                stand-in for the on-chain whitelist). Plain ✺ mark:
+                                minting-status moons live ONLY in the artist lists
+                                (Brendon 2026-06-11), never beside usernames. */}
                             {artistStatus && (
-                                <span
-                                    className="artist-tag"
-                                    aria-label="artist"
-                                    title={artistStatus === 'cooldown' ? 'Artist — in cooldown' : 'Artist — active'}
-                                >{(artistStatus === 'cooldown' ? '☽' : '☼') + '\uFE0E'}</span>
+                                <span className="artist-tag" aria-label="artist" title="Artist">{'✺\uFE0E'}</span>
                             )}
                         </span>
                         <span className="project-date-wrap" ref={priceDayRef}>

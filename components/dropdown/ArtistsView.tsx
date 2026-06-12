@@ -233,12 +233,12 @@ export function ArtistsView() {
                                 data-rel={a.rel}
                                 title={relTitle}
                                 onClick={() =>
-                                    showToast(`${a.name} Profile: COMING SOON`)
+                                    window.location.assign('/' + a.name.slice(1))
                                 }
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        showToast(`${a.name} Profile: COMING SOON`);
+                                        window.location.assign('/' + a.name.slice(1));
                                     }
                                 }}
                             >

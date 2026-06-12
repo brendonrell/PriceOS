@@ -92,7 +92,6 @@ import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
-import MarketActions from './market/MarketActions';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
@@ -795,7 +794,6 @@ export default function OutputPreview() {
                             </span>
                             {' '}#{id}
                         </div>
-                        <MarketActions slug={slug} tokenId={id} />
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className="modal-pill"
