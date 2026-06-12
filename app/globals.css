@@ -1446,6 +1446,60 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
 body.zen-mode .priceos-footer { display: none !important; }
 
+/* ── Mood Ring footer easter egg ─────────────────────────────────────
+   The ⌬ ring wears today's generative mood colour (lib/mood); the vibe
+   name rides the normal footer styling. Footer opacity keeps it subtle —
+   an easter egg, not a banner. */
+.priceos-mood { white-space: nowrap; }
+.priceos-mood-ring {
+    font-size: 12px;
+    line-height: 0;
+    position: relative;
+    top: 1px;
+}
+
+/* ── Install-PWA pill ────────────────────────────────────────────────
+   Fixed offer above the footer, themed off the live colorway vars.
+   Appears only when installable (see InstallPwaPill.tsx); dismissal
+   persists. Hidden in zen mode like the footer it accompanies. */
+.install-pwa-pill {
+    position: fixed;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.install-pwa-btn {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 999px;
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 9px 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    -webkit-tap-highlight-color: transparent;
+}
+.install-pwa-dismiss {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 999px;
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.75;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    -webkit-tap-highlight-color: transparent;
+}
+body.zen-mode .install-pwa-pill { display: none !important; }
+
 
 /* ============================================================
    THE TAPE (top-bar ticker — empty in step 2/3/4)
@@ -4157,6 +4211,120 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     opacity: 0.85;
     user-select: none;
 }
+
+/* ── ALBUM PICKER CARD ──────────────────────────────────────────────── */
+/* The Add-to-Album picker, floated above the multi-select bar. Chrome
+   mirrors the action picker visually but the album-picker-* classes are
+   independent by the same contract that keeps ms-popup-* exclusive. */
+.album-picker-card {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    width: 230px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 210;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-family: 'Courier New', Courier, monospace;
+}
+.album-picker-header {
+    position: relative;
+    text-align: center;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 4px 6px 6px 6px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+}
+.album-picker-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 6px;
+}
+.album-picker-empty {
+    font-size: 11px;
+    opacity: 0.6;
+    padding: 6px 6px 2px;
+}
+.album-picker-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    min-height: 28px;
+    gap: 12px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    border-radius: 3px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    white-space: nowrap;
+    transition: background 0.1s;
+    -webkit-tap-highlight-color: transparent;
+}
+.album-picker-item:active {
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+}
+@media (hover: hover) {
+    .album-picker-item:hover {
+        background: color-mix(in srgb, var(--bg-color) 10%, transparent);
+    }
+}
+.album-picker-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.album-picker-count { opacity: 0.5; flex-shrink: 0; }
+.album-picker-create {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+.album-picker-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--bg-color) 35%, transparent);
+    border-radius: 3px;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    padding: 4px 6px;
+}
+.album-picker-input::placeholder { color: inherit; opacity: 0.45; }
+.album-picker-create-btn {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.album-picker-create-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* ── CONFIRM CARD ────────────────────────────────────────────────────── */
 /* Floats above the action pill on Execute tap. Own independent classes —

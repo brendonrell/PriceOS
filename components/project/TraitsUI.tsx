@@ -63,6 +63,9 @@ import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
 import { fullTraitSchema } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
+import { isStarred, toggleStar } from '../../lib/pins/starStore';
+import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import AlbumPickerCard from '../album/AlbumPickerCard';
 import {
     getPresets,
     getLoadedIndex,
@@ -1135,6 +1138,7 @@ function MsFloatBar() {
     const [popupOpen, setPopupOpen] = React.useState(false);
     const [activeAction, setActiveAction] = React.useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = React.useState(false);
+    const [albumPickerOpen, setAlbumPickerOpen] = React.useState(false);
 
     React.useEffect(() => {
         setPinnedSet(getGrails());
@@ -1142,7 +1146,7 @@ function MsFloatBar() {
     }, []);
 
     React.useEffect(() => {
-        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); setConfirmOpen(false); }
+        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); setConfirmOpen(false); setAlbumPickerOpen(false); }
     }, [multiSelectActive]);
 
     if (!multiSelectActive) return null;
@@ -1164,6 +1168,24 @@ function MsFloatBar() {
         showToast(`${label} · ${countLabel}: COMING SOON`);
     };
 
+    /* Real save-triad execs (Brendon, 2026-06-12) — Star / Wishlist apply to
+       every selected Output that doesn't have the flag yet (idempotent, never
+       un-sets); Add to Album opens the picker card instead of a confirm. */
+    const handleStarAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (!isStarred(slug, id)) { toggleStar(slug, id); added++; }
+        });
+        showToast(added === 0 ? 'ALL ALREADY STARRED' : `STARRED · ${added} output${added === 1 ? '' : 's'}`);
+    };
+    const handleWishlistAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (!isWishlisted(slug, id)) { toggleWishlist(slug, id); added++; }
+        });
+        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Wishlist: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+    };
+
     const handleAddToCart = () => {
         if (count === 0) { showToast('Select items first'); return; }
         let added = 0;
@@ -1177,9 +1199,9 @@ function MsFloatBar() {
     const actions: Action[] = [];
 
     actions.push(
-        { label: 'Star',         exec: stub('Star') },
-        { label: 'Wishlist',     exec: stub('Wishlist') },
-        { label: 'Add to Album', exec: stub('Add to Album') },
+        { label: 'Star',         exec: handleStarAll },
+        { label: 'Wishlist',     exec: handleWishlistAll },
+        { label: 'Add to Album', exec: () => setAlbumPickerOpen(true) },
         { label: 'Make To-Do',   exec: stub('Make To-Do') },
     );
     if (!anyOwned && allListed) actions.push({ label: 'Add to Cart',  exec: handleAddToCart });
@@ -1203,6 +1225,12 @@ function MsFloatBar() {
     const handleExec = () => {
         if (count === 0) return;
         setPopupOpen(false);
+        /* Add to Album confirms inside its own picker (choosing the album IS
+           the confirmation) — the generic confirm card would be a dead tap. */
+        if (current === 'Add to Album') {
+            setAlbumPickerOpen(true);
+            return;
+        }
         setConfirmOpen(true);
     };
 
@@ -1216,6 +1244,15 @@ function MsFloatBar() {
         <>
             {/* Floating compound pill */}
             <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                {/* Add-to-Album picker — floats above the bar like the
+                    action picker; choosing an album executes the add. */}
+                {albumPickerOpen && (
+                    <AlbumPickerCard
+                        items={selectedItems}
+                        onDone={(msg) => { setAlbumPickerOpen(false); showToast(msg); }}
+                        onClose={() => setAlbumPickerOpen(false)}
+                    />
+                )}
                 {/* Anchored action picker — floats above the bar, matches details-popover style */}
                 {popupOpen && (
                     <div className="ms-popup-card">

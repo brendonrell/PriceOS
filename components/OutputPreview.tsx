@@ -105,6 +105,7 @@ import {
     subscribeMuted,
     toggleMute as storeToggleMute,
 } from '../lib/pins/muteStore';
+import { recordVisit } from '../lib/pins/breadcrumbStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useCart } from '../lib/state/CartContext';
@@ -261,6 +262,14 @@ export default function OutputPreview() {
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
+
+    /* Breadcrumbs — the REAL trail (lib/pins/breadcrumbStore). Every Output
+       this modal shows was actually visited by the viewer, including
+       prev/next nav hops, so recording here (the one surface all card taps
+       funnel into) covers gallery, carousels, shuffle and profile grids. */
+    useEffect(() => {
+        if (isOpen && id != null) recordVisit(slug, id);
+    }, [isOpen, id, slug]);
 
     /* Note active state — filled/bold icon when a note exists for this token. */
     const [hasNote, setHasNote] = useState(false);

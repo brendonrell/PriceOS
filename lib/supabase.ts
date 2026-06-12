@@ -54,6 +54,18 @@ export interface UserSettings {
   /** Wishlisted Outputs — PRIVATE "want to buy" list, keyed `${slug}:${id}`.
    *  Same envelope + privacy as `starred`. */
   wishlist?: string[];
+  /** Albums — named, ordered collections of Outputs (keys `${slug}:${id}`).
+   *  Same envelope + privacy as `starred` until album sharing ships. */
+  albums?: AlbumRecord[];
+}
+
+/** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */
+export interface AlbumRecord {
+  id: string;
+  name: string;
+  /** Member Outputs, keyed `${slug}:${id}`, insertion-ordered. */
+  keys: string[];
+  created_at: number;
 }
 
 /** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the

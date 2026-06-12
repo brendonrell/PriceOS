@@ -89,6 +89,10 @@ import {
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
 import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
+import {
+    getRecentIdsForProject,
+    subscribeBreadcrumbs,
+} from '../../lib/pins/breadcrumbStore';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -359,26 +363,20 @@ function ProjectPageBodyInner() {
        ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
     const [anchorEth, setAnchorEth] = useState<number | null>(null);
 
-    /* Build 22 — Breadcrumb sample (sim 7145-7157). 5 random ids from
-       the first 200 tokens, drawn once per page session, marked as
-       "recently visited" via a small dot on the bottom-right of the
-       artwork. Sim's pickBreadcrumbSample IIFE seeds traitData.Breadcrumb
-       and _recentSubCats; here we just need the id Set for the visual
-       sticker — the trait/recent-cats wiring lands when those features
-       ship. _hotTokenIds collision avoidance mirrors sim 7149 verbatim. */
-    const [breadcrumbSample] = useState<Set<number>>(() => {
-        const HOT_TOKEN_IDS = [7, 42, 99, 147, 256, 444, 617, 888];
-        const used = new Set<number>(HOT_TOKEN_IDS);
-        const picks: number[] = [];
-        while (picks.length < 5) {
-            const id = 1 + Math.floor(Math.random() * 200);
-            if (!used.has(id)) {
-                used.add(id);
-                picks.push(id);
-            }
-        }
-        return new Set(picks);
-    });
+    /* Breadcrumbs — REAL "recently visited" (Brendon, 2026-06-12; replaces
+       the Build 22 random-sample placeholder). The dot marks the viewer's
+       last 5 actually-opened Outputs in THIS Project, sourced from
+       lib/pins/breadcrumbStore (recorded on every output-modal open) and
+       live: opening an artwork re-renders the trail without a reload. */
+    const [breadcrumbSample, setBreadcrumbSample] = useState<Set<number>>(
+        () => new Set(getRecentIdsForProject(project.slug)),
+    );
+    useEffect(() => {
+        setBreadcrumbSample(new Set(getRecentIdsForProject(project.slug)));
+        return subscribeBreadcrumbs(() =>
+            setBreadcrumbSample(new Set(getRecentIdsForProject(project.slug))),
+        );
+    }, [project.slug]);
 
     /* ProjectShowcase tab — the artist's curated set of featured ids from the
        project record (projects.showcase_ids, via ProjectContext). Until the

@@ -39,6 +39,7 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { getProject } from '../project/registry';
+import { moodHexToday } from '../mood/mood';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 import {
     enableHazeVariation,
@@ -186,7 +187,6 @@ function readPureFlags(): { pure_light: boolean; pure_dark: boolean } {
 
 const DOT    = '#111111';
 const MATRIX = '#e0e0e0';
-const ATTENTION = '#FFE600'; // brand yellow — home's default custom fill
 
 const STORAGE_KEY = 'pd_settings_colorway';
 
@@ -410,11 +410,13 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         return saved;
     }
     if (isHomePage && (saved === null || saved === 'custom')) {
-        // Home's Custom colour = brand Attention Yellow, ALWAYS — the platform
-        // default for a page with no specific owner. Covers cold-start AND an
-        // explicit 'custom' pick. (Profile Colorway never reaches here; it
-        // lives in `pd_profile_hex`, not the Custom slot.)
-        applyBgHex(ATTENTION, 'custom');
+        // Home's Custom colour = the MOOD RING — a new generative colour every
+        // PriceDay (lib/mood, Brendon 2026-06-12; replaced the fixed Attention
+        // Yellow). The home page is the platform's own profile, and its colour
+        // is the daily vibe. Covers cold-start AND an explicit 'custom' pick.
+        // (Profile Colorway never reaches here; it lives in `pd_profile_hex`,
+        // not the Custom slot.)
+        applyBgHex(moodHexToday(), 'custom');
         return saved;
     }
     // Everything else: an explicit colorway pick applies on every page.

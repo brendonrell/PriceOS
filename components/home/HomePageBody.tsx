@@ -107,7 +107,7 @@ function HomeProjectCarousel() {
             </div>
             <div className="home-carousel-track">
                 {ids.map((id) => (
-                    <ArtworkCard key={id} id={id} />
+                    <ArtworkCard key={id} id={id} eager />
                 ))}
             </div>
         </section>

@@ -45,6 +45,9 @@ export const STATE_CACHE_KEYS = {
     /** Wishlisted Outputs (`${slug}:${id}` keys). Read + written by
      *  wishlistStore; lives inside the settings envelope server-side. */
     wishlist: 'pd_wishlist',
+    /** Albums (named lists of `${slug}:${id}` keys). Read + written by
+     *  albumStore; lives inside the settings envelope server-side. */
+    albums: 'pd_albums',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -120,6 +123,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.wishlist,
             JSON.stringify(Array.isArray(s.wishlist) ? s.wishlist : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.albums,
+            JSON.stringify(Array.isArray(s.albums) ? s.albums : []),
         );
 
         // grid_presets → unified cache the presetStore reads (Gallery View

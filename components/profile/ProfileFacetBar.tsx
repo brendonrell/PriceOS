@@ -36,6 +36,9 @@ import { useSort } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
+import { isStarred, toggleStar } from '../../lib/pins/starStore';
+import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import AlbumPickerCard from '../album/AlbumPickerCard';
 import {
     getPresets,
     getLoadedIndex,
@@ -582,6 +585,7 @@ function CollectedMsFloatBar({
     const [popupOpen, setPopupOpen] = useState(false);
     const [activeAction, setActiveAction] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [albumPickerOpen, setAlbumPickerOpen] = useState(false);
 
     const byKey = useMemo(() => {
         const m = new Map<string, EnrichedHolding>();
@@ -590,7 +594,7 @@ function CollectedMsFloatBar({
     }, [holdings]);
 
     useEffect(() => {
-        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); setConfirmOpen(false); }
+        if (!multiSelectActive) { setPopupOpen(false); setActiveAction(null); setConfirmOpen(false); setAlbumPickerOpen(false); }
     }, [multiSelectActive]);
 
     if (!multiSelectActive) return null;
@@ -622,18 +626,51 @@ function CollectedMsFloatBar({
 
     const current = count === 0 ? 'Select' : (activeAction ?? 'Add to Album');
 
+    /* Real save-triad execs (Brendon, 2026-06-12) — mirrors the project bar
+       (TraitsUI MsFloatBar): Star / Wishlist apply idempotently, Add to
+       Album routes through the picker card. Everything else stays a
+       coming-soon stub until its flow ships. */
+    const handleStarAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (!isStarred(slug, id)) { toggleStar(slug, id); added++; }
+        });
+        showToast(added === 0 ? 'ALL ALREADY STARRED' : `STARRED · ${added} output${added === 1 ? '' : 's'}`);
+    };
+    const handleWishlistAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (!isWishlisted(slug, id)) { toggleWishlist(slug, id); added++; }
+        });
+        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Wishlist: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+    };
+
     const handleExec = () => {
         if (count === 0) return;
         setPopupOpen(false);
+        /* Album picker is its own confirmation — see TraitsUI MsFloatBar. */
+        if (current === 'Add to Album') {
+            setAlbumPickerOpen(true);
+            return;
+        }
         setConfirmOpen(true);
     };
     const handleConfirm = () => {
         setConfirmOpen(false);
+        if (current === 'Star') { handleStarAll(); return; }
+        if (current === 'Wishlist') { handleWishlistAll(); return; }
         showToast(`${current} · ${countLabel}: COMING SOON`);
     };
 
     return (
         <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+            {albumPickerOpen && (
+                <AlbumPickerCard
+                    items={selectedItems}
+                    onDone={(msg) => { setAlbumPickerOpen(false); showToast(msg); }}
+                    onClose={() => setAlbumPickerOpen(false)}
+                />
+            )}
             {popupOpen && (
                 <div className="ms-popup-card">
                     <div className="ms-popup-card-header">Action</div>

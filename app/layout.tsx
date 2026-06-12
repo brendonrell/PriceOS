@@ -199,9 +199,37 @@ const PREHYDRATION_SCRIPT = `
             // instead of the static COLORWAYS.custom fallback.
             if (colorway === 'custom') {
                 if (isHomePage) {
-                    // Home's custom default = brand Attention yellow, always
-                    // (ignore the shared pd_custom_color slot).
-                    bg = '#FFE600';
+                    // Home's custom colour = the MOOD RING (Brendon,
+                    // 2026-06-12): a new generative colour every PriceDay.
+                    // This MUST mirror lib/mood/mood.ts draw-for-draw —
+                    // hue jitter, sat, light, in that order off the same
+                    // mulberry32 stream — or boot and hydration paint two
+                    // different colours and home flashes on every load.
+                    // (Replaced the fixed Attention Yellow boot fill.)
+                    bg = (function () {
+                        var EPOCH = Date.UTC(2026, 3, 21); // PRICEDAY_EPOCH
+                        var now = new Date();
+                        var mid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+                        var day = Math.max(1, Math.floor((mid - EPOCH) / 86400000) + 1);
+                        var a = (day * 2654435761) >>> 0;
+                        function rnd() {
+                            a |= 0; a = (a + 0x6d2b79f5) | 0;
+                            var t = Math.imul(a ^ (a >>> 15), 1 | a);
+                            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                        }
+                        var hue = (day * 137.508 + rnd() * 24) % 360;
+                        var sat = 38 + rnd() * 47;
+                        var light = 42 + rnd() * 34;
+                        var s = sat / 100, l = light / 100;
+                        var k = s * Math.min(l, 1 - l);
+                        function f(n) {
+                            var x = (n + hue / 30) % 12;
+                            var c = l - k * Math.max(-1, Math.min(x - 3, Math.min(9 - x, 1)));
+                            return Math.round(255 * c).toString(16).padStart(2, '0');
+                        }
+                        return ('#' + f(0) + f(8) + f(4)).toUpperCase();
+                    })();
                 } else {
                     try {
                         var savedArtistColor = localStorage.getItem('pd_custom_color');
