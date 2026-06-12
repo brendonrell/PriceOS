@@ -34,7 +34,7 @@ import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
-import { getProject } from '../../lib/project/registry';
+import { allProjects, getProject } from '../../lib/project/registry';
 import type { HomeResponse } from '../../app/api/home/route';
 
 /* Outputs per carousel (Brendon: 6). */
@@ -44,9 +44,22 @@ const MAX_HOME_PROJECTS = 30;
 /* Tiles in the Shuffle grid. */
 const SHUFFLE_SIZE = 12;
 
-/* Rotating "Featuring" credits — test-phase handles. */
-const FEATURED_ARTISTS = ['@brendon', '@opus4-6', '@snowfro', '@claude', '@rudxane'];
+/* Rotating "Featuring" credits — the REAL artist roster, from the registry
+   (every project's artist, de-duped). New projects feed this automatically. */
+const FEATURED_HANDLES: readonly string[] = [
+    ...new Set(allProjects().map((p) => p.artistHandle)),
+];
 const FEATURE_ROTATE_MS = 2600;
+
+/* 3 distinct random handles for the Featuring row. */
+function pickFeatured(): string[] {
+    const pool = [...FEATURED_HANDLES];
+    const out: string[] = [];
+    while (out.length < 3 && pool.length > 0) {
+        out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    }
+    return out;
+}
 
 /* Poll fallback for the live feed — Realtime push is the primary signal;
    this floor-sweeps staleness when the websocket can't connect. */
@@ -158,32 +171,24 @@ export default function HomePageBody() {
     const mintingNow = (feed?.minting_now ?? []).slice(0, MAX_HOME_PROJECTS);
     const stats = feed?.stats ?? null;
 
-    /* Rotating "Featuring" lead credit. */
-    const [featIdx, setFeatIdx] = useState(0);
-
-    /* By-line follower count — @brendon's live number beside the home hero
-       name (Brendon 2026-06-11). Best-effort: renders only once loaded. */
-    const [byFollowers, setByFollowers] = useState<number | null>(null);
+    /* Featuring — REAL artists (Brendon, 2026-06-12): the registry's artist
+       roster, 3 random at a time + "& X others". All three swap together on
+       the interval, split-flap style — each slot flips with a slight stagger
+       (the animation-delay below), like an old departure-board wall.
+       First paint is deterministic (first 3) so SSR/CSR agree; the first
+       interval tick randomizes. */
+    const [featNames, setFeatNames] = useState<string[]>(() =>
+        FEATURED_HANDLES.slice(0, 3),
+    );
+    const [featTick, setFeatTick] = useState(0);
     useEffect(() => {
-        let cancelled = false;
-        fetch('/api/user/by-handle/brendon', { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-                if (!cancelled && d && typeof d.follower_count === 'number')
-                    setByFollowers(d.follower_count);
-            })
-            .catch(() => {});
-        return () => { cancelled = true; };
-    }, []);
-    useEffect(() => {
-        const t = setInterval(
-            () => setFeatIdx((i) => (i + 1) % FEATURED_ARTISTS.length),
-            FEATURE_ROTATE_MS,
-        );
+        const t = setInterval(() => {
+            setFeatNames(pickFeatured());
+            setFeatTick((n) => n + 1);
+        }, FEATURE_ROTATE_MS);
         return () => clearInterval(t);
     }, []);
-    const lead = FEATURED_ARTISTS[featIdx];
-    const otherCount = FEATURED_ARTISTS.length - 1;
+    const featOthers = Math.max(0, FEATURED_HANDLES.length - 3);
 
     /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
        already swipes natively; this gives desktop mouse users a grab-drag.
@@ -301,22 +306,26 @@ export default function HomePageBody() {
                                     {'✺︎'}
                                 </span>
                             </span>
-                            {byFollowers !== null && (
-                                <span className="by-follower-stats" title="Followers">
-                                    <span className='stat-icon stat-icon-followers'>{'\u26AC\uFE0E'}</span>{' '}
-                                    <b>{byFollowers}</b>
-                                </span>
-                            )}
                         </div>
                     </div>
                 }
                 socialRow={
-                    <div className="hero-line collected-by-row info-line">
+                    <div className="hero-line collected-by-row info-line feat-rotator">
                         <span className="cbr-label">Featuring</span>{' '}
-                        <a className="cbr-name" href={`/${lead.slice(1)}`}>
-                            {lead}
-                        </a>{' '}
-                        <span className="cbr-others">&amp; {otherCount} others</span>
+                        {featNames.map((h, i) => (
+                            <span key={`${featTick}-${h}`}>
+                                {i > 0 ? ', ' : ''}
+                                <span
+                                    className="feat-flap"
+                                    style={{ animationDelay: `${i * 130}ms` }}
+                                >
+                                    <a className="cbr-name" href={`/${h}`}>
+                                        @{h}
+                                    </a>
+                                </span>
+                            </span>
+                        ))}{' '}
+                        <span className="cbr-others">&amp; {featOthers} others</span>
                     </div>
                 }
                 statsRow={

@@ -29,42 +29,29 @@ export function Footer() {
 
     return (
         <>
+            {/* Three rows (Brendon, 2026-06-12): system row · easter-egg row
+                (Mood Ring for now; more squeezed in here over time) · links
+                row. The footer is deliberately under-used UI real estate. */}
             <footer className="priceos-footer" id="priceosFooter">
-                <span className="priceos-link priceos-label" title="Changelog" style={{ cursor: 'pointer' }} onClick={() => open('priceos')}>
-                    PriceOS 1.0
-                </span>
-                <span className="priceos-sep">·</span>
-                <span className="priceos-status" id="footerStatus">Connected</span>
-                <span className="priceos-sep">·</span>
-                <span className="priceos-gwei" id="footerGwei">{gweiText}</span>
-                <span className="priceos-sep">·</span>
-                <span className="priceos-block" id="footerBlock">{blockText}</span>
-                <span className="priceos-sep priceos-sep-desktop">·</span>
-                <span className="priceos-footer-break" />
-                <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => showToast('About PD: COMING SOON')}>
-                    About PD
-                </span>
-                <span className="priceos-sep">·</span>
-                <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}>
-                    Join Our Discord
-                </a>
-                <span className="priceos-sep">·</span>
-                <span className="priceos-link" title="Docs" style={{ cursor: 'pointer' }} onClick={() => showToast('Docs: COMING SOON')}>
-                    Docs
-                </span>
-                <span className="priceos-sep">·</span>
-                <a className="priceos-link" href="mailto:support@pricediscussion.com">
-                    Support
-                </a>
-                {mood && (
-                    <>
-                        <span className="priceos-sep">·</span>
+                <div className="priceos-footer-row">
+                    <span className="priceos-link priceos-label" title="Changelog" style={{ cursor: 'pointer' }} onClick={() => open('priceos')}>
+                        PriceOS 1.0
+                    </span>
+                    <span className="priceos-sep">·</span>
+                    <span className="priceos-status" id="footerStatus">Connected</span>
+                    <span className="priceos-sep">·</span>
+                    <span className="priceos-gwei" id="footerGwei">{gweiText}</span>
+                    <span className="priceos-sep">·</span>
+                    <span className="priceos-block" id="footerBlock">{blockText}</span>
+                </div>
+                <div className="priceos-footer-row">
+                    {mood && (
                         <span
                             className="priceos-link priceos-mood"
-                            title="Mood Ring — the platform's daily vibe"
+                            title="Mood Ring — tap to read it"
                             style={{ cursor: 'pointer' }}
                             onClick={() =>
-                                showToast(`PLATFORM VIBE TODAY: ${mood.name}`)
+                                showToast(`MOOD RING READS: ${mood.name}`)
                             }
                         >
                             <span
@@ -73,10 +60,32 @@ export function Footer() {
                             >
                                 ⌬&#xFE0E;
                             </span>{' '}
-                            {mood.name}
+                            Today&apos;s Mood Ring Colour: {mood.hex}
                         </span>
-                    </>
-                )}
+                    )}
+                </div>
+                <div className="priceos-footer-row">
+                    <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => showToast('About PD: COMING SOON')}>
+                        About PD
+                    </span>
+                    <span className="priceos-sep">·</span>
+                    <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}>
+                        Join Our Discord
+                    </a>
+                    <span className="priceos-sep">·</span>
+                    <span className="priceos-link" title="Docs" style={{ cursor: 'pointer' }} onClick={() => showToast('Docs: COMING SOON')}>
+                        Docs
+                    </span>
+                    <span className="priceos-sep">·</span>
+                    <a className="priceos-link" href="mailto:support@pricediscussion.com">
+                        Support
+                    </a>
+                    <span className="priceos-sep">·</span>
+                    {/* Studio — placeholder destination, wired later. */}
+                    <span className="priceos-link" title="Studio">
+                        Studio
+                    </span>
+                </div>
             </footer>
         </>
     );

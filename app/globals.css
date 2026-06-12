@@ -1401,9 +1401,12 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 /* ============================================================
    FOOTER
    ============================================================ */
+/* Three stacked rows (Brendon, 2026-06-12): system · easter eggs · links.
+   Each row centers + wraps on its own; the old single-row mobile break
+   span is gone with the restructure. */
 .priceos-footer {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px; font-weight: bold;
     color: var(--text-color);
@@ -1412,25 +1415,22 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     letter-spacing: 0.5px;
     user-select: none;
     flex-shrink: 0;
+}
+.priceos-footer-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 @media (max-width: 600px) {
     .priceos-footer {
-        gap: 6px; font-size: 9px;
+        gap: 8px; font-size: 9px;
         padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
     }
+    .priceos-footer-row { gap: 6px; }
 }
 
 .priceos-sep { opacity: 0.4; }
-.priceos-footer-break { display: none; }
-
-@media (max-width: 600px) {
-    .priceos-footer-break {
-        display: block; flex-basis: 100%; width: 100%; height: 0;
-    }
-    .priceos-sep-desktop { display: none; }
-}
 
 .priceos-link {
     cursor: pointer;
@@ -3135,6 +3135,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
+}
+/* Mobile: the ⌗ glyph's intrinsic metrics ride low in the hero stats row
+   beside its label (Brendon screenshot, 2026-06-12) — optical nudge up. */
+@media (max-width: 600px) {
+    .stats-row .stat-icon-owners { position: relative; top: -1.5px; }
 }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
@@ -6967,6 +6973,23 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     /* The full "Price Discussion" title owns the line on phones — the
        PriceDay date stamp is hidden (home hero only). */
     .home-title .project-date-wrap { display: none; }
+}
+/* ── Featuring split-flap (home hero) ────────────────────────────────
+   All three featured names swap together on the rotate tick, each slot
+   flipping in with a staggered delay (inline animation-delay) — the old
+   departure-board wall. Hinge at the top edge, slight overshoot before
+   settling, perspective on the row so the flip reads as depth. */
+.feat-rotator { perspective: 500px; }
+.feat-flap {
+    display: inline-block;
+    animation: featFlap 0.45s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+    transform-origin: 50% 0;
+    backface-visibility: hidden;
+}
+@keyframes featFlap {
+    0%   { transform: rotateX(-92deg); opacity: 0.15; }
+    55%  { transform: rotateX(16deg); opacity: 1; }
+    100% { transform: rotateX(0deg); }
 }
 /* ── New Art tab sections (New Uploads + Minting Now) ────────────────
    Section headers + the text-only uploads feed. The feed rows reuse the
