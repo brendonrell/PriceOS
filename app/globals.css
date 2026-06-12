@@ -6980,6 +6980,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    departure-board wall. Hinge at the top edge, slight overshoot before
    settling, perspective on the row so the flip reads as depth. */
 .feat-rotator { perspective: 500px; }
+/* Home only: the social row is ALWAYS two lines — chips on the first,
+   "& X others" on the second — so flapping chip widths never reflow it. */
+.feat-rotator .feat-line { display: block; }
+.feat-rotator .feat-line + .feat-line { margin-top: 7px; }
 .feat-flap {
     display: inline-block;
     animation: featFlap 0.45s cubic-bezier(0.3, 0.7, 0.3, 1) both;
@@ -7004,6 +7008,16 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 /* Feed links are themed text, not browser-default blue/purple anchors. */
 .home-uploads a.f-highlight {
     color: inherit;
+}
+/* The project name is THE click target of an upload row (Brendon,
+   2026-06-12) — allcaps + bold + a touch of air so it reads as the row's
+   button instead of a word lost mid-sentence. Standard feed layout
+   otherwise. */
+.home-uploads .upload-title {
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 2px 0;
+    display: inline-block;
 }
 .home-section-head {
     padding: 0 40px;
@@ -7040,34 +7054,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
         padding-right: 20px;
     }
 }
-/* Shuffle tab — randomized output grid + re-roll button. */
-.home-shuffle-bar {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0 40px 10px;
-}
-.home-shuffle-btn {
-    font-family: var(--font-rubik-mono), monospace;
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    color: var(--text-color);
-    background: var(--stat-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-}
-.home-shuffle-btn:hover {
-    background: var(--stat-active-bg);
-    color: var(--stat-active-text);
-}
-.home-shuffle-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 14px;
-    align-items: start;
-    padding: 0 40px 16px;
-}
+/* Shuffle tab renders straight into #gallery (the one true grid) — no
+   shuffle-specific layout exists. Re-roll happens on tab entry (JS). */
 
 /* ── Starred / bookmark row list (profile +More → Starred) ─────────────────
    A compact, sortable + filterable ROW list (not the gallery grid). Themed

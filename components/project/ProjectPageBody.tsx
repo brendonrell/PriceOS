@@ -81,6 +81,7 @@ import GhostCard from './GhostCard';
 import MintButton from './MintButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
+import CollectedPair from '../hero/CollectedPair';
 import {
     applyStepLine,
     getBudgets,
@@ -920,17 +921,20 @@ function ProjectPageBodyInner() {
                        when signed out or following none of this project's
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (
+                        /* Two sprite+name chips max (Brendon, 2026-06-12 —
+                           was 3 bare names; the chip is the sim's
+                           sprite-paired rectangle). */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>{' '}
-                            {project.stats.collected_by_following.slice(0, 3).map((name, i) => (
+                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => (
                                 <span key={name}>
-                                    {i > 0 ? ', ' : ''}
-                                    <a className="cbr-name" href={`/${name.replace(/^@/, '')}`}>{name}</a>
+                                    {i > 0 ? ' ' : ''}
+                                    <CollectedPair handle={name} />
                                 </span>
                             ))}
-                            {project.stats.collected_by_following.length > 3 && (
+                            {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
-                                    {' '}&amp; {project.stats.collected_by_following.length - 3} more you follow
+                                    {' '}&amp; {project.stats.collected_by_following.length - 2} more you follow
                                 </span>
                             )}
                         </div>

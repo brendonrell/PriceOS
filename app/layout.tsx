@@ -208,8 +208,14 @@ const PREHYDRATION_SCRIPT = `
                     // (Replaced the fixed Attention Yellow boot fill.)
                     bg = (function () {
                         var EPOCH = Date.UTC(2026, 3, 21); // PRICEDAY_EPOCH
-                        var now = new Date();
-                        var mid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+                        // Mood day flips at MIDNIGHT IN MONTREAL (lib/mood
+                        // montrealDayNumber — keep these two in lockstep).
+                        var ymd = new Intl.DateTimeFormat('en-CA', {
+                            timeZone: 'America/Montreal',
+                            year: 'numeric', month: '2-digit', day: '2-digit'
+                        }).format(new Date());
+                        var p = ymd.split('-');
+                        var mid = Date.UTC(+p[0], +p[1] - 1, +p[2]);
                         var day = Math.max(1, Math.floor((mid - EPOCH) / 86400000) + 1);
                         var a = (day * 2654435761) >>> 0;
                         function rnd() {

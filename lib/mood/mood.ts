@@ -17,7 +17,25 @@
  * the HOME PAGE's own daily colour, computed — never persisted.
  */
 
-import { priceDayNumber } from '../priceday/priceday';
+import { PRICEDAY_EPOCH } from '../priceday/priceday';
+
+/* The mood flips at MIDNIGHT IN MONTREAL (Brendon, 2026-06-12 — it's his
+   wall clock, not UTC's). Day number = days since the PriceDay epoch of
+   the date a Montreal clock shows, DST handled by the timezone database.
+   ⚠ Must mirror the boot-paint script in app/layout.tsx exactly. */
+function montrealDayNumber(d: Date): number {
+    const ymd = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Montreal',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(d); // "2026-06-12"
+    const [y, m, day] = ymd.split('-').map(Number);
+    return Math.max(
+        1,
+        Math.floor((Date.UTC(y, m - 1, day) - PRICEDAY_EPOCH) / 86400000) + 1,
+    );
+}
 
 export interface Mood {
     /** Today's mood colour — the home page's daily Custom colour. */
@@ -93,7 +111,7 @@ function hslToHex(h: number, s: number, l: number): string {
 
 /** The mood for a given moment (defaults to now). Pure + deterministic. */
 export function moodOfDay(d: Date = new Date()): Mood {
-    const day = priceDayNumber(d);
+    const day = montrealDayNumber(d);
     const r = rng(day * 2654435761);
     /* Hue walks the golden angle day-over-day (consecutive days always read
        as different colours), with a per-day jitter so the walk never feels

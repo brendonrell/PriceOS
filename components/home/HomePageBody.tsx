@@ -28,6 +28,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
+import CollectedPair from '../hero/CollectedPair';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -51,11 +52,15 @@ const FEATURED_HANDLES: readonly string[] = [
 ];
 const FEATURE_ROTATE_MS = 2600;
 
-/* 3 distinct random handles for the Featuring row. */
+/* Featured handles shown at once (Brendon, 2026-06-12: two sprite+name
+   chips — the chips give each name more presence than the old bare trio). */
+const FEATURE_SHOW = 2;
+
+/* Distinct random handles for the Featuring row. */
 function pickFeatured(): string[] {
     const pool = [...FEATURED_HANDLES];
     const out: string[] = [];
-    while (out.length < 3 && pool.length > 0) {
+    while (out.length < FEATURE_SHOW && pool.length > 0) {
         out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
     return out;
@@ -172,13 +177,11 @@ export default function HomePageBody() {
     const stats = feed?.stats ?? null;
 
     /* Featuring — REAL artists (Brendon, 2026-06-12): the registry's artist
-       roster, 3 random at a time + "& X others". All three swap together on
-       the interval, split-flap style — each slot flips with a slight stagger
-       (the animation-delay below), like an old departure-board wall.
-       First paint is deterministic (first 3) so SSR/CSR agree; the first
-       interval tick randomizes. */
+       roster, one sprite+name chip at a time + "& X others", swapping on
+       the interval with the split-flap flip. First paint is deterministic
+       (first handle) so SSR/CSR agree; the first interval tick randomizes. */
     const [featNames, setFeatNames] = useState<string[]>(() =>
-        FEATURED_HANDLES.slice(0, 3),
+        FEATURED_HANDLES.slice(0, FEATURE_SHOW),
     );
     const [featTick, setFeatTick] = useState(0);
     useEffect(() => {
@@ -188,7 +191,7 @@ export default function HomePageBody() {
         }, FEATURE_ROTATE_MS);
         return () => clearInterval(t);
     }, []);
-    const featOthers = Math.max(0, FEATURED_HANDLES.length - 3);
+    const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
 
     /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
        already swipes natively; this gives desktop mouse users a grab-drag.
@@ -243,9 +246,13 @@ export default function HomePageBody() {
         return () => cleanups.forEach((c) => c());
     }, [activeTab, feed]);
 
-    /* Shuffle — a random sample of output ids, re-rolled by the version
-       bump. Random, so there's no ranking to game. */
+    /* Shuffle — a random sample of output ids. No re-roll button (Brendon,
+       2026-06-12): every ENTRY into the tab re-shuffles, so leaving and
+       coming back is the shuffle. Random, so there's no ranking to game. */
     const [shuffleSeed, setShuffleSeed] = useState(0);
+    useEffect(() => {
+        if (activeTab === 'shuffle') setShuffleSeed((s) => s + 1);
+    }, [activeTab]);
     const shuffleIds = useMemo(() => {
         const picks = new Set<number>();
         const max = project.totalOutputs;
@@ -310,22 +317,27 @@ export default function HomePageBody() {
                     </div>
                 }
                 socialRow={
+                    /* Two fixed lines (Brendon, 2026-06-12): chips up top,
+                       "& X others" below — the row never reflows as chips
+                       of different widths flap through. */
                     <div className="hero-line collected-by-row info-line feat-rotator">
-                        <span className="cbr-label">Featuring</span>{' '}
-                        {featNames.map((h, i) => (
-                            <span key={`${featTick}-${h}`}>
-                                {i > 0 ? ', ' : ''}
-                                <span
-                                    className="feat-flap"
-                                    style={{ animationDelay: `${i * 130}ms` }}
-                                >
-                                    <a className="cbr-name" href={`/${h}`}>
-                                        @{h}
-                                    </a>
+                        <span className="feat-line">
+                            <span className="cbr-label">Featuring</span>{' '}
+                            {featNames.map((h, i) => (
+                                <span key={`${featTick}-${h}`}>
+                                    {i > 0 ? ' ' : ''}
+                                    <span
+                                        className="feat-flap"
+                                        style={{ animationDelay: `${i * 130}ms` }}
+                                    >
+                                        <CollectedPair handle={h} />
+                                    </span>
                                 </span>
-                            </span>
-                        ))}{' '}
-                        <span className="cbr-others">&amp; {featOthers} others</span>
+                            ))}
+                        </span>
+                        <span className="feat-line cbr-others">
+                            &amp; {featOthers} others
+                        </span>
                     </div>
                 }
                 statsRow={
@@ -410,7 +422,7 @@ export default function HomePageBody() {
                                             </>
                                         )}
                                         {!artist && <>Uploaded </>}
-                                        <a className="f-highlight" href={`/art/${u.slug}`}>
+                                        <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}
                                         </a>{' '}
                                         — {u.max_supply} outputs
@@ -422,22 +434,15 @@ export default function HomePageBody() {
                 </section>
             )}
 
-            {/* Shuffle — randomized discovery, re-rolls on demand. */}
+            {/* Shuffle — randomized discovery in THE gallery grid itself
+                (#gallery — never a one-card-per-row list; the output page
+                is the only single-artwork surface). Re-rolls on every tab
+                entry; no button. */}
             {activeTab === 'shuffle' && (
-                <section aria-label="Shuffle">
-                    <div className="home-shuffle-bar">
-                        <button
-                            className="home-shuffle-btn"
-                            onClick={() => setShuffleSeed((s) => s + 1)}
-                        >
-                            ⟳&#xFE0E; Shuffle
-                        </button>
-                    </div>
-                    <div className="home-shuffle-grid">
-                        {shuffleIds.map((id) => (
-                            <ArtworkCard key={`${shuffleSeed}-${id}`} id={id} />
-                        ))}
-                    </div>
+                <section id="gallery" aria-label="Shuffle">
+                    {shuffleIds.map((id) => (
+                        <ArtworkCard key={`${shuffleSeed}-${id}`} id={id} eager />
+                    ))}
                 </section>
             )}
         </TraitsProvider>
