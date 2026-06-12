@@ -94,6 +94,11 @@ contract that keeps it working:
   Brendon's explicit approval in chat.
 - **On a branch mismatch warning, stop and reconcile before working.** Branch
   drift across fatigued chats is the failure this guards against.
+- **Every commit credits Brendon as co-author (Brendon, 2026-06-12).** End
+  every commit message with this exact trailer line:
+  `Co-authored-by: brendonrell <17807269+brendonrell@users.noreply.github.com>`
+  He specs every change, and `dev` is the default branch, so the credit lands
+  on his GitHub contribution graph. No exceptions, every session.
 - **Pushing APP changes requires Brendon's approval; docs/process pushes are
   pre-approved.** Before pushing anything that touches the **app itself**
   (product code / behaviour / UI — `app/`, `components/`, `lib/`, API routes,
