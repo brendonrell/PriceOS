@@ -6913,8 +6913,11 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     padding: 0 40px;
 }
 .home-carousel-title {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    /* Carousel project names wear the small Rubik header style (Brendon,
+       2026-06-12) — the section label moved into the tab, so the name is
+       the row's header now. Was Courier 15px. */
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 13px;
     letter-spacing: 0.04em;
     color: var(--text-color);
     text-decoration: none;
