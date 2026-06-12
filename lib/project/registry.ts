@@ -56,9 +56,10 @@ const PRISMS: ProjectDef = {
   displayName: 'PRISMS',
   artistHandle: 'opus4-6',
   outputs: 256,
-  colorway: '#5A2EA6',
+  // v2 colorway = the bench's custom theme hex (Brendon 2026-06-11).
+  colorway: '#E8FF47',
   mintPriceEth: 0,
-  soundtrack: null,
+  soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
   aspects: PRISMS_ASPECTS,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -89,6 +90,33 @@ const ORACLE: ProjectDef = {
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
  * platform convention marking AI-authored sample work. */
+/* Soundtracks (Brendon 2026-06-11): every Project ships with a public
+   YouTube playlist, matched to the work. Bare playlist ids. */
+const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
+  'full-faith-credit':      { playlistId: 'PLTMN6OMDTnKmPEshAkltDlfJYLft6taZO', label: 'Tom Waits — Small Change' },
+  'delisted':               { playlistId: 'OLAK5uy_mrUY03jLjKAJrWRq3UOqcvdVncCE8FDnI', label: 'Oneohtrix Point Never — Replica' },
+  'the-river-disagrees':    { playlistId: 'OLAK5uy_lMvRyOBHG4AfghMmIfEOiWKhK2XPN61MY', label: 'Talk Talk — Spirit of Eden' },
+  'stars-nobody-named':     { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  'thank-you-no-refunds':   { playlistId: 'PLn_xnHmgpm0ZZPxjHYsxJtcZHyw28_ARu', label: 'Vulfpeck — Thrill of the Arts' },
+  'elevations':             { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
+  'dyed-in-the-wool':       { playlistId: 'OLAK5uy_l61jyu2-HfVxbgW4KFUruUOjU56T0az-s', label: 'Alice Coltrane — Journey in Satchidananda' },
+  'noise-from-below':       { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
+  'letters-never-sent':     { playlistId: 'OLAK5uy_mSbOn6cyrWuZetNPYixAc37HZROz2mQ-c', label: 'Nick Drake — Pink Moon' },
+  'crosstown':              { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
+  'average-contents-forty': { playlistId: 'OLAK5uy_kXPInMykUYYKz_7UJ17_4Dc7BgCVDDDvQ', label: 'Beirut — Gulag Orkestar' },
+  'crossette':              { playlistId: 'OLAK5uy_lZaWFSeS6Y0uOoEzTGgCum7NY_OQwKzIY', label: 'Handel — Music for the Royal Fireworks' },
+  'guaranteed-to-grow':     { playlistId: 'OLAK5uy_khfcOEuin5PG2Z70byPFVH4nyEP_R8Bqc', label: "Mort Garson — Mother Earth's Plantasia" },
+  'wait-till-next-year':    { playlistId: 'OLAK5uy_nf5Oc5sjCuOx7l5COP6thl0VsFZ1Hb3mc', label: 'The Replacements — Let It Be' },
+  'every-light-in-town':    { playlistId: 'OLAK5uy_mqBA37gZOvqvvJ1-01Tu_GegOqHaHxpQ0', label: 'Otis Redding — Otis Blue' },
+  'nobodys-swimming':       { playlistId: 'OLAK5uy_muokP2ArFXF_yuj0Qnh_5_QmfFMpwqFj4', label: 'Air — Moon Safari' },
+  'between-the-lines':      { playlistId: 'OLAK5uy_lZKSdlPBNBgPNW1WWWZAfHOAixffO957I', label: 'Steve Reich — Music for 18 Musicians' },
+  'loud-on-cheap-paper':    { playlistId: 'OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0', label: 'Aphex Twin — Selected Ambient Works 85–92' },
+  'scissors-no-plan':       { playlistId: 'OLAK5uy_mNqx-iWQKySNlnq4ZAZpwq3RLzOQHW3J4', label: 'Charles Mingus — Mingus Ah Um' },
+  'hard-water':             { playlistId: 'OLAK5uy_nugJJjislAMW15DJOvKOuD5EudRNeRUzQ', label: 'Terry Riley — A Rainbow in Curved Air' },
+  'turf-war':               { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
+  'avalanche':              { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
+};
+
 function aiDef(
   slug: string, displayName: string, artistHandle: string, outputs: number,
   colorway: string, mintPriceEth: number, aspects: readonly number[],
@@ -96,7 +124,7 @@ function aiDef(
 ): ProjectDef {
   return {
     slug, displayName, artistHandle, outputs, colorway, mintPriceEth,
-    soundtrack: null, aspects, traitSchema, render, traitsOf,
+    soundtrack: AI_SOUNDTRACKS[slug] ?? null, aspects, traitSchema, render, traitsOf,
   };
 }
 
