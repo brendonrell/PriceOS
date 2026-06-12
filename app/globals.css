@@ -6957,11 +6957,20 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    flipping in with a staggered delay (inline animation-delay) — the old
    departure-board wall. Hinge at the top edge, slight overshoot before
    settling, perspective on the row so the flip reads as depth. */
-.feat-rotator { perspective: 500px; }
-/* Home only: the social row is ALWAYS two lines — chips on the first,
-   "& X others" on the second — so flapping chip widths never reflow it. */
+/* Home only: the social row is ALWAYS two lines — chip line up, "& X
+   others" line down. The row's base class is a wrapping flex ROW (so
+   `display: block` on the children did nothing — the 2026-06-12 spacing
+   bug: lines only broke by overflow and fell into the 2px wrap gap);
+   flipping the container to a column stacks the two lines for real, and
+   the 8px gap matches the hero's own row rhythm (.hero-group-1) so the
+   whole hero reads as one uniform ladder. */
+.feat-rotator {
+    perspective: 500px;
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 8px;
+}
 .feat-rotator .feat-line { display: block; }
-.feat-rotator .feat-line + .feat-line { margin-top: 7px; }
 .feat-flap {
     display: inline-block;
     animation: featFlap 0.45s cubic-bezier(0.3, 0.7, 0.3, 1) both;
