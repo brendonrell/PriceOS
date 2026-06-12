@@ -6,18 +6,15 @@
  * Delta off the project page (collection-as-template): same <Hero> chrome
  * + same tab row, different center.
  *
- * Home tabs are the three surfaces that are neither curated nor gameable
- * (Brendon's call — the platform stays neutral, nothing rankable to game):
- *   - New Art (default)    → two LIVE sections off /api/home (Brendon,
- *                            2026-06-11): "New Uploads", a text-only feed of
- *                            uploaded projects (newest first), and "Minting
- *                            Now", per-project carousels for projects at ≥6
- *                            mints, in the order they reached 6. A project
- *                            graduates from the list to the carousels at 6.
- *   - Sales Feed           → real secondary sales across the platform
- *                            (money-backed truth; mock now, indexer later)
- *   - Shuffle              → randomized discovery, re-rolls on demand
- *                            (no ranking = nothing to game)
+ * Home tabs (Brendon, 2026-06-12 — tab set is exactly these three):
+ *   - Now Minting (default) → per-project carousels for projects at ≥6
+ *                             mints, in the order they reached 6 — just
+ *                             the carousels, no section header.
+ *   - New Art               → the "New Uploads" text feed of uploaded
+ *                             projects, newest first (a project graduates
+ *                             to Now Minting at 6 mints).
+ *   - ⟳ (Shuffle)           → randomized discovery, re-rolls on demand.
+ *                             Icon-only pill (Courier), real build later.
  *
  * "Live" = Supabase Realtime push on projects/events re-pulls /api/home and
  * nudges the carousels' providers ('pd:project-refresh'), with a slow poll
@@ -55,27 +52,7 @@ const FEATURE_ROTATE_MS = 2600;
    this floor-sweeps staleness when the websocket can't connect. */
 const FEED_POLL_MS = 30_000;
 
-type HomeTab = 'new' | 'sales' | 'shuffle';
-
-/* Mock platform sales — test-phase. Real secondary sales land when the
-   indexer is live; shape mirrors the project-page activity feed so the
-   swap is a data change, not a markup change. */
-interface SaleRow {
-    id: number;
-    time: string;
-    buyer: string;
-    project: string;
-    token: number;
-    priceEth: string;
-}
-const MOCK_SALES: SaleRow[] = [
-    { id: 1, time: '12:04 PM', buyer: '@matty', project: 'Prisms', token: 442, priceEth: '0.44' },
-    { id: 2, time: '11:31 AM', buyer: '@atlasforge', project: 'Meridian', token: 18, priceEth: '1.20' },
-    { id: 3, time: '10:58 AM', buyer: '@gmoney', project: 'Strata', token: 207, priceEth: '0.31' },
-    { id: 4, time: '10:12 AM', buyer: '@rudxane', project: 'Prisms', token: 88, priceEth: '0.62' },
-    { id: 5, time: '09:40 AM', buyer: '@snowfro', project: 'Understory', token: 5, priceEth: '2.05' },
-    { id: 6, time: '08:55 AM', buyer: '@darold', project: 'Signal Loss', token: 134, priceEth: '0.18' },
-];
+type HomeTab = 'minting' | 'new' | 'shuffle';
 
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
@@ -118,7 +95,7 @@ export default function HomePageBody() {
     const project = useProject();
     const { showToast } = useToast();
 
-    const [activeTab, setActiveTab] = useState<HomeTab>('new');
+    const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
     /* The live home payload (stats + uploads + minting now). Pulled fresh on
        mount, re-pulled on every Realtime push / refresh nudge, poll fallback. */
@@ -211,10 +188,10 @@ export default function HomePageBody() {
     /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
        already swipes natively; this gives desktop mouse users a grab-drag.
        A drag past a few px swallows the trailing click so it doesn't open
-       the card modal. Re-binds when the New Art tab (re)mounts the tracks
-       (and when the live feed lands/changes, which adds or removes rows). */
+       the card modal. Re-binds when the Now Minting tab (re)mounts the
+       tracks (and when the live feed lands/changes, adding/removing rows). */
     useEffect(() => {
-        if (activeTab !== 'new') return;
+        if (activeTab !== 'minting') return;
         const tracks = Array.from(
             document.querySelectorAll<HTMLElement>('.home-carousel-track'),
         );
@@ -275,11 +252,19 @@ export default function HomePageBody() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [project.totalOutputs, shuffleSeed]);
 
-    const tab = (id: HomeTab, label: string) => (
+    /* Tab pill. `display` lets a tab wear something other than its toast
+       label — the Shuffle tab is an icon-only pill (Brendon, 2026-06-12). */
+    const tab = (
+        id: HomeTab,
+        label: string,
+        display?: ReactNode,
+        extraClass?: string,
+    ) => (
         <div
-            className={`pill pill-l1${activeTab === id ? ' active' : ''}`}
+            className={`pill pill-l1${extraClass ? ` ${extraClass}` : ''}${activeTab === id ? ' active' : ''}`}
             role="button"
             tabIndex={0}
+            title={label}
             onClick={() => {
                 setActiveTab(id);
                 showToast(`TAB: ${label}`);
@@ -292,18 +277,8 @@ export default function HomePageBody() {
                 }
             }}
         >
-            <span className="stat-name">{label}</span>
+            <span className="stat-name">{display ?? label}</span>
         </div>
-    );
-
-    const saleDetail = (s: SaleRow): ReactNode => (
-        <>
-            <span className="f-highlight">{s.buyer}</span> bought{' '}
-            <span className="f-highlight">
-                {s.project} #{s.token}
-            </span>{' '}
-            for {s.priceEth} ETH
-        </>
     );
 
     return (
@@ -361,96 +336,79 @@ export default function HomePageBody() {
                     </div>
                 }
             >
-                {/* Tab row — same pill markup as the project page (sim 5161). */}
+                {/* Tab row — same pill markup as the project page (sim 5161).
+                    Tab set is exactly: Now Minting / New Art / ⟳ (Brendon,
+                    2026-06-12; Sales left the row with this set). */}
                 <div className="profile-tabs-row" id="homeTabsRow">
+                    {tab('minting', 'Now Minting')}
                     {tab('new', 'New Art')}
-                    {tab('sales', 'Sales')}
-                    {tab('shuffle', 'Shuffle')}
+                    {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
                 </div>
             </Hero>
 
-            {/* New Art — two live sections. New Uploads: text feed of
-                uploaded projects, newest first (a project graduates out at
-                6 mints). Minting Now: per-project carousels for projects at
-                6+ mints, in the order they reached 6. */}
-            {activeTab === 'new' && (
-                <>
-                    <section className="home-uploads" aria-label="New Uploads">
-                        <div className="home-section-head">
-                            <span className="home-section-title">New Uploads</span>
+            {/* Now Minting (default) — just the carousels: one per project
+                at 6+ mints, in the order they reached 6. No section header,
+                the tab is the label. */}
+            {activeTab === 'minting' && (
+                <section aria-label="Now Minting">
+                    {!feed && <div className="home-feed-loading">Loading…</div>}
+                    {feed && mintingNow.length === 0 && (
+                        <div className="home-empty-note">
+                            Projects land here at 6 mints — none yet.
                         </div>
-                        {!feed && <div className="home-feed-loading">Loading…</div>}
-                        {feed && uploads.length === 0 && (
-                            <div className="home-empty-note">No uploads yet.</div>
-                        )}
-                        <div className="feed-list">
-                            {uploads.map((u) => {
-                                const def = getProject(u.slug);
-                                const title = def?.displayName ?? u.title;
-                                const artist = def?.artistHandle ?? null;
-                                return (
-                                    <div className="feed-row" key={u.slug}>
-                                        <div className="feed-line" />
-                                        <div className="f-icon-wrap">✶&#xFE0E;</div>
-                                        <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
-                                        <div className="f-type">UPLOAD</div>
-                                        <div className="f-content">
-                                            {artist && (
-                                                <>
-                                                    <a className="f-highlight" href={`/${artist}`}>
-                                                        @{artist}
-                                                    </a>{' '}
-                                                    uploaded{' '}
-                                                </>
-                                            )}
-                                            {!artist && <>Uploaded </>}
-                                            <a className="f-highlight" href={`/art/${u.slug}`}>
-                                                {title}
-                                            </a>{' '}
-                                            — {u.max_supply} outputs
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </section>
-
-                    <section aria-label="Minting Now">
-                        <div className="home-section-head">
-                            <span className="home-section-title">Minting Now</span>
-                        </div>
-                        {feed && mintingNow.length === 0 && (
-                            <div className="home-empty-note">
-                                Projects land here at 6 mints — none yet.
-                            </div>
-                        )}
-                        {mintingNow.map((m) => (
-                            <ProjectProvider
-                                key={m.slug}
-                                slug={m.slug}
-                                initialTotal={m.minted_count}
-                            >
-                                <HomeProjectCarousel />
-                            </ProjectProvider>
-                        ))}
-                    </section>
-                </>
+                    )}
+                    {mintingNow.map((m) => (
+                        <ProjectProvider
+                            key={m.slug}
+                            slug={m.slug}
+                            initialTotal={m.minted_count}
+                        >
+                            <HomeProjectCarousel />
+                        </ProjectProvider>
+                    ))}
+                </section>
             )}
 
-            {/* Sales Feed — real secondary sales platform-wide (mock now).
-                Reuses the project-page activity-feed markup. */}
-            {activeTab === 'sales' && (
-                <section id="activity-feed" aria-label="Sales Feed">
+            {/* New Art — the New Uploads text feed: uploaded projects,
+                newest first (a project graduates to Now Minting at 6). */}
+            {activeTab === 'new' && (
+                <section className="home-uploads" aria-label="New Uploads">
+                    <div className="home-section-head">
+                        <span className="home-section-title">New Uploads</span>
+                    </div>
+                    {!feed && <div className="home-feed-loading">Loading…</div>}
+                    {feed && uploads.length === 0 && (
+                        <div className="home-empty-note">No uploads yet.</div>
+                    )}
                     <div className="feed-list">
-                        {MOCK_SALES.map((s) => (
-                            <div className="feed-row" key={s.id}>
-                                <div className="feed-line" />
-                                <div className="f-icon-wrap">✸&#xFE0E;</div>
-                                <div className="f-time">{s.time}</div>
-                                <div className="f-type">SALE</div>
-                                <div className="f-content">{saleDetail(s)}</div>
-                            </div>
-                        ))}
+                        {uploads.map((u) => {
+                            const def = getProject(u.slug);
+                            const title = def?.displayName ?? u.title;
+                            const artist = def?.artistHandle ?? null;
+                            return (
+                                <div className="feed-row" key={u.slug}>
+                                    <div className="feed-line" />
+                                    <div className="f-icon-wrap">✶&#xFE0E;</div>
+                                    <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
+                                    <div className="f-type">UPLOAD</div>
+                                    <div className="f-content">
+                                        {artist && (
+                                            <>
+                                                <a className="f-highlight" href={`/${artist}`}>
+                                                    @{artist}
+                                                </a>{' '}
+                                                uploaded{' '}
+                                            </>
+                                        )}
+                                        {!artist && <>Uploaded </>}
+                                        <a className="f-highlight" href={`/art/${u.slug}`}>
+                                            {title}
+                                        </a>{' '}
+                                        — {u.max_supply} outputs
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
             )}

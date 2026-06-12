@@ -4172,7 +4172,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* ── ICON PILL SIZES ─────────────────────────────────────────────────── */
 .pill.pill-l1.pill-notes-icon .stat-name,
 .pill.pill-l1.pill-breadcrumb .stat-name,
-.pill.pill-l1.pill-fate-icon .stat-name {
+.pill.pill-l1.pill-fate-icon .stat-name,
+.pill.pill-l1.pill-shuffle-icon .stat-name {
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
     line-height: 1;
@@ -6973,6 +6974,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .home-uploads .feed-list {
     padding: 0 40px;
+}
+/* Feed links are themed text, not browser-default blue/purple anchors. */
+.home-uploads a.f-highlight {
+    color: inherit;
 }
 .home-section-head {
     padding: 0 40px;
