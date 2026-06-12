@@ -36,7 +36,7 @@ import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
-import type { HomeResponse } from '../../app/api/home/route';
+import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon: 6). */
 const CAROUSEL_SIZE = 6;
@@ -109,15 +109,21 @@ function HomeProjectCarousel() {
     );
 }
 
-export default function HomePageBody() {
+export default function HomePageBody({
+    initialFeed = null,
+}: {
+    /** Server-computed home payload (app/page.tsx) — carousels + stats in
+        the first paint. Null only when the server read failed. */
+    initialFeed?: HomeResponse | null;
+}) {
     const project = useProject();
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
-    /* The live home payload (stats + uploads + minting now). Pulled fresh on
-       mount, re-pulled on every Realtime push / refresh nudge, poll fallback. */
-    const [feed, setFeed] = useState<HomeResponse | null>(null);
+    /* The live home payload (stats + uploads + minting now). Server-seeded,
+       re-pulled on every Realtime push / refresh nudge, poll fallback. */
+    const [feed, setFeed] = useState<HomeResponse | null>(initialFeed);
     useEffect(() => {
         let cancelled = false;
         const load = () => {

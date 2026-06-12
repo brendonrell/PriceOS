@@ -97,6 +97,12 @@ function moodForHue(hue: number, roll: number): string {
     return band.moods[Math.floor(roll * band.moods.length)];
 }
 
+/* Hue offset over the golden-angle walk. Bumped 0 → 200 (Brendon,
+   2026-06-12: "tired of this green") — re-rolls the entire colour
+   timeline while keeping the walk's consecutive-days-differ property.
+   ⚠ Part of the boot-paint mirror contract (app/layout.tsx). */
+const HUE_SALT = 200;
+
 function hslToHex(h: number, s: number, l: number): string {
     const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
     const f = (n: number) => {
@@ -117,7 +123,7 @@ export function moodOfDay(d: Date = new Date()): Mood {
        as different colours), with a per-day jitter so the walk never feels
        like a schedule. Sat/light stay in the bold-but-inhabitable band —
        the text colour auto-resolves off luminance (ColorwayContext YIQ). */
-    const hue = (day * 137.508 + r() * 24) % 360;
+    const hue = (day * 137.508 + HUE_SALT + r() * 24) % 360;
     const sat = 38 + r() * 47; // 38–85%
     const light = 42 + r() * 34; // 42–76%
     /* The mood reads off the colour via the chart — fourth draw picks the
