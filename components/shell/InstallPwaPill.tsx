@@ -3,23 +3,18 @@
 /*
  * InstallPwaPill — the PWA install affordance (Brendon, 2026-06-12).
  *
- * Browsers rarely volunteer their install UI, so the app offers its own:
- * a small fixed pill above the footer. Behaviour by platform:
- *   - Android/Chrome: the browser fires `beforeinstallprompt`; we stash the
- *     event and the pill tap replays it — the REAL install sheet opens.
- *     The pill only appears once the event has fired (i.e. the manifest +
- *     service worker passed Chrome's installability checks).
- *   - iOS Safari: no install event. The pill shows on iOS when not
- *     installed; tapping it explains the Share → "Add to Home Screen" path
- *     (that's the only way Apple allows).
- *   - Already installed (standalone display-mode): never shows.
+ * Shows ONLY where a real install prompt exists: the browser fires
+ * `beforeinstallprompt` (Android/Chrome installability checks passed), we
+ * stash the event, and the pill tap replays it — the REAL install sheet
+ * opens. No event, no pill: iOS Safari has no install API and gets
+ * NOTHING (Brendon, 2026-06-12 — the Share→Add-to-Home-Screen hint pill
+ * was unwanted and is gone). Already-installed (standalone) never shows.
  *
  * Dismissal persists (`pd_install_dismissed`) so it's a one-time offer per
  * device, not a nag. Install success also hides it.
  */
 
 import { useEffect, useState } from 'react';
-import { useToast } from '../../lib/state/ToastContext';
 
 const DISMISS_KEY = 'pd_install_dismissed';
 
@@ -37,19 +32,9 @@ function isStandalone(): boolean {
     );
 }
 
-function isIos(): boolean {
-    if (typeof navigator === 'undefined') return false;
-    const ua = navigator.userAgent;
-    return /iPhone|iPad|iPod/.test(ua) ||
-        // iPadOS 13+ masquerades as macOS but is touch-first.
-        (ua.includes('Mac') && navigator.maxTouchPoints > 1);
-}
-
 export default function InstallPwaPill() {
-    const { showToast } = useToast();
     const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
     const [visible, setVisible] = useState(false);
-    const [ios, setIos] = useState(false);
 
     useEffect(() => {
         if (isStandalone()) return;
@@ -57,11 +42,6 @@ export default function InstallPwaPill() {
             if (localStorage.getItem(DISMISS_KEY)) return;
         } catch {
             /* private mode — show; dismissal just won't stick */
-        }
-        if (isIos()) {
-            setIos(true);
-            setVisible(true);
-            return;
         }
         const onPrompt = (e: Event) => {
             e.preventDefault();
@@ -80,10 +60,6 @@ export default function InstallPwaPill() {
     if (!visible) return null;
 
     const install = async () => {
-        if (ios) {
-            showToast('INSTALL: Share ⇧ → "Add to Home Screen"');
-            return;
-        }
         if (!deferred) return;
         await deferred.prompt();
         const choice = await deferred.userChoice;
