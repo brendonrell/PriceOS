@@ -1006,49 +1006,115 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 
 /* ── PRICESPRITE MODAL BODY ───────────────────────────────── */
-/* Lives inside a .platform-modal shell (sim 4292). Hero sprite
-   matches the connect-menu sprite size, level row mirrors the
-   ❹❷ badge, metrics grid is dashed-border tiles. */
+/* Lives inside a .platform-modal shell (sim 4292). Redesigned
+   2026-06-12 toward the Xbox-achievements / PriceRank / Anointment
+   end state: rank medallion with a slow-orbiting dashed ring, XP bar
+   with idle scanner sweep (§9: always feel moving), locked
+   achievement rail, anointment socket, count-up metric tiles, and a
+   staggered entrance. Everything rides theme vars only — no
+   hard-coded colors — so all palettes/stargazing keep working. */
+
+/* The body can outgrow short phones now — scroll the shell, keep the
+   X pinned. modal-info auto-margins re-center the stack when it's
+   shorter than the viewport (flex + overflow safe-centering). */
+#priceSpriteModal { overflow-y: auto; justify-content: flex-start; }
+#priceSpriteModal .close-hint { position: fixed; }
+#priceSpriteModal .ps-body {
+    margin: auto 0;
+    max-width: 460px; width: 100%;
+    padding-bottom: 28px;
+}
+
+/* Staggered entrance — platform-modal flips display:none→flex on
+   open, which restarts these animations every time. */
+@keyframes ps-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+#priceSpriteModal .ps-reveal { opacity: 0; }
+#priceSpriteModal.active .ps-reveal {
+    animation: ps-rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+#priceSpriteModal.active .ps-d2 { animation-delay: 0.05s; }
+#priceSpriteModal.active .ps-d3 { animation-delay: 0.10s; }
+#priceSpriteModal.active .ps-d4 { animation-delay: 0.15s; }
+#priceSpriteModal.active .ps-d5 { animation-delay: 0.20s; }
+#priceSpriteModal.active .ps-d6 { animation-delay: 0.25s; }
+#priceSpriteModal.active .ps-d7 { animation-delay: 0.30s; }
+
 .ps-hero {
     display: flex; justify-content: center; align-items: center;
     margin: 4px 0 10px 0;
 }
+/* Idle float lives on this wrapper so it never fights the engine's
+   inline transform (turn/yawn/sleep) on the sprite itself. */
+@keyframes ps-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+}
+.ps-hero-float {
+    display: inline-block;
+    animation: ps-float 5s ease-in-out infinite;
+}
 .ps-hero-sprite {
     font-family: 'Courier New', Courier, monospace;
-    /* APR 20 round 5: reduced desktop 36→28 and mobile 30→24 per Brendon —
-       "a bit smaller". Still hero-sized but no longer dominating the modal. */
-    font-size: 28px; font-weight: bold; line-height: 1;
-    color: var(--text-color);
-    letter-spacing: 0;
+    /* JUN 12 (Brendon): sprites look best at their ACTUAL size — the
+       connect-menu preview rendering. Hero now mirrors .ascii-sprite
+       exactly (14px bold, -0.5px tracking, 0.75 opacity); earlier
+       hero sizes (36→28→24) are retired. */
+    font-size: 14px; font-weight: bold; line-height: 1;
+    color: var(--text-color); opacity: 0.75;
+    white-space: nowrap; letter-spacing: -0.5px;
     user-select: none;
     transition: opacity 0.3s, transform 0.3s;
     display: inline-block;
 }
-@media (max-width: 600px) {
-    .ps-hero-sprite { font-size: 24px; }
-}
 /* Mirror the connect-menu sprite's sleeping visual — dims to match the original. */
 .ps-hero-sprite.sleeping { opacity: 0.45; }
-.ps-level-row {
-    display: flex; justify-content: center; align-items: baseline;
-    gap: 12px; margin-bottom: 8px;
+
+/* PRICERANK medallion — rank glyph inside a slow-spinning dashed
+   orbit + a faint inner ring. Replaces the old flat label/value row. */
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+.ps-rank-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 7px; margin-bottom: 12px;
 }
-.ps-level-label {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 11px; font-weight: bold; letter-spacing: 1.5px;
-    opacity: 0.55; text-transform: uppercase;
+.ps-rank-medallion {
+    position: relative;
+    width: 84px; height: 84px;
+    display: flex; align-items: center; justify-content: center;
 }
-.ps-level-value {
+.ps-rank-medallion::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 1px dashed var(--text-color); border-radius: 50%;
+    opacity: 0.45;
+    animation: ps-spin 36s linear infinite;
+}
+.ps-rank-medallion::after {
+    content: '';
+    position: absolute; inset: 7px;
+    border: 1px solid var(--text-color); border-radius: 50%;
+    opacity: 0.15;
+}
+.ps-rank-glyph {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 32px; line-height: 1;
+    font-size: 40px; line-height: 1;
     letter-spacing: -2px; /* same tightener as the connect-menu badge */
     color: var(--text-color);
 }
+.ps-rank-caption {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 2px;
+    opacity: 0.55; text-transform: uppercase;
+}
+
 .ps-next-wrap {
     width: 100%; padding: 0 20px; box-sizing: border-box;
     margin-bottom: 18px;
 }
 .ps-next-bar {
+    position: relative;
     height: 6px; border: 1px solid var(--text-color); border-radius: 3px;
     overflow: hidden; background: transparent;
 }
@@ -1056,12 +1122,27 @@ body.modal-open { overflow: hidden; touch-action: none; }
     height: 100%; background: var(--text-color); opacity: 0.85;
     transition: width 0.4s;
 }
+/* Idle scanner sweep — keeps the empty bar alive until real XP wires
+   in (§9: never a dead frozen state). Reads as a faint charge pulse. */
+@keyframes ps-scan {
+    from { left: -24%; }
+    to   { left: 104%; }
+}
+.ps-next-bar::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0;
+    width: 22%; left: -24%;
+    background: linear-gradient(90deg, transparent, var(--text-color), transparent);
+    opacity: 0.3;
+    animation: ps-scan 2.8s ease-in-out infinite;
+}
 .ps-next-labels {
     display: flex; justify-content: space-between;
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px; font-weight: bold; letter-spacing: 0.5px;
     opacity: 0.55; margin-top: 5px;
 }
+
 .ps-section-header {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px; font-weight: bold; letter-spacing: 1.5px;
@@ -1069,10 +1150,90 @@ body.modal-open { overflow: hidden; touch-action: none; }
     padding: 0 20px 8px 20px;
     text-align: left;
 }
+
+/* ACHIEVEMENTS rail — Xbox-style square tiles in a snap-scrolling
+   row. Tiles ship in the LOCKED treatment (dim + dashed); the
+   unlocked state (solid border, full opacity) arrives with the
+   achievements workstream. */
+.ps-ach-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    width: 100%; box-sizing: border-box;
+}
+.ps-ach-tally { letter-spacing: 1px; }
+.ps-ach-rail {
+    display: flex; gap: 8px;
+    width: 100%; box-sizing: border-box;
+    overflow-x: auto;
+    padding: 2px 20px 6px 20px;
+    margin-bottom: 16px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.ps-ach-rail::-webkit-scrollbar { display: none; }
+.ps-ach-tile {
+    flex: 0 0 auto;
+    width: 92px;
+    border: 1px dashed var(--text-color); border-radius: 4px;
+    background: transparent; color: var(--text-color);
+    padding: 12px 6px 10px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer; user-select: none;
+    opacity: 0.5;
+    scroll-snap-align: start;
+    transition: opacity 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ps-ach-tile:hover { opacity: 0.85; transform: translateY(-1px); }
+.ps-ach-tile:active { transform: scale(0.96); }
+.ps-ach-glyph { font-size: 24px; line-height: 1; }
+.ps-ach-name {
+    font-size: 8px; font-weight: bold; letter-spacing: 0.8px;
+    text-transform: uppercase; text-align: center;
+    line-height: 1.3; min-height: 21px;
+    display: flex; align-items: center;
+}
+.ps-ach-pts { font-size: 9px; font-weight: bold; opacity: 0.7; }
+
+/* ANOINTMENT socket — the one-✢-per-account pledge, empty state.
+   The mark breathes; the socket is a dashed slot waiting to be
+   filled when the anointment workstream lands. */
+@keyframes ps-anoint-pulse {
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 1; }
+}
+.ps-anoint {
+    display: flex; align-items: center; gap: 14px;
+    margin: 0 20px 18px 20px;
+    border: 1px dashed var(--text-color); border-radius: 4px;
+    padding: 12px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+    cursor: pointer; user-select: none;
+    transition: transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ps-anoint:hover { transform: translateY(-1px); }
+.ps-anoint:active { transform: scale(0.98); }
+.ps-anoint-mark {
+    font-size: 26px; line-height: 1;
+    animation: ps-anoint-pulse 3.2s ease-in-out infinite;
+}
+.ps-anoint-copy { display: flex; flex-direction: column; gap: 3px; }
+.ps-anoint-state {
+    font-size: 12px; font-weight: bold; letter-spacing: 1.5px;
+}
+.ps-anoint-sub {
+    font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
+    opacity: 0.55;
+}
+
 .ps-metrics {
     display: grid; grid-template-columns: repeat(2, 1fr);
     gap: 8px; padding: 0 20px;
     margin-bottom: 18px;
+    width: 100%; box-sizing: border-box;
 }
 @media (max-width: 600px) {
     .ps-metrics { gap: 6px; padding: 0 14px; }
@@ -1082,7 +1243,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
     padding: 10px 12px;
     font-family: 'Courier New', Courier, monospace;
     text-align: left;
+    transition: transform 0.2s;
 }
+.ps-metric:hover { transform: translateY(-1px); }
 .ps-metric-label {
     font-size: 9px; font-weight: bold; letter-spacing: 1px;
     opacity: 0.55; text-transform: uppercase;
@@ -1092,11 +1255,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 18px; line-height: 1;
     margin-bottom: 3px;
+    font-variant-numeric: tabular-nums;
 }
 .ps-metric-pts {
     font-size: 10px; font-weight: bold;
     opacity: 0.55;
 }
+
 .ps-action-row {
     display: flex; justify-content: center;
     padding: 0 20px;
@@ -1114,4 +1279,17 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .ps-action-btn:hover { opacity: 0.85; }
 .ps-action-icon {
     font-size: 14px; line-height: 1;
+}
+
+/* Accessibility: kill all PriceSprite motion for reduced-motion
+   users — entrance reveals snap to visible, orbits/sweeps/pulses
+   freeze at their resting opacity. */
+@media (prefers-reduced-motion: reduce) {
+    #priceSpriteModal .ps-reveal,
+    #priceSpriteModal.active .ps-reveal { animation: none; opacity: 1; transform: none; }
+    .ps-hero-float,
+    .ps-rank-medallion::before,
+    .ps-next-bar::after,
+    .ps-anoint-mark { animation: none; }
+    .ps-next-bar::after { display: none; }
 }
