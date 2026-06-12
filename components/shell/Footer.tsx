@@ -4,6 +4,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useGasData } from '../../lib/hooks/useGasData';
 import { moodOfDay, type Mood } from '../../lib/mood/mood';
+import { natalChart, type NatalChart } from '../../lib/project/natal';
 
 export function Footer() {
     const { showToast } = useToast();
@@ -15,8 +16,19 @@ export function Footer() {
        pattern as the hero date slot). The ⌬ ring wears today's colour;
        tapping spells the vibe out. */
     const [mood, setMood] = useState<Mood | null>(null);
+    /* Today's Stars — the natal sky over Montreal at today's UTC midnight
+       (lib/project/natal, the same engine that stamps every Output's birth
+       chart). Day-keyed like the Mood Ring, so the whole platform shares
+       one sky. */
+    const [stars, setStars] = useState<NatalChart | null>(null);
     useEffect(() => {
         setMood(moodOfDay());
+        const now = new Date();
+        setStars(
+            natalChart(
+                Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+            ),
+        );
     }, []);
 
     const gweiText = data
@@ -61,6 +73,21 @@ export function Footer() {
                                 ⌬&#xFE0E;
                             </span>{' '}
                             Today&apos;s Mood Ring Colour: {mood.hex}
+                        </span>
+                    )}
+                    {mood && stars && <span className="priceos-sep">·</span>}
+                    {stars && (
+                        <span
+                            className="priceos-link priceos-stars"
+                            title="Today's Stars — every Output minted today is born under this sky"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() =>
+                                showToast(
+                                    `BORN TODAY: SUN ${stars.sun.toUpperCase()} · MOON ${stars.moon.toUpperCase()} · RISING ${stars.rising.toUpperCase()}`,
+                                )
+                            }
+                        >
+                            Today&apos;s Stars: ☉&#xFE0E; {stars.sun} ☽&#xFE0E; {stars.moon} ↑&#xFE0E; {stars.rising}
                         </span>
                     )}
                 </div>
