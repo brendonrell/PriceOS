@@ -6934,7 +6934,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .home-carousel-track .output-card {
     flex: 0 0 auto;
-    width: min(62vw, 240px);
+    /* Halved (Brendon, 2026-06-12 — was min(62vw, 240px)): tiles are
+       teasers, the row shows ~3 across a phone instead of 1½. Height
+       follows width via the card's aspect ratio. */
+    width: min(31vw, 120px);
     scroll-snap-align: start;
 }
 .home-carousel-track::-webkit-scrollbar {
