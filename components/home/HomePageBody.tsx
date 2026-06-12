@@ -26,6 +26,7 @@
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import CollectedPair from '../hero/CollectedPair';
@@ -36,6 +37,7 @@ import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon: 6). */
@@ -118,6 +120,29 @@ export default function HomePageBody({
 }) {
     const project = useProject();
     const { showToast } = useToast();
+    const router = useRouter();
+
+    /* Hero CTAs (Brendon, 2026-06-12) — both are uniform random draws, so
+       the platform never picks favourites (neutrality law):
+       EXPLORE → a project at random; SHUFFLE → a soundtrack at random. */
+    const handleExplore = () => {
+        const all = allProjects();
+        const pick = all[Math.floor(Math.random() * all.length)];
+        router.push(`/art/${pick.slug}`);
+    };
+    const handleShuffleSoundtrack = () => {
+        const withSound = allProjects().filter((p) => p.soundtrack);
+        if (withSound.length === 0) {
+            showToast('Soundtracks: NONE YET');
+            return;
+        }
+        const pick = withSound[Math.floor(Math.random() * withSound.length)];
+        window.open(
+            playlistWatchUrl(pick.soundtrack!.playlistId),
+            '_blank',
+            'noopener,noreferrer',
+        );
+    };
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
@@ -364,6 +389,35 @@ export default function HomePageBody({
                     </div>
                 }
             >
+                {/* Action row — same chrome as the project page's mint +
+                    soundtrack pair. EXPLORE = random project; SHUFFLE =
+                    random project soundtrack (play icon matches the
+                    project soundtrack button). */}
+                <div className="action-row">
+                    <button
+                        className="btn-mint"
+                        title="Explore — opens a project at random"
+                        onClick={handleExplore}
+                    >
+                        <span className="mint-lbl">EXPLORE</span>
+                    </button>
+                    <a
+                        className="btn-soundtrack"
+                        title="Shuffle — plays a project soundtrack at random"
+                        role="button"
+                        tabIndex={0}
+                        onClick={handleShuffleSoundtrack}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleShuffleSoundtrack();
+                            }
+                        }}
+                    >
+                        <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SHUFFLE
+                    </a>
+                </div>
+
                 {/* Tab row — same pill markup as the project page (sim 5161).
                     Tab set is exactly: Now Minting / New Art / ⟳ (Brendon,
                     2026-06-12; Sales left the row with this set). */}
