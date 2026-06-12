@@ -1,14 +1,11 @@
 /*
- * Prisms — public engine boundary (v2, Brendon 2026-06-11). The ring-
- * encounter system in ./prismsCore replaces the old gradient engine
+ * Prisms — public engine boundary (v3, Brendon 2026-06-12). The palette-
+ * gradient engine in ./prismsCore replaces the v2 ring-encounter system
  * wholesale. Same Project identity (slug 'prisms', 256 Outputs, opus4-6);
- * brand-new Artwork + trait taxonomy:
+ * one artist trait:
  *
- *   Palette   — 101 named palettes, subtraited Main / Special (the PD
- *               subtrait feature). The names are an unnamed easter egg.
- *   Mode      — STANDARD / VOID render mode.
- *   Encounter — NORMAL / SHARE DNA / BOSS.
- *   State     — the nine mutation states (NONE … TOTALINVERSION).
+ *   Palette — 100 named palettes, subtraited Main / Special (the PD
+ *             subtrait feature). The names are an unnamed easter egg.
  *
  * prismsTraits runs calc() only (no canvas — server-safe); render() reads
  * the SAME calc() data it painted with, so the two can never disagree.
@@ -22,34 +19,13 @@ import {
   PRISMS_RATIOS,
 } from './prismsCore';
 
-const MODES = ['STANDARD', 'VOID'] as const;
-const ENCOUNTERS = ['NORMAL', 'SHARE DNA', 'BOSS'] as const;
-const STATES = [
-  'NONE', 'FLIPFLOPPER', 'PEOPLEPLEASER', 'SPELLCASTER', 'ACQUIESCENCE',
-  'GROUPTHINK', 'RAGEBAIT', 'GHOSTED', 'TOTALINVERSION',
-] as const;
-
-const ENCOUNTER_LABEL: Record<string, string> = {
-  standard: 'NORMAL',
-  same_dna: 'SHARE DNA',
-  boss: 'BOSS',
-};
-
 interface CalcData {
   aspectRatio: number;
   palette: { name: string };
-  renderMode: string;
-  mutation: string;
-  encounterType: string;
 }
 
 function traitsFromCalc(data: CalcData): OutputTraits {
-  return {
-    Palette: data.palette.name,
-    Mode: data.renderMode === 'void' ? 'VOID' : 'STANDARD',
-    Encounter: ENCOUNTER_LABEL[data.encounterType] ?? 'NORMAL',
-    State: data.mutation,
-  };
+  return { Palette: data.palette.name };
 }
 
 export const renderPrisms: EngineFn = (canvas, tokenId, width) => {
@@ -77,9 +53,6 @@ export const prismsSchema: TraitSchema = {
         { name: 'Special', values: specials },
       ],
     },
-    { name: 'Mode', values: MODES },
-    { name: 'Encounter', values: ENCOUNTERS },
-    { name: 'State', values: STATES },
   ],
 };
 
