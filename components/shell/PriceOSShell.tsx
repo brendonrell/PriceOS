@@ -61,7 +61,6 @@ import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
-import InstallPwaPill from './InstallPwaPill';
 import ActionToast from '../ActionToast';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
@@ -172,7 +171,6 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <Navbar />
             <main>{children}</main>
             <Footer />
-            <InstallPwaPill />
             <ActionToast />
             <OutputPreview />
             <CollectorsModal />
