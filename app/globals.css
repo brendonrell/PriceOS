@@ -3175,17 +3175,24 @@ body.persona-default .stats-row-2 { display: none !important; }
     display: inline-block;
     line-height: 1;
 }
+/* Sprite+name chip — FULL sim port (sim 2104-2133; the first pass stripped
+   the rectangle to a transparent no-op — restored verbatim 2026-06-12).
+   The tint mixes the LIVE --bg-color/--text-color vars, so it re-tints on
+   every colorway switch and the home page's daily Mood Ring colour: mixing
+   toward --text-color always moves "away from bg" by the same perceptual
+   amount (sim APR 22 rev 4), and 88/12 keeps it a quiet grouping cue, not
+   a banner (rev 5, Brendon's dial-back). */
 .collected-pair {
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 0;
-    padding: 0;
-    border-radius: 0;
-    background: transparent;
-    margin: 0;
+    gap: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--bg-color) 88%, var(--text-color) 12%);
+    margin: 0 1px;
     line-height: 1;
-    position: relative;
+    position: relative; /* anchor for the ::after underline */
 }
 .profile-link {
     cursor: pointer;
@@ -3193,12 +3200,14 @@ body.persona-default .stats-row-2 { display: none !important; }
     text-decoration: none !important;
     transition: opacity 0.2s;
 }
+/* Hover underline = one continuous line under sprite + handle (sim APR 28
+   v1.0.43), inset to the padding edges so it doesn't overshoot the chip. */
 .collected-pair::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -2px;
+    left: 6px;
+    right: 6px;
+    bottom: -3px;
     height: 1px;
     background: currentColor;
     opacity: 0;
