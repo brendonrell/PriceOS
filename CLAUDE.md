@@ -455,6 +455,11 @@ explicit chat confirmation.
 
 ## 9. UX standards (Brendon's product pet peeves → rules)
 
+- **Toast casing — THE THING THAT CHANGED gets the ALLCAPS (Brendon,
+  2026-06-12, hard rule).** The label/category stays normal case; the new
+  state screams. `Tab: SHUFFLE`, `Wishlist: ADDED · 3`, `Soundtracks: NONE
+  YET` — never `TAB: Shuffle`. The eye must land on what's new, not the
+  category word. Applies to every toast, every surface, no exceptions.
 - **Always feel moving forward — never "is anything happening?" (Brendon,
   2026-06-07).** Any async/wait surface (mint, buy, list, offer, load, fetch,
   reveal) must show continuous motion — a spinner, a filling progress bar, a

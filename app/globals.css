@@ -6965,19 +6965,20 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     .home-title .project-date-wrap { display: none; }
 }
 /* ── Featuring rows (home hero) ──────────────────────────────────────
-   Two fixed lines, one chip each; the pair re-rolls per page load (the
-   live split-flap ticker is retired — Brendon, 2026-06-12). Spacing is
-   the SIM's: this content is text, so the rhythm comes from the sim's
-   info-rubik line-height 1.6 (sim 2074), not flex gaps or margins — the
-   exact treatment the sim gives wrapped "Collected by" pair lines. The
-   row's base class is a flex row, so the container drops to block flow
-   for the text treatment to apply. */
+   Two lines, one chip each, re-rolled per page load. Markup mirrors the
+   sim verbatim: one .info-rubik text span, a literal <br> between the
+   lines — so the spacing IS the sim's wrapped-text spacing, nothing
+   synthetic. VERIFIED against a side-by-side sim render in headless
+   Chromium (2026-06-12): line pitch 13.7px, 2.7px between chip rects —
+   matching the sim within rounding. The earlier stacked-flex-boxes
+   builds measured 22.4px pitch (and before that fell into a 2px wrap
+   gap); both wrong, both replaced by this. */
 .feat-rotator {
-    display: block;
-    line-height: 1.6;
+    display: block; /* base class is a flex row — drop to text flow */
 }
-.feat-rotator .feat-line {
-    display: block;
+/* Sim's info-rubik runs line-height 1.6 (sim 2074); our global port
+   deviates at 1.2, so the sim value is restored here, scoped. */
+.feat-rotator .info-rubik {
     line-height: 1.6;
 }
 /* ── New Art tab sections (New Uploads + Minting Now) ────────────────

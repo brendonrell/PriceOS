@@ -305,13 +305,13 @@ export default function HomePageBody({
             title={label}
             onClick={() => {
                 setActiveTab(id);
-                showToast(`TAB: ${label}`);
+                showToast(`Tab: ${label.toUpperCase()}`);
             }}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     setActiveTab(id);
-                    showToast(`TAB: ${label}`);
+                    showToast(`Tab: ${label.toUpperCase()}`);
                 }
             }}
         >
@@ -343,16 +343,17 @@ export default function HomePageBody({
                     </div>
                 }
                 socialRow={
-                    /* Two fixed lines, one chip per line (Brendon,
-                       2026-06-12): "Featuring [chip]" up top, "[chip] & X
-                       others" below. Line rhythm comes from the sim's
-                       info-rubik line-height, not manual gaps. */
+                    /* Two lines, one chip per line. Structure mirrors the sim
+                       exactly (sim 5113): everything flows inside ONE
+                       .info-rubik text span — the line break is a literal
+                       <br>, so line spacing IS the sim's text line spacing.
+                       Measured against a sim render (headless, 2026-06-12):
+                       line pitch 13.7px / 2.7px between chips; the previous
+                       two-stacked-boxes build measured 22.4px — wrong. */
                     <div className="hero-line collected-by-row info-line feat-rotator">
-                        <span className="feat-line">
-                            <span className="cbr-label">Featuring</span>{' '}
-                            <CollectedPair handle={featNames[0]} />
-                        </span>
-                        <span className="feat-line">
+                        <span className="info-rubik feat-lines">
+                            Featuring <CollectedPair handle={featNames[0]} />
+                            <br />
                             {featNames[1] && <CollectedPair handle={featNames[1]} />}{' '}
                             <span className="cbr-others">&amp; {featOthers} others</span>
                         </span>

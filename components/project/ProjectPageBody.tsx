@@ -1022,11 +1022,11 @@ function ProjectPageBodyInner() {
                             id="ctab-project-showcase"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTabPersisted('project-showcase'); showToast('TAB: Showcase'); }}
+                            onClick={() => { setActiveTabPersisted('project-showcase'); showToast('Tab: SHOWCASE'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTabPersisted('project-showcase'); showToast('TAB: Showcase');
+                                    setActiveTabPersisted('project-showcase'); showToast('Tab: SHOWCASE');
                                 }
                             }}
                             title="Project Showcase — curation feature coming soon"
@@ -1038,11 +1038,11 @@ function ProjectPageBodyInner() {
                             id="ctab-artworks"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTabPersisted('artworks'); showToast('TAB: Artworks'); }}
+                            onClick={() => { setActiveTabPersisted('artworks'); showToast('Tab: ARTWORKS'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTabPersisted('artworks'); showToast('TAB: Artworks');
+                                    setActiveTabPersisted('artworks'); showToast('Tab: ARTWORKS');
                                 }
                             }}
                             title="Browse All Artworks in the Project"
@@ -1054,11 +1054,11 @@ function ProjectPageBodyInner() {
                             id="ctab-albums"
                             role="button"
                             tabIndex={0}
-                            onClick={() => { setActiveTabPersisted('albums'); showToast('TAB: + More'); }}
+                            onClick={() => { setActiveTabPersisted('albums'); showToast('Tab: + MORE'); }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTabPersisted('albums'); showToast('TAB: + More');
+                                    setActiveTabPersisted('albums'); showToast('Tab: + MORE');
                                 }
                             }}
                             title="More — curated sections"

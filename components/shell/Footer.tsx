@@ -63,7 +63,7 @@ export function Footer() {
                             title="Mood Ring — tap to read it"
                             style={{ cursor: 'pointer' }}
                             onClick={() =>
-                                showToast(`MOOD RING READS: ${mood.name}`)
+                                showToast(`Mood Ring reads: ${mood.name}`)
                             }
                         >
                             <span
@@ -83,7 +83,7 @@ export function Footer() {
                             style={{ cursor: 'pointer' }}
                             onClick={() =>
                                 showToast(
-                                    `BORN TODAY: SUN ${stars.sun.toUpperCase()} · MOON ${stars.moon.toUpperCase()} · RISING ${stars.rising.toUpperCase()}`,
+                                    `Born today: SUN ${stars.sun.toUpperCase()} · MOON ${stars.moon.toUpperCase()} · RISING ${stars.rising.toUpperCase()}`,
                                 )
                             }
                         >
