@@ -6796,6 +6796,51 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
        PriceDay date stamp is hidden (home hero only). */
     .home-title .project-date-wrap { display: none; }
 }
+/* ── New Art tab sections (New Uploads + Minting Now) ────────────────
+   Section headers + the text-only uploads feed. The feed rows reuse the
+   global .feed-list/.feed-row family (sales-feed look); the wrapper here
+   carries the page inset since this list doesn't sit in #activity-feed. */
+.home-uploads {
+    margin: 0 0 32px;
+}
+.home-uploads .feed-list {
+    padding: 0 40px;
+}
+.home-section-head {
+    padding: 0 40px;
+    margin: 0 0 10px;
+}
+.home-section-title {
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-color);
+}
+.home-empty-note,
+.home-feed-loading {
+    padding: 0 40px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: var(--text-color);
+    opacity: 0.6;
+}
+/* Feels-alive rule (§9): the fetch window pulses instead of sitting dead. */
+.home-feed-loading {
+    animation: homeFeedPulse 1.2s ease-in-out infinite;
+}
+@keyframes homeFeedPulse {
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 0.7; }
+}
+@media (max-width: 600px) {
+    .home-uploads .feed-list,
+    .home-section-head,
+    .home-empty-note,
+    .home-feed-loading {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
 /* Shuffle tab — randomized output grid + re-roll button. */
 .home-shuffle-bar {
     display: flex;

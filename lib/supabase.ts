@@ -329,6 +329,23 @@ const timeoutFetch: typeof fetch = (input, init) => {
 export const PUBLIC_USER_COLUMNS =
   'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, profile_hex, showcase, showcase_style, discord_id, discord_username, created_at';
 
+/** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
+ *  subscriptions from client components. Singleton so the whole app shares ONE
+ *  websocket no matter how many surfaces subscribe. The NEXT_PUBLIC_* envs are
+ *  inlined into the client bundle at build time; if they're absent this throws
+ *  at call time — callers should catch and fall back to polling. */
+let browserClient: SupabaseClient<Database> | null = null;
+export function getSupabaseBrowser(): SupabaseClient<Database> {
+  if (!browserClient) {
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!key) throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');
+    browserClient = createClient<Database>(url(), key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return browserClient;
+}
+
 export function getSupabaseAnon(): SupabaseClient<Database> {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');

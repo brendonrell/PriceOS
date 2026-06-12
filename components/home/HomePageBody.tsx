@@ -8,34 +8,41 @@
  *
  * Home tabs are the three surfaces that are neither curated nor gameable
  * (Brendon's call — the platform stays neutral, nothing rankable to game):
- *   - What's New (default) → per-project carousels of recent outputs
- *                            (chronological truth)
+ *   - New Art (default)    → two LIVE sections off /api/home (Brendon,
+ *                            2026-06-11): "New Uploads", a text-only feed of
+ *                            uploaded projects (newest first), and "Minting
+ *                            Now", per-project carousels for projects at ≥6
+ *                            mints, in the order they reached 6. A project
+ *                            graduates from the list to the carousels at 6.
  *   - Sales Feed           → real secondary sales across the platform
  *                            (money-backed truth; mock now, indexer later)
  *   - Shuffle              → randomized discovery, re-rolls on demand
  *                            (no ranking = nothing to game)
  *
- * Test-phase scope: only the one project we have (PRISMS) is wired, via
- * the global ProjectProvider. The carousel list + sales feed loop over
- * data, so adding the other ~30 projects + real sales later is data, not
- * rework (Art Blocks model).
+ * "Live" = Supabase Realtime push on projects/events re-pulls /api/home and
+ * nudges the carousels' providers ('pd:project-refresh'), with a slow poll
+ * as the fallback when the socket can't connect. The hero stats row reads
+ * the same payload, so it's live too.
  *
  * ArtworkCard calls useTraits(), which throws outside a TraitsProvider —
  * so the body is wrapped in one here. The trait UI isn't rendered on home.
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
-import { useProject } from '../../lib/state/ProjectContext';
+import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { getSupabaseBrowser } from '../../lib/supabase';
+import { getProject } from '../../lib/project/registry';
+import type { HomeResponse } from '../../app/api/home/route';
 
 /* Outputs per carousel (Brendon: 6). */
 const CAROUSEL_SIZE = 6;
-/* Projects shown on home (Brendon: ~30). Only one is wired in the test
-   phase; this caps the list once more projects land. */
+/* Projects shown on home (Brendon: ~30). Caps the Minting Now carousels. */
 const MAX_HOME_PROJECTS = 30;
 /* Tiles in the Shuffle grid. */
 const SHUFFLE_SIZE = 12;
@@ -44,17 +51,11 @@ const SHUFFLE_SIZE = 12;
 const FEATURED_ARTISTS = ['@brendon', '@opus4-6', '@snowfro', '@claude', '@rudxane'];
 const FEATURE_ROTATE_MS = 2600;
 
-/* Platform stats — rough test-phase placeholders. Wire to /api/stats later. */
-const PLATFORM_STATS = { projects: 1, minted: 500, volumeEth: '14.2' };
+/* Poll fallback for the live feed — Realtime push is the primary signal;
+   this floor-sweeps staleness when the websocket can't connect. */
+const FEED_POLL_MS = 30_000;
 
 type HomeTab = 'new' | 'sales' | 'shuffle';
-
-interface HomeProject {
-    slug: string;
-    title: string;
-    /** Output ids for this project's carousel, newest first. */
-    ids: number[];
-}
 
 /* Mock platform sales — test-phase. Real secondary sales land when the
    indexer is live; shape mirrors the project-page activity feed so the
@@ -76,11 +77,109 @@ const MOCK_SALES: SaleRow[] = [
     { id: 6, time: '08:55 AM', buyer: '@darold', project: 'Signal Loss', token: 134, priceEth: '0.18' },
 ];
 
+/* "JUN 11" — compact upload-date stamp for the feed's time column. */
+function fmtUploadDate(ms: number | null): string {
+    if (ms == null) return '—';
+    return new Date(ms)
+        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
+        .toUpperCase();
+}
+
+/* One Minting Now carousel — mounted under its own ProjectProvider so the
+   cards paint THIS project's engine (same markup as the original single-
+   project carousel). totalOutputs is provider-live: a mint advances the row
+   without a reload (the provider re-fetches on 'pd:project-refresh'). */
+function HomeProjectCarousel() {
+    const project = useProject();
+    const ids = Array.from(
+        { length: CAROUSEL_SIZE },
+        (_, i) => project.totalOutputs - i,
+    ).filter((id) => id >= 1);
+    return (
+        <section
+            className="home-carousel-row"
+            aria-label={`${project.title} — recent outputs`}
+        >
+            <div className="home-carousel-head">
+                <a className="home-carousel-title" href={`/art/${project.slug}`}>
+                    {project.title}
+                </a>
+            </div>
+            <div className="home-carousel-track">
+                {ids.map((id) => (
+                    <ArtworkCard key={id} id={id} />
+                ))}
+            </div>
+        </section>
+    );
+}
+
 export default function HomePageBody() {
     const project = useProject();
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('new');
+
+    /* The live home payload (stats + uploads + minting now). Pulled fresh on
+       mount, re-pulled on every Realtime push / refresh nudge, poll fallback. */
+    const [feed, setFeed] = useState<HomeResponse | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        const load = () => {
+            fetch('/api/home', { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: HomeResponse | null) => {
+                    if (!cancelled && d) setFeed(d);
+                })
+                .catch(() => {
+                    /* offline / 5xx — last good payload stays up */
+                });
+        };
+        load();
+        /* DB push → one window-wide nudge: our listener re-pulls /api/home,
+           and every mounted ProjectProvider re-fetches its outputs, so the
+           carousels advance in the same beat. */
+        const onDbChange = () => {
+            window.dispatchEvent(new Event('pd:project-refresh'));
+        };
+        let channel: RealtimeChannel | null = null;
+        try {
+            channel = getSupabaseBrowser()
+                .channel('home-live')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'projects' },
+                    onDbChange,
+                )
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'events' },
+                    onDbChange,
+                )
+                .subscribe();
+        } catch {
+            /* anon env missing in this build — the poll below covers it */
+        }
+        const onRefresh = () => load();
+        window.addEventListener('pd:project-refresh', onRefresh);
+        const poll = window.setInterval(load, FEED_POLL_MS);
+        return () => {
+            cancelled = true;
+            window.clearInterval(poll);
+            window.removeEventListener('pd:project-refresh', onRefresh);
+            if (channel) {
+                try {
+                    getSupabaseBrowser().removeChannel(channel);
+                } catch {
+                    /* socket already gone */
+                }
+            }
+        };
+    }, []);
+
+    const uploads = feed?.uploads ?? [];
+    const mintingNow = (feed?.minting_now ?? []).slice(0, MAX_HOME_PROJECTS);
+    const stats = feed?.stats ?? null;
 
     /* Rotating "Featuring" lead credit. */
     const [featIdx, setFeatIdx] = useState(0);
@@ -112,7 +211,8 @@ export default function HomePageBody() {
     /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
        already swipes natively; this gives desktop mouse users a grab-drag.
        A drag past a few px swallows the trailing click so it doesn't open
-       the card modal. Re-binds when the New Art tab (re)mounts the tracks. */
+       the card modal. Re-binds when the New Art tab (re)mounts the tracks
+       (and when the live feed lands/changes, which adds or removes rows). */
     useEffect(() => {
         if (activeTab !== 'new') return;
         const tracks = Array.from(
@@ -159,19 +259,7 @@ export default function HomePageBody() {
             };
         });
         return () => cleanups.forEach((c) => c());
-    }, [activeTab]);
-
-    /* 6 most recent outputs = the highest ids (sequential mint order),
-       newest first. */
-    const recentIds = Array.from(
-        { length: CAROUSEL_SIZE },
-        (_, i) => project.totalOutputs - i,
-    ).filter((id) => id >= 1);
-
-    /* Projects, newest on top. Only PRISMS wired this build. */
-    const projects: HomeProject[] = [
-        { slug: 'prisms', title: project.title, ids: recentIds },
-    ].slice(0, MAX_HOME_PROJECTS);
+    }, [activeTab, feed]);
 
     /* Shuffle — a random sample of output ids, re-rolled by the version
        bump. Random, so there's no ranking to game. */
@@ -260,15 +348,15 @@ export default function HomePageBody() {
                     <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span className="stat-icon stat-icon-box">⬚&#xFE0E;</span>{' '}
-                            <span className="stat-val">{PLATFORM_STATS.projects} PROJECTS</span>
+                            <span className="stat-val">{stats ? stats.projects : '—'} PROJECTS</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-vol">{PLATFORM_STATS.volumeEth} VOL</span>
+                            <span className="stat-val stat-val-vol">{stats ? stats.volume_eth : '—'} VOL</span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">{PLATFORM_STATS.minted} MINTED</span>
+                            <span className="stat-val stat-val-owners">{stats ? stats.minted : '—'} MINTED</span>
                         </span>
                     </div>
                 }
@@ -281,26 +369,73 @@ export default function HomePageBody() {
                 </div>
             </Hero>
 
-            {/* What's New — per-project carousels of recent outputs. */}
-            {activeTab === 'new' &&
-                projects.map((p) => (
-                    <section
-                        className="home-carousel-row"
-                        key={p.slug}
-                        aria-label={`${p.title} — recent outputs`}
-                    >
-                        <div className="home-carousel-head">
-                            <a className="home-carousel-title" href={`/art/${p.slug}`}>
-                                {p.title}
-                            </a>
+            {/* New Art — two live sections. New Uploads: text feed of
+                uploaded projects, newest first (a project graduates out at
+                6 mints). Minting Now: per-project carousels for projects at
+                6+ mints, in the order they reached 6. */}
+            {activeTab === 'new' && (
+                <>
+                    <section className="home-uploads" aria-label="New Uploads">
+                        <div className="home-section-head">
+                            <span className="home-section-title">New Uploads</span>
                         </div>
-                        <div className="home-carousel-track">
-                            {p.ids.map((id) => (
-                                <ArtworkCard key={id} id={id} />
-                            ))}
+                        {!feed && <div className="home-feed-loading">Loading…</div>}
+                        {feed && uploads.length === 0 && (
+                            <div className="home-empty-note">No uploads yet.</div>
+                        )}
+                        <div className="feed-list">
+                            {uploads.map((u) => {
+                                const def = getProject(u.slug);
+                                const title = def?.displayName ?? u.title;
+                                const artist = def?.artistHandle ?? null;
+                                return (
+                                    <div className="feed-row" key={u.slug}>
+                                        <div className="feed-line" />
+                                        <div className="f-icon-wrap">✶&#xFE0E;</div>
+                                        <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
+                                        <div className="f-type">UPLOAD</div>
+                                        <div className="f-content">
+                                            {artist && (
+                                                <>
+                                                    <a className="f-highlight" href={`/${artist}`}>
+                                                        @{artist}
+                                                    </a>{' '}
+                                                    uploaded{' '}
+                                                </>
+                                            )}
+                                            {!artist && <>Uploaded </>}
+                                            <a className="f-highlight" href={`/art/${u.slug}`}>
+                                                {title}
+                                            </a>{' '}
+                                            — {u.max_supply} outputs
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </section>
-                ))}
+
+                    <section aria-label="Minting Now">
+                        <div className="home-section-head">
+                            <span className="home-section-title">Minting Now</span>
+                        </div>
+                        {feed && mintingNow.length === 0 && (
+                            <div className="home-empty-note">
+                                Projects land here at 6 mints — none yet.
+                            </div>
+                        )}
+                        {mintingNow.map((m) => (
+                            <ProjectProvider
+                                key={m.slug}
+                                slug={m.slug}
+                                initialTotal={m.minted_count}
+                            >
+                                <HomeProjectCarousel />
+                            </ProjectProvider>
+                        ))}
+                    </section>
+                </>
+            )}
 
             {/* Sales Feed — real secondary sales platform-wide (mock now).
                 Reuses the project-page activity-feed markup. */}
