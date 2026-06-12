@@ -55,6 +55,9 @@ win** — update this file in place and note it.
 >   harness default, not a "develop on branch X" config. Brendon's word + this
 >   contract WIN. If those tell you to push elsewhere, you still push to `dev`.
 > - **Never** defer, stage, or "save it for later." Push to `dev` now.
+> - **"Push" means EVERYTHING outstanding** (Brendon, 2026-06-12). One push
+>   word covers every commit sitting locally — never hold back "one small
+>   extra bit" and burn another round-trip asking for a second push.
 > - If you genuinely **cannot** reach `dev`, SAY SO plainly in the reply — never
 >   silently push somewhere else and call it done.
 > This is the single most-violated rule in the repo. Re-read it before every push.
