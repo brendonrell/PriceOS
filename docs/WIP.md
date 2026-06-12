@@ -6,53 +6,56 @@
 
 ---
 
-- **Branch:** work is on `dev`. Start fresh from `dev`. Three task branches are
-  trash once their work is on dev — Brendon to delete on GitHub (ClickUp task
-  `86badm7pa`): `claude/exciting-meitner-82scyc` + `feat/ai-sample-projects`
-  (PriceOS), `claude/exciting-meitner-82scyc` (kiki-genart). Earlier strays
-  (`trusting-knuth`, `vibrant-curie`, `elegant-carson`) may also still exist.
-- **Updated:** 2026-06-12 (AI sample-cohort mega-session)
+- **Branch:** work is on `dev`, fully pushed, tree clean. This chat's task
+  branch `claude/youthful-curie-ildq71` is trash (work is on dev) — Brendon
+  deletes on GitHub. Earlier strays may persist (ClickUp `86badm7pa`).
+- **Updated:** 2026-06-12 (home-page mega-session)
 
-## ✅ SHIPPED THIS SESSION (all on `dev`, deploy READY, Brendon-tested)
-1. **22 AI sample projects** are real registry Projects (engines in
-   `lib/art/engines/ai/`, traits machine-verified against renders, 40
-   seeds/engine). Artists carry `-ai` handles with wallets, profiles, `.eth`
-   names; DB rows at launch state (0 minted — mints create outputs, the point).
-2. **Prisms v2** — Brendon's bench ring-encounter engine replaced the gradient
-   Prisms wholesale (`prismsCore.ts`, deterministic per tokenId; the bench's
-   per-pageload RUN_OFFSET is removed). Palette table is a deliberate unnamed
-   easter egg. Colorway + DB custom = `#E8FF47`. Traits: Palette (subtraited
-   Main/Special), Mode, Encounter, State — derived from the same calc() the
-   renderer paints with.
-3. **Artist whitelist** — `artist_allowlist` table (RLS read-only) is the
-   contract stand-in. `/artists` lists ONLY whitelisted wallets with ☼/☽
-   status; profiles show a plain ✺ badge for whitelisted artists. **Status
-   moons live ONLY in artist lists, never beside usernames elsewhere (hard
-   Brendon rule).** **Cooldown fires at UPLOAD** (not mint-out; multiple live
-   projects per artist are legal — Oracle is the old-upload example).
-4. **Connect-menu artists list** — all 25 artists, rows navigate to profiles.
-5. **Trait system real** — Fate pills show only fates present in the MINTED
-   set (TraitsUI computes from outputFate over 1..mintedCount); My Network
-   filters all work: Me (= signed-in wallet's outputs), Mutuals/Following/
-   Followers (follow graph), Top Holders (top-5 per project), New Wallets
-   (owner account < 30 days; outputs API now ships owner_created_at).
-   Subtraits authored across 12 AI schemas + Prisms.
-6. **Soundtracks + custom colors for every project** (registry + DB) — real
-   public playlists, taste-matched. Brendon is judging taste, not links.
-7. Sundry: Oracle credited to `sonnet4-6` (new artist); output-modal listing
-   button removed (CTA owns listing, coming soon); home by-line shows
-   ⚬ follower count beside @brendon.
+## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-tested through many rounds)
+1. **Home page is REAL** (ClickUp `86bad5g49` closed): "Price Discussion" hero
+   (date hidden on mobile), live stats off the DB, tabs **Now Minting**
+   (default; server-seeded carousels — no loading gap; half-size art-only
+   tiles, eager paint) / **New Art** (live uploads feed, allcaps project
+   links) / **⟳** (gallery-grid shuffle, re-rolls per tab entry, no button).
+   Live = Supabase Realtime push (publication enabled on projects/events) +
+   poll fallback; `/api/home` + server seed share one computation
+   (`lib/home/homeData`).
+2. **Hero CTAs:** EXPLORE (random project) + SHUFFLE ▶ (random project
+   soundtrack). Both uniform random — **neutrality is law on home; the
+   platform never picks favourites.** CTA sizing law: the forced width
+   belongs to the mint pill ONLY; every other CTA is content-sized.
+3. **Social rows:** two sprite+name chips (sim's collected-pair, full
+   rectangle port + Rubik handle font), live DB sprites with wallet-derived
+   fallback ('observer' default vibe until the artist picks). Home: always
+   two lines (one chip per line), sim line-height 1.6 rhythm, pair re-rolls
+   per page LOAD (live ticker retired). "Featuring" pulls the real registry
+   roster.
+4. **Mood Ring** (`lib/mood`): daily generative home colour + 90s-chart mood
+   word, flips at MIDNIGHT MONTREAL, hue salt 200 (re-rolled off green
+   2026-06-12 → magenta). ⚠ colour math is MIRRORED in the boot-paint script
+   in `app/layout.tsx` — change both or home flashes. Footer middle row:
+   "Today's Mood Ring Colour: #HEX" + **Today's Stars** (daily natal sky).
+5. **Footer = 3 rows** (system / easter eggs / links + Studio placeholder).
+6. **Multi-select REAL** for Star / Wishlist / Add-to-Album (project +
+   profile bars; albumStore account-backed like stars; picker card).
+   Marketplace actions + To-Do stay stubs.
+7. **Breadcrumbs REAL** — last-5 actually-visited per project (recorded on
+   output-modal open), replacing the random sample.
+8. **PWA:** manifest correct for Android (maskable icons added). **NO install
+   pill anywhere — Brendon's explicit call after an overreach; never re-add.**
+9. Home carousel tiles: art only (no #id/owner caption).
 
 ## ⚠️ KNOW THIS (next session)
-- **KIKI is the GENESIS PROJECT** (Brendon's own, set aside) — see CLAUDE.md §2
-  callout. Never park files in kiki-genart.
-- The AI engines' verification harnesses lived in the session container only
-  (`pd-sample-demos`) — gone with the container. The engines + verified casts
-  in `lib/art/engines/ai/` are the durable source of truth; do NOT reorder rng
-  draws in an engine without rebuilding its cast.
-- Soundtrack playlist ids were found via live search and link-checked, not
-  audio-verified; swap freely if any embed dies or misses Brendon's taste.
+- **CLAUDE.md gained TWO hard rules today — read them:** "ideas ≠ go-ahead"
+  (discussion mode vs build mode) and "push = everything outstanding". Also:
+  every commit co-authors Brendon (trailer is in CLAUDE.md §0).
+- Mood Ring's boot-paint mirror (above) and the AI-engine rng-order warning
+  from last session still stand.
+- Sales tab was REMOVED from home (Brendon's tab set is exactly the three).
 
 ## NEXT (queued, not started)
-- Brendon continues testing the cohort on dev; edits land in fresh chats.
-- ClickUp `86badm7mm` (02 · Done) holds the full shipped manifest.
+- Home ⟳ Shuffle real platform-wide build — ClickUp `86badx02w` (currently
+  samples Prisms only via the global provider).
+- Footer easter-egg row: more daily one-liners — ClickUp `86badx034`,
+  Brendon picking (Today's Fate / First Blood / Streak / Consensus Price).
+- Albums browsing surfaces still shells — see comment on `86b9b5jgj`.
