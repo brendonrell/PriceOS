@@ -6946,6 +6946,9 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     width: min(31vw, 120px);
     scroll-snap-align: start;
 }
+/* Carousel tiles are pure art (Brendon, 2026-06-12) — no #id / owner
+   caption row; tap the tile for everything else. */
+.home-carousel-track .output-card .meta { display: none; }
 .home-carousel-track::-webkit-scrollbar {
     height: 0;
     width: 0;
