@@ -47,12 +47,11 @@ const MAX_HOME_PROJECTS = 30;
 /* Tiles in the Shuffle grid. */
 const SHUFFLE_SIZE = 12;
 
-/* Rotating "Featuring" credits — the REAL artist roster, from the registry
+/* "Featuring" credits — the REAL artist roster, from the registry
    (every project's artist, de-duped). New projects feed this automatically. */
 const FEATURED_HANDLES: readonly string[] = [
     ...new Set(allProjects().map((p) => p.artistHandle)),
 ];
-const FEATURE_ROTATE_MS = 2600;
 
 /* Featured handles shown at once (Brendon, 2026-06-12: two sprite+name
    chips — the chips give each name more presence than the old bare trio). */
@@ -207,20 +206,16 @@ export default function HomePageBody({
     const mintingNow = (feed?.minting_now ?? []).slice(0, MAX_HOME_PROJECTS);
     const stats = feed?.stats ?? null;
 
-    /* Featuring — REAL artists (Brendon, 2026-06-12): the registry's artist
-       roster, one sprite+name chip at a time + "& X others", swapping on
-       the interval with the split-flap flip. First paint is deterministic
-       (first handle) so SSR/CSR agree; the first interval tick randomizes. */
+    /* Featuring — REAL artists (Brendon, 2026-06-12): two sprite+name chips
+       from the registry roster + "& X others". The pair randomizes ONCE per
+       page load (refresh = new pair; the live ticker is retired — Brendon's
+       call after it misbehaved). First paint is deterministic so SSR/CSR
+       agree; the mount effect re-rolls immediately. */
     const [featNames, setFeatNames] = useState<string[]>(() =>
         FEATURED_HANDLES.slice(0, FEATURE_SHOW),
     );
-    const [featTick, setFeatTick] = useState(0);
     useEffect(() => {
-        const t = setInterval(() => {
-            setFeatNames(pickFeatured());
-            setFeatTick((n) => n + 1);
-        }, FEATURE_ROTATE_MS);
-        return () => clearInterval(t);
+        setFeatNames(pickFeatured());
     }, []);
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
 
@@ -350,24 +345,15 @@ export default function HomePageBody({
                 socialRow={
                     /* Two fixed lines, one chip per line (Brendon,
                        2026-06-12): "Featuring [chip]" up top, "[chip] & X
-                       others" below — steady height while chips flap. */
+                       others" below. Line rhythm comes from the sim's
+                       info-rubik line-height, not manual gaps. */
                     <div className="hero-line collected-by-row info-line feat-rotator">
                         <span className="feat-line">
                             <span className="cbr-label">Featuring</span>{' '}
-                            <span key={`${featTick}-a-${featNames[0]}`} className="feat-flap">
-                                <CollectedPair handle={featNames[0]} />
-                            </span>
+                            <CollectedPair handle={featNames[0]} />
                         </span>
                         <span className="feat-line">
-                            {featNames[1] && (
-                                <span
-                                    key={`${featTick}-b-${featNames[1]}`}
-                                    className="feat-flap"
-                                    style={{ animationDelay: '130ms' }}
-                                >
-                                    <CollectedPair handle={featNames[1]} />
-                                </span>
-                            )}{' '}
+                            {featNames[1] && <CollectedPair handle={featNames[1]} />}{' '}
                             <span className="cbr-others">&amp; {featOthers} others</span>
                         </span>
                     </div>
@@ -395,7 +381,7 @@ export default function HomePageBody({
                     project soundtrack button). */}
                 <div className="action-row">
                     <button
-                        className="btn-mint"
+                        className="btn-mint btn-explore"
                         title="Explore — opens a project at random"
                         onClick={handleExplore}
                     >

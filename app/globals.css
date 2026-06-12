@@ -3291,6 +3291,12 @@ button,
 .btn-follow {
     width: auto;
 }
+/* Home EXPLORE CTA — same decoupling, same reason (Brendon 2026-06-12,
+   "once and for all"): EVERY CTA that is not the mint-progress pill is
+   content-sized. The forced width is the mint button's alone. */
+.btn-explore {
+    width: auto;
+}
 .mint-lbl {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 16px;
@@ -6955,35 +6961,21 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
        PriceDay date stamp is hidden (home hero only). */
     .home-title .project-date-wrap { display: none; }
 }
-/* ── Featuring split-flap (home hero) ────────────────────────────────
-   All three featured names swap together on the rotate tick, each slot
-   flipping in with a staggered delay (inline animation-delay) — the old
-   departure-board wall. Hinge at the top edge, slight overshoot before
-   settling, perspective on the row so the flip reads as depth. */
-/* Home only: the social row is ALWAYS two lines — chip line up, "& X
-   others" line down. The row's base class is a wrapping flex ROW (so
-   `display: block` on the children did nothing — the 2026-06-12 spacing
-   bug: lines only broke by overflow and fell into the 2px wrap gap);
-   flipping the container to a column stacks the two lines for real, and
-   the 8px gap matches the hero's own row rhythm (.hero-group-1) so the
-   whole hero reads as one uniform ladder. */
+/* ── Featuring rows (home hero) ──────────────────────────────────────
+   Two fixed lines, one chip each; the pair re-rolls per page load (the
+   live split-flap ticker is retired — Brendon, 2026-06-12). Spacing is
+   the SIM's: this content is text, so the rhythm comes from the sim's
+   info-rubik line-height 1.6 (sim 2074), not flex gaps or margins — the
+   exact treatment the sim gives wrapped "Collected by" pair lines. The
+   row's base class is a flex row, so the container drops to block flow
+   for the text treatment to apply. */
 .feat-rotator {
-    perspective: 500px;
-    flex-direction: column;
-    align-items: flex-start;
-    row-gap: 8px;
+    display: block;
+    line-height: 1.6;
 }
-.feat-rotator .feat-line { display: block; }
-.feat-flap {
-    display: inline-block;
-    animation: featFlap 0.45s cubic-bezier(0.3, 0.7, 0.3, 1) both;
-    transform-origin: 50% 0;
-    backface-visibility: hidden;
-}
-@keyframes featFlap {
-    0%   { transform: rotateX(-92deg); opacity: 0.15; }
-    55%  { transform: rotateX(16deg); opacity: 1; }
-    100% { transform: rotateX(0deg); }
+.feat-rotator .feat-line {
+    display: block;
+    line-height: 1.6;
 }
 /* ── New Art tab sections (New Uploads + Minting Now) ────────────────
    Section headers + the text-only uploads feed. The feed rows reuse the
