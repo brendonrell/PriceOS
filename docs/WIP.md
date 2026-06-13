@@ -6,13 +6,49 @@
 
 ---
 
-- **Branch:** work is on `dev`, fully pushed, tree clean. This chat's task branch
-  `claude/frontend-spot-edits-features-akrjnc` is trash (work is on dev) —
-  Brendon deletes on GitHub.
-- **Updated:** 2026-06-13. Two sessions landed on `dev` today: this
-  **frontend feature session** (below) AND a parallel **Home-as-directory +
-  contracts/spec** session (its `HomeFacetBar` / "Home as Projects directory" +
-  error-boundary + on-chain thumbnail budget — merged on top of this work).
+- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `1557172`).
+  This chat's task branch `claude/gracious-clarke-l623wn` is trash (work is on
+  dev) — Brendon deletes on GitHub. (The earlier
+  `claude/frontend-spot-edits-features-akrjnc` branch is also trash.)
+- **Updated:** 2026-06-13. Two sessions landed on `dev` today: a **frontend
+  feature session** (PriceDay / grouping / feeds — below) AND this
+  **Home-as-directory + stability** session (block directly below).
+
+## ✅ SHIPPED 2026-06-13 — Home-as-directory + stability session (on `dev`)
+- **STABILITY SAFETY NET (the deep cause of "half our features crash").** The
+  app had **zero error boundaries**, so any render-phase throw white-screened
+  the whole site. Added a routed-page catch (page crash keeps the shell + a
+  retry), a last-resort root catch, and a per-feature boundary wrapping **every**
+  globally-mounted modal/chrome island (`components/shell/ErrorBoundary.tsx` +
+  `app/error.tsx` + `app/global-error.tsx`). Contained crashes now log. This is
+  containment — each underlying feature bug still needs hunting, but safely.
+- **GREY CAROUSELS FIXED (lazy-paint eviction bug).** The canvas virtualizer's
+  60-canvas LRU cap was evicting **on-screen** tiles — on the multi-carousel
+  home page the top rows greyed the instant lower rows painted. Eviction now
+  **skips any tile currently intersecting the viewport**; off-screen tiles still
+  release so the GPU stays bounded on deep scrolls.
+- **HOME = Projects directory.** Now Minting pours in **every** graduated (12+)
+  project — old 30-cap gone — with `HomeFacetBar`: Newest / Oldest / A–Z, Artist
+  filter, search. Same bar on New Art. **Shuffle left bare on purpose** (a sort
+  bar fights the "shuffle is random" call — flagged). Bar carries the 40px page
+  inset (20px mobile) so pills line up with the rows.
+- **SHUFFLE reworked.** Each tab entry surfaces a **different random project** +
+  **24 random outputs** of it (`ShuffleGallery`, `SHUFFLE_SIZE = 24`).
+- **REAL Identity Plate export.** PriceSprite modal EXPORT now composes the live
+  sprite + PriceRank + wallet name onto the current colorway → downloads a PNG
+  client-side (was a COMING-SOON toast). Icon centered. ⚠ **No Sigil renderer
+  exists in the app** — card = sprite + rank + name, not a sigil.
+- **Polish:** Shuffle tab icon nudged down 2px (desktop). **Featuring /
+  Collected-by row reads entirely in Rubik** — @name links were inheriting
+  Courier (`.collected-by-row .profile-link` now forced to Rubik mono caps).
+
+## 🅿️ PARKED
+- **ANOINTED — Brendon parked it.** Visual/alignment is cheap; the **real
+  feature is a big standalone backend build** (one-✢ pledge · 60-day lock ·
+  zero-sum moves · Cult→Egregore leveling · Prime Relic). Canonical spec:
+  ClickUp doc page `2kyd6gx6-1434` (Anointment & Egregore System).
+- **Trait pills on the project "+ More" tab** — same pill styling, sub-nav over
+  its sections (Replay / Albums / Price Stats…). Discussed, not built.
 
 ## ✅ SHIPPED 2026-06-13 — frontend feature session (on `dev`)
 - **PriceDay is real.** Epoch = first launch day **2026-06-12 = #1**, counted on
