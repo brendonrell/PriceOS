@@ -50,28 +50,30 @@
    prehydration script runs — that script paints synchronously based
    on pathname + saved values before first frame. */
 :root {
-    /* Defaults match the artist/custom-colour output of paintVars so
-       the page renders correctly before the pre-hydration script fires.
-       The script overwrites these synchronously for users with saved
-       colorways; unauthenticated users see exactly this colour. */
-    --bg-color:     #C488FF;
-    --text-color:   #111111;
-    --border-color: rgba(0, 0, 0, 0.15);
-    --accent:       #111111;
+    /* Cold-start base = Dot (#111111), the documented site basis. The
+       pre-hydration script in app/layout.tsx overwrites these synchronously
+       per page (home → Mood Ring, project → its colorway, profile → owner
+       hex) before first paint, so these only show in the rare no-JS frame.
+       There is NO baked-in custom hue here — a prior build hardcoded Soft
+       Violet, which bled onto Home; it's Dot now (Brendon 2026-06-13). */
+    --bg-color:     #111111;
+    --text-color:   #e0e0e0;
+    --border-color: rgba(255, 255, 255, 0.15);
+    --accent:       #e0e0e0;
 
-    --modal-bg:         rgba(196, 136, 255, 0.98);
-    --stat-bg:          rgba(0, 0, 0, 0.08);
-    --stat-active-bg:   #000000;
-    --stat-active-text: #e0e0e0;
+    --modal-bg:         rgba(17, 17, 17, 0.98);
+    --stat-bg:          rgba(255, 255, 255, 0.18);
+    --stat-active-bg:   #e0e0e0;
+    --stat-active-text: #000000;
 
     --mint-bg:      #111111;
     --mint-text:    #e0e0e0;
     --mint-border:  #111111;
     --mint-bg-img:  none;
 
-    --pill-l1-bg:     #111111;
-    --pill-l1-text:   #C488FF;
-    --pill-l1-border: #111111;
+    --pill-l1-bg:     #e0e0e0;
+    --pill-l1-text:   #111111;
+    --pill-l1-border: #e0e0e0;
     --pill-l1-bg-img: none;
 
     --btn-user-hover: #ffffff;

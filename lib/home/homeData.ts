@@ -60,7 +60,7 @@ export interface HomeResponse {
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, cooldown_until'),
+    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until'),
     db
       .from('events')
       .select('project_id, timestamp')
@@ -76,6 +76,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     title: string;
     minted_count: number | null;
     max_supply: number | null;
+    uploaded_at: string | null;
     cooldown_until: string | null;
   }[];
 
@@ -113,9 +114,11 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
         title: p.title,
         max_supply: p.max_supply ?? 0,
         minted_count: minted,
-        uploaded_at: p.cooldown_until
-          ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
-          : null,
+        uploaded_at: p.uploaded_at
+          ? new Date(p.uploaded_at).getTime()
+          : p.cooldown_until
+            ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
+            : null,
       });
     }
   }

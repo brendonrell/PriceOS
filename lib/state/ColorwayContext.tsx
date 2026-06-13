@@ -63,15 +63,14 @@ export type ColorwayKey =
     | null; // null = factory default (Dot)
 
 const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
-    /* COLORWAYS.custom is the fallback fill when the user hasn't picked a
-       custom hex yet. Soft Violet (#C488FF) is the canonical default
-       for the custom color slot. The static fallback below is
-       overridden by the user's saved hex via getCustomBg() on every
-       applyColorway pass; this value only paints when no custom hex has
-       been saved or the saved value is malformed. The profile-colorway
-       default (Attention Yellow) is a separate slot that lands with
-       Profile Page v0 — these two should not be conflated. */
-    custom:  '#C488FF',
+    /* The Custom colorway has NO color of its own — it is ALWAYS derived from
+       the page it's on (home → today's Mood Ring, project → that project's
+       colorway, profile → the owner's hex); see resolveCustomBg(). This entry
+       exists only to complete the type and as an absolute last-resort fallback,
+       which is Dot (#111111) — never a baked-in hue. (A prior build hardcoded
+       Soft Violet #C488FF here and it bled onto Home; removed — Brendon
+       2026-06-13.) */
+    custom:  '#111111',
     light:   '#e0e0e0',
     dark:    '#1a1a1a',
     orange:  '#ff6600',
@@ -237,8 +236,31 @@ function isRedBg(bgHex: string): boolean {
 }
 
 /** Apply a colorway to the documentElement and body classes. */
+/* The Custom colorway resolves PER PAGE — never a hardcoded color. Mirrors
+   paintForPath's custom branches so an explicit "Custom" pick paints the same
+   thing the route boot does: home → today's Mood Ring, a project → that
+   project's colorway, a profile → the owner's hex. Dot is the only last-resort
+   fallback (Brendon 2026-06-13: there is deliberately no built-in custom hue). */
+function resolveCustomBg(): string {
+    if (typeof window === 'undefined') return DOT;
+    const path = window.location.pathname || '/';
+    if (path === '/') return moodHexToday();
+    if (path.startsWith('/art/')) {
+        const slug = (path.split('/')[2] ?? '').toLowerCase();
+        return getProject(slug)?.colorway ?? DOT;
+    }
+    const firstSeg = (path.match(/^\/([^/]+)/)?.[1] ?? '').toLowerCase();
+    const isProfile =
+        firstSeg.length > 0 &&
+        firstSeg !== 'art' &&
+        firstSeg !== 'api' &&
+        !/^\d+$/.test(firstSeg);
+    if (isProfile) return getProfileBg(DOT);
+    return DOT;
+}
+
 function applyColorway(key: ColorwayKey) {
-    let bg = key === null ? DOT : (key === 'custom' ? getCustomBg() : key === 'haze' ? getHazeBg() : COLORWAYS[key]);
+    let bg = key === null ? DOT : (key === 'custom' ? resolveCustomBg() : key === 'haze' ? getHazeBg() : COLORWAYS[key]);
     /* Brendon list item 7 — sim 6798-6803. Override standard light/dark
        bg with the pure variant when the corresponding flag is set. */
     if (key === 'light' || key === 'dark') {
@@ -530,7 +552,7 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
             const paintingCustom =
                 colorway === 'custom' || (colorway === null && isProjectPage);
             if (paintingCustom) {
-                applyBgHex(getCustomBg(), 'custom');
+                applyBgHex(resolveCustomBg(), 'custom');
             }
         };
         window.addEventListener('pd:custom-color-changed', handler);

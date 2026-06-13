@@ -23,9 +23,9 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: { slug: string } };
 
-/* The 60-day artist cooldown clock fires at UPLOAD, so cooldown_until − 60d IS
-   the upload moment — the same derivation the home New-Uploads feed uses, until
-   a dedicated uploaded_at column exists. */
+/* Legacy fallback only: before the dedicated projects.uploaded_at column, the
+   upload moment was derived from cooldown_until − 60d (the 60-day artist
+   cooldown clock fires at upload). uploaded_at is now the source of truth. */
 const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
 
 /* Server-side seed read. Best-effort: any failure falls back to (0, [], null)
@@ -37,20 +37,24 @@ async function fetchSeed(
         const supabase = getSupabaseService();
         const { data } = await supabase
             .from('projects')
-            .select('minted_count, showcase_ids, cooldown_until')
+            .select('minted_count, showcase_ids, uploaded_at, cooldown_until')
             .eq('id', slug)
             .maybeSingle();
         const row = data as {
             minted_count?: number;
             showcase_ids?: number[];
+            uploaded_at?: string | null;
             cooldown_until?: string | null;
         } | null;
+        const uploadedAt = row?.uploaded_at
+            ? new Date(row.uploaded_at).getTime()
+            : row?.cooldown_until
+                ? new Date(row.cooldown_until).getTime() - COOLDOWN_MS
+                : null;
         return {
             total: typeof row?.minted_count === 'number' ? row.minted_count : 0,
             showcaseIds: Array.isArray(row?.showcase_ids) ? row!.showcase_ids! : [],
-            uploadedAt: row?.cooldown_until
-                ? new Date(row.cooldown_until).getTime() - COOLDOWN_MS
-                : null,
+            uploadedAt,
         };
     } catch {
         return { total: 0, showcaseIds: [], uploadedAt: null };

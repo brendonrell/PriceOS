@@ -113,7 +113,10 @@ const PREHYDRATION_SCRIPT = `
         var profileBoot = (colorway === null && isProfilePage);
 
         var COLORWAYS = {
-            custom:  '#C488FF',
+            // Custom has no baked-in hue — it's derived per page (home → Mood
+            // Ring below, project/profile → their own color). Dot is the only
+            // last-resort fallback (Brendon 2026-06-13).
+            custom:  '#111111',
             light:   '#e0e0e0',
             dark:    '#1a1a1a',
             orange:  '#ff6600',
