@@ -115,6 +115,28 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'hard-water':             { playlistId: 'OLAK5uy_nugJJjislAMW15DJOvKOuD5EudRNeRUzQ', label: 'Terry Riley — A Rainbow in Curved Air' },
   'turf-war':               { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
   'avalanche':              { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
+  /* ── new cohort (2026-06-13). Most carry a soundtrack matched to the work;
+     the contemplative fine-art pieces (Quorum, Konkret, Ode to Rudxane, The
+     Lapidary, Warp & Weft, Divided Light, Filament, The Golden Angle) are
+     intentionally silent — the artist's chosen bg hex stands alone. ── */
+  'everyone-is-typing':     { playlistId: 'OLAK5uy_kmoCFzuKniN8yTiL701Ardjwq7oMkvnz8', label: '100 gecs — 1000 gecs' },
+  'night-service':          { playlistId: 'PLwn7nuBZOuOy_awkbaFCJzdFyXIbkjVqw', label: "80's Synthwave — Night Drive Mixes" },
+  'breach-protocol':        { playlistId: 'PLFvmcIFHwju3yMswUDb6pbeW4HqTEGI9f', label: 'Darksynth / Cyberpunk / Industrial Mixes' },
+  'graffiti-soul':          { playlistId: 'PLWQigmFvFjPdvjrUyTTkpocV3KHfibXmO', label: 'Jet Set Radio — Original Soundtrack' },
+  'teletext':               { playlistId: 'OLAK5uy_mTZiCulgHFbzkIChf8KQbUL3DWh2PCmSI', label: 'Boards of Canada — Music Has the Right to Children' },
+  'chrome-dreams':          { playlistId: 'PLiQyj3m-vBexsWfn2NY3ROSi13T9etbbm', label: '2000s Pop Hits — Y2K Anthems' },
+  'riding-the-oil':         { playlistId: 'PLNfpZJMeq7ARokcTW0RmLfSrNGTM9vuz7', label: 'Vaporwave Mixes' },
+  'price-discovery':        { playlistId: 'OLAK5uy_kQdrECE-ozwNQzDlLQT2vsgVQp8DfHElE', label: 'Miles Davis — Kind of Blue' },
+  'liquid-light':           { playlistId: 'PL8EDF0165B4EA2F04', label: "Psychedelic Rock 60's–70's" },
+  'diffusion':              { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  'growth':                 { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
+  'tessera':                { playlistId: 'OLAK5uy_kS0xK-8stFnvAtN5wIIAidUD2MAXSOxAI', label: 'Sigur Rós — Ágætis byrjun' },
+  'junction':               { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
+  'asterism':               { playlistId: 'OLAK5uy_lCS1RuGli5eF1wKf8uJSisyzFsOYrY4AA', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
+  'facets':                 { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
+  'quasicrystal':           { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  'circuit':                { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
+  'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
 };
 
 function aiDef(
