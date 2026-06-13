@@ -63,6 +63,7 @@ import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
@@ -178,23 +179,59 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('orientationchange', set);
     }, []);
 
+    /* Each globally-mounted island is wrapped in its own ErrorBoundary so a
+       render-phase crash in any ONE surface (a modal, the backgrounds layer,
+       the navbar, …) is contained to that surface instead of white-screening
+       the whole app — the deep cause of the "half our features crash the
+       site" pain (Brendon, 2026-06-13). Chrome/overlays fall back to nothing
+       (a dead modal simply doesn't appear); the routed page below is covered
+       separately by app/error.tsx, which keeps this shell alive and offers a
+       retry, so `children` is deliberately NOT wrapped here. */
     return (
         <>
-            <Backgrounds />
-            <FaviconEngine />
-            <Navbar />
+            <ErrorBoundary name="Backgrounds">
+                <Backgrounds />
+            </ErrorBoundary>
+            <ErrorBoundary name="FaviconEngine">
+                <FaviconEngine />
+            </ErrorBoundary>
+            <ErrorBoundary name="Navbar">
+                <Navbar />
+            </ErrorBoundary>
             <main>{children}</main>
-            <Footer />
-            <ActionToast />
-            <OutputPreview />
-            <CollectorsModal />
-            <FollowersModal />
-            <PriceosModal />
-            <FamiliarModal />
-            <PriceSpriteModal />
-            <GasTrackerModal />
-            <StickersModal />
-            <CartPanel />
+            <ErrorBoundary name="Footer">
+                <Footer />
+            </ErrorBoundary>
+            <ErrorBoundary name="ActionToast">
+                <ActionToast />
+            </ErrorBoundary>
+            <ErrorBoundary name="OutputPreview">
+                <OutputPreview />
+            </ErrorBoundary>
+            <ErrorBoundary name="CollectorsModal">
+                <CollectorsModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="FollowersModal">
+                <FollowersModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PriceosModal">
+                <PriceosModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="FamiliarModal">
+                <FamiliarModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PriceSpriteModal">
+                <PriceSpriteModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="GasTrackerModal">
+                <GasTrackerModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="StickersModal">
+                <StickersModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="CartPanel">
+                <CartPanel />
+            </ErrorBoundary>
         </>
     );
 }
