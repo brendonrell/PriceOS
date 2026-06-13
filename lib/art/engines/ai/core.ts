@@ -4084,12 +4084,22 @@ const MAT_WOOD=[
   {name:'Pine', early:'#e3c890', late:'#c39a50', ray:false},
   {name:'Cherry', early:'#b56a4a', late:'#8a4530', ray:false},
 ];
-const MAT_MODES=['marble','granite','wood'];
+const MAT_GLASS=[
+  {name:'Cobalt', a:'#1f49a8', b:'#0a1a4a', hi:'#bcd8ff'},
+  {name:'Emerald', a:'#108a5a', b:'#063524', hi:'#aef0d0'},
+  {name:'Amber', a:'#c47812', b:'#5a3208', hi:'#ffe0a0'},
+  {name:'Rose', a:'#c0467a', b:'#5a1834', hi:'#ffc8e0'},
+  {name:'Smoke', a:'#42424c', b:'#161618', hi:'#d8d8e0'},
+  {name:'Aqua', a:'#1ab0b0', b:'#084a4a', hi:'#c8fff8'},
+  {name:'Violet', a:'#7a32b8', b:'#2a0f4a', hi:'#e0c8ff'},
+  {name:'Murano', a:'#d2402c', b:'#3a1008', hi:'#ffd8a0'},
+];
+const MAT_MODES=['marble','granite','wood','glass'];
 function materia(cv,seed){
   const r=rng(seed);
   const mode=pick(MAT_MODES,r);
   const fmt=pick(MAT_FMTS,r);
-  const fam= mode==='marble'? Math.floor(r()*MAT_MARBLE.length) : mode==='granite'? Math.floor(r()*MAT_GRANITE.length) : Math.floor(r()*MAT_WOOD.length);
+  const fam= mode==='marble'? Math.floor(r()*MAT_MARBLE.length) : mode==='granite'? Math.floor(r()*MAT_GRANITE.length) : mode==='wood'? Math.floor(r()*MAT_WOOD.length) : Math.floor(r()*MAT_GLASS.length);
   const finish= pick(['Polished','Honed','Matte'],r);
   // ---- end trait draws ----
   const W=fmt.W,H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
@@ -4123,7 +4133,7 @@ function materia(cv,seed){
     for(const [sz,dens,al] of [[2.6,area/900,0.9],[1.6,area/300,0.8],[1.0,area/140,0.5]]){for(let i=0;i<dens;i++){x.globalAlpha=al*(0.5+r()*0.5);x.fillStyle=G.flecks[Math.floor(r()*G.flecks.length)];const s=sz*(0.6+r()*0.8);x.fillRect(r()*W,r()*H,s,s);}}x.globalAlpha=1;
     // a few fractures (slate)
     if(G.dark){x.strokeStyle='rgba(255,255,255,0.06)';x.lineWidth=1;for(let i=0;i<rint(r,2,5);i++){let px=W*r(),py=-5,a=1.3+r()*0.5;const pts=[[px,py]];for(let k=0;k<40;k++){a+=(r()-0.5)*0.4;px+=Math.cos(a)*S*0.02;py+=Math.sin(a)*S*0.02;pts.push([px,py]);}strokePts(pts);}}
-  } else { // wood
+  } else if(mode==='wood'){ // wood
     const Wd=MAT_WOOD[fam]; const quarter=r()<0.4;
     x.fillStyle=Wd.early; x.fillRect(0,0,W,H);
     // tonal earlywood drift
@@ -4143,6 +4153,21 @@ function materia(cv,seed){
     for(let k=0;k<rint(r,0,2);k++){const kx=W*(0.15+r()*0.7),ky=H*(0.15+r()*0.7),kr=S*(0.02+r()*0.03);for(let ring=kr*3;ring>kr*0.6;ring-=ringSp*0.5){x.strokeStyle=Wd.late;x.globalAlpha=0.4;x.lineWidth=2;x.beginPath();x.ellipse(kx,ky,ring,ring*0.7,r()*0.5,0,6.29);x.stroke();}x.globalAlpha=1;x.fillStyle=shade(Wd.late,-30);x.beginPath();x.ellipse(kx,ky,kr,kr*0.7,0,0,6.29);x.fill();}
     // pores/streaks along grain
     x.globalAlpha=0.25;x.fillStyle=Wd.late;for(let i=0;i<W*H/2200;i++){x.fillRect(r()*W,r()*H,2+r()*5,1);}x.globalAlpha=1;
+  } else { // glass
+    const Gl=MAT_GLASS[fam];
+    const bgg=x.createLinearGradient(0,0,W*0.4,H);bgg.addColorStop(0,shade(Gl.a,25));bgg.addColorStop(0.5,Gl.a);bgg.addColorStop(1,Gl.b);x.fillStyle=bgg;x.fillRect(0,0,W,H);
+    // internal colour swirls (domain-warped ribbons)
+    x.save();x.globalCompositeOperation='lighter';
+    for(let i=0;i<14;i++){const yy=H*fbm2(i*3+NO,1);x.strokeStyle= i%2?Gl.hi:shade(Gl.a,45);x.globalAlpha=0.05+fbm2(i,NO)*0.06;x.lineWidth=S*(0.01+fbm2(i,2)*0.045);x.beginPath();for(let xx=0;xx<=W;xx+=W/40){const wy=yy+(fbm2(xx*0.003+i+NO,7)-0.5)*S*0.32;if(xx===0)x.moveTo(xx,wy);else x.lineTo(xx,wy);}x.stroke();}
+    x.restore();x.globalAlpha=1;
+    // trapped bubbles
+    for(let i=0;i<rint(r,8,24);i++){const bx=r()*W,by=r()*H,br=2+r()*S*0.02;const b3=x.createRadialGradient(bx-br*0.3,by-br*0.3,0,bx,by,br);b3.addColorStop(0,'rgba(255,255,255,0.75)');b3.addColorStop(0.5,'rgba(255,255,255,0.06)');b3.addColorStop(1,'transparent');x.fillStyle=b3;x.beginPath();x.arc(bx,by,br,0,6.29);x.fill();x.strokeStyle='rgba(255,255,255,0.15)';x.lineWidth=1;x.beginPath();x.arc(bx,by,br,0,6.29);x.stroke();}
+    // caustic ribbons
+    x.save();x.globalCompositeOperation='lighter';x.strokeStyle=Gl.hi;x.globalAlpha=0.35;x.lineWidth=2;for(let i=0;i<5;i++){x.beginPath();for(let xx=0;xx<=W;xx+=W/30){const wy=H*(0.18+i*0.16)+(fbm2(xx*0.005+i*5+NO,3)-0.5)*S*0.09;if(xx===0)x.moveTo(xx,wy);else x.lineTo(xx,wy);}x.stroke();}x.restore();x.globalAlpha=1;
+    // big specular gloss streak
+    x.save();x.globalCompositeOperation='lighter';x.translate(W*0.5,H*0.5);x.rotate(-0.6);const sgr=x.createLinearGradient(-W*0.5,0,W*0.5,0);sgr.addColorStop(0,'transparent');sgr.addColorStop(0.5,'rgba(255,255,255,0.32)');sgr.addColorStop(0.56,'rgba(255,255,255,0.62)');sgr.addColorStop(0.62,'rgba(255,255,255,0.18)');sgr.addColorStop(1,'transparent');x.fillStyle=sgr;x.fillRect(-W,-S*0.05,2*W,S*0.1);x.restore();
+    // bevel rim
+    x.strokeStyle='rgba(255,255,255,0.4)';x.lineWidth=3;x.strokeRect(5,5,W-10,H-10);
   }
   // ---- finish / lighting pass (committed top-left light) ----
   if(finish!=='Matte'){
@@ -4157,9 +4182,9 @@ function castMateria(seed){
   const r=rng(seed);
   const mode=pick(MAT_MODES,r);
   const fmt=pick(MAT_FMTS,r);
-  const fam= mode==='marble'? Math.floor(r()*MAT_MARBLE.length) : mode==='granite'? Math.floor(r()*MAT_GRANITE.length) : Math.floor(r()*MAT_WOOD.length);
+  const fam= mode==='marble'? Math.floor(r()*MAT_MARBLE.length) : mode==='granite'? Math.floor(r()*MAT_GRANITE.length) : mode==='wood'? Math.floor(r()*MAT_WOOD.length) : Math.floor(r()*MAT_GLASS.length);
   const finish= pick(['Polished','Honed','Matte'],r);
-  const famName= mode==='marble'?MAT_MARBLE[fam].name : mode==='granite'?MAT_GRANITE[fam].name : MAT_WOOD[fam].name;
+  const famName= mode==='marble'?MAT_MARBLE[fam].name : mode==='granite'?MAT_GRANITE[fam].name : mode==='wood'?MAT_WOOD[fam].name : MAT_GLASS[fam].name;
   return {material: mode.charAt(0).toUpperCase()+mode.slice(1), stone: famName, format: fmt.t, finish};
 }
 
