@@ -47,6 +47,7 @@ import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import { useToast } from '../../lib/state/ToastContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 import {
     MOCK_ARTISTS,
     REL_ICONS,
@@ -94,8 +95,26 @@ export function ArtistsView() {
         ? FILTER_PILLS
         : FILTER_PILLS.filter((p) => p.key === 'cooldown' || p.key === 'active');
 
-    // Pinned: array (preserves insertion order) backed by localStorage.
-    const [pinned, setPinned] = useLocalStorage<string[]>('pd_artist_pinned', []);
+    // Pinned (starred) artists: array (preserves insertion order). localStorage
+    // is the instant/offline cache; account-backed via the settings envelope so
+    // starred artists FOLLOW THE VIEWER across devices (Brendon, 2026-06-13).
+    const [pinned, setPinned] = useLocalStorage<string[]>(STATE_CACHE_KEYS.artistStars, []);
+    // On login (any device) the server snapshot overwrites the cache — re-read
+    // it so the starred set restores live without a reload. Restore does NOT
+    // write back (no pushSettings here), only real toggles below do.
+    useEffect(() => {
+        const onHydrated = () => {
+            try {
+                const raw = window.localStorage.getItem(STATE_CACHE_KEYS.artistStars);
+                const arr = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(arr)) {
+                    setPinned(arr.filter((x): x is string => typeof x === 'string'));
+                }
+            } catch { /* ignore — bad JSON / quota */ }
+        };
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+    }, [setPinned]);
     // Notes: map name → text. Re-reads from localStorage whenever
     // NotePromptContext dispatches 'pd:artist-notes-changed' so the icon
     // active state updates immediately after saving without a page reload.
@@ -118,16 +137,22 @@ export function ArtistsView() {
     const togglePin = useCallback(
         (name: string) => {
             setPinned((prev) => {
+                let next: string[];
                 if (prev.includes(name)) {
                     showToast(`${name}: UNPINNED`);
-                    return prev.filter((n) => n !== name);
-                }
-                if (prev.length >= PIN_LIMIT) {
+                    next = prev.filter((n) => n !== name);
+                } else if (prev.length >= PIN_LIMIT) {
                     showToast(`Pin Limit: ${PIN_LIMIT} MAX`);
                     return prev;
+                } else {
+                    showToast(`${name}: PINNED`);
+                    next = [...prev, name];
                 }
-                showToast(`${name}: PINNED`);
-                return [...prev, name];
+                // Account write-through — no-op until an authed snapshot has
+                // hydrated, so logged-out stars stay on-device and never clobber
+                // the account. Only real toggles push (never the initial mount).
+                pushSettings({ artistStars: next });
+                return next;
             });
         },
         [setPinned, showToast]

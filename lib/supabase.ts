@@ -61,6 +61,10 @@ export interface UserSettings {
    *  PRIVATE (owner-only), same envelope as `starred`. Account-backed so the
    *  trail follows the viewer across devices (Brendon, 2026-06-13). */
   breadcrumbs?: string[];
+  /** Starred (pinned) artists — ordered list of artist names. PRIVATE, same
+   *  envelope as `starred`. Account-backed so starred artists follow the viewer
+   *  across devices (Brendon, 2026-06-13). Was localStorage `pd_artist_pinned`. */
+  artistStars?: string[];
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */
