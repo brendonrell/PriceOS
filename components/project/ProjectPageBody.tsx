@@ -703,7 +703,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        the sort order inside each. Colour is palette-derived (free, no canvas);
        owner reads the live outputs map. */
     const groupedSections = useMemo(() => {
-        if (group === 'none') return null;
+        /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-13) —
+           it never applies to FEED (chronological activity) or fog (reveal). */
+        if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
         const map = new Map<string, number[]>();
         for (const id of visibleTokenIds) {
             const label =
@@ -720,7 +722,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             sections.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
         }
         return sections;
-    }, [group, visibleTokenIds, project]);
+    }, [group, sort, visibleTokenIds, project]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price

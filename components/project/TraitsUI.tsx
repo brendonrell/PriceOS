@@ -990,6 +990,8 @@ export default function TraitsUI({
                         active={sort === 'id'}
                         dir={dir}
                         feedKind={feedKind}
+                        group={group}
+                        onCycleGroup={cycleGroupWithToast}
                         onClick={() => cycleSortWithToast('id')}
                     />
                     <SortBtn
@@ -998,6 +1000,8 @@ export default function TraitsUI({
                         active={sort === 'price'}
                         dir={dir}
                         feedKind={feedKind}
+                        group={group}
+                        onCycleGroup={cycleGroupWithToast}
                         onClick={() => cycleSortWithToast('price')}
                     />
                     <SortBtn
@@ -1008,7 +1012,6 @@ export default function TraitsUI({
                         feedKind={feedKind}
                         onClick={() => cycleSortWithToast('feed')}
                     />
-                    <GroupBtn group={group} onClick={cycleGroupWithToast} />
                     {/* D007 (sim 8438) — search-btn lives in the sort row
                         ONLY for Regular persona on non-feed (when
                         `.traits-ui` is hidden by D006 above and there are
@@ -1784,6 +1787,12 @@ interface SortBtnProps {
     active: boolean;
     dir: SortDir;
     feedKind: FeedKind;
+    /* Group-by modifier (Brendon, 2026-06-13). Grouping is a MODIFIER on the
+       ID and PRICE sorts — rendered as a little tappable letter next to the
+       direction arrow, exactly like FEED's `$`. Only the id/price buttons
+       receive these; FEED/fog don't group. */
+    group?: GroupKey;
+    onCycleGroup?: () => void;
     onClick: () => void;
 }
 
@@ -1802,10 +1811,51 @@ function SortBtn({
     active,
     dir,
     feedKind,
+    group,
+    onCycleGroup,
     onClick,
 }: SortBtnProps) {
     let arrowGlyph = '';
     let dollarSpan: ReactNode = null;
+    /* Group-by letter modifier — only on the ID / PRICE buttons, and only
+       while that sort is active (it modifies the active id/price ordering,
+       the way FEED's `$` modifies the feed sub-mode). Off shows a dim `G`
+       affordance; on shows the dimension's initial (C = colour, O = owner).
+       Tapping it cycles the grouping WITHOUT flipping the sort direction
+       (stopPropagation keeps the parent button's dir-toggle from firing). */
+    const showGroupMod =
+        active &&
+        (family === 'id' || family === 'price') &&
+        group !== undefined &&
+        onCycleGroup !== undefined;
+    const groupMod: ReactNode = showGroupMod ? (
+        <span
+            className={`sort-group-mod${group !== 'none' ? ' on' : ''}`}
+            role="button"
+            tabIndex={0}
+            title="Group by colour / owner"
+            style={{
+                fontFamily: "'Courier New', Courier, monospace",
+                fontSize: '13px',
+                marginRight: '4px',
+                opacity: group === 'none' ? 0.4 : 1,
+                cursor: 'pointer',
+            }}
+            onClick={(e) => {
+                e.stopPropagation();
+                onCycleGroup!();
+            }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onCycleGroup!();
+                }
+            }}
+        >
+            {group === 'color' ? 'C' : group === 'owner' ? 'O' : 'G'}
+        </span>
+    ) : null;
     if (active) {
         if (family === 'id' || family === 'price') {
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
@@ -1847,35 +1897,10 @@ function SortBtn({
         >
             <span className="sort-lbl">{label}</span>
             <span className="sort-arrow">
+                {groupMod}
                 {dollarSpan}
                 {arrowGlyph}
             </span>
-        </div>
-    );
-}
-
-/* GROUP — a single cycling pill (modelled on SortBtn) that walks the gallery's
-   group-by dimension none → COLOUR → OWNER. The active dimension shows in the
-   arrow slot, the way FEED shows its $ (Brendon, 2026-06-13). */
-function GroupBtn({ group, onClick }: { group: GroupKey; onClick: () => void }) {
-    const active = group !== 'none';
-    const dim = group === 'color' ? 'COLOR' : group === 'owner' ? 'OWNER' : '';
-    return (
-        <div
-            className={`sort-btn${active ? ' active' : ''}`}
-            role="button"
-            tabIndex={0}
-            onClick={onClick}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onClick();
-                }
-            }}
-            title="Group the gallery"
-        >
-            <span className="sort-lbl">GROUP</span>
-            {active && <span className="sort-arrow">{dim}</span>}
         </div>
     );
 }
