@@ -186,11 +186,11 @@ const PREHYDRATION_SCRIPT = `
         if (profileBoot) {
             // Profile-page boot (viewer on the default/Custom colorway). The
             // profile OWNER's colour is per-profile server data the prehydration
-            // script can't see, so paint the Custom default here; ColorwayContext
-            // repaints with the owner's real profile_hex once React mounts. Using
-            // the Custom default (violet) means no flash for the common case
-            // where the owner hasn't changed their colour from the default.
-            var pBg = '#C488FF';
+            // script can't see, so paint the default here; ColorwayContext
+            // repaints with the owner's real profile_hex once React mounts. The
+            // default profile theme is brand matrix white (#E0E0E0) — an
+            // un-themed profile reads blank (Brendon 2026-06-13).
+            var pBg = '#E0E0E0';
             var pText = '#111111';
             paintVars(pBg, pText, null);
         } else if (colorway && COLORWAYS[colorway]) {

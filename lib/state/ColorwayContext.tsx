@@ -7,8 +7,9 @@
  * --bg-color / --text-color (and a few related vars) on documentElement
  * and persists the colorway key in localStorage.
  *
- * Colorway keys + bg colors match the sim verbatim:
- *   custom   #C488FF  (Soft violet — the CUSTOM_COLOR slot)
+ * Colorway keys + bg colors:
+ *   custom   (DERIVED per page — home → Mood Ring, project → its colorway,
+ *             profile → owner hex; no hardcoded hue. See resolveCustomBg.)
  *   light    #e0e0e0
  *   dark     #1a1a1a
  *   orange   #ff6600
@@ -112,7 +113,10 @@ function getCustomBg(fallback: string = COLORWAYS.custom): string {
    DECOUPLE GUARD: this is the profile OWNER's colour. It is NOT the viewer's
    "Custom" slot (`pd_custom_color`) and NOT "Haze Mode" (`pd_haze_color`). */
 let activeProfileHex: string | null = null;
-function getProfileBg(fallback: string = COLORWAYS.custom): string {
+/* Default profile theme = brand matrix white — an un-themed profile reads
+   blank (Brendon 2026-06-13). */
+const PROFILE_DEFAULT = '#E0E0E0';
+function getProfileBg(fallback: string = PROFILE_DEFAULT): string {
     return activeProfileHex && HEX_RE.test(activeProfileHex)
         ? activeProfileHex.toUpperCase()
         : fallback;
@@ -255,7 +259,7 @@ function resolveCustomBg(): string {
         firstSeg !== 'art' &&
         firstSeg !== 'api' &&
         !/^\d+$/.test(firstSeg);
-    if (isProfile) return getProfileBg(DOT);
+    if (isProfile) return getProfileBg();
     return DOT;
 }
 

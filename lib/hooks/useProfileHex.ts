@@ -34,10 +34,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { pushState } from '@/lib/state/userState';
 
 const STORAGE_KEY = 'pd_profile_hex';
-/* Default Profile Colorway colour. (Visual default is Brendon's call; this
-   only paints when nothing is saved or the saved value is malformed.) */
-export const PROFILE_HEX_DEFAULT = '#C488FF';
-const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#FFE600'];
+/* Default Profile Colorway colour = brand matrix white, so an un-themed
+   profile reads intentionally BLANK (Brendon 2026-06-13). Only paints when
+   nothing is saved or the saved value is malformed. The old violet default
+   (#C488FF) is retired — it's reserved for the genesis project and must not
+   appear anywhere in the app — so it's migrated away below. */
+export const PROFILE_HEX_DEFAULT = '#E0E0E0';
+const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#FFE600', '#C488FF'];
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 const EVENT_NAME = 'pd:profile-hex-changed';
 const CSS_VAR = '--profile-hex';
