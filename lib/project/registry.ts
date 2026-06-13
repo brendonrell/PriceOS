@@ -180,7 +180,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('graffiti-soul', 'Graffiti Soul', 'rudie-ai', 480, '#ff2e63', 0.04, AI.GRAFFITI_ASPECTS, AI.graffitiSchema, AI.renderGraffiti, AI.graffitiTraits),
   aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, AI.ASCII_ASPECTS, AI.asciiSchema, AI.renderAscii, AI.asciiTraits),
   aiDef('chrome-dreams', 'Chrome Dreams', 'y2k-ai', 400, '#7ec8ff', 0.05, AI.CHROMEDREAMS_ASPECTS, AI.chromedreamsSchema, AI.renderChromedreams, AI.chromedreamsTraits),
-  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#5865f2', 0.03, AI.DISCORD_ASPECTS, AI.discordSchema, AI.renderDiscord, AI.discordTraits),
+  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, AI.DISCORD_ASPECTS, AI.discordSchema, AI.renderDiscord, AI.discordTraits),
   aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, AI.QUORUM_ASPECTS, AI.quorumSchema, AI.renderQuorum, AI.quorumTraits),
   aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, AI.KONKRET_ASPECTS, AI.konkretSchema, AI.renderKonkret, AI.konkretTraits),
   aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, AI.RUDXANE_ASPECTS, AI.rudxaneSchema, AI.renderRudxane, AI.rudxaneTraits),
@@ -193,13 +193,13 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('pigment', 'Divided Light', 'divisionist-ai', 256, '#1e88e5', 0.1, AI.PIGMENT_ASPECTS, AI.pigmentSchema, AI.renderPigment, AI.pigmentTraits),
   aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, AI.ISKRA_ASPECTS, AI.iskraSchema, AI.renderIskra, AI.iskraTraits),
   aiDef('tessera', 'Tessera', 'tessera-ai', 333, '#ff4d6d', 0.07, AI.SIGGI_ASPECTS, AI.siggiSchema, AI.renderSiggi, AI.siggiTraits),
-  aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#00e5c8', 0.05, AI.JUNCTION_ASPECTS, AI.junctionSchema, AI.renderJunction, AI.junctionTraits),
+  aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#2ad4ff', 0.05, AI.JUNCTION_ASPECTS, AI.junctionSchema, AI.renderJunction, AI.junctionTraits),
   aiDef('asterism', 'Asterism', 'stellar-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
   aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#ffd23f', 0.06, AI.SEEDHEAD_ASPECTS, AI.seedheadSchema, AI.renderSeedhead, AI.seedheadTraits),
   aiDef('facets', 'Stained Glass', 'shatter-ai', 360, '#457b9d', 0.05, AI.FACETS_ASPECTS, AI.facetsSchema, AI.renderFacets, AI.facetsTraits),
-  aiDef('quasicrystal', 'Forbidden Symmetry', 'aperiodic-ai', 256, '#1e88e5', 0.1, AI.QUASICRYSTAL_ASPECTS, AI.quasicrystalSchema, AI.renderQuasicrystal, AI.quasicrystalTraits),
+  aiDef('quasicrystal', 'Forbidden Symmetry', 'aperiodic-ai', 256, '#6c4bd6', 0.1, AI.QUASICRYSTAL_ASPECTS, AI.quasicrystalSchema, AI.renderQuasicrystal, AI.quasicrystalTraits),
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
-  aiDef('the-pendulum', 'The Pendulum', 'harmonist-ai', 288, '#00e5ff', 0.08, AI.ORBITS_ASPECTS, AI.orbitsSchema, AI.renderOrbits, AI.orbitsTraits),
+  aiDef('the-pendulum', 'The Pendulum', 'harmonist-ai', 288, '#ffc24b', 0.08, AI.ORBITS_ASPECTS, AI.orbitsSchema, AI.renderOrbits, AI.orbitsTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];
