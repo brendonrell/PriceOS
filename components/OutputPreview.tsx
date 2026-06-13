@@ -101,6 +101,9 @@ import {
     type GrailPin,
 } from '../lib/pins/grailStore';
 import { toggleShowcase } from '../lib/pins/userShowcaseStore';
+import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
+import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
+import AlbumPickerCard from './album/AlbumPickerCard';
 import {
     getMutedIds,
     isMuted as storeIsMuted,
@@ -241,6 +244,21 @@ export default function OutputPreview() {
         setGrailPins(getGrails());
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
+
+    /* Star + Wishlist sets — same subscribe-on-mount pattern as ArtworkCard,
+       so the modal pills reflect + toggle real state (Brendon 2026-06-13). */
+    const [starredKeys, setStarredKeys] = useState<ReadonlySet<string>>(() => getStarredKeys());
+    useEffect(() => {
+        setStarredKeys(getStarredKeys());
+        return subscribeStarred((next) => setStarredKeys(next));
+    }, []);
+    const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(() => getWishlistKeys());
+    useEffect(() => {
+        setWishlistKeys(getWishlistKeys());
+        return subscribeWishlist((next) => setWishlistKeys(next));
+    }, []);
+    /* Add-to-Album opens the picker (the album choice IS the confirm). */
+    const [albumPickerOpen, setAlbumPickerOpen] = useState(false);
 
 
     /* chat #4 — D011. Modal mute overlay reads its label state from the
@@ -596,6 +614,19 @@ export default function OutputPreview() {
     );
 
     const isPinned = id != null && grailPins.some((p) => p.slug === slug && p.id === id);
+    const starred = id != null && starredKeys.has(`${slug}:${id}`);
+    const wishlisted = id != null && wishlistKeys.has(`${slug}:${id}`);
+    const handleStar = () => {
+        if (id == null) return;
+        const r = storeToggleStar(slug, id);
+        showToast(r === 'starred' ? `STARRED #${id}` : `UNSTARRED #${id}`);
+    };
+    const handleWishlist = () => {
+        if (id == null) return;
+        const r = storeToggleWishlist(slug, id);
+        showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
+    };
+    const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
 
     /* Action button label + Calc-tab visibility.
        BUY:        ƒ calc tab (buy price analysis)   → adds to cart
@@ -742,6 +773,13 @@ export default function OutputPreview() {
 
     return (
         <Fragment>
+        {albumPickerOpen && id != null && (
+            <AlbumPickerCard
+                items={[{ slug, id }]}
+                onDone={(msg) => { showToast(msg); setAlbumPickerOpen(false); }}
+                onClose={() => setAlbumPickerOpen(false)}
+            />
+        )}
         <div
             id="modal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
@@ -834,23 +872,23 @@ export default function OutputPreview() {
                         </div>
                         <div className="modal-pill-row" id="mPillRow">
                             <span
-                                className="modal-pill"
+                                className={`modal-pill${starred ? ' active' : ''}`}
                                 title="Star"
-                                onClick={() => showToast('Starred')}
+                                onClick={handleStar}
                             >
-                                {`\u2606${VS15}`}
+                                {`${starred ? '\u2605' : '\u2606'}${VS15}`}
                             </span>
                             <span
-                                className="modal-pill"
+                                className={`modal-pill${wishlisted ? ' active' : ''}`}
                                 title="Wishlist"
-                                onClick={() => showToast('Wishlist: ADDED')}
+                                onClick={handleWishlist}
                             >
                                 {`\u271B${VS15}`}
                             </span>
                             <span
                                 className="modal-pill"
                                 title="Add to Album"
-                                onClick={() => showToast('Albums: COMING SOON')}
+                                onClick={openAlbumPicker}
                             >
                                 {`\u25F0${VS15}`}
                             </span>
@@ -1051,13 +1089,13 @@ export default function OutputPreview() {
                         {`\u25C0${VS15}`}
                     </div>
 
-                    <span className="modal-pill" title="Star" onClick={() => showToast('Starred')}>
-                        {`\u2606${VS15}`}
+                    <span className={`modal-pill${starred ? ' active' : ''}`} title="Star" onClick={handleStar}>
+                        {`${starred ? '\u2605' : '\u2606'}${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Wishlist" onClick={() => showToast('Wishlist: ADDED')}>
+                    <span className={`modal-pill${wishlisted ? ' active' : ''}`} title="Wishlist" onClick={handleWishlist}>
                         {`\u271B${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to Album" onClick={() => showToast('Albums: COMING SOON')}>
+                    <span className="modal-pill" title="Add to Album" onClick={openAlbumPicker}>
                         {`\u25F0${VS15}`}
                     </span>
                     <span
