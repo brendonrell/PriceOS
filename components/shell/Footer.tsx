@@ -72,7 +72,7 @@ export function Footer() {
                             >
                                 ⌬&#xFE0E;
                             </span>{' '}
-                            Today&apos;s Mood Ring Colour: {mood.hex}
+                            Today&apos;s Mood Ring Color: {mood.hex}
                         </span>
                     )}
                     {mood && stars && <span className="priceos-sep">·</span>}

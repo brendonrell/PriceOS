@@ -23,37 +23,50 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: { slug: string } };
 
-/* Server-side seed read. Best-effort: any failure falls back to (0, []) so the
-   page still renders (ghosts + client reconcile) rather than erroring. */
+/* The 60-day artist cooldown clock fires at UPLOAD, so cooldown_until − 60d IS
+   the upload moment — the same derivation the home New-Uploads feed uses, until
+   a dedicated uploaded_at column exists. */
+const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
+
+/* Server-side seed read. Best-effort: any failure falls back to (0, [], null)
+   so the page still renders (ghosts + client reconcile) rather than erroring. */
 async function fetchSeed(
     slug: string,
-): Promise<{ total: number; showcaseIds: number[] }> {
+): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null }> {
     try {
         const supabase = getSupabaseService();
         const { data } = await supabase
             .from('projects')
-            .select('minted_count, showcase_ids')
+            .select('minted_count, showcase_ids, cooldown_until')
             .eq('id', slug)
             .maybeSingle();
-        const row = data as { minted_count?: number; showcase_ids?: number[] } | null;
+        const row = data as {
+            minted_count?: number;
+            showcase_ids?: number[];
+            cooldown_until?: string | null;
+        } | null;
         return {
             total: typeof row?.minted_count === 'number' ? row.minted_count : 0,
             showcaseIds: Array.isArray(row?.showcase_ids) ? row!.showcase_ids! : [],
+            uploadedAt: row?.cooldown_until
+                ? new Date(row.cooldown_until).getTime() - COOLDOWN_MS
+                : null,
         };
     } catch {
-        return { total: 0, showcaseIds: [] };
+        return { total: 0, showcaseIds: [], uploadedAt: null };
     }
 }
 
 export default async function ProjectPage({ params }: Props) {
     const slug = params.slug.toLowerCase();
     if (!getProject(slug)) notFound();
-    const { total, showcaseIds } = await fetchSeed(slug);
+    const { total, showcaseIds, uploadedAt } = await fetchSeed(slug);
     return (
         <ProjectPageBody
             slug={slug}
             initialTotal={total}
             initialShowcaseIds={showcaseIds}
+            uploadedAt={uploadedAt}
         />
     );
 }

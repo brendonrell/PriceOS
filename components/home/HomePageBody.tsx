@@ -26,7 +26,6 @@
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import CollectedPair from '../hero/CollectedPair';
@@ -35,9 +34,9 @@ import PriceDaySlot from '../priceday/PriceDaySlot';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon: 6). */
@@ -119,29 +118,12 @@ export default function HomePageBody({
 }) {
     const project = useProject();
     const { showToast } = useToast();
-    const router = useRouter();
+    const { open: openModal } = useModal();
 
-    /* Hero CTAs (Brendon, 2026-06-12) — both are uniform random draws, so
-       the platform never picks favourites (neutrality law):
-       EXPLORE → a project at random; SHUFFLE → a soundtrack at random. */
-    const handleExplore = () => {
-        const all = allProjects();
-        const pick = all[Math.floor(Math.random() * all.length)];
-        router.push(`/art/${pick.slug}`);
-    };
-    const handleShuffleSoundtrack = () => {
-        const withSound = allProjects().filter((p) => p.soundtrack);
-        if (withSound.length === 0) {
-            showToast('Soundtracks: NONE YET');
-            return;
-        }
-        const pick = withSound[Math.floor(Math.random() * withSound.length)];
-        window.open(
-            playlistWatchUrl(pick.soundtrack!.playlistId),
-            '_blank',
-            'noopener,noreferrer',
-        );
-    };
+    /* Home CTA (Brendon, 2026-06-13) — the primary button is "Join The Chat",
+       linking to the community Discord (same target as the connect-menu
+       Discord link). */
+    const DISCORD_URL = 'https://discord.gg/mJteKZmg28';
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
@@ -377,31 +359,30 @@ export default function HomePageBody({
                 }
             >
                 {/* Action row — same chrome as the project page's mint +
-                    soundtrack pair. EXPLORE = random project; SHUFFLE =
-                    random project soundtrack (play icon matches the
-                    project soundtrack button). */}
+                    soundtrack pair. Primary = Join The Chat (Discord);
+                    second = Stickers (play icon retained). */}
                 <div className="action-row">
                     <button
                         className="btn-mint btn-explore"
-                        title="Explore — opens a project at random"
-                        onClick={handleExplore}
+                        title="Join the chat on Discord"
+                        onClick={() => window.open(DISCORD_URL, '_blank', 'noopener,noreferrer')}
                     >
-                        <span className="mint-lbl">EXPLORE</span>
+                        <span className="mint-lbl">Join The Chat</span>
                     </button>
                     <a
                         className="btn-soundtrack"
-                        title="Shuffle — plays a project soundtrack at random"
+                        title="Stickers"
                         role="button"
                         tabIndex={0}
-                        onClick={handleShuffleSoundtrack}
+                        onClick={() => openModal('stickers')}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                handleShuffleSoundtrack();
+                                openModal('stickers');
                             }
                         }}
                     >
-                        <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SHUFFLE
+                        <span className="btn-icon-play">▶&#xFE0E;</span>{' '}STICKERS
                     </a>
                 </div>
 

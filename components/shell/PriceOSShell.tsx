@@ -71,6 +71,7 @@ import PriceosModal from '../PriceosModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
 import GasTrackerModal from '../GasTrackerModal';
+import StickersModal from '../StickersModal';
 import CartPanel from '../CartPanel';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
@@ -192,6 +193,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <FamiliarModal />
             <PriceSpriteModal />
             <GasTrackerModal />
+            <StickersModal />
             <CartPanel />
         </>
     );

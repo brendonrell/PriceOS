@@ -41,7 +41,7 @@ interface PillSpec {
 }
 
 const PILLS: PillSpec[] = [
-    { key: 'custom',  cls: 't-custom',  title: 'Custom Colour',   glyph: '◩\uFE0E' },
+    { key: 'custom',  cls: 't-custom',  title: 'Custom Color',   glyph: '◩\uFE0E' },
     { key: 'light',   cls: 't-light',   title: 'Light Mode',      glyph: '◻\uFE0E' },
     { key: 'dark',    cls: 't-dark',    title: 'Dark Mode',       glyph: '◼\uFE0E' },
     { key: 'orange',  cls: 't-orange',  title: 'Orange Mode',     glyph: '▨\uFE0E' },
@@ -93,6 +93,26 @@ function readHazeColor(): string {
     return HAZE_DEFAULT;
 }
 
+/* Normalise any CSS color string the page's --bg-color might hold (#rrggbb,
+   #rgb, or rgb()/rgba()) to an uppercase 6-digit hex. Returns null if it
+   can't be parsed. */
+function cssColorToHex(c: string): string | null {
+    c = (c || '').trim();
+    if (!c) return null;
+    if (/^#[0-9a-f]{6}$/i.test(c)) return c.toUpperCase();
+    if (/^#[0-9a-f]{3}$/i.test(c)) {
+        return ('#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3]).toUpperCase();
+    }
+    const m = c.match(/rgba?\(([^)]+)\)/i);
+    if (m) {
+        const [r, g, b] = m[1].split(',').map((s) => parseFloat(s.trim()));
+        if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+        const h = (n: number) => ('0' + Math.max(0, Math.min(255, Math.round(n))).toString(16)).slice(-2);
+        return ('#' + h(r) + h(g) + h(b)).toUpperCase();
+    }
+    return null;
+}
+
 export function ColorwayPicker() {
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
@@ -121,6 +141,24 @@ export function ColorwayPicker() {
     const applyHazeHex = (hex: string) => {
         try { localStorage.setItem(HAZE_COLOR_KEY, hex.toUpperCase()); } catch { /* ignore */ }
         if (colorway === 'haze') setColorway('haze');
+    };
+
+    /* Dropper — grab the CURRENT page's background color (the live --bg-color
+       var, whatever colorway/page the user is on) and load it into the Haze
+       slot. Brendon 2026-06-13. Mirrors the swatch's apply path; doesn't
+       force-activate haze (the HZ pill does that). */
+    const samplePageBg = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        let raw = '';
+        try {
+            raw = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim();
+            if (!raw) raw = getComputedStyle(document.body).backgroundColor;
+        } catch { /* ignore */ }
+        const hex = cssColorToHex(raw);
+        if (!hex) { showToast('Haze Color: NO READ'); return; }
+        setHazeHex(hex);
+        applyHazeHex(hex);
+        showToast(`Haze Color: ${hex}`);
     };
 
     const handleVariationCycle = (e: React.MouseEvent) => {
@@ -162,7 +200,7 @@ export function ColorwayPicker() {
                     <label
                         htmlFor="hazeColorPicker"
                         className="pill-colorway"
-                        title="Pick colour"
+                        title="Pick color"
                         style={{
                             backgroundColor: hazeHex,
                             border: '1px solid currentColor',
@@ -252,6 +290,22 @@ export function ColorwayPicker() {
                             }, 1500);
                         }}
                     >⧉{'\uFE0E'}</span>
+
+                    {/* ◉ dropper — grab the current page's background color into
+                        the Haze slot (Brendon 2026-06-13). */}
+                    <span
+                        className="haze-variation-btn"
+                        title="Grab this page's background color"
+                        role="button"
+                        tabIndex={0}
+                        onClick={samplePageBg}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                samplePageBg(e as unknown as React.MouseEvent);
+                            }
+                        }}
+                    >◉{'︎'}</span>
 
                     {/* Variation glyph — bare icon, haze-variation-btn class.
                         Pure=≋ Tint=≊ Drift=≅ Pulse=≃ Chromatic=≂

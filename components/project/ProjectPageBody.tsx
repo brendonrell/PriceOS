@@ -271,7 +271,18 @@ const GENOME_DOTS: Array<[number, number]> = [
    sort below. Splitting at the provider boundary keeps the existing
    render shape (single root section before the provider closes) and
    avoids hoisting the filter logic into a separate component. */
-function ProjectPageBodyInner() {
+/* "JUL 09 2026" — the project's real upload date (server-derived from
+   cooldown_until − 60d; see app/art/[slug]/page.tsx). Null falls back to a
+   dash rather than a fabricated date. */
+function fmtUploadDate(ms: number | null): string {
+    if (ms == null) return '—';
+    const d = new Date(ms);
+    const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${mon} ${day} ${d.getUTCFullYear()}`;
+}
+
+function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | null }) {
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
@@ -884,7 +895,7 @@ function ProjectPageBodyInner() {
                                 onClick={openPriceDay}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPriceDay(); } }}
                                 title="PriceDay"
-                            >JUL 09 2026</span>
+                            >{fmtUploadDate(uploadedAt)}</span>
                             {priceDayOpen && priceDayPos && (
                                 <div className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
                                     <div className="dp-title">PRICEDAY #47</div>
@@ -974,7 +985,7 @@ function ProjectPageBodyInner() {
                             }}
                         >
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">{project.stats.collectors} PPL</span>
+                            <span className="stat-val stat-val-owners">{project.stats.collectors} {project.stats.collectors === 1 ? 'PRSN' : 'PPL'}</span>
                         </span>
                     </div>
                 }
@@ -1422,12 +1433,15 @@ export default function ProjectPageBody({
     slug,
     initialTotal = 0,
     initialShowcaseIds = [],
+    uploadedAt = null,
 }: {
     slug?: string;
     /** Server-seeded minted count (projects.minted_count) — first-paint art. */
     initialTotal?: number;
     /** Server-seeded curated showcase ids (projects.showcase_ids). */
     initialShowcaseIds?: readonly number[];
+    /** Real upload moment in ms (cooldown_until − 60d), or null. */
+    uploadedAt?: number | null;
 }) {
     /* Re-provide ProjectContext with the route's slug so this page's gallery,
        hero, and trait schema all bind to the correct Project (the global
@@ -1440,7 +1454,7 @@ export default function ProjectPageBody({
             initialShowcaseIds={initialShowcaseIds}
         >
             <TraitsProvider>
-                <ProjectPageBodyInner />
+                <ProjectPageBodyInner uploadedAt={uploadedAt} />
             </TraitsProvider>
         </ProjectProvider>
     );
