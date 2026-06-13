@@ -1,23 +1,23 @@
 'use client';
 
 /*
- * FollowersModal
+ * FollowersModal v2 (Brendon 2026-06-12 — "current approach not ideal,
+ * I leave it with you"). Redone:
  *
- * Sim id #followersModal (sim.html 5447–5460). Three tabs sharing one
- * panel: FOLLOWERS / FOLLOWING / MUTUALS. Triggered from the user
- * dropdown LinksView (the ⚬ 850 / ⚯ 2.2k stats next to "Profile" —
- * sim 4510, openFollowersModal('followers' | 'following')). Default
- * tab = followers.
+ *   - REAL follow graph — the viewer's followers/following via
+ *     /api/follows/[address] (was the sim's mock arrays). Mutuals is the
+ *     intersection. Refreshes on 'pd:follows-changed' (FollowButton fires
+ *     it on every follow/unfollow).
+ *   - Single-select tabs in one horizontal row with live counts (the v1
+ *     stacked multi-select pills read as a filter, not tabs).
+ *   - Rows are the platform sprite+handle chip (CollectedPair — live DB
+ *     faces) linking to profiles, replacing bare monospace handles.
+ *   - PROJECTS tab kept as the reserved slot it was in v1 — empty state
+ *     until project-follow ships.
  *
- * The active tab arrives via useModal().openModal.payload — the
- * ModalContext union types `payload` as `number | string`; we accept
- * anything matching FollowersTab, fall back to 'followers'. Tab state
- * after open is owned locally (clicking a pill swaps tab without
- * re-firing open from outside).
- *
- * Mock data ports the three sim arrays verbatim (mockFollowers,
- * mockFollowing, mockMutuals at sim 7457). Live indexer data
- * replaces these when wallet wires up.
+ * Treatment stays the platform-modal overlay (same as v1). Triggered from
+ * the user dropdown LinksView (the ⚬/⚯ stats next to "Profile"); default
+ * tab arrives via useModal().openModal.payload.
  *
  * Hooks discipline: all hooks at the top, internals gate on isOpen.
  */
@@ -29,64 +29,34 @@ import {
     type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { useAuth } from '../lib/state/AuthContext';
+import CollectedPair from './hero/CollectedPair';
 
 const VS15 = '\uFE0E';
 
 type FollowersTab = 'followers' | 'following' | 'mutuals' | 'projects';
 
 const TABS: { key: FollowersTab; label: string; icon: string }[] = [
-    { key: 'followers', label: 'FOLLOWERS', icon: '\u26AC' },
-    { key: 'following', label: 'FOLLOWING', icon: '\u26AF' },
-    { key: 'mutuals', label: 'MUTUALS', icon: '\u26AD' },
-    { key: 'projects', label: 'PROJECTS', icon: '\u2B1A' },
+    { key: 'followers', label: 'FOLLOWERS', icon: '⚬' },
+    { key: 'following', label: 'FOLLOWING', icon: '⚯' },
+    { key: 'mutuals', label: 'MUTUALS', icon: '⚭' },
+    { key: 'projects', label: 'PROJECTS', icon: '⬚' },
 ];
 
-const MOCK_FOLLOWERS = [
-    '@matty',
-    '@atlasforge',
-    '@gmoney',
-    '@snowfro',
-    '@Darold',
-    '@CozomoMedici',
-    '@0xVGB',
-    '@thefunnyguys',
-    '@ClownVamp',
-    '@willpop',
-    '@siggi',
-    '@CCDDBB',
-    '@Trinity',
-    '@cspok',
-    '@rudxane',
-    '@piterpasma',
-];
-
-const MOCK_FOLLOWING = [
-    '@matty',
-    '@atlasforge',
-    '@snowfro',
-    '@rudxane',
-    '@siggi',
-    '@piterpasma',
-    '@mattdesl',
-    '@ykx',
-    '@ixshells',
-    '@tylerxhobbs',
-];
-
-const MOCK_MUTUALS = [
-    '@matty',
-    '@atlasforge',
-    '@rudxane',
-    '@siggi',
-    '@piterpasma',
-];
-
-const DATA: Record<FollowersTab, string[]> = {
-    followers: MOCK_FOLLOWERS,
-    following: MOCK_FOLLOWING,
-    mutuals: MOCK_MUTUALS,
-    projects: [],
+const EMPTY_LINE: Record<FollowersTab, string> = {
+    followers: 'No followers yet.',
+    following: 'Not following anyone yet.',
+    mutuals: 'No mutuals yet.',
+    projects: 'Nothing here yet.',
 };
+
+interface Graph {
+    followers: string[];
+    following: string[];
+    mutuals: string[];
+}
+
+const EMPTY_GRAPH: Graph = { followers: [], following: [], mutuals: [] };
 
 function isTab(v: unknown): v is FollowersTab {
     return v === 'followers' || v === 'following' || v === 'mutuals' || v === 'projects';
@@ -94,19 +64,58 @@ function isTab(v: unknown): v is FollowersTab {
 
 export default function FollowersModal() {
     const { openModal, close } = useModal();
+    const { siweAddress } = useAuth();
     const isOpen = openModal?.name === 'followers';
 
-    const [activeTabs, setActiveTabs] = useState<Set<FollowersTab>>(new Set(['followers']));
+    const [tab, setTab] = useState<FollowersTab>('followers');
+    const [graph, setGraph] = useState<Graph>(EMPTY_GRAPH);
+    const [loading, setLoading] = useState(false);
 
-    /* Sync tab from payload on each open. The opener (LinksView)
-       passes 'followers' or 'following'; switchFollowersTab afterwards
-       is owned locally. */
+    /* Sync tab from payload on each open. The opener (LinksView) passes
+       'followers' or 'following'; switching afterwards is owned locally. */
     useEffect(() => {
         if (!isOpen) return;
         const payload = openModal?.payload;
-        if (isTab(payload)) setActiveTabs(new Set([payload]));
-        else setActiveTabs(new Set(['followers']));
+        setTab(isTab(payload) ? payload : 'followers');
     }, [isOpen, openModal]);
+
+    /* Live graph — fetched on open and again whenever the follow graph
+       changes anywhere in the app. */
+    useEffect(() => {
+        if (!isOpen) return;
+        if (!siweAddress) {
+            setGraph(EMPTY_GRAPH);
+            return;
+        }
+        let alive = true;
+        const load = async () => {
+            setLoading(true);
+            try {
+                const r = await fetch(`/api/follows/${siweAddress}`, { cache: 'no-store' });
+                const j = await r.json().catch(() => ({}));
+                if (!alive) return;
+                const followers: string[] = Array.isArray(j?.follower_handles) ? j.follower_handles : [];
+                const following: string[] = Array.isArray(j?.following_handles) ? j.following_handles : [];
+                const fset = new Set(followers);
+                setGraph({
+                    followers,
+                    following,
+                    mutuals: following.filter((h) => fset.has(h)),
+                });
+            } catch {
+                if (alive) setGraph(EMPTY_GRAPH);
+            } finally {
+                if (alive) setLoading(false);
+            }
+        };
+        void load();
+        const onChange = () => void load();
+        window.addEventListener('pd:follows-changed', onChange);
+        return () => {
+            alive = false;
+            window.removeEventListener('pd:follows-changed', onChange);
+        };
+    }, [isOpen, siweAddress]);
 
     const onBackdropClick = useCallback(
         (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -115,8 +124,13 @@ export default function FollowersModal() {
         [close]
     );
 
-    const rows = Array.from(activeTabs).flatMap(t => DATA[t])
-        .filter((v, i, a) => a.indexOf(v) === i);
+    const counts: Record<FollowersTab, number> = {
+        followers: graph.followers.length,
+        following: graph.following.length,
+        mutuals: graph.mutuals.length,
+        projects: 0,
+    };
+    const rows = tab === 'projects' ? [] : graph[tab];
 
     return (
         <div
@@ -142,84 +156,49 @@ export default function FollowersModal() {
                 {'\u00D7'}
                 {VS15}
             </div>
-            <div
-                className="modal-info"
-                style={{ marginTop: 0, maxWidth: 320, width: '100%' }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: 6,
-                        marginBottom: 12,
-                    }}
-                >
+            <div className="modal-info fm-box">
+                <div className="fm-tabs" role="tablist" aria-label="Circle">
                     {TABS.map((t) => (
                         <div
                             key={t.key}
                             id={`fmTab-${t.key}`}
-                            className={`pill pill-l2${activeTabs.has(t.key) ? ' active' : ''}`}
-                            role="button"
+                            className={`pill pill-l2${tab === t.key ? ' active' : ''}`}
+                            role="tab"
+                            aria-selected={tab === t.key}
                             tabIndex={0}
-                            onClick={() => setActiveTabs(prev => {
-                                const next = new Set(prev);
-                                if (next.has(t.key)) {
-                                    if (next.size > 1) next.delete(t.key);
-                                } else {
-                                    next.add(t.key);
-                                }
-                                return next;
-                            })}
+                            onClick={() => setTab(t.key)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    setActiveTabs(prev => {
-                                        const next = new Set(prev);
-                                        if (next.has(t.key)) {
-                                            if (next.size > 1) next.delete(t.key);
-                                        } else {
-                                            next.add(t.key);
-                                        }
-                                        return next;
-                                    });
+                                    setTab(t.key);
                                 }
                             }}
                             style={{ cursor: 'pointer' }}
                         >
-                            <span className="fm-icon">{t.icon}{VS15}</span>{' '}{t.label}
+                            <span className="fm-icon">{t.icon}{VS15}</span>
+                            {' '}{t.label}
+                            {t.key !== 'projects' && (
+                                <span className="fm-count">{counts[t.key]}</span>
+                            )}
                         </div>
                     ))}
                 </div>
-                <div
-                    className="collectors-list"
-                    id="followersListWrap"
-                    style={{ maxHeight: 280, minHeight: 280, width: '100%' }}
-                >
-                    <div
-                        id="followersList"
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 10,
-                            fontSize: 13,
-                            textAlign: 'left',
-                            padding: '6px 10px',
-                            fontWeight: 'bold',
-                            fontFamily: "'Courier New', Courier, monospace",
-                        }}
-                    >
-                        {rows.map((handle) => (
-                            <span
-                                key={handle}
-                                className="hover-link"
-                                role="link"
-                                tabIndex={0}
-                            >
-                                {handle}
-                            </span>
-                        ))}
-                    </div>
+                <div className="collectors-list fm-list" id="followersListWrap">
+                    {loading && rows.length === 0 ? (
+                        <div className="fm-empty fm-loading">Loading…</div>
+                    ) : rows.length === 0 ? (
+                        <div className="fm-empty">
+                            {siweAddress || tab === 'projects'
+                                ? EMPTY_LINE[tab]
+                                : 'Sign in to see your circle.'}
+                        </div>
+                    ) : (
+                        rows.map((handle) => (
+                            <div className="fm-row" key={handle}>
+                                <CollectedPair handle={handle} />
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

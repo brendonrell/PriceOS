@@ -12,6 +12,10 @@ export interface FollowsListResponse {
   following: string[];
   follower_count: number;
   following_count: number;
+  /** @name lists matching followers/following — the FollowersModal renders
+      handles (sprite chips), not addresses. Additive, same row source. */
+  follower_handles: string[];
+  following_handles: string[];
 }
 
 export async function GET(
@@ -46,6 +50,8 @@ export async function GET(
         following: [],
         follower_count: 0,
         following_count: 0,
+        follower_handles: [],
+        following_handles: [],
       };
       return NextResponse.json(empty);
     }
@@ -103,6 +109,8 @@ export async function GET(
       following,
       follower_count: followers.length,
       following_count: following.length,
+      follower_handles: followerNames,
+      following_handles: followingNames,
     };
     return NextResponse.json(response);
   } catch (err) {

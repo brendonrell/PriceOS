@@ -61,7 +61,7 @@ import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
-import { fullTraitSchema } from '../../lib/project/registry';
+import { fullTraitSchema, outputTraits } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
@@ -363,6 +363,23 @@ export default function TraitsUI({
         const present = new Set<string>();
         for (let id = 1; id <= totalOutputs; id++) present.add(outputFate(projectSlug, id));
         return FATE_VALUES.filter((v) => present.has(v));
+    }, [projectSlug, totalOutputs]);
+    /* REAL per-value grid counts (Brendon 2026-06-12 — the pills were a
+       hardcoded 22). Tally every minted Output's traits exactly as the grid
+       derives them (same deterministic source), so a value pill shows how
+       many of THAT value are actually in the grid. Keyed trait → value →
+       count; categories with no token-trait representation (the feed
+       specials) simply aren't here and fall back below. */
+    const gridCounts = useMemo(() => {
+        const m: Record<string, Record<string, number>> = {};
+        for (let id = 1; id <= totalOutputs; id++) {
+            const traits = outputTraits(projectSlug, id);
+            for (const cat in traits) {
+                const val = traits[cat];
+                (m[cat] ??= {})[val] = (m[cat][val] ?? 0) + 1;
+            }
+        }
+        return m;
     }, [projectSlug, totalOutputs]);
     const L3_FLAT_POOL_DYN = useMemo(() => {
         const m: Record<string, readonly string[]> = {
@@ -887,13 +904,16 @@ export default function TraitsUI({
                             const isActive = filterSet?.has(value) ?? false;
                             const anySelected = (filterSet?.size ?? 0) > 0;
                             const dimmed = anySelected && !isActive;
-                            /* Mock count — gallery wiring will replace
-                               with real per-value counts from token data
-                               (sim sources from `traitData[cat][name]`,
-                               sim 8664). Typed as `number` (not the
-                               literal `22`) so the `isZero` check below
-                               stays live for the wiring build. */
-                            const count: number = 22;
+                            /* Real grid count for this value (Brendon
+                               2026-06-12). For token-trait categories
+                               (Palette, Fate) this is the live tally over
+                               the minted set. Feed-special categories
+                               (Network, Breadcrumb, …) aren't token traits,
+                               so they're absent from gridCounts; leave those
+                               uncounted rather than show a fake number. */
+                            const catCounts = gridCounts[l3FilterCat];
+                            const hasCount = catCounts != null;
+                            const count: number = hasCount ? (catCounts[value] ?? 0) : -1;
                             return (
                                 <L3Pill
                                     key={`${l3FilterCat}:${value}`}
@@ -903,6 +923,8 @@ export default function TraitsUI({
                                     dimmed={dimmed}
                                     isZero={count === 0}
                                     category={l3FilterCat}
+                                    /* count===0 → genuinely none in grid;
+                                       count<0 → no tally for this category. */
                                     onClick={() => {
                                         toggleFilter(l3FilterCat, value);
                                     }}
@@ -1708,7 +1730,10 @@ function L3Pill({
             ) : (
                 <>
                     <span className="stat-name">↳ {label}</span>
-                    <span className="stat-count">{count}</span>
+                    {/* count < 0 = no grid tally for this category (feed
+                        specials) — show the value with no number rather
+                        than a placeholder. */}
+                    {count >= 0 && <span className="stat-count">{count}</span>}
                 </>
             )}
         </div>

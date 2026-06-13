@@ -53,9 +53,11 @@
  */
 
 import { useEffect, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { useNavFade } from '../../lib/hooks/useNavFade';
 import { pickTabstractTitle } from '../../lib/title/tabstract';
+import { getProject } from '../../lib/project/registry';
 import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
@@ -74,6 +76,7 @@ import CartPanel from '../CartPanel';
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -115,12 +118,22 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
 
     /* F42 / BUG-04 — Tabstract title generator (sim 5510-5526).
        Next.js metadata.title is server-rendered and can't rotate per
-       page load, so the rotation has to land in a client-mount effect.
-       Runs once per shell mount (per page load). */
+       page load, so the rotation has to land in a client effect.
+       2026-06-12 (Brendon): the tab now LEADS with what's in it —
+       project name on /art/* pages, @handle on profile pages — then
+       "Price Discussion", then the tabstract. Keyed to the pathname so
+       client-side navigation retitles too. */
     useEffect(() => {
         if (typeof document === 'undefined') return;
-        document.title = pickTabstractTitle();
-    }, []);
+        const segs = (pathname || '/').split('/').filter(Boolean);
+        let context: string | null = null;
+        if (segs[0] === 'art' && segs[1]) {
+            context = getProject(segs[1])?.displayName ?? segs[1].toUpperCase();
+        } else if (segs.length >= 1 && !['artists', 'offline', 'api'].includes(segs[0])) {
+            context = `@${segs[0].toLowerCase()}`;
+        }
+        document.title = pickTabstractTitle(context);
+    }, [pathname]);
 
     /* F62 / BUG-32 — bfcache scroll restoration (sim 5488-5497).
        iOS Safari swipe-back restores the prior scroll position by default,

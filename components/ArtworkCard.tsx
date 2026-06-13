@@ -151,6 +151,11 @@ interface ArtworkCardProps {
        + rAF queue. This is the "just there on load" path; the lazy tail
        keeps the OOM crash-guard. Defaults false. */
     eager?: boolean;
+    /* Hide the "owned by you" check (Brendon 2026-06-12). The check rides
+       every card the viewer owns EXCEPT inside their own Collected tab —
+       there everything is owned, so the checks are just noise over the art.
+       The Collected grid passes this true. Defaults false. */
+    hideOwnedBadge?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -162,6 +167,7 @@ export default function ArtworkCard({
     projectShowcasePick = false,
     isBreadcrumb = false,
     eager = false,
+    hideOwnedBadge = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -808,14 +814,13 @@ export default function ArtworkCard({
                     </span>
                 </div>
                 <div className="meta">
-                    {/* Build 21 — sim 8108. The first 3 ids carry an
-                        "owned by you" check-mark glyph nested inside
-                        .meta-id, after a leading space. Sim hardcodes
-                        i <= 3 even though _brendonOwned is a wider set
-                        — we mirror sim verbatim for visual parity. */}
+                    {/* "Owned by you" check (Brendon 2026-06-12): rides
+                        EVERY card the viewer owns (was a sim placeholder
+                        hardcoded to the first 3 ids), hidden only inside the
+                        Collected tab where ownership is a given. */}
                     <span className="meta-id">
                         #{id}
-                        {id <= 3 && (
+                        {ownedByBrendon && !hideOwnedBadge && (
                             <>
                                 {' '}
                                 <span className="badge-owned" title="Owned by You">

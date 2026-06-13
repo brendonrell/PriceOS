@@ -1537,20 +1537,59 @@ body.tape-framed .tape-rail {
 /* ============================================================
    FOLLOWERS MODAL TABS
    ============================================================ */
-/* Top-align the entire modal content (not centered). */
+/* FollowersModal v2 (Brendon 2026-06-12): one horizontal single-select tab
+   row with live counts, sprite-chip rows below. Modal stays the platform
+   overlay, box centred. */
 #followersModal {
-    justify-content: flex-start;
-    align-items: flex-start;
     padding-left: 20px;
     padding-right: 20px;
 }
-/* Pills flow left-aligned, content-width (no stretching). */
-#followersModal .modal-info > div:first-child {
-    align-items: flex-start;
+#followersModal .fm-box {
+    margin-top: 0;
+    width: 100%;
+    max-width: 380px;
+}
+#followersModal .fm-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+    margin-bottom: 12px;
 }
 #followersModal .pill {
     width: auto;
     align-self: flex-start;
+}
+.fm-count {
+    opacity: 0.55;
+    margin-left: 6px;
+    font-weight: bold;
+}
+#followersModal .fm-list {
+    width: 100%;
+    min-height: 280px;
+    max-height: min(420px, 60vh);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 10px;
+    text-align: left;
+}
+.fm-row { line-height: 1.6; }
+.fm-empty {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.55;
+    padding: 6px 0;
+}
+/* Loading must visibly MOVE (CLAUDE.md §9) — soft pulse until rows land. */
+.fm-loading { animation: fmPulse 1.1s ease-in-out infinite; }
+@keyframes fmPulse {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 0.75; }
 }
 /* Mobile: icon size nudges for mutuals (⚯ +1), followers (⚬ +2), projects (⬡ +1). */
 @media (max-width: 600px) {
@@ -3390,6 +3429,16 @@ button,
     font-weight: bold;
 }
 .mint-chooser .mint-price { font-size: 13px; opacity: 0.82; }
+/* Done face — "MINTED ✓ ×N" over "(X ETH left)", stacked like the CONFIRM
+   face, sized to FIT the fixed 224px pill (the full-size single row used to
+   run past the button edge on desktop — Brendon 2026-06-12). */
+.btn-mint.mint-done {
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.15;
+}
+.mint-done .mint-lbl { font-size: 13px; }
+.mint-done .mint-price { font-size: 12px; }
 /* Cancel — corner glyph, OUT of the flex flow so the divider stays centred. */
 .mint-cancel {
     position: absolute;
@@ -4203,66 +4252,39 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     user-select: none;
 }
 
-/* ── ALBUM PICKER CARD ──────────────────────────────────────────────── */
-/* The Add-to-Album picker, floated above the multi-select bar. Chrome
-   mirrors the action picker visually but the album-picker-* classes are
-   independent by the same contract that keeps ms-popup-* exclusive. */
-.album-picker-card {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 0;
-    width: 230px;
-    background: var(--text-color);
-    color: var(--bg-color);
-    border-radius: 4px;
-    padding: 8px;
+/* ── ALBUM PICKER SHEET ─────────────────────────────────────────────── */
+/* The Add-to-Album picker v2 (Brendon 2026-06-12): the value-prompt bottom
+   sheet (Anchor/Floor chrome — reuses value-prompt-wrap/box/actions), with
+   its own scrollable numbered-album list. Albums render by position only —
+   "Album #1", "#2", … — never by name. */
+.album-sheet-list {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    z-index: 210;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    font-family: 'Courier New', Courier, monospace;
+    max-height: 38vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0 -8px;
+    padding: 0 8px;
 }
-.album-picker-header {
-    position: relative;
-    text-align: center;
-    font-family: var(--font-rubik-mono), sans-serif;
+.album-sheet-empty {
     font-size: 11px;
-    letter-spacing: 0.5px;
-    padding: 4px 6px 6px 6px;
-    opacity: 0.7;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-    border-bottom: 1px solid color-mix(in srgb, var(--bg-color) 20%, transparent);
+    opacity: 0.55;
+    padding: 4px 8px;
 }
-.album-picker-close {
-    position: absolute;
-    right: 0;
-    top: 0;
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 12px;
-    cursor: pointer;
-    padding: 4px 6px;
-}
-.album-picker-empty {
-    font-size: 11px;
-    opacity: 0.6;
-    padding: 6px 6px 2px;
-}
-.album-picker-item {
+.album-sheet-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 6px;
-    min-height: 28px;
     gap: 12px;
+    min-height: 34px;
+    padding: 0 8px;
+    flex-shrink: 0;
     background: none;
     border: none;
     color: inherit;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 0.3px;
     cursor: pointer;
@@ -4274,48 +4296,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     transition: background 0.1s;
     -webkit-tap-highlight-color: transparent;
 }
-.album-picker-item:active {
+.album-sheet-item:active {
     background: color-mix(in srgb, var(--bg-color) 15%, transparent);
 }
 @media (hover: hover) {
-    .album-picker-item:hover {
+    .album-sheet-item:hover {
         background: color-mix(in srgb, var(--bg-color) 10%, transparent);
     }
 }
-.album-picker-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.album-picker-count { opacity: 0.5; flex-shrink: 0; }
-.album-picker-create {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-}
-.album-picker-input {
-    flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: 1px solid color-mix(in srgb, var(--bg-color) 35%, transparent);
-    border-radius: 3px;
-    color: inherit;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    padding: 4px 6px;
-}
-.album-picker-input::placeholder { color: inherit; opacity: 0.45; }
-.album-picker-create-btn {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: none;
-    border-radius: 3px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 4px 10px;
-    cursor: pointer;
-}
-.album-picker-create-btn:disabled { opacity: 0.4; cursor: default; }
+.album-sheet-count { opacity: 0.5; flex-shrink: 0; }
 
 /* ── CONFIRM CARD ────────────────────────────────────────────────────── */
 /* Floats above the action pill on Execute tap. Own independent classes —
@@ -6426,6 +6415,28 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .ws-add:hover:not(.faded) { opacity: 0.9; }
 .ws-add.faded { opacity: 0.15; cursor: not-allowed; }
+/* Manage toggle (Brendon 2026-06-12) — the visible path to the dot popover
+   (save/restore/DELETE). While on, dots ring up and a tap edits instead of
+   loads. */
+.ws-manage {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold;
+    line-height: 1;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-manage:hover { opacity: 0.9; }
+.ws-manage.on { opacity: 1; }
+.workspace-switcher.managing .ws-dot::before {
+    opacity: 0.9;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--bg-color) 25%, transparent);
+}
 
 /* Long-press popover — keeps its own dark surface so it reads
    against any colorway. Sits above the dot, position: fixed (uses

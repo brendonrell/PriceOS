@@ -1,14 +1,20 @@
 /*
  * albumStore — REAL Albums (Brendon, 2026-06-12).
  *
- * Albums are named, ordered collections of Outputs the viewer curates —
+ * Albums are NUMBERED, ordered collections of Outputs the viewer curates —
  * the third leg of the save triad (Star = flag it, Wishlist = want it,
- * Album = shelve it). This store is the single source of truth consumed by
- * the Add-to-Album picker (multi-select bars), the card/modal album icons,
- * and the profile Albums surfaces when those graduate from shells.
+ * Album = shelve it). Albums are never NAMED (Brendon, 2026-06-12): users
+ * get no public-facing writing beyond their handle, so every surface
+ * renders an album as its 1-based position — "so-and-so's album #1", #2, …
+ * No album cap — as many as the user wants. This store is the single
+ * source of truth consumed by the Add-to-Album picker (multi-select bars),
+ * the card/modal album icons, and the profile Albums surfaces when those
+ * graduate from shells.
  *
  * State shape: ordered list of AlbumRecord { id, name, keys[], created_at },
  * keys are `${slug}:${id}` (Project-exact — same reasoning as starStore).
+ * `name` is a legacy field: pre-numbering records carry their old string,
+ * new records carry '' — display NEVER reads it, only position.
  * Same module-singleton + subscribe pattern as starStore / muteStore.
  *
  * Persistence: localStorage `pd_albums`, account write-through via the
@@ -24,8 +30,6 @@ import {
 } from '../state/userState';
 
 const STORAGE_KEY = STATE_CACHE_KEYS.albums;
-const MAX_ALBUMS = 50;
-const MAX_NAME_LEN = 40;
 
 type Listener = (albums: ReadonlyArray<AlbumRecord>) => void;
 
@@ -43,16 +47,15 @@ function sanitize(parsed: unknown): AlbumRecord[] {
     for (const a of parsed) {
         if (!a || typeof a !== 'object') continue;
         const r = a as Partial<AlbumRecord>;
-        if (typeof r.id !== 'string' || typeof r.name !== 'string') continue;
+        if (typeof r.id !== 'string') continue;
         out.push({
             id: r.id,
-            name: r.name,
+            name: typeof r.name === 'string' ? r.name : '',
             keys: Array.isArray(r.keys)
                 ? r.keys.filter((k): k is string => typeof k === 'string' && k.includes(':'))
                 : [],
             created_at: typeof r.created_at === 'number' ? r.created_at : 0,
         });
-        if (out.length >= MAX_ALBUMS) break;
     }
     return out;
 }
@@ -112,20 +115,15 @@ export function getAlbums(): ReadonlyArray<AlbumRecord> {
 }
 
 /**
- * Create an album. Returns the new record, or null when the name is
- * empty/too long, duplicates an existing album (case-insensitive), or the
- * album cap is reached. Caller owns toast text.
+ * Create an album. Albums are numbered by position, never named (the
+ * legacy `name` field stays '' on new records); there is no cap. The new
+ * album's display number is its 1-based index in getAlbums().
  */
-export function createAlbum(name: string): AlbumRecord | null {
+export function createAlbum(): AlbumRecord {
     hydrate();
-    const trimmed = name.trim().slice(0, MAX_NAME_LEN);
-    if (!trimmed) return null;
-    if (albums.length >= MAX_ALBUMS) return null;
-    const lower = trimmed.toLowerCase();
-    if (albums.some((a) => a.name.toLowerCase() === lower)) return null;
     const record: AlbumRecord = {
         id: `alb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-        name: trimmed,
+        name: '',
         keys: [],
         created_at: Date.now(),
     };

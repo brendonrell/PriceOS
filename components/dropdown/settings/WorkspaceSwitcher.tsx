@@ -7,9 +7,15 @@
  * render + popover + long-press attach + init). Replaces the visual
  * stub shipped in Build 4.
  *
- * Three default workspaces ship out of the box (Main / Zen / Degen).
- * Tapping a dot loads (decode + apply via WorkspacesContext).
- * Long-press opens the popover (SAVE HERE + RESTORE DEFAULT or DELETE).
+ * Two default workspaces ship out of the box (Main / Zen — Degen
+ * retired 2026-06-12). Tapping a dot loads (decode + apply via
+ * WorkspacesContext). The dot popover (SAVE HERE + RESTORE DEFAULT +
+ * DELETE) opens three ways (Brendon 2026-06-12 — long-press alone was
+ * invisible, "there's no way to delete"):
+ *   1. the trailing ⋯ manage toggle — while on, tapping a dot opens its
+ *      popover instead of loading (the visible, discoverable path);
+ *   2. right-click on a dot (desktop);
+ *   3. long-press on a dot (the original sim gesture, kept).
  * Trailing + creates a new workspace from the current state, prompts
  * for a name, capped at 10 — beyond that the + fades and tap toasts.
  *
@@ -59,6 +65,7 @@ export function WorkspaceSwitcher() {
     const isAuthed = !!siweAddress;
 
     const [popover, setPopover] = useState<PopoverState | null>(null);
+    const [managing, setManaging] = useState(false);
     const justOpenedRef = useRef(false);
 
     // Outside-click dismissal — 100ms grace via justOpenedRef.
@@ -118,7 +125,7 @@ export function WorkspaceSwitcher() {
     return (
         <>
             <div
-                className={`workspace-switcher${isAuthed ? '' : ' auth-gated'}`}
+                className={`workspace-switcher${isAuthed ? '' : ' auth-gated'}${managing ? ' managing' : ''}`}
                 id="workspace-switcher"
                 role="tablist"
                 aria-label="Workspaces"
@@ -128,11 +135,12 @@ export function WorkspaceSwitcher() {
                         key={w.id}
                         workspace={w}
                         active={w.id === activeId}
+                        managing={managing}
                         onTap={() => {
                             loadWorkspace(w.id);
                             showToast(`Workspace: ${w.name.toUpperCase()}`);
                         }}
-                        onLongPress={(rect) => {
+                        onOpenMenu={(rect) => {
                             justOpenedRef.current = true;
                             setPopover({ wsId: w.id, rect });
                             // 100ms grace period before outside-click dismissal
@@ -159,6 +167,25 @@ export function WorkspaceSwitcher() {
                 >
                     +
                 </button>
+                {/* Manage toggle — THE visible path to the dot popover
+                    (SAVE HERE / RESTORE DEFAULT / DELETE). While on,
+                    tapping a dot edits it instead of loading it. */}
+                {workspaces.length > 0 && (
+                    <button
+                        type="button"
+                        className={`ws-manage${managing ? ' on' : ''}`}
+                        aria-label="Manage workspaces"
+                        aria-pressed={managing}
+                        title="Manage workspaces"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setPopover(null);
+                            setManaging((m) => !m);
+                        }}
+                    >
+                        ⋯
+                    </button>
+                )}
             </div>
 
             {popover && ws ? (
@@ -221,13 +248,16 @@ export function WorkspaceSwitcher() {
 function WorkspaceDot({
     workspace,
     active,
+    managing,
     onTap,
-    onLongPress,
+    onOpenMenu,
 }: {
     workspace: Workspace;
     active: boolean;
+    /** Manage mode: tap opens the popover instead of loading. */
+    managing: boolean;
     onTap: () => void;
-    onLongPress: (rect: DOMRect) => void;
+    onOpenMenu: (rect: DOMRect) => void;
 }) {
     const btnRef = useRef<HTMLButtonElement | null>(null);
     const timerRef = useRef<number | null>(null);
@@ -249,7 +279,7 @@ function WorkspaceDot({
             longPressedRef.current = true;
             timerRef.current = null;
             const rect = btnRef.current?.getBoundingClientRect();
-            if (rect) onLongPress(rect);
+            if (rect) onOpenMenu(rect);
         }, 500);
     };
 
@@ -294,7 +324,21 @@ function WorkspaceDot({
                 // clicked dot is detached by the time the bubble reaches
                 // document — without this stop, the entire dropdown closes.
                 e.stopPropagation();
+                if (managing) {
+                    const rect = btnRef.current?.getBoundingClientRect();
+                    if (rect) onOpenMenu(rect);
+                    return;
+                }
                 onTap();
+            }}
+            onContextMenu={(e) => {
+                // Right-click = the desktop path to the popover (long-press
+                // is invisible with a mouse).
+                e.preventDefault();
+                e.stopPropagation();
+                cancel();
+                const rect = btnRef.current?.getBoundingClientRect();
+                if (rect) onOpenMenu(rect);
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}

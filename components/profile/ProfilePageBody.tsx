@@ -219,13 +219,15 @@ function ProfilePageBodyInner({
                     if (!cancelled && d?.holdings) setHoldings(d.holdings);
                 })
                 .catch(() => {});
-        if (initialHoldings.length === 0) load();
+        // Always reconcile on mount (Brendon 2026-06-12): the seed gives an
+        // instant first paint, but it can be a beat behind the newest mints,
+        // so a non-empty seed still gets verified — was gated on empty, which
+        // let a stale-but-nonempty seed strand missing mints until a refresh
+        // event that never fires on this page.
+        load();
         const onRefresh = () => load();
         window.addEventListener('pd:project-refresh', onRefresh);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
-        // initialHoldings is read once per profile identity; user.address is
-        // the identity key (the reset block re-seeds state on change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user.address]);
 
     /* Enrich each held Output with its full platform traits (Artist/Project/
@@ -831,7 +833,7 @@ function ProfilePageBodyInner({
                     : collectedByProject.map(({ slug, ids }) => (
                           <ProjectProvider key={slug} slug={slug}>
                               {ids.map((id) => (
-                                  <ArtworkCard key={`${slug}-${id}`} id={id} />
+                                  <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge />
                               ))}
                           </ProjectProvider>
                       ))}

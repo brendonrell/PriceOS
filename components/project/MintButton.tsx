@@ -77,11 +77,14 @@ export default function MintButton({
       return;
     }
     const count = j.count ?? qty;
-    setResult({ count, balance: Number(j.balance ?? 0) });
+    // Balance trimmed to ≤3 decimals everywhere it shows — a raw float
+    // ("99.97799999…") was what blew the done face out of the button.
+    const balance = parseFloat(Number(j.balance ?? 0).toFixed(3));
+    setResult({ count, balance });
     setPhase('done');
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
-    showToast(`Minted: ${count} × ${projectTitle} · ${j.balance} ETH left`);
-    setTimeout(() => { setPhase('idle'); setPct(0); setResult(null); }, 2800);
+    showToast(`Minted: ${count} × ${projectTitle} · ${balance} ETH left`);
+    setTimeout(() => { setPhase('idle'); setPct(0); setResult(null); }, 1600);
   };
 
   if (phase === 'choosing') {
@@ -113,7 +116,10 @@ export default function MintButton({
   return (
     <button
       type="button"
-      className="btn-mint"
+      // The done face stacks label over balance at reduced sizes so the
+      // success readout FITS the fixed 224px pill (it used to overflow and
+      // clip on desktop — Brendon 2026-06-12).
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}

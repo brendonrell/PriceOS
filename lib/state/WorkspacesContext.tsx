@@ -6,12 +6,12 @@
  * Sim refs: 10097-10450 (storage + load/save/delete/restore + dot
  * render + popover + long-press attach + init).
  *
- * Owns the user's saved Setup Code workspaces. Three default workspaces
- * ship out of the box:
+ * Owns the user's saved Setup Code workspaces. Two default workspaces
+ * ship out of the box (Degen RETIRED 2026-06-12 — Brendon: a new default
+ * will replace it later; Zen gained the blue colorway the same day):
  *
  *   1 · Main  — ‰ARTS-IDAS                                      (clean)
- *   2 · Zen   — ‰ARTS-NASC-NSTK-ZNMD-IDAS                       (zen)
- *   3 · Degen — ‰DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB        (loud, BUG-15: AURA dropped)
+ *   2 · Zen   — ‰BLUE-NASC-NSTK-ZNMD-IDAS                       (zen, blue)
  *
  * Tapping a dot loads (decode + apply via applySetupCodeState). Long-press
  * opens the popover; trailing + creates a new workspace from current state.
@@ -68,11 +68,9 @@ export const MAX_WORKSPACES = 10;
 const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = [
     // Sim 10120-10127 — codes are post-v1.0.45 short form.
     { id: 1, name: 'Main',  code: '\u2030ARTS-IDAS', isDefault: true },
-    { id: 2, name: 'Zen',   code: '\u2030ARTS-NASC-NSTK-ZNMD-IDAS', isDefault: true },
-    // BUG-15 (greenlit 2026-05-05) — AURA dropped from Degen default.
-    // Existing users on the with-AURA short-form auto-migrate via the
-    // _OLD_DEFAULT_CODES entry below.
-    { id: 3, name: 'Degen', code: '\u2030DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB', isDefault: true },
+    // Zen carries the blue colorway (Brendon 2026-06-12 — "pick a colour";
+    // blue is the calm pick). Pre-blue Zen migrates via OLD_DEFAULT_CODES.
+    { id: 2, name: 'Zen',   code: '\u2030BLUE-NASC-NSTK-ZNMD-IDAS', isDefault: true },
 ];
 
 // Sim 10133-10141. When changing a default workspace's shipped code,
@@ -82,12 +80,19 @@ const OLD_DEFAULT_CODES: Record<number, string[]> = {
     2: [
         '[\u2030-ARTS-NASC-NSTK-ZNMD-ZRCX-IDAS-V1]', // v1.0.34 had ZRCX (removed v1.0.35)
         '[\u2030-ARTS-NASC-NSTK-ZNMD-IDAS-V1]',
+        '\u2030ARTS-NASC-NSTK-ZNMD-IDAS', // pre-blue Zen (colour added 2026-06-12)
     ],
+};
+
+// Degen RETIRED as a shipped default (Brendon 2026-06-12 — a new default
+// replaces it later). Hydrate REMOVES a stored Degen whose code still
+// matches any shipped/migrated form of the default; a user-customised
+// Degen (re-saved with their own code) is the user's and is left alone.
+const RETIRED_DEFAULT_CODES: Record<number, string[]> = {
     3: [
+        '\u2030DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB',
         '[\u2030-DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB-V1]',
-        // BUG-15 (greenlit 2026-05-05) — pre-drop short-form code; existing
-        // users on this string get bumped to the new no-AURA default.
-        '\u2030DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB',
+        '\u2030DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB', // pre-BUG-15 form
     ],
 };
 
@@ -161,6 +166,17 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
                 migrated = true;
             }
         }
+
+        // Retired defaults — drop any stored default whose code still matches
+        // a retired shipped default (Degen, 2026-06-12). A customised code
+        // doesn't match, so the user's own re-saved version survives.
+        const beforeRetire = next.length;
+        next = next.filter((ws) => {
+            if (!ws.isDefault) return true;
+            const retired = RETIRED_DEFAULT_CODES[ws.id];
+            return !(retired && retired.includes(ws.code));
+        });
+        if (next.length !== beforeRetire) migrated = true;
 
         let activeFromStorage: number | null = next.length > 0 ? next[0].id : null;
         try {

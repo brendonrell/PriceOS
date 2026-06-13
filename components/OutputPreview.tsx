@@ -213,7 +213,6 @@ export default function OutputPreview() {
     const slug = currentModalSlug ?? proj.slug;
     const def = getProject(slug);
     const title = def?.displayName ?? proj.title;
-    const totalOutputs = def?.outputs ?? proj.totalOutputs;
     const floorEth = proj.floorEth;
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
@@ -493,9 +492,37 @@ export default function OutputPreview() {
        only, which meant other modals (Collectors, Followers, etc.)
        opened from mobile teleported the page to top. Lifted in S1. */
 
-    /* Prev/next nav. Sim cycles through the visible-cards array; without
-       a gallery yet, we walk the full Output range with wrap-around.
-       Sim renders the canvas synchronously inside openModal() — no state
+    /* Prev/next cycles EXISTING Outputs ONLY (Brendon 2026-06-12 — it was
+       walking the full max-supply range, paging past the minted set into
+       Outputs that don't exist yet). The bound is the MINTED count: the
+       route Project's lives in ProjectContext; when the modal was opened
+       for another Project (home/profile cards), fetch that Project's
+       minted count once per open. Until that lands (or if it fails) the
+       bound falls back to the current id — nav wraps to #1, never into
+       unminted territory. */
+    const isForeignProject = slug !== proj.slug;
+    const [foreignMinted, setForeignMinted] = useState<number | null>(null);
+    useEffect(() => {
+        if (!isOpen || !isForeignProject) {
+            setForeignMinted(null);
+            return;
+        }
+        let cancelled = false;
+        fetch(`/api/project/${slug}/outputs`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j: { total?: number } | null) => {
+                if (!cancelled && j && typeof j.total === 'number') {
+                    setForeignMinted(j.total);
+                }
+            })
+            .catch(() => { /* keep the safe fallback */ });
+        return () => { cancelled = true; };
+    }, [isOpen, isForeignProject, slug]);
+    const mintedBound = isForeignProject
+        ? (foreignMinted ?? (id ?? 1))
+        : proj.totalOutputs;
+
+    /* Sim renders the canvas synchronously inside openModal() — no state
        round-trip. Mirror that by rendering imperatively here before
        setCurrentModalId so the art swaps on the same frame as the press. */
     const renderToCanvas = useCallback((nextId: number) => {
@@ -512,17 +539,17 @@ export default function OutputPreview() {
 
     const goNext = useCallback(() => {
         if (id == null) return;
-        const nextId = id >= totalOutputs ? 1 : id + 1;
+        const nextId = id >= mintedBound ? 1 : id + 1;
         renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, totalOutputs, setCurrentModalId, renderToCanvas]);
+    }, [id, mintedBound, setCurrentModalId, renderToCanvas]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
-        const nextId = id <= 1 ? totalOutputs : id - 1;
+        const nextId = id <= 1 ? Math.max(1, mintedBound) : id - 1;
         renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, totalOutputs, setCurrentModalId, renderToCanvas]);
+    }, [id, mintedBound, setCurrentModalId, renderToCanvas]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {

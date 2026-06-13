@@ -21,6 +21,12 @@ import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 
+// Always render fresh (Brendon 2026-06-12 — collected art was lagging behind
+// new mints). Without this the server render (and its seeded holdings) can be
+// served from cache, so the Collected grid shows a stale set until something
+// else forces a refetch. force-dynamic = the seed is always current.
+export const dynamic = 'force-dynamic';
+
 type Props = { params: { slug: string } };
 
 export default async function SlugRootPage({ params }: Props) {

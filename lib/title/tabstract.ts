@@ -3,10 +3,14 @@
  *
  * Sim 5510-5526. On every page load the document title is set to:
  *
- *     `Price Discussion ⋮ ${PROJECT_TITLE} ⋮ ${tabstract}`
+ *     `${CONTEXT} ⋮ Price Discussion ⋮ ${tabstract}`
  *
  * where `tabstract` is six glyphs randomly drawn (with replacement)
- * from a randomly-chosen pattern set.
+ * from a randomly-chosen pattern set, and CONTEXT names what's IN the
+ * tab (the project, or the profile handle). Order swapped 2026-06-12
+ * (Brendon): the specific thing leads, the platform name follows, so a
+ * row of PD tabs reads by content. Context-less pages (home etc.) are
+ * just `Price Discussion ⋮ ${tabstract}`.
  *
  * Pattern-set count: sim's source layout has additional sets
  * appended in `// Phase Lines[…]` style comments on lines 5514-5518.
@@ -16,18 +20,12 @@
  * "verbatim from sim", we port the runtime literal — six sets —
  * not the comment-only sets the spec author counted by reading.
  *
- * PROJECT_TITLE is duplicated here from ProjectContext:
- * sim 5510 declares it inline in the same block, and this generator
- * runs before any provider mounts (it's called from PriceOSShell's
- * mount effect, before useProject is available).
- *
- * Wire site: PriceOSShell mounts a one-shot useEffect that calls
- * pickTabstractTitle() and assigns to document.title. Next.js
- * `metadata.title` is server-rendered and can't rotate per load,
- * so the rotation has to be a client-mount effect.
+ * Wire site: PriceOSShell's pathname-keyed useEffect calls
+ * pickTabstractTitle(context) and assigns to document.title (the
+ * context is derived from the route there). Next.js `metadata.title`
+ * is server-rendered and can't rotate per load, so the rotation has
+ * to be a client effect.
  */
-
-const PROJECT_TITLE = 'PRISMS';
 
 const TABSTRACT_SETS: ReadonlyArray<readonly string[]> = [
     ['☱', '☲', '☳', '☴', '☵', '☶'],                                      // Phase Lines
@@ -38,11 +36,13 @@ const TABSTRACT_SETS: ReadonlyArray<readonly string[]> = [
     ['⊚', '◰', '⊛', '◱', '⊜', '◲', '⊙', '◳'],                            // Geometric Cryptography
 ];
 
-export function pickTabstractTitle(): string {
+export function pickTabstractTitle(context?: string | null): string {
     const set = TABSTRACT_SETS[Math.floor(Math.random() * TABSTRACT_SETS.length)];
     let tabstract = '';
     for (let i = 0; i < 6; i++) {
         tabstract += set[Math.floor(Math.random() * set.length)];
     }
-    return `Price Discussion ⋮ ${PROJECT_TITLE} ⋮ ${tabstract}`;
+    return context
+        ? `${context} ⋮ Price Discussion ⋮ ${tabstract}`
+        : `Price Discussion ⋮ ${tabstract}`;
 }
