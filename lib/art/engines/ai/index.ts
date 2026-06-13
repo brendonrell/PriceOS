@@ -757,3 +757,13 @@ export const circuitSchema: TraitSchema = { traits: [
 ] };
 export const renderCircuit = blit(C.circuit, circuitTraits);
 export const CIRCUIT_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* The Pendulum (harmonograph) */
+export const orbitsTraits: TraitsFn = (id) => { const c = C.castOrbits(id) as any; return { Palette: c.palette, Format: c.format, Curves: c.curves }; };
+export const orbitsSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Cyan','Violet','Ember','Toxic','Ink'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Curves', values: ['Single','Pair','Triple'] },
+] };
+export const renderOrbits = blit(C.orbits, orbitsTraits);
+export const ORBITS_ASPECTS = [1, 0.78, 1.28] as const;
