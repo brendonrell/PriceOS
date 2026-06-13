@@ -6,14 +6,44 @@
 
 ---
 
-- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `d69bcc4`).
-  This chat's task branch `claude/frontend-spot-edits-features-akrjnc` is trash
-  (work is on dev) — Brendon deletes on GitHub. (The earlier
-  `claude/gracious-clarke-l623wn` branch is also trash.)
-- **Updated:** 2026-06-13. Multiple sessions landed on `dev` today: a **frontend
-  feature session** (PriceDay / grouping / feeds — below), a **Home-as-directory
-  + stability** session (block below), and a **follow-up edits** pass (grouping
-  rework + artist-stars DB + home search spacing — top block).
+- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `e37ef15`).
+  This chat's task branch `claude/artist-showcase-perf-fixes-pco3qn` is trash
+  (work is on dev) — Brendon deletes on GitHub.
+- **Updated:** 2026-06-13. Latest session = **artist showcase + perf + polish**
+  (block directly below). Earlier 06-13 sessions logged further down.
+
+## ✅ SHIPPED 2026-06-13 — artist showcase + perf + polish (on `dev`)
+- **Artist Showcase = project carousels.** An artist profile's Showcase tab now
+  carries **Created / Regular** trait pills; Created shows home-style carousels
+  of the artist's projects, Regular is the old curated grid. Non-artist profiles
+  unchanged; artists land on Showcase even with an empty curated set.
+- **Project "+ More" sub-nav.** Same trait-pill tabs as the profile +More:
+  **Stats / Replay / Albums / Genome / Sentiment** group the stacked sections
+  (Stats = Price Stats + ATH&Holders; Sentiment = Price Targets + Disagreement).
+- **Avalanche perf.** Sandpile toppling rewritten to a bounded active-box pass
+  (abelian → byte-IDENTICAL art, verified vs old loop across seeds; ~1.4–2×).
+- **Heavy-paint handling (general).** Canvas virtualizer paints to a per-frame
+  time budget + an eager-burst budget, so heavy engines fill in progressively
+  instead of freezing mount/scroll.
+- **Chrome sample on connect-menu retract** — kicks a hashsyn resample so the
+  iOS chrome tint returns to the art, not stuck on the menu's black.
+- **PWA external links → Safari.** Global interceptor + `lib/pwa/openExternal.ts`:
+  in a standalone PWA every external link hands off to mobile Safari (no in-app
+  sheet); normal browsers keep new-tab. ⚠ Leans on iOS standalone link
+  behaviour — confirm on-device.
+- **The Tape redone.** `@name verb COLL #id · price`, dim diamond between events
+  (fixes the "0.16 ETH@brendon" collision — items had no separator).
+- **Home polish:** sort/filter bar moved INTO the hero so its gap from the tabs
+  matches the project page; volume stat = integer ETH; New Uploads shows the
+  upload time in place of the redundant "UPLOAD" tag.
+- **Shuffle:** re-roll fires on LEAVING the tab (next project pre-chosen) + cards
+  lazy-paint → entry lag gone.
+- **Stickers marketplace:** scanline removed; faint text darkened + bolded.
+- **Mint toast** lingers 4000ms (doubled).
+- **Project renames/recolors** (slugs unchanged → DB link intact): "Stars Nobody
+  Named"→**Names Withheld** (violet `#B026FF`), "Scissors, No Plan"→**Hard
+  Splice** (crimson `#FF005C`), "Crossette"→**Use Once, Remember Always**. New
+  names were Claude picks off Brendon's "try again" — open to swap.
 
 ## ✅ SHIPPED 2026-06-13 — follow-up edits pass (on `dev`)
 - **Sort grouping REWORKED** (Brendon corrected the first cut). The standalone
