@@ -6982,6 +6982,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 @media (max-width: 600px) {
     .home-facet-bar { padding: 0 20px; }
 }
+/* Home search row — match the breathing room the project bar gets above its
+   search input from the hero column gap (16px). The home facet bar has no
+   column gap of its own, so the popped-open search sat flush under the pills. */
+.home-facet-bar .search-row { margin-top: 16px; }
 .home-carousel-row {
     margin: 0 0 28px;
 }
