@@ -15,7 +15,7 @@ import { getSupabaseService } from '@/lib/supabase';
 
 /* Mints a project needs before it graduates from the New Uploads list into
    the Now Minting carousels (Brendon, 2026-06-11). */
-const MINTING_NOW_THRESHOLD = 6;
+const MINTING_NOW_THRESHOLD = 12;
 
 /* The 60-day artist cooldown clock fires at UPLOAD (cooldown semantics,
    2026-06-11), so cooldown_until − 60d IS the upload moment. Used until a

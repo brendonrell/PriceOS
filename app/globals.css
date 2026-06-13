@@ -4227,6 +4227,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     .pill.pill-l1.pill-notes-icon .stat-name,
     .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; }
 }
+/* Shuffle icon: bigger + bold on mobile only (Brendon 2026-06-13). */
+@media (max-width: 600px) {
+    .pill.pill-l1.pill-shuffle-icon .stat-name { font-size: 19px; font-weight: bold; }
+}
 /* Fate: −1px on mobile, nudge up 1px */
 @media (max-width: 600px) {
     .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; top: 1px; }

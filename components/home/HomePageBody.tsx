@@ -7,12 +7,12 @@
  * + same tab row, different center.
  *
  * Home tabs (Brendon, 2026-06-12 — tab set is exactly these three):
- *   - Now Minting (default) → per-project carousels for projects at ≥6
- *                             mints, in the order they reached 6 — just
+ *   - Now Minting (default) → per-project carousels for projects at ≥12
+ *                             mints, in the order they reached 12 — just
  *                             the carousels, no section header.
  *   - New Art               → the "New Uploads" text feed of uploaded
  *                             projects, newest first (a project graduates
- *                             to Now Minting at 6 mints).
+ *                             to Now Minting at 12 mints).
  *   - ⟳ (Shuffle)           → randomized discovery, re-rolls on demand.
  *                             Icon-only pill (Courier), real build later.
  *
@@ -39,8 +39,8 @@ import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
 import type { HomeResponse } from '../../lib/home/homeData';
 
-/* Outputs per carousel (Brendon: 6). */
-const CAROUSEL_SIZE = 6;
+/* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
+const CAROUSEL_SIZE = 12;
 /* Projects shown on home (Brendon: ~30). Caps the Minting Now carousels. */
 const MAX_HOME_PROJECTS = 30;
 /* Tiles in the Shuffle grid. */
@@ -397,14 +397,14 @@ export default function HomePageBody({
             </Hero>
 
             {/* Now Minting (default) — just the carousels: one per project
-                at 6+ mints, in the order they reached 6. No section header,
+                at 12+ mints, in the order they reached 12. No section header,
                 the tab is the label. */}
             {activeTab === 'minting' && (
                 <section aria-label="Now Minting">
                     {!feed && <div className="home-feed-loading">Loading…</div>}
                     {feed && mintingNow.length === 0 && (
                         <div className="home-empty-note">
-                            Projects land here at 6 mints — none yet.
+                            Projects land here at 12 mints — none yet.
                         </div>
                     )}
                     {mintingNow.map((m) => (
@@ -420,7 +420,7 @@ export default function HomePageBody({
             )}
 
             {/* New Art — the New Uploads text feed: uploaded projects,
-                newest first (a project graduates to Now Minting at 6). */}
+                newest first (a project graduates to Now Minting at 12). */}
             {activeTab === 'new' && (
                 <section className="home-uploads" aria-label="New Uploads">
                     <div className="home-section-head">
