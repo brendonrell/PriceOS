@@ -6,65 +6,67 @@
 
 ---
 
-- **Branch:** work is on `dev`, fully pushed, tree clean. This chat's task
-  branch `claude/artworks-loading-name-wrap-hqqpnn` is trash (work is on dev)
-  — Brendon deletes on GitHub. Earlier strays may persist (ClickUp `86badm7pa`).
-- **Updated:** 2026-06-13 (artwork-load + title-wrap fixes)
+- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `0f9bf44`).
+  This chat's task branch `claude/spot-edits-design-tweaks-6gxjbt` is trash
+  (work is on dev) — Brendon deletes on GitHub.
+- **Updated:** 2026-06-13 (big spot-edit + purple-purge + grail/modal session)
 
-## ✅ SHIPPED 2026-06-13 (on `dev`, Brendon-confirmed)
-- **Home artworks now load for every project.** The art renderer was
-  treating same-numbered pieces from different projects as one tile, so only
-  the first painted and the rest stayed grey — only ever bit the home page
-  (many projects at once). Now each piece is scoped to its own project.
-- **Project name + date stay on one line.** A long name (Full Faith &
-  Credit) no longer kicks the date to its own row — the date follows the
-  last word and only wraps with it. Applies platform-wide.
+## ✅ SHIPPED 2026-06-13 (on `dev`, Brendon-approved in batches)
+- **Home CTA → "Join The Chat"** (links to the community Discord). The button
+  beside it is now **Stickers**, opening the new **Sticker Exchange** modal — a
+  bottom-sheet, one-row sheet carousel, subtly-cyberpunk *terminal* styling
+  fully themed to the colorway (no neon). Mockup; no stickers minted yet.
+- **Real project upload date.** Added `projects.uploaded_at timestamptz` to
+  Supabase (PROD) and set every current project to **Jun 12 2026**. Project page
+  + home New-Uploads feed read it (cooldown−60d is only a legacy fallback now).
+- **PURPLE PURGE (#C488FF).** That violet is **reserved for the genesis project
+  and must not appear anywhere in the app.** The Custom colorway had it
+  hardcoded as a baked-in default, bleeding onto Home. Custom now ALWAYS derives
+  (home → Mood Ring, project → its colorway, profile → owner hex) via
+  `resolveCustomBg`; only Dot (#111) is a last-resort fallback. **Default
+  profile theme = brand matrix white `#E0E0E0`** (so an un-themed profile reads
+  blank) — set as the `users.profile_hex` DB default too; old violet migrated
+  away. No applied purple remains (only a migration entry + guard comments).
+- **Grail pins carry `{slug, id}`** now (were bare ids) — a pill shows the
+  ACTUAL pinned Output (Oracle #7, not "Prisms"), right price, opens the right
+  project. Legacy bare-number pins drop on load.
+- **Artwork modal buttons wired:** Star (★ fill) / Wishlist / Add-to-Album
+  (opens picker) / Grail / **Add-to-Showcase** (new device-local
+  `userShowcaseStore`). To-Do + BUY-side LIST/MAKE-OFFER stay stubs (no store /
+  marketplace unbuilt).
+- **Home polish:** Now-Minting threshold **6 → 12** (carousels show 12);
+  Shuffle tab icon bigger+bold on mobile; social row reverted to plain @name
+  links, one line, matches the project page (CollectedPair kept but UNUSED);
+  New-Art feed row = just the project name; stats **PRO / VOL / NFTs** (small s).
+- **Lists:** Starred + Wishlist divider lines removed; their ghosts squared to
+  sharp industrial rectangles (match the artwork ghosts).
+- **Mint toast** lingers ~33% longer + fades gently (new optional
+  `showToast(msg, holdMs, fadeMs)`).
+- **PRSN easter egg** (count of 1 → "1 PRSN"); **Haze dropper** (◉ grabs the
+  page bg into the Haze slot); user-facing **colour → color**.
+- **Title rows:** date wraps flush (gap moved to the title's trailing edge).
 
-## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-tested through many rounds)
-1. **Home page is REAL** (ClickUp `86bad5g49` closed): "Price Discussion" hero
-   (date hidden on mobile), live stats off the DB, tabs **Now Minting**
-   (default; server-seeded carousels — no loading gap; half-size art-only
-   tiles, eager paint) / **New Art** (live uploads feed, allcaps project
-   links) / **⟳** (gallery-grid shuffle, re-rolls per tab entry, no button).
-   Live = Supabase Realtime push (publication enabled on projects/events) +
-   poll fallback; `/api/home` + server seed share one computation
-   (`lib/home/homeData`).
-2. **Hero CTAs:** EXPLORE (random project) + SHUFFLE ▶ (random project
-   soundtrack). Both uniform random — **neutrality is law on home; the
-   platform never picks favourites.** CTA sizing law: the forced width
-   belongs to the mint pill ONLY; every other CTA is content-sized.
-3. **Social rows:** two sprite+name chips (sim's collected-pair, full
-   rectangle port + Rubik handle font), live DB sprites with wallet-derived
-   fallback ('observer' default vibe until the artist picks). Home: always
-   two lines (one chip per line), sim line-height 1.6 rhythm, pair re-rolls
-   per page LOAD (live ticker retired). "Featuring" pulls the real registry
-   roster.
-4. **Mood Ring** (`lib/mood`): daily generative home colour + 90s-chart mood
-   word, flips at MIDNIGHT MONTREAL, hue salt 200 (re-rolled off green
-   2026-06-12 → magenta). ⚠ colour math is MIRRORED in the boot-paint script
-   in `app/layout.tsx` — change both or home flashes. Footer middle row:
-   "Today's Mood Ring Colour: #HEX" + **Today's Stars** (daily natal sky).
-5. **Footer = 3 rows** (system / easter eggs / links + Studio placeholder).
-6. **Multi-select REAL** for Star / Wishlist / Add-to-Album (project +
-   profile bars; albumStore account-backed like stars; picker card).
-   Marketplace actions + To-Do stay stubs.
-7. **Breadcrumbs REAL** — last-5 actually-visited per project (recorded on
-   output-modal open), replacing the random sample.
-8. **PWA:** manifest correct for Android (maskable icons added). **NO install
-   pill anywhere — Brendon's explicit call after an overreach; never re-add.**
-9. Home carousel tiles: art only (no #id/owner caption).
+## 🎯 NEXT — the priority (NOT started)
+- **Sort GROUPING feature.** A new *group-by* dimension with a cycling control
+  modeled on the feed's `$` toggle (little glyphs/letters per option), grouping
+  the gallery by: artist, owner, **color**, last-sold $, rarity, etc. Approach
+  locked by Brendon: derive each Output's **color via the Hash Synesthesia
+  dominant-color sample**, bucket into his named list (red/orange/yellow/green/
+  blue/purple/black/white/wooden=brown/stone=grey/cream=beige/moon=light-purple)
+  + a **"has Hothurt"** flag = a specific-hex check (#FF0055) read from the
+  Output's palette/code. Multi-surface: SortContext group dim + the cycling
+  control on the project (TraitsUI) + profile (ProfileFacetBar) bars + grouped
+  gallery rendering. ⚠ rarity + last-sold have **no data source yet**.
 
 ## ⚠️ KNOW THIS (next session)
-- **CLAUDE.md gained TWO hard rules today — read them:** "ideas ≠ go-ahead"
-  (discussion mode vs build mode) and "push = everything outstanding". Also:
-  every commit co-authors Brendon (trailer is in CLAUDE.md §0).
-- Mood Ring's boot-paint mirror (above) and the AI-engine rng-order warning
-  from last session still stand.
-- Sales tab was REMOVED from home (Brendon's tab set is exactly the three).
-
-## NEXT (queued, not started)
-- Home ⟳ Shuffle real platform-wide build — ClickUp `86badx02w` (currently
-  samples Prisms only via the global provider).
-- Footer easter-egg row: more daily one-liners — ClickUp `86badx034`,
-  Brendon picking (Today's Fate / First Blood / Streak / Consensus Price).
-- Albums browsing surfaces still shells — see comment on `86b9b5jgj`.
+- **On-chain previews (contracts):** the deployed `PDProject` stores a **16KB
+  on-chain WebP thumbnail** (`MAX_THUMBNAIL_BYTES = 16_384`); the pd-contracts
+  README still describing Arweave is **stale**. My recommendation to Brendon:
+  ship on-chain-only (~$3 storage fee) now; keep Arweave high-res as an optional
+  later layer (image prefers Arweave, on-chain thumb as guaranteed fallback) —
+  doing both is ~$7 and a contracts change. Decision not finalized.
+- `users.profile_hex` DB default + `projects.uploaded_at` are **live PROD
+  Supabase** changes made this session.
+- Mood-Ring boot-paint mirror in `app/layout.tsx` still must match
+  `lib/mood/mood.ts` (unchanged this session).
+- `CollectedPair` component is now unused (kept, deactivated).
