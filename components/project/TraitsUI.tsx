@@ -54,7 +54,7 @@ import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
-import { useSort, type SortKey, type SortDir, type FeedKind } from '../../lib/state/SortContext';
+import { useSort, type SortKey, type SortDir, type FeedKind, type GroupKey } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -316,7 +316,7 @@ export default function TraitsUI({
     } = useTraits();
     const { showToast } = useToast();
     const { isAuthenticated } = useAuth();
-    const { sort, dir, feedKind, cycleSort, setSort, applySort } = useSort();
+    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGroup } = useSort();
     const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
 
@@ -399,6 +399,15 @@ export default function TraitsUI({
         const nextKey = computeNextSortKey(family, sort, dir, feedKind);
         cycleSort(family);
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
+    };
+
+    /* GROUP cycling control — none → colour → owner (Brendon, 2026-06-13). */
+    const GROUP_TOAST: Record<GroupKey, string> = { none: 'OFF', color: 'COLOR', owner: 'OWNER' };
+    const GROUP_NEXT: GroupKey[] = ['none', 'color', 'owner'];
+    const cycleGroupWithToast = () => {
+        const next = GROUP_NEXT[(GROUP_NEXT.indexOf(group) + 1) % GROUP_NEXT.length];
+        cycleGroup();
+        showToast('Group: ' + GROUP_TOAST[next]);
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -999,6 +1008,7 @@ export default function TraitsUI({
                         feedKind={feedKind}
                         onClick={() => cycleSortWithToast('feed')}
                     />
+                    <GroupBtn group={group} onClick={cycleGroupWithToast} />
                     {/* D007 (sim 8438) — search-btn lives in the sort row
                         ONLY for Regular persona on non-feed (when
                         `.traits-ui` is hidden by D006 above and there are
@@ -1840,6 +1850,32 @@ function SortBtn({
                 {dollarSpan}
                 {arrowGlyph}
             </span>
+        </div>
+    );
+}
+
+/* GROUP — a single cycling pill (modelled on SortBtn) that walks the gallery's
+   group-by dimension none → COLOUR → OWNER. The active dimension shows in the
+   arrow slot, the way FEED shows its $ (Brendon, 2026-06-13). */
+function GroupBtn({ group, onClick }: { group: GroupKey; onClick: () => void }) {
+    const active = group !== 'none';
+    const dim = group === 'color' ? 'COLOR' : group === 'owner' ? 'OWNER' : '';
+    return (
+        <div
+            className={`sort-btn${active ? ' active' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+            title="Group the gallery"
+        >
+            <span className="sort-lbl">GROUP</span>
+            {active && <span className="sort-arrow">{dim}</span>}
         </div>
     );
 }

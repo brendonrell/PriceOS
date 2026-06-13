@@ -61,12 +61,13 @@
  * naming for sim-diff legibility.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
+import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -287,7 +288,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
-    const { sort, dir, feedKind } = useSort();
+    const { sort, dir, feedKind, group } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
@@ -753,6 +754,30 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         return filtered;
     }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive, notesVersion, activeCategory, breadcrumbSample, siweAddress, netSets, topHolders]);
 
+    /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
+       already-sorted/filtered gallery into colour or owner buckets, preserving
+       the sort order inside each. Colour is palette-derived (free, no canvas);
+       owner reads the live outputs map. */
+    const groupedSections = useMemo(() => {
+        if (group === 'none') return null;
+        const map = new Map<string, number[]>();
+        for (const id of visibleTokenIds) {
+            const label =
+                group === 'color'
+                    ? (outputColorBucket(project.slug, id) ?? 'Other')
+                    : (project.outputs.get(id)?.ownerDisplay ?? '—');
+            const arr = map.get(label);
+            if (arr) arr.push(id);
+            else map.set(label, [id]);
+        }
+        const sections = Array.from(map, ([label, ids]) => ({ label, ids }));
+        if (group === 'color') {
+            const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
+            sections.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
+        }
+        return sections;
+    }, [group, visibleTokenIds, project]);
+
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
        from text content (format "0.014 ETH" — see ProjectContext token
@@ -1160,19 +1185,36 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             index={i}
                         />
                     ))
-                    : visibleTokenIds.map((id, i) => (
-                        <ArtworkCard
-                            key={id}
-                            id={id}
-                            projectShowcasePick={projectShowcasePicks.has(id)}
-                            isBreadcrumb={breadcrumbSample.has(id)}
-                            /* First screenful paints synchronously on mount —
-                               no observer/idle wait. EAGER_GALLERY_COUNT covers
-                               ~2 screenfuls across mobile + desktop column
-                               counts; the rest lazy-load (OOM crash-guard). */
-                            eager={i < EAGER_GALLERY_COUNT}
-                        />
-                    ))}
+                    : groupedSections && !onShowcaseTab
+                        ? groupedSections.map((sec) => (
+                            <Fragment key={`grp-${sec.label}`}>
+                                <div className="gallery-group-header">
+                                    <span className="ggh-label">{sec.label}</span>
+                                    <span className="ggh-count">{sec.ids.length}</span>
+                                </div>
+                                {sec.ids.map((id) => (
+                                    <ArtworkCard
+                                        key={id}
+                                        id={id}
+                                        projectShowcasePick={projectShowcasePicks.has(id)}
+                                        isBreadcrumb={breadcrumbSample.has(id)}
+                                    />
+                                ))}
+                            </Fragment>
+                        ))
+                        : visibleTokenIds.map((id, i) => (
+                            <ArtworkCard
+                                key={id}
+                                id={id}
+                                projectShowcasePick={projectShowcasePicks.has(id)}
+                                isBreadcrumb={breadcrumbSample.has(id)}
+                                /* First screenful paints synchronously on mount —
+                                   no observer/idle wait. EAGER_GALLERY_COUNT covers
+                                   ~2 screenfuls across mobile + desktop column
+                                   counts; the rest lazy-load (OOM crash-guard). */
+                                eager={i < EAGER_GALLERY_COUNT}
+                            />
+                        ))}
             </section>
 
             {/* Sim 5199-5203: activity feed. Mock rows seeded from sim's

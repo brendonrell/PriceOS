@@ -52,8 +52,14 @@ import {
 export type SortKey = 'id' | 'price' | 'feed' | 'fog';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
+/* Group-by dimension for the gallery (Brendon, 2026-06-13). One cycling
+   control walks none → colour → owner → none. Colour is derived from each
+   Output's palette (lib/art/outputColor), so it costs nothing to compute. */
+export type GroupKey = 'none' | 'color' | 'owner';
+const GROUP_ORDER: GroupKey[] = ['none', 'color', 'owner'];
 
 const STORAGE_KEY = 'pd_settings_sort';
+const GROUP_STORAGE_KEY = 'pd_settings_group';
 
 interface SortContextValue {
     sort: SortKey;
@@ -65,6 +71,10 @@ interface SortContextValue {
     cycleSort: (s: SortKey) => void;
     /** Restore a full sort snapshot (used by Gallery View Presets). */
     applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind) => void;
+    /** Current group-by dimension for the gallery. */
+    group: GroupKey;
+    /** Advance the group dimension (none → colour → owner → none). */
+    cycleGroup: () => void;
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
@@ -78,6 +88,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
     const [dir, setDir] = useState<SortDir>('asc');
     // Sim 8320 — feed entry point is feed-time-desc. Default kind = 'time'.
     const [feedKind, setFeedKind] = useState<FeedKind>('time');
+    const [group, setGroupState] = useState<GroupKey>('none');
 
     useEffect(() => {
         try {
@@ -94,6 +105,8 @@ export function SortProvider({ children }: { children: ReactNode }) {
                     setDir('asc');
                 }
             }
+            const g = localStorage.getItem(GROUP_STORAGE_KEY);
+            if (g === 'color' || g === 'owner') setGroupState(g);
         } catch {
             // ignore
         }
@@ -183,9 +196,17 @@ export function SortProvider({ children }: { children: ReactNode }) {
         setFeedKind(fk);
     }, []);
 
+    const cycleGroup = useCallback(() => {
+        setGroupState((g) => {
+            const next = GROUP_ORDER[(GROUP_ORDER.indexOf(g) + 1) % GROUP_ORDER.length];
+            try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
+            return next;
+        });
+    }, []);
+
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

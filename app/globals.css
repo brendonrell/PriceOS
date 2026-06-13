@@ -4717,6 +4717,30 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: start;
     align-content: start;
 }
+/* Group-by section headers (Brendon, 2026-06-13) — span the full grid row so
+   the gallery reads as labelled colour/owner sections. */
+.gallery-group-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 14px 0 2px;
+    border-bottom: 1px dotted var(--border-color, rgba(224, 224, 224, 0.25));
+}
+.gallery-group-header:first-child { padding-top: 0; }
+.ggh-label {
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-color);
+}
+.ggh-count {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    opacity: 0.55;
+    color: var(--text-color);
+}
 .output-card {
     display: flex;
     flex-direction: column;
