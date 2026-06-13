@@ -4251,26 +4251,35 @@ function pricediscovery(cv,seed){
   const spr= spread==='Razor'?0.012: spread==='Normal'?0.03:0.06;
   const mid=Math.round(cols*(0.5+shift)), gap=Math.max(2,Math.round(cols*spr));
   const dep=new Float32Array(cols);
-  function size(c){let s=(0.25+fbm2(c*0.04+NO,2)*amp);if(r()<wallP)s+=2+r()*4*amp;return s;}
-  let acc=0; for(let c=mid-gap;c>=0;c--){acc+=size(c);dep[c]=acc;}
-  acc=0; for(let c=mid+gap;c<cols;c++){acc+=size(c);dep[c]=acc;}
+  function size(c,side){let s=0.22+fbm2(c*0.05+NO,2)*amp;
+    if(r()<wallP)s+=3+r()*6*amp;                 // liquidity wall — sharp mesa
+    if(r()<0.045)s=0.02;                          // void / fault gap
+    if(regime==='Trending')s*= side<0?(0.55+(c/cols)*1.0):(1.55-(c/cols)*1.0); // skewed book
+    return Math.max(0.01,s);}
+  let acc=0; for(let c=mid-gap;c>=0;c--){acc+=size(c,-1);dep[c]=acc;}
+  acc=0; for(let c=mid+gap;c<cols;c++){acc+=size(c,1);dep[c]=acc;}
+  if(regime==='Crash'){const collapse=r()<0.5?-1:1;for(let c=0;c<cols;c++){const side=c<mid?-1:1;if(side===collapse)dep[c]*=0.18+(c<mid?c/Math.max(1,mid):(cols-c)/Math.max(1,cols-mid))*0.35;}}
   let maxd=0.001; for(let c=0;c<cols;c++) maxd=Math.max(maxd,dep[c]);
-  const scaleH=H*(regime==='Crash'?0.5:0.66)/maxd, base=H*0.96;
-  const cw=W/cols;
+  const frameF= regime==='Crash'?0.42:0.5+r()*0.32;
+  const scaleH=H*frameF/maxd, base=H*(0.9+r()*0.07);
+  const cw=W/cols; const seamX=mid*cw;
   const top=new Float32Array(cols);
-  for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; top[c]= inGap? base : base - dep[c]*scaleH - fbm2(c*0.12+NO,7)*S*0.03;}
+  for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; if(inGap){top[c]=base;continue;} const rough=((fbm2(c*0.07+NO,7)-0.5)*1.7+(fbm2(c*0.22+NO,13)-0.5)*0.85+(fbm2(c*0.5+NO,17)-0.5)*0.4)*S*0.055*amp; let t=base-dep[c]*scaleH+rough; if(t>base-2)t=base-2; if(t<H*0.04)t=H*0.04; top[c]=t;}
   // terrain fill (per-column vertical strips, side-coloured, dark at base)
   for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; if(inGap)continue; const side= c<mid? P.bid:P.ask; const g=x.createLinearGradient(0,top[c],0,base); g.addColorStop(0,shade(side,30)); g.addColorStop(0.5,side); g.addColorStop(1,P.bot); x.fillStyle=g; x.fillRect(c*cw,top[c],cw+1,base-top[c]);}
   // sedimentary strata: horizontal dark bands clipped to terrain
   x.save(); x.beginPath(); x.moveTo(0,base); for(let c=0;c<cols;c++)x.lineTo(c*cw+cw/2,top[c]); x.lineTo(W,base); x.closePath(); x.clip();
-  x.globalCompositeOperation='multiply'; for(let yy=0;yy<H;yy+=S*0.018){x.fillStyle='rgba(0,0,0,'+(0.10+fbm2(yy*0.05,NO)*0.10)+')';x.fillRect(0,yy,W,Math.max(1,S*0.006));}
+  for(let yy=0;yy<H;yy+=S*0.015){const t=fbm2(yy*0.05,NO);x.globalCompositeOperation='multiply';x.fillStyle='rgba(16,9,4,'+(0.12+t*0.16)+')';x.fillRect(0,yy,W,Math.max(1,S*0.005));x.globalCompositeOperation='lighter';x.fillStyle='rgba(255,238,205,'+(0.015+t*0.045)+')';x.fillRect(0,yy+S*0.008,W,Math.max(1,S*0.0025));}
+  x.globalCompositeOperation='lighter';
+  const rlL=x.createLinearGradient(seamX-W*0.24,0,seamX,0);rlL.addColorStop(0,'transparent');rlL.addColorStop(1,'rgba(255,236,200,0.13)');x.fillStyle=rlL;x.fillRect(0,0,seamX,base);
+  const rlR=x.createLinearGradient(seamX,0,seamX+W*0.24,0);rlR.addColorStop(0,'rgba(255,236,200,0.13)');rlR.addColorStop(1,'transparent');x.fillStyle=rlR;x.fillRect(seamX,0,W-seamX,base);
   x.globalCompositeOperation='source-over'; x.restore();
   // glowing ridge line (additive)
   x.save(); x.globalCompositeOperation='lighter'; x.lineCap='round';
   for(const [lw,al] of [[6,0.12],[3,0.3],[1.4,0.8]]){ x.lineWidth=lw; x.globalAlpha=al; x.beginPath(); let started=false; for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; if(inGap){started=false;continue;} const col=c<mid?P.bid:P.ask; x.strokeStyle=col; if(!started){x.moveTo(c*cw+cw/2,top[c]);started=true;}else x.lineTo(c*cw+cw/2,top[c]); } x.stroke(); }
   x.restore(); x.globalAlpha=1;
   // central spread seam — hot glowing canyon
-  const seamX=mid*cw; const sg=x.createLinearGradient(seamX-gap*cw*1.4,0,seamX+gap*cw*1.4,0); sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,P.seam); sg.addColorStop(1,'transparent');
+  const sg=x.createLinearGradient(seamX-gap*cw*1.4,0,seamX+gap*cw*1.4,0); sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,P.seam); sg.addColorStop(1,'transparent');
   x.save(); x.globalCompositeOperation='lighter'; x.globalAlpha=0.9; x.fillStyle=sg; x.fillRect(seamX-gap*cw*1.4,0,gap*cw*2.8,base);
   x.globalAlpha=1; x.fillStyle=P.seam; x.fillRect(seamX-1,base-H*0.4,2,H*0.4); x.restore();
   // trade prints near ridges (sediment grains)
