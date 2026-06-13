@@ -6,13 +6,28 @@
 
 ---
 
-- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `1557172`).
-  This chat's task branch `claude/gracious-clarke-l623wn` is trash (work is on
-  dev) — Brendon deletes on GitHub. (The earlier
-  `claude/frontend-spot-edits-features-akrjnc` branch is also trash.)
-- **Updated:** 2026-06-13. Two sessions landed on `dev` today: a **frontend
-  feature session** (PriceDay / grouping / feeds — below) AND this
-  **Home-as-directory + stability** session (block directly below).
+- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `d69bcc4`).
+  This chat's task branch `claude/frontend-spot-edits-features-akrjnc` is trash
+  (work is on dev) — Brendon deletes on GitHub. (The earlier
+  `claude/gracious-clarke-l623wn` branch is also trash.)
+- **Updated:** 2026-06-13. Multiple sessions landed on `dev` today: a **frontend
+  feature session** (PriceDay / grouping / feeds — below), a **Home-as-directory
+  + stability** session (block below), and a **follow-up edits** pass (grouping
+  rework + artist-stars DB + home search spacing — top block).
+
+## ✅ SHIPPED 2026-06-13 — follow-up edits pass (on `dev`)
+- **Sort grouping REWORKED** (Brendon corrected the first cut). The standalone
+  `GROUP` pill is GONE. Grouping is now a small tappable **letter modifier on the
+  ID/PRICE sort buttons** — dim **G** (off) → **C** (colour) → **O** (owner) —
+  exactly like FEED's `$`. Grouping only applies while sorting by ID or PRICE
+  (suppressed on FEED/fog). Colour bucketing unchanged (`lib/art/outputColor.ts`,
+  palette math, zero lag; Hothurt = one colour bucket).
+- **Starred artists are account-backed (DB).** Was localStorage `pd_artist_pinned`
+  only; now rides the `users.settings` envelope (new `artistStars` key) like
+  starred/wishlist/breadcrumbs — follows the viewer across devices. Pushes only on
+  real pin/unpin (empty first render can't clobber), restores on the hydrate event.
+- **Home search bar spacing** — the popped-open search input sat flush under the
+  pills; added the 16px breathing room the project bar gets from the hero column.
 
 ## ✅ SHIPPED 2026-06-13 — Home-as-directory + stability session (on `dev`)
 - **STABILITY SAFETY NET (the deep cause of "half our features crash").** The
@@ -65,11 +80,8 @@
 - **My Notes filter works** (demo notes seeded into `pd_token_notes`; filter
   re-runs on `pd:notes-changed`). **Stargazing** search visible + exact-state
   restore on exit.
-- **Sort GROUPING shipped** (was the NEXT priority). `GROUP` cycling pill in the
-  sort row → **none / COLOUR / OWNER**. Colour from each Output's **palette
-  math** (`lib/art/outputColor.ts`) — no canvas sampling, **zero lag** (Brendon's
-  call). **Hothurt is ONE colour bucket, not a separate axis** (his correction).
-  Grouped gallery w/ section headers. *Project gallery only.*
+- **Sort GROUPING shipped** (then reworked — see the follow-up block above for
+  the final letter-modifier form; the original GROUP pill was replaced).
 - **Breadcrumbs** wired + **account-backed (DB)**: Recent pill filters the
   gallery to recently-opened tokens; the trail now rides `users.settings`
   (`breadcrumbs` key) so it follows the viewer across devices (was localStorage).
@@ -85,7 +97,16 @@
 - **PriceDay almanac → DB-real (Brendon wants this).** Each day's contents
   (minted/uploaded/biggest sale *that day*) can come from REAL `events` bucketed
   by Montreal day — no indexer needed. Still seeded placeholders today.
-- **Sort grouping — remaining:** profile facet bar has no GROUP control yet;
+- **localStorage → DB candidates — AWAITING BRENDON'S CALL (he said check first
+  before converting).** Surveyed all remaining local-only state; these likely
+  want account-backing (same `users.settings` rail as starred/breadcrumbs/
+  artistStars): **artist notes** (`pd_artist_notes`), **token notes**
+  (`pd_token_notes`), **calendar day notes** (`pd_day_notes`), **per-project
+  anchor price** (`pd_anchors`), **custom colorway colour** (`pd_custom_color`),
+  **spellbook hammer count** (`pd_hammer_count`). Correctly device-local (leave
+  alone): debug persona, demo-seed guard (`pd_notes_seeded`), last-viewed tab
+  (`pd_project_tab`). Don't convert until Brendon picks which.
+- **Sort grouping — remaining:** profile facet bar has no group modifier yet;
   artist dim belongs on profile/multi-project; rarity + last-sold dims have **no
   data source**.
 - **Pings still mock** (`PingsBox` → `MOCK_PINGS`); real
@@ -94,9 +115,11 @@
   need a ghost-card variant; `GhostFeed` is the reference).
 
 ## ⚠️ KNOW THIS (next session)
-- **ClickUp NOT updated by this frontend session** — the comment write hit a
-  permission gate and didn't post. Mirror this session's summary to ClickUp task
-  `86b9f30kr` next session.
+- **ClickUp NOT updated (both of today's frontend sessions)** — the comment
+  write keeps hitting a permission gate in this environment and won't post.
+  Mirror today's summaries to ClickUp task `86b9f30kr` next session (covers:
+  PriceDay, feeds, ghosts, breadcrumbs DB, grouping rework, artist-stars DB,
+  home search spacing).
 - **The Tape/feeds show real data only** → empty until mints/lists happen (by
   design; ghost rows cover the empty look).
 - **On-chain thumbnail (contracts) — budget SETTLED 2026-06-13 (other session):**
