@@ -2754,11 +2754,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .hero-row-title .project-title { line-height: 1; }
 .hero-row-title .artist-tag { line-height: 0; }
 
+/* Inline flow (not flex): the title text and the date live in one
+   inline context so the date follows the last word of the name and only
+   wraps WITH it — never drops to its own row when the name wraps. */
 .project-title {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: baseline;
+    display: block;
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 22px;
     margin: 0;
@@ -2788,6 +2788,8 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .project-date-wrap {
     position: relative;
     display: inline-block;
+    margin-left: 12px;
+    vertical-align: baseline;
 }
 
 .priceday-popover {

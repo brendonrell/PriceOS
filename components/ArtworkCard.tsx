@@ -357,9 +357,10 @@ export default function ArtworkCard({
             }
         };
 
-        registerCanvas({ id, wrapper, canvas, render, eager });
+        const vkey = `${slug}:${id}`;
+        registerCanvas({ key: vkey, id, wrapper, canvas, render, eager });
         return () => {
-            unregisterCanvas(id);
+            unregisterCanvas(vkey);
         };
     }, [id, slug, eager]);
 
@@ -568,6 +569,10 @@ export default function ArtworkCard({
                     ref={wrapperRef}
                     className="canvas-wrapper art-placeholder"
                     data-id={id}
+                    /* Virtualizer key — scopes the card to its project so
+                       same-numbered tokens from different projects (home
+                       page mounts many at once) don't collide. */
+                    data-vkey={`${slug}:${id}`}
                     /* Artwork Swap — profile.html 1749 port. Per-token
                        aspect ratio sourced from the same spec the
                        canvas paint uses, so wrapper and canvas intrinsic

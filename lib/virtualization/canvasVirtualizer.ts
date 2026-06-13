@@ -54,6 +54,12 @@ const RENDER_BATCH_SIZE = 8;
 const ROOT_MARGIN = '400px 0px';
 
 type RegisteredCard = {
+    /* Globally-unique key (project slug + token id). Token ids are NOT
+       unique across projects, and the home page mounts many projects'
+       galleries at once — so keying by the bare id let one project's card
+       block every other project's same-numbered card from painting. The
+       composite key scopes each card to its project. */
+    key: string;
     id: number;
     wrapper: HTMLElement;
     canvas: HTMLCanvasElement;
@@ -70,11 +76,11 @@ type RegisteredCard = {
     eager?: boolean;
 };
 
-const registry = new Map<number, RegisteredCard>();
+const registry = new Map<string, RegisteredCard>();
 /* Map preserves insertion order — re-inserting an entry (delete+set)
    moves it to the end, so the iteration order IS the LRU order: oldest
    first. active.keys().next().value gives the eviction candidate. */
-const active = new Map<number, RegisteredCard>();
+const active = new Map<string, RegisteredCard>();
 const renderQueue: RegisteredCard[] = [];
 let renderScheduled = false;
 let observer: IntersectionObserver | null = null;
@@ -87,17 +93,16 @@ function ensureObserver(): void {
             entries.forEach((entry) => {
                 if (!entry.isIntersecting) return;
                 const wrapper = entry.target as HTMLElement;
-                const idAttr = wrapper.dataset.id;
-                if (!idAttr) return;
-                const id = Number(idAttr);
-                const reg = registry.get(id);
+                const key = wrapper.dataset.vkey;
+                if (!key) return;
+                const reg = registry.get(key);
                 if (!reg) return;
                 /* Already-active canvas re-entering view: bump its
                    position in the LRU so it survives the next eviction
                    pass. delete + set re-inserts at the tail. */
-                if (active.has(id)) {
-                    active.delete(id);
-                    active.set(id, reg);
+                if (active.has(key)) {
+                    active.delete(key);
+                    active.set(key, reg);
                     return;
                 }
                 /* Not active — queue for render. Sim unobserves here;
@@ -130,8 +135,8 @@ function scheduleDrain(): void {
    the LRU cap. Shared by the eager (synchronous, at-register) path and the
    lazy (observer → rAF drain) path so both reveal identically. */
 function paintNow(reg: RegisteredCard): void {
-    if (!registry.has(reg.id)) return;
-    if (active.has(reg.id)) return;
+    if (!registry.has(reg.key)) return;
+    if (active.has(reg.key)) return;
     try {
         reg.render();
     } catch {
@@ -139,7 +144,7 @@ function paintNow(reg: RegisteredCard): void {
     }
     reg.canvas.classList.add('visible');
     reg.wrapper.style.background = 'transparent';
-    active.set(reg.id, reg);
+    active.set(reg.key, reg);
     renderCounter++;
     /* Brendon list item 14 — sim 8230-8234. Notify the hashsyn
        engine so it can debounce a resample once the new canvas
@@ -159,15 +164,15 @@ function drainQueue(): void {
 
 function enforceLruCap(): void {
     while (active.size > CANVAS_LRU_CAP) {
-        const oldestId = active.keys().next().value;
-        if (oldestId === undefined) break;
-        const reg = active.get(oldestId);
+        const oldestKey = active.keys().next().value;
+        if (oldestKey === undefined) break;
+        const reg = active.get(oldestKey);
         if (!reg) {
-            active.delete(oldestId);
+            active.delete(oldestKey);
             continue;
         }
         evictCanvas(reg);
-        active.delete(oldestId);
+        active.delete(oldestKey);
     }
 }
 
@@ -210,11 +215,11 @@ export function registerCanvas(reg: RegisteredCard): void {
     /* If a card with this id was already registered (e.g. React strict
        mode dev double-mount, or a fast unmount/remount cycle), tear the
        old observation down before re-observing the new wrapper. */
-    const existing = registry.get(reg.id);
+    const existing = registry.get(reg.key);
     if (existing && existing.wrapper !== reg.wrapper) {
         observer?.unobserve(existing.wrapper);
     }
-    registry.set(reg.id, reg);
+    registry.set(reg.key, reg);
     observer?.observe(reg.wrapper);
     /* Eager (above-the-fold) cards paint synchronously right here — no
        observer round-trip, no rAF queue. This is what makes the first
@@ -225,31 +230,32 @@ export function registerCanvas(reg: RegisteredCard): void {
     publishStats();
 }
 
-export function unregisterCanvas(id: number): void {
-    const reg = registry.get(id);
+export function unregisterCanvas(key: string): void {
+    const reg = registry.get(key);
     if (reg) observer?.unobserve(reg.wrapper);
-    registry.delete(id);
+    registry.delete(key);
     /* Drop from active LRU too — the canvas DOM node is going away, so
        there's nothing to evict and no reason to count it as active. */
-    active.delete(id);
+    active.delete(key);
     /* Strip any pending queue entry. splice() in place — single linear
        pass; renderQueue is bounded by visible-set size so this stays
        cheap. */
     for (let i = renderQueue.length - 1; i >= 0; i--) {
-        if (renderQueue[i].id === id) renderQueue.splice(i, 1);
+        if (renderQueue[i].key === key) renderQueue.splice(i, 1);
     }
     publishStats();
 }
 
-/* forceRenderIds — bypass IntersectionObserver for a specific set of ids.
-   Used by the project-showcase tab to ensure picked cards are painted
-   even if they were never scrolled into view. */
-export function forceRenderIds(ids: Set<number>): void {
+/* forceRenderKeys — bypass IntersectionObserver for a specific set of
+   cards. Used by the project-showcase tab to ensure picked cards are
+   painted even if they were never scrolled into view. Keys are the same
+   composite (slug:id) the cards register with. */
+export function forceRenderKeys(keys: Set<string>): void {
     if (typeof window === 'undefined') return;
-    ids.forEach((id) => {
-        const reg = registry.get(id);
+    keys.forEach((key) => {
+        const reg = registry.get(key);
         if (!reg) return;
-        if (active.has(id)) return; // already painted
+        if (active.has(key)) return; // already painted
         renderQueue.push(reg);
     });
     if (renderQueue.length > 0) scheduleDrain();
