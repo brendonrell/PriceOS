@@ -89,7 +89,7 @@ import {
     subscribeBudgets,
     type BudgetsState,
 } from '../../lib/engines/budgetEngine';
-import { forceRenderIds } from '../../lib/virtualization/canvasVirtualizer';
+import { forceRenderKeys } from '../../lib/virtualization/canvasVirtualizer';
 import {
     getRecentIdsForProject,
     subscribeBreadcrumbs,
@@ -855,11 +855,17 @@ function ProjectPageBodyInner() {
 
     /* Force-paint showcase picks that may never have scrolled into view.
        Fires whenever the showcase tab becomes active so grey placeholders
-       don't show. forceRenderIds bypasses the IntersectionObserver and
+       don't show. forceRenderKeys bypasses the IntersectionObserver and
        directly queues the picked canvases for idle-time rendering. */
     useEffect(() => {
-        if (onShowcaseTab) forceRenderIds(projectShowcasePicks);
-    }, [onShowcaseTab, projectShowcasePicks]);
+        if (onShowcaseTab) {
+            forceRenderKeys(
+                new Set(
+                    Array.from(projectShowcasePicks, (id) => `${project.slug}:${id}`),
+                ),
+            );
+        }
+    }, [onShowcaseTab, projectShowcasePicks, project.slug]);
 
 
 
