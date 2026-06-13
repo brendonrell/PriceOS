@@ -1,16 +1,17 @@
 /* ============================================================================
    Sticker Exchange — bottom-sheet sticker marketplace (mockup).
-   Cyberpunk / utilitarian "terminal": its own dark surface + neon accents,
-   regardless of the active colorway. Brendon 2026-06-13. Imported by globals.
+   Subtly cyberpunk / terminal, but fully THEMED to the active colorway
+   (--bg-color / --text-color / --border-color) — no neon, reads as a regular
+   part of the app. Brendon 2026-06-13. Imported by globals.
    ============================================================================ */
 
 .sticker-sheet-backdrop {
     position: fixed;
     inset: 0;
     z-index: 1300;
-    background: rgba(2, 3, 8, 0.62);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(1.5px);
+    backdrop-filter: blur(1.5px);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -27,11 +28,12 @@
     position: relative;
     width: 100%;
     max-width: 920px;
-    background: #0a0c12;
-    color: #e9f6ff;
-    border-top: 1px solid #15c8ff;
-    box-shadow: 0 -1px 0 #ff2bd6, 0 -22px 60px rgba(0, 0, 0, 0.6);
-    border-radius: 14px 14px 0 0;
+    /* Slightly elevated off the page bg so the sheet reads as a panel. */
+    background: color-mix(in srgb, var(--bg-color) 92%, var(--text-color) 8%);
+    color: var(--text-color);
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+    box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.35);
+    border-radius: 12px 12px 0 0;
     padding: 10px 0 14px;
     transform: translateY(100%);
     transition: transform 0.34s cubic-bezier(0.16, 0.84, 0.34, 1);
@@ -42,17 +44,17 @@
     transform: translateY(0);
 }
 
-/* Neon line sweeping top → bottom (always-moving, §9). */
+/* Faint terminal scanline — subtle, themed, slow (no glow). */
 .ss-scan {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #15c8ff, transparent);
-    opacity: 0.6;
+    height: 1px;
+    background: color-mix(in srgb, var(--text-color) 28%, transparent);
+    opacity: 0.5;
     pointer-events: none;
-    animation: ssScan 3.4s linear infinite;
+    animation: ssScan 4.2s linear infinite;
 }
 @keyframes ssScan {
     0% { top: 0; }
@@ -63,12 +65,12 @@
     width: 46px;
     height: 5px;
     border-radius: 3px;
-    background: #2a3340;
+    background: color-mix(in srgb, var(--text-color) 22%, transparent);
     margin: 2px auto 10px;
     cursor: pointer;
     transition: background 0.15s ease;
 }
-.ss-handle:hover { background: #15c8ff; }
+.ss-handle:hover { background: color-mix(in srgb, var(--text-color) 45%, transparent); }
 
 .ss-head {
     display: flex;
@@ -76,18 +78,17 @@
     gap: 12px;
     padding: 0 18px 10px;
 }
-.ss-title { display: flex; flex-direction: column; line-height: 1.05; }
+.ss-title { display: flex; flex-direction: column; line-height: 1.1; }
 .ss-title-main {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
     letter-spacing: 0.14em;
-    color: #ffffff;
-    text-shadow: 0 0 8px rgba(21, 200, 255, 0.5);
+    color: var(--text-color);
 }
 .ss-title-sub {
     font-size: 10px;
-    letter-spacing: 0.3em;
-    color: #ff2bd6;
+    letter-spacing: 0.28em;
+    color: color-mix(in srgb, var(--text-color) 45%, transparent);
     margin-top: 2px;
 }
 .ss-stats {
@@ -96,34 +97,33 @@
     gap: 14px;
     font-size: 11px;
     letter-spacing: 0.08em;
-    color: #7d8aa0;
+    color: color-mix(in srgb, var(--text-color) 55%, transparent);
 }
-.ss-stat b { color: #15c8ff; }
-.ss-bal { color: #9ff7c0; }
+.ss-stat b { color: var(--text-color); }
 .ss-close {
     font-size: 20px;
     line-height: 1;
-    color: #7d8aa0;
+    color: color-mix(in srgb, var(--text-color) 55%, transparent);
     cursor: pointer;
     padding: 2px 6px;
     transition: color 0.15s ease;
 }
-.ss-close:hover { color: #ff2bd6; }
+.ss-close:hover { color: var(--text-color); }
 
 .ss-ticker {
     overflow: hidden;
-    border-top: 1px solid #15202e;
-    border-bottom: 1px solid #15202e;
-    background: #06080d;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--text-color) 4%, transparent);
 }
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
     font-size: 10px;
     letter-spacing: 0.22em;
-    color: #3f5168;
+    color: color-mix(in srgb, var(--text-color) 42%, transparent);
     padding: 5px 0;
-    animation: ssTicker 24s linear infinite;
+    animation: ssTicker 26s linear infinite;
 }
 .ss-ticker-track span { padding-right: 20px; }
 @keyframes ssTicker {
@@ -146,98 +146,108 @@
     flex: 0 0 auto;
     width: 150px;
     scroll-snap-align: start;
-    background: #0e131c;
-    border: 1px solid #1c2738;
-    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-color) 86%, var(--text-color) 14%);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     overflow: hidden;
-    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    transition: transform 0.18s ease, border-color 0.18s ease;
 }
 .ss-card:hover {
-    transform: translateY(-4px);
-    border-color: #15c8ff;
-    box-shadow: 0 6px 22px rgba(21, 200, 255, 0.18);
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--text-color) 42%, transparent);
 }
-.ss-card.locked { opacity: 0.6; }
+.ss-card.locked { opacity: 0.55; }
 
 .ss-card-art {
     position: relative;
-    height: 128px;
+    height: 126px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: repeating-linear-gradient(45deg, #0b1019 0 8px, #0e1422 8px 16px);
-    border-bottom: 1px dashed #233246;
+    background: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text-color) 3%, transparent) 0 8px,
+        color-mix(in srgb, var(--text-color) 7%, transparent) 8px 16px
+    );
+    border-bottom: 1px dashed var(--border-color);
 }
 .ss-card-glyph {
-    font-size: 48px;
-    color: #15c8ff;
-    text-shadow: 0 0 14px rgba(21, 200, 255, 0.55);
-    opacity: 0.85;
+    font-size: 46px;
+    color: var(--text-color);
+    opacity: 0.55;
 }
-.ss-card.locked .ss-card-glyph { color: #5a6b82; text-shadow: none; }
+.ss-card.locked .ss-card-glyph { opacity: 0.35; }
 .ss-card-soon {
     position: absolute;
     top: 8px;
     right: 8px;
     font-size: 8px;
     letter-spacing: 0.18em;
-    color: #ff2bd6;
-    border: 1px solid #ff2bd6;
+    color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
     border-radius: 3px;
     padding: 2px 4px;
 }
-.ss-card.locked .ss-card-soon { color: #5a6b82; border-color: #33425a; }
 
 .ss-card-meta { padding: 9px 10px 11px; }
 .ss-card-name {
     font-size: 12px;
     font-weight: bold;
-    letter-spacing: 0.06em;
-    color: #eaf4ff;
+    letter-spacing: 0.05em;
+    color: var(--text-color);
 }
 .ss-card-line {
     display: flex;
     justify-content: space-between;
     font-size: 9px;
-    letter-spacing: 0.06em;
-    color: #6f7f96;
+    letter-spacing: 0.05em;
+    color: color-mix(in srgb, var(--text-color) 50%, transparent);
     margin: 4px 0 9px;
 }
-.ss-card-tag { color: #9ff7c0; }
+.ss-card-tag { color: color-mix(in srgb, var(--text-color) 72%, transparent); }
+
+/* Buy chip — the app's pill idiom: bordered, inverts on hover. */
 .ss-buy {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    background: #101a28;
-    border: 1px solid #1f3550;
-    color: #dbeaff;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
     border-radius: 6px;
     padding: 6px 8px;
     font-family: inherit;
     font-size: 10px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.ss-buy:hover { background: #15c8ff; border-color: #15c8ff; color: #03121c; }
+.ss-buy:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
 .ss-buy-px { font-weight: bold; }
 .ss-card.locked .ss-buy { cursor: not-allowed; }
-.ss-card.locked .ss-buy:hover { background: #101a28; border-color: #1f3550; color: #dbeaff; }
+.ss-card.locked .ss-buy:hover {
+    background: transparent;
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
 
 .ss-foot {
     text-align: center;
     font-size: 10px;
-    letter-spacing: 0.1em;
-    color: #3f5168;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--text-color) 42%, transparent);
     padding: 8px 18px 0;
 }
 
 @media (max-width: 600px) {
-    .sticker-sheet { border-radius: 12px 12px 0 0; }
     .ss-title-main { font-size: 16px; }
     .ss-stats { gap: 10px; font-size: 10px; }
     .ss-card { width: 138px; }
-    .ss-card-art { height: 116px; }
+    .ss-card-art { height: 114px; }
 }
