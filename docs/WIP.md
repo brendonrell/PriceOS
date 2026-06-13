@@ -34,13 +34,26 @@
   committed; container-ephemeral).
 
 ## ⏭️ OPEN / NEXT (follow-ups, none blocking)
-- **Soundtracks:** new projects ship `soundtrack: null` (silence). Add
-  genre/multi-artist YouTube playlists when ready (left silent rather than ship
-  unverified IDs).
+- **ClickUp wrap OWED (do first next session).** This session's ClickUp tools
+  needed approval / weren't working, so it never got updated. Next session:
+  mirror this ship into ClickUp — close what shipped (50 projects on dev, DB
+  reset), add the queued follow-ups below, and leave Brendon an **assigned
+  comment + due date** so it hits his Inbox.
+- **Soundtracks — FIX (I overcorrected).** Brendon wanted MOST new projects to
+  carry a soundtrack (genre / multi-artist YouTube playlists, matched to the
+  work), with **only some silent where silence suits the piece** — NOT all
+  silent. I shipped all 25 new ones `soundtrack: null`. Next session: assign
+  genre/multi-artist playlists to the pop/energetic/themed ones (Riding The Oil,
+  Everyone Is Typing, Graffiti Soul, Breach Protocol, Chrome Dreams, Liquid
+  Light, Night Service, Trace Routes, etc.) and KEEP silence only for the
+  contemplative fine-art ones (Quorum, Konkret, The Lapidary, Ode to Rudxane,
+  Filament, Divided Light, Warp & Weft). Verify the playlist IDs resolve before
+  shipping. Map lives in `AI_SOUNDTRACKS` in `lib/project/registry.ts`.
 - **Polish candidates:** Asterism, Seedhead, Forbidden Symmetry, Trace Routes
   are solid but a notch below halo — worth a polish pass for the fxhash bar.
-  `orbits`/`moire`/`automaton` engines exist in core but are intentionally
-  **unwired** (screensavery / too close to Ciphrd).
+  `orbits`(now wired as The Pendulum) is the lightest of the set; `moire` +
+  `automaton` engines exist in core but are intentionally **unwired**
+  (screensavery / too close to Ciphrd).
 - **Halo tier:** Quorum, Price Discovery, Turing's Garden, Coral Logic read as
   the strongest "made-by-a-person" pieces.
 - **Verify:** the 50 build clean + previewed well in the harness but were NOT
