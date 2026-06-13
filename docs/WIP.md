@@ -7,9 +7,18 @@
 ---
 
 - **Branch:** work is on `dev`, fully pushed, tree clean. This chat's task
-  branch `claude/youthful-curie-ildq71` is trash (work is on dev) — Brendon
-  deletes on GitHub. Earlier strays may persist (ClickUp `86badm7pa`).
-- **Updated:** 2026-06-12 (home-page mega-session)
+  branch `claude/artworks-loading-name-wrap-hqqpnn` is trash (work is on dev)
+  — Brendon deletes on GitHub. Earlier strays may persist (ClickUp `86badm7pa`).
+- **Updated:** 2026-06-13 (artwork-load + title-wrap fixes)
+
+## ✅ SHIPPED 2026-06-13 (on `dev`, Brendon-confirmed)
+- **Home artworks now load for every project.** The art renderer was
+  treating same-numbered pieces from different projects as one tile, so only
+  the first painted and the rest stayed grey — only ever bit the home page
+  (many projects at once). Now each piece is scoped to its own project.
+- **Project name + date stay on one line.** A long name (Full Faith &
+  Credit) no longer kicks the date to its own row — the date follows the
+  last word and only wraps with it. Applies platform-wide.
 
 ## ✅ SHIPPED THIS SESSION (all on `dev`, Brendon-tested through many rounds)
 1. **Home page is REAL** (ClickUp `86bad5g49` closed): "Price Discussion" hero
