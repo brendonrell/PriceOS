@@ -2034,30 +2034,47 @@ function avalanche(cv,seed){
   const grid=new Int32Array(n*n);
   const two=r()<0.3;
   const grains=rint(r,24000,72000);
-  const c1=Math.floor(n/2)*n+Math.floor(n/2);
+  const cx=Math.floor(n/2), cy=Math.floor(n/2);
+  const c1=cy*n+cx;
   grid[c1]+=two? Math.floor(grains*0.6):grains;
+  let minX=cx, maxX=cx, minY=cy, maxY=cy;
   if(two){
     const off=rint(r,20,60);
-    grid[(Math.floor(n/2)+off)*n+Math.floor(n/2)-off]+=Math.floor(grains*0.4);
+    const r2=cy+off, c2=cx-off;
+    grid[r2*n+c2]+=Math.floor(grains*0.4);
+    if(c2<minX)minX=c2; if(cx>maxX)maxX=cx;
+    if(r2>maxY)maxY=r2;
   }
-  // topple
-  let stack=[c1];
-  if(two) stack.push((Math.floor(n/2)+0)*n);
+  // topple — abelian sandpile. The full-grid rescan re-walked all 46,656
+  // cells every pass; almost all are zero (the pile is a growing diamond), so
+  // that scan was the cost that froze the UI. We keep the SAME accumulating
+  // full-pass toppling — only restricting each pass to the active bounding
+  // box and expanding it as grains reach an edge. The sandpile's stable
+  // configuration is independent of toppling order (abelian), and cells
+  // outside the box are always <4, so this yields the byte-IDENTICAL final
+  // grid — verified against the old loop across seeds — just faster.
   let guard=0;
   while(guard++<4e7){
     let any=false;
-    for(let i=0;i<grid.length;i++){
-      if(grid[i]>=4){
-        any=true;
-        const d=Math.floor(grid[i]/4);
-        grid[i]%=4;
-        const yy=Math.floor(i/n), xx=i%n;
-        if(xx>0)grid[i-1]+=d;
-        if(xx<n-1)grid[i+1]+=d;
-        if(yy>0)grid[i-n]+=d;
-        if(yy<n-1)grid[i+n]+=d;
+    let nMinX=minX, nMaxX=maxX, nMinY=minY, nMaxY=maxY;
+    for(let yy=minY;yy<=maxY;yy++){
+      const rb=yy*n;
+      for(let xx=minX;xx<=maxX;xx++){
+        const i=rb+xx;
+        const v=grid[i];
+        if(v>=4){
+          any=true;
+          const d=v>>2;
+          grid[i]=v&3;
+          if(xx>0){grid[i-1]+=d; if(xx-1<nMinX)nMinX=xx-1;}
+          if(xx<n-1){grid[i+1]+=d; if(xx+1>nMaxX)nMaxX=xx+1;}
+          if(yy>0){grid[i-n]+=d; if(yy-1<nMinY)nMinY=yy-1;}
+          if(yy<n-1){grid[i+n]+=d; if(yy+1>nMaxY)nMaxY=yy+1;}
+        }
       }
     }
+    minX=nMinX<0?0:nMinX; maxX=nMaxX>n-1?n-1:nMaxX;
+    minY=nMinY<0?0:nMinY; maxY=nMaxY>n-1?n-1:nMaxY;
     if(!any) break;
   }
   const PALS=[
