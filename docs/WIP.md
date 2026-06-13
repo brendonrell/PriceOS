@@ -10,6 +10,10 @@
   This chat's task branch `claude/spot-edits-design-tweaks-6gxjbt` is trash
   (work is on dev) — Brendon deletes on GitHub.
 - **Updated:** 2026-06-13 (big spot-edit + purple-purge + grail/modal session)
+- **2026-06-13 (contracts/spec session):** on-chain thumbnail budget settled at
+  8–48 KB + open questions logged in ClickUp (see KNOW THIS below). **No app
+  code changed.** NB: the SHIPPED/NEXT lists below predate the current `dev`
+  tip — reconcile against `dev` next code session.
 
 ## ✅ SHIPPED 2026-06-13 (on `dev`, Brendon-approved in batches)
 - **Home CTA → "Join The Chat"** (links to the community Discord). The button
@@ -59,12 +63,16 @@
   gallery rendering. ⚠ rarity + last-sold have **no data source yet**.
 
 ## ⚠️ KNOW THIS (next session)
-- **On-chain previews (contracts):** the deployed `PDProject` stores a **16KB
-  on-chain WebP thumbnail** (`MAX_THUMBNAIL_BYTES = 16_384`); the pd-contracts
-  README still describing Arweave is **stale**. My recommendation to Brendon:
-  ship on-chain-only (~$3 storage fee) now; keep Arweave high-res as an optional
-  later layer (image prefers Arweave, on-chain thumb as guaranteed fallback) —
-  doing both is ~$7 and a contracts change. Decision not finalized.
+- **On-chain thumbnail (contracts) — budget SETTLED 2026-06-13:** the on-chain
+  WebP poster is **8–48 KB (48 KB ceiling)**, NOT 16 KB. The built `PDProject`
+  still has the old **16,384-byte cap** — flagged as a pre-deploy fix
+  (→ 49,150) in the ClickUp **Combined Pre-Mainnet Spec**. That spec now also
+  logs the OPEN questions raised today (image format WebP/AVIF/JPEG · whether to
+  raise the ceiling · PD's own display policy · ~$5 storage fee · the rudxane
+  "which platforms broke at 75 KB" question) — **none decided.** Anchoring fact:
+  a small on-chain image can't be full-screen-sharp for busy art at ANY budget;
+  full resolution is the on-chain script's job — the poster is a grid/card/
+  external-platform fallback.
 - `users.profile_hex` DB default + `projects.uploaded_at` are **live PROD
   Supabase** changes made this session.
 - Mood-Ring boot-paint mirror in `app/layout.tsx` still must match
