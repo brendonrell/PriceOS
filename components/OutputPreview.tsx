@@ -100,6 +100,7 @@ import {
     togglePin as storeTogglePin,
     type GrailPin,
 } from '../lib/pins/grailStore';
+import { toggleShowcase } from '../lib/pins/userShowcaseStore';
 import {
     getMutedIds,
     isMuted as storeIsMuted,
@@ -926,7 +927,10 @@ export default function OutputPreview() {
                                 id="mActionCalc"
                                 onClick={() => {
                                     if (calcMode === 'user-showcase') {
-                                        showToast('Add to Showcase: COMING SOON');
+                                        if (id != null) {
+                                            const r = toggleShowcase(slug, id);
+                                            showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
+                                        }
                                     } else if (calcMode === 'offer') {
                                         showToast('Offer Calc: COMING SOON');
                                     } else if (id != null && meta) {
