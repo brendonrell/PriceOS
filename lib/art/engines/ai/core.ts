@@ -3097,13 +3097,13 @@ const NEON_PALS=[
   {name:'Signal', a:'#001a26', b:'#000308', ink:['#00f5d4','#fee440','#f15bb5']},
 ];
 const NEON_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1280,t:'Portrait'},{W:1280,H:920,t:'Landscape'},{W:760,H:1300,t:'Tall'},{W:1500,H:760,t:'Wide'}];
-const NEON_MODES=['stream','rain','spiral','orbit','bloom'];
+const NEON_MODES=['stream','rain','spiral','orbit'];
 function afterglow(cv,seed){
   const r=rng(seed);
   const palI=Math.floor(r()*NEON_PALS.length);
   const fmtI=Math.floor(r()*NEON_FMTS.length);
   const mode=pick(NEON_MODES,r);
-  const n= mode==='spiral'? rint(r,12,24) : mode==='orbit'? rint(r,18,36) : mode==='bloom'? rint(r,26,52) : rint(r,6,13);
+  const n= mode==='spiral'? rint(r,12,24) : mode==='orbit'? rint(r,18,36) : rint(r,6,13);
   const scan=r()<0.55;
   // ---- end trait draws ----
   const P=NEON_PALS[palI], F=NEON_FMTS[fmtI]; const W=F.W,H=F.H; cv.width=W; cv.height=H;
@@ -3131,10 +3131,6 @@ function afterglow(cv,seed){
   } else if(mode==='spiral'){
     const sx=W*(0.42+r()*0.16),sy=H*(0.42+r()*0.16);const cw=r()<0.5?1:-1;
     for(let i=0;i<n;i++){const a0=i/n*6.29,turns=2.5+r()*4,rmax=Math.min(W,H)*(0.4+r()*0.16);const pts=[];const steps=80;for(let s=0;s<=steps;s++){const t=s/steps,ang=a0+cw*t*turns*6.29,rad=t*rmax;pts.push([sx+Math.cos(ang)*rad,sy+Math.sin(ang)*rad]);}ribbon(pts,col(),2+r()*5);}
-  } else if(mode==='bloom'){
-    const sx=W*(0.5+(r()-0.5)*0.28),sy=H*(0.5+(r()-0.5)*0.28);
-    for(let i=0;i<n;i++){const a=i/n*6.29+(r()-0.5)*0.35,r0=Math.min(W,H)*(0.015+r()*0.05),r1=Math.min(W,H)*(0.28+r()*0.26),bend=(r()-0.5)*1.6;const pts=[];for(let s=0;s<=16;s++){const t=s/16,ang=a+bend*t,rad=r0+(r1-r0)*t;pts.push([sx+Math.cos(ang)*rad,sy+Math.sin(ang)*rad]);}ribbon(pts,col(),1.5+r()*4.5);}
-    x.save();x.globalCompositeOperation='lighter';x.fillStyle='#fff';x.shadowColor=P.ink[0];x.shadowBlur=50;x.globalAlpha=0.9;x.beginPath();x.arc(sx,sy,Math.min(W,H)*0.022,0,6.29);x.fill();x.restore();
   } else { // orbit — dense concentric arcs
     const sx=W*(0.42+r()*0.16),sy=H*(0.42+r()*0.16),squash=0.55+r()*0.4;
     for(let i=0;i<n;i++){const rad=Math.min(W,H)*(0.08+i/n*0.44)+(r()-0.5)*16,a0=r()*6.29,sweep=1.2+r()*4.5;const pts=[];const steps=56;for(let s=0;s<=steps;s++){const t=s/steps,ang=a0+t*sweep;pts.push([sx+Math.cos(ang)*rad,sy+Math.sin(ang)*rad*squash]);}ribbon(pts,col(),2+r()*6);}
@@ -3149,7 +3145,7 @@ function castAfterglow(seed){
   const palI=Math.floor(r()*NEON_PALS.length);
   const fmtI=Math.floor(r()*NEON_FMTS.length);
   const mode=pick(NEON_MODES,r);
-  const n= mode==='spiral'? rint(r,12,24) : mode==='orbit'? rint(r,18,36) : mode==='bloom'? rint(r,26,52) : rint(r,6,13);
+  const n= mode==='spiral'? rint(r,12,24) : mode==='orbit'? rint(r,18,36) : rint(r,6,13);
   return {palI,fmtI,mode,n};
 }
 
@@ -3171,6 +3167,7 @@ const CP_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1280,t:'Portrait'},{W:1280,H:
 const CP_LAYOUTS=['reticle','dashboard','breach','signage'];
 const CP_KANJI=['電脳','街','危険','接続','侵入','起動','警告','東京','夜','力','記憶','武器','零','神話','鬼','再起動','監視','銃'];
 const CP_LAT=['BREACH','ACCESS','DENIED','TRACE','ONLINE','UPLINK','DAEMON','ICE','SUBNET','ROOT','//RUN','NETWATCH','FLATLINE','OVERCLOCK','WARNING','REC','LVL','BUFFER','SEQUENCE','INTRUSION','CYBERDECK','RAM','SCANNING'];
+const CP_KATA=['システム','アクセス','キケン','トウキョウ','セツゾク','ネット','サイバー','デンノウ','シンニュウ','キドウ','ケイコク','ブキ','レイ','キオク','メモリ','データ','エラー','ジャック','コード','ロック','ハッキング','ファイア','ウォール','スキャン','ニンゲン','カイロ','デンシ','ムジン','カンシ','ホウカイ'];
 function breach(cv,seed){
   const r=rng(seed);
   const palI=Math.floor(r()*CP_PALS.length);
@@ -3182,7 +3179,11 @@ function breach(cv,seed){
   const x=cv.getContext('2d');
   const MONO='"Courier New","Noto Sans JP","WenQuanYi Zen Hei",monospace', TECH='"Arial Narrow","Liberation Sans Narrow",Impact,"Noto Sans JP","WenQuanYi Zen Hei",sans-serif';
   const hex=()=>'0123456789ABCDEF'[Math.floor(r()*16)]+'0123456789ABCDEF'[Math.floor(r()*16)];
-  const KA=()=>pick(CP_KANJI,r), LA=()=>pick(CP_LAT,r);
+  const KA=()=>pick(CP_KANJI,r), LA=()=>pick(CP_LAT,r), KT=()=>pick(CP_KATA,r);
+  // scatter a ton of tiny Asian-script + data labels as ambient chrome
+  function sprinkle(nn){for(let i=0;i<nn;i++){x.globalAlpha=0.18+r()*0.5;x.fillStyle=r()<0.6?P.s:(r()<0.5?P.p:P.lt);x.font=(8+(r()*9|0))+'px '+MONO;x.textAlign='left';const k=r();const s= k<0.4?KT(): k<0.6?KA()+KA(): k<0.8?(hex()+hex()+hex()): LA();x.fillText(s,r()*W,r()*H);}x.globalAlpha=1;}
+  // vertical katakana data columns down an edge
+  function kataColumn(ex){let yy=70+r()*30;x.textAlign='center';while(yy<H-50){x.globalAlpha=0.3+r()*0.5;x.fillStyle=r()<0.5?P.s:P.p;x.font='15px '+MONO;const w=KT();for(let c=0;c<w.length&&yy<H-50;c++){x.fillText(w[c],ex,yy);yy+=17;}yy+=10;}x.globalAlpha=1;}
   function bgfill(){x.fillStyle=P.bg;x.fillRect(0,0,W,H);
     // grime gradient
     const gg=x.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.5,Math.max(W,H)*0.8);gg.addColorStop(0,P.p+'10');gg.addColorStop(1,'transparent');x.fillStyle=gg;x.fillRect(0,0,W,H);
@@ -3197,22 +3198,32 @@ function breach(cv,seed){
 
   if(layout==='reticle'){
     const cx=W*0.5,cy=H*0.46,R=Math.min(W,H)*0.3;
-    // rotating tick ring (broken)
-    x.strokeStyle=P.p;for(let a=0;a<6.29;a+=0.13){if(r()<0.2)continue;x.globalAlpha=0.4+r()*0.6;x.lineWidth=a%0.5<0.13?3:1.4;const r1=R+(a%0.5<0.13?0:8),r2=R+18;x.beginPath();x.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);x.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2);x.stroke();}x.globalAlpha=1;
+    // ambient grid of tiny ticks behind everything
+    x.strokeStyle=P.s+'22';x.lineWidth=1;for(let gx=40;gx<W;gx+=46){x.beginPath();x.moveTo(gx,40);x.lineTo(gx,H-40);x.stroke();}for(let gy=40;gy<H;gy+=46){x.beginPath();x.moveTo(40,gy);x.lineTo(W-40,gy);x.stroke();}
+    // dense scatter of scripts everywhere
+    sprinkle(Math.round(W*H/9000));
+    // hex stream columns down both edges
+    kataColumn(W*0.05); kataColumn(W*0.95);
+    for(const ex of [W*0.11,W*0.89]){let yy=90;x.textAlign=ex<cx?'left':'right';while(yy<H-60){x.globalAlpha=0.3+r()*0.4;x.fillStyle=P.lt;x.font='12px '+MONO;let row='';for(let k=0;k<3;k++)row+=hex();x.fillText(row,ex,yy);yy+=20;}x.globalAlpha=1;}
+    // multiple tick rings (broken, varying)
+    [R+18,R*0.78,R*0.55].forEach((RR,ri)=>{x.strokeStyle=ri%2?P.s:P.p;for(let a=0;a<6.29;a+=0.105){if(r()<0.18)continue;x.globalAlpha=0.35+r()*0.6;x.lineWidth=a%0.42<0.11?3:1.3;const r1=RR,r2=RR+(a%0.42<0.11?14:8);x.beginPath();x.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);x.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2);x.stroke();}});x.globalAlpha=1;
+    // numeric ring labels
+    x.fillStyle=P.s;x.font='11px '+MONO;x.textAlign='center';for(let a=0;a<6.29;a+=0.52){x.globalAlpha=0.6;x.save();x.translate(cx+Math.cos(a)*(R+34),cy+Math.sin(a)*(R+34));x.rotate(a+1.57);x.fillText((r()*360|0)+'°',0,0);x.restore();}x.globalAlpha=1;
     // scan sweep
-    const sa=r()*6.29;const sg=x.createLinearGradient(cx,cy,cx+Math.cos(sa)*R,cy+Math.sin(sa)*R);sg.addColorStop(0,P.s+'00');sg.addColorStop(1,P.s+'88');x.strokeStyle=P.s;x.globalAlpha=0.5;x.lineWidth=R;x.save();x.beginPath();x.arc(cx,cy,R*0.5,sa,sa+0.5);x.stroke();x.restore();x.globalAlpha=1;
+    const sa=r()*6.29;x.strokeStyle=P.s;x.globalAlpha=0.45;x.lineWidth=R;x.save();x.beginPath();x.arc(cx,cy,R*0.5,sa,sa+0.5);x.stroke();x.restore();x.globalAlpha=1;
     // concentric broken circles
-    [R*0.62,R*0.4].forEach((rr2,i)=>{x.strokeStyle=i?P.s:P.lt;x.lineWidth=1.4;x.beginPath();x.arc(cx,cy,rr2,0.3,5.5);x.stroke();});
-    // center box + crosshair
+    [R*0.62,R*0.4,R*0.24].forEach((rr2,i)=>{x.strokeStyle=i%2?P.s:P.lt;x.lineWidth=1.4;x.setLineDash(i===1?[6,5]:[]);x.beginPath();x.arc(cx,cy,rr2,0.3+r(),5.5);x.stroke();x.setLineDash([]);});
+    // crosshatch reticle core
     bracket(cx-46,cy-46,92,92,P.p,18);
-    x.strokeStyle=P.lt;x.lineWidth=1.4;[[-1,0],[1,0],[0,-1],[0,1]].forEach(d=>{x.beginPath();x.moveTo(cx+d[0]*16,cy+d[1]*16);x.lineTo(cx+d[0]*70,cy+d[1]*70);x.stroke();});
+    x.strokeStyle=P.lt;x.lineWidth=1.4;[[-1,0],[1,0],[0,-1],[0,1]].forEach(d=>{x.beginPath();x.moveTo(cx+d[0]*16,cy+d[1]*16);x.lineTo(cx+d[0]*78,cy+d[1]*78);x.stroke();});
+    x.fillStyle=P.d;for(let i=0;i<4;i++){const a=i*1.5708+0.785;x.fillRect(cx+Math.cos(a)*30-3,cy+Math.sin(a)*30-3,6,6);}
+    // many corner labels w/ leaders (kanji + katakana + hex)
+    for(let i=0;i<14;i++){const a=r()*6.29,rr=R+24+r()*40,px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr;const ox=px+(px<cx?-1:1)*(40+r()*40);x.strokeStyle=P.s;x.lineWidth=1;x.globalAlpha=0.6;x.beginPath();x.moveTo(px,py);x.lineTo(ox,py);x.stroke();x.fillStyle=P.s;x.beginPath();x.arc(px,py,2.2,0,6.29);x.fill();x.globalAlpha=1;x.fillStyle=r()<0.5?P.s:P.lt;x.font='12px '+MONO;x.textAlign=px<cx?'right':'left';x.fillText((r()<0.4?KT():r()<0.7?KA()+KA():LA())+' '+hex(),ox+(px<cx?-4:4),py+4);}
     // big glitched readout
-    ctext(rint(r,10,99)+'%',cx,cy+R+90,'bold '+Math.round(R*0.5)+'px '+TECH,'center',P.p);
-    ctext('// '+LA(),cx,cy+R+128,'18px '+MONO,'center',P.lt);
-    // corner labels w/ leaders
-    for(let i=0;i<6;i++){const a=r()*6.29,px=cx+Math.cos(a)*(R+30),py=cy+Math.sin(a)*(R+30);const ox=px+(px<cx?-1:1)*60;x.strokeStyle=P.s;x.lineWidth=1;x.globalAlpha=0.7;x.beginPath();x.moveTo(px,py);x.lineTo(ox,py);x.stroke();x.globalAlpha=1;x.fillStyle=P.s;x.font='13px '+MONO;x.textAlign=px<cx?'right':'left';x.fillText((r()<0.5?KA():LA())+' '+hex(),ox+(px<cx?-4:4),py+4);}
+    ctext(rint(r,10,99)+'%',cx,cy+R+96,'bold '+Math.round(R*0.5)+'px '+TECH,'center',P.p);
+    ctext(KT()+' // '+LA(),cx,cy+R+132,'18px '+MONO,'center',P.lt);
     hazard(40,H-70,W-80,22,P.p);
-    ctext(KA()+KA()+' / '+LA(),W/2,70,'bold 30px '+TECH,'center',P.lt);
+    ctext(KA()+KA()+KT()+' / '+LA(),W/2,66,'bold 30px '+TECH,'center',P.lt);
   } else if(layout==='dashboard'){
     const pad=34;
     // top bar
@@ -3263,6 +3274,7 @@ function breach(cv,seed){
     // floating latin tickers
     for(let i=0;i<5;i++){x.globalAlpha=0.5;ctext(LA()+' '+hex()+hex(),W*r(),H*(0.85+r()*0.12),'16px '+MONO,'left',P.lt);x.globalAlpha=1;}
   }
+  if(layout!=='reticle') sprinkle(Math.round(W*H/16000));
   // ---- glitch slices (RGB tear) ----
   for(let i=0;i<rint(r,5,11);i++){const sy=r()*H,sh=3+r()*24,dx=(r()-0.5)*46;x.drawImage(cv,0,sy,W,sh,dx,sy,W,sh);
     if(r()<0.6){x.save();x.globalCompositeOperation='lighter';x.globalAlpha=0.35;x.drawImage(cv,0,sy,W,sh,dx+7,sy,W,sh);x.restore();}}
