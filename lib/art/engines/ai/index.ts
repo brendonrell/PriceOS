@@ -663,3 +663,97 @@ export const growthSchema: TraitSchema = { traits: [
 ] };
 export const renderGrowth = blit(C.growth, growthTraits);
 export const GROWTH_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Pigment */
+export const pigmentTraits: TraitsFn = (id) => { const c = C.castPigment(id) as any; return { Harmony: c.harmony, Format: c.format, Mode: c.mode, Ground: c.ground }; };
+export const pigmentSchema: TraitSchema = { traits: [
+  { name: 'Harmony', values: ['Complementary','Triad','Analogous','Split'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
+  { name: 'Mode', values: ['Walk','Axon','Field'] },
+  { name: 'Ground', values: ['Dark','Paper'] },
+] };
+export const renderPigment = blit(C.pigment, pigmentTraits);
+export const PIGMENT_ASPECTS = [1, 0.78, 1.28, 0.71] as const;
+
+/* Iskra */
+export const iskraTraits: TraitsFn = (id) => { const c = C.castIskra(id) as any; return { Palette: c.palette, Format: c.format, Form: c.form }; };
+export const iskraSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Graphite','Slate','Rose Ash','Indigo','Noir','Pine'] },
+  { name: 'Format', values: ['Folio','Square','Landscape'] },
+  { name: 'Form', values: ['Bloom','Rift','Veil'] },
+] };
+export const renderIskra = blit(C.iskra, iskraTraits);
+export const ISKRA_ASPECTS = [0.8, 1, 1.25] as const;
+
+/* Siggi */
+export const siggiTraits: TraitsFn = (id) => { const c = C.castSiggi(id) as any; return { Palette: c.palette, Format: c.format, Composition: c.composition }; };
+export const siggiSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Set 1','Set 2','Set 3','Set 4','Set 5','Set 6'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Composition', values: ['Allover','Medallion','Bands'] },
+] };
+export const renderSiggi = blit(C.siggi, siggiTraits);
+export const SIGGI_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Junction */
+export const junctionTraits: TraitsFn = (id) => { const c = C.castJunction(id) as any; return { Palette: c.palette, Format: c.format, Grid: c.grid, Style: c.style }; };
+export const junctionSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Neon','Amber','Mono','Ink','Iris'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Grid', values: ['8×','10×','12×','16×'] },
+  { name: 'Style', values: ['Arcs','Diag','Mix'] },
+] };
+export const renderJunction = blit(C.junction, junctionTraits);
+export const JUNCTION_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Asterism */
+export const asterismTraits: TraitsFn = (id) => { const c = C.castAsterism(id) as any; return { Palette: c.palette, Format: c.format, Density: c.density }; };
+export const asterismSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Deep Space','Nebula','Amber Sky','Verdant','Antique'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Panorama'] },
+  { name: 'Density', values: ['Sparse','Field','Dense'] },
+] };
+export const renderAsterism = blit(C.asterism, asterismTraits);
+export const ASTERISM_ASPECTS = [1, 0.78, 1.28, 1.79] as const;
+
+/* Seedhead */
+export const seedheadTraits: TraitsFn = (id) => { const c = C.castSeedhead(id) as any; return { Palette: c.palette, Format: c.format, Density: c.density, Mark: c.mark }; };
+export const seedheadSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Ember','Ice','Verdant','Rose','Bone'] },
+  { name: 'Format', values: ['Square','Portrait'] },
+  { name: 'Density', values: ['Open','Full','Packed'] },
+  { name: 'Mark', values: ['Dot','Ring','Petal'] },
+] };
+export const renderSeedhead = blit(C.seedhead, seedheadTraits);
+export const SEEDHEAD_ASPECTS = [1, 0.8] as const;
+
+/* Facets */
+export const facetsTraits: TraitsFn = (id) => { const c = C.castFacets(id) as any; return { Palette: c.palette, Format: c.format, Shards: c.shards }; };
+export const facetsSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Jewel','Dusk','Cool','Warm Stone','Mono'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Shards', values: ['Bold','Fine','Splinter'] },
+] };
+export const renderFacets = blit(C.facets, facetsTraits);
+export const FACETS_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Quasicrystal */
+export const quasicrystalTraits: TraitsFn = (id) => { const c = C.castQuasicrystal(id) as any; return { Palette: c.palette, Format: c.format, Symmetry: c.symmetry, Bands: c.bands }; };
+export const quasicrystalSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Cobalt','Ember','Verdant','Magenta','Gilt','Mono'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Symmetry', values: ['5-fold','7-fold','9-fold','11-fold','13-fold'] },
+  { name: 'Bands', values: ['5 bands','7 bands','9 bands'] },
+] };
+export const renderQuasicrystal = blit(C.quasicrystal, quasicrystalTraits);
+export const QUASICRYSTAL_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Circuit */
+export const circuitTraits: TraitsFn = (id) => { const c = C.castCircuit(id) as any; return { Palette: c.palette, Format: c.format, Density: c.density }; };
+export const circuitSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Green','Blue','Black','Purple','Crimson'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Density', values: ['Sparse','Dense'] },
+] };
+export const renderCircuit = blit(C.circuit, circuitTraits);
+export const CIRCUIT_ASPECTS = [1, 0.78, 1.28] as const;

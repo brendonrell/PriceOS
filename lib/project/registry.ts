@@ -168,6 +168,15 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('liquid-light', 'Liquid Light', 'oilwheel-ai', 360, '#ff71ce', 0.05, AI.LIQUIDLIGHT_ASPECTS, AI.liquidlightSchema, AI.renderLiquidlight, AI.liquidlightTraits),
   aiDef('diffusion', 'Diffusion', 'turing-ai', 222, '#c9962e', 0.18, AI.DIFFUSION_ASPECTS, AI.diffusionSchema, AI.renderDiffusion, AI.diffusionTraits),
   aiDef('growth', 'Growth', 'coralline-ai', 222, '#00e5c8', 0.16, AI.GROWTH_ASPECTS, AI.growthSchema, AI.renderGrowth, AI.growthTraits),
+  aiDef('pigment', 'Pigment', 'divisionist-ai', 256, '#1e88e5', 0.1, AI.PIGMENT_ASPECTS, AI.pigmentSchema, AI.renderPigment, AI.pigmentTraits),
+  aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, AI.ISKRA_ASPECTS, AI.iskraSchema, AI.renderIskra, AI.iskraTraits),
+  aiDef('tessera', 'Tessera', 'tessera-ai', 333, '#ff4d6d', 0.07, AI.SIGGI_ASPECTS, AI.siggiSchema, AI.renderSiggi, AI.siggiTraits),
+  aiDef('junction', 'Junction', 'truchet-ai', 333, '#00e5c8', 0.05, AI.JUNCTION_ASPECTS, AI.junctionSchema, AI.renderJunction, AI.junctionTraits),
+  aiDef('asterism', 'Asterism', 'stellar-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
+  aiDef('seedhead', 'Seedhead', 'phyllo-ai', 300, '#ffd23f', 0.06, AI.SEEDHEAD_ASPECTS, AI.seedheadSchema, AI.renderSeedhead, AI.seedheadTraits),
+  aiDef('facets', 'Facets', 'shatter-ai', 360, '#457b9d', 0.05, AI.FACETS_ASPECTS, AI.facetsSchema, AI.renderFacets, AI.facetsTraits),
+  aiDef('quasicrystal', 'Quasicrystal', 'aperiodic-ai', 256, '#1e88e5', 0.1, AI.QUASICRYSTAL_ASPECTS, AI.quasicrystalSchema, AI.renderQuasicrystal, AI.quasicrystalTraits),
+  aiDef('circuit', 'Circuit', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];

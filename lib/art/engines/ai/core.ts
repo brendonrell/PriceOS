@@ -4443,7 +4443,7 @@ function diffusion(cv,seed){
   const relief=0.7+r()*0.9;
   // ---- end trait draws ----
   const P=RD_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
-  const N=180, NN=N*N; let A=new Float32Array(NN), B=new Float32Array(NN), A2=new Float32Array(NN), B2=new Float32Array(NN);
+  const N=130, NN=N*N; let A=new Float32Array(NN), B=new Float32Array(NN), A2=new Float32Array(NN), B2=new Float32Array(NN);
   for(let i=0;i<NN;i++)A[i]=1;
   const ix=(xx,yy)=>((yy+N)%N)*N+((xx+N)%N);
   // seed B
@@ -4453,7 +4453,7 @@ function diffusion(cv,seed){
   else if(seedMode==='rings'){for(let rr=12;rr<N*0.5;rr+=14)for(let a=0;a<6.283;a+=0.04)B[ix(Math.round(N/2+Math.cos(a)*rr),Math.round(N/2+Math.sin(a)*rr))]=0.5;}
   else {for(let s=0;s<rint(r,14,34);s++){const cxk=Math.floor(r()*N),cyk=Math.floor(r()*N);for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++)B[ix(cxk+xx,cyk+yy)]=0.5;}}
   const f=pat.f+(r()-0.5)*0.004, k=pat.k+(r()-0.5)*0.0025, Da=1, Db=0.5;
-  const steps=1700;
+  const steps=950;
   for(let s=0;s<steps;s++){
     for(let y=0;y<N;y++)for(let xq=0;xq<N;xq++){const c=y*N+xq;const a=A[c],b=B[c];
       const lA=A[ix(xq-1,y)]*0.2+A[ix(xq+1,y)]*0.2+A[ix(xq,y-1)]*0.2+A[ix(xq,y+1)]*0.2+A[ix(xq-1,y-1)]*0.05+A[ix(xq+1,y-1)]*0.05+A[ix(xq-1,y+1)]*0.05+A[ix(xq+1,y+1)]*0.05-a;
@@ -4571,7 +4571,403 @@ function castGrowth(seed){
   return {palette:DG_PALS[palI].name, format:fmt.t, form:form.charAt(0).toUpperCase()+form.slice(1)};
 }
 
+/* PIGMENT — "Pigment" (homage to Erik Swahn): pointillist fields coloured by
+   Itten harmonies. Forms drawn as scattered dots, never flat fills. Modes:
+   walk (rectilinear regions), axon (axonometric blocks), field (soft bodies). */
+const ITTEN=['#f7d800','#f3a000','#ef6c00','#e23b30','#c01f5b','#8e24aa','#5e35b1','#3949ab','#1e88e5','#00897b','#43a047','#9bc53d'];
+const PIG_FMTS=[{W:1100,H:1100,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'},{W:880,H:1240,t:'Tall'}];
+const PIG_MODES=['walk','axon','field'];
+function pigment(cv,seed){
+  const r=rng(seed);
+  const fmt=pick(PIG_FMTS,r);
+  const harmony=pick(['Complementary','Triad','Analogous','Split'],r);
+  const mode=pick(PIG_MODES,r);
+  const dark=r()<0.4;
+  // ---- end trait draws ----
+  const W=fmt.W,H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  const base=Math.floor(r()*12); const HM={Complementary:[0,6],Triad:[0,4,8],Analogous:[0,1,11],Split:[0,5,7]}[harmony];
+  const cols=HM.map(o=>ITTEN[(base+o)%12]);
+  const bg= dark?'#0c0c10':'#efe9da'; x.fillStyle=bg; x.fillRect(0,0,W,H);
+  function dots(x0,y0,w,h,col,dens){const n=(w*h)/(dens||24);for(let i=0;i<n;i++){const px=x0+r()*w,py=y0+r()*h;x.globalAlpha=0.35+r()*0.5;x.fillStyle=shade(col,(r()-0.5)*44);x.beginPath();x.arc(px,py,1+r()*2.1,0,6.29);x.fill();}x.globalAlpha=1;}
+  if(mode==='walk'){
+    let rects=[{x:S*0.08,y:S*0.08,w:W-S*0.16,h:H-S*0.16}];const target=rint(r,8,20);
+    while(rects.length<target){rects.sort((a,b)=>b.w*b.h-a.w*a.h);const q=rects.shift(),f=0.35+r()*0.3;if(q.w>q.h)rects.push({x:q.x,y:q.y,w:q.w*f,h:q.h},{x:q.x+q.w*f,y:q.y,w:q.w*(1-f),h:q.h});else rects.push({x:q.x,y:q.y,w:q.w,h:q.h*f},{x:q.x,y:q.y+q.h*f,w:q.w,h:q.h*(1-f)});}
+    rects.forEach((q,i)=>{if(r()<0.18)return;dots(q.x+2,q.y+2,q.w-4,q.h-4,cols[i%cols.length],20);});
+  } else if(mode==='axon'){
+    const u={x:Math.cos(-0.52),y:Math.sin(-0.52)},v={x:Math.cos(3.66),y:Math.sin(3.66)};const sz=S*0.13;
+    for(let g=0;g<rint(r,5,11);g++){const ox=W*(0.2+r()*0.6),oy=H*(0.25+r()*0.5),ht=sz*(0.6+r()*1.4);
+      const p=(a,b,c)=>({x:ox+u.x*a*sz+v.x*b*sz,y:oy+u.y*a*sz+v.y*b*sz-c*ht});
+      // top, left, right faces as dotted quads
+      const faces=[[p(0,0,1),p(1,0,1),p(1,1,1),p(0,1,1),cols[0]],[p(0,1,1),p(1,1,1),p(1,1,0),p(0,1,0),cols[1%cols.length]],[p(1,0,1),p(1,1,1),p(1,1,0),p(1,0,0),cols[2%cols.length]]];
+      faces.forEach(fc=>{x.save();x.beginPath();x.moveTo(fc[0].x,fc[0].y);for(let i=1;i<4;i++)x.lineTo(fc[i].x,fc[i].y);x.closePath();x.clip();const bb={x:Math.min(fc[0].x,fc[1].x,fc[2].x,fc[3].x),y:Math.min(fc[0].y,fc[1].y,fc[2].y,fc[3].y)};dots(bb.x,bb.y,sz*1.6,ht+sz*1.6,fc[4],16);x.restore();});}
+  } else {
+    for(let g=0;g<rint(r,4,8);g++){const cxk=W*(0.2+r()*0.6),cyk=H*(0.2+r()*0.6),R=S*(0.1+r()*0.18),col=cols[g%cols.length];const n=R*R/6;for(let i=0;i<n;i++){const a=r()*6.29,d=Math.pow(r(),0.6)*R;x.globalAlpha=0.3+r()*0.5;x.fillStyle=shade(col,(r()-0.5)*40);x.beginPath();x.arc(cxk+Math.cos(a)*d,cyk+Math.sin(a)*d,1+r()*2,0,6.29);x.fill();}x.globalAlpha=1;}
+  }
+  // grain
+  x.save();x.globalAlpha=0.04;x.globalCompositeOperation=dark?'screen':'multiply';for(let i=0;i<W*H/1400;i++){x.fillStyle=dark?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castPigment(seed){const r=rng(seed);const fmt=pick(PIG_FMTS,r);const harmony=pick(['Complementary','Triad','Analogous','Split'],r);const mode=pick(PIG_MODES,r);const dark=r()<0.4;return {harmony, format:fmt.t, mode:mode.charAt(0).toUpperCase()+mode.slice(1), ground:dark?'Dark':'Paper'};}
+
+/* ISKRA — "Iskra" (homage to Iskra Velitchkova): a single organic form built
+   from many fine perturbed lines, order dissolving to chaos. Muted, restraint,
+   negative space. Modes: bloom (concentric), rift (paired), veil (line field). */
+const ISK_PALS=[
+  {name:'Graphite', bg:'#efe9dd', ink:'#1d1a16', acc:'#7a2a22'},
+  {name:'Slate', bg:'#e7e7df', ink:'#28323a', acc:'#9a6a3a'},
+  {name:'Rose Ash', bg:'#efe6df', ink:'#3a2630', acc:'#b06a7a'},
+  {name:'Indigo', bg:'#e9e6da', ink:'#1b2a44', acc:'#b08d57'},
+  {name:'Noir', bg:'#0d0d10', ink:'#e6e2d6', acc:'#c9962e', dark:true},
+  {name:'Pine', bg:'#e6e8de', ink:'#1f3328', acc:'#9c7b4a'},
+];
+const ISK_FMTS=[{W:1040,H:1300,t:'Folio'},{W:1100,H:1100,t:'Square'},{W:1300,H:1040,t:'Landscape'}];
+const ISK_MODES=['bloom','rift','veil'];
+function iskra(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*ISK_PALS.length);
+  const fmt=pick(ISK_FMTS,r);
+  const mode=pick(ISK_MODES,r);
+  // ---- end trait draws ----
+  const P=ISK_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  x.lineCap='round';
+  function form(cx,cy,R0,n,chaosBias){for(let i=0;i<n;i++){const t=i/n;const rad=R0*(0.15+t*0.95);const chaos=Math.pow(t,1.6)*chaosBias;const acc=r()<0.05;x.strokeStyle=acc?P.acc:P.ink;x.globalAlpha=(P.dark?0.5:0.42)*(1-t*0.4)+0.08;x.lineWidth=0.6+(1-t)*0.8;x.beginPath();const steps=80;for(let s=0;s<=steps;s++){const a=s/steps*6.283;const wob=(fbm2(Math.cos(a)*rad*0.02+i*0.3,Math.sin(a)*rad*0.02)-0.5)*chaos*S*0.5;const rr=rad+wob;const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr*0.96;if(s===0)x.moveTo(px,py);else x.lineTo(px,py);}x.stroke();}x.globalAlpha=1;}
+  if(mode==='bloom') form(W*0.5,H*0.46,S*0.34,rint(r,90,160),0.5+r()*0.7);
+  else if(mode==='rift'){form(W*0.36,H*0.44,S*0.22,rint(r,60,100),0.4+r()*0.5);form(W*0.66,H*0.56,S*0.2,rint(r,60,100),0.5+r()*0.6);}
+  else {const lines=rint(r,40,80);for(let i=0;i<lines;i++){const y0=H*(0.12+0.76*i/lines);const acc=r()<0.05;x.strokeStyle=acc?P.acc:P.ink;x.globalAlpha=0.4;x.lineWidth=0.7;x.beginPath();for(let xx=W*0.1;xx<=W*0.9;xx+=W*0.01){const ch=Math.pow(Math.abs(xx/W-0.5)*2,1.4)*S*0.18;const wy=y0+(fbm2(xx*0.006+i*0.4,y0*0.01)-0.5)*ch;if(xx===W*0.1)x.moveTo(xx,wy);else x.lineTo(xx,wy);}x.stroke();}x.globalAlpha=1;}
+  // grain + vignette
+  x.save();x.globalAlpha=0.035;x.globalCompositeOperation=P.dark?'screen':'multiply';for(let i=0;i<W*H/1500;i++){x.fillStyle=P.dark?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+  const vg=x.createRadialGradient(W/2,H/2,S*0.36,W/2,H/2,Math.max(W,H)*0.72);vg.addColorStop(0,'transparent');vg.addColorStop(1,P.dark?'rgba(0,0,0,0.5)':'rgba(40,30,20,0.12)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castIskra(seed){const r=rng(seed);const palI=Math.floor(r()*ISK_PALS.length);const fmt=pick(ISK_FMTS,r);const mode=pick(ISK_MODES,r);return {palette:ISK_PALS[palI].name, format:fmt.t, form:mode.charAt(0).toUpperCase()+mode.slice(1)};}
+
+/* SIGGI — "Siggi" (homage to Siggi Eggertsson): bold modular grid of geometric
+   tiles (quarter-circles, triangles, arcs, stripes) in vibrant curated colour,
+   connecting into larger forms. Comps: allover / medallion / bands. */
+const SIG_PALS=[
+  ['#0a0a12','#ff4d6d','#ffd23f','#06d6a0','#3a86ff','#fb5607'],
+  ['#11071f','#f72585','#7209b7','#4cc9f0','#ffbe0b','#ffffff'],
+  ['#102a1a','#ffd23f','#ff6b35','#06aed5','#f15bb5','#fefae0'],
+  ['#1a1423','#e0aaff','#c77dff','#9d4edd','#ffd6ff','#7b2cbf'],
+  ['#0d1b2a','#e63946','#f1faee','#a8dadc','#457b9d','#ffd60a'],
+  ['#241a05','#e07a5f','#f2cc8f','#81b29a','#3d405b','#f4f1de'],
+];
+const SIG_FMTS=[{W:1100,H:1100,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+const SIG_COMPS=['allover','medallion','bands'];
+function siggi(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*SIG_PALS.length);
+  const fmt=pick(SIG_FMTS,r);
+  const comp=pick(SIG_COMPS,r);
+  const G=pick([5,6,7,8],r);
+  // ---- end trait draws ----
+  const P=SIG_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d');
+  const ink=P[0], cols=P.slice(1);
+  x.fillStyle=ink; x.fillRect(0,0,W,H);
+  const cw=W/G, ch=H/Math.round(G*H/W); const rows=Math.round(G*H/W);
+  function tile(cx,cy,s,t,c1,c2){x.save();x.translate(cx,cy);x.fillStyle=c1;x.fillRect(-s/2,-s/2,s,s);x.fillStyle=c2;const q=t%4,rot=(t/4|0)%4;x.rotate(rot*1.5708);
+    if(q===0){x.beginPath();x.moveTo(-s/2,-s/2);x.arc(-s/2,-s/2,s,0,1.5708);x.closePath();x.fill();}
+    else if(q===1){x.beginPath();x.moveTo(-s/2,-s/2);x.lineTo(s/2,-s/2);x.lineTo(-s/2,s/2);x.closePath();x.fill();}
+    else if(q===2){for(let k=0;k<3;k++)x.fillRect(-s/2+k*s/3,-s/2,s/6,s);}
+    else {x.beginPath();x.arc(0,0,s*0.32,0,6.283);x.fill();}
+    x.restore();}
+  function cellTile(gx,gy){const cx=cw*(gx+0.5),cy=ch*(gy+0.5);const c1=cols[Math.floor(r()*cols.length)];let c2=cols[Math.floor(r()*cols.length)];if(c2===c1)c2=cols[(cols.indexOf(c1)+1)%cols.length];tile(cx,cy,Math.max(cw,ch)+1,rint(r,0,15),c1,c2);}
+  if(comp==='medallion'){for(let gy=0;gy<Math.ceil(rows/2);gy++)for(let gx=0;gx<Math.ceil(G/2);gx++){const c1=cols[Math.floor(r()*cols.length)],c2=cols[Math.floor(r()*cols.length)],t=rint(r,0,15);[[gx,gy],[G-1-gx,gy],[gx,rows-1-gy],[G-1-gx,rows-1-gy]].forEach(p=>tile(cw*(p[0]+0.5),ch*(p[1]+0.5),Math.max(cw,ch)+1,t,c1,c2));}}
+  else if(comp==='bands'){for(let gy=0;gy<rows;gy++){const c1=cols[gy%cols.length];for(let gx=0;gx<G;gx++){const c2=cols[Math.floor(r()*cols.length)];tile(cw*(gx+0.5),ch*(gy+0.5),Math.max(cw,ch)+1,rint(r,0,15),c1,c2);}}}
+  else {for(let gy=0;gy<rows;gy++)for(let gx=0;gx<G;gx++)cellTile(gx,gy);}
+  // thin grid seams + grain
+  x.strokeStyle=ink;x.globalAlpha=0.25;x.lineWidth=1;for(let gx=0;gx<=G;gx++){x.beginPath();x.moveTo(gx*cw,0);x.lineTo(gx*cw,H);x.stroke();}for(let gy=0;gy<=rows;gy++){x.beginPath();x.moveTo(0,gy*ch);x.lineTo(W,gy*ch);x.stroke();}x.globalAlpha=1;
+  x.save();x.globalAlpha=0.04;for(let i=0;i<W*H/1400;i++){x.fillStyle=r()<0.5?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castSiggi(seed){const r=rng(seed);const palI=Math.floor(r()*SIG_PALS.length);const fmt=pick(SIG_FMTS,r);const comp=pick(SIG_COMPS,r);return {palette:'Set '+(palI+1), format:fmt.t, composition:comp.charAt(0).toUpperCase()+comp.slice(1)};}
+
+/* ORBITS — "Orbits": damped harmonograph curves under additive glow. */
+const ORB_PALS=[
+  {name:'Cyan', bg:'#06060c', ink:['#00e5ff','#ff2a6d','#ffd23f']},
+  {name:'Violet', bg:'#0a0410', ink:['#b388ff','#00ffc8','#ff8ad6']},
+  {name:'Ember', bg:'#0c0a06', ink:['#ffb000','#ff3d00','#ffe6a8']},
+  {name:'Toxic', bg:'#04100c', ink:['#39ff14','#7dffd0','#ccff00']},
+  {name:'Ink', bg:'#f1ece2', ink:['#1b2a44','#6e2a28','#b08d57']},
+];
+const ORB_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+function orbits(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*ORB_PALS.length);
+  const fmt=pick(ORB_FMTS,r);
+  const nC=rint(r,1,3);
+  // ---- end trait draws ----
+  const P=ORB_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H), dark=P.bg<'#888888';
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  for(let c=0;c<nC;c++){const col=P.ink[c%P.ink.length];
+    const a1=1+rint(r,0,4),a2=1+rint(r,0,4),b1=1+rint(r,0,4),b2=1+rint(r,0,4);
+    const p1=r()*6.28,p2=r()*6.28,p3=r()*6.28,p4=r()*6.28,d=0.002+r()*0.004,A=S*(0.16+r()*0.12);
+    const pts=[];for(let t=0;t<140;t+=0.25){const e=Math.exp(-d*t);const px=W/2+(Math.sin(a1*t+p1)+Math.sin(a2*t+p2))*A*e,py=H/2+(Math.sin(b1*t+p3)+Math.sin(b2*t+p4))*A*e;pts.push([px,py]);}
+    x.save();x.lineCap='round';x.lineJoin='round';if(dark){x.globalCompositeOperation='lighter';x.shadowColor=col;}
+    [[5,0.1],[2.4,0.25],[1,dark?0.7:0.5]].forEach(q=>{x.strokeStyle=dark?col:shade(col,0);x.globalAlpha=q[1];x.lineWidth=q[0];if(dark)x.shadowBlur=q[0]*2;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();});x.restore();x.globalAlpha=1;}
+  const vg=x.createRadialGradient(W/2,H/2,S*0.3,W/2,H/2,Math.max(W,H)*0.72);vg.addColorStop(0,'transparent');vg.addColorStop(1,dark?'rgba(0,0,0,0.55)':'rgba(40,30,20,0.12)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castOrbits(seed){const r=rng(seed);const palI=Math.floor(r()*ORB_PALS.length);const fmt=pick(ORB_FMTS,r);const nC=rint(r,1,3);return {palette:ORB_PALS[palI].name, format:fmt.t, curves:nC===1?'Single':nC===2?'Pair':'Triple'};}
+
+/* JUNCTION — "Junction": Truchet tilings forming maze loops. */
+const JCT_PALS=[
+  {name:'Neon', bg:'#08080e', line:'#00e5c8', alt:'#ff2a6d'},
+  {name:'Amber', bg:'#0c0a06', line:'#ffb000', alt:'#ff3d00'},
+  {name:'Mono', bg:'#0a0a0c', line:'#e8e8ee', alt:'#8a8a92'},
+  {name:'Ink', bg:'#efe9dd', line:'#1a1713', alt:'#7a2a22'},
+  {name:'Iris', bg:'#0a0414', line:'#b388ff', alt:'#00e5ff'},
+];
+const JCT_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+function junction(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*JCT_PALS.length);
+  const fmt=pick(JCT_FMTS,r);
+  const G=pick([8,10,12,16],r);
+  const style=pick(['arcs','diag','mix'],r);
+  // ---- end trait draws ----
+  const P=JCT_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d');
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  const cw=W/G, rows=Math.round(G*H/W), ch=H/rows, lw=Math.max(2,cw*0.16), dark=P.bg<'#888888';
+  x.lineWidth=lw; x.lineCap='round';
+  for(let gy=0;gy<rows;gy++)for(let gx=0;gx<G;gx++){const X0=gx*cw,Y0=gy*ch;const flip=r()<0.5;const useArc= style==='arcs'||(style==='mix'&&r()<0.6);
+    x.strokeStyle= r()<0.18?P.alt:P.line; if(dark){x.save();x.shadowColor=x.strokeStyle;x.shadowBlur=lw*1.5;}
+    if(useArc){if(flip){x.beginPath();x.arc(X0,Y0,cw/2,0,1.5708);x.stroke();x.beginPath();x.arc(X0+cw,Y0+ch,cw/2,3.1416,4.712);x.stroke();}else{x.beginPath();x.arc(X0+cw,Y0,cw/2,1.5708,3.1416);x.stroke();x.beginPath();x.arc(X0,Y0+ch,cw/2,4.712,6.283);x.stroke();}}
+    else {x.beginPath();if(flip){x.moveTo(X0,Y0);x.lineTo(X0+cw,Y0+ch);}else{x.moveTo(X0+cw,Y0);x.lineTo(X0,Y0+ch);}x.stroke();}
+    if(dark)x.restore();}
+  x.save();x.globalAlpha=0.04;for(let i=0;i<W*H/1200;i++){x.fillStyle=dark?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castJunction(seed){const r=rng(seed);const palI=Math.floor(r()*JCT_PALS.length);const fmt=pick(JCT_FMTS,r);const G=pick([8,10,12,16],r);const style=pick(['arcs','diag','mix'],r);return {palette:JCT_PALS[palI].name, format:fmt.t, grid:G+'×', style:style.charAt(0).toUpperCase()+style.slice(1)};}
+
+/* ASTERISM — "Asterism": a generative star chart with drawn constellations. */
+const AST_PALS=[
+  {name:'Deep Space', bg:'#05060e', star:'#eaf2ff', line:'#5a7bd8'},
+  {name:'Nebula', bg:'#0a0614', star:'#ffe6f5', line:'#b388ff'},
+  {name:'Amber Sky', bg:'#0c0805', star:'#fff0d0', line:'#e0a000'},
+  {name:'Verdant', bg:'#04100c', star:'#e8fff4', line:'#39ffa0'},
+  {name:'Antique', bg:'#171208', star:'#f3e3b0', line:'#c9962e'},
+];
+const AST_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'},{W:1500,H:840,t:'Panorama'}];
+function asterism(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*AST_PALS.length);
+  const fmt=pick(AST_FMTS,r);
+  const dens=pick(['Sparse','Field','Dense'],r);
+  // ---- end trait draws ----
+  const P=AST_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  const bgg=x.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.5,Math.max(W,H)*0.8);bgg.addColorStop(0,shade(P.bg,12));bgg.addColorStop(1,P.bg);x.fillStyle=bgg;x.fillRect(0,0,W,H);
+  // dust
+  const N= dens==='Sparse'?W*H/1400: dens==='Field'?W*H/700:W*H/380;
+  const stars=[];for(let i=0;i<N;i++){const px=r()*W,py=r()*H,br=Math.pow(r(),3);stars.push([px,py,br]);x.globalAlpha=0.3+br*0.7;x.fillStyle=P.star;x.beginPath();x.arc(px,py,0.5+br*2,0,6.29);x.fill();if(br>0.85){x.save();x.globalCompositeOperation='lighter';x.shadowColor=P.star;x.shadowBlur=8;x.beginPath();x.arc(px,py,1.5+br*2.5,0,6.29);x.fill();x.restore();}}x.globalAlpha=1;
+  // constellations: connect bright stars near a few anchors
+  const bright=stars.filter(s=>s[2]>0.42);const nCon=rint(r,4,8);
+  x.save();x.strokeStyle=P.line;x.lineWidth=1.8;x.globalAlpha=0.8;x.shadowColor=P.line;x.shadowBlur=6;
+  for(let c=0;c<nCon && bright.length>3;c++){let cur=bright[Math.floor(r()*bright.length)];const steps=rint(r,3,7);x.beginPath();x.moveTo(cur[0],cur[1]);for(let s=0;s<steps;s++){let best=null,bd=1e9;for(const b of bright){if(b===cur)continue;const d=Math.hypot(b[0]-cur[0],b[1]-cur[1]);if(d<bd&&d<S*0.42){bd=d;best=b;}}if(!best)break;x.lineTo(best[0],best[1]);cur=best;}x.stroke();}
+  x.restore();x.globalAlpha=1;
+  x.save();x.globalAlpha=0.04;for(let i=0;i<W*H/1400;i++){x.fillStyle='#fff';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castAsterism(seed){const r=rng(seed);const palI=Math.floor(r()*AST_PALS.length);const fmt=pick(AST_FMTS,r);const dens=pick(['Sparse','Field','Dense'],r);return {palette:AST_PALS[palI].name, format:fmt.t, density:dens};}
+
+/* MOIRE — "Moiré": two overlaid line systems beating into interference. */
+const MOI_PALS=[
+  {name:'Mono', bg:'#0a0a0c', a:'#f0f0f4', b:'#f0f0f4'},
+  {name:'Duo', bg:'#06060c', a:'#00e5ff', b:'#ff2a6d'},
+  {name:'Sun', bg:'#0c0a04', a:'#ffd23f', b:'#ff5400'},
+  {name:'Ink', bg:'#efe9dd', a:'#1a1713', b:'#6e2a28'},
+  {name:'Iris', bg:'#0a0414', a:'#b388ff', b:'#39ffd0'},
+];
+const MOI_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+function moire(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*MOI_PALS.length);
+  const fmt=pick(MOI_FMTS,r);
+  const kind=pick(['rings','lines','grid'],r);
+  // ---- end trait draws ----
+  const P=MOI_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H), dark=P.bg<'#888888';
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  function layer(col,ox,oy,rot,sp){x.save();if(dark){x.globalCompositeOperation='lighter';}x.strokeStyle=col;x.globalAlpha=dark?0.7:0.55;x.lineWidth=1.7;x.translate(W/2+ox,H/2+oy);x.rotate(rot);
+    if(kind==='rings'){for(let rr=sp;rr<Math.max(W,H);rr+=sp){x.beginPath();x.arc(0,0,rr,0,6.283);x.stroke();}}
+    else if(kind==='lines'){for(let yy=-H;yy<H;yy+=sp){x.beginPath();x.moveTo(-W,yy);x.lineTo(W,yy);x.stroke();}}
+    else {for(let yy=-H;yy<H;yy+=sp){x.beginPath();x.moveTo(-W,yy);x.lineTo(W,yy);x.stroke();}for(let xx=-W;xx<W;xx+=sp){x.beginPath();x.moveTo(xx,-H);x.lineTo(xx,H);x.stroke();}}
+    x.restore();x.globalAlpha=1;}
+  const sp=S*(0.012+r()*0.02);
+  layer(P.a,0,0,0,sp);
+  layer(P.b,(r()-0.5)*S*0.08,(r()-0.5)*S*0.08, kind==='rings'?0.04+r()*0.06:(0.06+r()*0.16), sp*1.08);
+  const vg=x.createRadialGradient(W/2,H/2,S*0.3,W/2,H/2,Math.max(W,H)*0.7);vg.addColorStop(0,'transparent');vg.addColorStop(1,dark?'rgba(0,0,0,0.5)':'rgba(40,30,20,0.12)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castMoire(seed){const r=rng(seed);const palI=Math.floor(r()*MOI_PALS.length);const fmt=pick(MOI_FMTS,r);const kind=pick(['rings','lines','grid'],r);return {palette:MOI_PALS[palI].name, format:fmt.t, pattern:kind.charAt(0).toUpperCase()+kind.slice(1)};}
+
+/* SEEDHEAD — "Seedhead": golden-angle phyllotaxis dot spiral. */
+const SEED_PALS=[
+  {name:'Ember', bg:'#0a0604', a:'#ffd23f', b:'#ff3d00'},
+  {name:'Ice', bg:'#04080e', a:'#caf0f8', b:'#0077b6'},
+  {name:'Verdant', bg:'#04100a', a:'#9ef01a', b:'#007a3c'},
+  {name:'Rose', bg:'#0e0410', a:'#ff8ad6', b:'#7b2cbf'},
+  {name:'Bone', bg:'#efe9dd', a:'#6e2a28', b:'#1a1713'},
+];
+const SEED_FMTS=[{W:1080,H:1080,t:'Square'},{W:960,H:1200,t:'Portrait'}];
+function seedhead(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*SEED_PALS.length);
+  const fmt=pick(SEED_FMTS,r);
+  const n=rint(r,700,2200);
+  const shape=pick(['dot','ring','petal'],r);
+  // ---- end trait draws ----
+  const P=SEED_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H), dark=P.bg<'#888888';
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H*0.5,ga=2.39996,scale=S*0.52/Math.sqrt(n);
+  if(dark){x.globalCompositeOperation='lighter';x.shadowBlur=4;}
+  for(let i=0;i<n;i++){const a=i*ga,rad=scale*Math.sqrt(i);const px=cx+Math.cos(a)*rad,py=cy+Math.sin(a)*rad;const t=i/n;const col=rdHexLerp(P.a,P.b,t);if(dark)x.shadowColor=col;x.fillStyle=col;x.globalAlpha=dark?(0.7+0.3*(1-t)):0.9;const sz=2.2+(1-t)*S*0.012;
+    if(shape==='dot'){x.beginPath();x.arc(px,py,sz,0,6.29);x.fill();}
+    else if(shape==='ring'){x.strokeStyle=col;x.lineWidth=1;x.beginPath();x.arc(px,py,sz,0,6.29);x.stroke();}
+    else {x.save();x.translate(px,py);x.rotate(a);x.beginPath();x.ellipse(0,0,sz*1.6,sz*0.7,0,0,6.29);x.fill();x.restore();}}
+  x.globalAlpha=1;x.shadowBlur=0;x.globalCompositeOperation='source-over';
+  const vg=x.createRadialGradient(cx,cy,S*0.3,cx,cy,Math.max(W,H)*0.7);vg.addColorStop(0,'transparent');vg.addColorStop(1,dark?'rgba(0,0,0,0.5)':'rgba(40,30,20,0.12)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castSeedhead(seed){const r=rng(seed);const palI=Math.floor(r()*SEED_PALS.length);const fmt=pick(SEED_FMTS,r);const n=rint(r,700,2200);const shape=pick(['dot','ring','petal'],r);return {palette:SEED_PALS[palI].name, format:fmt.t, density:n<1200?'Open':n<1800?'Full':'Packed', mark:shape.charAt(0).toUpperCase()+shape.slice(1)};}
+
+/* FACETS — "Facets": recursive triangular subdivision, stained-glass shards. */
+const FAC_PALS=[
+  {name:'Jewel', bg:'#0a0a10', cols:['#e63946','#457b9d','#2a9d8f','#e9c46a','#9d4edd','#f4a261']},
+  {name:'Dusk', bg:'#0c0814', cols:['#ff6b6b','#4ecdc4','#ffe66d','#a06cd5','#ff8c42','#1a936f']},
+  {name:'Cool', bg:'#06080e', cols:['#3a86ff','#00e5ff','#8338ec','#06d6a0','#118ab2','#073b4c']},
+  {name:'Warm Stone', bg:'#1a120a', cols:['#bc6c25','#dda15e','#606c38','#283618','#a44a3f','#e9c46a']},
+  {name:'Mono', bg:'#0a0a0c', cols:['#2a2a2e','#4a4a52','#6e6e76','#9a9aa2','#c8c8d0','#1a1a1e']},
+];
+const FAC_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+function facets(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*FAC_PALS.length);
+  const fmt=pick(FAC_FMTS,r);
+  const depth=pick([6,7,8,9],r);
+  // ---- end trait draws ----
+  const P=FAC_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d');
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  function tri(a,b,c,d){if(d<=0){const col=P.cols[Math.floor(r()*P.cols.length)];x.fillStyle=shade(col,(r()-0.5)*24);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.lineTo(c[0],c[1]);x.closePath();x.fill();x.lineWidth=1.4;x.strokeStyle='rgba(0,0,0,0.45)';x.stroke();return;}
+    // split longest edge at jittered midpoint
+    const e=[[a,b],[b,c],[c,a]];let li=0,lm=0;for(let i=0;i<3;i++){const dd=Math.hypot(e[i][0][0]-e[i][1][0],e[i][0][1]-e[i][1][1]);if(dd>lm){lm=dd;li=i;}}
+    const p=e[li][0],q=e[li][1],t=0.4+r()*0.2,m=[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];const opp=[a,b,c][(li+2)%3];
+    tri(p,m,opp,d-1);tri(m,q,opp,d-1);}
+  tri([0,0],[W,0],[0,H],depth);tri([W,0],[W,H],[0,H],depth);
+  // subtle light + grain
+  const lg=x.createLinearGradient(0,0,W,H);lg.addColorStop(0,'rgba(255,255,255,0.06)');lg.addColorStop(1,'rgba(0,0,0,0.12)');x.save();x.globalCompositeOperation='overlay';x.fillStyle=lg;x.fillRect(0,0,W,H);x.restore();
+  x.save();x.globalAlpha=0.04;for(let i=0;i<W*H/1400;i++){x.fillStyle=r()<0.5?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castFacets(seed){const r=rng(seed);const palI=Math.floor(r()*FAC_PALS.length);const fmt=pick(FAC_FMTS,r);const depth=pick([6,7,8,9],r);return {palette:FAC_PALS[palI].name, format:fmt.t, shards:depth<=6?'Bold':depth<=8?'Fine':'Splinter'};}
+
+/* AUTOMATON — "Automaton": elementary cellular automata grown into crisp pixel
+   fractals (Avalanche-spirit: computed, structured, loads instantly). */
+const CA_PALS=[
+  {name:'Teal', bg:'#0a0a0e', a:'#00e5c8', b:'#0a4a44'},
+  {name:'Amber', bg:'#0c0a06', a:'#ffb000', b:'#5a3208'},
+  {name:'Iris', bg:'#0a0414', a:'#b388ff', b:'#3a1a6a'},
+  {name:'Acid', bg:'#04100a', a:'#9ef01a', b:'#1f5a14'},
+  {name:'Mono', bg:'#0a0a0c', a:'#f0f0f4', b:'#3a3a42'},
+  {name:'Ink', bg:'#efe9dd', a:'#1a1713', b:'#9a8a6a'},
+];
+const CA_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1200,t:'Portrait'},{W:1200,H:920,t:'Landscape'}];
+const CA_RULES=[30,90,110,150,54,18,182,22,73,45];
+function automaton(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*CA_PALS.length);
+  const fmt=pick(CA_FMTS,r);
+  const rule=pick(CA_RULES,r);
+  const start=pick(['single','single','random'],r);
+  // ---- end trait draws ----
+  const P=CA_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d');
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  const N=pick([130,170,220],r), cpx=W/N, rows=Math.ceil(H/cpx);
+  let row=new Uint8Array(N); if(start==='single')row[N>>1]=1; else for(let i=0;i<N;i++)row[i]=r()<0.5?1:0;
+  const rb=[]; for(let b=0;b<8;b++)rb[b]=(rule>>b)&1;
+  for(let gy=0;gy<rows;gy++){
+    for(let i=0;i<N;i++){if(row[i]){const t=gy/rows;x.fillStyle=rdHexLerp(P.a,P.b,t*0.85);x.fillRect(i*cpx,gy*cpx,cpx+0.6,cpx+0.6);}}
+    const nx=new Uint8Array(N);for(let i=0;i<N;i++){const l=row[(i-1+N)%N],c=row[i],rr=row[(i+1)%N];nx[i]=rb[(l<<2)|(c<<1)|rr];}row=nx;
+  }
+  x.save();x.globalAlpha=0.04;x.globalCompositeOperation=P.bg<'#888888'?'screen':'multiply';for(let i=0;i<W*H/1400;i++){x.fillStyle=P.bg<'#888888'?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+}
+function castAutomaton(seed){const r=rng(seed);const palI=Math.floor(r()*CA_PALS.length);const fmt=pick(CA_FMTS,r);const rule=pick(CA_RULES,r);const start=pick(['single','random'],r);return {palette:CA_PALS[palI].name, format:fmt.t, rule:'Rule '+rule, seed:start==='single'?'Singularity':'Primordial'};}
+
+/* QUASICRYSTAL — "Quasicrystal": N-fold plane-wave interference quantised into
+   crisp symmetric bands (intricate + structured, Avalanche-spirit). */
+const QC_PALS=[
+  {name:'Cobalt', bg:'#05060e', cols:['#04102a','#1e88e5','#7ec8ff','#eaf6ff']},
+  {name:'Ember', bg:'#0c0402', cols:['#1a0600','#ff5400','#ffb000','#ffe6a8']},
+  {name:'Verdant', bg:'#04100c', cols:['#04150e','#1f8a5a','#39ff9f','#e8fff4']},
+  {name:'Magenta', bg:'#0a0410', cols:['#1a0420','#c01f5b','#ff71ce','#ffe0f5']},
+  {name:'Gilt', bg:'#0a0804', cols:['#100a04','#6b4a1f','#c9962e','#f6ead0']},
+  {name:'Mono', bg:'#0a0a0c', cols:['#101014','#4a4a52','#9a9aa2','#f0f0f4']},
+];
+const QC_FMTS=[{W:1080,H:1080,t:'Square'},{W:940,H:1200,t:'Portrait'},{W:1200,H:940,t:'Landscape'}];
+function quasicrystal(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*QC_PALS.length);
+  const fmt=pick(QC_FMTS,r);
+  const sym=pick([5,7,9,11,13],r);
+  const bands=pick([5,7,9],r);
+  // ---- end trait draws ----
+  const P=QC_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  x.fillStyle=P.bg; x.fillRect(0,0,W,H);
+  const cell=3, freq=(32+(seed%26))/S, ph=r()*6.283;
+  const ang=[];for(let i=0;i<sym;i++)ang.push(i*Math.PI/sym);
+  for(let gy=0;gy<H;gy+=cell)for(let gx=0;gx<W;gx+=cell){
+    let v=0;const dx=gx-W/2,dy=gy-H/2;for(let i=0;i<sym;i++)v+=Math.cos((dx*Math.cos(ang[i])+dy*Math.sin(ang[i]))*freq+ph);
+    let t=(v/sym+1)/2; t=Math.floor(t*bands)/(bands-1); if(t<0)t=0;if(t>1)t=1;
+    const idx=Math.min(P.cols.length-1,Math.floor(t*P.cols.length));
+    x.fillStyle=P.cols[idx]; x.fillRect(gx,gy,cell+0.6,cell+0.6);
+  }
+  const vg=x.createRadialGradient(W/2,H/2,S*0.34,W/2,H/2,Math.max(W,H)*0.72);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,0.45)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castQuasicrystal(seed){const r=rng(seed);const palI=Math.floor(r()*QC_PALS.length);const fmt=pick(QC_FMTS,r);const sym=pick([5,7,9,11,13],r);const bands=pick([5,7,9],r);return {palette:QC_PALS[palI].name, format:fmt.t, symmetry:sym+'-fold', bands:bands+' bands'};}
+
+/* CIRCUIT — "Circuit": procedural PCB — orthogonal/45° copper traces routed
+   between pads + vias on a solder-mask board. Crisp, structured, cyberpunk. */
+const CIR_PALS=[
+  {name:'Green', board:'#0a2a18', trace:'#2bd47a', pad:'#d4b25a', acc:'#7dffb0'},
+  {name:'Blue', board:'#08182e', trace:'#3aa8ff', pad:'#d0d8e0', acc:'#9be0ff'},
+  {name:'Black', board:'#0a0a0c', trace:'#c8a23a', pad:'#e8c060', acc:'#ffe6a0'},
+  {name:'Purple', board:'#180a2a', trace:'#b388ff', pad:'#e0c8ff', acc:'#ff8ad6'},
+  {name:'Crimson', board:'#200808', trace:'#ff5a5a', pad:'#ffd0a0', acc:'#ffb0b0'},
+];
+const CIR_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1200,t:'Portrait'},{W:1200,H:920,t:'Landscape'}];
+function circuit(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*CIR_PALS.length);
+  const fmt=pick(CIR_FMTS,r);
+  const dens=pick(['Sparse','Dense','Dense'],r);
+  // ---- end trait draws ----
+  const P=CIR_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  x.fillStyle=P.board; x.fillRect(0,0,W,H);
+  // mask texture
+  for(let i=0;i<W*H/2200;i++){x.globalAlpha=0.03+r()*0.04;x.fillStyle=shade(P.board,r()<0.5?14:-10);x.fillRect(r()*W,r()*H,2,2);}x.globalAlpha=1;
+  const gp=Math.round(S*(dens==='Sparse'?0.06:0.04)), cols=Math.floor(W/gp), rows=Math.floor(H/gp), ox=(W-cols*gp)/2+gp/2, oy=(H-rows*gp)/2+gp/2;
+  const node=(cx,cy)=>[ox+cx*gp,oy+cy*gp];
+  x.lineCap='round';x.lineJoin='round';
+  const nTr=Math.floor(cols*rows*(dens==='Sparse'?0.12:0.22));
+  x.save(); x.globalCompositeOperation= P.board<'#888888'?'lighter':'source-over';
+  for(let t=0;t<nTr;t++){
+    let cx=rint(r,0,cols-1),cy=rint(r,0,rows-1);const len=rint(r,2,8);const pts=[node(cx,cy)];let dir=Math.floor(r()*4);
+    for(let s=0;s<len;s++){if(r()<0.4)dir=(dir+(r()<0.5?1:3))%4;const dd=[[1,0],[0,1],[-1,0],[0,-1]][dir];const seg=rint(r,1,4);cx=Math.max(0,Math.min(cols-1,cx+dd[0]*seg));cy=Math.max(0,Math.min(rows-1,cy+dd[1]*seg));pts.push(node(cx,cy));}
+    const col= r()<0.16?P.acc:P.trace; x.strokeStyle=col; x.shadowColor= P.board<'#888888'?col:'transparent'; x.shadowBlur= P.board<'#888888'?5:0;
+    x.lineWidth=Math.max(2,gp*0.18); x.globalAlpha=0.55+r()*0.35; x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();
+    // vias at ends
+    [pts[0],pts[pts.length-1]].forEach(p=>{x.fillStyle=P.pad;x.beginPath();x.arc(p[0],p[1],gp*0.22,0,6.29);x.fill();x.fillStyle=P.board;x.beginPath();x.arc(p[0],p[1],gp*0.09,0,6.29);x.fill();});
+  }
+  x.restore();x.globalAlpha=1;x.shadowBlur=0;
+  // a few components (chips) — crisp rects
+  for(let i=0;i<rint(r,2,6);i++){const cx=rint(r,1,cols-3),cy=rint(r,1,rows-3),w=rint(r,2,5)*gp,h=rint(r,1,3)*gp;const p=node(cx,cy);x.fillStyle=shade(P.board,-18);x.fillRect(p[0],p[1],w,h);x.strokeStyle=P.pad;x.lineWidth=1.5;x.strokeRect(p[0],p[1],w,h);for(let k=0;k<Math.floor(w/gp);k++){x.fillStyle=P.pad;x.fillRect(p[0]+k*gp+gp*0.3,p[1]-4,gp*0.4,4);x.fillRect(p[0]+k*gp+gp*0.3,p[1]+h,gp*0.4,4);}}
+  const vg=x.createRadialGradient(W/2,H/2,S*0.36,W/2,H/2,Math.max(W,H)*0.72);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,0.45)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castCircuit(seed){const r=rng(seed);const palI=Math.floor(r()*CIR_PALS.length);const fmt=pick(CIR_FMTS,r);const dens=pick(['Sparse','Dense','Dense'],r);return {palette:CIR_PALS[palI].name, format:fmt.t, density:dens};}
+
 export {
+  circuit, castCircuit,
+  quasicrystal, castQuasicrystal,
+  orbits, castOrbits,
+  junction, castJunction,
+  asterism, castAsterism,
+  moire, castMoire,
+  seedhead, castSeedhead,
+  facets, castFacets,
+  pigment, castPigment,
+  iskra, castIskra,
+  siggi, castSiggi,
   growth, castGrowth,
   diffusion, castDiffusion,
   liquidlight, castLiquidlight,
