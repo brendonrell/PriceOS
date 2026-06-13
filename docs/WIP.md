@@ -6,75 +6,73 @@
 
 ---
 
-- **Branch:** work is on `dev`, fully pushed, tree clean (origin/dev `0f9bf44`).
-  This chat's task branch `claude/spot-edits-design-tweaks-6gxjbt` is trash
-  (work is on dev) — Brendon deletes on GitHub.
-- **Updated:** 2026-06-13 (big spot-edit + purple-purge + grail/modal session)
-- **2026-06-13 (contracts/spec session):** on-chain thumbnail budget settled at
-  8–48 KB + open questions logged in ClickUp (see KNOW THIS below). **No app
-  code changed.** NB: the SHIPPED/NEXT lists below predate the current `dev`
-  tip — reconcile against `dev` next code session.
+- **Branch:** work is on `dev`, fully pushed, tree clean. This chat's task branch
+  `claude/frontend-spot-edits-features-akrjnc` is trash (work is on dev) —
+  Brendon deletes on GitHub.
+- **Updated:** 2026-06-13. Two sessions landed on `dev` today: this
+  **frontend feature session** (below) AND a parallel **Home-as-directory +
+  contracts/spec** session (its `HomeFacetBar` / "Home as Projects directory" +
+  error-boundary + on-chain thumbnail budget — merged on top of this work).
 
-## ✅ SHIPPED 2026-06-13 (on `dev`, Brendon-approved in batches)
-- **Home CTA → "Join The Chat"** (links to the community Discord). The button
-  beside it is now **Stickers**, opening the new **Sticker Exchange** modal — a
-  bottom-sheet, one-row sheet carousel, subtly-cyberpunk *terminal* styling
-  fully themed to the colorway (no neon). Mockup; no stickers minted yet.
-- **Real project upload date.** Added `projects.uploaded_at timestamptz` to
-  Supabase (PROD) and set every current project to **Jun 12 2026**. Project page
-  + home New-Uploads feed read it (cooldown−60d is only a legacy fallback now).
-- **PURPLE PURGE (#C488FF).** That violet is **reserved for the genesis project
-  and must not appear anywhere in the app.** The Custom colorway had it
-  hardcoded as a baked-in default, bleeding onto Home. Custom now ALWAYS derives
-  (home → Mood Ring, project → its colorway, profile → owner hex) via
-  `resolveCustomBg`; only Dot (#111) is a last-resort fallback. **Default
-  profile theme = brand matrix white `#E0E0E0`** (so an un-themed profile reads
-  blank) — set as the `users.profile_hex` DB default too; old violet migrated
-  away. No applied purple remains (only a migration entry + guard comments).
-- **Grail pins carry `{slug, id}`** now (were bare ids) — a pill shows the
-  ACTUAL pinned Output (Oracle #7, not "Prisms"), right price, opens the right
-  project. Legacy bare-number pins drop on load.
-- **Artwork modal buttons wired:** Star (★ fill) / Wishlist / Add-to-Album
-  (opens picker) / Grail / **Add-to-Showcase** (new device-local
-  `userShowcaseStore`). To-Do + BUY-side LIST/MAKE-OFFER stay stubs (no store /
-  marketplace unbuilt).
-- **Home polish:** Now-Minting threshold **6 → 12** (carousels show 12);
-  Shuffle tab icon bigger+bold on mobile; social row reverted to plain @name
-  links, one line, matches the project page (CollectedPair kept but UNUSED);
-  New-Art feed row = just the project name; stats **PRO / VOL / NFTs** (small s).
-- **Lists:** Starred + Wishlist divider lines removed; their ghosts squared to
-  sharp industrial rectangles (match the artwork ghosts).
-- **Mint toast** lingers ~33% longer + fades gently (new optional
-  `showToast(msg, holdMs, fadeMs)`).
-- **PRSN easter egg** (count of 1 → "1 PRSN"); **Haze dropper** (◉ grabs the
-  page bg into the Haze slot); user-facing **colour → color**.
-- **Title rows:** date wraps flush (gap moved to the title's trailing edge).
+## ✅ SHIPPED 2026-06-13 — frontend feature session (on `dev`)
+- **PriceDay is real.** Epoch = first launch day **2026-06-12 = #1**, counted on
+  the **MONTREAL calendar** (his timezone; matches the Mood Ring flip —
+  `priceday.ts` + `layout.tsx` boot epoch in lockstep). Project popover computes
+  its real number (was hardcoded `#47`). Contents still seeded test-phase.
+- **Home load fix:** per-project carousels lazy-paint; only the first row is
+  eager (was painting all ~30×12 canvases up front). Carousel/threshold verified
+  12 (the "6" was only stale comments).
+- **Spot edits:** footer Mood Ring icon +1px/bold · gas modal de-Hothurt'd ·
+  trait-pill fill snaps (no fade) · artwork details: removed unasked Last
+  Sale+Floor rows AND fixed the Details pill to toggle closed · hover icons wrap
+  · profile: removed trailing follower count, PPL→FOLLOWERS, VOL 0 not `—`.
+- **My Notes filter works** (demo notes seeded into `pd_token_notes`; filter
+  re-runs on `pd:notes-changed`). **Stargazing** search visible + exact-state
+  restore on exit.
+- **Sort GROUPING shipped** (was the NEXT priority). `GROUP` cycling pill in the
+  sort row → **none / COLOUR / OWNER**. Colour from each Output's **palette
+  math** (`lib/art/outputColor.ts`) — no canvas sampling, **zero lag** (Brendon's
+  call). **Hothurt is ONE colour bucket, not a separate axis** (his correction).
+  Grouped gallery w/ section headers. *Project gallery only.*
+- **Breadcrumbs** wired + **account-backed (DB)**: Recent pill filters the
+  gallery to recently-opened tokens; the trail now rides `users.settings`
+  (`breadcrumbs` key) so it follows the viewer across devices (was localStorage).
+- **Feeds are real:** the project FEED view + the Tape (ticker + menu) read our
+  own pre-chain `events` (`/api/project/[slug]/feed`, `/api/feed`); both APIs
+  resolve addresses → `@handles`. Removed the mock seed arrays.
+- **Ghost null states for feeds** ("show, don't tell"): empty/loading feeds show
+  **6 ghost rows** w/ the real layout + varying icons, ghost content rectangles,
+  **−33% opacity** (`components/GhostFeed.tsx`). On project FEED, home New
+  Uploads, menu Tape.
 
-## 🎯 NEXT — the priority (NOT started)
-- **Sort GROUPING feature.** A new *group-by* dimension with a cycling control
-  modeled on the feed's `$` toggle (little glyphs/letters per option), grouping
-  the gallery by: artist, owner, **color**, last-sold $, rarity, etc. Approach
-  locked by Brendon: derive each Output's **color via the Hash Synesthesia
-  dominant-color sample**, bucket into his named list (red/orange/yellow/green/
-  blue/purple/black/white/wooden=brown/stone=grey/cream=beige/moon=light-purple)
-  + a **"has Hothurt"** flag = a specific-hex check (#FF0055) read from the
-  Output's palette/code. Multi-surface: SortContext group dim + the cycling
-  control on the project (TraitsUI) + profile (ProfileFacetBar) bars + grouped
-  gallery rendering. ⚠ rarity + last-sold have **no data source yet**.
+## 🎯 NEXT — queued (NOT started)
+- **PriceDay almanac → DB-real (Brendon wants this).** Each day's contents
+  (minted/uploaded/biggest sale *that day*) can come from REAL `events` bucketed
+  by Montreal day — no indexer needed. Still seeded placeholders today.
+- **Sort grouping — remaining:** profile facet bar has no GROUP control yet;
+  artist dim belongs on profile/multi-project; rarity + last-sold dims have **no
+  data source**.
+- **Pings still mock** (`PingsBox` → `MOCK_PINGS`); real
+  `/api/notifications/[address]` + Realtime ready to wire.
+- **Extend ghost-null pattern** to other empties (home Now-Minting carousels
+  need a ghost-card variant; `GhostFeed` is the reference).
 
 ## ⚠️ KNOW THIS (next session)
-- **On-chain thumbnail (contracts) — budget SETTLED 2026-06-13:** the on-chain
-  WebP poster is **8–48 KB (48 KB ceiling)**, NOT 16 KB. The built `PDProject`
-  still has the old **16,384-byte cap** — flagged as a pre-deploy fix
-  (→ 49,150) in the ClickUp **Combined Pre-Mainnet Spec**. That spec now also
-  logs the OPEN questions raised today (image format WebP/AVIF/JPEG · whether to
-  raise the ceiling · PD's own display policy · ~$5 storage fee · the rudxane
-  "which platforms broke at 75 KB" question) — **none decided.** Anchoring fact:
-  a small on-chain image can't be full-screen-sharp for busy art at ANY budget;
-  full resolution is the on-chain script's job — the poster is a grid/card/
-  external-platform fallback.
-- `users.profile_hex` DB default + `projects.uploaded_at` are **live PROD
-  Supabase** changes made this session.
-- Mood-Ring boot-paint mirror in `app/layout.tsx` still must match
-  `lib/mood/mood.ts` (unchanged this session).
-- `CollectedPair` component is now unused (kept, deactivated).
+- **ClickUp NOT updated by this frontend session** — the comment write hit a
+  permission gate and didn't post. Mirror this session's summary to ClickUp task
+  `86b9f30kr` next session.
+- **The Tape/feeds show real data only** → empty until mints/lists happen (by
+  design; ghost rows cover the empty look).
+- **On-chain thumbnail (contracts) — budget SETTLED 2026-06-13 (other session):**
+  on-chain WebP poster is **8–48 KB (48 KB ceiling)**, NOT 16 KB. Built
+  `PDProject` still has the old **16,384-byte cap** — flagged as a pre-deploy fix
+  (→ 49,150) in the ClickUp **Combined Pre-Mainnet Spec**, which also logs the
+  OPEN questions (format WebP/AVIF/JPEG · raise ceiling? · display policy · ~$5
+  storage · rudxane "broke at 75 KB") — none decided. A small on-chain image
+  can't be full-screen-sharp for busy art at any budget; full res is the
+  on-chain script's job, the poster is the grid/card/external fallback.
+- `users.profile_hex` DB default + `projects.uploaded_at` are **live PROD**
+  Supabase changes (prior session).
+- Mood-Ring boot-paint (`app/layout.tsx`) must stay in lockstep with
+  `lib/mood/mood.ts` AND `lib/priceday/priceday.ts` (all share the June-12
+  Montreal epoch now).
