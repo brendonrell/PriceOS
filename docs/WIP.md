@@ -6,7 +6,7 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (origin/dev `f31f0da`).
+- **Branch:** all work is on `dev`, pushed, tree clean (origin/dev `34c47c2`).
   This chat's task branch is trash — Brendon deletes on GitHub.
 - **Updated:** 2026-06-13. Session = **Site projects expansion → 50 total**.
 
@@ -39,16 +39,19 @@
   mirror this ship into ClickUp — close what shipped (50 projects on dev, DB
   reset), add the queued follow-ups below, and leave Brendon an **assigned
   comment + due date** so it hits his Inbox.
-- **Soundtracks — FIX (I overcorrected).** Brendon wanted MOST new projects to
-  carry a soundtrack (genre / multi-artist YouTube playlists, matched to the
-  work), with **only some silent where silence suits the piece** — NOT all
-  silent. I shipped all 25 new ones `soundtrack: null`. Next session: assign
-  genre/multi-artist playlists to the pop/energetic/themed ones (Riding The Oil,
-  Everyone Is Typing, Graffiti Soul, Breach Protocol, Chrome Dreams, Liquid
-  Light, Night Service, Trace Routes, etc.) and KEEP silence only for the
-  contemplative fine-art ones (Quorum, Konkret, The Lapidary, Ode to Rudxane,
-  Filament, Divided Light, Warp & Weft). Verify the playlist IDs resolve before
-  shipping. Map lives in `AI_SOUNDTRACKS` in `lib/project/registry.ts`.
+- **Soundtracks — DONE (2026-06-13).** 18 of the 26 new projects now carry a
+  genre/era-matched soundtrack; 8 stay silent (Quorum, Konkret, Ode to Rudxane,
+  The Lapidary, Warp & Weft, Divided Light, Filament, The Golden Angle). DB
+  `projects.soundtrack` set on dev (the DB value is what the live app reads;
+  registry only supplies the button label) — verified 42 with-track / 8 silent
+  across all 50, all playlist ids distinct. Soundtrack button correctly
+  shows/hides on presence (gated `soundtrack &&` in ProjectPageBody). Playlists
+  confirmed via search-indexing (YouTube blocks clean fetch; album ids are the
+  stable auto-generated kind).
+- **All-50-unique — DONE (2026-06-13).** Verified in DB: 50 rows, all distinct
+  on id, title, artist_address, uploaded_at, AND custom_color (resolved 4 accent
+  collisions: Crossed Wires→#2ad4ff, Forbidden Symmetry→#6c4bd6, Riding The
+  Oil→#ff8c42, The Pendulum→#ffc24b; registry + DB synced). 0 mints everywhere.
 - **Polish candidates:** Asterism, Seedhead, Forbidden Symmetry, Trace Routes
   are solid but a notch below halo — worth a polish pass for the fxhash bar.
   `orbits`(now wired as The Pendulum) is the lightest of the set; `moire` +
