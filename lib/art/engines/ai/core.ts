@@ -4211,6 +4211,7 @@ function weft(cv,seed){
   const dens=pick(['Loose','Medium','Fine'],r);
   const gridOn=r()<0.5;
   const panel=pick(['full','banded'],r);
+  const structure=pick(['plain','twill','tartan','ikat'],r);
   // ---- end trait draws ----
   const P=WEFT_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
   const NO=seed*0.017+3, freq=0.0016+ (seed%7)*0.0003, kTurn=1.0+ (seed%5)*0.35, aniso=0.7+ ((seed*7)%100)/360;
@@ -4225,8 +4226,10 @@ function weft(cv,seed){
     if(pts.length<2)return; x.strokeStyle=col;x.globalAlpha=alpha;x.lineWidth=wid;x.lineCap='round';x.beginPath();
     for(let i=0;i<pts.length;i++){if(i===0)x.moveTo(pts[i][0],pts[i][1]);else x.lineTo(pts[i][0],pts[i][1]);}x.stroke();x.globalAlpha=1;}
   const wid= dens==='Fine'? 1.1 : dens==='Medium'? 1.6 : 2.2;
-  for(let sx=X0; sx<=X0+CW; sx+=dsep){ const jitter=(r()-0.5)*dsep*0.4; const ci=Math.floor(fbm2(sx*freq*2+NO,0.5)*P.cols.length)%P.cols.length; thread(sx+jitter, Y0-2, 1.5708, P.cols[ci], 0.42+r()*0.2, wid*(0.8+r()*0.5)); }
-  for(let sy=Y0; sy<=Y0+CH; sy+=dsep){ if(panel==='banded' && ((sy/(S*0.12))|0)%2===1) continue; const jitter=(r()-0.5)*dsep*0.4; const ci=Math.floor(fbm2(0.5,sy*freq*2+NO)*P.cols.length)%P.cols.length; thread(X0-2, sy+jitter, 0, P.cols[(ci+2)%P.cols.length], 0.4+r()*0.2, wid*(0.8+r()*0.5)); }
+  const twW= structure==='twill'?1.5708-0.55:1.5708, twF= structure==='twill'?0.55:0, band=dsep*rint(r,4,8), L=P.cols.length;
+  function tcol(p,off){ if(structure==='tartan')return P.cols[((Math.floor(p/band)+off)%L+L)%L]; if(structure==='ikat'){const pp=p+(fbm2(p*0.02+NO,off)-0.5)*band*1.6;return P.cols[((Math.floor(pp/band)+off)%L+L)%L];} return P.cols[((Math.floor(fbm2(p*freq*2+NO,off?9:0.5)*L)+off)%L+L)%L]; }
+  for(let sx=X0; sx<=X0+CW; sx+=dsep){ const jitter=(r()-0.5)*dsep*0.4; thread(sx+jitter, Y0-2, twW, tcol(sx,0), 0.42+r()*0.2, wid*(0.8+r()*0.5)); }
+  for(let sy=Y0; sy<=Y0+CH; sy+=dsep){ if(panel==='banded' && ((sy/(S*0.12))|0)%2===1) continue; const jitter=(r()-0.5)*dsep*0.4; thread(X0-2, sy+jitter, twF, tcol(sy,2), 0.4+r()*0.2, wid*(0.8+r()*0.5)); }
   x.save();x.globalAlpha=0.04;x.globalCompositeOperation='multiply';for(let i=0;i<W*H/1100;i++){x.fillStyle='#000';x.fillRect(X0+r()*CW,Y0+r()*CH,1,1);}x.restore();
   x.strokeStyle='rgba(0,0,0,0.16)';x.lineWidth=1.5;x.strokeRect(X0,Y0,CW,CH);
 }
@@ -4237,7 +4240,8 @@ function castWeft(seed){
   const dens=pick(['Loose','Medium','Fine'],r);
   const gridOn=r()<0.5;
   const panel=pick(['full','banded'],r);
-  return {palette:WEFT_PALS[palI].name, format:fmt.t, density:dens, grid:gridOn?'Ruled':'None', weave:panel==='banded'?'Banded':'Full'};
+  const structure=pick(['plain','twill','tartan','ikat'],r);
+  return {palette:WEFT_PALS[palI].name, format:fmt.t, density:dens, weave:structure.charAt(0).toUpperCase()+structure.slice(1), panel:panel==='banded'?'Banded':'Full'};
 }
 
 /* PRICEDISCOVERY — "Price Discovery": the order book as a luminous canyon.
@@ -4435,20 +4439,21 @@ function diffusion(cv,seed){
   const palI=Math.floor(r()*RD_PALS.length);
   const fmt=pick(RD_FMTS,r);
   const pat=pick(RD_PATS,r);
-  const seedMode=pick(['scatter','scatter','marbled','line'],r);
+  const seedMode=pick(['scatter','bloom','line','marbled','rings'],r);
   const relief=0.7+r()*0.9;
   // ---- end trait draws ----
   const P=RD_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
-  const N=160, NN=N*N; let A=new Float32Array(NN), B=new Float32Array(NN), A2=new Float32Array(NN), B2=new Float32Array(NN);
+  const N=180, NN=N*N; let A=new Float32Array(NN), B=new Float32Array(NN), A2=new Float32Array(NN), B2=new Float32Array(NN);
   for(let i=0;i<NN;i++)A[i]=1;
   const ix=(xx,yy)=>((yy+N)%N)*N+((xx+N)%N);
   // seed B
   if(seedMode==='bloom'){for(let yy=-8;yy<=8;yy++)for(let xx=-8;xx<=8;xx++)if(xx*xx+yy*yy<64)B[ix(N/2+xx,N/2+yy)]=0.5;}
   else if(seedMode==='line'){const ly=Math.floor(N*(0.3+r()*0.4));for(let xx=0;xx<N;xx++)for(let w=-2;w<=2;w++)B[ix(xx,ly+w)]=0.5;}
   else if(seedMode==='marbled'){for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++)if(fbm2(xx*0.05+seed,yy*0.05)>0.62)B[ix(xx,yy)]=0.5;}
+  else if(seedMode==='rings'){for(let rr=12;rr<N*0.5;rr+=14)for(let a=0;a<6.283;a+=0.04)B[ix(Math.round(N/2+Math.cos(a)*rr),Math.round(N/2+Math.sin(a)*rr))]=0.5;}
   else {for(let s=0;s<rint(r,14,34);s++){const cxk=Math.floor(r()*N),cyk=Math.floor(r()*N);for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++)B[ix(cxk+xx,cyk+yy)]=0.5;}}
-  const f=pat.f,k=pat.k,Da=1,Db=0.5;
-  const steps=1300;
+  const f=pat.f+(r()-0.5)*0.004, k=pat.k+(r()-0.5)*0.0025, Da=1, Db=0.5;
+  const steps=1700;
   for(let s=0;s<steps;s++){
     for(let y=0;y<N;y++)for(let xq=0;xq<N;xq++){const c=y*N+xq;const a=A[c],b=B[c];
       const lA=A[ix(xq-1,y)]*0.2+A[ix(xq+1,y)]*0.2+A[ix(xq,y-1)]*0.2+A[ix(xq,y+1)]*0.2+A[ix(xq-1,y-1)]*0.05+A[ix(xq+1,y-1)]*0.05+A[ix(xq-1,y+1)]*0.05+A[ix(xq+1,y+1)]*0.05-a;
@@ -4474,7 +4479,7 @@ function castDiffusion(seed){
   const palI=Math.floor(r()*RD_PALS.length);
   const fmt=pick(RD_FMTS,r);
   const pat=pick(RD_PATS,r);
-  const seedMode=pick(['scatter','scatter','marbled','line'],r);
+  const seedMode=pick(['scatter','bloom','line','marbled','rings'],r);
   return {palette:RD_PALS[palI].name, format:fmt.t, pattern:pat.name, seeding:seedMode};
 }
 
