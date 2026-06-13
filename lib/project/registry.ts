@@ -151,6 +151,23 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('hard-water', 'Hard Water', 'flatsea-ai', 99, '#7A00CC', 0.25, AI.HARDWATER_ASPECTS, AI.hardWaterSchema, AI.renderHardWater, AI.hardWaterTraits),
   aiDef('turf-war', 'Turf War', 'adjacency-ai', 200, '#C8FF00', 0.09, AI.TURFWAR_ASPECTS, AI.turfWarSchema, AI.renderTurfWar, AI.turfWarTraits),
   aiDef('avalanche', 'Avalanche', 'graincount-ai', 128, '#7FFFD4', 0.16, AI.AVALANCHE_ASPECTS, AI.avalancheSchema, AI.renderAvalanche, AI.avalancheTraits),
+  /* ── new cohort (2026-06-13) ── */
+  aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 512, '#5865f2', 0.03, AI.CHATROOM_ASPECTS, AI.chatroomSchema, AI.renderChatroom, AI.chatroomTraits),
+  aiDef('night-service', 'Night Service', 'afterhours-ai', 444, '#ff2a6d', 0.05, AI.AFTERGLOW_ASPECTS, AI.afterglowSchema, AI.renderAfterglow, AI.afterglowTraits),
+  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#fcee0a', 0.06, AI.BREACH_ASPECTS, AI.breachSchema, AI.renderBreach, AI.breachTraits),
+  aiDef('graffiti-soul', 'Graffiti Soul', 'rudie-ai', 480, '#ff2e63', 0.04, AI.GRAFFITI_ASPECTS, AI.graffitiSchema, AI.renderGraffiti, AI.graffitiTraits),
+  aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, AI.ASCII_ASPECTS, AI.asciiSchema, AI.renderAscii, AI.asciiTraits),
+  aiDef('chrome-dreams', 'Chrome Dreams', 'y2k-ai', 400, '#7ec8ff', 0.05, AI.CHROMEDREAMS_ASPECTS, AI.chromedreamsSchema, AI.renderChromedreams, AI.chromedreamsTraits),
+  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#5865f2', 0.03, AI.DISCORD_ASPECTS, AI.discordSchema, AI.renderDiscord, AI.discordTraits),
+  aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, AI.QUORUM_ASPECTS, AI.quorumSchema, AI.renderQuorum, AI.quorumTraits),
+  aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, AI.KONKRET_ASPECTS, AI.konkretSchema, AI.renderKonkret, AI.konkretTraits),
+  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, AI.RUDXANE_ASPECTS, AI.rudxaneSchema, AI.renderRudxane, AI.rudxaneTraits),
+  aiDef('materia', 'Materia', 'lapidary-ai', 333, '#9a9a93', 0.08, AI.MATERIA_ASPECTS, AI.materiaSchema, AI.renderMateria, AI.materiaTraits),
+  aiDef('weft', 'Weft', 'loomhand-ai', 222, '#b5462f', 0.09, AI.WEFT_ASPECTS, AI.weftSchema, AI.renderWeft, AI.weftTraits),
+  aiDef('price-discovery', 'Price Discovery', 'thebook-ai', 256, '#ffe6a8', 0.15, AI.PRICEDISCOVERY_ASPECTS, AI.pricediscoverySchema, AI.renderPricediscovery, AI.pricediscoveryTraits),
+  aiDef('liquid-light', 'Liquid Light', 'oilwheel-ai', 360, '#ff71ce', 0.05, AI.LIQUIDLIGHT_ASPECTS, AI.liquidlightSchema, AI.renderLiquidlight, AI.liquidlightTraits),
+  aiDef('diffusion', 'Diffusion', 'turing-ai', 222, '#c9962e', 0.18, AI.DIFFUSION_ASPECTS, AI.diffusionSchema, AI.renderDiffusion, AI.diffusionTraits),
+  aiDef('growth', 'Growth', 'coralline-ai', 222, '#00e5c8', 0.16, AI.GROWTH_ASPECTS, AI.growthSchema, AI.renderGrowth, AI.growthTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];

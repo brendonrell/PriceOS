@@ -486,3 +486,180 @@ export const avalancheSchema: TraitSchema = {
 };
 export const renderAvalanche = blit(C.avalanche, avalancheTraits);
 export const AVALANCHE_ASPECTS = [1] as const;
+
+/* ===================== NEW PROJECTS (2026-06-13) — typed wrappers ===================== */
+
+/* Everyone Is Typing */
+export const chatroomTraits: TraitsFn = (id) => { const c = C.castChatroom(id) as any; return { Layout: cap(c.layout), Theme: c.theme, Accent: c.accent, Members: c.members, Notice: c.notice }; };
+export const chatroomSchema: TraitSchema = { traits: [
+  { name: 'Layout', values: ['Thread','Hero','Lockscreen','Split','Presence','Panorama'] },
+  { name: 'Theme', values: ['Daylight','After Dark','Midnight','Mint','Paper','Noir','Bubblegum'] },
+  { name: 'Accent', values: ['Ultramarine','Hot Pink','Acid','Tangerine','Violet','Teal','Crimson','Gold'] },
+  { name: 'Members', values: ['Duo','Small','Crowd'] },
+  { name: 'Notice', values: ['None','Unread','Everyone Typing','Left On Read','Pinned'] },
+] };
+export const renderChatroom = blit(C.chatroom, chatroomTraits);
+export const CHATROOM_ASPECTS = [0.7, 1, 0.66, 1.51, 2.08] as const;
+
+/* Night Service (glow) */
+export const afterglowTraits: TraitsFn = (id) => { const c = C.castAfterglow(id) as any; return { Palette: c.palette, Format: c.format, Mode: cap(c.mode), Density: c.density }; };
+export const afterglowSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Synthwave','Miami','Toxic','Blade','Ember','Ultraviolet','Ice','Sakura','Acid Rain','Magma','Vapor','Signal'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
+  { name: 'Mode', values: ['Stream','Rain','Spiral','Orbit'] },
+  { name: 'Density', values: ['Sparse','Dense','Swarm'] },
+] };
+export const renderAfterglow = blit(C.afterglow, afterglowTraits);
+export const AFTERGLOW_ASPECTS = [1, 0.72, 1.39, 0.58, 1.97] as const;
+
+/* Breach Protocol */
+export const breachTraits: TraitsFn = (id) => { const c = C.castBreach(id) as any; return { Palette: c.palette, Format: c.format, Layout: cap(c.layout), Density: c.density }; };
+export const breachSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Hazard','Militech','Arasaka','NetWatch','Trauma','Voodoo','Toxic','Kang Tao'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
+  { name: 'Layout', values: ['Reticle','Dashboard','Breach','Signage'] },
+  { name: 'Density', values: ['Low','Mid','High'] },
+] };
+export const renderBreach = blit(C.breach, breachTraits);
+export const BREACH_ASPECTS = [1, 0.72, 1.39, 0.58, 1.97] as const;
+
+/* Graffiti Soul */
+export const graffitiTraits: TraitsFn = (id) => { const c = C.castGraffiti(id) as any; return { Palette: c.palette, Format: c.format, Mode: cap(c.mode), Density: c.density }; };
+export const graffitiSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Tokyo-to','Rudie','Concrete','Funk','Acid','Bubblegum','Heatwave','Ice Cream','Midnight Tag','Brick','Vapor Wall','Mono Pop'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
+  { name: 'Mode', values: ['Piece','Bombing','Arrows','Splash','Character'] },
+  { name: 'Density', values: ['Few','Many','Swarm'] },
+] };
+export const renderGraffiti = blit(C.graffiti, graffitiTraits);
+export const GRAFFITI_ASPECTS = [1, 0.72, 1.39, 0.58, 1.97] as const;
+
+/* Teletext */
+export const asciiTraits: TraitsFn = (id) => { const c = C.castAscii(id) as any; return { Format: c.fmtT, Field: cap(c.field), Palette: c.palName, Density: c.density }; };
+export const asciiSchema: TraitSchema = { traits: [
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
+  { name: 'Field', values: ['Rings','Sine','Interfere','Spiral','Blobs','Ripple'] },
+  { name: 'Palette', values: ['Paper','Noir','Amber','Phosphor','Night','Violet','Slate','Inkpaper'] },
+  { name: 'Density', values: ['Fine','Medium','Coarse'] },
+] };
+export const renderAscii = blit(C.ascii, asciiTraits);
+export const ASCII_ASPECTS = [1, 0.73, 1.37, 0.58, 1.74] as const;
+
+/* Chrome Dreams */
+export const chromedreamsTraits: TraitsFn = (id) => { const c = C.castChromedreams(id) as any; return { Palette: c.palName, Format: c.fmtT, Layout: cap(c.layout), Finish: cap(c.finish), Motif: cap(c.motif), Word: c.word }; };
+export const chromedreamsSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Chrome','Sky','Acid Gel','Bubblegum','Sunburst','Aqua','Steel','Holo'] },
+  { name: 'Format', values: ['Square','Landscape','Portrait','Wide','Tall'] },
+  { name: 'Layout', values: ['Badge','Wordmark','Emblem','Swoosh'] },
+  { name: 'Finish', values: ['Chrome','Gel','Holo'] },
+  { name: 'Motif', values: ['Atom','Star','Blob','Burst'] },
+] };
+export const renderChromedreams = blit(C.chromedreams, chromedreamsTraits);
+export const CHROMEDREAMS_ASPECTS = [1, 1.45, 0.75, 1.97, 0.59] as const;
+
+/* Riding The Oil (Discord) */
+export const discordTraits: TraitsFn = (id) => { const c = C.castDiscord(id) as any; return { Layout: cap(c.comp), Theme: c.theme, Density: c.dens === 1 ? 'Quiet' : c.dens === 2 ? 'Busy' : 'Packed' }; };
+export const discordSchema: TraitSchema = { traits: [
+  { name: 'Layout', values: ['Sales','Channel','Members','Emoji','Servers'] },
+  { name: 'Theme', values: ['Blurple','Midnight','Light','Crude','Mint','Rose'] },
+  { name: 'Density', values: ['Quiet','Busy','Packed'] },
+] };
+export const renderDiscord = blit(C.discord, discordTraits);
+export const DISCORD_ASPECTS = [1.6, 0.67, 1, 0.63] as const;
+
+/* Quorum */
+export const quorumTraits: TraitsFn = (id) => { const c = C.castQuorum(id) as any; return { Palette: c.palette, Format: c.format, Movement: c.movement, Multitude: c.multitude }; };
+export const quorumSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Ink','Charcoal','Indigo Dusk','Sepia','Slate','Payne Grey','Oxblood','Twilight','Nocturne','Bone'] },
+  { name: 'Format', values: ['Portrait','Landscape','Square','Panorama','Tall'] },
+  { name: 'Movement', values: ['Drift','Gather','Cascade','Split','Settle'] },
+  { name: 'Multitude', values: ['Few','Many','Legion'] },
+] };
+export const renderQuorum = blit(C.quorum, quorumTraits);
+export const QUORUM_ASPECTS = [0.79, 1.27, 1, 1.83, 0.64] as const;
+
+/* Konkret */
+export const konkretTraits: TraitsFn = (id) => { const c = C.castKonkret(id) as any; return { Palette: c.palette, Format: c.format, System: cap(c.system) }; };
+export const konkretSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['De Stijl','Bauhaus','Concrete','Graphite','Ochre & Slate','Oxblood','Indigo & Cream','Sage'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
+  { name: 'System', values: ['Grid','Destijl','Concentric','Lines','Bauhaus','Columns'] },
+] };
+export const renderKonkret = blit(C.konkret, konkretTraits);
+export const KONKRET_ASPECTS = [1, 0.8, 1.26, 0.69] as const;
+
+/* Ode to Rudxane */
+export const rudxaneTraits: TraitsFn = (id) => { const c = C.castRudxane(id) as any; return { Palette: c.palette, Format: c.format, Layout: cap(c.layout), Reading: c.reading }; };
+export const rudxaneSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Ivory & Ink','Navy & Cream','Oxblood & Bone','Sage & Charcoal','Slate & Ecru','Gold Leaf','Graphite','Aubergine'] },
+  { name: 'Format', values: ['Folio','Tall','Square','Broadside'] },
+  { name: 'Layout', values: ['Specimen','Plate','Ledger','Wave'] },
+] };
+export const renderRudxane = blit(C.rudxane, rudxaneTraits);
+export const RUDXANE_ASPECTS = [0.71, 0.67, 1, 1.35] as const;
+
+/* Materia */
+export const materiaTraits: TraitsFn = (id) => { const c = C.castMateria(id) as any; return { Material: c.material, Stone: c.stone, Format: c.format, Finish: c.finish }; };
+export const materiaSchema: TraitSchema = { traits: [
+  { name: 'Material', values: ['Marble','Granite','Wood','Glass'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
+  { name: 'Finish', values: ['Polished','Honed','Matte'] },
+] };
+export const renderMateria = blit(C.materia, materiaTraits);
+export const MATERIA_ASPECTS = [1, 0.75, 1.33, 0.66] as const;
+
+/* Weft */
+export const weftTraits: TraitsFn = (id) => { const c = C.castWeft(id) as any; return { Palette: c.palette, Format: c.format, Density: c.density, Weave: c.weave, Panel: c.panel }; };
+export const weftSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Albers','Stölzl','Clay','Indigo','Rose Dust','Sage & Ochre','Slate Teal','Charcoal'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
+  { name: 'Density', values: ['Loose','Medium','Fine'] },
+  { name: 'Weave', values: ['Plain','Twill','Tartan','Ikat'] },
+  { name: 'Panel', values: ['Full','Banded'] },
+] };
+export const renderWeft = blit(C.weft, weftTraits);
+export const WEFT_ASPECTS = [1, 0.78, 1.28, 0.71] as const;
+
+/* Price Discovery */
+export const pricediscoveryTraits: TraitsFn = (id) => { const c = C.castPricediscovery(id) as any; return { Palette: c.palette, Format: c.format, Regime: c.regime, Spread: c.spread, Book: c.book, View: cap(c.view) }; };
+export const pricediscoverySchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Dusk','Ember','Abyss','Aurora','Mono','Oxide'] },
+  { name: 'Format', values: ['Landscape','Panorama','Square','Portrait'] },
+  { name: 'Regime', values: ['Calm','Trending','Volatile','Crash','Squeeze'] },
+  { name: 'Spread', values: ['Razor','Normal','Yawning'] },
+  { name: 'Book', values: ['Bid-heavy','Balanced','Ask-heavy'] },
+  { name: 'View', values: ['Canyon','Radial','Horizon'] },
+] };
+export const renderPricediscovery = blit(C.pricediscovery, pricediscoveryTraits);
+export const PRICEDISCOVERY_ASPECTS = [1.27, 1.83, 1, 0.79] as const;
+
+/* Liquid Light */
+export const liquidlightTraits: TraitsFn = (id) => { const c = C.castLiquidlight(id) as any; return { Palette: c.palette, Format: c.format, Mode: cap(c.mode), Symmetry: c.fold }; };
+export const liquidlightSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Acid','Blacklight','Oil Slick','Sunset','Jade','Dreampool'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
+  { name: 'Mode', values: ['Kaleido','Oil','Tunnel'] },
+] };
+export const renderLiquidlight = blit(C.liquidlight, liquidlightTraits);
+export const LIQUIDLIGHT_ASPECTS = [1, 0.77, 1.3, 0.71] as const;
+
+/* Diffusion */
+export const diffusionTraits: TraitsFn = (id) => { const c = C.castDiffusion(id) as any; return { Palette: c.palette, Format: c.format, Pattern: c.pattern, Seeding: cap(c.seeding) }; };
+export const diffusionSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Gold Leaf','Prussian','Oxblood','Verdigris','Silver','Copper'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Pattern', values: ['Fingerprint','Labyrinth','Coral','Spots','Stripes','Mitosis'] },
+  { name: 'Seeding', values: ['Scatter','Bloom','Line','Marbled','Rings'] },
+] };
+export const renderDiffusion = blit(C.diffusion, diffusionTraits);
+export const DIFFUSION_ASPECTS = [1, 0.78, 1.28] as const;
+
+/* Growth */
+export const growthTraits: TraitsFn = (id) => { const c = C.castGrowth(id) as any; return { Palette: c.palette, Format: c.format, Form: c.form }; };
+export const growthSchema: TraitSchema = { traits: [
+  { name: 'Palette', values: ['Abyss','Gilded','Ember','Bone Black','Viridian','Ink','Sepia'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape'] },
+  { name: 'Form', values: ['Coral','Colony','Tendril'] },
+] };
+export const renderGrowth = blit(C.growth, growthTraits);
+export const GROWTH_ASPECTS = [1, 0.78, 1.28] as const;

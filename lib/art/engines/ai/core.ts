@@ -3075,7 +3075,7 @@ function castChatroom(seed){
   const members=rint(r,2,6);
   const rare=r()<0.08;
   const notice= rare? pick(['Unread','Everyone Typing','Left On Read','Pinned'],r):'None';
-  return {comp,themeI,accI,members,notice};
+  return {layout:comp, theme:CHAT_THEMES[themeI].name, accent:CHAT_ACCENTS[accI].name, members: members<=2?'Duo':members<=4?'Small':'Crowd', notice};
 }
 
 /* AFTERGLOW — "Night Service": one primitive (a glowing light-ribbon) under
@@ -3146,7 +3146,7 @@ function castAfterglow(seed){
   const fmtI=Math.floor(r()*NEON_FMTS.length);
   const mode=pick(NEON_MODES,r);
   const n= mode==='spiral'? rint(r,12,24) : mode==='orbit'? rint(r,18,36) : rint(r,6,13);
-  return {palI,fmtI,mode,n};
+  return {palette:NEON_PALS[palI].name, format:NEON_FMTS[fmtI].t, mode, density: n<=9?'Sparse':n<=20?'Dense':'Swarm'};
 }
 
 /* BREACH — "Breach Protocol": gritty Cyberpunk-2077 interface debris. One
@@ -3289,7 +3289,7 @@ function castBreach(seed){
   const fmtI=Math.floor(r()*CP_FMTS.length);
   const layout=pick(CP_LAYOUTS,r);
   const dens=rint(r,1,3);
-  return {palI,fmtI,layout,dens};
+  return {palette:CP_PALS[palI].name, format:CP_FMTS[fmtI].t, layout, density: dens===1?'Low':dens===2?'Mid':'High'};
 }
 
 /* GRAFFITI — "Graffiti Soul": cel-shaded street graffiti, Jet Set Radio energy.
@@ -3386,7 +3386,7 @@ function castGraffiti(seed){
   const fmtI=Math.floor(r()*GRAF_FMTS.length);
   const mode=pick(GRAF_MODES,r);
   const n= mode==='character'?1 : mode==='bombing'? rint(r,9,17) : mode==='arrows'? rint(r,8,20) : mode==='splash'? rint(r,4,9) : rint(r,3,5);
-  return {palI,fmtI,mode,n};
+  return {palette:GRAF_PALS[palI].name, format:GRAF_FMTS[fmtI].t, mode, density: n<=4?'Few':n<=12?'Many':'Swarm'};
 }
 
 /* TELETEXT — "Teletext" (Andreas Gysin / ertdfgcvb homage): a fixed monospace
