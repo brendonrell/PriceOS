@@ -20,8 +20,9 @@
 import { useEffect, useRef } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { tapeFeedItems, tapeBodyIcon } from '../../lib/data/tapeEvents';
+import { tapeBodyIcon } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
+import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
@@ -94,6 +95,7 @@ function BodyItem({ item }: { item: TapeFeedItem }) {
 export function TapeBox() {
     const { notifs, setAccordion } = usePdNotifs();
     const railRef = useRef<HTMLDivElement | null>(null);
+    const items = useTapeFeed();
 
     /* F52 / BUG-16 — subscribe the menu-tape rail to the shared tape
        engine for rAF-driven horizontal scroll. Sim 6045-6067 +
@@ -112,12 +114,11 @@ export function TapeBox() {
         if (!rail) return;
         const unsubscribe = subscribeTapeRail(rail);
         return unsubscribe;
-    }, [notifs.menutape]);
+    }, [notifs.menutape, items]);
 
     if (notifs.menutape === 0) return null;
 
     const framed = notifs.menutape === 4;
-    const items = tapeFeedItems();
 
     return (
         <AccordionBox
@@ -134,22 +135,28 @@ export function TapeBox() {
                     aria-label="Menu Tape"
                     ref={railRef}
                 >
-                    {/* Sim 6020: rail HTML concatenated with itself + a
-                        separator so the engine's modulo-halfWidth
-                        translate reads as a seamless loop. */}
-                    {items.map((item, i) => (
-                        <RailItem key={`a-${i}`} item={item} />
-                    ))}
-                    <span className="tape-sep-outer">··</span>
-                    {items.map((item, i) => (
-                        <RailItem key={`b-${i}`} item={item} />
-                    ))}
+                    {/* Rail content doubled with a separator so the engine's
+                        modulo-halfWidth translate reads as a seamless loop.
+                        Empty until our own pre-chain activity accrues. */}
+                    {items.length > 0 && (
+                        <>
+                            {items.map((item, i) => (
+                                <RailItem key={`a-${i}`} item={item} />
+                            ))}
+                            <span className="tape-sep-outer">··</span>
+                            {items.map((item, i) => (
+                                <RailItem key={`b-${i}`} item={item} />
+                            ))}
+                        </>
+                    )}
                 </div>
             }
         >
-            {items.map((item, i) => (
-                <BodyItem key={i} item={item} />
-            ))}
+            {items.length === 0 ? (
+                <div className="notif-item" style={{ opacity: 0.6 }}>No activity yet.</div>
+            ) : (
+                items.map((item, i) => <BodyItem key={i} item={item} />)
+            )}
         </AccordionBox>
     );
 }

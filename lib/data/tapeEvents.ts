@@ -16,6 +16,8 @@
  *          mint                         → bold class
  */
 
+import type { EventRow as DbEventRow } from '../supabase';
+
 export type TapeEventType =
     | 'buy'
     | 'list'
@@ -116,6 +118,37 @@ export function tapeFeedItems(): TapeFeedItem[] {
             price: ev[5],
         };
     });
+}
+
+/* Real-event → tape item (Brendon, 2026-06-13). The Tape now shows our OWN
+   pre-chain activity from Supabase `events` (via /api/feed), mapped into the
+   same render shape the rail already uses. Real wallets carry no sigil yet. */
+const TAPE_TYPE: Record<DbEventRow['type'], TapeEventType> = {
+    MINT: 'mint', LIST: 'list', SALE: 'buy', XFER: 'buy',
+};
+const TAPE_VERB: Record<DbEventRow['type'], string> = {
+    MINT: 'minted', LIST: 'listed', SALE: 'bought', XFER: 'transferred',
+};
+
+function tapeShortAddr(a: string | null): string {
+    if (!a) return 'someone';
+    return a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+}
+
+export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
+    const toSide = e.type === 'MINT' || e.type === 'SALE';
+    const handle = toSide ? e.to_handle : e.from_handle;
+    const addr = toSide ? e.to_address : e.from_address;
+    const tid = e.token_id ? e.token_id.slice(e.token_id.lastIndexOf('-') + 1) : '0';
+    return {
+        type: TAPE_TYPE[e.type] ?? 'mint',
+        name: handle ? `@${handle}` : tapeShortAddr(addr ?? null),
+        sigil: '',
+        verb: TAPE_VERB[e.type] ?? 'updated',
+        coll: e.project_id,
+        id: Number(tid) || 0,
+        price: e.price_eth ? `${e.price_eth} ETH` : null,
+    };
 }
 
 /** Glyph used in the expanded body list per sim 6028-6035. */

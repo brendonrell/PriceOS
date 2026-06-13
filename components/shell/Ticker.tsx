@@ -29,8 +29,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
+import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
@@ -70,29 +70,35 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function Ticker() {
     const railRef = useRef<HTMLDivElement | null>(null);
-    const items = tapeFeedItems();
+    const items = useTapeFeed();
 
     useEffect(() => {
         const rail = railRef.current;
         if (!rail) return;
+        // Re-bind when the rail content changes so the scroll loop re-measures
+        // once our live events land (the rail starts empty, fills async).
         const unsubscribe = subscribeTapeRail(rail);
         return unsubscribe;
-    }, []);
+    }, [items]);
 
     return (
         <div className="tape-wrap" id="tapeWrap" aria-hidden="true">
             <div className="tape-rail" id="tapeRail" ref={railRef}>
-                {/* Sim 13317-13318: rail HTML doubled with an outer
-                    separator between, so the engine's modulo-halfWidth
-                    translate reads as a seamless loop. */}
-                {items.map((item, i) => (
-                    <RailItem key={`a-${i}`} item={item} />
-                ))}
-                <span className="tape-sep-outer">··</span>
-                {items.map((item, i) => (
-                    <RailItem key={`b-${i}`} item={item} />
-                ))}
-                <span className="tape-sep-outer">··</span>
+                {/* Rail content doubled with an outer separator between, so the
+                    engine's modulo-halfWidth translate reads as a seamless
+                    loop. Empty until our own pre-chain activity accrues. */}
+                {items.length > 0 && (
+                    <>
+                        {items.map((item, i) => (
+                            <RailItem key={`a-${i}`} item={item} />
+                        ))}
+                        <span className="tape-sep-outer">··</span>
+                        {items.map((item, i) => (
+                            <RailItem key={`b-${i}`} item={item} />
+                        ))}
+                        <span className="tape-sep-outer">··</span>
+                    </>
+                )}
             </div>
         </div>
     );

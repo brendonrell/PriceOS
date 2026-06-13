@@ -68,6 +68,7 @@ import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import type { EventRow } from '../../lib/supabase';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -105,149 +106,68 @@ type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
    IntersectionObserver crash-guard. */
 const EAGER_GALLERY_COUNT = 24;
 
-/* Sim mockEvents shape (sim ~7412). Full payload kept lean — sim's six
-   seed rows, matched to the .feed-row / .feed-line / .f-icon-wrap /
-   .f-time / .f-type / .f-content layout (sim ~8204). The detail field
-   here splits sim's innerHTML into JSX so we keep the same visual
-   without dangerouslySetInnerHTML. */
+/* Activity-feed row model. The FEED view reads our OWN pre-chain ledger
+   (Supabase `events` via /api/project/[slug]/feed) and maps each stored
+   MINT / LIST / SALE / XFER into one of these (Brendon, 2026-06-13 — the
+   feed is real now, not a mock seed). Feed sort cycles time-desc / time-asc
+   / price-desc / price-asc, so the row carries numeric timestamp + price. */
 interface FeedEvent {
-    id: number;
+    id: string;
     icon: string;
     time: string;
-    type: 'MINT' | 'LIST' | 'OFFER' | 'XFER';
+    type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
     detail: ReactNode;
-    /* Brendon S5 May 11 — sort keys. Feed sort cycles 4 ways
-       (time-desc, time-asc, price-desc, price-asc) per sim 8313 and
-       SortContext.cycleSort. Without numeric timestamp + price fields
-       the list rendered in array order regardless of feedKind+dir, so
-       clicking the FEED pill produced no visual change. */
     timestamp: number;
     price: number;
 }
 
-/* Captured once at module load so MOCK_FEED_EVENTS timestamps stay
-   stable across re-renders (sim does the same — sim 7411 `const now =
-   Date.now()` before mockEvents). */
-const MOCK_NOW = Date.now();
+const FEED_ICON: Record<FeedEvent['type'], string> = {
+    MINT: '✶', LIST: '✹', SALE: '✦', XFER: '✸',
+};
 
-const MOCK_FEED_EVENTS: FeedEvent[] = [
-    {
-        id: 14,
-        icon: '✶',
-        time: '12:04 PM',
-        type: 'MINT',
-        timestamp: MOCK_NOW - 100000,
-        price: 0.05,
-        detail: (
-            <>
-                <span className="f-highlight">@matty</span>
-                <span className="follow-badge">
-                    <span className="ico-mutual" title="Mutual">
-                        ⚭&#xFE0E;
-                    </span>
-                </span>{' '}
-                collected <span className="f-highlight">#14</span>
-            </>
-        ),
-    },
-    {
-        id: 22,
-        icon: '✹',
-        time: '11:45 AM',
-        type: 'LIST',
-        timestamp: MOCK_NOW - 200000,
-        price: 0.4,
-        detail: (
-            <>
-                <span className="f-highlight">@atlasforge</span>
-                <span className="follow-badge">
-                    <span className="ico-following" title="You follow them">
-                        ⚯&#xFE0E;
-                    </span>
-                </span>{' '}
-                listed <span className="f-highlight">#22</span> for 0.4 ETH
-            </>
-        ),
-    },
-    {
-        id: 8,
-        icon: '✦',
-        time: '10:30 AM',
-        type: 'OFFER',
-        timestamp: MOCK_NOW - 300000,
-        price: 0.5,
-        detail: (
-            <>
-                <span className="f-highlight">@Darold</span>
-                <span className="follow-badge">
-                    <span className="ico-mutual" title="Mutual">
-                        ⚭&#xFE0E;
-                    </span>
-                </span>{' '}
-                offered 0.5 ETH on <span className="f-highlight">#8</span>
-            </>
-        ),
-    },
-    {
-        id: 48,
-        icon: '✶',
-        time: '08:00 AM',
-        type: 'MINT',
-        timestamp: MOCK_NOW - 500000,
-        price: 0.05,
-        detail: (
-            <>
-                <span className="f-highlight">@gmoney</span>
-                <span className="follow-badge">
-                    <span className="ico-mutual" title="Mutual">
-                        ⚭&#xFE0E;
-                    </span>
-                </span>{' '}
-                collected <span className="f-highlight">#48</span>
-            </>
-        ),
-    },
-    {
-        id: 1,
-        icon: '✹',
-        time: 'Yesterday',
-        type: 'LIST',
-        timestamp: MOCK_NOW - 86400000,
-        price: 2.0,
-        detail: (
-            <>
-                <span className="f-highlight">@snowfro</span>
-                <span className="artist-tag" aria-label="artist">
-                    {'✺\uFE0E'}
-                </span>{' '}
-                listed{' '}
-                <span className="f-highlight">#1</span> for 2.0 ETH
-            </>
-        ),
-    },
-    {
-        id: 42,
-        icon: '✸',
-        time: 'Yesterday',
-        type: 'XFER',
-        timestamp: MOCK_NOW - 90000000,
-        price: 0,
-        detail: (
-            <>
-                <span className="f-highlight">@XCOPY</span>
-                <span className="artist-tag" aria-label="artist">
-                    {'✺\uFE0E'}
-                </span>
-                <span className="follow-badge">
-                    <span className="ico-mutual" title="Mutual">
-                        ⚭&#xFE0E;
-                    </span>
-                </span>{' '}
-                transferred <span className="f-highlight">#42</span>
-            </>
-        ),
-    },
-];
+function feedShortAddr(a: string | null): string {
+    if (!a) return 'someone';
+    return a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+}
+
+/** Token number out of an event's `${slug}-${id}` token_id. */
+function feedLocalId(tokenId: string | null): string {
+    if (!tokenId) return '';
+    const i = tokenId.lastIndexOf('-');
+    return i >= 0 ? tokenId.slice(i + 1) : tokenId;
+}
+
+/** One stored event → one feed row. MINT / SALE credit the recipient;
+    LIST / XFER credit the sender. Handles resolve server-side; a bare
+    address falls back to a short 0x form. */
+function eventToFeedEvent(e: EventRow): FeedEvent {
+    const type = e.type;
+    const ms = Date.parse(e.timestamp) || 0;
+    const price = e.price_eth ? parseFloat(e.price_eth) : 0;
+    const lid = feedLocalId(e.token_id);
+    const toSide = type === 'MINT' || type === 'SALE';
+    const handle = toSide ? e.to_handle : e.from_handle;
+    const addr = toSide ? e.to_address : e.from_address;
+    const actor = handle ? `@${handle}` : feedShortAddr(addr ?? null);
+    const tok = <span className="f-highlight">#{lid}</span>;
+    let verb: ReactNode;
+    if (type === 'MINT') verb = <>collected {tok}</>;
+    else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
+    else if (type === 'SALE') verb = <>bought {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
+    else verb = <>transferred {tok}</>;
+    return {
+        id: e.id,
+        icon: FEED_ICON[type] ?? '✶',
+        time: new Date(ms).toLocaleTimeString('en-US', {
+            hour: 'numeric', minute: '2-digit', timeZone: 'America/Montreal',
+        }),
+        type,
+        detail: <><span className="f-highlight">{actor}</span> {verb}</>,
+        timestamp: ms,
+        price,
+    };
+}
+
 
 /* Sim's GENOME card (sim ~5246) — 80 hand-placed scatter dots in a
    400×140 viewBox. Inlined as data so the JSX stays readable; same
@@ -578,8 +498,31 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        price-asc → wrap). Before this fix the feed list rendered in
        array order regardless of feedKind+dir so the FEED pill cycled
        state without changing the visible order. */
+    /* Live feed rows — our own pre-chain activity from Supabase `events`,
+       pulled when the FEED view is open and re-pulled on any market action
+       ('pd:project-refresh'). Empty until activity accrues. */
+    const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
+    useEffect(() => {
+        if (!feedActive) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/project/${project.slug}/feed?limit=100`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { events?: EventRow[] } | null) => {
+                    if (!cancelled && Array.isArray(d?.events)) {
+                        setFeedRows(d!.events.map(eventToFeedEvent));
+                    }
+                })
+                .catch(() => { /* keep last good rows */ });
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [feedActive, project.slug]);
+
     const sortedFeedEvents = useMemo(() => {
-        const events = [...MOCK_FEED_EVENTS];
+        const events = [...feedRows];
         const dirMult = dir === 'asc' ? 1 : -1;
         if (feedKind === 'price') {
             events.sort((a, b) => (a.price - b.price) * dirMult);
@@ -587,7 +530,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             events.sort((a, b) => (a.timestamp - b.timestamp) * dirMult);
         }
         return events;
-    }, [feedKind, dir]);
+    }, [feedRows, feedKind, dir]);
 
     /* Build 19: filter + sort pipeline.
        ───────────────────────────────────────────────────────────────────
@@ -1217,16 +1160,18 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         ))}
             </section>
 
-            {/* Sim 5199-5203: activity feed. Mock rows seeded from sim's
-                mockEvents (sim ~7412), structured per the feedList template
-                in sim ~8204. Hidden by default; surfaces only when the
-                'artworks' tab is active AND sort is 'feed'. */}
+            {/* Activity feed — REAL pre-chain rows from Supabase `events`
+                (Brendon, 2026-06-13). Hidden by default; surfaces only when
+                the 'artworks' tab is active AND sort is 'feed'. */}
             <section
                 id="activity-feed"
                 aria-label="Activity Feed"
                 style={{ display: feedVisible ? 'block' : 'none' }}
             >
                 <div className="feed-list" id="feedList">
+                    {feedVisible && sortedFeedEvents.length === 0 && (
+                        <div className="home-empty-note">No activity yet.</div>
+                    )}
                     {sortedFeedEvents.map((e) => (
                         <div className="feed-row" key={e.id}>
                             <div className="feed-line" />

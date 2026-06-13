@@ -6,6 +6,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService, type EventRow, type EventType } from '@/lib/supabase';
+import { attachHandles } from '@/lib/feed/handles';
 import { serverError } from '@/lib/errors';
 
 export const revalidate = 5; // Feed events: 5s
@@ -82,6 +83,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .map(toEventRow)
       .filter((e): e is EventRow => e !== null && wanted.has(e.type))
       .slice(0, limit);
+    await attachHandles(db, events);
 
     const response: GlobalFeedResponse = {
       events,

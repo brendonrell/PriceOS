@@ -183,6 +183,10 @@ export interface EventRow {
   /** Stored as numeric in Postgres; surfaced as string to preserve precision. */
   price_eth: string | null;
   timestamp: string;
+  /** Resolved @handles for the from/to wallets (null when unclaimed). Filled
+   *  by the feed routes so the UI can read "@you did X" without a second hop. */
+  from_handle?: string | null;
+  to_handle?: string | null;
 }
 
 export interface ProjectRow {
