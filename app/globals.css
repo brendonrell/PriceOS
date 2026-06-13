@@ -2791,9 +2791,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .project-date-wrap {
     position: relative;
     display: inline-block;
-    margin-left: 12px;
+    /* Gap lives on the title's trailing edge (below), not here — a left
+       margin would indent the date when it wraps to its own line. */
+    margin-left: 0;
     vertical-align: baseline;
 }
+/* Inline gap between the title and the date that collapses cleanly when the
+   date wraps to its own line, so the wrapped date sits flush (Brendon
+   2026-06-13). */
+.project-title > span:first-child { margin-right: 12px; }
 
 .priceday-popover {
     position: fixed; /* coords set by JS */
