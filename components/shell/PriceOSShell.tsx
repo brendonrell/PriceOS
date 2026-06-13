@@ -59,6 +59,7 @@ import { useNavFade } from '../../lib/hooks/useNavFade';
 import { pickTabstractTitle } from '../../lib/title/tabstract';
 import { getProject } from '../../lib/project/registry';
 import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
+import { isStandalonePWA } from '../../lib/pwa/openExternal';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
@@ -156,6 +157,34 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         };
         window.addEventListener('pageshow', onPageShow);
         return () => window.removeEventListener('pageshow', onPageShow);
+    }, []);
+
+    /* External links → real Safari, never the in-app browser (Brendon,
+       2026-06-13, iOS 26 PWA). In an installed PWA, any external link (whether
+       a plain `target="_blank"` anchor or one with its own window.open handler)
+       opens an in-app sheet that covers the app. We intercept every external
+       anchor click in capture phase and hand the URL to Safari via a top-level
+       navigation — iOS keeps the standalone app put and opens Safari. Capture +
+       stopPropagation also blocks any element's own window.open handler from
+       ALSO firing. Only active in standalone, so desktop/mobile-web new-tab
+       behaviour is untouched. Same-origin links (in-app routing) pass through. */
+    useEffect(() => {
+        if (!isStandalonePWA()) return;
+        const onClick = (e: MouseEvent) => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
+            const a = (e.target as HTMLElement | null)?.closest?.('a[href]') as
+                | HTMLAnchorElement
+                | null;
+            if (!a) return;
+            const href = a.href;
+            if (!/^https?:\/\//i.test(href)) return; // leave mailto:, tel:, in-app schemes
+            if (a.origin === window.location.origin) return; // in-app routing
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = href;
+        };
+        document.addEventListener('click', onClick, true);
+        return () => document.removeEventListener('click', onClick, true);
     }, []);
 
     /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the

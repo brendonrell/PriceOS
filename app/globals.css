@@ -1498,7 +1498,12 @@ body.zen-mode .priceos-footer { display: none !important; }
 
 .tape-item { flex-shrink: 0; }
 .tape-item.bold { font-weight: 700; }
-.tape-sep-outer { flex-shrink: 0; padding: 0 10px; }
+/* Collection name in each event — caps + a touch of tracking so the piece is
+   the part the eye catches as it scrolls past. */
+.tape-coll { letter-spacing: 0.05em; }
+/* Diamond delimiter BETWEEN events — small + dimmed so it reads as a divider,
+   not content. */
+.tape-sep-outer { flex-shrink: 0; padding: 0 12px; font-size: 0.6em; opacity: 0.45; }
 .tape-sep-inner { padding: 0 6px; }
 .tape-sigil { font-size: 11px; margin-left: 1px; letter-spacing: 0; }
 

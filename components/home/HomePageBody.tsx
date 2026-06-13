@@ -38,6 +38,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
+import { openExternal } from '../../lib/pwa/openExternal';
 import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
@@ -478,7 +479,7 @@ export default function HomePageBody({
                     <button
                         className="btn-mint btn-explore"
                         title="Join the chat on Discord"
-                        onClick={() => window.open(DISCORD_URL, '_blank', 'noopener,noreferrer')}
+                        onClick={() => openExternal(DISCORD_URL)}
                     >
                         <span className="mint-lbl">Join The Chat</span>
                     </button>

@@ -28,11 +28,16 @@
  * surface lands — shuffling becomes irrelevant at that point.
  */
 
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
+/* One event, read as a tight sentence: WHO did WHAT to WHICH piece, for HOW
+   MUCH — e.g. "@brendon minted PRISMS #18 · 0.16 ETH". The collection wears
+   caps so the eye catches the piece; the price (when present) is the only
+   inner "·"-separated field. Events are delimited from each other by the
+   diamond in the rail below, so a price never butts against the next name. */
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
     return (
@@ -41,21 +46,13 @@ function RailItem({ item }: { item: TapeFeedItem }) {
                 <>
                     <b>{item.name}</b>
                     {item.sigil && (
-                        <span
-                            className="tape-sigil"
-                            style={{ marginLeft: 3 }}
-                        >
-                            {item.sigil}
-                        </span>
+                        <span className="tape-sigil">{item.sigil}</span>
                     )}
                     {' '}
                 </>
             )}
-            {item.verb}
-            {' '}
-            <span className="tape-sep-inner">·</span>
-            {' '}
-            {item.coll} #{item.id}
+            {item.verb}{' '}
+            <span className="tape-coll">{item.coll.toUpperCase()}</span>{' '}#{item.id}
             {item.price && (
                 <>
                     {' '}
@@ -84,21 +81,19 @@ export function Ticker() {
     return (
         <div className="tape-wrap" id="tapeWrap" aria-hidden="true">
             <div className="tape-rail" id="tapeRail" ref={railRef}>
-                {/* Rail content doubled with an outer separator between, so the
-                    engine's modulo-halfWidth translate reads as a seamless
-                    loop. Empty until our own pre-chain activity accrues. */}
-                {items.length > 0 && (
-                    <>
-                        {items.map((item, i) => (
-                            <RailItem key={`a-${i}`} item={item} />
-                        ))}
-                        <span className="tape-sep-outer">··</span>
-                        {items.map((item, i) => (
-                            <RailItem key={`b-${i}`} item={item} />
-                        ))}
-                        <span className="tape-sep-outer">··</span>
-                    </>
-                )}
+                {/* Every event is followed by a diamond delimiter, and the whole
+                    run is doubled — so the engine's modulo-halfWidth translate
+                    reads as a seamless loop AND no two events ever run together.
+                    Empty until our own pre-chain activity accrues. */}
+                {items.length > 0 &&
+                    (['a', 'b'] as const).map((run) =>
+                        items.map((item, i) => (
+                            <Fragment key={`${run}-${i}`}>
+                                <RailItem item={item} />
+                                <span className="tape-sep-outer" aria-hidden="true">◆</span>
+                            </Fragment>
+                        )),
+                    )}
             </div>
         </div>
     );
