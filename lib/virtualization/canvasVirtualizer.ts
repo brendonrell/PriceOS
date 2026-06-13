@@ -47,10 +47,26 @@
 import { hashSynNotifyCanvasPaint } from '../engines/hashSynEngine';
 
 const CANVAS_LRU_CAP = 60;
-/* Painted per rAF tick. Bumped 4 → 8 with the idle→rAF switch: gradient
-   fills are cheap, so a full screenful of tail cards lands within a frame
-   or two of scrolling rather than trickling in. */
-const RENDER_BATCH_SIZE = 8;
+/* Hard ceiling on paints per rAF tick — a safety bound so a runaway queue
+   can't loop forever in one frame. The REAL throttle is FRAME_BUDGET_MS
+   below: we paint until the frame budget is spent, then yield. Cheap engines
+   (gradient placeholders, Prisms) land a full screenful in one tick; a heavy
+   engine (Avalanche's sandpile) paints as few as one per frame so the main
+   thread never locks. */
+const RENDER_BATCH_SIZE = 12;
+/* Per-frame paint budget. Once a drain pass has spent this long painting, it
+   stops and reschedules the rest for the next frame — keeping each frame
+   inside one 60fps slice regardless of how expensive an individual Output's
+   render closure is. This is what lets the UI stay responsive while heavy
+   projects paint (Brendon, 2026-06-13). */
+const FRAME_BUDGET_MS = 8;
+/* While the first screenful (eager) cards register during React's commit,
+   they paint synchronously for instant "just there" art — but only until this
+   cumulative budget is spent in the burst. Past it, the remaining eager cards
+   fall back to the priority queue (painted front-of-line on the next frames),
+   so a heavy-engine page mounts without a multi-second freeze instead of
+   blocking on N synchronous sandpile solves. */
+const EAGER_SYNC_BUDGET_MS = 24;
 const ROOT_MARGIN = '400px 0px';
 
 type RegisteredCard = {
@@ -91,6 +107,17 @@ const renderQueue: RegisteredCard[] = [];
 let renderScheduled = false;
 let observer: IntersectionObserver | null = null;
 let renderCounter = 0;
+/* Tracks the running cost of the current synchronous eager-register burst.
+   null between bursts; set to performance.now() on the first eager paint of a
+   burst and cleared on the next microtask (after React's commit finishes). */
+let eagerBurstStart: number | null = null;
+let eagerResetQueued = false;
+
+function nowMs(): number {
+    return typeof performance !== 'undefined' && performance.now
+        ? performance.now()
+        : Date.now();
+}
 
 function ensureObserver(): void {
     if (observer || typeof window === 'undefined') return;
@@ -168,8 +195,18 @@ function paintNow(reg: RegisteredCard): void {
 
 function drainQueue(): void {
     renderScheduled = false;
-    const batch = renderQueue.splice(0, RENDER_BATCH_SIZE);
-    batch.forEach(paintNow);
+    /* Paint until the frame budget is spent OR the per-tick cap is hit,
+       whichever comes first — but always paint at least one so the queue
+       can't stall. Cheap engines blow through the cap; heavy ones bail on
+       the time budget after a paint or two and pick up next frame. */
+    const start = nowMs();
+    let painted = 0;
+    while (renderQueue.length > 0 && painted < RENDER_BATCH_SIZE) {
+        const reg = renderQueue.shift();
+        if (reg) paintNow(reg);
+        painted++;
+        if (nowMs() - start >= FRAME_BUDGET_MS) break;
+    }
     publishStats();
     if (renderQueue.length > 0) scheduleDrain();
 }
@@ -236,11 +273,38 @@ export function registerCanvas(reg: RegisteredCard): void {
     registry.set(reg.key, reg);
     observer?.observe(reg.wrapper);
     /* Eager (above-the-fold) cards paint synchronously right here — no
-       observer round-trip, no rAF queue. This is what makes the first
-       screenful "just there" the instant the page mounts. They stay
-       observed so LRU eviction + re-intersection re-paint still apply
-       once the user scrolls them far off-screen. */
-    if (reg.eager) paintNow(reg);
+       observer round-trip, no rAF queue — so the first screenful is "just
+       there" the instant the page mounts. They stay observed so LRU eviction
+       + re-intersection re-paint still apply once scrolled far off-screen.
+
+       Guard: a burst of eager registers (React commits all the first
+       screenful's cards in one synchronous task) paints sync only until
+       EAGER_SYNC_BUDGET_MS of cumulative work is spent. Past that the
+       remaining eager cards go to the FRONT of the render queue (ahead of
+       lazy tail cards) and paint over the next few frames with the budget
+       throttle — so a page of a heavy engine mounts smoothly instead of
+       freezing on N synchronous solves. */
+    if (reg.eager) {
+        if (eagerBurstStart === null) {
+            eagerBurstStart = nowMs();
+            if (!eagerResetQueued) {
+                eagerResetQueued = true;
+                const reset = () => {
+                    eagerBurstStart = null;
+                    eagerResetQueued = false;
+                };
+                if (typeof queueMicrotask !== 'undefined') queueMicrotask(reset);
+                else Promise.resolve().then(reset);
+            }
+        }
+        if (nowMs() - eagerBurstStart < EAGER_SYNC_BUDGET_MS) {
+            paintNow(reg);
+        } else {
+            /* Front of queue: eager deferrals jump ahead of lazy tail. */
+            renderQueue.unshift(reg);
+            scheduleDrain();
+        }
+    }
     publishStats();
 }
 

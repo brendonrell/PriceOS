@@ -38,9 +38,11 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from 'react';
+import { hashSynResample } from '../engines/hashSynEngine';
 
 export type DropdownView =
     | 'links'      // default — Profile / Discord / Artists / Portfolio / Settings / Log Out
@@ -246,6 +248,29 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         };
         const r = requestAnimationFrame(() => requestAnimationFrame(sync));
         return () => cancelAnimationFrame(r);
+    }, [menuOpen]);
+
+    /* Hash Synesthesia re-sample on menu RETRACT (Brendon, 2026-06-13).
+       Opening the connect menu lets the iOS browser-chrome tint sample the
+       menu's black surface (expected) — but on close the tint stayed stuck
+       on black instead of returning to the art behind it. Bottom-sheet
+       modals don't have this problem because their close triggers a layout/
+       scroll that the engine's listeners catch; the connect menu's retract
+       doesn't, so we kick the sample explicitly. Staggered across the
+       retract so the freshly-revealed canvases are sampled, not the menu
+       still sliding away. hashSynResample is inert unless hashsyn is the
+       active colorway. */
+    const prevMenuOpenRef = useRef(false);
+    useEffect(() => {
+        const was = prevMenuOpenRef.current;
+        prevMenuOpenRef.current = menuOpen;
+        if (!was || menuOpen) return;
+        const t1 = setTimeout(hashSynResample, 260);
+        const t2 = setTimeout(hashSynResample, 520);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
     }, [menuOpen]);
 
     const value = useMemo<DropdownContextValue>(

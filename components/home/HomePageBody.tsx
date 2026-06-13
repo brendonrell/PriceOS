@@ -440,7 +440,9 @@ export default function HomePageBody({
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-vol">{stats ? stats.volume_eth : '—'} VOL</span>
+                            {/* Integer ETH only on the home stats row — decimals
+                                cost width the row can't spare (Brendon, 2026-06-13). */}
+                            <span className="stat-val stat-val-vol">{stats ? Math.round(Number(stats.volume_eth) || 0) : '—'} VOL</span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}

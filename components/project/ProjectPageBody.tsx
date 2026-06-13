@@ -301,7 +301,20 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     const setActiveTabPersisted = (tab: ProjectTab) => {
         try { window.localStorage.setItem('pd_project_tab', tab); } catch {}
         setActiveTab(tab);
-    };    /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
+    };
+
+    /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
+       profile's + More. The panel's stacked sections are grouped under pills so
+       only one group shows at a time:
+         Stats     → Price Stats + ATH & Holders (the factual numbers)
+         Replay    → Replay
+         Albums    → Albums
+         Genome    → Genome
+         Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
+    type ProjectMoreL1 = 'stats' | 'replay' | 'albums' | 'genome' | 'sentiment';
+    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('stats');
+
+    /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
        window event below. Drives both the .stat-val text rendering for the
        ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
@@ -1093,6 +1106,22 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         gating mirrors sim's switchCollectionTab — only
                         the Artworks tab shows trait/sort surfaces. */}
                     <TraitsUI visible={traitsAndSortVisible} />
+
+                    {/* + More sub-nav trait pills — same surface as the
+                        profile's + More. Groups the panel's sections. */}
+                    {onAlbumsTab && (
+                        <TraitsUI
+                            visible
+                            hideSortBar
+                            profilePills={[
+                                { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
+                                { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
+                                { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
+                                { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
+                            ]}
+                        />
+                    )}
             </Hero>
 
             {/* My Notes empty state — shown when the notes filter is active
@@ -1199,6 +1228,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 aria-label="More"
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
+                {moreL1 === 'stats' && (<>
                 {/* PRICE STATS — stats-row-2 restored here from hero.
                     Percent Listed, Floor Price, and Anchor. The ⚓ anchor
                     tap opens the ValuePrompt to set / clear your reference
@@ -1271,6 +1301,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </span>
                 </div>
 
+                </>)}
+                {moreL1 === 'replay' && (<>
                 {/* REPLAY — sim 5207-5228 */}
                 <div className="more-section-header">REPLAY</div>
                 <div className="more-replay-wrap">
@@ -1299,6 +1331,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
 
+                </>)}
+                {moreL1 === 'albums' && (<>
                 {/* ALBUMS — sim 5230-5244 */}
                 <div className="more-section-header">ALBUMS</div>
                 <div id="albumsGrid" className="albums-grid">
@@ -1323,6 +1357,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     ))}
                 </div>
 
+                </>)}
+                {moreL1 === 'genome' && (<>
                 {/* GENOME — sim 5246-5283 */}
                 <div className="more-section-header">GENOME</div>
                 <div className="more-genome-wrap">
@@ -1352,6 +1388,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
 
+                </>)}
+                {moreL1 === 'sentiment' && (<>
                 {/* PRICE TARGETS — sim 5285-5306 */}
                 <div className="more-section-header">PRICE TARGETS</div>
                 <div className="more-seal-wrap">
@@ -1389,6 +1427,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
 
+                </>)}
+                {moreL1 === 'stats' && (<>
                 {/* ATH & HOLDERS — sim 5308-5321 */}
                 <div className="more-section-header">ATH & HOLDERS</div>
                 <div className="more-stats-grid">
@@ -1414,6 +1454,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
 
+                </>)}
+                {moreL1 === 'sentiment' && (<>
                 {/* DISAGREEMENT SCORE — sim 5323-5335 */}
                 <div className="more-section-header">DISAGREEMENT SCORE</div>
                 <div className="more-disagree-wrap">
@@ -1441,6 +1483,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         </div>
                     </div>
                 </div>
+                </>)}
             </section>
         </>
     );

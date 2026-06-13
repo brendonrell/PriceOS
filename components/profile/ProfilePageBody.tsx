@@ -42,9 +42,9 @@ import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
-import { getProject, outputTraits, allProjects } from '../../lib/project/registry';
+import { getProject, outputTraits, allProjects, projectsByArtist } from '../../lib/project/registry';
 import GhostCard from '../project/GhostCard';
-import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
@@ -71,6 +71,46 @@ function formatMemberSince(iso: string): string {
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
 type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info';
+/* Artist Showcase: 'created' = carousels of the projects this artist made
+   (the home-page carousel pattern); 'regular' = their curated top-6 grid. */
+type ShowcaseView = 'created' | 'regular';
+
+/* Outputs per artist-project carousel (matches the home carousel). */
+const CAROUSEL_SIZE = 12;
+
+/* One artist-project carousel — same markup + classes as the home page's
+   per-project carousel, mounted under its own ProjectProvider so the cards
+   paint THIS project's engine. Shows recent minted Outputs; falls back to the
+   project's opening Outputs as a preview when nothing's minted yet, so the row
+   is never an empty void. */
+function ArtistProjectCarousel({ eager = false }: { eager?: boolean }) {
+    const project = useProject();
+    const total = project.totalOutputs;
+    const ids =
+        total > 0
+            ? Array.from({ length: Math.min(CAROUSEL_SIZE, total) }, (_, i) => total - i)
+            : Array.from(
+                  { length: Math.min(CAROUSEL_SIZE, project.maxSupply) },
+                  (_, i) => i + 1,
+              );
+    return (
+        <section
+            className="home-carousel-row"
+            aria-label={`${project.title} — recent outputs`}
+        >
+            <div className="home-carousel-head">
+                <a className="home-carousel-title" href={`/art/${project.slug}`}>
+                    {project.title}
+                </a>
+            </div>
+            <div className="home-carousel-track">
+                {ids.map((id) => (
+                    <ArtworkCard key={id} id={id} eager={eager} />
+                ))}
+            </div>
+        </section>
+    );
+}
 
 /** One collected Output, from /api/user/[address]/outputs. */
 interface Holding {
@@ -342,9 +382,13 @@ function ProfilePageBodyInner({
        Showcase tab itself stays in the row (ghosts show if tapped). Same
        rule on project pages (Artworks). Initializer only — once mounted,
        the user's tap wins. */
-    const [activeTab, setActiveTab] = useState<ProfileTab>(() =>
-        showcaseSlots.length > 0 ? 'showcase' : 'collected'
-    );
+    const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+        // Artists land on Showcase too — their Created carousels make it a
+        // real landing page even with an empty curated set.
+        const artistHasProjects =
+            !!artistStatus && projectsByArtist(user.handle ?? handle).length > 0;
+        return showcaseSlots.length > 0 || artistHasProjects ? 'showcase' : 'collected';
+    });
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
 
     /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
@@ -439,6 +483,23 @@ function ProfilePageBodyInner({
     const onCollected = activeTab === 'collected';
     const onMore      = activeTab === 'more';
 
+    /* Artist Showcase (Brendon, 2026-06-13): on an artist's page the Showcase
+       tab gains trait pills — Created (carousels of the projects they made,
+       like the home page) and Regular (their curated top-6 grid). Non-artist
+       profiles are unchanged: no pills, Regular only. */
+    const isArtist = !!artistStatus;
+    const artistProjects = useMemo(
+        () => (isArtist ? projectsByArtist(user.handle ?? handle) : []),
+        [isArtist, user.handle, handle],
+    );
+    const hasCreated = artistProjects.length > 0;
+    /* Default an artist page's Showcase to the new Created carousels; fall to
+       Regular if they somehow have no registered projects. */
+    const [showcaseView, setShowcaseView] = useState<ShowcaseView>(
+        () => (isArtist && hasCreated ? 'created' : 'regular'),
+    );
+    const showcaseCreated = onShowcase && isArtist && hasCreated && showcaseView === 'created';
+
     // ── Zen mode: Albums-only in + More sub-nav ───────────────────────
     useEffect(() => {
         if (isZen && moreL1 !== 'albums') setMoreL1('albums');
@@ -455,7 +516,62 @@ function ProfilePageBodyInner({
             : moreL1;
     const onStarredTab = onMore && isOwnProfile && effMoreL1 === 'starred';
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
-    const galleryVisible = onShowcase || onCollected;
+    /* #gallery shows for Collected and for the Regular showcase grid; the
+       Created view replaces it with project carousels below. */
+    const galleryVisible = (onShowcase && !showcaseCreated) || onCollected;
+
+    /* Mouse drag-to-scroll for the artist-project carousels — same handler as
+       the home page. Touch swipes natively; this is the desktop grab-drag. A
+       drag past a few px swallows the trailing click so it doesn't open a
+       card. Re-binds when the Created view (re)mounts the tracks. */
+    useEffect(() => {
+        if (!showcaseCreated) return;
+        const tracks = Array.from(
+            document.querySelectorAll<HTMLElement>('.home-carousel-track'),
+        );
+        const cleanups = tracks.map((track) => {
+            let down = false;
+            let moved = false;
+            let startX = 0;
+            let startLeft = 0;
+            const onDown = (e: MouseEvent) => {
+                down = true;
+                moved = false;
+                startX = e.pageX;
+                startLeft = track.scrollLeft;
+                track.classList.add('dragging');
+            };
+            const onMove = (e: MouseEvent) => {
+                if (!down) return;
+                const dx = e.pageX - startX;
+                if (Math.abs(dx) > 4) moved = true;
+                e.preventDefault();
+                track.scrollLeft = startLeft - dx;
+            };
+            const onUp = () => {
+                if (!down) return;
+                down = false;
+                track.classList.remove('dragging');
+                if (moved) {
+                    const swallow = (ev: Event) => {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                    };
+                    track.addEventListener('click', swallow, { capture: true, once: true });
+                }
+            };
+            track.addEventListener('mousedown', onDown);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+            return () => {
+                track.removeEventListener('mousedown', onDown);
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+            };
+        });
+        return () => cleanups.forEach((c) => c());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showcaseCreated, artistProjects]);
 
     return (
         <>
@@ -784,6 +900,20 @@ function ProfilePageBodyInner({
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
+
+                    {/* Artist Showcase trait pills — Created (project carousels)
+                        / Regular (curated grid). Artist pages only; same pill
+                        surface as the +More sub-nav. */}
+                    {onShowcase && isArtist && hasCreated && (
+                        <TraitsUI
+                            visible
+                            hideSortBar
+                            profilePills={[
+                                { key: 'created', label: 'Created', active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
+                                { key: 'regular', label: 'Regular', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
+                            ]}
+                        />
+                    )}
             </Hero>
 
             {/* Starred / Wishlist ghost rows — YOUR OWN profile with zero
@@ -835,6 +965,19 @@ function ProfilePageBodyInner({
                           </ProjectProvider>
                       ))}
             </section>
+
+            {/* Artist Showcase · Created — carousels of the projects this
+                artist made, one row each (home-page carousel pattern). Only
+                the first row paints eagerly; the rest lazy-paint on scroll. */}
+            {showcaseCreated && (
+                <section aria-label="Created projects">
+                    {artistProjects.map((p, i) => (
+                        <ProjectProvider key={p.slug} slug={p.slug}>
+                            <ArtistProjectCarousel eager={i === 0} />
+                        </ProjectProvider>
+                    ))}
+                </section>
+            )}
 
             {/* Starred — a compact bookmark ROW list (not the gallery grid):
                 sortable/filterable rows with a small preview that opens the
