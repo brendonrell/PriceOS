@@ -4215,7 +4215,82 @@ function castWeft(seed){
   return {palette:WEFT_PALS[palI].name, format:fmt.t, density:dens, grid:gridOn?'Ruled':'None', weave:panel==='banded'?'Banded':'Full'};
 }
 
+/* PRICEDISCOVERY — "Price Discovery": the order book as a luminous canyon.
+   A synthetic limit-order book (cumulative bid/ask depth + walls + volume
+   profile) becomes mirrored sedimentary terrain rising away from a glowing
+   spread seam. Data drives the macro silhouette; fBm supplies micro texture.
+   No axes, no chart — it must read as place. cast mirrors the leads. */
+const PD_PALS=[
+  {name:'Dusk', top:'#221a3a', bot:'#070510', bid:'#2bd4a8', ask:'#ff5a7a', seam:'#ffe6a8'},
+  {name:'Ember', top:'#2a0e08', bot:'#0a0402', bid:'#ffb000', ask:'#ff3d2e', seam:'#fff0c0'},
+  {name:'Abyss', top:'#06121c', bot:'#01060c', bid:'#00e5ff', ask:'#3a6bff', seam:'#cfeeff'},
+  {name:'Aurora', top:'#0a1a14', bot:'#02080a', bid:'#70ff9f', ask:'#b388ff', seam:'#eaffd0'},
+  {name:'Mono', top:'#161616', bot:'#050505', bid:'#d6d6d6', ask:'#8a8a8a', seam:'#ffffff'},
+  {name:'Oxide', top:'#241405', bot:'#0a0602', bid:'#e0a000', ask:'#9a4bff', seam:'#ffe0b0'},
+];
+const PD_FMTS=[{W:1240,H:980,t:'Landscape'},{W:1500,H:820,t:'Panorama'},{W:1080,H:1080,t:'Square'},{W:980,H:1240,t:'Portrait'}];
+const PD_REGIME=['Calm','Trending','Volatile','Crash','Squeeze'];
+function pricediscovery(cv,seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*PD_PALS.length);
+  const fmt=pick(PD_FMTS,r);
+  const regime=pick(PD_REGIME,r);
+  const spread=pick(['Razor','Normal','Yawning'],r);
+  const imb=pick(['Bid-heavy','Balanced','Ask-heavy'],r);
+  // ---- end trait draws ----
+  const P=PD_PALS[palI], W=fmt.W, H=fmt.H; cv.width=W; cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H);
+  const NO=seed*0.011+5;
+  // dusk sky
+  const sky=x.createLinearGradient(0,0,0,H); sky.addColorStop(0,P.top); sky.addColorStop(1,P.bot); x.fillStyle=sky; x.fillRect(0,0,W,H);
+  // faint star/dust
+  x.globalAlpha=0.5;for(let i=0;i<W*H/5000;i++){x.fillStyle='rgba(255,255,255,'+(0.05+r()*0.12)+')';x.fillRect(r()*W,r()*H*0.6,1,1);}x.globalAlpha=1;
+  const amp= regime==='Calm'?0.5: regime==='Trending'?0.7: regime==='Volatile'?1.1: regime==='Crash'?1.4:1.2;
+  const wallP= regime==='Squeeze'?0.10: regime==='Volatile'?0.06:0.03;
+  const cols=Math.round(W/3);
+  const shift= imb==='Bid-heavy'?-0.08: imb==='Ask-heavy'?0.08:0;
+  const spr= spread==='Razor'?0.012: spread==='Normal'?0.03:0.06;
+  const mid=Math.round(cols*(0.5+shift)), gap=Math.max(2,Math.round(cols*spr));
+  const dep=new Float32Array(cols);
+  function size(c){let s=(0.25+fbm2(c*0.04+NO,2)*amp);if(r()<wallP)s+=2+r()*4*amp;return s;}
+  let acc=0; for(let c=mid-gap;c>=0;c--){acc+=size(c);dep[c]=acc;}
+  acc=0; for(let c=mid+gap;c<cols;c++){acc+=size(c);dep[c]=acc;}
+  let maxd=0.001; for(let c=0;c<cols;c++) maxd=Math.max(maxd,dep[c]);
+  const scaleH=H*(regime==='Crash'?0.5:0.66)/maxd, base=H*0.96;
+  const cw=W/cols;
+  const top=new Float32Array(cols);
+  for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; top[c]= inGap? base : base - dep[c]*scaleH - fbm2(c*0.12+NO,7)*S*0.03;}
+  // terrain fill (per-column vertical strips, side-coloured, dark at base)
+  for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; if(inGap)continue; const side= c<mid? P.bid:P.ask; const g=x.createLinearGradient(0,top[c],0,base); g.addColorStop(0,shade(side,30)); g.addColorStop(0.5,side); g.addColorStop(1,P.bot); x.fillStyle=g; x.fillRect(c*cw,top[c],cw+1,base-top[c]);}
+  // sedimentary strata: horizontal dark bands clipped to terrain
+  x.save(); x.beginPath(); x.moveTo(0,base); for(let c=0;c<cols;c++)x.lineTo(c*cw+cw/2,top[c]); x.lineTo(W,base); x.closePath(); x.clip();
+  x.globalCompositeOperation='multiply'; for(let yy=0;yy<H;yy+=S*0.018){x.fillStyle='rgba(0,0,0,'+(0.10+fbm2(yy*0.05,NO)*0.10)+')';x.fillRect(0,yy,W,Math.max(1,S*0.006));}
+  x.globalCompositeOperation='source-over'; x.restore();
+  // glowing ridge line (additive)
+  x.save(); x.globalCompositeOperation='lighter'; x.lineCap='round';
+  for(const [lw,al] of [[6,0.12],[3,0.3],[1.4,0.8]]){ x.lineWidth=lw; x.globalAlpha=al; x.beginPath(); let started=false; for(let c=0;c<cols;c++){const inGap=c>mid-gap&&c<mid+gap; if(inGap){started=false;continue;} const col=c<mid?P.bid:P.ask; x.strokeStyle=col; if(!started){x.moveTo(c*cw+cw/2,top[c]);started=true;}else x.lineTo(c*cw+cw/2,top[c]); } x.stroke(); }
+  x.restore(); x.globalAlpha=1;
+  // central spread seam — hot glowing canyon
+  const seamX=mid*cw; const sg=x.createLinearGradient(seamX-gap*cw*1.4,0,seamX+gap*cw*1.4,0); sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,P.seam); sg.addColorStop(1,'transparent');
+  x.save(); x.globalCompositeOperation='lighter'; x.globalAlpha=0.9; x.fillStyle=sg; x.fillRect(seamX-gap*cw*1.4,0,gap*cw*2.8,base);
+  x.globalAlpha=1; x.fillStyle=P.seam; x.fillRect(seamX-1,base-H*0.4,2,H*0.4); x.restore();
+  // trade prints near ridges (sediment grains)
+  x.save(); x.globalCompositeOperation='lighter'; for(let i=0;i<cols*0.5;i++){const c=Math.floor(r()*cols);const inGap=c>mid-gap&&c<mid+gap;if(inGap)continue;const px=c*cw+cw/2, py=top[c]+r()*(base-top[c])*0.4; x.fillStyle= c<mid?P.bid:P.ask; x.globalAlpha=0.2+r()*0.5; const s=r()<0.1?2.4:1.2; x.fillRect(px,py,s,s);} x.restore(); x.globalAlpha=1;
+  // atmosphere: grain + vignette
+  x.save();x.globalAlpha=0.04;for(let i=0;i<W*H/700;i++){x.fillStyle=r()<0.5?'#fff':'#000';x.fillRect(r()*W,r()*H,1,1);}x.restore();
+  const vg=x.createRadialGradient(W/2,H*0.5,S*0.35,W/2,H*0.5,Math.max(W,H)*0.72);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,0.55)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+function castPricediscovery(seed){
+  const r=rng(seed);
+  const palI=Math.floor(r()*PD_PALS.length);
+  const fmt=pick(PD_FMTS,r);
+  const regime=pick(PD_REGIME,r);
+  const spread=pick(['Razor','Normal','Yawning'],r);
+  const imb=pick(['Bid-heavy','Balanced','Ask-heavy'],r);
+  return {palette:PD_PALS[palI].name, format:fmt.t, regime, spread, book:imb};
+}
+
 export {
+  pricediscovery, castPricediscovery,
   konkret, castKonkret,
   rudxane, castRudxane,
   materia, castMateria,
