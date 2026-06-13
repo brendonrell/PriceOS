@@ -37,10 +37,16 @@ interface ToastState {
     msg: string;
     mounted: boolean;
     show: boolean;
+    /** Fade-out transition length (ms) for THIS toast — the renderer applies
+        it inline so a single toast can fade slower than the default. */
+    fadeMs: number;
 }
 
 interface ToastContextValue {
-    showToast: (msg: string) => void;
+    /** Show a toast. `holdMs` = fully-visible time before fade (default
+        SHOW_MS); `fadeMs` = fade-out length (default FADE_MS). The post-mint
+        confirmation passes longer values so it lingers + fades gently. */
+    showToast: (msg: string, holdMs?: number, fadeMs?: number) => void;
     /** Read-only snapshot for the renderer. */
     state: ToastState;
 }
@@ -55,6 +61,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         msg: '',
         mounted: false,
         show: false,
+        fadeMs: FADE_MS,
     });
     const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,12 +88,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const showToast = useCallback(
-        (msg: string) => {
+        (msg: string, holdMs: number = SHOW_MS, fadeMs: number = FADE_MS) => {
             // Latest call wins — drop any in-flight timers.
             clearAllTimers();
 
             // Stage 1: mount with text but show: false (CSS opacity 0).
-            setState({ msg, mounted: true, show: false });
+            setState({ msg, mounted: true, show: false, fadeMs });
 
             // Stage 2 (sim line 6650-6653): two rAFs, then flip .show on so
             // the CSS transition has a frame to engage.
@@ -96,14 +103,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 });
             });
 
-            // Stage 3 (sim line 6656-6659): after SHOW_MS, drop .show; after
-            // a further FADE_MS, fully unmount.
+            // Stage 3 (sim line 6656-6659): after holdMs, drop .show; after a
+            // further fadeMs (the gentle fade), fully unmount.
             fadeTimer.current = setTimeout(() => {
                 setState((prev) => ({ ...prev, show: false }));
                 unmountTimer.current = setTimeout(() => {
-                    setState({ msg: '', mounted: false, show: false });
-                }, FADE_MS);
-            }, SHOW_MS);
+                    setState({ msg: '', mounted: false, show: false, fadeMs: FADE_MS });
+                }, fadeMs);
+            }, holdMs);
         },
         [clearAllTimers]
     );

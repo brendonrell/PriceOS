@@ -7093,7 +7093,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     align-items: center;
     gap: 12px;
     padding: 8px 6px;
-    border-bottom: 1px solid var(--border-color);
+    /* No divider line — Brendon 2026-06-13 (applies to Starred + Wishlist,
+       which share this row class). */
     cursor: pointer;
 }
 .starred-row:hover {

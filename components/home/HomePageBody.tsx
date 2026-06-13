@@ -28,7 +28,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
-import CollectedPair from '../hero/CollectedPair';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -325,27 +324,24 @@ export default function HomePageBody({
                     </div>
                 }
                 socialRow={
-                    /* Two lines, one chip per line. Structure mirrors the sim
-                       exactly (sim 5113): everything flows inside ONE
-                       .info-rubik text span — the line break is a literal
-                       <br>, so line spacing IS the sim's text line spacing.
-                       Measured against a sim render (headless, 2026-06-12):
-                       line pitch 13.7px / 2.7px between chips; the previous
-                       two-stacked-boxes build measured 22.4px — wrong. */
-                    <div className="hero-line collected-by-row info-line feat-rotator">
-                        <span className="info-rubik feat-lines">
-                            Featuring <CollectedPair handle={featNames[0]} />
-                            <br />
-                            {featNames[1] && <CollectedPair handle={featNames[1]} />}{' '}
-                            <span className="cbr-others">&amp; {featOthers} others</span>
-                        </span>
+                    /* One line, plain @name links — identical treatment to the
+                       project page's social row (Brendon 2026-06-13: reverted
+                       the sprite+name rectangle chips; CollectedPair kept but
+                       unused in case it comes back). */
+                    <div className="hero-line collected-by-row info-line">
+                        <span className="cbr-label">Featuring</span>{' '}
+                        <a className="profile-link" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                        {featNames[1] && (
+                            <>, <a className="profile-link" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
+                        )}{' '}
+                        <span className="cbr-others">&amp; {featOthers} others</span>
                     </div>
                 }
                 statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span className="stat-icon stat-icon-box">⬚&#xFE0E;</span>{' '}
-                            <span className="stat-val">{stats ? stats.projects : '—'} PROJECTS</span>
+                            <span className="stat-val">{stats ? stats.projects : '—'} PRO</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
@@ -353,7 +349,7 @@ export default function HomePageBody({
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}
-                            <span className="stat-val stat-val-owners">{stats ? stats.minted : '—'} MINTED</span>
+                            <span className="stat-val stat-val-owners">{stats ? stats.minted : '—'} NFT<span style={{ fontSize: '0.72em' }}>s</span></span>
                         </span>
                     </div>
                 }
@@ -434,7 +430,6 @@ export default function HomePageBody({
                         {uploads.map((u) => {
                             const def = getProject(u.slug);
                             const title = def?.displayName ?? u.title;
-                            const artist = def?.artistHandle ?? null;
                             return (
                                 <div className="feed-row" key={u.slug}>
                                     <div className="feed-line" />
@@ -442,19 +437,9 @@ export default function HomePageBody({
                                     <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
                                     <div className="f-type">UPLOAD</div>
                                     <div className="f-content">
-                                        {artist && (
-                                            <>
-                                                <a className="f-highlight" href={`/${artist}`}>
-                                                    @{artist}
-                                                </a>{' '}
-                                                uploaded{' '}
-                                            </>
-                                        )}
-                                        {!artist && <>Uploaded </>}
                                         <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}
-                                        </a>{' '}
-                                        — {u.max_supply} outputs
+                                        </a>
                                     </div>
                                 </div>
                             );

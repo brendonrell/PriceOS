@@ -938,17 +938,20 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                        when signed out or following none of this project's
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (
-                        /* Two sprite+name chips max (Brendon, 2026-06-12 —
-                           was 3 bare names; the chip is the sim's
-                           sprite-paired rectangle). */
+                        /* Plain @name links (Brendon 2026-06-13: reverted the
+                           sprite+name rectangle chips; CollectedPair kept but
+                           unused). */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>{' '}
-                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => (
-                                <span key={name}>
-                                    {i > 0 ? ' ' : ''}
-                                    <CollectedPair handle={name} />
-                                </span>
-                            ))}
+                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => {
+                                const h = name.toLowerCase().replace(/^@/, '');
+                                return (
+                                    <span key={name}>
+                                        {i > 0 ? ', ' : ''}
+                                        <a className="profile-link" href={`/${h}`}>@{h}</a>
+                                    </span>
+                                );
+                            })}
                             {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
                                     {' '}&amp; {project.stats.collected_by_following.length - 2} more you follow

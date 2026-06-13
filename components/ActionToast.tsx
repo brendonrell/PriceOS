@@ -23,7 +23,13 @@ export default function ActionToast() {
         .join(' ');
 
     return (
-        <div className={cls} id="actionToast" aria-live="polite" aria-atomic="true">
+        <div
+            className={cls}
+            id="actionToast"
+            aria-live="polite"
+            aria-atomic="true"
+            style={{ transitionDuration: `${state.fadeMs}ms` }}
+        >
             {state.msg}
         </div>
     );
