@@ -3215,6 +3215,15 @@ body.persona-default .stats-row-2 { display: none !important; }
     text-decoration: none !important;
     transition: opacity 0.2s;
 }
+/* Featuring / Collected-by row reads entirely in Rubik (Brendon 2026-06-13).
+   The @name links were inheriting Courier, which broke the row's uniform
+   header type — Courier belongs only to the PriceSprites, which aren't shown
+   in this row. Match the .cbr-label / .cbr-others treatment exactly. */
+.collected-by-row .profile-link {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+}
 /* The @name in the chip reads Rubik Mono 11 uppercase. The sim gets this
    from the .info-rubik parent (sim 2074); PD's hero social rows are not
    rubik contexts, so the chip carries it itself — same treatment as the
@@ -4254,6 +4263,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Clock: +1px and nudge down 1px on desktop */
 @media (min-width: 601px) {
     .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; position: relative; top: 1px; }
+}
+/* Shuffle icon: nudge down 2px on desktop so the ⟳ sits centered in the
+   pill against the text tabs (Brendon 2026-06-13). */
+@media (min-width: 601px) {
+    .pill.pill-l1.pill-shuffle-icon .stat-name { position: relative; top: 2px; }
 }
 .pill.pill-l1.pill-fate-icon .stat-name { position: relative; top: 2px; }
 
@@ -6958,6 +6972,16 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    .output-card tile (so it matches the project-page gallery visually),
    but the track scrolls horizontally (flex nowrap + overflow-x) instead
    of the #gallery wrap. Scales to N rows; one (PRISMS) is wired for now. */
+/* Home sort/filter bar — carries the same 40px page inset as the carousels
+   and uploads (20px on phones) so the pills line up with the rows below
+   instead of hugging the screen edge. */
+.home-facet-bar {
+    padding: 0 40px;
+    margin: 2px 0 16px;
+}
+@media (max-width: 600px) {
+    .home-facet-bar { padding: 0 20px; }
+}
 .home-carousel-row {
     margin: 0 0 28px;
 }

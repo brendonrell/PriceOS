@@ -42,8 +42,9 @@ import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
 const CAROUSEL_SIZE = 12;
-/* Tiles in the Shuffle grid. */
-const SHUFFLE_SIZE = 12;
+/* Outputs in the Shuffle grid — a fresh random project's 24 random outputs
+   on every entry (Brendon 2026-06-13). */
+const SHUFFLE_SIZE = 24;
 
 /* "Featuring" credits — the REAL artist roster, from the registry
    (every project's artist, de-duped). New projects feed this automatically. */
@@ -108,6 +109,31 @@ function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
     );
 }
 
+/* Shuffle gallery — 24 random outputs of whatever project the parent picked
+   for this entry, in the standard #gallery grid. Mounted under its own
+   ProjectProvider so the cards paint THIS project's engine. */
+function ShuffleGallery({ seed }: { seed: number }) {
+    const project = useProject();
+    const ids = useMemo(() => {
+        const max = project.totalOutputs;
+        const target = Math.min(SHUFFLE_SIZE, max);
+        const picks = new Set<number>();
+        while (picks.size < target) {
+            picks.add(1 + Math.floor(Math.random() * max));
+        }
+        return [...picks];
+        // seed is the re-roll trigger (a new project + fresh picks per entry).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [project.totalOutputs, seed]);
+    return (
+        <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
+            {ids.map((id) => (
+                <ArtworkCard key={`${seed}-${id}`} id={id} eager />
+            ))}
+        </section>
+    );
+}
+
 export default function HomePageBody({
     initialFeed = null,
 }: {
@@ -115,7 +141,6 @@ export default function HomePageBody({
         the first paint. Null only when the server read failed. */
     initialFeed?: HomeResponse | null;
 }) {
-    const project = useProject();
     const { showToast } = useToast();
     const { open: openModal } = useModal();
 
@@ -320,23 +345,26 @@ export default function HomePageBody({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, feed, mintingKey]);
 
-    /* Shuffle — a random sample of output ids. No re-roll button (Brendon,
-       2026-06-12): every ENTRY into the tab re-shuffles, so leaving and
-       coming back is the shuffle. Random, so there's no ranking to game. */
+    /* Shuffle — every ENTRY into the tab surfaces a DIFFERENT random project
+       and a fresh 24 random outputs of it (Brendon, 2026-06-13). No re-roll
+       button: leaving and coming back is the shuffle. */
     const [shuffleSeed, setShuffleSeed] = useState(0);
     useEffect(() => {
         if (activeTab === 'shuffle') setShuffleSeed((s) => s + 1);
     }, [activeTab]);
-    const shuffleIds = useMemo(() => {
-        const picks = new Set<number>();
-        const max = project.totalOutputs;
-        while (picks.size < Math.min(SHUFFLE_SIZE, max)) {
-            picks.add(1 + Math.floor(Math.random() * max));
-        }
-        return [...picks];
-        // shuffleSeed is the re-roll trigger.
+    /* Pool of projects that actually have outputs to show (graduated + new). */
+    const shufflePool = useMemo(() => {
+        const rows: { slug: string; minted: number }[] = [];
+        for (const m of feed?.minting_now ?? []) rows.push({ slug: m.slug, minted: m.minted_count });
+        for (const u of feed?.uploads ?? []) rows.push({ slug: u.slug, minted: u.minted_count });
+        return rows.filter((p) => p.minted > 0);
+    }, [feed]);
+    const shufflePick = useMemo(() => {
+        if (shufflePool.length === 0) return null;
+        return shufflePool[Math.floor(Math.random() * shufflePool.length)];
+        // shuffleSeed re-rolls the project on every tab entry.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [project.totalOutputs, shuffleSeed]);
+    }, [shufflePool, shuffleSeed]);
 
     /* Tab pill. `display` lets a tab wear something other than its toast
        label — the Shuffle tab is an icon-only pill (Brendon, 2026-06-12). */
@@ -550,13 +578,18 @@ export default function HomePageBody({
                 (#gallery — never a one-card-per-row list; the output page
                 is the only single-artwork surface). Re-rolls on every tab
                 entry; no button. */}
-            {activeTab === 'shuffle' && (
-                <section id="gallery" aria-label="Shuffle">
-                    {shuffleIds.map((id) => (
-                        <ArtworkCard key={`${shuffleSeed}-${id}`} id={id} eager />
-                    ))}
-                </section>
-            )}
+            {activeTab === 'shuffle' &&
+                (shufflePick ? (
+                    <ProjectProvider
+                        key={`${shuffleSeed}:${shufflePick.slug}`}
+                        slug={shufflePick.slug}
+                        initialTotal={shufflePick.minted}
+                    >
+                        <ShuffleGallery seed={shuffleSeed} />
+                    </ProjectProvider>
+                ) : (
+                    <section id="gallery" aria-label="Shuffle" />
+                ))}
         </TraitsProvider>
     );
 }

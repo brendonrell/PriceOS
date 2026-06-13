@@ -47,7 +47,7 @@ export default function HomeFacetBar({
     const [searchOpen, setSearchOpen] = useState(false);
 
     return (
-        <>
+        <div className="home-facet-bar">
             <div className="traits-ui" style={{ display: 'flex' }}>
                 <div className="traits-header-bar">
                     <div className="stats-container">
@@ -188,6 +188,6 @@ export default function HomeFacetBar({
                     ✕&#xFE0E;
                 </span>
             </div>
-        </>
+        </div>
     );
 }

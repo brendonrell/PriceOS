@@ -81,6 +81,12 @@ const registry = new Map<string, RegisteredCard>();
    moves it to the end, so the iteration order IS the LRU order: oldest
    first. active.keys().next().value gives the eviction candidate. */
 const active = new Map<string, RegisteredCard>();
+/* Keys currently intersecting the viewport (+rootMargin). A tile in here is
+   ON SCREEN and must never be evicted to honour the LRU cap — doing so is the
+   "top carousels go grey" bug on the home page, where two-dozen galleries
+   mount at once and later rows painting would otherwise blank the visible
+   top rows. */
+const intersecting = new Set<string>();
 const renderQueue: RegisteredCard[] = [];
 let renderScheduled = false;
 let observer: IntersectionObserver | null = null;
@@ -91,10 +97,16 @@ function ensureObserver(): void {
     observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
-                if (!entry.isIntersecting) return;
                 const wrapper = entry.target as HTMLElement;
                 const key = wrapper.dataset.vkey;
                 if (!key) return;
+                if (!entry.isIntersecting) {
+                    /* Off screen now — drop the eviction shield so the LRU
+                       cap can reclaim its GPU buffer on deep scrolls. */
+                    intersecting.delete(key);
+                    return;
+                }
+                intersecting.add(key);
                 const reg = registry.get(key);
                 if (!reg) return;
                 /* Already-active canvas re-entering view: bump its
@@ -163,16 +175,18 @@ function drainQueue(): void {
 }
 
 function enforceLruCap(): void {
-    while (active.size > CANVAS_LRU_CAP) {
-        const oldestKey = active.keys().next().value;
-        if (oldestKey === undefined) break;
-        const reg = active.get(oldestKey);
-        if (!reg) {
-            active.delete(oldestKey);
-            continue;
-        }
-        evictCanvas(reg);
-        active.delete(oldestKey);
+    if (active.size <= CANVAS_LRU_CAP) return;
+    /* Evict oldest-first, but SKIP anything currently on screen. Off-screen
+       tiles get released so the GPU stays bounded on deep single-project
+       scrolls; if everything over the cap is genuinely visible (a tall home
+       page of carousels), we let the active set sit above the cap rather than
+       grey out art the user is looking at. */
+    for (const key of [...active.keys()]) {
+        if (active.size <= CANVAS_LRU_CAP) break;
+        if (intersecting.has(key)) continue;
+        const reg = active.get(key);
+        if (reg) evictCanvas(reg);
+        active.delete(key);
     }
 }
 
@@ -237,6 +251,7 @@ export function unregisterCanvas(key: string): void {
     /* Drop from active LRU too — the canvas DOM node is going away, so
        there's nothing to evict and no reason to count it as active. */
     active.delete(key);
+    intersecting.delete(key);
     /* Strip any pending queue entry. splice() in place — single linear
        pass; renderQueue is bounded by visible-set size so this stays
        cheap. */
