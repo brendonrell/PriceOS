@@ -98,6 +98,7 @@ import {
     getGrails,
     subscribeGrails,
     togglePin as storeTogglePin,
+    type GrailPin,
 } from '../lib/pins/grailStore';
 import {
     getMutedIds,
@@ -232,7 +233,7 @@ export default function OutputPreview() {
        stale state. Subscribe-on-mount mirrors the store snapshot into
        local state so the pin button re-renders when other surfaces
        toggle it. */
-    const [grailPins, setGrailPins] = useState<readonly number[]>(
+    const [grailPins, setGrailPins] = useState<readonly GrailPin[]>(
         () => getGrails()
     );
     useEffect(() => {
@@ -570,7 +571,7 @@ export default function OutputPreview() {
         if (id == null) return;
         const collName =
             title.charAt(0) + title.slice(1).toLowerCase();
-        const result = storeTogglePin(id);
+        const result = storeTogglePin(slug, id);
         if (result === 'limit') {
             showToast('Grail Pin Limit: 5 max');
             return;
@@ -593,7 +594,7 @@ export default function OutputPreview() {
         []
     );
 
-    const isPinned = id != null && grailPins.includes(id);
+    const isPinned = id != null && grailPins.some((p) => p.slug === slug && p.id === id);
 
     /* Action button label + Calc-tab visibility.
        BUY:        ƒ calc tab (buy price analysis)   → adds to cart

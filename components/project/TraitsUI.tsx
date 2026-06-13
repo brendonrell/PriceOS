@@ -62,7 +62,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
 import { fullTraitSchema, outputTraits } from '../../lib/project/registry';
-import { getGrails, subscribeGrails, MAX_GRAIL_PINS } from '../../lib/pins/grailStore';
+import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../../lib/pins/grailStore';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
@@ -1156,7 +1156,7 @@ function MsFloatBar() {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const { outputs } = useProject();
-    const [pinnedSet, setPinnedSet] = React.useState<readonly number[]>(() => getGrails());
+    const [pinnedSet, setPinnedSet] = React.useState<readonly GrailPin[]>(() => getGrails());
     const [popupOpen, setPopupOpen] = React.useState(false);
     const [activeAction, setActiveAction] = React.useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = React.useState(false);

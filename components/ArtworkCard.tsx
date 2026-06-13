@@ -90,6 +90,7 @@ import {
     getGrails,
     subscribeGrails,
     togglePin as storeTogglePin,
+    type GrailPin,
 } from '../lib/pins/grailStore';
 import {
     getMutedIds,
@@ -188,14 +189,14 @@ export default function ArtworkCard({
        mount; the snapshot is local component state so React re-renders
        when other surfaces toggle the pin (modal pin button, top-bar
        pill `×`). */
-    const [pinnedSet, setPinnedSet] = useState<readonly number[]>(
+    const [pinnedSet, setPinnedSet] = useState<readonly GrailPin[]>(
         () => getGrails()
     );
     useEffect(() => {
         setPinnedSet(getGrails());
         return subscribeGrails((next) => setPinnedSet(next));
     }, []);
-    const isPinned = pinnedSet.includes(id);
+    const isPinned = pinnedSet.some((p) => p.slug === slug && p.id === id);
 
     /* chat #4 — Mute system parity. Same subscription pattern as the
        grail pin subscription above. mutedSet is local component state so
@@ -444,7 +445,7 @@ export default function ArtworkCard({
         e.stopPropagation();
         const collName =
             projectTitle.charAt(0) + projectTitle.slice(1).toLowerCase();
-        const result = storeTogglePin(id);
+        const result = storeTogglePin(slug, id);
         if (result === 'limit') {
             showToast('Grail Pin Limit: 5 max');
             return;

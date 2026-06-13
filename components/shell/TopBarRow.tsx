@@ -88,20 +88,20 @@ import {
     toggleIncognito,
 } from '../../lib/incognito/incognitoEngine';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useProject } from '../../lib/state/ProjectContext';
+import { buildOutputMetaFor } from '../../lib/state/ProjectContext';
+import { getProject } from '../../lib/project/registry';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import {
     getGrails,
     subscribeGrails,
     unpinGrail,
+    type GrailPin,
 } from '../../lib/pins/grailStore';
 import { TopBarCalendar } from './TopBarCalendar';
 
 export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
-    const { title: projectTitle } = useProject();
     const { open: openOutputModal } = useModal();
     const { showToast } = useToast();
 
@@ -119,7 +119,7 @@ export function TopBarRow() {
        still attached to the same localStorage key. SSR-safe: the lazy
        initialiser reads the empty default; the useEffect below
        hydrates from localStorage and keeps the snapshot in sync. */
-    const [grailPins, setGrailPins] = useState<readonly number[]>([]);
+    const [grailPins, setGrailPins] = useState<readonly GrailPin[]>([]);
     useEffect(() => {
         setGrailPins(getGrails());
         return subscribeGrails((next) => setGrailPins(next));
@@ -255,19 +255,21 @@ export function TopBarRow() {
                         notifs.redactedMode is the React port's field
                         name — sim uses notifs.redacted; same semantic. */}
                     {grailsVisible &&
-                        grailPins.map((pinId) => (
+                        grailPins.map((pin) => (
                             <GrailPill
-                                key={pinId}
-                                id={pinId}
-                                projectTitle={projectTitle}
+                                key={`${pin.slug}:${pin.id}`}
+                                slug={pin.slug}
+                                id={pin.id}
                                 redacted={!!notifs.redactedMode}
-                                onOpen={() => openOutputModal('output', pinId)}
+                                onOpen={() => openOutputModal('output', pin.id, pin.slug)}
                                 onUnpin={() => {
-                                    if (unpinGrail(pinId)) {
+                                    if (unpinGrail(pin.slug, pin.id)) {
+                                        const name =
+                                            getProject(pin.slug)?.displayName ??
+                                            pin.slug.toUpperCase();
                                         const collName =
-                                            projectTitle.charAt(0) +
-                                            projectTitle.slice(1).toLowerCase();
-                                        showToast(`${collName} #${pinId} DE-PINNED`);
+                                            name.charAt(0) + name.slice(1).toLowerCase();
+                                        showToast(`${collName} #${pin.id} DE-PINNED`);
                                     }
                                 }}
                             />
@@ -389,21 +391,24 @@ export function TopBarRow() {
    onOpen handles the body click — same as sim's `onclick = function() {
    openModal(id); }` at sim 12352. */
 interface GrailPillProps {
+    slug: string;
     id: number;
-    projectTitle: string;
     redacted: boolean;
     onOpen: () => void;
     onUnpin: () => void;
 }
 
 function GrailPill({
+    slug,
     id,
-    projectTitle,
     redacted,
     onOpen,
     onUnpin,
 }: GrailPillProps) {
-    const meta = useOutputMeta(id);
+    /* Resolve the pin's OWN project (not the active page's) so the pill always
+       reads the actual pinned Output, e.g. Oracle #7 (Brendon 2026-06-13). */
+    const projectTitle = getProject(slug)?.displayName ?? slug.toUpperCase();
+    const meta = buildOutputMetaFor(slug, id);
     const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : projectTitle;
     const titleShortClass = displayTitle.length <= 8 ? ' short' : '';
     /* Sim 12356 — price renders the numeric portion only ("0.014" not
