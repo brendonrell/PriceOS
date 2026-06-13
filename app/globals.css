@@ -6972,15 +6972,14 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    .output-card tile (so it matches the project-page gallery visually),
    but the track scrolls horizontally (flex nowrap + overflow-x) instead
    of the #gallery wrap. Scales to N rows; one (PRISMS) is wired for now. */
-/* Home sort/filter bar — carries the same 40px page inset as the carousels
-   and uploads (20px on phones) so the pills line up with the rows below
-   instead of hugging the screen edge. */
+/* Home sort/filter bar — now mounted inside the hero (after the tabs), so it
+   inherits the hero's page inset (40px / 20px phones) and the hero-group-2
+   16px rhythm sets its gap from the tabs, matching the project page's trait
+   bar exactly (Brendon, 2026-06-13). No self inset or margin. */
 .home-facet-bar {
-    padding: 0 40px;
-    margin: 2px 0 16px;
-}
-@media (max-width: 600px) {
-    .home-facet-bar { padding: 0 20px; }
+    padding: 0;
+    margin: 0;
+    width: 100%;
 }
 /* Home search row — match the breathing room the project bar gets above its
    search input from the hero column gap (16px). The home facet bar has no

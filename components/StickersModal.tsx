@@ -102,8 +102,6 @@ export default function StickersModal() {
             onClick={(e) => { if (e.target === e.currentTarget) close(); }}
         >
             <div className="sticker-sheet" onClick={(e) => e.stopPropagation()}>
-                <div className="ss-scan" aria-hidden="true" />
-
                 <div
                     className="ss-handle"
                     role="button"

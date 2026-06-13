@@ -25,7 +25,7 @@
  * so the body is wrapped in one here. The trait UI isn't rendered on home.
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
@@ -80,6 +80,15 @@ function fmtUploadDate(ms: number | null): string {
         .toUpperCase();
 }
 
+/* "3:42 PM" — clock time of the upload, shown in place of the redundant
+   "UPLOAD" type label (the New Uploads header already says what these are). */
+function fmtUploadTime(ms: number | null): string {
+    if (ms == null) return '—';
+    return new Date(ms)
+        .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
+        .toUpperCase();
+}
+
 /* One Minting Now carousel — mounted under its own ProjectProvider so the
    cards paint THIS project's engine (same markup as the original single-
    project carousel). totalOutputs is provider-live: a mint advances the row
@@ -126,9 +135,13 @@ function ShuffleGallery({ seed }: { seed: number }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [project.totalOutputs, seed]);
     return (
+        /* Cards lazy-paint through the virtualizer (no eager flag) — only the
+           on-screen screenful paints on arrival, the rest as they scroll in.
+           Forcing all 24 to paint at once was the Shuffle entry lag, worst on
+           heavy projects (Brendon, 2026-06-13). */
         <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
             {ids.map((id) => (
-                <ArtworkCard key={`${seed}-${id}`} id={id} eager />
+                <ArtworkCard key={`${seed}-${id}`} id={id} />
             ))}
         </section>
     );
@@ -345,12 +358,19 @@ export default function HomePageBody({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, feed, mintingKey]);
 
-    /* Shuffle — every ENTRY into the tab surfaces a DIFFERENT random project
-       and a fresh 24 random outputs of it (Brendon, 2026-06-13). No re-roll
-       button: leaving and coming back is the shuffle. */
+    /* Shuffle — each visit surfaces a DIFFERENT random project + a fresh 24
+       random outputs (Brendon, 2026-06-13). The re-roll fires when LEAVING the
+       tab, so the next project is already chosen by the time the user returns —
+       arrival just lazy-paints the pre-decided pick instead of re-rolling AND
+       repainting in the same beat (the entry lag). No re-roll button. */
     const [shuffleSeed, setShuffleSeed] = useState(0);
+    const prevTabRef = useRef<HomeTab>(activeTab);
     useEffect(() => {
-        if (activeTab === 'shuffle') setShuffleSeed((s) => s + 1);
+        const prev = prevTabRef.current;
+        prevTabRef.current = activeTab;
+        if (prev === 'shuffle' && activeTab !== 'shuffle') {
+            setShuffleSeed((s) => s + 1);
+        }
     }, [activeTab]);
     /* Pool of projects that actually have outputs to show (graduated + new). */
     const shufflePool = useMemo(() => {
@@ -487,6 +507,23 @@ export default function HomePageBody({
                     {tab('new', 'New Art')}
                     {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
                 </div>
+
+                {/* Sort/filter bar lives INSIDE the hero (after the tabs) — same
+                    as the project page's trait bar — so the gap from the tabs is
+                    the hero's own 16px rhythm, not the larger below-hero gap it
+                    had as a separate section (Brendon, 2026-06-13). */}
+                {((activeTab === 'minting' && hasMintingBase) ||
+                    (activeTab === 'new' && hasUploadsBase)) && (
+                    <HomeFacetBar
+                        sort={homeSort}
+                        setSort={setHomeSort}
+                        artists={homeArtists}
+                        artist={artistFilter}
+                        setArtist={setArtistFilter}
+                        query={homeQuery}
+                        setQuery={setHomeQuery}
+                    />
+                )}
             </Hero>
 
             {/* Now Minting (default) — just the carousels: one per project
@@ -494,17 +531,6 @@ export default function HomePageBody({
                 the tab is the label. */}
             {activeTab === 'minting' && (
                 <section aria-label="Now Minting">
-                    {hasMintingBase && (
-                        <HomeFacetBar
-                            sort={homeSort}
-                            setSort={setHomeSort}
-                            artists={homeArtists}
-                            artist={artistFilter}
-                            setArtist={setArtistFilter}
-                            query={homeQuery}
-                            setQuery={setHomeQuery}
-                        />
-                    )}
                     {!feed && <div className="home-feed-loading">Loading…</div>}
                     {feed && !hasMintingBase && (
                         <div className="home-empty-note">
@@ -536,17 +562,6 @@ export default function HomePageBody({
                 newest first (a project graduates to Now Minting at 12). */}
             {activeTab === 'new' && (
                 <section className="home-uploads" aria-label="New Uploads">
-                    {hasUploadsBase && (
-                        <HomeFacetBar
-                            sort={homeSort}
-                            setSort={setHomeSort}
-                            artists={homeArtists}
-                            artist={artistFilter}
-                            setArtist={setArtistFilter}
-                            query={homeQuery}
-                            setQuery={setHomeQuery}
-                        />
-                    )}
                     <div className="home-section-head">
                         <span className="home-section-title">New Uploads</span>
                     </div>
@@ -563,7 +578,7 @@ export default function HomePageBody({
                                     <div className="feed-line" />
                                     <div className="f-icon-wrap">✶&#xFE0E;</div>
                                     <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
-                                    <div className="f-type">UPLOAD</div>
+                                    <div className="f-type">{fmtUploadTime(u.uploaded_at)}</div>
                                     <div className="f-content">
                                         <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}

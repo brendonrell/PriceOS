@@ -44,23 +44,6 @@
     transform: translateY(0);
 }
 
-/* Faint terminal scanline — subtle, themed, slow (no glow). */
-.ss-scan {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 1px;
-    background: color-mix(in srgb, var(--text-color) 28%, transparent);
-    opacity: 0.5;
-    pointer-events: none;
-    animation: ssScan 4.2s linear infinite;
-}
-@keyframes ssScan {
-    0% { top: 0; }
-    100% { top: 100%; }
-}
-
 .ss-handle {
     width: 46px;
     height: 5px;
@@ -88,7 +71,7 @@
 .ss-title-sub {
     font-size: 10px;
     letter-spacing: 0.28em;
-    color: color-mix(in srgb, var(--text-color) 45%, transparent);
+    color: color-mix(in srgb, var(--text-color) 72%, transparent);
     margin-top: 2px;
 }
 .ss-stats {
@@ -96,8 +79,9 @@
     display: flex;
     gap: 14px;
     font-size: 11px;
+    font-weight: 600;
     letter-spacing: 0.08em;
-    color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    color: color-mix(in srgb, var(--text-color) 80%, transparent);
 }
 .ss-stat b { color: var(--text-color); }
 .ss-close {
@@ -120,8 +104,9 @@
     display: inline-flex;
     white-space: nowrap;
     font-size: 10px;
+    font-weight: 600;
     letter-spacing: 0.22em;
-    color: color-mix(in srgb, var(--text-color) 42%, transparent);
+    color: color-mix(in srgb, var(--text-color) 68%, transparent);
     padding: 5px 0;
     animation: ssTicker 26s linear infinite;
 }
@@ -182,8 +167,9 @@
     top: 8px;
     right: 8px;
     font-size: 8px;
+    font-weight: 600;
     letter-spacing: 0.18em;
-    color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    color: color-mix(in srgb, var(--text-color) 78%, transparent);
     border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
     border-radius: 3px;
     padding: 2px 4px;
@@ -200,11 +186,12 @@
     display: flex;
     justify-content: space-between;
     font-size: 9px;
+    font-weight: 600;
     letter-spacing: 0.05em;
-    color: color-mix(in srgb, var(--text-color) 50%, transparent);
+    color: color-mix(in srgb, var(--text-color) 78%, transparent);
     margin: 4px 0 9px;
 }
-.ss-card-tag { color: color-mix(in srgb, var(--text-color) 72%, transparent); }
+.ss-card-tag { color: var(--text-color); }
 
 /* Buy chip — the app's pill idiom: bordered, inverts on hover. */
 .ss-buy {
@@ -241,7 +228,7 @@
     text-align: center;
     font-size: 10px;
     letter-spacing: 0.08em;
-    color: color-mix(in srgb, var(--text-color) 42%, transparent);
+    color: color-mix(in srgb, var(--text-color) 65%, transparent);
     padding: 8px 18px 0;
 }
 
