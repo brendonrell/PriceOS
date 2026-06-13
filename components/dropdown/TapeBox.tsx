@@ -153,7 +153,12 @@ export function TapeBox() {
             }
         >
             {items.length === 0 ? (
-                <div className="notif-item" style={{ opacity: 0.6 }}>No activity yet.</div>
+                Array.from({ length: 6 }, (_, i) => (
+                    <div className="notif-item ghost-feed-row" key={`g-${i}`} aria-hidden="true">
+                        <span className="n-icon">{['✶', '✹', '✦', '✸', '✶', '✹'][i % 6]}&#xFE0E;</span>{' '}
+                        <span className="ghost-feed-bar ghost-feed-bar-content" />
+                    </div>
+                ))
             ) : (
                 items.map((item, i) => <BodyItem key={i} item={item} />)
             )}

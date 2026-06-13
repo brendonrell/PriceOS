@@ -30,6 +30,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
+import { GhostFeedRows } from '../GhostFeed';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -426,12 +427,8 @@ export default function HomePageBody({
                     <div className="home-section-head">
                         <span className="home-section-title">New Uploads</span>
                     </div>
-                    {!feed && <div className="home-feed-loading">Loading…</div>}
-                    {feed && uploads.length === 0 && (
-                        <div className="home-empty-note">No uploads yet.</div>
-                    )}
                     <div className="feed-list">
-                        {uploads.map((u) => {
+                        {uploads.length === 0 ? <GhostFeedRows /> : uploads.map((u) => {
                             const def = getProject(u.slug);
                             const title = def?.displayName ?? u.title;
                             return (

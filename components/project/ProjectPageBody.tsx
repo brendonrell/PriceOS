@@ -69,6 +69,7 @@ import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import type { EventRow } from '../../lib/supabase';
+import { GhostFeedRows } from '../GhostFeed';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -1169,10 +1170,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 style={{ display: feedVisible ? 'block' : 'none' }}
             >
                 <div className="feed-list" id="feedList">
-                    {feedVisible && sortedFeedEvents.length === 0 && (
-                        <div className="home-empty-note">No activity yet.</div>
-                    )}
-                    {sortedFeedEvents.map((e) => (
+                    {sortedFeedEvents.length === 0 ? (
+                        <GhostFeedRows />
+                    ) : sortedFeedEvents.map((e) => (
                         <div className="feed-row" key={e.id}>
                             <div className="feed-line" />
                             <div className="f-icon-wrap">
