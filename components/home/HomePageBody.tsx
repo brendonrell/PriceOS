@@ -37,12 +37,11 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
+import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
 const CAROUSEL_SIZE = 12;
-/* Projects shown on home (Brendon: ~30). Caps the Minting Now carousels. */
-const MAX_HOME_PROJECTS = 30;
 /* Tiles in the Shuffle grid. */
 const SHUFFLE_SIZE = 12;
 
@@ -184,9 +183,74 @@ export default function HomePageBody({
         };
     }, []);
 
-    const uploads = feed?.uploads ?? [];
-    const mintingNow = (feed?.minting_now ?? []).slice(0, MAX_HOME_PROJECTS);
     const stats = feed?.stats ?? null;
+
+    /* Sort / filter / search for the home project feeds (Brendon, 2026-06-13).
+       Now Minting pours in EVERY graduated project (the old 30-cap is gone),
+       so it carries the same controls as a project's Artworks tab — Newest /
+       Oldest / A–Z, an Artist filter, and search. The same state drives the
+       New Art feed so the two project lists behave alike. */
+    const [homeSort, setHomeSort] = useState<HomeSort>('newest');
+    const [artistFilter, setArtistFilter] = useState<string | null>(null);
+    const [homeQuery, setHomeQuery] = useState('');
+
+    const artistOf = (slug: string): string | null =>
+        getProject(slug)?.artistHandle ?? null;
+
+    /* Artist pool — only the handles actually present across the live feeds,
+       so the filter never offers an artist with nothing behind it. */
+    const homeArtists = useMemo(() => {
+        const s = new Set<string>();
+        for (const m of feed?.minting_now ?? []) {
+            const a = artistOf(m.slug);
+            if (a) s.add(a);
+        }
+        for (const u of feed?.uploads ?? []) {
+            const a = artistOf(u.slug);
+            if (a) s.add(a);
+        }
+        return [...s].sort((a, b) => a.localeCompare(b));
+    }, [feed]);
+
+    const matches = (slug: string, title: string): boolean => {
+        if (artistFilter && artistOf(slug) !== artistFilter) return false;
+        const q = homeQuery.trim().toLowerCase();
+        if (!q) return true;
+        const a = (artistOf(slug) ?? '').toLowerCase();
+        return title.toLowerCase().includes(q) || a.includes(q);
+    };
+
+    /* Graduated projects, filtered + ordered. Newest = most-recently reached
+       12 mints first (default); Oldest = the reverse; A–Z = by title. */
+    const mintingView = useMemo(() => {
+        const rows = (feed?.minting_now ?? []).filter((m) => matches(m.slug, m.title));
+        return [...rows].sort((a, b) => {
+            if (homeSort === 'az') return a.title.localeCompare(b.title);
+            const av = a.reached_at ?? 0;
+            const bv = b.reached_at ?? 0;
+            return homeSort === 'newest' ? bv - av : av - bv;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feed, homeSort, artistFilter, homeQuery]);
+
+    /* New uploads, same filters; Newest/Oldest order by upload moment. */
+    const uploadsView = useMemo(() => {
+        const rows = (feed?.uploads ?? []).filter((u) => matches(u.slug, u.title));
+        return [...rows].sort((a, b) => {
+            if (homeSort === 'az') return a.title.localeCompare(b.title);
+            const av = a.uploaded_at ?? 0;
+            const bv = b.uploaded_at ?? 0;
+            return homeSort === 'newest' ? bv - av : av - bv;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feed, homeSort, artistFilter, homeQuery]);
+
+    /* Stable signature of the rendered carousel order — re-binds the
+       drag-to-scroll handlers when filtering/sorting changes the row set. */
+    const mintingKey = mintingView.map((m) => m.slug).join(',');
+
+    const hasMintingBase = (feed?.minting_now?.length ?? 0) > 0;
+    const hasUploadsBase = (feed?.uploads?.length ?? 0) > 0;
 
     /* Featuring — REAL artists (Brendon, 2026-06-12): two sprite+name chips
        from the registry roster + "& X others". The pair randomizes ONCE per
@@ -252,7 +316,9 @@ export default function HomePageBody({
             };
         });
         return () => cleanups.forEach((c) => c());
-    }, [activeTab, feed]);
+        // mintingKey re-binds when sort/filter changes the rendered row set.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, feed, mintingKey]);
 
     /* Shuffle — a random sample of output ids. No re-roll button (Brendon,
        2026-06-12): every ENTRY into the tab re-shuffles, so leaving and
@@ -398,17 +464,33 @@ export default function HomePageBody({
                 the tab is the label. */}
             {activeTab === 'minting' && (
                 <section aria-label="Now Minting">
+                    {hasMintingBase && (
+                        <HomeFacetBar
+                            sort={homeSort}
+                            setSort={setHomeSort}
+                            artists={homeArtists}
+                            artist={artistFilter}
+                            setArtist={setArtistFilter}
+                            query={homeQuery}
+                            setQuery={setHomeQuery}
+                        />
+                    )}
                     {!feed && <div className="home-feed-loading">Loading…</div>}
-                    {feed && mintingNow.length === 0 && (
+                    {feed && !hasMintingBase && (
                         <div className="home-empty-note">
                             Projects land here at 12 mints — none yet.
                         </div>
                     )}
+                    {feed && hasMintingBase && mintingView.length === 0 && (
+                        <div className="home-empty-note">
+                            No projects match — clear the filters to see them all.
+                        </div>
+                    )}
                     {/* Only the first carousel paints eagerly; every other
                         row lazy-paints through the card virtualizer as it
-                        scrolls into view. Painting all ~30×12 canvases up
-                        front is what made home crawl (Brendon, 2026-06-13). */}
-                    {mintingNow.map((m, i) => (
+                        scrolls into view. Painting every project's 12 canvases
+                        up front is what made home crawl (Brendon, 2026-06-13). */}
+                    {mintingView.map((m, i) => (
                         <ProjectProvider
                             key={m.slug}
                             slug={m.slug}
@@ -424,11 +506,26 @@ export default function HomePageBody({
                 newest first (a project graduates to Now Minting at 12). */}
             {activeTab === 'new' && (
                 <section className="home-uploads" aria-label="New Uploads">
+                    {hasUploadsBase && (
+                        <HomeFacetBar
+                            sort={homeSort}
+                            setSort={setHomeSort}
+                            artists={homeArtists}
+                            artist={artistFilter}
+                            setArtist={setArtistFilter}
+                            query={homeQuery}
+                            setQuery={setHomeQuery}
+                        />
+                    )}
                     <div className="home-section-head">
                         <span className="home-section-title">New Uploads</span>
                     </div>
                     <div className="feed-list">
-                        {uploads.length === 0 ? <GhostFeedRows /> : uploads.map((u) => {
+                        {!hasUploadsBase ? <GhostFeedRows /> : uploadsView.length === 0 ? (
+                            <div className="home-empty-note">
+                                No uploads match — clear the filters to see them all.
+                            </div>
+                        ) : uploadsView.map((u) => {
                             const def = getProject(u.slug);
                             const title = def?.displayName ?? u.title;
                             return (

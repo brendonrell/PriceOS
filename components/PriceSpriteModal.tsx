@@ -99,6 +99,90 @@ const ACHIEVEMENTS: readonly Achievement[] = [
 ];
 const ACH_TOTAL_PTS = ACHIEVEMENTS.reduce((sum, a) => sum + a.pts, 0);
 
+/* Identity Plate export — composes the wallet's identity surfaces into a
+   single downloadable PNG, generated client-side at export time (no file is
+   stored; consistent with PD's media-storage avoidance). The card carries the
+   surfaces that actually exist on PD today — the PriceSprite portrait, the
+   PriceRank medallion, and the wallet's name — painted onto the live colorway.
+   Returns false if the browser can't give us a canvas. */
+function downloadIdentityPlate(opts: {
+    face: string;
+    name: string;
+    rankGlyph: string;
+}): boolean {
+    if (typeof document === 'undefined') return false;
+    const root = getComputedStyle(document.documentElement);
+    const bg = root.getPropertyValue('--bg-color').trim() || '#111111';
+    const fg = root.getPropertyValue('--text-color').trim() || '#e0e0e0';
+
+    const W = 600;
+    const H = 360;
+    const dpr = Math.min(3, Math.max(2, Math.round(window.devicePixelRatio || 2)));
+    const canvas = document.createElement('canvas');
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+    ctx.scale(dpr, dpr);
+
+    const mono = "'Courier New', Courier, monospace";
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Frame.
+    ctx.strokeStyle = fg;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(18, 18, W - 36, H - 36);
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = fg;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    // Header.
+    ctx.font = `bold 14px ${mono}`;
+    ctx.globalAlpha = 0.7;
+    ctx.fillText('P R I C E   D I S C U S S I O N', W / 2, 58);
+    ctx.globalAlpha = 1;
+
+    // PriceSprite portrait.
+    ctx.font = `bold 60px ${mono}`;
+    ctx.fillText(opts.face, W / 2, 178);
+
+    // PriceRank medallion.
+    ctx.font = `30px ${mono}`;
+    ctx.fillText(opts.rankGlyph, W / 2, 232);
+    ctx.font = `bold 11px ${mono}`;
+    ctx.globalAlpha = 0.6;
+    ctx.fillText('PRICERANK', W / 2, 252);
+    ctx.globalAlpha = 1;
+
+    // Wallet name.
+    ctx.font = `bold 18px ${mono}`;
+    ctx.fillText(opts.name, W / 2, 300);
+
+    // Footer mark.
+    ctx.font = `11px ${mono}`;
+    ctx.globalAlpha = 0.5;
+    ctx.fillText('identity plate', W / 2, 326);
+    ctx.globalAlpha = 1;
+
+    canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `priceos-identity${opts.name.startsWith('@') ? '-' + opts.name.slice(1) : ''}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+    return true;
+}
+
 /* Counts a numeric string up from 0 on open — decimals preserved
    ('4.22' animates as 0.00 → 4.22). Snaps straight to the target when
    the value isn't numeric or the user prefers reduced motion. */
@@ -135,7 +219,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const { priceRank } = useAuth();
+    const { priceRank, handle, siweAddress } = useAuth();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
@@ -316,17 +400,29 @@ export default function PriceSpriteModal() {
                     ))}
                 </div>
 
-                {/* Identity Plate Export — placeholder toast, sim 4353. */}
+                {/* Identity Plate Export — composes the live PriceSprite +
+                    PriceRank + wallet name into a downloadable PNG on the
+                    current colorway (real export; was a placeholder toast). */}
                 <div className="ps-action-row ps-reveal ps-d7">
                     <button
                         className="ps-action-btn"
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
-                            showToast('Identity Plate Export: COMING SOON');
+                            const name = handle
+                                ? `@${handle}`
+                                : siweAddress
+                                  ? `${siweAddress.slice(0, 6)}…${siweAddress.slice(-4)}`
+                                  : 'anon';
+                            const rankGlyph =
+                                priceRank <= 0
+                                    ? '⓿'
+                                    : String.fromCodePoint(0x2775 + Math.min(priceRank, 10));
+                            const ok = downloadIdentityPlate({ face: frame.face, name, rankGlyph });
+                            showToast(ok ? 'Identity Plate: SAVED' : 'Identity Plate: EXPORT FAILED');
                         }}
                     >
-                        <span className="ps-action-icon">{`⍈${VS15}`}</span>{' '}
+                        <span className="ps-action-icon">{`⍈${VS15}`}</span>
                         EXPORT IDENTITY PLATE
                     </button>
                 </div>
