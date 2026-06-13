@@ -145,17 +145,26 @@ export const REFUNDS_ASPECTS = [0.42, 0.3, 0.6] as const;
 /* ── Elevations ─────────────────────────────────────────────────────────── */
 const WINDOW: Record<string, string> = {
   '2pane': 'Two-Pane', arch: 'Arched', grid4: 'Four-Grid', strip: 'Strip',
+  ribbon: 'Ribbon', oriel: 'Oriel',
+};
+const SHEET: Record<string, string> = {
+  ink: 'Ink', blueprint: 'Blueprint', day: 'Daylight', dusk: 'Dusk', night: 'Nocturne',
+};
+const ROOF: Record<string, string> = {
+  tank: 'Water Tank', antenna: 'Antenna', bulkhead: 'Bulkhead',
+  parapet: 'Parapet', skylight: 'Skylight',
 };
 export const elevationsTraits: TraitsFn = (id) => {
   const c = C.castFacade(id);
   const storeys = c.floors <= 5 ? 'Low' : c.floors <= 8 ? 'Mid' : 'High';
-  return { Sheet: c.mode === 'ink' ? 'Ink' : 'Blueprint', Storeys: storeys, Window: WINDOW[c.style] };
+  return { Sheet: SHEET[c.mode], Storeys: storeys, Window: WINDOW[c.style], Roof: ROOF[c.roof] };
 };
 export const elevationsSchema: TraitSchema = {
   traits: [
-    { name: 'Sheet', values: ['Ink', 'Blueprint'] },
+    { name: 'Sheet', values: ['Ink', 'Blueprint', 'Daylight', 'Dusk', 'Nocturne'] },
     { name: 'Storeys', values: ['Low', 'Mid', 'High'] },
-    { name: 'Window', values: ['Two-Pane', 'Arched', 'Four-Grid', 'Strip'] },
+    { name: 'Window', values: ['Two-Pane', 'Arched', 'Four-Grid', 'Strip', 'Ribbon', 'Oriel'] },
+    { name: 'Roof', values: ['Water Tank', 'Antenna', 'Bulkhead', 'Parapet', 'Skylight'] },
   ],
 };
 export const renderElevations = blit(C.facade, elevationsTraits);

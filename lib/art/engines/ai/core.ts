@@ -23,6 +23,10 @@ function shade(col,amt){const v=parseInt(col.slice(1),16);let R=(v>>16)+amt,G=((
   return 'rgb('+R+','+G+','+B+')';}
 /* deterministic paper mottle */
 function paperNoise(x,r,W,H,dark,n){for(let i=0;i<n;i++){x.fillStyle='rgba('+dark+','+(r()*0.03)+')';x.fillRect(r()*W,r()*H,1.5,1.5);}}
+/* Shrink a font until `text` fits `maxW` (down to 55% of base), keeping every
+   character. `make(px)` builds the full font string. Pure (no rng draws), so it
+   never shifts an engine's deterministic stream. Sets and returns the fitted font. */
+function fitText(x,text,maxW,make,basePx){let px=basePx;x.font=make(px);const floor=Math.max(8,Math.round(basePx*0.55));while(px>floor&&x.measureText(text).width>maxW){px-=1;x.font=make(px);}return px;}
 /* ============ the original 8, colour-cranked + higher variance ============ */
 
 /* 3. PLAT — surveys with zoning washes + coloured papers */
@@ -2099,28 +2103,47 @@ function avalanche(cv,seed){
 }
 /* ============ reworked engines: facade, pyro, pennant, fortyfive ============ */
 
-/* FACADE — "Lights On, Nobody Home" (draft drawings AND coloured elevations) */
+/* FACADE — "Elevations": architectural elevation sheets. Ink + blueprint
+   drafts are the backbone. Blueprint carries a full drafting apparatus —
+   sheet border, column grid, dimension strings, detail callout, north arrow,
+   scale bar and a title block. Day/dusk/night coloured renderings are SUPER
+   RARE (~4%). Trait-bearing draws come first, mirrored exactly by castFacade. */
 function facade(cv,seed){
   const r=rng(seed);
   const bays=rint(r,3,8), floors=rint(r,4,11);
-  const bayW=118, flH=92, M=110;
+  const rare= r()<0.04;
+  const mode= rare ? ['day','dusk','night'][Math.floor(r()*3)] : (r()<0.5?'ink':'blueprint');
+  const style=pick(['2pane','arch','grid4','strip','ribbon','oriel'],r);
+  const roof=pick(['tank','antenna','bulkhead','parapet','skylight'],r);
+  // —— end trait draws; everything below draws freely ——
+  const draft= mode==='ink'||mode==='blueprint';
+  const blue= mode==='blueprint';
+  const bayW=118, flH=92;
+  const Mx= blue?176:120, Mtop= draft?150:120, Mbot= blue?252:150;
   const BW=bays*bayW, BH=floors*flH;
-  const W=BW+2*M, H=BH+260;
+  const W=BW+2*Mx, H=BH+Mtop+Mbot;
   cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
-  const mode=pick(['ink','ink','blueprint'],r);
-  const draft= mode==='ink'||mode==='blueprint';
   const sky= mode==='ink'?'#f7f4ec'
-           : mode==='blueprint'?'#16365e'
+           : blue?'#15355c'
            : mode==='day'?pick(['#6ecbe8','#8fd8f0','#3aa8d8'],r)
            : mode==='dusk'?pick(['#ff9a3d','#ff6e50','#e8a83a'],r)
            : pick(['#141a4d','#1a0f3a','#0c1430'],r);
   const body=pick(['#d96a3b','#e0a818','#1f8a8a','#e84e5e','#2b4bd8','#8a2bb8','#c83264','#3a9c4a'],r);
-  const inkc= mode==='blueprint'?'#dfe9f5': mode==='night'?'#0a0a14': mode==='ink'?'#2b2b33':'#22222e';
+  const inkc= blue?'#dfe9f5': mode==='night'?'#0a0a14': mode==='ink'?'#2b2b33':'#22222e';
+  const grid= blue?'rgba(150,195,240,0.15)':'rgba(120,100,70,0.10)';
+  const accent= blue?'#7fd4ff':'#b8452e';
   const lit='#ffd96b';
   x.fillStyle=sky; x.fillRect(0,0,W,H);
+  const gx=Mx, gy=Mtop;
+  // ---- background per mode ----
   if(draft){
-    paperNoise(x,r,W,H, mode==='blueprint'?'255,255,255':'60,60,80',700);
+    paperNoise(x,r,W,H, blue?'180,210,245':'60,60,80',600);
+    x.strokeStyle=grid; x.lineWidth=1;
+    for(let v=18;v<W-18;v+=46){x.beginPath();x.moveTo(v,18);x.lineTo(v,H-18);x.stroke();}
+    for(let hh=18;hh<H-18;hh+=46){x.beginPath();x.moveTo(18,hh);x.lineTo(W-18,hh);x.stroke();}
+    x.strokeStyle=inkc; x.lineWidth=2.4; x.strokeRect(16,16,W-32,H-32);
+    x.lineWidth=1; x.strokeRect(24,24,W-48,H-48);
   } else if(mode==='night'){
     x.fillStyle='#fff';
     for(let i=0;i<90;i++){x.globalAlpha=0.3+r()*0.6;x.fillRect(r()*W,r()*(H-200),1.6,1.6);}
@@ -2134,37 +2157,71 @@ function facade(cv,seed){
   } else {
     x.beginPath();x.arc(W*(0.2+r()*0.6),120,38,0,6.29);x.fillStyle='#fff0b8';x.fill();
   }
-  const gx=M, gy=H-140-BH;
+  // ---- blueprint column grid (behind building) ----
+  if(blue){
+    x.strokeStyle='rgba(150,195,240,0.28)'; x.lineWidth=1; x.setLineDash([3,6]);
+    for(let b=0;b<=bays;b++){const cxg=gx+b*bayW;x.beginPath();x.moveTo(cxg,gy-40);x.lineTo(cxg,gy+BH+30);x.stroke();}
+    x.setLineDash([]);
+  }
+  // ---- building body (coloured only) ----
   if(!draft){
     x.fillStyle= mode==='night'?shade(body,-70):body;
     x.fillRect(gx,gy,BW,BH);
     x.fillStyle='rgba(0,0,0,0.16)'; x.fillRect(gx+BW*0.72,gy,BW*0.28,BH);
   }
-  x.strokeStyle=inkc;
-  x.lineWidth=2.2; x.strokeRect(gx,gy,BW,BH);
-  x.lineWidth=1;
+  x.strokeStyle=inkc; x.lineWidth=2.2; x.strokeRect(gx,gy,BW,BH); x.lineWidth=1;
+  // cornice / string courses
   if(!draft) x.fillStyle= mode==='night'?shade(body,-50):shade(body,30);
   for(let i=1;i<=3;i++){
     if(!draft) x.fillRect(gx-6*i,gy-7*i,BW+12*i,7);
     x.strokeRect(gx-6*i,gy-7*i,BW+12*i,7);
   }
-  for(let f=1;f<floors;f++){x.lineWidth=0.8;x.beginPath();x.moveTo(gx,gy+f*flH);x.lineTo(gx+BW,gy+f*flH);x.stroke();}
-  const style=pick(['2pane','arch','grid4','strip'],r);
+  // floor lines + a slim string course halfway up (added depth)
+  for(let f=1;f<floors;f++){
+    x.lineWidth= (f===Math.floor(floors/2))?1.6:0.8;
+    x.beginPath();x.moveTo(gx,gy+f*flH);x.lineTo(gx+BW,gy+f*flH);x.stroke();
+  }
+  x.lineWidth=1;
   const doorBay=rint(r,0,bays-1);
   const oddF=rint(r,1,Math.max(1,floors-2)), oddB=rint(r,0,bays-1);
   const glass= mode==='night' ? null : (mode==='dusk'?'#7a3a4a':'#1d3a5e');
+  // window painter shared by all draft + coloured modes
+  function paneFill(){ return draft? null : (mode==='night' ? (Math.random()<0?lit:'#10101e') : glass); }
   for(let f=0;f<floors;f++){
+    // ribbon: one continuous band per floor (skip per-bay panes, except ground)
+    if(style==='ribbon' && f!==floors-1){
+      const wy=gy+f*flH+20, wh=flH-40, rxA=gx+10, rxB=gx+BW-10;
+      const fc= draft? null : (mode==='night'?'#10101e':glass);
+      if(fc){x.fillStyle=fc;x.fillRect(rxA,wy,rxB-rxA,wh);}
+      x.lineWidth=1.2; x.strokeRect(rxA,wy,rxB-rxA,wh);
+      for(let b=0;b<=bays;b++){const mxx=gx+b*bayW; if(mxx<=rxA||mxx>=rxB)continue;
+        if(mode==='night'&&r()<0.5){x.fillStyle=lit;x.fillRect(Math.max(rxA,mxx-bayW/2+10),wy+1,bayW-20,wh-2);}
+        x.beginPath();x.moveTo(mxx,wy);x.lineTo(mxx,wy+wh);x.stroke();}
+      continue;
+    }
     for(let b=0;b<bays;b++){
       const ground=f===floors-1;
       let wx=gx+b*bayW+26, wy=gy+f*flH+18, ww=bayW-52, wh=flH-38;
       if(f===oddF&&b===oddB) wy+=flH*0.45;
       x.lineWidth=1.2;
-      if(ground&&b===doorBay){
-        const dx=gx+b*bayW+bayW/2;
-        if(!draft){x.fillStyle=inkc; x.fillRect(dx-26,gy+BH-72,52,72);}
-        x.strokeRect(dx-26,gy+BH-72,52,72);
-        if(draft){x.beginPath();x.moveTo(dx,gy+BH-72);x.lineTo(dx,gy+BH);x.stroke();}
-        for(let t=0;t<3;t++) x.strokeRect(dx-34-t*6,gy+BH+t*7,68+t*12,7);
+      // ---- ground floor: storefront / arcade / entrance ----
+      if(ground){
+        const cxb=gx+b*bayW+bayW/2;
+        if(b===doorBay){
+          if(!draft){x.fillStyle=inkc; x.fillRect(cxb-26,gy+BH-72,52,72);}
+          x.strokeRect(cxb-26,gy+BH-72,52,72);
+          if(draft){x.beginPath();x.moveTo(cxb,gy+BH-72);x.lineTo(cxb,gy+BH);x.stroke();}
+          for(let t=0;t<3;t++) x.strokeRect(cxb-34-t*6,gy+BH+t*7,68+t*12,7);
+          continue;
+        }
+        // shopfront glazing
+        const sfx=gx+b*bayW+12, sfw=bayW-24, sfy=gy+BH-flH+22, sfh=flH-40;
+        const fc= draft? null : (mode==='night'?(r()<0.5?lit:'#10101e'):'#0f2a44');
+        if(fc){x.fillStyle=fc;x.fillRect(sfx,sfy,sfw,sfh);}
+        x.strokeRect(sfx,sfy,sfw,sfh);
+        x.beginPath();x.moveTo(sfx,sfy+sfh*0.62);x.lineTo(sfx+sfw,sfy+sfh*0.62);x.stroke();
+        // signage band
+        x.lineWidth=0.8; x.strokeRect(sfx,gy+BH-flH+8,sfw,12);
         continue;
       }
       const isLit= mode==='night' && r()<0.55;
@@ -2180,6 +2237,13 @@ function facade(cv,seed){
       } else if(style==='strip'){
         if(fillCol)x.fillRect(gx+b*bayW+10,wy+8,bayW-20,wh-16);
         x.strokeRect(gx+b*bayW+10,wy+8,bayW-20,wh-16);
+      } else if(style==='oriel'){
+        // projecting bay window: trapezoid box with little sloped sill
+        const ox=wx-6, ow=ww+12;
+        if(fillCol)x.fillRect(ox,wy,ow,wh);
+        x.strokeRect(ox,wy,ow,wh);
+        x.beginPath();x.moveTo(ox,wy+wh);x.lineTo(ox-7,wy+wh+10);x.lineTo(ox+ow+7,wy+wh+10);x.lineTo(ox+ow,wy+wh);x.stroke();
+        x.beginPath();x.moveTo(ox+ow/3,wy);x.lineTo(ox+ow/3,wy+wh);x.moveTo(ox+2*ow/3,wy);x.lineTo(ox+2*ow/3,wy+wh);x.stroke();
       } else {
         if(fillCol)x.fillRect(wx,wy,ww,wh);
         x.strokeRect(wx,wy,ww,wh);
@@ -2187,10 +2251,13 @@ function facade(cv,seed){
         if(style==='grid4'){x.moveTo(wx,wy+wh/2);x.lineTo(wx+ww,wy+wh/2);}
         else {x.moveTo(wx,wy+wh*0.6);x.lineTo(wx+ww,wy+wh*0.6);}
         x.stroke();
+        // sill ticks under non-arch windows (drafting detail)
+        if(blue){x.lineWidth=0.8;x.beginPath();x.moveTo(wx-4,wy+wh+3);x.lineTo(wx+ww+4,wy+wh+3);x.stroke();x.lineWidth=1.2;}
       }
       x.lineWidth=0.8; x.beginPath();x.moveTo(wx-6,wy+wh+4);x.lineTo(wx+ww+6,wy+wh+4);x.stroke();
     }
   }
+  // ---- awnings (coloured) ----
   if(!draft){
     const awn=pick(['#e8e2d0',shade(body,60),'#d61a3c','#1d4fb8'],r);
     for(let b=0;b<bays;b++){
@@ -2206,13 +2273,14 @@ function facade(cv,seed){
       }
     }
   }
+  // ---- fire escape (kept) ----
   if(r()<0.7){
     const f=rint(r,1,Math.max(1,floors-3)), b=rint(r,0,bays-1);
     const dx=gx+b*bayW+bayW/2, dy=gy+f*flH;
     x.lineWidth=1.4; x.strokeStyle=inkc; x.strokeRect(dx-20,dy+flH-66,40,48);
     for(let t=0;t<4;t++) x.strokeRect(dx-26+t*4,dy+flH-18+t*5,52-t*8,5);
   }
-  const roof=pick(['tank','antenna','bulkhead'],r);
+  // ---- roof structure (5 types) ----
   const rx=gx+BW*(0.2+r()*0.6);
   x.lineWidth=1.4; x.strokeStyle=inkc;
   if(!draft) x.fillStyle=shade(body,-30);
@@ -2225,31 +2293,92 @@ function facade(cv,seed){
   } else if(roof==='antenna'){
     x.beginPath();x.moveTo(rx,gy-21);x.lineTo(rx,gy-110);x.stroke();
     for(let t=1;t<4;t++){x.beginPath();x.moveTo(rx-14+t*3,gy-30-t*22);x.lineTo(rx+14-t*3,gy-30-t*22);x.stroke();}
+  } else if(roof==='parapet'){
+    // raised capped parapet wall with crenel gaps
+    if(!draft)x.fillRect(gx-4,gy-30,BW+8,30);
+    x.strokeRect(gx-4,gy-30,BW+8,30);
+    for(let t=gx+10;t<gx+BW-10;t+=46){x.strokeRect(t,gy-44,22,16);}
+    x.beginPath();x.moveTo(gx-10,gy-30);x.lineTo(gx+BW+10,gy-30);x.stroke();
+  } else if(roof==='skylight'){
+    // sawtooth north-light roof
+    const n=Math.max(3,Math.floor(BW/120));
+    for(let t=0;t<n;t++){const sxk=gx+12+t*(BW-24)/n, sw=(BW-24)/n;
+      x.beginPath();x.moveTo(sxk,gy-6);x.lineTo(sxk,gy-46);x.lineTo(sxk+sw*0.7,gy-18);x.lineTo(sxk+sw*0.7,gy-6);x.stroke();
+      if(!draft){x.fillStyle='rgba(180,220,255,0.5)';x.beginPath();x.moveTo(sxk,gy-46);x.lineTo(sxk,gy-8);x.lineTo(sxk+10,gy-12);x.lineTo(sxk+10,gy-42);x.closePath();x.fill();}}
   } else {
     if(!draft)x.fillRect(rx-34,gy-62,68,41);
     x.strokeRect(rx-34,gy-62,68,41);
   }
+  // ---- ground + apparatus ----
   if(draft){
-    // ground line + hatch + dimension line, like a real sheet
-    x.lineWidth=2.4; x.beginPath();x.moveTo(M*0.4,gy+BH);x.lineTo(W-M*0.4,gy+BH);x.stroke();
+    x.strokeStyle=inkc;
+    x.lineWidth=2.4; x.beginPath();x.moveTo(Mx*0.4,gy+BH);x.lineTo(W-Mx*0.4,gy+BH);x.stroke();
     x.lineWidth=0.8;
-    for(let t=M*0.4;t<W-M*0.4;t+=14){x.beginPath();x.moveTo(t,gy+BH);x.lineTo(t-10,gy+BH+12);x.stroke();}
+    for(let t=Mx*0.4;t<W-Mx*0.4;t+=14){x.beginPath();x.moveTo(t,gy+BH);x.lineTo(t-10,gy+BH+12);x.stroke();}
+    // left vertical dimension string
     const dlx=gx-44;
-    x.beginPath();x.moveTo(dlx,gy);x.lineTo(dlx,gy+BH);x.stroke();
+    x.lineWidth=1; x.beginPath();x.moveTo(dlx,gy);x.lineTo(dlx,gy+BH);x.stroke();
     for(let f=0;f<=floors;f++){x.beginPath();x.moveTo(dlx-6,gy+f*flH);x.lineTo(dlx+6,gy+f*flH);x.stroke();}
     x.fillStyle=inkc; x.font='14px "Courier New",monospace'; x.textAlign='center';
     x.save();x.translate(dlx-18,gy+BH/2);x.rotate(-Math.PI/2);
     x.fillText((floors*3.1).toFixed(1)+' M',0,0);x.restore();
+    if(blue){
+      // top horizontal dimension string
+      const dty=gy-46;
+      x.beginPath();x.moveTo(gx,dty);x.lineTo(gx+BW,dty);x.stroke();
+      for(let b=0;b<=bays;b++){const cxg=gx+b*bayW;x.beginPath();x.moveTo(cxg,dty-6);x.lineTo(cxg,dty+6);x.stroke();}
+      x.font='12px "Courier New",monospace';
+      for(let b=0;b<bays;b++){x.fillText('3.6',gx+b*bayW+bayW/2,dty-8);}
+      // column bubbles
+      for(let b=0;b<bays;b++){const cxg=gx+b*bayW+bayW/2, cby=gy-72;
+        x.beginPath();x.arc(cxg,cby,13,0,6.29);x.stroke();
+        x.fillText(String(b+1),cxg,cby+4);}
+      // detail callout bubble on a window
+      const cf=rint(r,1,Math.max(1,floors-2)), cb2=rint(r,0,bays-1);
+      const cxp=gx+cb2*bayW+bayW/2, cyp=gy+cf*flH+flH/2;
+      x.beginPath();x.arc(cxp,cyp,22,0,6.29);x.stroke();
+      x.beginPath();x.moveTo(cxp+16,cyp-15);x.lineTo(cxp+70,cyp-46);x.stroke();
+      x.font='bold 12px "Courier New",monospace';
+      x.beginPath();x.moveTo(cxp,cyp-22);x.lineTo(cxp,cyp+22);x.stroke();
+      x.fillText(String(rint(r,1,9)),cxp,cyp-6);x.fillText('A-3'+rint(r,11,99),cxp,cyp+16);
+      // north arrow + graphic scale bar (bottom-left)
+      const nax=46, nay=H-150;
+      x.beginPath();x.moveTo(nax,nay+26);x.lineTo(nax,nay-14);x.stroke();
+      x.beginPath();x.moveTo(nax-8,nay-2);x.lineTo(nax,nay-14);x.lineTo(nax+8,nay-2);x.stroke();
+      x.font='bold 13px "Courier New",monospace';x.fillText('N',nax,nay-20);
+      const sbx=34, sby=H-96, seg=26;
+      for(let s=0;s<4;s++){x.fillStyle= s%2?sky:inkc; x.fillRect(sbx+s*seg,sby,seg,8); x.strokeRect(sbx+s*seg,sby,seg,8);}
+      x.fillStyle=inkc; x.font='11px "Courier New",monospace'; x.textAlign='left';
+      x.fillText('0',sbx-2,sby+22); x.fillText('20M',sbx+4*seg-14,sby+22);
+      // title block (bottom-right)
+      const PROJECTS=['MERIDIAN BLOCK','SALT WHARF LOFTS','PALE GATE COURT','LONG NOW TOWER','VESPER ARCADE','SOUTH REACH WORKS','LYRIC TERRACE','THE HONEST WEIGHTS'];
+      const DRAWINGS=['FRONT ELEVATION','SIDE ELEVATION','STREET ELEVATION','REAR ELEVATION','NORTH ELEVATION','PARTY-WALL ELEVATION'];
+      const tbW=Math.min(326,BW*0.7), tbH=104, tbx=W-30-tbW, tby=H-30-tbH;
+      x.fillStyle='rgba(8,26,48,0.55)'; x.fillRect(tbx,tby,tbW,tbH);
+      x.strokeStyle=inkc; x.lineWidth=1.6; x.strokeRect(tbx,tby,tbW,tbH); x.lineWidth=0.8;
+      x.beginPath();x.moveTo(tbx,tby+tbH*0.5);x.lineTo(tbx+tbW,tby+tbH*0.5);x.stroke();
+      x.beginPath();x.moveTo(tbx+tbW*0.6,tby+tbH*0.5);x.lineTo(tbx+tbW*0.6,tby+tbH);x.stroke();
+      x.fillStyle=inkc; x.textAlign='left';
+      x.font='bold 16px "Courier New",monospace'; x.fillText(pick(PROJECTS,r),tbx+10,tby+26);
+      x.font='12px "Courier New",monospace'; x.fillText(pick(DRAWINGS,r),tbx+10,tby+44);
+      x.fillText('SCALE 1:'+pick(['50','100','100','200'],r),tbx+10,tby+tbH*0.5+20);
+      x.fillText('DRAWN '+pick(['E.M.','R.F.','V.K.','S.O.','D.L.'],r),tbx+10,tby+tbH*0.5+38);
+      x.textAlign='right';
+      x.font='bold 22px "Courier New",monospace'; x.fillText('A-'+rint(r,101,499),tbx+tbW-12,tby+tbH-32);
+      x.font='11px "Courier New",monospace'; x.fillText('SHT '+rint(r,1,9)+' OF '+rint(r,9,24),tbx+tbW-12,tby+tbH-12);
+    } else {
+      // ink keeps its classic caption
+      x.fillStyle=inkc; x.font='17px "Courier New",monospace'; x.textAlign='center';
+      x.fillText('ELEVATION '+pick(['A','B','C','D'],r)+' — BLDG. '+rint(r,1,99),W/2,H-46);
+    }
   } else {
     x.fillStyle= mode==='night'?'#0c0c18':'#3a3a44';
     x.fillRect(0,gy+BH,W,H-(gy+BH));
     x.strokeStyle= mode==='night'?'#2a2a3a':'#666672'; x.lineWidth=0.8;
     for(let t=20;t<W-20;t+=14){x.beginPath();x.moveTo(t,gy+BH);x.lineTo(t-10,gy+BH+12);x.stroke();}
-  }
-  if(draft||r()<0.35){
-    x.fillStyle= draft? inkc : (mode==='night'?'#cfd2e8':'#f2f2ea');
-    x.font='17px "Courier New",monospace'; x.textAlign='center';
-    x.fillText('ELEVATION '+pick(['A','B','C','D'],r)+' — BLDG. '+rint(r,1,99),W/2,H-46);
+    if(r()<0.5){x.fillStyle= mode==='night'?'#cfd2e8':'#f2f2ea';
+      x.font='17px "Courier New",monospace'; x.textAlign='center';
+      x.fillText('ELEVATION '+pick(['A','B','C','D'],r)+' — BLDG. '+rint(r,1,99),W/2,H-46);}
   }
 }
 
@@ -2541,12 +2670,13 @@ function fortyfive(cv,seed){
     x.strokeStyle='rgba(0,0,0,0.4)'; x.lineWidth=4; x.strokeRect(sx0,sy0,sw,sh);
     const dark2=(sc1==='#f2e2b8'||sc1==='#ffd514');
     x.fillStyle= dark2?'#1c1410':'#fff8e8'; x.textAlign='left';
-    x.font='bold 54px Georgia,serif';
-    x.fillText('“'+song+'”'.slice(0,24),sx0+38,sy0+92);
-    x.font='italic 28px Georgia,serif';
-    x.fillText(artist,sx0+38,sy0+138);
-    x.font='15px "Courier New",monospace';
-    x.fillText(brand+' RECORDS · 45 RPM',sx0+38,sy0+sh-32);
+    const tx=sx0+38, tw=sw-76; // left+right inset: keep every line on the sleeve
+    fitText(x,'“'+song+'”',tw,(p)=>'bold '+p+'px Georgia,serif',54);
+    x.fillText('“'+song+'”',tx,sy0+92);
+    fitText(x,artist,tw,(p)=>'italic '+p+'px Georgia,serif',28);
+    x.fillText(artist,tx,sy0+138);
+    fitText(x,brand+' RECORDS · 45 RPM',tw,(p)=>p+'px "Courier New",monospace',15);
+    x.fillText(brand+' RECORDS · 45 RPM',tx,sy0+sh-32);
   }
   if(mode!=='crop'&&r()<0.4){
     x.fillStyle='#fff';
@@ -2600,11 +2730,11 @@ function castReceipt(seed){
 function castFacade(seed){
   const r=rng(seed);
   const bays=rint(r,3,8), floors=rint(r,4,11);
-  const mode=pick(['ink','ink','blueprint'],r);
-  r(); // body pick (unused in draft but still drawn)
-  for(let i=0;i<700;i++){r();r();r();} // paperNoise burn
-  const style=pick(['2pane','arch','grid4','strip'],r);
-  return {bays,floors,mode,style};
+  const rare=r()<0.04;
+  const mode= rare ? ['day','dusk','night'][Math.floor(r()*3)] : (r()<0.5?'ink':'blueprint');
+  const style=pick(['2pane','arch','grid4','strip','ribbon','oriel'],r);
+  const roof=pick(['tank','antenna','bulkhead','parapet','skylight'],r);
+  return {bays,floors,mode,style,roof};
 }
 function castLoom(seed){
   const r=rng(seed);
