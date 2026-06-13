@@ -335,6 +335,11 @@ export default function OutputPreview() {
             if (!t) return;
             // Click inside either modal's popover → keep open.
             if (t.closest('.details-popover')) return;
+            // The Details pill owns its own toggle. The portrait pill lives in
+            // the pill row (not the bottom bar), so without this guard the
+            // mousedown-close fires first and the pill's click re-opens it —
+            // the panel never shut on a second tap (Brendon, 2026-06-13).
+            if (detailsPillRef.current && detailsPillRef.current.contains(t)) return;
             // Click inside either bottom bar (includes the details pill that
             // toggles it) → keep open; the pill's own onClick handles toggle.
             if (t.closest('#mBottomBar, .ls-bottom-bar')) return;
@@ -713,20 +718,6 @@ export default function OutputPreview() {
                                 ⧉{VS15}
                             </button>
                         )}
-                    </span>
-                </div>
-                {/* Last Sale row (live) */}
-                <div className="dp-row">
-                    <span className="dp-label">Last Sale</span>
-                    <span className="dp-value">
-                        <span className="dp-value-text">{market?.last_sale ? `${market.last_sale} ETH` : '—'}</span>
-                    </span>
-                </div>
-                {/* Floor row (live) */}
-                <div className="dp-row">
-                    <span className="dp-label">Floor</span>
-                    <span className="dp-value">
-                        <span className="dp-value-text">{market?.floor ? `${market.floor} ETH` : '—'}</span>
                     </span>
                 </div>
                 {/* Artwork Page row */}

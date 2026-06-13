@@ -57,6 +57,10 @@ export interface UserSettings {
   /** Albums — named, ordered collections of Outputs (keys `${slug}:${id}`).
    *  Same envelope + privacy as `starred` until album sharing ships. */
   albums?: AlbumRecord[];
+  /** Recently-viewed Outputs trail — most-recent-first `${slug}:${id}` keys.
+   *  PRIVATE (owner-only), same envelope as `starred`. Account-backed so the
+   *  trail follows the viewer across devices (Brendon, 2026-06-13). */
+  breadcrumbs?: string[];
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */

@@ -83,7 +83,7 @@ function fmtUploadDate(ms: number | null): string {
    cards paint THIS project's engine (same markup as the original single-
    project carousel). totalOutputs is provider-live: a mint advances the row
    without a reload (the provider re-fetches on 'pd:project-refresh'). */
-function HomeProjectCarousel() {
+function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
     const project = useProject();
     const ids = Array.from(
         { length: CAROUSEL_SIZE },
@@ -101,7 +101,7 @@ function HomeProjectCarousel() {
             </div>
             <div className="home-carousel-track">
                 {ids.map((id) => (
-                    <ArtworkCard key={id} id={id} eager />
+                    <ArtworkCard key={id} id={id} eager={eager} />
                 ))}
             </div>
         </section>
@@ -403,13 +403,17 @@ export default function HomePageBody({
                             Projects land here at 12 mints — none yet.
                         </div>
                     )}
-                    {mintingNow.map((m) => (
+                    {/* Only the first carousel paints eagerly; every other
+                        row lazy-paints through the card virtualizer as it
+                        scrolls into view. Painting all ~30×12 canvases up
+                        front is what made home crawl (Brendon, 2026-06-13). */}
+                    {mintingNow.map((m, i) => (
                         <ProjectProvider
                             key={m.slug}
                             slug={m.slug}
                             initialTotal={m.minted_count}
                         >
-                            <HomeProjectCarousel />
+                            <HomeProjectCarousel eager={i === 0} />
                         </ProjectProvider>
                     ))}
                 </section>

@@ -210,7 +210,7 @@ const PREHYDRATION_SCRIPT = `
                     // different colours and home flashes on every load.
                     // (Replaced the fixed Attention Yellow boot fill.)
                     bg = (function () {
-                        var EPOCH = Date.UTC(2026, 3, 21); // PRICEDAY_EPOCH
+                        var EPOCH = Date.UTC(2026, 5, 12); // PRICEDAY_EPOCH
                         // Mood day flips at MIDNIGHT IN MONTREAL (lib/mood
                         // montrealDayNumber — keep these two in lockstep).
                         var ymd = new Intl.DateTimeFormat('en-CA', {

@@ -48,6 +48,9 @@ export const STATE_CACHE_KEYS = {
     /** Albums (named lists of `${slug}:${id}` keys). Read + written by
      *  albumStore; lives inside the settings envelope server-side. */
     albums: 'pd_albums',
+    /** Recently-viewed Outputs trail (`${slug}:${id}` keys, most-recent-first).
+     *  Read + written by breadcrumbStore; lives in the settings envelope. */
+    breadcrumbs: 'pd_breadcrumbs',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -127,6 +130,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.albums,
             JSON.stringify(Array.isArray(s.albums) ? s.albums : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.breadcrumbs,
+            JSON.stringify(Array.isArray(s.breadcrumbs) ? s.breadcrumbs : []),
         );
 
         // grid_presets → unified cache the presetStore reads (Gallery View

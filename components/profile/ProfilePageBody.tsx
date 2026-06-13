@@ -167,7 +167,6 @@ function ProfilePageBodyInner({
         window.addEventListener('pd:follows-changed', h);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [user.address]);
-    const followerCount = counts.followers;
 
     /* Showcase — the user's curated top-6 (users.showcase). Each slot points at
        one Output (project + token). 'static' keeps the saved order; 'generative'
@@ -571,9 +570,7 @@ function ProfilePageBodyInner({
                                 >
                                     {idCopied ? '\u2713\uFE0E' : '⧉\uFE0E'}
                                 </span>
-                            </span>
-                            <span className="follower-count">{followerCount}</span>
-                        </div>
+                            </span>                        </div>
                     </div>
                 }
                 socialRow={
@@ -615,7 +612,7 @@ function ProfilePageBodyInner({
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol">—</span>
+                            <span className="stat-val stat-val-vol">0</span>
                         </span>
                         <span
                             className="stat-item stat-item-owners"
@@ -630,7 +627,7 @@ function ProfilePageBodyInner({
                             }}
                         >
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
-                            <span className="stat-val stat-val-owners">{counts.followers} {counts.followers === 1 ? 'PRSN' : 'PPL'}</span>
+                            <span className="stat-val stat-val-owners">{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
                         </span>
                     </div>
                 }

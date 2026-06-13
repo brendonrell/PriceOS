@@ -66,6 +66,7 @@ import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { priceDayContents } from '../../lib/priceday/priceday';
 import { useSort } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -319,7 +320,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             }
         },
     });
-    const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive } = useTraits();
+    const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive, activeCategory } = useTraits();
+
+    /* Re-run the gallery filter when notes change so the My Notes view updates
+       live as notes are added/removed (Brendon, 2026-06-13). */
+    const [notesVersion, setNotesVersion] = useState(0);
+    useEffect(() => {
+        const bump = () => setNotesVersion((v) => v + 1);
+        window.addEventListener('pd:notes-changed', bump);
+        return () => window.removeEventListener('pd:notes-changed', bump);
+    }, []);
     const { siweAddress } = useAuth();
 
     /* My Network — REAL filter data (Brendon 2026-06-11). The viewer's
@@ -706,6 +716,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 }
             }
 
+            // 5. Recent (breadcrumbs) — when the Recent pill is active, show
+            //    only Outputs the viewer has actually opened in this Project
+            //    (the live recently-seen trail from breadcrumbStore).
+            if (activeCategory === 'Breadcrumb') {
+                if (!breadcrumbSample.has(id)) return false;
+            }
+
             return true;
         });
 
@@ -734,7 +751,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive, siweAddress, netSets, topHolders]);
+    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive, notesVersion, activeCategory, breadcrumbSample, siweAddress, netSets, topHolders]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
@@ -842,6 +859,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         setPriceDayOpen(true);
     };
 
+    /* PriceDay almanac for THIS project's upload day — seeded test-phase
+       content (same source the home/profile popovers use), so the project
+       popover shows the real PriceDay number instead of a hardcoded one. */
+    const projectPdc = priceDayContents(
+        uploadedAt != null ? new Date(uploadedAt) : new Date(),
+    );
+
     const priceAscActive = sort === 'price' && dir === 'asc';
     const priceAscRef = useRef(priceAscActive);
     priceAscRef.current = priceAscActive;
@@ -898,23 +922,28 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             >{fmtUploadDate(uploadedAt)}</span>
                             {priceDayOpen && priceDayPos && (
                                 <div className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
-                                    <div className="dp-title">PRICEDAY #47</div>
+                                    <div className="dp-title">PRICEDAY #{projectPdc.number}</div>
                                     <div className="dp-title-spacer" />
 
                                     <div className="pd-section-header">MINTED THIS DAY</div>
-                                    <div className="dp-row"><span className="dp-label">Prisms #23</span><span className="dp-value">@Opus4-6</span></div>
-                                    <div className="dp-row"><span className="dp-label">PRISMS #441</span><span className="dp-value">@Claude</span></div>
-                                    <div className="dp-row"><span className="dp-label">Meridian #8</span><span className="dp-value">@snowfro</span></div>
+                                    {projectPdc.minted.map((r, i) => (
+                                        <div className="dp-row" key={`m${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
+                                    ))}
                                     <div className="pd-section-end" />
 
                                     <div className="pd-section-header">UPLOADED THIS DAY</div>
-                                    <div className="dp-row"><span className="dp-label">Chromatic Drift</span><span className="dp-value">@Claude</span></div>
-                                    <div className="dp-row"><span className="dp-label">Signal Loss</span><span className="dp-value">@Rudxane</span></div>
+                                    {projectPdc.uploaded.map((r, i) => (
+                                        <div className="dp-row" key={`u${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
+                                    ))}
                                     <div className="pd-section-end" />
 
-                                    <div className="pd-section-header">BIGGEST SALE</div>
-                                    <div className="dp-row"><span className="dp-label">Prisms #7</span><span className="dp-value">0.44 ETH</span></div>
-                                    <div className="pd-section-end" />
+                                    {projectPdc.biggestSale && (
+                                        <>
+                                            <div className="pd-section-header">BIGGEST SALE</div>
+                                            <div className="dp-row"><span className="dp-label">{projectPdc.biggestSale.label}</span><span className="dp-value">{projectPdc.biggestSale.value}</span></div>
+                                            <div className="pd-section-end" />
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </span>

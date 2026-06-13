@@ -74,6 +74,7 @@ import { useToast } from './ToastContext';
 import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
+import { MOCK_DEMO_NOTES } from '../data/mockNotes';
 
 /* Hardcoded to match ProjectContext.tsx:68. Replace with a useProject()
    read once NotePromptProvider is moved inside ProjectProvider OR multi-
@@ -146,6 +147,25 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         'pd_token_notes',
         {}
     );
+    /* Seed the test-phase demo notes into pd_token_notes ONCE, so the notes a
+       user sees in the connect-menu list are the SAME notes the artwork-grid
+       "My Notes" filter and the modal read (Brendon, 2026-06-13 — the filter
+       found nothing because the demo notes lived only in the dropdown's
+       display data). Fills only ids with no saved note, runs once via a flag
+       so it never fights a user's own edits/deletions. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (localStorage.getItem('pd_notes_seeded') === '1') return;
+        setOutputNotes((prev) => {
+            const next = { ...prev };
+            for (const [idStr, body] of Object.entries(MOCK_DEMO_NOTES)) {
+                if (!next[idStr]) next[idStr] = body;
+            }
+            return next;
+        });
+        localStorage.setItem('pd_notes_seeded', '1');
+        window.dispatchEvent(new Event('pd:notes-changed'));
+    }, [setOutputNotes]);
     const [prompt, setPrompt] = useState<Prompt | null>(null);
 
     const openDayNoteEditor = useCallback((dayKey: string) => {

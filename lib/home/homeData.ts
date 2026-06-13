@@ -1,7 +1,7 @@
 /*
  * Home surface data — one fresh read powering the home page's live bits:
  * hero platform stats (projects / volume / minted), the New Uploads list,
- * and the Now Minting set (projects at ≥6 mints, in the order they got
+ * and the Now Minting set (projects at ≥12 mints, in the order they got
  * there). Computed straight off the chainless ledger (projects / events),
  * same source the mint + market routes write.
  *
@@ -36,7 +36,7 @@ export interface HomeMintingRow {
   slug: string;
   title: string;
   minted_count: number;
-  /** When the project crossed the threshold (Unix ms — its 6th MINT event),
+  /** When the project crossed the threshold (Unix ms — its 12th MINT event),
       or null when mint events predate event logging (sorts last). */
   reached_at: number | null;
 }

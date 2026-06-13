@@ -305,6 +305,10 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
 
     root.style.setProperty('--bg-color', bg);
     root.style.setProperty('--text-color', text);
+    /* Keep the PWA chrome tint in lockstep for named colorways too, so leaving
+       stargazing restores the exact prior theme-color (Brendon, 2026-06-13). */
+    const tcMetaCw = document.querySelector('meta[name="theme-color"]');
+    if (tcMetaCw) tcMetaCw.setAttribute('content', bg);
     root.style.setProperty(
         '--border-color',
         isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'

@@ -12,11 +12,16 @@
  * re-visit (a key moves back to the front), capped so the trail stays a
  * trail. Same module-singleton + subscribe pattern as starStore/muteStore.
  *
- * Persistence: localStorage `pd_breadcrumbs` — device-local and PRIVATE (a
- * browsing trail is the viewer's own business; it never rides to the server).
+ * Persistence: account-backed via the `users.settings` envelope (Brendon,
+ * 2026-06-13 — the trail must FOLLOW YOU across devices, not just this one).
+ * localStorage `pd_breadcrumbs` stays the write-through cache (instant paint +
+ * offline); the server row wins on login. Still PRIVATE — the trail rides only
+ * in the owner's settings and is never shown to anyone else.
  */
 
-const STORAGE_KEY = 'pd_breadcrumbs';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const STORAGE_KEY = STATE_CACHE_KEYS.breadcrumbs;
 /** Trail length cap — most recent N visits across all Projects. */
 const CAP = 60;
 /** Crumbs shown per Project gallery (sim's sticker count). */
@@ -32,31 +37,51 @@ function keyOf(slug: string, id: number): string {
     return `${slug}:${id}`;
 }
 
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    if (typeof window === 'undefined') return;
+function loadOrder(): string[] {
+    if (typeof window === 'undefined') return [];
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
+        if (!raw) return [];
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            order = parsed
+            return parsed
                 .filter((k): k is string => typeof k === 'string' && k.includes(':'))
                 .slice(0, CAP);
         }
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    return [];
+}
+
+function hydrate(): void {
+    if (hydrated) return;
+    hydrated = true;
+    order = loadOrder();
 }
 
 function persist(): void {
-    if (typeof window === 'undefined') return;
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
-    } catch {
-        /* ignore */
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
+        } catch {
+            /* ignore */
+        }
     }
+    // Account write-through — the trail rides in the settings envelope so it
+    // follows the viewer across devices. No-op until an authed snapshot has
+    // hydrated (userState guards it), so a logged-out trail stays on-device.
+    pushSettings({ breadcrumbs: order });
+}
+
+/* Server snapshot landed (login on any device) — re-read the cache userState
+   just overwrote with the account's trail and refresh subscribers. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = true;
+        order = loadOrder();
+        emit();
+    });
 }
 
 function emit(): void {

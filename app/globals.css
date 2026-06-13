@@ -1455,7 +1455,8 @@ body.zen-mode .priceos-footer { display: none !important; }
    an easter egg, not a banner. */
 .priceos-mood { white-space: nowrap; }
 .priceos-mood-ring {
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 700;
     line-height: 0;
     position: relative;
     top: 1px;
@@ -1672,19 +1673,25 @@ body.stargazing-mode .note-prompt-box {
 body.stargazing-mode .user-dropdown a { color: #c5a8f0; }
 body.stargazing-mode .user-dropdown a:hover { background: rgba(197, 168, 240, 0.08); }
 
-/* Stargazing global-search legibility (Brendon 2026-06-10 — "hides the
-   global search parts or makes them black"). The search field/icon colour
-   reads from --bg-color, which stargazing remaps to near-black, turning
-   the input + globe + dormant label invisible on the dark glass. This was
-   a sim bug ported faithfully; Brendon's polish order wins over parity.
-   Same lavender as every other stargazing surface. */
+/* Stargazing global-search legibility (Brendon 2026-06-10, completed
+   2026-06-13). EVERY search part colours off --bg-color, which stargazing
+   remaps to near-black — so the dormant "Search" text + its globe, the field
+   globe, and the input + placeholder all go invisible on the dark glass. The
+   earlier pass missed the dormant text/globe + the bare/hover/focus globe
+   rules (more specific, so they kept winning). Force them all lavender. */
+body.stargazing-mode .search-dormant-label,
+body.stargazing-mode .search-dormant-text,
+body.stargazing-mode .search-dormant-label .globe-icon,
 body.stargazing-mode .global-search-field .globe-icon,
+body.stargazing-mode .global-search-field:focus-within .globe-icon,
+body.stargazing-mode .globe-icon,
+body.stargazing-mode .globe-icon:hover,
 body.stargazing-mode .global-search-input,
 body.stargazing-mode .global-search-input::placeholder,
-body.stargazing-mode .search-dormant-label,
 body.stargazing-mode .global-result-item {
     color: #c5a8f0 !important;
 }
+body.stargazing-mode .global-search-input { caret-color: #c5a8f0 !important; }
 
 /* Force platform-modal backgrounds to dark when stargazing is active.
    Without this, a previously-selected colorway leaves inline backgroundColor on the modal element
@@ -3537,7 +3544,10 @@ button,
     height: 28px;
     border-radius: 4px;
     cursor: pointer;
-    transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+    /* Pill FILL snaps on toggle (Brendon, 2026-06-13 — the 0.2s background/
+       color fade read as laggy on/off). Opacity (the dim of inactive pills)
+       keeps a light fade so the row still settles softly. */
+    transition: opacity 0.12s, border-color 0.12s;
     user-select: none;
     align-items: center;
     font-size: 12px;
@@ -4917,7 +4927,13 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     position: relative;
     z-index: 1;
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    gap: 12px 14px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
 }
 .hi-icon {
     font-size: 20px;
@@ -6553,7 +6569,7 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 10px;
     letter-spacing: 1.5px;
-    color: var(--hothurt);
+    color: var(--text-color);
     margin-bottom: 6px;
 }
 .gas-tracker-card-gwei {
