@@ -115,7 +115,24 @@ export interface UserRow {
    *  from the "Custom" colorway (`pd_custom_color`) and "Haze Mode"
    *  (`pd_haze_color`) — never alias them together. */
   profile_hex: string | null;
+  /** PriceRank = your TIER (0 = unranked). Derived from price_score crossing
+   *  the thresholds in lib/achievements/tiers.ts. (Model locked 2026-06-14:
+   *  Score is the number, Rank is the tier it unlocks — supersedes the older
+   *  "PriceRank is the one number" note.) */
   price_rank: number;
+  /** PriceScore = your NUMBER. The sum of unlocked achievement points
+   *  (lib/achievements/catalog.ts). The cache lives here; the unlock ledger
+   *  is public.user_achievements. */
+  price_score: number;
+  /** PriceStreak = current consecutive-active-day count. 0 until a qualifying
+   *  day; resets to 0 on a missed day (hard break, no grace). */
+  price_streak: number;
+  /** Longest PriceStreak ever reached — record/display only; does NOT bank
+   *  Score (a broken streak still resets the live count to 0). */
+  streak_best: number;
+  /** Last qualifying-action LOCAL date (YYYY-MM-DD). The streak day boundary
+   *  is the user's local midnight. Null until the first qualifying day. */
+  streak_last_active: string | null;
   familiar_config: Record<string, unknown> | null;
   showcase: Showcase;
   /** Stored as text; 'grid' on legacy rows maps to 'static' on read. */
@@ -351,7 +368,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, profile_hex, showcase, showcase_style, discord_id, discord_username, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, showcase, showcase_style, discord_id, discord_username, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

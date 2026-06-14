@@ -16,9 +16,11 @@
  *   "Project 333"      → "project333"
  *   "0xLandscapes"     → "0xlandscapes"
  *
- * The resulting slug must satisfy `^[a-z0-9]{2,20}$` + has-letter,
+ * The resulting slug must satisfy `^[a-z0-9]{3,20}$` + has-letter,
  * which is guaranteed by validateDisplayName.ts (lib/project/
- * validateDisplayName.ts) accepting the same shape.
+ * validateDisplayName.ts) accepting the same shape (3-char floor =
+ * the shared /@name pool minimum). The final format gate is
+ * validateProjectHandleFormat() in lib/project/projectHandle.ts.
  *
  * No UI integration this sweep — Upload page doesn't exist yet.
  * Utility is planted so the Upload workstream consumes it directly

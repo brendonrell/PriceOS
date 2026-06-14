@@ -11,7 +11,10 @@
  *   - Must contain at least one letter (pure-numeric names collide
  *     with the Output URL namespace `/{globalId}`)
  *   - No leading, trailing, or consecutive spaces
- *   - 2–20 chars total (including spaces)
+ *   - 3–20 chars total (including spaces). The 3-char floor matches the
+ *     shared /@name pool minimum: a 2-char display name could derive a
+ *     sub-3 slug, which the project @name pool rejects (see
+ *     lib/project/projectHandle.ts PROJECT_HANDLE_MIN_LENGTH).
  *
  * Used by the future Upload UI to reject bad names at the form
  * stage. Slug derivation (lowercase + strip spaces) is in
@@ -35,7 +38,7 @@ export type DisplayNameValidation =
   | { valid: true }
   | { valid: false; reason: DisplayNameReason };
 
-const MIN_LENGTH = 2;
+const MIN_LENGTH = 3;
 const MAX_LENGTH = 20;
 
 /* ASCII letters + digits + spaces only. The single-internal-space
