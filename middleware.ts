@@ -21,6 +21,21 @@ import { NextRequest, NextResponse } from 'next/server';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RATE_LIMIT = 100;
+// Sensitive routes — auth, identity creation, and the free social/scoring
+// actions an attacker would script to brute-force or sybil-farm — get a much
+// tighter per-IP cap. Even on the in-memory fallback this raises the bar.
+const SENSITIVE_LIMIT = 15;
+const SENSITIVE_PREFIXES = [
+  '/api/auth',
+  '/api/users/create',
+  '/api/follows',
+  '/api/project-follows',
+  '/api/anoint',
+  '/api/streak',
+  '/api/achievements/evaluate',
+  '/api/handle/check',
+  '/api/project-handle/check',
+];
 const WINDOW_MS = 60_000;
 const WINDOW_S = 60;
 
@@ -32,7 +47,10 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 
 function getClientIp(req: NextRequest): string {
-  // Vercel sets x-forwarded-for with the client IP first, then any proxies.
+  // Prefer the platform-trusted IP (Vercel populates req.ip at the edge). The
+  // x-forwarded-for header is client-spoofable, so it's only a fallback for
+  // non-Vercel/local runs — never the primary source.
+  if (req.ip) return req.ip;
   const xff = req.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0].trim();
   const real = req.headers.get('x-real-ip');
@@ -51,12 +69,12 @@ function rateLimited(resetMs: number): NextResponse {
 // Distributed counter via Upstash REST. Returns the post-increment count, or
 // null when Upstash isn't configured or the call failed (caller falls back to
 // the in-memory limiter / allows the request).
-async function upstashIncr(ip: string): Promise<number | null> {
+async function upstashIncr(bucketKey: string): Promise<number | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
   try {
-    const key = `rl:${ip}`;
+    const key = `rl:${bucketKey}`;
     // One round-trip: INCR the counter, and set a 60s TTL only if the key is
     // new (NX) so the window is fixed from the first hit.
     const res = await fetch(`${url}/pipeline`, {
@@ -80,11 +98,11 @@ async function upstashIncr(ip: string): Promise<number | null> {
   }
 }
 
-function inMemoryIncr(ip: string): { count: number; resetMs: number } {
+function inMemoryIncr(bucketKey: string): { count: number; resetMs: number } {
   const now = Date.now();
-  const bucket = buckets.get(ip);
+  const bucket = buckets.get(bucketKey);
   if (!bucket || bucket.resetAt < now) {
-    buckets.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    buckets.set(bucketKey, { count: 1, resetAt: now + WINDOW_MS });
     return { count: 1, resetMs: WINDOW_MS };
   }
   bucket.count += 1;
@@ -100,16 +118,24 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 
   const ip = getClientIp(req);
 
+  // Sensitive routes get a tighter cap and a SEPARATE counter bucket, so heavy
+  // legitimate read traffic can't mask an auth/sybil-farming burst.
+  const sensitive = SENSITIVE_PREFIXES.some((p) =>
+    req.nextUrl.pathname.startsWith(p)
+  );
+  const limit = sensitive ? SENSITIVE_LIMIT : RATE_LIMIT;
+  const bucketKey = `${sensitive ? 's' : 'n'}:${ip}`;
+
   // Prefer the distributed limiter when configured.
-  const distributed = await upstashIncr(ip);
+  const distributed = await upstashIncr(bucketKey);
   if (distributed !== null) {
-    if (distributed > RATE_LIMIT) return rateLimited(WINDOW_MS);
+    if (distributed > limit) return rateLimited(WINDOW_MS);
     return NextResponse.next();
   }
 
   // Fallback: per-instance, best-effort.
-  const { count, resetMs } = inMemoryIncr(ip);
-  if (count > RATE_LIMIT) return rateLimited(resetMs);
+  const { count, resetMs } = inMemoryIncr(bucketKey);
+  if (count > limit) return rateLimited(resetMs);
   return NextResponse.next();
 }
 

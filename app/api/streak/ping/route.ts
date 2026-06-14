@@ -50,6 +50,23 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     return badRequest('`localDate` must be a YYYY-MM-DD string');
   }
 
+  // Bound the client-supplied local date to real time. A user's local calendar
+  // date can be at most one day ahead of UTC (max timezone is UTC+14), so any
+  // date further ahead is a forged future date trying to fast-forward the
+  // streak — reject it. (The streak no longer feeds PriceScore, but the day
+  // count is still shown, so it must not be forgeable.)
+  const [ly, lm, ld] = localDate.split('-').map(Number);
+  const localMs = Date.UTC(ly, lm - 1, ld);
+  const now = new Date();
+  const serverTodayMs = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  );
+  if (localMs - serverTodayMs > 24 * 60 * 60 * 1000) {
+    return badRequest('`localDate` is too far in the future');
+  }
+
   try {
     const supabase = getSupabaseService();
 

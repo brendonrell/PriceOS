@@ -37,9 +37,19 @@ export function badRequest(
   );
 }
 
-export function serverError(message = 'Internal server error'): NextResponse<ApiError> {
+export function serverError(detail?: unknown): NextResponse<ApiError> {
+  // SECURITY: never leak the underlying error to the client. Raw Supabase/
+  // Postgres messages expose table, column, constraint and RPC names — free
+  // schema recon for an attacker. Log the detail server-side; return generic.
+  if (detail !== undefined) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[api] server error:',
+      detail instanceof Error ? (detail.stack ?? detail.message) : detail
+    );
+  }
   return NextResponse.json<ApiError>(
-    { error: message, code: 'SERVER_ERROR' },
+    { error: 'Internal server error', code: 'SERVER_ERROR' },
     { status: 500 }
   );
 }
