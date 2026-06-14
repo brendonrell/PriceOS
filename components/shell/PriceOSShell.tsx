@@ -64,6 +64,7 @@ import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import AmbientStrip from './AmbientStrip';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import OutputPreview from '../OutputPreview';
@@ -228,6 +229,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="Navbar">
                 <Navbar />
+            </ErrorBoundary>
+            <ErrorBoundary name="AmbientStrip">
+                <AmbientStrip />
             </ErrorBoundary>
             <main>{children}</main>
             <ErrorBoundary name="Footer">
