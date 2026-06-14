@@ -39,6 +39,17 @@ export const dynamic = 'force-dynamic';
 
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 
+// Anti-impersonation guard for the public-facing identity label (ens_name).
+// Rejects invisible / direction-spoofing characters a copycat would use to
+// fake a famous artist's name past a naive equality check: C0/C1 control
+// chars, zero-width joiners/spaces, bidi overrides/isolates, and the BOM.
+// Legitimate ENS / display names never contain these (security sweep S-I1).
+// Built via RegExp(string) so the source stays plain ASCII and reviewable.
+const UNSAFE_TEXT_RE = new RegExp(
+    '[\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E' +
+        '\\u2060-\\u2064\\u2066-\\u2069\\uFEFF]'
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/me
 // ─────────────────────────────────────────────────────────────────────────────
@@ -82,6 +93,9 @@ function sanitisePatch(
         const v = body.ens_name;
         if (v !== null && !(typeof v === 'string' && v.length > 0 && v.length <= 255)) {
             return { ok: false, reason: 'ens_name must be a non-empty string (max 255) or null' };
+        }
+        if (typeof v === 'string' && UNSAFE_TEXT_RE.test(v)) {
+            return { ok: false, reason: 'ens_name contains disallowed characters' };
         }
         patch.ens_name = v === null ? null : (v as string);
     }

@@ -15,6 +15,12 @@ const DECIMALS_SELECTOR = '0x313ce567';
 
 const PRICE_DECIMALS_FALLBACK = 18;
 
+// The $PRICE token's decimals never change, so memoise them per warm instance.
+// Without this, every balance request made a SECOND Alchemy call just to re-read
+// a constant — doubling the per-request RPC spend an attacker could amplify by
+// iterating addresses to bust the per-address cache (security sweep S-P1).
+const decimalsCache = new Map<string, number>();
+
 export interface PriceBalanceResponse {
   address: string;
   token_address: string;
@@ -62,6 +68,8 @@ async function fetchDecimals(
   url: string,
   signal?: AbortSignal
 ): Promise<number> {
+  const cached = decimalsCache.get(contract);
+  if (cached !== undefined) return cached;
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -73,8 +81,12 @@ async function fetchDecimals(
       signal,
     });
     const json = (await res.json()) as { result?: string };
-    if (json.result && json.result !== '0x') return Number(BigInt(json.result));
-  } catch { /* fall through to default */ }
+    if (json.result && json.result !== '0x') {
+      const decimals = Number(BigInt(json.result));
+      decimalsCache.set(contract, decimals);
+      return decimals;
+    }
+  } catch { /* fall through to default — do NOT cache the fallback */ }
   return PRICE_DECIMALS_FALLBACK;
 }
 

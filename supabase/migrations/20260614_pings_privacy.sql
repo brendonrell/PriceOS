@@ -1,0 +1,31 @@
+-- ════════════════════════════════════════════════════════════════════════
+--  PINGS PRIVACY FIX — security sweep 2026-06-14 (finding S-D1, HIGH)
+--
+--  The directed inbox (`pings`) and the broadcast watermark (`ping_cursors`)
+--  were created with a permissive `for select to anon, authenticated using
+--  (true)` policy. Combined with RLS being enabled, that made EVERY row —
+--  recipient, actor, amounts, and p2p message BODIES — readable by anyone
+--  holding the public anon key, directly, bypassing the API.
+--
+--  All legitimate reads go through the SIWE-gated /api/pings routes on the
+--  service-role client (which bypasses RLS entirely and enforces
+--  recipient === authed-address in app code). A full-repo grep confirms NO
+--  client/anon-key path ever reads these tables. Removing the permissive
+--  SELECT policy is therefore invisible to the app and closes the leak.
+--
+--  RLS stays ENABLED on both tables; with no permissive SELECT policy,
+--  anon/authenticated reads return zero rows while the service-role app path
+--  is unaffected.
+--
+--  Reversible: to roll back, re-create the prior policies:
+--    create policy "pings_read" on public.pings
+--      for select to anon, authenticated using (true);
+--    create policy "ping_cursors_read" on public.ping_cursors
+--      for select to anon, authenticated using (true);
+--
+--  Apply to Supabase project zspxpfwlwikdxwavffjn ONLY on Brendon's go.
+--  Idempotent (IF EXISTS) so it's safe to re-run.
+-- ════════════════════════════════════════════════════════════════════════
+
+drop policy if exists "pings_read" on public.pings;
+drop policy if exists "ping_cursors_read" on public.ping_cursors;
