@@ -7,13 +7,63 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/security-audit-full-wc823w` is trash (work is on dev) — Brendon deletes
-  on GitHub.
-- **Updated:** 2026-06-14. Last session = **Social graph + PriceRank + Anointing
-  (backend)**. This session = **full security audit (all repos)** — see the new
-  🔒 section below; full report in `docs/SECURITY_AUDIT_2026-06-14.md`.
-- **Parallel 2026-06-14 session (separate chat):** **indexer serverless rebuild —
-  DONE** in the `PriceOS-indexer` repo (NOT in PriceOS dev). See the ⚙️ section.
+  `claude/notifications-pings-system-xh5pvh` is trash (work is on dev) — Brendon
+  deletes on GitHub.
+- **Updated:** 2026-06-14 (PM). This session = **PINGS / NOTIFICATIONS SYSTEM
+  built end-to-end + scale-hardened** — see the 🔔 section directly below. Earlier
+  2026-06-14 sessions (still valid context): social graph + PriceRank + anointing
+  backend, the full security audit (🔒), and the indexer serverless rebuild (⚙️).
+
+## 🔔 SHIPPED 2026-06-14 (PM) — PINGS / NOTIFICATIONS SYSTEM (on `dev`, all DB applied, build clean)
+The platform-wide notification spine — "Pings" (PD's word for notifications).
+Started from a half-built stub (read API + a mock panel); now a full system.
+
+- **Two streams, merged at read time** (`app/api/pings/route.ts`):
+  - **Directed inbox** — stored, one row per recipient (`lib/pings/createPing.ts`):
+    follow, project-follow→artist, **mint MILESTONE**→artist (1/10/25/50/100/250/
+    500/1000…, not every collect — Brendon's call), offer, sale (buy), offer-
+    accepted, achievement (self), p2p. Self-suppress + muted-suppress + "+N
+    others" rollup, race-guarded by a partial unique index.
+  - **Broadcast firehose** — ZERO stored rows (`lib/pings/broadcast.ts`):
+    "people/projects you follow did X", computed off shared `events` ⋈ follow
+    graph + per-user watermark cursor. Reads BOTH transfer sides so "someone you
+    follow BOUGHT this" surfaces.
+- **Wishlist Pings** (= the "watchlist") `lib/pings/wishlist.ts`: a listed/sold on
+  a wishlisted token pings the wishlisters (jsonb reverse-lookup over
+  `users.settings.wishlist`, GIN-indexed; resolve-once + bulk insert).
+  **STARS stay silent** (Brendon: stars = low-stress bookmark, never a ping;
+  wishlist is the opposite — buy-intent → financial pings).
+- **Delivery = $0 polling, NOT realtime.** SIWE has no Supabase-Auth identity →
+  can't row-scope a private realtime channel; 200-conn free cap. Cheap **directed**
+  count poll (15s) drives the live badge; full feed on open/own-action; a PUBLIC
+  `events` realtime nudge makes directed (money) pings near-instant.
+  `lib/state/PingsContext.tsx`.
+- **UI:** unread **circle badge** on connect button + PINGS panel header (iOS
+  style); panel renders REAL pings (mock removed); **ALL/MONEY filter**; **PING**
+  button on profiles (p2p compose via value-prompt, mutuals-only). Glyphs = PD's
+  canonical set, matched 1:1 to the settings pills + achievement map
+  (`lib/pings/render.ts`), verified via a headless screenshot pass.
+- **Pingtoasts** = 4-stop cycle **OFF→MONEY→SOCIAL→ALL** (Brendon's "Reese's cup"):
+  pill cycles (`MyPingsRow.tsx`), `pdNotifs.pingToasts` boolean→mode with
+  back-compat coercion; live toast shows the actual ping, scoped to mode.
+- **Archival:** inbox is a LEDGER — reads never delete; financial-signal pings
+  kept 365d, social 30d; kind-aware prune (opportunistic + pg_cron). `lib/pings/tiers.ts`.
+- **Scale-hardened** (reviewed by subagents): firehose off the count poll, events
+  indexes, bulk wishlist fan-out, rollup unique guard, broadcast unread derived
+  from the listed items (badge always matches the panel).
+- **DB applied (Supabase `zspxpfwlwikdxwavffjn`):** `20260614_pings.sql` (unified
+  `pings` + `ping_cursors`; dropped stale `notifications`/`pings`), `_pings_wishlist.sql`
+  (settings GIN), `_pings_retention.sql` (tiered prune cron), `_pings_events_idx.sql`
+  (events from/to/project × ts), `_pings_group_unique.sql` (open-rollup unique).
+- **Glyph glossary:** `docs/GLYPHS.md` — canonical PD Unicode icon vocabulary so
+  future sessions never guess icons. (ClickUp MCP **down again** this session →
+  put it in the repo, which is the better home anyway.)
+
+**Deferred (Pings):** exhaustive site-wide glyph sweep to APPEND to `GLYPHS.md`
+(a research agent was still running at wrap — sprite/calendar/nav glyphs); the
+broadcast-unread badge counts regardless of client category-prefs (intentional;
+clears on open); H3 could go fully-atomic via a Postgres RPC (the unique-index
+guard is sufficient for now); device-pixel sign-off of glyphs on a real iPhone.
 
 ## ✅ SHIPPED 2026-06-14 — on `dev` (DB migration applied + verified)
 - **Social graph.** Follow people AND projects (Twitter-style) + follower/
