@@ -43,14 +43,27 @@ service-role key a server-only CF secret; stay on supabase-js.
 **Before mainnet (contracts):** run Foundry suite for real, external audit + assembly byte-equivalence
 proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm Supabase PITR.
 
-**STATUS:** audit was read-only. ONE approved low-risk fix applied (Brendon greenlit
-invisible backend-only hardening): reserved-handle list now blocks authority/verification
-impersonation words (`official`,`verified`,`mod`,`moderator`,`root`,`system`,`notification(s)`,
-`announcement(s)`) — pure data add, no UX/feature change. (node_modules not installed here →
-no build run; change is string-literal additions to a const array, cannot affect compilation.)
-All other fixes remain Brendon's call. NEXT safe candidates queued: `public/_headers` for the
-Cloudflare move (held — would serve a stray file on Vercel today), ens_name charset filter,
-Alchemy cache-burn caps, dev-login preview gate (affects Brendon's own preview login → confirm).
+**STATUS — fix batch run on Brendon's "take it as far as you can" (2026-06-14). All build-verified
+(`npm run build` clean) + on `dev`:**
+- ✅ Reserved-handle list blocks authority/verification impersonation words (`official`,`verified`,
+  `mod`,`root`,`system`,`notification(s)`,`announcement(s)`) — S-I3.
+- ✅ `ens_name` now rejects invisible/bidi/control characters used for artist copycats (S-I1, the
+  charset half; full ENS-ownership verification still TODO).
+- ✅ `price/[address]` memoises constant token decimals → 1 Alchemy call/request not 2 (S-P1, partial).
+- 📝 `supabase/migrations/20260614_pings_privacy.sql` WRITTEN + on dev, **NOT YET APPLIED to live DB**
+  (S-D1, the HIGH). Drops the permissive anon SELECT on `pings`/`ping_cursors`; verified non-breaking
+  (all reads are service-role; full grep done). **Needs Brendon's "apply" — it's a live-Supabase
+  write (ship gate #3).** Next chat: apply via Supabase MCP `apply_migration`, or Brendon one-taps it.
+
+**STILL OPEN (gated / bigger, not done):**
+- **S-D1 prod apply** — the one-tap above. Top priority; live privacy leak until applied.
+- **S-A1 dev-login preview gate** — HELD: closing it changes Brendon's OWN one-tap preview login.
+  Decide the mechanism (secret-gated vs preview-block) with him first.
+- **Rate-limit / DDoS** — set Upstash env in the deployed environment, OR (better) do it as Cloudflare
+  edge rules at the migration. The Alchemy-burn + whole-table-read HIGHs are only fully closed by this.
+- **`public/_headers`** for the Cloudflare move (held — would serve a stray file on Vercel today; do at migration).
+- **Indexer pre-launch (S-X1/2/3)** + **contracts pre-mainnet gates** — unchanged from above.
+- **SIWE chainId/consent binding, body-size limits, owner-scoped RLS** — defense-in-depth, queued.
 
 ## 🔔 SHIPPED 2026-06-14 (PM) — PINGS / NOTIFICATIONS SYSTEM (on `dev`, all DB applied, build clean)
 The platform-wide notification spine — "Pings" (PD's word for notifications).
