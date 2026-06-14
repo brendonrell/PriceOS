@@ -81,15 +81,21 @@ interface AuthContextValue {
         future profile-link targets, etc.) read this as the top of the
         user-text priority chain — above ENS, above shortAddr. */
     handle: string | null;
-    /** PriceRank — THE one and only progression number on PD (Brendon,
-        2026-06-10: "We need this feature to have ONE name: PriceRank.
-        And the default is ZERO."). Backed by `users.price_rank`;
-        defaults to 0 when no session or while the user-row fetch is in
-        flight. There is NO separate "account level" concept — the old
-        users.account_level column is dead and must never be surfaced.
-        Every rank surface (navbar badge, PriceSprite modal readout +
-        XP labels) reads THIS. */
+    /** PriceRank — your TIER (0 = unranked, up to 10 = Apex). Derived from
+        PriceScore crossing the thresholds in lib/achievements/tiers.ts.
+        (Model locked 2026-06-14: Score is the number, Rank is the tier it
+        unlocks — supersedes the older "PriceRank is the one number" note.)
+        Backed by `users.price_rank`; defaults to 0. The old
+        users.account_level column is dead and must never be surfaced. */
     priceRank: number;
+    /** PriceScore — THE number. Sum of unlocked achievement points. Backed by
+        `users.price_score`; 0 by default. The PriceSprite modal readout, the
+        progress-to-next-tier bar, and the achievements wall all read this. */
+    priceScore: number;
+    /** PriceStreak — current consecutive-active-day count. Backed by
+        `users.price_streak`; 0 by default. Activates (starts feeding Score)
+        at 60 days; a missed day resets it to 0. */
+    priceStreak: number;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -110,6 +116,8 @@ interface AuthContextProviderProps {
     isAuthenticating: boolean;
     handle: string | null;
     priceRank: number;
+    priceScore: number;
+    priceStreak: number;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -121,6 +129,8 @@ export function AuthContextProvider({
     isAuthenticating,
     handle,
     priceRank,
+    priceScore,
+    priceStreak,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -137,6 +147,8 @@ export function AuthContextProvider({
             isAuthenticating,
             handle,
             priceRank,
+            priceScore,
+            priceStreak,
             needsSignup,
             onAccountCreated,
             signOut,
@@ -146,6 +158,8 @@ export function AuthContextProvider({
             isAuthenticating,
             handle,
             priceRank,
+            priceScore,
+            priceStreak,
             needsSignup,
             onAccountCreated,
             signOut,

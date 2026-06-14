@@ -68,6 +68,11 @@ export interface Achievement {
   secret?: boolean;
   /** Engine hook — the machine condition. Edited by Claude, not by hand. */
   trigger: string;
+  /** Small ASCII / pixel-art icon — legible at tile size. A short motif (a few
+   *  glyphs) that reads as the achievement at a glance, in the spirit of the
+   *  ASCII PriceSprites. Optional while the icon pass fills the catalog; every
+   *  achievement gets one before ship. */
+  icon?: string;
 }
 
 export const ACHIEVEMENTS: readonly Achievement[] = [
@@ -103,6 +108,11 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'volume_5', name: 'Market Mover', blurb: '2 ETH in secondary volume.', points: 150, category: 'trading', trigger: 'secondary.totalEth>=2' },
   { id: 'volume_25', name: 'Whale', blurb: '10 ETH in total volume.', points: 400, category: 'trading', trigger: 'volume.totalEth>=10' },
   { id: 'sniper', name: 'Sniper', blurb: 'Buy a piece within a minute of it being listed.', points: 80, category: 'trading', secret: true, trigger: 'buy.fastestListMinutes<=1' },
+  // OIL RIDER — PD-native lore. Faith + patience + payoff: hold a long while,
+  // then sell for a big multiple. Stands alone, truly earned. (Engine: a sale
+  // of a piece held >= 365 days for >= 3x its acquisition price. See
+  // docs/pricerank-build-notes.md — special evaluator `oil.rider`.)
+  { id: 'oil_rider', name: 'Oil Rider', blurb: 'Hold through the long dark, keep the faith, then sell for 3×+ after a year or more. You rode the oil.', points: 300, category: 'trading', trigger: 'oil.rider' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  SOCIAL · the people graph (followers / following / mutuals)
@@ -192,7 +202,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'world_first', name: 'World #1', blurb: 'Hit #1 on the leaderboard.', points: 1000, category: 'rank', secret: true, trigger: 'leaderboard.bestRank<=1' },
   { id: 'season_champion', name: 'Champion', blurb: 'Finish a season at #1.', points: 500, category: 'rank', trigger: 'season.bestFinish<=1' },
   { id: 'season_podium', name: 'Podium', blurb: 'Finish a season in the top 10.', points: 200, category: 'rank', trigger: 'season.bestFinish<=10' },
-  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Whosoever proves worthy — reach 10,000 PriceScore — shall wield the hammer. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=10000' },
+  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Reach 10,000 PriceScore and Brendon himself — God of PD — deems you worthy and places the hammer in your hand. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=10000' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  ARTIST · creator-side (you uploaded the project)
@@ -250,6 +260,10 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'completionist', name: 'Completionist', blurb: 'Unlock every non-secret achievement.', points: 500, category: 'lore', secret: true, trigger: 'meta.allNonSecretUnlocked' },
   { id: 'agartha', name: 'Agartha', blurb: 'You found the world beneath the world.', points: 88, category: 'lore', secret: true, trigger: 'ui.foundAgartha' },
   { id: 'the_wanderer', name: 'The Wanderer', blurb: 'Odin appeared, and shared his counsel.', points: 77, category: 'lore', secret: true, trigger: 'odin.appeared' },
+  // BRENDON — God of PD. Rarer-than-common figure (a tier above Odin). See lib/achievements/brendon.ts.
+  { id: 'brendon_audience', name: 'Audience with God', blurb: 'Brendon himself — the Creator of PD — appeared in your hall. Few ever see him.', points: 111, category: 'lore', secret: true, trigger: 'brendon.appeared' },
+  { id: 'brendon_worthy', name: 'Deemed Worthy', blurb: 'The Creator weighed your climb and judged it worthy.', points: 222, category: 'lore', secret: true, trigger: 'brendon.blessing' },
+  { id: 'brendon_chosen', name: 'The Chosen', blurb: 'Brendon chose you. Almost no one is chosen.', points: 333, category: 'lore', secret: true, trigger: 'brendon.chosen' },
   // Gen-art collecting — for the long-form heads. The ‰ in our logo lives here.
   { id: 'prime_id', name: 'Prime', blurb: 'Own a token whose number is prime.', points: 31, category: 'lore', secret: true, trigger: 'holdings.tokenNumberPrime' },
   { id: 'one_of_one', name: 'One of One', blurb: 'Own a 1-of-1 — an edition of a single piece.', points: 50, category: 'lore', secret: true, trigger: 'holdings.editionOfOne>=1' },

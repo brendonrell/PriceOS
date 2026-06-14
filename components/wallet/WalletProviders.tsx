@@ -388,6 +388,8 @@ export function WalletProviders({
             isAuthenticating={isAuthenticating}
             handle={userRow?.handle ?? null}
             priceRank={userRow?.price_rank ?? 0}
+            priceScore={userRow?.price_score ?? 0}
+            priceStreak={userRow?.price_streak ?? 0}
             needsSignup={needsSignup}
             onAccountCreated={handleAccountCreated}
             signOut={signOutFull}
