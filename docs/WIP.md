@@ -50,12 +50,11 @@ proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm
 - ✅ `ens_name` now rejects invisible/bidi/control characters used for artist copycats (S-I1, the
   charset half; full ENS-ownership verification still TODO).
 - ✅ `price/[address]` memoises constant token decimals → 1 Alchemy call/request not 2 (S-P1, partial).
-- ⚠️ `supabase/migrations/20260614_pings_privacy.sql` — applied to live DB then **ROLLED BACK
-  2026-06-14** during a site-outage triage. The outage was UNRELATED (a `useToast`-outside-provider
-  error on /offline + /art/prisms, fixed in another chat) — service-role reads bypass RLS, so this
-  policy change never affected the app. **S-D1 (readable DM bodies) is therefore RE-OPEN.** Re-apply
-  when the site is stable: run the migration file again (it's idempotent), then verify pings still
-  load. The rollback policies (`using (true)`) are live right now.
+- ✅ `supabase/migrations/20260614_pings_privacy.sql` — **APPLIED to live DB 2026-06-14** (S-D1, HIGH).
+  Briefly rolled back during a site-outage triage that turned out UNRELATED (a `useToast`-outside-
+  provider error, fixed in another chat), then RE-APPLIED on Brendon's go. Verified: RLS on + 0
+  policies on `pings`/`ping_cursors` → anon reads nothing; service-role app path unaffected (bypasses
+  RLS). The DM-bodies leak is CLOSED. Confirmed this change never affected the app.
 - ✅ **dev-login become-Brendon hole CLOSED (S-A1).** On the public preview it now requires a
   `DEV_LOGIN_SECRET` env + matching `x-dev-login-secret` header; disabled when unset. Local dev
   unchanged. The on-screen button now renders only on localhost (hidden on preview to avoid a dead
