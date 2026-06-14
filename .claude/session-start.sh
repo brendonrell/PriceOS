@@ -21,6 +21,27 @@ if [ "$BRANCH" = "main" ]; then
 fi
 echo "head:   $(git log --oneline -1 2>/dev/null)"
 echo "tree:   $(test -z "$(git status --porcelain 2>/dev/null)" && echo clean || echo DIRTY)"
+
+# --- Self-heal the recurring "stale dev" divergence ---
+# Policy: origin/dev is the ONLY truth; local dev must always mirror it. Past
+# chats let commits land directly on local dev, leaving a divergent stale branch
+# that kept resurfacing every session. Reconcile on EVERY start so it can never
+# come back: fast-sync local dev to origin/dev. Safe + idempotent — when the
+# session is on its task branch (the web harness default) this just repoints a
+# ref; it never touches a working tree or any unpushed feature-branch work.
+git fetch origin dev --quiet 2>/dev/null
+if git rev-parse --verify --quiet refs/remotes/origin/dev >/dev/null 2>&1; then
+  if [ "$BRANCH" != "dev" ]; then
+    if ! git rev-parse --verify --quiet refs/heads/dev >/dev/null 2>&1; then
+      git branch dev origin/dev >/dev/null 2>&1
+    elif [ "$(git rev-parse dev 2>/dev/null)" != "$(git rev-parse origin/dev 2>/dev/null)" ]; then
+      git branch -f dev origin/dev >/dev/null 2>&1 \
+        && echo "dev:    re-synced local dev → origin/dev (cleared stale divergence)"
+    fi
+  elif [ "$(git rev-parse HEAD 2>/dev/null)" != "$(git rev-parse origin/dev 2>/dev/null)" ]; then
+    echo "!!! On dev and it differs from origin/dev — run 'git reset --hard origin/dev' before working (stale-dev guard)."
+  fi
+fi
 npm install --no-audit --no-fund >/dev/null 2>&1 \
   && echo "deps:   installed" \
   || echo "deps:   npm install FAILED (run manually)"
