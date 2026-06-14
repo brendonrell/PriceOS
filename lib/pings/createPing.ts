@@ -11,6 +11,12 @@
 
 import { getSupabaseService } from '@/lib/supabase';
 import type { PingKind } from '@/lib/supabase';
+import {
+  PING_EPHEMERAL_DAYS,
+  PING_FINANCIAL_DAYS,
+  STORED_EPHEMERAL_KINDS,
+  STORED_FINANCIAL_KINDS,
+} from '@/lib/pings/tiers';
 
 type DB = ReturnType<typeof getSupabaseService>;
 
@@ -24,7 +30,6 @@ const DEFAULT_COLLAPSE_MS = 6 * 60 * 60 * 1000; // 6h
 const MAX_ROLLUP_ACTORS = 3;
 /** Opportunistic prune fires on ~this fraction of writes (belt to pg_cron). */
 const PRUNE_PROBABILITY = 0.02;
-const PRUNE_AFTER_DAYS = 30;
 
 export interface CreatePingInput {
   recipientAddress: string;
@@ -188,19 +193,24 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
   }
 }
 
-/** Occasionally delete this recipient's read pings older than the retention
- *  window. Scheduler-free retention that survives a paused free-tier project;
- *  the pg_cron job in the migration is the redundant nightly sweep. */
+/** Occasionally delete this recipient's READ pings past their retention window —
+ *  ephemeral social pings after 30d, financial-signal pings after a year (the
+ *  inbox is a financial ledger, not disposable alerts). Unread is never pruned.
+ *  Scheduler-free so it survives a paused free-tier project; the pg_cron job is
+ *  the redundant nightly sweep. */
 async function maybePrune(db: DB, recipient: string): Promise<void> {
   if (Math.random() > PRUNE_PROBABILITY) return;
   try {
-    const cutoff = new Date(Date.now() - PRUNE_AFTER_DAYS * 86400_000).toISOString();
-    await db
-      .from('pings')
-      .delete()
-      .eq('recipient_address', recipient)
-      .eq('read', true)
-      .lt('created_at', cutoff);
+    const ephCutoff = new Date(Date.now() - PING_EPHEMERAL_DAYS * 86400_000).toISOString();
+    const finCutoff = new Date(Date.now() - PING_FINANCIAL_DAYS * 86400_000).toISOString();
+    await Promise.all([
+      db.from('pings').delete()
+        .eq('recipient_address', recipient).eq('read', true)
+        .in('kind', STORED_EPHEMERAL_KINDS).lt('created_at', ephCutoff),
+      db.from('pings').delete()
+        .eq('recipient_address', recipient).eq('read', true)
+        .in('kind', STORED_FINANCIAL_KINDS).lt('created_at', finCutoff),
+    ]);
   } catch {
     /* best-effort */
   }

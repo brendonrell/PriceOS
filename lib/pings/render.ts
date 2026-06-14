@@ -63,7 +63,7 @@ const ICONS: Record<RenderKind, string> = {
   OFFER:          '✦︎',
   OFFER_ACCEPTED: '✸︎',
   XFER:           '✸︎',
-  WISHLIST_HIT:   '♡︎',
+  WISHLIST_HIT:   '✛︎',
   WATCH_HIT:      '✦︎',
 };
 

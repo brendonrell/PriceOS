@@ -456,6 +456,31 @@ body.sentiment-on .sentiment-widget {
     vertical-align: middle;
 }
 
+/* Money/All filter pill in the PINGS header — isolates financial pings. */
+.pings-filter-toggle {
+    margin-left: 8px;
+    padding: 1px 7px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+.pings-filter-toggle:hover { opacity: 0.85; }
+.pings-filter-toggle.active {
+    opacity: 1;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+
 /* Read pings fade back; the empty-state line is muted. */
 .notif-item.read { opacity: 0.5; }
 .pings-empty {

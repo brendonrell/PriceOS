@@ -35,7 +35,8 @@ import { getSupabaseBrowser } from '../supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { usePdNotifs } from './PdNotifsContext';
-import { passesCategoryPrefs, type FeedItem } from '../pings/render';
+import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
+import { isFinancial } from '../pings/tiers';
 
 // Poll cadence (reliability fallback). The live market feed below drives the
 // near-instant path; this just catches non-market pings (follow / p2p) and any
@@ -89,13 +90,26 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       const j = (await r.json()) as { unread_count: number; items: FeedItem[] };
       const items = j.items ?? [];
 
-      // New, unread, category-allowed pings we haven't seen → toast once.
+      // New, unread, category-allowed pings we haven't seen → toast once,
+      // scoped to the Pingtoasts mode (off / money / social / all).
       const n = prefsRef.current;
+      const mode = n.pingToasts;
       const fresh = items.filter(
         (p) => !p.read && !seenIds.current.has(p.id) && passesCategoryPrefs(p.kind, n.pings)
       );
-      if (primed.current && n.pingToasts && fresh.length > 0) {
-        showToast(`Pings: ${fresh.length} NEW`);
+      if (primed.current && mode !== 'off' && fresh.length > 0) {
+        const toastable =
+          mode === 'money'
+            ? fresh.filter((p) => isFinancial(p.kind))
+            : mode === 'social'
+              ? fresh.filter((p) => !isFinancial(p.kind))
+              : fresh;
+        if (toastable.length === 1) {
+          const r = renderPing(toastable[0]);
+          showToast(`Ping: ${[r.handle, r.action].filter(Boolean).join(' ')}`.trim());
+        } else if (toastable.length > 1) {
+          showToast(`Pings: ${toastable.length} NEW`);
+        }
       }
       items.forEach((p) => seenIds.current.add(p.id));
       primed.current = true;

@@ -19,7 +19,7 @@
  *   out user sees the shape of the personal notification preferences.
  */
 
-import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
+import { usePdNotifs, PING_TOAST_CYCLE } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { SettingsToggle } from './SettingsToggle';
@@ -44,11 +44,13 @@ export function MyPingsRow() {
         showToast(`${PING_LABELS[key] ?? key}: ${next ? 'ON' : 'OFF'}`);
     };
 
-    const handlePingToasts = () => {
-        // Toast on every flip.
-        const next = !notifs.pingToasts;
-        toggle('pingToasts');
-        showToast(`Pingtoasts: ${next ? 'ON' : 'OFF'}`);
+    // Cycle the Pingtoasts mode: OFF → MONEY → SOCIAL → ALL → OFF. Money = only
+    // financial toasts, Social = only friends/achievements/p2p, All = the mix.
+    const cyclePingToasts = () => {
+        const i = PING_TOAST_CYCLE.indexOf(notifs.pingToasts);
+        const next = PING_TOAST_CYCLE[(i + 1) % PING_TOAST_CYCLE.length];
+        update({ pingToasts: next });
+        showToast(`Pingtoasts: ${next.toUpperCase()}`);
     };
 
     return (
@@ -57,9 +59,10 @@ export function MyPingsRow() {
             <div className={`settings-pill-row${gatedClass}`}>
                 <SettingsToggle
                     id="sn-pingToasts"
-                    title="Pingtoasts"
-                    active={notifs.pingToasts}
-                    onClick={handlePingToasts}
+                    title={`Pingtoasts: ${notifs.pingToasts.toUpperCase()} — tap to cycle`}
+                    active={notifs.pingToasts !== 'off'}
+                    onClick={cyclePingToasts}
+                    label={notifs.pingToasts === 'off' ? 'OFF' : notifs.pingToasts.toUpperCase()}
                     icon={'⇡\uFE0E'}
                     iconStyle={{ fontSize: '14px', lineHeight: '1', marginRight: 0 }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}

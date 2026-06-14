@@ -11,12 +11,13 @@
  * the header alongside the PINGS label.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { renderPing, passesCategoryPrefs } from '../../lib/pings/render';
+import { isFinancial } from '../../lib/pings/tiers';
 import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
@@ -61,6 +62,8 @@ export function PingsBox() {
     const { state: pingsState, markAllRead } = usePings();
     const { siweAddress } = useAuth();
     const railRef = useRef<HTMLDivElement>(null);
+    // "Money" filter — isolate financial-signal pings from social noise.
+    const [moneyOnly, setMoneyOnly] = useState(false);
 
     const pingsActive = !notifs.notes && !notifs.todos && !notifs.tapeOpen;
     const tapeOn = notifs.menutape > 0;
@@ -84,9 +87,10 @@ export function PingsBox() {
         if (!pingsActive) setAccordion('pings', true);
     };
 
-    // Real pings → rendered + category-filtered.
+    // Real pings → rendered, category-filtered, and (optionally) money-only.
     const rendered = pingsState.items
         .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
+        .filter((p) => !moneyOnly || isFinancial(p.kind))
         .map((p) => renderPing(p));
 
     const unread = pingsState.unreadCount;
@@ -110,6 +114,18 @@ export function PingsBox() {
                             </span>
                         )}
                     </span>
+                    <button
+                        type="button"
+                        className={`pings-filter-toggle${moneyOnly ? ' active' : ''}`}
+                        title={moneyOnly ? 'Showing money pings — tap for all' : 'Show only money pings'}
+                        aria-pressed={moneyOnly}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setMoneyOnly((v) => !v);
+                        }}
+                    >
+                        {moneyOnly ? 'MONEY' : 'ALL'}
+                    </button>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
                             <div

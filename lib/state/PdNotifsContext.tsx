@@ -39,6 +39,14 @@ import {
 // 3 = Bold, 4 = Framed (inverted strip). Mobile cycle skips 1 and 2.
 export type TapeMode = 0 | 1 | 2 | 3 | 4;
 
+// Pingtoast mode — what kinds of pings pop a live toast. Cycled by the
+// Pingtoasts pill in MY PINGS: OFF → MONEY → SOCIAL → ALL.
+//   money  = financial signal only (offers / sales / accepted / wishlist)
+//   social = follows / achievements / p2p / mint milestones
+//   all    = everything (the "Reese's cup" — both at once)
+export type PingToastMode = 'off' | 'money' | 'social' | 'all';
+export const PING_TOAST_CYCLE: PingToastMode[] = ['off', 'money', 'social', 'all'];
+
 // Menu Tape (the in-dropdown clone) supports a subset: 0, 3, 4.
 export type MenuTapeMode = 0 | 3 | 4;
 
@@ -141,8 +149,11 @@ export interface PdNotifs {
        was rendered inert (no active/onClick props), so clicking
        didn't react. Now wired: defaults true (sim 6782 init).
        Behaviour for "show ping toast" callsites lands in subsequent
-       chats — this surfaces the toggle so the button reacts. */
-    pingToasts: boolean;
+       chats — this surfaces the toggle so the button reacts.
+       Brendon 2026-06-14 — upgraded from a boolean to a 4-stop cycle
+       (off/money/social/all) so users can scope live toasts to just the
+       markets, just their friends, or the full mix. */
+    pingToasts: PingToastMode;
 }
 
 const DEFAULTS: PdNotifs = {
@@ -206,9 +217,9 @@ const DEFAULTS: PdNotifs = {
 
     nightmode: false,
     priceLogo: false,
-    /* Brendon item 11 (chat A) — Pingtoasts default true matches sim
-       6782 initialization (pingToasts: true). */
-    pingToasts: true,
+    /* Pingtoasts default to ALL (the full mix). Old boolean `true` coerces
+       to 'all', `false` to 'off' on load (see hydration effect). */
+    pingToasts: 'all',
 };
 
 const STORAGE_KEY = 'pd_settings_notifs';
@@ -259,6 +270,13 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
                     ...parsed,
                     pings: { ...DEFAULTS.pings, ...(parsed.pings || {}) },
                 };
+                // Back-compat: pingToasts was a boolean before the 4-stop cycle.
+                const pt = (next as { pingToasts: unknown }).pingToasts;
+                if (typeof pt === 'boolean') {
+                    next.pingToasts = pt ? 'all' : 'off';
+                } else if (!PING_TOAST_CYCLE.includes(pt as PingToastMode)) {
+                    next.pingToasts = 'all';
+                }
             }
             /* F59 (BUG-26) — overlay session-scoped accordion flags. Read
                only at hydration; subsequent updates write through the
