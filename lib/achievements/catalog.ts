@@ -192,6 +192,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'world_first', name: 'World #1', blurb: 'Hit #1 on the leaderboard.', points: 1000, category: 'rank', secret: true, trigger: 'leaderboard.bestRank<=1' },
   { id: 'season_champion', name: 'Champion', blurb: 'Finish a season at #1.', points: 500, category: 'rank', trigger: 'season.bestFinish<=1' },
   { id: 'season_podium', name: 'Podium', blurb: 'Finish a season in the top 10.', points: 200, category: 'rank', trigger: 'season.bestFinish<=10' },
+  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Whosoever proves worthy — reach 10,000 PriceScore — shall wield the hammer. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=10000' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  ARTIST · creator-side (you uploaded the project)
@@ -207,6 +208,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   //  LORE · the easter eggs (all secret) — the screenshot bait
   // ─────────────────────────────────────────────────────────────────────
   { id: 'token_69', name: 'Nice.', blurb: 'Own a token numbered 69.', points: 69, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==69' },
+  { id: 'token_67', name: '6-7', blurb: 'Own token #67. Why? Nobody knows. Six seven.', points: 67, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==67' },
   { id: 'token_420', name: 'Blaze It', blurb: 'Own a token numbered 420.', points: 420, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==420' },
   { id: 'token_42', name: 'Deep Thought', blurb: 'Own token #42 — the answer to life, the universe, and everything.', points: 42, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==42' },
   { id: 'token_1337', name: 'Leet', blurb: 'Own a token numbered 1337.', points: 100, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1337' },
@@ -215,6 +217,16 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'token_777', name: 'Angel Number', blurb: 'Own token #777 — the universe is winking at you.', points: 77, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==777' },
   { id: 'token_888', name: 'Infinite Abundance', blurb: 'Own token #888 — flow and fortune.', points: 88, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==888' },
   { id: 'token_1111', name: 'Make a Wish', blurb: 'Own token #1111 — the portal is open.', points: 111, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1111' },
+  // Personal + numerology.
+  { id: 'token_22', name: 'Lucky 22', blurb: 'Own token #22.', points: 22, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==22' },
+  { id: 'token_85', name: "Class of '85", blurb: 'Own token #85. A very good year.', points: 85, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==85' },
+  { id: 'token_18', name: 'Master Number', blurb: 'Own token #18.', points: 18, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==18' },
+  // For the creative coders — math + gen-art number references.
+  { id: 'token_144', name: 'Fibonacci', blurb: 'Own token #144 — a perfect square, and a number in the sequence.', points: 21, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==144' },
+  { id: 'token_256', name: 'Full Byte', blurb: 'Own token #256 — two to the eighth.', points: 64, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==256' },
+  { id: 'token_314', name: 'Pi', blurb: 'Own token #314.', points: 31, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==314' },
+  { id: 'token_1618', name: 'Golden Ratio', blurb: 'Own token #1618 — φ, the divine proportion.', points: 16, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1618' },
+  { id: 'token_1729', name: 'Taxicab', blurb: 'Own token #1729 — the smallest number that is the sum of two cubes in two different ways.', points: 100, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1729' },
   { id: 'midnight_mint', name: 'Witching Hour', blurb: 'Mint between midnight and 1am.', points: 30, category: 'lore', secret: true, trigger: 'mint.hourLocal==0' },
   { id: 'four_twenty', name: 'Right on Time', blurb: 'Take any action at 4:20.', points: 20, category: 'lore', secret: true, trigger: 'action.time==4:20' },
   { id: 'full_moon', name: 'Lunatic', blurb: 'Trade on a full moon.', points: 40, category: 'lore', secret: true, trigger: 'trade.fullMoon' },
@@ -236,6 +248,13 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'whale_watcher', name: 'Whale Watcher', blurb: 'Follow five top-100 users.', points: 40, category: 'lore', secret: true, trigger: 'following.top100>=5' },
   { id: 'origin_story', name: 'Origin Story', blurb: 'Own a piece from the first project minted on PD.', points: 100, category: 'lore', secret: true, trigger: 'holdings.firstProject>=1' },
   { id: 'completionist', name: 'Completionist', blurb: 'Unlock every non-secret achievement.', points: 500, category: 'lore', secret: true, trigger: 'meta.allNonSecretUnlocked' },
+  { id: 'agartha', name: 'Agartha', blurb: 'You found the world beneath the world.', points: 88, category: 'lore', secret: true, trigger: 'ui.foundAgartha' },
+  { id: 'the_wanderer', name: 'The Wanderer', blurb: 'Odin appeared, and shared his counsel.', points: 77, category: 'lore', secret: true, trigger: 'odin.appeared' },
+  // Gen-art collecting — for the long-form heads. The ‰ in our logo lives here.
+  { id: 'prime_id', name: 'Prime', blurb: 'Own a token whose number is prime.', points: 31, category: 'lore', secret: true, trigger: 'holdings.tokenNumberPrime' },
+  { id: 'one_of_one', name: 'One of One', blurb: 'Own a 1-of-1 — an edition of a single piece.', points: 50, category: 'lore', secret: true, trigger: 'holdings.editionOfOne>=1' },
+  { id: 'long_form', name: 'Long-Form', blurb: 'Hold 50 pieces from a single project — a true long-form set.', points: 89, category: 'lore', secret: true, trigger: 'holdings.maxPerProject>=50' },
+  { id: 'per_mille', name: 'Per Mille', blurb: 'Hold 1,000 pieces — one full per mille of devotion. ‰', points: 250, category: 'lore', secret: true, trigger: 'holdings.total>=1000' },
 ] as const;
 
 /** Fast lookup by id. */
