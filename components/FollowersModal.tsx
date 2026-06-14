@@ -58,6 +58,15 @@ interface Graph {
 
 const EMPTY_GRAPH: Graph = { followers: [], following: [], mutuals: [] };
 
+/** A project row in the Projects tab. `held` = you own a piece, so it follows
+    YOU; otherwise you follow it. */
+interface FollowedProjectRow {
+    project_id: string;
+    handle: string | null;
+    title: string;
+    held: boolean;
+}
+
 function isTab(v: unknown): v is FollowersTab {
     return v === 'followers' || v === 'following' || v === 'mutuals' || v === 'projects';
 }
@@ -69,6 +78,7 @@ export default function FollowersModal() {
 
     const [tab, setTab] = useState<FollowersTab>('followers');
     const [graph, setGraph] = useState<Graph>(EMPTY_GRAPH);
+    const [projects, setProjects] = useState<FollowedProjectRow[]>([]);
     const [loading, setLoading] = useState(false);
 
     /* Sync tab from payload on each open. The opener (LinksView) passes
@@ -85,14 +95,19 @@ export default function FollowersModal() {
         if (!isOpen) return;
         if (!siweAddress) {
             setGraph(EMPTY_GRAPH);
+            setProjects([]);
             return;
         }
         let alive = true;
         const load = async () => {
             setLoading(true);
             try {
-                const r = await fetch(`/api/follows/${siweAddress}`, { cache: 'no-store' });
-                const j = await r.json().catch(() => ({}));
+                const [followRes, projRes] = await Promise.all([
+                    fetch(`/api/follows/${siweAddress}`, { cache: 'no-store' }),
+                    fetch(`/api/project-follows?follower=${siweAddress}`, { cache: 'no-store' }),
+                ]);
+                const j = await followRes.json().catch(() => ({}));
+                const p = await projRes.json().catch(() => ({}));
                 if (!alive) return;
                 const followers: string[] = Array.isArray(j?.follower_handles) ? j.follower_handles : [];
                 const following: string[] = Array.isArray(j?.following_handles) ? j.following_handles : [];
@@ -102,8 +117,9 @@ export default function FollowersModal() {
                     following,
                     mutuals: following.filter((h) => fset.has(h)),
                 });
+                setProjects(Array.isArray(p?.projects) ? p.projects : []);
             } catch {
-                if (alive) setGraph(EMPTY_GRAPH);
+                if (alive) { setGraph(EMPTY_GRAPH); setProjects([]); }
             } finally {
                 if (alive) setLoading(false);
             }
@@ -111,9 +127,11 @@ export default function FollowersModal() {
         void load();
         const onChange = () => void load();
         window.addEventListener('pd:follows-changed', onChange);
+        window.addEventListener('pd:project-follows-changed', onChange);
         return () => {
             alive = false;
             window.removeEventListener('pd:follows-changed', onChange);
+            window.removeEventListener('pd:project-follows-changed', onChange);
         };
     }, [isOpen, siweAddress]);
 
@@ -128,9 +146,10 @@ export default function FollowersModal() {
         followers: graph.followers.length,
         following: graph.following.length,
         mutuals: graph.mutuals.length,
-        projects: 0,
+        projects: projects.length,
     };
-    const rows = tab === 'projects' ? [] : graph[tab];
+    const peopleRows = tab === 'projects' ? [] : graph[tab];
+    const isEmpty = tab === 'projects' ? projects.length === 0 : peopleRows.length === 0;
 
     return (
         <div
@@ -184,16 +203,32 @@ export default function FollowersModal() {
                     ))}
                 </div>
                 <div className="collectors-list fm-list" id="followersListWrap">
-                    {loading && rows.length === 0 ? (
+                    {loading && isEmpty ? (
                         <div className="fm-empty fm-loading">Loading…</div>
-                    ) : rows.length === 0 ? (
+                    ) : isEmpty ? (
                         <div className="fm-empty">
-                            {siweAddress || tab === 'projects'
+                            {siweAddress
                                 ? EMPTY_LINE[tab]
                                 : 'Sign in to see your circle.'}
                         </div>
+                    ) : tab === 'projects' ? (
+                        projects.map((proj) => (
+                            <a
+                                className="fm-row fm-project-row"
+                                key={proj.project_id}
+                                href={`/art/${proj.handle ?? proj.project_id}`}
+                            >
+                                <span className="fm-project-title">{proj.title}</span>
+                                {proj.handle && (
+                                    <span className="fm-project-handle">@{proj.handle}</span>
+                                )}
+                                <span className="fm-project-tag">
+                                    {proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}
+                                </span>
+                            </a>
+                        ))
                     ) : (
-                        rows.map((handle) => (
+                        peopleRows.map((handle) => (
                             <div className="fm-row" key={handle}>
                                 <CollectedPair handle={handle} />
                             </div>

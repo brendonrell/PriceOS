@@ -8,14 +8,19 @@ export interface ProjectFollowersResponse {
   project_id: string;
   /** The project's canonical @name, or null if it hasn't been claimed. */
   handle: string | null;
-  /** Follower wallet addresses — the project FollowButton checks the viewer's
-      address against this for its followed/not-followed state. */
+  /** The project's FOLLOWERS — wallets that clicked Follow. The FollowButton
+      checks the viewer against this for its followed/not-followed state. */
   followers: string[];
-  /** @name snapshots matching followers — the followers list renders handles
-      (sprite chips), not addresses. Pre-claim followers contribute no handle,
-      so this can be shorter than `followers`. Same row source. */
+  /** @name snapshots of the followers (sprite chips). Unclaimed wallets drop
+      out, so this can be shorter than `followers`. */
   follower_handles: string[];
   follower_count: number;
+  /** The project's FOLLOWING — every current HOLDER. The project auto-follows
+      whoever owns a piece (Brendon 2026-06-14: "own a piece, it follows you;
+      dump it, unfollowed"). Sell out and you drop off this list. */
+  following: string[];
+  following_handles: string[];
+  following_count: number;
 }
 
 export async function GET(
@@ -70,17 +75,51 @@ export async function GET(
       follower_name: string | null;
     }>;
 
-    const followers = rows.map((r) => r.follower_address);
-    const follower_handles = rows
-      .map((r) => r.follower_name)
-      .filter((h): h is string => typeof h === 'string');
+    const followers = rows.map((r) => r.follower_address.toLowerCase());
+
+    // (c) The project FOLLOWS every current holder — own a piece, it follows
+    // you; dump it, you drop off (Brendon 2026-06-14). That's the project's
+    // FOLLOWING list (distinct holders).
+    const { data: holderData, error: holderErr } = await supabase
+      .from('holders')
+      .select('owner_address')
+      .eq('project_id', projectId);
+    if (holderErr) return serverError(holderErr.message);
+    const following = Array.from(
+      new Set(
+        ((holderData ?? []) as Array<{ owner_address: string }>).map((h) =>
+          h.owner_address.toLowerCase()
+        )
+      )
+    );
+
+    // (d) Resolve @names across both sets in one users join (sprite chips).
+    const all = Array.from(new Set([...followers, ...following]));
+    let handleByAddr = new Map<string, string>();
+    if (all.length > 0) {
+      const { data: usersData, error: usersErr } = await supabase
+        .from('users')
+        .select('address, handle')
+        .in('address', all);
+      if (usersErr) return serverError(usersErr.message);
+      handleByAddr = new Map(
+        ((usersData ?? []) as Array<{ address: string; handle: string | null }>)
+          .filter((u): u is { address: string; handle: string } => u.handle !== null)
+          .map((u) => [u.address.toLowerCase(), u.handle])
+      );
+    }
+    const handlesFor = (addrs: string[]) =>
+      addrs.map((a) => handleByAddr.get(a)).filter((h): h is string => typeof h === 'string');
 
     const response: ProjectFollowersResponse = {
       project_id: projectId,
       handle: projectRow.handle,
       followers,
-      follower_handles,
+      follower_handles: handlesFor(followers),
       follower_count: followers.length,
+      following,
+      following_handles: handlesFor(following),
+      following_count: following.length,
     };
     return NextResponse.json(response);
   } catch (err) {

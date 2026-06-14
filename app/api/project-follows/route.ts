@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseService } from '@/lib/supabase';
+import { getSupabaseAnon, getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
@@ -75,6 +75,77 @@ async function resolveHandle(
   if (error) throw new Error(error.message);
   const row = data as { handle: string | null } | null;
   return row?.handle ?? null;
+}
+
+const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+
+/** One followed-project row for the followers modal's Projects tab. */
+export interface FollowedProject {
+  project_id: string;
+  handle: string | null;
+  title: string;
+  /** True when the follow is implicit (the viewer holds a piece). */
+  held: boolean;
+}
+
+export interface FollowedProjectsResponse {
+  address: string;
+  projects: FollowedProject[];
+  count: number;
+}
+
+/**
+ * GET /api/project-follows?follower=0x… — the projects a wallet follows, for
+ * the followers modal's Projects tab. Includes BOTH explicit follows AND every
+ * project the wallet holds a piece of (auto-follow). Public (anon) read, same
+ * as the user follows list.
+ */
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const follower = new URL(req.url).searchParams.get('follower')?.toLowerCase();
+  if (!follower || !ADDRESS_RE.test(follower)) {
+    return badRequest('Invalid or missing `?follower=` address');
+  }
+
+  try {
+    const supabase = getSupabaseAnon();
+
+    const [followsRes, holdsRes] = await Promise.all([
+      supabase.from('project_follows').select('project_id').eq('follower_address', follower),
+      supabase.from('holders').select('project_id').eq('owner_address', follower),
+    ]);
+    if (followsRes.error) return serverError(followsRes.error.message);
+    if (holdsRes.error) return serverError(holdsRes.error.message);
+
+    const explicit = new Set(
+      ((followsRes.data ?? []) as Array<{ project_id: string }>).map((r) => r.project_id)
+    );
+    const held = new Set(
+      ((holdsRes.data ?? []) as Array<{ project_id: string }>).map((r) => r.project_id)
+    );
+    const ids = Array.from(new Set([...explicit, ...held]));
+
+    let projects: FollowedProject[] = [];
+    if (ids.length > 0) {
+      const { data: projData, error: projErr } = await supabase
+        .from('projects')
+        .select('id, handle, title')
+        .in('id', ids);
+      if (projErr) return serverError(projErr.message);
+      projects = ((projData ?? []) as Array<{ id: string; handle: string | null; title: string }>)
+        .map((p) => ({
+          project_id: p.id,
+          handle: p.handle,
+          title: p.title,
+          held: held.has(p.id),
+        }))
+        .sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    const response: FollowedProjectsResponse = { address: follower, projects, count: projects.length };
+    return NextResponse.json(response);
+  } catch (err) {
+    return serverError(err instanceof Error ? err.message : 'Unknown error');
+  }
 }
 
 export const POST = requireAuth(async (req, _ctx, address) => {

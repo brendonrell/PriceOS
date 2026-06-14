@@ -57,6 +57,25 @@ export async function GET(
       following_count = followingRes.count ?? 0;
     }
 
+    // Project edges (Brendon 2026-06-14): every project you HOLD follows you
+    // (so it counts among your followers — sell the bag and the count drops),
+    // and every project you explicitly FOLLOW counts toward your following.
+    // Keyed on address, so these run regardless of @name claim.
+    const [heldRes, projFollowRes] = await Promise.all([
+      supabase.from('holders').select('project_id').eq('owner_address', address),
+      supabase
+        .from('project_follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_address', address),
+    ]);
+    if (heldRes.error) return serverError(heldRes.error.message);
+    if (projFollowRes.error) return serverError(projFollowRes.error.message);
+    const heldProjects = new Set(
+      ((heldRes.data ?? []) as Array<{ project_id: string }>).map((r) => r.project_id)
+    );
+    follower_count += heldProjects.size;
+    following_count += projFollowRes.count ?? 0;
+
     const response: UserProfileResponse = {
       ...userRow,
       follower_count,
