@@ -31,6 +31,7 @@ import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
+import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -532,12 +533,10 @@ export default function HomePageBody({
                 the tab is the label. */}
             {activeTab === 'minting' && (
                 <section aria-label="Now Minting">
-                    {!feed && <div className="home-feed-loading">Loading…</div>}
-                    {feed && !hasMintingBase && (
-                        <div className="home-empty-note">
-                            Projects land here at 12 mints — none yet.
-                        </div>
-                    )}
+                    {/* Loading OR no graduated projects yet → ghost carousels in
+                        the exact shape of the live rows (Brendon, 2026-06-14 —
+                        never a text null state). */}
+                    {(!feed || !hasMintingBase) && <GhostCarousels />}
                     {feed && hasMintingBase && mintingView.length === 0 && (
                         <div className="home-empty-note">
                             No projects match — clear the filters to see them all.
@@ -606,7 +605,9 @@ export default function HomePageBody({
                         <ShuffleGallery seed={shuffleSeed} />
                     </ProjectProvider>
                 ) : (
-                    <section id="gallery" aria-label="Shuffle" />
+                    /* Nothing minted to shuffle yet → ghost gallery in the grid
+                       shape, never an empty void (Brendon, 2026-06-14). */
+                    <GhostGallery />
                 ))}
         </TraitsProvider>
     );

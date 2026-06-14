@@ -7290,6 +7290,13 @@ body.colorway-dark .ghost-feed-bar {
 .ghost-feed-bar-type    { width: 46px; height: 11px; }
 .ghost-feed-bar-content { width: min(58%, 300px); height: 11px; }
 
+/* Ghost carousels (HomeGhosts.tsx) — the Now Minting empty/loading stand-in.
+   Reuses .home-carousel-row/.home-carousel-track so the placeholder rows match
+   the live carousels exactly; only the name header is a ghost bar, and the
+   placeholder track doesn't invite a grab. */
+.ghost-carousel-title-bar { width: 130px; height: 13px; }
+.ghost-carousel-row .home-carousel-track { cursor: default; }
+
 /* Wishlist row extras (price + quick cart), reusing the shared row layout. */
 .wishlist-row-price {
     flex-shrink: 0;
