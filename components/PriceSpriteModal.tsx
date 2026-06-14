@@ -47,6 +47,7 @@ import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { rankProgress } from '../lib/achievements/tiers';
 import SpriteEyeSlot from './SpriteEyeSlot';
 import {
     getSpriteFrame,
@@ -219,7 +220,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const { priceRank, handle, siweAddress } = useAuth();
+    const { priceRank, priceScore, handle, siweAddress } = useAuth();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
@@ -318,20 +319,31 @@ export default function PriceSpriteModal() {
                     <div className="ps-rank-caption">PRICERANK</div>
                 </div>
 
-                {/* Progress to the next PriceRank — XP curve isn't locked
-                    yet so the fill is 0% and labels read `-- / -- XP`;
-                    an idle scanner sweep keeps the bar alive (§9: always
-                    feel moving). Real wiring follows the rank-up
-                    workstream. */}
-                <div className="ps-next-wrap ps-reveal ps-d3">
-                    <div className="ps-next-bar">
-                        <div className="ps-next-fill" style={{ width: '0%' }} />
-                    </div>
-                    <div className="ps-next-labels">
-                        <span>{`rank ${priceRank} · -- / -- XP`}</span>
-                        <span>{`rank ${priceRank + 1} →`}</span>
-                    </div>
-                </div>
+                {/* Progress to the next PriceRank — REAL wiring now: the fill is
+                    PriceScore's fraction into the current tier band
+                    (lib/achievements/tiers). Left label = your PriceScore; right
+                    label = points to the next tier, or APEX at the top. */}
+                {(() => {
+                    const prog = rankProgress(priceScore);
+                    const pct = Math.max(2, Math.round(prog.fraction * 100));
+                    const remaining =
+                        prog.nextTier === null ? 0 : prog.bandSize - prog.intoBand;
+                    return (
+                        <div className="ps-next-wrap ps-reveal ps-d3">
+                            <div className="ps-next-bar">
+                                <div className="ps-next-fill" style={{ width: `${pct}%` }} />
+                            </div>
+                            <div className="ps-next-labels">
+                                <span>{`${priceScore.toLocaleString()} PriceScore`}</span>
+                                <span>
+                                    {prog.nextTier === null
+                                        ? 'APEX'
+                                        : `${remaining.toLocaleString()} → rank ${prog.nextTier}`}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* ACHIEVEMENTS — Xbox-style rail, all tiles locked until
                     the achievements workstream lands. Tap a tile to see
