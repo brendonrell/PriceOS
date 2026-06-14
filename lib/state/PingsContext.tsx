@@ -30,12 +30,17 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { getSupabaseBrowser } from '../supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { usePdNotifs } from './PdNotifsContext';
 import { passesCategoryPrefs, type FeedItem } from '../pings/render';
 
-const POLL_MS = 30_000;
+// Poll cadence (reliability fallback). The live market feed below drives the
+// near-instant path; this just catches non-market pings (follow / p2p) and any
+// dropped socket. Tight because latency is the enemy on a financial surface.
+const POLL_MS = 15_000;
 
 // App actions that can mint a new ping — re-pull immediately, don't wait for the
 // next interval. Mirrors the qualifying-event list PriceRankSync listens to.
@@ -153,10 +158,34 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     const onAction = () => { void fetchFull(); };
     QUALIFYING_EVENTS.forEach((e) => window.addEventListener(e, onAction));
 
+    // Near-instant path: the moment ANY market event lands (offer/sale/list/
+    // mint), nudge a count check so a financial ping surfaces in ~1s instead of
+    // waiting for the poll. Rides the PUBLIC events table — no private channel,
+    // no privacy concern. Debounced so a burst is one check. Poll is the
+    // fallback if the socket is unavailable (anon env missing) or drops.
+    let nudgeTimer = 0;
+    const nudge = () => {
+      window.clearTimeout(nudgeTimer);
+      nudgeTimer = window.setTimeout(() => { void fetchCount(); }, 800);
+    };
+    let channel: RealtimeChannel | null = null;
+    try {
+      channel = getSupabaseBrowser()
+        .channel('pings-live')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, nudge)
+        .subscribe();
+    } catch {
+      /* anon env missing in this build — the poll covers it */
+    }
+
     return () => {
       window.clearInterval(interval);
+      window.clearTimeout(nudgeTimer);
       document.removeEventListener('visibilitychange', onVisible);
       QUALIFYING_EVENTS.forEach((e) => window.removeEventListener(e, onAction));
+      if (channel) {
+        try { getSupabaseBrowser().removeChannel(channel); } catch { /* socket gone */ }
+      }
     };
   }, [siweAddress, fetchFull, fetchCount]);
 

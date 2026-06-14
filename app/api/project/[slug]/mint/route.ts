@@ -18,6 +18,19 @@ export const dynamic = 'force-dynamic';
 
 const MAX_PER_MINT = 22; // per-tx cap (PDProject contract). Confirm exact value vs pd-contracts.
 
+// Mint-count milestones worth pinging the artist about. Below 1000: notable
+// round numbers; at/above 1000: every full thousand. Returns the highest
+// milestone crossed by going from `prev` → `now`, or null if none.
+const MINT_MILESTONES = [1, 10, 25, 50, 100, 250, 500, 1000];
+function milestoneCrossed(prev: number, now: number): number | null {
+  let crossed: number | null = null;
+  for (const m of MINT_MILESTONES) if (m > prev && m <= now) crossed = m;
+  const kPrev = Math.floor(prev / 1000);
+  const kNow = Math.floor(now / 1000);
+  if (now >= 1000 && kNow > kPrev) crossed = kNow * 1000;
+  return crossed;
+}
+
 export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
   const slug = ctx.params.slug?.toLowerCase();
   const def = slug ? getProject(slug) : null;
@@ -51,28 +64,29 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
     if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
     if (r.error) return badRequest(r.error);
 
-    // Ping the artist that someone collected from their project (rolled up:
-    // "@you +5 others collected from {project}"). Best-effort, never blocks.
-    const { data: projRow } = await supabase
-      .from('projects')
-      .select('artist_address, handle')
-      .eq('id', slug)
-      .maybeSingle();
-    const proj = projRow as { artist_address?: string; handle?: string | null } | null;
-    const artist = proj?.artist_address ?? null;
-    if (artist) {
-      const firstToken = Array.isArray(r.minted) && r.minted.length > 0 ? String(r.minted[0]) : null;
-      await createPing({
-        recipientAddress: artist,
-        kind: 'MINT',
-        actorAddress: address,
-        projectId: slug ?? null,
-        projectName: proj?.handle ?? null,
-        tokenId: firstToken,
-        amountEth: def.mintPriceEth,
-        data: { minted: r.minted, qty },
-        groupKey: `MINT:${slug}`,
-      });
+    // Ping the artist on MINT MILESTONES only — not every collect (which would
+    // be noise on a hot drop). Fires when this mint crosses a milestone count.
+    const mintedNow = Array.isArray(r.minted) ? r.minted.length : qty;
+    const total = r.count ?? 0;
+    const milestone = milestoneCrossed(total - mintedNow, total);
+    if (milestone !== null) {
+      const { data: projRow } = await supabase
+        .from('projects')
+        .select('artist_address, handle')
+        .eq('id', slug)
+        .maybeSingle();
+      const proj = projRow as { artist_address?: string; handle?: string | null } | null;
+      const artist = proj?.artist_address ?? null;
+      if (artist) {
+        await createPing({
+          recipientAddress: artist,
+          kind: 'MINT',
+          actorAddress: null, // project-level milestone, not a single collector
+          projectId: slug ?? null,
+          projectName: proj?.handle ?? null,
+          data: { milestone, count: total },
+        });
+      }
     }
 
     return NextResponse.json({

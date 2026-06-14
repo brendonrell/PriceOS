@@ -46,6 +46,29 @@ async function resolveRecipient(
   return (data as { address: string } | null)?.address?.toLowerCase() ?? null;
 }
 
+/** Resolve a wallet → users.handle (null pre-claim). */
+async function handleOf(
+  db: ReturnType<typeof getSupabaseService>,
+  address: string
+): Promise<string | null> {
+  const { data } = await db.from('users').select('handle').eq('address', address).maybeSingle();
+  return (data as { handle: string | null } | null)?.handle ?? null;
+}
+
+/** True only when BOTH parties follow each other (the anti-spam gate: you can
+ *  only ping someone you're mutuals with). Follows are @name-keyed. */
+async function areMutuals(
+  db: ReturnType<typeof getSupabaseService>,
+  aHandle: string,
+  bHandle: string
+): Promise<boolean> {
+  const [aFollowsB, bFollowsA] = await Promise.all([
+    db.from('follows').select('follower_name').eq('follower_name', aHandle).eq('following_name', bHandle).maybeSingle(),
+    db.from('follows').select('follower_name').eq('follower_name', bHandle).eq('following_name', aHandle).maybeSingle(),
+  ]);
+  return !!aFollowsB.data && !!bFollowsA.data;
+}
+
 export const POST = requireAuth(async (req, _ctx, address) => {
   let body: SendPingRequestBody;
   try {
@@ -64,6 +87,19 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     const recipient = await resolveRecipient(db, body.to);
     if (!recipient) return notFound('Recipient not found');
     if (recipient === address) return badRequest('Cannot ping yourself');
+
+    // Anti-spam gate: p2p pings are MUTUALS-ONLY. Both parties must follow each
+    // other (and both must have claimed an @name).
+    const [senderHandle, recipientHandle] = await Promise.all([
+      handleOf(db, address),
+      handleOf(db, recipient),
+    ]);
+    if (!senderHandle || !recipientHandle || !(await areMutuals(db, senderHandle, recipientHandle))) {
+      return NextResponse.json(
+        { error: 'You can only ping people you follow each other', code: 'NOT_MUTUALS' },
+        { status: 403 }
+      );
+    }
 
     const id = await createPing({
       recipientAddress: recipient,

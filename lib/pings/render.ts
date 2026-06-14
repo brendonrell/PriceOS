@@ -113,7 +113,13 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = p ? `followed ${p}` : 'followed your project';
       break;
     case 'MINT':
-      action = join('collected', p, t) || 'collected your work';
+      if (typeof row.data?.milestone === 'number') {
+        // Artist milestone ping — project-level, not a single collector.
+        handle = '';
+        action = join(p || 'Your project', 'hit', `${row.data.milestone} collected`);
+      } else {
+        action = join('collected', p, t) || 'collected your work';
+      }
       break;
     case 'LIST':
       action = join('listed', join(p, t) || 'a piece') + (eth ? ` · ${eth}` : '');
