@@ -63,7 +63,7 @@ const ICONS: Record<RenderKind, string> = {
   OFFER:          '✦︎',
   OFFER_ACCEPTED: '✸︎',
   XFER:           '✸︎',
-  WISHLIST_HIT:   '✦︎',
+  WISHLIST_HIT:   '♡︎',
   WATCH_HIT:      '✦︎',
 };
 
@@ -147,7 +147,11 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = `pinged you: ${msg}`;
       break;
     }
-    case 'WISHLIST_HIT':
+    case 'WISHLIST_HIT': {
+      const verb = row.data?.event === 'sold' ? 'sold' : 'listed';
+      action = join(verb, join(p, t) || 'a piece') + (eth ? ` · ${eth}` : '') + ' · wishlist';
+      break;
+    }
     case 'WATCH_HIT':
       action = join('moved', join(p, t));
       break;

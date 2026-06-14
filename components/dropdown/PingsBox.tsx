@@ -89,7 +89,8 @@ export function PingsBox() {
         .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
         .map((p) => renderPing(p));
 
-    const countLabel = pingsState.unreadCount > 0 ? `(${pingsState.unreadCount})` : '';
+    const unread = pingsState.unreadCount;
+    const badgeText = unread > 99 ? '99+' : String(unread);
 
     return (
         <AccordionBox
@@ -103,7 +104,11 @@ export function PingsBox() {
                 <div className="pings-header-row">
                     <span className="pings-label">
                         PINGS
-                        {countLabel && <span className="notif-count">{countLabel}</span>}
+                        {unread > 0 && (
+                            <span className="pings-count-badge pings-count-badge--inline">
+                                {badgeText}
+                            </span>
+                        )}
                     </span>
                     {tapeOn && (
                         <div className="pings-tape-wrap">

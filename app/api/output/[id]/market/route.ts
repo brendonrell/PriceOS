@@ -14,6 +14,7 @@ import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
+import { pingWishlisters } from '@/lib/pings/wishlist';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,6 +129,9 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
           { onConflict: 'project_id,token_id' },
         );
         await db.from('events').insert({ type: 'LIST', project_id: slug, token_id: tokenId, from_address: address, to_address: null, price_eth: price, timestamp: nowSec() } as never);
+
+        // Ping everyone wishlisting this piece: "it's buyable now".
+        await pingWishlisters(db, { slug, tokenId, event: 'listed', actorAddress: address, amountEth: price });
         return NextResponse.json({ ok: true, listed: price });
       }
       case 'cancel': {
@@ -167,6 +171,8 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
             amountEth: salePrice,
           });
         }
+        // Ping everyone wishlisting this piece: "it's gone".
+        await pingWishlisters(db, { slug, tokenId, event: 'sold', actorAddress: address, amountEth: salePrice });
         return NextResponse.json({ ok: true, bought: r.bought });
       }
       case 'offer': {

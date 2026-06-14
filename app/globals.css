@@ -446,6 +446,16 @@ body.sentiment-on .sentiment-widget {
     box-sizing: border-box;
 }
 
+/* Inline variant — same circle, sat next to the PINGS label in the panel
+   header instead of pinned to a button corner. iOS-notification feel. */
+.pings-count-badge--inline {
+    position: static;
+    top: auto;
+    right: auto;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
 /* Read pings fade back; the empty-state line is muted. */
 .notif-item.read { opacity: 0.5; }
 .pings-empty {
