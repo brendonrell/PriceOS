@@ -33,6 +33,9 @@ export interface CreatePingInput {
   /** @handle snapshot. If omitted (and actorAddress is set) it's resolved. */
   actorName?: string | null;
   projectId?: string | null;
+  /** Project @name snapshot. If omitted (and projectId is set) it's resolved,
+   *  so every project-scoped ping renders socially (@oracle, not a raw id). */
+  projectName?: string | null;
   tokenId?: string | null;
   amountEth?: number | string | null;
   data?: Record<string, unknown>;
@@ -49,6 +52,16 @@ async function resolveHandle(db: DB, address: string): Promise<string | null> {
     .from('users')
     .select('handle')
     .eq('address', address)
+    .maybeSingle();
+  return (data as { handle: string | null } | null)?.handle ?? null;
+}
+
+/** Resolve a project id → projects.handle (its @name), or null. */
+async function resolveProjectHandle(db: DB, projectId: string): Promise<string | null> {
+  const { data } = await db
+    .from('projects')
+    .select('handle')
+    .eq('id', projectId)
     .maybeSingle();
   return (data as { handle: string | null } | null)?.handle ?? null;
 }
@@ -86,6 +99,16 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
     if (actorName === undefined || actorName === null) {
       actorName = actor ? await resolveHandle(db, actor) : null;
     }
+
+    // Snapshot the project @name so every project-scoped ping reads socially.
+    let projectName = input.projectName ?? null;
+    if (input.projectId && !projectName) {
+      projectName = await resolveProjectHandle(db, input.projectId);
+    }
+    const baseData: Record<string, unknown> = {
+      ...(input.data ?? {}),
+      ...(projectName ? { project_handle: projectName } : {}),
+    };
 
     const amount =
       input.amountEth === undefined || input.amountEth === null
@@ -127,7 +150,7 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
             actor_address: actor,
             actor_name: actorName,
             amount_eth: amount as never,
-            data: { ...prevData, ...(input.data ?? {}), count: prevCount + 1, actors },
+            data: { ...prevData, ...baseData, count: prevCount + 1, actors },
           } as never)
           .eq('id', row.id);
         void maybePrune(db, recipient);
@@ -146,7 +169,7 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
         project_id: input.projectId ?? null,
         token_id: input.tokenId ?? null,
         amount_eth: amount as never,
-        data: input.groupKey ? { ...(input.data ?? {}), count: 1 } : (input.data ?? {}),
+        data: input.groupKey ? { ...baseData, count: 1 } : baseData,
         group_key: input.groupKey ?? null,
         read: false,
       } as never)

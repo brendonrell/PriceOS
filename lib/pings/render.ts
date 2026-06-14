@@ -41,6 +41,18 @@ function tok(row: PingRow): string {
   return row.token_id != null && row.token_id !== '' ? `#${row.token_id}` : '';
 }
 
+/** The project's @name (social), snapshotted into data.project_handle at write
+ *  time. Empty when the project has no claimed @name yet. */
+function proj(row: PingRow): string {
+  const h = row.data?.project_handle;
+  return typeof h === 'string' && h ? `@${h}` : '';
+}
+
+/** Join non-empty parts with single spaces. */
+function join(...parts: string[]): string {
+  return parts.filter(Boolean).join(' ');
+}
+
 /** "+N others" suffix when a rollup row has collapsed multiple actors. */
 function rollup(row: PingRow): string {
   const count = typeof row.data?.count === 'number' ? (row.data.count as number) : 1;
@@ -51,6 +63,7 @@ export function renderPing(row: PingRow): RenderedPing {
   const actor = row.actor_name ? `@${row.actor_name}` : 'someone';
   const eth = fmtEth(row.amount_eth);
   const t = tok(row);
+  const p = proj(row);
 
   let handle = actor + rollup(row);
   let action = '';
@@ -60,22 +73,23 @@ export function renderPing(row: PingRow): RenderedPing {
       action = 'followed you';
       break;
     case 'PROJECT_FOLLOW':
-      action = 'followed your project';
+      // Social: "@alex followed @oracle" (falls back to "your project").
+      action = p ? `followed ${p}` : 'followed your project';
       break;
     case 'MINT':
-      action = t ? `collected ${t}` : 'collected your work';
+      action = join('collected', p, t) || 'collected your work';
       break;
     case 'SALE':
-      action = `bought ${t}${eth ? ` · ${eth}` : ''}`.trim();
+      action = join('bought', p, t) + (eth ? ` · ${eth}` : '');
       break;
     case 'OFFER':
-      action = `offered${eth ? ` ${eth}` : ''} on ${t}`.trim();
+      action = join('offered', eth ?? '', 'on', join(p, t) || 'your piece');
       break;
     case 'OFFER_ACCEPTED':
-      action = `accepted your offer on ${t}`.trim();
+      action = join('accepted your offer on', join(p, t) || 'your piece');
       break;
     case 'XFER':
-      action = `transferred ${t}`.trim();
+      action = join('transferred', p, t);
       break;
     case 'ACHIEVEMENT': {
       handle = '';

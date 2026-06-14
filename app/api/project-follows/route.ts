@@ -206,10 +206,11 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     // Ping the project's artist: "@you followed your project" (rolled up).
     const { data: projRow } = await supabase
       .from('projects')
-      .select('artist_address')
+      .select('artist_address, handle')
       .eq('id', projectId)
       .maybeSingle();
-    const artist = (projRow as { artist_address?: string } | null)?.artist_address ?? null;
+    const proj = projRow as { artist_address?: string; handle?: string | null } | null;
+    const artist = proj?.artist_address ?? null;
     if (artist) {
       await createPing({
         recipientAddress: artist,
@@ -217,6 +218,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         actorAddress: address,
         actorName: row.follower_name,
         projectId,
+        projectName: proj?.handle ?? null,
         groupKey: `PROJECT_FOLLOW:${projectId}`,
       });
     }

@@ -55,10 +55,11 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
     // "@you +5 others collected from {project}"). Best-effort, never blocks.
     const { data: projRow } = await supabase
       .from('projects')
-      .select('artist_address')
+      .select('artist_address, handle')
       .eq('id', slug)
       .maybeSingle();
-    const artist = (projRow as { artist_address?: string } | null)?.artist_address ?? null;
+    const proj = projRow as { artist_address?: string; handle?: string | null } | null;
+    const artist = proj?.artist_address ?? null;
     if (artist) {
       const firstToken = Array.isArray(r.minted) && r.minted.length > 0 ? String(r.minted[0]) : null;
       await createPing({
@@ -66,6 +67,7 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
         kind: 'MINT',
         actorAddress: address,
         projectId: slug ?? null,
+        projectName: proj?.handle ?? null,
         tokenId: firstToken,
         amountEth: def.mintPriceEth,
         data: { minted: r.minted, qty },
