@@ -42,37 +42,39 @@
   `season_standings`, + users progression cols. Migration file:
   `supabase/migrations/20260614_pricerank_social.sql`.
 
-## 🔒 SECURITY AUDIT 2026-06-14 — findings to fix (full report: `docs/SECURITY_AUDIT_2026-06-14.md`)
+## 🔒 SECURITY AUDIT 2026-06-14 — audit + first fixes SHIPPED to dev (full report: `docs/SECURITY_AUDIT_2026-06-14.md`)
 Read-only audit of PriceOS + pd-contracts + pd-price-token (indexer excluded —
 being rewritten). Both contracts clean (no crit/high/med). No committed secrets,
-no IDOR, SIWE solid. **All exploitable risk is in the now-LIVE PriceRank/scoring
-layer** (migration applied + verified on dev; dev preview is public). Root cause:
-free unlimited wallets + no rate limiting → any count-of-actions is farmable.
-Priority order (the 9 ClickUp items owed):
-1. **CRIT — curation self-grant (LIVE).** `PATCH /api/me` settings blob is
-   unvalidated; engine counts `starred/wishlist/albums` array lengths straight →
-   evaluate grants ~1,000+ PriceScore from fake arrays. Fix: count from
-   constrained server state, not the user blob.
-2. **HIGH — streak forgery (LIVE).** `streak/ping` trusts client `localDate`;
-   walk it forward 365 days in 365 calls = every streak badge. Fix: bound to
-   server `now()` ± tz window.
-3. **HIGH — social sybil (LIVE).** Free wallets + no throttle inflate
-   followers/anoints/mutuals for self or any victim. Fix: weight/gate social
-   credit on on-chain presence or source rank + rate-limit follows/anoint/
-   users-create/evaluate/streak. (= the deferred Sybil-resistance item, now
-   load-bearing.)
-4. **HIGH — raw DB errors returned to clients** (`serverError(error.message)`,
-   ~30 routes) leak schema. Fix: log server-side, return generic.
-5. **MED — rate limiter fails open + per-instance.** Confirm Upstash is actually
-   set in Vercel, else there's no real limit.
-6. **MED — no security headers** (CSP / X-Frame-Options / HSTS). Add a
-   `headers()` block.
-7. **MED — RLS is read-only-by-convention** (all writes ride service-role; reads
-   are blanket `USING(true)`). Add owner-scoped policies + a "no body-supplied
-   address in writes" test as defense-in-depth.
-8. **Contracts — external-firm audit + assembly byte-equivalence proof** before
-   mainnet (immutable deploy + hand-rolled library-reader assembly).
-9. **Token — pin GitHub Action SHAs + post-deploy Etherscan bytecode verify.**
+no IDOR, SIWE solid. The exploitable risk was all in the gameable PriceRank/
+scoring layer.
+
+**FIXED + on dev (Brendon approved push 2026-06-14):**
+- **Gameable score cap** (`GAMEABLE_SCORE_CAP=10`, `engine.ts`). Free/off-chain/
+  sybil achievements (stars, wishlist, albums, follows, anoints, streak, easter
+  eggs) STILL unlock + pop toasts for feedback, but their COMBINED score is
+  capped at ~10 of the ~12,000 scale → farming can't reach even tier 1. Rank
+  comes only from un-fakeable on-chain facts. Catalog untouched (Brendon retunes
+  freely). `tiers.ts` "free grinder maxes mid-tiers" note updated to match.
+- **Honest curation badges** — counts only DISTINCT well-formed `slug:id` keys;
+  fabricated arrays / empty albums no longer mint tier badges.
+- **Streak un-forgeable** — client `localDate` bounded to real server time.
+- **No raw DB error leaks** — `serverError()` logs server-side, returns generic.
+- **Security headers** — frame/nosniff/HSTS/referrer/permissions in next.config.
+- **Tighter per-IP caps** on auth/social/scoring routes + trusted `req.ip`.
+
+**STILL OWED (not code-fixable from here / product calls):**
+- **Upstash shared limiter** — needs the env keys set in Vercel (no env tool
+  here; deprioritized — switching to Cloudflare Pages soon, and the score cap
+  already makes farming pointless; rate-limit is now defense-in-depth).
+- **Deeper RLS** — owner-scoped write policies + "no body-supplied address in
+  writes" test, then apply to live Supabase (prod-data gated).
+- **Contracts** — external-firm audit + library-reader assembly byte-equivalence
+  proof before mainnet.
+- **Token** — pin GitHub Action SHAs + post-deploy Etherscan bytecode verify.
+- **Product call:** should streak / social EVER be a meaningful earner? Currently
+  capped to nothing. If yes, they need on-chain gating, not just the cap.
+- **ClickUp** — still owed: file the audit + these fixes once the connector is
+  reconnected (it hard-failed all session).
 
 ## ⏭️ OPEN / NEXT (none blocking; Brendon doing edits in a fresh chat)
 - **Anointing UI** — backend done, NO on-screen way to place a Pledge yet.
