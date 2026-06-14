@@ -51,20 +51,24 @@ export interface RenderedPing {
 }
 
 /** VS-15 (text-presentation) glyph per kind — matches the notif-item look. */
+// PD's canonical glyph vocabulary — matched 1:1 to the MY PINGS settings pills
+// and the achievement category map, so a Ping shows the exact icon that concept
+// wears everywhere else in the app. All carry the VS-15 text selector (U+FE0E)
+// so they render as monochrome Courier glyphs, never emoji.
 const ICONS: Record<RenderKind, string> = {
-  PING:           '✉︎',
-  FOLLOW:         '✶︎',
-  PROJECT_FOLLOW: '✶︎',
-  ACHIEVEMENT:    '✦︎',
-  STREAK:         '✦︎',
-  MINT:           '✹︎',
-  LIST:           '✦︎',
-  SALE:           '✹︎',
-  OFFER:          '✦︎',
-  OFFER_ACCEPTED: '✸︎',
-  XFER:           '✸︎',
-  WISHLIST_HIT:   '✛︎',
-  WATCH_HIT:      '✦︎',
+  PING:           '✉︎', // ✉ message (p2p)
+  FOLLOW:         '⚭︎', // ⚭ mutual / social (matches MUTUALS pill)
+  PROJECT_FOLLOW: '⚭︎', // ⚭
+  ACHIEVEMENT:    '✦︎', // ✦ fallback (the unlock's own glyph is used when present)
+  STREAK:         '◈︎', // ◈ streak (achievement category glyph)
+  MINT:           '✶︎', // ✶ collected (matches MINTS pill)
+  LIST:           '✹︎', // ✹ listed (matches LISTS pill)
+  SALE:           '✶︎', // ✶ collected
+  OFFER:          '✦︎', // ✦ offered (matches OFFERS pill)
+  OFFER_ACCEPTED: '✦︎', // ✦ offer resolved
+  XFER:           '✸︎', // ✸ transfer (matches XFERS pill)
+  WISHLIST_HIT:   '✛︎', // ✛ wishlist (matches the artwork Wishlist glyph)
+  WATCH_HIT:      '✛︎', // ✛ watch
 };
 
 function fmtEth(amount: string | null): string | null {
@@ -165,10 +169,16 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = '';
   }
 
+  // Achievements carry their own catalog glyph — use it when present.
+  const ownIcon =
+    row.kind === 'ACHIEVEMENT' && typeof row.data?.icon === 'string' && row.data.icon
+      ? (row.data.icon as string)
+      : null;
+
   return {
     id: row.id,
     kind: row.kind,
-    icon: ICONS[row.kind] ?? '✦︎',
+    icon: ownIcon ?? ICONS[row.kind] ?? '✦︎',
     handle,
     action,
     read: row.read,

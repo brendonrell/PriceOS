@@ -481,6 +481,14 @@ body.sentiment-on .sentiment-widget {
     border-color: var(--text-color);
 }
 
+/* Per-glyph Ping icon nudges — mirrors the hand-tuned values PD already ships
+   on the MY PINGS settings pills, where ⚭ (mutual) and ✶ (collected) render
+   small/low at base. Everything else sits clean at the .n-icon default. */
+.ping-ic--FOLLOW,
+.ping-ic--PROJECT_FOLLOW { font-size: 17px; }       /* ⚭ runs small */
+.ping-ic--MINT,
+.ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* ✶ small + low */
+
 /* Read pings fade back; the empty-state line is muted. */
 .notif-item.read { opacity: 0.5; }
 .pings-empty {
