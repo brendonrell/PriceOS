@@ -144,6 +144,20 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'❇\uFE0E'}
                     label="Stargazing"
                 />
+                {/* Echo Chamber — plain `echo` flag (not spell_*), so it lives
+                    here as a hardcoded pill like Stargazing. Moved out of MY PD
+                    (Brendon 2026-06-14) — that slot is now the Ambient Strip. */}
+                <SettingsToggle
+                    id="sb-echo"
+                    active={notifs.echo}
+                    onClick={() => {
+                        const next = !notifs.echo;
+                        toggle('echo');
+                        showToast(`Echo Chamber: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    icon={'≫︎'}
+                    label="Echo Chamber"
+                />
                 {/* Spells 13–19: offer shield → hammer */}
                 {SPELLS.slice(12).map((spell) => (
                     <SettingsToggle

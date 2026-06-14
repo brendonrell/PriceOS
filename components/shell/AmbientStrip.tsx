@@ -1,81 +1,158 @@
 'use client';
 
 /*
- * AmbientStrip — a skinny oval "LED bar" that sits just under the Tape and
- * casts a slow, colour-shifting glow DOWN onto the canvas scrolling beneath it,
- * like a neon desk lamp tilted to face the surface in front of it.
+ * AmbientStrip — the LED light bar that lives just BELOW the Tape and washes a
+ * real, colour-shifting glow down onto the page (the page itself dims so the
+ * ambient light does the work). Off by default — turned on from MY PD
+ * (Settings → the ☼ pill). Tapping the bar opens a popup of LED options:
+ * colour palette, pattern, speed, and how far the page dims.
  *
- * Tap the pill to cycle the mood:
- *   OFF   — just the bar gently drifting colour, no glow, no dim.
- *   RELAX — the page dims ("lights off") and a soft, slow downward glow spills
- *           onto the content; the ambient light does the work.
- *   FUN   — brighter, faster, more saturated; lighter dim.
- *
- * The glow is screen-blended so its colour ADDS to whatever's below (additive
- * light, not a flat wash) — close enough to real spill without ray tracing.
- * Mode persists per device. Mode is mirrored to <body> classes so the dim
- * overlay + pacing can react in CSS.
+ * Visibility is driven by pdNotifs.ambientStrip; the look is driven by the
+ * options here (persisted per device). When off, nothing renders.
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import { useToast } from '../../lib/state/ToastContext';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
-type AmbientMode = 'off' | 'relax' | 'fun';
-const MODES: AmbientMode[] = ['off', 'relax', 'fun'];
-const STORAGE_KEY = 'pd_ambient_mode';
+type Palette = 'aurora' | 'sunset' | 'ocean' | 'lava' | 'forest' | 'mono';
+type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid';
+type Speed = 'slow' | 'med' | 'fast';
+type Dim = 'off' | 'soft' | 'deep';
+
+interface Opts { palette: Palette; pattern: Pattern; speed: Speed; dim: Dim }
+const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 'soft' };
+const STORAGE = 'pd_ambient_opts';
+
+const PALETTES: { id: Palette; label: string }[] = [
+    { id: 'aurora', label: 'Aurora' }, { id: 'sunset', label: 'Sunset' },
+    { id: 'ocean', label: 'Ocean' }, { id: 'lava', label: 'Lava' },
+    { id: 'forest', label: 'Forest' }, { id: 'mono', label: 'Mono' },
+];
+const PATTERNS: { id: Pattern; label: string }[] = [
+    { id: 'wave', label: 'Wave' }, { id: 'pulse', label: 'Pulse' },
+    { id: 'breathe', label: 'Breathe' }, { id: 'solid', label: 'Solid' },
+];
+const SPEEDS: { id: Speed; label: string }[] = [
+    { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' },
+];
+const DIMS: { id: Dim; label: string }[] = [
+    { id: 'off', label: 'Off' }, { id: 'soft', label: 'Soft' }, { id: 'deep', label: 'Deep' },
+];
 
 export default function AmbientStrip() {
-    const { showToast } = useToast();
-    const [mode, setMode] = useState<AmbientMode>('off');
+    const { notifs } = usePdNotifs();
+    const enabled = notifs.ambientStrip;
 
-    /* Hydrate the saved mood after mount (SSR can't read localStorage). */
+    const [opts, setOpts] = useState<Opts>(DEFAULTS);
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef<HTMLDivElement | null>(null);
+
+    /* Hydrate saved options. */
     useEffect(() => {
         try {
-            const saved = window.localStorage.getItem(STORAGE_KEY) as AmbientMode | null;
-            if (saved && MODES.includes(saved)) setMode(saved);
-        } catch {
-            /* private mode / blocked storage — stay OFF */
-        }
+            const raw = window.localStorage.getItem(STORAGE);
+            if (raw) setOpts({ ...DEFAULTS, ...JSON.parse(raw) });
+        } catch { /* ignore */ }
     }, []);
 
-    /* Reflect the mood onto <body> so the dim overlay + pacing react in CSS. */
+    /* Persist options. */
     useEffect(() => {
-        const cls = document.body.classList;
-        cls.toggle('ambient-on', mode !== 'off');
-        cls.toggle('ambient-relax', mode === 'relax');
-        cls.toggle('ambient-fun', mode === 'fun');
-        try {
-            window.localStorage.setItem(STORAGE_KEY, mode);
-        } catch {
-            /* ignore */
-        }
-        return () => {
-            cls.remove('ambient-on', 'ambient-relax', 'ambient-fun');
-        };
-    }, [mode]);
+        try { window.localStorage.setItem(STORAGE, JSON.stringify(opts)); } catch { /* ignore */ }
+    }, [opts]);
 
-    const cycle = useCallback(() => {
-        setMode((m) => {
-            const next = MODES[(MODES.indexOf(m) + 1) % MODES.length];
-            showToast(`Ambient: ${next.toUpperCase()}`);
-            return next;
-        });
-    }, [showToast]);
+    /* Dim the page via <body> classes — only while the strip is on. */
+    useEffect(() => {
+        const b = document.body.classList;
+        b.toggle('ambient-dim-soft', enabled && opts.dim === 'soft');
+        b.toggle('ambient-dim-deep', enabled && opts.dim === 'deep');
+        return () => b.remove('ambient-dim-soft', 'ambient-dim-deep');
+    }, [enabled, opts.dim]);
+
+    /* Close the popup on Escape or a tap outside. */
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+        const onDown = (e: PointerEvent) => {
+            if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+        };
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('pointerdown', onDown, true);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('pointerdown', onDown, true);
+        };
+    }, [open]);
+
+    if (!enabled) return null;
+
+    const set = <K extends keyof Opts>(k: K, v: Opts[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
     return (
-        <div className="ambient-strip-layer">
-            {/* Downward glow pool — screen-blended onto the content below. */}
+        <div
+            ref={rootRef}
+            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed}${open ? ' menu-open' : ''}`}
+        >
             <div className="ambient-glow" aria-hidden="true" />
-            {/* The oval LED pill — tap to change the mood. */}
             <button
                 type="button"
                 className="ambient-pill"
-                title="Ambient light — tap to change the mood"
-                aria-label={`Ambient light: ${mode}`}
-                onClick={cycle}
+                title="Ambient light — tap for options"
+                aria-label="Ambient light options"
+                aria-expanded={open}
+                onClick={() => setOpen((o) => !o)}
             >
                 <span className="ambient-pill-led" />
             </button>
+
+            {open && (
+                <div className="ambient-pop" role="dialog" aria-label="Ambient light options">
+                    <Row label="Colour">
+                        {PALETTES.map((p) => (
+                            <Chip key={p.id} on={opts.palette === p.id} onClick={() => set('palette', p.id)}>
+                                {p.label}
+                            </Chip>
+                        ))}
+                    </Row>
+                    <Row label="Pattern">
+                        {PATTERNS.map((p) => (
+                            <Chip key={p.id} on={opts.pattern === p.id} onClick={() => set('pattern', p.id)}>
+                                {p.label}
+                            </Chip>
+                        ))}
+                    </Row>
+                    <Row label="Speed">
+                        {SPEEDS.map((p) => (
+                            <Chip key={p.id} on={opts.speed === p.id} onClick={() => set('speed', p.id)}>
+                                {p.label}
+                            </Chip>
+                        ))}
+                    </Row>
+                    <Row label="Dim">
+                        {DIMS.map((p) => (
+                            <Chip key={p.id} on={opts.dim === p.id} onClick={() => set('dim', p.id)}>
+                                {p.label}
+                            </Chip>
+                        ))}
+                    </Row>
+                </div>
+            )}
         </div>
+    );
+}
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+    return (
+        <div className="ambient-pop-row">
+            <span className="ambient-pop-label">{label}</span>
+            <div className="ambient-pop-chips">{children}</div>
+        </div>
+    );
+}
+
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+    return (
+        <button type="button" className={`ambient-chip${on ? ' on' : ''}`} onClick={onClick}>
+            {children}
+        </button>
     );
 }

@@ -130,6 +130,9 @@ export interface PdNotifs {
     asciiId: boolean;       // negative — active = ASCII-ID hidden
     degen: boolean;
     autoscroll: boolean;
+    /* Ambient Strip — the LED light bar under the Tape. Off by default;
+       toggled from MY PD. When off the strip isn't rendered at all. */
+    ambientStrip: boolean;
 
     // Ping category preferences (MY PINGS panel)
     pings: {
@@ -205,6 +208,7 @@ const DEFAULTS: PdNotifs = {
     asciiId: false,
     degen: false,
     autoscroll: false,
+    ambientStrip: false,
 
     pings: {
         mints: true,

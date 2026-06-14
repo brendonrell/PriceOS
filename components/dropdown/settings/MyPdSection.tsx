@@ -619,12 +619,12 @@ export function MyPdSection({ onTripleTap }: Props) {
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
                     />
                     <SettingsToggle
-                        id="sn-echo"
-                        title="Echo Chamber"
-                        active={notifs.echo}
-                        onClick={() => toggleWithToast('echo', 'Echo Chamber')}
-                        icon={'⊚\uFE0E'}
-                        iconStyle={{ fontSize: '16px', lineHeight: '1', margin: '0 1px' }}
+                        id="sn-ambient"
+                        title="Ambient Strip"
+                        active={notifs.ambientStrip}
+                        onClick={() => toggleWithToast('ambientStrip', 'Ambient Strip')}
+                        icon={'☼\uFE0E'}
+                        iconStyle={{ fontSize: '15px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                 </div>
