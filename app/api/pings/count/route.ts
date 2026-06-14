@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { serverError } from '@/lib/errors';
+import { getBroadcastContext, countBroadcastUnread } from '@/lib/pings/broadcast';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,8 @@ export interface PingsCountResponse {
 export const GET = requireAuth(async (_req, _ctx, address) => {
   try {
     const db = getSupabaseService();
+
+    // Directed unread (cheap, index-backed).
     const { count, error } = await db
       .from('pings')
       .select('*', { count: 'exact', head: true })
@@ -26,7 +29,11 @@ export const GET = requireAuth(async (_req, _ctx, address) => {
       .eq('read', false);
     if (error) return serverError(error.message);
 
-    const response: PingsCountResponse = { unread: count ?? 0 };
+    // Broadcast unread (events newer than the viewer's watermark).
+    const bctx = await getBroadcastContext(db, address);
+    const broadcastUnread = bctx.empty ? 0 : await countBroadcastUnread(db, address, bctx);
+
+    const response: PingsCountResponse = { unread: (count ?? 0) + broadcastUnread };
     return NextResponse.json(response);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

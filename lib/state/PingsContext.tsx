@@ -30,11 +30,10 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { PingRow } from '../supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { usePdNotifs } from './PdNotifsContext';
-import { passesCategoryPrefs } from '../pings/render';
+import { passesCategoryPrefs, type FeedItem } from '../pings/render';
 
 const POLL_MS = 30_000;
 
@@ -48,7 +47,7 @@ const QUALIFYING_EVENTS = [
 ] as const;
 
 interface PingsState {
-  items: PingRow[];
+  items: FeedItem[];
   unreadCount: number;
   loading: boolean;
 }
@@ -82,8 +81,8 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     try {
       const r = await fetch('/api/pings', { cache: 'no-store' });
       if (!r.ok) return;
-      const j = (await r.json()) as { unread_count: number; pings: PingRow[] };
-      const items = j.pings ?? [];
+      const j = (await r.json()) as { unread_count: number; items: FeedItem[] };
+      const items = j.items ?? [];
 
       // New, unread, category-allowed pings we haven't seen → toast once.
       const n = prefsRef.current;

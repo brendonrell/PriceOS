@@ -1,17 +1,21 @@
-// GET /api/pings — the signed-in user's Ping inbox (directed pings).
+// GET /api/pings — the signed-in user's full Ping feed.
 //
-// Private: returns ONLY the caller's own pings (recipient === authed address),
-// enforced in app code on the service-role client — the same trust boundary the
-// rest of the API uses, since SIWE gives us no Supabase-Auth identity for RLS.
+// Merges two streams into one time-ordered list:
+//   1. DIRECTED pings — stored rows where recipient === the caller (things done
+//      to you: followed/collected/offered/sold/achievement/p2p).
+//   2. BROADCAST firehose — computed at read time off the shared `events` table
+//      joined to who/what you follow ("people/projects you follow did X"). Never
+//      stored, so high-follower accounts cost zero rows.
 //
-// The BROADCAST firehose ("someone you follow dropped X") is served at read time
-// off the shared `events` table and is wired in the next slice; this route is
-// the directed inbox that every producer writes to today.
+// Private: enforced in app code (recipient === authed address) on the
+// service-role client, since SIWE gives us no Supabase-Auth identity for RLS.
 
 import { NextResponse } from 'next/server';
 import { getSupabaseService, type PingRow } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { serverError } from '@/lib/errors';
+import { fromPingRow, type FeedItem } from '@/lib/pings/render';
+import { getBroadcastContext, listBroadcastFeed, countBroadcastUnread } from '@/lib/pings/broadcast';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +24,7 @@ const MAX_LIMIT = 200;
 
 export interface PingsListResponse {
   unread_count: number;
-  pings: PingRow[];
+  items: FeedItem[];
   next_cursor: string | null;
 }
 
@@ -35,30 +39,41 @@ export const GET = requireAuth(async (req, _ctx, address) => {
   try {
     const db = getSupabaseService();
 
-    let query = db
+    // ── Directed pings ──
+    let q = db
       .from('pings')
       .select('*')
       .eq('recipient_address', address)
       .order('created_at', { ascending: false })
       .limit(limit);
-    if (cursor) query = query.lt('created_at', cursor);
-
-    const { data, error } = await query;
+    if (cursor) q = q.lt('created_at', cursor);
+    const { data, error } = await q;
     if (error) return serverError(error.message);
+    const directed = (data ?? []) as PingRow[];
 
-    const { count, error: countErr } = await db
+    const { count: directedUnread, error: countErr } = await db
       .from('pings')
       .select('*', { count: 'exact', head: true })
       .eq('recipient_address', address)
       .eq('read', false);
     if (countErr) return serverError(countErr.message);
 
-    const pings = (data ?? []) as PingRow[];
+    // ── Broadcast firehose (read-time, no stored rows) ──
+    const bctx = await getBroadcastContext(db, address);
+    const broadcast = bctx.empty ? [] : await listBroadcastFeed(db, address, bctx, limit);
+    const broadcastUnread = bctx.empty ? 0 : await countBroadcastUnread(db, address, bctx);
+
+    // ── Merge, newest first, cap to limit ──
+    const items: FeedItem[] = [...directed.map(fromPingRow), ...broadcast].sort((a, b) =>
+      a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0
+    );
+
     const response: PingsListResponse = {
-      unread_count: count ?? 0,
-      pings,
+      unread_count: (directedUnread ?? 0) + broadcastUnread,
+      items: items.slice(0, limit),
+      // Pagination cursor follows the directed stream (the durable one).
       next_cursor:
-        pings.length === limit ? pings[pings.length - 1].created_at : null,
+        directed.length === limit ? directed[directed.length - 1].created_at : null,
     };
     return NextResponse.json(response);
   } catch (err) {
