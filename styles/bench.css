@@ -1,18 +1,15 @@
 /* =========================================================================
-   The Bench + the unified hold-drag dock + Cart 10/10 enhancements.
-   Raw CSS, theme-variable driven (--bg-color / --text-color / --border-color),
-   iPhone-Safari first: dvh heights, safe-area insets, momentum scroll,
-   contained overscroll so a drag/scroll never leaks to the page.
+   The Bench — ONE bottom tab. Peeks up the instant you start hold-dragging an
+   artwork; you drop pieces onto it; they live in it, side by side, with a
+   Portrait↔Landscape split + image export. Dismiss clears. No button, no panel.
+   Plus the Cart 10/10 enhancements at the bottom of this file.
+   iPhone-Safari first: dvh, safe-area, momentum scroll, contained overscroll.
    ========================================================================= */
 
-/* ---- Shared painted-art canvas ---------------------------------------- */
-canvas.bench-art {
-    -webkit-user-select: none;
-    user-select: none;
-}
+canvas.bench-art { -webkit-user-select: none; user-select: none; }
 
-/* While a hold-drag is engaged: kill text selection + callouts everywhere so
-   the lift feels like grabbing an object, not selecting a page. */
+/* While a hold-drag is engaged: kill selection + callouts so the lift feels
+   like grabbing an object. */
 body.bench-dragging,
 body.bench-dragging * {
     -webkit-user-select: none !important;
@@ -21,31 +18,26 @@ body.bench-dragging * {
     cursor: grabbing !important;
 }
 
-/* =========================================================================
-   DRAG LAYER — global ghost + peek dock
-   ========================================================================= */
-.bench-drag-layer {
+/* ---- The global layer (ghost + tab + cart target) -------------------- */
+.bench-dock-layer {
     position: fixed;
     inset: 0;
-    z-index: 10050;
-    pointer-events: none; /* only the dock pads opt back in */
+    z-index: 9500;
+    pointer-events: none; /* only the tab + cart target opt back in */
 }
 
-/* The lifted piece, following the pointer (engine sets the transform). */
+/* The lifted piece following the pointer. */
 .bench-ghost {
     position: fixed;
     top: 0;
     left: 0;
     width: 86px;
-    will-change: transform;
+    z-index: 3;
     pointer-events: none;
-    z-index: 2;
+    will-change: transform;
     animation: bench-ghost-pop 0.14s ease-out;
 }
-@keyframes bench-ghost-pop {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+@keyframes bench-ghost-pop { from { opacity: 0; } to { opacity: 1; } }
 .bench-ghost-art-wrap {
     width: 86px;
     aspect-ratio: 1 / 1;
@@ -56,9 +48,7 @@ body.bench-dragging * {
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
     transform: rotate(-3deg) scale(1.04);
 }
-.bench-ghost-art {
-    object-fit: contain !important;
-}
+.bench-ghost-art { object-fit: contain !important; }
 .bench-ghost-tag {
     display: block;
     text-align: center;
@@ -70,248 +60,146 @@ body.bench-dragging * {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-/* The dock — a friendly WIDE TAB that peeks up from the bottom the instant a
-   drag engages. Rounded top corners, our mono/theme language, minimalist. */
-.bench-dock {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    transform: translateY(112%);
-    transition: transform 0.3s cubic-bezier(0.18, 0.92, 0.26, 1.07);
-}
-.bench-dock.up {
-    transform: translateY(0);
-}
-.bench-dock-tab {
-    width: min(560px, 94vw);
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.32);
-    padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;
-    font-family: 'Courier New', Courier, monospace;
-}
-/* Little grab handle so the tab reads as something you're dragging toward. */
-.bench-dock-grip {
-    display: block;
-    width: 38px;
-    height: 4px;
-    margin: 2px auto 9px auto;
-    border-radius: 99px;
-    background: var(--text-color);
-    opacity: 0.28;
-}
-.bench-dock-zones {
-    display: flex;
-    gap: 8px;
-}
-.bench-dock-zone {
+/* The CART drop target — only while dragging a listed piece. */
+.bench-cart-target {
+    position: fixed;
+    right: 16px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    z-index: 4;
     pointer-events: auto;
-    flex: 1 1 0;
+    min-width: 96px;
     min-height: 64px;
-    border-radius: 12px;
+    padding: 8px 14px;
+    border-radius: 14px;
     background: color-mix(in srgb, var(--text-color) 6%, transparent);
     border: 1px solid var(--border-color);
     color: var(--text-color);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 9px;
-    position: relative;
+    gap: 4px;
+    font-family: 'Courier New', Courier, monospace;
     transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
-.bench-dock-zone.armed {
-    transform: translateY(-3px);
+.bench-cart-target.armed {
+    transform: translateY(-4px) scale(1.05);
     background: var(--text-color);
     color: var(--bg-color);
     border-color: var(--text-color);
 }
-.bench-dock-icon { font-size: 20px; line-height: 1; }
-.bench-dock-text {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-}
-.bench-dock-count {
-    position: absolute;
-    top: 7px;
-    right: 10px;
-    font-size: 11px;
-    font-weight: bold;
-    opacity: 0.6;
-    font-variant-numeric: tabular-nums;
-}
+.bench-cart-target-icon { font-size: 20px; line-height: 1; }
+.bench-cart-target-label { font-size: 11px; font-weight: bold; letter-spacing: 0.05em; }
 
-/* =========================================================================
-   NAVBAR BENCH BUTTON — sibling of .btn-cart, only shown when populated
-   ========================================================================= */
-.btn-bench {
-    background: var(--text-color);
-    color: var(--bg-color);
-    border: none;
-    height: 32px;
-    min-width: 34px;
-    padding: 0 7px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    box-sizing: border-box;
-    line-height: 1;
-    position: relative;
-    z-index: 2;
-    font-family: 'Courier New', Courier, monospace;
-    transition: opacity 0.2s;
-    -webkit-tap-highlight-color: transparent;
-}
-.btn-bench.has-items { display: inline-flex; }
-.btn-bench:hover { opacity: 0.85; }
-.btn-bench .bench-btn-icon { font-size: 15px; }
-.btn-bench .bench-count-badge {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: bold;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-}
-
-/* =========================================================================
-   BENCH PANEL — bottom sheet (mobile) / centred card (desktop)
-   ========================================================================= */
-.bench-panel-wrap {
-    display: none;
+/* ---- THE TAB --------------------------------------------------------- */
+.bench-tab {
     position: fixed;
-    inset: 0;
-    z-index: 10001;
-    align-items: flex-end;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.55);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.22s ease;
-}
-.bench-panel-wrap.mounted { display: flex; }
-.bench-panel-wrap.mounted.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-.bench-panel-box {
-    background: var(--bg-color);
-    color: var(--text-color);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 auto;
     width: 100%;
     max-width: 920px;
-    border-radius: 14px 14px 0 0;
+    pointer-events: auto;
+    background: var(--bg-color);
+    color: var(--text-color);
     border: 1px solid var(--border-color);
     border-bottom: none;
-    padding: 16px 16px calc(14px + env(safe-area-inset-bottom, 0px)) 16px;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.4);
+    padding: 8px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    transform: translateY(24px);
-    transition: transform 0.22s ease;
-    max-height: 86dvh;
+    max-height: 72dvh;
+    transform: translateY(110%);
+    transition: transform 0.26s cubic-bezier(0.18, 0.9, 0.26, 1.04), box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.bench-panel-wrap.active .bench-panel-box { transform: translateY(0); }
+.bench-tab.active { transform: translateY(0); }
+/* While a drag is over it, the tab reads as the live drop target. */
+.bench-tab.dragging.armed {
+    border-color: var(--text-color);
+    box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.5), inset 0 3px 0 var(--text-color);
+}
 
-.bench-panel-header {
+.bench-tab-grip {
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 8px auto;
+    border-radius: 99px;
+    background: var(--text-color);
+    opacity: 0.28;
+    flex: 0 0 auto;
+}
+.bench-tab-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
     flex: 0 0 auto;
 }
-.bench-panel-title {
-    font-size: 15px;
-    font-weight: bold;
-    letter-spacing: 0.06em;
-}
-.bench-panel-title-count {
-    opacity: 0.55;
-    margin-left: 7px;
-    font-weight: normal;
-}
-.bench-panel-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.bench-tool-btn {
+.bench-tab-title { font-size: 14px; font-weight: bold; letter-spacing: 0.06em; }
+.bench-tab-count { opacity: 0.55; margin-left: 7px; font-weight: normal; }
+.bench-tab-actions { display: flex; align-items: center; gap: 6px; }
+.bench-tab-btn {
     background: transparent;
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 7px;
     height: 30px;
-    padding: 0 10px;
+    min-width: 32px;
+    padding: 0 9px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: opacity 0.15s, background 0.15s;
 }
-.bench-tool-btn:hover { background: rgba(127, 127, 127, 0.12); }
-.bench-tool-btn:disabled { opacity: 0.35; cursor: default; }
-.bench-panel-close-x {
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0.75;
-    padding: 2px 4px;
+.bench-tab-btn:hover { background: rgba(127, 127, 127, 0.12); }
+.bench-tab-btn:disabled { opacity: 0.4; cursor: default; }
+.bench-tab-btn.dismiss { font-size: 18px; line-height: 1; }
+
+/* The empty drop hint (dragging, nothing dropped yet). */
+.bench-drop-hint {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 84px;
+    padding: 18px;
+    text-align: center;
+    font-size: 13px;
+    opacity: 0.6;
 }
-.bench-panel-close-x:hover { opacity: 1; }
 
 /* ---- The comparison grid --------------------------------------------- */
 .bench-grid {
     flex: 1 1 auto;
-    min-height: 120px;
+    min-height: 0;
     display: flex;
     gap: 14px;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
-/* Portrait split = side-by-side columns (scrolls sideways when many). */
 .bench-grid.portrait {
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 6px;
 }
-.bench-grid.portrait .bench-card {
-    flex: 0 0 min(46vw, 240px);
-}
-/* Landscape split = stacked rows (scrolls down). */
+.bench-grid.portrait .bench-card { flex: 0 0 min(46vw, 230px); }
 .bench-grid.landscape {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
 }
-.bench-grid.landscape .bench-card {
-    flex: 0 0 auto;
-    flex-direction: row;
-}
-.bench-grid.landscape .bench-card-art {
-    flex: 0 0 116px;
-    aspect-ratio: 1 / 1;
-}
-.bench-grid.landscape .bench-card-meta {
-    flex: 1 1 auto;
-    justify-content: center;
-}
+.bench-grid.landscape .bench-card { flex: 0 0 auto; flex-direction: row; }
+.bench-grid.landscape .bench-card-art { flex: 0 0 112px; aspect-ratio: 1 / 1; }
+.bench-grid.landscape .bench-card-meta { flex: 1 1 auto; justify-content: center; }
 
 .bench-card {
     position: relative;
@@ -350,12 +238,7 @@ body.bench-dragging * {
     overflow: hidden;
     background: color-mix(in srgb, var(--text-color) 8%, transparent);
 }
-.bench-card-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 0;
-}
+.bench-card-meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .bench-card-name {
     font-size: 13px;
     font-weight: bold;
@@ -363,20 +246,9 @@ body.bench-dragging * {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.bench-card-stats {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.bench-card-price {
-    font-size: 13px;
-    font-weight: bold;
-}
-.bench-card-delta {
-    font-size: 11px;
-    opacity: 0.75;
-}
+.bench-card-stats { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.bench-card-price { font-size: 13px; font-weight: bold; }
+.bench-card-delta { font-size: 11px; opacity: 0.75; }
 .bench-card-delta.up { color: #2fbf71; opacity: 1; }
 .bench-card-delta.down { color: #e0564b; opacity: 1; }
 .bench-card-note {
@@ -390,128 +262,27 @@ body.bench-dragging * {
     padding-left: 8px;
 }
 .bench-card-note-empty { opacity: 0.4; font-style: italic; }
-.bench-card-cart {
-    align-self: flex-start;
-    margin-top: 2px;
-    background: var(--text-color);
-    color: var(--bg-color);
-    border: none;
-    border-radius: 6px;
-    height: 28px;
-    padding: 0 12px;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.15s;
-}
-.bench-card-cart:hover { opacity: 0.85; }
 
-.bench-empty-state {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 8px;
-    padding: 28px 16px;
-    opacity: 0.85;
-}
-.bench-empty-title { font-size: 14px; font-weight: bold; }
-.bench-empty-hint { font-size: 12px; opacity: 0.6; max-width: 280px; line-height: 1.5; }
-
-.bench-panel-footer {
-    flex: 0 0 auto;
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-.bench-foot-btn {
-    flex: 1 1 auto;
-    height: 42px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-color);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.15s, background 0.15s;
-}
-.bench-foot-btn:hover { background: rgba(127, 127, 127, 0.12); }
-.bench-foot-btn:disabled { opacity: 0.35; cursor: default; }
-.bench-foot-btn.cart-feed {
-    background: var(--text-color);
-    color: var(--bg-color);
-    border-color: var(--text-color);
-    flex: 1.4 1 auto;
-}
-.bench-foot-btn.ghost { flex: 0 0 88px; }
-
-/* Desktop: centred card, sideways arming reads fine, cap the width. */
+/* Desktop: cap the width, centred. */
 @media (min-width: 720px) {
-    .bench-panel-wrap { align-items: center; }
-    .bench-panel-box {
-        border-radius: 14px;
-        border-bottom: 1px solid var(--border-color);
-        transform: translateY(10px);
-        padding: 20px 22px 22px 22px;
-        max-height: 84dvh;
-    }
-    .bench-grid.portrait .bench-card { flex-basis: 220px; }
+    .bench-tab { border-radius: 18px 18px 0 0; }
+    .bench-grid.portrait .bench-card { flex-basis: 210px; }
 }
+
+/* Hidden in the chrome-off modes (same as Tape + Footer). */
+body.zen-mode .bench-dock-layer,
+body.zero-context-mode .bench-dock-layer { display: none !important; }
 
 /* =========================================================================
-   CART 10/10 — real art thumbs, floor delta, savings, feeder actions.
-   The base cart panel lives in styles/modal.css; these layer on top.
+   CART 10/10 — real art thumbs, floor delta, savings, sweep.
    ========================================================================= */
-.cart-item-thumb.cart-art-thumb {
-    overflow: hidden;
-    padding: 0;
-}
-.cart-art-thumb canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.cart-item-delta {
-    font-size: 10px;
-    font-weight: bold;
-    opacity: 0.7;
-    margin-left: 6px;
-}
+.cart-item-thumb.cart-art-thumb { overflow: hidden; padding: 0; }
+.cart-art-thumb canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cart-item-delta { font-size: 10px; font-weight: bold; opacity: 0.7; margin-left: 6px; }
 .cart-item-delta.under { color: #2fbf71; opacity: 1; }
 .cart-item-delta.over { color: #e0564b; opacity: 1; }
+.cart-item-actions { display: flex; align-items: center; gap: 8px; }
 
-.cart-item-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.cart-item-bench {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--bg-color);
-    border-radius: 5px;
-    height: 24px;
-    padding: 0 8px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    white-space: nowrap;
-}
-.cart-item-bench:hover { opacity: 0.7; }
-
-/* Savings-vs-floor readout under the cart subtotal. */
 .cart-panel-savings-row {
     display: flex;
     justify-content: space-between;
@@ -522,29 +293,15 @@ body.bench-dragging * {
 .cart-panel-savings-row .save-good { color: #2fbf71; opacity: 1; }
 .cart-panel-savings-row .save-over { color: #e0564b; opacity: 1; }
 
-/* BUY ALL sweep — continuous motion while the mock buy resolves. */
 .cart-panel-buy-all { position: relative; overflow: hidden; }
 .cart-panel-buy-all .cart-buy-sweep {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in srgb, var(--bg-color) 35%, transparent),
-        transparent
-    );
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg-color) 35%, transparent), transparent);
     transform: translateX(-100%);
     animation: cart-buy-sweep 0.9s linear infinite;
     pointer-events: none;
 }
-@keyframes cart-buy-sweep {
-    to { transform: translateX(100%); }
-}
+@keyframes cart-buy-sweep { to { transform: translateX(100%); } }
 
-/* Cart empty-state hint — name the feeders. */
-.cart-empty-feeders {
-    display: block;
-    margin-top: 6px;
-    font-size: 11px;
-    opacity: 0.55;
-}
+.cart-empty-feeders { display: block; margin-top: 6px; font-size: 11px; opacity: 0.55; }

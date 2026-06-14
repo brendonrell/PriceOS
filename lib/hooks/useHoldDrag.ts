@@ -13,7 +13,7 @@
  *
  * The engine reports the live drag to BenchContext (ghost position + which dock
  * is armed) and calls onDrop(target) when released over a dock. Hit testing is
- * elementFromPoint against the [data-bench-drop] zones the BenchDragLayer
+ * elementFromPoint against the [data-bench-drop] zones the BenchDock
  * renders — so the ghost MUST be pointer-events:none. A real drag swallows the
  * trailing click so the piece doesn't also open its modal; a quick tap (no
  * hold) falls through to the normal open handler.
