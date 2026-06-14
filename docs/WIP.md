@@ -42,7 +42,14 @@ service-role key a server-only CF secret; stay on supabase-js.
 **Before mainnet (contracts):** run Foundry suite for real, external audit + assembly byte-equivalence
 proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm Supabase PITR.
 
-**STATUS:** report is findings only — NO fixes applied (audit was read-only). Fixes are Brendon's call.
+**STATUS:** audit was read-only. ONE approved low-risk fix applied (Brendon greenlit
+invisible backend-only hardening): reserved-handle list now blocks authority/verification
+impersonation words (`official`,`verified`,`mod`,`moderator`,`root`,`system`,`notification(s)`,
+`announcement(s)`) — pure data add, no UX/feature change. (node_modules not installed here →
+no build run; change is string-literal additions to a const array, cannot affect compilation.)
+All other fixes remain Brendon's call. NEXT safe candidates queued: `public/_headers` for the
+Cloudflare move (held — would serve a stray file on Vercel today), ens_name charset filter,
+Alchemy cache-burn caps, dev-login preview gate (affects Brendon's own preview login → confirm).
 
 ## 🔔 SHIPPED 2026-06-14 (PM) — PINGS / NOTIFICATIONS SYSTEM (on `dev`, all DB applied, build clean)
 The platform-wide notification spine — "Pings" (PD's word for notifications).
