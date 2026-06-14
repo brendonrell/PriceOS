@@ -75,6 +75,8 @@ import PriceSpriteModal from '../PriceSpriteModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import CartPanel from '../CartPanel';
+import BenchPanel from '../BenchPanel';
+import BenchDragLayer from '../BenchDragLayer';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
@@ -260,6 +262,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="CartPanel">
                 <CartPanel />
+            </ErrorBoundary>
+            <ErrorBoundary name="BenchPanel">
+                <BenchPanel />
+            </ErrorBoundary>
+            <ErrorBoundary name="BenchDragLayer">
+                <BenchDragLayer />
             </ErrorBoundary>
         </>
     );

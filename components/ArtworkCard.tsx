@@ -116,6 +116,8 @@ import {
     toggleWishlist as storeToggleWishlist,
 } from '../lib/pins/wishlistStore';
 import { useCart } from '../lib/state/CartContext';
+import { useBench } from '../lib/state/BenchContext';
+import { useHoldDrag } from '../lib/hooks/useHoldDrag';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useTraits } from '../lib/state/TraitsContext';
@@ -394,6 +396,42 @@ export default function ArtworkCard({
     const ownerDisplay = meta?.ownerDisplay ?? '';
     const ownedByBrendon = meta?.isOwnedByBrendon ?? false;
 
+    /* The Bench — press-and-hold then drag this piece onto the dock (BENCH
+       always; CART when listed). Same gesture on touch and mouse. Disabled in
+       multi-select so that mode keeps the long-press. */
+    const { add: benchAdd, has: benchHas, items: benchItems } = useBench();
+    const benchDrag = useHoldDrag({
+        slug,
+        id,
+        listed,
+        enabled: !multiSelectActive,
+        onDrop: (target) => {
+            if (target === 'cart') {
+                if (cartHas(slug, id)) {
+                    showToast('Cart: ALREADY IN');
+                    return;
+                }
+                cartAdd(slug, id);
+                const next = cartItems.length + 1;
+                showToast(`Cart: ADDED · ${next}`);
+                return;
+            }
+            const r = benchAdd(slug, id);
+            if (r === 'present') showToast('Bench: ALREADY ON IT');
+            else if (r === 'full') showToast('Bench: FULL · 8 max');
+            else showToast(`Bench: ADDED · ${benchItems.length + 1}`);
+        },
+    });
+
+    /* Tap-add to the bench from the hover row (the no-drag path). */
+    const handleBenchClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const r = benchAdd(slug, id);
+        if (r === 'present') showToast('Bench: ALREADY ON IT');
+        else if (r === 'full') showToast('Bench: FULL · 8 max');
+        else showToast(`Bench: ADDED · ${benchItems.length + 1}`);
+    };
+
     /* Build 22 — sim 8100-8104. Floor-relative pct stamped as data-pct
        on .meta-owner.price-trigger. Body.pricelens-mode CSS swaps the
        price text for this pct via ::before content: attr(data-pct).
@@ -549,6 +587,7 @@ export default function ArtworkCard({
             <div
                 className="output-content"
                 onClick={handleOpen}
+                onPointerDown={benchDrag.onPointerDown}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -741,6 +780,13 @@ export default function ArtworkCard({
                                 onClick={handleGrailClick}
                             >
                                 {'\u27DF\uFE0E'}
+                            </span>
+                            <span
+                                className={'hi-icon hi-bench' + (benchHas(slug, id) ? ' active-star' : '')}
+                                title="Add to Bench"
+                                onClick={handleBenchClick}
+                            >
+                                {'\u25A6\uFE0E'}
                             </span>
                             {listed && !ownedByBrendon && (
                                 <span
