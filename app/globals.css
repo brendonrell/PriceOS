@@ -4,6 +4,7 @@
 @import '../styles/modal.css';
 @import '../styles/modal-build4.css';
 @import '../styles/stickers.css';
+@import '../styles/bench.css';
 
 
 /* ============================================================
@@ -1553,6 +1554,10 @@ body.zen-mode .priceos-footer { display: none !important; }
     line-height: 0;
     position: relative;
     top: 1px;
+    /* A faint contrasting halo so the ring never vanishes when the page
+       background IS today's mood colour (the home page) — keeps the footer
+       identical everywhere while staying visible on any backdrop. */
+    text-shadow: 0 0 2px color-mix(in srgb, var(--text-color) 60%, transparent);
 }
 
 
@@ -4350,9 +4355,18 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     .pill.pill-l1.pill-notes-icon .stat-name,
     .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; }
 }
-/* Shuffle icon: bigger + bold on mobile only (Brendon 2026-06-13). */
+/* Shuffle icon: bigger + bold on mobile only (Brendon 2026-06-13; bumped two
+   sizes + optically centred in the pill, 2026-06-14). */
 @media (max-width: 600px) {
-    .pill.pill-l1.pill-shuffle-icon .stat-name { font-size: 19px; font-weight: bold; }
+    .pill.pill-l1.pill-shuffle-icon .stat-name {
+        font-size: 23px;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        top: 1px;
+    }
 }
 /* Fate: −1px on mobile, nudge up 1px */
 @media (max-width: 600px) {

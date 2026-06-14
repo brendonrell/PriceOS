@@ -82,13 +82,13 @@ function fmtUploadDate(ms: number | null): string {
         .toUpperCase();
 }
 
-/* "3:42 PM" — clock time of the upload, shown in place of the redundant
-   "UPLOAD" type label (the New Uploads header already says what these are). */
+/* "15:42" — clock time of the upload (24-hour, PD house style), shown in place
+   of the redundant "UPLOAD" type label (the New Uploads header already says
+   what these are). */
 function fmtUploadTime(ms: number | null): string {
     if (ms == null) return '—';
     return new Date(ms)
-        .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })
-        .toUpperCase();
+        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
 }
 
 /* One Minting Now carousel — mounted under its own ProjectProvider so the
@@ -536,7 +536,7 @@ export default function HomePageBody({
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}
-                    {(!feed || !hasMintingBase) && <GhostCarousels />}
+                    {(!feed || !hasMintingBase) && <GhostCarousels perRow={CAROUSEL_SIZE} />}
                     {feed && hasMintingBase && mintingView.length === 0 && (
                         <div className="home-empty-note">
                             No projects match — clear the filters to see them all.

@@ -114,6 +114,7 @@ import { recordVisit } from '../lib/pins/breadcrumbStore';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useCart } from '../lib/state/CartContext';
+import { useBench } from '../lib/state/BenchContext';
 /* v1 — type-only import. The route file ships the OutputDetailResponse
    contract (see app/api/output/[id]/route.ts:18); pulling the type here
    keeps the modal's history fetch shape-locked to the API without a
@@ -212,6 +213,7 @@ export default function OutputPreview() {
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
+    const { add: benchAdd, has: benchHas, items: benchItems } = useBench();
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -631,6 +633,14 @@ export default function OutputPreview() {
         const r = storeToggleWishlist(slug, id);
         showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
     };
+    const benched = id != null && benchHas(slug, id);
+    const handleBench = () => {
+        if (id == null) return;
+        const r = benchAdd(slug, id);
+        if (r === 'present') showToast('Bench: ALREADY ON IT');
+        else if (r === 'full') showToast('Bench: FULL · 8 max');
+        else showToast(`Bench: ADDED · ${benchItems.length + 1}`);
+    };
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
 
     /* Action button label + Calc-tab visibility.
@@ -891,6 +901,13 @@ export default function OutputPreview() {
                                 {`\u27DF${VS15}`}
                             </span>
                             <span
+                                className={`modal-pill${benched ? ' active' : ''}`}
+                                title="Add to Bench"
+                                onClick={handleBench}
+                            >
+                                {`\u25A6${VS15}`}
+                            </span>
+                            <span
                                 className="modal-pill"
                                 title="Add to To-Do"
                                 onClick={() => showToast('To-Dos: ADDED')}
@@ -1095,6 +1112,13 @@ export default function OutputPreview() {
                         onClick={togglePin}
                     >
                         {`\u27DF${VS15}`}
+                    </span>
+                    <span
+                        className={`modal-pill${benched ? ' active' : ''}`}
+                        title="Add to Bench"
+                        onClick={handleBench}
+                    >
+                        {`\u25A6${VS15}`}
                     </span>
                     <span className="modal-pill" title="Add to To-Do" onClick={() => showToast('To-Dos: ADDED')}>
                         {`\u274D${VS15}`}

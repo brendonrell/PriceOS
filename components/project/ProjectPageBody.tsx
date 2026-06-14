@@ -160,8 +160,8 @@ function eventToFeedEvent(e: EventRow): FeedEvent {
     return {
         id: e.id,
         icon: FEED_ICON[type] ?? '✶',
-        time: new Date(ms).toLocaleTimeString('en-US', {
-            hour: 'numeric', minute: '2-digit', timeZone: 'America/Montreal',
+        time: new Date(ms).toLocaleTimeString('en-GB', {
+            hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Montreal',
         }),
         type,
         detail: <><span className="f-highlight">{actor}</span> {verb}</>,
