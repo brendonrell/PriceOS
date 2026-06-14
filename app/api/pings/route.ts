@@ -23,7 +23,10 @@ const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
 
 export interface PingsListResponse {
-  unread_count: number;
+  /** Directed (to-you) unread — drives the live badge via the count poll. */
+  directed_unread: number;
+  /** Broadcast (follow-feed) unread — refreshed only on a full fetch. */
+  broadcast_unread: number;
   items: FeedItem[];
   next_cursor: string | null;
 }
@@ -69,7 +72,8 @@ export const GET = requireAuth(async (req, _ctx, address) => {
     );
 
     const response: PingsListResponse = {
-      unread_count: (directedUnread ?? 0) + broadcastUnread,
+      directed_unread: directedUnread ?? 0,
+      broadcast_unread: broadcastUnread,
       items: items.slice(0, limit),
       // Pagination cursor follows the directed stream (the durable one).
       next_cursor:

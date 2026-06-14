@@ -64,13 +64,17 @@ export async function getBroadcastContext(db: DB, viewer: string): Promise<Broad
   const { data: mRows } = await db.from('muted').select('muted_address').eq('user_address', viewer);
   const mutedAddresses = ((mRows ?? []) as Array<{ muted_address: string }>).map((r) => r.muted_address.toLowerCase());
 
-  // (d) Unread watermark (default 0 → everything unread until first open).
+  // (d) Unread watermark. Default to NOW for a user with no cursor row yet, so
+  //     a brand-new viewer doesn't see their entire follow history as unread on
+  //     first load — only activity from this moment forward counts as unread.
   const { data: cRow } = await db
     .from('ping_cursors')
     .select('broadcast_seen_at')
     .eq('user_address', viewer)
     .maybeSingle();
-  const cursor = (cRow as { broadcast_seen_at: number } | null)?.broadcast_seen_at ?? 0;
+  const cursor =
+    (cRow as { broadcast_seen_at: number } | null)?.broadcast_seen_at ??
+    Math.floor(Date.now() / 1000);
 
   return {
     followingAddresses,
@@ -81,11 +85,14 @@ export async function getBroadcastContext(db: DB, viewer: string): Promise<Broad
   };
 }
 
-/** Build the OR filter "from a followed person OR on a followed project". */
+/** Build the OR filter: a followed person acted (as sender OR receiver), OR the
+ *  event is on a followed project. Matching `to_address` is what lets "someone
+ *  you follow just BOUGHT this" surface (a buy writes XFER from=seller,to=buyer). */
 function visibilityOr(ctx: BroadcastContext): string | null {
   const parts: string[] = [];
   if (ctx.followingAddresses.length > 0) {
     parts.push(`from_address.in.(${ctx.followingAddresses.join(',')})`);
+    parts.push(`to_address.in.(${ctx.followingAddresses.join(',')})`);
   }
   if (ctx.followedProjectIds.length > 0) {
     parts.push(`project_id.in.(${ctx.followedProjectIds.join(',')})`);
@@ -99,6 +106,7 @@ interface EventRowLite {
   project_id: string;
   token_id: string | null;
   from_address: string | null;
+  to_address: string | null;
   price_eth: number | null;
   timestamp: number;
 }
@@ -115,9 +123,8 @@ export async function listBroadcastFeed(
 
   let q = db
     .from('events')
-    .select('id, type, project_id, token_id, from_address, price_eth, timestamp')
+    .select('id, type, project_id, token_id, from_address, to_address, price_eth, timestamp')
     .or(or)
-    .neq('from_address', viewer)
     .order('timestamp', { ascending: false })
     .limit(limit);
   if (ctx.mutedAddresses.length > 0) {
@@ -129,13 +136,29 @@ export async function listBroadcastFeed(
   const events = data as unknown as EventRowLite[];
   if (events.length === 0) return [];
 
-  // Batch-resolve actor + project @names (one query each).
-  const actorAddrs = Array.from(new Set(events.map((e) => e.from_address).filter((a): a is string => !!a)));
+  const followingSet = new Set(ctx.followingAddresses.map((a) => a.toLowerCase()));
+  const mutedSet = new Set(ctx.mutedAddresses.map((a) => a.toLowerCase()));
+
+  // Decide the SOCIAL actor + kind per event. A buy is an XFER (from=seller,
+  // to=buyer): if the buyer is someone you follow, surface it as "bought".
+  function resolve(e: EventRowLite): { actor: string | null; kind: RenderKind } {
+    const from = e.from_address?.toLowerCase() ?? null;
+    const to = e.to_address?.toLowerCase() ?? null;
+    if (e.type === 'XFER' && to && followingSet.has(to)) {
+      return { actor: to, kind: 'SALE' }; // someone you follow bought it
+    }
+    return { actor: from, kind: (EVENT_KIND[e.type] ?? 'XFER') as RenderKind };
+  }
+
+  // Batch-resolve actor + project @names (one query each, both sides covered).
+  const addrs = Array.from(
+    new Set(events.flatMap((e) => [e.from_address, e.to_address]).filter((a): a is string => !!a).map((a) => a.toLowerCase()))
+  );
   const projIds = Array.from(new Set(events.map((e) => e.project_id).filter(Boolean)));
 
   const [actorRes, projRes] = await Promise.all([
-    actorAddrs.length
-      ? db.from('users').select('address, handle').in('address', actorAddrs)
+    addrs.length
+      ? db.from('users').select('address, handle').in('address', addrs)
       : Promise.resolve({ data: [] as Array<{ address: string; handle: string | null }> }),
     projIds.length
       ? db.from('projects').select('id, handle').in('id', projIds)
@@ -151,18 +174,25 @@ export async function listBroadcastFeed(
     projHandle.set(p.id, p.handle)
   );
 
-  return events.map((e) => ({
-    id: `bcast:${e.id}`,
-    kind: (EVENT_KIND[e.type] ?? 'XFER') as RenderKind,
-    source: 'broadcast' as const,
-    actor_name: e.from_address ? actorName.get(e.from_address.toLowerCase()) ?? null : null,
-    project_id: e.project_id,
-    token_id: e.token_id,
-    amount_eth: e.price_eth != null ? String(e.price_eth) : null,
-    data: { project_handle: projHandle.get(e.project_id) ?? null },
-    read: e.timestamp <= ctx.cursor,
-    created_at: new Date(e.timestamp * 1000).toISOString(),
-  }));
+  return events
+    .map((e) => {
+      const { actor, kind } = resolve(e);
+      // Never show the viewer's own action, or one whose actor they muted.
+      if (!actor || actor === viewer || mutedSet.has(actor)) return null;
+      return {
+        id: `bcast:${e.id}`,
+        kind,
+        source: 'broadcast' as const,
+        actor_name: actorName.get(actor) ?? null,
+        project_id: e.project_id,
+        token_id: e.token_id,
+        amount_eth: e.price_eth != null ? String(e.price_eth) : null,
+        data: { project_handle: projHandle.get(e.project_id) ?? null },
+        read: e.timestamp <= ctx.cursor,
+        created_at: new Date(e.timestamp * 1000).toISOString(),
+      } as FeedItem;
+    })
+    .filter((x): x is FeedItem => x !== null);
 }
 
 /** Cheap unread count for the broadcast stream (events newer than the cursor). */

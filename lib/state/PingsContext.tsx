@@ -54,6 +54,11 @@ const QUALIFYING_EVENTS = [
 
 interface PingsState {
   items: FeedItem[];
+  /** Directed (to-you) unread — refreshed live by the cheap count poll. */
+  directedUnread: number;
+  /** Broadcast (follow-feed) unread — refreshed only on a full fetch. */
+  broadcastUnread: number;
+  /** Badge total = directed + broadcast. */
   unreadCount: number;
   loading: boolean;
 }
@@ -71,7 +76,9 @@ export function PingsProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
   const { notifs } = usePdNotifs();
 
-  const [state, setState] = useState<PingsState>({ items: [], unreadCount: 0, loading: false });
+  const [state, setState] = useState<PingsState>({
+    items: [], directedUnread: 0, broadcastUnread: 0, unreadCount: 0, loading: false,
+  });
 
   // Refs so the polling effect doesn't re-subscribe on every state change.
   const seenIds = useRef<Set<string>>(new Set());
@@ -87,7 +94,11 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     try {
       const r = await fetch('/api/pings', { cache: 'no-store' });
       if (!r.ok) return;
-      const j = (await r.json()) as { unread_count: number; items: FeedItem[] };
+      const j = (await r.json()) as {
+        directed_unread: number;
+        broadcast_unread: number;
+        items: FeedItem[];
+      };
       const items = j.items ?? [];
 
       // New, unread, category-allowed pings we haven't seen → toast once,
@@ -114,7 +125,9 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       items.forEach((p) => seenIds.current.add(p.id));
       primed.current = true;
 
-      setState({ items, unreadCount: j.unread_count ?? 0, loading: false });
+      const du = j.directed_unread ?? 0;
+      const bu = j.broadcast_unread ?? 0;
+      setState({ items, directedUnread: du, broadcastUnread: bu, unreadCount: du + bu, loading: false });
     } catch {
       setState((s) => ({ ...s, loading: false }));
     } finally {
@@ -128,10 +141,12 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       const r = await fetch('/api/pings/count', { cache: 'no-store' });
       if (!r.ok) return;
       const j = (await r.json()) as { unread: number };
-      // Only pay for the full list when the count actually moved up.
+      const directed = j.unread ?? 0;
+      // The count poll only tracks DIRECTED unread (cheap). When it rises, a new
+      // to-you ping landed → pull the full list (which also refreshes broadcast).
       setState((s) => {
-        if ((j.unread ?? 0) > s.unreadCount) void fetchFull();
-        return { ...s, unreadCount: j.unread ?? s.unreadCount };
+        if (directed > s.directedUnread) void fetchFull();
+        return { ...s, directedUnread: directed, unreadCount: directed + s.broadcastUnread };
       });
     } catch {
       /* offline — last good state stays up */
@@ -140,7 +155,13 @@ export function PingsProvider({ children }: { children: ReactNode }) {
 
   const markAllRead = useCallback(() => {
     if (!siweAddress) return;
-    setState((s) => ({ ...s, unreadCount: 0, items: s.items.map((p) => ({ ...p, read: true })) }));
+    setState((s) => ({
+      ...s,
+      directedUnread: 0,
+      broadcastUnread: 0,
+      unreadCount: 0,
+      items: s.items.map((p) => ({ ...p, read: true })),
+    }));
     fetch('/api/pings/read', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -153,7 +174,7 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     seenIds.current = new Set();
     primed.current = false;
     if (!siweAddress) {
-      setState({ items: [], unreadCount: 0, loading: false });
+      setState({ items: [], directedUnread: 0, broadcastUnread: 0, unreadCount: 0, loading: false });
       return;
     }
     void fetchFull();

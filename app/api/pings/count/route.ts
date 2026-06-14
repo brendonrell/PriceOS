@@ -1,27 +1,29 @@
-// GET /api/pings/count — the tiny unread-count poll.
+// GET /api/pings/count — the tiny unread-count poll (DIRECTED only).
 //
-// This is what the client hits on the background interval (every ~30s). It
-// returns ~30 bytes, NOT the full feed, so a tab left open all day costs almost
-// no egress. The full list is fetched only when the panel opens or the count
-// ticks up. Keeps the whole system inside the free-tier bandwidth budget.
+// This is what the client hits on the background interval (~15s). It counts ONLY
+// the caller's directed pings (the index-backed `pings (recipient, read)` partial
+// index) — it deliberately does NOT compute the broadcast firehose, which would
+// mean a follow-graph + events join on every poll for every user (a CPU cliff at
+// scale). The broadcast unread is folded in by the full /api/pings fetch (panel
+// open / qualifying actions). Directed pings are the latency-critical financial
+// ones and surface live: their event INSERT nudges this poll, the count ticks up,
+// and the client pulls the full list.
 
 import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { serverError } from '@/lib/errors';
-import { getBroadcastContext, countBroadcastUnread } from '@/lib/pings/broadcast';
 
 export const dynamic = 'force-dynamic';
 
 export interface PingsCountResponse {
+  /** Directed unread only (cheap). Broadcast unread comes from /api/pings. */
   unread: number;
 }
 
 export const GET = requireAuth(async (_req, _ctx, address) => {
   try {
     const db = getSupabaseService();
-
-    // Directed unread (cheap, index-backed).
     const { count, error } = await db
       .from('pings')
       .select('*', { count: 'exact', head: true })
@@ -29,11 +31,7 @@ export const GET = requireAuth(async (_req, _ctx, address) => {
       .eq('read', false);
     if (error) return serverError(error.message);
 
-    // Broadcast unread (events newer than the viewer's watermark).
-    const bctx = await getBroadcastContext(db, address);
-    const broadcastUnread = bctx.empty ? 0 : await countBroadcastUnread(db, address, bctx);
-
-    const response: PingsCountResponse = { unread: (count ?? 0) + broadcastUnread };
+    const response: PingsCountResponse = { unread: count ?? 0 };
     return NextResponse.json(response);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
