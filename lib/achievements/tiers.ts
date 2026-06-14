@@ -6,12 +6,15 @@
  *   • PriceRank is your TIER. Score crossing a threshold levels you up, RPG-style.
  *   • There are 10 tiers. Tier 0 = unranked (default; everyone starts here).
  *
- * WHY THESE THRESHOLDS (the "streak stays junior" guarantee)
- *   A player who never spends — pure PriceStreak + social + curation + identity —
- *   maxes out around the mid tiers by design. The big tiers require primary spend,
- *   trading volume, and artist/whale achievements that cost real money. So a maxed
- *   free grinder out-ranks a casual spender but can never reach the top tiers a
- *   serious spender does. The cap is structural (one-shot achievements), not policed.
+ * WHY THESE THRESHOLDS (the "free actions mean nothing" guarantee — Brendon,
+ * 2026-06-14)
+ *   Rank comes ONLY from un-fakeable on-chain truth (primary spend, trading
+ *   volume, holdings, tenure, artist activity). Every free/off-chain/sybil
+ *   action — stars, wishlist, albums, follows, anoints, streak, easter eggs —
+ *   still unlocks for feedback, but its COMBINED score is hard-capped at
+ *   GAMEABLE_SCORE_CAP (engine.ts), i.e. ~10 of this ~12,000 scale. So a pure
+ *   free grinder never even reaches tier 1: farming is pointless by design, not
+ *   by policing. The big tiers require real money on-chain.
  *
  * Thresholds are tunable — bump them here and the whole app re-tiers. Nothing
  * else to touch.

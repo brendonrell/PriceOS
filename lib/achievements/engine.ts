@@ -535,16 +535,16 @@ export async function buildFootprint(
     wishlist?: unknown;
     albums?: unknown;
   };
-  const starsCount = Array.isArray(settings.starred) ? settings.starred.length : 0;
-  const wishlistCount = Array.isArray(settings.wishlist)
-    ? settings.wishlist.length
-    : 0;
+  const starsCount = countCurationKeys(settings.starred);
+  const wishlistCount = countCurationKeys(settings.wishlist);
   const albums = Array.isArray(settings.albums)
     ? (settings.albums as Array<{ keys?: unknown }>)
     : [];
-  const albumsCount = albums.length;
+  // Only albums with at least one real key count — empty albums can't be
+  // spammed to unlock album-count tiers.
+  const albumsCount = albums.filter((al) => countCurationKeys(al.keys) > 0).length;
   const albumsMaxItems = albums.reduce(
-    (m, al) => Math.max(m, Array.isArray(al.keys) ? al.keys.length : 0),
+    (m, al) => Math.max(m, countCurationKeys(al.keys)),
     0
   );
 
@@ -781,6 +781,76 @@ export const CLIENT_GRANTABLE: ReadonlySet<string> = new Set(
   ALL_ACHIEVEMENTS.filter((a) => isClientGrantedTrigger(a.trigger)).map((a) => a.id)
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SECURITY — gameable point sources are CAPPED to a trivial floor (Brendon,
+// 2026-06-14).
+// ─────────────────────────────────────────────────────────────────────────────
+// The little free actions (stars, wishlist, albums, follows, the easter eggs)
+// STILL unlock and pop a toast — they teach the system and give feedback. But
+// their COMBINED contribution to PriceScore is hard-capped at GAMEABLE_SCORE_CAP
+// (below), so farming every free/off-chain/sybil action lands you at ~10 of a
+// ~12,000 scale — not even tier 1. Real rank comes ONLY from un-fakeable truth:
+// on-chain holdings, mints, sales/volume, tenure, and on-chain artist activity.
+// This is what makes it un-gameable: gaming yields nothing worth having.
+// Enforced centrally so the catalog stays intact and the policy is tunable in
+// one place.
+const GAMEABLE_TRIGGER_PREFIXES = [
+  // social graph — free / sybil-inflatable from throwaway wallets
+  'following.',
+  'followers.',
+  'mutuals.',
+  'projectFollows.',
+  // curation — self-asserted settings envelope (bookmarks/wishlist/albums/showcase)
+  'stars.',
+  'wishlist.',
+  'albums.',
+  'showcase.',
+  'targets.',
+  // streak — day boundary is client-supplied, so it is forgeable
+  'streak.',
+  // anointing — free off-chain action + sybil-able vote tallies (prime-relic
+  // status is itself vote-driven, so relic-derived points go too)
+  'anoint.',
+  'holdings.primeRelic',
+  // artist project-followers — free follows
+  'artist.projectFollowers',
+  // client-asserted — the browser claims these with no server-side proof
+  'ui.',
+  'odin.',
+  'brendon.',
+  'time.',
+  'date.',
+  'combo.',
+  'spell.',
+  'action.',
+] as const;
+
+/** True when an achievement's trigger reads a gameable (fakeable / free /
+ *  sybil-inflatable) fact. Such achievements still unlock for feedback, but
+ *  their combined point contribution is capped (see GAMEABLE_SCORE_CAP). */
+export function isGameableTrigger(trigger: string): boolean {
+  return GAMEABLE_TRIGGER_PREFIXES.some((p) => trigger.startsWith(p));
+}
+
+/** Max combined PriceScore all gameable achievements can contribute. Tunable.
+ *  Tier 1 ("Initiate") needs 100, the scale tops out near 12,000 — so 10 keeps
+ *  the entire free/farmable set below even the first rank. */
+export const GAMEABLE_SCORE_CAP = 10;
+
+/** A well-formed curation key: `${slug}:${tokenId}`. */
+const CURATION_KEY_RE = /^[^\s:]+:\d+$/;
+/** Count DISTINCT, well-formed curation keys. Duplicates and malformed entries
+ *  (e.g. raw integers from a fabricated array) are ignored, so a forged array
+ *  can't inflate a curation-tier badge. */
+function countCurationKeys(v: unknown): number {
+  if (!Array.isArray(v)) return 0;
+  const seen = new Set<string>();
+  for (const e of v) {
+    if (typeof e === 'string' && CURATION_KEY_RE.test(e)) seen.add(e);
+  }
+  return seen.size;
+}
+
 type CmpOp = '>=' | '<=' | '>' | '<' | '==';
 
 const CMP_RE = /^([a-zA-Z][a-zA-Z0-9.]*)\s*(>=|<=|==|>|<)\s*(-?\d+(?:\.\d+)?)$/;
@@ -982,6 +1052,8 @@ export function evaluateFootprint(
   alreadyUnlocked: ReadonlySet<string>
 ): Set<string> {
   // ── Phase 1: every non-meta trigger. ───────────────────────────────────────
+  // Gameable achievements DO unlock (feedback) — their score is capped later,
+  // not their unlock. See GAMEABLE_SCORE_CAP in persistEvaluation.
   const base = new Set<string>(alreadyUnlocked);
   for (const a of ALL_ACHIEVEMENTS) {
     if (base.has(a.id)) continue;
@@ -1097,11 +1169,18 @@ export async function persistEvaluation(
 
   // 5. Recompute score + rank over the FULL satisfied set (only ids that exist
   //    in the catalog count — stale ids for removed achievements are ignored).
-  let priceScore = 0;
+  // Safe (un-fakeable) achievements score in full; the gameable set is summed
+  // separately and clamped to GAMEABLE_SCORE_CAP, so farming free actions can
+  // never move the rank.
+  let safeScore = 0;
+  let gameableScore = 0;
   for (const id of satisfied) {
     const a = ALL_BY_ID.get(id);
-    if (a) priceScore += a.points;
+    if (!a) continue; // stale id for a removed achievement — ignore
+    if (isGameableTrigger(a.trigger)) gameableScore += a.points;
+    else safeScore += a.points;
   }
+  const priceScore = safeScore + Math.min(gameableScore, GAMEABLE_SCORE_CAP);
   const priceRank = scoreToRank(priceScore);
 
   // 6. Persist score + rank on the user row.
