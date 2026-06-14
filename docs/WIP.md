@@ -16,6 +16,32 @@
   Digital Familiar (🐾), security sweep (🛡️), pings (🔔), social + PriceRank, security audit
   (🔒), indexer rebuild (⚙️).
 
+## 🪑 THE BENCH + CART + AMBIENT STRIP + ZEN GARDEN 2026-06-14 (late) — SHIPPED to dev
+- **The Bench** (OS Tool / Comparison, `86b9jfjc3`): **hold-and-drag only** (touch + mouse) —
+  press-hold a gallery piece → a wide tab peeks up at the bottom; drop on BENCH (or CART when
+  listed). **NO buttons anywhere.** I wrongly added a modal pill, a gallery hover icon, a
+  move-to-bench icon in the Cart, AND a top-bar bench button — all four were unasked-for and
+  got STRIPPED (23:00). Birthed the new CLAUDE.md "BUILD TO SPEC — NOTHING EXTRA" hard rule.
+  **OPEN ITEM (Brendon's call):** the comparison tray (side-by-side price/floor/notes,
+  portrait↔landscape split, image export) is built but now has **NO opener** (top button gone).
+  Needs decision on how it opens — likely tapping the bottom tab. NOT built — do not guess.
+- **Cart → fuller potential:** real painted art thumbnails, per-item floor delta, savings-vs-
+  floor line, sweeping motion on BUY ALL. (The move-to-bench icon removed — cart ≠ bench.)
+- **Ambient Strip:** LED light bar BELOW the tape, **OFF by default** (☼ toggle in MY PD, the
+  slot Echo Chamber vacated). Tap the bar → options popup (palette/pattern/speed/dim); real
+  glow + page dim. **Built blind — wants a visual tuning pass on dev.**
+- **Zen Garden** (`86b9jfjc3` sibling): Profile, **Zen Mode only** — portfolio as ASCII stones
+  (⬟/⬣) in raked sand (≋) raked into rings around each stone. Pure aesthetic.
+- **Settings reshuffle:** Echo Chamber → Spell Book (new ≫ icon); Mood Ring removed from Spell
+  Book (handled elsewhere). **Price Lens left ALONE — it's live (floor-relative pricing), not a
+  placeholder.**
+- **Spot edits:** Now-Minting ghosts 6→12 (locked to carousel size); mood-ring footer icon now
+  visible on home; mobile shuffle icon size + centring; **24h clock everywhere** (no AM/PM);
+  tape null-state ("nothing happening right now…"); removed the ALL/MONEY pill from the Pings
+  header (filter scaffolding kept dormant to re-home later).
+- **The Exchange** (`86ba0apqr`): decision = **existing-contract approach** (lean on audited
+  swap infra, no own contract). **TODO: park in ClickUp with a robust spec** — NOT done yet.
+
 ## 🐛 ASTERISM MINTING + PROFILE-READ FIXES 2026-06-14 (late) — SHIPPED to dev
 Brendon hit "Internal server error" minting Asterism + broken profile/artworks reads. Two
 regressions, both from recent infra changes (NOT the project additions he suspected):
