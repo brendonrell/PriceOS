@@ -83,6 +83,7 @@ import {
 import ArtworkCard from '../ArtworkCard';
 import GhostCard from './GhostCard';
 import MintButton from './MintButton';
+import ProjectFollowButton from './ProjectFollowButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
 import CollectedPair from '../hero/CollectedPair';
@@ -306,13 +307,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
        profile's + More. The panel's stacked sections are grouped under pills so
        only one group shows at a time:
+         Social    → Follow CTA + follower/following counts (the default lead)
          Stats     → Price Stats + ATH & Holders (the factual numbers)
          Replay    → Replay
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-    type ProjectMoreL1 = 'stats' | 'replay' | 'albums' | 'genome' | 'sentiment';
-    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('stats');
+    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'sentiment';
+    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('social');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
@@ -459,6 +461,38 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             window.removeEventListener('pd:anchors-changed', sync);
         };
     }, [project.title]);
+
+    /* Social — the project's follow graph (Brendon, 2026-06-14). FOLLOWERS =
+       wallets that clicked Follow; FOLLOWING = the project's current holders
+       (it auto-follows whoever owns a piece). Counts come client-side from
+       /api/project-follows/{slug} (projects.id IS the slug). Refresh on the
+       button's 'pd:project-follows-changed' event and on 'pd:project-refresh'. */
+    const [followCounts, setFollowCounts] = useState<{ followers: number; following: number }>(
+        { followers: 0, following: 0 },
+    );
+    useEffect(() => {
+        let cancelled = false;
+        const load = () =>
+            fetch(`/api/project-follows/${encodeURIComponent(project.slug)}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => {
+                    if (cancelled || !d) return;
+                    setFollowCounts({
+                        followers: d.follower_count ?? 0,
+                        following: d.following_count ?? 0,
+                    });
+                })
+                .catch(() => {});
+        load();
+        const h = () => load();
+        window.addEventListener('pd:project-follows-changed', h);
+        window.addEventListener('pd:project-refresh', h);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('pd:project-follows-changed', h);
+            window.removeEventListener('pd:project-refresh', h);
+        };
+    }, [project.slug]);
 
     /* Slug is mock-only — sim has a single project (PRISMS), so we read
        the title via ProjectContext and ignore the route param. The
@@ -1114,6 +1148,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             visible
                             hideSortBar
                             profilePills={[
+                                { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
                                 { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
@@ -1228,6 +1263,44 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 aria-label="More"
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
+                {moreL1 === 'social' && (<>
+                {/* SOCIAL — the lead +More section (Brendon, 2026-06-14). The
+                    project's Follow CTA mirrors the hero's main action: same
+                    .action-row wrapper + .btn-mint styling as the Mint/BUY
+                    button, so it sits the same way. Below it, the follower /
+                    following counts in the page's standard stat-item treatment.
+                    project.slug IS projects.id, so it's the follow API key;
+                    ProjectState carries no @handle, so we pass null. */}
+                <div className="more-section-header">SOCIAL</div>
+                <div className="action-row">
+                    <ProjectFollowButton projectId={project.slug} projectHandle={null} />
+                </div>
+                <div className="more-social-stats-row stats-row stats-row-2">
+                    <span className="stat-item">
+                        <span
+                            className="stat-icon stat-icon-box stat-icon-owners"
+                            {...iconToastProps('Followers — wallets that follow this Project')}
+                        >
+                            ⌗&#xFE0E;
+                        </span>{' '}
+                        <span className="stat-val">
+                            FOLLOWERS · {followCounts.followers}
+                        </span>
+                    </span>
+                    <span className="stat-item">
+                        <span
+                            className="stat-icon stat-icon-box stat-icon-owned"
+                            {...iconToastProps('Following — current holders the Project follows back')}
+                        >
+                            ⊡&#xFE0E;
+                        </span>{' '}
+                        <span className="stat-val">
+                            FOLLOWING · {followCounts.following}
+                        </span>
+                    </span>
+                </div>
+
+                </>)}
                 {moreL1 === 'stats' && (<>
                 {/* PRICE STATS — stats-row-2 restored here from hero.
                     Percent Listed, Floor Price, and Anchor. The ⚓ anchor
