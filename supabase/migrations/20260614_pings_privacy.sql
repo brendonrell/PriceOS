@@ -23,7 +23,9 @@
 --    create policy "ping_cursors_read" on public.ping_cursors
 --      for select to anon, authenticated using (true);
 --
---  Apply to Supabase project zspxpfwlwikdxwavffjn ONLY on Brendon's go.
+--  APPLIED to Supabase project zspxpfwlwikdxwavffjn on 2026-06-14 (Brendon's go).
+--  Verified post-apply: RLS enabled, 0 policies on both tables → anon reads
+--  return nothing; service-role app path unaffected.
 --  Idempotent (IF EXISTS) so it's safe to re-run.
 -- ════════════════════════════════════════════════════════════════════════
 

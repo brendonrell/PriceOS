@@ -50,13 +50,12 @@ proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm
 - ✅ `ens_name` now rejects invisible/bidi/control characters used for artist copycats (S-I1, the
   charset half; full ENS-ownership verification still TODO).
 - ✅ `price/[address]` memoises constant token decimals → 1 Alchemy call/request not 2 (S-P1, partial).
-- 📝 `supabase/migrations/20260614_pings_privacy.sql` WRITTEN + on dev, **NOT YET APPLIED to live DB**
-  (S-D1, the HIGH). Drops the permissive anon SELECT on `pings`/`ping_cursors`; verified non-breaking
-  (all reads are service-role; full grep done). **Needs Brendon's "apply" — it's a live-Supabase
-  write (ship gate #3).** Next chat: apply via Supabase MCP `apply_migration`, or Brendon one-taps it.
+- ✅ `supabase/migrations/20260614_pings_privacy.sql` WRITTEN + on dev, **APPLIED to live DB
+  2026-06-14** (S-D1, the HIGH — on Brendon's go). Dropped the permissive anon SELECT on
+  `pings`/`ping_cursors`; post-apply verified RLS on + 0 policies → anon reads nothing,
+  service-role app path unaffected. The DM-bodies leak is CLOSED.
 
 **STILL OPEN (gated / bigger, not done):**
-- **S-D1 prod apply** — the one-tap above. Top priority; live privacy leak until applied.
 - **S-A1 dev-login preview gate** — HELD: closing it changes Brendon's OWN one-tap preview login.
   Decide the mechanism (secret-gated vs preview-block) with him first.
 - **Rate-limit / DDoS** — set Upstash env in the deployed environment, OR (better) do it as Cloudflare
