@@ -448,6 +448,22 @@ body.sentiment-on .sentiment-widget {
    explicitly does not want chased. */
 .ascii-sprite.sleeping { opacity: 0.45; }
 
+/* Profile name sprite — the small STILL PriceSprite beside the @name in the
+   profile hero title (the profile's avatar; PD has no uploaded pfps). Courier
+   like every sprite, understated, sized down off the title. */
+.project-title .name-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.62em;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    opacity: 0.72;
+    margin-right: 0.4em;
+    vertical-align: 0.14em;
+    display: inline-block;
+}
+
 /* Per-slot rendering for composed sprites. The 8 slots of a composed
    sprite render as inline-blocks rather than a single text run so
    blink / yawn / sleep character swaps don't squish the sprite as

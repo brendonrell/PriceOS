@@ -29,6 +29,7 @@ import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
+import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
@@ -162,6 +163,12 @@ function ProfilePageBodyInner({
     }, [ownerHex, setActiveProfileHex]);
 
     const displayHandle = user.handle ?? handle;
+
+    /* This profile's PriceSprite — a small STILL face beside the @name (the
+       profile's avatar; PD has no uploaded pfps). Works for any user via the
+       frozen signup sprite (useSpriteFace, cached). Courier, understated —
+       not the loud chip that was reverted on the project hero. */
+    const nameFace = useSpriteFace(displayHandle);
     const memberSince = formatMemberSince(user.created_at);
 
     // Identity row: chosen ENS if set, else the truncated wallet address.
@@ -625,6 +632,7 @@ function ProfilePageBodyInner({
                 titleRow={
                     <h1 className="project-title">
                         <span>
+                            {nameFace && <span className="name-sprite">{nameFace}</span>}
                             @{displayHandle}
                             {/* Artist badge — whitelisted wallets only (allowlist = the sim
                                 stand-in for the on-chain whitelist). Plain ✺ mark:
