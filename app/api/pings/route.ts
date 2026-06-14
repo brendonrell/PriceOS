@@ -15,7 +15,7 @@ import { getSupabaseService, type PingRow } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { serverError } from '@/lib/errors';
 import { fromPingRow, type FeedItem } from '@/lib/pings/render';
-import { getBroadcastContext, listBroadcastFeed, countBroadcastUnread } from '@/lib/pings/broadcast';
+import { getBroadcastContext, listBroadcastFeed } from '@/lib/pings/broadcast';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +64,10 @@ export const GET = requireAuth(async (req, _ctx, address) => {
     // ── Broadcast firehose (read-time, no stored rows) ──
     const bctx = await getBroadcastContext(db, address);
     const broadcast = bctx.empty ? [] : await listBroadcastFeed(db, address, bctx, limit);
-    const broadcastUnread = bctx.empty ? 0 : await countBroadcastUnread(db, address, bctx);
+    // Derive broadcast unread from the SAME items we return, so the badge can
+    // never show unread that isn't visible (the count + list applied different
+    // filters otherwise — viewer's own buys / muted-buyer XFER edge cases).
+    const broadcastUnread = broadcast.filter((b) => !b.read).length;
 
     // ── Merge, newest first, cap to limit ──
     const items: FeedItem[] = [...directed.map(fromPingRow), ...broadcast].sort((a, b) =>

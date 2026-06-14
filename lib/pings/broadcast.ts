@@ -195,20 +195,7 @@ export async function listBroadcastFeed(
     .filter((x): x is FeedItem => x !== null);
 }
 
-/** Cheap unread count for the broadcast stream (events newer than the cursor). */
-export async function countBroadcastUnread(db: DB, viewer: string, ctx: BroadcastContext): Promise<number> {
-  const or = visibilityOr(ctx);
-  if (!or) return 0;
-
-  let q = db
-    .from('events')
-    .select('id', { count: 'exact', head: true })
-    .or(or)
-    .neq('from_address', viewer)
-    .gt('timestamp', ctx.cursor);
-  if (ctx.mutedAddresses.length > 0) {
-    q = q.not('from_address', 'in', `(${ctx.mutedAddresses.join(',')})`);
-  }
-  const { count, error } = await q;
-  return error ? 0 : count ?? 0;
-}
+// Broadcast unread is derived from listBroadcastFeed's returned items (their
+// per-item `read` flag vs the cursor) so the badge always matches what's shown
+// — see app/api/pings/route.ts. (A separate count query diverged from the list
+// on viewer-own-buy / muted-buyer XFER edge cases.)

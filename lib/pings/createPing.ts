@@ -120,8 +120,13 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
         ? null
         : Number(input.amountEth);
 
-    // 4. Rollup — bump an existing recent unread row with the same group_key.
-    if (input.groupKey) {
+    // Bump an existing OPEN (unread) rollup row in-window, returning its id, or
+    // null if there's none. A partial unique index on (recipient_address,
+    // group_key) WHERE read=false guarantees at most one such row, so this can't
+    // race into duplicates — a concurrent insert that beats us trips the unique
+    // violation below and routes us back here to bump the row it created.
+    const tryBump = async (): Promise<string | null> => {
+      if (!input.groupKey) return null;
       const windowMs = input.collapseWindowMs ?? DEFAULT_COLLAPSE_MS;
       const since = new Date(Date.now() - windowMs).toISOString();
       const { data: existing } = await db
@@ -134,36 +139,40 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-
       const row = existing as { id: string; data: Record<string, unknown> } | null;
-      if (row) {
-        const prevData = (row.data ?? {}) as Record<string, unknown>;
-        const prevCount = typeof prevData.count === 'number' ? prevData.count : 1;
-        const prevActors = Array.isArray(prevData.actors)
-          ? (prevData.actors as string[])
-          : [];
-        const actors = actorName
-          ? [actorName, ...prevActors.filter((a) => a !== actorName)].slice(0, MAX_ROLLUP_ACTORS)
-          : prevActors;
-        const nowIso = new Date().toISOString();
-        await db
-          .from('pings')
-          .update({
-            // Resurface to the top + refresh the actor snapshot.
-            created_at: nowIso,
-            updated_at: nowIso,
-            actor_address: actor,
-            actor_name: actorName,
-            amount_eth: amount as never,
-            data: { ...prevData, ...baseData, count: prevCount + 1, actors },
-          } as never)
-          .eq('id', row.id);
+      if (!row) return null;
+      const prevData = (row.data ?? {}) as Record<string, unknown>;
+      const prevCount = typeof prevData.count === 'number' ? prevData.count : 1;
+      const prevActors = Array.isArray(prevData.actors) ? (prevData.actors as string[]) : [];
+      const actors = actorName
+        ? [actorName, ...prevActors.filter((a) => a !== actorName)].slice(0, MAX_ROLLUP_ACTORS)
+        : prevActors;
+      const nowIso = new Date().toISOString();
+      await db
+        .from('pings')
+        .update({
+          // Resurface to the top + refresh the actor snapshot.
+          created_at: nowIso,
+          updated_at: nowIso,
+          actor_address: actor,
+          actor_name: actorName,
+          amount_eth: amount as never,
+          data: { ...prevData, ...baseData, count: prevCount + 1, actors },
+        } as never)
+        .eq('id', row.id);
+      return row.id;
+    };
+
+    // 4. Rollup — bump first if an open row already exists.
+    if (input.groupKey) {
+      const bumped = await tryBump();
+      if (bumped) {
         void maybePrune(db, recipient);
-        return row.id;
+        return bumped;
       }
     }
 
-    // 5. Fresh insert.
+    // 5. Fresh insert (guarded by the partial unique index).
     const { data: inserted, error } = await db
       .from('pings')
       .insert({
@@ -182,6 +191,14 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
       .single();
 
     if (error) {
+      // A racing insert won the unique race for this group → bump its row.
+      if (input.groupKey && (error as { code?: string }).code === '23505') {
+        const bumped = await tryBump();
+        if (bumped) {
+          void maybePrune(db, recipient);
+          return bumped;
+        }
+      }
       console.error('[pings] createPing insert failed:', error.message);
       return null;
     }
