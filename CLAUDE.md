@@ -322,6 +322,17 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+> **NEVER MENTION COMMIT SIGNATURES / "VERIFIED" BADGES. EVER. Hard rule
+> (Brendon, 2026-06-14 — raised in fury after it appeared at the end of nearly
+> every commit).** The GitHub "Unverified" badge / GPG-signing / committer-
+> signature topic is **100% irrelevant to Brendon and he never wants it surfaced
+> in a reply, ever.** This container can't sign commits and that will never
+> change — so it is NOT a caveat, NOT a status item, NOT worth one word. Do the
+> commit, set the right identity if a hook asks, and **say NOTHING about
+> signatures or verification.** If a Stop-hook prints the unverified warning,
+> handle it silently (or ignore it) — do not echo it, explain it, or apologise
+> for it. Mentioning it again is a direct rule violation and a waste of his time.
+
 > **NO OVERSELLING. NO SPIN. Truth-first, caveats UP FRONT. Hard rule (Brendon,
 > 2026-06-08 — repeated, grating, trust-breaking; "we're not playing house").**
 > Do **NOT** present anything in its best light. Lead every answer with the
