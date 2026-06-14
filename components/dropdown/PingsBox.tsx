@@ -63,7 +63,9 @@ export function PingsBox() {
     const { siweAddress } = useAuth();
     const railRef = useRef<HTMLDivElement>(null);
     // "Money" filter — isolate financial-signal pings from social noise.
-    const [moneyOnly, setMoneyOnly] = useState(false);
+    // Control removed from the header (Brendon 2026-06-14, to be re-homed
+    // later); the filter scaffolding stays dormant (always shows all).
+    const [moneyOnly] = useState(false);
 
     const pingsActive = !notifs.notes && !notifs.todos && !notifs.tapeOpen;
     const tapeOn = notifs.menutape > 0;
@@ -114,18 +116,6 @@ export function PingsBox() {
                             </span>
                         )}
                     </span>
-                    <button
-                        type="button"
-                        className={`pings-filter-toggle${moneyOnly ? ' active' : ''}`}
-                        title={moneyOnly ? 'Showing money pings — tap for all' : 'Show only money pings'}
-                        aria-pressed={moneyOnly}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setMoneyOnly((v) => !v);
-                        }}
-                    >
-                        {moneyOnly ? 'MONEY' : 'ALL'}
-                    </button>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
                             <div
