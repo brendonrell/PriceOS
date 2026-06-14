@@ -133,6 +133,13 @@ export interface PdNotifs {
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
        toggled from MY PD. When off the strip isn't rendered at all. */
     ambientStrip: boolean;
+    /* The Watch — a small persistent live-stat chip that floats over every
+       page. Off by default; enabled from the Spell Book (took the retired
+       Solar Flare slot, 2026-06-14). `watchMetric` is the index into the
+       chip's cycle of platform vitals (volume / minted / holders / projects),
+       advanced by tapping the chip. */
+    watch: boolean;
+    watchMetric: number;
 
     // Ping category preferences (MY PINGS panel)
     pings: {
@@ -209,6 +216,8 @@ const DEFAULTS: PdNotifs = {
     degen: false,
     autoscroll: false,
     ambientStrip: false,
+    watch: false,
+    watchMetric: 0,
 
     pings: {
         mints: true,

@@ -7721,3 +7721,74 @@ body.colorway-dark .ghost-feed-bar {
     letter-spacing: 2px;
     opacity: 0.85;
 }
+
+/* ── The Watch — floating live-stat chip (components/shell/TheWatch.tsx).
+   Enabled from the Spell Book; floats over every page, draggable, tap to
+   cycle the metric. Sits above page content but below modals (which hide it
+   via the body.modal-open guard in the component). ── */
+.the-watch {
+    position: fixed;
+    z-index: 240;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px 7px 11px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.the-watch:active { cursor: grabbing; }
+.watch-live {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-color, #f8ae00);
+    flex: 0 0 auto;
+    animation: watch-pulse 1.8s ease-in-out infinite;
+}
+@keyframes watch-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.7); }
+}
+.watch-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+.watch-label {
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.55;
+}
+.watch-value {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.watch-x {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    opacity: 0.4;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 1px;
+    margin-left: 2px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.watch-x:hover { opacity: 0.9; }
+@media (prefers-reduced-motion: reduce) {
+    .watch-live { animation: none; }
+}

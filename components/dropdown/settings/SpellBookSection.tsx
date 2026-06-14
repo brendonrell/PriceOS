@@ -109,8 +109,8 @@ export function SpellBookSection({ onTripleTap }: Props) {
                 SPELL BOOK
             </div>
             <div className="spell-book-pills">
-                {/* Spells 1–12: familiar → solar flare */}
-                {SPELLS.slice(0, 12).map((spell) => (
+                {/* Spells 1–11: familiar → portal (Solar Flare retired). */}
+                {SPELLS.slice(0, 11).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}
@@ -128,6 +128,21 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         label={spell.name}
                     />
                 ))}
+                {/* The Watch — hardcoded pill (like Stargazing / Echo) taking
+                    the retired Solar Flare slot (Brendon 2026-06-14). Toggles
+                    the plain `watch` flag; the floating live-stat chip mounts
+                    globally in PriceOSShell and reads it. */}
+                <SettingsToggle
+                    id="sb-watch"
+                    active={notifs.watch}
+                    onClick={() => {
+                        const next = !notifs.watch;
+                        toggle('watch');
+                        showToast(`The Watch: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    icon={'◉︎'}
+                    label="The Watch"
+                />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs
                     key (no spell_ prefix), so it cannot go through the SPELLS
@@ -158,8 +173,8 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'≫︎'}
                     label="Echo Chamber"
                 />
-                {/* Spells 13–19: offer shield → hammer */}
-                {SPELLS.slice(12).map((spell) => (
+                {/* Spells 12–17: offer shield → hammer */}
+                {SPELLS.slice(11).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}

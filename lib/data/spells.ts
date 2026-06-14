@@ -47,7 +47,10 @@ export const SPELLS: SpellEntry[] = [
     { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '♤\uFE0E' },
     { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: '⦾\uFE0E' },
     { id: 'portal',      flag: 'spell_portal',      name: 'Portal',            icon: 'ᗝ\uFE0E' },
-    { id: 'cme',         flag: 'spell_cme',         name: 'Solar Flare',       icon: '⛆\uFE0E' },
+    /* Solar Flare (id 'cme') retired 2026-06-14 — its inactive Spell Book slot
+       was reassigned to The Watch (a hardcoded pill in SpellBookSection, like
+       Stargazing / Echo). The `spell_cme` pdNotifs flag is intentionally KEPT
+       for Setup Code roundtrip parity; only the pill is gone. */
     { id: 'offershield', flag: 'spell_offershield', name: 'Offer Shield',      icon: '⍲\uFE0E' },
     { id: 'sybilnet',    flag: 'spell_sybilnet',    name: 'Sybil Net',         icon: '∾\uFE0E' },
     { id: 'gossip',      flag: 'spell_gossip',      name: 'Gossip Protocol',   icon: '⑃\uFE0E' },
