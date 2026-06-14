@@ -6,14 +6,35 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (all 3 repos). This chat's task
-  branch `claude/security-sweep-comprehensive-xfnqc6` is trash (work is on dev; the
-  pd-contracts findings live on that repo's same-named branch) — Brendon deletes on GitHub.
-- **Updated:** 2026-06-14 (PM). This session = **COMPREHENSIVE SITE-WIDE SECURITY SWEEP**
-  (10 auditors) + forever/longevity benchmark + 1 approved hardening fix — see the 🛡️
-  section directly below. Earlier 2026-06-14 sessions (still valid context): pings/
-  notifications (🔔), social graph + PriceRank + anointing, the first security audit (🔒),
-  and the indexer serverless rebuild (⚙️).
+- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
+  `claude/peaceful-mendel-hv15nm` is trash (work is on dev) — Brendon deletes on GitHub.
+  (Also resolved a recurring **stale local-dev** divergence this session — local `dev` now
+  equals `origin/dev`; reset cleanly so it shouldn't recur.)
+- **Updated:** 2026-06-14 (evening). This session = **DIGITAL FAMILIAR bestiary modal SHIPPED
+  to dev** + the **NPC Cast** designed & cast locked (banked in ClickUp). See 🐾 directly
+  below. Earlier 2026-06-14 sessions still valid context: security sweep (🛡️), pings (🔔),
+  social + PriceRank, security audit (🔒), indexer rebuild (⚙️).
+
+## 🐾 DIGITAL FAMILIAR + NPC CAST 2026-06-14 (eve) — Familiar SHIPPED to dev
+**Familiar modal → bestiary** (`components/FamiliarModal.tsx`, `lib/familiar/bestiary.ts`,
+`styles/modal.css`). The empty "settings coming soon" placeholder is now a videogame-style
+**collection screen**: live floating hero of your companion, a discovered tally, four tiers as
+tile rails — **BitDaemons** (16, common, live; current badged YOURS) + **Titans** (7),
+**Ascended** (6), **Old Gods** (6) shown locked-but-visible *with their art* so you see what's
+earnable. Mobile-first, theme-var only, mirrors PriceSprite + Sticker idioms. Build clean.
+- **Art = Gemini-designed this session, Claude-curated.** First-pass, multi-line ASCII via `\n`.
+  **Known fix:** Leviathan's `⫿`/`⎈` glyphs don't render (tofu) — swap. Other tall pieces may
+  need width normalizing on a real device (not pixel-tested from the container).
+- **Unlocks are placeholders** (Brendon tunes later; 1k achievements = levers). FOLLOW-ON build:
+  wallet-binding (companion stays YOURS per wallet, not random per-page), bond/growth, live-event
+  dialogue, and animating the tall multi-line tiers in the corner (footprint cap ~3–4 rows keeps
+  them out of the way).
+- **NPC Cast** (separate feature, DESIGN ONLY — banked on ClickUp task `86b9fcp11`): 8 residents —
+  Rocco (snob) · Eddie (gossip) · Mick (chronicler) · Carl (Eeyore) · Mimi (predator,f) · Romy
+  (warm,f) · Steven (normal) · Celestia (tarot mystic,f). Voice = offhand/deadpan, NO zingers
+  (took many passes — references make me copy; "be cool" + extreme-but-grounded is the lane).
+  Shares the dialogue reservoir with the Familiar. **Voice-scaling (many lines/character) = NEXT
+  CHAT.** Guardrail: market-commentary voices hit patterns, never real names.
 
 ## 🛡️ COMPREHENSIVE SECURITY SWEEP 2026-06-14 (master: `docs/security/SECURITY_SWEEP_2026-06-14.md`)
 Site-wide adversarial read-only audit (10 parallel auditors → `docs/security/findings/01-10`).
