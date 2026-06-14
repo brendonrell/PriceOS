@@ -141,13 +141,16 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  ANOINTING · the curation / blessing system
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'first_anoint', name: 'The First Blessing', blurb: 'Anoint your first piece.', points: 25, category: 'anointing', trigger: 'anoint.given>=1' },
-  { id: 'anoint_10', name: 'Tastemaker', blurb: 'Anoint 10 pieces.', points: 60, category: 'anointing', trigger: 'anoint.given>=10' },
-  { id: 'anoint_50', name: 'Curator', blurb: 'Anoint 50 pieces.', points: 150, category: 'anointing', trigger: 'anoint.given>=50' },
-  { id: 'first_anointed', name: 'Blessed', blurb: 'Have one of your pieces anointed.', points: 40, category: 'anointing', trigger: 'anoint.received>=1' },
-  { id: 'anointed_10', name: 'Revered', blurb: 'Collect 10 anoints across your pieces.', points: 120, category: 'anointing', trigger: 'anoint.received>=10' },
-  { id: 'high_praise', name: 'High Praise', blurb: 'Get anointed by a top-tier user.', points: 80, category: 'anointing', secret: true, trigger: 'anoint.receivedFromTopRank>=1' },
-  { id: 'prophet', name: 'Prophet', blurb: "Anoint a piece before its floor doubles.", points: 150, category: 'anointing', secret: true, trigger: 'anoint.predicted2x>=1' },
+  // ANOINTING — ONE Pledge of Fealty per account (docs/anointment-egregore-spec.md).
+  { id: 'anoint_placed', name: 'The Pledge', blurb: 'Place your one Anointment — your Pledge of Fealty to a Project.', points: 40, category: 'anointing', trigger: 'anoint.placed' },
+  { id: 'anoint_cult', name: 'Cult Member', blurb: 'A Project you anointed rises to The Cult.', points: 80, category: 'anointing', trigger: 'anoint.projectLevel>=1' },
+  { id: 'anoint_egregore', name: 'Egregore', blurb: 'A Project you anointed awakens its Egregore.', points: 200, category: 'anointing', trigger: 'anoint.projectLevel>=2' },
+  { id: 'anoint_prime_mover', name: 'Prime Mover', blurb: 'The Output you chose as your conduit becomes the Project’s Prime Relic.', points: 120, category: 'anointing', secret: true, trigger: 'anoint.conduitIsPrimeRelic' },
+  { id: 'anoint_fealty', name: 'Fealty', blurb: 'Keep your Anointment on one Project past the 60-day lock.', points: 60, category: 'anointing', trigger: 'anoint.heldDays>=60' },
+  { id: 'anoint_faithful', name: 'True Believer', blurb: 'Hold your Anointment on a single Project for a full year.', points: 200, category: 'anointing', trigger: 'anoint.heldDays>=365' },
+  { id: 'anoint_early_faith', name: 'Early Faith', blurb: 'Anoint a Project before it reaches The Cult.', points: 150, category: 'anointing', secret: true, trigger: 'anoint.earlyToCult' },
+  { id: 'own_prime_relic', name: 'Relic Holder', blurb: 'Own the Prime Relic of a Project.', points: 100, category: 'anointing', secret: true, trigger: 'holdings.primeRelic>=1' },
+  { id: 'conduit_blessed', name: 'Blessed', blurb: 'An Output you own is chosen as someone’s conduit.', points: 50, category: 'anointing', trigger: 'anoint.conduitReceived>=1' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  STREAK · PriceStreak milestones (60 = activation = the surprise)

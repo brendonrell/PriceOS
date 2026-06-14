@@ -60,20 +60,25 @@ do $$ begin
   end if;
 end $$;
 
--- ── 3. ANOINTING (a user anoints a specific piece/output) ──────────────────
--- One anoint per (user, piece). Mirrors the stars table shape.
+-- ── 3. ANOINTING (the Anointment & Egregore system) ────────────────────────
+-- ONE Pledge of Fealty per account — PK is the user alone. The anointment
+-- targets a PROJECT, through a chosen OUTPUT as the conduit. `placed_at` is the
+-- 60-day-lock anchor (can't move before it elapses). Moving = updating the row
+-- (zero-sum: the old project's count drops automatically). Project level
+-- (Dormant/Cult/Egregore) and the Prime Relic are COMPUTED on read from counts
+-- — cache tables are a later optimisation. See docs/anointment-egregore-spec.md.
 create table if not exists public.anointments (
-  user_address text not null references public.users(address) on delete cascade,
-  project_id   text not null references public.projects(id) on delete cascade,
-  token_id     text not null,
-  created_at   timestamptz not null default now(),
-  primary key (user_address, project_id, token_id)
+  user_address    text primary key references public.users(address) on delete cascade,
+  project_id      text not null references public.projects(id) on delete cascade,
+  output_token_id text not null,
+  placed_at       timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
 );
--- Count anoints received on a piece, and find the piece's owner for "Blessed".
-create index if not exists anointments_piece_idx
-  on public.anointments (project_id, token_id);
-create index if not exists anointments_user_idx
-  on public.anointments (user_address);
+-- Per-project count → level; per-conduit count → Prime Relic.
+create index if not exists anointments_project_idx
+  on public.anointments (project_id);
+create index if not exists anointments_conduit_idx
+  on public.anointments (project_id, output_token_id);
 
 alter table public.anointments enable row level security;
 do $$ begin
