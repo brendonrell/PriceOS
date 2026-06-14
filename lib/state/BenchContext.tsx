@@ -1,20 +1,17 @@
 'use client';
 
 /*
- * BenchContext — The Bench (OS Tool / Comparison) + the shared hold-drag state.
+ * BenchContext — The Bench (OS Tool / Comparison): the set of pieces on the
+ * bench, plus the split orientation. Low-frequency state only.
+ *
+ * The LIVE hold-drag (pointer position + armed target) deliberately does NOT
+ * live here — it's in lib/state/benchDragStore so the 60fps drag updates don't
+ * re-render every gallery card. See that file.
  *
  * The Bench is ONE thing: a tab that peeks up from the bottom the moment you
- * start dragging an artwork. You drag pieces onto it; they live in the tab,
- * side by side (price · floor delta · your Note), with a Portrait↔Landscape
- * split and a one-tap image export. Dismiss clears it. There is NO button and
- * NO separate panel — the tab IS the bench.
- *
- * Ephemeral: nothing is persisted; the bench lives in memory for the session
- * and clears on dismiss / reload.
- *
- * This context also holds the live hold-drag descriptor so the global BenchDock
- * can render the floating ghost + the tab from one place while the per-card
- * useHoldDrag engine drives it.
+ * start dragging an artwork. You drag pieces onto it; they live in the tab side
+ * by side, with a Portrait↔Landscape split + image export. Dismiss clears it.
+ * Ephemeral — nothing is persisted.
  */
 
 import {
@@ -40,24 +37,6 @@ export interface BenchItem {
 /** Split layout: Portrait = side-by-side columns, Landscape = stacked rows. */
 export type BenchOrientation = 'portrait' | 'landscape';
 
-/** Where a hold-drag can be dropped. Cart is gated on the piece being listed. */
-export type DropTarget = 'bench' | 'cart';
-
-/** Live descriptor of an in-flight hold-drag, mirrored to the global dock. */
-export interface BenchDragState {
-    slug: string;
-    id: number;
-    /** Listed pieces can also be dropped on the Cart target. */
-    listed: boolean;
-    /** Current pointer position in viewport px. */
-    x: number;
-    y: number;
-    /** True once the long-press fires — ghost + tab are shown. */
-    engaged: boolean;
-    /** Which target the pointer is currently over (highlight + drop). */
-    armed: DropTarget | null;
-}
-
 interface BenchContextValue {
     items: BenchItem[];
     orientation: BenchOrientation;
@@ -67,10 +46,6 @@ interface BenchContextValue {
     clear: () => void;
     has: (slug: string, id: number) => boolean;
     toggleOrientation: () => void;
-
-    /** Live hold-drag descriptor (null when idle). Driven by useHoldDrag. */
-    drag: BenchDragState | null;
-    setDrag: (next: BenchDragState | null) => void;
 }
 
 const BenchCtx = createContext<BenchContextValue | null>(null);
@@ -78,7 +53,6 @@ const BenchCtx = createContext<BenchContextValue | null>(null);
 export function BenchProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<BenchItem[]>([]);
     const [orientation, setOrientation] = useState<BenchOrientation>('portrait');
-    const [drag, setDragState] = useState<BenchDragState | null>(null);
 
     /* Mirror of items for synchronous reads — add() must return its real
        outcome (state updaters don't run synchronously). */
@@ -113,8 +87,6 @@ export function BenchProvider({ children }: { children: ReactNode }) {
         [],
     );
 
-    const setDrag = useCallback((next: BenchDragState | null) => setDragState(next), []);
-
     /* Escape dismisses (clears) the bench when it's holding pieces. */
     useEffect(() => {
         if (items.length === 0) return;
@@ -126,18 +98,8 @@ export function BenchProvider({ children }: { children: ReactNode }) {
     }, [items.length]);
 
     const value = useMemo<BenchContextValue>(
-        () => ({
-            items,
-            orientation,
-            add,
-            remove,
-            clear,
-            has,
-            toggleOrientation,
-            drag,
-            setDrag,
-        }),
-        [items, orientation, add, remove, clear, has, toggleOrientation, drag, setDrag],
+        () => ({ items, orientation, add, remove, clear, has, toggleOrientation }),
+        [items, orientation, add, remove, clear, has, toggleOrientation],
     );
 
     return <BenchCtx.Provider value={value}>{children}</BenchCtx.Provider>;

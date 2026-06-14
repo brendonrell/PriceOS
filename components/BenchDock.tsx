@@ -13,13 +13,20 @@
  */
 
 import {
+    memo,
     useCallback,
     useEffect,
     useMemo,
     useRef,
     useState,
+    useSyncExternalStore,
 } from 'react';
 import { useBench, type BenchItem } from '../lib/state/BenchContext';
+import {
+    subscribeBenchDrag,
+    getBenchDrag,
+    getBenchDragServer,
+} from '../lib/state/benchDragStore';
 import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
@@ -64,7 +71,7 @@ function useOutputNote(id: number): string {
     return note;
 }
 
-function BenchCard({
+const BenchCard = memo(function BenchCard({
     slug, id, title, priceStr, deltaStr, onRemove,
 }: {
     slug: string; id: number; title: string; priceStr: string | null; deltaStr: string;
@@ -107,7 +114,7 @@ function BenchCard({
             </div>
         </div>
     );
-}
+});
 
 function BenchGroup({
     slug, ids, onRemove, reportInfo,
@@ -156,7 +163,8 @@ function BenchGroup({
 }
 
 export default function BenchDock() {
-    const { items, orientation, drag, remove, clear, toggleOrientation } = useBench();
+    const { items, orientation, remove, clear, toggleOrientation } = useBench();
+    const drag = useSyncExternalStore(subscribeBenchDrag, getBenchDrag, getBenchDragServer);
     const { showToast } = useToast();
 
     const engaged = !!drag?.engaged;

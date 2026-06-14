@@ -24,7 +24,11 @@
  */
 
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
-import { useBench, type BenchDragState, type DropTarget } from '../state/BenchContext';
+import {
+    setBenchDrag,
+    type BenchDragState,
+    type DropTarget,
+} from '../state/benchDragStore';
 
 const LONGPRESS_MS = 320;
 /** Movement (px) before the hold fires that re-reads the gesture as a
@@ -166,17 +170,14 @@ function createEngine(
 }
 
 export function useHoldDrag(opts: HoldDragOpts) {
-    const { setDrag } = useBench();
     const optsRef = useRef(opts);
     optsRef.current = opts;
-    const setDragRef = useRef(setDrag);
-    setDragRef.current = setDrag;
 
     const engineRef = useRef<ReturnType<typeof createEngine> | null>(null);
     if (!engineRef.current) {
         engineRef.current = createEngine(
             () => ({ enabled: true, ...optsRef.current }),
-            (v) => setDragRef.current(v),
+            setBenchDrag,
         );
     }
 
