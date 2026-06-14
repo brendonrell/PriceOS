@@ -39,6 +39,7 @@ import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
 import { ToastProvider } from '../lib/state/ToastContext';
 import { PingsProvider } from '../lib/state/PingsContext';
+import PriceRankSync from '../components/pricerank/PriceRankSync';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
@@ -558,6 +559,7 @@ export default async function RootLayout({
                                         <DropdownProvider>
                                             <ToastProvider>
                                               <PingsProvider>
+                                                <PriceRankSync />
                                                 <CalendarProvider>
                                                     <NotePromptProvider>
                                                         <ValuePromptProvider>

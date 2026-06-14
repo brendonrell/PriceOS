@@ -87,7 +87,6 @@ import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
 import { startEnsLookup } from '../../lib/engines/ensEngine';
-import PriceRankSync from '../pricerank/PriceRankSync';
 import {
     markStackLoadFailed,
     markStackLoadRecovered,
@@ -410,7 +409,6 @@ export function WalletProviders({
             signOut={signOutFull}
         >
             {children}
-            <PriceRankSync />
             <AccountCreateModal
                 open={needsSignup}
                 address={siweAddress}
