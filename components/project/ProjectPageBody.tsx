@@ -83,6 +83,7 @@ import {
 import ArtworkCard from '../ArtworkCard';
 import GhostCard from './GhostCard';
 import MintButton from './MintButton';
+import ReplayPanel from './ReplayPanel';
 import ProjectFollowButton from './ProjectFollowButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
@@ -1376,33 +1377,11 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
 
                 </>)}
                 {moreL1 === 'replay' && (<>
-                {/* REPLAY — sim 5207-5228 */}
+                {/* REPLAY — Project time machine. Static mockup (sim 5207-5228)
+                    promoted to the live player: ReplayPanel animates seeded,
+                    end-state-pinned history (scrub + 1x/5x/22x + static lock). */}
                 <div className="more-section-header">REPLAY</div>
-                <div className="more-replay-wrap">
-                    <div
-                        className="more-replay-card"
-                        onClick={() =>
-                            showToast('Replay — design sprint pending')
-                        }
-                    >
-                        <div className="more-replay-timeline">
-                            <div className="mr-tl-bar" />
-                            <div className="mr-tl-playhead" />
-                            <div className="mr-tl-events">
-                                {Array.from({ length: 11 }).map((_, i) => (
-                                    <span className="mr-tl-ev" key={i} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="more-replay-meta">
-                            <span className="mr-play">▶&#xFE0E;</span>
-                            <span className="mr-speed">1x</span>
-                            <span className="mr-speed mr-speed-dim">5x</span>
-                            <span className="mr-speed mr-speed-dim">22x</span>
-                            <span className="mr-range">AUG 14 → TODAY</span>
-                        </div>
-                    </div>
-                </div>
+                <ReplayPanel />
 
                 </>)}
                 {moreL1 === 'albums' && (<>
