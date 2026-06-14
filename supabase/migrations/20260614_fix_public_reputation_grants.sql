@@ -1,0 +1,19 @@
+-- ════════════════════════════════════════════════════════════════════════
+--  FIX · Public profile reads 500 ("permission denied for table users")
+--  2026-06-14 · Applied live to zspxpfwlwikdxwavffjn.
+--
+--  The security sweep narrowed `users` from a table-level SELECT grant to
+--  COLUMN-level grants so the private columns (sim_eth_balance, settings,
+--  setup_codes, calendar_state, familiar_config, grid_presets, workspaces) are
+--  not readable via the public anon key. Correct — but when the PriceScore /
+--  PriceStreak build later ADDED price_score, price_streak and streak_best to
+--  `users`, those new columns never received an anon read grant.
+--
+--  Every public read that selects them via the anon key therefore 500'd:
+--  PUBLIC_USER_COLUMNS (profile pages, /api/user, /api/user/by-handle),
+--  /api/follows and /api/achievements. These three are PUBLIC reputation stats
+--  shown on every profile / leaderboard, so they must be readable.
+--
+--  Grant read on ONLY these three; the genuinely-private columns stay ungranted.
+-- ════════════════════════════════════════════════════════════════════════
+grant select (price_score, price_streak, streak_best) on public.users to anon, authenticated;
