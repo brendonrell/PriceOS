@@ -6,13 +6,14 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/notifications-pings-system-xh5pvh` is trash (work is on dev) — Brendon
-  deletes on GitHub.
-- **Updated:** 2026-06-14 (PM). This session = **PINGS / NOTIFICATIONS SYSTEM
-  built end-to-end + scale-hardened** — see the 🔔 section directly below. Earlier
-  2026-06-14 sessions (still valid context): social graph + PriceRank + anointing
-  backend, the full security audit (🔒), and the indexer serverless rebuild (⚙️).
+- **Branch:** all work is on `dev`, pushed, tree clean (all 3 repos). This chat's task
+  branch `claude/security-sweep-comprehensive-xfnqc6` is trash (work is on dev; the
+  pd-contracts findings live on that repo's same-named branch) — Brendon deletes on GitHub.
+- **Updated:** 2026-06-14 (PM). This session = **COMPREHENSIVE SITE-WIDE SECURITY SWEEP**
+  (10 auditors) + forever/longevity benchmark + 1 approved hardening fix — see the 🛡️
+  section directly below. Earlier 2026-06-14 sessions (still valid context): pings/
+  notifications (🔔), social graph + PriceRank + anointing, the first security audit (🔒),
+  and the indexer serverless rebuild (⚙️).
 
 ## 🛡️ COMPREHENSIVE SECURITY SWEEP 2026-06-14 (master: `docs/security/SECURITY_SWEEP_2026-06-14.md`)
 Site-wide adversarial read-only audit (10 parallel auditors → `docs/security/findings/01-10`).
