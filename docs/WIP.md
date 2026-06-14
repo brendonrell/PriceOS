@@ -12,6 +12,8 @@
 - **Updated:** 2026-06-14. Last session = **Social graph + PriceRank + Anointing
   (backend)**. This session = **full security audit (all repos)** — see the new
   🔒 section below; full report in `docs/SECURITY_AUDIT_2026-06-14.md`.
+- **Parallel 2026-06-14 session (separate chat):** **indexer serverless rebuild —
+  DONE** in the `PriceOS-indexer` repo (NOT in PriceOS dev). See the ⚙️ section.
 
 ## ✅ SHIPPED 2026-06-14 — on `dev` (DB migration applied + verified)
 - **Social graph.** Follow people AND projects (Twitter-style) + follower/
@@ -75,6 +77,29 @@ scoring layer.
   capped to nothing. If yes, they need on-chain gating, not just the cap.
 - **ClickUp** — still owed: file the audit + these fixes once the connector is
   reconnected (it hard-failed all session).
+
+## ⚙️ INDEXER 2026-06-14 — serverless rebuild DONE (repo `PriceOS-indexer`, branch `claude/indexer-alchemy-setup-tuezqu` — NOT in PriceOS dev)
+- **Pivoted off Ponder/Railway → serverless Alchemy webhook → Supabase**, with a
+  Vercel Cron reconcile sweep as the delivery backstop. $0 at launch scale.
+  Built, typechecks clean, pushed to the indexer branch. **Ponder fully removed.**
+- Idempotency hardened (no double-count of mints/volume on replay), webhook
+  signature verification, address auto-registration helper. Both prior open
+  questions resolved: the filtered GraphQL Custom Webhook IS free-tier; the
+  address-registration API is wired.
+- **Full done + what's-left breakdown:** `PriceOS-indexer/docs/HANDOFF.md`
+  (+ `docs/INDEXER_SPEC.md`, `docs/ALCHEMY_SETUP.md`).
+- **LEFT to go live (needs Brendon):** create the Alchemy webhook on Sepolia →
+  hand over its signing key + id; then transplant the routes into PriceOS
+  (`app/api/webhooks/alchemy` + the cron) on his green light; deploy a test
+  Project to Sepolia; first run flips the ~7 mocked chain-derived API routes to
+  real Supabase reads. NOT in dev until that transplant.
+- **ClickUp connector FIXED for next session:** the all-session "requires
+  approval" failures (both this chat's indexer update AND the security-audit
+  items still owed) were a **missing permission allow-rule, NOT a bad
+  connection** — now allow-listed for every MCP connector incl. GitHub in
+  `~/.claude/settings.local.json`. A FRESH chat reads it at startup and should
+  post with zero prompts; mid-session edits don't reload, which is why it kept
+  failing live this session.
 
 ## ⏭️ OPEN / NEXT (none blocking; Brendon doing edits in a fresh chat)
 - **Anointing UI** — backend done, NO on-screen way to place a Pledge yet.
