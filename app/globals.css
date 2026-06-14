@@ -7376,3 +7376,137 @@ body.colorway-dark .ghost-feed-bar {
         display: none;
     }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   ACHIEVEMENTS — unlocked/locked tile states + the profile wall.
+   The base PriceSprite rail tiles (.ps-ach-tile / .ps-ach-glyph / etc.)
+   live in styles/modal.css and ship in the LOCKED treatment (dim +
+   dashed). These rules add the real states the achievements UI feeds:
+     • .ps-ach-tile.unlocked — earned: solid border, full opacity.
+     • .ps-ach-tile.secret   — hidden easter egg: the "???" placeholder.
+   Plus the profile "+ More → Achievements" wall: a per-category grid
+   reusing the same Courier / border treatment as the modal rail.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── PriceSprite rail: unlocked / secret states ────────────────────── */
+.ps-ach-tile.unlocked {
+    border-style: solid;
+    opacity: 1;
+}
+.ps-ach-tile.secret .ps-ach-glyph,
+.ps-ach-tile.secret .ps-ach-name {
+    opacity: 0.85;
+}
+
+/* ── Profile Achievements wall ─────────────────────────────────────── */
+.ach-section {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 0 28px 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+
+/* Summary strip: PriceScore · PriceRank · Unlocked · Pts. */
+.ach-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    padding: 6px 4px 18px 4px;
+    border-bottom: 1px solid var(--text-color);
+    border-color: color-mix(in srgb, var(--text-color) 22%, transparent);
+    margin-bottom: 18px;
+}
+.ach-summary-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 64px;
+}
+.ach-summary-val {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+.ach-summary-label {
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    opacity: 0.5;
+}
+
+/* Category groups. */
+.ach-group {
+    margin-bottom: 22px;
+}
+.ach-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0 2px 9px 2px;
+}
+.ach-group-name {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+.ach-group-count {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    opacity: 0.45;
+}
+
+/* The tile grid — auto-fill so it reflows from phone (2-up) to wide. */
+.ach-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+.ach-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 12px 11px 12px;
+    border: 1px dashed var(--text-color);
+    border-color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    border-radius: 5px;
+    background: transparent;
+    opacity: 0.55;
+    -webkit-tap-highlight-color: transparent;
+}
+.ach-cell.unlocked {
+    border-style: solid;
+    border-color: var(--text-color);
+    opacity: 1;
+}
+.ach-cell-glyph {
+    font-size: 22px;
+    line-height: 1;
+}
+.ach-cell-name {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    line-height: 1.25;
+}
+.ach-cell-blurb {
+    font-size: 10px;
+    line-height: 1.4;
+    opacity: 0.7;
+    flex: 1 1 auto;
+}
+.ach-cell-pts {
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+}
+.ach-cell.secret .ach-cell-name {
+    letter-spacing: 2px;
+    opacity: 0.85;
+}

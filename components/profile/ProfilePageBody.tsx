@@ -42,6 +42,8 @@ import StarredList from './StarredList';
 import WishlistList from './WishlistList';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
+import AchievementsGrid from '../achievements/AchievementsGrid';
+import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
 import { getProject, outputTraits, allProjects, projectsByArtist } from '../../lib/project/registry';
@@ -72,7 +74,7 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info';
+type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements';
 /* Artist Showcase: 'created' = carousels of the projects this artist made
    (the home-page carousel pattern); 'regular' = their curated top-6 grid. */
 type ShowcaseView = 'created' | 'regular';
@@ -467,6 +469,41 @@ function ProfilePageBodyInner({
         () => wishlistItems.filter((s) => getProject(s.slug) != null),
         [wishlistItems],
     );
+
+    /* Achievements — PUBLIC for THIS profile's owner (any visitor sees any
+       profile's wall, logged in or not). Fetched once per profile address from
+       /api/achievements/{owner}; re-seeds on client-nav between profiles (the
+       address-keyed effect re-runs). `unlocked` is the earned-id set, the rest
+       is the owner's live score/rank/tally for the section header. One fetch per
+       address, guarded by the dep array — no refetch on every render. */
+    const [achData, setAchData] = useState<{
+        unlocked: ReadonlySet<string>;
+        priceScore: number;
+        priceRank: number;
+        unlockedCount: number;
+    }>({ unlocked: new Set(), priceScore: 0, priceRank: 0, unlockedCount: 0 });
+    useEffect(() => {
+        let cancelled = false;
+        setAchData({ unlocked: new Set(), priceScore: 0, priceRank: 0, unlockedCount: 0 });
+        fetch(`/api/achievements/${user.address.toLowerCase()}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: { unlocked?: string[]; priceScore?: number; priceRank?: number } | null) => {
+                if (cancelled || !d) return;
+                const set = new Set(d.unlocked ?? []);
+                const visibleUnlocked = ACHIEVEMENTS.reduce(
+                    (n, a) => (!a.secret && set.has(a.id) ? n + 1 : n),
+                    0,
+                );
+                setAchData({
+                    unlocked: set,
+                    priceScore: d.priceScore ?? 0,
+                    priceRank: d.priceRank ?? 0,
+                    unlockedCount: visibleUnlocked,
+                });
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [user.address]);
 
     const iconToastProps = (label: string) => ({
         role: 'button' as const,
@@ -866,6 +903,7 @@ function ProfilePageBodyInner({
                                             ]
                                             : []),
                                         { key: 'albums',    label: 'Albums',    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                     ]
                                 )
@@ -944,6 +982,38 @@ function ProfilePageBodyInner({
                                     Link Discord
                                 </button>
                             ) : null}
+                        </div>
+                    )}
+
+                    {/* Achievements sub-tab — PUBLIC wall for the profile owner.
+                        Owner's score / rank / tally up top, then the full catalog
+                        as a categorized grid (locked/unlocked, secret → "???").
+                        Works logged-out. */}
+                    {onMore && effMoreL1 === 'achievements' && (
+                        <div className="ach-section">
+                            <div className="ach-summary">
+                                <span className="ach-summary-stat">
+                                    <span className="ach-summary-val">{achData.priceScore.toLocaleString()}</span>
+                                    <span className="ach-summary-label">PRICESCORE</span>
+                                </span>
+                                <span className="ach-summary-stat">
+                                    <span className="ach-summary-val">
+                                        {achData.priceRank <= 0
+                                            ? '⓿'
+                                            : String.fromCodePoint(0x2775 + Math.min(achData.priceRank, 10))}
+                                    </span>
+                                    <span className="ach-summary-label">PRICERANK</span>
+                                </span>
+                                <span className="ach-summary-stat">
+                                    <span className="ach-summary-val">{achData.unlockedCount} / {VISIBLE_COUNT}</span>
+                                    <span className="ach-summary-label">UNLOCKED</span>
+                                </span>
+                                <span className="ach-summary-stat">
+                                    <span className="ach-summary-val">{achData.priceScore.toLocaleString()} / {MAX_PRICE_SCORE.toLocaleString()}</span>
+                                    <span className="ach-summary-label">PTS</span>
+                                </span>
+                            </div>
+                            <AchievementsGrid unlocked={achData.unlocked} />
                         </div>
                     )}
 

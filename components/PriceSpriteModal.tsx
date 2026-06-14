@@ -26,12 +26,11 @@
  * (with an idle scanner sweep) until the rank-up workstream lands.
  *
  * Forward-looking surfaces (all honest about being locked/unwired):
- *   - ACHIEVEMENTS rail — Xbox-style tiles, ALL LOCKED. The set below
- *     is a placeholder drawn from real planned mechanics (mints, buys,
- *     breadcrumbs, 60-day hold, Anointment/Egregore per the ClickUp
- *     Anointment & Egregore spec, doc page 2kyd6gx6-1434). Names/pts
- *     are Brendon's to rename; unlock wiring follows the user-stats
- *     indexer + achievements workstream.
+ *   - ACHIEVEMENTS rail — Xbox-style tiles off the REAL merged catalog
+ *     (lib/achievements/catalog). For the logged-in wallet we fetch
+ *     /api/achievements/{address} on open for the unlocked set + live
+ *     PriceScore; tiles paint unlocked/locked, secret+locked show as
+ *     "???". Tally = unlocked / VISIBLE_COUNT · score / MAX_PRICE_SCORE.
  *   - ANOINTMENT socket — empty-state preview of the one-✢-per-account
  *     pledge (60-day lock). Tapping toasts COMING SOON.
  *   - Score-breakdown tiles remain sim-faithful mocks (sim 4319–4348)
@@ -43,11 +42,17 @@
  * internals on `isOpen`.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { rankProgress } from '../lib/achievements/tiers';
+import {
+    ACHIEVEMENTS,
+    MAX_PRICE_SCORE,
+    VISIBLE_COUNT,
+} from '../lib/achievements/catalog';
+import { tileGlyph } from './achievements/AchievementsGrid';
 import SpriteEyeSlot from './SpriteEyeSlot';
 import {
     getSpriteFrame,
@@ -74,31 +79,10 @@ const SCORE_ROWS: readonly ScoreRow[] = [
     { label: 'Days Active',      value: '222',  pts: '+100 pts' },
 ];
 
-interface Achievement {
-    glyph: string;
-    name: string;
-    desc: string;
-    pts: number;
-    secret?: boolean;
-}
-
-/* Placeholder achievement set — every tile LOCKED until the
-   achievements workstream wires real unlock checks. Drawn from real
-   planned mechanics only (no invented features): mint/buy/breadcrumb
-   metrics mirror the score rows; ANOINTED + THE EGREGORE come from
-   the ClickUp Anointment & Egregore spec; DIAMOND PALMS uses PD's
-   sacred 60-day number. */
-const ACHIEVEMENTS: readonly Achievement[] = [
-    { glyph: '◍', name: 'First Light',      desc: 'Mint your first Output',                    pts: 15 },
-    { glyph: '⊚', name: 'Patron',           desc: 'Make your first secondary buy',             pts: 15 },
-    { glyph: '∴', name: 'Breadcrumb Trail', desc: 'Leave 10 breadcrumbs',                      pts: 10 },
-    { glyph: '◈', name: 'Diamond Palms',    desc: 'Hold an Output for 60 days',                pts: 30 },
-    { glyph: '⌗', name: 'The Collector',    desc: 'Own Outputs from 5 Projects',               pts: 20 },
-    { glyph: '✢', name: 'Anointed',         desc: 'Place your Anointment',                     pts: 25 },
-    { glyph: '⍎', name: 'The Egregore',     desc: 'Your anointed Project awakens its Egregore', pts: 100 },
-    { glyph: '⁇', name: 'Secret',           desc: 'Keep playing',                              pts: 25, secret: true },
-];
-const ACH_TOTAL_PTS = ACHIEVEMENTS.reduce((sum, a) => sum + a.pts, 0);
+/* The achievements rail now reads the REAL merged catalog
+   (lib/achievements/catalog). For the logged-in wallet we fetch
+   /api/achievements/{address} on open to learn which ids are unlocked +
+   the live PriceScore; tiles render unlocked/locked from that set. */
 
 /* Identity Plate export — composes the wallet's identity surfaces into a
    single downloadable PNG, generated client-side at export time (no file is
@@ -238,6 +222,37 @@ export default function PriceSpriteModal() {
         return unsubscribe;
     }, [isOpen]);
 
+    /* The logged-in wallet's achievements — fetched once per open from
+       /api/achievements/{address}. `unlocked` is the set of earned ids (joined
+       against the catalog to paint each tile); `achScore` is the live
+       PriceScore the API returns (the achievement total). Guarded so it fetches
+       once per address and never on every render: we remember the address we
+       fetched for and skip when the modal isn't open / there's no wallet. */
+    const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(() => new Set());
+    const [achScore, setAchScore] = useState<number>(priceScore);
+    const fetchedFor = useRef<string | null>(null);
+    useEffect(() => {
+        if (!isOpen || !siweAddress) return;
+        const addr = siweAddress.toLowerCase();
+        if (fetchedFor.current === addr) return;
+        fetchedFor.current = addr;
+        let cancelled = false;
+        fetch(`/api/achievements/${addr}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: { unlocked?: string[]; priceScore?: number } | null) => {
+                if (cancelled || !d) return;
+                setUnlocked(new Set(d.unlocked ?? []));
+                if (typeof d.priceScore === 'number') setAchScore(d.priceScore);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isOpen, siweAddress]);
+
+    const unlockedCount = ACHIEVEMENTS.reduce(
+        (n, a) => (!a.secret && unlocked.has(a.id) ? n + 1 : n),
+        0,
+    );
+
     return (
         <div
             id="priceSpriteModal"
@@ -345,35 +360,43 @@ export default function PriceSpriteModal() {
                     );
                 })()}
 
-                {/* ACHIEVEMENTS — Xbox-style rail, all tiles locked until
-                    the achievements workstream lands. Tap a tile to see
-                    its requirement (no hover on mobile). */}
+                {/* ACHIEVEMENTS — Xbox-style rail off the REAL catalog. Tiles
+                    show unlocked/locked for the logged-in wallet; secret +
+                    locked render as "???" with a locked blurb. Tap a tile to
+                    read it (no hover on mobile). Tally = real unlocked count /
+                    visible total · PriceScore / max. */}
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
-                        {`0 / ${ACHIEVEMENTS.length} · 0 / ${ACH_TOTAL_PTS} PTS`}
+                        {`${unlockedCount} / ${VISIBLE_COUNT} · ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS`}
                     </span>
                 </div>
                 <div className="ps-ach-rail ps-reveal ps-d4">
-                    {ACHIEVEMENTS.map((a) => (
-                        <button
-                            className="ps-ach-tile"
-                            type="button"
-                            key={a.name}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                showToast(
-                                    a.secret
-                                        ? 'SECRET ACHIEVEMENT — keep playing'
-                                        : `${a.name.toUpperCase()} — ${a.desc} (+${a.pts} PTS)`
-                                );
-                            }}
-                        >
-                            <span className="ps-ach-glyph">{`${a.glyph}${VS15}`}</span>
-                            <span className="ps-ach-name">{a.name}</span>
-                            <span className="ps-ach-pts">{`${a.pts} PTS`}</span>
-                        </button>
-                    ))}
+                    {ACHIEVEMENTS.map((a) => {
+                        const isUnlocked = unlocked.has(a.id);
+                        const hidden = a.secret && !isUnlocked;
+                        return (
+                            <button
+                                className={`ps-ach-tile${isUnlocked ? ' unlocked' : ''}${hidden ? ' secret' : ''}`}
+                                type="button"
+                                key={a.id}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    showToast(
+                                        hidden
+                                            ? 'SECRET ACHIEVEMENT — keep playing'
+                                            : `${a.name.toUpperCase()} — ${a.blurb} (${isUnlocked ? 'UNLOCKED' : `+${a.points} PTS`})`
+                                    );
+                                }}
+                            >
+                                <span className="ps-ach-glyph">
+                                    {hidden ? `?${VS15}` : `${tileGlyph(a)}${VS15}`}
+                                </span>
+                                <span className="ps-ach-name">{hidden ? '???' : a.name}</span>
+                                <span className="ps-ach-pts">{`${a.points} PTS`}</span>
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* ANOINTMENT socket — empty-state preview of the

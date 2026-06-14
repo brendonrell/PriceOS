@@ -87,6 +87,7 @@ import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
 import { setMainSpriteIdentity } from '../../lib/engines/priceSpriteEngine';
 import { startEnsLookup } from '../../lib/engines/ensEngine';
+import PriceRankSync from '../pricerank/PriceRankSync';
 import {
     markStackLoadFailed,
     markStackLoadRecovered,
@@ -294,6 +295,20 @@ export function WalletProviders({
         };
     }, [siweAddress]);
 
+    /* Live PriceScore/PriceRank/PriceStreak — re-pull the row when the scoring
+       sync fires 'pd:pricerank-changed' (after an evaluate / streak tick / new
+       unlock), so the navbar badge + modal readout update without a reload. */
+    useEffect(() => {
+        if (!siweAddress) return;
+        const onChange = () => {
+            fetchUserRow(siweAddress)
+                .then((row) => { if (row) setUserRow(row); })
+                .catch(() => {});
+        };
+        window.addEventListener('pd:pricerank-changed', onChange);
+        return () => window.removeEventListener('pd:pricerank-changed', onChange);
+    }, [siweAddress]);
+
     /* User-state hydration — "log in anywhere, exactly as you left it."
        Decoupled from the needsSignup fetch above so it can't regress the
        signup flow, and so it survives the follows-join issue on the public
@@ -395,6 +410,7 @@ export function WalletProviders({
             signOut={signOutFull}
         >
             {children}
+            <PriceRankSync />
             <AccountCreateModal
                 open={needsSignup}
                 address={siweAddress}

@@ -40,6 +40,8 @@
  *     stored per user. Renaming the display `name` is free; never reuse an id.
  */
 
+import { LADDER_ACHIEVEMENTS } from './catalogs/ladders';
+
 export type AchievementCategory =
   | 'primary' // minting — the fattest points
   | 'trading' // secondary market, volume, flips
@@ -75,7 +77,7 @@ export interface Achievement {
   icon?: string;
 }
 
-export const ACHIEVEMENTS: readonly Achievement[] = [
+const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  PRIMARY · minting — the heaviest points (incentivise primary spend)
   // ─────────────────────────────────────────────────────────────────────
@@ -273,6 +275,23 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'long_form', name: 'Long-Form', blurb: 'Hold 50 pieces from a single project — a true long-form set.', points: 89, category: 'lore', secret: true, trigger: 'holdings.maxPerProject>=50' },
   { id: 'per_mille', name: 'Per Mille', blurb: 'Hold 1,000 pieces — one full per mille of devotion. ‰', points: 250, category: 'lore', secret: true, trigger: 'holdings.total>=1000' },
 ] as const;
+
+/**
+ * The FULL catalog = curated core + the themed batch modules (ladders today;
+ * math / myth / hidden as they land). Deduped on id — first definition wins, so
+ * a core entry always beats a batch collision. Both the engine and the UI read
+ * THIS, so there's one source of truth.
+ */
+export const ACHIEVEMENTS: readonly Achievement[] = (() => {
+  const seen = new Set<string>();
+  const out: Achievement[] = [];
+  for (const a of [...CORE_ACHIEVEMENTS, ...LADDER_ACHIEVEMENTS]) {
+    if (seen.has(a.id)) continue;
+    seen.add(a.id);
+    out.push(a);
+  }
+  return out;
+})();
 
 /** Fast lookup by id. */
 export const ACHIEVEMENTS_BY_ID: ReadonlyMap<string, Achievement> = new Map(
