@@ -1297,3 +1297,197 @@ body.modal-open { overflow: hidden; touch-action: none; }
     .ps-anoint-mark { animation: none; }
     .ps-next-bar::after { display: none; }
 }
+
+
+/* ============================================================
+   FAMILIAR MODAL BODY — the Digital Familiar bestiary
+   ("Price-a-gotchi"). Rides the .platform-modal shell. Mobile-first:
+   base rules target the phone; the >600px block widens the rails.
+   Theme-var only (no hard-coded colors) so every colorway works.
+   Pattern mirrors the PriceSprite body (.ps-*) — staggered reveal,
+   floating hero, horizontally-scrolling tile rails.
+   ============================================================ */
+
+/* Scroll the shell on short phones, keep the X pinned. */
+#familiarModal { overflow-y: auto; justify-content: flex-start; }
+#familiarModal .close-hint { position: fixed; }
+#familiarModal .fam-body {
+    margin: auto 0;
+    max-width: 460px; width: 100%;
+    padding-bottom: 28px;
+    align-items: stretch;
+}
+
+/* Staggered entrance — platform-modal flips display:none→flex on open,
+   restarting these every time it opens. */
+@keyframes fam-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+#familiarModal .fam-reveal { opacity: 0; }
+#familiarModal.active .fam-reveal {
+    animation: fam-rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+#familiarModal.active .fam-d2 { animation-delay: 0.05s; }
+#familiarModal.active .fam-d3 { animation-delay: 0.10s; }
+#familiarModal.active .fam-d4 { animation-delay: 0.15s; }
+#familiarModal.active .fam-d5 { animation-delay: 0.20s; }
+#familiarModal.active .fam-d6 { animation-delay: 0.25s; }
+
+#familiarModal .modal-title { width: 100%; }
+
+/* Hero — the live companion, floating. */
+.fam-hero {
+    display: flex; justify-content: center; align-items: center;
+    margin: 10px 0 4px 0;
+}
+@keyframes fam-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+}
+.fam-hero-float {
+    display: inline-block;
+    animation: fam-float 5s ease-in-out infinite;
+}
+.fam-hero-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 30px; font-weight: bold; line-height: 1.1;
+    color: var(--text-color);
+    white-space: pre; letter-spacing: 0;
+    user-select: none;
+    text-align: center;
+}
+.fam-hero-caption {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.55;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+/* A tier block — header + a horizontally-scrolling rail of creature tiles. */
+.fam-tier { width: 100%; margin-bottom: 16px; }
+.fam-tier-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 0 20px 7px 20px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.fam-tier-label {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px; letter-spacing: 0.5px;
+}
+.fam-tier-rarity {
+    font-size: 9px; font-weight: bold; letter-spacing: 1.5px;
+    opacity: 0.5; text-transform: uppercase;
+}
+
+.fam-rail {
+    display: flex; gap: 8px;
+    width: 100%; box-sizing: border-box;
+    overflow-x: auto;
+    padding: 2px 20px 6px 20px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.fam-rail::-webkit-scrollbar { display: none; }
+
+.fam-tile {
+    position: relative;
+    flex: 0 0 auto;
+    width: 88px; min-height: 84px;
+    border: 1px solid var(--text-color); border-radius: 6px;
+    background: transparent; color: var(--text-color);
+    padding: 12px 6px 9px 6px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 9px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer; user-select: none;
+    scroll-snap-align: start;
+    overflow: hidden;
+    transition: opacity 0.2s, transform 0.2s, background 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Collection tally — mirrors the Sticker modal's header stats idiom. */
+.fam-tally {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 0 20px 4px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold; letter-spacing: 1px;
+    opacity: 0.6; margin-bottom: 14px;
+}
+.fam-tally b { opacity: 1; }
+.fam-tally-tiers { font-size: 9px; letter-spacing: 1.5px; opacity: 0.8; }
+
+/* Corner badge on a locked slot — same language as the Sticker SOON/LOCKED tag. */
+.fam-tile-badge {
+    position: absolute; top: 5px; right: 5px;
+    font-size: 7px; font-weight: bold; letter-spacing: 0.12em;
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 3px;
+    padding: 1px 3px;
+    opacity: 0.75;
+}
+
+/* Foot note — Sticker-modal idiom. */
+.fam-foot {
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; letter-spacing: 0.4px;
+    opacity: 0.5;
+    padding: 6px 20px 0 20px;
+}
+.fam-tile:active { transform: scale(0.96); }
+.fam-tile-glyph {
+    font-size: 18px; line-height: 1;
+    white-space: pre; text-align: center;
+}
+.fam-tile-name {
+    font-size: 8px; font-weight: bold; letter-spacing: 0.8px;
+    text-transform: uppercase; text-align: center; line-height: 1.2;
+}
+
+/* Locked tier tile — dashed + hatched (Sticker-card art idiom), dim, a
+   mystery to be earned. */
+.fam-tile.locked {
+    border-style: dashed;
+    opacity: 0.45;
+    background: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text-color) 3%, transparent) 0 7px,
+        color-mix(in srgb, var(--text-color) 7%, transparent) 7px 14px
+    );
+}
+.fam-tile.locked .fam-tile-glyph { opacity: 0.7; }
+
+/* The wallet's current companion — inverted fill, the one that's YOURS. */
+.fam-tile.yours {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+
+.fam-unlock-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; letter-spacing: 0.3px;
+    opacity: 0.55;
+    padding: 2px 20px 0 20px;
+}
+
+@media (hover: hover) {
+    .fam-tile:hover { transform: translateY(-1px); }
+    .fam-tile.locked:hover { opacity: 0.7; }
+}
+
+/* Desktop: a touch more room in the rails. */
+@media (min-width: 601px) {
+    .fam-tile { width: 96px; }
+    .fam-hero-sprite { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #familiarModal .fam-reveal,
+    #familiarModal.active .fam-reveal { animation: none; opacity: 1; transform: none; }
+    .fam-hero-float { animation: none; }
+}

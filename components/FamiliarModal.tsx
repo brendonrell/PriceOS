@@ -1,52 +1,68 @@
 'use client';
 
 /*
- * FamiliarModal
+ * FamiliarModal — the Digital Familiar's home / bestiary ("Price-a-gotchi").
  *
- * Sim id #familiarModal — sim.html 4274–4283. Opened from the
- * Digital Familiar sprite click via Backgrounds.tsx onClick →
- * ModalContext.open('familiar'). Sim handles this through a
- * document-level capture-phase listener at sim 12877-12886; the
- * React port owns the host JSX, so a direct onClick is cleaner.
+ * Opened from clicking the floating Familiar sprite (Backgrounds.tsx onClick →
+ * ModalContext.open('familiar')). Rides the platform-modal scaffold like the
+ * PriceSprite modal.
  *
- * Sim refs:
- *   markup ............. sim.html 4274–4283 (placeholder copy)
- *   open/close ......... sim.html 12938–12954
- *   species name ....... sim.html 12890 (window._getFamiliarSpeciesName)
+ * Body is a collection screen (lib/familiar/bestiary): a live hero of the
+ * wallet's current companion, then the four tiers as a videogame-style
+ * collection — BitDaemons revealed (the current one badged YOURS), the rarer
+ * Titans / Ascended / Old Gods shown LOCKED with their unlock condition so
+ * the player knows there's more to earn. Honest about what's wired: only the
+ * 5 BitDaemons are live; the rarer rosters land with their normalized art.
  *
- * Surface is a minimal placeholder — the title stamps in the species
- * name on open ("FAMILIAR · STARLING" etc.) per sim 12942-12946; the
- * body lists the four future settings (species/dialogue/outline/
- * placement). No state of its own beyond the title sync; ModalContext
- * gates open/close via the union name 'familiar'.
- *
- * Batch G / F56 / BUG-23 — title sync:
- *   useEffect on isOpen calls getFamiliarSpeciesName() and stamps
- *   `FAMILIAR · {NAME}` into the title. When the spell is off and
- *   the modal is somehow opened, the title falls back to plain
- *   "FAMILIAR" (matches sim's `name ? ... : 'FAMILIAR'` ternary).
+ * Hero syncs to familiarEngine frames while open (same approach as the
+ * PriceSprite hero). Title stamps the live species name (sim 12942-12946).
  */
 
 import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
-import { getFamiliarSpeciesName } from '../lib/engines/familiarEngine';
+import { useToast } from '../lib/state/ToastContext';
+import {
+    getFamiliarFrame,
+    getFamiliarSpeciesName,
+    subscribeFamiliar,
+    type FamiliarFrame,
+} from '../lib/engines/familiarEngine';
+import { TIERS } from '../lib/familiar/bestiary';
 
-const VS15 = '\uFE0E';
+const VS15 = '︎';
 
 export default function FamiliarModal() {
     const { openModal, close } = useModal();
+    const { showToast } = useToast();
     const isOpen = openModal?.name === 'familiar';
-    const [title, setTitle] = useState('FAMILIAR');
 
-    /* Sim 12942-12946: read the live species name when the modal
-       opens and stamp it into the title. No subscription needed —
-       species is sticky for the page lifetime per the engine's
-       _speciesPicked guard, so a single read on open is enough. */
+    const [title, setTitle] = useState('FAMILIAR');
+    const [species, setSpecies] = useState('');
+
+    /* Live hero — mirror the floating Familiar's frame while the modal is
+       open. Subscribe only while open; the engine drives the 600ms tick. */
+    const [frame, setFrame] = useState<FamiliarFrame>(() => getFamiliarFrame());
     useEffect(() => {
         if (!isOpen) return;
         const name = getFamiliarSpeciesName();
+        setSpecies(name);
         setTitle(name ? `FAMILIAR · ${name.toUpperCase()}` : 'FAMILIAR');
+        setFrame(getFamiliarFrame());
+        return subscribeFamiliar((f) => setFrame(f));
     }, [isOpen]);
+
+    const heroText = frame.spriteText || '( ◎ )';
+
+    /* Collection tally — videogame "X / N" header. Discovered = the revealed
+       (BitDaemon) entries; total includes the rarer tiers' hidden slots. */
+    const total = TIERS.reduce(
+        (n, t) => n + (t.locked ? t.hidden : t.entries.length),
+        0,
+    );
+    const discovered = TIERS.reduce(
+        (n, t) => n + (t.locked ? 0 : t.entries.length),
+        0,
+    );
 
     return (
         <div
@@ -65,42 +81,102 @@ export default function FamiliarModal() {
                 onClick={close}
                 title="Close"
             >
-                {`\u00D7${VS15}`}
+                {`×${VS15}`}
             </div>
-            <div
-                className="modal-info"
-                style={{ marginTop: 0, maxWidth: 420, width: '100%' }}
-            >
+
+            <div className="modal-info fam-body">
                 <div
-                    className="modal-title"
+                    className="modal-title fam-reveal fam-d1"
                     id="familiarModalTitle"
-                    style={{ marginBottom: 14 }}
+                    style={{ marginBottom: 4 }}
                 >
                     {title}
                 </div>
-                <div
-                    style={{
-                        fontFamily: "'Courier New', Courier, monospace",
-                        fontSize: 13,
-                        letterSpacing: '0.5px',
-                        opacity: 0.7,
-                        lineHeight: 1.7,
-                        textAlign: 'left',
-                        padding: '0 20px',
-                    }}
-                >
-                    Settings coming soon.
-                    <br />
-                    <br />
-                    <span style={{ opacity: 0.55 }}>
-                        · Species picker
-                        <br />
-                        · Dialogue frequency
-                        <br />
-                        · Outline toggle
-                        <br />
-                        · Placement
+
+                {/* Hero — the live companion, floating. */}
+                <div className="fam-hero fam-reveal fam-d2" aria-hidden="true">
+                    <span className="fam-hero-float">
+                        <span className="fam-hero-sprite">{heroText}</span>
                     </span>
+                </div>
+                <div className="fam-hero-caption fam-reveal fam-d2">
+                    {species ? `${species} · your companion` : 'your companion'}
+                </div>
+
+                <div className="fam-tally fam-reveal fam-d2">
+                    <span>
+                        <b>{discovered}</b> / {total} DISCOVERED
+                    </span>
+                    <span className="fam-tally-tiers">{TIERS.length} TIERS</span>
+                </div>
+
+                {/* The four tiers — a collection you fill by playing. */}
+                {TIERS.map((tier, ti) => {
+                    const dClass = `fam-d${Math.min(ti + 3, 6)}`;
+                    return (
+                        <div className={`fam-tier fam-reveal ${dClass}`} key={tier.id}>
+                            <div className="fam-tier-header">
+                                <span className="fam-tier-label">{tier.label}</span>
+                                <span className="fam-tier-rarity">
+                                    {tier.locked
+                                        ? `LOCKED · ? / ${tier.hidden}`
+                                        : `${tier.rarity} · ${tier.entries.length}`}
+                                </span>
+                            </div>
+
+                            <div className="fam-rail">
+                                {tier.locked
+                                    ? Array.from({ length: tier.hidden }).map((_, i) => (
+                                          <button
+                                              className="fam-tile locked"
+                                              type="button"
+                                              key={i}
+                                              onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  showToast(
+                                                      `${tier.label.toUpperCase()}: ${tier.unlock}`,
+                                                  );
+                                              }}
+                                          >
+                                              <span className="fam-tile-badge">LOCKED</span>
+                                              <span className="fam-tile-glyph">{`?${VS15}`}</span>
+                                              <span className="fam-tile-name">???</span>
+                                          </button>
+                                      ))
+                                    : tier.entries.map((sp) => {
+                                          const yours = sp.name === species;
+                                          return (
+                                              <button
+                                                  className={`fam-tile${yours ? ' yours' : ''}`}
+                                                  type="button"
+                                                  key={sp.name}
+                                                  onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      showToast(
+                                                          yours
+                                                              ? `${sp.name.toUpperCase()}: YOURS`
+                                                              : `${tier.label}: ${sp.name.toUpperCase()}`,
+                                                      );
+                                                  }}
+                                              >
+                                                  <span className="fam-tile-glyph">{sp.glyph}</span>
+                                                  <span className="fam-tile-name">
+                                                      {yours ? 'YOURS' : sp.name}
+                                                  </span>
+                                              </button>
+                                          );
+                                      })}
+                            </div>
+
+                            {tier.locked && (
+                                <div className="fam-unlock-note">{tier.unlock}</div>
+                            )}
+                        </div>
+                    );
+                })}
+
+                <div className="fam-foot fam-reveal fam-d6">
+                    tap a locked tier to see how it&apos;s earned
                 </div>
             </div>
         </div>
