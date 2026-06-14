@@ -2,51 +2,90 @@
  * familiar/bestiary — the Familiar collection model (the "Price-a-gotchi"
  * bestiary the modal renders).
  *
- * Four tiers, videogame-collection style. Only BitDaemons are live today:
- * the 5 species the engine actually picks from (familiarEngine SPECIES),
- * one of which is the wallet's current companion. The three rarer tiers are
- * shown LOCKED with their unlock condition + a hidden-entry count — honest
- * placeholders, same pattern as the PriceSprite modal's locked surfaces.
+ * Four tiers, videogame-collection style. BitDaemons are the live, common
+ * companions (the engine picks one as yours). Titans / Ascended / Old Gods
+ * are the rarer tiers — their art + names are shown so you can SEE what's
+ * earnable, each marked locked until the unlock rules wire in (those are
+ * Brendon's to tune; 1k achievements give plenty of levers).
  *
- * Glyphs here mirror the engine's idle frames so a revealed BitDaemon tile
- * shows the real creature. The rarer tiers ship glyph-less (rendered as
- * locked '?' tiles) until their normalized rosters land in the engine.
+ * `art` is a single static idle frame (multi-line via \n for the tall tiers),
+ * rendered white-space:pre in the tile. Rosters + exact art are first-pass
+ * (Gemini-designed this session) — refine/normalize later.
  *
  * Tier identities (design — ClickUp NPC-Cast task, 2026-06-14):
- *   BitDaemons — common, the everyday companion everyone gets.
- *   Titans     — rare, earned through achievements (the flex).
- *   Ascended   — rare, grown through bond/time with your familiar.
- *   Old Gods   — mythic, earned through long holding tenure.
+ *   BitDaemons — common, compact, the everyday companion.
+ *   Titans     — rare, towering; earned through achievements (the flex).
+ *   Ascended   — rare, ethereal; grown through bond/time with your familiar.
+ *   Old Gods   — mythic, carved stone; earned through long holding tenure.
  */
 
 export interface BestiaryEntry {
-    /** Species name as the engine knows it (used to flag the current one). */
+    /** Species name (matches familiarEngine for the live BitDaemons). */
     name: string;
-    /** Representative idle glyph — mirrors familiarEngine SPECIES idle[1]. */
-    glyph: string;
+    /** Static idle art — single line for BitDaemons, multi-line (\n) above. */
+    art: string;
 }
 
 export interface BestiaryTier {
     id: 'bitdaemons' | 'titans' | 'ascended' | 'oldgods';
     label: string;
     rarity: string;
-    /** One-line unlock condition, shown under a locked tier. */
+    /** One-line unlock condition (placeholder — tuned later). */
     unlock: string;
-    /** Locked tiers render as mystery tiles + the unlock note. */
+    /** Rare tiers render their art dimmed + LOCKED until unlocks wire in. */
     locked: boolean;
-    /** Revealed creatures (BitDaemons). Empty for locked tiers. */
     entries: BestiaryEntry[];
-    /** Hidden-entry count teased under a locked tier ("? / N"). */
-    hidden: number;
 }
 
-/* The five live BitDaemons — names + idle glyphs mirror familiarEngine. */
-export const BITDAEMONS: readonly BestiaryEntry[] = [
-    { name: 'Wisp',    glyph: '( ☼ )' },   // ( ☼ )
-    { name: 'Watcher', glyph: '[ ◎ ]' },   // [ ◎ ]
-    { name: 'Slime',   glyph: '(~O~)' },
-    { name: 'Spider',  glyph: '/|o.o|\\' },
-    { name: 'Orbit',   glyph: '(·◯)' }, // (·◯)
+/* ── BitDaemons (common, single-line) ─────────────────────────── */
+const BITDAEMONS: BestiaryEntry[] = [
+    { name: 'Wisp',    art: '( ☼ )' },
+    { name: 'Watcher', art: '[ ◎ ]' },
+    { name: 'Slime',   art: '(~O~)' },
+    { name: 'Spider',  art: '/|o.o|\\' },
+    { name: 'Orbit',   art: '(◯·)' },
+    { name: 'Cursor',  art: '>_' },
+    { name: 'Node',    art: '─[⊕]─' },
+    { name: 'Matrix',  art: '[◧ ◨]' },
+    { name: 'Glitch',  art: '▒▓▒' },
+    { name: 'Phantom', art: '░▒░' },
+    { name: 'Pulse',   art: '───●───' },
+    { name: 'Battery', art: '├■■□┤' },
+    { name: 'Shutter', art: '<[◉]>' },
+    { name: 'Sentry',  art: '[■_■]' },
+    { name: 'Switch',  art: '[─○─]' },
+    { name: 'Gear',    art: '├◎┤' },
+];
+
+/* ── Titans (rare, towering — multi-line) ─────────────────────── */
+const TITANS: BestiaryEntry[] = [
+    { name: 'Leviathan', art: '[ ⫿⫿ ⎈ ⫿⫿ ]' },
+    { name: 'Bastion',   art: '╔═[■_■]═╗\n║ [■_■] ║\n╚═[■_■]═╝' },
+    { name: 'Obelisk',   art: '┌─∆─┐\n│ ◉ │\n│ ∇ │\n└───┘' },
+    { name: 'Warden',    art: '╔═══╗\n║■_■║\n║───║\n╚═══╝' },
+    { name: 'Core',      art: '┌───┐\n┌┤ ⊗ ├┐\n└┤ ⊕ ├┘\n└───┘' },
+    { name: 'Spire',     art: '  │\n  │\n ⟨◉⟩\n  │\n ─┴─' },
+    { name: 'Sentinel',  art: ' ┌─┐\n┌┤ ├┐\n│ ◉ │\n│ ◉ │\n└┤ ├┘\n └─┘' },
+];
+
+/* ── Ascended (rare, ethereal — multi-line) ───────────────────── */
+const ASCENDED: BestiaryEntry[] = [
+    { name: 'Seraph', art: '《《 ◎ 》》\n 《 ◎ 》\n《《 ◎ 》》' },
+    { name: 'Eye',    art: '  ∆\n《 ◎ 》\n  ∇' },
+    { name: 'Halo',   art: '○ ○ ○\n⟨ ◉ ⟩' },
+    { name: 'Veil',   art: '┌ ─ ─ ┐\n│  ∅  │\n└     ┘' },
+    { name: 'Sigil',  art: '∞ ─ ∞\n  ┼\n∅ ─ ∅' },
+    { name: 'Wraith', art: '░ ▒ ░\n░ ▒ ░\n░ ▒ ░' },
+];
+
+/* ── Old Gods (mythic, carved stone — multi-line) ─────────────── */
+const OLD_GODS: BestiaryEntry[] = [
+    { name: 'Forge',   art: '▓▓▓▓▓\n║▒▒▒║\n╲ ■ ╱\n╱ ■ ╲\n▓▓▓▓▓' },
+    { name: 'Ember',   art: '░▒▒▒░\n▒▓■▓▒\n▒▓■▓▒\n░▒▒▒░' },
+    { name: 'Gallows', art: '╔════╗\n║ ╱ │\n║ ╲ ┼\n║   │\n║   ┴' },
+    { name: 'Tide',    art: '  ○\n≈≈≈≈≈\n▒▒▒▒▒\n▓▓▓▓▓\n■■■■■' },
+    { name: 'Helm',    art: '╱═══╲\n║◧ ◨║\n╠╳╳╳╣\n║ ┼ ║\n╲═══╱' },
+    { name: 'Glacier', art: '▓▓▓▓▓\n╲▓▓▓╱\n▒╲▓╱▒\n░▒∇▒░\n░░░░░' },
 ];
 
 export const TIERS: readonly BestiaryTier[] = [
@@ -56,8 +95,7 @@ export const TIERS: readonly BestiaryTier[] = [
         rarity: 'COMMON',
         unlock: 'The everyday familiars. One picks you.',
         locked: false,
-        entries: [...BITDAEMONS],
-        hidden: 0,
+        entries: BITDAEMONS,
     },
     {
         id: 'titans',
@@ -65,8 +103,7 @@ export const TIERS: readonly BestiaryTier[] = [
         rarity: 'RARE',
         unlock: 'Earned through achievements.',
         locked: true,
-        entries: [],
-        hidden: 6,
+        entries: TITANS,
     },
     {
         id: 'ascended',
@@ -74,8 +111,7 @@ export const TIERS: readonly BestiaryTier[] = [
         rarity: 'RARE',
         unlock: 'Grown through time spent with your familiar.',
         locked: true,
-        entries: [],
-        hidden: 6,
+        entries: ASCENDED,
     },
     {
         id: 'oldgods',
@@ -83,7 +119,6 @@ export const TIERS: readonly BestiaryTier[] = [
         rarity: 'MYTHIC',
         unlock: 'Awakened by holding through long tenure.',
         locked: true,
-        entries: [],
-        hidden: 6,
+        entries: OLD_GODS,
     },
 ];

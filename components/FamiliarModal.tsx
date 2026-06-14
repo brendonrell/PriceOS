@@ -55,10 +55,7 @@ export default function FamiliarModal() {
 
     /* Collection tally — videogame "X / N" header. Discovered = the revealed
        (BitDaemon) entries; total includes the rarer tiers' hidden slots. */
-    const total = TIERS.reduce(
-        (n, t) => n + (t.locked ? t.hidden : t.entries.length),
-        0,
-    );
+    const total = TIERS.reduce((n, t) => n + t.entries.length, 0);
     const discovered = TIERS.reduce(
         (n, t) => n + (t.locked ? 0 : t.entries.length),
         0,
@@ -118,54 +115,39 @@ export default function FamiliarModal() {
                             <div className="fam-tier-header">
                                 <span className="fam-tier-label">{tier.label}</span>
                                 <span className="fam-tier-rarity">
-                                    {tier.locked
-                                        ? `LOCKED · ? / ${tier.hidden}`
-                                        : `${tier.rarity} · ${tier.entries.length}`}
+                                    {`${tier.locked ? 'LOCKED' : tier.rarity} · ${tier.entries.length}`}
                                 </span>
                             </div>
 
                             <div className="fam-rail">
-                                {tier.locked
-                                    ? Array.from({ length: tier.hidden }).map((_, i) => (
-                                          <button
-                                              className="fam-tile locked"
-                                              type="button"
-                                              key={i}
-                                              onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  showToast(
-                                                      `${tier.label.toUpperCase()}: ${tier.unlock}`,
-                                                  );
-                                              }}
-                                          >
-                                              <span className="fam-tile-badge">LOCKED</span>
-                                              <span className="fam-tile-glyph">{`?${VS15}`}</span>
-                                              <span className="fam-tile-name">???</span>
-                                          </button>
-                                      ))
-                                    : tier.entries.map((sp) => {
-                                          const yours = sp.name === species;
-                                          return (
-                                              <button
-                                                  className={`fam-tile${yours ? ' yours' : ''}`}
-                                                  type="button"
-                                                  key={sp.name}
-                                                  onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      showToast(
-                                                          yours
-                                                              ? `${sp.name.toUpperCase()}: YOURS`
-                                                              : `${tier.label}: ${sp.name.toUpperCase()}`,
-                                                      );
-                                                  }}
-                                              >
-                                                  <span className="fam-tile-glyph">{sp.glyph}</span>
-                                                  <span className="fam-tile-name">
-                                                      {yours ? 'YOURS' : sp.name}
-                                                  </span>
-                                              </button>
-                                          );
-                                      })}
+                                {tier.entries.map((sp) => {
+                                    const yours = !tier.locked && sp.name === species;
+                                    return (
+                                        <button
+                                            className={`fam-tile${tier.locked ? ' locked' : ''}${yours ? ' yours' : ''}`}
+                                            type="button"
+                                            key={sp.name}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                showToast(
+                                                    tier.locked
+                                                        ? `${tier.label.toUpperCase()}: ${tier.unlock}`
+                                                        : yours
+                                                          ? `${sp.name.toUpperCase()}: YOURS`
+                                                          : `${tier.label}: ${sp.name.toUpperCase()}`,
+                                                );
+                                            }}
+                                        >
+                                            {tier.locked && (
+                                                <span className="fam-tile-badge">LOCKED</span>
+                                            )}
+                                            <span className="fam-tile-art">{sp.art}</span>
+                                            <span className="fam-tile-name">
+                                                {yours ? 'YOURS' : sp.name}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             {tier.locked && (

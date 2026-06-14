@@ -1395,10 +1395,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .fam-tile {
     position: relative;
     flex: 0 0 auto;
-    width: 88px; min-height: 84px;
+    width: auto; min-width: 84px; max-width: 150px;
+    min-height: 96px;
     border: 1px solid var(--text-color); border-radius: 6px;
     background: transparent; color: var(--text-color);
-    padding: 12px 6px 9px 6px;
+    padding: 14px 12px 9px 12px;
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; gap: 9px;
     font-family: 'Courier New', Courier, monospace;
@@ -1439,9 +1440,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     padding: 6px 20px 0 20px;
 }
 .fam-tile:active { transform: scale(0.96); }
-.fam-tile-glyph {
-    font-size: 18px; line-height: 1;
-    white-space: pre; text-align: center;
+.fam-tile-art {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; line-height: 1.15; font-weight: bold;
+    white-space: pre; text-align: center; letter-spacing: 0;
 }
 .fam-tile-name {
     font-size: 8px; font-weight: bold; letter-spacing: 0.8px;
@@ -1459,7 +1461,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
         color-mix(in srgb, var(--text-color) 7%, transparent) 7px 14px
     );
 }
-.fam-tile.locked .fam-tile-glyph { opacity: 0.7; }
+.fam-tile.locked .fam-tile-art { opacity: 0.7; }
 
 /* The wallet's current companion — inverted fill, the one that's YOURS. */
 .fam-tile.yours {
@@ -1482,7 +1484,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 /* Desktop: a touch more room in the rails. */
 @media (min-width: 601px) {
-    .fam-tile { width: 96px; }
+    .fam-tile { min-width: 96px; }
     .fam-hero-sprite { font-size: 34px; }
 }
 
