@@ -54,15 +54,22 @@ proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm
   2026-06-14** (S-D1, the HIGH — on Brendon's go). Dropped the permissive anon SELECT on
   `pings`/`ping_cursors`; post-apply verified RLS on + 0 policies → anon reads nothing,
   service-role app path unaffected. The DM-bodies leak is CLOSED.
+- ✅ **dev-login become-Brendon hole CLOSED (S-A1).** On the public preview it now requires a
+  `DEV_LOGIN_SECRET` env + matching `x-dev-login-secret` header; disabled when unset. Local dev
+  unchanged. The on-screen button now renders only on localhost (hidden on preview to avoid a dead
+  button). To use dev-login on preview again: set `DEV_LOGIN_SECRET` in Vercel + call with the header.
 
-**STILL OPEN (gated / bigger, not done):**
-- **S-A1 dev-login preview gate** — HELD: closing it changes Brendon's OWN one-tap preview login.
-  Decide the mechanism (secret-gated vs preview-block) with him first.
-- **Rate-limit / DDoS** — set Upstash env in the deployed environment, OR (better) do it as Cloudflare
-  edge rules at the migration. The Alchemy-burn + whole-table-read HIGHs are only fully closed by this.
-- **`public/_headers`** for the Cloudflare move (held — would serve a stray file on Vercel today; do at migration).
-- **Indexer pre-launch (S-X1/2/3)** + **contracts pre-mainnet gates** — unchanged from above.
-- **SIWE chainId/consent binding, body-size limits, owner-scoped RLS** — defense-in-depth, queued.
+**STILL OPEN — genuine walls (need env/infra/on-chain/money, not code I can ship here):**
+- **Rate-limit / DDoS (the big one)** — needs Upstash env keys set in the deployed env, OR (better)
+  Cloudflare edge rules at the migration. No env tool in this container. The Alchemy-burn + whole-
+  table-read HIGHs are only FULLY closed by this. Until then the per-instance fallback is the only brake.
+- **`public/_headers`** for the Cloudflare move (do at migration; would serve a stray file on Vercel now).
+- **Indexer pre-launch (S-X1/2/3)** — fixable in code but belongs with indexer go-live, which is gated
+  on Brendon's Alchemy webhook setup (not live yet); do them in that workstream.
+- **Contracts** — external-firm audit + assembly byte-equivalence proof + Etherscan verify (money/Brendon).
+- **Defense-in-depth (not live-exploitable):** SIWE chainId/consent binding (risky to bind before the
+  target chain is settled), body-size limits, owner-scoped RLS, anon PII grant tightening — left
+  rather than risk breaking working reads/login without Brendon's input on targets.
 
 ## 🔔 SHIPPED 2026-06-14 (PM) — PINGS / NOTIFICATIONS SYSTEM (on `dev`, all DB applied, build clean)
 The platform-wide notification spine — "Pings" (PD's word for notifications).
