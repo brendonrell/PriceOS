@@ -211,6 +211,19 @@ never `TO public`.
 > CTA build started off a critique of the options. Discussion mode and build
 > mode are different modes — never switch without his word.
 
+> **⛔ BUILD TO SPEC — NOTHING EXTRA. Hard rule (Brendon, 2026-06-14).**
+> Adding things Brendon did NOT ask for **ALWAYS breaks things** — it does NOT
+> make them better, **IT MAKES THEM WORSE.** It is not a way to win his approval;
+> it is a **GUARANTEED way to piss him off.** Build EXACTLY what the spec / the
+> ask says — no "helpful" buttons, affordances, shortcuts, fallbacks, copy, or
+> features bolted on because they seem nice or "complete" the feature. The
+> failure that birthed this rule (2026-06-14): The Bench is **drag-only** per
+> spec, yet a Bench button got added to the artwork modal, a Bench icon to the
+> gallery hover row, and a move-to-Bench icon inside the Cart — none asked for,
+> all three had to be ripped out, and it read as "you do stupid shit." **If
+> Brendon didn't name it, don't build it.** When you think something extra would
+> genuinely help, **NAME it and ask — never just add it.**
+
 > **FIX THE NAMED BUG, NOTHING ELSE. Hard rule (Brendon, 2026-06-08 — learned
 > the hard way, do NOT repeat).** When the task is "fix X," you fix **X and only
 > X.** You do **NOT** remove, delete, rename, refactor, restyle, shorten, or

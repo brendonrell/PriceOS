@@ -47,7 +47,6 @@ import {
 } from '../lib/state/CartContext';
 import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
-import { useBench } from '../lib/state/BenchContext';
 import BenchArt from './bench/BenchArt';
 
 const VS15 = '\uFE0E';
@@ -73,10 +72,9 @@ interface RowProps {
     priceStr: string;
     deltaStr: string;
     onRemove: (slug: string, id: number) => void;
-    onBench: (slug: string, id: number) => void;
 }
 
-function CartItemRow({ slug, id, projectTitle, priceStr, deltaStr, onRemove, onBench }: RowProps) {
+function CartItemRow({ slug, id, projectTitle, priceStr, deltaStr, onRemove }: RowProps) {
     const deltaClass =
         deltaStr.startsWith('+') ? ' over' : deltaStr.startsWith('-') ? ' under' : '';
     return (
@@ -93,17 +91,6 @@ function CartItemRow({ slug, id, projectTitle, priceStr, deltaStr, onRemove, onB
             </div>
             <div className="cart-item-price">{priceStr}</div>
             <div className="cart-item-actions">
-                <button
-                    className="cart-item-bench"
-                    type="button"
-                    title="Move to Bench to compare"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onBench(slug, id);
-                    }}
-                >
-                    {'\u25A6'}
-                </button>
                 <span
                     className="cart-item-remove"
                     role="button"
@@ -131,14 +118,12 @@ function CartGroup({
     onSubtotal,
     onFloor,
     onRemove,
-    onBench,
 }: {
     slug: string;
     ids: number[];
     onSubtotal: (slug: string, eth: number) => void;
     onFloor: (slug: string, eth: number) => void;
     onRemove: (slug: string, id: number) => void;
-    onBench: (slug: string, id: number) => void;
 }) {
     const { title, outputs, floorEth } = useProject();
     const rows = ids.map((id) => {
@@ -172,7 +157,6 @@ function CartGroup({
                     priceStr={r.priceStr}
                     deltaStr={r.deltaStr}
                     onRemove={onRemove}
-                    onBench={onBench}
                 />
             ))}
         </>
@@ -182,7 +166,6 @@ function CartGroup({
 export default function CartPanel() {
     const { items, panelOpen, remove, buyAll, closePanel } = useCart();
     const { showToast } = useToast();
-    const { add: benchAdd } = useBench();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
     const [mounted, setMounted] = useState(false);
@@ -248,16 +231,6 @@ export default function CartPanel() {
     const fees = subtotal * CART_FEE_RATE + CART_GAS_PER_ITEM * items.length;
     const total = subtotal + fees;
 
-    /* Move a queued piece onto the Bench to compare before committing. */
-    const onBench = useCallback(
-        (slug: string, id: number) => {
-            const r = benchAdd(slug, id);
-            if (r === 'present') showToast('Bench: ALREADY ON IT');
-            else if (r === 'full') showToast('Bench: FULL · 8 max');
-            else showToast('Bench: ADDED');
-        },
-        [benchAdd, showToast],
-    );
 
     /* Backdrop click — close iff target is the wrapper itself, not the box. */
     const onBackdropClick = useCallback(
@@ -342,7 +315,6 @@ export default function CartPanel() {
                                     onSubtotal={reportSub}
                                     onFloor={reportFloor}
                                     onRemove={remove}
-                                    onBench={onBench}
                                 />
                             </ProjectProvider>
                         ))

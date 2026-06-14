@@ -89,7 +89,6 @@ import {
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
-import { useBench } from '../../lib/state/BenchContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePings } from '../../lib/state/PingsContext';
@@ -114,7 +113,6 @@ export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
     const { open: openModal } = useModal();
     const { items, openPanel: openCartPanel } = useCart();
-    const { items: benchItems, openPanel: openBenchPanel } = useBench();
     const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
     const { showToast } = useToast();
     const { state: pingsState } = usePings();
@@ -168,9 +166,6 @@ export function UserMenuButtons() {
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
-
-    const benchCount = benchItems.length;
-    const benchBtnClass = `btn-bench${benchCount > 0 ? ' has-items' : ''}`;
 
     /* Unread Pings → a count badge on the connect button (only when signed in
        and there's something unread). Reuses the cart badge's visual pattern. */
@@ -229,22 +224,6 @@ export function UserMenuButtons() {
                 <span className="cart-count-badge" id="cartCountBadge">
                     {cartBadgeText}
                 </span>
-            </button>
-
-            {/* The Bench — hidden until populated; opens the comparison tray. */}
-            <button
-                className={benchBtnClass}
-                id="btnBench"
-                aria-label="The Bench"
-                title="The Bench"
-                type="button"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    openBenchPanel();
-                }}
-            >
-                <span className="bench-btn-icon" aria-hidden="true">{'▦︎'}</span>
-                <span className="bench-count-badge">{benchCount > 99 ? '99+' : String(benchCount)}</span>
             </button>
 
             {/* PriceSprite + level badge — both gated on identity.
