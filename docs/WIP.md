@@ -6,11 +6,12 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (origin/dev = `1ea6ef4`).
-  This chat's task branch `claude/social-graph-followers-ycfctu` is trash (work
-  is on dev) — Brendon deletes on GitHub.
-- **Updated:** 2026-06-14. Session = **Social graph + PriceRank + Anointing
-  (backend) — the "most important part of the site."**
+- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
+  `claude/security-audit-full-wc823w` is trash (work is on dev) — Brendon deletes
+  on GitHub.
+- **Updated:** 2026-06-14. Last session = **Social graph + PriceRank + Anointing
+  (backend)**. This session = **full security audit (all repos)** — see the new
+  🔒 section below; full report in `docs/SECURITY_AUDIT_2026-06-14.md`.
 
 ## ✅ SHIPPED 2026-06-14 — on `dev` (DB migration applied + verified)
 - **Social graph.** Follow people AND projects (Twitter-style) + follower/
@@ -41,6 +42,38 @@
   `season_standings`, + users progression cols. Migration file:
   `supabase/migrations/20260614_pricerank_social.sql`.
 
+## 🔒 SECURITY AUDIT 2026-06-14 — findings to fix (full report: `docs/SECURITY_AUDIT_2026-06-14.md`)
+Read-only audit of PriceOS + pd-contracts + pd-price-token (indexer excluded —
+being rewritten). Both contracts clean (no crit/high/med). No committed secrets,
+no IDOR, SIWE solid. **All exploitable risk is in the now-LIVE PriceRank/scoring
+layer** (migration applied + verified on dev; dev preview is public). Root cause:
+free unlimited wallets + no rate limiting → any count-of-actions is farmable.
+Priority order (the 9 ClickUp items owed):
+1. **CRIT — curation self-grant (LIVE).** `PATCH /api/me` settings blob is
+   unvalidated; engine counts `starred/wishlist/albums` array lengths straight →
+   evaluate grants ~1,000+ PriceScore from fake arrays. Fix: count from
+   constrained server state, not the user blob.
+2. **HIGH — streak forgery (LIVE).** `streak/ping` trusts client `localDate`;
+   walk it forward 365 days in 365 calls = every streak badge. Fix: bound to
+   server `now()` ± tz window.
+3. **HIGH — social sybil (LIVE).** Free wallets + no throttle inflate
+   followers/anoints/mutuals for self or any victim. Fix: weight/gate social
+   credit on on-chain presence or source rank + rate-limit follows/anoint/
+   users-create/evaluate/streak. (= the deferred Sybil-resistance item, now
+   load-bearing.)
+4. **HIGH — raw DB errors returned to clients** (`serverError(error.message)`,
+   ~30 routes) leak schema. Fix: log server-side, return generic.
+5. **MED — rate limiter fails open + per-instance.** Confirm Upstash is actually
+   set in Vercel, else there's no real limit.
+6. **MED — no security headers** (CSP / X-Frame-Options / HSTS). Add a
+   `headers()` block.
+7. **MED — RLS is read-only-by-convention** (all writes ride service-role; reads
+   are blanket `USING(true)`). Add owner-scoped policies + a "no body-supplied
+   address in writes" test as defense-in-depth.
+8. **Contracts — external-firm audit + assembly byte-equivalence proof** before
+   mainnet (immutable deploy + hand-rolled library-reader assembly).
+9. **Token — pin GitHub Action SHAs + post-deploy Etherscan bytecode verify.**
+
 ## ⏭️ OPEN / NEXT (none blocking; Brendon doing edits in a fresh chat)
 - **Anointing UI** — backend done, NO on-screen way to place a Pledge yet.
   Build: anoint button + conduit picker on project/output, project level +
@@ -63,8 +96,11 @@
   resistance; v1 is 1 acct = 1 vote); season reset job; leaderboard surface;
   Discord role sync (low-maintenance periodic recompute); calibrate Cult/Egregore
   thresholds (~100/~500 placeholder); calibrate rank tier thresholds vs new max.
-- **ClickUp wrap OWED** (still — connector doc-read was approval-gated all
-  session). Next session: mirror this ship into ClickUp, close shipped items,
-  queue the follow-ups, leave Brendon an assigned comment + due date.
+- **ClickUp wrap OWED** (still — the connector **hard-failed every call this
+  session**: ~10 attempts across 4 methods all returned "requires approval" from
+  the ClickUp endpoint while GitHub MCP worked fine; Brendon is reconnecting it).
+  Next session, once reconnected: (a) mirror the prior social/PriceRank ship,
+  close shipped items; (b) file the **9 security-audit items above** as Backlog
+  tasks, priority-ordered, assigned to Brendon + due date + assigned comment.
 - **Verify on dev preview** — pushed but not eyeballed through the live app this
   session; worth a visual pass (social rows stay hidden until real ties exist).
