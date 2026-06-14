@@ -6,59 +6,65 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (origin/dev `34c47c2`).
-  This chat's task branch is trash — Brendon deletes on GitHub.
-- **Updated:** 2026-06-13. Session = **Site projects expansion → 50 total**.
+- **Branch:** all work is on `dev`, pushed, tree clean (origin/dev = `1ea6ef4`).
+  This chat's task branch `claude/social-graph-followers-ycfctu` is trash (work
+  is on dev) — Brendon deletes on GitHub.
+- **Updated:** 2026-06-14. Session = **Social graph + PriceRank + Anointing
+  (backend) — the "most important part of the site."**
 
-## ✅ SHIPPED 2026-06-13 — 50 projects live on `dev`
-- **25 NEW generative projects** built, wired (registry + index + typed
-  traits/schema/aspects), build-verified. Site now lists **50** total (was 25).
-  Each has a **custom colorway**, edition size scaled to its variation space,
-  multiple **aspect ratios** (not all portrait), and composition/mode variety.
-- **The new cohort:** Everyone Is Typing · Night Service · Breach Protocol ·
-  Graffiti Soul · Teletext (Gysin) · Chrome Dreams (Y2K) · Riding The Oil
-  (Discord sales-feed + 🏄🛢️ reactions) · Quorum (murmuration/price discovery) ·
-  Konkret · Ode to Rudxane · The Lapidary (marble/granite/wood/glass) · Warp &
-  Weft (Rau) · Price Discovery (order-book canyon/iris/horizon) · Liquid Light ·
-  Turing's Garden (reaction-diffusion) · Coral Logic (differential growth) ·
-  Divided Light (Swahn pointillist) · Filament (Iskra) · Tessera (Siggi) ·
-  Crossed Wires · Asterism · The Golden Angle (phyllotaxis) · Stained Glass ·
-  Forbidden Symmetry (quasicrystal) · Trace Routes (PCB) · The Pendulum.
-- **Existing fixes:** Every Light In Town sleeve text now fits; Elevations
-  blueprint deepened (apparatus + new windows/roofs, colour super-rares).
-- **DB reset (Supabase):** ALL 50 `minted_count=0`, mint `events` + `holders`
-  cleared, every project given a **unique staggered `uploaded_at`**. → "New Art"
-  shows 50 fresh uploads at 0 mints.
-- **Engines:** all in `lib/art/engines/ai/core.ts` (@ts-nocheck), each cast()
-  verified vs render. Previews via a headless `@napi-rs/canvas` harness (NOT
-  committed; container-ephemeral).
+## ✅ SHIPPED 2026-06-14 — on `dev` (DB migration applied + verified)
+- **Social graph.** Follow people AND projects (Twitter-style) + follower/
+  following/mutuals tags. **Bag mechanic:** owning a project's piece makes the
+  project follow YOU; selling drops you — a user's follower count includes the
+  projects they hold. Followers modal has a real **Projects** tab.
+- **Smart social row.** "Followed by" (profiles, live) / "Collected by"
+  (projects, server-ranked) surfaces the 2 most relevant faces via
+  `lib/social/relevance.ts` (connection strength → PriceRank → jitter), cap 2
+  (mobile), hidden when no tie. Homepage "Featuring" row already did this.
+- **PriceRank system (skeleton).** PriceScore (number) · PriceRank (tier,
+  `lib/achievements/tiers.ts`) · PriceStreak (activates day 60, hard reset, local
+  midnight). **Generic engine** `lib/achievements/engine.ts` (+ `/api/achievements/
+  [address]`, `/api/achievements/evaluate`, `/api/streak/ping`) scores from the
+  real ledger — anti-bot by design. `PriceRankSync` fires evaluate on deliberate
+  actions, ticks streak once/day, pops unlock toasts, refreshes the badge live.
+- **Achievements wall** — profile +More tab + the identity-modal rail
+  (`components/achievements/AchievementsGrid.tsx`), secret/locked as "???".
+  Catalog = **~350** (`lib/achievements/catalog.ts` core + `catalogs/ladders.ts`),
+  freely editable. Lore: God of PD (`brendon.ts`, hands down Mjölnir), Odin
+  (`odin.ts`), Oil Rider, angel numbers, math/gen-art eggs, KOL/GMI.
+- **PriceSprite on profiles** — small still Courier face beside the @name.
+- **Anointing BACKEND to spec** (`docs/anointment-egregore-spec.md`): one Pledge/
+  account, Cult/Egregore levels (`lib/anoint/levels.ts`), Prime Relic, 60-day lock
+  (`/api/anoint`). Catalog anointing tier reworked to match.
+- **DB (Supabase `zspxpfwlwikdxwavffjn`):** applied — `projects.handle` backfilled
+  (all 50), `project_follows`, `anointments`, `user_achievements`, `seasons`,
+  `season_standings`, + users progression cols. Migration file:
+  `supabase/migrations/20260614_pricerank_social.sql`.
 
-## ⏭️ OPEN / NEXT (follow-ups, none blocking)
-- **ClickUp wrap OWED (do first next session).** This session's ClickUp tools
-  needed approval / weren't working, so it never got updated. Next session:
-  mirror this ship into ClickUp — close what shipped (50 projects on dev, DB
-  reset), add the queued follow-ups below, and leave Brendon an **assigned
-  comment + due date** so it hits his Inbox.
-- **Soundtracks — DONE (2026-06-13).** 18 of the 26 new projects now carry a
-  genre/era-matched soundtrack; 8 stay silent (Quorum, Konkret, Ode to Rudxane,
-  The Lapidary, Warp & Weft, Divided Light, Filament, The Golden Angle). DB
-  `projects.soundtrack` set on dev (the DB value is what the live app reads;
-  registry only supplies the button label) — verified 42 with-track / 8 silent
-  across all 50, all playlist ids distinct. Soundtrack button correctly
-  shows/hides on presence (gated `soundtrack &&` in ProjectPageBody). Playlists
-  confirmed via search-indexing (YouTube blocks clean fetch; album ids are the
-  stable auto-generated kind).
-- **All-50-unique — DONE (2026-06-13).** Verified in DB: 50 rows, all distinct
-  on id, title, artist_address, uploaded_at, AND custom_color (resolved 4 accent
-  collisions: Crossed Wires→#2ad4ff, Forbidden Symmetry→#6c4bd6, Riding The
-  Oil→#ff8c42, The Pendulum→#ffc24b; registry + DB synced). 0 mints everywhere.
-- **Polish candidates:** Asterism, Seedhead, Forbidden Symmetry, Trace Routes
-  are solid but a notch below halo — worth a polish pass for the fxhash bar.
-  `orbits`(now wired as The Pendulum) is the lightest of the set; `moire` +
-  `automaton` engines exist in core but are intentionally **unwired**
-  (screensavery / too close to Ciphrd).
-- **Halo tier:** Quorum, Price Discovery, Turing's Garden, Coral Logic read as
-  the strongest "made-by-a-person" pieces.
-- **Verify:** the 50 build clean + previewed well in the harness but were NOT
-  re-rendered through the live app this session (container reset) — worth a
-  visual pass on the dev preview.
+## ⏭️ OPEN / NEXT (none blocking; Brendon doing edits in a fresh chat)
+- **Anointing UI** — backend done, NO on-screen way to place a Pledge yet.
+  Build: anoint button + conduit picker on project/output, project level +
+  progress + Egregore tab at L2, Prime Relic pin + owner clout badge. Fire
+  `pd:anoint-changed` so PriceRankSync evaluates.
+- **Project `/@name` routing** — handles exist in DB; the bare/`@`-prefixed
+  project-handle URL resolution in `lib/slug.ts` + `app/[slug]/page.tsx` is NOT
+  wired (only a 2-entry static set today). User @names already route.
+- **Vault → 1,000 achievements.** Re-run the themed batch generators (math /
+  gen-art, mythology, behavioural/easter-eggs) — those agents were generated but
+  LOST in a container reset (only `ladders.ts` committed). Each is a new
+  `lib/achievements/catalogs/<theme>.ts`; wire its import into `catalog.ts`.
+- **Achievement ICONS** — every achievement needs a small ASCII/glyph icon
+  (`icon?` slot added; grid uses per-category fallback today). Run icon-pass
+  subagents per theme.
+- **Editing achievements** = edit `lib/achievements/catalog.ts` (names/blurbs/
+  points/secret in place; ids are permanent). Engine reads it generically — no
+  engine change needed to retune.
+- **Deferred design calls (Brendon's):** PriceRank-weighted anoint votes (Sybil
+  resistance; v1 is 1 acct = 1 vote); season reset job; leaderboard surface;
+  Discord role sync (low-maintenance periodic recompute); calibrate Cult/Egregore
+  thresholds (~100/~500 placeholder); calibrate rank tier thresholds vs new max.
+- **ClickUp wrap OWED** (still — connector doc-read was approval-gated all
+  session). Next session: mirror this ship into ClickUp, close shipped items,
+  queue the follow-ups, leave Brendon an assigned comment + due date.
+- **Verify on dev preview** — pushed but not eyeballed through the live app this
+  session; worth a visual pass (social rows stay hidden until real ties exist).
