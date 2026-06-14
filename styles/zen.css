@@ -1,0 +1,46 @@
+/* =========================================================================
+   Zen Garden — the karesansui portfolio view (Profile Page, Zen Mode only).
+   Pure aesthetic: ASCII stones in raked sand. Gated by JS (mounts only in
+   Zen Mode); these are the looks.
+   ========================================================================= */
+.zen-garden {
+    margin: 6px auto 18px;
+    padding: 16px 12px 8px;
+    text-align: center;
+    animation: zen-garden-in 0.8s ease both;
+}
+@keyframes zen-garden-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.zen-garden-field {
+    display: inline-block;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(7px, 2.5vw, 13px);
+    line-height: 1.12;
+    letter-spacing: 0.08em;
+    color: var(--text-color);
+    opacity: 0.82;
+    white-space: pre;
+    -webkit-user-select: none;
+    user-select: none;
+    /* A breath of motion so the sand feels alive, not printed. */
+    animation: zen-garden-breathe 9s ease-in-out infinite;
+}
+@keyframes zen-garden-breathe {
+    0%, 100% { opacity: 0.78; }
+    50% { opacity: 0.9; }
+}
+.zen-garden-caption {
+    margin-top: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zen-garden,
+    .zen-garden-field { animation: none !important; }
+}

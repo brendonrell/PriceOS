@@ -6,6 +6,7 @@
 @import '../styles/stickers.css';
 @import '../styles/bench.css';
 @import '../styles/ambient.css';
+@import '../styles/zen.css';
 
 
 /* ============================================================
@@ -1597,6 +1598,8 @@ body.zen-mode .priceos-footer { display: none !important; }
 
 .tape-item { flex-shrink: 0; }
 .tape-item.bold { font-weight: 700; }
+/* Null-state placeholder — quieter than real activity, but still legible. */
+.tape-item-null { opacity: 0.5; }
 /* Collection name in each event — caps + a touch of tracking so the piece is
    the part the eye catches as it scrolls past. */
 .tape-coll { letter-spacing: 0.05em; }

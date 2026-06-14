@@ -33,6 +33,11 @@ import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
+/* Null state — when no real activity has accrued yet, the rail still scrolls a
+   quiet placeholder so the tape reads as alive instead of an empty bar. */
+const NULL_PHRASE = 'nothing happening right now';
+const NULL_REPEAT = 8;
+
 /* One event, read as a tight sentence: WHO did WHAT to WHICH piece, for HOW
    MUCH — e.g. "@brendon minted PRISMS #18 · 0.16 ETH". The collection wears
    caps so the eye catches the piece; the price (when present) is the only
@@ -84,16 +89,25 @@ export function Ticker() {
                 {/* Every event is followed by a diamond delimiter, and the whole
                     run is doubled — so the engine's modulo-halfWidth translate
                     reads as a seamless loop AND no two events ever run together.
-                    Empty until our own pre-chain activity accrues. */}
-                {items.length > 0 &&
-                    (['a', 'b'] as const).map((run) =>
-                        items.map((item, i) => (
-                            <Fragment key={`${run}-${i}`}>
-                                <RailItem item={item} />
-                                <span className="tape-sep-outer" aria-hidden="true">◆</span>
-                            </Fragment>
-                        )),
-                    )}
+                    With no real activity yet, the same doubled structure scrolls
+                    a quiet "nothing happening right now" placeholder instead. */}
+                {items.length > 0
+                    ? (['a', 'b'] as const).map((run) =>
+                          items.map((item, i) => (
+                              <Fragment key={`${run}-${i}`}>
+                                  <RailItem item={item} />
+                                  <span className="tape-sep-outer" aria-hidden="true">◆</span>
+                              </Fragment>
+                          )),
+                      )
+                    : (['a', 'b'] as const).map((run) =>
+                          Array.from({ length: NULL_REPEAT }, (_, i) => (
+                              <Fragment key={`null-${run}-${i}`}>
+                                  <span className="tape-item tape-item-null">{NULL_PHRASE}</span>
+                                  <span className="tape-sep-outer" aria-hidden="true">◆</span>
+                              </Fragment>
+                          )),
+                      )}
             </div>
         </div>
     );

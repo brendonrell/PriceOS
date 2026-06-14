@@ -49,6 +49,7 @@ import FollowButton from './FollowButton';
 import PingButton from './PingButton';
 import { getProject, outputTraits, allProjects, projectsByArtist } from '../../lib/project/registry';
 import GhostCard from '../project/GhostCard';
+import ZenGarden from './ZenGarden';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
@@ -1040,6 +1041,10 @@ function ProfilePageBodyInner({
                         />
                     )}
             </Hero>
+
+            {/* Zen Garden — the portfolio as a raked ASCII rock garden, shown
+                only while Zen Mode is active (pure aesthetic). */}
+            {isZen && <ZenGarden address={user.address} count={holdings.length} />}
 
             {/* Starred / Wishlist ghost rows — YOUR OWN profile with zero
                 items only (Brendon 2026-06-10: these sections are private
