@@ -14,6 +14,36 @@
   2026-06-14 sessions (still valid context): social graph + PriceRank + anointing
   backend, the full security audit (🔒), and the indexer serverless rebuild (⚙️).
 
+## 🛡️ COMPREHENSIVE SECURITY SWEEP 2026-06-14 (master: `docs/security/SECURITY_SWEEP_2026-06-14.md`)
+Site-wide adversarial read-only audit (10 parallel auditors → `docs/security/findings/01-10`).
+Covers EVERYTHING incl. the indexer (excluded last time) + a LIVE Supabase probe. NO code changed.
+
+**Strong:** contracts clean (no crit/high/med, all 5 incl. PDStickers/PDLibraryRegistry); the
+spoof-artist→mint→sellout money path is CLOSED end-to-end (3 locks); prior C1/H1/H2 scoring
+exploits VERIFIED fixed (sybil reputation is dead via GAMEABLE_SCORE_CAP); art is genuinely
+fully on-chain, "forever" grade A−; no takeover write path, no committed secrets, no admin tier.
+
+**Live issues to fix (off-chain, no money at stake yet):**
+- **HIGH S-D1** — pings/ping_cursors readable by ANYONE with the public anon key incl. **p2p DM
+  bodies + amounts** (policy `USING(true)` despite "PRIVATE"). NEW, from today's pings ship. Fix first.
+- **HIGH S-A1** — `dev-login` = become Brendon on the public preview (prod safe).
+- **HIGH S-P1/P2** — Alchemy-budget burn via `price/[address]` cache-key + whole-table reads (`home` etc.); limiter doesn't stop them.
+- **HIGH S-I1** — free-text `ens_name` (no ownership/charset check) = artist copycat (visual/phishing only).
+- **MED** — limiter fails open/per-instance unless Upstash env set (CONFIRM in Vercel); SIWE chainId/consent unbound; PII anon-readable; handle confusables + missing reserved words.
+
+**Indexer (built, NOT live yet) — pre-launch must-fix:** transfer handler doesn't gate to tracked
+PD projects (S-X1), reconcile cron public if CRON_SECRET unset (S-X2), assert signing key at boot
+(S-X3); verify `events (tx_hash,log_index)` unique constraint exists in live Supabase.
+
+**Cloudflare move:** good for perimeter (DDoS/WAF/bot) NOT app/data/contract liability; headers won't
+carry (need `public/_headers`), req.ip limiter trust won't carry (re-do as edge rules). Keep
+service-role key a server-only CF secret; stay on supabase-js.
+
+**Before mainnet (contracts):** run Foundry suite for real, external audit + assembly byte-equivalence
+proof, Etherscan bytecode verify. Also: 35 of 41 migrations not in repo; confirm Supabase PITR.
+
+**STATUS:** report is findings only — NO fixes applied (audit was read-only). Fixes are Brendon's call.
+
 ## 🔔 SHIPPED 2026-06-14 (PM) — PINGS / NOTIFICATIONS SYSTEM (on `dev`, all DB applied, build clean)
 The platform-wide notification spine — "Pings" (PD's word for notifications).
 Started from a half-built stub (read API + a mock panel); now a full system.
