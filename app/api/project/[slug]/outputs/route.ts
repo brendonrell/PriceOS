@@ -12,6 +12,7 @@ import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
 import { verifySiweSession } from '@/lib/auth/siwe';
 import { normalizePlaylistId } from '@/lib/project/soundtrack';
+import { rankSocialCandidates } from '@/lib/social/relevance';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -92,38 +93,46 @@ export async function GET(
     const addrs = [...new Set(holders.map((h) => h.owner_address.toLowerCase()))];
     const handleByAddr: Record<string, string | null> = {};
     const createdByAddr: Record<string, string | null> = {};
+    const scoreByHandle: Record<string, number> = {};
     if (addrs.length > 0) {
-      const usersRes = await supabase.from('users').select('address, handle, created_at').in('address', addrs);
+      const usersRes = await supabase.from('users').select('address, handle, created_at, price_score').in('address', addrs);
       if (!usersRes.error) {
-        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null; created_at: string | null }[]) {
+        for (const u of (usersRes.data ?? []) as { address: string; handle: string | null; created_at: string | null; price_score: number | null }[]) {
           handleByAddr[u.address.toLowerCase()] = u.handle ?? null;
           createdByAddr[u.address.toLowerCase()] = u.created_at ?? null;
+          if (u.handle) scoreByHandle[u.handle.toLowerCase()] = u.price_score ?? 0;
         }
       }
     }
 
-    // Follow-graph "collected by": collectors whose @name the viewer follows.
-    const collectedByFollowing: string[] = [];
+    // Follow-graph "collected by": collectors whose @name the viewer follows,
+    // RANKED by connection strength (mutual first) → PriceRank → a little jitter
+    // (lib/social/relevance). Returned best-first; the hero slices the first 2.
+    let collectedByFollowing: string[] = [];
     const viewer = await verifySiweSession(req);
     if (viewer) {
       const meRes = await supabase.from('users').select('handle').eq('address', viewer).maybeSingle();
       const myHandle = (meRes.data as { handle?: string | null } | null)?.handle ?? null;
       if (myHandle) {
-        const followsRes = await supabase
-          .from('follows')
-          .select('following_name')
-          .eq('follower_name', myHandle);
+        const [followingRes, followerRes] = await Promise.all([
+          supabase.from('follows').select('following_name').eq('follower_name', myHandle),
+          supabase.from('follows').select('follower_name').eq('following_name', myHandle),
+        ]);
         const following = new Set(
-          ((followsRes.data ?? []) as { following_name: string }[]).map((f) => f.following_name.toLowerCase()),
+          ((followingRes.data ?? []) as { following_name: string }[]).map((f) => f.following_name.toLowerCase()),
+        );
+        const followsMeBack = new Set(
+          ((followerRes.data ?? []) as { follower_name: string }[]).map((f) => f.follower_name.toLowerCase()),
         );
         const collectorHandles = [
           ...new Set(
             Object.values(handleByAddr).filter((h): h is string => !!h).map((h) => h.toLowerCase()),
           ),
         ];
-        for (const h of collectorHandles) {
-          if (following.has(h)) collectedByFollowing.push(`@${h}`);
-        }
+        const cands = collectorHandles
+          .filter((h) => following.has(h))
+          .map((h) => ({ handle: `@${h}`, priceScore: scoreByHandle[h] ?? 0, mutual: followsMeBack.has(h) }));
+        collectedByFollowing = rankSocialCandidates(cands, cands.length).shown;
       }
     }
 

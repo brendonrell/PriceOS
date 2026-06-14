@@ -16,6 +16,10 @@ export interface FollowsListResponse {
       handles (sprite chips), not addresses. Additive, same row source. */
   follower_handles: string[];
   following_handles: string[];
+  /** PriceScores parallel to follower_handles / following_handles — feeds the
+      social-row relevance ranker (lib/social/relevance). 0 when unclaimed. */
+  follower_scores: number[];
+  following_scores: number[];
 }
 
 export async function GET(
@@ -52,6 +56,8 @@ export async function GET(
         following_count: 0,
         follower_handles: [],
         following_handles: [],
+        follower_scores: [],
+        following_scores: [],
       };
       return NextResponse.json(empty);
     }
@@ -81,17 +87,26 @@ export async function GET(
     // (c) Resolve those @names back to addresses via a single users join.
     const allNames = Array.from(new Set([...followerNames, ...followingNames]));
     let nameToAddress = new Map<string, string>();
+    const nameToScore = new Map<string, number>();
     if (allNames.length > 0) {
       const { data: usersData, error: usersErr } = await supabase
         .from('users')
-        .select('address, handle')
+        .select('address, handle, price_score')
         .in('handle', allNames);
       if (usersErr) return serverError(usersErr.message);
+      const urows = (usersData ?? []) as Array<{
+        address: string;
+        handle: string | null;
+        price_score: number | null;
+      }>;
       nameToAddress = new Map(
-        ((usersData ?? []) as Array<{ address: string; handle: string | null }>)
-          .filter((u): u is { address: string; handle: string } => u.handle !== null)
+        urows
+          .filter((u): u is { address: string; handle: string; price_score: number | null } => u.handle !== null)
           .map((u) => [u.handle, u.address])
       );
+      for (const u of urows) {
+        if (u.handle !== null) nameToScore.set(u.handle, u.price_score ?? 0);
+      }
     }
 
     // (d) Build address arrays. The follows.{follower,following}_name FK to
@@ -111,6 +126,8 @@ export async function GET(
       following_count: following.length,
       follower_handles: followerNames,
       following_handles: followingNames,
+      follower_scores: followerNames.map((n) => nameToScore.get(n) ?? 0),
+      following_scores: followingNames.map((n) => nameToScore.get(n) ?? 0),
     };
     return NextResponse.json(response);
   } catch (err) {

@@ -28,6 +28,7 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { rankSocialCandidates } from '../../lib/social/relevance';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
@@ -208,6 +209,51 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [user.address]);
 
+    /* Social row "Followed by …" (Twitter model): people the VIEWER follows who
+       also follow THIS profile, ranked by connection strength (mutual first) →
+       PriceRank → a little jitter (lib/social/relevance), capped at 2 faces +
+       "& N others you follow". Hidden when the viewer is signed out, viewing
+       their own profile, or shares no such tie. */
+    const [followedBy, setFollowedBy] = useState<{ shown: string[]; others: number }>({ shown: [], others: 0 });
+    useEffect(() => {
+        const me = siweAddress?.toLowerCase();
+        const target = user.address.toLowerCase();
+        if (!me || me === target) { setFollowedBy({ shown: [], others: 0 }); return; }
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const [meRes, themRes] = await Promise.all([
+                    fetch(`/api/follows/${me}`, { cache: 'no-store' }),
+                    fetch(`/api/follows/${target}`, { cache: 'no-store' }),
+                ]);
+                const meJ = await meRes.json().catch(() => ({}));
+                const themJ = await themRes.json().catch(() => ({}));
+                if (cancelled) return;
+                const myFollowing: string[] = Array.isArray(meJ?.following_handles) ? meJ.following_handles : [];
+                const myFollowingScores: number[] = Array.isArray(meJ?.following_scores) ? meJ.following_scores : [];
+                const iAmFollowedBy = new Set<string>(
+                    (Array.isArray(meJ?.follower_handles) ? meJ.follower_handles : []).map((x: string) => x.toLowerCase())
+                );
+                const theirFollowers = new Set<string>(
+                    (Array.isArray(themJ?.follower_handles) ? themJ.follower_handles : []).map((x: string) => x.toLowerCase())
+                );
+                const cands = myFollowing
+                    .map((handle, i) => ({
+                        handle,
+                        priceScore: myFollowingScores[i] ?? 0,
+                        mutual: iAmFollowedBy.has(handle.toLowerCase()),
+                    }))
+                    .filter((c) => theirFollowers.has(c.handle.toLowerCase()));
+                const ranked = rankSocialCandidates(cands, 2);
+                setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
+            } catch { if (!cancelled) setFollowedBy({ shown: [], others: 0 }); }
+        };
+        load();
+        const h = () => load();
+        window.addEventListener('pd:follows-changed', h);
+        return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
+    }, [siweAddress, user.address]);
+
     /* Showcase — the user's curated top-6 (users.showcase). Each slot points at
        one Output (project + token). 'static' keeps the saved order; 'generative'
        reshuffles once per visit. Empty slots are dropped. Wiring to ADD/curate
@@ -372,10 +418,9 @@ function ProfilePageBodyInner({
     };
 
     // Social row (Twitter model): "Followed by X, Y, and N others you follow".
-    // Names = people the viewer follows who also follow this profile. Empty
-    // until the follows-intersection lands; row hides when empty.
-    const mutuals: string[] = [];
-    const mutualOthers: number = 0;
+    // Live from the relevance-ranked intersection computed above.
+    const mutuals: string[] = followedBy.shown;
+    const mutualOthers: number = followedBy.others;
 
     /* Default landing tab is content-aware (Brendon 2026-06-10): an empty
        showcase is not a landing page — land on Collected instead. The
