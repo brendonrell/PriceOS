@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { computeStreakUpdate } from '@/lib/achievements/streak';
 import { persistEvaluation } from '@/lib/achievements/engine';
+import { pingAchievements } from '@/lib/pings/pingAchievements';
 
 export const dynamic = 'force-dynamic';
 
@@ -113,6 +114,9 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     // fresh day count. persistEvaluation reads price_streak from the row we just
     // wrote.
     const { newlyUnlocked } = await persistEvaluation(supabase, address);
+
+    // Self-ping each new unlock so it lands in the user's Pings inbox too.
+    await pingAchievements(address, newlyUnlocked);
 
     const response: StreakPingResponse = {
       streak: update.streak,

@@ -3,16 +3,20 @@
 /*
  * PingsBox
  *
- * The Pings accordion. When menutape > 0 the tape rail runs inside
- * the header alongside the PINGS label — no separate TapeBox needed.
- * The rail occupies the remaining header space and keeps scrolling
- * even when pings is collapsed.
+ * The Pings accordion — the live notification inbox. Renders the signed-in
+ * user's real pings (from PingsContext), honours the per-category prefs in
+ * notifs.pings, and clears the unread badge when the panel opens.
+ *
+ * The tape rail is preserved untouched: when menutape > 0 the rail runs inside
+ * the header alongside the PINGS label.
  */
 
 import { useEffect, useRef } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { MOCK_PINGS } from '../../lib/data/mockPings';
+import { usePings } from '../../lib/state/PingsContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { renderPing, passesCategoryPrefs } from '../../lib/pings/render';
 import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
@@ -54,6 +58,8 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function PingsBox() {
     const { notifs, setAccordion } = usePdNotifs();
+    const { state: pingsState, markAllRead } = usePings();
+    const { siweAddress } = useAuth();
     const railRef = useRef<HTMLDivElement>(null);
 
     const pingsActive = !notifs.notes && !notifs.todos && !notifs.tapeOpen;
@@ -67,9 +73,23 @@ export function PingsBox() {
         return unsubscribe;
     }, [tapeOn]);
 
+    // Opening the Pings panel = seeing them → clear the unread badge.
+    useEffect(() => {
+        if (pingsActive && siweAddress && pingsState.unreadCount > 0) {
+            markAllRead();
+        }
+    }, [pingsActive, siweAddress, pingsState.unreadCount, markAllRead]);
+
     const onHeaderClick = () => {
         if (!pingsActive) setAccordion('pings', true);
     };
+
+    // Real pings → rendered + category-filtered.
+    const rendered = pingsState.items
+        .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
+        .map((p) => renderPing(p));
+
+    const countLabel = pingsState.unreadCount > 0 ? `(${pingsState.unreadCount})` : '';
 
     return (
         <AccordionBox
@@ -83,7 +103,7 @@ export function PingsBox() {
                 <div className="pings-header-row">
                     <span className="pings-label">
                         PINGS
-                        <span className="notif-count">(8)</span>
+                        {countLabel && <span className="notif-count">{countLabel}</span>}
                     </span>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
@@ -105,12 +125,22 @@ export function PingsBox() {
                 </div>
             }
         >
-            {MOCK_PINGS.map((p) => (
-                <div key={p.id} className="notif-item">
-                    <span className="n-icon">{p.icon}</span>
-                    <span>{p.handle} {p.action}</span>
+            {rendered.length === 0 ? (
+                <div className="pings-empty">
+                    {siweAddress ? 'No pings yet' : 'Connect to see your pings'}
                 </div>
-            ))}
+            ) : (
+                rendered.map((p) => (
+                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}`}>
+                        <span className="n-icon">{p.icon}</span>
+                        <span>
+                            {p.handle && <strong>{p.handle}</strong>}
+                            {p.handle ? ' ' : ''}
+                            {p.action}
+                        </span>
+                    </div>
+                ))
+            )}
         </AccordionBox>
     );
 }

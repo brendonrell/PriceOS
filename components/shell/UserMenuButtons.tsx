@@ -91,6 +91,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePings } from '../../lib/state/PingsContext';
 import { DropdownStack } from '../dropdown/DropdownStack';
 import SpriteEyeSlot from '../SpriteEyeSlot';
 import {
@@ -114,6 +115,7 @@ export function UserMenuButtons() {
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
     const { showToast } = useToast();
+    const { state: pingsState } = usePings();
 
     /* ENS resolution — published on the walletBus by the deferred wallet
        stack, which runs the same mainnet-pinned useEnsName lookup this
@@ -164,6 +166,11 @@ export function UserMenuButtons() {
     const cartCount = items.length;
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
+
+    /* Unread Pings → a count badge on the connect button (only when signed in
+       and there's something unread). Reuses the cart badge's visual pattern. */
+    const unreadPings = isAuthed ? pingsState.unreadCount : 0;
+    const pingBadgeText = unreadPings > 99 ? '99+' : String(unreadPings);
 
     /* Click handler — dual path based on auth + menu state.
        - Disconnected + menu open: pill shows "Connect" text. Click
@@ -296,6 +303,11 @@ export function UserMenuButtons() {
                     {'⟠\uFE0E'}
                 </span>
                 <span className="user-text">{pillText}</span>
+                {unreadPings > 0 && (
+                    <span className="pings-count-badge" id="pingsCountBadge" aria-label={`${unreadPings} unread pings`}>
+                        {pingBadgeText}
+                    </span>
+                )}
             </button>
 
             <DropdownStack />

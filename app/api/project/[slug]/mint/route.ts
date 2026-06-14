@@ -12,6 +12,7 @@ import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
+import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +50,28 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
     if (r.error === 'sold_out') return badRequest('Sold out');
     if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
     if (r.error) return badRequest(r.error);
+
+    // Ping the artist that someone collected from their project (rolled up:
+    // "@you +5 others collected from {project}"). Best-effort, never blocks.
+    const { data: projRow } = await supabase
+      .from('projects')
+      .select('artist_address')
+      .eq('id', slug)
+      .maybeSingle();
+    const artist = (projRow as { artist_address?: string } | null)?.artist_address ?? null;
+    if (artist) {
+      const firstToken = Array.isArray(r.minted) && r.minted.length > 0 ? String(r.minted[0]) : null;
+      await createPing({
+        recipientAddress: artist,
+        kind: 'MINT',
+        actorAddress: address,
+        projectId: slug ?? null,
+        tokenId: firstToken,
+        amountEth: def.mintPriceEth,
+        data: { minted: r.minted, qty },
+        groupKey: `MINT:${slug}`,
+      });
+    }
 
     return NextResponse.json({
       project_id: slug,

@@ -176,20 +176,46 @@ export interface FollowRow {
   created_at: string;
 }
 
-export type NotificationType =
+/** Every DIRECTED ping kind. The BROADCAST firehose ("someone you follow did
+ *  X") is never stored — it's computed at read time off `events` — so it has no
+ *  kind here. Mirrors the CHECK constraint in 20260614_pings.sql exactly. */
+export type PingKind =
+  | 'PING'
   | 'FOLLOW'
+  | 'PROJECT_FOLLOW'
+  | 'ACHIEVEMENT'
+  | 'STREAK'
   | 'MINT'
-  | 'LIST'
   | 'SALE'
-  | 'XFER';
+  | 'OFFER'
+  | 'OFFER_ACCEPTED'
+  | 'XFER'
+  | 'WISHLIST_HIT'
+  | 'WATCH_HIT';
 
-export interface NotificationRow {
+/** One row of the unified `pings` inbox. */
+export interface PingRow {
   id: string;
   recipient_address: string;
-  event_id: string;
-  type: NotificationType;
+  kind: PingKind;
+  actor_address: string | null;
+  actor_name: string | null;
+  project_id: string | null;
+  token_id: string | null;
+  /** Stored numeric in Postgres; surfaced as string to preserve precision. */
+  amount_eth: string | null;
+  data: Record<string, unknown>;
+  group_key: string | null;
   read: boolean;
   created_at: string;
+  updated_at: string;
+}
+
+/** Per-user broadcast-feed read watermark (unix seconds). */
+export interface PingCursorRow {
+  user_address: string;
+  broadcast_seen_at: number;
+  updated_at: string;
 }
 
 export type EventType = 'MINT' | 'LIST' | 'SALE' | 'XFER';
@@ -269,11 +295,17 @@ export type Database = {
         Update: Partial<FollowRow>;
         Relationships: [];
       };
-      notifications: {
-        Row: NotificationRow;
-        Insert: Omit<NotificationRow, 'id' | 'created_at'> &
-          Partial<Pick<NotificationRow, 'id' | 'created_at'>>;
-        Update: Partial<NotificationRow>;
+      pings: {
+        Row: PingRow;
+        Insert: Omit<PingRow, 'id' | 'created_at' | 'updated_at'> &
+          Partial<Pick<PingRow, 'id' | 'created_at' | 'updated_at'>>;
+        Update: Partial<PingRow>;
+        Relationships: [];
+      };
+      ping_cursors: {
+        Row: PingCursorRow;
+        Insert: Pick<PingCursorRow, 'user_address'> & Partial<PingCursorRow>;
+        Update: Partial<PingCursorRow>;
         Relationships: [];
       };
       events: {

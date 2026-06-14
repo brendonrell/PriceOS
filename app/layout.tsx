@@ -38,6 +38,7 @@ import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
 import { ToastProvider } from '../lib/state/ToastContext';
+import { PingsProvider } from '../lib/state/PingsContext';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
 import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
@@ -554,6 +555,7 @@ export default async function RootLayout({
                                     <ModalProvider>
                                         <DropdownProvider>
                                             <ToastProvider>
+                                              <PingsProvider>
                                                 <CalendarProvider>
                                                     <NotePromptProvider>
                                                         <ValuePromptProvider>
@@ -569,6 +571,7 @@ export default async function RootLayout({
                                                         </ValuePromptProvider>
                                                     </NotePromptProvider>
                                                 </CalendarProvider>
+                                              </PingsProvider>
                                             </ToastProvider>
                                         </DropdownProvider>
                                     </ModalProvider>

@@ -420,6 +420,40 @@ body.sentiment-on .sentiment-widget {
     font-variant-numeric: tabular-nums;
 }
 
+/* Unread Pings badge — a count dot pinned to the top-right of the connect
+   button. Inverse palette so it pops against the bar. Shows even when the menu
+   is closed (icon-only) so unread is visible without opening. */
+.btn-user { position: relative; }
+.pings-count-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+/* Read pings fade back; the empty-state line is muted. */
+.notif-item.read { opacity: 0.5; }
+.pings-empty {
+    padding: 8px 10px;
+    font-size: 12px;
+    opacity: 0.6;
+}
+
 .ascii-sprite-wrap {
     display: none;
     align-items: center;

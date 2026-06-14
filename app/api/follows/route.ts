@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
+import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,6 +111,15 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       following_name: row.following_name,
       created_at: row.created_at,
     };
+
+    // Ping the followed user: "@you followed you".
+    await createPing({
+      recipientAddress: target,
+      kind: 'FOLLOW',
+      actorAddress: address,
+      actorName: row.follower_name,
+    });
+
     return NextResponse.json(response, { status: 201 });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

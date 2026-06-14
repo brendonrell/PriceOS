@@ -13,6 +13,7 @@ import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
+import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,6 +136,16 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         return NextResponse.json({ ok: true });
       }
       case 'buy': {
+        // Capture the listing price + seller BEFORE the buy clears the listing,
+        // so the SALE ping carries the amount and reaches the right wallet.
+        const listingRow = await db
+          .from('listings')
+          .select('price_eth')
+          .eq('project_id', slug).eq('token_id', tokenId).eq('active', true)
+          .maybeSingle();
+        const salePrice = (listingRow.data as { price_eth?: number } | null)?.price_eth ?? null;
+        const seller = owner;
+
         const { data, error } = await db.rpc('app_buy', {
           p_buyer: address, p_slug: slug, p_token: tokenId,
         } as never);
@@ -144,6 +155,18 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         if (r.error === 'own_output') return badRequest('Cannot buy your own Output');
         if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
         if (r.error) return badRequest(r.error);
+
+        // Ping the seller: "@buyer collected #12 · 0.5 ETH".
+        if (seller) {
+          await createPing({
+            recipientAddress: seller,
+            kind: 'SALE',
+            actorAddress: address,
+            projectId: slug,
+            tokenId,
+            amountEth: salePrice,
+          });
+        }
         return NextResponse.json({ ok: true, bought: r.bought });
       }
       case 'offer': {
@@ -151,10 +174,31 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         if (!(price > 0)) return badRequest('Bad price');
         await db.from('offers').insert({ project_id: slug, token_id: tokenId, bidder_address: address, price_eth: price, status: 'open' } as never);
         await db.from('events').insert({ type: 'OFFER', project_id: slug, token_id: tokenId, from_address: address, to_address: null, price_eth: price, timestamp: nowSec() } as never);
+
+        // Ping the token owner: "@bidder offered 0.5 ETH on #12" (rolled up).
+        if (owner) {
+          await createPing({
+            recipientAddress: owner,
+            kind: 'OFFER',
+            actorAddress: address,
+            projectId: slug,
+            tokenId,
+            amountEth: price,
+            groupKey: `OFFER:${slug}:${tokenId}`,
+          });
+        }
         return NextResponse.json({ ok: true, offered: price });
       }
       case 'accept': {
         if (!body.offerId) return badRequest('Missing offerId');
+        // Capture the bidder + price before the RPC flips the offer state.
+        const offerRow = await db
+          .from('offers')
+          .select('bidder_address, price_eth')
+          .eq('id', body.offerId)
+          .maybeSingle();
+        const accepted = offerRow.data as { bidder_address?: string; price_eth?: number } | null;
+
         const { data, error } = await db.rpc('app_accept_offer', {
           p_owner: address, p_slug: slug, p_token: tokenId, p_offer_id: body.offerId,
         } as never);
@@ -163,6 +207,18 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         if (r.error === 'not_owner') return badRequest('Only the owner can accept');
         if (r.error === 'offer_not_open') return badRequest('Offer not open');
         if (r.error) return badRequest(r.error);
+
+        // Ping the bidder: "@owner accepted your 0.5 ETH offer on #12".
+        if (accepted?.bidder_address) {
+          await createPing({
+            recipientAddress: accepted.bidder_address,
+            kind: 'OFFER_ACCEPTED',
+            actorAddress: address,
+            projectId: slug,
+            tokenId,
+            amountEth: accepted.price_eth ?? null,
+          });
+        }
         return NextResponse.json({ ok: true, sold: r.sold });
       }
       default:

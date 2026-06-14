@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon, getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, notFound, serverError } from '@/lib/errors';
+import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
 
@@ -201,6 +202,25 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       project_id: row.project_id,
       created_at: row.created_at,
     };
+
+    // Ping the project's artist: "@you followed your project" (rolled up).
+    const { data: projRow } = await supabase
+      .from('projects')
+      .select('artist_address')
+      .eq('id', projectId)
+      .maybeSingle();
+    const artist = (projRow as { artist_address?: string } | null)?.artist_address ?? null;
+    if (artist) {
+      await createPing({
+        recipientAddress: artist,
+        kind: 'PROJECT_FOLLOW',
+        actorAddress: address,
+        actorName: row.follower_name,
+        projectId,
+        groupKey: `PROJECT_FOLLOW:${projectId}`,
+      });
+    }
+
     return NextResponse.json(response, { status: 201 });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
