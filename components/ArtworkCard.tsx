@@ -125,6 +125,7 @@ import {
     getActiveBudgetEth,
     subscribeBudgets,
 } from '../lib/engines/budgetEngine';
+import { publishMarket } from '../lib/home/visibleMarketStore';
 
 interface ArtworkCardProps {
     id: number;
@@ -422,6 +423,21 @@ export default function ArtworkCard({
             else showToast(`Bench: ADDED · ${benchItems.length + 1}`);
         },
     });
+
+    /* Home is the one mixed-ownership zone: while multi-select is active,
+       publish this card's live market state (owned / listed / price) to the
+       shared visibleMarketStore so the home action bar can split owner vs
+       buyer actions per selected piece. Gated on multi-select, so it's inert
+       on every normal view and on the project/profile bars (which read their
+       own data, not this store). */
+    useEffect(() => {
+        if (!multiSelectActive) return;
+        publishMarket(slug, id, {
+            owned: ownedByBrendon,
+            listed,
+            price: rawPriceEth,
+        });
+    }, [multiSelectActive, slug, id, ownedByBrendon, listed, rawPriceEth]);
 
     /* Build 22 — sim 8100-8104. Floor-relative pct stamped as data-pct
        on .meta-owner.price-trigger. Body.pricelens-mode CSS swaps the

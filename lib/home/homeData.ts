@@ -36,6 +36,11 @@ export interface HomeMintingRow {
   slug: string;
   title: string;
   minted_count: number;
+  /** Total supply — for the live mint-progress Status facet (minted / supply). */
+  max_supply: number;
+  /** Upload moment (Unix ms) — the project's "birth", source for its PriceDay +
+      Natal + the Newest/Oldest birth-order sort. Null when unknown (sorts last). */
+  uploaded_at: number | null;
   /** When the project crossed the threshold (Unix ms — its 12th MINT event),
       or null when mint events predate event logging (sorts last). */
   reached_at: number | null;
@@ -106,6 +111,12 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
         slug: p.id,
         title: p.title,
         minted_count: minted,
+        max_supply: p.max_supply ?? 0,
+        uploaded_at: p.uploaded_at
+          ? new Date(p.uploaded_at).getTime()
+          : p.cooldown_until
+            ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
+            : null,
         reached_at: reachedAt[p.id] ?? null,
       });
     } else {

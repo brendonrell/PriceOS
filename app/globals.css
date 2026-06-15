@@ -7323,6 +7323,12 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .home-carousel-row {
     margin: 0 0 28px;
 }
+/* A touch more breathing room above the TOP carousel — its title sat a hair
+   too close to the control bar directly above it (Brendon, 2026-06-15). Only
+   the first row in the Now Minting section; the rest keep the 28px rhythm. */
+section[aria-label="Now Minting"] > .home-carousel-row:first-child {
+    margin-top: 12px;
+}
 .home-carousel-head {
     display: flex;
     align-items: baseline;

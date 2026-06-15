@@ -32,13 +32,19 @@ import ArtworkCard from '../ArtworkCard';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
-import { TraitsProvider } from '../../lib/state/TraitsContext';
+import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
-import { allProjects, getProject } from '../../lib/project/registry';
+import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
+import HomeProjectFacetBar, {
+    projectFacetValueOf,
+    type EnrichedProject,
+    type HomeSortKey,
+    type HomeSortDir,
+} from './HomeProjectFacetBar';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -150,7 +156,7 @@ function ShuffleGallery({ seed }: { seed: number }) {
     );
 }
 
-export default function HomePageBody({
+function HomePageBodyInner({
     initialFeed = null,
 }: {
     /** Server-computed home payload (app/page.tsx) — carousels + stats in
@@ -159,6 +165,7 @@ export default function HomePageBody({
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
+    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
@@ -230,6 +237,21 @@ export default function HomePageBody({
     const [artistFilter, setArtistFilter] = useState<string | null>(null);
     const [homeQuery, setHomeQuery] = useState('');
 
+    /* Now Minting sort — LOCAL (kept off the global SortContext so it can't
+       change the project pages' default sort). Date = birth order (desc =
+       newest); Price = mint price; Feed = the activity feed (new-art events
+       for now). */
+    const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>(
+        { key: 'date', dir: 'desc' },
+    );
+    const onMintSort = (key: HomeSortKey) =>
+        setMintSort((prev) =>
+            prev.key === key
+                ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+                : { key, dir: key === 'price' ? 'asc' : 'desc' },
+        );
+    const applyMintSort = (key: HomeSortKey, dir: HomeSortDir) => setMintSort({ key, dir });
+
     const artistOf = (slug: string): string | null =>
         getProject(slug)?.artistHandle ?? null;
 
@@ -256,18 +278,72 @@ export default function HomePageBody({
         return title.toLowerCase().includes(q) || a.includes(q);
     };
 
-    /* Graduated projects, filtered + ordered. Newest = most-recently reached
-       12 mints first (default); Oldest = the reverse; A–Z = by title. */
-    const mintingView = useMemo(() => {
-        const rows = (feed?.minting_now ?? []).filter((m) => matches(m.slug, m.title));
-        return [...rows].sort((a, b) => {
-            if (homeSort === 'az') return a.title.localeCompare(b.title);
-            const av = a.reached_at ?? 0;
-            const bv = b.reached_at ?? 0;
-            return homeSort === 'newest' ? bv - av : av - bv;
+    /* Each graduated project enriched with its computed birth-traits (Artist ·
+       @name · PriceDay · Sun · Moon · Rising · Fate) + live Status + mint price
+       — the project-level analogue of an Output's traits. The facet bar reads
+       this full set for its value pools. */
+    const enrichedMinting = useMemo<EnrichedProject[]>(() => {
+        return (feed?.minting_now ?? []).map((m) => {
+            const def = getProject(m.slug);
+            return {
+                slug: m.slug,
+                title: def?.displayName ?? m.title,
+                mintPriceEth: def?.mintPriceEth ?? 0,
+                minted: m.minted_count,
+                birthMs: m.uploaded_at,
+                traits: projectTraits(
+                    m.slug,
+                    m.uploaded_at ?? undefined,
+                    m.minted_count,
+                    m.max_supply,
+                ),
+            };
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [feed, homeSort, artistFilter, homeQuery]);
+    }, [feed]);
+
+    /* Filter + sort the carousels by the project facets / search / mint-price
+       range — the Collected predicate, over projects instead of Outputs. */
+    const visibleMinting = useMemo<EnrichedProject[]>(() => {
+        const minV = parseFloat(priceMin);
+        const maxV = parseFloat(priceMax);
+        const hasMin = !Number.isNaN(minV);
+        const hasMax = !Number.isNaN(maxV);
+        const q = searchQuery.trim().toLowerCase();
+        const activeCats = Object.keys(activeFilters).filter((c) => activeFilters[c].size > 0);
+
+        const filtered = enrichedMinting.filter((p) => {
+            for (const cat of activeCats) {
+                const v = projectFacetValueOf(cat, p);
+                if (v === undefined || !activeFilters[cat].has(v)) return false;
+            }
+            if (q) {
+                const hay = `${p.traits.Artist ?? ''} ${p.traits.Project ?? ''} ${p.title}`.toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            if (hasMin && p.mintPriceEth < minV) return false;
+            if (hasMax && p.mintPriceEth > maxV) return false;
+            return true;
+        });
+
+        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
+        if (mintSort.key === 'price') {
+            filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
+        } else {
+            // 'date' + 'feed' both order by birth; 'feed' only changes WHAT
+            // renders below (the feed list), not this ordering.
+            filtered.sort((a, b) => ((a.birthMs ?? -Infinity) - (b.birthMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
+        }
+        return filtered;
+    }, [enrichedMinting, activeFilters, searchQuery, priceMin, priceMax, mintSort]);
+
+    /* Activity feed rows (FEED sort). New-art (upload) events for now, sorted
+       by the same direction; more event kinds later (Brendon 2026-06-15). */
+    const feedView = useMemo(() => {
+        const rows = [...(feed?.uploads ?? [])];
+        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
+        rows.sort((a, b) => ((a.uploaded_at ?? -Infinity) - (b.uploaded_at ?? -Infinity)) * dirMult);
+        return rows;
+    }, [feed, mintSort.dir]);
 
     /* New uploads, same filters; Newest/Oldest order by upload moment. */
     const uploadsView = useMemo(() => {
@@ -283,7 +359,7 @@ export default function HomePageBody({
 
     /* Stable signature of the rendered carousel order — re-binds the
        drag-to-scroll handlers when filtering/sorting changes the row set. */
-    const mintingKey = mintingView.map((m) => m.slug).join(',');
+    const mintingKey = visibleMinting.map((m) => m.slug).join(',');
 
     const hasMintingBase = (feed?.minting_now?.length ?? 0) > 0;
     const hasUploadsBase = (feed?.uploads?.length ?? 0) > 0;
@@ -414,7 +490,7 @@ export default function HomePageBody({
     );
 
     return (
-        <TraitsProvider>
+        <>
             <Hero
                 ariaLabel="Price Discussion"
                 titleRow={
@@ -510,8 +586,16 @@ export default function HomePageBody({
                     as the project page's trait bar — so the gap from the tabs is
                     the hero's own 16px rhythm, not the larger below-hero gap it
                     had as a separate section (Brendon, 2026-06-13). */}
-                {((activeTab === 'minting' && hasMintingBase) ||
-                    (activeTab === 'new' && hasUploadsBase)) && (
+                {activeTab === 'minting' && hasMintingBase && (
+                    <HomeProjectFacetBar
+                        projects={enrichedMinting}
+                        sortKey={mintSort.key}
+                        sortDir={mintSort.dir}
+                        onSort={onMintSort}
+                        applySort={applyMintSort}
+                    />
+                )}
+                {activeTab === 'new' && hasUploadsBase && (
                     <HomeFacetBar
                         sort={homeSort}
                         setSort={setHomeSort}
@@ -527,13 +611,13 @@ export default function HomePageBody({
             {/* Now Minting (default) — just the carousels: one per project
                 at 12+ mints, in the order they reached 12. No section header,
                 the tab is the label. */}
-            {activeTab === 'minting' && (
+            {activeTab === 'minting' && mintSort.key !== 'feed' && (
                 <section aria-label="Now Minting">
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}
                     {(!feed || !hasMintingBase) && <GhostCarousels perRow={CAROUSEL_SIZE} />}
-                    {feed && hasMintingBase && mintingView.length === 0 && (
+                    {feed && hasMintingBase && visibleMinting.length === 0 && (
                         <div className="home-empty-note">
                             No projects match — clear the filters to see them all.
                         </div>
@@ -542,15 +626,48 @@ export default function HomePageBody({
                         row lazy-paints through the card virtualizer as it
                         scrolls into view. Painting every project's 12 canvases
                         up front is what made home crawl (Brendon, 2026-06-13). */}
-                    {mintingView.map((m, i) => (
+                    {visibleMinting.map((m, i) => (
                         <ProjectProvider
                             key={m.slug}
                             slug={m.slug}
-                            initialTotal={m.minted_count}
+                            initialTotal={m.minted}
                         >
                             <HomeProjectCarousel eager={i === 0} />
                         </ProjectProvider>
                     ))}
+                </section>
+            )}
+
+            {/* FEED sort on Now Minting → the activity feed. For now this is the
+                new-art (upload) events; more event kinds land later (Brendon
+                2026-06-15). Same feed-row markup as the New Art tab. */}
+            {activeTab === 'minting' && mintSort.key === 'feed' && (
+                <section className="home-uploads" aria-label="Activity Feed">
+                    <div className="feed-list">
+                        {!hasUploadsBase ? (
+                            <GhostFeedRows />
+                        ) : feedView.length === 0 ? (
+                            <div className="home-empty-note">No activity yet.</div>
+                        ) : (
+                            feedView.map((u) => {
+                                const def = getProject(u.slug);
+                                const title = def?.displayName ?? u.title;
+                                return (
+                                    <div className="feed-row" key={u.slug}>
+                                        <div className="feed-line" />
+                                        <div className="f-icon-wrap">✶&#xFE0E;</div>
+                                        <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
+                                        <div className="f-type">{fmtUploadTime(u.uploaded_at)}</div>
+                                        <div className="f-content">
+                                            <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
+                                                {title}
+                                            </a>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </section>
             )}
 
@@ -605,6 +722,20 @@ export default function HomePageBody({
                        shape, never an empty void (Brendon, 2026-06-14). */
                     <GhostGallery />
                 ))}
+        </>
+    );
+}
+
+export default function HomePageBody({
+    initialFeed = null,
+}: {
+    /** Server-computed home payload (app/page.tsx) — carousels + stats in
+        the first paint. Null only when the server read failed. */
+    initialFeed?: HomeResponse | null;
+}) {
+    return (
+        <TraitsProvider>
+            <HomePageBodyInner initialFeed={initialFeed} />
         </TraitsProvider>
     );
 }
