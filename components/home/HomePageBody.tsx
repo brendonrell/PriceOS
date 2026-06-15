@@ -291,6 +291,7 @@ function HomePageBodyInner({
                 mintPriceEth: def?.mintPriceEth ?? 0,
                 minted: m.minted_count,
                 birthMs: m.uploaded_at,
+                reachedMs: m.reached_at,
                 traits: projectTraits(
                     m.slug,
                     m.uploaded_at ?? undefined,
@@ -329,9 +330,11 @@ function HomePageBodyInner({
         if (mintSort.key === 'price') {
             filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
         } else {
-            // 'date' + 'feed' both order by birth; 'feed' only changes WHAT
-            // renders below (the feed list), not this ordering.
-            filtered.sort((a, b) => ((a.birthMs ?? -Infinity) - (b.birthMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
+            // 'date' + 'feed' order by WHEN THE PROJECT STARTED MINTING (crossed
+            // 12), newest first by default — so a fresh graduation pops straight
+            // to the top. (Astrology/PriceDay still use the upload birthday;
+            // this is the live "now minting" recency.)
+            filtered.sort((a, b) => ((a.reachedMs ?? -Infinity) - (b.reachedMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
         }
         return filtered;
     }, [enrichedMinting, activeFilters, searchQuery, priceMin, priceMax, mintSort]);

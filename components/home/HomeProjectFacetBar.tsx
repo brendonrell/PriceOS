@@ -45,8 +45,12 @@ export interface EnrichedProject {
     mintPriceEth: number;
     /** Minted so far — seeds each carousel's project provider. */
     minted: number;
-    /** Upload moment (Unix ms) — birth order sort key. Null sorts last. */
+    /** Upload moment (Unix ms) — the project's birthday; source of its astrology
+        / PriceDay traits. */
     birthMs: number | null;
+    /** When it crossed 12 mints into Now Minting (Unix ms) — the Date sort key,
+        so a fresh graduate pops to the top. Null sorts last. */
+    reachedMs: number | null;
     /** Platform traits: Artist · Project(@name) · PriceDay · Sun · Moon · Rising · Fate · Status. */
     traits: OutputTraits;
 }
