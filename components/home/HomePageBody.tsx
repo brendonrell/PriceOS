@@ -578,7 +578,7 @@ function HomePageBodyInner({
                     2026-06-12; Sales left the row with this set). */}
                 <div className="profile-tabs-row" id="homeTabsRow">
                     {tab('minting', 'Now Minting')}
-                    {tab('new', 'New Art')}
+                    {tab('new', 'New Gen Art')}
                     {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
                 </div>
 
