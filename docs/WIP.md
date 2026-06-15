@@ -7,26 +7,36 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/asterism-minting-errors-i70nmz` is trash (work is on dev) — Brendon deletes on GitHub.
+  `claude/bench-mobile-safari-7fzaax` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev is now SELF-HEALING:** the SessionStart hook re-syncs local `dev` to
   `origin/dev` every chat, so the recurring divergence can't return (root cause = commits
   landing on local dev; the hook reconciles on start).
-- **Updated:** 2026-06-14 (late). This session = **MINTING + public-profile reads UNBROKEN,
-  shipped to dev** (see 🐛 directly below). Earlier 2026-06-14 sessions still valid context:
-  Digital Familiar (🐾), security sweep (🛡️), pings (🔔), social + PriceRank, security audit
-  (🔒), indexer rebuild (⚙️).
+- **Updated:** 2026-06-15 (early). This session = **THE BENCH + CART shipped, incl. proper
+  per-user cross-device DB persistence** (see 🪑 below) + Ambient Strip / Zen Garden / spot
+  edits + the BUILD-TO-SPEC and ICON-GLOSSARY CLAUDE.md rules. Earlier 2026-06-14 sessions still
+  valid context: minting/profile fixes (🐛), Digital Familiar (🐾), security sweep (🛡️), pings
+  (🔔), social + PriceRank, security audit (🔒), indexer rebuild (⚙️).
 
-## 🪑 THE BENCH + CART + AMBIENT STRIP + ZEN GARDEN 2026-06-14 (late) — SHIPPED to dev
-- **The Bench** (OS Tool / Comparison, `86b9jfjc3`): **hold-and-drag only** (touch + mouse) —
-  press-hold a gallery piece → a wide tab peeks up at the bottom; drop on BENCH (or CART when
-  listed). **NO buttons anywhere.** I wrongly added a modal pill, a gallery hover icon, a
-  move-to-bench icon in the Cart, AND a top-bar bench button — all four were unasked-for and
-  got STRIPPED (23:00). Birthed the new CLAUDE.md "BUILD TO SPEC — NOTHING EXTRA" hard rule.
-  **OPEN ITEM (Brendon's call):** the comparison tray (side-by-side price/floor/notes,
-  portrait↔landscape split, image export) is built but now has **NO opener** (top button gone).
-  Needs decision on how it opens — likely tapping the bottom tab. NOT built — do not guess.
-- **Cart → fuller potential:** real painted art thumbnails, per-item floor delta, savings-vs-
-  floor line, sweeping motion on BUY ALL. (The move-to-bench icon removed — cart ≠ bench.)
+## 🪑 THE BENCH + CART + AMBIENT STRIP + ZEN GARDEN 2026-06-14→15 — SHIPPED to dev
+- **The Bench** (OS Tool / Comparison, `86b9jfjc3`): **drag-only, ONE bottom tab.** Hold-drag
+  (touch + mouse) a piece → the tab peeks up → drop on it (or the CART drop target when listed).
+  Adding **recedes** it to a slim peek (viewport clear); **TAP** the tab to pull the full
+  comparison up (side-by-side price/floor/note, portrait↔landscape split, native-share image
+  export). Each listed card carries the canonical ▢ add-to-cart icon. **NO buttons/panels** — an
+  earlier pass wrongly added a modal pill, gallery hover icon, cart icon, top-bar button + a
+  separate button-opened tray; all stripped → birthed "BUILD TO SPEC — NOTHING EXTRA". **Crash
+  fixed:** live drag position moved to a module store (was re-rendering every gallery card 60fps
+  → mobile-Safari crash).
+- **Cart → full potential:** real painted art thumbnails, per-item floor delta, savings-vs-floor,
+  sweeping motion on BUY ALL.
+- **Cart + Bench are now PROPER DB FEATURES (06-15):** per-user, cross-device via `cart_items` +
+  new `bench_items` (owner-scoped, same secure pattern as `/api/me`; anon denied; RLS
+  `*_own_only`). `/api/me/cart` + `/api/me/bench` (GET / PUT-replace) + `lib/collections/
+  useCollectionSync` (UNION-merge device+server on sign-in, debounced save; logged out =
+  localStorage). **Cart "sold-drops-out-on-login" auto-remove NOT wired** — the `listings` table
+  is empty, so auto-deleting on it would wrongly EMPTY carts; activates with real listings/
+  indexer data. "Only listed can be ADDED" is already enforced at add-time. **DESKTOP
+  "premium larger-art" bench layout = Brendon's call, NOT built.**
 - **Ambient Strip:** LED light bar BELOW the tape, **OFF by default** (☼ toggle in MY PD, the
   slot Echo Chamber vacated). Tap the bar → options popup (palette/pattern/speed/dim); real
   glow + page dim. **Built blind — wants a visual tuning pass on dev.**
