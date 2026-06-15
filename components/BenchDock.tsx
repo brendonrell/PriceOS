@@ -94,22 +94,25 @@ const BenchCard = memo(function BenchCard({
             >
                 {`×${VS15}`}
             </button>
-            {listed && (
-                <button
-                    className="bench-card-cart"
-                    type="button"
-                    aria-label="Add to Cart"
-                    title="Add to Cart"
-                    onClick={() => onAddToCart(slug, id)}
-                >
-                    {`▢${VS15}`}
-                </button>
-            )}
             <div className="bench-card-art">
                 <BenchArt slug={slug} id={id} />
             </div>
             <div className="bench-card-meta">
-                <div className="bench-card-name">{title} #{id}</div>
+                <div className="bench-card-name-row">
+                    <span className="bench-card-name">{title} #{id}</span>
+                    {listed && (
+                        <span
+                            className="hi-icon hi-cart bench-card-cart"
+                            role="button"
+                            tabIndex={0}
+                            aria-label="Add to Cart"
+                            title="Add to Cart"
+                            onClick={() => onAddToCart(slug, id)}
+                        >
+                            {`▢${VS15}`}
+                        </span>
+                    )}
+                </div>
                 <div className="bench-card-stats">
                     <span className="bench-card-price">{priceStr ?? 'Unlisted'}</span>
                     {deltaStr && <span className={`bench-card-delta${deltaClass}`}>{deltaStr}</span>}

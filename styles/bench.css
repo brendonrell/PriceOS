@@ -256,29 +256,16 @@ body.bench-dragging * {
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
 }
-/* Bench → Cart: small add-to-cart icon on each listed piece (top-left,
-   opposite the remove ×). Same ▢ glyph as the gallery's add-to-cart. */
-.bench-card-cart {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    z-index: 3;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    font-size: 13px;
-    line-height: 1;
-    cursor: pointer;
+/* Bench → Cart: the SAME icon as the artwork-card hover row — it uses the
+   .hi-icon class verbatim. Placed in the card's name row, off the artwork. */
+.bench-card-name-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s;
+    justify-content: space-between;
+    gap: 6px;
 }
-.bench-card-cart:hover { background: rgba(0, 0, 0, 0.78); }
+.bench-card-name-row .bench-card-name { flex: 1 1 auto; min-width: 0; }
+.bench-card-cart { flex: 0 0 auto; }
 .bench-card-art {
     width: 100%;
     aspect-ratio: 3 / 4;
