@@ -304,6 +304,52 @@ body.bench-dragging * {
     .bench-grid.portrait .bench-card { flex-basis: 210px; }
 }
 
+/* ---- DESKTOP PREMIUM: the expanded bench goes big -------------------- */
+/* On a wide screen the peek stays a small bottom tab, but PULLING IT UP
+   becomes a roomy, centred, gallery-grade panel with much larger art and a
+   focus backdrop. Mobile (the compact bottom sheet) is untouched. */
+.bench-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: transparent;
+    transition: background 0.25s ease;
+}
+@media (min-width: 960px) {
+    .bench-backdrop {
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.5);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+    /* The expanded panel lifts off the bottom into a centred premium card. */
+    .bench-tab.expanded {
+        left: 0;
+        right: 0;
+        bottom: 30px;
+        margin: 0 auto;
+        max-width: 1120px;
+        max-height: 86dvh;
+        border-radius: 20px;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6);
+        padding: 20px 26px 26px 26px;
+    }
+    /* Big art + generous spacing — the split actually breathes. */
+    .bench-tab.expanded .bench-grid { gap: 24px; }
+    .bench-tab.expanded .bench-grid.portrait { padding-bottom: 8px; }
+    .bench-tab.expanded .bench-grid.portrait .bench-card { flex: 0 0 360px; }
+    .bench-tab.expanded .bench-grid.landscape .bench-card-art { flex-basis: 200px; }
+    .bench-tab.expanded .bench-card { gap: 12px; padding: 12px; }
+    .bench-tab.expanded .bench-card-name { font-size: 15px; }
+    .bench-tab.expanded .bench-card-price { font-size: 15px; }
+    .bench-tab.expanded .bench-card-delta { font-size: 12px; }
+    .bench-tab.expanded .bench-card-note { font-size: 13px; max-height: 6em; line-height: 1.5; }
+    .bench-tab.expanded .bench-tab-title { font-size: 16px; }
+    .bench-tab.expanded .bench-tab-btn { height: 34px; min-width: 36px; font-size: 15px; }
+}
+
 /* Hidden in the chrome-off modes (same as Tape + Footer). */
 body.zen-mode .bench-dock-layer,
 body.zero-context-mode .bench-dock-layer { display: none !important; }

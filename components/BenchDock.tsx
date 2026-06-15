@@ -378,6 +378,9 @@ export default function BenchDock() {
 
             {/* THE BENCH — the one tab. Peek bar by default; the drop target
                 while dragging; the full comparison only when tapped open. */}
+            {mounted && showFull && (
+                <div className="bench-backdrop" onClick={collapse} aria-hidden="true" />
+            )}
             {mounted && (
                 <div className={tabClass} ref={tabRef} data-bench-drop="bench">
                     <div className="bench-tab-grip" aria-hidden="true" />
