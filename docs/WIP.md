@@ -6,16 +6,37 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `23228e9`). This chat's task
+- **Branch:** all work is on `dev`, pushed, tree clean (head `4bc7413`). This chat's task
   branch `claude/tender-mendel-frkw4f` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-15 (latest). This session = **the HOME PAGE became a real draw** —
-  Now-Minting Collected-transplant + project milestones + standardized feeds + SW removal + a
-  batch of profile/registry fixes (see 🏠 below). Prior context still valid: 6 spot edits (🧰),
-  profile + favicon (🎯), BENCH/CART/Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾),
-  security sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+- **Updated:** 2026-06-15 (latest). This session = **ARTIST SHOWCASE = the Now-Minting view**
+  (🎨 below) + a **vivid mood-ring palette** + the home byline crediting @brendon with real
+  social tags. Prior: HOME became a real draw (🏠), 6 spot edits (🧰), profile + favicon (🎯),
+  BENCH/CART/Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾), security sweep (🛡️),
+  pings (🔔), social + PriceRank, indexer rebuild (⚙️).
 
-## 🏠 HOME = A REAL DRAW 2026-06-15 (latest) — SHIPPED to dev
+## 🎨 ARTIST SHOWCASE + VIVID MOOD 2026-06-15 (latest) — SHIPPED to dev
+- **Artist Showcase = Now-Minting view, scoped to one artist.** New showcase style `artist`
+  (`ShowcaseStyle` + `lib/profile/showcaseStyle.ts effectiveShowcaseStyle` over the legacy
+  `grid` unset marker → whitelisted artists default to it, **no data migration**; PATCH /api/me
+  accepts it; settings gate via new `/api/me/artist`). Showcase tab renders `HomeProjectFacetBar`
+  over the artist's projects with **Created · Top 6** lead pills replacing Artist+Project
+  (`ARTIST_SHOWCASE_FACETS`); Top 6 = curated grid (`compact`). `HomeProjectFacetBar` gained
+  `facets`/`leadPills`/`compact` (home call site unchanged). Stats from extended **/api/artist**
+  (uploaded_at/graduated/sold_out/milestones). Traditional Top-6 artists get **Created as the
+  first +More sub-tab** instead — created work always reachable.
+- **Empty Collected → ghost frames** (normal layout, no blank).
+- **Own-profile CTA → "Followed"** opens the Followers modal (Join-the-Chat removed there).
+- **Home byline** credits @brendon with real follower count + mutual badge (hidden at 0) —
+  same treatment as artist names on project pages.
+- **Mood ring palette VIVID** (`lib/mood/mood.ts` + `app/layout.tsx` boot-paint in lockstep):
+  old 38–85/42–76 read washed out → **sat 62–100, light 40–60**; deep days auto white text,
+  bright days black. `HUE_SALT` 20→55 (today = rich purple).
+- **Still-local note:** the artist showcase facet bar shares the profile's single TraitsContext
+  with Collected (showcase predicate restricted to its own facets so Collected filters can't
+  nuke it); separate providers would fully isolate if it ever matters.
+
+## 🏠 HOME = A REAL DRAW 2026-06-15 — SHIPPED to dev
 - **Now-Minting transplant:** home wears the full profile-Collected control surface over
   **projects** (each carousel = one "thing"). Facet pills from each project's **birth moment**
   (upload time) — Artist · @name · PriceDay · Sun · Moon · Rising · Fate — computed live (same
