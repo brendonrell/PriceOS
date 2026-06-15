@@ -4373,9 +4373,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-size: 16px;
     line-height: 1;
 }
-/* Shuffle tab is icon-only — trim its width ~40% (10px→3px side padding) so the
-   wider "New Gen Art" label has room on the row (Brendon, 2026-06-15). */
-.pill.pill-l1.pill-shuffle-icon { padding: 0 3px; }
+/* Shuffle tab is icon-only — trim its width ~10% (10px→8px side padding) so the
+   wider "New Gen Art" label has a touch more room (Brendon, 2026-06-15). */
+.pill.pill-l1.pill-shuffle-icon { padding: 0 8px; }
 /* Fate and Notes: −1px on desktop */
 @media (min-width: 601px) {
     .pill.pill-l1.pill-notes-icon .stat-name,
