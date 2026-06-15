@@ -42,6 +42,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { useCollectionSync } from '../collections/useCollectionSync';
 
 const STORAGE_KEY = 'pd_cart';
 export const CART_GAS_PER_ITEM = 0.0005; // ETH; flat-per-item mock — sim 11722
@@ -143,6 +144,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const items = useMemo(() => keys.map(parseKey), [keys]);
+
+    /* Cross-device persistence (cart_items) — merges with the on-device cart on
+       sign-in, debounced save while signed in. Logged out → localStorage only. */
+    const applyServer = useCallback((next: CartItem[]) => {
+        const ks = normalizeKeys(next.map((it) => keyOf(it.slug, it.id)));
+        setKeys(ks);
+        saveToStorage(ks);
+    }, []);
+    useCollectionSync('/api/me/cart', items, applyServer, 100);
 
     const add = useCallback((slug: string, id: number) => {
         if (!slug || !Number.isFinite(id)) return;

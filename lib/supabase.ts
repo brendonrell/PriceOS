@@ -280,6 +280,15 @@ export interface MoneyOpResult {
   sold?: number;
 }
 
+/** A piece in a per-user collection — Cart (cart_items) and Bench (bench_items)
+ *  share this exact shape (user_address, project_id=slug, token_id). */
+export interface CollectionItemRow {
+  user_address: string;
+  project_id: string;
+  token_id: string;
+  added_at: string;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -330,6 +339,18 @@ export type Database = {
         Row: WishlistRow;
         Insert: WishlistRow;
         Update: Partial<WishlistRow>;
+        Relationships: [];
+      };
+      cart_items: {
+        Row: CollectionItemRow;
+        Insert: Omit<CollectionItemRow, 'added_at'> & Partial<Pick<CollectionItemRow, 'added_at'>>;
+        Update: Partial<CollectionItemRow>;
+        Relationships: [];
+      };
+      bench_items: {
+        Row: CollectionItemRow;
+        Insert: Omit<CollectionItemRow, 'added_at'> & Partial<Pick<CollectionItemRow, 'added_at'>>;
+        Update: Partial<CollectionItemRow>;
         Relationships: [];
       };
     };

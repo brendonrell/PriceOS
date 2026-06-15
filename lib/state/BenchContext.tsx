@@ -25,6 +25,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { useCollectionSync } from '../collections/useCollectionSync';
 
 /** Max pieces on the bench at once — a comparison surface, not a list. */
 export const BENCH_MAX = 8;
@@ -145,6 +146,14 @@ export function BenchProvider({ children }: { children: ReactNode }) {
     );
     const expand = useCallback(() => setExpanded(true), []);
     const collapse = useCallback(() => setExpanded(false), []);
+
+    /* Cross-device persistence (bench_items) — merges with the on-device set on
+       sign-in, debounced save while signed in. Logged out → localStorage only. */
+    const applyServer = useCallback((next: BenchItem[]) => {
+        setItems(next);
+        saveToStorage(next);
+    }, []);
+    useCollectionSync('/api/me/bench', items, applyServer, BENCH_MAX);
 
     /* Escape collapses the full view back to the peek tab. */
     useEffect(() => {
