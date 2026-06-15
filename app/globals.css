@@ -5517,6 +5517,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     text-transform: uppercase;
     opacity: 0.6;
 }
+/* Cap the home activity feed to a readable column on desktop — full-width rows
+   left a big awkward gap between content and the date (Brendon, 2026-06-15). */
+@media (min-width: 601px) {
+    .home-activity-feed { max-width: 640px; }
+}
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */

@@ -679,7 +679,7 @@ function HomePageBodyInner({
                 2026-06-15). Same feed-row markup as the New Art tab. */}
             {activeTab === 'minting' && mintSort.key === 'feed' && (
                 <section className="home-uploads" aria-label="Activity Feed">
-                    <div className="feed-list">
+                    <div className="feed-list home-activity-feed">
                         {feedView.length === 0 ? (
                             <GhostFeedRows />
                         ) : (
