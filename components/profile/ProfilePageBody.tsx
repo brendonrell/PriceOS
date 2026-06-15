@@ -433,6 +433,35 @@ function ProfilePageBodyInner({
     const mutuals: string[] = followedBy.shown;
     const mutualOthers: number = followedBy.others;
 
+    /* Identity row stays on ONE line: the PriceSprite + a space + the wallet/
+       ENS. Desktop always has room. On a narrow screen a long ENS would
+       overflow, so we shrink JUST the address font (per name, smallest that
+       still fits — never below a readable floor) instead of wrapping. If it
+       already fits, nothing changes. */
+    const idRowRef = useRef<HTMLDivElement>(null);
+    const idAddrRef = useRef<HTMLAnchorElement>(null);
+    useEffect(() => {
+        const row = idRowRef.current;
+        const addr = idAddrRef.current;
+        if (!row || !addr) return;
+        const MIN = 9; // px floor — keep it legible
+        let raf = 0;
+        const fit = () => {
+            addr.style.fontSize = ''; // reset to CSS base before measuring
+            if (row.scrollWidth <= row.clientWidth + 0.5) return; // fits → leave it
+            let size = parseFloat(getComputedStyle(addr).fontSize) || 13;
+            while (size > MIN && row.scrollWidth > row.clientWidth + 0.5) {
+                size -= 0.5;
+                addr.style.fontSize = `${size}px`;
+            }
+        };
+        const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+        schedule();
+        const ro = new ResizeObserver(schedule);
+        ro.observe(row);
+        return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    }, [viaLabel, nameFace]);
+
     /* Default landing tab is content-aware (Brendon 2026-06-10): an empty
        showcase is not a landing page — land on Collected instead. The
        Showcase tab itself stays in the row (ghosts show if tapped). Same
@@ -671,7 +700,6 @@ function ProfilePageBodyInner({
                 titleRow={
                     <h1 className="project-title">
                         <span>
-                            {nameFace && <span className="name-sprite">{nameFace}</span>}
                             @{displayHandle}
                             {/* Artist badge — whitelisted wallets only (allowlist = the sim
                                 stand-in for the on-chain whitelist). Plain ✺ mark:
@@ -742,14 +770,15 @@ function ProfilePageBodyInner({
                     </h1>
                 }
                 identityRow={
-                    <div className="hero-line project-custom">
-                        <span className="by-text">Via</span>{' '}
+                    <div className="hero-line project-custom id-row-fit" ref={idRowRef}>
+                        {nameFace && <span className="id-row-sprite">{nameFace}</span>}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
                                 {/* Links to the owner's Etherscan page (Brendon
                                     2026-06-10) — it used to link to this same
                                     profile, a circle. */}
                                 <a
+                                    ref={idAddrRef}
                                     href={`https://etherscan.io/address/${user.address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"

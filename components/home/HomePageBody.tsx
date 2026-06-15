@@ -40,6 +40,7 @@ import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject } from '../../lib/project/registry';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import { openExternal } from '../../lib/pwa/openExternal';
+import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
@@ -158,11 +159,6 @@ export default function HomePageBody({
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
-
-    /* Home CTA (Brendon, 2026-06-13) — the primary button is "Join The Chat",
-       linking to the community Discord (same target as the connect-menu
-       Discord link). */
-    const DISCORD_URL = 'https://discord.gg/mJteKZmg28';
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 

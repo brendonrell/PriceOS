@@ -455,13 +455,13 @@ export default async function RootLayout({
         initialAuth = undefined;
     }
 
-    /* Dev "Login Brendon" shortcut button. Shown ONLY on local development
-       (NODE_ENV==='development' → localhost), where the /api/auth/dev-login
-       route accepts it with no secret. On the PUBLIC preview the button is
-       hidden because the route now requires a secret header that can't safely
-       live in client code (security sweep S-A1) — use a secret-carrying call
-       there instead. Production never renders or accepts it. */
-    const showDevLogin = process.env.NODE_ENV === 'development';
+    /* Dev-preview "Login Brendon" shortcut button. VERCEL_ENV is
+       'production' on main, 'preview' on the dev preview, undefined on
+       localhost — so this renders everywhere EXCEPT production. The
+       /api/auth/dev-login route is gated the same way server-side.
+       (Build-phase convenience — restored after the S-A1 secret gate made
+       desktop testing on the preview impossible.) */
+    const showDevLogin = process.env.VERCEL_ENV !== 'production';
 
     return (
         <html lang="en" className={`${rubikMono.variable} ${inter.variable}`}>

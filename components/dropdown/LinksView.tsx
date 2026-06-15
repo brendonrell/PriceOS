@@ -50,6 +50,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { openConnectModal } from '../../lib/wallet/walletBus';
+import { DISCORD_URL } from '../../lib/config/discord';
 import { useGasData } from '../../lib/hooks/useGasData';
 
 export function LinksView() {
@@ -162,8 +163,8 @@ export function LinksView() {
             </div>
 
             <a
-                href="https://discord.gg/mJteKZmg28"
-                onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}
+                href={DISCORD_URL}
+                onClick={(e) => { e.preventDefault(); window.open(DISCORD_URL, '_blank', 'noopener,noreferrer'); }}
             >
                 Discord
             </a>

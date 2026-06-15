@@ -5,6 +5,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useGasData } from '../../lib/hooks/useGasData';
 import { moodOfDay, type Mood } from '../../lib/mood/mood';
 import { natalChart, type NatalChart } from '../../lib/project/natal';
+import { DISCORD_URL } from '../../lib/config/discord';
 
 export function Footer() {
     const { showToast } = useToast();
@@ -96,7 +97,7 @@ export function Footer() {
                         About PD
                     </span>
                     <span className="priceos-sep">·</span>
-                    <a className="priceos-link" href="https://discord.gg/mJteKZmg28" onClick={(e) => { e.preventDefault(); window.open('https://discord.gg/mJteKZmg28', '_blank', 'noopener,noreferrer'); }}>
+                    <a className="priceos-link" href={DISCORD_URL} onClick={(e) => { e.preventDefault(); window.open(DISCORD_URL, '_blank', 'noopener,noreferrer'); }}>
                         Join Our Discord
                     </a>
                     <span className="priceos-sep">·</span>
