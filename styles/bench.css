@@ -187,6 +187,11 @@ body.bench-dragging * {
 .bench-tab-btn:hover { background: rgba(127, 127, 127, 0.12); }
 .bench-tab-btn:disabled { opacity: 0.4; cursor: default; }
 .bench-tab-btn.dismiss { font-size: 18px; line-height: 1; }
+/* Desktop: the action glyphs read too heavy bold — PD's icon style is the
+   lighter Courier glyph. Unbold them on desktop only (Brendon 2026-06-15). */
+@media (min-width: 960px) {
+    .bench-tab-btn { font-weight: normal; }
+}
 
 /* The empty drop hint (dragging, nothing dropped yet). */
 .bench-drop-hint {
