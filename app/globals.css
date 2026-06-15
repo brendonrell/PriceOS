@@ -7330,6 +7330,13 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     position: static;
     bottom: auto;
 }
+/* The colour-picker / sort row is a sibling of the pill rows with no column
+   gap of its own (the project/profile bars get this gap from the hero column).
+   Without it the row sits shoved against the pills above — give it the same
+   16px breathing room the search row gets. (Brendon, 2026-06-15) */
+.home-facet-bar .sort-bar {
+    margin-top: 16px;
+}
 /* Home search row — match the breathing room the project bar gets above its
    search input from the hero column gap (16px). The home facet bar has no
    column gap of its own, so the popped-open search sat flush under the pills. */
