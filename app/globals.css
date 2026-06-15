@@ -5494,40 +5494,32 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 .f-content { flex: 1; }
 
-/* Home activity feed — its event labels are variable-length (FIRST BLOOD,
-   GRADUATED, CENTURY CLUB, ASCENSION…) and overran the fixed type column.
-   Restructured (home-only classes): project title is the headline, the event is
-   an accent sub-line, the date sits right-aligned — scales to any label and
-   never overlaps. (Brendon, 2026-06-15) */
-.af-body {
-    flex: 1;
-    min-width: 0;            /* let long titles wrap instead of overflowing */
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-.af-title {
-    font-weight: bold;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-}
-.af-event {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.6;
-}
-/* Cap the home activity feed to a readable column on desktop — full-width rows
-   left a big awkward gap between content and the date (Brendon, 2026-06-15). */
+/* Home activity feed — SAME row shape as the New Uploads feed (icon · date ·
+   type · content); the milestone label just rides the type column, which we
+   widen here so labels like PER MILLE CLUB fit on one line. Capped to a column
+   on desktop so rows don't stretch the screen. (Brendon, 2026-06-15) */
 @media (min-width: 601px) {
     .home-activity-feed { max-width: 640px; }
+}
+.home-activity-feed .f-type { width: 112px; }
+@media (max-width: 600px) {
+    .home-activity-feed .f-type { width: 84px; font-size: 11px; }
 }
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
-.af-ic--grad { font-size: 11px; letter-spacing: -2px; }   /* ⟢⟢ doubled — fit the column */
+/* ⟢⟢ Graduated is MEANT to stand out — render it bigger and let it spill out of
+   the icon box into the gaps (overflow visible), box stays 14px so columns stay
+   aligned. (Brendon, 2026-06-15) */
+.af-ic--grad {
+    font-size: 21px;
+    letter-spacing: -2px;
+    white-space: nowrap;
+    overflow: visible;
+}
+@media (max-width: 600px) { .af-ic--grad { font-size: 17px; } }
 .f-content .ico-mutual,
 .f-content .ico-following,
 .f-content .ico-followers {
