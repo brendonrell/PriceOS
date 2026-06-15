@@ -7513,12 +7513,13 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
     letter-spacing: 0.04em;
     color: var(--text-color);
 }
-/* Shuffle byline — "Project by @artist" in Courier, in the New-Uploads header
-   spot (Brendon, 2026-06-15). */
+/* Shuffle byline — the PROJECT name uses the same Rubik treatment as the
+   New-Uploads / carousel titles (solid, not faint); only the "by @artist" tail
+   is Courier-secondary (Brendon, 2026-06-15). */
 .shuffle-title {
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
+    font-family: var(--font-rubik-mono), monospace;
     font-size: 13px;
+    letter-spacing: 0.04em;
     color: var(--text-color);
 }
 .shuffle-by {
