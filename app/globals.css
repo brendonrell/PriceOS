@@ -5493,6 +5493,37 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     flex-shrink: 0;
 }
 .f-content { flex: 1; }
+
+/* Home activity feed — its event labels are variable-length (FIRST BLOOD,
+   GRADUATED, CENTURY CLUB, ASCENSION…) and overran the fixed type column.
+   Restructured (home-only classes): project title is the headline, the event is
+   an accent sub-line, the date sits right-aligned — scales to any label and
+   never overlaps. (Brendon, 2026-06-15) */
+.af-body {
+    flex: 1;
+    min-width: 0;            /* let long titles wrap instead of overflowing */
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.af-title {
+    font-weight: bold;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.af-event {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+.af-date {
+    flex-shrink: 0;
+    opacity: 0.5;
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1.2;
+}
 .f-content .ico-mutual,
 .f-content .ico-following,
 .f-content .ico-followers {
