@@ -929,7 +929,9 @@ function ProfilePageBodyInner({
                             title="Profile action — coming soon"
                             onClick={() => showToast('Share: COMING SOON')}
                         >
-                            <span>SHARE</span>
+                            {/* Play icon stays on the soundtrack button no matter the
+                                label (Brendon, 2026-06-15). */}
+                            <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
                         </button>
                     </div>
 

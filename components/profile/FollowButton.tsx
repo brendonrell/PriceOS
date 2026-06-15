@@ -103,7 +103,7 @@ export default function FollowButton({
         title="Join the chat on Discord"
         onClick={() => openExternal(DISCORD_URL)}
       >
-        <span className="mint-lbl">DISCORD</span>
+        <span className="mint-lbl">Join The Chat</span>
       </button>
     );
   }

@@ -3013,7 +3013,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 /* Keep the identity row on ONE line. A long ENS shrinks to fit (JS in
    ProfilePageBody) rather than wrapping; desktop has room so nothing changes. */
-.id-row-fit { flex-wrap: nowrap; overflow: hidden; }
+/* padding-right gives the trailing copy glyph a safe zone so overflow:hidden
+   (the long-ENS clamp) can never shave its ink (Brendon, 2026-06-15). */
+.id-row-fit { flex-wrap: nowrap; overflow: hidden; padding-right: 5px; }
 .id-row-fit .artist-lockup a { white-space: nowrap; }
 .follower-count {
     font-family: 'Courier New', Courier, monospace;
@@ -3033,6 +3035,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     transition: opacity 0.12s ease;
     text-decoration: none;
     display: inline-block;
+    /* It rode a touch high against the address baseline — settle it down. */
+    position: relative;
+    top: 1px;
 }
 .id-copy:hover { opacity: 0.85; }
 .artist-lockup:hover .id-copy { text-decoration: none; }
