@@ -136,11 +136,38 @@ These belong to a *user*, never to an action.
 ## 7. Conventions
 
 - Always append **`︎`** (VS-15) so the glyph renders as text, not emoji.
+- **Strictly non-emoji / 100% iOS-safe.** A glyph is allowed only if iOS renders
+  it as a monochrome TEXT glyph, never a colour emoji. Many symbols carry an emoji
+  presentation iOS applies even WITH VS-15 — ☘ (shamrock), ☀ ♥ ♦ ⚡ ⚙, dice ⚀–⚅,
+  ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
+  before locking it. (Brendon, 2026-06-15.)
+- **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`) — reserved.
 - Force **Courier** (`'Courier New', Courier, monospace`) anywhere a glyph shows.
 - When a glyph doesn't fit a context, it's fine to **omit** it rather than force
   a mismatched icon (taste call — Brendon, 2026-06-14).
 - The eye should land on the *new state*, not the category — toast casing puts
   the changed thing in ALLCAPS.
+
+---
+
+## 8. Project milestones — home activity feed (`lib/home/milestones.ts`)
+
+The home feed's project-lifecycle events. All iOS-safe text glyphs, deliberately
+distinct from the reserved market stars (✶✹✦✸). Per-glyph size/alignment nudges
+live in `app/globals.css` (`.af-ic--*`).
+
+| Event | Count | Glyph | Codepoint | Note |
+|---|---|---|---|---|
+| Uploaded | — | ✧ | U+2727 | a new piece arrives |
+| Graduated | 12 | ⟢⟢ | U+27E2 ×2 | doubled — entered Now Minting |
+| First Blood | 1 | † | U+2020 | first mint (sized down a touch) |
+| Lucky 22 | 22 | ♧ | U+2667 | white club = clover/luck (☘ is emoji — banned) |
+| Century Club | 100 | Ⅽ | U+216D | Roman numeral 100 |
+| Halo | 777 | ⬭ | U+2B2D | tilted oval halo (raised — it sits low) |
+| Per Mille Club | 1,000 | ‰ | U+2030 | the logo mark, rendered in **Inter** |
+| Archetype | 1,200 | ✷ | U+2737 | heavy 6-point star (the 12-point ✹ is Listed) |
+| Hi-Def | 4,000 | ⬢ | U+2B22 | crystal facet |
+| Ascension | sold out | △ | U+25B3 | rising triangle |
 
 ---
 

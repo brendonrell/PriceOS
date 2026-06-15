@@ -18,17 +18,34 @@ export interface ProjectMilestone {
     key: string;
     /** Feed label — ALLCAPS, the changed state. */
     label: string;
+    /** Feed glyph (iOS-safe, non-emoji — see docs/GLYPHS.md). */
+    glyph: string;
+    /** Optional per-glyph CSS class for size/alignment nudges. */
+    cls?: string;
 }
 
 export const PROJECT_MILESTONES: readonly ProjectMilestone[] = [
-    { count: 1,    key: '1',    label: 'FIRST BLOOD' },
-    { count: 22,   key: '22',   label: 'LUCKY 22' },
-    { count: 100,  key: '100',  label: 'CENTURY CLUB' },
-    { count: 777,  key: '777',  label: 'HALO' },
-    { count: 1000, key: '1000', label: 'PER MILLE CLUB' },
-    { count: 1200, key: '1200', label: 'ARCHETYPE' },
-    { count: 4000, key: '4000', label: 'HI-DEF' },
+    { count: 1,    key: '1',    label: 'FIRST BLOOD',    glyph: '†', cls: 'af-ic--dagger' },
+    { count: 22,   key: '22',   label: 'LUCKY 22',       glyph: '♧' },
+    { count: 100,  key: '100',  label: 'CENTURY CLUB',   glyph: 'Ⅽ' },
+    { count: 777,  key: '777',  label: 'HALO',           glyph: '⬭', cls: 'af-ic--oval' },
+    { count: 1000, key: '1000', label: 'PER MILLE CLUB', glyph: '‰', cls: 'af-ic--mille' },
+    { count: 1200, key: '1200', label: 'ARCHETYPE',      glyph: '✷' },
+    { count: 4000, key: '4000', label: 'HI-DEF',         glyph: '⬢' },
 ];
+
+/** Lifecycle feed events that aren't count milestones (their own columns/feed). */
+export const FEED_LIFECYCLE = {
+    upload:    { label: 'UPLOADED',  glyph: '✧' },
+    graduated: { label: 'GRADUATED', glyph: '⟢⟢', cls: 'af-ic--grad' },
+    ascension: { label: 'ASCENSION', glyph: '△' },
+} as const;
+
+/** The milestone config for a key/count, or null if not configured. */
+export function milestoneByKey(key: string | number): ProjectMilestone | null {
+    const k = String(key);
+    return PROJECT_MILESTONES.find((m) => m.key === k) ?? null;
+}
 
 /** Label for a milestone key/count, or null if it isn't a configured milestone. */
 export function milestoneLabel(key: string | number): string | null {

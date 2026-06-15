@@ -5524,6 +5524,12 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     font-size: 12px;
     line-height: 1.2;
 }
+/* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
+   pixel sign-off is a real device — iOS Courier). */
+.af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
+.af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
+.af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
+.af-ic--grad { font-size: 11px; letter-spacing: -2px; }   /* ⟢⟢ doubled — fit the column */
 .f-content .ico-mutual,
 .f-content .ico-following,
 .f-content .ico-followers {

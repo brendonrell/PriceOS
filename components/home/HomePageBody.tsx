@@ -45,7 +45,7 @@ import HomeProjectFacetBar, {
     type HomeSortKey,
     type HomeSortDir,
 } from './HomeProjectFacetBar';
-import { milestoneLabel } from '../../lib/home/milestones';
+import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -85,7 +85,7 @@ type HomeTab = 'minting' | 'new' | 'shuffle';
 /* Home activity-feed item — a project lifecycle moment (uploaded · graduated ·
    each project milestone · sold-out/ascension). `label` is the ALLCAPS event
    name shown in the feed. */
-interface HomeFeedItem { slug: string; title: string; label: string; ts: number }
+interface HomeFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number }
 
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
@@ -350,25 +350,30 @@ function HomePageBodyInner({
        contributes both its upload and graduation rows. */
     const feedView = useMemo<HomeFeedItem[]>(() => {
         const items: HomeFeedItem[] = [];
-        const add = (slug: string, fallbackTitle: string, label: string, ms: number | null) => {
+        const push = (
+            slug: string, fallbackTitle: string,
+            label: string, glyph: string, cls: string | undefined,
+            ms: number | null,
+        ) => {
             if (ms == null) return;
-            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, label, ts: ms });
+            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, label, glyph, cls, ts: ms });
         };
         const addMilestones = (slug: string, title: string, ms: Record<string, number>) => {
             for (const [count, ts] of Object.entries(ms)) {
-                const label = milestoneLabel(count);
-                if (label) add(slug, title, label, ts);
+                const m = milestoneByKey(count);
+                if (m) push(slug, title, m.label, m.glyph, m.cls, ts);
             }
         };
+        const L = FEED_LIFECYCLE;
         for (const u of feed?.uploads ?? []) {
-            add(u.slug, u.title, 'UPLOADED', u.uploaded_at);
+            push(u.slug, u.title, L.upload.label, L.upload.glyph, undefined, u.uploaded_at);
             addMilestones(u.slug, u.title, u.milestones);
         }
         for (const m of feed?.minting_now ?? []) {
-            add(m.slug, m.title, 'UPLOADED', m.uploaded_at);
+            push(m.slug, m.title, L.upload.label, L.upload.glyph, undefined, m.uploaded_at);
             addMilestones(m.slug, m.title, m.milestones);
-            add(m.slug, m.title, 'GRADUATED', m.reached_at);
-            add(m.slug, m.title, 'ASCENSION', m.sold_out_at);
+            push(m.slug, m.title, L.graduated.label, L.graduated.glyph, L.graduated.cls, m.reached_at);
+            push(m.slug, m.title, L.ascension.label, L.ascension.glyph, undefined, m.sold_out_at);
         }
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
         items.sort((a, b) => (a.ts - b.ts) * dirMult);
@@ -681,7 +686,7 @@ function HomePageBodyInner({
                             feedView.map((ev) => (
                                 <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                     <div className="feed-line" />
-                                    <div className="f-icon-wrap">⌗&#xFE0E;</div>
+                                    <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
                                     <div className="af-body">
                                         <a className="af-title f-highlight" href={`/art/${ev.slug}`}>
                                             {ev.title}
