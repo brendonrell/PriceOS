@@ -58,8 +58,8 @@ export interface EnrichedProject {
 
 /* Local sort model for the home sort-bar (kept off the global SortContext).
    'feed' swaps the carousels for the activity feed (new-art events for now;
-   more event kinds later — Brendon 2026-06-15). */
-export type HomeSortKey = 'date' | 'price' | 'feed';
+   more event kinds later — Brendon 2026-06-15). 'az' sorts by project name. */
+export type HomeSortKey = 'date' | 'price' | 'feed' | 'az';
 export type HomeSortDir = 'asc' | 'desc';
 
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
@@ -345,6 +345,17 @@ export default function HomeProjectFacetBar({
                     >
                         <span className="sort-lbl">FEED</span>
                         <span className="sort-arrow">{arrow('feed')}</span>
+                    </span>
+                    <span
+                        className={`sort-btn${sortKey === 'az' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Sort A–Z by name"
+                        onClick={() => onSort('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('az'); } }}
+                    >
+                        <span className="sort-lbl">A–Z</span>
+                        <span className="sort-arrow">{arrow('az')}</span>
                     </span>
                 </div>
             </div>

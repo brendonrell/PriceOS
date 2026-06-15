@@ -265,7 +265,7 @@ function HomePageBodyInner({
         setMintSort((prev) =>
             prev.key === key
                 ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
-                : { key, dir: key === 'price' ? 'asc' : 'desc' },
+                : { key, dir: key === 'price' || key === 'az' ? 'asc' : 'desc' },
         );
     const applyMintSort = (key: HomeSortKey, dir: HomeSortDir) => setMintSort({ key, dir });
 
@@ -345,6 +345,8 @@ function HomePageBodyInner({
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
         if (mintSort.key === 'price') {
             filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
+        } else if (mintSort.key === 'az') {
+            filtered.sort((a, b) => a.title.localeCompare(b.title) * dirMult || a.slug.localeCompare(b.slug));
         } else {
             // 'date' + 'feed' order by WHEN THE PROJECT STARTED MINTING (crossed
             // 12), newest first by default — so a fresh graduation pops straight
