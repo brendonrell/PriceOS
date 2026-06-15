@@ -6,15 +6,43 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/laughing-fermat-tnwp41` is trash (work is on dev) — Brendon deletes on GitHub.
-  **Stale local-dev is now SELF-HEALING:** the SessionStart hook re-syncs local `dev` to
-  `origin/dev` every chat, so the recurring divergence can't return (root cause = commits
-  landing on local dev; the hook reconciles on start).
-- **Updated:** 2026-06-15 (later). This session = **6 spot edits** (see 🧰 below). Prior
-  context still valid: profile + favicon pass (🎯), THE BENCH + CART + Ambient/Zen (🪑),
-  BUILD-TO-SPEC & ICON-GLOSSARY rules; 2026-06-14: minting/profile fixes (🐛), Digital
-  Familiar (🐾), security sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+- **Branch:** all work is on `dev`, pushed, tree clean (head `7ba8b63`). This chat's task
+  branch `claude/tender-mendel-frkw4f` is trash (work is on dev) — Brendon deletes on GitHub.
+  **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
+- **Updated:** 2026-06-15 (latest). This session = **home Now-Minting transplant + offline
+  worker removed** (see 🏠 below). Prior context still valid: 6 spot edits (🧰), profile +
+  favicon (🎯), BENCH/CART/Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾),
+  security sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+
+## 🏠 HOME = COLLECTED CONTROL SURFACE + SW REMOVAL 2026-06-15 (latest) — SHIPPED to dev
+- **Now-Minting transplant:** the home Now-Minting view now wears the full profile-Collected
+  control surface, operating on **projects** (each carousel = one "thing"). Facet pills from each
+  project's **birth moment** (upload time) — Artist · @name · PriceDay · Sun · Moon · Rising ·
+  Fate — computed live (same model as outputs, **no DB**) via new `projectTraits` / `projectFate`
+  / `mintProgress` in `lib/project/registry.ts`. **Status facet = Mint Progress** (Fresh / Filling
+  / Almost Gone). Colorway picker, search, **mint-price** range filter. Sort row = Date (birth
+  order) · $ Mint · Feed. **Local sort, kept OFF the global SortContext** so project pages' default
+  sort can't drift. New `components/home/HomeProjectFacetBar.tsx`. **New Art tab unchanged**
+  (keeps `HomeFacetBar`).
+- **Home Feed:** the FEED sort shows the new-art (upload) events **for now**; more event kinds
+  later (Brendon). `feedView` in `HomePageBody`.
+- **Multi-select = ownership-aware** (home = the one MIXED-ownership zone): cards publish live
+  market state to `lib/home/visibleMarketStore.ts` while ms-active; `HomeMsFloatBar` splits owner
+  vs buyer actions per selected piece, each action on its eligible subset. `ArtworkCard` gained a
+  small gated publish effect (inert off-home).
+- **Home payload:** `minting_now` rows now carry `uploaded_at` (birth) + `max_supply` (progress).
+- **Colorway lands on Custom when no pick saved** (logged-out / first visit) — `colorway ?? 'custom'`.
+- **Bar spacing fixed:** the colour/sort row had no spacing of its own (it leaned on the removed
+  pin) → explicit 16px top gap; removed the project-gallery sticky-pin from the home bar
+  (`.home-facet-bar`-scoped) that caught the browser edge in landscape; +12px above top carousel.
+- **OFFLINE SERVICE WORKER REMOVED (Brendon's call):** it was handing devices stale builds even
+  when online. `public/sw.js` self-destructs (clears caches, unregisters, reloads tabs);
+  `SwRegistrar` no longer registers — unregisters + clears caches. App runs straight from network,
+  **zero SW storage on devices**; deploys show up without the cache fight.
+- **DEFERRED / QUEUED:** project **+More tab** birth-traits readout (show each project's astrology /
+  hexagram / PriceDay on its page — its own surface, not built); **all-pages landscape audit**
+  (Brendon wants every page solid in landscape — its own pass, not started); persist project
+  birth-traits to DB only if on-chain/indexer/OpenSea need it (decided: compute live for now).
 
 ## 🧰 SPOT EDITS 2026-06-15 (later) — SHIPPED to dev
 Brendon's 8-item spot-edit pass; **6 shipped**, 2 set aside on his word (48kb thumbnails —
