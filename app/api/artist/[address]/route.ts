@@ -19,6 +19,31 @@ export interface ArtistProjectSummary {
   max_supply: number;
   floor_price_eth: string | null;
   volume_eth: string;
+  /** Upload moment (Unix ms) — the project's "birth"; source for its PriceDay +
+      Natal facets. Null when unknown. */
+  uploaded_at: number | null;
+  /** When the project crossed the Now-Minting threshold (Unix ms), or null. */
+  reached_at: number | null;
+  /** When the project fully sold out (Unix ms), or null. */
+  sold_out_at: number | null;
+  /** Project milestones reached: { "<count>": unix-ms }. */
+  milestones: Record<string, number>;
+}
+
+/* The 60-day artist cooldown clock fires at UPLOAD, so cooldown_until − 60d is
+   the upload moment when no dedicated uploaded_at is stamped (mirrors homeData). */
+const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
+
+/* JSONB { "<count>": iso } -> { "<count>": unix-ms }, dropping unparseable. */
+function msMap(raw: Record<string, string> | null): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (raw) {
+    for (const [k, v] of Object.entries(raw)) {
+      const t = new Date(v).getTime();
+      if (Number.isFinite(t)) out[k] = t;
+    }
+  }
+  return out;
 }
 
 export interface ArtistResponse {
@@ -47,7 +72,7 @@ export async function GET(
       db.from('users').select('ens_name, handle').eq('address', address).maybeSingle(),
       db
         .from('projects')
-        .select('id, title, minted_count, max_supply, cooldown_until')
+        .select('id, title, minted_count, max_supply, cooldown_until, uploaded_at, graduated_at, sold_out_at, milestones')
         .eq('artist_address', address),
     ]);
     if (projRes.error) return serverError(projRes.error.message);
@@ -59,6 +84,10 @@ export async function GET(
       minted_count: number | null;
       max_supply: number | null;
       cooldown_until: string | null;
+      uploaded_at: string | null;
+      graduated_at: string | null;
+      sold_out_at: string | null;
+      milestones: Record<string, string> | null;
     }[];
 
     // Floor (lowest active listing) + volume (sum of priced events) per project.
@@ -104,6 +133,14 @@ export async function GET(
         max_supply: p.max_supply ?? 0,
         floor_price_eth: floorByProj[p.id] !== undefined ? String(floorByProj[p.id]) : null,
         volume_eth: fmt(v),
+        uploaded_at: p.uploaded_at
+          ? new Date(p.uploaded_at).getTime()
+          : p.cooldown_until
+            ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
+            : null,
+        reached_at: p.graduated_at ? new Date(p.graduated_at).getTime() : null,
+        sold_out_at: p.sold_out_at ? new Date(p.sold_out_at).getTime() : null,
+        milestones: msMap(p.milestones),
       };
     });
 

@@ -110,8 +110,8 @@ function sanitisePatch(
 
     if ('showcase_style' in body) {
         const v = body.showcase_style;
-        if (v !== 'static' && v !== 'generative') {
-            return { ok: false, reason: "showcase_style must be 'static' or 'generative'" };
+        if (v !== 'static' && v !== 'generative' && v !== 'artist') {
+            return { ok: false, reason: "showcase_style must be 'static', 'generative' or 'artist'" };
         }
         patch.showcase_style = v;
     }

@@ -51,7 +51,15 @@ import AchievementsGrid from '../achievements/AchievementsGrid';
 import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
-import { getProject, outputTraits, allProjects, projectsByArtist } from '../../lib/project/registry';
+import { getProject, outputTraits, allProjects, projectsByArtist, projectTraits } from '../../lib/project/registry';
+import HomeProjectFacetBar, {
+    projectFacetValueOf,
+    type EnrichedProject,
+    type HomeSortKey,
+    type HomeSortDir,
+} from '../home/HomeProjectFacetBar';
+import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
+import { effectiveShowcaseStyle } from '../../lib/profile/showcaseStyle';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
@@ -80,10 +88,39 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements';
-/* Artist Showcase: 'created' = carousels of the projects this artist made
-   (the home-page carousel pattern); 'regular' = their curated top-6 grid. */
+type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements';
+/* Artist Showcase (Artist style): 'created' = the now-minting view of the
+   projects this artist made; 'regular' = their curated Top 6 grid. */
 type ShowcaseView = 'created' | 'regular';
+
+/* Per-project live stats for an artist's own projects (from /api/artist) —
+   feeds the showcase facet bar's birth/Status facets, date sort, and feed. */
+interface ArtistProjStat {
+    minted_count: number;
+    uploaded_at: number | null;
+    reached_at: number | null;
+    sold_out_at: number | null;
+    milestones: Record<string, number>;
+}
+
+/* Artist showcase facets = the home set minus Artist + Project (redundant for a
+   single artist); Created · Top 6 lead the row in their place. */
+const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate'] as const;
+
+/* A home activity-feed item for the artist showcase Created feed. */
+interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number }
+
+function fmtFeedDate(ms: number | null): string {
+    if (ms == null) return '—';
+    return new Date(ms)
+        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
+        .toUpperCase();
+}
+function fmtFeedTime(ms: number | null): string {
+    if (ms == null) return '—';
+    return new Date(ms)
+        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+}
 
 /* Outputs per artist-project carousel (matches the home carousel). */
 const CAROUSEL_SIZE = 12;
@@ -296,6 +333,19 @@ function ProfilePageBodyInner({
         const pool = allProjects().flatMap((p) => p.aspects);
         const aspects = pool.length ? pool : [1];
         return Array.from({ length: 6 }, (_, i) => {
+            const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
+            return aspects[Math.floor(h * aspects.length) % aspects.length];
+        });
+    }, []);
+
+    /* Empty-state ghost frames for the Collected grid — same idea as the
+       Showcase ghosts, a fuller grid so an empty Collected tab still shows the
+       normal layout with placeholder frames instead of artwork (Brendon
+       2026-06-15). */
+    const collectedGhosts = useMemo(() => {
+        const pool = allProjects().flatMap((p) => p.aspects);
+        const aspects = pool.length ? pool : [1];
+        return Array.from({ length: 12 }, (_, i) => {
             const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
             return aspects[Math.floor(h * aspects.length) % aspects.length];
         });
@@ -662,22 +712,145 @@ function ProfilePageBodyInner({
         return events;
     }, [feedRows, feedKind, dir]);
 
-    /* Artist Showcase (Brendon, 2026-06-13): on an artist's page the Showcase
-       tab gains trait pills — Created (carousels of the projects they made,
-       like the home page) and Regular (their curated top-6 grid). Non-artist
-       profiles are unchanged: no pills, Regular only. */
+    /* Artist Showcase (Brendon, 2026-06-15): a whitelisted artist's Showcase
+       tab becomes the home Now-Minting view, scoped to their own projects, when
+       their showcase style is 'artist' (the default once whitelisted). Created ·
+       Top 6 lead the facet row in place of Artist + Project. Artists who keep
+       the traditional Top-6 instead get a Created sub-tab under +More. */
     const isArtist = !!artistStatus;
     const artistProjects = useMemo(
         () => (isArtist ? projectsByArtist(user.handle ?? handle) : []),
         [isArtist, user.handle, handle],
     );
     const hasCreated = artistProjects.length > 0;
-    /* Default an artist page's Showcase to the new Created carousels; fall to
-       Regular if they somehow have no registered projects. */
-    const [showcaseView, setShowcaseView] = useState<ShowcaseView>(
-        () => (isArtist && hasCreated ? 'created' : 'regular'),
+
+    const effStyle = effectiveShowcaseStyle(user.showcase_style, isArtist);
+    const artistMode = onShowcase && isArtist && effStyle === 'artist';
+    const createdUnderMore = isArtist && effStyle !== 'artist' && hasCreated;
+
+    /* Created vs Top 6 toggle inside the Artist-style showcase. */
+    const [showcaseView, setShowcaseView] = useState<ShowcaseView>('created');
+    const artistShowcaseCreated = artistMode && showcaseView === 'created';
+
+    /* Live per-project stats for this artist's projects (birth time, mint
+       count, graduation, sold-out, milestones) — the ledger timestamps the
+       registry can't carry, feeding the showcase facets / sort / feed. */
+    const [artistProjStats, setArtistProjStats] = useState<Record<string, ArtistProjStat>>({});
+    useEffect(() => {
+        if (!isArtist) { setArtistProjStats({}); return; }
+        let cancelled = false;
+        const load = () =>
+            fetch(`/api/artist/${user.address.toLowerCase()}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { projects?: Array<ArtistProjStat & { id: string }> } | null) => {
+                    if (cancelled || !d?.projects) return;
+                    const m: Record<string, ArtistProjStat> = {};
+                    for (const p of d.projects) {
+                        m[p.id] = {
+                            minted_count: p.minted_count ?? 0,
+                            uploaded_at: p.uploaded_at ?? null,
+                            reached_at: p.reached_at ?? null,
+                            sold_out_at: p.sold_out_at ?? null,
+                            milestones: p.milestones ?? {},
+                        };
+                    }
+                    setArtistProjStats(m);
+                })
+                .catch(() => {});
+        load();
+        const onRefresh = () => load();
+        window.addEventListener('pd:project-refresh', onRefresh);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
+    }, [isArtist, user.address]);
+
+    /* Each project enriched with computed birth-traits + live Status + mint
+       price — the project-level analogue of an Output's traits (same model the
+       home Now-Minting view uses). */
+    const enrichedArtistProjects = useMemo<EnrichedProject[]>(
+        () => artistProjects.map((p) => {
+            const st = artistProjStats[p.slug];
+            return {
+                slug: p.slug,
+                title: p.displayName,
+                mintPriceEth: p.mintPriceEth,
+                minted: st?.minted_count ?? 0,
+                birthMs: st?.uploaded_at ?? null,
+                reachedMs: st?.reached_at ?? null,
+                traits: projectTraits(p.slug, st?.uploaded_at ?? undefined, st?.minted_count),
+            };
+        }),
+        [artistProjects, artistProjStats],
     );
-    const showcaseCreated = onShowcase && isArtist && hasCreated && showcaseView === 'created';
+
+    /* Showcase sort — LOCAL (off the global SortContext), same model as home. */
+    const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>({ key: 'date', dir: 'desc' });
+    const onMintSort = (key: HomeSortKey) =>
+        setMintSort((prev) =>
+            prev.key === key
+                ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+                : { key, dir: key === 'price' || key === 'az' ? 'asc' : 'desc' },
+        );
+    const applyMintSort = (key: HomeSortKey, dir: HomeSortDir) => setMintSort({ key, dir });
+
+    /* Filter + sort the artist's projects by the showcase facets / search /
+       mint-price range — the home Now-Minting predicate, scoped to one artist. */
+    const visibleArtistProjects = useMemo<EnrichedProject[]>(() => {
+        const minV = parseFloat(priceMin);
+        const maxV = parseFloat(priceMax);
+        const hasMin = !Number.isNaN(minV);
+        const hasMax = !Number.isNaN(maxV);
+        const q = searchQuery.trim().toLowerCase();
+        // Only this view's own facets — so a filter left over from the Collected
+        // tab (Artist/Project) can't wipe the showcase (shared TraitsContext).
+        const showcaseFacets = ARTIST_SHOWCASE_FACETS as readonly string[];
+        const activeCats = Object.keys(activeFilters).filter(
+            (c) => activeFilters[c].size > 0 && showcaseFacets.includes(c),
+        );
+        const filtered = enrichedArtistProjects.filter((p) => {
+            for (const cat of activeCats) {
+                const v = projectFacetValueOf(cat, p);
+                if (v === undefined || !activeFilters[cat].has(v)) return false;
+            }
+            if (q && !`${p.traits.Project ?? ''} ${p.title}`.toLowerCase().includes(q)) return false;
+            if (hasMin && p.mintPriceEth < minV) return false;
+            if (hasMax && p.mintPriceEth > maxV) return false;
+            return true;
+        });
+        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
+        if (mintSort.key === 'price') {
+            filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
+        } else if (mintSort.key === 'az') {
+            filtered.sort((a, b) => a.title.localeCompare(b.title) * dirMult || a.slug.localeCompare(b.slug));
+        } else {
+            filtered.sort((a, b) => ((a.reachedMs ?? -Infinity) - (b.reachedMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
+        }
+        return filtered;
+    }, [enrichedArtistProjects, activeFilters, searchQuery, priceMin, priceMax, mintSort]);
+
+    /* Activity feed for the showcase Created view (FEED sort) — the artist's
+       project lifecycle moments (uploaded · milestones · graduated · sold out). */
+    const artistFeedView = useMemo<ArtistFeedItem[]>(() => {
+        const items: ArtistFeedItem[] = [];
+        const push = (slug: string, title: string, label: string, glyph: string, cls: string | undefined, ms: number | null) => {
+            if (ms == null) return;
+            items.push({ slug, title, label, glyph, cls, ts: ms });
+        };
+        const L = FEED_LIFECYCLE;
+        for (const p of artistProjects) {
+            const st = artistProjStats[p.slug];
+            if (!st) continue;
+            push(p.slug, p.displayName, L.upload.label, L.upload.glyph, undefined, st.uploaded_at);
+            for (const [count, ts] of Object.entries(st.milestones)) {
+                const m = milestoneByKey(count);
+                if (m) push(p.slug, p.displayName, m.label, m.glyph, m.cls, ts);
+            }
+            push(p.slug, p.displayName, L.graduated.label, L.graduated.glyph, L.graduated.cls, st.reached_at);
+            push(p.slug, p.displayName, L.ascension.label, L.ascension.glyph, undefined, st.sold_out_at);
+        }
+        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
+        items.sort((a, b) => (a.ts - b.ts) * dirMult);
+        return items;
+    }, [artistProjects, artistProjStats, mintSort.dir]);
 
     // ── Zen mode: Albums-only in + More sub-nav ───────────────────────
     useEffect(() => {
@@ -689,22 +862,34 @@ function ProfilePageBodyInner({
        sections do not exist at all: no pills, no content, no notes
        (Brendon 2026-06-10). moreL1 can hold a stale private key after
        navigating own profile → other profile, so clamp it for visitors. */
-    const effMoreL1: ProfileMoreL1 =
-        !isOwnProfile && (moreL1 === 'starred' || moreL1 === 'wishlists')
-            ? 'albums'
-            : moreL1;
+    const effMoreL1: ProfileMoreL1 = (() => {
+        let v = moreL1;
+        // 'created' only exists for traditional-Top-6 artists with projects.
+        if (v === 'created' && !createdUnderMore) v = 'albums';
+        // Visitors never see private Starred/Wishlists — fall to Created (when
+        // this artist surfaces it) else Albums.
+        if (!isOwnProfile && (v === 'starred' || v === 'wishlists')) {
+            v = createdUnderMore ? 'created' : 'albums';
+        }
+        return v;
+    })();
     const onStarredTab = onMore && isOwnProfile && effMoreL1 === 'starred';
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
-    /* #gallery shows for Collected and for the Regular showcase grid; the
-       Created view replaces it with project carousels below. */
-    const galleryVisible = ((onShowcase && !showcaseCreated) || onCollected) && !feedActive;
+    /* Created carousels shown either inside the Artist-style showcase or as the
+       +More sub-tab for traditional-Top-6 artists. */
+    const moreCreatedActive = onMore && createdUnderMore && effMoreL1 === 'created';
+    const createdCarouselsActive =
+        (artistShowcaseCreated && mintSort.key !== 'feed') || moreCreatedActive;
+    /* #gallery shows for Collected and for the Top 6 grid; the Created view
+       replaces it with project carousels below. */
+    const galleryVisible = ((onShowcase && !artistShowcaseCreated) || onCollected) && !feedActive;
 
     /* Mouse drag-to-scroll for the artist-project carousels — same handler as
        the home page. Touch swipes natively; this is the desktop grab-drag. A
        drag past a few px swallows the trailing click so it doesn't open a
        card. Re-binds when the Created view (re)mounts the tracks. */
     useEffect(() => {
-        if (!showcaseCreated) return;
+        if (!createdCarouselsActive) return;
         const tracks = Array.from(
             document.querySelectorAll<HTMLElement>('.home-carousel-track'),
         );
@@ -750,7 +935,7 @@ function ProfilePageBodyInner({
         });
         return () => cleanups.forEach((c) => c());
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showcaseCreated, artistProjects]);
+    }, [createdCarouselsActive, artistProjects, visibleArtistProjects.length]);
 
     return (
         <>
@@ -986,6 +1171,11 @@ function ProfilePageBodyInner({
                                 (isZen
                                     ? [{ key: 'albums', label: 'Albums', active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
+                                        /* Created leads the row for traditional-Top-6
+                                           artists — their works are always reachable. */
+                                        ...(createdUnderMore
+                                            ? [{ key: 'created', label: 'Created', active: effMoreL1 === 'created', onClick: () => setMoreL1('created') }]
+                                            : []),
                                         /* Starred + Wishlists are private — the
                                            pills exist on YOUR OWN profile only. */
                                         ...(isOwnProfile
@@ -1116,16 +1306,22 @@ function ProfilePageBodyInner({
                         platform facets every Output carries. */}
                     {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
 
-                    {/* Artist Showcase trait pills — Created (project carousels)
-                        / Regular (curated grid). Artist pages only; same pill
-                        surface as the +More sub-nav. */}
-                    {onShowcase && isArtist && hasCreated && (
-                        <TraitsUI
-                            visible
-                            hideSortBar
-                            profilePills={[
+                    {/* Artist-style Showcase — the home Now-Minting control surface
+                        over this artist's own projects. Created · Top 6 lead the
+                        facet row (in place of Artist + Project); Top 6 collapses to
+                        the curated grid. */}
+                    {artistMode && (
+                        <HomeProjectFacetBar
+                            projects={enrichedArtistProjects}
+                            sortKey={mintSort.key}
+                            sortDir={mintSort.dir}
+                            onSort={onMintSort}
+                            applySort={applyMintSort}
+                            facets={ARTIST_SHOWCASE_FACETS}
+                            compact={showcaseView === 'regular'}
+                            leadPills={[
                                 { key: 'created', label: 'Created', active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
-                                { key: 'regular', label: 'Regular', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
+                                { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
                             ]}
                         />
                     )}
@@ -1187,13 +1383,17 @@ function ProfilePageBodyInner({
                                   onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined}
                               />
                           )))
-                    : collectedByProject.map(({ slug, ids }) => (
-                          <ProjectProvider key={slug} slug={slug}>
-                              {ids.map((id) => (
-                                  <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge />
-                              ))}
-                          </ProjectProvider>
-                      ))}
+                    : enriched.length === 0
+                        ? collectedGhosts.map((aspect, i) => (
+                              <GhostCard key={`coghost-${i}`} aspect={aspect} index={i} />
+                          ))
+                        : collectedByProject.map(({ slug, ids }) => (
+                              <ProjectProvider key={slug} slug={slug}>
+                                  {ids.map((id) => (
+                                      <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge />
+                                  ))}
+                              </ProjectProvider>
+                          ))}
             </section>
 
             {/* Activity feed — this wallet's own ledger events, reached via the
@@ -1219,10 +1419,50 @@ function ProfilePageBodyInner({
                 </div>
             </section>
 
-            {/* Artist Showcase · Created — carousels of the projects this
-                artist made, one row each (home-page carousel pattern). Only
-                the first row paints eagerly; the rest lazy-paint on scroll. */}
-            {showcaseCreated && (
+            {/* Artist-style Showcase · Created — the Now-Minting carousels of this
+                artist's own projects, filtered + sorted by the showcase facet bar.
+                FEED sort swaps them for the lifecycle activity feed. */}
+            {artistShowcaseCreated && mintSort.key !== 'feed' && (
+                <section aria-label="Created projects">
+                    {visibleArtistProjects.length === 0 ? (
+                        <div className="home-empty-note">
+                            No projects match — clear the filters to see them all.
+                        </div>
+                    ) : visibleArtistProjects.map((p, i) => (
+                        <ProjectProvider key={p.slug} slug={p.slug} initialTotal={p.minted}>
+                            <ArtistProjectCarousel eager={i === 0} />
+                        </ProjectProvider>
+                    ))}
+                </section>
+            )}
+
+            {/* Artist-style Showcase · Created · FEED — project lifecycle events. */}
+            {artistShowcaseCreated && mintSort.key === 'feed' && (
+                <section className="home-uploads" aria-label="Activity Feed">
+                    <div className="feed-list home-activity-feed">
+                        {artistFeedView.length === 0 ? (
+                            <GhostFeedRows />
+                        ) : artistFeedView.map((ev) => (
+                            <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
+                                <div className="feed-line" />
+                                <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
+                                <div className="f-time">{fmtFeedDate(ev.ts)}</div>
+                                <div className="f-type af-type">
+                                    <span>{ev.label}</span>
+                                    <span>{fmtFeedTime(ev.ts)}</span>
+                                </div>
+                                <div className="f-content">
+                                    <a className="f-highlight upload-title" href={`/art/${ev.slug}`}>{ev.title}</a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* +More · Created — for traditional-Top-6 artists, their works are
+                always reachable here as plain carousels (home-page pattern). */}
+            {moreCreatedActive && (
                 <section aria-label="Created projects">
                     {artistProjects.map((p, i) => (
                         <ProjectProvider key={p.slug} slug={p.slug}>

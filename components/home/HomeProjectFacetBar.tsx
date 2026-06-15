@@ -103,12 +103,24 @@ const THEME_NAMES: Record<string, string> = {
     custom: 'Custom', light: 'Light Mode', dark: 'Dark Mode', orange: 'Orange Mode',
 };
 
+/** A leading view-toggle pill (e.g. Created · Top 6 on the artist showcase),
+ *  rendered before the facet pills in the same row. */
+export interface FacetLeadPill {
+    key: string;
+    label: string;
+    active: boolean;
+    onClick: () => void;
+}
+
 export default function HomeProjectFacetBar({
     projects,
     sortKey,
     sortDir,
     onSort,
     applySort,
+    facets,
+    leadPills,
+    compact = false,
 }: {
     projects: EnrichedProject[];
     sortKey: HomeSortKey;
@@ -117,6 +129,15 @@ export default function HomeProjectFacetBar({
     onSort: (key: HomeSortKey) => void;
     /** Restore a sort snapshot (Grid Presets). */
     applySort: (key: HomeSortKey, dir: HomeSortDir) => void;
+    /** Facet pills to offer (default: the full home set). The artist showcase
+        drops Artist + Project (redundant for a single artist) and leads with
+        Created · Top 6 view-toggle pills instead. */
+    facets?: readonly string[];
+    /** View-toggle pills rendered before the facet pills (Created · Top 6). */
+    leadPills?: FacetLeadPill[];
+    /** Strip everything but the lead pills + colorway squares — used by the
+        Top 6 grid view, where facet filtering / sorting don't apply. */
+    compact?: boolean;
 }) {
     const {
         activeCategory,
@@ -149,11 +170,13 @@ export default function HomeProjectFacetBar({
        lands on Custom rather than nothing highlighted (Brendon, 2026-06-15). */
     const activeColorway = colorway ?? 'custom';
 
+    const facetList = facets ?? HOME_FACETS;
+
     /* Facet → present value pool, from the live minting projects. Only facets
        with ≥1 value render. */
     const facetValues = useMemo(() => {
         const m = new Map<string, string[]>();
-        for (const facet of HOME_FACETS) {
+        for (const facet of facetList) {
             const seen = new Set<string>();
             for (const p of projects) {
                 const v = projectFacetValueOf(facet, p);
@@ -162,9 +185,9 @@ export default function HomeProjectFacetBar({
             if (seen.size > 0) m.set(facet, sortValues(facet, [...seen]));
         }
         return m;
-    }, [projects]);
+    }, [projects, facetList]);
 
-    const liveFacets = HOME_FACETS.filter((f) => facetValues.has(f));
+    const liveFacets = facetList.filter((f) => facetValues.has(f));
     const openValues = activeCategory && facetValues.get(activeCategory);
 
     const setColorwayWithToast = (key: ColorwayKey) => {
@@ -175,14 +198,29 @@ export default function HomeProjectFacetBar({
     const arrow = (key: HomeSortKey) =>
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
-    if (projects.length === 0) return null;
+    if (projects.length === 0 && !leadPills) return null;
 
     return (
         <div className="home-facet-bar">
             <div className="traits-ui" style={{ display: 'flex' }}>
                 <div className="traits-header-bar">
                     <div className="stats-container" id="traitCategories">
-                        {liveFacets.map((facet) => {
+                        {leadPills?.map((p) => (
+                            <div
+                                key={p.key}
+                                className={`pill pill-l1${p.active ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={p.onClick}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.onClick(); }
+                                }}
+                                title={p.label}
+                            >
+                                <span className="stat-name">{p.label}</span>
+                            </div>
+                        ))}
+                        {!compact && liveFacets.map((facet) => {
                             const isActive = activeCategory === facet;
                             const isFate = facet === 'Fate';
                             const count = activeFilters[facet]?.size ?? 0;
@@ -209,7 +247,7 @@ export default function HomeProjectFacetBar({
                                 </div>
                             );
                         })}
-                        {hasActiveFilter && (
+                        {!compact && hasActiveFilter && (
                             <div
                                 className="pill pill-l1"
                                 role="button"
@@ -226,6 +264,7 @@ export default function HomeProjectFacetBar({
 
                         {/* Sort-icons cluster — ⏚ Grid Presets · ❐ Multi-Select ·
                             ⌕ Search (same glyphs/classes as the Collected bar). */}
+                        {!compact && (
                         <div
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}
                         >
@@ -253,11 +292,12 @@ export default function HomeProjectFacetBar({
                                 onClick={toggleSearch}
                             />
                         </div>
+                        )}
                     </div>
                 </div>
 
                 {/* L3 value pills for the open facet. */}
-                {openValues && (
+                {!compact && openValues && (
                     <div className="stats-container" id="statsOutput" style={{ display: 'flex' }}>
                         {openValues.map((value) => {
                             const set = activeFilters[activeCategory!];
@@ -309,6 +349,7 @@ export default function HomeProjectFacetBar({
                         </div>
                     ))}
                 </div>
+                {!compact && (
                 <div
                     className="sort-btn-group"
                     style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
@@ -358,8 +399,11 @@ export default function HomeProjectFacetBar({
                         <span className="sort-arrow">{arrow('feed')}</span>
                     </span>
                 </div>
+                )}
             </div>
 
+            {!compact && (
+            <>
             {/* Grid Presets row — home scope, 3 slots. */}
             <HomePresetRow
                 open={presetRowActive}
@@ -421,6 +465,8 @@ export default function HomeProjectFacetBar({
 
             {/* Multi-select floating action bar — ownership-aware (mixed zone). */}
             <HomeMsFloatBar />
+            </>
+            )}
         </div>
     );
 }

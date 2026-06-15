@@ -106,8 +106,15 @@ export function hydrateFromRow(row: UserRow): void {
             );
         }
 
-        // showcase_style: 'grid' (legacy default) reads as 'static'.
-        const style = row.showcase_style === 'generative' ? 'generative' : 'static';
+        // showcase_style cache for the settings toggle. 'grid' (legacy default)
+        // is kept verbatim as the "unset" marker so the toggle can resolve the
+        // artist-default; 'static'/'generative'/'artist' pass through; anything
+        // else falls back to 'static'.
+        const rawStyle = row.showcase_style;
+        const style =
+            rawStyle === 'generative' || rawStyle === 'artist' || rawStyle === 'static' || rawStyle === 'grid'
+                ? rawStyle
+                : 'static';
         localStorage.setItem(STATE_CACHE_KEYS.showcaseStyle, style);
 
         // showcase picks → the cache userShowcaseStore re-reads on the hydrate

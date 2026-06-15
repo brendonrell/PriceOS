@@ -34,6 +34,7 @@ import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
@@ -182,9 +183,41 @@ function HomePageBodyInner({
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
+    const { siweAddress } = useAuth();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
+
+    /* @brendon's real follower count + mutual badge beside the home byline —
+       PD is his art, so the home credits him exactly like an artist on a project
+       page (Brendon 2026-06-15). Hidden when he has zero followers. */
+    const [brendonSocial, setBrendonSocial] = useState<{ followers: number; mutual: boolean }>(
+        { followers: 0, mutual: false },
+    );
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const profRes = await fetch('/api/user/by-handle/brendon', { cache: 'no-store' });
+                const prof = profRes.ok ? await profRes.json() : null;
+                const followers = prof?.follower_count ?? 0;
+                let mutual = false;
+                if (siweAddress) {
+                    const fRes = await fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' });
+                    const f = fRes.ok ? await fRes.json() : null;
+                    const lc = (a: unknown) => (Array.isArray(a) ? (a as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, ''));
+                    const following = lc(f?.following_handles);
+                    const followerH = lc(f?.follower_handles);
+                    mutual = following.includes('brendon') && followerH.includes('brendon');
+                }
+                if (!cancelled) setBrendonSocial({ followers, mutual });
+            } catch { /* keep last good */ }
+        };
+        load();
+        const onCh = () => load();
+        window.addEventListener('pd:follows-changed', onCh);
+        return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
+    }, [siweAddress]);
 
     /* The live home payload (stats + uploads + minting now). Server-seeded,
        re-pulled on every Realtime push / refresh nudge, poll fallback. */
@@ -562,7 +595,13 @@ function HomePageBodyInner({
                                 <span className="artist-tag" aria-label="artist">
                                     {'✺︎'}
                                 </span>
+                                {brendonSocial.mutual && (
+                                    <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                                )}
                             </span>
+                            {brendonSocial.followers > 0 && (
+                                <span className="follower-count">{brendonSocial.followers >= 1000 ? `${(brendonSocial.followers / 1000).toFixed(1).replace(/\.0$/, '')}k` : brendonSocial.followers}</span>
+                            )}
                         </div>
                     </div>
                 }

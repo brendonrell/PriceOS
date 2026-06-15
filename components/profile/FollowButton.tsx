@@ -2,8 +2,11 @@
 
 /*
  * FollowButton — the profile CTA. Follow / unfollow a User via /api/follows
- * (SIWE-gated; @name-keyed). Hidden on your own profile. Fires
- * 'pd:follows-changed' so follower/following counts refresh.
+ * (SIWE-gated; @name-keyed). Fires 'pd:follows-changed' so follower/following
+ * counts refresh.
+ *
+ * On YOUR OWN profile the slot is a "Followed" button that opens your Followers
+ * modal (Brendon 2026-06-15 — replaces the old mutuals/Discord split).
  *
  * Note: following requires both parties to have claimed an @name (handle).
  * A 204 from the API means the target hasn't claimed one yet — surfaced to
@@ -14,12 +17,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
-import { openExternal } from '../../lib/pwa/openExternal';
-import { DISCORD_URL } from '../../lib/config/discord';
-
-/* Own-profile CTA threshold: show "Mutuals" only once the circle is real
-   (≥3 mutuals); below that the slot becomes the "Discord" join button. */
-const MUTUALS_MIN = 3;
 
 export default function FollowButton({
   targetAddress,
@@ -33,7 +30,6 @@ export default function FollowButton({
   const { open } = useModal();
   const [following, setFollowing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [mutualsCount, setMutualsCount] = useState<number | null>(null);
 
   const me = siweAddress?.toLowerCase() ?? null;
   const target = targetAddress.toLowerCase();
@@ -54,56 +50,16 @@ export default function FollowButton({
     return () => { cancelled = true; };
   }, [me, target, isSelf]);
 
-  /* Own profile: count my mutuals (same source the Followers modal uses —
-     the people I follow who also follow me). Drives the CTA's two states.
-     Refreshes whenever the follow graph changes anywhere. */
-  useEffect(() => {
-    if (!me || !isSelf) return;
-    let cancelled = false;
-    const load = () => {
-      fetch(`/api/follows/${me}`, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => {
-          if (cancelled || !d) return;
-          const following = (Array.isArray(d.following_handles) ? d.following_handles : [])
-            .map((h: string) => h.toLowerCase());
-          const followers = new Set(
-            (Array.isArray(d.follower_handles) ? d.follower_handles : []).map((h: string) => h.toLowerCase())
-          );
-          setMutualsCount(following.filter((h: string) => followers.has(h)).length);
-        })
-        .catch(() => { if (!cancelled) setMutualsCount(0); });
-    };
-    load();
-    const h = () => load();
-    window.addEventListener('pd:follows-changed', h);
-    return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
-  }, [me, isSelf]);
-
-  /* Own profile keeps a CTA in the follow slot. ≥3 mutuals → "Mutuals"
-     (opens the Followers modal on the Mutuals tab); otherwise → "Discord"
-     (the standard join-the-chat link). */
+  /* Own profile: a "Followed" button that opens your Followers modal. */
   if (isSelf) {
-    if ((mutualsCount ?? 0) >= MUTUALS_MIN) {
-      return (
-        <button
-          type="button"
-          className="btn-mint btn-follow"
-          title="Your mutuals"
-          onClick={() => open('followers', 'mutuals')}
-        >
-          <span className="mint-lbl">MUTUALS</span>
-        </button>
-      );
-    }
     return (
       <button
         type="button"
         className="btn-mint btn-follow"
-        title="Join the chat on Discord"
-        onClick={() => openExternal(DISCORD_URL)}
+        title="Your followers"
+        onClick={() => open('followers')}
       >
-        <span className="mint-lbl">Join The Chat</span>
+        <span className="mint-lbl">Followed</span>
       </button>
     );
   }
