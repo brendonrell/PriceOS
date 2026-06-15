@@ -138,6 +138,7 @@ function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
    ProjectProvider so the cards paint THIS project's engine. */
 function ShuffleGallery({ seed }: { seed: number }) {
     const project = useProject();
+    const artist = getProject(project.slug)?.artistHandle ?? null;
     const ids = useMemo(() => {
         const max = project.totalOutputs;
         const target = Math.min(SHUFFLE_SIZE, max);
@@ -154,11 +155,21 @@ function ShuffleGallery({ seed }: { seed: number }) {
            on-screen screenful paints on arrival, the rest as they scroll in.
            Forcing all 24 to paint at once was the Shuffle entry lag, worst on
            heavy projects (Brendon, 2026-06-13). */
-        <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
-            {ids.map((id) => (
-                <ArtworkCard key={`${seed}-${id}`} id={id} />
-            ))}
-        </section>
+        <>
+            {/* Shuffle byline — the picked project + artist, Courier, sitting in
+                the same spot as the New Uploads header (Brendon, 2026-06-15). */}
+            <div className="home-section-head shuffle-head">
+                <a className="shuffle-title" href={`/art/${project.slug}`}>{project.title}</a>
+                {artist && (
+                    <span className="shuffle-by"> by <a href={`/${artist}`}>@{artist}</a></span>
+                )}
+            </div>
+            <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
+                {ids.map((id) => (
+                    <ArtworkCard key={`${seed}-${id}`} id={id} />
+                ))}
+            </section>
+        </>
     );
 }
 
@@ -734,12 +745,15 @@ function HomePageBodyInner({
                 </section>
             )}
 
-            {/* Shuffle — randomized discovery in THE gallery grid itself
-                (#gallery — never a one-card-per-row list; the output page
-                is the only single-artwork surface). Re-rolls on every tab
-                entry; no button. */}
-            {activeTab === 'shuffle' &&
-                (shufflePick ? (
+            {/* Shuffle — randomized discovery in THE gallery grid (#gallery).
+                Stays MOUNTED but hidden when off-tab: the re-roll fires on EXIT
+                (prevTab effect bumps the seed), so the next project's provider
+                mounts + readies WHILE HIDDEN and the old one is gone. Entering
+                just reveals it — no flash of the old project, no mount lag.
+                Hidden = no layout = the cards don't paint (the virtualizer only
+                paints on-screen), so it's "ready to paint", not painting. */}
+            {shufflePick && (
+                <div style={{ display: activeTab === 'shuffle' ? undefined : 'none' }}>
                     <ProjectProvider
                         key={`${shuffleSeed}:${shufflePick.slug}`}
                         slug={shufflePick.slug}
@@ -747,11 +761,11 @@ function HomePageBodyInner({
                     >
                         <ShuffleGallery seed={shuffleSeed} />
                     </ProjectProvider>
-                ) : (
-                    /* Nothing minted to shuffle yet → ghost gallery in the grid
-                       shape, never an empty void (Brendon, 2026-06-14). */
-                    <GhostGallery />
-                ))}
+                </div>
+            )}
+            {/* Nothing minted to shuffle yet → ghost gallery, never an empty
+                void (Brendon, 2026-06-14). */}
+            {activeTab === 'shuffle' && !shufflePick && <GhostGallery />}
         </>
     );
 }

@@ -7500,7 +7500,9 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
 }
 .home-section-head {
     padding: 0 40px;
-    margin: 0 0 10px;
+    /* Same breathing room the top carousel got above its title (Brendon,
+       2026-06-15) — the New Uploads header sat too close to the control bar. */
+    margin: 12px 0 10px;
 }
 .home-section-title {
     font-family: var(--font-rubik-mono), monospace;
@@ -7508,6 +7510,20 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
     letter-spacing: 0.04em;
     color: var(--text-color);
 }
+/* Shuffle byline — "Project by @artist" in Courier, in the New-Uploads header
+   spot (Brendon, 2026-06-15). */
+.shuffle-title {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 13px;
+    color: var(--text-color);
+}
+.shuffle-by {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    opacity: 0.7;
+}
+.shuffle-by a { color: inherit; }
 .home-empty-note,
 .home-feed-loading {
     padding: 0 40px 16px;
