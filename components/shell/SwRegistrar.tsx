@@ -1,36 +1,32 @@
 'use client';
 
 /*
- * SwRegistrar — registers the offline service worker (public/sw.js) and nudges
- * the browser to check for a newer worker whenever the app returns to the
- * foreground (matters for the iOS home-screen PWA, where hard navigations —
- * the usual update trigger — are rare).
+ * SwRegistrar — now a KILLER (Brendon, 2026-06-15).
  *
- * Replaces SwKiller (2026-06-10): the killer existed because next-pwa's
- * cache-first worker pinned stale bundles. The new worker is network-first for
- * all pages — fresh code always wins while online — so registration is safe
- * again. See public/sw.js for the full design notes.
+ * Offline support was pinning stale builds on devices, so it's removed. This no
+ * longer registers anything: it unregisters any existing service worker and
+ * clears all caches on load, so the app always runs straight from the network.
+ * public/sw.js is a matching self-destruct worker for devices still controlled
+ * by the old one. (Component name kept so the layout import is unchanged.)
  */
 
 import { useEffect } from 'react';
 
 export default function SwRegistrar() {
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return undefined;
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    let reg: ServiceWorkerRegistration | undefined;
     navigator.serviceWorker
-      .register('/sw.js')
-      .then((r) => { reg = r; })
-      .catch(() => { /* registration failure = no offline support, app unaffected */ });
+      .getRegistrations?.()
+      .then((regs) => regs.forEach((r) => r.unregister().catch(() => {})))
+      .catch(() => {});
 
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        reg?.update().catch(() => {});
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    if ('caches' in window) {
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .catch(() => {});
+    }
   }, []);
 
   return null;
