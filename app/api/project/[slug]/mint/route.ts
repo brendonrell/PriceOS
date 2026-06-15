@@ -12,6 +12,7 @@ import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
+import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
 import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
@@ -86,6 +87,23 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
           projectName: proj?.handle ?? null,
           data: { milestone, count: total },
         });
+      }
+    }
+
+    // Graduation (Pump.fun-inspired): the mint that first crosses the threshold
+    // graduates the project into Now Minting. Stamp graduated_at on the null→set
+    // edge only (the .is(null) guard makes it idempotent), best-effort so it can
+    // never block or fail the mint — the home feed's computed fallback covers a
+    // miss.
+    if (total >= MINTING_NOW_THRESHOLD && total - mintedNow < MINTING_NOW_THRESHOLD) {
+      try {
+        await supabase
+          .from('projects')
+          .update({ graduated_at: new Date().toISOString() } as never)
+          .eq('id', slug)
+          .is('graduated_at', null);
+      } catch {
+        /* best-effort graduation stamp — never fail the mint over it */
       }
     }
 

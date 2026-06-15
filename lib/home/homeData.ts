@@ -14,8 +14,9 @@
 import { getSupabaseService } from '@/lib/supabase';
 
 /* Mints a project needs before it graduates from the New Uploads list into
-   the Now Minting carousels (Brendon, 2026-06-11). */
-const MINTING_NOW_THRESHOLD = 12;
+   the Now Minting carousels (Brendon, 2026-06-11). Exported so the mint route
+   stamps `projects.graduated_at` on the same threshold. */
+export const MINTING_NOW_THRESHOLD = 12;
 
 /* The 60-day artist cooldown clock fires at UPLOAD (cooldown semantics,
    2026-06-11), so cooldown_until − 60d IS the upload moment. Used until a
@@ -65,7 +66,7 @@ export interface HomeResponse {
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until'),
+    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at'),
     db
       .from('events')
       .select('project_id, timestamp')
@@ -83,6 +84,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     max_supply: number | null;
     uploaded_at: string | null;
     cooldown_until: string | null;
+    graduated_at: string | null;
   }[];
 
   // The moment each project crossed the threshold = the timestamp of its
@@ -117,7 +119,12 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
           : p.cooldown_until
             ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
             : null,
-        reached_at: reachedAt[p.id] ?? null,
+        // Prefer the persisted graduation moment; fall back to the computed
+        // 12th-mint walk so a project with an unstamped graduation never drops
+        // out of the recency sort.
+        reached_at: p.graduated_at
+          ? new Date(p.graduated_at).getTime()
+          : reachedAt[p.id] ?? null,
       });
     } else {
       uploads.push({
