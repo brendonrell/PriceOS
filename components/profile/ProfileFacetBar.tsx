@@ -312,7 +312,7 @@ export default function ProfileFacetBar({
                         onClick={() => cycleSort('id')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('id'); } }}
                     >
-                        <span className="sort-lbl">{'# ID'}</span>
+                        <span className="sort-lbl">{'#ID'}</span>
                         <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
@@ -323,7 +323,7 @@ export default function ProfileFacetBar({
                         onClick={() => cycleSort('price')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('price'); } }}
                     >
-                        <span className="sort-lbl">{'$ PRICE'}</span>
+                        <span className="sort-lbl">{'$PRICE'}</span>
                         <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
@@ -334,7 +334,7 @@ export default function ProfileFacetBar({
                         onClick={() => cycleSort('az')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('az'); } }}
                     >
-                        <span className="sort-lbl">A–Z</span>
+                        <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
                         <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span

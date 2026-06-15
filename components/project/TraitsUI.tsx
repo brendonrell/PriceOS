@@ -985,7 +985,7 @@ export default function TraitsUI({
                     }}
                 >
                     <SortBtn
-                        label={'#\u202FID'}
+                        label={'#ID'}
                         family="id"
                         active={sort === 'id'}
                         dir={dir}
@@ -995,7 +995,7 @@ export default function TraitsUI({
                         onClick={() => cycleSortWithToast('id')}
                     />
                     <SortBtn
-                        label={'$\u202FPRICE'}
+                        label={'$PRICE'}
                         family="price"
                         active={sort === 'price'}
                         dir={dir}

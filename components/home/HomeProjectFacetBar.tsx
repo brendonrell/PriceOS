@@ -332,7 +332,7 @@ export default function HomeProjectFacetBar({
                         onClick={() => onSort('price')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('price'); } }}
                     >
-                        <span className="sort-lbl">{'$ MINT'}</span>
+                        <span className="sort-lbl">{'$MINT'}</span>
                         <span className="sort-arrow">{arrow('price')}</span>
                     </span>
                     <span
@@ -343,7 +343,7 @@ export default function HomeProjectFacetBar({
                         onClick={() => onSort('az')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('az'); } }}
                     >
-                        <span className="sort-lbl">A–Z</span>
+                        <span className="sort-lbl">{sortKey === 'az' && sortDir === 'desc' ? 'ZA' : 'AZ'}</span>
                         <span className="sort-arrow">{arrow('az')}</span>
                     </span>
                     <span
