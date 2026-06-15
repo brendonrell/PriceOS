@@ -337,6 +337,17 @@ export default function ProfileFacetBar({
                         <span className="sort-lbl">FEED</span>
                         <span className="sort-arrow">{sort === 'feed' ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
                     </span>
+                    <span
+                        className={`sort-btn${sort === 'az' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Sort A–Z by project"
+                        onClick={() => cycleSort('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('az'); } }}
+                    >
+                        <span className="sort-lbl">A–Z</span>
+                        <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                    </span>
                 </div>
             </div>
 

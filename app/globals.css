@@ -7531,9 +7531,9 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
 /* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
    so cycling never reflows the hero (the old version's jump). Desktop stays one
    line; mobile reserves two. (Brendon, 2026-06-15) */
-/* row-gap a hair under the shared 2px so the two wrapped lines sit slightly
-   tighter on the home featuring row only (Brendon, 2026-06-15). */
-.home-feat-row { overflow: hidden; row-gap: 1px; }
+/* row-gap tightened to 0 on the home featuring row only — the two wrapped lines
+   sit as close as the type allows (Brendon, 2026-06-15). */
+.home-feat-row { overflow: hidden; row-gap: 0; }
 @media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */

@@ -403,6 +403,14 @@ function ProfilePageBodyInner({
                 const nb = b.list_price_eth ? parseFloat(b.list_price_eth) : Infinity;
                 return na !== nb ? (na - nb) * dirMult : byId(a, b);
             });
+        } else if (sort === 'az') {
+            // A–Z by project name, then token id within each project.
+            filtered.sort((a, b) => {
+                const an = getProject(a.slug)?.displayName ?? a.slug;
+                const bn = getProject(b.slug)?.displayName ?? b.slug;
+                const c = an.localeCompare(bn) * dirMult;
+                return c !== 0 ? c : a.token_id - b.token_id;
+            });
         } else {
             filtered.sort(byId);
         }

@@ -49,7 +49,7 @@ import {
     type ReactNode,
 } from 'react';
 
-export type SortKey = 'id' | 'price' | 'feed' | 'fog';
+export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
 /* Group-by dimension for the gallery (Brendon, 2026-06-13). One cycling
@@ -178,7 +178,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
             }
             return;
         }
-        // id or price
+        // id / price / az
         if (sort === target) {
             // Already this family — flip direction (sim 8327).
             setDir(dir === 'asc' ? 'desc' : 'asc');
@@ -186,7 +186,9 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // Enter at asc (sim 8329).
             setSortState(target);
             setDir('asc');
-            persistFamily(target);
+            // 'az' is a Collected-only sort — never persist it, so a project
+            // page never boots into a sort it doesn't render (Brendon 2026-06-15).
+            if (target !== 'az') persistFamily(target);
         }
     }, [sort, dir, feedKind]);
 
