@@ -97,12 +97,12 @@ function moodForHue(hue: number, roll: number): string {
     return band.moods[Math.floor(roll * band.moods.length)];
 }
 
-/* Hue offset over the golden-angle walk. Bumped 0 → 200 (2026-06-12,
-   "tired of this green") → 20 (2026-06-15, reroll for a nicer test colour —
-   today lands periwinkle blue). Re-rolls the whole colour timeline (moods are
-   computed, never stored) while keeping the consecutive-days-differ property.
+/* Hue offset over the golden-angle walk. 0 → 200 (2026-06-12) → 20 → 55
+   (2026-06-15, reroll onto the new VIVID palette — today lands rich purple).
+   Re-rolls the whole colour timeline (moods are computed, never stored) while
+   keeping the consecutive-days-differ property.
    ⚠ Part of the boot-paint mirror contract (app/layout.tsx). */
-const HUE_SALT = 20;
+const HUE_SALT = 55;
 
 function hslToHex(h: number, s: number, l: number): string {
     const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
@@ -125,8 +125,12 @@ export function moodOfDay(d: Date = new Date()): Mood {
        like a schedule. Sat/light stay in the bold-but-inhabitable band —
        the text colour auto-resolves off luminance (ColorwayContext YIQ). */
     const hue = (day * 137.508 + HUE_SALT + r() * 24) % 360;
-    const sat = 38 + r() * 47; // 38–85%
-    const light = 42 + r() * 34; // 42–76%
+    /* VIVID band (Brendon, 2026-06-15 — the old 38–85 / 42–76 band read washed
+       out): high saturation + mid lightness so the daily colour is bold, the
+       full wheel reachable. Text colour auto-resolves off luminance (the deep
+       ones get white lettering; bright limes/yellows keep dark text). */
+    const sat = 62 + r() * 38; // 62–100%
+    const light = 40 + r() * 20; // 40–60%
     /* The mood reads off the colour via the chart — fourth draw picks the
        word within the hue band, so colour math above stays untouched (it
        must keep matching the boot-paint script in app/layout.tsx). */

@@ -230,10 +230,11 @@ const PREHYDRATION_SCRIPT = `
                             t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
                             return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
                         }
-                        // 20 = HUE_SALT (lib/mood) — keep in lockstep.
-                        var hue = (day * 137.508 + 20 + rnd() * 24) % 360;
-                        var sat = 38 + rnd() * 47;
-                        var light = 42 + rnd() * 34;
+                        // 55 = HUE_SALT, 62/38 sat + 40/20 light = the VIVID
+                        // band (lib/mood) — keep all three in lockstep.
+                        var hue = (day * 137.508 + 55 + rnd() * 24) % 360;
+                        var sat = 62 + rnd() * 38;
+                        var light = 40 + rnd() * 20;
                         var s = sat / 100, l = light / 100;
                         var k = s * Math.min(l, 1 - l);
                         function f(n) {
