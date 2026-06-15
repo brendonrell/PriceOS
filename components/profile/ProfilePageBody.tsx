@@ -724,7 +724,7 @@ function ProfilePageBodyInner({
     );
     const hasCreated = artistProjects.length > 0;
 
-    const effStyle = effectiveShowcaseStyle(user.showcase_style, isArtist);
+    const effStyle = effectiveShowcaseStyle(user.showcase_style, isArtist, user.address);
     const artistMode = onShowcase && isArtist && effStyle === 'artist';
     const createdUnderMore = isArtist && effStyle !== 'artist' && hasCreated;
 
