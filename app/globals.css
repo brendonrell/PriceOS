@@ -7537,7 +7537,9 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
    line; mobile reserves two. (Brendon, 2026-06-15) */
 .home-feat-row { overflow: hidden; }
 @media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
-@media (max-width: 600px)  { .home-feat-row { height: 2.9em; } }
+/* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
+   natural line spacing of every other social row (Brendon, 2026-06-15). */
+@media (max-width: 600px)  { .home-feat-row { max-height: 2.4em; } }
 .feat-name {
     display: inline-block;
     animation: feat-flip 0.5s ease;
