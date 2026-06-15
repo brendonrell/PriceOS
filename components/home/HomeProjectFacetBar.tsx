@@ -62,10 +62,15 @@ export interface EnrichedProject {
 export type HomeSortKey = 'date' | 'price' | 'feed';
 export type HomeSortDir = 'asc' | 'desc';
 
-/* Facet order = birth-order, Status last (the live market facet). */
+/* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
+   2026-06-15), matching the project page. */
 export const HOME_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Fate', 'Status',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate',
 ] as const;
+
+/* Fate's L1 pill wears the I Ching hexagram glyph (same as the project page's
+   pill-fate-icon), not the word. */
+const FATE_GLYPH = '䷲︎';
 
 /** A project's value for a facet — single source both the value pools and the
  *  predicate in HomePageBody read, so they can't diverge. */
@@ -179,8 +184,9 @@ export default function HomeProjectFacetBar({
                     <div className="stats-container" id="traitCategories">
                         {liveFacets.map((facet) => {
                             const isActive = activeCategory === facet;
+                            const isFate = facet === 'Fate';
                             const count = activeFilters[facet]?.size ?? 0;
-                            const cls = `pill pill-l1${isActive ? ' active' : ''}${
+                            const cls = `pill pill-l1${isFate ? ' pill-fate-icon' : ''}${isActive ? ' active' : ''}${
                                 activeCategory && !isActive ? ' dimmed' : ''
                             }`;
                             return (
@@ -198,7 +204,7 @@ export default function HomeProjectFacetBar({
                                     }}
                                     title={facet}
                                 >
-                                    <span className="stat-name">{facet}</span>
+                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet}</span>
                                     {count > 0 && <span className="badge">{count}</span>}
                                 </div>
                             );

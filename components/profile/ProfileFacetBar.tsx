@@ -61,8 +61,12 @@ export interface EnrichedHolding {
 /* Facet order = birth-order. 'Status' is the live market facet (derived from
    listing presence), not a stored trait. */
 export const PROFILE_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Fate', 'Status',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate',
 ] as const;
+
+/* Fate's L1 pill wears the I Ching hexagram glyph (matching the project page's
+   pill-fate-icon), not the word. Pinned LAST (Brendon, 2026-06-15). */
+const FATE_GLYPH = '䷲︎';
 
 /** An Output's value for a given facet — the single source both the bar (value
  *  pools) and the gallery predicate read, so they can never diverge. */
@@ -165,8 +169,9 @@ export default function ProfileFacetBar({
                     <div className="stats-container" id="traitCategories">
                         {liveFacets.map((facet) => {
                             const isActive = activeCategory === facet;
+                            const isFate = facet === 'Fate';
                             const count = activeFilters[facet]?.size ?? 0;
-                            const cls = `pill pill-l1${isActive ? ' active' : ''}${
+                            const cls = `pill pill-l1${isFate ? ' pill-fate-icon' : ''}${isActive ? ' active' : ''}${
                                 activeCategory && !isActive ? ' dimmed' : ''
                             }`;
                             return (
@@ -184,7 +189,7 @@ export default function ProfileFacetBar({
                                     }}
                                     title={facet}
                                 >
-                                    <span className="stat-name">{facet}</span>
+                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet}</span>
                                     {count > 0 && <span className="badge">{count}</span>}
                                 </div>
                             );
