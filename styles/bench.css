@@ -127,7 +127,7 @@ body.bench-dragging * {
 .bench-tab-grip {
     width: 38px;
     height: 4px;
-    margin: 0 auto 8px auto;
+    margin: 0 auto 6px auto;
     border-radius: 99px;
     background: var(--text-color);
     opacity: 0.28;
@@ -138,12 +138,37 @@ body.bench-dragging * {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 10px;
     flex: 0 0 auto;
 }
+.bench-tab.expanded .bench-tab-header { margin-bottom: 10px; }
+
+/* The peek bar itself is the tap target — pull up / recede. */
+.bench-tab-titlebtn {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 4px 2px;
+    margin: 0;
+    color: var(--text-color);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.bench-tab-titlebtn:disabled { cursor: default; }
 .bench-tab-title { font-size: 14px; font-weight: bold; letter-spacing: 0.06em; }
 .bench-tab-count { opacity: 0.55; margin-left: 7px; font-weight: normal; }
-.bench-tab-actions { display: flex; align-items: center; gap: 6px; }
+.bench-tab-hint { opacity: 0.45; margin-left: 8px; font-size: 12px; }
+.bench-tab-chevron { margin-left: auto; opacity: 0.6; font-size: 12px; }
+.bench-tab-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+
+/* Slim peek when collapsed — viewport stays clear. */
+.bench-tab.collapsed { padding-bottom: calc(9px + env(safe-area-inset-bottom, 0px)); }
+.bench-tab.expanded { max-height: 78dvh; }
 .bench-tab-btn {
     background: transparent;
     color: var(--text-color);

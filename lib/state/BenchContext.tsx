@@ -1,17 +1,18 @@
 'use client';
 
 /*
- * BenchContext — The Bench (OS Tool / Comparison): the set of pieces on the
- * bench, plus the split orientation. Low-frequency state only.
+ * BenchContext — The Bench (OS Tool / Comparison).
  *
- * The LIVE hold-drag (pointer position + armed target) deliberately does NOT
- * live here — it's in lib/state/benchDragStore so the 60fps drag updates don't
- * re-render every gallery card. See that file.
+ * Persistent + project-to-project: the set survives reloads and carries as you
+ * move between projects (stored on-device, like the Cart). The live hold-drag
+ * (pointer position) lives in benchDragStore, NOT here, so 60fps drag updates
+ * don't re-render the gallery.
  *
- * The Bench is ONE thing: a tab that peeks up from the bottom the moment you
- * start dragging an artwork. You drag pieces onto it; they live in the tab side
- * by side, with a Portrait↔Landscape split + image export. Dismiss clears it.
- * Ephemeral — nothing is persisted.
+ * Two display states (BenchDock reads `expanded`):
+ *   - collapsed (peek)  → a small tab at the bottom. This is the resting state,
+ *                         incl. right after you add art — the viewport stays clear.
+ *   - expanded (full)   → the side-by-side comparison. Only when you TAP the tab,
+ *                         never from adding art.
  */
 
 import {
@@ -27,6 +28,7 @@ import {
 
 /** Max pieces on the bench at once — a comparison surface, not a list. */
 export const BENCH_MAX = 8;
+const STORAGE_KEY = 'pd_bench';
 
 /** A bench entry — Project-exact (a bare id collides across Projects). */
 export interface BenchItem {
@@ -40,19 +42,62 @@ export type BenchOrientation = 'portrait' | 'landscape';
 interface BenchContextValue {
     items: BenchItem[];
     orientation: BenchOrientation;
+    /** True when the full comparison is pulled up; false = the peek tab. */
+    expanded: boolean;
 
     add: (slug: string, id: number) => 'added' | 'present' | 'full';
     remove: (slug: string, id: number) => void;
     clear: () => void;
     has: (slug: string, id: number) => boolean;
     toggleOrientation: () => void;
+    expand: () => void;
+    collapse: () => void;
 }
 
 const BenchCtx = createContext<BenchContextValue | null>(null);
 
+function keyOf(slug: string, id: number): string {
+    return `${slug}:${id}`;
+}
+function parseKey(k: string): BenchItem {
+    const i = k.indexOf(':');
+    return { slug: k.slice(0, i), id: Number(k.slice(i + 1)) };
+}
+function loadFromStorage(): BenchItem[] {
+    if (typeof window === 'undefined') return [];
+    try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return (arr as unknown[])
+            .filter((k): k is string => typeof k === 'string' && k.includes(':'))
+            .map(parseKey)
+            .filter((it) => it.slug && Number.isFinite(it.id))
+            .slice(0, BENCH_MAX);
+    } catch {
+        return [];
+    }
+}
+function saveToStorage(items: BenchItem[]) {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items.map((it) => keyOf(it.slug, it.id))));
+    } catch {
+        /* quota / private mode — in-memory still works */
+    }
+}
+
 export function BenchProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<BenchItem[]>([]);
     const [orientation, setOrientation] = useState<BenchOrientation>('portrait');
+    const [expanded, setExpanded] = useState(false);
+
+    /* Hydrate from storage on mount (SSR starts empty, same as the Cart). */
+    useEffect(() => {
+        const initial = loadFromStorage();
+        if (initial.length > 0) setItems(initial);
+    }, []);
 
     /* Mirror of items for synchronous reads — add() must return its real
        outcome (state updaters don't run synchronously). */
@@ -70,36 +115,53 @@ export function BenchProvider({ children }: { children: ReactNode }) {
         const cur = itemsRef.current;
         if (cur.some((it) => it.slug === slug && it.id === id)) return 'present';
         if (cur.length >= BENCH_MAX) return 'full';
-        setItems((prev) =>
-            prev.some((it) => it.slug === slug && it.id === id) ? prev : [...prev, { slug, id }],
-        );
+        setItems((prev) => {
+            if (prev.some((it) => it.slug === slug && it.id === id)) return prev;
+            const next = [...prev, { slug, id }];
+            saveToStorage(next);
+            return next;
+        });
+        setExpanded(false); // adding art recedes the tab — viewport stays clear
         return 'added';
     }, []);
 
     const remove = useCallback((slug: string, id: number) => {
-        setItems((prev) => prev.filter((it) => !(it.slug === slug && it.id === id)));
+        setItems((prev) => {
+            const next = prev.filter((it) => !(it.slug === slug && it.id === id));
+            saveToStorage(next);
+            return next;
+        });
     }, []);
 
-    const clear = useCallback(() => setItems([]), []);
+    const clear = useCallback(() => {
+        setItems([]);
+        saveToStorage([]);
+        setExpanded(false);
+    }, []);
 
     const toggleOrientation = useCallback(
         () => setOrientation((o) => (o === 'portrait' ? 'landscape' : 'portrait')),
         [],
     );
+    const expand = useCallback(() => setExpanded(true), []);
+    const collapse = useCallback(() => setExpanded(false), []);
 
-    /* Escape dismisses (clears) the bench when it's holding pieces. */
+    /* Escape collapses the full view back to the peek tab. */
     useEffect(() => {
-        if (items.length === 0) return;
+        if (!expanded) return;
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setItems([]);
+            if (e.key === 'Escape') setExpanded(false);
         };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
-    }, [items.length]);
+    }, [expanded]);
 
     const value = useMemo<BenchContextValue>(
-        () => ({ items, orientation, add, remove, clear, has, toggleOrientation }),
-        [items, orientation, add, remove, clear, has, toggleOrientation],
+        () => ({
+            items, orientation, expanded,
+            add, remove, clear, has, toggleOrientation, expand, collapse,
+        }),
+        [items, orientation, expanded, add, remove, clear, has, toggleOrientation, expand, collapse],
     );
 
     return <BenchCtx.Provider value={value}>{children}</BenchCtx.Provider>;

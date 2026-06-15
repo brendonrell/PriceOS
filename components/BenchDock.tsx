@@ -163,7 +163,7 @@ function BenchGroup({
 }
 
 export default function BenchDock() {
-    const { items, orientation, remove, clear, toggleOrientation } = useBench();
+    const { items, orientation, expanded, remove, clear, toggleOrientation, expand, collapse } = useBench();
     const drag = useSyncExternalStore(subscribeBenchDrag, getBenchDrag, getBenchDragServer);
     const { showToast } = useToast();
 
@@ -299,6 +299,7 @@ export default function BenchDock() {
         }
     }, [items, orientation, exporting, showToast]);
 
+    const showFull = expanded && hasItems;
     const tabClass = [
         'bench-tab',
         mounted ? 'mounted' : '',
@@ -306,7 +307,15 @@ export default function BenchDock() {
         orientation,
         engaged ? 'dragging' : '',
         drag?.armed === 'bench' ? 'armed' : '',
+        showFull ? 'expanded' : 'collapsed',
     ].filter(Boolean).join(' ');
+
+    /* Tap the peek bar to pull the comparison up; tap again (or the chevron) to
+       recede. Never while dragging — adding art keeps the viewport clear. */
+    const onTitleTap = useCallback(() => {
+        if (!hasItems || engaged) return;
+        if (showFull) collapse(); else expand();
+    }, [hasItems, engaged, showFull, collapse, expand]);
 
     return (
         <div className="bench-dock-layer" aria-hidden={!visible}>
@@ -336,16 +345,32 @@ export default function BenchDock() {
                 </div>
             )}
 
-            {/* THE BENCH — the one tab. Also the drop target while dragging. */}
+            {/* THE BENCH — the one tab. Peek bar by default; the drop target
+                while dragging; the full comparison only when tapped open. */}
             {mounted && (
                 <div className={tabClass} ref={tabRef} data-bench-drop="bench">
                     <div className="bench-tab-grip" aria-hidden="true" />
                     <div className="bench-tab-header">
-                        <span className="bench-tab-title">
-                            THE BENCH
+                        <button
+                            className="bench-tab-titlebtn"
+                            type="button"
+                            onClick={onTitleTap}
+                            disabled={!hasItems || engaged}
+                            aria-expanded={showFull}
+                        >
+                            <span className="bench-tab-title">THE BENCH</span>
                             {hasItems && <span className="bench-tab-count">({items.length})</span>}
-                        </span>
-                        {hasItems && (
+                            {hasItems && !showFull && !engaged && (
+                                <span className="bench-tab-hint">· tap to compare</span>
+                            )}
+                            {engaged && (
+                                <span className="bench-tab-hint">
+                                    {drag?.armed === 'bench' ? '· drop to add' : '· drag here'}
+                                </span>
+                            )}
+                            {showFull && <span className="bench-tab-chevron" aria-hidden="true">▾</span>}
+                        </button>
+                        {showFull && (
                             <div className="bench-tab-actions">
                                 <button
                                     className="bench-tab-btn"
@@ -376,7 +401,7 @@ export default function BenchDock() {
                         )}
                     </div>
 
-                    {hasItems ? (
+                    {showFull && (
                         <div className={`bench-grid ${orientation}`}>
                             {groups.map(([slug, ids]) => (
                                 <ProjectProvider key={slug} slug={slug}>
@@ -384,10 +409,9 @@ export default function BenchDock() {
                                 </ProjectProvider>
                             ))}
                         </div>
-                    ) : (
-                        <div className="bench-drop-hint">
-                            Drop the piece here to compare
-                        </div>
+                    )}
+                    {engaged && !hasItems && (
+                        <div className="bench-drop-hint">Drop the piece here to compare</div>
                     )}
                 </div>
             )}
