@@ -51,7 +51,6 @@ import AchievementsGrid from '../achievements/AchievementsGrid';
 import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
-import PingButton from './PingButton';
 import { getProject, outputTraits, allProjects, projectsByArtist } from '../../lib/project/registry';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
@@ -931,7 +930,6 @@ function ProfilePageBodyInner({
             >
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
-                        <PingButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button
                             className="btn-soundtrack"
                             title="Profile action — coming soon"
