@@ -418,8 +418,14 @@ function HomePageBodyInner({
     const [featNames, setFeatNames] = useState<string[]>(() =>
         FEATURED_HANDLES.slice(0, FEATURE_SHOW),
     );
+    /* Live "flipping" featuring row (Brendon, 2026-06-15 — back from retirement):
+       re-roll the two shown names on a timer; each name card flips in. The row's
+       height is locked in CSS so cycling never reflows the hero. First paint is
+       deterministic (SSR/CSR agree); the mount re-roll + interval take over. */
     useEffect(() => {
         setFeatNames(pickFeatured());
+        const id = window.setInterval(() => setFeatNames(pickFeatured()), 3600);
+        return () => window.clearInterval(id);
     }, []);
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
 
@@ -563,11 +569,11 @@ function HomePageBodyInner({
                        project page's social row (Brendon 2026-06-13: reverted
                        the sprite+name rectangle chips; CollectedPair kept but
                        unused in case it comes back). */
-                    <div className="hero-line collected-by-row info-line">
+                    <div className="hero-line collected-by-row info-line home-feat-row">
                         <span className="cbr-label">Featuring</span>{' '}
-                        <a className="profile-link" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                        <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
                         {featNames[1] && (
-                            <>, <a className="profile-link" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
+                            <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
                         )}{' '}
                         <span className="cbr-others">&amp; {featOthers} others</span>
                     </div>

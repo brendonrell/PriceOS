@@ -7524,6 +7524,23 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
     opacity: 0.7;
 }
 .shuffle-by a { color: inherit; }
+
+/* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
+   so cycling never reflows the hero (the old version's jump). Desktop stays one
+   line; mobile reserves two. (Brendon, 2026-06-15) */
+.home-feat-row { overflow: hidden; }
+@media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
+@media (max-width: 600px)  { .home-feat-row { height: 2.9em; } }
+.feat-name {
+    display: inline-block;
+    animation: feat-flip 0.5s ease;
+    transform-origin: center bottom;
+}
+@keyframes feat-flip {
+    0%   { opacity: 0; transform: translateY(0.45em) rotateX(-55deg); }
+    100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .feat-name { animation: none; } }
 .home-empty-note,
 .home-feed-loading {
     padding: 0 40px 16px;
