@@ -7,14 +7,41 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/sleepy-lovelace-t0mvez` is trash (work is on dev) — Brendon deletes on GitHub.
+  `claude/laughing-fermat-tnwp41` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev is now SELF-HEALING:** the SessionStart hook re-syncs local `dev` to
   `origin/dev` every chat, so the recurring divergence can't return (root cause = commits
   landing on local dev; the hook reconciles on start).
-- **Updated:** 2026-06-15 (late). This session = **profile + favicon + spot-edit passes** (see
-  🎯 below). Prior context still valid: THE BENCH + CART + Ambient/Zen (🪑), BUILD-TO-SPEC &
-  ICON-GLOSSARY rules; 2026-06-14: minting/profile fixes (🐛), Digital Familiar (🐾), security
-  sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+- **Updated:** 2026-06-15 (later). This session = **6 spot edits** (see 🧰 below). Prior
+  context still valid: profile + favicon pass (🎯), THE BENCH + CART + Ambient/Zen (🪑),
+  BUILD-TO-SPEC & ICON-GLOSSARY rules; 2026-06-14: minting/profile fixes (🐛), Digital
+  Familiar (🐾), security sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+
+## 🧰 SPOT EDITS 2026-06-15 (later) — SHIPPED to dev
+Brendon's 8-item spot-edit pass; **6 shipped**, 2 set aside on his word (48kb thumbnails —
+he hadn't attached the contract repo; Safari chrome-sampling regression — deferred).
+- **Add-to-Showcase picker (NEW):** on your OWN profile the empty-showcase ghosts are now
+  tappable → a bottom-sheet picker of the Outputs you hold; tap to feature/unfeature. Own-
+  profile showcase grid now reflects those picks live. Source = the existing device-local
+  `userShowcaseStore` (same store the output-modal ⑆ button writes; NOT yet cross-device /
+  DB — that's the account-backed follow-on). New `components/profile/AddToShowcaseModal.tsx`.
+- **Profile activity feed (NEW):** a FEED sort on the Collected tab (`ProfileFacetBar`) swaps
+  the grid for this wallet's own ledger events; **ghosts when empty, never hidden** (mirrors
+  the project page). Backed by `/api/feed?address=…` (new address filter on the global feed
+  route). Shared row mapper extracted to `lib/feed/feedRow.tsx` (project copy left as-is).
+- **Ownership/listing-aware artwork CTA:** the output-modal button is now driven by LIVE
+  market data (real SIWE wallet via `/api/output/[id]/market` — added `listing` to the read),
+  not the seeded `isOwnedByBrendon` flag. own+unlisted→LIST, own+listed→UNLIST, else listed→
+  BUY (cart, works), else MAKE OFFER. **No secondary market yet (Brendon) → LIST/UNLIST/OFFER
+  are correct-but-placeholder toasts awaiting wiring; ⑆ Add-to-Showcase works today.**
+- **+More gutter (systemic):** `#albums-panel`/`#details-panel` now carry the standard page
+  gutter themselves (children's redundant h-padding zeroed), so anything added under +More
+  inherits the margin instead of going flush-left. Fixes the recurring misalignment.
+- **Footer:** top buffer doubled (20→40 / 16→32); opacity 0.35→0.46 (~30% more visible).
+- **De-yellow project bgs:** 8 mustard/gold/amber `colorway` values in `lib/project/registry.ts`
+  swapped for non-yellow (Turing's Garden→green; others blue/teal/terracotta). **Oracle KEPT
+  (#C4902A), Prisms KEPT (#E8FF47), turf-war lime kept** for consistency with Prisms.
+- Build verified (`npm run build` clean) + compiled CSS spot-checked. Two parked items above
+  await Brendon (contract repo for thumbnails; a clean repro/identification for the Safari fix).
 
 ## 🎯 PROFILE + FAVICON + SPOT EDITS 2026-06-15 (late) — SHIPPED to dev
 - **Profile hero:** PriceSprite moved out of the @name row into the identity line (replaces
