@@ -279,6 +279,46 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         return () => { cancelled = true; };
     }, [siweAddress]);
 
+    /* The ARTIST's real social tags for the identity row (Brendon 2026-06-15 —
+       was hardcoded "⚭ 2.2k"). Follower count from the artist's profile; the
+       mutual badge shows only when the viewer and artist follow each other.
+       Hidden entirely at 0 followers (rendered conditionally below). */
+    const [artistSocial, setArtistSocial] = useState<{ followers: number; mutual: boolean }>(
+        { followers: 0, mutual: false },
+    );
+    useEffect(() => {
+        const handle = def?.artistHandle;
+        if (!handle) return;
+        const h = handle.toLowerCase();
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const profRes = await fetch(`/api/user/by-handle/${handle}`, { cache: 'no-store' });
+                const prof = profRes.ok ? await profRes.json() : null;
+                const followers = prof?.follower_count ?? 0;
+                let mutual = false;
+                if (siweAddress) {
+                    const fRes = await fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' });
+                    const f = fRes.ok ? await fRes.json() : null;
+                    const lc = (a: unknown) => (Array.isArray(a) ? (a as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, ''));
+                    const following = lc(f?.following_handles);
+                    const followerH = lc(f?.follower_handles);
+                    mutual = following.includes(h) && followerH.includes(h);
+                }
+                if (!cancelled) setArtistSocial({ followers, mutual });
+            } catch { /* keep last good */ }
+        };
+        load();
+        const onCh = () => load();
+        window.addEventListener('pd:follows-changed', onCh);
+        window.addEventListener('pd:project-refresh', onCh);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('pd:follows-changed', onCh);
+            window.removeEventListener('pd:project-refresh', onCh);
+        };
+    }, [def?.artistHandle, siweAddress]);
+
     /* Top 5 holders of THIS project by held count (reconciled owners). */
     const topHolders = useMemo(() => {
         const counts = new Map<string, number>();
@@ -975,9 +1015,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             <span className="artist-name-wrap">
                                 <a href={`/${def?.artistHandle ?? 'opus4-6'}`}>@{def?.artistHandle ?? 'opus4-6'}</a>
                                 <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
-                                <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                                {artistSocial.mutual && (
+                                    <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                                )}
                             </span>
-                            <span className="follower-count">2.2k</span>
+                            {artistSocial.followers > 0 && (
+                                <span className="follower-count">{artistSocial.followers >= 1000 ? `${(artistSocial.followers / 1000).toFixed(1).replace(/\.0$/, '')}k` : artistSocial.followers}</span>
+                            )}
                         </div>
                     </div>
                 }
