@@ -308,6 +308,15 @@ explicit chat confirmation.
   or push a fix on a hunch about what a file holds or what state the repo/deploy
   is in. Read the actual file / compiled output FIRST. Guessing wastes Brendon's
   time and is banned.
+- **ICONS: scan `docs/GLYPHS.md` every fresh chat — never guess a glyph
+  (Brendon, 2026-06-15 — hard rule).** PD's iconography is a FIXED VS-15 Unicode
+  vocabulary where each glyph MEANS something and reuse must be exact. At the
+  **start of every new chat** (not every message), read the Glyph Glossary so you
+  KNOW the icons before touching any UI. When an icon already exists for a concept
+  ("the same icon as in the hover row"), use that EXACT base glyph **and** its
+  treatment — never invent, swap, or "improve" an icon. Inventing iconography is a
+  trust break (2026-06-15: a bench add-to-cart got a custom chip instead of the
+  canonical `.hi-icon` ▢ — wrong; the answer is always the glossary's glyph).
 - **Check your own work before saying "done" / "pushed".** For any code change,
   run the REAL build (`npm run build`) and inspect the COMPILED artifact — e.g.
   grep `.next/static/css/*.css` for the exact rule — so you KNOW what ships, not
