@@ -4396,7 +4396,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         align-items: center;
         justify-content: center;
         position: relative;
-        top: -1px;
+        top: 0;
         left: 2px;
     }
 }
