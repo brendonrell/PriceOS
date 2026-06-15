@@ -7315,6 +7315,20 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     padding: 0;
     margin: 0;
     width: 100%;
+    /* Never let the bar push past the hero width — that overhang is what
+       "catches" on the browser edge when scrolling in landscape. */
+    max-width: 100%;
+}
+/* The transplanted trait rows inherit the project gallery's pin-to-bottom
+   behaviour (sticky bottom:0). On the home hero that's wrong — it shifts the
+   row (the odd gap by the colour picker) and makes it grab the browser edge
+   while scrolling, worst in landscape. The home bar isn't a scroll panel, so
+   it pins nothing. Scoped to home — the project/profile bars keep their pin.
+   (Brendon, 2026-06-15) */
+.home-facet-bar .traits-header-bar,
+.home-facet-bar .stats-container {
+    position: static;
+    bottom: auto;
 }
 /* Home search row — match the breathing room the project bar gets above its
    search input from the hero column gap (16px). The home facet bar has no
