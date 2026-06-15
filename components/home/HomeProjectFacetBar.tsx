@@ -336,17 +336,6 @@ export default function HomeProjectFacetBar({
                         <span className="sort-arrow">{arrow('price')}</span>
                     </span>
                     <span
-                        className={`sort-btn${sortKey === 'feed' ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        title="Activity Feed"
-                        onClick={() => onSort('feed')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('feed'); } }}
-                    >
-                        <span className="sort-lbl">FEED</span>
-                        <span className="sort-arrow">{arrow('feed')}</span>
-                    </span>
-                    <span
                         className={`sort-btn${sortKey === 'az' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
@@ -356,6 +345,17 @@ export default function HomeProjectFacetBar({
                     >
                         <span className="sort-lbl">A–Z</span>
                         <span className="sort-arrow">{arrow('az')}</span>
+                    </span>
+                    <span
+                        className={`sort-btn${sortKey === 'feed' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Activity Feed"
+                        onClick={() => onSort('feed')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('feed'); } }}
+                    >
+                        <span className="sort-lbl">FEED</span>
+                        <span className="sort-arrow">{arrow('feed')}</span>
                     </span>
                 </div>
             </div>

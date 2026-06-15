@@ -35,6 +35,8 @@ const SORT_NAMES: Record<SortKey, string> = {
     price: '$ Price',
     feed:  'Feed',
     fog:   'Fog',
+    // A–Z is a Collected-only sort; not offered as a default-sort pick (SORTS).
+    az:    'A–Z',
 };
 
 const SORTS: Array<{ key: SortKey; title: string }> = [

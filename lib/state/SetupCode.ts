@@ -94,12 +94,16 @@ const SORT_TO_TOKEN: Record<SortKey, string> = {
     price: 'PRAS',
     feed:  'FDTD',
     fog:   'FOG',
+    // 'az' is a transient Collected-only sort, never persisted/shared; token
+    // exists only to satisfy the map. Decodes back to id (below).
+    az:    'AZAS',
 };
 
 // Decode side — every sim sort token collapses onto a base SortKey.
 // Direction bits are dropped; epoch-* falls back to id (no React equiv).
 const TOKEN_TO_SORT: Record<string, SortKey> = {
     IDAS: 'id',    IDDS: 'id',
+    AZAS: 'id',
     PRAS: 'price', PRDS: 'price',
     FDTD: 'feed',  FDTA: 'feed',  FDPD: 'feed',  FDPA: 'feed',
     EPAS: 'id',    EPDS: 'id',

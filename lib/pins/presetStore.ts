@@ -70,6 +70,7 @@ const SORT_LABEL: Record<SortKey, string> = {
     price: '$PRICE',
     feed:  'FEED',
     fog:   'FOG',
+    az:    'A–Z',
 };
 
 const DIR_GLYPH: Record<SortDir, string> = { asc: '↑', desc: '↓' };
