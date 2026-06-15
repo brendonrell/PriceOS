@@ -31,6 +31,8 @@ export interface HomeUploadRow {
   /** Upload moment (Unix ms), or null when the row predates the cooldown
       stamp (display "—", sort last). */
   uploaded_at: number | null;
+  /** Project milestones reached: { "<count>": unix-ms }. */
+  milestones: Record<string, number>;
 }
 
 export interface HomeMintingRow {
@@ -47,6 +49,8 @@ export interface HomeMintingRow {
   reached_at: number | null;
   /** When the project fully sold out (Unix ms), or null if still minting. */
   sold_out_at: number | null;
+  /** Project milestones reached: { "<count>": unix-ms }. */
+  milestones: Record<string, number>;
 }
 
 export interface HomeResponse {
@@ -68,7 +72,7 @@ export interface HomeResponse {
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at, sold_out_at'),
+    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
     db
       .from('events')
       .select('project_id, timestamp')
@@ -88,7 +92,20 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     cooldown_until: string | null;
     graduated_at: string | null;
     sold_out_at: string | null;
+    milestones: Record<string, string> | null;
   }[];
+
+  /* JSONB { "<count>": iso } -> { "<count>": unix-ms }, dropping unparseable. */
+  const msMap = (raw: Record<string, string> | null): Record<string, number> => {
+    const out: Record<string, number> = {};
+    if (raw) {
+      for (const [k, v] of Object.entries(raw)) {
+        const t = new Date(v).getTime();
+        if (Number.isFinite(t)) out[k] = t;
+      }
+    }
+    return out;
+  };
 
   // The moment each project crossed the threshold = the timestamp of its
   // Nth mint event (events.timestamp is Unix seconds). Counted in
@@ -129,6 +146,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
           ? new Date(p.graduated_at).getTime()
           : reachedAt[p.id] ?? null,
         sold_out_at: p.sold_out_at ? new Date(p.sold_out_at).getTime() : null,
+        milestones: msMap(p.milestones),
       });
     } else {
       uploads.push({
@@ -141,6 +159,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
           : p.cooldown_until
             ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
             : null,
+        milestones: msMap(p.milestones),
       });
     }
   }

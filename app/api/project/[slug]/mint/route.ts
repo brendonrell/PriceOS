@@ -13,6 +13,7 @@ import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
 import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
+import { PROJECT_MILESTONES } from '@/lib/home/milestones';
 import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
@@ -87,6 +88,37 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
           projectName: proj?.handle ?? null,
           data: { milestone, count: total },
         });
+      }
+    }
+
+    // Project milestones (for-fun, count-based): stamp any milestone this mint
+    // newly crossed into the projects.milestones JSONB. Read-modify-write,
+    // best-effort (never fails the mint); low sim concurrency makes the
+    // non-atomic merge fine, and the .key guard prevents a re-stamp.
+    const crossedMilestones = PROJECT_MILESTONES.filter(
+      (m) => m.count > total - mintedNow && m.count <= total,
+    );
+    if (crossedMilestones.length > 0) {
+      try {
+        const { data: msRow } = await supabase
+          .from('projects')
+          .select('milestones')
+          .eq('id', slug)
+          .maybeSingle();
+        const current = ((msRow as { milestones?: Record<string, string> } | null)?.milestones ?? {}) as Record<string, string>;
+        const nowIso = new Date().toISOString();
+        let changed = false;
+        for (const m of crossedMilestones) {
+          if (!current[m.key]) { current[m.key] = nowIso; changed = true; }
+        }
+        if (changed) {
+          await supabase
+            .from('projects')
+            .update({ milestones: current } as never)
+            .eq('id', slug);
+        }
+      } catch {
+        /* best-effort milestone stamp — never fail the mint over it */
       }
     }
 

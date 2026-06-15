@@ -45,6 +45,7 @@ import HomeProjectFacetBar, {
     type HomeSortKey,
     type HomeSortDir,
 } from './HomeProjectFacetBar';
+import { milestoneLabel } from '../../lib/home/milestones';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -81,15 +82,10 @@ const FEED_POLL_MS = 30_000;
 
 type HomeTab = 'minting' | 'new' | 'shuffle';
 
-/* Home activity-feed item — a project lifecycle moment. (Count-based "project
-   milestones" join this set once the list is locked.) */
-type HomeFeedKind = 'upload' | 'graduated' | 'soldout';
-interface HomeFeedItem { slug: string; title: string; kind: HomeFeedKind; ts: number }
-const HOME_FEED_LABEL: Record<HomeFeedKind, string> = {
-    upload: 'UPLOADED',
-    graduated: 'GRADUATED',
-    soldout: 'SOLD OUT',
-};
+/* Home activity-feed item — a project lifecycle moment (uploaded · graduated ·
+   each project milestone · sold-out/ascension). `label` is the ALLCAPS event
+   name shown in the feed. */
+interface HomeFeedItem { slug: string; title: string; label: string; ts: number }
 
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
@@ -355,15 +351,25 @@ function HomePageBodyInner({
        contributes both its upload and graduation rows. */
     const feedView = useMemo<HomeFeedItem[]>(() => {
         const items: HomeFeedItem[] = [];
-        const add = (slug: string, fallbackTitle: string, kind: HomeFeedKind, ms: number | null) => {
+        const add = (slug: string, fallbackTitle: string, label: string, ms: number | null) => {
             if (ms == null) return;
-            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, kind, ts: ms });
+            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, label, ts: ms });
         };
-        for (const u of feed?.uploads ?? []) add(u.slug, u.title, 'upload', u.uploaded_at);
+        const addMilestones = (slug: string, title: string, ms: Record<string, number>) => {
+            for (const [count, ts] of Object.entries(ms)) {
+                const label = milestoneLabel(count);
+                if (label) add(slug, title, label, ts);
+            }
+        };
+        for (const u of feed?.uploads ?? []) {
+            add(u.slug, u.title, 'UPLOADED', u.uploaded_at);
+            addMilestones(u.slug, u.title, u.milestones);
+        }
         for (const m of feed?.minting_now ?? []) {
-            add(m.slug, m.title, 'upload', m.uploaded_at);
-            add(m.slug, m.title, 'graduated', m.reached_at);
-            add(m.slug, m.title, 'soldout', m.sold_out_at);
+            add(m.slug, m.title, 'UPLOADED', m.uploaded_at);
+            addMilestones(m.slug, m.title, m.milestones);
+            add(m.slug, m.title, 'GRADUATED', m.reached_at);
+            add(m.slug, m.title, 'ASCENSION', m.sold_out_at);
         }
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
         items.sort((a, b) => (a.ts - b.ts) * dirMult);
@@ -674,11 +680,11 @@ function HomePageBodyInner({
                             <GhostFeedRows />
                         ) : (
                             feedView.map((ev) => (
-                                <div className="feed-row" key={`${ev.kind}-${ev.slug}-${ev.ts}`}>
+                                <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                     <div className="feed-line" />
                                     <div className="f-icon-wrap">⌗&#xFE0E;</div>
                                     <div className="f-time">{fmtUploadDate(ev.ts)}</div>
-                                    <div className="f-type">{HOME_FEED_LABEL[ev.kind]}</div>
+                                    <div className="f-type">{ev.label}</div>
                                     <div className="f-content">
                                         <a className="f-highlight upload-title" href={`/art/${ev.slug}`}>
                                             {ev.title}
