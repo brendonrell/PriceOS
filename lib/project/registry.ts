@@ -16,7 +16,7 @@ import { renderPrisms, prismsTraits, prismsSchema, PRISMS_ASPECTS } from '../art
 import { renderOracle, oracleTraits, oracleSchema, ORACLE_ASPECTS } from '../art/engines/oracle';
 import * as AI from '../art/engines/ai';
 import { normalizePlaylistId } from './soundtrack';
-import { FATE_VALUES, outputFate } from './fate';
+import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
 import { natalChart } from './natal';
 
@@ -277,6 +277,56 @@ export function outputTraits(
     out[PLATFORM_TRAIT.rising] = chart.rising;
   }
   out[PLATFORM_TRAIT.fate] = outputFate(slug, tokenId);
+  return out;
+}
+
+/* Project Status (live mint progress) — the project-level analogue of an
+   Output's Listed/Held. Derived from supply consumed, so it varies across the
+   minting set (everything in Now Minting is, by definition, "minting"). */
+export type MintProgress = 'Fresh' | 'Filling' | 'Almost Gone';
+export function mintProgress(mintedCount: number, maxSupply: number): MintProgress {
+  if (maxSupply <= 0) return 'Fresh';
+  const pct = mintedCount / maxSupply;
+  if (pct >= 0.8) return 'Almost Gone';
+  if (pct >= 0.34) return 'Filling';
+  return 'Fresh';
+}
+
+/**
+ * Full per-PROJECT traits — a project is "born" at upload exactly as an Output
+ * is born at mint, so it carries the same birth-order platform traits computed
+ * the same way (Artist › @name › PriceDay › Natal Sun/Moon/Rising › Fate), plus
+ * a live Status (mint progress). Derived, not stored — identical model to
+ * `outputTraits` (which computes from the mint moment + slug, never a DB column).
+ *
+ * Pass `birthMs` (upload Unix-ms) for the PriceDay + Natal trio; omit it for the
+ * deterministic subset. Pass minted/supply for Status; omit to skip it.
+ */
+export function projectTraits(
+  slug: string,
+  birthMs?: number,
+  mintedCount?: number,
+  maxSupply?: number,
+): OutputTraits {
+  const project = getProject(slug);
+  const out: OutputTraits = {};
+  if (project) {
+    out[PLATFORM_TRAIT.artist] = `@${project.artistHandle}`;
+    // The project's @name. Slug is the canonical handle until the authored
+    // upload @name lands as its own field; swap the source then, UI unchanged.
+    out[PLATFORM_TRAIT.project] = `@${project.slug}`;
+  }
+  if (birthMs != null && Number.isFinite(birthMs)) {
+    out[PLATFORM_TRAIT.priceDay] = `PriceDay #${priceDayNumber(new Date(birthMs))}`;
+    const chart = natalChart(birthMs);
+    out[PLATFORM_TRAIT.sun] = chart.sun;
+    out[PLATFORM_TRAIT.moon] = chart.moon;
+    out[PLATFORM_TRAIT.rising] = chart.rising;
+  }
+  out[PLATFORM_TRAIT.fate] = projectFate(slug);
+  if (mintedCount != null && maxSupply != null) {
+    out.Status = mintProgress(mintedCount, maxSupply);
+  }
   return out;
 }
 

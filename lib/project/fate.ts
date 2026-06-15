@@ -193,3 +193,11 @@ export function readOutputFate(slug: string, tokenId: number): FateReading {
 export function outputFate(slug: string, tokenId: number): string {
   return readOutputFate(slug, tokenId).fate;
 }
+
+/* A PROJECT is "born" at upload, exactly as an Output is born at mint, so it
+   carries its own Fate. Seeded from the bare slug (no token id) so the project's
+   reading is distinct from any of its Outputs' (those seed from `${slug}:${id}`).
+   Chainless stand-in for the upload tx hash. */
+export function projectFate(slug: string): string {
+  return castFate(hashString(slug)).fate;
+}
