@@ -115,6 +115,7 @@ import {
     subscribeWishlist,
     toggleWishlist as storeToggleWishlist,
 } from '../lib/pins/wishlistStore';
+import { toggleShowcase as storeToggleShowcase } from '../lib/pins/userShowcaseStore';
 import { useCart } from '../lib/state/CartContext';
 import { useBench } from '../lib/state/BenchContext';
 import { useHoldDrag } from '../lib/hooks/useHoldDrag';
@@ -526,6 +527,20 @@ export default function ArtworkCard({
         showToast(result === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
     };
 
+    /* Add to / remove from your profile Showcase (account-backed, 6-slot cap).
+       Was a stub that toasted but never saved — the actual bug. */
+    const handleShowcaseClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const result = storeToggleShowcase(slug, id);
+        showToast(
+            result === 'full'
+                ? 'Showcase: FULL · 6 max'
+                : result === 'added'
+                    ? 'Showcase: ADDED'
+                    : 'Showcase: REMOVED',
+        );
+    };
+
     /* chat #6 D010-cart — sim 11823-11836. addToCart's two branches:
        already-in-cart shows "Prisms #22 already in cart" (sim 11827 —
        title-cased project name + ' #' + id + ' already in cart');
@@ -801,7 +816,7 @@ export default function ArtworkCard({
                                 <span
                                     className="hi-icon hi-showcase"
                                     title="Add to Your Showcase"
-                                    onClick={stubAction('Added to Your Showcase')}
+                                    onClick={handleShowcaseClick}
                                 >
                                     {'\u2446\uFE0E'}
                                 </span>

@@ -981,7 +981,7 @@ export default function OutputPreview() {
                                     if (calcMode === 'user-showcase') {
                                         if (id != null) {
                                             const r = toggleShowcase(slug, id);
-                                            showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
+                                            showToast(r === 'full' ? 'Showcase: FULL · 6 max' : r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
                                         }
                                     } else if (calcMode === 'offer') {
                                         showToast('Offer Calc: COMING SOON');

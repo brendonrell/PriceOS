@@ -36,6 +36,9 @@ export const STATE_CACHE_KEYS = {
     sort: 'pd_settings_sort',
     notifs: 'pd_settings_notifs',
     showcaseStyle: 'pd_user_showcase_mode',
+    /** User Showcase picks (`${slug}:${id}` keys). Read + written by
+     *  userShowcaseStore; persisted to the top-level `users.showcase` column. */
+    showcase: 'pd_user_showcase',
     /** Unified Grid View Presets blob `{ [scope]: PresetEntry[] }`. Read +
      *  written by lib/pins/presetStore. */
     gridPresets: 'pd_grid_presets',
@@ -106,6 +109,13 @@ export function hydrateFromRow(row: UserRow): void {
         // showcase_style: 'grid' (legacy default) reads as 'static'.
         const style = row.showcase_style === 'generative' ? 'generative' : 'static';
         localStorage.setItem(STATE_CACHE_KEYS.showcaseStyle, style);
+
+        // showcase picks → the cache userShowcaseStore re-reads on the hydrate
+        // event below (server `users.showcase` wins). Non-null slots → keys.
+        const showcaseKeys = (row.showcase?.slots ?? [])
+            .filter((sl): sl is NonNullable<typeof sl> => !!sl && !!sl.project_id && sl.token_id != null)
+            .map((sl) => `${sl.project_id}:${sl.token_id}`);
+        localStorage.setItem(STATE_CACHE_KEYS.showcase, JSON.stringify(showcaseKeys));
 
         // settings envelope.
         const s = row.settings ?? {};

@@ -12,15 +12,21 @@
  *   bare token number collides across Projects). The showcase spans every
  *   Project the user has picked from.
  *
- * Persistence: localStorage `pd_user_showcase` (device-local for now;
- * account-backing can follow starStore's envelope pattern later). The showcase
- * grid that renders these picks is a separate surface — this store is the
- * Add-to-Showcase action's source of truth.
+ * Persistence: ACCOUNT-BACKED (Brendon, 2026-06-15 — "it's a db thing, not
+ * localstore"). Writes through to the server `users.showcase` column (the same
+ * 6-slot column visitors render) via userState.pushState, and re-hydrates from
+ * it on login (USERSTATE_HYDRATED_EVENT). localStorage `pd_user_showcase` is the
+ * write-through cache so the UI is instant + works logged-out. The showcase is
+ * exactly 6 slots, so picks cap at 6.
  *
  * Toast text lives in the caller (no ToastContext in the store).
  */
 
-const STORAGE_KEY = 'pd_user_showcase';
+import type { Showcase, ShowcaseSlot } from '../supabase';
+import { pushState, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const STORAGE_KEY = STATE_CACHE_KEYS.showcase;
+const MAX_SLOTS = 6;
 
 type Listener = (keys: ReadonlySet<string>) => void;
 
@@ -56,13 +62,39 @@ function hydrate(): void {
     keys = loadFromCache();
 }
 
+/** Map the picks (first 6, insertion order) to the DB's 6-slot showcase shape. */
+function keysToShowcase(): Showcase {
+    const items = Array.from(keys).slice(0, MAX_SLOTS);
+    const slots = Array.from({ length: MAX_SLOTS }, (_, i): ShowcaseSlot | null => {
+        const k = items[i];
+        if (!k) return null;
+        const j = k.indexOf(':');
+        return { project_id: k.slice(0, j), token_id: k.slice(j + 1) };
+    });
+    return { slots } as Showcase;
+}
+
 function persist(): void {
-    if (typeof window === 'undefined') return;
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
-    } catch {
-        /* ignore */
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
+        } catch {
+            /* ignore */
+        }
     }
+    // Write through to the account (users.showcase). pushState is a no-op until
+    // an authed snapshot has hydrated, so a logged-out pick never tries to write.
+    pushState({ showcase: keysToShowcase() });
+}
+
+/* Server snapshot landed (login / sibling device) — re-read the cache userState
+   just wrote and refresh live subscribers. Mirrors presetStore's hydrate hook. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        keys = loadFromCache();
+        hydrated = true;
+        emit();
+    });
 }
 
 function emit(): void {
@@ -70,7 +102,7 @@ function emit(): void {
     listeners.forEach((l) => l(snapshot));
 }
 
-export type ToggleShowcaseResult = 'added' | 'removed';
+export type ToggleShowcaseResult = 'added' | 'removed' | 'full';
 
 /** Snapshot of showcase keys (`${slug}:${id}`). Triggers hydrate. */
 export function getShowcaseKeys(): ReadonlySet<string> {
@@ -92,7 +124,8 @@ export function isInShowcase(slug: string, id: number): boolean {
     return keys.has(keyOf(slug, id));
 }
 
-/** Toggle an Output in the user's showcase. Returns 'added' or 'removed'. */
+/** Toggle an Output in the user's showcase. Returns 'added', 'removed', or
+ *  'full' when already at the 6-slot cap. */
 export function toggleShowcase(slug: string, id: number): ToggleShowcaseResult {
     hydrate();
     const k = keyOf(slug, id);
@@ -102,6 +135,7 @@ export function toggleShowcase(slug: string, id: number): ToggleShowcaseResult {
         emit();
         return 'removed';
     }
+    if (keys.size >= MAX_SLOTS) return 'full';
     keys.add(k);
     persist();
     emit();

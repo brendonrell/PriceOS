@@ -58,7 +58,7 @@ export default function AddToShowcaseModal({
 
     const toggle = (slug: string, id: number) => {
         const r = toggleShowcase(slug, id);
-        showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
+        showToast(r === 'full' ? 'Showcase: FULL · 6 max' : r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
     };
 
     return createPortal(
