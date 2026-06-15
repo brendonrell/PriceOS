@@ -5503,23 +5503,33 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 .home-activity-feed .f-type { width: 112px; }
 @media (max-width: 600px) {
-    .home-activity-feed .f-type { width: 84px; font-size: 11px; }
+    .home-activity-feed .f-type { width: 88px; font-size: 11px; }
 }
+/* Date column stacks date over time, and shifts right a touch so the bigger
+   ⟢⟢ has room to spill without touching it (Brendon, iPhone-12 PWA target). */
+.home-activity-feed .af-time {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    margin-left: 8px;
+}
+.home-activity-feed .af-clock { font-size: 10px; opacity: 0.75; }
+
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
 /* ⟢⟢ Graduated is MEANT to stand out — render it bigger and let it spill out of
-   the icon box into the gaps (overflow visible), box stays 14px so columns stay
-   aligned. (Brendon, 2026-06-15) */
+   the icon box (overflow visible); box stays 14px so columns stay aligned, and
+   the date's left margin gives the spill room. (Brendon, 2026-06-15) */
 .af-ic--grad {
     font-size: 21px;
     letter-spacing: -2px;
     white-space: nowrap;
     overflow: visible;
 }
-@media (max-width: 600px) { .af-ic--grad { font-size: 17px; } }
+@media (max-width: 600px) { .af-ic--grad { font-size: 18px; } }
 .f-content .ico-mutual,
 .f-content .ico-following,
 .f-content .ico-followers {

@@ -704,7 +704,10 @@ function HomePageBodyInner({
                                 <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                     <div className="feed-line" />
                                     <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
-                                    <div className="f-time">{fmtUploadDate(ev.ts)}</div>
+                                    <div className="f-time af-time">
+                                        <span>{fmtUploadDate(ev.ts)}</span>
+                                        <span className="af-clock">{fmtUploadTime(ev.ts)}</span>
+                                    </div>
                                     <div className="f-type">{ev.label}</div>
                                     <div className="f-content">
                                         <a className="f-highlight upload-title" href={`/art/${ev.slug}`}>
