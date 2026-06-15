@@ -421,7 +421,7 @@ export default function BenchDock() {
                                     disabled={exporting}
                                     title="Export as image"
                                 >
-                                    {exporting ? '…' : '⧉'}
+                                    {exporting ? '…' : `⍈${VS15}`}
                                 </button>
                                 <button
                                     className="bench-tab-btn dismiss"

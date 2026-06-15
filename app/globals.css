@@ -1516,7 +1516,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     flex-shrink: 0;
 }
 .priceos-footer-row {
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: baseline; justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -4382,13 +4382,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    sizes + optically centred in the pill, 2026-06-14). */
 @media (max-width: 600px) {
     .pill.pill-l1.pill-shuffle-icon .stat-name {
-        font-size: 25px;
+        font-size: 27px;
         font-weight: bold;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        top: 1px;
+        top: -1px;
         left: 2px;
     }
 }
@@ -5153,6 +5153,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     align-content: center;
     gap: 12px 14px;
     max-width: 100%;
@@ -5242,6 +5243,13 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .hi-icon.hi-note { font-size: 14px !important; }
     /* Showcase icon on card hover: mobile size restored to original */
     .hi-icon.hi-showcase { font-size: 27px !important; }
+}
+/* Desktop hover row — note +2 and grail pin +1 for better balance against
+   the rest of the row (Brendon 2026-06-15). Desktop only; the row is hidden
+   on touch devices. */
+@media (min-width: 601px) {
+    .hi-icon.hi-note { font-size: 16px; }
+    .hi-icon.hi-grail { font-size: 21px; }
 }
 
 /* ── PRICE LENS ⊛ — sim 3934-3949 ──

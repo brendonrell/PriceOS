@@ -38,7 +38,6 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
@@ -71,7 +70,6 @@ export function FaviconEngine() {
     const { colorway } = useColorway();
     const { notifs } = usePdNotifs();
     const { menuOpen } = useDropdown();
-    const pathname = usePathname();
 
     /* Transient render flags — match sim's module-level globals
        (currentFaviconRotated at 5559, the implicit ETH ping window
@@ -166,17 +164,33 @@ export function FaviconEngine() {
         paint();
     }, [colorway, paint]);
 
-    /* Repaint on route change. Project / profile / home pages all share the
-       'custom' colorway KEY but derive a DIFFERENT background per page, so the
-       colorway-keyed effect above never re-fires when navigating between them
-       — leaving the favicon stuck on the previous page's colour. ColorwayContext
-       writes the new page's --bg-color in its own pathname effect; we read it
-       one animation frame later (after that write + style recalc have
-       committed) so the favicon tracks the bg on every navigation. */
+    /* Repaint whenever the live background actually changes. Project / profile
+       / home pages all share the 'custom' colorway KEY but derive a DIFFERENT
+       background per page, and a profile's real colour is applied a beat AFTER
+       mount (once the owner's hex resolves) WITHOUT changing the key — so the
+       colorway-keyed effect above never re-fires and the favicon would stay on
+       the prehydration default (the off-white profile boot colour) until some
+       unrelated state change finally nudged it. Watching --bg-color directly
+       catches every background write — route change, deferred profile hex,
+       custom-colour edits, animated colorways — and repaints on the next frame.
+       Our own paint writes the favicon link + theme-color meta, never the root
+       style, so this can't feed back on itself. */
+    const lastBgRef = useRef<string | null>(null);
     useEffect(() => {
-        const id = requestAnimationFrame(() => paint());
-        return () => cancelAnimationFrame(id);
-    }, [pathname, paint]);
+        const root = document.documentElement;
+        let raf = 0;
+        const check = () => {
+            const bg = root.style.getPropertyValue('--bg-color').trim() || null;
+            if (bg === lastBgRef.current) return;
+            lastBgRef.current = bg;
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => paint());
+        };
+        const mo = new MutationObserver(check);
+        mo.observe(root, { attributes: true, attributeFilter: ['style'] });
+        check(); // catch a bg already set before the observer attached
+        return () => { mo.disconnect(); cancelAnimationFrame(raf); };
+    }, [paint]);
 
     return null;
 }
