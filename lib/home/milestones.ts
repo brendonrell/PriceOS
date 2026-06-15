@@ -35,3 +35,28 @@ export function milestoneLabel(key: string | number): string | null {
     const k = String(key);
     return PROJECT_MILESTONES.find((m) => m.key === k)?.label ?? null;
 }
+
+/* The Status facet ladder — the project's standing by mint count. First Blood +
+   Graduation (12) + the milestones, in Title Case (facet-pill style; the feed
+   uses the ALLCAPS labels). Sold-out / Ascension is deliberately NOT a status
+   (Brendon 2026-06-15 — "we just don't show sold out"). */
+export const STATUS_LADDER: readonly { count: number; label: string }[] = [
+    { count: 1,    label: 'First Blood' },
+    { count: 12,   label: 'Graduated' },
+    { count: 22,   label: 'Lucky 22' },
+    { count: 100,  label: 'Century Club' },
+    { count: 777,  label: 'Halo' },
+    { count: 1000, label: 'Per Mille Club' },
+    { count: 1200, label: 'Archetype' },
+    { count: 4000, label: 'Hi-Def' },
+];
+
+/** A project's Status = the highest ladder tier its mint count has reached. */
+export function projectStatus(mintedCount: number): string {
+    let label = STATUS_LADDER[0].label;
+    for (const s of STATUS_LADDER) {
+        if (mintedCount >= s.count) label = s.label;
+        else break;
+    }
+    return label;
+}

@@ -37,6 +37,7 @@ import {
     type PresetEntry,
 } from '../../lib/pins/presetStore';
 import HomeMsFloatBar from './HomeMsFloatBar';
+import { STATUS_LADDER } from '../../lib/home/milestones';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -80,7 +81,8 @@ function sortValues(facet: string, values: string[]): string[] {
         );
     }
     if (facet === 'Status') {
-        return ['Fresh', 'Filling', 'Almost Gone'].filter((v) => values.includes(v));
+        // Order by the milestone ladder (Graduated → … → Hi-Def), keep present.
+        return STATUS_LADDER.map((s) => s.label).filter((v) => values.includes(v));
     }
     return [...values].sort((a, b) => a.localeCompare(b));
 }

@@ -19,6 +19,7 @@ import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
 import { natalChart } from './natal';
+import { projectStatus } from '../home/milestones';
 
 /* Platform trait names — stamped on EVERY Output of EVERY Project, so they ride
    into the token metadata (ERC-721 attributes) and surface on OpenSea as well
@@ -306,7 +307,6 @@ export function projectTraits(
   slug: string,
   birthMs?: number,
   mintedCount?: number,
-  maxSupply?: number,
 ): OutputTraits {
   const project = getProject(slug);
   const out: OutputTraits = {};
@@ -324,8 +324,10 @@ export function projectTraits(
     out[PLATFORM_TRAIT.rising] = chart.rising;
   }
   out[PLATFORM_TRAIT.fate] = projectFate(slug);
-  if (mintedCount != null && maxSupply != null) {
-    out.Status = mintProgress(mintedCount, maxSupply);
+  // Status = the milestone tier the project's mint count has reached
+  // (Graduated → Lucky 22 → … → Hi-Def); sold-out is not a status.
+  if (mintedCount != null) {
+    out.Status = projectStatus(mintedCount);
   }
   return out;
 }

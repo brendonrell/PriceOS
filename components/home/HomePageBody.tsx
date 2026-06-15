@@ -302,7 +302,6 @@ function HomePageBodyInner({
                     m.slug,
                     m.uploaded_at ?? undefined,
                     m.minted_count,
-                    m.max_supply,
                 ),
             };
         });
