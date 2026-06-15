@@ -22,6 +22,7 @@ import {
     useSyncExternalStore,
 } from 'react';
 import { useBench, type BenchItem } from '../lib/state/BenchContext';
+import { useCart } from '../lib/state/CartContext';
 import {
     subscribeBenchDrag,
     getBenchDrag,
@@ -72,10 +73,12 @@ function useOutputNote(id: number): string {
 }
 
 const BenchCard = memo(function BenchCard({
-    slug, id, title, priceStr, deltaStr, onRemove,
+    slug, id, title, priceStr, deltaStr, listed, onRemove, onAddToCart,
 }: {
     slug: string; id: number; title: string; priceStr: string | null; deltaStr: string;
+    listed: boolean;
     onRemove: (slug: string, id: number) => void;
+    onAddToCart: (slug: string, id: number) => void;
 }) {
     const note = useOutputNote(id);
     const { openOutputNoteEditor } = useNotePrompt();
@@ -91,6 +94,17 @@ const BenchCard = memo(function BenchCard({
             >
                 {`×${VS15}`}
             </button>
+            {listed && (
+                <button
+                    className="bench-card-cart"
+                    type="button"
+                    aria-label="Add to Cart"
+                    title="Add to Cart"
+                    onClick={() => onAddToCart(slug, id)}
+                >
+                    {`▢${VS15}`}
+                </button>
+            )}
             <div className="bench-card-art">
                 <BenchArt slug={slug} id={id} />
             </div>
@@ -117,10 +131,11 @@ const BenchCard = memo(function BenchCard({
 });
 
 function BenchGroup({
-    slug, ids, onRemove, reportInfo,
+    slug, ids, onRemove, onAddToCart, reportInfo,
 }: {
     slug: string; ids: number[];
     onRemove: (slug: string, id: number) => void;
+    onAddToCart: (slug: string, id: number) => void;
     reportInfo: (key: string, info: ItemInfo | null) => void;
 }) {
     const { title, outputs, floorEth } = useProject();
@@ -155,7 +170,9 @@ function BenchGroup({
                     title={title}
                     priceStr={r.priceStr}
                     deltaStr={r.deltaStr}
+                    listed={r.listed}
                     onRemove={onRemove}
+                    onAddToCart={onAddToCart}
                 />
             ))}
         </>
@@ -164,8 +181,19 @@ function BenchGroup({
 
 export default function BenchDock() {
     const { items, orientation, expanded, remove, clear, toggleOrientation, expand, collapse } = useBench();
+    const { add: cartAdd, has: cartHas } = useCart();
     const drag = useSyncExternalStore(subscribeBenchDrag, getBenchDrag, getBenchDragServer);
     const { showToast } = useToast();
+
+    /* Bench → Cart feeder: each listed piece carries the add-to-cart icon. */
+    const onAddToCart = useCallback(
+        (slug: string, id: number) => {
+            if (cartHas(slug, id)) { showToast('Cart: ALREADY IN'); return; }
+            cartAdd(slug, id);
+            showToast('Cart: ADDED');
+        },
+        [cartAdd, cartHas, showToast],
+    );
 
     const engaged = !!drag?.engaged;
     const listed = !!drag?.listed;
@@ -405,7 +433,7 @@ export default function BenchDock() {
                         <div className={`bench-grid ${orientation}`}>
                             {groups.map(([slug, ids]) => (
                                 <ProjectProvider key={slug} slug={slug}>
-                                    <BenchGroup slug={slug} ids={ids} onRemove={remove} reportInfo={reportInfo} />
+                                    <BenchGroup slug={slug} ids={ids} onRemove={remove} onAddToCart={onAddToCart} reportInfo={reportInfo} />
                                 </ProjectProvider>
                             ))}
                         </div>
