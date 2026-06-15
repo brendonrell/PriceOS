@@ -35,8 +35,11 @@
   useCollectionSync` (UNION-merge device+server on sign-in, debounced save; logged out =
   localStorage). **Cart "sold-drops-out-on-login" auto-remove NOT wired** — the `listings` table
   is empty, so auto-deleting on it would wrongly EMPTY carts; activates with real listings/
-  indexer data. "Only listed can be ADDED" is already enforced at add-time. **DESKTOP
-  "premium larger-art" bench layout = Brendon's call, NOT built.**
+  indexer data. "Only listed can be ADDED" is already enforced at add-time.
+- **DESKTOP premium bench — BUILT (06-15):** ≥960px, pulling the tab up opens a roomy centred
+  gallery-grade panel (360px art tiles, generous spacing, focus backdrop, tap-outside to recede);
+  mobile's compact bottom sheet untouched. **Only remaining open item = the cart sold-removal
+  above (waiting on real listings data).**
 - **Ambient Strip:** LED light bar BELOW the tape, **OFF by default** (☼ toggle in MY PD, the
   slot Echo Chamber vacated). Tap the bar → options popup (palette/pattern/speed/dim); real
   glow + page dim. **Built blind — wants a visual tuning pass on dev.**
