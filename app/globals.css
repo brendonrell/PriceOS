@@ -5510,15 +5510,15 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 @media (max-width: 600px) {
     .home-activity-feed .f-type { width: 88px; font-size: 11px; }
 }
-/* Date column stacks date over time, and shifts right a touch so the bigger
-   ⟢⟢ has room to spill without touching it (Brendon, iPhone-12 PWA target). */
-.home-activity-feed .af-time {
+/* Action over time — the event label sits where the New-Uploads time sits, with
+   the time directly below it at the SAME size (Brendon, 2026-06-15). */
+.home-activity-feed .af-type {
     display: flex;
     flex-direction: column;
     line-height: 1.25;
-    margin-left: 8px;
 }
-.home-activity-feed .af-clock { font-size: 10px; opacity: 0.75; }
+/* Date shifts right a touch so the bigger ⟢⟢ has room to spill into. */
+.home-activity-feed .f-time { margin-left: 8px; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
