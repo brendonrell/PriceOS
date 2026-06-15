@@ -60,6 +60,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get('limit') ?? '20')));
   const projectFilter = url.searchParams.get('project_id');
+  // Per-user feed: when `address` is present, return only events where this
+  // wallet is either side (minted / listed / bought / sent / received). Powers
+  // the profile activity feed; absent → platform-wide feed (unchanged).
+  const addressFilter = url.searchParams.get('address')?.toLowerCase() ?? null;
   const typesParam = url.searchParams.get('types');
 
   let types: EventType[] = typesParam
@@ -76,6 +80,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .order('timestamp', { ascending: false })
       .limit(200);
     if (projectFilter) q = q.eq('project_id', projectFilter);
+    if (addressFilter) q = q.or(`from_address.eq.${addressFilter},to_address.eq.${addressFilter}`);
     const { data, error } = await q;
     if (error) return serverError(error.message);
 

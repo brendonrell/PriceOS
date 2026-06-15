@@ -274,9 +274,9 @@ export default function ProfileFacetBar({
                 )}
             </div>
 
-            {/* Sort bar — colorway view-mode squares + #ID / $PRICE sort, as a
-                sibling of .traits-ui (matching the project). No FEED tab: the
-                Collected view has no cross-Project activity feed. */}
+            {/* Sort bar — colorway view-mode squares + #ID / $PRICE / FEED sort,
+                as a sibling of .traits-ui (matching the project). FEED swaps the
+                grid for this wallet's activity feed (Brendon 2026-06-15). */}
             <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
@@ -320,6 +320,17 @@ export default function ProfileFacetBar({
                     >
                         <span className="sort-lbl">{'$ PRICE'}</span>
                         <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                    </span>
+                    <span
+                        className={`sort-btn${sort === 'feed' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Activity Feed"
+                        onClick={() => cycleSort('feed')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('feed'); } }}
+                    >
+                        <span className="sort-lbl">FEED</span>
+                        <span className="sort-arrow">{sort === 'feed' ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
                     </span>
                 </div>
             </div>

@@ -456,6 +456,7 @@ export default function OutputPreview() {
         owner_handle: string | null;
         last_sale: string | null;
         floor: string | null;
+        listing: { price_eth: string } | null;
         viewer: { isOwner: boolean } | null;
     } | null>(null);
     useEffect(() => {
@@ -633,6 +634,29 @@ export default function OutputPreview() {
     };
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
 
+    /* Shared main-button click — identical in portrait + landscape modals.
+       The CTA is ownership/listing-AWARE now, but the secondary marketplace
+       itself isn't built yet (Brendon 2026-06-15) — so LIST / UNLIST / MAKE
+       OFFER are correct-but-placeholder, awaiting that wiring. BUY (adds the
+       listed piece to the cart) and the ⑆ Add-to-Showcase tab work today. */
+    const onMainAction = () => {
+        if (mainAction === 'buy' && id != null) {
+            if (cartHas(slug, id)) {
+                showToast(`${title} #${id}: ALREADY IN CART`);
+            } else {
+                cartAdd(slug, id);
+                const next = cartItems.length + 1;
+                showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
+            }
+        } else if (mainAction === 'list') {
+            showToast('List: COMING SOON');
+        } else if (mainAction === 'unlist') {
+            showToast('Unlist: COMING SOON');
+        } else {
+            showToast('Make Offer: COMING SOON');
+        }
+    };
+
     /* Action button label + Calc-tab visibility.
        BUY:        ƒ calc tab (buy price analysis)   → adds to cart
        LIST:       ✺ user showcase tab                → add to user showcase
@@ -642,27 +666,38 @@ export default function OutputPreview() {
     let calcIcon = '\u0192';        // ƒ default
     let calcTitle = 'The Calc';
     let calcMode: 'buy' | 'user-showcase' | 'offer' = 'buy';
+    /* The MAIN button's real action, from LIVE ownership + listing (Brendon
+       2026-06-15) — the viewer's own SIWE wallet via the market route, not the
+       seeded meta flag. Fall back to meta only until the market read resolves
+       so the button is never blank on open. */
+    let mainAction: 'buy' | 'list' | 'unlist' | 'offer' = 'buy';
 
     if (meta) {
-        if (meta.isOwnedByBrendon) {
-            actionLabel = <>LIST</>;          // no price on LIST — cost basis is personal
+        const ownsThis = market?.viewer?.isOwner ?? meta.isOwnedByBrendon;
+        const liveListPrice = market ? (market.listing?.price_eth ?? null) : meta.price;
+        const isListedNow = liveListPrice != null;
+        if (ownsThis) {
+            actionLabel = isListedNow ? <>UNLIST</> : <>LIST</>;
+            mainAction = isListedNow ? 'unlist' : 'list';
             hasCalc = true;
             calcIcon = '\u2446\uFE0E';         // ⑆ user showcase icon
             calcTitle = 'Add to Your Showcase';
             calcMode = 'user-showcase';
-        } else if (meta.price) {
+        } else if (isListedNow) {
             actionLabel = (
                 <>
                     BUY{' '}
                     <span className="modal-action-btn-price">
-                        &middot; {meta.price}
+                        &middot; {liveListPrice}
                     </span>
                 </>
             );
+            mainAction = 'buy';
             hasCalc = true;
             calcMode = 'buy';
         } else {
             actionLabel = <>MAKE OFFER</>;
+            mainAction = 'offer';
             hasCalc = true;
             calcTitle = 'Offer Calc';
             calcMode = 'offer';
@@ -935,19 +970,7 @@ export default function OutputPreview() {
                             <button
                                 className="modal-action-btn"
                                 id="mActionBtn"
-                                onClick={() => {
-                                    if (calcMode === 'buy' && id != null) {
-                                        if (cartHas(slug, id)) {
-                                            showToast(`${title} #${id}: ALREADY IN CART`);
-                                        } else {
-                                            cartAdd(slug, id);
-                                            const next = cartItems.length + 1;
-                                            showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
-                                        }
-                                    } else {
-                                        showToast('Action: COMING SOON');
-                                    }
-                                }}
+                                onClick={onMainAction}
                             >
                                 {actionLabel}
                             </button>
@@ -1110,19 +1133,7 @@ export default function OutputPreview() {
                     <div className={`modal-action-btn-wrap${hasCalc ? ' has-calc' : ''}`}>
                         <button
                             className="modal-action-btn"
-                            onClick={() => {
-                                if (calcMode === 'buy' && id != null) {
-                                    if (cartHas(slug, id)) {
-                                        showToast(`${title} #${id}: ALREADY IN CART`);
-                                    } else {
-                                        cartAdd(slug, id);
-                                        const next = cartItems.length + 1;
-                                        showToast(`Added to cart \u00B7 ${next} item${next === 1 ? '' : 's'}`);
-                                    }
-                                } else {
-                                    showToast('Action: COMING SOON');
-                                }
-                            }}
+                            onClick={onMainAction}
                         >
                             {actionLabel}
                         </button>
