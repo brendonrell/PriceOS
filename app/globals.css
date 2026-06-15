@@ -7363,6 +7363,13 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     /* Never let the bar push past the hero width — that overhang is what
        "catches" on the browser edge when scrolling in landscape. */
     max-width: 100%;
+    /* Match the project Artworks tab EXACTLY: its rows (traits-ui · sort-bar ·
+       preset-row · search-row) are siblings spaced by the hero column's 16px
+       gap. The home bar wraps them, so it provides that same column gap itself —
+       no per-row margin hacks (Brendon, 2026-06-15). */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 /* The transplanted trait rows inherit the project gallery's pin-to-bottom
    behaviour (sticky bottom:0). On the home hero that's wrong — it shifts the
@@ -7375,17 +7382,6 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     position: static;
     bottom: auto;
 }
-/* The colour-picker / sort row is a sibling of the pill rows with no column
-   gap of its own (the project/profile bars get this gap from the hero column).
-   Without it the row sits shoved against the pills above — give it the same
-   16px breathing room the search row gets. (Brendon, 2026-06-15) */
-.home-facet-bar .sort-bar {
-    margin-top: 16px;
-}
-/* Home search row — match the breathing room the project bar gets above its
-   search input from the hero column gap (16px). The home facet bar has no
-   column gap of its own, so the popped-open search sat flush under the pills. */
-.home-facet-bar .search-row { margin-top: 16px; }
 .home-carousel-row {
     margin: 0 0 28px;
 }
@@ -7535,7 +7531,9 @@ section[aria-label="Now Minting"] > .home-carousel-row:first-child {
 /* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
    so cycling never reflows the hero (the old version's jump). Desktop stays one
    line; mobile reserves two. (Brendon, 2026-06-15) */
-.home-feat-row { overflow: hidden; }
+/* row-gap a hair under the shared 2px so the two wrapped lines sit slightly
+   tighter on the home featuring row only (Brendon, 2026-06-15). */
+.home-feat-row { overflow: hidden; row-gap: 1px; }
 @media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */
