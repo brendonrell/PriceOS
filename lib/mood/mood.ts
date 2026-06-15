@@ -97,11 +97,12 @@ function moodForHue(hue: number, roll: number): string {
     return band.moods[Math.floor(roll * band.moods.length)];
 }
 
-/* Hue offset over the golden-angle walk. Bumped 0 → 200 (Brendon,
-   2026-06-12: "tired of this green") — re-rolls the entire colour
-   timeline while keeping the walk's consecutive-days-differ property.
+/* Hue offset over the golden-angle walk. Bumped 0 → 200 (2026-06-12,
+   "tired of this green") → 20 (2026-06-15, reroll for a nicer test colour —
+   today lands periwinkle blue). Re-rolls the whole colour timeline (moods are
+   computed, never stored) while keeping the consecutive-days-differ property.
    ⚠ Part of the boot-paint mirror contract (app/layout.tsx). */
-const HUE_SALT = 200;
+const HUE_SALT = 20;
 
 function hslToHex(h: number, s: number, l: number): string {
     const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
