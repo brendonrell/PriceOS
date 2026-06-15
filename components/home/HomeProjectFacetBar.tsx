@@ -133,6 +133,11 @@ export default function HomeProjectFacetBar({
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
+    /* No saved pick (logged-out / first visit) = the Custom colorway, which on
+       home is the daily Mood Ring the page is already painted in. So the picker
+       lands on Custom rather than nothing highlighted (Brendon, 2026-06-15). */
+    const activeColorway = colorway ?? 'custom';
+
     /* Facet → present value pool, from the live minting projects. Only facets
        with ≥1 value render. */
     const facetValues = useMemo(() => {
@@ -279,7 +284,7 @@ export default function HomeProjectFacetBar({
                     {THEME_PILLS.map((t) => (
                         <div
                             key={t.key ?? 'default'}
-                            className={`pill-colorway ${t.cls}${colorway === t.key ? ' active' : ''}`}
+                            className={`pill-colorway ${t.cls}${activeColorway === t.key ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
                             onClick={() => setColorwayWithToast(t.key)}
