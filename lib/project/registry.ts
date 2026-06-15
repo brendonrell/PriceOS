@@ -270,7 +270,7 @@ export function outputTraits(
   Object.assign(out, project ? project.traitsOf(tokenId) : {});
   // Mint-moment traits (only when the birth timestamp is known).
   if (mintMs != null && Number.isFinite(mintMs)) {
-    out[PLATFORM_TRAIT.priceDay] = `#${priceDayNumber(new Date(mintMs))}`;
+    out[PLATFORM_TRAIT.priceDay] = `PriceDay #${priceDayNumber(new Date(mintMs))}`;
     const chart = natalChart(mintMs);
     out[PLATFORM_TRAIT.sun] = chart.sun;
     out[PLATFORM_TRAIT.moon] = chart.moon;

@@ -2996,6 +2996,25 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     text-decoration: none;
     color: inherit;
 }
+
+/* Profile identity-row PriceSprite — relocated from the title row (Brendon
+   2026-06-15). Same Courier sprite look + size as before, but it now sits
+   where "Via" was and inherits the row's colour + full opacity so it reads
+   as part of the line. The row's flex gap supplies the space to the address. */
+.id-row-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13.6px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-block;
+}
+/* Keep the identity row on ONE line. A long ENS shrinks to fit (JS in
+   ProfilePageBody) rather than wrapping; desktop has room so nothing changes. */
+.id-row-fit { flex-wrap: nowrap; overflow: hidden; }
+.id-row-fit .artist-lockup a { white-space: nowrap; }
 .follower-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -4363,13 +4382,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    sizes + optically centred in the pill, 2026-06-14). */
 @media (max-width: 600px) {
     .pill.pill-l1.pill-shuffle-icon .stat-name {
-        font-size: 23px;
+        font-size: 25px;
         font-weight: bold;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         position: relative;
         top: 1px;
+        left: 2px;
     }
 }
 /* Fate: −1px on mobile, nudge up 1px */
@@ -5921,6 +5941,14 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         font-size: 23px;
         position: relative;
         top: 0;
+    }
+    /* Followers icon (profile stats row) — bigger + nudged up on mobile
+       only (Brendon 2026-06-15). Two-class selector beats the generic
+       .stat-icon-owners rule above for the followers stat specifically. */
+    .stat-icon-owners.stat-icon-followers {
+        font-size: 26px;
+        position: relative;
+        top: -3px;
     }
     .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }

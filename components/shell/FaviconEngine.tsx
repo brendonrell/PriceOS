@@ -37,7 +37,8 @@
  * wires unread-event tracking, this is the place to read that flag.
  */
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
@@ -70,6 +71,7 @@ export function FaviconEngine() {
     const { colorway } = useColorway();
     const { notifs } = usePdNotifs();
     const { menuOpen } = useDropdown();
+    const pathname = usePathname();
 
     /* Transient render flags — match sim's module-level globals
        (currentFaviconRotated at 5559, the implicit ETH ping window
@@ -131,11 +133,10 @@ export function FaviconEngine() {
         };
     }, []);
 
-    /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
-       happen in the same pre-paint window as ColorwayContext's CSS-var write,
-       instead of one browser paint later. This closes the "favicon only
-       updates after changing colorways" gap on app/page load. */
-    useLayoutEffect(() => {
+    /* The actual repaint: read the live theme vars off :root and redraw.
+       Recreated when any of the favicon's render flags change, so every
+       caller below paints with the current flags. */
+    const paint = useCallback(() => {
         const { bg, fg } = readThemeColors();
         updateFavicon({
             bg,
@@ -154,7 +155,28 @@ export function FaviconEngine() {
             const tcm = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
             if (tcm) tcm.setAttribute('content', bg);
         }
-    }, [colorway, notifs.priceLogo, rotated, ethPing]);
+    }, [ethPing, rotated, notifs.priceLogo]);
+
+    /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
+       happen in the same pre-paint window as ColorwayContext's CSS-var write,
+       instead of one browser paint later. This closes the "favicon only
+       updates after changing colorways" gap on app/page load. The `paint`
+       dep covers colorway-flag changes (priceLogo / rotation / ETH ping). */
+    useLayoutEffect(() => {
+        paint();
+    }, [colorway, paint]);
+
+    /* Repaint on route change. Project / profile / home pages all share the
+       'custom' colorway KEY but derive a DIFFERENT background per page, so the
+       colorway-keyed effect above never re-fires when navigating between them
+       — leaving the favicon stuck on the previous page's colour. ColorwayContext
+       writes the new page's --bg-color in its own pathname effect; we read it
+       one animation frame later (after that write + style recalc have
+       committed) so the favicon tracks the bg on every navigation. */
+    useEffect(() => {
+        const id = requestAnimationFrame(() => paint());
+        return () => cancelAnimationFrame(id);
+    }, [pathname, paint]);
 
     return null;
 }
