@@ -42,9 +42,11 @@ export interface HomeMintingRow {
   /** Upload moment (Unix ms) — the project's "birth", source for its PriceDay +
       Natal + the Newest/Oldest birth-order sort. Null when unknown (sorts last). */
   uploaded_at: number | null;
-  /** When the project crossed the threshold (Unix ms — its 12th MINT event),
-      or null when mint events predate event logging (sorts last). */
+  /** When the project crossed the threshold (Unix ms — graduated into Now
+      Minting), or null when unknown (sorts last). */
   reached_at: number | null;
+  /** When the project fully sold out (Unix ms), or null if still minting. */
+  sold_out_at: number | null;
 }
 
 export interface HomeResponse {
@@ -66,7 +68,7 @@ export interface HomeResponse {
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at'),
+    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at, sold_out_at'),
     db
       .from('events')
       .select('project_id, timestamp')
@@ -85,6 +87,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     uploaded_at: string | null;
     cooldown_until: string | null;
     graduated_at: string | null;
+    sold_out_at: string | null;
   }[];
 
   // The moment each project crossed the threshold = the timestamp of its
@@ -125,6 +128,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
         reached_at: p.graduated_at
           ? new Date(p.graduated_at).getTime()
           : reachedAt[p.id] ?? null,
+        sold_out_at: p.sold_out_at ? new Date(p.sold_out_at).getTime() : null,
       });
     } else {
       uploads.push({

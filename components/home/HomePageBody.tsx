@@ -81,6 +81,16 @@ const FEED_POLL_MS = 30_000;
 
 type HomeTab = 'minting' | 'new' | 'shuffle';
 
+/* Home activity-feed item — a project lifecycle moment. (Count-based "project
+   milestones" join this set once the list is locked.) */
+type HomeFeedKind = 'upload' | 'graduated' | 'soldout';
+interface HomeFeedItem { slug: string; title: string; kind: HomeFeedKind; ts: number }
+const HOME_FEED_LABEL: Record<HomeFeedKind, string> = {
+    upload: 'UPLOADED',
+    graduated: 'GRADUATED',
+    soldout: 'SOLD OUT',
+};
+
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
     if (ms == null) return '—';
@@ -339,13 +349,25 @@ function HomePageBodyInner({
         return filtered;
     }, [enrichedMinting, activeFilters, searchQuery, priceMin, priceMax, mintSort]);
 
-    /* Activity feed rows (FEED sort). New-art (upload) events for now, sorted
-       by the same direction; more event kinds later (Brendon 2026-06-15). */
-    const feedView = useMemo(() => {
-        const rows = [...(feed?.uploads ?? [])];
+    /* Activity feed (FEED sort) — project LIFECYCLE events merged across every
+       project: UPLOADED (born), GRADUATED (crossed 12 into Now Minting), SOLD
+       OUT. Newest first by default; the sort dir flips it. A graduated project
+       contributes both its upload and graduation rows. */
+    const feedView = useMemo<HomeFeedItem[]>(() => {
+        const items: HomeFeedItem[] = [];
+        const add = (slug: string, fallbackTitle: string, kind: HomeFeedKind, ms: number | null) => {
+            if (ms == null) return;
+            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, kind, ts: ms });
+        };
+        for (const u of feed?.uploads ?? []) add(u.slug, u.title, 'upload', u.uploaded_at);
+        for (const m of feed?.minting_now ?? []) {
+            add(m.slug, m.title, 'upload', m.uploaded_at);
+            add(m.slug, m.title, 'graduated', m.reached_at);
+            add(m.slug, m.title, 'soldout', m.sold_out_at);
+        }
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
-        rows.sort((a, b) => ((a.uploaded_at ?? -Infinity) - (b.uploaded_at ?? -Infinity)) * dirMult);
-        return rows;
+        items.sort((a, b) => (a.ts - b.ts) * dirMult);
+        return items;
     }, [feed, mintSort.dir]);
 
     /* New uploads, same filters; Newest/Oldest order by upload moment. */
@@ -641,34 +663,29 @@ function HomePageBodyInner({
                 </section>
             )}
 
-            {/* FEED sort on Now Minting → the activity feed. For now this is the
-                new-art (upload) events; more event kinds land later (Brendon
+            {/* FEED sort on Now Minting → the activity feed: project lifecycle
+                events (uploaded · graduated · sold out), newest first. Count-based
+                "project milestones" join this once the list is locked (Brendon
                 2026-06-15). Same feed-row markup as the New Art tab. */}
             {activeTab === 'minting' && mintSort.key === 'feed' && (
                 <section className="home-uploads" aria-label="Activity Feed">
                     <div className="feed-list">
-                        {!hasUploadsBase ? (
+                        {feedView.length === 0 ? (
                             <GhostFeedRows />
-                        ) : feedView.length === 0 ? (
-                            <div className="home-empty-note">No activity yet.</div>
                         ) : (
-                            feedView.map((u) => {
-                                const def = getProject(u.slug);
-                                const title = def?.displayName ?? u.title;
-                                return (
-                                    <div className="feed-row" key={u.slug}>
-                                        <div className="feed-line" />
-                                        <div className="f-icon-wrap">✶&#xFE0E;</div>
-                                        <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
-                                        <div className="f-type">{fmtUploadTime(u.uploaded_at)}</div>
-                                        <div className="f-content">
-                                            <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
-                                                {title}
-                                            </a>
-                                        </div>
+                            feedView.map((ev) => (
+                                <div className="feed-row" key={`${ev.kind}-${ev.slug}-${ev.ts}`}>
+                                    <div className="feed-line" />
+                                    <div className="f-icon-wrap">⌗&#xFE0E;</div>
+                                    <div className="f-time">{fmtUploadDate(ev.ts)}</div>
+                                    <div className="f-type">{HOME_FEED_LABEL[ev.kind]}</div>
+                                    <div className="f-content">
+                                        <a className="f-highlight upload-title" href={`/art/${ev.slug}`}>
+                                            {ev.title}
+                                        </a>
                                     </div>
-                                );
-                            })
+                                </div>
+                            ))
                         )}
                     </div>
                 </section>
