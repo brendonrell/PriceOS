@@ -687,13 +687,13 @@ function HomePageBodyInner({
                                 <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                     <div className="feed-line" />
                                     <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
+                                    <div className="f-time">{fmtUploadDate(ev.ts)}</div>
                                     <div className="af-body">
                                         <a className="af-title f-highlight" href={`/art/${ev.slug}`}>
                                             {ev.title}
                                         </a>
                                         <span className="af-event">{ev.label}</span>
                                     </div>
-                                    <div className="af-date">{fmtUploadDate(ev.ts)}</div>
                                 </div>
                             ))
                         )}
