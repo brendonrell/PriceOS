@@ -1509,8 +1509,8 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px; font-weight: bold;
     color: var(--text-color);
-    opacity: 0.35;
-    padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+    opacity: 0.46;
+    padding: 40px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
     letter-spacing: 0.5px;
     user-select: none;
     flex-shrink: 0;
@@ -1524,7 +1524,7 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 @media (max-width: 600px) {
     .priceos-footer {
         gap: 8px; font-size: 9px;
-        padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
+        padding: 32px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
     }
     .priceos-footer-row { gap: 6px; }
 }
@@ -4481,6 +4481,56 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .album-sheet-count { opacity: 0.5; flex-shrink: 0; }
 
+/* ── Add-to-Showcase picker grid (Brendon 2026-06-15) ──────────────────── */
+.showcase-pick-sheet { width: min(460px, 92vw); }
+.showcase-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 10px;
+    max-height: 44vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px 2px;
+}
+.showcase-pick-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: inherit;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.12s, background 0.12s;
+}
+.showcase-pick-item.picked {
+    border-color: var(--text-color);
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+}
+.showcase-pick-id {
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.7;
+    letter-spacing: 0.3px;
+}
+.showcase-pick-check {
+    position: absolute;
+    top: 7px;
+    right: 9px;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+}
+@media (hover: hover) {
+    .showcase-pick-item:hover { border-color: color-mix(in srgb, var(--text-color) 40%, transparent); }
+}
+
 /* ── CONFIRM CARD ────────────────────────────────────────────────────── */
 /* Floats above the action pill on Execute tap. Own independent classes —
    ms-confirm-* — nothing shared with ms-popup-card-* or anything else. */
@@ -5512,12 +5562,25 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .album-name { }
 .album-count { opacity: 0.5; font-size: 12px; }
 
+/* Standard page gutter for the +More panels (project + artwork pages).
+   The gutter lives on the PANEL so EVERY child — headers, stat rows, social
+   blocks, future additions — inherits the 40px/20px page margin automatically
+   instead of each new element having to re-declare its own padding (the
+   recurring "shoved against the wall" misalignment). Children below keep only
+   their max-width column constraint; their horizontal padding is zeroed so it
+   never doubles up against this. */
+#albums-panel,
+#details-panel {
+    padding: 10px 40px 100px 40px;
+    box-sizing: border-box;
+}
+
 .more-replay-wrap,
 .more-genome-wrap,
 .more-seal-wrap,
 .more-disagree-wrap,
 .more-price-stats-row {
-    padding: 0 40px 20px 40px;
+    padding: 0 0 20px 0;
     max-width: min(62.5vw, 900px);
     box-sizing: border-box;
 }
@@ -5530,12 +5593,16 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     box-sizing: border-box;
 }
 @media (max-width: 600px) {
+    #albums-panel,
+    #details-panel {
+        padding: 10px 20px 100px 20px;
+    }
     .more-replay-wrap,
     .more-genome-wrap,
     .more-seal-wrap,
     .more-disagree-wrap,
     .more-price-stats-row {
-        padding: 0 20px 20px 20px;
+        padding: 0 0 20px 0;
         max-width: none;
     }
     #albums-panel > .albums-grid,

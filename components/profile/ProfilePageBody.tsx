@@ -35,9 +35,14 @@ import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
+import { GhostFeedRows } from '../GhostFeed';
+import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
+import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
+import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
+import AddToShowcaseModal from './AddToShowcaseModal';
 import StarredList from './StarredList';
 import WishlistList from './WishlistList';
 import GhostRows from './GhostRows';
@@ -143,7 +148,7 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, dir } = useSort();
+    const { sort, dir, feedKind } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     // Real user row — fetched server-side from the handle in the URL and
@@ -296,6 +301,21 @@ function ProfilePageBodyInner({
             return aspects[Math.floor(h * aspects.length) % aspects.length];
         });
     }, []);
+
+    /* Own-profile Showcase picks (Brendon 2026-06-15) — the Outputs you've
+       featured via the ⑆ Add-to-Showcase action or the ghost-tap picker. Lives
+       in the device-local showcase store; subscribed so adds/removes repaint
+       the grid live. Visitors still see the server showcase slots. */
+    const [showcaseLocal, setShowcaseLocal] = useState(() => getShowcaseItems());
+    useEffect(() => {
+        setShowcaseLocal(getShowcaseItems());
+        return subscribeShowcase(() => setShowcaseLocal(getShowcaseItems()));
+    }, []);
+    const ownShowcaseItems = useMemo(
+        () => showcaseLocal.filter((s) => getProject(s.slug) != null),
+        [showcaseLocal],
+    );
+    const [showcasePickerOpen, setShowcasePickerOpen] = useState(false);
 
     /* Holdings refresh wiring (state itself is declared above the identity-
        reset block). Spans both projects; grouped by slug for rendering.
@@ -603,6 +623,38 @@ function ProfilePageBodyInner({
     const onCollected = activeTab === 'collected';
     const onMore      = activeTab === 'more';
 
+    /* Profile activity feed (Brendon 2026-06-15) — this wallet's own pre-chain
+       events (mint / list / sale / transfer) from the shared ledger, filtered
+       to this user. Reached via the Collected tab's FEED sort, mirroring the
+       project page's feed. When empty it shows ghost rows — never hidden. */
+    const feedActive = onCollected && sort === 'feed';
+    const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
+    useEffect(() => {
+        if (!feedActive) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/feed?address=${user.address.toLowerCase()}&limit=100`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { events?: EventRow[] } | null) => {
+                    if (!cancelled && Array.isArray(d?.events)) {
+                        setFeedRows(d!.events.map(eventToFeedEvent));
+                    }
+                })
+                .catch(() => { /* keep last good rows */ });
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [feedActive, user.address]);
+    const sortedFeedEvents = useMemo(() => {
+        const events = [...feedRows];
+        const dirMult = dir === 'asc' ? 1 : -1;
+        if (feedKind === 'price') events.sort((a, b) => (a.price - b.price) * dirMult);
+        else events.sort((a, b) => (a.timestamp - b.timestamp) * dirMult);
+        return events;
+    }, [feedRows, feedKind, dir]);
+
     /* Artist Showcase (Brendon, 2026-06-13): on an artist's page the Showcase
        tab gains trait pills — Created (carousels of the projects they made,
        like the home page) and Regular (their curated top-6 grid). Non-artist
@@ -638,7 +690,7 @@ function ProfilePageBodyInner({
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
     /* #gallery shows for Collected and for the Regular showcase grid; the
        Created view replaces it with project carousels below. */
-    const galleryVisible = (onShowcase && !showcaseCreated) || onCollected;
+    const galleryVisible = ((onShowcase && !showcaseCreated) || onCollected) && !feedActive;
 
     /* Mouse drag-to-scroll for the artist-project carousels — same handler as
        the home page. Touch swipes natively; this is the desktop grab-drag. A
@@ -1107,14 +1159,25 @@ function ProfilePageBodyInner({
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {onShowcase
-                    ? (showcaseSlots.length > 0
-                        ? showcaseSlots.map((slot, i) => (
-                              <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
-                                  <ArtworkCard id={Number(slot.token_id)} />
-                              </ProjectProvider>
-                          ))
+                    ? ((isOwnProfile ? ownShowcaseItems.length : showcaseSlots.length) > 0
+                        ? (isOwnProfile
+                            ? ownShowcaseItems.map((s, i) => (
+                                  <ProjectProvider key={`sc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
+                                      <ArtworkCard id={s.id} />
+                                  </ProjectProvider>
+                              ))
+                            : showcaseSlots.map((slot, i) => (
+                                  <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
+                                      <ArtworkCard id={Number(slot.token_id)} />
+                                  </ProjectProvider>
+                              )))
                         : showcaseGhosts.map((aspect, i) => (
-                              <GhostCard key={`scghost-${i}`} aspect={aspect} index={i} />
+                              <GhostCard
+                                  key={`scghost-${i}`}
+                                  aspect={aspect}
+                                  index={i}
+                                  onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined}
+                              />
                           )))
                     : collectedByProject.map(({ slug, ids }) => (
                           <ProjectProvider key={slug} slug={slug}>
@@ -1123,6 +1186,29 @@ function ProfilePageBodyInner({
                               ))}
                           </ProjectProvider>
                       ))}
+            </section>
+
+            {/* Activity feed — this wallet's own ledger events, reached via the
+                Collected tab's FEED sort (same surface + markup as the project
+                page). Ghost rows when there's nothing yet — never hidden. */}
+            <section
+                id="activity-feed"
+                aria-label="Activity Feed"
+                style={{ display: feedActive ? 'block' : 'none' }}
+            >
+                <div className="feed-list" id="feedList">
+                    {sortedFeedEvents.length === 0 ? (
+                        <GhostFeedRows />
+                    ) : sortedFeedEvents.map((e) => (
+                        <div className="feed-row" key={e.id}>
+                            <div className="feed-line" />
+                            <div className="f-icon-wrap">{e.icon}&#xFE0E;</div>
+                            <div className="f-time">{e.time}</div>
+                            <div className="f-type">{e.type}</div>
+                            <div className="f-content">{e.detail}</div>
+                        </div>
+                    ))}
+                </div>
             </section>
 
             {/* Artist Showcase · Created — carousels of the projects this
@@ -1149,6 +1235,17 @@ function ProfilePageBodyInner({
                 profile only (private). */}
             {onWishlistTab && isOwnProfile && wishlistValid.length > 0 && (
                 <WishlistList items={wishlistValid} />
+            )}
+
+            {/* Add-to-Showcase picker — opened by tapping a ghost frame on your
+                own empty Showcase. Lists your holdings to feature. */}
+            {showcasePickerOpen && isOwnProfile && (
+                <AddToShowcaseModal
+                    holdings={holdings
+                        .filter((h) => getProject(h.slug) != null)
+                        .map((h) => ({ slug: h.slug, id: h.token_id }))}
+                    onClose={() => setShowcasePickerOpen(false)}
+                />
             )}
         </>
     );
