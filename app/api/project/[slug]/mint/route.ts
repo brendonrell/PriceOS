@@ -107,6 +107,22 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
       }
     }
 
+    // Sold out: the mint that fully mints the supply stamps sold_out_at once
+    // (idempotent null->set guard, best-effort — once sold out, later mints
+    // error out before reaching here). Brendon may surface this as "death" in
+    // the UI; the column is just the moment it sold out.
+    if (r.sold_out) {
+      try {
+        await supabase
+          .from('projects')
+          .update({ sold_out_at: new Date().toISOString() } as never)
+          .eq('id', slug)
+          .is('sold_out_at', null);
+      } catch {
+        /* best-effort sold-out stamp — never fail the mint over it */
+      }
+    }
+
     return NextResponse.json({
       project_id: slug,
       minted: r.minted,
