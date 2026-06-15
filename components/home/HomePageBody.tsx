@@ -728,7 +728,7 @@ function HomePageBodyInner({
                     <div className="home-section-head">
                         <span className="home-section-title">New Uploads</span>
                     </div>
-                    <div className="feed-list">
+                    <div className="feed-list home-activity-feed">
                         {!hasUploadsBase ? <GhostFeedRows /> : uploadsView.length === 0 ? (
                             <div className="home-empty-note">
                                 No uploads match — clear the filters to see them all.
@@ -739,9 +739,12 @@ function HomePageBodyInner({
                             return (
                                 <div className="feed-row" key={u.slug}>
                                     <div className="feed-line" />
-                                    <div className="f-icon-wrap">✶&#xFE0E;</div>
+                                    <div className="f-icon-wrap af-ic">✧&#xFE0E;</div>
                                     <div className="f-time">{fmtUploadDate(u.uploaded_at)}</div>
-                                    <div className="f-type">{fmtUploadTime(u.uploaded_at)}</div>
+                                    <div className="f-type af-type">
+                                        <span>UPLOADED</span>
+                                        <span>{fmtUploadTime(u.uploaded_at)}</span>
+                                    </div>
                                     <div className="f-content">
                                         <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}
