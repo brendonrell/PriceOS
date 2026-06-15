@@ -7,15 +7,34 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/bench-mobile-safari-7fzaax` is trash (work is on dev) — Brendon deletes on GitHub.
+  `claude/sleepy-lovelace-t0mvez` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev is now SELF-HEALING:** the SessionStart hook re-syncs local `dev` to
   `origin/dev` every chat, so the recurring divergence can't return (root cause = commits
   landing on local dev; the hook reconciles on start).
-- **Updated:** 2026-06-15 (early). This session = **THE BENCH + CART shipped, incl. proper
-  per-user cross-device DB persistence** (see 🪑 below) + Ambient Strip / Zen Garden / spot
-  edits + the BUILD-TO-SPEC and ICON-GLOSSARY CLAUDE.md rules. Earlier 2026-06-14 sessions still
-  valid context: minting/profile fixes (🐛), Digital Familiar (🐾), security sweep (🛡️), pings
-  (🔔), social + PriceRank, security audit (🔒), indexer rebuild (⚙️).
+- **Updated:** 2026-06-15 (late). This session = **profile + favicon + spot-edit passes** (see
+  🎯 below). Prior context still valid: THE BENCH + CART + Ambient/Zen (🪑), BUILD-TO-SPEC &
+  ICON-GLOSSARY rules; 2026-06-14: minting/profile fixes (🐛), Digital Familiar (🐾), security
+  sweep (🛡️), pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+
+## 🎯 PROFILE + FAVICON + SPOT EDITS 2026-06-15 (late) — SHIPPED to dev
+- **Profile hero:** PriceSprite moved out of the @name row into the identity line (replaces
+  "Via"), inherits the row colour + full opacity; long ENS auto-shrinks to stay one line on
+  mobile (JS fit, never wraps). **Own-profile CTA** in the follow slot: "Mutuals" (opens
+  Followers modal → Mutuals tab) at ≥3 mutuals, else "Discord".
+- **Favicon (regression, fixed twice):** now repaints on ANY `--bg-color` change via a style
+  MutationObserver (rAF-coalesced). It previously only fired on colorway-KEY / route change, so
+  on profiles it stayed on the prehydration default (off-white) until something nudged it
+  (Brendon's minute-long delay). Tracks every page bg promptly now, sitewide.
+- **Discord link standardized:** single source `lib/config/discord.ts`; home/footer/dropdown/
+  profile CTA all import it.
+- **Dev-login "Login Brendon" button RESTORED on the preview** (S-A1 secret gate reverted — it
+  blocked desktop testing; counterproductive in build phase). Production still hard-walled.
+  Other security-pass items (RPC halving, handle reservations, pings privacy DB migration) left
+  intact — not blocking and not clean to revert.
+- **Spot edits:** PriceDay pills read "PriceDay #1"; shuffle icon mobile bigger+nudged; profile
+  Followers stat icon bigger+nudged; Bench export uses the export-plate glyph ⍈ (not copy) +
+  desktop action icons unbolded; artwork hover row note +2 / grail +1 + vertically centred;
+  footer middle row baseline-aligned (Today's Stars no longer drops).
 
 ## 🪑 THE BENCH + CART + AMBIENT STRIP + ZEN GARDEN 2026-06-14→15 — SHIPPED to dev
 - **The Bench** (OS Tool / Comparison, `86b9jfjc3`): **drag-only, ONE bottom tab.** Hold-drag
