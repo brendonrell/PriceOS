@@ -19,6 +19,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
+import { useSort } from '../../../lib/state/SortContext';
 import { SettingsToggle } from './SettingsToggle';
 import { SPELLS } from '../../../lib/data/spells';
 
@@ -29,6 +30,7 @@ interface Props {
 export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle } = usePdNotifs();
     const { showToast } = useToast();
+    const { setSort } = useSort();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
         lastTap: 0,
@@ -142,6 +144,23 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     }}
                     icon={'◉︎'}
                     label="The Watch"
+                />
+                {/* Degen — moved here from MY PD (Brendon, 2026-06-16), right
+                    after The Watch. Plain `degen` flag (not spell_*), so it's a
+                    hardcoded pill like Stargazing / Echo. Preserves the sim
+                    9357-9358 side-effect: activating Degen auto-sorts the gallery
+                    by price. */}
+                <SettingsToggle
+                    id="sb-degen"
+                    active={notifs.degen}
+                    onClick={() => {
+                        const next = !notifs.degen;
+                        toggle('degen');
+                        showToast(`Degen: ${next ? 'ON' : 'OFF'}`);
+                        if (next) setSort('price');
+                    }}
+                    icon={'⚔︎'}
+                    label="Degen"
                 />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs

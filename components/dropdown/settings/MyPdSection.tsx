@@ -23,7 +23,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useColorway } from '../../../lib/state/ColorwayContext';
-import { useSort } from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
 import { useProfileHex } from '../../../lib/hooks/useProfileHex';
@@ -44,7 +43,6 @@ interface Props {
 export function MyPdSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
     const { colorway, setColorway } = useColorway();
-    const { setSort } = useSort();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
     const { siweAddress } = useAuth();
@@ -676,25 +674,11 @@ export function MyPdSection({ onTripleTap }: Props) {
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
-                        id="sn-degen"
-                        title="Degen Mode"
-                        active={notifs.degen}
-                        onClick={() => {
-                            /* Brendon list item 8 — Degen Mode toggle.
-                               Sim 9357-9358: when degen activates, auto-
-                               sort the gallery by price ascending. The
-                               body-class flip + canvas hide + overlay
-                               render ride on PdNotifsContext via
-                               useBodyClass; this onClick adds the sort
-                               side effect that sim does inline. The flag
-                               flip + toast still go through the standard
-                               toggleWithToast path so Setup Code +
-                               localStorage stay in sync. */
-                            const next = !notifs.degen;
-                            toggleWithToast('degen', 'Degen Mode');
-                            if (next) setSort('price');
-                        }}
-                        icon={'⚔\uFE0E'}
+                        id="sn-audience"
+                        title="The Audience — live viewers on a project"
+                        active={notifs.audience}
+                        onClick={() => toggleWithToast('audience', 'Audience')}
+                        icon={'◐\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />

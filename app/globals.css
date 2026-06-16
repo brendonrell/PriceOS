@@ -3153,6 +3153,56 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 1;
 }
 
+/* The Audience — live "watching now" indicator on the project header
+   (Brendon, 2026-06-16). Sits in the stats row; pulses gently once the room
+   is busy; taps open a reveal of present viewers as glyphs. */
+.audience-wrap { position: relative; display: inline-flex; }
+.audience-indicator { gap: 6px; }
+.audience-indicator .audience-eye {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+}
+.audience-indicator.pulsing .audience-eye {
+    animation: audience-pulse 1.8s ease-in-out infinite;
+}
+@keyframes audience-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.18); }
+}
+.audience-reveal {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 160px;
+    max-width: 240px;
+    padding: 10px 12px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+.audience-reveal-head {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+}
+.audience-glyphs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+}
+.audience-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1;
+}
+.audience-glyph.anon { opacity: 0.4; }
+
 .stats-grid {
     display: grid;
     grid-template-columns: max-content max-content max-content;

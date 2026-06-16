@@ -106,7 +106,7 @@ export default function AmbientStrip() {
 
             {open && (
                 <div className="ambient-pop" role="dialog" aria-label="Ambient light options">
-                    <Row label="Colour">
+                    <Row label="Color">
                         {PALETTES.map((p) => (
                             <Chip key={p.id} on={opts.palette === p.id} onClick={() => set('palette', p.id)}>
                                 {p.label}

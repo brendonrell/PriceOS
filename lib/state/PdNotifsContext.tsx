@@ -141,6 +141,10 @@ export interface PdNotifs {
        advanced by tapping the chip. */
     watch: boolean;
     watchMetric: number;
+    /** The Audience — live per-project viewer presence. ON = you're counted in
+     *  and see the "watching now" indicator; OFF = you opt out (no presence
+     *  broadcast, indicator hidden for you). Default ON (Brendon, 2026-06-16). */
+    audience: boolean;
 
     // Ping category preferences (MY PINGS panel)
     pings: {
@@ -219,6 +223,7 @@ const DEFAULTS: PdNotifs = {
     ambientStrip: false,
     watch: false,
     watchMetric: 0,
+    audience: true,
 
     pings: {
         mints: true,

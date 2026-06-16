@@ -23,6 +23,9 @@
     flex-direction: column;
     align-items: center;
     pointer-events: none;
+    /* Nudged down a touch so the bar sits in the gap BELOW the Tape and ABOVE
+       the @name header, rather than washing over it (Brendon, 2026-06-16). */
+    margin-top: 10px;
 }
 
 /* ---- Palettes (just the 4 colour stops; the rest is derived) ---------- */
@@ -66,22 +69,24 @@
 /* ---- The downward glow pool — screen-blended onto the content --------- */
 .ambient-glow {
     position: absolute;
-    top: 10px; /* just under the bar */
+    top: 22px; /* dropped lower so the wash points further down (Brendon 2026-06-16) */
     left: 50%;
     transform: translateX(-50%);
     width: min(820px, 96vw);
-    height: 240px;
+    height: 160px; /* 1/3 shorter than the old 240px so it sits in the gap */
     pointer-events: none;
+    /* More diffuse: the brightest band pushed a little lower and the falloff
+       eased so the light feathers out instead of stacking near the bar. */
     background: linear-gradient(
         180deg,
-        color-mix(in srgb, var(--amb1) 78%, transparent) 0%,
-        color-mix(in srgb, var(--amb2) 58%, transparent) 20%,
-        color-mix(in srgb, var(--amb3) 36%, transparent) 46%,
-        color-mix(in srgb, var(--amb4) 16%, transparent) 70%,
+        color-mix(in srgb, var(--amb1) 64%, transparent) 0%,
+        color-mix(in srgb, var(--amb2) 52%, transparent) 26%,
+        color-mix(in srgb, var(--amb3) 34%, transparent) 54%,
+        color-mix(in srgb, var(--amb4) 15%, transparent) 78%,
         transparent 100%
     );
     border-radius: 44% 44% 50% 50% / 18% 18% 82% 82%;
-    filter: blur(30px) saturate(1.15);
+    filter: blur(44px) saturate(1.12);
     mix-blend-mode: screen;
 }
 
@@ -90,7 +95,7 @@
 .pat-wave .ambient-pill-led { animation: amb-wave var(--amb-dur) linear infinite; }
 .pat-wave .ambient-glow { animation: amb-wave-bg var(--amb-dur) linear infinite, amb-drift calc(var(--amb-dur) * 1.4) ease-in-out infinite; }
 @keyframes amb-wave { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
-@keyframes amb-wave-bg { 0% { filter: blur(30px) saturate(1.15) hue-rotate(0deg); } 100% { filter: blur(30px) saturate(1.15) hue-rotate(360deg); } }
+@keyframes amb-wave-bg { 0% { filter: blur(44px) saturate(1.12) hue-rotate(0deg); } 100% { filter: blur(44px) saturate(1.12) hue-rotate(360deg); } }
 @keyframes amb-drift { 0%,100% { transform: translateX(-52%); } 50% { transform: translateX(-48%); } }
 
 /* PULSE — brightness throbs. */

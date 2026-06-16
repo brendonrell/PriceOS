@@ -64,6 +64,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
+import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
@@ -1094,6 +1095,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-owners">{project.stats.collectors} {project.stats.collectors === 1 ? 'PRSN' : 'PPL'}</span>
                         </span>
+                        <AudienceIndicator slug={project.slug} />
                     </div>
                 }
             >
