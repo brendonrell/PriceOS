@@ -17,7 +17,7 @@
     position: fixed;
     /* Dropped well clear of the Tape so the bar sits centered in the gap above
        the @name header, not bunched against the Tape (Brendon, 2026-06-16). */
-    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 66px);
+    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 52px);
     left: 0;
     right: 0;
     z-index: 90; /* under navbar (100), over content */
