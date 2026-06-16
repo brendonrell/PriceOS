@@ -91,9 +91,10 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 | anointing | ✢ | U+2722 | | lore (easter eggs) | ⁂ | U+2042 |
 | streak | ◈ | U+25C8 | | og (longevity) | ⌖ | U+2316 |
 
-> **rank / PriceRank = ⍟ (U+235F)** — moved off `❖` on 2026-06-16 so `❖`
-> (U+2756) is free for **RARITY** sitewide (Brendon). Update any new rank
-> surface to `⍟`; never use `❖` for PriceRank again.
+> **rank / PriceRank = ❂ (U+2742)** — the "sun" glyph (circled open-centre
+> eight-pointed star). Moved off `❖` on 2026-06-16 so `❖` (U+2756) is free for
+> **RARITY** sitewide (Brendon). Update any new rank surface to `❂`; never use
+> `❖` for PriceRank again.
 
 ### Gallery grouping glyphs (the cycling sort modifier — Brendon, 2026-06-16)
 

@@ -40,7 +40,7 @@ const CATEGORY_GLYPH: Record<AchievementCategory, string> = {
     og: '⌖',
     curation: '✦',
     identity: '◉',
-    rank: '⍟',
+    rank: '❂',
     artist: '✺',
     lore: '⁂',
 };
