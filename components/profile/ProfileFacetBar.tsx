@@ -275,7 +275,7 @@ export default function ProfileFacetBar({
                     .traits-ui (sibling of .traits-header-bar), matching the
                     project's #statsOutput placement. */}
                 {openValues && (
-                    <div className="stats-container" id="statsOutput" style={{ display: 'flex' }}>
+                    <div className="stats-container collected-values" id="statsOutput" style={{ display: 'flex' }}>
                         {openValues.map((value) => {
                             const set = activeFilters[activeCategory!];
                             const isActive = set?.has(value) ?? false;

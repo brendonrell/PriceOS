@@ -3851,6 +3851,15 @@ button,
     bottom: 0;
     gap: 6px 10px;
 }
+/* Collected (profile) artist/value list must flow normally, NOT pin. The
+   shared .stats-container `sticky; bottom:0` pull-ups a value row taller than
+   the viewport — so a wallet holding many artists drags the open Artist list
+   UP over the facet pills, colliding the two rows. Scoped to the profile's
+   value row (id+class) so the project page is untouched (Brendon, 2026-06-16). */
+#statsOutput.collected-values {
+    position: static;
+    bottom: auto;
+}
 .sort-bar {
     display: flex;
     align-items: center;
