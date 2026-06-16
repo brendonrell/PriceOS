@@ -317,6 +317,7 @@ export default function TraitsUI({
         priceMax,
         setPriceMax,
         hasActiveFilter,
+        clearAllFilters,
     } = useTraits();
     const { showToast } = useToast();
     const { isAuthenticated } = useAuth();
@@ -717,6 +718,20 @@ export default function TraitsUI({
                                     title="My Notes"
                                     extraClass="pill-notes-icon"
                                 />
+                                )}
+
+                                {/* Clear — pops up only while a filter is
+                                    active, drains every selected trait value in
+                                    one tap. Same chip as the Collected / Now
+                                    Minting bars (Brendon, 2026-06-16). */}
+                                {hasActiveFilter && (
+                                    <BarPill
+                                        label={'✕ Clear'}
+                                        active={false}
+                                        dimmed={false}
+                                        onClick={clearAllFilters}
+                                        title="Clear all filters"
+                                    />
                                 )}
 
                                 {/* Recent + icon cluster — sim 8551-8557.
