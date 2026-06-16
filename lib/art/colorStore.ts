@@ -54,7 +54,10 @@ export function reportBucket(slug: string, id: number, bucket: ColorBucket | nul
     if (cache.has(k) || reported.has(k)) return;
     reported.add(k);
     cache.set(k, bucket);
-    bump();
+    /* NO re-render here (Brendon, 2026-06-16). Sampling happens on every card
+       paint; bumping per-paint stormed the gallery with re-renders and stalled
+       the group-cycle. Stored colours apply on the next load via loadColors()
+       (one bump for the whole batch). Cycling stays independent + reliable. */
     try {
         fetch('/api/outputs/color', {
             method: 'POST',
