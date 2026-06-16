@@ -6,14 +6,47 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `4bc7413`). This chat's task
-  branch `claude/tender-mendel-frkw4f` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean (head `659ab97`). This chat's task
+  branch `claude/determined-heisenberg-7odwqj` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-15 (latest). This session = **ARTIST SHOWCASE = the Now-Minting view**
-  (🎨 below) + a **vivid mood-ring palette** + the home byline crediting @brendon with real
-  social tags. Prior: HOME became a real draw (🏠), 6 spot edits (🧰), profile + favicon (🎯),
-  BENCH/CART/Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾), security sweep (🛡️),
-  pings (🔔), social + PriceRank, indexer rebuild (⚙️).
+- **Updated:** 2026-06-16 (latest). This session = **The Audience + a big spot-edit batch** (🎬 below).
+  Prior: ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠), profile + favicon (🎯), BENCH/CART/
+  Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾), security sweep (🛡️), pings (🔔).
+
+## 🎬 THE AUDIENCE + SPOT-EDIT BATCH 2026-06-16 (latest) — SHIPPED to dev
+- **The Audience** — live per-project presence (`◐ N watching`, pulse at 10+, tap-to-reveal
+  glyphs, `◌` for anon) on Supabase Realtime (`getSupabaseBrowser`). `useProjectAudience` hook +
+  `AudienceIndicator` in the project header stats row. Solo-preview: `?crowd=N`. First-class
+  **MY PD toggle** `audience` (default ON, `notifs.audience`, "Audience: ON/OFF"); **Degen moved
+  into the Spell Book** after The Watch (hardcoded pill, keeps the auto-sort side-effect).
+  Phase-2 still TODO: cross-feed swell + 100+ surge Tape-archive.
+- **Tab memory** — per-user, per-project/profile last tab in the `settings` envelope
+  (`tabMemoryStore`, no migration); project default = full showcase (6) → Showcase. Profile
+  default tightened to `>=6 || artist`.
+- **Familiar** — tap a BitDaemon to SELECT it (`setFamiliarSpecies`, live + persisted via
+  `familiarSpecies` in settings). On/off + all spell/ping toggles now **write through to the
+  account** (`PdNotifsContext` pushSettings + hydrate listener).
+- **Ambient Light** — account-backed (`settings.ambient`); ~1/3 shorter glow, **skinnier 6px
+  bar** dropped to center in the gap below the Tape, more diffuse; modal label "Color".
+- **Bench** — **cap 2** (`BENCH_MAX`, was 8); compare layout reworked (two equal, centered on
+  desktop, tight gutters, info beneath; stacked split = two big equal-width pieces). Empty state
+  "compare outputs". **Drag-refresh crash FIXED**: our custom PTR (`ptrEngine`) was reloading
+  mid hold-drag — it now bows out once `body.bench-dragging` is set. *(Needs Brendon's on-device
+  confirm — couldn't repro in-container.)*
+- **Drag-to-scroll** (desktop, mouse-only) on PriceSprite / Stickers / Familiar carousels
+  (`useDragScroll` + new `useDragScrollAll`).
+- **Smaller:** Stargazing glyph → ✩; pingtoasts pill icon-only; note icon nudged +3px in the
+  card hover row; near-black colorways inherit dark-mode treatment; mutuals-with-yourself badge;
+  18 AI artists now follow @brendon (DB).
+
+### Queued next (spec-agreed, not built)
+- **Sigil** (the glyph) — permanent per-wallet, frozen, curated identity-glyph pool; access glyph
+  in the PriceSprite modal; powers the Audience reveal. **Sigil Color = Factions** (Warm: yellow/
+  orange/red · Cool: purple/blue/green) filed as ClickUp `86baf786c` — seed of the tribal layer.
+- **Hermitage** (quiet monk profile) + **Deactivate** (renamed from Invisible — max-drama public
+  exit, secretly browsing; yes/no confirm mini-modal + Tape event).
+- **Tribal Alliance** — net-new; awaiting Brendon's pick (Egregore / Cartel / fresh).
+- **Project-link first-load bug** (from the very first message this session) — never scoped.
 
 ## 🎨 ARTIST SHOWCASE + VIVID MOOD 2026-06-15 (latest) — SHIPPED to dev
 - **Artist Showcase = Now-Minting view, scoped to one artist.** New showcase style `artist`
