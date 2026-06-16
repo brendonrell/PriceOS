@@ -5013,17 +5013,17 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .ggh-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
-    opacity: 0.55;
+    /* Full strength — group titles are NEVER dimmed (Brendon, 2026-06-16). */
+    opacity: 1;
     color: var(--text-color);
 }
-/* Coming-soon group (last-sold / rarity) — the title reads as a placeholder. */
-.gallery-group-header.soon .ggh-label { opacity: 0.5; }
 .ggh-soon {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    opacity: 0.45;
+    /* No dimming — full strength (Brendon, 2026-06-16). */
+    opacity: 1;
     color: var(--text-color);
 }
 .output-card {
