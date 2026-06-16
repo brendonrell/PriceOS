@@ -3,20 +3,19 @@
 /*
  * Dev tool — on-chain thumbnail preview (Brendon, 2026-06-16).
  *
- * Each row shows a piece rendered LIVE (the real engine output) next to the
- * static WebP squeezed under the on-chain size cap, with the actual byte count,
- * the quality + pixel size it had to drop to. This is the honest look at "what
- * the on-chain preview looks like on screen" — the WebP is the frozen image that
- * marketplaces/wallets would show. Toggle 16 KB (contract's current cap) vs
- * 48 KB (the new target). Unlinked route: open /thumb-preview on the dev preview.
+ * Shows the static on-chain WebP previews IN the real gallery grid (#gallery, so
+ * it's 2-up on mobile exactly like the live gallery) — this is "what the gallery
+ * looks like once we switch to on-chain previews." Each tile is the piece
+ * squeezed under the size cap, with its real byte count + the quality/pixel size
+ * it dropped to. Toggle 16 / 22 / 36 / 48 KB. Unlinked route: /thumb-preview.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { allProjects } from '../../lib/project/registry';
 
-const TARGETS = [16384, 49152]; // 16 KB · 48 KB
-const RENDER_W = 512; // live render width; WebP is encoded from this canvas
+const TARGETS = [16384, 22528, 36864, 49152]; // 16 · 22 · 36 · 48 KB
+const RENDER_W = 512; // source render width; the WebP is encoded from this
 
 function toWebp(canvas: HTMLCanvasElement, q: number): Promise<Blob | null> {
     return new Promise((res) => canvas.toBlob(res, 'image/webp', q));
@@ -44,26 +43,24 @@ async function encodeUnder(src: HTMLCanvasElement, maxBytes: number) {
     return b ? { blob: b, quality: 0.1, w: 64, h: 64 } : null;
 }
 
-const box: React.CSSProperties = {
-    width: 260, height: 'auto', display: 'block', border: '1px solid #333', background: '#111',
-};
-const cap: React.CSSProperties = {
-    fontFamily: "'Courier New', monospace", fontSize: 11, color: '#9a9a9a', margin: '0 0 6px',
+const capCss: React.CSSProperties = {
+    fontFamily: "'Courier New', monospace", fontSize: 10, lineHeight: 1.3,
+    color: '#9a9a9a', paddingTop: 6, wordBreak: 'break-word',
 };
 
-function Sample({ slug, id, target }: { slug: string; id: number; target: number }) {
-    const liveRef = useRef<HTMLCanvasElement>(null);
+function ThumbCard({ slug, id, target }: { slug: string; id: number; target: number }) {
+    const srcRef = useRef<HTMLCanvasElement>(null);
     const [webp, setWebp] = useState<{ url: string; bytes: number; q: number; w: number; h: number } | null>(null);
     const [err, setErr] = useState(false);
 
     useEffect(() => {
-        const cv = liveRef.current;
+        const cv = srcRef.current;
         if (!cv) return;
         let url: string | undefined;
+        setWebp(null); setErr(false);
         try {
             paintOutput(cv, slug, id, RENDER_W);
         } catch { setErr(true); return; }
-        setWebp(null);
         encodeUnder(cv, target)
             .then((r) => {
                 if (!r) { setErr(true); return; }
@@ -75,17 +72,21 @@ function Sample({ slug, id, target }: { slug: string; id: number; target: number
     }, [slug, id, target]);
 
     return (
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', marginBottom: 30, flexWrap: 'wrap' }}>
-            <div>
-                <p style={cap}>LIVE · {slug} #{id} · {RENDER_W}px</p>
-                <canvas ref={liveRef} style={box} />
-            </div>
-            <div>
-                <p style={cap}>
-                    {Math.round(target / 1024)} KB WEBP ·{' '}
-                    {err ? 'error' : webp ? `${webp.bytes.toLocaleString()} bytes · q${webp.q} · ${webp.w}×${webp.h}` : 'encoding…'}
-                </p>
-                {webp ? <img src={webp.url} alt="" style={box} /> : <div style={{ ...box, height: 260 }} />}
+        <div className="output-card">
+            {/* Off-screen source canvas — only used to encode the WebP. */}
+            <canvas ref={srcRef} style={{ display: 'none' }} />
+            {webp ? (
+                <img
+                    src={webp.url}
+                    alt=""
+                    style={{ width: '100%', height: 'auto', display: 'block', background: '#111', border: '1px solid #2a2a2a' }}
+                />
+            ) : (
+                <div style={{ width: '100%', aspectRatio: '1 / 1', background: '#111', border: '1px solid #2a2a2a' }} />
+            )}
+            <div style={capCss}>
+                {slug} #{id}<br />
+                {err ? 'error' : webp ? `${webp.bytes.toLocaleString()}b · q${webp.q} · ${webp.w}×${webp.h}` : 'encoding…'}
             </div>
         </div>
     );
@@ -93,35 +94,38 @@ function Sample({ slug, id, target }: { slug: string; id: number; target: number
 
 export default function ThumbPreviewPage() {
     const [target, setTarget] = useState(16384);
-    const projects = allProjects().slice(0, 8);
+    const projects = allProjects().slice(0, 12);
     return (
-        <div style={{ padding: 24, maxWidth: 920, margin: '0 auto', color: '#ddd', background: '#000', minHeight: '100vh' }}>
-            <h1 style={{ fontFamily: "'Courier New', monospace", fontSize: 16, marginBottom: 6 }}>
-                On-chain thumbnail preview
-            </h1>
-            <p style={{ ...cap, marginBottom: 16 }}>
-                LIVE engine render vs the static WebP squeezed under the on-chain cap (the frozen
-                image marketplaces/wallets show). Both displayed at the same width.
-            </p>
-            <div style={{ marginBottom: 22, display: 'flex', gap: 8 }}>
-                {TARGETS.map((t) => (
-                    <button
-                        key={t}
-                        onClick={() => setTarget(t)}
-                        style={{
-                            fontFamily: "'Courier New', monospace", fontSize: 12, padding: '6px 12px',
-                            cursor: 'pointer', border: '1px solid #444',
-                            background: target === t ? '#e8ff47' : '#111',
-                            color: target === t ? '#000' : '#ddd',
-                        }}
-                    >
-                        {Math.round(t / 1024)} KB
-                    </button>
+        <div style={{ background: '#000', minHeight: '100vh', color: '#ddd' }}>
+            <div style={{ padding: '18px 20px 4px' }}>
+                <h1 style={{ fontFamily: "'Courier New', monospace", fontSize: 15, margin: '0 0 4px' }}>
+                    On-chain thumbnail preview — gallery grid
+                </h1>
+                <p style={{ ...capCss, paddingTop: 0, marginBottom: 12 }}>
+                    The static on-chain WebP under the size cap, in the real gallery grid.
+                </p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                    {TARGETS.map((t) => (
+                        <button
+                            key={t}
+                            onClick={() => setTarget(t)}
+                            style={{
+                                fontFamily: "'Courier New', monospace", fontSize: 12, padding: '6px 12px',
+                                cursor: 'pointer', border: '1px solid #444',
+                                background: target === t ? '#e8ff47' : '#111',
+                                color: target === t ? '#000' : '#ddd',
+                            }}
+                        >
+                            {Math.round(t / 1024)} KB
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div id="gallery">
+                {projects.map((p) => (
+                    <ThumbCard key={p.slug} slug={p.slug} id={1} target={target} />
                 ))}
             </div>
-            {projects.map((p) => (
-                <Sample key={p.slug} slug={p.slug} id={1} target={target} />
-            ))}
         </div>
     );
 }
