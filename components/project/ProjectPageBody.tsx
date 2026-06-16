@@ -389,7 +389,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes';
+    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory';
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('social');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
@@ -1238,15 +1238,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             visible
                             hideSortBar
                             profilePills={[
-                                { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
-                                { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
                                 { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
-                                { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
                                 { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
+                                { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
-                                /* Attributes is pinned LAST so it's always easy to find (Brendon, 2026-06-16). */
                                 { key: 'attributes', label: 'Attributes', active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
+                                /* Price Story is pinned LAST so it's always easy to find (Brendon, 2026-06-16). */
+                                { key: 'pricestory', label: 'Price Story', active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
                             ]}
                         />
                     )}
@@ -1688,6 +1689,10 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         </>
                     );
                 })()}
+                {moreL1 === 'pricestory' && (<>
+                {/* PRICE STORY — empty for now (Brendon, 2026-06-16). */}
+                <div className="more-section-header">PRICE STORY</div>
+                </>)}
             </section>
         </>
     );
