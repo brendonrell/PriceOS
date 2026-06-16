@@ -67,6 +67,7 @@ import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject, projectTrueName } from '../../lib/project/registry';
+import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
@@ -214,6 +215,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
+    /* The project's PriceSprite face — composed deterministically from the slug
+       (collision-proofed vs user sprites). Still face for the Social header. */
+    const projectFace = useMemo(() => projectSpriteFace(project.slug), [project.slug]);
     /* Stored dominant colours for this project (re-renders grouping when they
        arrive); resolveBucket prefers them, falls back to live palette-math. */
     const colorsVer = useStoredColors([project.slug]);
@@ -1346,6 +1350,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     project.slug IS projects.id, so it's the follow API key;
                     ProjectState carries no @handle, so we pass null. */}
                 <div className="more-section-header">SOCIAL</div>
+                {/* Project-as-user identity header — PriceSprite + @name, the
+                    first content under Social (Brendon, 2026-06-16). */}
+                <div className="project-id-header">
+                    {projectFace && (
+                        <span className="id-row-sprite">{projectFace}</span>
+                    )}
+                    <span className="project-id-name">@{project.slug}</span>
+                </div>
                 <div className="action-row">
                     <ProjectFollowButton projectId={project.slug} projectHandle={null} />
                 </div>

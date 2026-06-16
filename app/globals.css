@@ -5692,6 +5692,25 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     cursor: help;
 }
 
+/* Project-as-user identity header (Social +More) — the project's PriceSprite
+   face beside its @name, the lead content under Social. */
+.project-id-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 40px 8px 40px;
+}
+@media (max-width: 600px) {
+    .project-id-header { padding: 6px 20px 8px 20px; }
+}
+.project-id-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+
 .albums-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
