@@ -7387,8 +7387,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 /* A touch more breathing room above the TOP carousel — its title sat a hair
    too close to the control bar directly above it (Brendon, 2026-06-15). Only
-   the first row in the Now Minting section; the rest keep the 28px rhythm. */
-section[aria-label="Now Minting"] > .home-carousel-row:first-child {
+   the first row; the rest keep the 28px rhythm. Applies on the home Now Minting
+   section AND the artist-showcase Created carousels (same transplant). */
+section[aria-label="Now Minting"] > .home-carousel-row:first-child,
+section[aria-label="Created projects"] > .home-carousel-row:first-child {
     margin-top: 12px;
 }
 .home-carousel-head {
