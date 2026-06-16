@@ -21,7 +21,6 @@ import { priceDayNumber } from '../priceday/priceday';
 import { natalChart } from './natal';
 import { projectStatus } from '../home/milestones';
 import { assignTrueNames } from './trueName';
-import { deriveSlug } from './deriveSlug';
 
 /* Platform trait names — stamped on EVERY Output of EVERY Project, so they ride
    into the token metadata (ERC-721 attributes) and surface on OpenSea as well
@@ -142,28 +141,20 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
 };
 
-/* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
-   single source of truth, so a slug can never drift from the name again. The
-   first aiDef arg is the SOUNDTRACK KEY (the project's historical id used only
-   to look up AI_SOUNDTRACKS); it is NOT the slug. The 50-char @name cap fits
-   every creative title, so no per-name overrides are needed. */
 function aiDef(
-  soundtrackKey: string, displayName: string, artistHandle: string, outputs: number,
+  slug: string, displayName: string, artistHandle: string, outputs: number,
   colorway: string, mintPriceEth: number, aspects: readonly number[],
   traitSchema: TraitSchema, render: ProjectDef['render'], traitsOf: ProjectDef['traitsOf'],
 ): ProjectDef {
-  const slug = deriveSlug(displayName);
   return {
     slug, displayName, artistHandle, outputs, colorway, mintPriceEth,
-    soundtrack: AI_SOUNDTRACKS[soundtrackKey] ?? null, aspects, traitSchema, render, traitsOf,
+    soundtrack: AI_SOUNDTRACKS[slug] ?? null, aspects, traitSchema, render, traitsOf,
   };
 }
 
 const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 888, '#1C4428', 0.08, AI.FAITH_ASPECTS, AI.faithSchema, AI.renderFaith, AI.faithTraits),
-  /* Renamed Delisted → Price Discovery (Brendon, 2026-06-16); keeps its own
-     soundtrack key + engine. The former 'price-discovery' project was removed. */
-  aiDef('delisted', 'Price Discovery', 'lastprice-ai', 512, '#27C08A', 0.05, AI.DELISTED_ASPECTS, AI.delistedSchema, AI.renderDelisted, AI.delistedTraits),
+  aiDef('delisted', 'Delisted', 'lastprice-ai', 512, '#27C08A', 0.05, AI.DELISTED_ASPECTS, AI.delistedSchema, AI.renderDelisted, AI.delistedTraits),
   aiDef('the-river-disagrees', 'The River Disagrees', 'countyline-ai', 256, '#36A8C8', 0.12, AI.RIVER_ASPECTS, AI.riverSchema, AI.renderRiver, AI.riverTraits),
   aiDef('stars-nobody-named', 'Names Withheld', 'nightclerk-ai', 333, '#B026FF', 0.07, AI.STARS_ASPECTS, AI.starsSchema, AI.renderStars, AI.starsTraits),
   aiDef('thank-you-no-refunds', 'Thank You, No Refunds', 'regfour-ai', 1024, '#FF5A8A', 0.02, AI.REFUNDS_ASPECTS, AI.refundsSchema, AI.renderRefunds, AI.refundsTraits),
@@ -186,21 +177,31 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('avalanche', 'Avalanche', 'graincount-ai', 128, '#7FFFD4', 0.16, AI.AVALANCHE_ASPECTS, AI.avalancheSchema, AI.renderAvalanche, AI.avalancheTraits),
   /* ── new cohort (2026-06-13) ── */
   aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 512, '#5865f2', 0.03, AI.CHATROOM_ASPECTS, AI.chatroomSchema, AI.renderChatroom, AI.chatroomTraits),
+  aiDef('night-service', 'Night Service', 'afterhours-ai', 444, '#ff2a6d', 0.05, AI.AFTERGLOW_ASPECTS, AI.afterglowSchema, AI.renderAfterglow, AI.afterglowTraits),
   aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#00C2C7', 0.06, AI.BREACH_ASPECTS, AI.breachSchema, AI.renderBreach, AI.breachTraits),
+  aiDef('graffiti-soul', 'Graffiti Soul', 'rudie-ai', 480, '#ff2e63', 0.04, AI.GRAFFITI_ASPECTS, AI.graffitiSchema, AI.renderGraffiti, AI.graffitiTraits),
   aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, AI.ASCII_ASPECTS, AI.asciiSchema, AI.renderAscii, AI.asciiTraits),
+  aiDef('chrome-dreams', 'Chrome Dreams', 'y2k-ai', 400, '#7ec8ff', 0.05, AI.CHROMEDREAMS_ASPECTS, AI.chromedreamsSchema, AI.renderChromedreams, AI.chromedreamsTraits),
   aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, AI.DISCORD_ASPECTS, AI.discordSchema, AI.renderDiscord, AI.discordTraits),
   aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, AI.QUORUM_ASPECTS, AI.quorumSchema, AI.renderQuorum, AI.quorumTraits),
   aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, AI.KONKRET_ASPECTS, AI.konkretSchema, AI.renderKonkret, AI.konkretTraits),
   aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, AI.RUDXANE_ASPECTS, AI.rudxaneSchema, AI.renderRudxane, AI.rudxaneTraits),
   aiDef('materia', 'The Lapidary', 'lapidary-ai', 333, '#9a9a93', 0.08, AI.MATERIA_ASPECTS, AI.materiaSchema, AI.renderMateria, AI.materiaTraits),
+  aiDef('weft', 'Warp & Weft', 'loomhand-ai', 222, '#b5462f', 0.09, AI.WEFT_ASPECTS, AI.weftSchema, AI.renderWeft, AI.weftTraits),
+  aiDef('price-discovery', 'Price Discovery', 'thebook-ai', 256, '#3F7CB0', 0.15, AI.PRICEDISCOVERY_ASPECTS, AI.pricediscoverySchema, AI.renderPricediscovery, AI.pricediscoveryTraits),
+  aiDef('liquid-light', 'Liquid Light', 'oilwheel-ai', 360, '#ff71ce', 0.05, AI.LIQUIDLIGHT_ASPECTS, AI.liquidlightSchema, AI.renderLiquidlight, AI.liquidlightTraits),
   aiDef('diffusion', 'Turing’s Garden', 'turing-ai', 222, '#3D9B6C', 0.18, AI.DIFFUSION_ASPECTS, AI.diffusionSchema, AI.renderDiffusion, AI.diffusionTraits),
   aiDef('growth', 'Coral Logic', 'coralline-ai', 222, '#00e5c8', 0.16, AI.GROWTH_ASPECTS, AI.growthSchema, AI.renderGrowth, AI.growthTraits),
   aiDef('pigment', 'Divided Light', 'divisionist-ai', 256, '#1e88e5', 0.1, AI.PIGMENT_ASPECTS, AI.pigmentSchema, AI.renderPigment, AI.pigmentTraits),
   aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, AI.ISKRA_ASPECTS, AI.iskraSchema, AI.renderIskra, AI.iskraTraits),
+  aiDef('tessera', 'Tessera', 'tessera-ai', 333, '#ff4d6d', 0.07, AI.SIGGI_ASPECTS, AI.siggiSchema, AI.renderSiggi, AI.siggiTraits),
   aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#2ad4ff', 0.05, AI.JUNCTION_ASPECTS, AI.junctionSchema, AI.renderJunction, AI.junctionTraits),
-  aiDef('asterism', 'Asterism', 'nightclerk-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
+  aiDef('asterism', 'Asterism', 'stellar-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
   aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#CC6B49', 0.06, AI.SEEDHEAD_ASPECTS, AI.seedheadSchema, AI.renderSeedhead, AI.seedheadTraits),
+  aiDef('facets', 'Stained Glass', 'shatter-ai', 360, '#457b9d', 0.05, AI.FACETS_ASPECTS, AI.facetsSchema, AI.renderFacets, AI.facetsTraits),
+  aiDef('quasicrystal', 'Forbidden Symmetry', 'aperiodic-ai', 256, '#6c4bd6', 0.1, AI.QUASICRYSTAL_ASPECTS, AI.quasicrystalSchema, AI.renderQuasicrystal, AI.quasicrystalTraits),
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
+  aiDef('the-pendulum', 'The Pendulum', 'harmonist-ai', 288, '#3A4CAE', 0.08, AI.ORBITS_ASPECTS, AI.orbitsSchema, AI.renderOrbits, AI.orbitsTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];

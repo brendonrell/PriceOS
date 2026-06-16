@@ -25,7 +25,7 @@
  *   "Nobody's Swimming" → "nobodysswimming"
  *   "Project 333"       → "project333"
  *
- * The resulting slug must satisfy `^[a-z0-9]{3,20}$` + has-letter,
+ * The resulting slug must satisfy `^[a-z0-9]{3,50}$` + has-letter,
  * which is guaranteed by validateDisplayName.ts (lib/project/
  * validateDisplayName.ts) accepting the same shape (3-char floor =
  * the shared /@name pool minimum). The final format gate is
