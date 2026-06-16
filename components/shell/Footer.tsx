@@ -67,10 +67,10 @@ export function Footer() {
                                 showToast(`Mood Ring reads: ${mood.name}`)
                             }
                         >
-                            <span
-                                className="priceos-mood-ring"
-                                style={{ color: mood.hex }}
-                            >
+                            {/* No daily tint — some mood hexes read as red on
+                                the tiny glyph; it inherits the neutral footer
+                                colour instead (Brendon, 2026-06-16). */}
+                            <span className="priceos-mood-ring">
                                 ⌬&#xFE0E;
                             </span>{' '}
                             Today&apos;s Mood Ring Color: {mood.hex}

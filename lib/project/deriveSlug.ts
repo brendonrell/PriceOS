@@ -7,14 +7,23 @@
  * name yields exactly one valid slug.
  *
  * Derivation (locked in Platform Nomenclature SoT, page 2kyd6gx6-3274
- * → "Project naming policy"):
+ * → "Project naming policy"; ampersand + punctuation rules added
+ * 2026-06-16):
  *   1. Lowercase
- *   2. Strip spaces (concatenate — no hyphens, no underscores)
+ *   2. "&" → "and"  (e.g. "Warp & Weft" → "warpandweft")
+ *   3. Drop every other non-alphanumeric char (spaces, apostrophes,
+ *      commas, hyphens, periods)
+ *
+ * The Upload form gates what the artist may type (allowlist: letters,
+ * numbers, spaces, and & ' , - . — everything else is REJECTED, never
+ * silently dropped) and shows a live @name preview of this output so a
+ * too-long or surprising handle is caught before submit.
  *
  * Examples:
- *   "Chromie Squiggle" → "chromiesquiggle"
- *   "Project 333"      → "project333"
- *   "0xLandscapes"     → "0xlandscapes"
+ *   "Chromie Squiggle"  → "chromiesquiggle"
+ *   "Warp & Weft"       → "warpandweft"
+ *   "Nobody's Swimming" → "nobodysswimming"
+ *   "Project 333"       → "project333"
  *
  * The resulting slug must satisfy `^[a-z0-9]{3,20}$` + has-letter,
  * which is guaranteed by validateDisplayName.ts (lib/project/
@@ -33,5 +42,8 @@
  * function is pure and does not validate the input.
  */
 export function deriveSlug(displayName: string): string {
-  return displayName.toLowerCase().replace(/ /g, '');
+  return displayName
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]/g, '');
 }

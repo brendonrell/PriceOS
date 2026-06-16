@@ -23,22 +23,12 @@
 import { resolveSprite, composeResolved } from '../sprites/composer';
 import { PRICE_SPRITE_VIBES, type PriceSpriteVibe } from '../sprites/vibes';
 import { hashString } from '../art/rng';
+import { projectContractAddress } from './projectAddress';
 
 /* Reserved Project-only bracket — tortoise-shell 〔 〕 (U+3014/3015). NOT one of
    the 11 user bracket pairs in lib/sprites/data.ts, so it can't collide; same
    CJK-bracket family as the user pool's 【】《》 so it still reads as a sprite. */
 const PROJECT_BRACKET: readonly [string, string] = ['〔', '〕'];
-
-/* 40-hex deterministic pseudo-wallet from the slug (5 × 32-bit chunks). Long
-   enough for the composer's 6 component chunks + the shades chunk. */
-function projectSeedHex(slug: string): string {
-  const s = slug.toLowerCase();
-  let hex = '';
-  for (let i = 0; i < 5; i++) {
-    hex += hashString(`sprite:${s}#${i}`).toString(16).padStart(8, '0');
-  }
-  return hex;
-}
 
 /** The Project's PriceSprite vibe. Artists pick 1 of 4 at upload; AI Projects
     get a deterministic pick from the slug for now. */
@@ -47,10 +37,12 @@ export function projectVibe(slug: string): PriceSpriteVibe {
 }
 
 /** The Project's still PriceSprite face string, collision-proofed vs users via
-    the reserved bracket. Empty string only if the seed is malformed (never in
-    practice). Pure + deterministic — safe to call during render. */
+    the reserved bracket. Seeded from the Project's simulated contract address
+    (the wallet stand-in), so it matches what the on-chain version will produce.
+    Pure + deterministic — safe to call during render. */
 export function projectSpriteFace(slug: string): string {
-  const resolved = resolveSprite(projectSeedHex(slug), projectVibe(slug));
+  const resolved = resolveSprite(projectContractAddress(slug), projectVibe(slug));
   if (!resolved) return '';
   return composeResolved({ ...resolved, bracket: PROJECT_BRACKET }).fullString;
 }
+

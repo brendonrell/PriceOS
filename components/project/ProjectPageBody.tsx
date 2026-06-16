@@ -68,6 +68,7 @@ import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject, projectTrueName } from '../../lib/project/registry';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
+import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
@@ -218,6 +219,17 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* The project's PriceSprite face — composed deterministically from the slug
        (collision-proofed vs user sprites). Still face for the Social header. */
     const projectFace = useMemo(() => projectSpriteFace(project.slug), [project.slug]);
+    /* Simulated contract address — the wallet stand-in for the project-as-user
+       Social hero (seeds the sprite, fills the identity line). */
+    const projectAddr = useMemo(() => projectContractAddress(project.slug), [project.slug]);
+    const [addrCopied, setAddrCopied] = useState(false);
+    const copyProjectAddr = async () => {
+        try {
+            await navigator.clipboard.writeText(projectAddr);
+            setAddrCopied(true);
+            setTimeout(() => setAddrCopied(false), 1500);
+        } catch { /* clipboard blocked — no-op */ }
+    };
     /* Stored dominant colours for this project (re-renders grouping when they
        arrive); resolveBucket prefers them, falls back to live palette-math. */
     const colorsVer = useStoredColors([project.slug]);
@@ -1342,49 +1354,80 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 style={{ display: onAlbumsTab ? 'block' : 'none' }}
             >
                 {moreL1 === 'social' && (<>
-                {/* SOCIAL — the lead +More section (Brendon, 2026-06-14). The
-                    project's Follow CTA mirrors the hero's main action: same
-                    .action-row wrapper + .btn-mint styling as the Mint/BUY
-                    button, so it sits the same way. Below it, the follower /
-                    following counts in the page's standard stat-item treatment.
-                    project.slug IS projects.id, so it's the follow API key;
-                    ProjectState carries no @handle, so we pass null. */}
-                <div className="more-section-header">SOCIAL</div>
-                {/* Project-as-user identity header — PriceSprite + @name, the
-                    first content under Social (Brendon, 2026-06-16). */}
-                <div className="project-id-header">
-                    {projectFace && (
-                        <span className="id-row-sprite">{projectFace}</span>
-                    )}
-                    <span className="project-id-name">@{project.slug}</span>
-                </div>
-                <div className="action-row">
-                    <ProjectFollowButton projectId={project.slug} projectHandle={null} />
-                </div>
-                <div className="more-social-stats-row stats-row stats-row-2">
-                    <span className="stat-item">
-                        <span
-                            className="stat-icon stat-icon-box stat-icon-owners"
-                            {...iconToastProps('Followers — wallets that follow this Project')}
+                {/* SOCIAL — the project rendered as a USER profile hero (Brendon,
+                    2026-06-16): the SAME Hero rows a person's profile uses, filled
+                    with project data — @name + upload date, the PriceSprite + the
+                    simulated contract address (wallet stand-in) + copy, the follow
+                    graph, and Follow + Share. The True Name sits below. */}
+                <Hero
+                    ariaLabel="Project Profile"
+                    titleRow={
+                        <h1 className="project-title">
+                            <span>@{project.slug}</span>
+                            <span className="project-date-wrap">
+                                <span className="project-date" title="PriceDay">
+                                    {fmtUploadDate(uploadedAt)}
+                                </span>
+                            </span>
+                        </h1>
+                    }
+                    identityRow={
+                        <div className="hero-line project-custom id-row-fit">
+                            {projectFace && (
+                                <span className="id-row-sprite">{projectFace}</span>
+                            )}
+                            <div className="artist-lockup">
+                                <span className="artist-name-wrap">
+                                    <a
+                                        href={`https://etherscan.io/address/${projectAddr}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        0<span className="addr-x">x</span>{shortAddress(projectAddr).slice(2)}
+                                    </a>
+                                    <span
+                                        className="icon-copy id-copy"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Copy contract address"
+                                        onClick={copyProjectAddr}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                copyProjectAddr();
+                                            }
+                                        }}
+                                    >
+                                        {addrCopied ? '✓︎' : '⧉︎'}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    }
+                    statsRow={
+                        <div className="hero-line stats-row">
+                            <span className="stat-item stat-item-owners">
+                                <span className="stat-icon stat-icon-owners" {...iconToastProps('Followers — wallets that follow this Project')}>⌗&#xFE0E;</span>{' '}
+                                <span className="stat-val stat-val-owners">{followCounts.followers} {followCounts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
+                            </span>
+                            <span className="stat-item">
+                                <span className="stat-icon stat-icon-box" {...iconToastProps('Following — accounts this Project follows')}>⊡&#xFE0E;</span>{' '}
+                                <span className="stat-val">{followCounts.following} FOLLOWING</span>
+                            </span>
+                        </div>
+                    }
+                >
+                    <div className="action-row">
+                        <ProjectFollowButton projectId={project.slug} projectHandle={null} />
+                        <button
+                            className="btn-soundtrack"
+                            title="Share — coming soon"
+                            onClick={() => showToast('Share: COMING SOON')}
                         >
-                            ⌗&#xFE0E;
-                        </span>{' '}
-                        <span className="stat-val">
-                            FOLLOWERS · {followCounts.followers}
-                        </span>
-                    </span>
-                    <span className="stat-item">
-                        <span
-                            className="stat-icon stat-icon-box stat-icon-owned"
-                            {...iconToastProps('Following — current holders the Project follows back')}
-                        >
-                            ⊡&#xFE0E;
-                        </span>{' '}
-                        <span className="stat-val">
-                            FOLLOWING · {followCounts.following}
-                        </span>
-                    </span>
-                </div>
+                            <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
+                        </button>
+                    </div>
+                </Hero>
 
                 {/* TRUE NAME — the Project's permanent, unique secret name in
                     uppercase Glagolitic (lib/project/trueName.ts). Identity
