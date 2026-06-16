@@ -190,13 +190,13 @@ live in `app/globals.css` (`.af-ic--*`).
 | Century Club | 100 | Ⅽ | U+216D | Roman numeral 100 |
 | Halo | 777 | ⬭ | U+2B2D | tilted oval halo (raised — it sits low) |
 | Per Mille Club | 1,000 | ‰ | U+2030 | the logo mark, rendered in **Inter** |
-| Archetype | 1,200 | ✩ | U+2729 | stress-outlined white star — inherited the old Stargazing glyph (Brendon, 2026-06-16); `✻` U+273B retired |
+| Archetype | 1,200 | ✻ | U+273B | six teardrop-spoke asterisk — Archetype’s glyph, KEPT, never retire (Brendon, 2026-06-16) |
 | Hi-Def | 4,000 | ⬢ | U+2B22 | crystal facet |
 | Ascension | sold out | △ | U+25B3 | rising triangle |
 
 > **Stargazing Mode** (Spell Book pill, `SpellBookSection.tsx`) now wears **⍟
 > (U+235F)** — the ringed star, freed from PriceRank (which took the sun `❂`).
-> Its old glyph `✩` (U+2729) passed to **Archetype** above. (Brendon, 2026-06-16.)
+> Archetype keeps its own glyph `✻` (U+273B), unchanged. (Brendon, 2026-06-16.)
 
 ---
 

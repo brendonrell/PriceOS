@@ -30,7 +30,7 @@ export const PROJECT_MILESTONES: readonly ProjectMilestone[] = [
     { count: 100,  key: '100',  label: 'CENTURY CLUB',   glyph: 'Ⅽ' },
     { count: 777,  key: '777',  label: 'HALO',           glyph: '⬭', cls: 'af-ic--oval' },
     { count: 1000, key: '1000', label: 'PER MILLE CLUB', glyph: '‰', cls: 'af-ic--mille' },
-    { count: 1200, key: '1200', label: 'ARCHETYPE',      glyph: '✩' },
+    { count: 1200, key: '1200', label: 'ARCHETYPE',      glyph: '✻' },
     { count: 4000, key: '4000', label: 'HI-DEF',         glyph: '⬢' },
 ];
 
