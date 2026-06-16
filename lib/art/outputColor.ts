@@ -16,12 +16,12 @@ import { PrismsEngine } from './engines/prismsCore';
 
 export type ColorBucket =
     | 'Hothurt' | 'Red' | 'Orange' | 'Yellow' | 'Green' | 'Blue'
-    | 'Purple' | 'Pink' | 'Brown' | 'Beige' | 'Grey' | 'Black' | 'White';
+    | 'Purple' | 'Moon' | 'Pink' | 'Brown' | 'Beige' | 'Grey' | 'Black' | 'White';
 
 /** Fixed display order for colour group headers. */
 export const COLOR_BUCKET_ORDER: ColorBucket[] = [
     'Hothurt', 'Red', 'Orange', 'Yellow', 'Green', 'Blue',
-    'Purple', 'Pink', 'Brown', 'Beige', 'Grey', 'Black', 'White',
+    'Purple', 'Moon', 'Pink', 'Brown', 'Beige', 'Grey', 'Black', 'White',
 ];
 
 const HOTHURT_HEX = 'FF0055';
@@ -78,7 +78,8 @@ function classify(r: number, g: number, b: number): ColorBucket {
     if (h < 70) return 'Yellow';
     if (h < 165) return 'Green';
     if (h < 255) return 'Blue';
-    if (h < 290) return 'Purple';
+    // Light purple is its own "Moon" bucket; deeper purple stays Purple.
+    if (h < 290) return l >= 0.70 ? 'Moon' : 'Purple';
     if (h < 330) return 'Pink';
     return 'Red';
 }
