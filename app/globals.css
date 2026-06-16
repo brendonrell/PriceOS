@@ -5191,8 +5191,8 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     margin-bottom: 2px;
 }
 .meta-owner {
-    /* Full strength — same colour as the title, never dimmed (Brendon, 2026-06-16). */
-    opacity: 1;
+    /* Dimmed — the owner sits quieter than the #ID, as it used to (Brendon, 2026-06-16). */
+    opacity: 0.6;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     white-space: nowrap;
@@ -5218,7 +5218,8 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 12px;
     color: var(--text-color);
-    opacity: 0.6;
+    /* #ID stays full strength (visible), like the gallery #ID (Brendon, 2026-06-16). */
+    opacity: 1;
     flex-shrink: 0;
 }
 .price-trigger {
@@ -5356,6 +5357,9 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .hi-icon.hi-note { font-size: 14px !important; }
     /* Showcase icon on card hover: mobile size restored to original */
     .hi-icon.hi-showcase { font-size: 27px !important; }
+    /* Grail pin (artwork modal): one size smaller + nudged down 1px on mobile
+       (Brendon, 2026-06-16). */
+    .hi-icon.hi-grail { font-size: 19px !important; transform: translateY(1px); }
 }
 /* Desktop hover row — note +2 and grail pin +1 for better balance against
    the rest of the row (Brendon 2026-06-15). Desktop only; the row is hidden
@@ -6280,7 +6284,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16). */
     .stat-icon-followers { font-size: 25px; transform: translateY(-2px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
-    .meta-owner { font-size: 13px; opacity: 1; }
+    .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
     .info-rubik .ico-following,
     .info-rubik .ico-followers { font-size: 22px; }
