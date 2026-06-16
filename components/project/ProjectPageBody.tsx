@@ -72,7 +72,7 @@ import { priceDayContents } from '../../lib/priceday/priceday';
 import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import type { EventRow } from '../../lib/supabase';
 import { GhostFeedRows } from '../GhostFeed';
-import { useSort, GROUP_SOON, GROUP_LABEL } from '../../lib/state/SortContext';
+import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -808,6 +808,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
            it never applies to FEED (chronological activity) or fog (reveal).
            Project-page dimensions: owner · colour · last-sold · rarity. */
         if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
+        /* Ignore a group persisted on another surface (e.g. 'artist' from a
+           profile) — it isn't a project-page dimension. */
+        if (!PROJECT_GROUP_ORDER.includes(group)) return null;
         /* Last-sold + rarity have no data yet — one greyed "coming soon" group,
            the real art beneath it (Brendon: "mocked in and coming soon"). */
         if (GROUP_SOON[group]) {

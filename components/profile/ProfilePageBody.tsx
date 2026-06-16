@@ -25,7 +25,7 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -35,7 +35,11 @@ import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useSort } from '../../lib/state/SortContext';
+import {
+    useSort,
+    GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
+} from '../../lib/state/SortContext';
+import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
@@ -185,7 +189,7 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, dir, feedKind } = useSort();
+    const { sort, dir, feedKind, group } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     // Real user row — fetched server-side from the handle in the URL and
@@ -482,6 +486,83 @@ function ProfilePageBodyInner({
         }
         return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
     }, [visibleCollected]);
+
+    /* Grouped collected gallery (Brendon, 2026-06-16). Grouping is the cycling
+       modifier on the active grid sort. Cross-project surface dimensions:
+       artist · project · artist+project · colour · last-sold · rarity. Titles
+       reuse the home carousel-title look; spacing binds each to the group below.
+       Cards still render inside a ProjectProvider so the art paints with its own
+       project's context. Returns null when grouping is off / not applicable. */
+    type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean };
+    type GBlock = {
+        key: string;
+        heads: GBHead[];
+        group?: { slug: string; ids: number[] };
+        cards?: { slug: string; id: number }[];
+    };
+    const collectedGroups = useMemo<GBlock[] | null>(() => {
+        if (group === 'none' || sort === 'feed') return null;
+        if (!COLLECTED_GROUP_ORDER.includes(group)) return null;
+        const projName = (slug: string) => getProject(slug)?.displayName ?? slug;
+
+        // Last-sold + rarity: one greyed "coming soon" title, all pieces beneath.
+        if (GROUP_SOON[group]) {
+            return [{
+                key: 'soon',
+                heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
+                cards: visibleCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
+            }];
+        }
+
+        // Colour cuts across projects — bucket every piece, render each in its
+        // own provider so the art still paints with its project's context.
+        if (group === 'color') {
+            const buckets = new Map<string, { slug: string; id: number }[]>();
+            for (const h of visibleCollected) {
+                const b = outputColorBucket(h.slug, h.token_id) ?? 'Other';
+                const arr = buckets.get(b) ?? [];
+                arr.push({ slug: h.slug, id: h.token_id });
+                buckets.set(b, arr);
+            }
+            const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
+            return [...buckets.entries()]
+                .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+                .map(([label, cards]) => ({ key: `c-${label}`, heads: [{ level: 1 as const, label }], cards }));
+        }
+
+        // artist / project / artist+project respect project boundaries (one
+        // provider per project), so group by slug then order/title by dimension.
+        const bySlug = new Map<string, number[]>();
+        const slugArtist = new Map<string, string>();
+        for (const h of visibleCollected) {
+            const arr = bySlug.get(h.slug) ?? [];
+            arr.push(h.token_id);
+            bySlug.set(h.slug, arr);
+            if (!slugArtist.has(h.slug)) slugArtist.set(h.slug, h.traits.Artist ?? '—');
+        }
+        const slugs = [...bySlug.keys()];
+        if (group === 'project') {
+            slugs.sort((a, b) => projName(a).localeCompare(projName(b)));
+            return slugs.map((slug) => ({
+                key: slug,
+                heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null }],
+                group: { slug, ids: bySlug.get(slug)! },
+            }));
+        }
+        // artist / artistProject — order by artist then project; artist titled once.
+        slugs.sort((a, b) =>
+            slugArtist.get(a)!.localeCompare(slugArtist.get(b)!) || projName(a).localeCompare(projName(b)));
+        let lastArtist: string | null = null;
+        const blocks: GBlock[] = [];
+        for (const slug of slugs) {
+            const artist = slugArtist.get(slug)!;
+            const heads: GBHead[] = [];
+            if (artist !== lastArtist) { heads.push({ level: 1, label: artist }); lastArtist = artist; }
+            if (group === 'artistProject') heads.push({ level: 2, label: projName(slug) });
+            blocks.push({ key: slug, heads, group: { slug, ids: bySlug.get(slug)! } });
+        }
+        return blocks;
+    }, [group, sort, visibleCollected]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -1401,13 +1482,45 @@ function ProfilePageBodyInner({
                         ? collectedGhosts.map((aspect, i) => (
                               <GhostCard key={`coghost-${i}`} aspect={aspect} index={i} />
                           ))
-                        : collectedByProject.map(({ slug, ids }) => (
-                              <ProjectProvider key={slug} slug={slug}>
-                                  {ids.map((id) => (
-                                      <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge showProjectName />
-                                  ))}
-                              </ProjectProvider>
-                          ))}
+                        : collectedGroups
+                            ? collectedGroups.map((blk) => {
+                                  const g = blk.group;
+                                  const cards = blk.cards;
+                                  return (
+                                      <Fragment key={blk.key}>
+                                          {blk.heads.map((h, hi) => (
+                                              <div
+                                                  key={hi}
+                                                  className={`gallery-group-header${h.level === 2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}`}
+                                              >
+                                                  <span className="ggh-label">{h.label}</span>
+                                                  {h.by ? <span className="ggh-by"> by @{h.by}</span> : null}
+                                                  {h.soon ? <span className="ggh-soon">coming soon</span> : null}
+                                              </div>
+                                          ))}
+                                          {g
+                                              ? (
+                                                  <ProjectProvider slug={g.slug}>
+                                                      {g.ids.map((id) => (
+                                                          <ArtworkCard key={`${g.slug}-${id}`} id={id} hideOwnedBadge showProjectName />
+                                                      ))}
+                                                  </ProjectProvider>
+                                              )
+                                              : cards?.map((c) => (
+                                                  <ProjectProvider key={`${c.slug}-${c.id}`} slug={c.slug}>
+                                                      <ArtworkCard id={c.id} hideOwnedBadge showProjectName />
+                                                  </ProjectProvider>
+                                              ))}
+                                      </Fragment>
+                                  );
+                              })
+                            : collectedByProject.map(({ slug, ids }) => (
+                                  <ProjectProvider key={slug} slug={slug}>
+                                      {ids.map((id) => (
+                                          <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge showProjectName />
+                                      ))}
+                                  </ProjectProvider>
+                              ))}
             </section>
 
             {/* Activity feed — this wallet's own ledger events, reached via the

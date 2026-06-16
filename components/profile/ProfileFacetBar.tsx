@@ -32,7 +32,10 @@
 
 import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useTraits } from '../../lib/state/TraitsContext';
-import { useSort } from '../../lib/state/SortContext';
+import {
+    useSort,
+    COLLECTED_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, type GroupKey,
+} from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
@@ -130,9 +133,34 @@ export default function ProfileFacetBar({
         multiSelectActive,
         toggleMultiSelect,
     } = useTraits();
-    const { sort, dir, feedKind, cycleSort, applySort } = useSort();
+    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGroup } = useSort();
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
+
+    /* Group cycling — the little modifier glyph on the active grid sort. Collected
+       surface (Brendon, 2026-06-16): artist ✺ → project ⬚ → artist+project ✺⬚ →
+       colour ◉ → last-sold $ → rarity ❖; first = none. */
+    const effGroup: GroupKey = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
+    const cycleGroupWithToast = () => {
+        const cur = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
+        const next = COLLECTED_GROUP_ORDER[(COLLECTED_GROUP_ORDER.indexOf(cur) + 1) % COLLECTED_GROUP_ORDER.length];
+        cycleGroup(COLLECTED_GROUP_ORDER);
+        showToast('Group: ' + GROUP_LABEL[next]);
+    };
+    const groupMod = (active: boolean) =>
+        active ? (
+            <span
+                className={`sort-group-mod${effGroup !== 'none' ? ' on' : ''}`}
+                role="button"
+                tabIndex={0}
+                title={`Group: ${GROUP_LABEL[effGroup]} — tap to cycle`}
+                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', marginRight: '4px', cursor: 'pointer' }}
+                onClick={(e) => { e.stopPropagation(); cycleGroupWithToast(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); cycleGroupWithToast(); } }}
+            >
+                {GROUP_GLYPH[effGroup]}
+            </span>
+        ) : null;
 
     /* Facet → present value pool, drawn from the owned Outputs. Only facets
        with ≥1 value render. */
@@ -313,7 +341,7 @@ export default function ProfileFacetBar({
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('id'); } }}
                     >
                         <span className="sort-lbl">{'#ID'}</span>
-                        <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{groupMod(sort === 'id')}{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'price' ? ' active' : ''}`}
@@ -324,7 +352,7 @@ export default function ProfileFacetBar({
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('price'); } }}
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
-                        <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{groupMod(sort === 'price')}{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'az' ? ' active' : ''}`}
@@ -335,7 +363,7 @@ export default function ProfileFacetBar({
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('az'); } }}
                     >
                         <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
-                        <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{groupMod(sort === 'az')}{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'feed' ? ' active' : ''}`}

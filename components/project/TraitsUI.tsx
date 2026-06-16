@@ -321,6 +321,9 @@ export default function TraitsUI({
     const { showToast } = useToast();
     const { isAuthenticated } = useAuth();
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGroup } = useSort();
+    /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
+       project-page dimension — show it as off here so the glyph matches reality. */
+    const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
     const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
 
@@ -995,7 +998,7 @@ export default function TraitsUI({
                         active={sort === 'id'}
                         dir={dir}
                         feedKind={feedKind}
-                        group={group}
+                        group={effGroup}
                         onCycleGroup={cycleGroupWithToast}
                         onClick={() => cycleSortWithToast('id')}
                     />
@@ -1005,7 +1008,7 @@ export default function TraitsUI({
                         active={sort === 'price'}
                         dir={dir}
                         feedKind={feedKind}
-                        group={group}
+                        group={effGroup}
                         onCycleGroup={cycleGroupWithToast}
                         onClick={() => cycleSortWithToast('price')}
                     />
