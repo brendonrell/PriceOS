@@ -22,25 +22,31 @@ function toWebp(canvas: HTMLCanvasElement, q: number): Promise<Blob | null> {
 }
 
 /* Squeeze a canvas to a WebP at or under maxBytes: drop quality first, then
-   shrink dimensions. Returns the smallest that fits (or the floor attempt). */
+   shrink the LONG EDGE — always preserving the source aspect ratio (never force
+   a square, which was distorting non-square pieces). Returns the first that
+   fits, else the smallest attempt (best effort) — same aspect either way. */
 async function encodeUnder(src: HTMLCanvasElement, maxBytes: number) {
-    for (const scale of [1, 0.85, 0.7, 0.55, 0.42, 0.32, 0.24]) {
+    const ar = src.width / src.height || 1;
+    const longEdges = [512, 440, 380, 320, 270, 220, 180, 140, 110, 84, 64];
+    let last: { blob: Blob; quality: number; w: number; h: number } | null = null;
+    for (const edge of longEdges) {
+        let w: number;
+        let h: number;
+        if (src.width >= src.height) { w = edge; h = Math.max(1, Math.round(edge / ar)); }
+        else { h = edge; w = Math.max(1, Math.round(edge * ar)); }
         const c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(src.width * scale));
-        c.height = Math.max(1, Math.round(src.height * scale));
+        c.width = w; c.height = h;
         const ctx = c.getContext('2d');
         if (!ctx) continue;
-        ctx.drawImage(src, 0, 0, c.width, c.height);
+        ctx.drawImage(src, 0, 0, w, h);
         for (const q of [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.22, 0.15, 0.1]) {
             const b = await toWebp(c, q);
-            if (b && b.size <= maxBytes) return { blob: b, quality: q, w: c.width, h: c.height };
+            if (!b) continue;
+            last = { blob: b, quality: q, w, h };
+            if (b.size <= maxBytes) return last;
         }
     }
-    const c = document.createElement('canvas');
-    c.width = 64; c.height = 64;
-    c.getContext('2d')?.drawImage(src, 0, 0, 64, 64);
-    const b = await toWebp(c, 0.1);
-    return b ? { blob: b, quality: 0.1, w: 64, h: 64 } : null;
+    return last;
 }
 
 const capCss: React.CSSProperties = {
