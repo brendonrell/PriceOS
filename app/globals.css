@@ -5204,7 +5204,10 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .meta-proj-name {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
+    /* Bold + full strength — same readability as the title (Brendon, 2026-06-16). */
+    font-weight: bold;
     color: var(--text-color);
+    opacity: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5214,7 +5217,8 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 12px;
     color: var(--text-color);
-    opacity: 0.6;
+    /* No dimming (Brendon, 2026-06-16). */
+    opacity: 1;
     flex-shrink: 0;
 }
 .price-trigger {
