@@ -5208,10 +5208,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .meta-proj-name {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
-    /* Bold + full strength — same readability as the title (Brendon, 2026-06-16). */
-    font-weight: bold;
     color: var(--text-color);
-    opacity: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5221,8 +5218,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 12px;
     color: var(--text-color);
-    /* No dimming (Brendon, 2026-06-16). */
-    opacity: 1;
+    opacity: 0.6;
     flex-shrink: 0;
 }
 .price-trigger {
@@ -7727,7 +7723,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
        drops to the next line as one unit when it can't fit. */
     white-space: nowrap;
 }
-.section-head-by a { color: inherit; }
+.section-head-by a { color: inherit; text-decoration: none; }
+/* Shuffle byline — bold + full strength so the thin Courier @artist reads
+   clearly (Brendon, 2026-06-16). */
+.shuffle-head .section-head-by,
+.shuffle-head .section-head-by a { opacity: 1; font-weight: bold; }
 
 /* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
    so cycling never reflows the hero (the old version's jump). Desktop stays one
