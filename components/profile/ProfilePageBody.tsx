@@ -1367,12 +1367,12 @@ function ProfilePageBodyInner({
                         ? (isOwnProfile
                             ? ownShowcaseItems.map((s, i) => (
                                   <ProjectProvider key={`sc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
-                                      <ArtworkCard id={s.id} />
+                                      <ArtworkCard id={s.id} showProjectName />
                                   </ProjectProvider>
                               ))
                             : showcaseSlots.map((slot, i) => (
                                   <ProjectProvider key={`sc-${i}-${slot.project_id}-${slot.token_id}`} slug={slot.project_id}>
-                                      <ArtworkCard id={Number(slot.token_id)} />
+                                      <ArtworkCard id={Number(slot.token_id)} showProjectName />
                                   </ProjectProvider>
                               )))
                         : showcaseGhosts.map((aspect, i) => (
@@ -1390,7 +1390,7 @@ function ProfilePageBodyInner({
                         : collectedByProject.map(({ slug, ids }) => (
                               <ProjectProvider key={slug} slug={slug}>
                                   {ids.map((id) => (
-                                      <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge />
+                                      <ArtworkCard key={`${slug}-${id}`} id={id} hideOwnedBadge showProjectName />
                                   ))}
                               </ProjectProvider>
                           ))}

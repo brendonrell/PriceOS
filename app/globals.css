@@ -5116,6 +5116,29 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     white-space: nowrap;
     transition: opacity 0.3s;
 }
+/* Profile grid caption (Brendon 2026-06-16) — PROJECT NAME (Courier) + #ID
+   (Rubik) on one left-aligned line; no owner/price. Spans projects, so the
+   name identifies each piece's collection. */
+.meta.meta-profile {
+    justify-content: flex-start;
+    gap: 7px;
+}
+.meta-proj-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.meta-proj-id {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.6;
+    flex-shrink: 0;
+}
 .price-trigger {
     cursor: pointer;
     text-decoration: none;

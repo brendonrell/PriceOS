@@ -161,6 +161,10 @@ interface ArtworkCardProps {
        there everything is owned, so the checks are just noise over the art.
        The Collected grid passes this true. Defaults false. */
     hideOwnedBadge?: boolean;
+    /* Profile grids span many projects, so the caption shows the PROJECT NAME
+       (Courier) + #ID (Rubik) instead of the owner/price — and never the owner
+       (Brendon 2026-06-16). Project/home carousels leave this false. */
+    showProjectName?: boolean;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -173,6 +177,7 @@ export default function ArtworkCard({
     isBreadcrumb = false,
     eager = false,
     hideOwnedBadge = false,
+    showProjectName = false,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -880,6 +885,14 @@ export default function ArtworkCard({
                         LAST · {lastSaleEth} Ξ
                     </span>
                 </div>
+                {showProjectName ? (
+                    /* Profile grid caption — PROJECT NAME (Courier) + #ID
+                        (Rubik), no owner/price (Brendon 2026-06-16). */
+                    <div className="meta meta-profile">
+                        <span className="meta-proj-name">{projectTitle}</span>
+                        <span className="meta-proj-id">#{id}</span>
+                    </div>
+                ) : (
                 <div className="meta">
                     {/* "Owned by you" check (Brendon 2026-06-12): rides
                         EVERY card the viewer owns (was a sim placeholder
@@ -916,6 +929,7 @@ export default function ArtworkCard({
                         </a>
                     )}
                 </div>
+                )}
             </div>
         </article>
     );
