@@ -5359,7 +5359,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .hi-icon.hi-showcase { font-size: 27px !important; }
     /* Grail pin (artwork modal): one size smaller + nudged down 1px on mobile
        (Brendon, 2026-06-16). */
-    .hi-icon.hi-grail { font-size: 19px !important; transform: translateY(1px); }
+    .hi-icon.hi-grail { font-size: 20px !important; transform: translateY(1px); }
 }
 /* Desktop hover row — note +2 and grail pin +1 for better balance against
    the rest of the row (Brendon 2026-06-15). Desktop only; the row is hidden
