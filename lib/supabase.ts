@@ -65,6 +65,21 @@ export interface UserSettings {
    *  envelope as `starred`. Account-backed so starred artists follow the viewer
    *  across devices (Brendon, 2026-06-13). Was localStorage `pd_artist_pinned`. */
   artistStars?: string[];
+  /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
+   *  choice on each project / profile follows them across devices and overrides
+   *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased
+   *  project slug / profile handle; value is that surface's tab id. */
+  tabMemory?: {
+    /** project slug → ProjectTab ('project-showcase' | 'artworks' | 'albums'). */
+    project?: Record<string, string>;
+    /** profile handle → ProfileTab ('showcase' | 'collected' | 'more'). */
+    profile?: Record<string, string>;
+  };
+  /** The user's chosen Digital Familiar species name (one of the live
+   *  BitDaemons). Account-backed so the companion choice follows the viewer
+   *  across devices; re-pickable any time from the Familiar modal (Brendon,
+   *  2026-06-16). Absent = never chosen (engine rolls a random one). */
+  familiarSpecies?: string;
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */

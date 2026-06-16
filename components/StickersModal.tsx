@@ -19,9 +19,9 @@
  * touch scrolls natively.
  */
 
-import { useEffect, useRef } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useDragScroll } from '../lib/hooks/useDragScroll';
 
 const VS15 = '︎';
 
@@ -50,44 +50,10 @@ export default function StickersModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'stickers';
-    const railRef = useRef<HTMLDivElement | null>(null);
-
-    /* Mouse drag-to-scroll on the rail (touch swipes natively). A drag past a
-       few px swallows the trailing click so it doesn't fire a sheet's tap. */
-    useEffect(() => {
-        if (!isOpen) return;
-        const rail = railRef.current;
-        if (!rail) return;
-        let down = false, moved = false, startX = 0, startLeft = 0;
-        const onDown = (e: MouseEvent) => {
-            down = true; moved = false; startX = e.pageX; startLeft = rail.scrollLeft;
-            rail.classList.add('dragging');
-        };
-        const onMove = (e: MouseEvent) => {
-            if (!down) return;
-            const dx = e.pageX - startX;
-            if (Math.abs(dx) > 4) moved = true;
-            e.preventDefault();
-            rail.scrollLeft = startLeft - dx;
-        };
-        const onUp = () => {
-            if (!down) return;
-            down = false;
-            rail.classList.remove('dragging');
-            if (moved) {
-                const swallow = (ev: Event) => { ev.stopPropagation(); ev.preventDefault(); };
-                rail.addEventListener('click', swallow, { capture: true, once: true });
-            }
-        };
-        rail.addEventListener('mousedown', onDown);
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('mouseup', onUp);
-        return () => {
-            rail.removeEventListener('mousedown', onDown);
-            window.removeEventListener('mousemove', onMove);
-            window.removeEventListener('mouseup', onUp);
-        };
-    }, [isOpen]);
+    /* Desktop mouse drag-to-scroll on the rail (touch scrolls natively). The
+       shared hook is mouse-only and swallows the trailing click after a real
+       drag so a pan doesn't fire a sheet's tap. */
+    const railRef = useDragScroll<HTMLDivElement>();
 
     const tap = (s: Sheet) => {
         showToast(s.tag === 'LOCKED' ? 'Sticker Exchange: LOCKED' : `${s.name}: COMING SOON`);

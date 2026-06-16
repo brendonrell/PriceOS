@@ -46,6 +46,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { useDragScroll } from '../lib/hooks/useDragScroll';
 import { rankProgress } from '../lib/achievements/tiers';
 import {
     ACHIEVEMENTS,
@@ -231,6 +232,11 @@ export default function PriceSpriteModal() {
     const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(() => new Set());
     const [achScore, setAchScore] = useState<number>(priceScore);
     const fetchedFor = useRef<string | null>(null);
+
+    /* Desktop mouse drag-to-scroll on the achievements carousel (touch scrolls
+       natively). Shared mouse-only hook; swallows the trailing click so a pan
+       never fires a tile's tap (Brendon, 2026-06-16). */
+    const achRailRef = useDragScroll<HTMLDivElement>();
     useEffect(() => {
         if (!isOpen || !siweAddress) return;
         const addr = siweAddress.toLowerCase();
@@ -371,7 +377,7 @@ export default function PriceSpriteModal() {
                         {`${unlockedCount} / ${VISIBLE_COUNT} · ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS`}
                     </span>
                 </div>
-                <div className="ps-ach-rail ps-reveal ps-d4">
+                <div className="ps-ach-rail ps-reveal ps-d4" ref={achRailRef}>
                     {ACHIEVEMENTS.map((a) => {
                         const isUnlocked = unlocked.has(a.id);
                         const hidden = a.secret && !isUnlocked;
