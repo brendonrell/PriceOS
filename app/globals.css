@@ -7471,6 +7471,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     display: flex;
     align-items: baseline;
     gap: 10px;
+    /* Lets an optional "by @artist" byline drop to the next line as a whole unit
+       when it can't fit beside the title (Brendon, 2026-06-16). No effect while
+       the byline is hidden. */
+    flex-wrap: wrap;
     margin: 0 0 10px;
     padding: 0 40px;
 }
@@ -7605,6 +7609,30 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 }
 .shuffle-by a { color: inherit; }
 
+/* SectionHead — reusable section title + optional "by @artist" byline. Mirrors
+   the shuffle header's look so it can replace any section title (Brendon,
+   2026-06-16). */
+.section-head {
+    padding: 0 40px;
+    margin: 12px 0 10px;
+}
+.section-head-title {
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.section-head-by {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    opacity: 0.7;
+    /* The whole "by @name" stays together — never breaks at the handle's hyphen;
+       drops to the next line as one unit when it can't fit. */
+    white-space: nowrap;
+}
+.section-head-by a { color: inherit; }
+
 /* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
    so cycling never reflows the hero (the old version's jump). Desktop stays one
    line; mobile reserves two. (Brendon, 2026-06-15) */
@@ -7644,6 +7672,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (max-width: 600px) {
     .home-uploads .feed-list,
     .home-section-head,
+    .section-head,
     .home-empty-note,
     .home-feed-loading {
         padding-left: 20px;

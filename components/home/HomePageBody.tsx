@@ -29,6 +29,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
+import SectionHead from '../SectionHead';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
@@ -53,6 +54,10 @@ import type { HomeResponse } from '../../lib/home/homeData';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
 const CAROUSEL_SIZE = 12;
+/* Now-Minting carousels deliberately omit the "by @artist" byline today
+   (Brendon's call). Flip this to true to show it on every carousel — it's
+   already formatted + wraps as a unit (Brendon, 2026-06-16). */
+const SHOW_CAROUSEL_ARTIST = false;
 /* Outputs in the Shuffle grid — a fresh random project's 24 random outputs
    on every entry (Brendon 2026-06-13). */
 const SHUFFLE_SIZE = 24;
@@ -124,6 +129,11 @@ function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
                 <a className="home-carousel-title" href={`/art/${project.slug}`}>
                     {project.title}
                 </a>
+                {SHOW_CAROUSEL_ARTIST && getProject(project.slug)?.artistHandle && (
+                    <span className="section-head-by">
+                        {' '}by <a href={`/${getProject(project.slug)!.artistHandle}`}>@{getProject(project.slug)!.artistHandle}</a>
+                    </span>
+                )}
             </div>
             <div className="home-carousel-track">
                 {ids.map((id) => (
@@ -159,12 +169,12 @@ function ShuffleGallery({ seed }: { seed: number }) {
         <>
             {/* Shuffle byline — the picked project + artist, Courier, sitting in
                 the same spot as the New Uploads header (Brendon, 2026-06-15). */}
-            <div className="home-section-head shuffle-head">
-                <a className="shuffle-title" href={`/art/${project.slug}`}>{project.title}</a>
-                {artist && (
-                    <span className="shuffle-by"> by <a href={`/${artist}`}>@{artist}</a></span>
-                )}
-            </div>
+            <SectionHead
+                title={project.title}
+                titleHref={`/art/${project.slug}`}
+                artist={artist}
+                className="shuffle-head"
+            />
             <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
                 {ids.map((id) => (
                     <ArtworkCard key={`${seed}-${id}`} id={id} />
