@@ -42,7 +42,7 @@ export default function BenchArt({
             ref={canvasRef}
             className={className ? `bench-art ${className}` : 'bench-art'}
             aria-label={`Output #${id}`}
-            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+            style={{ width: '100%', display: 'block' }}
         />
     );
 }

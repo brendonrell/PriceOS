@@ -6,7 +6,10 @@
    iPhone-Safari first: dvh, safe-area, momentum scroll, contained overscroll.
    ========================================================================= */
 
-canvas.bench-art { -webkit-user-select: none; user-select: none; }
+/* The art must always show WHOLE — the Bench exists to compare the pieces, so
+   never crop them. `contain` letterboxes inside the card frame; the Cart thumb
+   rule below re-asserts `cover` for its tiny square (Brendon, 2026-06-16). */
+canvas.bench-art { -webkit-user-select: none; user-select: none; object-fit: contain; }
 
 /* While a hold-drag is engaged: kill selection + callouts so the lift feels
    like grabbing an object. */
@@ -48,7 +51,7 @@ body.bench-dragging * {
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
     transform: rotate(-3deg) scale(1.04);
 }
-.bench-ghost-art { object-fit: contain !important; }
+.bench-ghost-art { width: 100%; height: 100%; object-fit: contain !important; }
 .bench-ghost-tag {
     display: block;
     text-align: center;
@@ -108,7 +111,7 @@ body.bench-dragging * {
     border-bottom: none;
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.4);
-    padding: 8px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px;
+    padding: 8px 8px calc(12px + env(safe-area-inset-bottom, 0px)) 8px;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
     flex-direction: column;
@@ -168,7 +171,7 @@ body.bench-dragging * {
 
 /* Slim peek when collapsed — viewport stays clear. */
 .bench-tab.collapsed { padding-bottom: calc(9px + env(safe-area-inset-bottom, 0px)); }
-.bench-tab.expanded { max-height: 78dvh; }
+.bench-tab.expanded { max-height: 85dvh; }
 .bench-tab-btn {
     background: transparent;
     color: var(--text-color);
@@ -211,47 +214,40 @@ body.bench-dragging * {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
-    gap: 10px; /* tight gutters — the art is the point (Brendon, 2026-06-16) */
+    gap: 6px; /* tight gutters — the art is the point (Brendon, 2026-06-16) */
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
-/* Side-by-side: two equal columns, centered (no left-bias), art big, info under. */
+/* Masonry, not forced halves: each piece renders at its NATURAL height; one can
+   be taller than the other and the divider sits wherever it lands (Brendon,
+   2026-06-16). Side-by-side = two equal-WIDTH columns, top-aligned. */
 .bench-grid.portrait {
     flex-direction: row;
     justify-content: center;
-    align-items: stretch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 6px;
+    align-items: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
-.bench-grid.portrait .bench-card { flex: 1 1 0; min-width: 0; max-width: 460px; }
-/* Stacked split (one above, one below): two equal full-width pieces filling the
-   space, art big with the info beneath each — not a thumbnail-beside-text row. */
+.bench-grid.portrait .bench-card { flex: 1 1 0; min-width: 0; }
+/* Stacked = full-width pieces, each at its natural height, scroll if they're
+   tall. The art fills the bench's width edge-to-edge. */
 .bench-grid.landscape {
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
     overflow-x: hidden;
 }
-.bench-grid.landscape .bench-card {
-    flex: 1 1 0;
-    min-height: 0;
-    width: 100%;
-    max-width: 520px;
-    flex-direction: column;
-}
-.bench-grid.landscape .bench-card-art { flex: 1 1 auto; min-height: 0; aspect-ratio: auto; }
-.bench-grid.landscape .bench-card-meta { flex: 0 0 auto; }
+.bench-grid.landscape .bench-card { flex: 0 0 auto; width: 100%; }
 
 .bench-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     background: color-mix(in srgb, var(--text-color) 5%, transparent);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 8px;
+    padding: 6px;
     box-sizing: border-box;
 }
 .bench-card-remove {
@@ -285,11 +281,13 @@ body.bench-dragging * {
 .bench-card-cart { flex: 0 0 auto; }
 .bench-card-art {
     width: 100%;
-    aspect-ratio: 3 / 4;
     border-radius: 8px;
     overflow: hidden;
     background: color-mix(in srgb, var(--text-color) 8%, transparent);
 }
+/* The piece lays out at its TRUE shape, full card width — whole art, no crop,
+   no letterbox, card height follows the art (Brendon, 2026-06-16). */
+.bench-card-art canvas { width: 100%; height: auto; display: block; }
 .bench-card-meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .bench-card-name {
     font-size: 13px;
