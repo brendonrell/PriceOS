@@ -45,7 +45,7 @@
     pointer-events: auto;
     position: relative;
     width: min(360px, 56vw);
-    height: 8px; /* skinnier than the original 10px, but not too thin (Brendon, 2026-06-16) */
+    height: 7px; /* subtle: one notch down from 8 (Brendon, 2026-06-16) */
     padding: 0;
     border: none;
     background: transparent;
