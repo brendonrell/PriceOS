@@ -20,6 +20,7 @@ import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
 import { natalChart } from './natal';
 import { projectStatus } from '../home/milestones';
+import { assignTrueNames } from './trueName';
 
 /* Platform trait names — stamped on EVERY Output of EVERY Project, so they ride
    into the token metadata (ERC-721 attributes) and surface on OpenSea as well
@@ -206,6 +207,15 @@ const AI_PROJECTS: readonly ProjectDef[] = [
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
+/* True Name — each Project's permanent, unique secret-name glyph (uppercase
+   Glagolitic, 4 letters; lib/project/trueName.ts). Assigned once over the
+   registry with collision-nudge, so it's stable per slug and unique across all
+   Projects. The reverse map powers true-name search (slug ⇄ name). */
+const TRUE_NAMES = assignTrueNames(PROJECTS.map((p) => p.slug));
+const SLUG_BY_TRUE_NAME = new Map<string, string>(
+  [...TRUE_NAMES].map(([slug, name]) => [name, slug]),
+);
+
 /** All registered Projects. */
 export function allProjects(): readonly ProjectDef[] {
   return PROJECTS;
@@ -225,6 +235,17 @@ export function getProject(slug: string): ProjectDef | null {
 /** Whether a slug names a registered Project. */
 export function isProjectSlug(slug: string): boolean {
   return BY_SLUG.has(slug.toLowerCase());
+}
+
+/** The Project's permanent, unique true name (uppercase-Glagolitic glyphs). */
+export function projectTrueName(slug: string): string {
+  return TRUE_NAMES.get(slug.toLowerCase()) ?? '';
+}
+
+/** Resolve a true name (the glyph string) back to its Project, or null. */
+export function findProjectByTrueName(name: string): ProjectDef | null {
+  const slug = SLUG_BY_TRUE_NAME.get(name);
+  return slug ? getProject(slug) : null;
 }
 
 /**

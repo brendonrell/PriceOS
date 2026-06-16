@@ -5673,6 +5673,25 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .more-section-header { padding: 8px 20px 4px 20px; }
 }
 
+/* TRUE NAME readout (Social +More). The Project's permanent unique secret
+   name in uppercase Glagolitic. Font stack prefers a Glagolitic-capable face;
+   a bundled subset is the render guarantee if a device lacks one. */
+.more-true-name-row {
+    padding: 2px 40px 12px 40px;
+}
+@media (max-width: 600px) {
+    .more-true-name-row { padding: 2px 20px 12px 20px; }
+}
+.project-true-name {
+    font-family: 'Noto Sans Glagolitic', 'Noto Serif Glagolitic',
+        'Segoe UI Historic', 'Code2000', 'Quivira', serif;
+    font-size: 30px;
+    line-height: 1.1;
+    letter-spacing: 8px;
+    color: var(--text-color);
+    cursor: help;
+}
+
 .albums-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

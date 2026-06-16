@@ -66,7 +66,7 @@ import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
-import { getProject } from '../../lib/project/registry';
+import { getProject, projectTrueName } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
@@ -1371,6 +1371,19 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         <span className="stat-val">
                             FOLLOWING · {followCounts.following}
                         </span>
+                    </span>
+                </div>
+
+                {/* TRUE NAME — the Project's permanent, unique secret name in
+                    uppercase Glagolitic (lib/project/trueName.ts). Identity
+                    marker, shown here under Social for now. */}
+                <div className="more-section-header">TRUE NAME</div>
+                <div className="more-true-name-row">
+                    <span
+                        className="project-true-name"
+                        {...iconToastProps('True Name — this Project’s permanent, unique secret name')}
+                    >
+                        {projectTrueName(project.slug)}
                     </span>
                 </div>
 
