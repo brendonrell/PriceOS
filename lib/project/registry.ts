@@ -145,18 +145,14 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
 /* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
    single source of truth, so a slug can never drift from the name again. The
    first aiDef arg is the SOUNDTRACK KEY (the project's historical id used only
-   to look up AI_SOUNDTRACKS); it is NOT the slug. Overrides cover the rare name
-   whose derived handle would exceed the 20-char cap. */
-const SLUG_OVERRIDES: Record<string, string> = {
-  'Use Once, Remember Always': 'useonceremember',
-};
-
+   to look up AI_SOUNDTRACKS); it is NOT the slug. The 50-char @name cap fits
+   every creative title, so no per-name overrides are needed. */
 function aiDef(
   soundtrackKey: string, displayName: string, artistHandle: string, outputs: number,
   colorway: string, mintPriceEth: number, aspects: readonly number[],
   traitSchema: TraitSchema, render: ProjectDef['render'], traitsOf: ProjectDef['traitsOf'],
 ): ProjectDef {
-  const slug = SLUG_OVERRIDES[displayName] ?? deriveSlug(displayName);
+  const slug = deriveSlug(displayName);
   return {
     slug, displayName, artistHandle, outputs, colorway, mintPriceEth,
     soundtrack: AI_SOUNDTRACKS[soundtrackKey] ?? null, aspects, traitSchema, render, traitsOf,

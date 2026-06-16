@@ -2,8 +2,10 @@ import { isReservedHandle } from '@/lib/reserved-handles';
 
 /**
  * Project @name format spec (locked — Platform Nomenclature SoT, page
- * 2kyd6gx6-3274 → "Project naming policy"):
- *   - 3–20 chars
+ * 2kyd6gx6-3274 → "Project naming policy"; cap raised 20 → 50 on
+ * 2026-06-16 so creative titles aren't squeezed — the @name is the
+ * derived handle, NOT the creative display title):
+ *   - 3–50 chars
  *   - lowercase a-z, 0-9 ONLY (no '_' or '-' — projects are the stricter
  *     subset of the shared /@name pool; user handles allow '_'/'-', projects
  *     do not)
@@ -22,12 +24,12 @@ import { isReservedHandle } from '@/lib/reserved-handles';
  */
 
 export const PROJECT_HANDLE_MIN_LENGTH = 3;
-export const PROJECT_HANDLE_MAX_LENGTH = 20;
+export const PROJECT_HANDLE_MAX_LENGTH = 50;
 
 /* Anchored regex enforcing the full format. Length window is baked in so a
    single .test() covers the structural rules. lowercase [a-z0-9] only — no
    '_'/'-', the deliberate divergence from the user-handle set. */
-const PROJECT_HANDLE_FORMAT_RE = /^[a-z0-9]{3,20}$/;
+const PROJECT_HANDLE_FORMAT_RE = /^[a-z0-9]{3,50}$/;
 
 export type ProjectHandleValidationReason =
     | 'too_short'
