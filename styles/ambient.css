@@ -15,7 +15,9 @@
     --amb4: #2fe28a;
     --amb-dur: 14s;
     position: fixed;
-    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 40px);
+    /* Dropped well clear of the Tape so the bar sits centered in the gap above
+       the @name header, not bunched against the Tape (Brendon, 2026-06-16). */
+    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 66px);
     left: 0;
     right: 0;
     z-index: 90; /* under navbar (100), over content */
@@ -23,9 +25,6 @@
     flex-direction: column;
     align-items: center;
     pointer-events: none;
-    /* Nudged down a touch so the bar sits in the gap BELOW the Tape and ABOVE
-       the @name header, rather than washing over it (Brendon, 2026-06-16). */
-    margin-top: 10px;
 }
 
 /* ---- Palettes (just the 4 colour stops; the rest is derived) ---------- */
@@ -46,7 +45,7 @@
     pointer-events: auto;
     position: relative;
     width: min(360px, 56vw);
-    height: 10px;
+    height: 6px; /* skinnier bar (Brendon, 2026-06-16) */
     padding: 0;
     border: none;
     background: transparent;
