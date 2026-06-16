@@ -5685,9 +5685,9 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .project-true-name {
     font-family: 'Noto Sans Glagolitic', 'Noto Serif Glagolitic',
         'Segoe UI Historic', 'Code2000', 'Quivira', serif;
-    font-size: 30px;
-    line-height: 1.1;
-    letter-spacing: 8px;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: 1px;
     color: var(--text-color);
     cursor: help;
 }

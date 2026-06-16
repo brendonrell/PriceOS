@@ -200,6 +200,36 @@ live in `app/globals.css` (`.af-ic--*`).
 
 ---
 
+## 9. Project True Name — the secret-name glyph identity (`lib/project/trueName.ts`)
+
+Every Project gets a permanent, unique **True Name** — a 4-letter word in
+**uppercase Glagolitic** (the oldest Slavic alphabet; we use the Christian angle
+— *Glagolitic* means "the word / to speak"). The community speaks a Project into
+being and the True Name is what gives it its identity (the golem / "true name"
+mythos). Shown under **Social** in the project's +More panel; searchable later.
+
+| Field | Value |
+|---|---|
+| Script | Glagolitic, **uppercase only** |
+| Codepoints | **U+2C00–U+2C2E** (the 47 uppercase letters) |
+| Length | 4 letters per name |
+| Namespace | 47⁴ = **4,879,681** unique names |
+| Render class | `.project-true-name` (`app/globals.css`) |
+
+Examples (live): PRISMS = `ⰅⰒⰗⰚ`, ORACLE = `ⰓⰆⰬⰏ`.
+
+> **⛔ iOS COMPATIBILITY IS ESSENTIAL — and these glyphs PASS (Brendon,
+> 2026-06-16).** Any glyph PD ships MUST render as monochrome text on iPhone or
+> it is dead on arrival — this is the #1 gate for every glyph in this doc, not a
+> footnote. Uppercase Glagolitic (U+2C00–U+2C2E) is **verified rendering
+> natively on iOS 26 / iPhone 12** with NO bundled font. (Lowercase, the astral
+> scripts — cuneiform, Linear B, Tai Xuan Jing — and any new set are NOT assumed
+> safe: device-verify before locking.) This is distinct from the VS-15 system
+> glyphs in §1–§8, which carry the trailing `︎` and force Courier; True Name
+> letters are plain BMP letters, no VS-15.
+
+---
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`
