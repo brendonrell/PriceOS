@@ -3074,6 +3074,25 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
 
+/* Artist badge living in the identity line (right after the address). Courier,
+   sized + coloured to read as part of the address row, at the address's own
+   full opacity. Opts out of the lockup hover-underline like the copy icon
+   (Brendon, 2026-06-16). */
+.id-row-artist {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    margin-left: 6px;
+    color: inherit;
+    flex-shrink: 0;
+    display: inline-block;
+    text-decoration: none;
+    position: relative;
+    top: 1px;
+}
+
 /* Artist badge inside the big Rubik title (profile hero @handle): the base
    .artist-tag top:2px is tuned for the small identity row and rides high
    against the 22px title caps. Re-center to the cap box. */

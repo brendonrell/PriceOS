@@ -1046,13 +1046,6 @@ function ProfilePageBodyInner({
                     <h1 className="project-title">
                         <span>
                             @{displayHandle}
-                            {/* Artist badge — whitelisted wallets only (allowlist = the sim
-                                stand-in for the on-chain whitelist). Plain ✺ mark:
-                                minting-status moons live ONLY in the artist lists
-                                (Brendon 2026-06-11), never beside usernames. */}
-                            {artistStatus && (
-                                <span className="artist-tag" aria-label="artist" title="Artist">{'✺\uFE0E'}</span>
-                            )}
                         </span>
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
@@ -1137,6 +1130,13 @@ function ProfilePageBodyInner({
                                         </>
                                     )}
                                 </a>
+                                {/* Artist badge — whitelisted wallets only. Sits in
+                                    the identity line right after the address, in
+                                    Courier at the row's size and the address's own
+                                    colour + opacity (Brendon, 2026-06-16). */}
+                                {artistStatus && (
+                                    <span className="id-row-artist" aria-label="artist" title="Artist">{'✺︎'}</span>
+                                )}
                                 <span
                                     className="icon-copy id-copy"
                                     role="button"
