@@ -6,7 +6,7 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `659ab97`). This chat's task
+- **Branch:** all work is on `dev`, pushed, tree clean (head `66f79ce`). This chat's task
   branch `claude/determined-heisenberg-7odwqj` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
 - **Updated:** 2026-06-16 (latest). This session = **The Audience + a big spot-edit batch** (🎬 below).
@@ -28,11 +28,20 @@
   account** (`PdNotifsContext` pushSettings + hydrate listener).
 - **Ambient Light** — account-backed (`settings.ambient`); ~1/3 shorter glow, **skinnier 6px
   bar** dropped to center in the gap below the Tape, more diffuse; modal label "Color".
-- **Bench** — **cap 2** (`BENCH_MAX`, was 8); compare layout reworked (two equal, centered on
-  desktop, tight gutters, info beneath; stacked split = two big equal-width pieces). Empty state
-  "compare outputs". **Drag-refresh crash FIXED**: our custom PTR (`ptrEngine`) was reloading
-  mid hold-drag — it now bows out once `body.bench-dragging` is set. *(Needs Brendon's on-device
-  confirm — couldn't repro in-container.)*
+- **Bench** — **cap 2** (`BENCH_MAX`). Brendon LOVES the final result. **Whole art always shows**
+  (canvas → natural shape, full card width, no crop/letterbox; was object-fit cover). **Masonry**:
+  two pieces share width, each its own natural height (stacked = full-width column, side-by-side =
+  two equal columns, top-aligned, dynamic divider). **Fit/Wide toggle** (own button, two triangles
+  — toward each other = fit-both-no-scroll, apart = wide/full-size; axis-aware glyphs; works in both
+  splits). Tighter gutters; stacked panel 85dvh. Drop-target highlight = uniform crisp ring (same
+  shape/colour). Drag-refresh crash fix held (`ptrEngine` bows out on `body.bench-dragging`).
+  **OPEN: intermittent iPhone crashing** — audited (small canvases, Audience off, no render loop,
+  PTR guarded); found no code cause, likely the generic iOS memory ceiling. Brendon parking it for
+  a Fable 5 stability pass; needs the exact crash trigger to pin further.
+- **`by @artist` byline** — reusable `components/SectionHead.tsx` (title + optional Courier byline);
+  the whole "by @name" is one non-breaking unit (never splits at the handle hyphen, wraps as a unit).
+  Shuffle header uses it. Now-Minting carousels pre-wired but byline hidden (`SHOW_CAROUSEL_ARTIST`
+  false; `.home-carousel-head` flex-wrap added so it's correct when flipped on).
 - **Drag-to-scroll** (desktop, mouse-only) on PriceSprite / Stickers / Familiar carousels
   (`useDragScroll` + new `useDragScrollAll`).
 - **Smaller:** Stargazing glyph → ✩; pingtoasts pill icon-only; note icon nudged +3px in the
