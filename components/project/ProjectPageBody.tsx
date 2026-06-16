@@ -63,6 +63,7 @@
 
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
+import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
@@ -254,7 +255,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         window.addEventListener('pd:notes-changed', bump);
         return () => window.removeEventListener('pd:notes-changed', bump);
     }, []);
-    const { siweAddress } = useAuth();
+    const { siweAddress, handle: viewerHandle } = useAuth();
 
     /* My Network — REAL filter data (Brendon 2026-06-11). The viewer's
        follow graph (handles + addresses, lowercased) feeds Mutuals /
@@ -296,8 +297,11 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 const profRes = await fetch(`/api/user/by-handle/${handle}`, { cache: 'no-store' });
                 const prof = profRes.ok ? await profRes.json() : null;
                 const followers = prof?.follower_count ?? 0;
-                let mutual = false;
-                if (siweAddress) {
+                /* A user is mutuals with themselves (Brendon, 2026-06-16) — the
+                   viewer looking at their OWN project sees the mutual badge on
+                   the artist row, no real self-follow row required. */
+                let mutual = (viewerHandle ?? '').toLowerCase().replace(/^@/, '') === h;
+                if (!mutual && siweAddress) {
                     const fRes = await fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' });
                     const f = fRes.ok ? await fRes.json() : null;
                     const lc = (a: unknown) => (Array.isArray(a) ? (a as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, ''));
@@ -317,7 +321,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             window.removeEventListener('pd:follows-changed', onCh);
             window.removeEventListener('pd:project-refresh', onCh);
         };
-    }, [def?.artistHandle, siweAddress]);
+    }, [def?.artistHandle, siweAddress, viewerHandle]);
 
     /* Top 5 holders of THIS project by held count (reconciled owners). */
     const topHolders = useMemo(() => {
@@ -330,18 +334,26 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     }, [project.outputs, project.totalOutputs]);
 
     const [activeTab, setActiveTab] = useState<ProjectTab>(() => {
-        try {
-            const saved = window.localStorage.getItem('pd_project_tab');
-            if (saved === 'artworks' || saved === 'albums') return saved;
-        } catch {}
-        /* Content-aware landing (Brendon 2026-06-10, same rule as profile):
-           an empty Showcase is not a landing page. A minted project's
-           Showcase auto-feeds the first 6 mints (never empty), so the only
-           empty case is a fully unminted project — land that on Artworks. */
-        return project.totalOutputs === 0 ? 'artworks' : 'project-showcase';
+        /* Per-user, per-project memory wins — the saved tab is the ONLY thing
+           that overrides the content-aware default (Brendon, 2026-06-16). */
+        const remembered = getRememberedTab('project', project.slug);
+        if (remembered === 'artworks' || remembered === 'albums' || remembered === 'project-showcase') {
+            return remembered;
+        }
+        /* Content-aware landing (Brendon 2026-06-16): land on Showcase only when
+           the Showcase is FULL — a curated set of 6 (minted), or, absent
+           curation, 6+ mints auto-feeding the grid to 6. A short/empty Showcase
+           is not a landing page, so anything under 6 lands on Artworks. Mirrors
+           projectShowcasePicks' curated-then-auto-feed resolution below. */
+        const curatedMinted = project.showcaseIds.filter(
+            (id) => id >= 1 && id <= project.totalOutputs
+        );
+        const showcaseCount =
+            curatedMinted.length > 0 ? curatedMinted.length : Math.min(6, project.totalOutputs);
+        return showcaseCount >= 6 ? 'project-showcase' : 'artworks';
     });
     const setActiveTabPersisted = (tab: ProjectTab) => {
-        try { window.localStorage.setItem('pd_project_tab', tab); } catch {}
+        rememberTab('project', project.slug, tab);
         setActiveTab(tab);
     };
 

@@ -57,6 +57,12 @@ export const STATE_CACHE_KEYS = {
     /** Starred (pinned) artists — ordered artist names. Read + written by
      *  ArtistsView; lives in the settings envelope (private). */
     artistStars: 'pd_artist_pinned',
+    /** Per-page last-viewed tab map `{ project: {slug:tab}, profile: {handle:tab} }`.
+     *  Read + written by tabMemoryStore; lives in the settings envelope. */
+    tabMemory: 'pd_tab_memory',
+    /** Chosen Digital Familiar species name. Read + written by familiarEngine;
+     *  lives in the settings envelope. */
+    familiarSpecies: 'pd_familiar_species',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -159,6 +165,23 @@ export function hydrateFromRow(row: UserRow): void {
             STATE_CACHE_KEYS.artistStars,
             JSON.stringify(Array.isArray(s.artistStars) ? s.artistStars : []),
         );
+        // Per-page tab memory — server wins; tabMemoryStore reads this cache
+        // synchronously in the project/profile page tab initializers.
+        localStorage.setItem(
+            STATE_CACHE_KEYS.tabMemory,
+            JSON.stringify(
+                s.tabMemory && typeof s.tabMemory === 'object' && !Array.isArray(s.tabMemory)
+                    ? s.tabMemory
+                    : {},
+            ),
+        );
+        // Chosen Familiar species — server wins; familiarEngine reads this cache
+        // when it picks the species on the next page load.
+        if (typeof s.familiarSpecies === 'string' && s.familiarSpecies) {
+            localStorage.setItem(STATE_CACHE_KEYS.familiarSpecies, s.familiarSpecies);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.familiarSpecies);
+        }
 
         // grid_presets → unified cache the presetStore reads (Gallery View
         // Presets). Server wins; presetStore re-reads this key on the

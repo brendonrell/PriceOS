@@ -239,6 +239,26 @@ function isRedBg(bgHex: string): boolean {
     return r > g + 40 && r > b + 40 && r > 100;
 }
 
+/* Detect a near-black NEUTRAL bg — a colorway dark enough AND grey enough to
+   read as "black", so it should inherit the named Dark colorway's full button
+   treatment (inverted mint, hatched L1 pills) instead of leaving them looking
+   like a light theme on a black field. Both guards matter: the darkness guard
+   (`max` channel low) keeps mid-tones out, the neutrality guard (`max-min`
+   small) keeps dark-but-COLORED colorways (deep green/navy/wine) out — those
+   stay on their own treatment. Purely luminance + neutrality — NOT keyed to any
+   one project, so any future artist colorway that reads as black inherits the
+   dark treatment automatically. (Of today's 50 sample colorways only Ode to
+   Rudxane's #1c1a17 happens to qualify.) Brendon, 2026-06-16. */
+function isNearBlackNeutral(bgHex: string): boolean {
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    return max <= 48 && max - min <= 26;
+}
+
 /** Apply a colorway to the documentElement and body classes. */
 /* The Custom colorway resolves PER PAGE — never a hardcoded color. Mirrors
    paintForPath's custom branches so an explicit "Custom" pick paints the same
@@ -346,7 +366,16 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     let pillL1Border = text;
     let pillL1ActiveBgImg = 'none';
 
-    if (key === 'dark') {
+    /* Named Dark colorway OR any static near-black NEUTRAL bg (e.g. the Ode to
+       Rudxane #1c1a17 project colorway) gets the full dark treatment: inverted
+       mint button + hatched L1 pills. Excludes the animated engines (haze /
+       hashsyn) whose bg sweeps through hues — they manage their own polarity and
+       must not flicker into this when a frame lands on black. */
+    const darkTreatment =
+        key === 'dark' ||
+        (key !== 'haze' && key !== 'hashsyn' && isNearBlackNeutral(bg));
+
+    if (darkTreatment) {
         mintBg = MATRIX;
         mintText = '#111111';
         mintBorder = MATRIX;

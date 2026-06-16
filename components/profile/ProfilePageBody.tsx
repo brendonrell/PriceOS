@@ -27,6 +27,7 @@
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
+import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
@@ -545,12 +546,25 @@ function ProfilePageBodyInner({
        rule on project pages (Artworks). Initializer only — once mounted,
        the user's tap wins. */
     const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+        /* Per-user, per-profile memory wins — the saved tab is the ONLY thing
+           that overrides the content-aware default (Brendon, 2026-06-16). */
+        const remembered = getRememberedTab('profile', user.handle ?? handle);
+        if (remembered === 'showcase' || remembered === 'collected' || remembered === 'more') {
+            return remembered;
+        }
         // Artists land on Showcase too — their Created carousels make it a
-        // real landing page even with an empty curated set.
+        // real landing page even with an empty curated set. Otherwise land on
+        // Showcase only when it's FULL (6 curated slots); a short/empty showcase
+        // is not a landing page → Collected (Brendon, 2026-06-16, the same
+        // "full showcase" rule as project pages).
         const artistHasProjects =
             !!artistStatus && projectsByArtist(user.handle ?? handle).length > 0;
-        return showcaseSlots.length > 0 || artistHasProjects ? 'showcase' : 'collected';
+        return showcaseSlots.length >= 6 || artistHasProjects ? 'showcase' : 'collected';
     });
+    const setActiveTabPersisted = (tab: ProfileTab) => {
+        rememberTab('profile', user.handle ?? handle, tab);
+        setActiveTab(tab);
+    };
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
 
     /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
@@ -1132,8 +1146,8 @@ function ProfilePageBodyInner({
                             className={`pill pill-l1${onShowcase ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('showcase')}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('showcase'); } }}
+                            onClick={() => setActiveTabPersisted('showcase')}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('showcase'); } }}
                         >
                             <span className="stat-name">Showcase</span>
                         </div>
@@ -1141,8 +1155,8 @@ function ProfilePageBodyInner({
                             className={`pill pill-l1${onCollected ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('collected')}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('collected'); } }}
+                            onClick={() => setActiveTabPersisted('collected')}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('collected'); } }}
                         >
                             <span className="stat-name">Collected</span>
                         </div>
@@ -1150,8 +1164,8 @@ function ProfilePageBodyInner({
                             className={`pill pill-l1${onMore ? ' active' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setActiveTab('more')}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('more'); } }}
+                            onClick={() => setActiveTabPersisted('more')}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('more'); } }}
                         >
                             <span className="stat-name">+ More</span>
                         </div>

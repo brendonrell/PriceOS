@@ -62,7 +62,6 @@ export function MyPingsRow() {
                     title={`Pingtoasts: ${notifs.pingToasts.toUpperCase()} — tap to cycle`}
                     active={notifs.pingToasts !== 'off'}
                     onClick={cyclePingToasts}
-                    label={notifs.pingToasts === 'off' ? 'OFF' : notifs.pingToasts.toUpperCase()}
                     icon={'⇡\uFE0E'}
                     iconStyle={{ fontSize: '14px', lineHeight: '1', marginRight: 0 }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}

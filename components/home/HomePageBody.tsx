@@ -183,7 +183,7 @@ function HomePageBodyInner({
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
-    const { siweAddress } = useAuth();
+    const { siweAddress, handle: viewerHandle } = useAuth();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
@@ -201,8 +201,12 @@ function HomePageBodyInner({
                 const profRes = await fetch('/api/user/by-handle/brendon', { cache: 'no-store' });
                 const prof = profRes.ok ? await profRes.json() : null;
                 const followers = prof?.follower_count ?? 0;
-                let mutual = false;
-                if (siweAddress) {
+                /* A user is mutuals with themselves (Brendon, 2026-06-16) — so
+                   @brendon viewing the home credit (his own name) gets the
+                   mutual badge without a real self-follow row. */
+                let mutual =
+                    (viewerHandle ?? '').toLowerCase().replace(/^@/, '') === 'brendon';
+                if (!mutual && siweAddress) {
                     const fRes = await fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' });
                     const f = fRes.ok ? await fRes.json() : null;
                     const lc = (a: unknown) => (Array.isArray(a) ? (a as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, ''));
@@ -217,7 +221,7 @@ function HomePageBodyInner({
         const onCh = () => load();
         window.addEventListener('pd:follows-changed', onCh);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
-    }, [siweAddress]);
+    }, [siweAddress, viewerHandle]);
 
     /* The live home payload (stats + uploads + minting now). Server-seeded,
        re-pulled on every Realtime push / refresh nudge, poll fallback. */

@@ -24,10 +24,12 @@ import { useToast } from '../lib/state/ToastContext';
 import {
     getFamiliarFrame,
     getFamiliarSpeciesName,
+    setFamiliarSpecies,
     subscribeFamiliar,
     type FamiliarFrame,
 } from '../lib/engines/familiarEngine';
 import { TIERS } from '../lib/familiar/bestiary';
+import { useDragScrollAll } from '../lib/hooks/useDragScroll';
 
 const VS15 = '︎';
 
@@ -38,6 +40,10 @@ export default function FamiliarModal() {
 
     const [title, setTitle] = useState('FAMILIAR');
     const [species, setSpecies] = useState('');
+
+    /* Desktop mouse drag-to-scroll on every tier rail (touch scrolls natively).
+       Attached to the body that already contains all rails at mount. */
+    const railsRef = useDragScrollAll<HTMLDivElement>('.fam-rail');
 
     /* Live hero — mirror the floating Familiar's frame while the modal is
        open. Subscribe only while open; the engine drives the 600ms tick. */
@@ -81,7 +87,7 @@ export default function FamiliarModal() {
                 {`×${VS15}`}
             </div>
 
-            <div className="modal-info fam-body">
+            <div className="modal-info fam-body" ref={railsRef}>
                 <div
                     className="modal-title fam-reveal fam-d1"
                     id="familiarModalTitle"
@@ -129,13 +135,21 @@ export default function FamiliarModal() {
                                             key={sp.name}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                showToast(
-                                                    tier.locked
-                                                        ? `${tier.label.toUpperCase()}: ${tier.unlock}`
-                                                        : yours
-                                                          ? `${sp.name.toUpperCase()}: YOURS`
-                                                          : `${tier.label}: ${sp.name.toUpperCase()}`,
-                                                );
+                                                if (tier.locked) {
+                                                    showToast(`${tier.label.toUpperCase()}: ${tier.unlock}`);
+                                                    return;
+                                                }
+                                                if (yours) {
+                                                    showToast(`${sp.name.toUpperCase()}: YOURS`);
+                                                    return;
+                                                }
+                                                /* Pick this BitDaemon as the live companion —
+                                                   updates the floating sprite + this modal now
+                                                   and persists the choice (Brendon, 2026-06-16). */
+                                                setFamiliarSpecies(sp.name);
+                                                setSpecies(sp.name);
+                                                setTitle(`FAMILIAR · ${sp.name.toUpperCase()}`);
+                                                showToast(`Familiar: ${sp.name.toUpperCase()}`);
                                             }}
                                         >
                                             {tier.locked && (

@@ -33,6 +33,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { pushSettings, USERSTATE_HYDRATED_EVENT } from './userState';
 
 // ── Tape modes (matches sim) ────────────────────────────────
 // 0 = OFF (default), 1 = Faded (desktop only), 2 = Standard (desktop only),
@@ -272,10 +273,14 @@ const PdNotifsContext = createContext<PdNotifsContextValue | null>(null);
 export function PdNotifsProvider({ children }: { children: ReactNode }) {
     const [notifs, setNotifsState] = useState<PdNotifs>(DEFAULTS);
 
-    useEffect(() => {
+    /* Read the persisted notifs blob (localStorage) + the session-scoped
+       accordion overlay into a complete PdNotifs. Used at mount AND whenever an
+       account snapshot hydrates — userState overwrites this same localStorage
+       key with the server's `notifs`, so re-reading lets the account win. */
+    const readStored = useCallback((): PdNotifs => {
+        let next: PdNotifs = DEFAULTS;
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            let next: PdNotifs = DEFAULTS;
             if (raw) {
                 const parsed = JSON.parse(raw);
                 next = {
@@ -291,37 +296,55 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
                     next.pingToasts = 'all';
                 }
             }
-            /* F59 (BUG-26) — overlay session-scoped accordion flags. Read
-               only at hydration; subsequent updates write through the
-               persistence effect below. Missing keys → false (closed). */
-            try {
-                const overlay: Partial<Record<typeof SESSION_KEYS[number], boolean>> = {};
-                for (const k of SESSION_KEYS) {
-                    overlay[k] = sessionStorage.getItem(SESSION_STORAGE_KEYS[k]) === '1';
-                }
-                next = { ...next, ...overlay };
-            } catch {
-                // Private mode / disabled storage — fall through with localStorage values.
-            }
-            setNotifsState(next);
         } catch {
             // Corrupted blob — fall back to defaults silently.
         }
+        /* F59 (BUG-26) — overlay session-scoped accordion flags (notes/todos/
+           tapeOpen). Missing keys → false (closed). */
+        try {
+            const overlay: Partial<Record<typeof SESSION_KEYS[number], boolean>> = {};
+            for (const k of SESSION_KEYS) {
+                overlay[k] = sessionStorage.getItem(SESSION_STORAGE_KEYS[k]) === '1';
+            }
+            next = { ...next, ...overlay };
+        } catch {
+            // Private mode / disabled storage — fall through with localStorage values.
+        }
+        return next;
     }, []);
 
     useEffect(() => {
+        setNotifsState(readStored());
+    }, [readStored]);
+
+    /* Cross-device: when the account snapshot lands (e.g. fresh-device login),
+       userState rewrites the notifs cache with the server's copy and fires
+       USERSTATE_HYDRATED_EVENT. Re-read so spell toggles — including the Digital
+       Familiar on/off — reflect the account, not the device. Server wins. */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const onHydrated = () => setNotifsState(readStored());
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+    }, [readStored]);
+
+    useEffect(() => {
+        /* F59 (BUG-26) — strip the three accordion flags from the persisted
+           blob; they ride sessionStorage instead. The localStorage envelope
+           keeps the same `pd_settings_notifs` key so existing pre-F59 users get
+           their other settings carried forward intact. */
+        const { notes, todos, tapeOpen, ...rest } = notifs;
+        void notes; void todos; void tapeOpen;
         try {
-            /* F59 (BUG-26) — strip the three accordion flags from the
-               localStorage blob; they ride sessionStorage instead. The
-               localStorage envelope keeps the same `pd_settings_notifs`
-               key so existing pre-F59 users get their other settings
-               carried forward intact. */
-            const { notes, todos, tapeOpen, ...rest } = notifs;
-            void notes; void todos; void tapeOpen;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
         } catch {
             // Quota / private mode — no-op.
         }
+        /* Write-through to the account so spell + ping prefs persist server-side
+           and follow the user across devices (Brendon, 2026-06-16: the Digital
+           Familiar on/off must live in the DB). Fire-and-forget; no-op until the
+           account snapshot has hydrated, so boot defaults can't clobber the row. */
+        pushSettings({ notifs: rest as Record<string, unknown> });
         try {
             sessionStorage.setItem(SESSION_STORAGE_KEYS.notes,    notifs.notes    ? '1' : '0');
             sessionStorage.setItem(SESSION_STORAGE_KEYS.todos,    notifs.todos    ? '1' : '0');

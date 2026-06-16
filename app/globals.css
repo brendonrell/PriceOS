@@ -5206,7 +5206,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 /* Note icon runs smaller than the other hover icons — the ⊟ glyph
    reads clearly at 14px and sits in better visual balance with the
    surrounding row. Two standard steps below the 18px baseline. */
-.hi-icon.hi-note { font-size: 14px; }
+.hi-icon.hi-note { font-size: 14px; transform: translateY(-3px); }
 /* Brendon-list-3 chat A item 1a — note icon always visible on hover.
    Sim deviation: sim 2382 gates .hi-note to body.notes-mode only. Brendon
    wants quick-note creation available from any card hover regardless of
@@ -5245,7 +5245,7 @@ body.hammer-mode .hover-overlay { display: none !important; }
     .scroll-arrow:hover { opacity: 1; }
     .notif-item:hover { background: rgba(128,128,128,0.2); }
     .hi-icon:hover { transform: translateY(-3px); color: #fff; }
-    .hi-icon.hi-note:hover { transform: translateY(-2px); }
+    .hi-icon.hi-note:hover { transform: translateY(-5px); }
     .output-content:hover .hover-overlay { opacity: 1; }
     .search-clear:hover { opacity: 1; }
     .pill-artist-filter:hover {

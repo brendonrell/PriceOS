@@ -38,6 +38,8 @@
  *   bubble:   .visible class for 4000ms             [sim 12840]
  */
 
+import { pushSettings, STATE_CACHE_KEYS } from '../state/userState';
+
 interface Species {
     name: string;
     idle: string[];
@@ -167,8 +169,32 @@ function _urlSpeciesOverride(): Species | null {
     return null;
 }
 
+function _findSpecies(name: string): Species | null {
+    return SPECIES.find((s) => s.name.toLowerCase() === name.toLowerCase()) ?? null;
+}
+
+/** The user's saved familiar choice from the write-through cache (set by
+ *  setFamiliarSpecies + userState hydrate). Null when they've never chosen. */
+function _savedSpecies(): Species | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const name = localStorage.getItem(STATE_CACHE_KEYS.familiarSpecies);
+        return name ? _findSpecies(name) : null;
+    } catch {
+        return null;
+    }
+}
+
+/* Selection priority: an explicit ?familiar= URL override wins, then the user's
+   saved choice, then a random roll for a first-time visitor. The module
+   re-initialises per page load, so a saved choice is re-applied on every load
+   (and cross-device after the server snapshot hydrates the cache). */
 function _pickSpecies(): Species {
-    return _urlSpeciesOverride() || SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    return (
+        _urlSpeciesOverride() ||
+        _savedSpecies() ||
+        SPECIES[Math.floor(Math.random() * SPECIES.length)]
+    );
 }
 
 function _setState(next: FamiliarState) {
@@ -402,4 +428,35 @@ export function getFamiliarFrame(): FamiliarFrame {
  */
 export function getFamiliarSpeciesName(): string {
     return _species ? _species.name : '';
+}
+
+/** The selectable (live) species names — the five BitDaemons. */
+export function getFamiliarSpeciesList(): string[] {
+    return SPECIES.map((s) => s.name);
+}
+
+/**
+ * Choose the active familiar species. Updates the live companion immediately
+ * (floating sprite + any open modal hero) and persists the choice — local cache
+ * for instant re-apply on reload, plus the server settings envelope so it
+ * follows the user across devices. No-op for an unknown name. The user can
+ * re-pick any time (Brendon, 2026-06-16).
+ */
+export function setFamiliarSpecies(name: string): void {
+    const sp = _findSpecies(name);
+    if (!sp || sp === _species) return;
+    _species = sp;
+    _speciesPicked = true;
+    _frameIdx = 0;
+    _state = 'idle';
+    _badgeText = sp.name;
+    try {
+        localStorage.setItem(STATE_CACHE_KEYS.familiarSpecies, sp.name);
+    } catch {
+        /* private mode / quota — server sync below still carries the change */
+    }
+    pushSettings({ familiarSpecies: sp.name });
+    /* Repaint now so the swap is instant whether or not the 600ms tick is
+       currently running (it pauses in a backgrounded tab). _renderFrame emits. */
+    _renderFrame();
 }
