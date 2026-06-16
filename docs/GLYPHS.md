@@ -91,6 +91,26 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 | anointing | ✢ | U+2722 | | lore (easter eggs) | ⁂ | U+2042 |
 | streak | ◈ | U+25C8 | | og (longevity) | ⌖ | U+2316 |
 
+> **rank / PriceRank = ⍟ (U+235F)** — moved off `❖` on 2026-06-16 so `❖`
+> (U+2756) is free for **RARITY** sitewide (Brendon). Update any new rank
+> surface to `⍟`; never use `❖` for PriceRank again.
+
+### Gallery grouping glyphs (the cycling sort modifier — Brendon, 2026-06-16)
+
+Grouping is the small cycling character on the active sort pill (like FEED's `$`),
+first state always = none. One glyph per dimension:
+
+| Group | Glyph | Codepoint | Source |
+|---|---|---|---|
+| none (resting) | · | U+00B7 | small neutral dot — "tap to group" |
+| Artist | ✺ | U+273A | the artist-category glyph (§4) |
+| Project | ⬚ | U+2B1A | the project stats-row dotted square (`.stat-icon-box`) |
+| Artist + Project | ✺⬚ | — | two-level combo (artist over project) |
+| Owner | ⌂ | U+2302 | holder / where the piece lives |
+| Dominant colour | ◉ | U+25C9 | the Haze dropper (samples colour — see §7) |
+| Last sold $ | $ | — | coming soon |
+| Rarity | ❖ | U+2756 | freed from rank for rarity sitewide |
+
 ---
 
 ## 5. Per-glyph sizing — Courier, and which glyphs need nudges
@@ -142,6 +162,10 @@ These belong to a *user*, never to an action.
   ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
   before locking it. (Brendon, 2026-06-15.)
 - **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`) — reserved.
+- **◉ (U+25C9) = Haze-mode dropper / colour-sample tool** (`ColorwayPicker.tsx` —
+  grabs the live page bg into the Haze slot). Reused as the **dominant-colour
+  grouping** glyph (dropper = sampling colour). Distinct from its §4 identity-
+  category achievement use; context disambiguates. (Brendon, 2026-06-16.)
 - Force **Courier** (`'Courier New', Courier, monospace`) anywhere a glyph shows.
 - When a glyph doesn't fit a context, it's fine to **omit** it rather than force
   a mismatched icon (taste call — Brendon, 2026-06-14).

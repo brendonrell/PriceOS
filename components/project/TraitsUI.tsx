@@ -54,7 +54,11 @@ import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
-import { useSort, type SortKey, type SortDir, type FeedKind, type GroupKey } from '../../lib/state/SortContext';
+import {
+    useSort,
+    type SortKey, type SortDir, type FeedKind, type GroupKey,
+    PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL,
+} from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -401,13 +405,14 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* GROUP cycling control — none → colour → owner (Brendon, 2026-06-13). */
-    const GROUP_TOAST: Record<GroupKey, string> = { none: 'OFF', color: 'COLOR', owner: 'OWNER' };
-    const GROUP_NEXT: GroupKey[] = ['none', 'color', 'owner'];
+    /* GROUP cycling — a MODIFIER on the active sort (Brendon, 2026-06-16). The
+       project page is single-artist / single-project, so its cycle is
+       owner → colour → last-sold → rarity (PROJECT_GROUP_ORDER); first = none. */
     const cycleGroupWithToast = () => {
-        const next = GROUP_NEXT[(GROUP_NEXT.indexOf(group) + 1) % GROUP_NEXT.length];
-        cycleGroup();
-        showToast('Group: ' + GROUP_TOAST[next]);
+        const cur = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
+        const next = PROJECT_GROUP_ORDER[(PROJECT_GROUP_ORDER.indexOf(cur) + 1) % PROJECT_GROUP_ORDER.length];
+        cycleGroup(PROJECT_GROUP_ORDER);
+        showToast('Group: ' + GROUP_LABEL[next]);
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -1817,12 +1822,11 @@ function SortBtn({
 }: SortBtnProps) {
     let arrowGlyph = '';
     let dollarSpan: ReactNode = null;
-    /* Group-by letter modifier — only on the ID / PRICE buttons, and only
-       while that sort is active (it modifies the active id/price ordering,
-       the way FEED's `$` modifies the feed sub-mode). Off shows a dim `G`
-       affordance; on shows the dimension's initial (C = colour, O = owner).
-       Tapping it cycles the grouping WITHOUT flipping the sort direction
-       (stopPropagation keeps the parent button's dir-toggle from firing). */
+    /* Group-by glyph modifier — the little cycling character on the active grid
+       sort (ID / PRICE), exactly like FEED's `$`. FULLY VISIBLE (never dimmed):
+       'none' shows a small neutral dot, each grouping shows its glyph
+       (docs/GLYPHS.md). Tapping cycles the grouping WITHOUT flipping the sort
+       direction (stopPropagation keeps the parent's dir-toggle from firing). */
     const showGroupMod =
         active &&
         (family === 'id' || family === 'price') &&
@@ -1833,12 +1837,11 @@ function SortBtn({
             className={`sort-group-mod${group !== 'none' ? ' on' : ''}`}
             role="button"
             tabIndex={0}
-            title="Group by colour / owner"
+            title={`Group: ${GROUP_LABEL[group!]} — tap to cycle`}
             style={{
                 fontFamily: "'Courier New', Courier, monospace",
-                fontSize: '13px',
+                fontSize: '12px',
                 marginRight: '4px',
-                opacity: group === 'none' ? 0.4 : 1,
                 cursor: 'pointer',
             }}
             onClick={(e) => {
@@ -1853,7 +1856,7 @@ function SortBtn({
                 }
             }}
         >
-            {group === 'color' ? 'C' : group === 'owner' ? 'O' : 'G'}
+            {GROUP_GLYPH[group!]}
         </span>
     ) : null;
     if (active) {

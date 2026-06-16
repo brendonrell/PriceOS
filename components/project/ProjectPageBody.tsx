@@ -72,7 +72,7 @@ import { priceDayContents } from '../../lib/priceday/priceday';
 import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import type { EventRow } from '../../lib/supabase';
 import { GhostFeedRows } from '../GhostFeed';
-import { useSort } from '../../lib/state/SortContext';
+import { useSort, GROUP_SOON, GROUP_LABEL } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -804,9 +804,15 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        the sort order inside each. Colour is palette-derived (free, no canvas);
        owner reads the live outputs map. */
     const groupedSections = useMemo(() => {
-        /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-13) —
-           it never applies to FEED (chronological activity) or fog (reveal). */
+        /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-16) —
+           it never applies to FEED (chronological activity) or fog (reveal).
+           Project-page dimensions: owner · colour · last-sold · rarity. */
         if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
+        /* Last-sold + rarity have no data yet — one greyed "coming soon" group,
+           the real art beneath it (Brendon: "mocked in and coming soon"). */
+        if (GROUP_SOON[group]) {
+            return [{ label: GROUP_LABEL[group], ids: visibleTokenIds, soon: true }];
+        }
         const map = new Map<string, number[]>();
         for (const id of visibleTokenIds) {
             const label =
@@ -817,7 +823,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             if (arr) arr.push(id);
             else map.set(label, [id]);
         }
-        const sections = Array.from(map, ([label, ids]) => ({ label, ids }));
+        const sections = Array.from(map, ([label, ids]) => ({ label, ids, soon: false }));
         if (group === 'color') {
             const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
             sections.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
@@ -1257,9 +1263,11 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     : groupedSections && !onShowcaseTab
                         ? groupedSections.map((sec) => (
                             <Fragment key={`grp-${sec.label}`}>
-                                <div className="gallery-group-header">
+                                <div className={`gallery-group-header${sec.soon ? ' soon' : ''}`}>
                                     <span className="ggh-label">{sec.label}</span>
-                                    <span className="ggh-count">{sec.ids.length}</span>
+                                    {sec.soon
+                                        ? <span className="ggh-soon">coming soon</span>
+                                        : <span className="ggh-count">{sec.ids.length}</span>}
                                 </div>
                                 {sec.ids.map((id) => (
                                     <ArtworkCard

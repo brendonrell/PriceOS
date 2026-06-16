@@ -4977,26 +4977,53 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 /* Group-by section headers (Brendon, 2026-06-13) — span the full grid row so
    the gallery reads as labelled colour/owner sections. */
+/* Grouped-gallery section title — reuses the HOME carousel title look
+   (.section-head-title) so groups read like the rest of the app. The SPACING
+   does the binding (Brendon, 2026-06-16): a big gap ABOVE the title, almost
+   none below, so a title visibly owns the grid BENEATH it — never ambiguous
+   about whether it labels the row above or below. (Brendon, 2026-06-16) */
 .gallery-group-header {
     grid-column: 1 / -1;
     display: flex;
     align-items: baseline;
     gap: 10px;
-    padding: 14px 0 2px;
-    border-bottom: 1px dotted var(--border-color, rgba(224, 224, 224, 0.25));
+    margin: 28px 0 0;   /* air above */
+    padding: 0 0 4px;   /* tight below → binds to the group under it */
 }
-.gallery-group-header:first-child { padding-top: 0; }
+.gallery-group-header:first-child { margin-top: 0; }
+/* Level-2 title (project under an artist, in the Artist+Project combo) —
+   indented + a touch quieter, sits closer to its own grid. */
+.gallery-group-header.level-2 {
+    margin-top: 14px;
+    padding-left: 16px;
+}
 .ggh-label {
     font-family: var(--font-rubik-mono), monospace;
     font-size: 13px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--text-color);
+}
+.gallery-group-header.level-2 .ggh-label { font-size: 12px; }
+.ggh-by {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: var(--text-color);
+    white-space: nowrap;
 }
 .ggh-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     opacity: 0.55;
+    color: var(--text-color);
+}
+/* Coming-soon group (last-sold / rarity) — the title reads as a placeholder. */
+.gallery-group-header.soon .ggh-label { opacity: 0.5; }
+.ggh-soon {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.45;
     color: var(--text-color);
 }
 .output-card {
@@ -5160,7 +5187,8 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     margin-bottom: 2px;
 }
 .meta-owner {
-    opacity: 0.6;
+    /* Full strength — same colour as the title, never dimmed (Brendon, 2026-06-16). */
+    opacity: 1;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     white-space: nowrap;
@@ -6190,7 +6218,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16). */
     .stat-icon-followers { font-size: 25px; transform: translateY(-2px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
-    .meta-owner { font-size: 13px; opacity: 0.7; }
+    .meta-owner { font-size: 13px; opacity: 1; }
     .info-rubik .ico-mutual,
     .info-rubik .ico-following,
     .info-rubik .ico-followers { font-size: 22px; }
@@ -7626,7 +7654,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .section-head-by {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
-    opacity: 0.7;
+    /* Same colour as the title beside it — no dimming (Brendon, 2026-06-16). */
+    color: var(--text-color);
+    opacity: 1;
     /* The whole "by @name" stays together — never breaks at the handle's hyphen;
        drops to the next line as one unit when it can't fit. */
     white-space: nowrap;

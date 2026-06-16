@@ -52,11 +52,55 @@ import {
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
-/* Group-by dimension for the gallery (Brendon, 2026-06-13). One cycling
-   control walks none → colour → owner → none. Colour is derived from each
-   Output's palette (lib/art/outputColor), so it costs nothing to compute. */
-export type GroupKey = 'none' | 'color' | 'owner';
-const GROUP_ORDER: GroupKey[] = ['none', 'color', 'owner'];
+/* Group-by dimension for the gallery (Brendon, 2026-06-16). Grouping is a
+   MODIFIER on whatever sort is active — the little cycling letter on the sort
+   pill, exactly like FEED's `$`. The first option is always 'none' (plain sort,
+   no grouping). Master cycle order:
+     none → artist → project → artist+project → owner → colour → last-sold → rarity
+   Each surface exposes only the dimensions that can apply, so the cycle never
+   lands on a dead option:
+     - project page  (one artist / one project): owner · colour · last-sold · rarity
+     - collected grid (cross-project holdings):   artist · project · artist+project ·
+       colour · last-sold · rarity */
+export type GroupKey =
+    | 'none' | 'artist' | 'project' | 'artistProject'
+    | 'owner' | 'color' | 'lastSold' | 'rarity';
+
+export const PROJECT_GROUP_ORDER: GroupKey[] =
+    ['none', 'owner', 'color', 'lastSold', 'rarity'];
+export const COLLECTED_GROUP_ORDER: GroupKey[] =
+    ['none', 'artist', 'project', 'artistProject', 'color', 'lastSold', 'rarity'];
+
+/* Single-character glyph per dimension (docs/GLYPHS.md). 'none' is the resting
+   state of the control — a small, FULLY VISIBLE neutral dot ("no grouping; tap
+   to group"), never a hidden affordance. */
+export const GROUP_GLYPH: Record<GroupKey, string> = {
+    none: '·',
+    artist: '✺︎',
+    project: '⬚︎',
+    artistProject: '✺︎⬚︎',
+    owner: '⌂︎',
+    color: '◉︎',
+    lastSold: '$',
+    rarity: '❖︎',
+};
+
+/* ALLCAPS state for the toast (Brendon's toast-casing rule). */
+export const GROUP_LABEL: Record<GroupKey, string> = {
+    none: 'OFF', artist: 'ARTIST', project: 'PROJECT',
+    artistProject: 'ARTIST + PROJECT', owner: 'OWNER',
+    color: 'COLOR', lastSold: 'LAST SOLD', rarity: 'RARITY',
+};
+
+/* Dimensions with no data yet — render as a single greyed "coming soon" group. */
+export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true, rarity: true };
+
+const ALL_GROUP_KEYS: GroupKey[] = [
+    'none', 'artist', 'project', 'artistProject', 'owner', 'color', 'lastSold', 'rarity',
+];
+function isGroupKey(v: unknown): v is GroupKey {
+    return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);
+}
 
 const STORAGE_KEY = 'pd_settings_sort';
 const GROUP_STORAGE_KEY = 'pd_settings_group';
@@ -73,8 +117,8 @@ interface SortContextValue {
     applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind) => void;
     /** Current group-by dimension for the gallery. */
     group: GroupKey;
-    /** Advance the group dimension (none → colour → owner → none). */
-    cycleGroup: () => void;
+    /** Advance the group dimension through the given surface's cycle order. */
+    cycleGroup: (order: GroupKey[]) => void;
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
@@ -106,7 +150,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
                 }
             }
             const g = localStorage.getItem(GROUP_STORAGE_KEY);
-            if (g === 'color' || g === 'owner') setGroupState(g);
+            if (isGroupKey(g)) setGroupState(g);
         } catch {
             // ignore
         }
@@ -198,9 +242,11 @@ export function SortProvider({ children }: { children: ReactNode }) {
         setFeedKind(fk);
     }, []);
 
-    const cycleGroup = useCallback(() => {
+    const cycleGroup = useCallback((order: GroupKey[]) => {
         setGroupState((g) => {
-            const next = GROUP_ORDER[(GROUP_ORDER.indexOf(g) + 1) % GROUP_ORDER.length];
+            // If the current dimension isn't in this surface's cycle, restart from none.
+            const cur = order.includes(g) ? g : 'none';
+            const next = order[(order.indexOf(cur) + 1) % order.length];
             try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
             return next;
         });
