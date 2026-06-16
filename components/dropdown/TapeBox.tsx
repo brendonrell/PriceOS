@@ -147,6 +147,10 @@ export function TapeBox() {
                             {items.map((item, i) => (
                                 <RailItem key={`b-${i}`} item={item} />
                             ))}
+                            {/* Trailing boundary marker so the loop seam carries
+                                the same gap as the mid-point and the two halves are
+                                an even double (Brendon, 2026-06-16). */}
+                            <span className="tape-sep-outer">··</span>
                         </>
                     )}
                 </div>

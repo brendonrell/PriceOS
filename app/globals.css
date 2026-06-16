@@ -3080,11 +3080,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    (Brendon, 2026-06-16). */
 .id-row-artist {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    font-size: 19px;
     font-weight: bold;
     line-height: 1;
     letter-spacing: -0.5px;
-    margin-left: 6px;
+    margin-left: 2px;
     color: inherit;
     flex-shrink: 0;
     display: inline-block;
