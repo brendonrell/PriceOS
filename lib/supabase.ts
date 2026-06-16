@@ -312,6 +312,17 @@ export interface CollectionItemRow {
   added_at: string;
 }
 
+/** One row of `outputs` — stored per-token metadata (sampled dominant colour
+ *  now, rarity later). project_id = slug, token_id stored as text. */
+export interface OutputMetaRow {
+  project_id: string;
+  token_id: string;
+  dominant_color: string | null;
+  rarity: string | null;
+  minted_at: string | null;
+  updated_at: string | null;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -374,6 +385,12 @@ export type Database = {
         Row: CollectionItemRow;
         Insert: Omit<CollectionItemRow, 'added_at'> & Partial<Pick<CollectionItemRow, 'added_at'>>;
         Update: Partial<CollectionItemRow>;
+        Relationships: [];
+      };
+      outputs: {
+        Row: OutputMetaRow;
+        Insert: Pick<OutputMetaRow, 'project_id' | 'token_id'> & Partial<OutputMetaRow>;
+        Update: Partial<OutputMetaRow>;
         Relationships: [];
       };
     };

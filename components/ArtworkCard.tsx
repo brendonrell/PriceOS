@@ -80,6 +80,8 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
+import { sampleCanvasBucket } from '../lib/art/sampleColor';
+import { needsColorSample, reportBucket } from '../lib/art/colorStore';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
@@ -364,6 +366,12 @@ export default function ArtworkCard({
             const ratio = paintOutput(canvas, slug, id, 400);
             if (wrapper) {
                 wrapper.style.aspectRatio = String(ratio);
+            }
+            /* Sample this piece's dominant colour once and persist it (any
+               engine) so grouping-by-colour works beyond Prisms. No-op if it's
+               already stored/sampled this session. (Brendon, 2026-06-16) */
+            if (needsColorSample(slug, id)) {
+                reportBucket(slug, id, sampleCanvasBucket(canvas));
             }
         };
 

@@ -39,7 +39,8 @@ import {
     useSort,
     GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
 } from '../../lib/state/SortContext';
-import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
@@ -487,6 +488,11 @@ function ProfilePageBodyInner({
         return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
     }, [visibleCollected]);
 
+    /* Stored dominant colours for every project the wallet holds (any engine);
+       resolveBucket prefers them, falls back to live palette-math. */
+    const heldSlugs = useMemo(() => [...new Set(enriched.map((h) => h.slug))], [enriched]);
+    const colorsVer = useStoredColors(heldSlugs);
+
     /* Grouped collected gallery (Brendon, 2026-06-16). Grouping is the cycling
        modifier on the active grid sort. Cross-project surface dimensions:
        artist · project · artist+project · colour · last-sold · rarity. Titles
@@ -519,7 +525,7 @@ function ProfilePageBodyInner({
         if (group === 'color') {
             const buckets = new Map<string, { slug: string; id: number }[]>();
             for (const h of visibleCollected) {
-                const b = outputColorBucket(h.slug, h.token_id) ?? 'Other';
+                const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
                 const arr = buckets.get(b) ?? [];
                 arr.push({ slug: h.slug, id: h.token_id });
                 buckets.set(b, arr);
@@ -562,7 +568,7 @@ function ProfilePageBodyInner({
             blocks.push({ key: slug, heads, group: { slug, ids: bySlug.get(slug)! } });
         }
         return blocks;
-    }, [group, sort, visibleCollected]);
+    }, [group, sort, visibleCollected, colorsVer]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the

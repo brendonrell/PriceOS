@@ -83,6 +83,12 @@ function classify(r: number, g: number, b: number): ColorBucket {
     return 'Red';
 }
 
+/** Classify a single RGB triplet into a colour bucket — shared with the pixel
+    sampler (lib/art/sampleColor) so stored + palette-derived colours agree. */
+export function classifyRgb(r: number, g: number, b: number): ColorBucket {
+    return classify(r, g, b);
+}
+
 /**
  * Dominant colour bucket for an Output. Hothurt wins if the palette carries the
  * signature hex; otherwise the bucket is the majority of the three stops, or —

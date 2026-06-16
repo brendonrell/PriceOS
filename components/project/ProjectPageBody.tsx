@@ -69,7 +69,8 @@ import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { priceDayContents } from '../../lib/priceday/priceday';
-import { outputColorBucket, COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import type { EventRow } from '../../lib/supabase';
 import { GhostFeedRows } from '../GhostFeed';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
@@ -213,6 +214,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
+    /* Stored dominant colours for this project (re-renders grouping when they
+       arrive); resolveBucket prefers them, falls back to live palette-math. */
+    const colorsVer = useStoredColors([project.slug]);
     const { sort, dir, feedKind, group } = useSort();
     const { showToast } = useToast();
     const { open } = useModal();
@@ -820,7 +824,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         for (const id of visibleTokenIds) {
             const label =
                 group === 'color'
-                    ? (outputColorBucket(project.slug, id) ?? 'Other')
+                    ? (resolveBucket(project.slug, id) ?? 'Other')
                     : (project.outputs.get(id)?.ownerDisplay ?? '—');
             const arr = map.get(label);
             if (arr) arr.push(id);
@@ -832,7 +836,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             sections.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
         }
         return sections;
-    }, [group, sort, visibleTokenIds, project]);
+    }, [group, sort, visibleTokenIds, project, colorsVer]);
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
