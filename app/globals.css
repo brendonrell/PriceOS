@@ -5696,6 +5696,35 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     cursor: help;
 }
 
+/* ATTRIBUTES tab (+More) — the project's birth-attribute readout rows:
+   Fate hexagram, natal Sun/Moon/Rising, True Name. */
+.more-attrs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 40px 16px 40px;
+}
+@media (max-width: 600px) {
+    .more-attrs { padding: 4px 20px 16px 20px; }
+}
+.attr-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    color: var(--text-color);
+}
+.attr-label {
+    min-width: 86px;
+    flex-shrink: 0;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+.attr-row .project-true-name { font-size: 15px; line-height: 1; }
+
 .albums-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

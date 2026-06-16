@@ -198,6 +198,9 @@ export function outputFate(slug: string, tokenId: number): string {
    carries its own Fate. Seeded from the bare slug (no token id) so the project's
    reading is distinct from any of its Outputs' (those seed from `${slug}:${id}`).
    Chainless stand-in for the upload tx hash. */
+export function projectFateReading(slug: string): FateReading {
+  return castFate(hashString(slug));
+}
 export function projectFate(slug: string): string {
-  return castFate(hashString(slug)).fate;
+  return projectFateReading(slug).fate;
 }

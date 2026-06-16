@@ -67,6 +67,8 @@ import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject, projectTrueName } from '../../lib/project/registry';
+import { projectFateReading } from '../../lib/project/fate';
+import { natalChart } from '../../lib/project/natal';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
@@ -387,7 +389,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'sentiment';
+    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes';
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('social');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
@@ -1241,7 +1243,10 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
                                 { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
+                                { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
+                                /* Attributes is pinned LAST so it's always easy to find (Brendon, 2026-06-16). */
+                                { key: 'attributes', label: 'Attributes', active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
                             ]}
                         />
                     )}
@@ -1364,11 +1369,6 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     titleRow={
                         <h1 className="project-title">
                             <span>@{project.slug}</span>
-                            <span className="project-date-wrap">
-                                <span className="project-date" title="PriceDay">
-                                    {fmtUploadDate(uploadedAt)}
-                                </span>
-                            </span>
                         </h1>
                     }
                     identityRow={
@@ -1428,20 +1428,6 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         </button>
                     </div>
                 </Hero>
-
-                {/* TRUE NAME — the Project's permanent, unique secret name in
-                    uppercase Glagolitic (lib/project/trueName.ts). Identity
-                    marker, shown here under Social for now. */}
-                <div className="more-section-header">TRUE NAME</div>
-                <div className="more-true-name-row">
-                    <span
-                        className="project-true-name"
-                        {...iconToastProps('True Name — this Project’s permanent, unique secret name')}
-                    >
-                        {projectTrueName(project.slug)}
-                    </span>
-                </div>
-
                 </>)}
                 {moreL1 === 'stats' && (<>
                 {/* PRICE STATS — stats-row-2 restored here from hero.
@@ -1582,6 +1568,11 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 </div>
 
                 </>)}
+                {moreL1 === 'gnome' && (<>
+                {/* GNOME — paired with Genome for the pun; empty for now
+                    (Brendon, 2026-06-16). */}
+                <div className="more-section-header">GNOME</div>
+                </>)}
                 {moreL1 === 'sentiment' && (<>
                 {/* PRICE TARGETS — sim 5285-5306 */}
                 <div className="more-section-header">PRICE TARGETS</div>
@@ -1677,6 +1668,26 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
                 </>)}
+                {moreL1 === 'attributes' && (() => {
+                    /* ATTRIBUTES (Brendon, 2026-06-16) — the project's birth
+                       attributes: its Fate hexagram, natal Sun/Moon/Rising (the
+                       sky over Montreal at its STORED upload moment, not now),
+                       and its True Name. */
+                    const fate = projectFateReading(project.slug);
+                    const chart = natalChart(uploadedAt ?? Date.now());
+                    return (
+                        <>
+                        <div className="more-section-header">ATTRIBUTES</div>
+                        <div className="more-attrs">
+                            <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{fate.glyph} {fate.fate}</span></div>
+                            <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {chart.sun}</span></div>
+                            <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {chart.moon}</span></div>
+                            <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {chart.rising}</span></div>
+                            <div className="attr-row"><span className="attr-label">True Name</span><span className="attr-val project-true-name">{projectTrueName(project.slug)}</span></div>
+                        </div>
+                        </>
+                    );
+                })()}
             </section>
         </>
     );
