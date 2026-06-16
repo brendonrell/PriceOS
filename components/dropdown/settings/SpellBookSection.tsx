@@ -175,7 +175,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         toggle('stargazing');
                         showToast(`Stargazing Mode: ${next ? 'ON' : 'OFF'}`);
                     }}
-                    icon={'✩\uFE0E'}
+                    icon={'⍟\uFE0E'}
                     label="Stargazing"
                 />
                 {/* Echo Chamber — plain `echo` flag (not spell_*), so it lives
