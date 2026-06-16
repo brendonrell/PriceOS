@@ -336,12 +336,12 @@ export default function BenchDock() {
     }, [items, orientation, exporting, showToast]);
 
     const showFull = expanded && hasItems;
-    /* Fit/Wide arrows point along the split's axis: toward each other = fit both
-       on screen, away = wide/full-size. Vertical glyphs in the stacked split,
-       horizontal in side-by-side (Brendon, 2026-06-16). */
+    /* Fit/Wide = two triangles pointing along the split's axis: toward each other
+       = fit both on screen, apart = wide/full-size. Vertical glyphs in the
+       stacked split, horizontal in side-by-side (Brendon, 2026-06-16). */
     const fitGlyph = orientation === 'landscape'
-        ? (fit ? '↓↑' : '↑↓')
-        : (fit ? '→←' : '←→');
+        ? (fit ? '▾▴' : '▴▾')
+        : (fit ? '▸◂' : '◂▸');
     const tabClass = [
         'bench-tab',
         mounted ? 'mounted' : '',
