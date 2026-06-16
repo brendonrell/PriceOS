@@ -64,7 +64,7 @@ export function Footer() {
                             title="Mood Ring — tap to read it"
                             style={{ cursor: 'pointer' }}
                             onClick={() =>
-                                showToast(`Mood Ring reads: ${mood.name}`)
+                                showToast(`Mood Ring reads: ${mood.name} [${mood.hex}]`)
                             }
                         >
                             {/* No daily tint — some mood hexes read as red on

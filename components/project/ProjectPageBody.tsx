@@ -856,6 +856,23 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         return sections;
     }, [group, sort, visibleTokenIds, project, colorsVer]);
 
+    /* Tap-to-group/sort must feel instant. Re-grouping re-parents every card,
+       fully remounting the art tiles — changing dimension while the old grid is
+       still painting overlaps two heavy repaints and the grid sticks/glitches.
+       Blank the grid the instant the dimension changes, then paint the new
+       layout next frame; rapid taps keep it blank and only the latest pick ever
+       paints (Brendon, 2026-06-16). Mirrors the Collected grid fix. */
+    const GRID_CLEARING = ' clearing';
+    const gridSig = `${group}|${sort}|${dir}`;
+    const [paintedSig, setPaintedSig] = useState(gridSig);
+    useEffect(() => {
+        if (paintedSig === gridSig) return;
+        setPaintedSig(GRID_CLEARING);
+        const raf = requestAnimationFrame(() => setPaintedSig(gridSig));
+        return () => cancelAnimationFrame(raf);
+    }, [gridSig, paintedSig]);
+    const gridClearing = paintedSig !== gridSig;
+
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
        from text content (format "0.014 ETH" — see ProjectContext token
@@ -1289,7 +1306,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             index={i}
                         />
                     ))
-                    : groupedSections && !onShowcaseTab
+                    : (gridClearing && !onShowcaseTab)
+                        ? null
+                        : groupedSections && !onShowcaseTab
                         ? groupedSections.map((sec) => (
                             <Fragment key={`grp-${sec.label}`}>
                                 <div className={`gallery-group-header${sec.soon ? ' soon' : ''}`}>
