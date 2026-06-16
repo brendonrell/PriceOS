@@ -162,6 +162,32 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('pageshow', onPageShow);
     }, []);
 
+    /* BUG (recurring, since launch) — returning to PD from another tab/app
+       left the page nudged a few px off where it was. iOS recomputes the
+       dynamic viewport height (address bar show/hide) the moment the tab is
+       shown again, and the browser compensates by shifting scroll. The
+       pageshow reset above only catches a full bfcache restore (e.g. swipe-
+       back); the common "tab stayed alive" return fires no pageshow, so the
+       nudge stuck. We can't stop the recompute, so we pin scroll when the tab
+       hides and restore it the instant it's shown. Dormant for swipe-back
+       (that never hides the tab) and skipped while a modal owns the scroll
+       lock (position:fixed). (Brendon, 2026-06-16) */
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        let savedY = 0;
+        const onVisibility = () => {
+            if (document.body.classList.contains('modal-open')) return;
+            if (document.visibilityState === 'hidden') {
+                savedY = window.scrollY;
+            } else {
+                const target = savedY;
+                requestAnimationFrame(() => window.scrollTo(0, target));
+            }
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => document.removeEventListener('visibilitychange', onVisibility);
+    }, []);
+
     /* External links → real Safari, never the in-app browser (Brendon,
        2026-06-13, iOS 26 PWA). In an installed PWA, any external link (whether
        a plain `target="_blank"` anchor or one with its own window.open handler)
