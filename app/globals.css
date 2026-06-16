@@ -6137,7 +6137,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
             -0.25px 0.25px 0 currentColor;
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
-    .stat-icon-followers { font-size: 23px; }
+    /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16). */
+    .stat-icon-followers { font-size: 25px; transform: translateY(-2px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
