@@ -121,10 +121,12 @@ body.bench-dragging * {
     transition: transform 0.26s cubic-bezier(0.18, 0.9, 0.26, 1.04), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .bench-tab.active { transform: translateY(0); }
-/* While a drag is over it, the tab reads as the live drop target. */
+/* While a drag is over it, the tab reads as the live drop target — SAME shape,
+   SAME colour, just a crisp hard-edged ring (no blur) that's uniform all the way
+   around instead of the lopsided top bar + soft glow (Brendon, 2026-06-16). */
 .bench-tab.dragging.armed {
     border-color: var(--text-color);
-    box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.5), inset 0 3px 0 var(--text-color);
+    box-shadow: 0 0 0 2px var(--text-color), 0 -12px 44px rgba(0, 0, 0, 0.5);
 }
 
 .bench-tab-grip {
@@ -238,6 +240,16 @@ body.bench-dragging * {
     overflow-x: hidden;
 }
 .bench-grid.landscape .bench-card { flex: 0 0 auto; width: 100%; }
+/* FIT modifier (works in BOTH splits): both pieces scaled to show whole at once,
+   no scroll — the art is contained (empty space on the off-axis is the trade)
+   (Brendon, 2026-06-16). Orientation still controls the direction; fit only
+   controls sizing. */
+.bench-grid.fit { overflow: hidden; }
+.bench-grid.fit .bench-card { flex: 1 1 0; min-height: 0; }
+.bench-grid.landscape.fit .bench-card { width: 100%; max-width: 520px; }
+.bench-grid.portrait.fit { align-items: stretch; }
+.bench-grid.fit .bench-card-art { flex: 1 1 auto; min-height: 0; }
+.bench-grid.fit .bench-card-art canvas { height: 100%; object-fit: contain; }
 
 .bench-card {
     position: relative;

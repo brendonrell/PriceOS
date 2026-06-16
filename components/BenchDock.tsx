@@ -183,7 +183,7 @@ function BenchGroup({
 }
 
 export default function BenchDock() {
-    const { items, orientation, expanded, remove, clear, toggleOrientation, expand, collapse } = useBench();
+    const { items, orientation, fit, expanded, remove, clear, toggleOrientation, toggleFit, expand, collapse } = useBench();
     const { add: cartAdd, has: cartHas } = useCart();
     const drag = useSyncExternalStore(subscribeBenchDrag, getBenchDrag, getBenchDragServer);
     const { showToast } = useToast();
@@ -241,6 +241,11 @@ export default function BenchDock() {
         toggleOrientation();
         showToast(orientation === 'portrait' ? 'Bench: LANDSCAPE' : 'Bench: PORTRAIT');
     }, [toggleOrientation, orientation, showToast]);
+
+    const onToggleFit = useCallback(() => {
+        toggleFit();
+        showToast(fit ? 'Bench: SCROLL' : 'Bench: FIT BOTH');
+    }, [toggleFit, fit, showToast]);
 
     const onDismiss = useCallback(() => {
         clear();
@@ -331,6 +336,12 @@ export default function BenchDock() {
     }, [items, orientation, exporting, showToast]);
 
     const showFull = expanded && hasItems;
+    /* Fit/Wide arrows point along the split's axis: toward each other = fit both
+       on screen, away = wide/full-size. Vertical glyphs in the stacked split,
+       horizontal in side-by-side (Brendon, 2026-06-16). */
+    const fitGlyph = orientation === 'landscape'
+        ? (fit ? '↓↑' : '↑↓')
+        : (fit ? '→←' : '←→');
     const tabClass = [
         'bench-tab',
         mounted ? 'mounted' : '',
@@ -417,6 +428,15 @@ export default function BenchDock() {
                                 <button
                                     className="bench-tab-btn"
                                     type="button"
+                                    onClick={onToggleFit}
+                                    aria-pressed={fit}
+                                    title={fit ? 'Wide view (full size)' : 'Fit both on screen'}
+                                >
+                                    {fitGlyph}
+                                </button>
+                                <button
+                                    className="bench-tab-btn"
+                                    type="button"
                                     onClick={onExport}
                                     disabled={exporting}
                                     title="Export as image"
@@ -436,7 +456,7 @@ export default function BenchDock() {
                     </div>
 
                     {showFull && (
-                        <div className={`bench-grid ${orientation}`}>
+                        <div className={`bench-grid ${orientation} ${fit ? 'fit' : 'wide'}`}>
                             {groups.map(([slug, ids]) => (
                                 <ProjectProvider key={slug} slug={slug}>
                                     <BenchGroup slug={slug} ids={ids} onRemove={remove} onAddToCart={onAddToCart} reportInfo={reportInfo} />

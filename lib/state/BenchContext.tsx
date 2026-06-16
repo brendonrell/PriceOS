@@ -44,6 +44,9 @@ export type BenchOrientation = 'portrait' | 'landscape';
 interface BenchContextValue {
     items: BenchItem[];
     orientation: BenchOrientation;
+    /** Fit-both mode: scale both pieces to fit on screen at once (no scroll),
+     *  accepting empty space on the sides. Overrides the orientation split. */
+    fit: boolean;
     /** True when the full comparison is pulled up; false = the peek tab. */
     expanded: boolean;
 
@@ -52,6 +55,7 @@ interface BenchContextValue {
     clear: () => void;
     has: (slug: string, id: number) => boolean;
     toggleOrientation: () => void;
+    toggleFit: () => void;
     expand: () => void;
     collapse: () => void;
 }
@@ -93,6 +97,7 @@ function saveToStorage(items: BenchItem[]) {
 export function BenchProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<BenchItem[]>([]);
     const [orientation, setOrientation] = useState<BenchOrientation>('portrait');
+    const [fit, setFit] = useState(false);
     const [expanded, setExpanded] = useState(false);
 
     /* Hydrate from storage on mount (SSR starts empty, same as the Cart). */
@@ -145,6 +150,7 @@ export function BenchProvider({ children }: { children: ReactNode }) {
         () => setOrientation((o) => (o === 'portrait' ? 'landscape' : 'portrait')),
         [],
     );
+    const toggleFit = useCallback(() => setFit((f) => !f), []);
     const expand = useCallback(() => setExpanded(true), []);
     const collapse = useCallback(() => setExpanded(false), []);
 
@@ -168,10 +174,10 @@ export function BenchProvider({ children }: { children: ReactNode }) {
 
     const value = useMemo<BenchContextValue>(
         () => ({
-            items, orientation, expanded,
-            add, remove, clear, has, toggleOrientation, expand, collapse,
+            items, orientation, fit, expanded,
+            add, remove, clear, has, toggleOrientation, toggleFit, expand, collapse,
         }),
-        [items, orientation, expanded, add, remove, clear, has, toggleOrientation, expand, collapse],
+        [items, orientation, fit, expanded, add, remove, clear, has, toggleOrientation, toggleFit, expand, collapse],
     );
 
     return <BenchCtx.Provider value={value}>{children}</BenchCtx.Provider>;
