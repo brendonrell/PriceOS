@@ -80,6 +80,14 @@ export interface UserSettings {
    *  across devices; re-pickable any time from the Familiar modal (Brendon,
    *  2026-06-16). Absent = never chosen (engine rolls a random one). */
   familiarSpecies?: string;
+  /** Ambient Light options (palette / pattern / speed / page-dim). Account-backed
+   *  so the LED bar "just works" across devices (Brendon, 2026-06-16). */
+  ambient?: {
+    palette?: string;
+    pattern?: string;
+    speed?: string;
+    dim?: string;
+  };
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */

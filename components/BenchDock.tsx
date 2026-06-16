@@ -445,7 +445,7 @@ export default function BenchDock() {
                         </div>
                     )}
                     {engaged && !hasItems && (
-                        <div className="bench-drop-hint">Drop the piece here to compare</div>
+                        <div className="bench-drop-hint">Drop the piece here to compare outputs</div>
                     )}
                 </div>
             )}

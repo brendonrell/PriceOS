@@ -425,7 +425,7 @@ export default function ArtworkCard({
             }
             const r = benchAdd(slug, id);
             if (r === 'present') showToast('Bench: ALREADY ON IT');
-            else if (r === 'full') showToast('Bench: FULL · 8 max');
+            else if (r === 'full') showToast('Bench: FULL · 2 max');
             else showToast(`Bench: ADDED · ${benchItems.length + 1}`);
         },
     });

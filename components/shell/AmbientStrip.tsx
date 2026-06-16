@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { pushSettings, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 
 type Palette = 'aurora' | 'sunset' | 'ocean' | 'lava' | 'forest' | 'mono';
 type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid';
@@ -55,10 +56,26 @@ export default function AmbientStrip() {
         } catch { /* ignore */ }
     }, []);
 
-    /* Persist options. */
+    /* Persist options — device cache + account (so the bar restores on any
+       device). pushSettings is a no-op until the account snapshot has hydrated,
+       so boot defaults can't clobber the saved row. */
     useEffect(() => {
         try { window.localStorage.setItem(STORAGE, JSON.stringify(opts)); } catch { /* ignore */ }
+        pushSettings({ ambient: opts });
     }, [opts]);
+
+    /* Account hydrate: when the server snapshot lands (fresh-device login),
+       userState rewrites the ambient cache; re-read so the bar reflects it. */
+    useEffect(() => {
+        const onHydrated = () => {
+            try {
+                const raw = window.localStorage.getItem(STORAGE);
+                if (raw) setOpts({ ...DEFAULTS, ...JSON.parse(raw) });
+            } catch { /* ignore */ }
+        };
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+    }, []);
 
     /* Dim the page via <body> classes — only while the strip is on. */
     useEffect(() => {

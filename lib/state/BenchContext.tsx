@@ -27,8 +27,9 @@ import {
 } from 'react';
 import { useCollectionSync } from '../collections/useCollectionSync';
 
-/** Max pieces on the bench at once — a comparison surface, not a list. */
-export const BENCH_MAX = 8;
+/** Max pieces on the bench at once — a strict side-by-side comparison of TWO
+ *  (Brendon, 2026-06-16: the whole point is two images side by side, not a list). */
+export const BENCH_MAX = 2;
 const STORAGE_KEY = 'pd_bench';
 
 /** A bench entry — Project-exact (a bare id collides across Projects). */

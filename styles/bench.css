@@ -211,25 +211,37 @@ body.bench-dragging * {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
-    gap: 14px;
+    gap: 10px; /* tight gutters — the art is the point (Brendon, 2026-06-16) */
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
+/* Side-by-side: two equal columns, centered (no left-bias), art big, info under. */
 .bench-grid.portrait {
     flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 6px;
 }
-.bench-grid.portrait .bench-card { flex: 0 0 min(46vw, 230px); }
+.bench-grid.portrait .bench-card { flex: 1 1 0; min-width: 0; max-width: 460px; }
+/* Stacked split (one above, one below): two equal full-width pieces filling the
+   space, art big with the info beneath each — not a thumbnail-beside-text row. */
 .bench-grid.landscape {
     flex-direction: column;
+    align-items: center;
     overflow-y: auto;
     overflow-x: hidden;
 }
-.bench-grid.landscape .bench-card { flex: 0 0 auto; flex-direction: row; }
-.bench-grid.landscape .bench-card-art { flex: 0 0 112px; aspect-ratio: 1 / 1; }
-.bench-grid.landscape .bench-card-meta { flex: 1 1 auto; justify-content: center; }
+.bench-grid.landscape .bench-card {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    max-width: 520px;
+    flex-direction: column;
+}
+.bench-grid.landscape .bench-card-art { flex: 1 1 auto; min-height: 0; aspect-ratio: auto; }
+.bench-grid.landscape .bench-card-meta { flex: 0 0 auto; }
 
 .bench-card {
     position: relative;
@@ -306,7 +318,6 @@ body.bench-dragging * {
 /* Desktop: cap the width, centred. */
 @media (min-width: 720px) {
     .bench-tab { border-radius: 18px 18px 0 0; }
-    .bench-grid.portrait .bench-card { flex-basis: 210px; }
 }
 
 /* ---- DESKTOP PREMIUM: the expanded bench goes big -------------------- */
@@ -341,11 +352,11 @@ body.bench-dragging * {
         box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6);
         padding: 20px 26px 26px 26px;
     }
-    /* Big art + generous spacing — the split actually breathes. */
-    .bench-tab.expanded .bench-grid { gap: 24px; }
+    /* Big art + breathing room — two equal pieces, centered. */
+    .bench-tab.expanded .bench-grid { gap: 16px; }
     .bench-tab.expanded .bench-grid.portrait { padding-bottom: 8px; }
-    .bench-tab.expanded .bench-grid.portrait .bench-card { flex: 0 0 360px; }
-    .bench-tab.expanded .bench-grid.landscape .bench-card-art { flex-basis: 200px; }
+    .bench-tab.expanded .bench-grid.portrait .bench-card { flex: 1 1 0; max-width: 520px; }
+    .bench-tab.expanded .bench-grid.landscape .bench-card { max-width: 640px; }
     .bench-tab.expanded .bench-card { gap: 12px; padding: 12px; }
     .bench-tab.expanded .bench-card-name { font-size: 15px; }
     .bench-tab.expanded .bench-card-price { font-size: 15px; }

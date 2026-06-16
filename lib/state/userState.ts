@@ -63,6 +63,9 @@ export const STATE_CACHE_KEYS = {
     /** Chosen Digital Familiar species name. Read + written by familiarEngine;
      *  lives in the settings envelope. */
     familiarSpecies: 'pd_familiar_species',
+    /** Ambient Light options blob. Read + written by AmbientStrip; lives in the
+     *  settings envelope. */
+    ambient: 'pd_ambient_opts',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -181,6 +184,11 @@ export function hydrateFromRow(row: UserRow): void {
             localStorage.setItem(STATE_CACHE_KEYS.familiarSpecies, s.familiarSpecies);
         } else {
             localStorage.removeItem(STATE_CACHE_KEYS.familiarSpecies);
+        }
+        // Ambient Light options — server wins; AmbientStrip re-reads on the
+        // hydrate event below so the bar restores across devices.
+        if (s.ambient && typeof s.ambient === 'object' && !Array.isArray(s.ambient)) {
+            localStorage.setItem(STATE_CACHE_KEYS.ambient, JSON.stringify(s.ambient));
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View

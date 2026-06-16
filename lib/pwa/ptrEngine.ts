@@ -76,6 +76,18 @@ export function mountPtr(): void {
 
     const onTouchMove = (e: TouchEvent) => {
         if (!ptrActive) return;
+        /* The Bench hold-drag is a downward gesture from the top of the page,
+           which the PTR would otherwise read as a pull and reload mid-drag
+           (Brendon, 2026-06-16 — "drag a second piece and the app refreshes").
+           The instant a bench drag engages it adds body.bench-dragging; bow out
+           for the rest of this gesture so the two never fight. Done in MOVE (not
+           END) so it lands before release, sidestepping touch/pointer ordering. */
+        if (document.body.classList.contains('bench-dragging')) {
+            ptrActive = false;
+            overlay.style.transition = 'opacity 0.3s ease';
+            overlay.style.opacity = '0';
+            return;
+        }
         const dy = e.touches[0].clientY - ptrStartY;
         if (dy > 0) {
             // Power-curve easing — barely visible early, builds
