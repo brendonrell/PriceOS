@@ -2882,6 +2882,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-weight: normal;
     line-height: 1;
     text-align: left;
+    /* Long @names (a single unbroken token) wrap to the next line instead of
+       overflowing the screen — Brendon's call: wrap, don't shrink. Applies to
+       every username: project @name + the @handle at the top of user profiles. */
+    overflow-wrap: anywhere;
 }
 .project-date {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -5750,6 +5754,14 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 #details-panel {
     padding: 10px 40px 100px 40px;
     box-sizing: border-box;
+}
+
+/* The project-as-user hero in +More (Social) already sits inside the panel's
+   side padding, so it must NOT add its own — otherwise it double-indents and
+   sits right of the main hero. Zero its horizontal padding to align flush. */
+#albums-panel .project-hero {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .more-replay-wrap,
