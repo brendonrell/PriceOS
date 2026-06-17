@@ -32,8 +32,14 @@ export type Palette =
     | 'prism' | 'petey'
     /* Hidden — no chip and no documented entry point. */
     | 'spectrum' | 'nova';
-export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe';
-export type Speed = 'slow' | 'med' | 'fast';
+export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe' | 'drift' | 'throb';
+export type Speed = 'slow' | 'med' | 'fast' | 'turbo';
+
+/* Atmosphere (3rd menu page) — the light's physical character. Persisted +
+   DB-backed but NOT carried in the shareable code (the code stays the core
+   look: palette/pattern/speed/dim). */
+export type Glow = 'soft' | 'med' | 'bright';
+export type Reach = 'near' | 'mid' | 'far';
 
 export interface AmbientOpts {
     palette: Palette;
@@ -41,6 +47,10 @@ export interface AmbientOpts {
     speed: Speed;
     /** Page-dim strength, 0 (off) – 100 (blackout). */
     dim: number;
+    /** Brightness of the light spill. */
+    glow?: Glow;
+    /** How far the spill washes down the page. */
+    reach?: Reach;
 }
 
 // ── Ordered ID lists — index = encoded character (A=0, B=1, …). ──────
@@ -52,9 +62,9 @@ export const PALETTE_IDS: ReadonlyArray<Palette> = [
     'prism', 'petey', 'spectrum', 'nova',
 ];
 export const PATTERN_IDS: ReadonlyArray<Pattern> = [
-    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe',
+    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb',
 ];
-export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast'];
+export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
 
 /** Legacy single-letter dim (A–F) → percentage, for decoding old 8-char codes
  *  written before dim became a slider. Order matches the old preset list. */

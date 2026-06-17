@@ -69,9 +69,10 @@ body.is-pwa .ambient-strip-layer {
 .pal-nova   { --amb1:#3a0ca3; --amb2:#7209b7; --amb3:#4cc9f0; --amb4:#f72585; }
 
 /* ---- Speed ------------------------------------------------------------ */
-.spd-slow { --amb-dur: 26s; }
-.spd-med  { --amb-dur: 14s; }
-.spd-fast { --amb-dur: 7s; }
+.spd-slow  { --amb-dur: 26s; }
+.spd-med   { --amb-dur: 14s; }
+.spd-fast  { --amb-dur: 7s; }
+.spd-turbo { --amb-dur: 3.5s; }
 
 /* ---- The LED bar — just the light, no housing ------------------------- */
 .ambient-pill {
@@ -175,6 +176,26 @@ body.is-pwa .ambient-strip-layer {
 .pat-strobe .ambient-glow { animation: amb-strobe calc(var(--amb-dur) / 7) steps(1, end) infinite; }
 @keyframes amb-strobe { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0.18; } 100% { opacity: 1; } }
 
+/* DRIFT — colours slide sideways while the glow lazily sways: a calm, lava-lamp
+   wander (gentler than WAVE, no hue spin). */
+.pat-drift .ambient-pill-led { animation: amb-wave calc(var(--amb-dur) * 1.6) linear infinite; }
+.pat-drift .ambient-glow { animation: amb-drift calc(var(--amb-dur) * 1.8) ease-in-out infinite; }
+
+/* THROB — a heavy double-thump heartbeat. */
+.pat-throb .ambient-pill-led { animation: amb-throb calc(var(--amb-dur) / 3) ease-in-out infinite; }
+.pat-throb .ambient-glow { animation: amb-throb-glow calc(var(--amb-dur) / 3) ease-in-out infinite; }
+@keyframes amb-throb { 0% { filter: brightness(0.75); } 12% { filter: brightness(1.35); } 24% { filter: brightness(0.85); } 36% { filter: brightness(1.2); } 50%, 100% { filter: brightness(0.75); } }
+@keyframes amb-throb-glow { 0% { opacity: 0.5; } 12% { opacity: 1; } 24% { opacity: 0.6; } 36% { opacity: 0.9; } 50%, 100% { opacity: 0.5; } }
+
+/* ---- Atmosphere (page 3): Glow = spill brightness, Reach = spill distance.
+   Opacity-only for glow so it never clobbers the pattern filter animations. --- */
+.glow-soft   .ambient-glow { opacity: 0.55; }
+.glow-soft   .ambient-spot { opacity: 0.45; }
+.glow-bright .ambient-glow { opacity: 1; }
+.glow-bright .ambient-spot { opacity: 1; }
+.reach-near  .ambient-spot { height: 220px; }
+.reach-far   .ambient-spot { height: 520px; }
+
 /* ---- "Lights off" page dim — fully continuous, driven by --ambient-dim ---
    (the alpha is set inline from the slider value; 0 = off, ~0.92 = blackout). */
 body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
@@ -192,8 +213,8 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
    dimmed. Paint those two strips solid-dark while dimming (above the navbar/
    footer, but only as tall as the inset, so the tape + footer content show
    through). The colorway itself is never changed — chrome tint only. */
-html:has(body.ambient-dim-on)::before,
-html:has(body.ambient-dim-on)::after {
+html:has(body.ambient-dim-on:not(.is-pwa))::before,
+html:has(body.ambient-dim-on:not(.is-pwa))::after {
     content: '';
     position: fixed;
     left: 0;
@@ -202,8 +223,8 @@ html:has(body.ambient-dim-on)::after {
     z-index: 101; /* above navbar (100) — covers the gutter, not the content */
     pointer-events: none;
 }
-html:has(body.ambient-dim-on)::before { top: 0; height: env(safe-area-inset-top, 0px); }
-html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-bottom, 0px); }
+html:has(body.ambient-dim-on:not(.is-pwa))::before { top: 0; height: env(safe-area-inset-top, 0px); }
+html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe-area-inset-bottom, 0px); }
 
 /* ---- The options popup ------------------------------------------------ */
 .ambient-pop {
@@ -266,8 +287,8 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
     padding: 1px 0 2px;
 }
 .ambient-dot {
-    width: 7px;
-    height: 7px;
+    width: 4px;
+    height: 4px;
     padding: 0;
     border: none;
     border-radius: 999px;
@@ -278,6 +299,7 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
     -webkit-tap-highlight-color: transparent;
 }
 .ambient-dot.on { opacity: 0.95; transform: scale(1.18); }
+.ambient-pop-dots { gap: 6px; }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
     position: absolute;
@@ -380,9 +402,11 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
     opacity: 0.85;
 }
 .ambient-surprise:hover { opacity: 1; }
-/* Canonical ambient glyph before the title (kept alongside the mini LED). */
+/* Canonical ambient glyph before the title (kept alongside the mini LED).
+   Two sizes up + bold (Brendon, 2026-06-17 — the sun glyph only). */
 .ambient-pop-title-icon {
-    font-size: 13px;
+    font-size: 15px;
+    font-weight: bold;
     line-height: 1;
     opacity: 0.85;
 }
@@ -415,7 +439,7 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
 
 /* ---- Dim slider — continuous page-dim level. Sits under the preset chips;
    the chips snap it to a stop, the slider takes any value in between. -------- */
-.ambient-dim-slider-row { gap: 10px; }
+.ambient-dim-slider-row { gap: 10px; margin-top: 7px; }
 .ambient-dim-slider {
     flex: 1 1 auto;
     min-width: 0;
@@ -461,9 +485,42 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 2px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
+    margin-top: 4px;
+    /* The whole field is framed in a dotted box so the copy icon reads as part
+       of the field instead of floating in space (Brendon, 2026-06-17). */
+    padding: 9px 11px;
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+}
+/* Atmosphere (page 3) title + footnote. "SPHERE" is a hidden tap target (3×
+   balls the bar into an orb) — styled exactly like the rest so it's not
+   advertised. */
+.ambient-pop-atmos-title {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    padding-bottom: 4px;
+}
+.ambient-atmos-sphere { cursor: default; -webkit-tap-highlight-color: transparent; }
+.ambient-pop-atmos-note {
+    font-size: 11px;
+    line-height: 1.45;
+    opacity: 0.55;
+    padding-top: 4px;
+}
+
+/* Hidden egg — the LED bar balls up into a little orb. A touch tall so the
+   round reads clearly; morphs smoothly. The glow stays. */
+.ambient-pill { transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease; }
+.ambient-strip-layer.sphere-mode .ambient-pill { width: 46px; height: 46px; border-radius: 50%; }
+.ambient-strip-layer.sphere-mode .ambient-pill-led {
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, var(--amb1), var(--amb2) 45%, var(--amb3) 74%, var(--amb4));
+    box-shadow:
+        0 0 16px color-mix(in srgb, var(--amb2) 80%, transparent),
+        0 8px 28px color-mix(in srgb, var(--amb3) 60%, transparent);
 }
 .ambient-code-label {
     flex: 0 0 auto;

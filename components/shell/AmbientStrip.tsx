@@ -22,6 +22,8 @@ import {
     type Palette,
     type Pattern,
     type Speed,
+    type Glow,
+    type Reach,
     type AmbientOpts,
 } from '../../lib/state/AmbientCode';
 
@@ -33,8 +35,10 @@ const SECRET_CYCLE: { id: Palette; toast: string }[] = [
 ];
 
 type Opts = AmbientOpts;
-const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46 };
+const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid' };
 const STORAGE = 'pd_ambient_opts';
+/* Remember which swipe page was last open so reopening doesn't snap to page 1. */
+const PAGE_STORAGE = 'pd_ambient_page';
 /* The dim base tone — matches the page-dim overlay (rgba(3,2,10,…)). Used for
    the iOS chrome tint + safe-area fills while dimming, so the gutters read dark
    instead of the bright colorway. */
@@ -65,15 +69,25 @@ const PATTERNS: { id: Pattern; label: string }[] = [
     { id: 'breathe', label: 'Breathe' }, { id: 'solid', label: 'Solid' },
     { id: 'sweep', label: 'Sweep' }, { id: 'ripple', label: 'Ripple' },
     { id: 'flicker', label: 'Flicker' }, { id: 'strobe', label: 'Strobe' },
+    { id: 'drift', label: 'Drift' }, { id: 'throb', label: 'Throb' },
 ];
 const SPEEDS: { id: Speed; label: string }[] = [
-    { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' },
+    { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' }, { id: 'turbo', label: 'Turbo' },
 ];
 /* Dim presets — quick stops on the 0–100 slider. Tapping a chip snaps the
-   slider to its value; dragging the slider sets anything in between. */
+   slider to its value; dragging the slider sets anything in between. Shadow +
+   Abyss sit between Deep and Pitch for finer control in the dark end. */
 const DIM_PRESETS: { label: string; val: number }[] = [
     { label: 'Off', val: 0 }, { label: 'Low', val: 28 }, { label: 'Soft', val: 46 },
-    { label: 'Med', val: 60 }, { label: 'Deep', val: 74 }, { label: 'Pitch', val: 90 },
+    { label: 'Med', val: 60 }, { label: 'Deep', val: 74 }, { label: 'Shadow', val: 80 },
+    { label: 'Abyss', val: 86 }, { label: 'Pitch', val: 90 },
+];
+/* Atmosphere (page 3) — the light's physical character. */
+const GLOWS: { id: Glow; label: string }[] = [
+    { id: 'soft', label: 'Soft' }, { id: 'med', label: 'Med' }, { id: 'bright', label: 'Bright' },
+];
+const REACHES: { id: Reach; label: string }[] = [
+    { id: 'near', label: 'Near' }, { id: 'mid', label: 'Mid' }, { id: 'far', label: 'Far' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -105,6 +119,8 @@ export default function AmbientStrip() {
     const popRef = useRef<HTMLDivElement | null>(null);
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
+    /* Hidden egg — tap "sphere" 3× on page 3 to ball the bar up. Transient. */
+    const [sphereMode, setSphereMode] = useState(false);
 
     /* Ambient Code — a separate, simple share code (starts AMBI, no dashes)
        that carries ONLY these four ambient options. Field tracks the live
@@ -115,6 +131,7 @@ export default function AmbientStrip() {
     const codeCopyingRef = useRef(false);
     const codeInputRef = useRef<HTMLInputElement | null>(null);
     const sunTaps = useRef<{ n: number; t: number }>({ n: 0, t: 0 });
+    const sphereTaps = useRef<{ n: number; t: number }>({ n: 0, t: 0 });
     const surpriseHold = useRef<number | null>(null);
     const surpriseHeld = useRef(false);
 
@@ -185,9 +202,13 @@ export default function AmbientStrip() {
         // Max alpha 0.92 at 100% so "Pitch" reads near-black without going flat.
         b.style.setProperty('--ambient-dim', on ? String((opts.dim / 100) * 0.92) : '0');
 
+        // Chrome-tint darkening is a BROWSER-ONLY fix (Safari shows bright
+        // gutters). In the installed PWA the dim overlay already covers the
+        // whole screen, so leave the chrome tint on the colorway — darkening it
+        // there produced ugly black bars (Brendon, 2026-06-17).
         const meta = document.getElementById('theme-color-meta');
         if (meta) {
-            if (on) {
+            if (on && !b.classList.contains('is-pwa')) {
                 meta.setAttribute('content', AMBIENT_DARK);
             } else {
                 const bg = getComputedStyle(b).getPropertyValue('--bg-color').trim();
@@ -199,6 +220,20 @@ export default function AmbientStrip() {
             b.style.removeProperty('--ambient-dim');
         };
     }, [enabled, opts.dim]);
+
+    /* Restore the last-open swipe page when the menu opens (so it doesn't snap
+       back to page 1 every time). */
+    useEffect(() => {
+        if (!open || typeof window === 'undefined') return;
+        let saved = 0;
+        try { saved = parseInt(window.localStorage.getItem(PAGE_STORAGE) || '0', 10) || 0; } catch { /* ignore */ }
+        saved = Math.max(0, Math.min(2, saved));
+        setPage(saved);
+        requestAnimationFrame(() => {
+            const el = pagerRef.current;
+            if (el) el.scrollLeft = saved * el.clientWidth;
+        });
+    }, [open]);
 
     /* Close the popup on Escape or a tap outside. */
     useEffect(() => {
@@ -330,6 +365,22 @@ export default function AmbientStrip() {
         }
     };
 
+    /* Hidden egg — tap "sphere" 3× to ball the bar into a little orb (and tap
+       again to roll it back out). */
+    const onSphereTap = () => {
+        const now = Date.now();
+        const s = sphereTaps.current;
+        s.n = now - s.t > 600 ? 1 : s.n + 1;
+        s.t = now;
+        if (s.n >= 3) {
+            s.n = 0;
+            setSphereMode((m) => {
+                showToast(m ? 'Ambient: BAR' : 'Ambient: SPHERE ✦');
+                return !m;
+            });
+        }
+    };
+
     /* Deep secret — HOLD the Surprise pill (~0.8s) instead of tapping. A tap
        rolls a random visible look; the long-press summons NOVA, a hidden
        cosmic palette with a slow drift. The hold suppresses the tap. */
@@ -351,7 +402,10 @@ export default function AmbientStrip() {
         const el = pagerRef.current;
         if (!el) return;
         const p = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
-        if (p !== page) setPage(p);
+        if (p !== page) {
+            setPage(p);
+            try { window.localStorage.setItem(PAGE_STORAGE, String(p)); } catch { /* ignore */ }
+        }
     };
     const goToPage = (i: number) => {
         const el = pagerRef.current;
@@ -361,7 +415,7 @@ export default function AmbientStrip() {
     return (
         <div
             ref={rootRef}
-            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed}${open ? ' menu-open' : ''}`}
+            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
         >
             <div className="ambient-glow" aria-hidden="true" />
             {/* Second, reaching glow — a diffuse spotlight in the same colour and
@@ -462,9 +516,29 @@ export default function AmbientStrip() {
                                 <span className="ambient-dim-readout">{opts.dim}%</span>
                             </div>
                         </div>
+                        <div className="ambient-pop-page">
+                            <div className="ambient-pop-atmos-title" aria-hidden="true">
+                                ATMO<span className="ambient-atmos-sphere" onClick={onSphereTap}>SPHERE</span>
+                            </div>
+                            <Row label="Glow">
+                                {GLOWS.map((g) => (
+                                    <Chip key={g.id} on={(opts.glow ?? 'med') === g.id} onClick={() => set('glow', g.id)}>
+                                        {g.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Reach">
+                                {REACHES.map((r) => (
+                                    <Chip key={r.id} on={(opts.reach ?? 'mid') === r.id} onClick={() => set('reach', r.id)}>
+                                        {r.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <div className="ambient-pop-atmos-note">Atmosphere — how the light fills the room. Travels with you; not in the share code.</div>
+                        </div>
                     </div>
                     <div className="ambient-pop-dots" role="tablist" aria-label="Menu pages">
-                        {[0, 1].map((i) => (
+                        {[0, 1, 2].map((i) => (
                             <button
                                 key={i}
                                 type="button"

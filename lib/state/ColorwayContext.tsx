@@ -348,8 +348,10 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
        colorway — so this writer must not stomp the dim tint back to the bg. */
     const tcMetaCw = document.querySelector('meta[name="theme-color"]');
     if (tcMetaCw) {
-        const dimOn = document.body.classList.contains('ambient-dim-on');
-        tcMetaCw.setAttribute('content', dimOn ? '#03020a' : bg);
+        // Dark chrome tint is browser-only; the installed PWA keeps the colorway
+        // (darkening it there produced black bars — Brendon, 2026-06-17).
+        const dimDark = document.body.classList.contains('ambient-dim-on') && !document.body.classList.contains('is-pwa');
+        tcMetaCw.setAttribute('content', dimDark ? '#03020a' : bg);
     }
     root.style.setProperty(
         '--border-color',
@@ -439,8 +441,8 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     // custom-color and hashsyn paths that bypass applyColorway).
     const tcMeta = document.querySelector('meta[name="theme-color"]');
     if (tcMeta) {
-        const dimOn = document.body.classList.contains('ambient-dim-on');
-        tcMeta.setAttribute('content', dimOn ? '#03020a' : bg);
+        const dimDark = document.body.classList.contains('ambient-dim-on') && !document.body.classList.contains('is-pwa');
+        tcMeta.setAttribute('content', dimDark ? '#03020a' : bg);
     }
 
     // Body class flags read by various colorway-conditional CSS rules.
