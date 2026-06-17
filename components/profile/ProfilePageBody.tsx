@@ -1135,7 +1135,7 @@ function ProfilePageBodyInner({
                                     Courier at the row's size and the address's own
                                     colour + opacity (Brendon, 2026-06-16). */}
                                 {artistStatus && (
-                                    <span className="id-row-artist" aria-label="artist" title="Artist">{'✺︎'}</span>
+                                    <span className="id-row-artist" aria-label="Official PD Artist (whitelisted)" title="✺︎ Official PD Artist — whitelisted">{'✺︎'}</span>
                                 )}
                                 <span
                                     className="icon-copy id-copy"
