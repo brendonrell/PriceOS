@@ -513,6 +513,8 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
    nowrap rather than the fixed label column. */
 .ambient-pop-row .ambient-pop-label:has(.ambient-atmos-label) { flex: 0 0 auto; }
 .ambient-atmos-label { white-space: nowrap; }
+/* "Glow" / "Reach" drop to a second line under "Atmosphere". */
+.ambient-atmos-sub { display: block; }
 .ambient-atmos-sphere { cursor: default; -webkit-tap-highlight-color: transparent; }
 
 /* Hidden egg — the LED bar balls up into a little orb. A touch tall so the

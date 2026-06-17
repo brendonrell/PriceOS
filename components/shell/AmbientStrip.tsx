@@ -517,14 +517,14 @@ export default function AmbientStrip() {
                             </div>
                         </div>
                         <div className="ambient-pop-page">
-                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span> Glow</span>}>
+                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span><span className="ambient-atmos-sub">Glow</span></span>}>
                                 {GLOWS.map((g) => (
                                     <Chip key={g.id} on={(opts.glow ?? 'med') === g.id} onClick={() => set('glow', g.id)}>
                                         {g.label}
                                     </Chip>
                                 ))}
                             </Row>
-                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span> Reach</span>}>
+                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span><span className="ambient-atmos-sub">Reach</span></span>}>
                                 {REACHES.map((r) => (
                                     <Chip key={r.id} on={(opts.reach ?? 'mid') === r.id} onClick={() => set('reach', r.id)}>
                                         {r.label}
