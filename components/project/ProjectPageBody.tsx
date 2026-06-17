@@ -383,14 +383,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
        profile's + More. The panel's stacked sections are grouped under pills so
        only one group shows at a time:
-         Social    → Follow CTA + follower/following counts (the default lead)
+         Social    → Follow CTA + follower/following counts
          Stats     → Price Stats + ATH & Holders (the factual numbers)
-         Replay    → Replay
+         Replay    → Replay (the default lead)
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
     type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory';
-    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('social');
+    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('replay');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
