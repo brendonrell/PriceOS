@@ -269,6 +269,12 @@ body.is-pwa .navbar {
     position: relative;
     left: -1.7px;
 }
+/* $PRICE logo fills as vars so they can flip when the page's big colour is a
+   red (set by applyBgHex → body.price-logo-swap). CSS `fill` beats the SVG's
+   fallback fill attribute; a soft transition makes the swap feel intentional. */
+.logo-price .plogo-bg { fill: var(--price-logo-bg, #FF0055); transition: fill 0.3s ease; }
+.logo-price .plogo-fg { fill: var(--price-logo-fg, #FFE600); transition: fill 0.3s ease; }
+body.price-logo-swap { --price-logo-bg: #FFE600; --price-logo-fg: #FF0055; }
 
 
 /* ── PETEY SPEECH BUBBLE ─────────────────────────────────── */

@@ -48,6 +48,10 @@ export interface UpdateFaviconArgs {
     isEthPing?: boolean;
     isRotated?: boolean;
     priceLogoOverride?: boolean;
+    /* When the page's big colour is itself a red, swap the $PRICE wordmark's
+       red plate and yellow letters so the favicon doesn't sink into the tab
+       theme — mirrors the on-page logo swap (Brendon, 2026-06-16). */
+    priceLogoSwap?: boolean;
 }
 
 export function updateFavicon({
@@ -58,6 +62,7 @@ export function updateFavicon({
     isEthPing = false,
     isRotated = false,
     priceLogoOverride = false,
+    priceLogoSwap = false,
 }: UpdateFaviconArgs): void {
     if (typeof document === 'undefined') return;
 
@@ -90,8 +95,14 @@ export function updateFavicon({
             const link = document.getElementById(FAVICON_LINK_ID) as HTMLLinkElement | null;
             if (link) link.href = canvas.toDataURL('image/png');
         };
+        const svg = priceLogoSwap
+            ? PRICE_LOGO_SVG
+                  .replace(/#FF0055/g, '#PLSWAP')
+                  .replace(/#FFE600/g, '#FF0055')
+                  .replace(/#PLSWAP/g, '#FFE600')
+            : PRICE_LOGO_SVG;
         img.src =
-            'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(PRICE_LOGO_SVG);
+            'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         return;
     } else {
         ctx.fillStyle = isAlert ? '#FF0033' : (bg ?? '#000000');

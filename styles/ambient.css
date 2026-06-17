@@ -227,6 +227,45 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
     border-color: var(--text-color);
 }
 
+/* ---- Menu polish: title + pick-by-sight palette swatches -------------- */
+.ambient-pop-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    padding-bottom: 2px;
+}
+/* Mini LED in the title, painted in the CURRENT palette (the popup sits inside
+   .pal-<current>, so the vars resolve to whatever's selected). */
+.ambient-pop-title-led {
+    width: 26px;
+    height: 5px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--amb1), var(--amb2), var(--amb3), var(--amb4));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--amb2) 70%, transparent);
+}
+/* Each palette chip carries its own pal-* class, so its swatch previews that
+   palette's actual colours — pick by sight, not by name. */
+.ambient-chip-pal {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.ambient-swatch {
+    width: 20px;
+    height: 11px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+    background: linear-gradient(90deg, var(--amb1), var(--amb2), var(--amb3), var(--amb4));
+    box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+/* On the active chip the text inverts; keep the swatch ring readable. */
+.ambient-chip-pal.on .ambient-swatch { box-shadow: inset 0 0 0 1px var(--bg-color); }
+
 /* Hidden in the chrome-off modes (same as Tape + Footer). The page-dim ::after
    is already excluded in those modes by its :not(.zen-mode):not(.zero-context-mode)
    selector above, so only the strip itself needs hiding here. */

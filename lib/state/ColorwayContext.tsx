@@ -325,6 +325,23 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
 
     root.style.setProperty('--bg-color', bg);
     root.style.setProperty('--text-color', text);
+
+    /* When the page's big colour is itself a RED, the $PRICE logo's red plate
+       would sink into the background — so flag it and let CSS swap the logo's
+       red/yellow fills. Cheap inline hue/sat check (no extra imports); covers
+       pure red through the brand hot-pink-red (Brendon, 2026-06-16). */
+    {
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+        let hue = 0;
+        if (d !== 0) {
+            if (mx === r) hue = ((g - b) / d) % 6;
+            else if (mx === g) hue = (b - r) / d + 2;
+            else hue = (r - g) / d + 4;
+            hue = (hue * 60 + 360) % 360;
+        }
+        const sat = mx === 0 ? 0 : d / mx;
+        body.classList.toggle('price-logo-swap', sat > 0.35 && (hue >= 335 || hue < 18));
+    }
     /* Keep the PWA chrome tint in lockstep for named colorways too, so leaving
        stargazing restores the exact prior theme-color (Brendon, 2026-06-13). */
     const tcMetaCw = document.querySelector('meta[name="theme-color"]');

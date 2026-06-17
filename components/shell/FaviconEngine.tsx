@@ -144,6 +144,9 @@ export function FaviconEngine() {
             isEthPing: ethPing,
             isRotated: rotated,
             priceLogoOverride: notifs.priceLogo,
+            /* Mirror the on-page logo swap: applyBgHex flags a red big-colour on
+               <body>; read it fresh each paint (this repaints on every bg change). */
+            priceLogoSwap: document.body.classList.contains('price-logo-swap'),
         });
 
         // Sync Safari browser chrome color to the live bg — sim line 6859.

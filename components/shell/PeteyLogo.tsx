@@ -140,12 +140,12 @@ export function PeteyLogo() {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
-                        <path d={PRICE_LOGO_BG_PATH} fill="#FF0055" />
-                        <path d={PRICE_LOGO_P_PATH} fill="#FFE600" />
-                        <path d={PRICE_LOGO_R_PATH} fill="#FFE600" />
-                        <path d={PRICE_LOGO_I_PATH} fill="#FFE600" />
-                        <path d={PRICE_LOGO_C_PATH} fill="#FFE600" />
-                        <path d={PRICE_LOGO_E_PATH} fill="#FFE600" />
+                        <path className="plogo-bg" d={PRICE_LOGO_BG_PATH} fill="#FF0055" />
+                        <path className="plogo-fg" d={PRICE_LOGO_P_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_R_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_I_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_C_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_E_PATH} fill="#FFE600" />
                     </svg>
                 </span>
             </div>

@@ -173,11 +173,21 @@ export default function AmbientStrip() {
 
             {open && (
                 <div className="ambient-pop" role="dialog" aria-label="Ambient light options">
+                    <div className="ambient-pop-title">
+                        <span className="ambient-pop-title-led" />
+                        Ambient Light
+                    </div>
                     <Row label="Color">
                         {PALETTES.map((p) => (
-                            <Chip key={p.id} on={opts.palette === p.id} onClick={() => set('palette', p.id)}>
+                            <button
+                                key={p.id}
+                                type="button"
+                                className={`ambient-chip ambient-chip-pal pal-${p.id}${opts.palette === p.id ? ' on' : ''}`}
+                                onClick={() => set('palette', p.id)}
+                            >
+                                <span className="ambient-swatch" aria-hidden="true" />
                                 {p.label}
-                            </Chip>
+                            </button>
                         ))}
                     </Row>
                     <Row label="Pattern">
