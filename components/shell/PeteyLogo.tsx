@@ -36,6 +36,7 @@ import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import {
     getSentimentState,
     subscribeSentiment,
+    SENTIMENT_STATES,
     type SentimentState,
 } from '@/lib/engines/sentimentEngine';
 
@@ -54,9 +55,12 @@ export function PeteyLogo() {
        exists and the engine auto-stops. When on, subscribe immediately
        and prime local state with the engine's current value so the
        widget reflects the latest tick on remount. */
-    const [sentiment, setSentiment] = useState<SentimentState>(() =>
-        getSentimentState()
-    );
+    /* Start from a FIXED state so the server and the first client render agree —
+       the live state is seeded from a random index at module load, so reading it
+       during render made the server and client disagree and React threw away the
+       whole server page and re-rendered it client-side (the "loads twice" / heavy
+       repaint, worst on the gallery-heavy profile). Go live only after mount. */
+    const [sentiment, setSentiment] = useState<SentimentState>(SENTIMENT_STATES[0]);
     useEffect(() => {
         if (!showSentiment) return;
         setSentiment(getSentimentState());
