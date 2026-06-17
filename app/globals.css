@@ -5570,11 +5570,17 @@ body.aura-active #gallery { overflow-x: clip; }
        quieter meta-UI against the artwork corner. */
     font-size: 7px;
     line-height: 1;
-    color: var(--text-color) !important;
+    /* Subtle by design (Brendon, 2026-06-17): the ball is FILLED with the
+       colorway colour so it blends into the page, and a hairline stroke leaves
+       just the outline showing — a quiet ring, not a bright dot. */
+    color: var(--bg-color) !important;
+    -webkit-text-stroke: 0.5px var(--text-color);
+    text-stroke: 0.5px var(--text-color);
+    opacity: 0.55;
     pointer-events: none;
     z-index: 11;
     user-select: none;
-    transition: color 0.2s;
+    transition: opacity 0.2s;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -5583,7 +5589,7 @@ body.aura-active #gallery { overflow-x: clip; }
 .breadcrumb-crumb.bc-br { bottom: -7px; right: -7px; }
 .canvas-wrapper:has(.breadcrumb-crumb) { overflow: visible; }
 .output-content:hover .breadcrumb-crumb {
-    color: var(--bg-color) !important;
+    opacity: 0.85;
 }
 
 /* ── PRICE MEMORY GHOST — sim 3676 + 3678-3691 + 8085-8089 ──
