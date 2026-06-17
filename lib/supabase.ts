@@ -86,7 +86,9 @@ export interface UserSettings {
     palette?: string;
     pattern?: string;
     speed?: string;
-    dim?: string;
+    /** Page-dim level. Number (0–100 slider) on current writes; legacy rows may
+     *  still hold the old preset string ('off' | 'low' | … | 'pitch'). */
+    dim?: number | string;
   };
 }
 

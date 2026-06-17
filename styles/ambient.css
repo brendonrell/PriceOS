@@ -61,6 +61,12 @@ body.is-pwa .ambient-strip-layer {
 /* Hidden palettes — only reachable via the secret long-press (no chip). */
 .pal-prism  { --amb1:#ff004d; --amb2:#ffd000; --amb3:#00e5ff; --amb4:#9b5bff; }
 .pal-petey  { --amb1:#ff0055; --amb2:#ff2d9b; --amb3:#ffe600; --amb4:#ff5e7a; }
+.pal-spectrum { --amb1:#ff004d; --amb2:#ffd000; --amb3:#00e5ff; --amb4:#39ff14; }
+.pal-spectrum .ambient-pill-led,
+.pal-spectrum .ambient-glow,
+.pal-spectrum .ambient-spot { animation: amb-spectrum 6s linear infinite !important; }
+@keyframes amb-spectrum { from { filter: hue-rotate(0deg) saturate(1.2); } to { filter: hue-rotate(360deg) saturate(1.2); } }
+.pal-nova   { --amb1:#3a0ca3; --amb2:#7209b7; --amb3:#4cc9f0; --amb4:#f72585; }
 
 /* ---- Speed ------------------------------------------------------------ */
 .spd-slow { --amb-dur: 26s; }
@@ -169,24 +175,22 @@ body.is-pwa .ambient-strip-layer {
 .pat-strobe .ambient-glow { animation: amb-strobe calc(var(--amb-dur) / 7) steps(1, end) infinite; }
 @keyframes amb-strobe { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0.18; } 100% { opacity: 1; } }
 
-/* ---- "Lights off" page dim — graduated levels (off has no class) ------ */
-body[class*="ambient-dim-"]:not(.zen-mode):not(.zero-context-mode)::after {
+/* ---- "Lights off" page dim — fully continuous, driven by --ambient-dim ---
+   (the alpha is set inline from the slider value; 0 = off, ~0.92 = blackout). */
+body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 84; /* under the strip + glow, over the content */
     pointer-events: none;
-    transition: background 0.6s ease;
+    background: rgba(3, 2, 10, var(--ambient-dim, 0));
+    transition: background 0.25s ease;
 }
-body.ambient-dim-low::after   { background: rgba(3, 2, 10, 0.28); }
-body.ambient-dim-soft::after  { background: rgba(3, 2, 10, 0.46); }
-body.ambient-dim-med::after   { background: rgba(3, 2, 10, 0.60); }
-body.ambient-dim-deep::after  { background: rgba(3, 2, 10, 0.74); }
-body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
 
 /* ---- The options popup ------------------------------------------------ */
 .ambient-pop {
     pointer-events: auto;
+    position: relative;
     margin-top: 16px;
     width: min(330px, 88vw);
     background: var(--bg-color);
@@ -201,6 +205,24 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
     gap: 10px;
     animation: amb-pop-in 0.16s ease both;
 }
+/* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
+.ambient-pop-close {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    z-index: 1;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ambient-pop-close:hover { opacity: 1; }
 @keyframes amb-pop-in {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
@@ -257,9 +279,24 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
     font-weight: bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    opacity: 0.7;
     padding-bottom: 2px;
+    /* Reserve room on the right so the Surprise pill clears the close ×. */
+    padding-right: 20px;
 }
+/* Muted title text — kept off the row itself so the Surprise pill (a sibling)
+   renders at full strength rather than inheriting the row's opacity. */
+.ambient-pop-title-text { opacity: 0.7; }
+/* Surprise — a small signature pill at the end of the title row that rolls a
+   random look. Same 4px-radius tab as every other chip. */
+.ambient-surprise {
+    margin-left: auto;
+    height: 22px;
+    padding: 0 9px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+}
+.ambient-surprise:hover { opacity: 1; }
 /* Canonical ambient glyph before the title (kept alongside the mini LED). */
 .ambient-pop-title-icon {
     font-size: 13px;
@@ -292,6 +329,94 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
 }
 /* On the active chip the text inverts; keep the swatch ring readable. */
 .ambient-chip-pal.on .ambient-swatch { box-shadow: inset 0 0 0 1px var(--bg-color); }
+
+/* ---- Dim slider — continuous page-dim level. Sits under the preset chips;
+   the chips snap it to a stop, the slider takes any value in between. -------- */
+.ambient-dim-slider-row { gap: 10px; }
+.ambient-dim-slider {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border-color);
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+}
+.ambient-dim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px; /* the signature 4px tab, in thumb form */
+    background: var(--text-color);
+    border: none;
+    cursor: pointer;
+}
+.ambient-dim-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: var(--text-color);
+    border: none;
+    cursor: pointer;
+}
+.ambient-dim-readout {
+    flex: 0 0 34px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- Ambient Code field — a separate, simple share code for JUST the
+   ambient light look. Sits at the bottom of the menu, divided off from the
+   option rows. Mirrors the main Setup Code field's plain-text look. -------- */
+.ambient-code-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+.ambient-code-label {
+    flex: 0 0 56px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+}
+.ambient-code-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.8;
+    padding: 0;
+    text-transform: uppercase;
+    text-align: right;
+}
+.ambient-code-input:focus { opacity: 1; }
+.ambient-code-copy {
+    flex: 0 0 auto;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 4px;
+    margin: -4px;
+}
+.ambient-code-copy:hover { opacity: 1; }
 
 /* Hidden in the chrome-off modes (same as Tape + Footer). The page-dim ::after
    is already excluded in those modes by its :not(.zen-mode):not(.zero-context-mode)
