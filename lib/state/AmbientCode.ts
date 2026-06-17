@@ -38,8 +38,10 @@ export type Speed = 'slow' | 'med' | 'fast' | 'turbo';
 /* Atmosphere (3rd menu page) — the light's physical character. Persisted +
    DB-backed but NOT carried in the shareable code (the code stays the core
    look: palette/pattern/speed/dim). */
-export type Glow = 'soft' | 'med' | 'bright';
-export type Reach = 'near' | 'mid' | 'far';
+export type Glow = 'dim' | 'soft' | 'med' | 'bright';
+export type Reach = 'near' | 'mid' | 'far' | 'flood';
+export type Spread = 'narrow' | 'mid' | 'wide';
+export type Haze = 'crisp' | 'soft' | 'dreamy';
 
 export interface AmbientOpts {
     palette: Palette;
@@ -51,6 +53,12 @@ export interface AmbientOpts {
     glow?: Glow;
     /** How far the spill washes down the page. */
     reach?: Reach;
+    /** How wide the light fans across the screen. */
+    spread?: Spread;
+    /** Edge softness of the light (blur). */
+    haze?: Haze;
+    /** Hidden egg — the bar balled up into an orb. Persisted, never shared. */
+    sphere?: boolean;
 }
 
 // ── Ordered ID lists — index = encoded character (A=0, B=1, …). ──────

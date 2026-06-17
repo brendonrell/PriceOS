@@ -119,7 +119,7 @@ body.is-pwa .ambient-strip-layer {
         transparent 100%
     );
     border-radius: 44% 44% 50% 50% / 18% 18% 82% 82%;
-    filter: blur(44px) saturate(1.12);
+    filter: blur(var(--amb-blur, 44px)) saturate(1.12);
     mix-blend-mode: screen;
 }
 
@@ -132,7 +132,7 @@ body.is-pwa .ambient-strip-layer {
     height: 360px;
     width: min(900px, 98vw);
     opacity: 0.9;
-    filter: blur(62px) saturate(1.15);
+    filter: blur(var(--amb-blur-spot, 62px)) saturate(1.15);
 }
 
 /* ---- Patterns --------------------------------------------------------- */
@@ -144,7 +144,7 @@ body.is-pwa .ambient-strip-layer {
 .pat-wave .ambient-pill-led { animation: amb-wave var(--amb-dur) linear infinite, amb-hue var(--amb-dur) linear infinite; }
 .pat-wave .ambient-glow { animation: amb-wave-bg var(--amb-dur) linear infinite, amb-drift calc(var(--amb-dur) * 1.4) ease-in-out infinite; }
 @keyframes amb-wave { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
-@keyframes amb-wave-bg { 0% { filter: blur(44px) saturate(1.12) hue-rotate(0deg); } 100% { filter: blur(44px) saturate(1.12) hue-rotate(360deg); } }
+@keyframes amb-wave-bg { 0% { filter: blur(var(--amb-blur, 44px)) saturate(1.12) hue-rotate(0deg); } 100% { filter: blur(var(--amb-blur, 44px)) saturate(1.12) hue-rotate(360deg); } }
 @keyframes amb-hue { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
 @keyframes amb-drift { 0%,100% { transform: translateX(-52%); } 50% { transform: translateX(-48%); } }
 
@@ -192,14 +192,36 @@ body.is-pwa .ambient-strip-layer {
 @keyframes amb-throb { 0% { filter: brightness(0.75); } 12% { filter: brightness(1.35); } 24% { filter: brightness(0.85); } 36% { filter: brightness(1.2); } 50%, 100% { filter: brightness(0.75); } }
 @keyframes amb-throb-glow { 0% { opacity: 0.5; } 12% { opacity: 1; } 24% { opacity: 0.6; } 36% { opacity: 0.9; } 50%, 100% { opacity: 0.5; } }
 
-/* ---- Atmosphere (page 3): Glow = spill brightness, Reach = spill distance.
-   Opacity-only for glow so it never clobbers the pattern filter animations. --- */
+/* ---- Atmosphere (page 3): the light's physical character. None of these ride
+   the share code — they persist per-device + account.
+   · Glow   = spill brightness (opacity-only, so it never clobbers the pattern
+              filter animations)
+   · Reach  = how far the spotlight pools down the page (height)
+   · Spread = how wide the light fans across the screen (width)
+   · Haze   = edge softness (blur, driven through --amb-blur so the wave
+              hue-spin keeps working) --------------------------------------- */
+.glow-dim    .ambient-glow { opacity: 0.30; }
+.glow-dim    .ambient-spot { opacity: 0.22; }
 .glow-soft   .ambient-glow { opacity: 0.55; }
 .glow-soft   .ambient-spot { opacity: 0.45; }
+.glow-med    .ambient-glow { opacity: 0.80; }
+.glow-med    .ambient-spot { opacity: 0.70; }
 .glow-bright .ambient-glow { opacity: 1; }
 .glow-bright .ambient-spot { opacity: 1; }
+
 .reach-near  .ambient-spot { height: 220px; }
+.reach-mid   .ambient-spot { height: 360px; }
 .reach-far   .ambient-spot { height: 520px; }
+.reach-flood .ambient-spot { height: 700px; }
+
+.spread-narrow .ambient-glow { width: min(560px, 74vw); }
+.spread-narrow .ambient-spot { width: min(620px, 78vw); }
+.spread-wide   .ambient-glow { width: min(1040px, 99vw); }
+.spread-wide   .ambient-spot { width: min(1140px, 100vw); }
+
+.haze-crisp  { --amb-blur: 28px; --amb-blur-spot: 42px; }
+.haze-soft   { --amb-blur: 44px; --amb-blur-spot: 62px; }
+.haze-dreamy { --amb-blur: 72px; --amb-blur-spot: 98px; }
 
 /* ---- "Lights off" page dim — fully continuous, driven by --ambient-dim ---
    (the alpha is set inline from the slider value; 0 = off, ~0.92 = blackout). */
@@ -211,6 +233,21 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     pointer-events: none;
     background: rgba(3, 2, 10, var(--ambient-dim, 0));
     transition: background 0.25s ease;
+    /* FLASHLIGHT — carve a bright pocket out of the dim right under the strip so
+       the art there shows its REAL colours (un-dimmed) while the rest of the
+       page stays dark. The existing colour glow then ADDS onto those true
+       colours = a lit canvas, not a tinted cover. The mask is transparent (dim
+       hidden → art bright) at the top and ramps to fully opaque (full dim)
+       further down; the falloff rides --amb-flash so Reach can widen the pool.
+       Additive only — the glow/spotlight are untouched. */
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0%, transparent 6%,
+        rgba(0, 0, 0, 0.45) var(--amb-flash-mid, 26%),
+        #000 var(--amb-flash, 52%));
+    mask-image: linear-gradient(to bottom,
+        transparent 0%, transparent 6%,
+        rgba(0, 0, 0, 0.45) var(--amb-flash-mid, 26%),
+        #000 var(--amb-flash, 52%));
 }
 
 /* Safe-area gutters — with viewport-fit:cover the page paints behind the iOS

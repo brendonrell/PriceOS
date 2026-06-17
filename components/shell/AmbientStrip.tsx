@@ -24,6 +24,8 @@ import {
     type Speed,
     type Glow,
     type Reach,
+    type Spread,
+    type Haze,
     type AmbientOpts,
 } from '../../lib/state/AmbientCode';
 
@@ -35,7 +37,7 @@ const SECRET_CYCLE: { id: Palette; toast: string }[] = [
 ];
 
 type Opts = AmbientOpts;
-const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid' };
+const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid', spread: 'mid', haze: 'soft', sphere: false };
 const STORAGE = 'pd_ambient_opts';
 /* Remember which swipe page was last open so reopening doesn't snap to page 1. */
 const PAGE_STORAGE = 'pd_ambient_page';
@@ -82,12 +84,19 @@ const DIM_PRESETS: { label: string; val: number }[] = [
     { label: 'Med', val: 60 }, { label: 'Deep', val: 74 }, { label: 'Shadow', val: 80 },
     { label: 'Abyss', val: 86 }, { label: 'Pitch', val: 90 },
 ];
-/* Atmosphere (page 3) — the light's physical character. */
+/* Atmosphere (page 3) — the light's physical character. None of these ride the
+   share code; they persist per-device + account. */
 const GLOWS: { id: Glow; label: string }[] = [
-    { id: 'soft', label: 'Soft' }, { id: 'med', label: 'Med' }, { id: 'bright', label: 'Bright' },
+    { id: 'dim', label: 'Dim' }, { id: 'soft', label: 'Soft' }, { id: 'med', label: 'Med' }, { id: 'bright', label: 'Bright' },
 ];
 const REACHES: { id: Reach; label: string }[] = [
-    { id: 'near', label: 'Near' }, { id: 'mid', label: 'Mid' }, { id: 'far', label: 'Far' },
+    { id: 'near', label: 'Near' }, { id: 'mid', label: 'Mid' }, { id: 'far', label: 'Far' }, { id: 'flood', label: 'Flood' },
+];
+const SPREADS: { id: Spread; label: string }[] = [
+    { id: 'narrow', label: 'Narrow' }, { id: 'mid', label: 'Mid' }, { id: 'wide', label: 'Wide' },
+];
+const HAZES: { id: Haze; label: string }[] = [
+    { id: 'crisp', label: 'Crisp' }, { id: 'soft', label: 'Soft' }, { id: 'dreamy', label: 'Dreamy' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -119,8 +128,9 @@ export default function AmbientStrip() {
     const popRef = useRef<HTMLDivElement | null>(null);
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
-    /* Hidden egg — tap "sphere" 3× on page 3 to ball the bar up. Transient. */
-    const [sphereMode, setSphereMode] = useState(false);
+    /* Hidden egg — tap "sphere" 3× on page 3 to ball the bar up. Persisted in
+       opts (device + account) so it survives navigation to a new page. */
+    const sphereMode = opts.sphere ?? false;
 
     /* Ambient Code — a separate, simple share code (starts AMBI, no dashes)
        that carries ONLY these four ambient options. Field tracks the live
@@ -374,9 +384,10 @@ export default function AmbientStrip() {
         s.t = now;
         if (s.n >= 3) {
             s.n = 0;
-            setSphereMode((m) => {
-                showToast(m ? 'Ambient: BAR' : 'Ambient: SPHERE ✦');
-                return !m;
+            setOpts((o) => {
+                const next = !(o.sphere ?? false);
+                showToast(next ? 'Ambient: SPHERE ✦' : 'Ambient: BAR');
+                return { ...o, sphere: next };
             });
         }
     };
@@ -415,7 +426,7 @@ export default function AmbientStrip() {
     return (
         <div
             ref={rootRef}
-            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
+            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'} spread-${opts.spread ?? 'mid'} haze-${opts.haze ?? 'soft'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
         >
             <div className="ambient-glow" aria-hidden="true" />
             {/* Second, reaching glow — a diffuse spotlight in the same colour and
@@ -528,6 +539,20 @@ export default function AmbientStrip() {
                                 {REACHES.map((r) => (
                                     <Chip key={r.id} on={(opts.reach ?? 'mid') === r.id} onClick={() => set('reach', r.id)}>
                                         {r.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span><span className="ambient-atmos-sub">Spread</span></span>}>
+                                {SPREADS.map((sp) => (
+                                    <Chip key={sp.id} on={(opts.spread ?? 'mid') === sp.id} onClick={() => set('spread', sp.id)}>
+                                        {sp.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label={<span className="ambient-atmos-label">Atmo<span className="ambient-atmos-sphere" onClick={onSphereTap}>sphere</span><span className="ambient-atmos-sub">Haze</span></span>}>
+                                {HAZES.map((h) => (
+                                    <Chip key={h.id} on={(opts.haze ?? 'soft') === h.id} onClick={() => set('haze', h.id)}>
+                                        {h.label}
                                     </Chip>
                                 ))}
                             </Row>
