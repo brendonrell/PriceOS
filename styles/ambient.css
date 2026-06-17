@@ -221,34 +221,63 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
     border: 1px solid var(--border-color);
     border-radius: 14px;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
-    padding: 12px 14px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
     font-family: 'Courier New', Courier, monospace;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    overflow: hidden; /* clip; the inner body is what scrolls */
+    overflow: hidden; /* clip; the pager scrolls horizontally inside */
     animation: amb-pop-in 0.16s ease both;
 }
-/* Scrollable option body — the header (title + ×) stays put, everything below
-   scrolls so a long menu never touches the bottom chrome. */
-.ambient-pop-body {
+/* Swipe pager — two pages side by side, native horizontal scroll-snap. The
+   header (title + ×) above and the dots + Setup Code footer below stay put;
+   only this slides. Both pages stretch to the same height so the footer never
+   jumps between pages. */
+.ambient-pop-pager {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.ambient-pop-pager::-webkit-scrollbar { display: none; }
+.ambient-pop-page {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* room for the scrollbar so chips don't sit under it */
-    margin-right: -6px;
-    padding-right: 6px;
-    /* Bottom inset INSIDE the scroll area so the last row clears the iOS bottom
-       toolbar + home indicator (mirrors the connect menu). */
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
     scrollbar-width: none;
 }
-.ambient-pop-body::-webkit-scrollbar { display: none; }
+.ambient-pop-page::-webkit-scrollbar { display: none; }
+
+/* Page dots — iOS-style indicator between the pages and the footer. */
+.ambient-pop-dots {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    padding: 1px 0 2px;
+}
+.ambient-dot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--text-color);
+    opacity: 0.26;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.ambient-dot.on { opacity: 0.95; transform: scale(1.18); }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
     position: absolute;
@@ -333,7 +362,7 @@ html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-b
 /* Section dividers — a line between each section (Scenes · Color · Pattern ·
    Speed · Dim · Setup Code). The Level slider belongs to the Dim section, so
    it gets no divider above it. */
-.ambient-pop-body .ambient-pop-row + .ambient-pop-row:not(.ambient-dim-slider-row) {
+.ambient-pop-page .ambient-pop-row + .ambient-pop-row:not(.ambient-dim-slider-row) {
     border-top: 1px solid var(--border-color);
     padding-top: 10px;
 }

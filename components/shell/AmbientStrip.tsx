@@ -103,6 +103,8 @@ export default function AmbientStrip() {
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const popRef = useRef<HTMLDivElement | null>(null);
+    const pagerRef = useRef<HTMLDivElement | null>(null);
+    const [page, setPage] = useState(0);
 
     /* Ambient Code — a separate, simple share code (starts AMBI, no dashes)
        that carries ONLY these four ambient options. Field tracks the live
@@ -343,6 +345,19 @@ export default function AmbientStrip() {
         if (surpriseHold.current) { clearTimeout(surpriseHold.current); surpriseHold.current = null; }
     };
 
+    /* Swipe pager — two pages side by side (native horizontal scroll-snap). The
+       dots track the active page; tapping one slides to it. */
+    const onPagerScroll = () => {
+        const el = pagerRef.current;
+        if (!el) return;
+        const p = Math.round(el.scrollLeft / Math.max(1, el.clientWidth));
+        if (p !== page) setPage(p);
+    };
+    const goToPage = (i: number) => {
+        const el = pagerRef.current;
+        if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
+    };
+
     return (
         <div
             ref={rootRef}
@@ -385,63 +400,81 @@ export default function AmbientStrip() {
                         <span className="ambient-pop-title-icon" aria-hidden="true" onClick={onSunTap}>{'☼︎'}</span>
                         <span className="ambient-pop-title-text">Ambient Light</span>
                     </div>
-                    <div className="ambient-pop-body">
-                    <Row label="Scenes">
-                        {SCENES.map((s) => (
-                            <Chip key={s.id} on={sameOpts(opts, s.opts)} onClick={() => applyScene(s)}>
-                                {s.label}
-                            </Chip>
-                        ))}
-                    </Row>
-                    <Row label="Color">
-                        {PALETTES.map((p) => (
+                    <div className="ambient-pop-pager" ref={pagerRef} onScroll={onPagerScroll}>
+                        <div className="ambient-pop-page">
+                            <Row label="Scenes">
+                                {SCENES.map((s) => (
+                                    <Chip key={s.id} on={sameOpts(opts, s.opts)} onClick={() => applyScene(s)}>
+                                        {s.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Color">
+                                {PALETTES.map((p) => (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        className={`ambient-chip ambient-chip-pal pal-${p.id}${opts.palette === p.id ? ' on' : ''}`}
+                                        onClick={() => set('palette', p.id)}
+                                    >
+                                        <span className="ambient-swatch" aria-hidden="true" />
+                                        {p.label}
+                                    </button>
+                                ))}
+                            </Row>
+                        </div>
+                        <div className="ambient-pop-page">
+                            <Row label="Pattern">
+                                {PATTERNS.map((p) => (
+                                    <Chip key={p.id} on={opts.pattern === p.id} onClick={() => set('pattern', p.id)}>
+                                        {p.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Speed">
+                                {SPEEDS.map((p) => (
+                                    <Chip key={p.id} on={opts.speed === p.id} onClick={() => set('speed', p.id)}>
+                                        {p.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Dim">
+                                {DIM_PRESETS.map((p) => (
+                                    <Chip key={p.label} on={opts.dim === p.val} onClick={() => set('dim', p.val)}>
+                                        {p.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <div className="ambient-pop-row ambient-dim-slider-row">
+                                <span className="ambient-pop-label">Level</span>
+                                <input
+                                    type="range"
+                                    className="ambient-dim-slider"
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={opts.dim}
+                                    onChange={(e) => set('dim', clampDim(Number(e.target.value)))}
+                                    onClick={(e) => e.stopPropagation()}
+                                    aria-label="Dim level"
+                                    title="Dim level — drag for any darkness"
+                                />
+                                <span className="ambient-dim-readout">{opts.dim}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="ambient-pop-dots" role="tablist" aria-label="Menu pages">
+                        {[0, 1].map((i) => (
                             <button
-                                key={p.id}
+                                key={i}
                                 type="button"
-                                className={`ambient-chip ambient-chip-pal pal-${p.id}${opts.palette === p.id ? ' on' : ''}`}
-                                onClick={() => set('palette', p.id)}
-                            >
-                                <span className="ambient-swatch" aria-hidden="true" />
-                                {p.label}
-                            </button>
+                                className={`ambient-dot${page === i ? ' on' : ''}`}
+                                onClick={() => goToPage(i)}
+                                aria-label={`Page ${i + 1}`}
+                                aria-selected={page === i}
+                                role="tab"
+                            />
                         ))}
-                    </Row>
-                    <Row label="Pattern">
-                        {PATTERNS.map((p) => (
-                            <Chip key={p.id} on={opts.pattern === p.id} onClick={() => set('pattern', p.id)}>
-                                {p.label}
-                            </Chip>
-                        ))}
-                    </Row>
-                    <Row label="Speed">
-                        {SPEEDS.map((p) => (
-                            <Chip key={p.id} on={opts.speed === p.id} onClick={() => set('speed', p.id)}>
-                                {p.label}
-                            </Chip>
-                        ))}
-                    </Row>
-                    <Row label="Dim">
-                        {DIM_PRESETS.map((p) => (
-                            <Chip key={p.label} on={opts.dim === p.val} onClick={() => set('dim', p.val)}>
-                                {p.label}
-                            </Chip>
-                        ))}
-                    </Row>
-                    <div className="ambient-pop-row ambient-dim-slider-row">
-                        <span className="ambient-pop-label">Level</span>
-                        <input
-                            type="range"
-                            className="ambient-dim-slider"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={opts.dim}
-                            onChange={(e) => set('dim', clampDim(Number(e.target.value)))}
-                            onClick={(e) => e.stopPropagation()}
-                            aria-label="Dim level"
-                            title="Dim level — drag for any darkness"
-                        />
-                        <span className="ambient-dim-readout">{opts.dim}%</span>
                     </div>
                     <div className="ambient-code-row">
                         <span className="ambient-code-label">Setup Code</span>
@@ -488,7 +521,6 @@ export default function AmbientStrip() {
                         >
                             Surprise
                         </button>
-                    </div>
                     </div>
                 </div>
             )}

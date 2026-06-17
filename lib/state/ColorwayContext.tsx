@@ -343,9 +343,14 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
         body.classList.toggle('price-logo-swap', sat > 0.35 && (hue >= 335 || hue < 18));
     }
     /* Keep the PWA chrome tint in lockstep for named colorways too, so leaving
-       stargazing restores the exact prior theme-color (Brendon, 2026-06-13). */
+       stargazing restores the exact prior theme-color (Brendon, 2026-06-13).
+       While Ambient Light is dimming, the chrome stays dark instead of the bright
+       colorway — so this writer must not stomp the dim tint back to the bg. */
     const tcMetaCw = document.querySelector('meta[name="theme-color"]');
-    if (tcMetaCw) tcMetaCw.setAttribute('content', bg);
+    if (tcMetaCw) {
+        const dimOn = document.body.classList.contains('ambient-dim-on');
+        tcMetaCw.setAttribute('content', dimOn ? '#03020a' : bg);
+    }
     root.style.setProperty(
         '--border-color',
         isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)'
@@ -433,7 +438,10 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     // color changes (applyColorway handles named colorways; applyBgHex handles
     // custom-color and hashsyn paths that bypass applyColorway).
     const tcMeta = document.querySelector('meta[name="theme-color"]');
-    if (tcMeta) tcMeta.setAttribute('content', bg);
+    if (tcMeta) {
+        const dimOn = document.body.classList.contains('ambient-dim-on');
+        tcMeta.setAttribute('content', dimOn ? '#03020a' : bg);
+    }
 
     // Body class flags read by various colorway-conditional CSS rules.
     body.classList.toggle('colorway-dark',    key === 'dark');
