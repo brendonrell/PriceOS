@@ -304,7 +304,7 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     -webkit-tap-highlight-color: transparent;
 }
 .ambient-dot.on { opacity: 0.95; transform: scale(1.18); }
-.ambient-pop-dots { gap: 6px; }
+.ambient-pop-dots { gap: 11px; }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
     position: absolute;
