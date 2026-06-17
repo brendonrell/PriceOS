@@ -120,7 +120,9 @@ export const renderPendula: EngineFn = (canvas, tokenId, width) => {
     // Per-pendulum phases + amplitudes (fixed RNG draws after cast).
     const px1 = p.phase, px2 = r() * Math.PI * 2;
     const py1 = r() * Math.PI * 2, py2 = r() * Math.PI * 2;
-    const ax1 = 0.6, ax2 = 0.4, ay1 = 0.6, ay2 = 0.4;
+    // Per-token amplitudes so the figure's envelope varies within a harmony
+    // (jury: was hard-coded 0.6/0.4, collapsing variety to 6×6).
+    const ax1 = 0.5 + r() * 0.22, ax2 = 1 - ax1, ay1 = 0.5 + r() * 0.22, ay2 = 1 - ay1;
 
     ctx.globalCompositeOperation = light ? 'multiply' : 'lighter';
     ctx.lineWidth = Math.max(0.6, W * (light ? 0.0016 : 0.0019));

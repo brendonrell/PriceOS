@@ -23,7 +23,7 @@ interface Palette { name: string; ground: string; ink: string; cols: string[] }
 const PALETTES: Palette[] = [
     { name: 'Primary', ground: '#f1e7d0', ink: '#161210', cols: ['#e23b3b', '#2347ff', '#f4c531', '#161210', '#f1e7d0'] },
     { name: 'Signal',  ground: '#0e1014', ink: '#e9eef2', cols: ['#13d0c8', '#ff3ba0', '#3a6bff', '#e9eef2', '#0e1014'] },
-    { name: 'Dusk',    ground: '#16121f', ink: '#e8def2', cols: ['#ff7a3c', '#b14bff', '#2f6bff', '#ffd0e0', '#16121f'] },
+    { name: 'Dusk',    ground: '#16121f', ink: '#e8def2', cols: ['#ff7a3c', '#b14bff', '#2fb98a', '#ffd0e0', '#16121f'] },
     { name: 'Clay',    ground: '#efe3d2', ink: '#2a1d14', cols: ['#c2522e', '#7a8c46', '#d99a3c', '#2a4a52', '#2a1d14'] },
     { name: 'Bay',     ground: '#e7e2d4', ink: '#1d2630', cols: ['#2f7d77', '#d86a3c', '#385e8a', '#caa64e', '#1d2630'] },
     { name: 'Mono',    ground: '#ece9e3', ink: '#15140f', cols: ['#15140f', '#5a564d', '#9a958a', '#d92b2b', '#ece9e3'] },

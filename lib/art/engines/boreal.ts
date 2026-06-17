@@ -23,6 +23,7 @@ const PALETTES: Palette[] = [
     { name: 'Solar',    sky: ['#0a0402', '#1c0c06'], hem: '#ffd24d', body: '#ff8a3c', crown: '#ff4f7a' },
     { name: 'Ice',      sky: ['#020810', '#06182e'], hem: '#9bf0ff', body: '#5fb0ff', crown: '#b58bff' },
     { name: 'Spectral', sky: ['#040308', '#0c1024'], hem: '#ff5db0', body: '#5effc8', crown: '#ffd06a' },
+    { name: 'Rose',     sky: ['#0a0410', '#1a0826'], hem: '#ff86c0', body: '#ff4fd8', crown: '#a07aff' },
 ];
 
 const VEILS = ['Arc', 'Curtain', 'Corona', 'Storm'] as const;
@@ -38,6 +39,8 @@ interface Params {
     seed: number;
     scaleX: number;
     sway: number;
+    warp: number;
+    fieldRot: number;
 }
 
 function cast(r: () => number): Params {
@@ -47,8 +50,16 @@ function cast(r: () => number): Params {
     const aspect = pick([1, 1.25], r);
     const seed = r() * 1000;
     const scaleX = 0.0016 + r() * 0.0018;
-    const sway = 0.5 + r() * 0.9;
-    return { palette, veil, density, aspect, seed, scaleX, sway };
+    // Veil drives the geometry (jury: it was a label that didn't change anything).
+    // Arc = tight near-vertical; Curtain = drape; Corona = looser; Storm = chaotic.
+    const sway =
+        veil === 'Arc' ? 0.45 + r() * 0.4 :
+        veil === 'Storm' ? 1.7 + r() * 0.9 :
+        veil === 'Corona' ? 1.1 + r() * 0.7 :
+        0.9 + r() * 0.7;
+    const warp = 0.6 + r() * 1.3;          // domain warp → folding, not combing
+    const fieldRot = r() * Math.PI * 2;    // each token samples a different field
+    return { palette, veil, density, aspect, seed, scaleX, sway, warp, fieldRot };
 }
 
 function traitsFrom(p: Params): OutputTraits {
@@ -115,7 +126,7 @@ export const renderBoreal: EngineFn = (canvas, tokenId, width) => {
         const sx = r() * W;
         // Intensity peaks near the focal fold, falls toward the edges → negative space.
         const dx = Math.abs(sx / W - focal);
-        const intensity = Math.max(0, 1 - dx * (p.veil === 'Corona' ? 1.4 : 2.2)) * (0.4 + fbm(sx * p.scaleX * 3 + p.seed, 7) * 0.9);
+        const intensity = Math.max(0, 1 - dx * (p.veil === 'Corona' ? 2.2 : 3.2)) * (0.4 + fbm(sx * p.scaleX * 3 + p.seed, 7) * 0.9);
         if (intensity < 0.12) continue;
 
         const steps = Math.round(bandH / 2);
@@ -123,7 +134,14 @@ export const renderBoreal: EngineFn = (canvas, tokenId, width) => {
         const pts: [number, number, number][] = [];
         for (let s = 0; s < steps; s++) {
             const yf = 1 - (y - bandTop) / bandH;            // 0 hem → 1 crown
-            const ang = -Math.PI / 2 + (fbm(x * p.scaleX + p.seed, y * 0.004 + p.seed) - 0.5) * p.sway;
+            // Rotate the sample per token (so the field itself differs, not just
+            // a window-shift), then domain-warp so curtains fold instead of comb.
+            const bx = x * p.scaleX, by = y * 0.004;
+            const rx = bx * Math.cos(p.fieldRot) - by * Math.sin(p.fieldRot) + p.seed;
+            const ry = bx * Math.sin(p.fieldRot) + by * Math.cos(p.fieldRot) + p.seed;
+            const wx = rx + p.warp * (fbm(rx * 0.7 + 11.3, ry * 0.7) - 0.5);
+            const wy = ry + p.warp * (fbm(rx * 0.7, ry * 0.7 + 7.1) - 0.5);
+            const ang = -Math.PI / 2 + (fbm(wx, wy) - 0.5) * p.sway;
             x += Math.cos(ang) * 2;
             y += Math.sin(ang) * 2;
             if (y < bandTop || x < -20 || x > W + 20) break;

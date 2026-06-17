@@ -22,7 +22,7 @@ const PALETTES: Palette[] = [
     { name: 'Mystic',   ground: '#0a0712', lead: '#0e0a16', jewels: ['#7B3FE4', '#9D5BF0', '#0C9C9C', '#22C7C7'] },
     { name: 'Twilight', ground: '#08080f', lead: '#0c0c16', jewels: ['#3A3F9E', '#6E3A7E', '#1E7A82', '#C46A2A'] },
     { name: 'Aurora',   ground: '#06090f', lead: '#0b0d15', jewels: ['#2A5BD8', '#10A6A0', '#19A36A', '#D02644'] },
-    { name: 'Ember',    ground: '#0f0805', lead: '#130b08', jewels: ['#D0461f', '#E8A82A', '#9b1b3a', '#f4c842'] },
+    { name: 'Ember',    ground: '#0f0805', lead: '#130b08', jewels: ['#D0461f', '#E8A82A', '#7a1f8e', '#f4c842'] },
 ];
 
 const RINGS = [4, 5, 6] as const;

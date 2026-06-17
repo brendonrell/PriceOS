@@ -20,9 +20,9 @@ interface Palette { name: string; ground: string; trunk: string; leaf: string; b
    couple of classic ink-on-paper sets keep the set cohesive with its roots. */
 const PALETTES: Palette[] = [
     { name: 'Spring',    ground: '#f3ecda', trunk: '#3a5a2a', leaf: '#7cc043', bloom: '#ff5d8f' },
-    { name: 'Coral',     ground: '#0d3b3a', trunk: '#1f6f63', leaf: '#ff9e6b', bloom: '#ffd166' },
+    { name: 'Coral',     ground: '#0d3b3a', trunk: '#1f6f63', leaf: '#ff9e6b', bloom: '#ff5d8f' },
     { name: 'Indigo',    ground: '#10183a', trunk: '#3a5bd0', leaf: '#7ad6ff', bloom: '#ff7ad0' },
-    { name: 'Plum',      ground: '#2a1030', trunk: '#7a3b7a', leaf: '#ffb14e', bloom: '#ff5d6c' },
+    { name: 'Plum',      ground: '#2a1030', trunk: '#7a3b7a', leaf: '#ffb14e', bloom: '#ff4fb0' },
     { name: 'Sumi',      ground: '#efe7d4', trunk: '#1a1712', leaf: '#3a3a30', bloom: '#c0392b' },
     { name: 'Blueprint', ground: '#0f2742', trunk: '#9fc6e8', leaf: '#d6ecff', bloom: '#7ad6ff' },
 ];
@@ -90,7 +90,7 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
 
     // Soft light bloom behind the canopy — sun through leaves, the surreal haze.
     const dark = (parseInt(pal.ground.slice(1, 3), 16) + parseInt(pal.ground.slice(3, 5), 16) + parseInt(pal.ground.slice(5, 7), 16)) / 3 < 120;
-    const bl = ctx.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, W * 0.66);
+    const bl = ctx.createRadialGradient(W / 2, H * 0.48, 0, W / 2, H * 0.48, W * 0.66);
     bl.addColorStop(0, pal.leaf + (dark ? '34' : '22'));
     bl.addColorStop(0.55, pal.bloom + '0e');
     bl.addColorStop(1, 'transparent');
@@ -105,19 +105,23 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
     // AND put a hard ceiling on total branches so cost is bounded no matter what
     // — the plant still reads lush, it just can't run away (Brendon, 2026-06-16).
     const small = W < 300;
-    const maxDepth = (p.density === 'Spare' ? 6 : p.density === 'Lush' ? 7 : 8) - (small ? 2 : 0);
-    let budget = small ? 150 : 620;
+    // Depth back up for fuller plants; the hard branch BUDGET below (not depth)
+    // is what bounds cost, so this can't run away — fixes bare 'sticks' on the
+    // sparse variants without risking the crash (jury round 2).
+    const maxDepth = (p.density === 'Spare' ? 7 : p.density === 'Lush' ? 8 : 9) - (small ? 2 : 0);
+    let budget = small ? 170 : 720;
+    const leafMax = 34 * unit;     // cap leaf tufts so they stay fine, never giant fans
     const splits = p.density === 'Spare' ? 2 : 3;
     const weep = p.habit === 'Weeping' ? 0.5 : p.habit === 'Wind' ? 0.0 : -0.18;
     const windBias = p.habit === 'Wind' ? 0.45 : 0;
 
     function leafCluster(x: number, y: number, ang: number, size: number) {
-        const fan = 5 + Math.floor(r() * 4);
-        ctx!.strokeStyle = lerp(pal.leaf, '#ffffff', 0.18);
-        ctx!.lineWidth = Math.max(0.6, size * 0.16);
+        const fan = 10 + Math.floor(r() * 6);
+        ctx!.strokeStyle = lerp(pal.leaf, '#ffffff', 0.28);
+        ctx!.lineWidth = Math.max(1, size * 0.26);
         for (let i = 0; i < fan; i++) {
-            const a = ang + (i / (fan - 1) - 0.5) * 0.9 + (r() - 0.5) * 0.2;
-            const s = size * (0.7 + r() * 0.6);
+            const a = ang + (i / (fan - 1) - 0.5) * 1.35 + (r() - 0.5) * 0.28;
+            const s = size * (0.75 + r() * 0.7);
             ctx!.beginPath();
             ctx!.moveTo(x, y);
             ctx!.lineTo(x + Math.cos(a) * s, y + Math.sin(a) * s);
@@ -135,33 +139,49 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
         }
     }
 
-    function branch(x: number, y: number, ang: number, len: number, w: number, depth: number, maxD: number) {
-        if (depth <= 0 || len < 3.5 * unit || budget <= 0) { leafCluster(x, y, ang, Math.max(6 * unit, len)); return; }
-        budget--;
-        const segs = 7;
-        const curve = (r() - 0.5) * 0.5 + weep * 0.14 + windBias * 0.12;
-        let cx = x, cy = y, a = ang;
-        const f = 1 - depth / maxD;                 // 0 trunk → 1 tip
-        ctx!.strokeStyle = lerp(pal.trunk, pal.leaf, f);
-        ctx!.lineWidth = Math.max(0.7, w);
-        ctx!.beginPath();
-        ctx!.moveTo(cx, cy);
-        for (let s = 0; s < segs; s++) {
-            a += curve / segs;
-            cx += Math.cos(a) * (len / segs);
-            cy += Math.sin(a) * (len / segs);
-            ctx!.lineTo(cx, cy);
-        }
-        ctx!.stroke();
-        // Mid-canopy foliage — leaves all along the limbs, not just the tips,
-        // so the plant reads lush instead of bare.
-        if (depth <= maxD - 3 && r() < 0.85) leafCluster(cx, cy, a + (r() - 0.5) * 1.2, Math.max(7 * unit, len * 0.5));
-        const kids = Math.min(splits, 2 + (r() < 0.7 ? 1 : 0));
-        const spread = 0.6 + r() * 0.6;
-        for (let k = 0; k < kids; k++) {
-            const t = kids === 1 ? 0 : (k / (kids - 1) - 0.5);
-            const na = a + t * spread + (r() - 0.5) * 0.22 + windBias * 0.14;
-            branch(cx, cy, na, len * (0.66 + r() * 0.16), w * 0.72, depth - 1, maxD);
+    // BREADTH-FIRST growth. A global branch budget bounds total cost, but it has
+    // to spread EVENLY across the whole tree or it drains down one path and the
+    // plant reads as a spindly stick (the old depth-first bug). A queue processes
+    // the tree level by level, so the budget fills a balanced canopy and, when it
+    // runs out, the frontier becomes a tidy ring of leaves (Brendon, 2026-06-17).
+    interface Job { x: number; y: number; ang: number; len: number; w: number; depth: number }
+    const q: Job[] = [];
+    const maxD = maxDepth;
+    function grow() {
+        let head = 0;
+        while (head < q.length) {
+            const j = q[head++];
+            if (j.depth <= 0 || j.len < 3.5 * unit || budget <= 0) {
+                leafCluster(j.x, j.y, j.ang, Math.min(leafMax, Math.max(10 * unit, j.len)));
+                continue;
+            }
+            budget--;
+            const segs = 7;
+            const curve = (r() - 0.5) * 0.5 + weep * 0.14 + windBias * 0.12;
+            let cx = j.x, cy = j.y, a = j.ang;
+            const f = 1 - j.depth / maxD;               // 0 trunk → 1 tip
+            ctx!.strokeStyle = lerp(pal.trunk, pal.leaf, f);
+            ctx!.lineWidth = Math.max(0.7, j.w);
+            ctx!.beginPath();
+            ctx!.moveTo(cx, cy);
+            for (let s = 0; s < segs; s++) {
+                a += curve / segs;
+                cx += Math.cos(a) * (j.len / segs);
+                cy += Math.sin(a) * (j.len / segs);
+                ctx!.lineTo(cx, cy);
+            }
+            ctx!.stroke();
+            // Mid-canopy foliage along nearly every limb so it reads lush.
+            if (j.depth <= maxD - 1 && r() < 0.9) leafCluster(cx, cy, a + (r() - 0.5) * 1.2, Math.min(leafMax, Math.max(9 * unit, j.len * 0.6)));
+            const kids = Math.min(splits, 2 + (r() < 0.7 ? 1 : 0));
+            // Wide near the base, tightening toward the tips → the plant splays
+            // to fill the frame instead of staying a narrow vertical plume.
+            const spread = (0.9 + r() * 0.8) * (1 + (1 - f) * 0.6);
+            for (let k = 0; k < kids; k++) {
+                const t = kids === 1 ? 0 : (k / (kids - 1) - 0.5);
+                const na = a + t * spread + (r() - 0.5) * 0.22 + windBias * 0.14;
+                q.push({ x: cx, y: cy, ang: na, len: j.len * (0.66 + r() * 0.16), w: j.w * 0.82, depth: j.depth - 1 });
+            }
         }
     }
 
@@ -170,19 +190,20 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
         const arms = 6 + Math.floor(r() * 5);
         for (let i = 0; i < arms; i++) {
             const a = (i / arms) * Math.PI * 2 + r() * 0.2;
-            branch(cx, cy, a, W * 0.2, 2.6 * unit, maxDepth - 1, maxDepth);
+            q.push({ x: cx, y: cy, ang: a, len: W * 0.2, w: 3.4 * unit, depth: maxDepth - 1 });
         }
     } else if (p.form === 'Bush') {
         const stems = 3 + Math.floor(r() * 3);
         for (let i = 0; i < stems; i++) {
             const bx = W * (0.26 + 0.48 * (stems === 1 ? 0.5 : i / (stems - 1)));
-            branch(bx, H * 0.97, -Math.PI / 2 + (r() - 0.5) * 0.6, H * 0.34, 3 * unit, maxDepth, maxDepth);
+            q.push({ x: bx, y: H * 0.97, ang: -Math.PI / 2 + (r() - 0.5) * 0.6, len: H * 0.4, w: 7 * unit, depth: maxDepth });
         }
     } else if (p.form === 'Vine') {
-        branch(W * 0.1, H * 0.95, -Math.PI / 2 + 0.55, H * 0.46, 3.4 * unit, maxDepth, maxDepth);
+        q.push({ x: W * 0.1, y: H * 0.95, ang: -Math.PI / 2 + 0.55, len: H * 0.54, w: 8 * unit, depth: maxDepth });
     } else {
-        branch(W * 0.5, H * 0.98, -Math.PI / 2, H * 0.42, 3.6 * unit, maxDepth, maxDepth);
+        q.push({ x: W * 0.5, y: H * 0.98, ang: -Math.PI / 2, len: H * 0.52, w: 8.5 * unit, depth: maxDepth });
     }
+    grow();
 
     // Floating pollen / spores — additive motes drifting in the light.
     ctx.shadowBlur = 0;
@@ -198,7 +219,7 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
     }
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
-    const vg = ctx.createRadialGradient(W / 2, H * 0.45, W * 0.34, W / 2, H * 0.5, W * 0.78);
+    const vg = ctx.createRadialGradient(W / 2, H * 0.5, W * 0.34, W / 2, H * 0.52, W * 0.78);
     vg.addColorStop(0, 'transparent');
     vg.addColorStop(1, dark ? 'rgba(0,0,0,0.42)' : 'rgba(40,30,15,0.16)');
     ctx.fillStyle = vg;
