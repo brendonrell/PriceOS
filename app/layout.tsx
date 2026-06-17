@@ -184,6 +184,24 @@ const PREHYDRATION_SCRIPT = `
             // its URL-bar/status-bar with a visible delay after the loader exits.
             var tcm = document.getElementById('theme-color-meta');
             if (tcm) tcm.setAttribute('content', bg);
+            // iOS Safari reads the TOP status-bar tint from theme-color at LOAD
+            // (it ignores later live changes — that's why only the bottom bar
+            // darkened). So if Ambient Light is dimming in a browser tab, paint
+            // the chrome dark right here at boot. No live toggling = no
+            // regression risk; the live code keeps the bottom in lockstep.
+            try {
+                if (tcm) {
+                    var ambN = JSON.parse(localStorage.getItem('pd_settings_notifs') || '{}');
+                    var ambO = JSON.parse(localStorage.getItem('pd_ambient_opts') || '{}');
+                    var ambD = ambO ? ambO.dim : 0;
+                    var dimOn = ambD && ambD !== 'off' && ambD !== 0;
+                    var standalone = (navigator.standalone === true) ||
+                        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+                    if (ambN && ambN.ambientStrip && dimOn && !standalone) {
+                        tcm.setAttribute('content', '#03020a');
+                    }
+                }
+            } catch (e) { /* ignore */ }
         }
 
         if (profileBoot) {
