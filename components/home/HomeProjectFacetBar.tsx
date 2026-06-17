@@ -330,7 +330,11 @@ export default function HomeProjectFacetBar({
                 )}
             </div>
 
-            {/* Sort bar — colorway squares + Date (birth order) / $ Mint. */}
+            {/* Sort bar — colorway squares + Date (birth order) / $ Mint. Hidden
+               entirely in the Top 6 (compact) view so the colorway picker doesn't
+               show there; in compact the sort buttons are already gone, leaving
+               only the picker (Brendon, 2026-06-17). */}
+            {!compact && (
             <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
@@ -401,6 +405,7 @@ export default function HomeProjectFacetBar({
                 </div>
                 )}
             </div>
+            )}
 
             {!compact && (
             <>
