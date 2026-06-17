@@ -6,12 +6,27 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `b463298`). This chat's task
+- **Branch:** all work is on `dev`, pushed, tree clean (head `7e60f5f`). This chat's task
   branch `claude/artist-pill-ui-layout-qibheo` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
 - **Updated:** 2026-06-17 (latest). This session = **6 NEW GEN-ART PROJECTS (opus4-8)** (🖼️ below)
-  + a big spot-edit batch. Prior: The Audience (🎬), ARTIST SHOWCASE / mood palette (🎨), HOME
-  draw (🏠), profile + favicon (🎯), BENCH/CART/Ambient/Zen (🪑), Familiar (🐾), security (🛡️).
+  + colorway-from-DB + ambient/shuffle polish (🎚️ below). Prior: The Audience (🎬), ARTIST
+  SHOWCASE / mood palette (🎨), HOME draw (🏠), BENCH/CART/Ambient/Zen (🪑), Familiar (🐾).
+
+## 🎚️ COLORWAY-FROM-DB + AMBIENT/SHUFFLE POLISH 2026-06-17 — SHIPPED to dev
+- **Project colorway is now DB-driven** (`projects.custom_color`), registry value is the fallback —
+  same standard as soundtrack. One resolver `projectColorway(slug)` in the registry; the `/outputs`
+  fetch fills an override + repaints via the existing `pd:custom-color-changed` event. Every project
+  keeps its own colour; artist can change it without a deploy. (Latent flash only if a DB colour ever
+  differs from the registry fallback — offered to make first-paint read DB if Brendon goes DB-only.)
+- **Reliquary** colorway → deep charcoal-violet `#15121d` (dim-church interior; lets the glass glow).
+  Registry + DB both set so it paints instantly.
+- **Ambient strip** now seats directly below the Tape with a ~10px buffer on EVERY device — offset
+  mirrors the navbar's own padding per breakpoint/PWA (the notch's safe-area inset was erasing the
+  gap → collision). Menu chips → 4px signature pills (were round capsules); ☼ glyph added before the
+  menu title (mini LED kept). Lives in the gap between Tape and title; both on together.
+- **Home Shuffle tab** shows only when all three tabs fit one line; hides (never wraps) otherwise,
+  re-checked on resize/rotate (JS wrap-detection, not a breakpoint). Only Shuffle is affected.
 
 ## 🖼️ SIX NEW GEN-ART PROJECTS 2026-06-17 (latest) — SHIPPED to dev
 - Six fresh projects, artist `opus4-8`, all in `lib/art/engines/` + wired in `lib/project/registry.ts`,
