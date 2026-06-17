@@ -167,6 +167,12 @@ interface ArtworkCardProps {
        (Courier) + #ID (Rubik) instead of the owner/price — and never the owner
        (Brendon 2026-06-16). Project/home carousels leave this false. */
     showProjectName?: boolean;
+    /* Internal paint resolution. Full grids paint at 400px; surfaces that only
+       ever show a TINY tile (home carousels ~120px, shuffle teasers) pass a
+       smaller value so the engine paints a fraction of the pixels — the homepage
+       mounts dozens of these at once, and the full-res paint is what chokes it
+       (Brendon, 2026-06-16). Defaults to 400. */
+    renderSize?: number;
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -180,6 +186,7 @@ export default function ArtworkCard({
     eager = false,
     hideOwnedBadge = false,
     showProjectName = false,
+    renderSize = 400,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -363,7 +370,7 @@ export default function ArtworkCard({
             /* Per-Project Artwork via the registry engine (deterministic on
                id). Sets canvas width/height and returns the aspect ratio,
                which we mirror onto the wrapper so CSS scales it correctly. */
-            const ratio = paintOutput(canvas, slug, id, 400);
+            const ratio = paintOutput(canvas, slug, id, renderSize);
             if (wrapper) {
                 wrapper.style.aspectRatio = String(ratio);
             }
@@ -380,7 +387,7 @@ export default function ArtworkCard({
         return () => {
             unregisterCanvas(vkey);
         };
-    }, [id, slug, eager]);
+    }, [id, slug, eager, renderSize]);
 
     /* sim 8008-8014 — when hammer-mode is on, tapping the card body
        toggles mute on this token rather than opening the modal. Mode

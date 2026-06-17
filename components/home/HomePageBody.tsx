@@ -137,7 +137,9 @@ function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
             </div>
             <div className="home-carousel-track">
                 {ids.map((id) => (
-                    <ArtworkCard key={id} id={id} eager={eager} />
+                    /* Carousel tiles cap at ~120px — paint a small canvas, not the
+                       full 400px grid res, so a page of carousels stays snappy. */
+                    <ArtworkCard key={id} id={id} eager={eager} renderSize={200} />
                 ))}
             </div>
         </section>
@@ -177,7 +179,8 @@ function ShuffleGallery({ seed }: { seed: number }) {
             />
             <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
                 {ids.map((id) => (
-                    <ArtworkCard key={`${seed}-${id}`} id={id} />
+                    /* Shuffle teasers also show small — paint a smaller canvas. */
+                    <ArtworkCard key={`${seed}-${id}`} id={id} renderSize={240} />
                 ))}
             </section>
         </>
