@@ -8435,11 +8435,11 @@ body.colorway-dark .ghost-feed-bar {
    beneath the square in every safe-area / PWA case. */
 .fullscreen-back {
     position: fixed;
-    top: calc(max(25px, env(safe-area-inset-top)) + 48px);
+    top: calc(max(25px, env(safe-area-inset-top)) + 40px);
     right: 40px;
     z-index: 110;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 22px;
+    font-size: 16px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.7;
@@ -8451,14 +8451,14 @@ body.colorway-dark .ghost-feed-bar {
 }
 .fullscreen-back:hover { opacity: 1; }
 body.is-pwa .fullscreen-back {
-    top: calc(max(30px, calc(env(safe-area-inset-top) + 12px)) + 48px);
+    top: calc(max(30px, calc(env(safe-area-inset-top) + 12px)) + 40px);
 }
 @media (max-width: 600px) {
     .fullscreen-back {
         right: 20px;
-        top: calc(max(15px, env(safe-area-inset-top)) + 48px);
+        top: calc(max(15px, env(safe-area-inset-top)) + 40px);
     }
     body.is-pwa .fullscreen-back {
-        top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 48px);
+        top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 40px);
     }
 }
