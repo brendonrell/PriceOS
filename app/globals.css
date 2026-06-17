@@ -8414,10 +8414,16 @@ body.colorway-dark .ghost-feed-bar {
 .artwork-more-stats { margin-top: 4px; }
 
 /* ── Fullscreen artwork view — just the art, framed by the colorway bg ─────── */
+/* In normal flow (NOT position:fixed) so the whole page rubber-bands as one
+   unit on pull-to-refresh instead of the art staying pinned while the chrome
+   slides. The art fills the space below the navbar; the site footer is hidden
+   here (the old full-viewport overlay covered it anyway), keeping the
+   single-screen immersive look. */
+main:has(> .artwork-fullscreen) { display: flex; }
+body:has(.artwork-fullscreen) .priceos-footer { display: none; }
 .artwork-fullscreen {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
+    flex: 1;
+    min-height: 0;
     background: var(--bg-color);
     display: flex;
     align-items: center;
@@ -8425,8 +8431,8 @@ body.colorway-dark .ghost-feed-bar {
     padding: 4vmin;
 }
 .artwork-fullscreen-art {
-    max-width: calc(100vw - 8vmin);
-    max-height: calc(100vh - 8vmin);
+    max-width: 100%;
+    max-height: 100%;
     border-radius: 4px;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
 }
@@ -8434,12 +8440,12 @@ body.colorway-dark .ghost-feed-bar {
    The top offset mirrors the navbar's own top padding so it tucks right
    beneath the square in every safe-area / PWA case. */
 .fullscreen-back {
-    position: fixed;
+    position: absolute;
     top: calc(max(25px, env(safe-area-inset-top)) + 40px);
     right: 40px;
     z-index: 110;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
+    font-size: 32px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.7;
