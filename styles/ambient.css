@@ -212,10 +212,11 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     right: 10px;
     z-index: 1;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 18px;
+    font-size: 24px;
+    font-weight: bold;
     line-height: 1;
     color: inherit;
-    opacity: 0.5;
+    opacity: 0.8;
     cursor: pointer;
     padding: 4px 6px;
     margin: -4px -6px;
@@ -280,14 +281,14 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     padding-bottom: 2px;
-    /* Reserve room on the right so the Surprise pill clears the close ×. */
-    padding-right: 20px;
+    /* Reserve room on the right so the title clears the close ×. */
+    padding-right: 26px;
 }
 /* Muted title text — kept off the row itself so the Surprise pill (a sibling)
    renders at full strength rather than inheriting the row's opacity. */
 .ambient-pop-title-text { opacity: 0.7; }
-/* Surprise — a small signature pill at the end of the title row that rolls a
-   random look. Same 4px-radius tab as every other chip. */
+/* Surprise — a small signature pill pinned to the far right of the code row
+   that rolls a random look. Same 4px-radius tab as every other chip. */
 .ambient-surprise {
     margin-left: auto;
     height: 22px;
@@ -383,14 +384,16 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     border-top: 1px solid var(--border-color);
 }
 .ambient-code-label {
-    flex: 0 0 56px;
+    flex: 0 0 auto;
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 0.06em;
     opacity: 0.6;
 }
+/* Value sits right beside the label (left-grouped, not flung to the far edge). */
 .ambient-code-input {
-    flex: 1 1 auto;
+    flex: 0 1 116px;
+    width: 116px;
     min-width: 0;
     background: transparent;
     border: none;
@@ -402,7 +405,7 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     opacity: 0.8;
     padding: 0;
     text-transform: uppercase;
-    text-align: right;
+    text-align: left;
 }
 .ambient-code-input:focus { opacity: 1; }
 .ambient-code-copy {

@@ -331,17 +331,6 @@ export default function AmbientStrip() {
                         <span className="ambient-pop-title-led" />
                         <span className="ambient-pop-title-icon" aria-hidden="true" onClick={onSunTap}>{'☼︎'}</span>
                         <span className="ambient-pop-title-text">Ambient Light</span>
-                        <button
-                            type="button"
-                            className="ambient-chip ambient-surprise"
-                            onClick={() => { if (surpriseHeld.current) { surpriseHeld.current = false; return; } surprise(); }}
-                            onPointerDown={beginSurpriseHold}
-                            onPointerUp={endSurpriseHold}
-                            onPointerLeave={endSurpriseHold}
-                            title="Surprise me — a random look"
-                        >
-                            Surprise
-                        </button>
                     </div>
                     <Row label="Scenes">
                         {SCENES.map((s) => (
@@ -434,6 +423,17 @@ export default function AmbientStrip() {
                         >
                             ⧉{'︎'}
                         </span>
+                        <button
+                            type="button"
+                            className="ambient-chip ambient-surprise"
+                            onClick={() => { if (surpriseHeld.current) { surpriseHeld.current = false; return; } surprise(); }}
+                            onPointerDown={beginSurpriseHold}
+                            onPointerUp={endSurpriseHold}
+                            onPointerLeave={endSurpriseHold}
+                            title="Surprise me — a random look"
+                        >
+                            Surprise
+                        </button>
                     </div>
                 </div>
             )}
