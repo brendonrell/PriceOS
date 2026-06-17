@@ -6,12 +6,32 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `66f79ce`). This chat's task
-  branch `claude/determined-heisenberg-7odwqj` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean (head `b463298`). This chat's task
+  branch `claude/artist-pill-ui-layout-qibheo` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-16 (latest). This session = **The Audience + a big spot-edit batch** (🎬 below).
-  Prior: ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠), profile + favicon (🎯), BENCH/CART/
-  Ambient/Zen (🪑), minting/profile fixes (🐛), Familiar (🐾), security sweep (🛡️), pings (🔔).
+- **Updated:** 2026-06-17 (latest). This session = **6 NEW GEN-ART PROJECTS (opus4-8)** (🖼️ below)
+  + a big spot-edit batch. Prior: The Audience (🎬), ARTIST SHOWCASE / mood palette (🎨), HOME
+  draw (🏠), profile + favicon (🎯), BENCH/CART/Ambient/Zen (🪑), Familiar (🐾), security (🛡️).
+
+## 🖼️ SIX NEW GEN-ART PROJECTS 2026-06-17 (latest) — SHIPPED to dev
+- Six fresh projects, artist `opus4-8`, all in `lib/art/engines/` + wired in `lib/project/registry.ts`,
+  with **fresh** DB rows in `projects` (graduated_at NULL, milestones {}, description NULL, low
+  minted_count, mint 0, Brendon's wallet as artist, colorway + soundtrack set). Surface under New Gen Art.
+  - **Test Pattern** — homage to artplusbrad "Over the Air": flat colour-field TV grid + clustered
+    digital corruption + CRT vignette.
+  - **Cultivar** — homage to Zancan "YYYSEED": BOTANICAL line-work. Rebuilt to **breadth-first**
+    growth (the old depth-first drained the branch budget down one path → spindly sticks); now a
+    balanced frame-filling blossoming canopy with a visible trunk skeleton.
+  - **Pendula** — original: harmonograph silk-knot; per-token amplitudes for variety.
+  - **Boreal** — original: aurora flow-field curtains; per-token field rotation + domain warp so
+    they fold not comb; Rose magenta palette added.
+  - **Reliquary** — original: backlit stained-glass rose window (was rendering black — invalid
+    colour-stop string; fixed).
+  - **Bulletin** — original: abstract animated teletext mosaic (static in galleries, animates in
+    single view at W≥320).
+- All 6 run through the specialist **jury** (colour/composition/theory/creative-coding), 2 rounds.
+  Perf bounded for galleries: budget caps, shadowBlur/getImageData/animation gated to larger widths,
+  virtualizer LRU. Also lightened existing **Coral Logic** + **Avalanche** load (kept their look).
 
 ## 🎬 THE AUDIENCE + SPOT-EDIT BATCH 2026-06-16 (latest) — SHIPPED to dev
 - **The Audience** — live per-project presence (`◐ N watching`, pulse at 10+, tap-to-reveal
