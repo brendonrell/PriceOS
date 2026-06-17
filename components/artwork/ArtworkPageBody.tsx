@@ -3,46 +3,31 @@
 /*
  * components/artwork/ArtworkPageBody.tsx
  *
- * Artwork page body — mounted by app/[slug]/page.tsx (canonical
- * `/{globalId}`) and app/art/[slug]/[localId]/page.tsx (alt URL).
- * Forked from ProjectPageBody.tsx (NOT the profile body): the hero
- * markup mirrors project line-for-line so existing globals.css
- * rules paint the surface identically — same `.project-title`,
- * same `.project-custom` lockup (By + artist-name-wrap +
- * artist-tag + follow-badge + follower-count), same `.info-line`
- * "Collected by"-shape chip pattern (here: "Held by"), same
- * `.stats-grid` with class-qualified icons that the CSS sizes
- * per-row (.stats-row .stat-icon-owners, .stats-row-2
- * .stat-icon-owned/spent, .stats-row-2 .stat-item-anchor
- * .stat-icon-box). Same BUY button format (parens around price,
- * no space between mint-lbl and mint-price spans).
+ * Artwork page body — the FEATURE page for one Output. Mounted by
+ * app/[slug]/page.tsx (canonical `/{globalId}`) and
+ * app/art/[slug]/[localId]/page.tsx (alt URL).
  *
- * The three differences from project:
- *   - Title reads `{Project} #{n}` (e.g. "Prisms #1"); no date span.
- *   - Held-by chip replaces project's Collected-by list (current
- *     owner instead of past collectors).
- *   - Tabs are Artwork / Albums / + More; gallery section below
- *     renders a single span-3 card on the Artwork tab.
- *
- * v0 hardcodes:
- *   - Project name "Prisms" Title-Case for canonical URL; alt URL
- *     passes its slug and we title-case here.
- *   - Artist line @claude placeholder mirrors project page exactly.
- *   - Held-by chip @cto static.
- *   - Stats values are static placeholders.
- *   - BUY button toasts "Buy — coming soon".
- *
- * Alt URL passes localId as the placeholder globalId for the
- * renderer; the indexer mapping (project, localId) ↔ globalId is
- * parked. Both URLs render the same body once that mapping lands.
+ * Hero markup mirrors ProjectPageBody so the shared globals.css rules paint it
+ * identically. Differences from project:
+ *   - Title reads `{Project} #{n}`; the PROJECT NAME links to the project page
+ *     (like the modal); the #id stays plain text (not a link).
+ *   - Held-by chip shows the current owner (live), linked to their profile.
+ *   - The artwork renders LIVE + high-res (not the gallery thumbnail), using
+ *     the full horizontal space for wide pieces.
+ *   - A "Full Screen" link under the art opens the immersive fullscreen view.
+ *   - The CTA mirrors the artwork modal: LIST / UNLIST / BUY · price / MAKE
+ *     OFFER, driven by live ownership + listing.
+ *   - Tabs are Artwork / Albums / + More. The second stats row lives in the
+ *     Stats sub-tab under + More.
  */
 
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { useCart } from '../../lib/state/CartContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
-import ArtworkCard from '../ArtworkCard';
+import ArtworkLive from './ArtworkLive';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -50,12 +35,24 @@ function shortAddr(a: string | null): string {
 }
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';
+/* + More sub-sections — same set as the project page's + More. */
+type MoreL1 =
+    | 'replay' | 'stats' | 'genome' | 'gnome' | 'albums'
+    | 'social' | 'sentiment' | 'attributes' | 'pricestory';
+const MORE_PILLS: { key: MoreL1; label: string }[] = [
+    { key: 'replay', label: 'Replay' },
+    { key: 'stats', label: 'Stats' },
+    { key: 'genome', label: 'Genome' },
+    { key: 'gnome', label: 'Gnome' },
+    { key: 'albums', label: 'Albums' },
+    { key: 'social', label: 'Social' },
+    { key: 'sentiment', label: 'Sentiment' },
+    { key: 'attributes', label: 'Attributes' },
+    { key: 'pricestory', label: 'Price Story' },
+];
 
 interface Props {
     globalId: number;
-    /* Alt-URL context — when mounted via /art/{slug}/{localId}, the
-       project slug and localId are available for the title line.
-       Canonical /{globalId} mounts pass only globalId. */
     projectSlug?: string;
     localId?: number;
 }
@@ -72,7 +69,9 @@ export default function ArtworkPageBody({
     localId,
 }: Props) {
     const { showToast } = useToast();
+    const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
+    const [moreL1, setMoreL1] = useState<MoreL1>('stats');
 
     /* Stat-icon toast helper — mirrors project + profile pages. */
     const iconToastProps = (label: string) => ({
@@ -92,19 +91,21 @@ export default function ArtworkPageBody({
     const onAlbums = activeTab === 'albums';
     const onMore = activeTab === 'more';
 
-    /* Title: "Prisms #1". Canonical URL has only globalId (Prisms is
-       hardcoded for v0 demo data); alt URL passes its slug + localId. */
+    /* Title: "Prisms #1". */
     const projectName = projectSlug ? titleCase(projectSlug) : 'Prisms';
     const numberPart = typeof localId === 'number' ? localId : globalId;
-    const titleLabel = `${projectName} #${numberPart}`;
+    const slug = (projectSlug ?? 'prisms').toLowerCase();
+    const projectHref = `/art/${slug}`;
+    const fullscreenHref = `/art/${slug}/${numberPart}/full`;
+
+    const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
 
     /* Live market stats for this Output. */
-    const slug = (projectSlug ?? 'prisms').toLowerCase();
-    const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
         listing: { price_eth: string } | null;
         last_sale: string | null; floor: string | null;
+        viewer: { address: string; isOwner: boolean; balance: number } | null;
     } | null>(null);
     useEffect(() => {
         let cancelled = false;
@@ -114,7 +115,46 @@ export default function ArtworkPageBody({
             .catch(() => {});
         return () => { cancelled = true; };
     }, [slug, numberPart]);
+
+    const owned = market?.viewer?.isOwner ?? false;
+    const ownerHref = market?.owner_handle
+        ? `/${market.owner_handle}`
+        : (market?.owner ? `/${market.owner}` : undefined);
     const heldBy = market?.owner_handle ? `@${market.owner_handle}` : shortAddr(market?.owner ?? null);
+
+    /* CTA — mirrors the artwork modal (OutputPreview): owner sees LIST/UNLIST,
+       a non-owner sees BUY · price when listed, else MAKE OFFER. */
+    const listPrice = market?.listing?.price_eth ?? null;
+    const isListed = listPrice != null;
+    let ctaLabel: ReactNode;
+    let ctaAction: 'buy' | 'list' | 'unlist' | 'offer';
+    if (owned) {
+        ctaLabel = <span className="mint-lbl">{isListed ? 'UNLIST' : 'LIST'}</span>;
+        ctaAction = isListed ? 'unlist' : 'list';
+    } else if (isListed) {
+        ctaLabel = (<><span className="mint-lbl">BUY</span><span className="mint-price">({listPrice} ETH)</span></>);
+        ctaAction = 'buy';
+    } else {
+        ctaLabel = <span className="mint-lbl">MAKE OFFER</span>;
+        ctaAction = 'offer';
+    }
+    const onCta = () => {
+        if (ctaAction === 'buy') {
+            if (cartHas(slug, numberPart)) {
+                showToast(`${projectName} #${numberPart}: ALREADY IN CART`);
+            } else {
+                cartAdd(slug, numberPart);
+                const next = cartItems.length + 1;
+                showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
+            }
+        } else if (ctaAction === 'list') {
+            showToast('List: COMING SOON');
+        } else if (ctaAction === 'unlist') {
+            showToast('Unlist: COMING SOON');
+        } else {
+            showToast('Make Offer: COMING SOON');
+        }
+    };
 
     return (
         <ProjectProvider slug={projectSlug}>
@@ -122,24 +162,21 @@ export default function ArtworkPageBody({
             <section className="project-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
                     <h1 className="project-title">
-                        <span>{titleLabel}</span>
+                        {/* Project name → project page (like the modal). The
+                            #id stays plain text, not a link. */}
+                        <span><a className="artwork-title-link" href={projectHref}>{projectName}</a> #{numberPart}</span>
                     </h1>
 
-                    {/* Artist line — mirrors ProjectPageBody.tsx exactly
-                        (.project-custom + by-text + artist-lockup +
-                        artist-name-wrap + artist-tag + follow-badge +
-                        follower-count). @claude placeholder per the
-                        project page convention. */}
                     <div className="hero-line project-custom">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href={`/${artistHandle}`}>@{artistHandle}</a>
+                                <a className="profile-link" href={`/${artistHandle}`}>@{artistHandle}</a>
                                 <span
                                     className="artist-tag"
                                     aria-label="artist"
                                 >
-                                    {'✺\uFE0E'}
+                                    {'✺︎'}
                                 </span>
                                 <span className="follow-badge">
                                     <span className="ico-mutual" title="Mutual">
@@ -151,10 +188,7 @@ export default function ArtworkPageBody({
                         </div>
                     </div>
 
-                    {/* Held-by line — same chip shape as project's
-                        "Collected by" (.info-line + .info-rubik +
-                        .collected-pair containing .collected-sprite +
-                        .profile-link). Current owner @cto. */}
+                    {/* Held-by line — current owner, linked to their profile. */}
                     <div className="hero-line info-line">
                         <span className="info-rubik">
                             Held by{' '}
@@ -162,17 +196,15 @@ export default function ArtworkPageBody({
                                 <span className="collected-sprite">
                                     (⌐■_■)
                                 </span>
-                                <a className="profile-link">{heldBy}</a>
+                                {ownerHref
+                                    ? <a className="profile-link" href={ownerHref}>{heldBy}</a>
+                                    : <span className="profile-link">{heldBy}</span>}
                             </span>
                         </span>
                     </div>
 
-                    {/* Stats grid — class structure mirrors project
-                        line-for-line so the same per-class icon-sizing
-                        rules apply (.stats-row .stat-icon-owners,
-                        .stats-row-2 .stat-icon-owned/spent, anchor
-                        cell). Content is artwork-relevant; wrapper
-                        classes are project-identical. */}
+                    {/* Stats grid — FIRST row only in the hero. The second row
+                        moved into the Stats sub-tab under + More. */}
                     <div className="stats-grid">
                         <div className="hero-line stats-row">
                             <span className="stat-item">
@@ -218,69 +250,23 @@ export default function ArtworkPageBody({
                                 </span>
                             </span>
                         </div>
-
-                        <div className="hero-line stats-row stats-row-2">
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box stat-icon-owned"
-                                    {...iconToastProps('Your Holding Status')}
-                                >
-                                    ⊡&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val stat-val-empty"></span>
-                            </span>
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box stat-icon-spent"
-                                    {...iconToastProps('Floor Price')}
-                                >
-                                    ↨&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
-                            </span>
-                            <span className="stat-item stat-item-anchor">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Your Personal Reference Price')}
-                                >
-                                    ⚓&#xFE0E;
-                                </span>{' '}
-                                <span
-                                    className="stat-val stat-val-empty"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Tap to set"
-                                    onClick={() => showToast('Anchor: COMING SOON')}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            showToast('Anchor: COMING SOON');
-                                        }
-                                    }}
-                                ></span>
-                            </span>
-                        </div>
                     </div>
                 </div>
 
                 <div className="hero-group-2">
-                    {/* Action button — mirrors project's BUY format
-                        (mint-lbl + mint-price spans, parens around
-                        price, no space between spans). */}
+                    {/* CTA — mirrors the artwork modal's ownership/listing-aware
+                        button (LIST / UNLIST / BUY · price / MAKE OFFER). */}
                     <div className="action-row">
                         <button
                             className="btn-mint"
-                            title={`Buy ${titleLabel}`}
-                            onClick={() => showToast('Buy: COMING SOON')}
+                            title={`${projectName} #${numberPart}`}
+                            onClick={onCta}
                         >
-                            <span className="mint-lbl">BUY</span>
-                            <span className="mint-price">({market?.listing?.price_eth ?? market?.floor ?? '—'} ETH)</span>
+                            {ctaLabel}
                         </button>
                     </div>
 
-                    {/* Tab row — Artwork / Albums / + More. Same
-                        `.profile-tabs-row` + `.pill .pill-l1` structure
-                        as project + profile pages. */}
+                    {/* Tab row — Artwork / Albums / + More. */}
                     <div className="profile-tabs-row" id="artworkTabsRow">
                         <div
                             className={`pill pill-l1${onArtwork ? ' active' : ''}`}
@@ -334,17 +320,34 @@ export default function ArtworkPageBody({
                 </div>
             </section>
 
-            {/* Artwork tab — single large render. Reuses #gallery's
-                auto-fill grid template; the wrapper's `grid-column:
-                span 3` lands ~3-col-wide on desktop and falls back to
-                single full-width column on narrow viewports. */}
+            {/* Artwork tab — the LIVE, high-res render. Full horizontal width;
+                tall pieces cap to viewport height and centre. A footer row
+                carries #id, an owned ✓, the Full Screen link, and the owner. */}
             <section
-                id="gallery"
+                id="artwork-feature"
                 aria-label="Artwork"
                 style={{ display: onArtwork ? undefined : 'none' }}
             >
-                <div style={{ gridColumn: 'span 3' }}>
-                    <ArtworkCard id={globalId} />
+                <div className="artwork-feature-stage">
+                    <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
+                </div>
+                <div className="artwork-feature-foot">
+                    <span className="aff-id">
+                        #{numberPart}
+                        {owned && <span className="aff-check" title="You own this">{' '}✓</span>}
+                        {' '}
+                        <a
+                            className="aff-fullscreen"
+                            href={fullscreenHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Full Screen
+                        </a>
+                    </span>
+                    {ownerHref
+                        ? <a className="aff-owner profile-link" href={ownerHref}>{heldBy}</a>
+                        : <span className="aff-owner">{heldBy}</span>}
                 </div>
             </section>
 
@@ -357,13 +360,81 @@ export default function ArtworkPageBody({
                 <p className="info-rubik">Not in any albums yet.</p>
             </section>
 
-            {/* + More tab — full details placeholder. */}
+            {/* + More tab — same sub-section pill set as the project page; the
+                Stats sub-tab holds the artwork's second stats row. */}
             <section
                 id="details-panel"
                 aria-label="Details"
                 style={{ display: onMore ? 'block' : 'none' }}
             >
-                <p className="info-rubik">Full details coming soon.</p>
+                <div className="profile-tabs-row artwork-more-pills">
+                    {MORE_PILLS.map((p) => (
+                        <div
+                            key={p.key}
+                            className={`pill pill-l1${moreL1 === p.key ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setMoreL1(p.key)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setMoreL1(p.key);
+                                }
+                            }}
+                            title={p.label}
+                        >
+                            <span className="stat-name">{p.label}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {moreL1 === 'stats' ? (
+                    <div className="stats-grid artwork-more-stats">
+                        <div className="hero-line stats-row stats-row-2">
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-owned"
+                                    {...iconToastProps('Your Holding Status')}
+                                >
+                                    ⊡&#xFE0E;
+                                </span>{' '}
+                                <span className="stat-val stat-val-empty">{owned ? 'OWNED' : ''}</span>
+                            </span>
+                            <span className="stat-item">
+                                <span
+                                    className="stat-icon stat-icon-box stat-icon-spent"
+                                    {...iconToastProps('Floor Price')}
+                                >
+                                    ↨&#xFE0E;
+                                </span>{' '}
+                                <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
+                            </span>
+                            <span className="stat-item stat-item-anchor">
+                                <span
+                                    className="stat-icon stat-icon-box"
+                                    {...iconToastProps('Your Personal Reference Price')}
+                                >
+                                    ⚓&#xFE0E;
+                                </span>{' '}
+                                <span
+                                    className="stat-val stat-val-empty"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Tap to set"
+                                    onClick={() => showToast('Anchor: COMING SOON')}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            showToast('Anchor: COMING SOON');
+                                        }
+                                    }}
+                                ></span>
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="info-rubik">Coming soon.</p>
+                )}
             </section>
             </TraitsProvider>
         </ProjectProvider>
