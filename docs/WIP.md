@@ -6,12 +6,30 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `2d2f595`). This chat's task
+- **Branch:** all work is on `dev`, pushed, tree clean (head `575df1d`). This chat's task
   branch `claude/ambient-light-setup-codes-ohkop1` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
 - **Updated:** 2026-06-17 (latest). This session = **PWA STEP 3 + CONVERSION TRACKING** (📲 below)
-  + AMBIENT SETUP CODES + a clutch of UI fixes (🎚️ below). Prior: 6 gen-art projects (🖼️),
-  colorway-from-DB, ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠), BENCH/CART/Zen (🪑).
+  + AMBIENT MENU v2 / setup codes / 3rd page / eggs + UI fixes (🎚️ below). Prior: 6 gen-art
+  projects (🖼️), colorway-from-DB, ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠).
+
+## 🎚️ AMBIENT MENU v2 — 3-PAGE PAGER, ATMOSPHERE, EGGS 2026-06-17 (latest) — SHIPPED to dev
+- **3-page swipe pager** (half-size iOS dots; remembers last page in localStorage `pd_ambient_page`):
+  P1 Scenes+Color · P2 Pattern+Speed+Dim+Level · P3 **ATMO·SPHERE** (one left-label section: Glow
+  [spill brightness] + Reach [spill distance] shown together; persisted/DB, NOT in the share code).
+- New options: patterns **Drift + Throb**, speed **Turbo**, dim presets **Shadow(80) + Abyss(86)**
+  (appended → codes back-compatible). **Setup Code** footer = slim one row + dotted UNDERLINE on the
+  field (no box). Sun ☼ title glyph +2 / bold.
+- **Wave hue-spin:** the BAR now hue-spins in lockstep with the spotlight (shared `amb-hue` /
+  `amb-wave-bg`, same duration) so strip = the colour of the light it throws. Hue spin is a FEATURE.
+- **Hidden eggs:** sun 5-tap → spectrum; hold-Surprise → nova; word-codes in the field; **tap "SPHERE"
+  on P3 ×3 → the bar balls into an orb** (`sphere-mode`, transient).
+- **Safari chrome when dimming (browser only; PWA untouched via `:not(.is-pwa)`):** BOTTOM toolbar
+  darkens via theme-color (works) — gated in AmbientStrip dim effect + ColorwayContext + **FaviconEngine**
+  (the favicon engine was the stomper repainting tint→colorway). **TOP status bar = NOT web-controllable
+  on Brendon's iOS** — it ignores theme-color (tried live + boot-time at layout.tsx prehydration); left
+  as colorway. Don't re-attempt without a real device. The old solid safe-area gutter bars are gated to
+  `:not(.is-pwa)` (were showing as black bars in the PWA — that's fixed/confirmed).
 
 ## 📲 PWA INSTALL STEP 3 + CONVERSION TRACKING 2026-06-17 (latest) — SHIPPED to dev
 - **Signup Step 3** (`components/wallet/PwaInstallStep.tsx`, wired in `AccountCreateModal`): after
