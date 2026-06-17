@@ -3086,7 +3086,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    (Brendon, 2026-06-16). */
 .id-row-artist {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
     line-height: 1;
     letter-spacing: -0.5px;
@@ -3096,7 +3096,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: inline-block;
     text-decoration: none;
     position: relative;
-    top: 3px;
+    top: 2px;
 }
 /* Mobile: the user-profile artist badge rides 3px higher than desktop's +3px —
    i.e. it sits at 0, NOT −3px (which was a 6px jump, double the intended nudge).
