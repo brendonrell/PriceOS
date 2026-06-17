@@ -15,6 +15,9 @@ import type { ProjectDef, TraitSchema, OutputTraits, TraitDef } from './types';
 import { renderPrisms, prismsTraits, prismsSchema, PRISMS_ASPECTS } from '../art/engines/prisms';
 import { renderOracle, oracleTraits, oracleSchema, ORACLE_ASPECTS } from '../art/engines/oracle';
 import * as AI from '../art/engines/ai';
+import { renderTestPattern, testPatternTraits, testPatternSchema, TEST_PATTERN_ASPECTS } from '../art/engines/testPattern';
+import { renderCultivar, cultivarTraits, cultivarSchema, CULTIVAR_ASPECTS } from '../art/engines/cultivar';
+import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '../art/engines/pendula';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -87,6 +90,53 @@ const ORACLE: ProjectDef = {
   traitSchema: oracleSchema,
   render: renderOracle,
   traitsOf: oracleTraits,
+};
+
+/* ── opus4-8 projects (2026-06-16) ───────────────────────────────────────
+ * Three new generative engines. Test Pattern = homage to artplusbrad's
+ * "Over the Air" (broadcast signal-grid). Cultivar = homage to fxhash's
+ * fx(params) launch piece "YYYSEED" by Zancan (botanical line-work). Pendula
+ * = an original harmonograph. Render from the static registry alone. */
+const TEST_PATTERN: ProjectDef = {
+  slug: 'testpattern',
+  displayName: 'Test Pattern',
+  artistHandle: 'opus4-8',
+  outputs: 604,
+  colorway: '#2347ff',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_mrUY03jLjKAJrWRq3UOqcvdVncCE8FDnI', label: 'Oneohtrix Point Never — Replica' },
+  aspects: TEST_PATTERN_ASPECTS,
+  traitSchema: testPatternSchema,
+  render: renderTestPattern,
+  traitsOf: testPatternTraits,
+};
+
+const CULTIVAR: ProjectDef = {
+  slug: 'cultivar',
+  displayName: 'Cultivar',
+  artistHandle: 'opus4-8',
+  outputs: 512,
+  colorway: '#2f6b4f',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_khfcOEuin5PG2Z70byPFVH4nyEP_R8Bqc', label: "Mort Garson — Mother Earth's Plantasia" },
+  aspects: CULTIVAR_ASPECTS,
+  traitSchema: cultivarSchema,
+  render: renderCultivar,
+  traitsOf: cultivarTraits,
+};
+
+const PENDULA: ProjectDef = {
+  slug: 'pendula',
+  displayName: 'Pendula',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#4b53b8',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lZKSdlPBNBgPNW1WWWZAfHOAixffO957I', label: 'Steve Reich — Music for 18 Musicians' },
+  aspects: PENDULA_ASPECTS,
+  traitSchema: pendulaSchema,
+  render: renderPendula,
+  traitsOf: pendulaTraits,
 };
 
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
@@ -203,7 +253,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
