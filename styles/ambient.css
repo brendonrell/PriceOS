@@ -15,10 +15,13 @@
     --amb4: #2fe28a;
     --amb-dur: 14s;
     position: fixed;
-    /* Tucked just under the Tape, inside the top bar — the navbar's top padding
-       is max(25px, safe-area) and the Tape is ~22px, so this lands the bar right
-       below it (Brendon, 2026-06-16). */
-    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 30px);
+    /* Sit DIRECTLY below the Tape with a small buffer, on every device. The Tape
+       rides inside the navbar, whose top padding is max(25px, safe-area); the
+       Tape's bottom lands ~30px into that padded box, so tape-bottom + a 10px
+       buffer = navbar-padding-top + 40px. The offset MUST mirror the navbar's
+       own padding per breakpoint/PWA — otherwise the notch's safe-area inset
+       erases the gap and the bar collides with the Tape (Brendon, 2026-06-17). */
+    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 40px);
     left: 0;
     right: 0;
     z-index: 90; /* under navbar (100), over content */
@@ -26,6 +29,20 @@
     flex-direction: column;
     align-items: center;
     pointer-events: none;
+}
+/* PWA navbar padding is max(30px, safe-area + 12px) — track it. */
+body.is-pwa .ambient-strip-layer {
+    top: calc(max(30px, calc(env(safe-area-inset-top, 0px) + 12px)) + 40px);
+}
+@media (max-width: 600px) {
+    /* Mobile navbar padding is max(15px, safe-area). */
+    .ambient-strip-layer {
+        top: calc(max(15px, env(safe-area-inset-top, 0px)) + 40px);
+    }
+    /* Mobile PWA navbar padding is max(30px, safe-area + 16px). */
+    body.is-pwa .ambient-strip-layer {
+        top: calc(max(30px, calc(env(safe-area-inset-top, 0px) + 16px)) + 40px);
+    }
 }
 
 /* ---- Palettes (just the 4 colour stops; the rest is derived) ---------- */
@@ -206,15 +223,19 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
     flex-wrap: wrap;
     gap: 6px;
 }
+/* Match the platform's signature pill (.pill / .pill-l1): a 4px-radius tab, not
+   a fully-round capsule (Brendon, 2026-06-17 — "use our signature pills"). */
 .ambient-chip {
+    display: inline-flex;
+    align-items: center;
     background: transparent;
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    border-radius: 999px;
-    height: 26px;
-    padding: 0 11px;
+    border-radius: 4px;
+    height: 28px;
+    padding: 0 10px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -239,6 +260,12 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
     opacity: 0.7;
     padding-bottom: 2px;
 }
+/* Canonical ambient glyph before the title (kept alongside the mini LED). */
+.ambient-pop-title-icon {
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0.85;
+}
 /* Mini LED in the title, painted in the CURRENT palette (the popup sits inside
    .pal-<current>, so the vars resolve to whatever's selected). */
 .ambient-pop-title-led {
@@ -257,8 +284,8 @@ body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
 }
 .ambient-swatch {
     width: 20px;
-    height: 11px;
-    border-radius: 999px;
+    height: 12px;
+    border-radius: 3px;
     flex: 0 0 auto;
     background: linear-gradient(90deg, var(--amb1), var(--amb2), var(--amb3), var(--amb4));
     box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);

@@ -175,6 +175,7 @@ export default function AmbientStrip() {
                 <div className="ambient-pop" role="dialog" aria-label="Ambient light options">
                     <div className="ambient-pop-title">
                         <span className="ambient-pop-title-led" />
+                        <span className="ambient-pop-title-icon" aria-hidden="true">{'☼︎'}</span>
                         Ambient Light
                     </div>
                     <Row label="Color">
