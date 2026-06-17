@@ -43,9 +43,11 @@ export default function ArtworkLive({
         paintOutput(canvas, slug, id, target);
     }, [slug, id]);
 
-    const style: CSSProperties = contain
-        ? { maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', display: 'block' }
-        : { width: '100%', height: 'auto', display: 'block' };
+    // Sizing is CSS-driven via `className` (so it can use viewport-relative
+    // caps); inline only guards against horizontal overflow. `contain` is kept
+    // for callers but the fit is expressed in CSS, not a parent-relative % cap.
+    void contain;
+    const style: CSSProperties = { display: 'block', maxWidth: '100%' };
 
     return <canvas ref={canvasRef} className={className} style={style} />;
 }
