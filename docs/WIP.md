@@ -6,12 +6,42 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `7e60f5f`). This chat's task
-  branch `claude/artist-pill-ui-layout-qibheo` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean (head `2d2f595`). This chat's task
+  branch `claude/ambient-light-setup-codes-ohkop1` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-17 (latest). This session = **6 NEW GEN-ART PROJECTS (opus4-8)** (🖼️ below)
-  + colorway-from-DB + ambient/shuffle polish (🎚️ below). Prior: The Audience (🎬), ARTIST
-  SHOWCASE / mood palette (🎨), HOME draw (🏠), BENCH/CART/Ambient/Zen (🪑), Familiar (🐾).
+- **Updated:** 2026-06-17 (latest). This session = **PWA STEP 3 + CONVERSION TRACKING** (📲 below)
+  + AMBIENT SETUP CODES + a clutch of UI fixes (🎚️ below). Prior: 6 gen-art projects (🖼️),
+  colorway-from-DB, ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠), BENCH/CART/Zen (🪑).
+
+## 📲 PWA INSTALL STEP 3 + CONVERSION TRACKING 2026-06-17 (latest) — SHIPPED to dev
+- **Signup Step 3** (`components/wallet/PwaInstallStep.tsx`, wired in `AccountCreateModal`): after
+  claim, OS-adaptive home-screen nudge. iOS/iPad → Share→Add instruction; **Android** → fires Chrome's
+  native install (`lib/pwa/installPrompt.ts` captures `beforeinstallprompt`), circular maskable icon;
+  **desktop** (mac/win/linux) → "get PD on your phone" + a real QR encoding `window.location.origin`
+  (margin 4, verified decodable). Already-standalone sessions skip it. Main copy in Rubik; iOS-style
+  rounded icon elsewhere. OS detect in `lib/pwa/platform.ts`.
+- **Zero-cache service worker** (`public/sw.js` + `SwRegistrar` now REGISTERS, not kills): no-op fetch
+  handler, caches nothing → keeps the site live (the old caching SW was ripped out for stale builds)
+  while making Android eligible for the native install prompt. Real-device Android still unverified.
+- **Conversion tracking** (`userState.markPwaUsed` on standalone+signed-in launch in `PriceOSShell`;
+  `recordPwa` for the prompt funnel): first-party, NO migration — rides in `settings.pwa`
+  (`converted_at` once + `last_used_at` + prompt seen/result). Query via `settings->'pwa'`.
+- **Decisions:** no Google Analytics (third-party + crypto-audience blocking; use Search Console for
+  SEO if/when). No Courier Prime — Android keeps its native mono (can't ship true Courier New; licensed).
+  Notifications NOT built yet (push backend + permission ask is a separate future piece; PWA install is
+  the gate, esp. iOS 16.4+). **Idea parked:** internal ads/CRM = one DB ad row + per-user stage state.
+
+## 🎚️ AMBIENT SETUP CODES + UI FIXES 2026-06-17 — SHIPPED to dev
+- **Ambient Light is its own world:** separate **Ambient Codes** (`lib/state/AmbientCode.ts`, start
+  `AMBI`, no dashes) — never touches the main Setup Code. Menu rebuilt: 2-page **swipe pager** w/ iOS
+  dots (Scenes+Color / Pattern+Speed+Dim), persistent **Setup Code + Surprise** footer, close ×, curated
+  **Scenes**, **dim slider** (0–100, value rides in the code), section dividers, connect-menu scroll
+  cap. Dimming also darkens iOS chrome + safe-area gutters (theme-color respects dim in ColorwayContext).
+  Hidden eggs in there (sun 5-tap, hold-Surprise, word-codes) — undocumented on purpose.
+- **Grail pins:** dropped fake hardcoded prices (all outputs UNLISTED — DB confirms 0 listings); price
+  shows only for a real listing; × now sits inside the pill. **Breadcrumb** dot → colorway-fill + faint
+  outline (subtle). **Artist badge:** desktop 16px/+1, mobile 19px/+1; tooltip = "✺ Official PD Artist —
+  whitelisted". **Top-6 artist view** hides the colorway picker. Hover-row note icon up 1px.
 
 ## 🎚️ COLORWAY-FROM-DB + AMBIENT/SHUFFLE POLISH 2026-06-17 — SHIPPED to dev
 - **Project colorway is now DB-driven** (`projects.custom_color`), registry value is the fallback —
