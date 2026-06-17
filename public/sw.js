@@ -1,28 +1,30 @@
 /*
- * PD service worker — DISABLED / SELF-DESTRUCT (Brendon, 2026-06-15).
+ * PD service worker — INSTALLABILITY ONLY, ZERO CACHING (Brendon, 2026-06-17).
  *
- * Offline caching was handing devices stale builds (a new deploy wouldn't show
- * until the cached copy was evicted) — not worth it. This worker no longer
- * caches anything. Kept as a file (not deleted) so already-installed workers
- * fetch THIS on their next update check and tear themselves down: it clears
- * every cache, unregisters itself, and reloads open tabs so they run straight
- * from the network. After that no service worker controls the app at all.
+ * PD must always be a LIVE site. A previous caching worker pinned stale builds
+ * (new deploys wouldn't show), so it was ripped out. This worker exists for ONE
+ * reason: Chrome/Android only offers the "Install app" / Add-to-Home-Screen
+ * prompt when a service worker WITH a fetch handler controls the page. So we
+ * ship the smallest possible one:
+ *   - it caches NOTHING,
+ *   - its fetch handler is a no-op, so every request falls through to the
+ *     network exactly as if no worker existed (no staleness, ever),
+ *   - it activates immediately and wipes any caches an old worker left behind.
  */
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
+    // Drop any caches a previous (caching) worker may have left behind.
     try {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     } catch { /* ignore */ }
-    try { await self.registration.unregister(); } catch { /* ignore */ }
-    try {
-      const clients = await self.clients.matchAll({ type: 'window' });
-      clients.forEach((c) => c.navigate(c.url));
-    } catch { /* ignore */ }
+    try { await self.clients.claim(); } catch { /* ignore */ }
   })());
 });
 
-// No fetch handler — every request goes straight to the network, as if no
-// service worker existed.
+// No-op fetch handler: present so Chrome deems the app installable, but it never
+// calls respondWith — the browser handles every request straight from the
+// network. Nothing is cached or intercepted, so the site stays live.
+self.addEventListener('fetch', () => { /* network passthrough */ });
