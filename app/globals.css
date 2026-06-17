@@ -3098,8 +3098,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: relative;
     top: 3px;
 }
-/* Mobile: the user-profile artist badge rides 3px higher again (Brendon, 2026-06-17). */
-@media (max-width: 600px) { .id-row-artist { top: -3px; } }
+/* Mobile: the user-profile artist badge rides 3px higher than desktop's +3px —
+   i.e. it sits at 0, NOT −3px (which was a 6px jump, double the intended nudge).
+   (Brendon, 2026-06-17.) */
+@media (max-width: 600px) { .id-row-artist { top: 0px; } }
 
 /* Artwork-modal title: project name + #id are both tappable links that
    underline on hover/focus (Brendon, 2026-06-16). Project name → project page;
@@ -6890,7 +6892,10 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     font-size: 14px; font-weight: bold; opacity: 0.55;
     cursor: pointer; line-height: 1; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 8px 8px 8px 6px; margin: -8px -12px -8px 0;
+    /* The pill expands to include the ×: only a small counter-margin so the
+       enlarged hit-target stays tidy without flinging the glyph off the pill
+       (Brendon, 2026-06-17 — was -12px, which pushed it outside the pill). */
+    padding: 8px 4px 8px 6px; margin: -8px -4px -8px 0;
 }
 .grail-pill-unpin:hover { opacity: 1; }
 

@@ -78,16 +78,16 @@ function shortAddr(addr: string): string {
 export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
     const isMine = id % 2 === 1;
 
-    const r1 = ((id * 9301 + 49297) % 233280) / 233280;
-    const r2 = ((id * 31 + 1234567) % 233280) / 233280;
-    const isListed = r1 < 0.3;
-    const price = isListed ? (r2 * 0.5 + 0.01).toFixed(3) + ' ETH' : null;
-
+    // No mock listings: every Output on PD is currently UNLISTED. The real
+    // listing price (when one exists) comes from the DB overlay in the reconcile
+    // below — the synchronous default is always null so nothing fabricates a
+    // price. (Brendon, 2026-06-17 — the old deterministic mock price was showing
+    // fake ETH on grail pins, which never reconcile with the DB.)
     return {
         ownerDisplay: isMine ? '@brendon' : '@opus4-6',
         ownerFull: isMine ? BRENDON_ADDR : OPUS_ADDR,
         ownerCreatedAt: null,
-        price,
+        price: null,
         isOwnedByBrendon: isMine,
         traits: outputTraits(slug, id),
     };
