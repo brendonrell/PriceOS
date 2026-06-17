@@ -154,7 +154,14 @@ export function FaviconEngine() {
         // URL-bar / status-bar tint in lockstep with the page background.
         if (bg) {
             const tcm = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-            if (tcm) tcm.setAttribute('content', bg);
+            if (tcm) {
+                // While Ambient dimming in a BROWSER tab, the chrome tint stays
+                // dark — don't stomp it back to the bright colorway on repaint
+                // (this engine was the reason the Safari fix never stuck —
+                // Brendon, 2026-06-17).
+                const dimDark = document.body.classList.contains('ambient-dim-on') && !document.body.classList.contains('is-pwa');
+                tcm.setAttribute('content', dimDark ? '#03020a' : bg);
+            }
         }
     }, [ethPing, rotated, notifs.priceLogo]);
 

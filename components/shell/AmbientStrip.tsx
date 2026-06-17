@@ -517,24 +517,18 @@ export default function AmbientStrip() {
                             </div>
                         </div>
                         <div className="ambient-pop-page">
-                            <div className="ambient-pop-atmos-title" aria-hidden="true">
-                                ATMO<span className="ambient-atmos-sphere" onClick={onSphereTap}>SPHERE</span>
-                            </div>
-                            <Row label="Glow">
+                            <Row label={<span className="ambient-atmos-label">ATMO·<span className="ambient-atmos-sphere" onClick={onSphereTap}>SPHERE</span></span>}>
                                 {GLOWS.map((g) => (
                                     <Chip key={g.id} on={(opts.glow ?? 'med') === g.id} onClick={() => set('glow', g.id)}>
                                         {g.label}
                                     </Chip>
                                 ))}
-                            </Row>
-                            <Row label="Reach">
                                 {REACHES.map((r) => (
                                     <Chip key={r.id} on={(opts.reach ?? 'mid') === r.id} onClick={() => set('reach', r.id)}>
                                         {r.label}
                                     </Chip>
                                 ))}
                             </Row>
-                            <div className="ambient-pop-atmos-note">Atmosphere — how the light fills the room. Travels with you; not in the share code.</div>
                         </div>
                     </div>
                     <div className="ambient-pop-dots" role="tablist" aria-label="Menu pages">
@@ -552,37 +546,39 @@ export default function AmbientStrip() {
                     </div>
                     <div className="ambient-code-row">
                         <span className="ambient-code-label">Setup Code</span>
-                        <input
-                            ref={codeInputRef}
-                            type="text"
-                            className="ambient-code-input"
-                            value={codeValue}
-                            onChange={(e) => { setCodeEditing(true); setCodeValue(e.target.value); }}
-                            onFocus={() => {
-                                setCodeEditing(true);
-                                const el = codeInputRef.current;
-                                if (el) window.setTimeout(() => { try { el.select(); } catch { /* ignore */ } }, 0);
-                            }}
-                            onBlur={applyCode}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') { e.preventDefault(); codeInputRef.current?.blur(); }
-                                else if (e.key === 'Escape') { e.preventDefault(); setCodeValue(currentCode); setCodeEditing(false); codeInputRef.current?.blur(); }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            spellCheck={false}
-                            autoCapitalize="characters"
-                            autoCorrect="off"
-                            title="Ambient Code — shares just your ambient light look. Paste a code + Enter to apply."
-                        />
-                        <span
-                            className="ambient-code-copy"
-                            onClick={copyCode}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyCode(e); } }}
-                            title="Copy Ambient Code"
-                            role="button"
-                            tabIndex={0}
-                        >
-                            ⧉{'︎'}
+                        <span className="ambient-code-field">
+                            <input
+                                ref={codeInputRef}
+                                type="text"
+                                className="ambient-code-input"
+                                value={codeValue}
+                                onChange={(e) => { setCodeEditing(true); setCodeValue(e.target.value); }}
+                                onFocus={() => {
+                                    setCodeEditing(true);
+                                    const el = codeInputRef.current;
+                                    if (el) window.setTimeout(() => { try { el.select(); } catch { /* ignore */ } }, 0);
+                                }}
+                                onBlur={applyCode}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') { e.preventDefault(); codeInputRef.current?.blur(); }
+                                    else if (e.key === 'Escape') { e.preventDefault(); setCodeValue(currentCode); setCodeEditing(false); codeInputRef.current?.blur(); }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                spellCheck={false}
+                                autoCapitalize="characters"
+                                autoCorrect="off"
+                                title="Ambient Code — shares just your ambient light look. Paste a code + Enter to apply."
+                            />
+                            <span
+                                className="ambient-code-copy"
+                                onClick={copyCode}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyCode(e); } }}
+                                title="Copy Ambient Code"
+                                role="button"
+                                tabIndex={0}
+                            >
+                                ⧉{'︎'}
+                            </span>
                         </span>
                         <button
                             type="button"
@@ -602,7 +598,7 @@ export default function AmbientStrip() {
     );
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, children }: { label: ReactNode; children: ReactNode }) {
     return (
         <div className="ambient-pop-row">
             <span className="ambient-pop-label">{label}</span>

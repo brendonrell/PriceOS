@@ -136,11 +136,16 @@ body.is-pwa .ambient-strip-layer {
 }
 
 /* ---- Patterns --------------------------------------------------------- */
-/* WAVE — colours flow sideways. */
-.pat-wave .ambient-pill-led { animation: amb-wave var(--amb-dur) linear infinite; }
+/* WAVE — colours flow sideways AND hue-spin. The bar and the spotlight share the
+   SAME hue-rotate (same duration, both 0→360), so they're always the same colour
+   at any instant — the bar matches the spotlight, and the palette in settings
+   sets the base both spin from. (Brendon, 2026-06-17 — keep the hue spin; just
+   make them agree.) */
+.pat-wave .ambient-pill-led { animation: amb-wave var(--amb-dur) linear infinite, amb-hue var(--amb-dur) linear infinite; }
 .pat-wave .ambient-glow { animation: amb-wave-bg var(--amb-dur) linear infinite, amb-drift calc(var(--amb-dur) * 1.4) ease-in-out infinite; }
 @keyframes amb-wave { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
 @keyframes amb-wave-bg { 0% { filter: blur(44px) saturate(1.12) hue-rotate(0deg); } 100% { filter: blur(44px) saturate(1.12) hue-rotate(360deg); } }
+@keyframes amb-hue { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
 @keyframes amb-drift { 0%,100% { transform: translateX(-52%); } 50% { transform: translateX(-48%); } }
 
 /* PULSE — brightness throbs. */
@@ -485,31 +490,31 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
-    /* The whole field is framed in a dotted box so the copy icon reads as part
-       of the field instead of floating in space (Brendon, 2026-06-17). */
-    padding: 9px 11px;
-    border: 1px dashed var(--border-color);
-    border-radius: 6px;
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+/* Just the value + copy get a dotted UNDERLINE so the copy isn't floating —
+   no box, no extra height (Brendon, 2026-06-17). The line stretches across the
+   field; copy sits at its right end. */
+.ambient-code-field {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px dotted var(--text-color);
+    padding-bottom: 3px;
 }
 /* Atmosphere (page 3) title + footnote. "SPHERE" is a hidden tap target (3×
    balls the bar into an orb) — styled exactly like the rest so it's not
    advertised. */
-.ambient-pop-atmos-title {
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.7;
-    padding-bottom: 4px;
-}
+/* "ATMO·SPHERE" is the section's left label (same style as Pattern/Speed/etc).
+   It's longer than the others, so this row's label sizes to content + nowrap;
+   the Glow + Reach chips wrap to its right. "SPHERE" is a hidden tap target. */
+.ambient-pop-row .ambient-pop-label:has(.ambient-atmos-label) { flex: 0 0 auto; }
+.ambient-atmos-label { white-space: nowrap; }
 .ambient-atmos-sphere { cursor: default; -webkit-tap-highlight-color: transparent; }
-.ambient-pop-atmos-note {
-    font-size: 11px;
-    line-height: 1.45;
-    opacity: 0.55;
-    padding-top: 4px;
-}
 
 /* Hidden egg — the LED bar balls up into a little orb. A touch tall so the
    round reads clearly; morphs smoothly. The glow stays. */
@@ -529,10 +534,10 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     letter-spacing: 0.06em;
     opacity: 0.6;
 }
-/* Value sits right beside the label (left-grouped, not flung to the far edge). */
+/* Value fills the underlined field; copy sits at its right end. */
 .ambient-code-input {
-    flex: 0 1 92px;
-    width: 92px;
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
     background: transparent;
     border: none;
