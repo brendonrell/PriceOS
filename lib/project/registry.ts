@@ -326,6 +326,29 @@ export function getProject(slug: string): ProjectDef | null {
   return BY_SLUG.get(slug.toLowerCase()) ?? null;
 }
 
+/* ── Colorway: DB-driven, registry value as fallback ─────────────────────────
+   A Project's signature colour lives in the DB (`projects.custom_color`) so the
+   artist can change it without a code deploy — same standard as the soundtrack.
+   The registry `colorway` is only the fallback for first paint / missing rows.
+   ProjectContext fills this override map when the project data lands (then fires
+   `pd:custom-color-changed` so the page bg repaints). All colour reads go
+   through `projectColorway()` so DB and fallback are resolved in one place. */
+const COLOR_OVERRIDE = new Map<string, string>();
+
+/** Record the DB colour for a slug (null/blank clears it). */
+export function setProjectColorOverride(slug: string, hex: string | null | undefined): void {
+  const s = slug.toLowerCase();
+  if (hex && /^#[0-9a-f]{6}$/i.test(hex.trim())) COLOR_OVERRIDE.set(s, hex.trim());
+  else COLOR_OVERRIDE.delete(s);
+}
+
+/** A Project's signature colour: DB override if present, else the registry
+    fallback, else null for an unknown slug. */
+export function projectColorway(slug: string): string | null {
+  const s = slug.toLowerCase();
+  return COLOR_OVERRIDE.get(s) ?? BY_SLUG.get(s)?.colorway ?? null;
+}
+
 /** Whether a slug names a registered Project. */
 export function isProjectSlug(slug: string): boolean {
   return BY_SLUG.has(slug.toLowerCase());

@@ -39,7 +39,7 @@ import {
     type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { getProject } from '../project/registry';
+import { getProject, projectColorway } from '../project/registry';
 import { moodHexToday } from '../mood/mood';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 import {
@@ -271,7 +271,7 @@ function resolveCustomBg(): string {
     if (path === '/') return moodHexToday();
     if (path.startsWith('/art/')) {
         const slug = (path.split('/')[2] ?? '').toLowerCase();
-        return getProject(slug)?.colorway ?? DOT;
+        return projectColorway(slug) ?? DOT;
     }
     const firstSeg = (path.match(/^\/([^/]+)/)?.[1] ?? '').toLowerCase();
     const isProfile =
@@ -473,7 +473,7 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         // Oracle #C4902A), never the user's profile hex. An explicit non-custom
         // pick (dark/light/blue/…) still wins via the fall-through below.
         const projSlug = (pathname?.split('/')[2] ?? '').toLowerCase();
-        applyBgHex(getProject(projSlug)?.colorway ?? getCustomBg(), 'custom');
+        applyBgHex(projectColorway(projSlug) ?? getCustomBg(), 'custom');
         return saved;
     }
     if (isProfilePage && (saved === null || saved === 'custom')) {

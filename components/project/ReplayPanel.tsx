@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
-import { getProject } from '../../lib/project/registry';
+import { getProject, projectColorway } from '../../lib/project/registry';
 import { buildReplayHistory, snapshotAt, type ReplayEndState, type ReplayEvent } from '../../lib/replay/history';
 
 const SPEEDS = [1, 5, 22] as const;
@@ -176,7 +176,7 @@ export default function ReplayPanel() {
 
     const cs = getComputedStyle(canvas);
     const ink = cs.color || '#000';
-    const accent = (def?.colorway || ink).trim();
+    const accent = (projectColorway(project.slug) || def?.colorway || ink).trim();
 
     const snaps = history.snapshots;
     const n = snaps.length;

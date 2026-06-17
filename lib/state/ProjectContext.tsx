@@ -22,7 +22,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import { getProject, outputTraits, renderArtwork } from '../project/registry';
+import { getProject, outputTraits, renderArtwork, setProjectColorOverride } from '../project/registry';
 import type { OutputTraits } from '../project/types';
 import type { ProjectStats } from '../../app/api/project/[slug]/outputs/route';
 
@@ -180,8 +180,15 @@ export function ProjectProvider({
         const load = () => {
             fetch(`/api/project/${lower}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats; soundtrack?: string | null } | null) => {
+                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats; soundtrack?: string | null; colorway?: string | null } | null) => {
                     if (cancelled || !data) return;
+                    // DB colorway (projects.custom_color) overrides the registry
+                    // fallback; repaint the page bg if it's currently showing the
+                    // project's colour (same event the Custom slot uses).
+                    setProjectColorOverride(lower, data.colorway);
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new Event('pd:custom-color-changed'));
+                    }
                     setState((prev) => {
                         if (prev.slug !== lower) return prev;
                         const outputs = new Map(prev.outputs);
