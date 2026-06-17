@@ -101,7 +101,12 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
     ctx.lineJoin = 'round';
 
     const unit = W / 1000;
-    const maxDepth = p.density === 'Spare' ? 8 : p.density === 'Lush' ? 10 : 11;
+    // Recursion was exploding (2^depth branches) and choking the page. Cap depth
+    // AND put a hard ceiling on total branches so cost is bounded no matter what
+    // — the plant still reads lush, it just can't run away (Brendon, 2026-06-16).
+    const small = W < 300;
+    const maxDepth = (p.density === 'Spare' ? 6 : p.density === 'Lush' ? 7 : 8) - (small ? 2 : 0);
+    let budget = small ? 150 : 620;
     const splits = p.density === 'Spare' ? 2 : 3;
     const weep = p.habit === 'Weeping' ? 0.5 : p.habit === 'Wind' ? 0.0 : -0.18;
     const windBias = p.habit === 'Wind' ? 0.45 : 0;
@@ -131,7 +136,8 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
     }
 
     function branch(x: number, y: number, ang: number, len: number, w: number, depth: number, maxD: number) {
-        if (depth <= 0 || len < 3.5 * unit) { leafCluster(x, y, ang, Math.max(6 * unit, len)); return; }
+        if (depth <= 0 || len < 3.5 * unit || budget <= 0) { leafCluster(x, y, ang, Math.max(6 * unit, len)); return; }
+        budget--;
         const segs = 7;
         const curve = (r() - 0.5) * 0.5 + weep * 0.14 + windBias * 0.12;
         let cx = x, cy = y, a = ang;

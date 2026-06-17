@@ -3098,6 +3098,8 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: relative;
     top: 3px;
 }
+/* Mobile: the identity-row artist badge rides 3px higher (Brendon, 2026-06-16). */
+@media (max-width: 600px) { .id-row-artist { top: 0; } }
 
 /* Artwork-modal title: project name + #id are both tappable links that
    underline on hover/focus (Brendon, 2026-06-16). Project name → project page;

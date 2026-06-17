@@ -194,14 +194,17 @@ export const renderTestPattern: EngineFn = (canvas, tokenId, width) => {
     vg.addColorStop(1, 'rgba(0,0,0,0.32)');
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, W, H);
-    const grain = ctx.getImageData(0, 0, W, H);
-    const d = grain.data;
-    for (let i = 0; i < d.length; i += 4) {
-        const g = (r() - 0.5) * 14;
-        d[i] += g; d[i + 1] += g; d[i + 2] += g;
+    // Per-pixel film grain only on big single-view renders — getImageData per
+    // tile would choke a gallery full of these.
+    if (W >= 300) {
+        const grain = ctx.getImageData(0, 0, W, H);
+        const d = grain.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const g = (r() - 0.5) * 14;
+            d[i] += g; d[i + 1] += g; d[i + 2] += g;
+        }
+        ctx.putImageData(grain, 0, 0);
     }
-    ctx.putImageData(grain, 0, 0);
-
     return { aspect: p.aspect, traits: traitsFrom(p) };
 };
 

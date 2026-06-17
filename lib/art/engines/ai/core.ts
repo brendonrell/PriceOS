@@ -2037,7 +2037,7 @@ function avalanche(cv,seed){
   const n=216, cell=5;
   const grid=new Int32Array(n*n);
   const two=r()<0.3;
-  const grains=rint(r,24000,72000);
+  const grains=rint(r,14000,36000);
   const cx=Math.floor(n/2), cy=Math.floor(n/2);
   const c1=cy*n+cx;
   grid[c1]+=two? Math.floor(grains*0.6):grains;
@@ -2868,7 +2868,7 @@ function castTurfwar(seed){
 function castAvalanche(seed){
   const r=rng(seed);
   const two=r()<0.3;
-  const grains=rint(r,24000,72000);
+  const grains=rint(r,14000,36000);
   return {two,grains};
 }
 
@@ -4509,7 +4509,7 @@ function growth(cv,seed){
   const cx=W/2, cy=H/2;
   const maxEdge=S*0.0075, minDist=S*0.004, repulR=S*0.019, repR2=repulR*repulR;
   const kAttr=0.11, kAlign=0.13, kRepul=0.62, maxF=S*0.0045;
-  const budget= form==='colony'? 3600 : form==='tendril'? 2200 : 3200;
+  const budget= form==='colony'? 1700 : form==='tendril'? 1100 : 1500;
   // seed paths
   const paths=[];
   function ring(rcx,rcy,rad,n){const p=[];for(let i=0;i<n;i++){const a=i/n*6.283;p.push({x:rcx+Math.cos(a)*rad+(r()-0.5)*2,y:rcy+Math.sin(a)*rad+(r()-0.5)*2});}return {nodes:p,closed:true};}
@@ -4518,7 +4518,7 @@ function growth(cv,seed){
   else paths.push(ring(cx,cy,S*0.06,30));
   function count(){let c=0;for(const pa of paths)c+=pa.nodes.length;return c;}
   const cell=repulR;
-  for(let step=0;step<1300;step++){
+  for(let step=0;step<560;step++){
     // grid hash
     const grid=new Map();
     for(const pa of paths)for(const nd of pa.nodes){const key=((nd.x/cell)|0)+','+((nd.y/cell)|0);let a=grid.get(key);if(!a){a=[];grid.set(key,a);}a.push(nd);}

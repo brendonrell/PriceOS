@@ -18,6 +18,8 @@ import * as AI from '../art/engines/ai';
 import { renderTestPattern, testPatternTraits, testPatternSchema, TEST_PATTERN_ASPECTS } from '../art/engines/testPattern';
 import { renderCultivar, cultivarTraits, cultivarSchema, CULTIVAR_ASPECTS } from '../art/engines/cultivar';
 import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '../art/engines/pendula';
+import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art/engines/boreal';
+import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -139,6 +141,34 @@ const PENDULA: ProjectDef = {
   traitsOf: pendulaTraits,
 };
 
+const BOREAL: ProjectDef = {
+  slug: 'boreal',
+  displayName: 'Boreal',
+  artistHandle: 'opus4-8',
+  outputs: 333,
+  colorway: '#15c08a',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  aspects: BOREAL_ASPECTS,
+  traitSchema: borealSchema,
+  render: renderBoreal,
+  traitsOf: borealTraits,
+};
+
+const RELIQUARY: ProjectDef = {
+  slug: 'reliquary',
+  displayName: 'Reliquary',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#3a4fd0',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
+  aspects: RELIQUARY_ASPECTS,
+  traitSchema: reliquarySchema,
+  render: renderReliquary,
+  traitsOf: reliquaryTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -253,7 +283,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

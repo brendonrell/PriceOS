@@ -104,8 +104,16 @@ export const renderPendula: EngineFn = (canvas, tokenId, width) => {
     const R = W * 0.4;
     // Gentle decay: the trace should fill the frame and weave many times before
     // it loses energy — at STEPS end the envelope is still ~0.2–0.45.
-    const STEPS = 12000;
-    const d = p.decay === 'Slow' ? 0.00007 : p.decay === 'Quick' ? 0.00026 : 0.00014;
+    // Step count scales with size so tiny carousel tiles stay cheap (a page of
+    // them must never choke the browser); the dt compensates so the figure is
+    // the same shape at every resolution.
+    const STEPS = Math.round(Math.min(12000, Math.max(2800, W * 22)));
+    // Total swept arc + total decay are FIXED; dt and per-step decay derive from
+    // STEPS so the figure is identical at any resolution (only the smoothness of
+    // the line changes, not the shape).
+    const dt = 132 / STEPS;
+    const Dtot = p.decay === 'Slow' ? 0.84 : p.decay === 'Quick' ? 3.12 : 1.68;
+    const d = Dtot / STEPS;
     const passCount = p.passes === 'Single' ? 2 : p.passes === 'Woven' ? 4 : 6;
     const [fx1, fx2] = p.harmony.fx;
     const [fy1, fy2] = p.harmony.fy;
@@ -113,7 +121,6 @@ export const renderPendula: EngineFn = (canvas, tokenId, width) => {
     const px1 = p.phase, px2 = r() * Math.PI * 2;
     const py1 = r() * Math.PI * 2, py2 = r() * Math.PI * 2;
     const ax1 = 0.6, ax2 = 0.4, ay1 = 0.6, ay2 = 0.4;
-    const dt = 0.011;
 
     ctx.globalCompositeOperation = light ? 'multiply' : 'lighter';
     ctx.lineWidth = Math.max(0.6, W * (light ? 0.0016 : 0.0019));
