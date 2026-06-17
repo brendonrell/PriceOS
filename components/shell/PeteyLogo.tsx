@@ -61,6 +61,11 @@ export function PeteyLogo() {
        whole server page and re-rendered it client-side (the "loads twice" / heavy
        repaint, worst on the gallery-heavy profile). Go live only after mount. */
     const [sentiment, setSentiment] = useState<SentimentState>(SENTIMENT_STATES[0]);
+    /* The Sentiment Weather widget doesn't even mount until it's switched on —
+       no server/client work for a feature that's off by default. `mounted` keeps
+       the server + first client paint identical (nothing), then it can appear. */
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
     useEffect(() => {
         if (!showSentiment) return;
         setSentiment(getSentimentState());
@@ -148,25 +153,26 @@ export function PeteyLogo() {
                 <a href="/" className="pb-home" title="Home">HOME</a>
                 <a href="/$price" className="pb-price" title="$PRICE Token">$PRICE</a>
             </div>
-            <div
-                className="sentiment-widget"
-                id="sentimentWidget"
-                title={showSentiment ? sentiment.tip : undefined}
-                aria-hidden={!showSentiment}
-                style={{ display: showSentiment ? 'flex' : 'none' }}
-            >
-                {/* Sentiment Weather glyph — driven by sentimentEngine.
-                    7-state cycle (Strong Bull → Capitulation), ~3-6s
-                    cadence with 75% per-tick swap probability. Pauses
-                    on document.hidden. */}
-                <span
-                    id="sentimentIcon"
-                    aria-hidden="true"
-                    data-sentiment={sentiment.label}
+            {mounted && showSentiment && (
+                <div
+                    className="sentiment-widget"
+                    id="sentimentWidget"
+                    title={sentiment.tip}
+                    style={{ display: 'flex' }}
                 >
-                    {sentiment.icon}
-                </span>
-            </div>
+                    {/* Sentiment Weather glyph — driven by sentimentEngine.
+                        7-state cycle (Strong Bull → Capitulation), ~3-6s
+                        cadence with 75% per-tick swap probability. Pauses
+                        on document.hidden. */}
+                    <span
+                        id="sentimentIcon"
+                        aria-hidden="true"
+                        data-sentiment={sentiment.label}
+                    >
+                        {sentiment.icon}
+                    </span>
+                </div>
+            )}
         </div>
     );
 }
