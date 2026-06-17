@@ -517,18 +517,24 @@ export default function AmbientStrip() {
                             </div>
                         </div>
                         <div className="ambient-pop-page">
-                            <Row label={<span className="ambient-atmos-label">ATMO·<span className="ambient-atmos-sphere" onClick={onSphereTap}>SPHERE</span></span>}>
+                            <div className="ambient-pop-atmos-title" aria-hidden="true">
+                                ATMO<span className="ambient-atmos-sphere" onClick={onSphereTap}>SPHERE</span>
+                            </div>
+                            <Row label="Glow">
                                 {GLOWS.map((g) => (
                                     <Chip key={g.id} on={(opts.glow ?? 'med') === g.id} onClick={() => set('glow', g.id)}>
                                         {g.label}
                                     </Chip>
                                 ))}
+                            </Row>
+                            <Row label="Reach">
                                 {REACHES.map((r) => (
                                     <Chip key={r.id} on={(opts.reach ?? 'mid') === r.id} onClick={() => set('reach', r.id)}>
                                         {r.label}
                                     </Chip>
                                 ))}
                             </Row>
+                            <div className="ambient-pop-atmos-note">Atmosphere — how the light fills the room. Travels with you; not in the share code.</div>
                         </div>
                     </div>
                     <div className="ambient-pop-dots" role="tablist" aria-label="Menu pages">
