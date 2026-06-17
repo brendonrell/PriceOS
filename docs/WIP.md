@@ -25,8 +25,10 @@
   mirrors the navbar's own padding per breakpoint/PWA (the notch's safe-area inset was erasing the
   gap → collision). Menu chips → 4px signature pills (were round capsules); ☼ glyph added before the
   menu title (mini LED kept). Lives in the gap between Tape and title; both on together.
-- **Home Shuffle tab** shows only when all three tabs fit one line; hides (never wraps) otherwise,
-  re-checked on resize/rotate (JS wrap-detection, not a breakpoint). Only Shuffle is affected.
+- **Home Shuffle tab** + **Stickers button** show only when they fit one line; hide (never wrap)
+  otherwise, re-checked on resize/rotate (JS wrap-detection, not a breakpoint). Now Minting / New
+  Gen Art / Join The Chat always stay. (Stickers wrap-test uses the chat button's bottom edge — the
+  two buttons differ in height and are centre-aligned, so a top-vs-top test misreads the same line.)
 
 ## 🖼️ SIX NEW GEN-ART PROJECTS 2026-06-17 (latest) — SHIPPED to dev
 - Six fresh projects, artist `opus4-8`, all in `lib/art/engines/` + wired in `lib/project/registry.ts`,
