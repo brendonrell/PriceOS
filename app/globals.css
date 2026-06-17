@@ -499,7 +499,7 @@ body.sentiment-on .sentiment-widget {
 .ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* ✶ small + low */
 
 /* Read pings fade back; the empty-state line is muted. */
-.notif-item.read { opacity: 0.5; }
+.notif-item.read { opacity: 0.8; }
 .pings-empty {
     padding: 8px 10px;
     font-size: 12px;
@@ -1246,6 +1246,10 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     transition: background 0.2s, color 0.2s;
     border-radius: 4px;
     color: inherit;
+    /* Heavier weight so the rows read clearly on every colorway panel (a touch
+       bolder than the sim reference, by Brendon's call 2026-06-17). Colour is
+       left exactly as the colorway sets it — weight only. */
+    font-weight: 700;
 }
 
 .notif-item .n-icon {
