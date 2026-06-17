@@ -6389,6 +6389,7 @@ body.redacted-mode .user-text,
 body.redacted-mode .settings-wallet,
 body.redacted-mode .pill-ens,
 body.redacted-mode .meta-owner:not(.price-trigger),
+body.redacted-mode .aff-owner,
 body.redacted-mode .f-highlight,
 body.redacted-mode .modal-artist,
 body.redacted-mode .artist-lockup,
@@ -6430,6 +6431,7 @@ body.colorway-dark.redacted-mode .user-text,
 body.colorway-dark.redacted-mode .settings-wallet,
 body.colorway-dark.redacted-mode .pill-ens,
 body.colorway-dark.redacted-mode .meta-owner:not(.price-trigger),
+body.colorway-dark.redacted-mode .aff-owner,
 body.colorway-dark.redacted-mode .f-highlight,
 body.colorway-dark.redacted-mode .modal-artist,
 body.colorway-dark.redacted-mode .artist-lockup,
@@ -8386,13 +8388,16 @@ body.colorway-dark .ghost-feed-bar {
 @media (max-width: 600px) {
     .artwork-feature-foot { padding: 0 16px; }
 }
+/* Breathing room between the art's footer row and the site footer below. */
+#artwork-feature { padding-bottom: 40px; }
 .artwork-feature-foot .aff-check { opacity: 0.85; }
 .artwork-feature-foot .aff-fullscreen {
     margin-left: 8px;
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
-    opacity: 0.85;
+    opacity: 1;
+    font-weight: bold;
     color: inherit;
 }
 .artwork-feature-foot .aff-fullscreen:hover { opacity: 1; }
@@ -8424,4 +8429,36 @@ body.colorway-dark .ghost-feed-bar {
     max-height: calc(100vh - 8vmin);
     border-radius: 4px;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+}
+/* Back arrow — fixed in the top-right, just under the connect-menu square.
+   The top offset mirrors the navbar's own top padding so it tucks right
+   beneath the square in every safe-area / PWA case. */
+.fullscreen-back {
+    position: fixed;
+    top: calc(max(25px, env(safe-area-inset-top)) + 48px);
+    right: 40px;
+    z-index: 110;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--text-color);
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    padding: 4px 6px;
+    transition: opacity 0.2s;
+}
+.fullscreen-back:hover { opacity: 1; }
+body.is-pwa .fullscreen-back {
+    top: calc(max(30px, calc(env(safe-area-inset-top) + 12px)) + 48px);
+}
+@media (max-width: 600px) {
+    .fullscreen-back {
+        right: 20px;
+        top: calc(max(15px, env(safe-area-inset-top)) + 48px);
+    }
+    body.is-pwa .fullscreen-back {
+        top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 48px);
+    }
 }

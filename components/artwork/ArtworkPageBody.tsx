@@ -334,7 +334,11 @@ export default function ArtworkPageBody({
                 <div className="artwork-feature-foot">
                     <span className="aff-id">
                         #{numberPart}
-                        {owned && <span className="aff-check" title="You own this">{' '}✓</span>}
+                        {owned && (
+                            <span className="badge-owned" title="You own this">
+                                <span className="css-check" />
+                            </span>
+                        )}
                         {' '}
                         <a
                             className="aff-fullscreen"
