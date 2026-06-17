@@ -3080,7 +3080,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    (Brendon, 2026-06-16). */
 .id-row-artist {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: bold;
     line-height: 1;
     letter-spacing: -0.5px;
@@ -3090,8 +3090,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: inline-block;
     text-decoration: none;
     position: relative;
-    top: 1px;
+    top: 3px;
 }
+
+/* Artwork-modal title: project name + #id are both tappable links that
+   underline on hover/focus (Brendon, 2026-06-16). Project name → project page;
+   #id → that output's page (same destination as tapping the art). */
+.modal-title-link { cursor: pointer; }
+.modal-title-link:hover,
+.modal-title-link:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
 
 /* Artist badge inside the big Rubik title (profile hero @handle): the base
    .artist-tag top:2px is tuned for the small identity row and rides high
@@ -5022,7 +5029,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     margin: 28px 0 0;   /* air above */
     padding: 0 0 4px;   /* tight below → binds to the group under it */
 }
-.gallery-group-header:first-child { margin-top: 0; }
+/* The top group title was zeroed (too tight); give it a little air so the gap
+   above it reads like the gaps between sections — the gallery's own top padding
+   supplies the rest (Brendon, 2026-06-16). */
+.gallery-group-header:first-child { margin-top: 14px; }
 /* Level-2 title (project under an artist, in the Artist+Project combo) —
    indented + a touch quieter, sits closer to its own grid. */
 .gallery-group-header.level-2 {
@@ -5317,7 +5327,12 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 /* Note icon runs smaller than the other hover icons — the ⊟ glyph
    reads clearly at 14px and sits in better visual balance with the
    surrounding row. Two standard steps below the 18px baseline. */
-.hi-icon.hi-note { font-size: 14px; transform: translateY(-3px); }
+.hi-icon.hi-note { font-size: 14px; transform: translateY(-1px); }
+/* Card hover-row vertical nudges (Brendon, 2026-06-16): grail pin up 2px,
+   add-to-showcase down 1px (note handled above, down 2px). Placed before the
+   :hover rules so the hover lift still wins. */
+.hi-icon.hi-grail { transform: translateY(-2px); }
+.hi-icon.hi-showcase { transform: translateY(1px); }
 /* Brendon-list-3 chat A item 1a — note icon always visible on hover.
    Sim deviation: sim 2382 gates .hi-note to body.notes-mode only. Brendon
    wants quick-note creation available from any card hover regardless of

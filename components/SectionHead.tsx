@@ -29,6 +29,10 @@ export default function SectionHead({
     /** Extra class on the wrapper. */
     className?: string;
 }) {
+    /* Tolerate a handle that already carries a leading '@' (some registry/
+       migrated handles do) — strip it so the byline reads "@name", not "@@name",
+       and the profile link is /name, not the broken /@name. */
+    const handle = artist ? artist.replace(/^@+/, '') : null;
     return (
         <div className={`section-head${className ? ' ' + className : ''}`}>
             {titleHref ? (
@@ -36,8 +40,8 @@ export default function SectionHead({
             ) : (
                 <span className="section-head-title">{title}</span>
             )}
-            {artist && (
-                <span className="section-head-by"> by <a href={`/${artist}`}>@{artist}</a></span>
+            {handle && (
+                <span className="section-head-by"> by <a href={`/${handle}`}>@{handle}</a></span>
             )}
         </div>
     );

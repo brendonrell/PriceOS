@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useReducer } from 'react';
-import { outputColorBucket, type ColorBucket } from './outputColor';
+import { COLOR_BUCKET_ORDER, outputColorBucket, type ColorBucket } from './outputColor';
 
 const cache = new Map<string, ColorBucket>(); // `${slug}:${id}` -> stored bucket
 const reported = new Set<string>();           // POST dedupe (per session)
@@ -25,10 +25,9 @@ let version = 0;
 const listeners = new Set<() => void>();
 function bump() { version += 1; listeners.forEach((l) => l()); }
 
-const VALID = new Set<string>([
-    'Hothurt', 'Red', 'Orange', 'Yellow', 'Green', 'Blue',
-    'Purple', 'Pink', 'Brown', 'Beige', 'Grey', 'Black', 'White',
-]);
+/* Derived from the one canonical bucket list (outputColor) so the storage
+   gate can never drift from the classifier again. */
+const VALID = new Set<string>(COLOR_BUCKET_ORDER);
 
 /** Stored (DB-sampled) bucket for a piece, or null if not loaded/sampled yet. */
 export function storedBucket(slug: string, id: number): ColorBucket | null {

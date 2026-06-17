@@ -40,6 +40,7 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
 import ArtworkCard from '../ArtworkCard';
 
@@ -117,6 +118,7 @@ export default function ArtworkPageBody({
 
     return (
         <ProjectProvider slug={projectSlug}>
+            <TraitsProvider>
             <section className="project-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
                     <h1 className="project-title">
@@ -363,6 +365,7 @@ export default function ArtworkPageBody({
             >
                 <p className="info-rubik">Full details coming soon.</p>
             </section>
+            </TraitsProvider>
         </ProjectProvider>
     );
 }

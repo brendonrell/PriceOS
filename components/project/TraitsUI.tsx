@@ -782,7 +782,7 @@ export default function TraitsUI({
                                         <IconBtn
                                             cls="burn-btn"
                                             glyph={'⏚\uFE0E'}
-                                            title="Gallery Presets"
+                                            title="Grid Presets"
                                             active={presetRowActive}
                                             onClick={togglePresetRow}
                                         />

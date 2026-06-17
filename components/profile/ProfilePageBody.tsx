@@ -570,24 +570,6 @@ function ProfilePageBodyInner({
         return blocks;
     }, [group, sort, visibleCollected, colorsVer]);
 
-    /* Tap-to-group/sort must feel instant. Re-grouping re-parents every card,
-       which fully remounts the art tiles — so changing dimension while the old
-       grid is still painting overlaps two heavy repaints and the grid glitches
-       / sticks on one option. Fix: blank the grid the moment the dimension
-       changes, then paint the new layout on the next frame. Rapid taps keep it
-       blank and only the latest selection ever paints — the kill is instant,
-       nothing queues, nothing gets stuck (Brendon, 2026-06-16). */
-    const GRID_CLEARING = ' clearing';
-    const gridSig = `${group}|${sort}|${dir}`;
-    const [paintedSig, setPaintedSig] = useState(gridSig);
-    useEffect(() => {
-        if (paintedSig === gridSig) return;
-        setPaintedSig(GRID_CLEARING);
-        const raf = requestAnimationFrame(() => setPaintedSig(gridSig));
-        return () => cancelAnimationFrame(raf);
-    }, [gridSig, paintedSig]);
-    const gridClearing = paintedSig !== gridSig;
-
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
     // settings wallet copy). Inline checkmark swap for 1.5s.
@@ -1502,9 +1484,7 @@ function ProfilePageBodyInner({
                                   onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined}
                               />
                           )))
-                    : gridClearing
-                        ? null
-                        : enriched.length === 0
+                    : enriched.length === 0
                         ? collectedGhosts.map((aspect, i) => (
                               <GhostCard key={`coghost-${i}`} aspect={aspect} index={i} />
                           ))

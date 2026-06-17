@@ -885,16 +885,26 @@ export default function OutputPreview() {
                     <div className="modal-info">
                         <div className="modal-title" id="mTitle">
                             <span
-                                className="hover-link"
+                                className="hover-link modal-title-link"
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => {
-                                    if (id != null) { close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); }
-                                }}
+                                title="Go to project"
+                                onClick={() => { close(); window.scrollTo(0, 0); router.push(`/art/${slug}`); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); window.scrollTo(0, 0); router.push(`/art/${slug}`); } }}
                             >
                                 {title}
                             </span>
-                            {' '}#{id}
+                            {' '}
+                            <span
+                                className="hover-link modal-title-link"
+                                role="button"
+                                tabIndex={0}
+                                title="Go to this output"
+                                onClick={() => { if (id != null) { close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
+                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && id != null) { e.preventDefault(); close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
+                            >
+                                #{id}
+                            </span>
                         </div>
                         <div className="modal-pill-row" id="mPillRow">
                             <span

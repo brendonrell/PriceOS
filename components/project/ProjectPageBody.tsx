@@ -61,7 +61,7 @@
  * naming for sim-diff legibility.
  */
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
@@ -856,22 +856,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         return sections;
     }, [group, sort, visibleTokenIds, project, colorsVer]);
 
-    /* Tap-to-group/sort must feel instant. Re-grouping re-parents every card,
-       fully remounting the art tiles — changing dimension while the old grid is
-       still painting overlaps two heavy repaints and the grid sticks/glitches.
-       Blank the grid the instant the dimension changes, then paint the new
-       layout next frame; rapid taps keep it blank and only the latest pick ever
-       paints (Brendon, 2026-06-16). Mirrors the Collected grid fix. */
-    const GRID_CLEARING = ' clearing';
-    const gridSig = `${group}|${sort}|${dir}`;
-    const [paintedSig, setPaintedSig] = useState(gridSig);
-    useEffect(() => {
-        if (paintedSig === gridSig) return;
-        setPaintedSig(GRID_CLEARING);
-        const raf = requestAnimationFrame(() => setPaintedSig(gridSig));
-        return () => cancelAnimationFrame(raf);
-    }, [gridSig, paintedSig]);
-    const gridClearing = paintedSig !== gridSig;
+    /* Stable "first screenful" set, by lowest token id — membership does NOT
+       change when sort/group reorders the grid, so a card's `eager` flag never
+       flips. (A flipped eager re-registers the canvas and forces a repaint,
+       which is exactly the churn that made grouping jam.) */
+    const eagerIds = useMemo(
+        () => new Set([...visibleTokenIds].sort((a, b) => a - b).slice(0, EAGER_GALLERY_COUNT)),
+        [visibleTokenIds],
+    );
 
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
@@ -1306,38 +1298,39 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             index={i}
                         />
                     ))
-                    : (gridClearing && !onShowcaseTab)
-                        ? null
-                        : groupedSections && !onShowcaseTab
-                        ? groupedSections.map((sec) => (
-                            <Fragment key={`grp-${sec.label}`}>
-                                <div className={`gallery-group-header${sec.soon ? ' soon' : ''}`}>
-                                    <span className="ggh-label">{sec.label}</span>
-                                    {sec.soon
-                                        ? <span className="ggh-soon">coming soon</span>
-                                        : <span className="ggh-count">{sec.ids.length}</span>}
-                                </div>
-                                {sec.ids.map((id) => (
-                                    <ArtworkCard
-                                        key={id}
-                                        id={id}
-                                        projectShowcasePick={projectShowcasePicks.has(id)}
-                                        isBreadcrumb={breadcrumbSample.has(id)}
-                                    />
-                                ))}
-                            </Fragment>
-                        ))
-                        : visibleTokenIds.map((id, i) => (
+                    : groupedSections && !onShowcaseTab
+                        /* Grouped grid renders FLAT — headers and cards are direct
+                           children of #gallery (no per-group wrappers), every card
+                           keeps its stable key={id} + stable `eager`. So changing
+                           the grouping just REORDERS the cards (React moves the DOM
+                           nodes) and swaps the cheap headers; the art canvases are
+                           never unmounted, so they never repaint. Tap-to-group is
+                           instant and can't jam, however heavy the art (Brendon,
+                           2026-06-16). */
+                        ? groupedSections.flatMap((sec) => [
+                            <div key={`hdr-${sec.label}`} className={`gallery-group-header${sec.soon ? ' soon' : ''}`}>
+                                <span className="ggh-label">{sec.label}</span>
+                                {sec.soon
+                                    ? <span className="ggh-soon">coming soon</span>
+                                    : <span className="ggh-count">{sec.ids.length}</span>}
+                            </div>,
+                            ...sec.ids.map((id) => (
+                                <ArtworkCard
+                                    key={id}
+                                    id={id}
+                                    projectShowcasePick={projectShowcasePicks.has(id)}
+                                    isBreadcrumb={breadcrumbSample.has(id)}
+                                    eager={eagerIds.has(id)}
+                                />
+                            )),
+                        ])
+                        : visibleTokenIds.map((id) => (
                             <ArtworkCard
                                 key={id}
                                 id={id}
                                 projectShowcasePick={projectShowcasePicks.has(id)}
                                 isBreadcrumb={breadcrumbSample.has(id)}
-                                /* First screenful paints synchronously on mount —
-                                   no observer/idle wait. EAGER_GALLERY_COUNT covers
-                                   ~2 screenfuls across mobile + desktop column
-                                   counts; the rest lazy-load (OOM crash-guard). */
-                                eager={i < EAGER_GALLERY_COUNT}
+                                eager={eagerIds.has(id)}
                             />
                         ))}
             </section>
