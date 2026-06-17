@@ -5349,7 +5349,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 /* Note icon runs smaller than the other hover icons — the ⊟ glyph
    reads clearly at 14px and sits in better visual balance with the
    surrounding row. Two standard steps below the 18px baseline. */
-.hi-icon.hi-note { font-size: 14px; transform: translateY(-1px); }
+.hi-icon.hi-note { font-size: 14px; transform: translateY(-2px); }
 /* Card hover-row vertical nudges (Brendon, 2026-06-16): grail pin up 2px,
    add-to-showcase down 1px (note handled above, down 2px). Placed before the
    :hover rules so the hover lift still wins. */
