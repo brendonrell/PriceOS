@@ -3763,6 +3763,14 @@ button,
     text-transform: none;
     letter-spacing: 0.02em;
 }
+/* Home Shuffle tab — non-essential: hidden (never wrapped) when the three tabs
+   can't share one line; JS measures the fit and toggles .hide-shuffle, and uses
+   .tabs-measuring (force one line + Shuffle shown) for an accurate test so it
+   reappears the moment there's room — e.g. landscape (Brendon, 2026-06-17). */
+#homeTabsRow.hide-shuffle .pill-shuffle-icon { display: none; }
+/* Measurement pass keeps the natural wrap but forces Shuffle visible, so JS can
+   see whether it lands on a second line. */
+#homeTabsRow.tabs-measuring .pill-shuffle-icon { display: flex !important; }
 
 /* ── PILLS — sim ~2274-2298 ──────────────────────────────── */
 .pill {

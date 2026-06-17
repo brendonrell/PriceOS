@@ -201,6 +201,45 @@ function HomePageBodyInner({
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
 
+    /* Shuffle is non-essential: it shows ONLY when all three tabs fit on one
+       line, and hides (rather than wrapping and disturbing the layout) when they
+       don't — re-checked on resize/rotate so it returns the instant there's room,
+       like the hero date in landscape (Brendon, 2026-06-17). Measured, not a
+       fixed breakpoint, so it always shows whenever it genuinely fits. */
+    const tabsRowRef = useRef<HTMLDivElement>(null);
+    const [hideShuffle, setHideShuffle] = useState(false);
+    useEffect(() => {
+        const row = tabsRowRef.current;
+        if (!row || typeof window === 'undefined') return;
+        const measure = () => {
+            // Show Shuffle for the test, then check if it actually wrapped to a
+            // lower line than the other tabs (flex pills shrink rather than
+            // overflow, so a width test is unreliable — detect the wrap directly).
+            row.classList.add('tabs-measuring');
+            const pills = row.querySelectorAll<HTMLElement>('.pill-l1');
+            const shuf = row.querySelector<HTMLElement>('.pill-shuffle-icon');
+            let wrapped = false;
+            if (pills.length && shuf) {
+                wrapped = shuf.getBoundingClientRect().top > pills[0].getBoundingClientRect().top + 2;
+            }
+            row.classList.remove('tabs-measuring');
+            setHideShuffle(wrapped);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(row);
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        // Re-measure once the custom tab font has loaded (it changes pill widths).
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts) fonts.ready.then(measure).catch(() => {});
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
+
     /* @brendon's real follower count + mutual badge beside the home byline —
        PD is his art, so the home credits him exactly like an artist on a project
        page (Brendon 2026-06-15). Hidden when he has zero followers. */
@@ -686,7 +725,11 @@ function HomePageBodyInner({
                 {/* Tab row — same pill markup as the project page (sim 5161).
                     Tab set is exactly: Now Minting / New Art / ⟳ (Brendon,
                     2026-06-12; Sales left the row with this set). */}
-                <div className="profile-tabs-row" id="homeTabsRow">
+                <div
+                    className={`profile-tabs-row${hideShuffle ? ' hide-shuffle' : ''}`}
+                    id="homeTabsRow"
+                    ref={tabsRowRef}
+                >
                     {tab('minting', 'Now Minting')}
                     {tab('new', 'New Gen Art')}
                     {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
