@@ -193,12 +193,11 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     position: relative;
     margin-top: 16px;
     width: min(330px, 88vw);
-    /* Never run into the bottom browser chrome. Measure against the STABLE
-       small viewport (svh) — it assumes Safari's toolbars are visible, so the
-       menu never hides under the URL bar and doesn't jitter as that bar
-       collapses/expands. In the PWA (no chrome) svh is the full height, so the
-       whole menu still shows without scrolling. */
-    max-height: calc(100svh - 116px);
+    /* Scroll-height — identical mechanism to the connect menu. A pixel-exact
+       cap is written from the live visual viewport in JS (--ambient-pop-max-h),
+       so the menu fits whatever iOS Safari's URL bar is doing; the dvh calc is
+       the graceful fallback before that runs. */
+    max-height: var(--ambient-pop-max-h, calc(100dvh - 150px));
     background: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
@@ -226,7 +225,12 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     /* room for the scrollbar so chips don't sit under it */
     margin-right: -6px;
     padding-right: 6px;
+    /* Bottom inset INSIDE the scroll area so the last row clears the iOS bottom
+       toolbar + home indicator (mirrors the connect menu). */
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    scrollbar-width: none;
 }
+.ambient-pop-body::-webkit-scrollbar { display: none; }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
     position: absolute;

@@ -98,6 +98,7 @@ export default function AmbientStrip() {
     const [opts, setOpts] = useState<Opts>(DEFAULTS);
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const popRef = useRef<HTMLDivElement | null>(null);
 
     /* Ambient Code — a separate, simple share code (starts AMBI, no dashes)
        that carries ONLY these four ambient options. Field tracks the live
@@ -189,6 +190,38 @@ export default function AmbientStrip() {
         return () => {
             window.removeEventListener('keydown', onKey);
             window.removeEventListener('pointerdown', onDown, true);
+        };
+    }, [open]);
+
+    /* Scroll-height sync — same mechanism the connect menu uses. The CSS
+       fallback is a static approximation; this writes a pixel-exact cap from
+       the live visual viewport so the menu fits whatever iOS Safari's URL bar
+       is doing (top bar / bottom collapsed / bottom expanded), and re-measures
+       as that bar transitions. Listens to viewport resize/scroll + orientation. */
+    useEffect(() => {
+        if (!open || typeof window === 'undefined') return;
+        const sync = () => {
+            const pop = popRef.current;
+            if (!pop) return;
+            const vv = window.visualViewport;
+            const vpHeight = vv ? vv.height : window.innerHeight;
+            const vpOffsetTop = vv ? vv.offsetTop : 0;
+            const rect = pop.getBoundingClientRect();
+            const topInVV = rect.top - vpOffsetTop;
+            const availableBelow = vpHeight - topInVV;
+            const maxH = Math.max(200, Math.floor(availableBelow - 20));
+            pop.style.setProperty('--ambient-pop-max-h', `${maxH}px`);
+        };
+        const r1 = requestAnimationFrame(() => requestAnimationFrame(sync));
+        const vv = window.visualViewport;
+        if (vv) { vv.addEventListener('resize', sync); vv.addEventListener('scroll', sync); }
+        window.addEventListener('resize', sync);
+        window.addEventListener('orientationchange', sync);
+        return () => {
+            cancelAnimationFrame(r1);
+            if (vv) { vv.removeEventListener('resize', sync); vv.removeEventListener('scroll', sync); }
+            window.removeEventListener('resize', sync);
+            window.removeEventListener('orientationchange', sync);
         };
     }, [open]);
 
@@ -315,7 +348,7 @@ export default function AmbientStrip() {
             </button>
 
             {open && (
-                <div className="ambient-pop" role="dialog" aria-label="Ambient light options">
+                <div ref={popRef} className="ambient-pop" role="dialog" aria-label="Ambient light options">
                     <span
                         className="ambient-pop-close"
                         role="button"
