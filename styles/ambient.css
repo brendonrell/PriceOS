@@ -506,24 +506,14 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     border-bottom: 1px dotted var(--text-color);
     padding-bottom: 3px;
 }
-/* Atmosphere (page 3) title + footnote. "SPHERE" is a hidden tap target (3×
-   balls the bar into an orb) — styled exactly like the rest so it's not
-   advertised. */
-.ambient-pop-atmos-title {
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.7;
-    padding-bottom: 4px;
-}
+/* Atmosphere (page 3) — same row style as every other page: a left label +
+   chips. Both labels start with "Atmosphere"; the "sphere" inside is a hidden
+   tap target (3× balls the bar into an orb), styled like the rest so it's not
+   advertised. The labels are longer than the others, so they size to content +
+   nowrap rather than the fixed label column. */
+.ambient-pop-row .ambient-pop-label:has(.ambient-atmos-label) { flex: 0 0 auto; }
+.ambient-atmos-label { white-space: nowrap; }
 .ambient-atmos-sphere { cursor: default; -webkit-tap-highlight-color: transparent; }
-.ambient-pop-atmos-note {
-    font-size: 11px;
-    line-height: 1.45;
-    opacity: 0.55;
-    padding-top: 4px;
-}
 
 /* Hidden egg — the LED bar balls up into a little orb. A touch tall so the
    round reads clearly; morphs smoothly. The glow stays. */
