@@ -339,7 +339,7 @@ export function UserMenuButtons() {
                         if (typeof window !== 'undefined') window.history.back();
                     }}
                 >
-                    {'⇠︎'}
+                    {'⇠⇠︎'}
                 </button>
             )}
         </div>

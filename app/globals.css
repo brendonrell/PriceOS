@@ -8450,7 +8450,7 @@ body:has(.artwork-fullscreen) .priceos-footer { display: none; }
     right: 40px;
     z-index: 110;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 32px;
+    font-size: 16px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.7;
@@ -8488,7 +8488,7 @@ body.is-pwa .fullscreen-back {
     border: none;
     padding: 4px 6px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 32px;
+    font-size: 16px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.7;
