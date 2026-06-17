@@ -97,6 +97,12 @@ export interface UserSettings {
   pwa?: {
     converted_at?: string;
     last_used_at?: string;
+    /** Step 3 prompt funnel (best-effort): when it was shown, and what the user
+     *  did — 'added'/'accepted' (took it), 'declined'/'dismissed' (skipped), or
+     *  'instructed' (shown the manual Share steps). */
+    prompt_seen_at?: string;
+    prompt_result?: 'added' | 'accepted' | 'declined' | 'dismissed' | 'instructed';
+    prompt_result_at?: string;
   };
 }
 

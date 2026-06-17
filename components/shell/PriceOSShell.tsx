@@ -61,6 +61,9 @@ import { getProject } from '../../lib/project/registry';
 import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
 import { isStandalonePWA } from '../../lib/pwa/openExternal';
 import { markPwaUsed, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
+// Side-effect: start capturing Chrome's beforeinstallprompt as early as possible
+// so signup Step 3 can fire the native Android install dialog.
+import '../../lib/pwa/installPrompt';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';

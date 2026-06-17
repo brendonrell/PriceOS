@@ -253,5 +253,17 @@ export function markPwaUsed(): void {
     if (!_hydrated || !_address) return;
     const now = new Date().toISOString();
     const prev = _settings.pwa ?? {};
-    pushSettings({ pwa: { converted_at: prev.converted_at ?? now, last_used_at: now } });
+    pushSettings({ pwa: { ...prev, converted_at: prev.converted_at ?? now, last_used_at: now } });
+}
+
+/**
+ * Merge a patch into the user's pwa record (Step 3 prompt funnel). Preserves
+ * converted_at / last_used_at. Best-effort: no-ops until the account snapshot
+ * has hydrated — the real conversion signal is markPwaUsed() on standalone
+ * launch, so a missed funnel write never loses the metric that matters.
+ */
+export function recordPwa(patch: Partial<NonNullable<UserSettings['pwa']>>): void {
+    if (!_hydrated || !_address) return;
+    const prev = _settings.pwa ?? {};
+    pushSettings({ pwa: { ...prev, ...patch } });
 }

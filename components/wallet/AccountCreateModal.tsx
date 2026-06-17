@@ -65,6 +65,8 @@ import { composeSprite } from '@/lib/sprites/composer';
 import type { UserRow } from '@/lib/supabase';
 import type { HandleCheckReason } from '@/app/api/handle/check/route';
 import { checkHandle, createUser } from '@/lib/wallet/accountClient';
+import { isStandalone } from '@/lib/pwa/platform';
+import { PwaInstallStep } from './PwaInstallStep';
 
 interface Props {
     /** Render only when this is true. Parent drives this off
@@ -114,6 +116,10 @@ export function AccountCreateModal({
     const [status, setStatus] = useState<HandleStatus>({ state: 'empty' });
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    /* After a successful claim we hold the new row and show Step 3 (the PWA
+       prompt) before finishing — UNLESS already running as the installed app,
+       in which case there's nothing to prompt and we finish immediately. */
+    const [createdUser, setCreatedUser] = useState<UserRow | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortRef = useRef<AbortController | null>(null);
@@ -228,7 +234,10 @@ export function AccountCreateModal({
                 price_sprite: selectedVibe,
             });
             if (res.ok) {
-                onAccountCreated(res.user);
+                // Already installed → no point prompting; finish now. Otherwise
+                // advance to Step 3 (the home-screen prompt).
+                if (isStandalone()) onAccountCreated(res.user);
+                else setCreatedUser(res.user);
                 return;
             }
             /* ok=false path — map reason to UI feedback. */
@@ -258,6 +267,23 @@ export function AccountCreateModal({
     }, [canSubmit, selectedVibe, normalised, onAccountCreated]);
 
     if (!open) return null;
+
+    /* Step 3 — the PWA home-screen prompt, shown after the account is claimed.
+       onDone finishes signup (parent flips needsSignup → modal unmounts). */
+    if (createdUser) {
+        return (
+            <div
+                className="account-create-modal-backdrop"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Add PD to your home screen"
+            >
+                <div className="account-create-modal pwa-step-modal">
+                    <PwaInstallStep onDone={() => onAccountCreated(createdUser)} />
+                </div>
+            </div>
+        );
+    }
 
     /* Status row text — one line under the input. */
     const statusText: string =

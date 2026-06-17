@@ -7589,6 +7589,64 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     opacity: 0.88;
 }
 
+/* ── Signup Step 3 — PWA home-screen prompt ──────────────────────────────
+   OS-adaptive (iOS/iPad instruction · Android native · desktop QR). Shares the
+   .account-create-modal shell; these style the inner content. */
+.account-create-modal.pwa-step-modal { text-align: center; }
+.account-create-modal.pwa-step-modal.pwa-step-modal { max-width: 360px; }
+.pwa-step-desktop { /* desktop gets a touch more room for the QR */ }
+.account-create-modal.pwa-step-modal:has(.pwa-step-desktop) { max-width: 420px; }
+
+.pwa-step-icon-wrap { display: flex; justify-content: center; margin: 2px 0 18px; }
+.pwa-step-icon {
+    width: 62px; height: 62px; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,.35), inset 0 0 0 .5px rgba(0,0,0,.2);
+}
+.pwa-step-icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+.pwa-step-copy {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 16px; line-height: 1.45; letter-spacing: -.3px; margin: 2px 2px 16px;
+}
+.pwa-step-copy u { text-underline-offset: 3px; }
+.pwa-step-sub { font-size: 12.5px; line-height: 1.5; opacity: .82; margin: 0 auto 18px; max-width: 300px; }
+
+.pwa-step-btn {
+    width: 100%; border: none; border-radius: 6px; padding: 15px;
+    font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: bold;
+    letter-spacing: .5px; cursor: pointer; background: var(--text-color); color: var(--bg-color);
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+}
+.pwa-step-btn:hover { opacity: .9; }
+.pwa-step-btn svg { width: 18px; height: 18px; }
+
+.pwa-step-hint {
+    display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap;
+    font-size: 12px; opacity: .8; margin: 14px 4px 0; line-height: 1.5;
+}
+.pwa-step-hint-box {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border: 1.5px solid var(--text-color); border-radius: 5px;
+}
+.pwa-step-hint-box svg { width: 12px; height: 12px; }
+.pwa-step-hint-pulse { animation: pwa-hint-pulse 1.1s ease-in-out infinite; }
+@keyframes pwa-hint-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+.pwa-step-qr-card {
+    background: #fff; border-radius: 12px; padding: 13px; display: inline-block;
+    margin: 2px auto 8px; box-shadow: 0 5px 16px rgba(0,0,0,.28);
+}
+.pwa-step-qr-card img { width: 168px; height: 168px; display: block; }
+.pwa-step-qr-ph { width: 168px; height: 168px; background: rgba(0,0,0,.05); border-radius: 4px; }
+.pwa-step-qr-cap { font-size: 12px; font-weight: bold; opacity: .8; margin: 0 0 18px; letter-spacing: .3px; }
+
+.pwa-step-skip {
+    display: block; margin: 16px auto 2px; font-size: 12px; opacity: .55;
+    text-decoration: underline; background: none; border: none;
+    font-family: 'Courier New', Courier, monospace; cursor: pointer; color: inherit;
+}
+.pwa-step-skip:hover { opacity: .85; }
+
 /* ── Home carousels (test-phase) ─────────────────────────────────────
    Per-project rows on the home/index page. Each row reuses the global
    .output-card tile (so it matches the project-page gallery visually),
