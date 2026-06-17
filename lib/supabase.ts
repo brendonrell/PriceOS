@@ -90,6 +90,14 @@ export interface UserSettings {
      *  still hold the old preset string ('off' | 'low' | … | 'pitch'). */
     dim?: number | string;
   };
+  /** PWA conversion tracking (first-party). Stamped the first time a SIGNED-IN
+   *  session runs as the installed app (standalone), then refreshed each app
+   *  launch. `converted_at` = the conversion event; `last_used_at` = recency,
+   *  for spotting drop-off. Query server-side via settings->'pwa'. */
+  pwa?: {
+    converted_at?: string;
+    last_used_at?: string;
+  };
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */

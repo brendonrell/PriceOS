@@ -240,3 +240,18 @@ export function pushSettings(partial: Partial<UserSettings>): void {
     _settings = { ..._settings, ...partial };
     pushState({ settings: _settings });
 }
+
+/**
+ * Stamp PWA conversion for the signed-in user. Call when a session is running
+ * as the installed app (standalone). `converted_at` is set ONCE (the conversion
+ * event) and preserved on every later launch; `last_used_at` refreshes each
+ * time so drop-off is visible. No-op until the account snapshot has hydrated
+ * (so it only ever records a real, signed-in install). First-party only —
+ * lives in the user's own settings record, queryable via settings->'pwa'.
+ */
+export function markPwaUsed(): void {
+    if (!_hydrated || !_address) return;
+    const now = new Date().toISOString();
+    const prev = _settings.pwa ?? {};
+    pushSettings({ pwa: { converted_at: prev.converted_at ?? now, last_used_at: now } });
+}

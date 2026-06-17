@@ -60,6 +60,7 @@ import { pickTabstractTitle } from '../../lib/title/tabstract';
 import { getProject } from '../../lib/project/registry';
 import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
 import { isStandalonePWA } from '../../lib/pwa/openExternal';
+import { markPwaUsed, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 import { Backgrounds } from './Backgrounds';
 import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
@@ -113,11 +114,22 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         // @ts-expect-error — non-standard iOS-only API, intentionally accessed
         const iosStandalone = window.navigator?.standalone === true;
         const displayMode = window.matchMedia?.('(display-mode: standalone)')?.matches === true;
-        if (iosStandalone || displayMode) {
+        const standalone = iosStandalone || displayMode;
+        if (standalone) {
             document.body.classList.add('is-pwa');
             mountPtr();
         }
+        if (!standalone) {
+            return () => { unmountPtr(); };
+        }
+        /* PWA conversion stamp (first-party): this session is running as the
+           installed app. markPwaUsed no-ops until the account snapshot has
+           hydrated, so stamp on the hydrate event (and once now in case it's
+           already in). Records converted_at once + last_used_at each launch. */
+        markPwaUsed();
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, markPwaUsed);
         return () => {
+            window.removeEventListener(USERSTATE_HYDRATED_EVENT, markPwaUsed);
             unmountPtr();
         };
     }, []);
