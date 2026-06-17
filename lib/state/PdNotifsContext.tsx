@@ -129,6 +129,9 @@ export interface PdNotifs {
     echo: boolean;
     zerocontext: boolean;
     asciiId: boolean;       // negative — active = ASCII-ID hidden
+    /* Back Button Mode — a persistent back arrow parked under the connect
+       menu, site-wide. Not part of the Setup Code (a personal nav pref). */
+    backButton: boolean;
     degen: boolean;
     autoscroll: boolean;
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
@@ -218,6 +221,7 @@ const DEFAULTS: PdNotifs = {
     echo: false,
     zerocontext: false,
     asciiId: false,
+    backButton: false,
     degen: false,
     autoscroll: false,
     ambientStrip: false,

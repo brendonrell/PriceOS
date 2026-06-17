@@ -80,6 +80,7 @@
  */
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { usePathname } from 'next/navigation';
 import {
     getWalletEnsName,
     getWalletEnsNameServer,
@@ -87,6 +88,7 @@ import {
     subscribeWalletBus,
 } from '../../lib/wallet/walletBus';
 import { useDropdown } from '../../lib/state/DropdownContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -111,7 +113,17 @@ function shortAddr(addr: string): string {
 
 export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
+    const { notifs } = usePdNotifs();
+    const pathname = usePathname();
     const { open: openModal } = useModal();
+
+    /* Back Button Mode — a persistent back arrow parked under the connect
+       square, on every page. The artwork full-screen view already carries its
+       own always-on back arrow in the same spot, so suppress this one there to
+       avoid showing two. */
+    const isFullscreenRoute =
+        !!pathname && pathname.startsWith('/art/') && pathname.endsWith('/full');
+    const showBackButton = notifs.backButton && !isFullscreenRoute;
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
     const { showToast } = useToast();
@@ -311,6 +323,25 @@ export function UserMenuButtons() {
             </button>
 
             <DropdownStack />
+
+            {/* Back Button Mode — sits just under the connect square, travels
+                with the navbar (sticky) and fades with it (rides the
+                .nav-controls opacity). Hidden while the menu is open (the
+                dropdown owns that space). Generic browser-back. */}
+            {showBackButton && (
+                <button
+                    className="nav-back-btn"
+                    type="button"
+                    aria-label="Back"
+                    title="Back"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof window !== 'undefined') window.history.back();
+                    }}
+                >
+                    {'⇠︎'}
+                </button>
+            )}
         </div>
     );
 }

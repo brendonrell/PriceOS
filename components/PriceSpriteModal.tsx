@@ -46,6 +46,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import { rankProgress } from '../lib/achievements/tiers';
 import {
@@ -206,7 +207,19 @@ export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
     const { priceRank, priceScore, handle, siweAddress } = useAuth();
+    const { notifs, toggle } = usePdNotifs();
     const isOpen = openModal?.name === 'priceSprite';
+
+    /* ASCII-ID lives here now (moved off the MY PD settings row — this is
+       where people look). It's a negative flag: asciiId=true means the
+       ASCII identity is HIDDEN, so the readout reads OFF when the flag is on,
+       matching the old settings toast exactly. */
+    const asciiIdHidden = notifs.asciiId;
+    const toggleAsciiId = () => {
+        const next = !notifs.asciiId;
+        toggle('asciiId');
+        showToast(`ASCII-ID: ${next ? 'OFF' : 'ON'}`);
+    };
 
     /* Mirror priceSpriteEngine into the modal hero so the hero's
        blink/turn/yawn/sleep stays in sync with the menu sprite (sim
@@ -439,6 +452,24 @@ export default function PriceSpriteModal() {
                             <div className="ps-metric-pts">{row.pts}</div>
                         </div>
                     ))}
+                </div>
+
+                {/* ASCII-ID toggle — moved here from the MY PD settings row.
+                    Hides the ASCII identity (sprite + level badge) across the
+                    UI. Negative flag, so the readout shows OFF when hidden. */}
+                <div className="ps-action-row ps-reveal ps-d7">
+                    <button
+                        className="ps-action-btn"
+                        type="button"
+                        aria-pressed={asciiIdHidden}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAsciiId();
+                        }}
+                    >
+                        <span className="ps-action-icon">{`⍢${VS15}`}</span>
+                        {`ASCII-ID: ${asciiIdHidden ? 'OFF' : 'ON'}`}
+                    </button>
                 </div>
 
                 {/* Identity Plate Export — composes the live PriceSprite +

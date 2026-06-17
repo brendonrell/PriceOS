@@ -83,6 +83,11 @@
 
     --pd-menu-height: 173px;
 
+    /* Back Button Mode vertical nudge — one knob, applied to BOTH the
+       persistent navbar back arrow and the artwork full-screen back arrow,
+       so nudging the back button up/down is consistent site-wide. */
+    --pd-backbtn-nudge: 0px;
+
     --top-bar-h: 0px;
 
     /* F29 — Connect menu sizing (clamp + accordion bounds)
@@ -8441,7 +8446,7 @@ body:has(.artwork-fullscreen) .priceos-footer { display: none; }
    beneath the square in every safe-area / PWA case. */
 .fullscreen-back {
     position: absolute;
-    top: calc(max(25px, env(safe-area-inset-top)) + 40px);
+    top: calc(max(25px, env(safe-area-inset-top)) + 40px + var(--pd-backbtn-nudge));
     right: 40px;
     z-index: 110;
     font-family: 'Courier New', Courier, monospace;
@@ -8457,14 +8462,41 @@ body:has(.artwork-fullscreen) .priceos-footer { display: none; }
 }
 .fullscreen-back:hover { opacity: 1; }
 body.is-pwa .fullscreen-back {
-    top: calc(max(30px, calc(env(safe-area-inset-top) + 12px)) + 40px);
+    top: calc(max(30px, calc(env(safe-area-inset-top) + 12px)) + 40px + var(--pd-backbtn-nudge));
 }
 @media (max-width: 600px) {
     .fullscreen-back {
         right: 20px;
-        top: calc(max(15px, env(safe-area-inset-top)) + 40px);
+        top: calc(max(15px, env(safe-area-inset-top)) + 40px + var(--pd-backbtn-nudge));
     }
     body.is-pwa .fullscreen-back {
-        top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 40px);
+        top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 40px + var(--pd-backbtn-nudge));
     }
 }
+
+/* Back Button Mode — the persistent navbar back arrow. Lives inside
+   .user-menu-wrapper (which is position:relative), so it parks directly
+   under the connect square, travels with the sticky navbar, and fades with
+   it (rides the .nav-controls opacity). Same 32px arrow + nudge knob as the
+   full-screen one, so both move together when nudged. */
+.nav-back-btn {
+    position: absolute;
+    top: calc(100% + var(--pd-backbtn-nudge));
+    right: 0;
+    z-index: 110;
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--text-color);
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto;
+    transition: opacity 0.2s;
+}
+.nav-back-btn:hover { opacity: 1; }
+/* Tuck away while the connect menu is open — the dropdown owns that space. */
+.user-menu-wrapper.active .nav-back-btn { display: none; }
