@@ -3771,6 +3771,10 @@ button,
 /* Measurement pass keeps the natural wrap but forces Shuffle visible, so JS can
    see whether it lands on a second line. */
 #homeTabsRow.tabs-measuring .pill-shuffle-icon { display: flex !important; }
+/* Home Stickers button — same non-essential, hide-if-it-would-wrap treatment as
+   Shuffle. Join The Chat always stays (Brendon, 2026-06-17). */
+#homeActionRow.hide-stickers .btn-soundtrack { display: none; }
+#homeActionRow.row-measuring .btn-soundtrack { display: inline-flex !important; }
 
 /* ── PILLS — sim ~2274-2298 ──────────────────────────────── */
 .pill {

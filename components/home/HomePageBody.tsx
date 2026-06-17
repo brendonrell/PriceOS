@@ -240,6 +240,42 @@ function HomePageBodyInner({
         };
     }, []);
 
+    /* Same treatment for the Stickers button: it shows beside Join The Chat only
+       when both fit on one line, and hides (not wraps) otherwise (Brendon,
+       2026-06-17). Join The Chat always stays. */
+    const actionRowRef = useRef<HTMLDivElement>(null);
+    const [hideStickers, setHideStickers] = useState(false);
+    useEffect(() => {
+        const row = actionRowRef.current;
+        if (!row || typeof window === 'undefined') return;
+        const measure = () => {
+            row.classList.add('row-measuring');
+            const chat = row.querySelector<HTMLElement>('.btn-mint');
+            const stick = row.querySelector<HTMLElement>('.btn-soundtrack');
+            let wrapped = false;
+            if (chat && stick) {
+                // The two buttons differ in height and are centre-aligned, so a
+                // top-vs-top test misreads the same line — Stickers is only
+                // wrapped if it starts at/after the chat button's BOTTOM edge.
+                wrapped = stick.getBoundingClientRect().top >= chat.getBoundingClientRect().bottom - 2;
+            }
+            row.classList.remove('row-measuring');
+            setHideStickers(wrapped);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(row);
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts) fonts.ready.then(measure).catch(() => {});
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
+
     /* @brendon's real follower count + mutual badge beside the home byline —
        PD is his art, so the home credits him exactly like an artist on a project
        page (Brendon 2026-06-15). Hidden when he has zero followers. */
@@ -697,7 +733,11 @@ function HomePageBodyInner({
                 {/* Action row — same chrome as the project page's mint +
                     soundtrack pair. Primary = Join The Chat (Discord);
                     second = Stickers (play icon retained). */}
-                <div className="action-row">
+                <div
+                    className={`action-row${hideStickers ? ' hide-stickers' : ''}`}
+                    id="homeActionRow"
+                    ref={actionRowRef}
+                >
                     <button
                         className="btn-mint btn-explore"
                         title="Join the chat on Discord"
