@@ -193,6 +193,9 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     position: relative;
     margin-top: 16px;
     width: min(330px, 88vw);
+    /* Never run into the bottom browser chrome: cap to the dynamic viewport
+       (dvh shrinks when Safari's URL bar is showing) and let the body scroll. */
+    max-height: calc(100dvh - 150px);
     background: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
@@ -203,7 +206,23 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow: hidden; /* clip; the inner body is what scrolls */
     animation: amb-pop-in 0.16s ease both;
+}
+/* Scrollable option body — the header (title + ×) stays put, everything below
+   scrolls so a long menu never touches the bottom chrome. */
+.ambient-pop-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* room for the scrollbar so chips don't sit under it */
+    margin-right: -6px;
+    padding-right: 6px;
 }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
@@ -280,9 +299,18 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     font-weight: bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding-bottom: 2px;
+    /* Header divider — separates the title from the scrolling body. */
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
     /* Reserve room on the right so the title clears the close ×. */
     padding-right: 26px;
+}
+/* Section dividers — a line between each section (Scenes · Color · Pattern ·
+   Speed · Dim · Setup Code). The Level slider belongs to the Dim section, so
+   it gets no divider above it. */
+.ambient-pop-body .ambient-pop-row + .ambient-pop-row:not(.ambient-dim-slider-row) {
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
 }
 /* Muted title text — kept off the row itself so the Surprise pill (a sibling)
    renders at full strength rather than inheriting the row's opacity. */
@@ -392,8 +420,8 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
 }
 /* Value sits right beside the label (left-grouped, not flung to the far edge). */
 .ambient-code-input {
-    flex: 0 1 116px;
-    width: 116px;
+    flex: 0 1 92px;
+    width: 92px;
     min-width: 0;
     background: transparent;
     border: none;

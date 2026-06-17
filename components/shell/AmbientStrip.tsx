@@ -111,10 +111,10 @@ export default function AmbientStrip() {
     const surpriseHold = useRef<number | null>(null);
     const surpriseHeld = useRef(false);
 
-    /* ✦ Secret — hold the light for ~0.6s to cycle the two hidden palettes
-       (Prism, Petey) and back. Not advertised anywhere; just here for whoever
-       presses and waits. The press timer also suppresses the tap-to-open so a
-       long-press never also flips the menu. */
+    /* ✦ Secret — hold the light for a full ~1s to cycle the two hidden palettes
+       (Prism, Petey) and back. The long threshold keeps it deliberate: a normal
+       tap (even a slow one) just toggles the menu and never trips the secret or
+       eats the close. The fired flag suppresses the tap-toggle on a real hold. */
     const holdTimer = useRef<number | null>(null);
     const heldFired = useRef(false);
     const beginHold = () => {
@@ -127,7 +127,7 @@ export default function AmbientStrip() {
                 showToast(next.toast);
                 return { ...o, palette: next.id };
             });
-        }, 600);
+        }, 1000);
     };
     const endHold = () => {
         if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
@@ -332,6 +332,7 @@ export default function AmbientStrip() {
                         <span className="ambient-pop-title-icon" aria-hidden="true" onClick={onSunTap}>{'☼︎'}</span>
                         <span className="ambient-pop-title-text">Ambient Light</span>
                     </div>
+                    <div className="ambient-pop-body">
                     <Row label="Scenes">
                         {SCENES.map((s) => (
                             <Chip key={s.id} on={sameOpts(opts, s.opts)} onClick={() => applyScene(s)}>
@@ -390,7 +391,7 @@ export default function AmbientStrip() {
                         <span className="ambient-dim-readout">{opts.dim}%</span>
                     </div>
                     <div className="ambient-code-row">
-                        <span className="ambient-code-label">Code</span>
+                        <span className="ambient-code-label">Setup Code</span>
                         <input
                             ref={codeInputRef}
                             type="text"
@@ -434,6 +435,7 @@ export default function AmbientStrip() {
                         >
                             Surprise
                         </button>
+                    </div>
                     </div>
                 </div>
             )}
