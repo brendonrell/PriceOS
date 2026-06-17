@@ -32,7 +32,7 @@ export type Palette =
     | 'prism' | 'petey'
     /* Hidden — no chip and no documented entry point. */
     | 'spectrum' | 'nova';
-export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe' | 'drift' | 'throb';
+export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe' | 'drift' | 'throb' | 'shimmer';
 export type Speed = 'slow' | 'med' | 'fast' | 'turbo';
 
 /* Atmosphere (3rd menu page) — the light's physical character. Persisted +
@@ -70,7 +70,7 @@ export const PALETTE_IDS: ReadonlyArray<Palette> = [
     'prism', 'petey', 'spectrum', 'nova',
 ];
 export const PATTERN_IDS: ReadonlyArray<Pattern> = [
-    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb',
+    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb', 'shimmer',
 ];
 export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
 

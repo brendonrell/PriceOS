@@ -171,15 +171,26 @@ body.is-pwa .ambient-strip-layer {
 .pat-ripple .ambient-glow { animation: amb-ripple calc(var(--amb-dur) / 2) ease-in-out infinite; }
 @keyframes amb-ripple { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; } 50% { transform: translateX(-50%) scale(1.12); opacity: 1; } }
 
-/* FLICKER — candle-like irregular brightness. */
+/* FLICKER — candle-like irregular brightness. Dips kept shallow (≥0.72) so the
+   brightness swing stays gentle — a flickering candle, never a strobe. */
 .pat-flicker .ambient-pill-led,
 .pat-flicker .ambient-glow { animation: amb-flicker calc(var(--amb-dur) / 3) steps(1, end) infinite; }
-@keyframes amb-flicker { 0%, 100% { opacity: 1; } 10% { opacity: 0.7; } 22% { opacity: 1; } 35% { opacity: 0.55; } 50% { opacity: 0.95; } 64% { opacity: 0.72; } 78% { opacity: 1; } 90% { opacity: 0.6; } }
+@keyframes amb-flicker { 0%, 100% { opacity: 1; } 10% { opacity: 0.82; } 22% { opacity: 1; } 35% { opacity: 0.74; } 50% { opacity: 0.95; } 64% { opacity: 0.8; } 78% { opacity: 1; } 90% { opacity: 0.76; } }
 
-/* STROBE — quick on/off flashes. */
+/* STROBE — quick flashes. Photosensitivity-safe by design: the rate stays at /7
+   of the cycle so even Turbo (3.5s) flashes ~2×/sec — under the 3/sec seizure
+   threshold — and the dip is softened to 0.5 (was 0.18) so it pulses bright↔dim
+   rather than bright↔dark. Reduced-motion users get no animation at all. */
 .pat-strobe .ambient-pill-led,
 .pat-strobe .ambient-glow { animation: amb-strobe calc(var(--amb-dur) / 7) steps(1, end) infinite; }
-@keyframes amb-strobe { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0.18; } 100% { opacity: 1; } }
+@keyframes amb-strobe { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0.5; } 100% { opacity: 1; } }
+
+/* SHIMMER — a fast, lively sparkle with a TINY brightness swing (0.84↔1), so it
+   reads energetic at any speed while being inherently seizure-safe (low
+   contrast). The fun of a fast pattern without the strobe hazard. */
+.pat-shimmer .ambient-pill-led,
+.pat-shimmer .ambient-glow { animation: amb-shimmer calc(var(--amb-dur) / 6) ease-in-out infinite; }
+@keyframes amb-shimmer { 0%, 100% { opacity: 0.84; } 50% { opacity: 1; } }
 
 /* DRIFT — colours slide sideways while the glow lazily sways: a calm, lava-lamp
    wander (gentler than WAVE, no hue spin). */

@@ -72,6 +72,7 @@ const PATTERNS: { id: Pattern; label: string }[] = [
     { id: 'sweep', label: 'Sweep' }, { id: 'ripple', label: 'Ripple' },
     { id: 'flicker', label: 'Flicker' }, { id: 'strobe', label: 'Strobe' },
     { id: 'drift', label: 'Drift' }, { id: 'throb', label: 'Throb' },
+    { id: 'shimmer', label: 'Shimmer' },
 ];
 const SPEEDS: { id: Speed; label: string }[] = [
     { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' }, { id: 'turbo', label: 'Turbo' },
