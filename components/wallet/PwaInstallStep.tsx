@@ -73,9 +73,15 @@ export function PwaInstallStep({ onDone }: { onDone: () => void }) {
         recordPwa({ prompt_result: 'instructed', prompt_result_at: new Date().toISOString() });
     };
 
+    /* Android shows a circular (adaptive) icon using the maskable art, which has
+       the safe-zone padding so nothing important gets clipped by the circle.
+       Every other platform keeps PD's iOS-style rounded square. */
+    const isAndroid = os === 'android';
     const icon = (
         <div className="pwa-step-icon-wrap">
-            <div className="pwa-step-icon"><img src="/icon-180px.png" alt="PD" /></div>
+            <div className={`pwa-step-icon${isAndroid ? ' pwa-step-icon-android' : ''}`}>
+                <img src={isAndroid ? '/icon-192-maskable.png' : '/icon-180px.png'} alt="PD" />
+            </div>
         </div>
     );
 
