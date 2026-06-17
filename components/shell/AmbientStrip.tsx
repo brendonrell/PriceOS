@@ -207,14 +207,20 @@ export default function AmbientStrip() {
         // whole screen, so leave the chrome tint on the colorway — darkening it
         // there produced ugly black bars (Brendon, 2026-06-17).
         const meta = document.getElementById('theme-color-meta');
+        const browserDim = on && !b.classList.contains('is-pwa');
         if (meta) {
-            if (on && !b.classList.contains('is-pwa')) {
+            if (browserDim) {
                 meta.setAttribute('content', AMBIENT_DARK);
             } else {
                 const bg = getComputedStyle(b).getPropertyValue('--bg-color').trim();
                 if (bg) meta.setAttribute('content', bg);
             }
         }
+        // The bottom toolbar follows theme-color (above); Safari's TOP status bar
+        // instead samples the ROOT background. Darken the root (only) while
+        // dimming in a browser tab — body is untouched so the graduated dim and
+        // the colorway are unaffected; cleared when dimming stops / in the PWA.
+        document.documentElement.style.backgroundColor = browserDim ? AMBIENT_DARK : '';
         return () => {
             b.classList.remove('ambient-dim-on');
             b.style.removeProperty('--ambient-dim');
