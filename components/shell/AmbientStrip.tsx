@@ -35,6 +35,10 @@ const SECRET_CYCLE: { id: Palette; toast: string }[] = [
 type Opts = AmbientOpts;
 const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46 };
 const STORAGE = 'pd_ambient_opts';
+/* The dim base tone — matches the page-dim overlay (rgba(3,2,10,…)). Used for
+   the iOS chrome tint + safe-area fills while dimming, so the gutters read dark
+   instead of the bright colorway. */
+const AMBIENT_DARK = '#03020a';
 
 /* Legacy string dim → percentage, so options saved before the slider (dim was
    'off' | 'low' | … | 'pitch') migrate cleanly to the numeric model. */
@@ -165,13 +169,29 @@ export default function AmbientStrip() {
 
     /* Dim the page — only while the strip is on. A single class switches the
        overlay on; the exact darkness rides on a CSS variable so the slider is
-       fully continuous (0 = off, 100 = blackout). */
+       fully continuous (0 = off, 100 = blackout).
+
+       Also darken the iOS browser chrome (status-bar + URL-bar tint) to match,
+       so the bright page colorway doesn't glare in the safe-area gutters Safari
+       leaves above/below the page. This only swaps the chrome TINT — the page
+       colorway itself is untouched, and the live colour is restored when the
+       dimming clears. */
     useEffect(() => {
         const b = document.body;
         const on = enabled && opts.dim > 0;
         b.classList.toggle('ambient-dim-on', on);
         // Max alpha 0.92 at 100% so "Pitch" reads near-black without going flat.
         b.style.setProperty('--ambient-dim', on ? String((opts.dim / 100) * 0.92) : '0');
+
+        const meta = document.getElementById('theme-color-meta');
+        if (meta) {
+            if (on) {
+                meta.setAttribute('content', AMBIENT_DARK);
+            } else {
+                const bg = getComputedStyle(b).getPropertyValue('--bg-color').trim();
+                if (bg) meta.setAttribute('content', bg);
+            }
+        }
         return () => {
             b.classList.remove('ambient-dim-on');
             b.style.removeProperty('--ambient-dim');

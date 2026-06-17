@@ -187,6 +187,24 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     transition: background 0.25s ease;
 }
 
+/* Safe-area gutters — with viewport-fit:cover the page paints behind the iOS
+   notch + home indicator, so the bright colorway glares there while the body is
+   dimmed. Paint those two strips solid-dark while dimming (above the navbar/
+   footer, but only as tall as the inset, so the tape + footer content show
+   through). The colorway itself is never changed — chrome tint only. */
+html:has(body.ambient-dim-on)::before,
+html:has(body.ambient-dim-on)::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    background: #03020a;
+    z-index: 101; /* above navbar (100) — covers the gutter, not the content */
+    pointer-events: none;
+}
+html:has(body.ambient-dim-on)::before { top: 0; height: env(safe-area-inset-top, 0px); }
+html:has(body.ambient-dim-on)::after  { bottom: 0; height: env(safe-area-inset-bottom, 0px); }
+
 /* ---- The options popup ------------------------------------------------ */
 .ambient-pop {
     pointer-events: auto;
