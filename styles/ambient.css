@@ -244,21 +244,6 @@ body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
     pointer-events: none;
     background: rgba(3, 2, 10, var(--ambient-dim, 0));
     transition: background 0.25s ease;
-    /* FLASHLIGHT — carve a bright pocket out of the dim right under the strip so
-       the art there shows its REAL colours (un-dimmed) while the rest of the
-       page stays dark. The existing colour glow then ADDS onto those true
-       colours = a lit canvas, not a tinted cover. The mask is transparent (dim
-       hidden → art bright) at the top and ramps to fully opaque (full dim)
-       further down; the falloff rides --amb-flash so Reach can widen the pool.
-       Additive only — the glow/spotlight are untouched. */
-    -webkit-mask-image: linear-gradient(to bottom,
-        transparent 0%, transparent 6%,
-        rgba(0, 0, 0, 0.45) var(--amb-flash-mid, 26%),
-        #000 var(--amb-flash, 52%));
-    mask-image: linear-gradient(to bottom,
-        transparent 0%, transparent 6%,
-        rgba(0, 0, 0, 0.45) var(--amb-flash-mid, 26%),
-        #000 var(--amb-flash, 52%));
 }
 
 /* Safe-area gutters — with viewport-fit:cover the page paints behind the iOS
