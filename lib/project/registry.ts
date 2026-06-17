@@ -161,7 +161,7 @@ const RELIQUARY: ProjectDef = {
   displayName: 'Reliquary',
   artistHandle: 'opus4-8',
   outputs: 256,
-  colorway: '#c81e3a',
+  colorway: '#15121d',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
   aspects: RELIQUARY_ASPECTS,
