@@ -449,6 +449,8 @@
         transform: translateY(-1px) !important;
     }
     #sn-profileTheme .st-icon { font-size: 14px !important; }
+    /* Ambient ☼ reads small on mobile — two sizes up from its peers (Brendon). */
+    #sn-ambient .st-icon { font-size: 18px !important; }
     .pill-artist-filter[data-rel="starred"] span {
         font-size: 14px;
         display: inline-block;

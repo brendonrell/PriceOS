@@ -15,9 +15,10 @@
     --amb4: #2fe28a;
     --amb-dur: 14s;
     position: fixed;
-    /* Dropped well clear of the Tape so the bar sits centered in the gap above
-       the @name header, not bunched against the Tape (Brendon, 2026-06-16). */
-    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 52px);
+    /* Tucked just under the Tape, inside the top bar — the navbar's top padding
+       is max(25px, safe-area) and the Tape is ~22px, so this lands the bar right
+       below it (Brendon, 2026-06-16). */
+    top: calc(max(25px, env(safe-area-inset-top, 0px)) + 30px);
     left: 0;
     right: 0;
     z-index: 90; /* under navbar (100), over content */
@@ -34,6 +35,15 @@
 .pal-lava   { --amb1:#ff2d2d; --amb2:#ff6a00; --amb3:#ffb300; --amb4:#ff2d6a; }
 .pal-forest { --amb1:#2fe28a; --amb2:#7be02f; --amb3:#2ad0ff; --amb4:#2f9e44; }
 .pal-mono   { --amb1:var(--text-color); --amb2:var(--text-color); --amb3:var(--text-color); --amb4:var(--text-color); }
+.pal-neon   { --amb1:#ff00d4; --amb2:#00f0ff; --amb3:#b14bff; --amb4:#39ff14; }
+.pal-gold   { --amb1:#ffd000; --amb2:#ff8a00; --amb3:#ffb300; --amb4:#ff5e00; }
+.pal-ice    { --amb1:#aee9ff; --amb2:#6ad7ff; --amb3:#c9f6ff; --amb4:#4b9bff; }
+.pal-ultra  { --amb1:#7a00ff; --amb2:#c800ff; --amb3:#ff2da6; --amb4:#4b00ff; }
+.pal-candy  { --amb1:#ff5ec4; --amb2:#5ee0ff; --amb3:#ffd1f0; --amb4:#a06bff; }
+.pal-rose   { --amb1:#ff2d6a; --amb2:#ff7a9c; --amb3:#ff4fd8; --amb4:#ff1e4e; }
+/* Hidden palettes — only reachable via the secret long-press (no chip). */
+.pal-prism  { --amb1:#ff004d; --amb2:#ffd000; --amb3:#00e5ff; --amb4:#9b5bff; }
+.pal-petey  { --amb1:#ff0055; --amb2:#ff2d9b; --amb3:#ffe600; --amb4:#ff5e7a; }
 
 /* ---- Speed ------------------------------------------------------------ */
 .spd-slow { --amb-dur: 26s; }
@@ -89,6 +99,18 @@
     mix-blend-mode: screen;
 }
 
+/* The reaching spotlight — same palette + downward-pool shape as .ambient-glow,
+   but it starts a touch lower and extends much further down so the light feathers
+   onto the art scrolling past, like a soft lamp held close to the canvas. Screen-
+   blended so it ADDS light rather than tinting (Brendon, 2026-06-16). */
+.ambient-spot {
+    top: 40px;
+    height: 360px;
+    width: min(900px, 98vw);
+    opacity: 0.9;
+    filter: blur(62px) saturate(1.15);
+}
+
 /* ---- Patterns --------------------------------------------------------- */
 /* WAVE — colours flow sideways. */
 .pat-wave .ambient-pill-led { animation: amb-wave var(--amb-dur) linear infinite; }
@@ -110,9 +132,28 @@
 
 /* SOLID — static gradient, no motion. */
 
-/* ---- "Lights off" page dim ------------------------------------------- */
-body.ambient-dim-soft::after,
-body.ambient-dim-deep::after {
+/* SWEEP — a bright band scans across the bar; the glow drifts side to side. */
+.pat-sweep .ambient-pill-led { animation: amb-wave calc(var(--amb-dur) / 2) linear infinite; }
+.pat-sweep .ambient-glow { animation: amb-sweep var(--amb-dur) ease-in-out infinite; }
+@keyframes amb-sweep { 0%, 100% { transform: translateX(-72%); } 50% { transform: translateX(-28%); } }
+
+/* RIPPLE — the glow swells outward in slow rings. */
+.pat-ripple .ambient-pill-led { animation: amb-pulse calc(var(--amb-dur) / 3) ease-in-out infinite; }
+.pat-ripple .ambient-glow { animation: amb-ripple calc(var(--amb-dur) / 2) ease-in-out infinite; }
+@keyframes amb-ripple { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; } 50% { transform: translateX(-50%) scale(1.12); opacity: 1; } }
+
+/* FLICKER — candle-like irregular brightness. */
+.pat-flicker .ambient-pill-led,
+.pat-flicker .ambient-glow { animation: amb-flicker calc(var(--amb-dur) / 3) steps(1, end) infinite; }
+@keyframes amb-flicker { 0%, 100% { opacity: 1; } 10% { opacity: 0.7; } 22% { opacity: 1; } 35% { opacity: 0.55; } 50% { opacity: 0.95; } 64% { opacity: 0.72; } 78% { opacity: 1; } 90% { opacity: 0.6; } }
+
+/* STROBE — quick on/off flashes. */
+.pat-strobe .ambient-pill-led,
+.pat-strobe .ambient-glow { animation: amb-strobe calc(var(--amb-dur) / 7) steps(1, end) infinite; }
+@keyframes amb-strobe { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0.18; } 100% { opacity: 1; } }
+
+/* ---- "Lights off" page dim — graduated levels (off has no class) ------ */
+body[class*="ambient-dim-"]:not(.zen-mode):not(.zero-context-mode)::after {
     content: '';
     position: fixed;
     inset: 0;
@@ -120,8 +161,11 @@ body.ambient-dim-deep::after {
     pointer-events: none;
     transition: background 0.6s ease;
 }
-body.ambient-dim-soft::after { background: rgba(3, 2, 10, 0.46); }
-body.ambient-dim-deep::after { background: rgba(3, 2, 10, 0.72); }
+body.ambient-dim-low::after   { background: rgba(3, 2, 10, 0.28); }
+body.ambient-dim-soft::after  { background: rgba(3, 2, 10, 0.46); }
+body.ambient-dim-med::after   { background: rgba(3, 2, 10, 0.60); }
+body.ambient-dim-deep::after  { background: rgba(3, 2, 10, 0.74); }
+body.ambient-dim-pitch::after { background: rgba(3, 2, 10, 0.90); }
 
 /* ---- The options popup ------------------------------------------------ */
 .ambient-pop {
@@ -183,13 +227,11 @@ body.ambient-dim-deep::after { background: rgba(3, 2, 10, 0.72); }
     border-color: var(--text-color);
 }
 
-/* Hidden in the chrome-off modes (same as Tape + Footer). */
+/* Hidden in the chrome-off modes (same as Tape + Footer). The page-dim ::after
+   is already excluded in those modes by its :not(.zen-mode):not(.zero-context-mode)
+   selector above, so only the strip itself needs hiding here. */
 body.zen-mode .ambient-strip-layer,
 body.zero-context-mode .ambient-strip-layer { display: none !important; }
-body.zen-mode.ambient-dim-soft::after,
-body.zen-mode.ambient-dim-deep::after,
-body.zero-context-mode.ambient-dim-soft::after,
-body.zero-context-mode.ambient-dim-deep::after { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
     .ambient-pill-led, .ambient-glow { animation: none !important; }

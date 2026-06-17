@@ -13,12 +13,24 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { pushSettings, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 
-type Palette = 'aurora' | 'sunset' | 'ocean' | 'lava' | 'forest' | 'mono';
-type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid';
+type Palette =
+    | 'aurora' | 'sunset' | 'ocean' | 'lava' | 'forest' | 'mono'
+    | 'neon' | 'gold' | 'ice' | 'ultra' | 'candy' | 'rose'
+    /* Hidden — never shown as chips; only reached via the secret long-press. */
+    | 'prism' | 'petey';
+type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe';
 type Speed = 'slow' | 'med' | 'fast';
-type Dim = 'off' | 'soft' | 'deep';
+type Dim = 'off' | 'low' | 'soft' | 'med' | 'deep' | 'pitch';
+
+/* The secret palettes the long-press cycles through, then back to Aurora. */
+const SECRET_CYCLE: { id: Palette; toast: string }[] = [
+    { id: 'prism', toast: 'Ambient: PRISM ✦' },
+    { id: 'petey', toast: 'Ambient: PETEY ✦' },
+    { id: 'aurora', toast: 'Ambient: AURORA' },
+];
 
 interface Opts { palette: Palette; pattern: Pattern; speed: Speed; dim: Dim }
 const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 'soft' };
@@ -28,25 +40,55 @@ const PALETTES: { id: Palette; label: string }[] = [
     { id: 'aurora', label: 'Aurora' }, { id: 'sunset', label: 'Sunset' },
     { id: 'ocean', label: 'Ocean' }, { id: 'lava', label: 'Lava' },
     { id: 'forest', label: 'Forest' }, { id: 'mono', label: 'Mono' },
+    { id: 'neon', label: 'Neon' }, { id: 'gold', label: 'Gold' },
+    { id: 'ice', label: 'Ice' }, { id: 'ultra', label: 'Ultra' },
+    { id: 'candy', label: 'Candy' }, { id: 'rose', label: 'Rosé' },
 ];
 const PATTERNS: { id: Pattern; label: string }[] = [
     { id: 'wave', label: 'Wave' }, { id: 'pulse', label: 'Pulse' },
     { id: 'breathe', label: 'Breathe' }, { id: 'solid', label: 'Solid' },
+    { id: 'sweep', label: 'Sweep' }, { id: 'ripple', label: 'Ripple' },
+    { id: 'flicker', label: 'Flicker' }, { id: 'strobe', label: 'Strobe' },
 ];
 const SPEEDS: { id: Speed; label: string }[] = [
     { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' },
 ];
 const DIMS: { id: Dim; label: string }[] = [
-    { id: 'off', label: 'Off' }, { id: 'soft', label: 'Soft' }, { id: 'deep', label: 'Deep' },
+    { id: 'off', label: 'Off' }, { id: 'low', label: 'Low' }, { id: 'soft', label: 'Soft' },
+    { id: 'med', label: 'Med' }, { id: 'deep', label: 'Deep' }, { id: 'pitch', label: 'Pitch' },
 ];
+const DIM_CLASSES = ['ambient-dim-low', 'ambient-dim-soft', 'ambient-dim-med', 'ambient-dim-deep', 'ambient-dim-pitch'];
 
 export default function AmbientStrip() {
     const { notifs } = usePdNotifs();
+    const { showToast } = useToast();
     const enabled = notifs.ambientStrip;
 
     const [opts, setOpts] = useState<Opts>(DEFAULTS);
     const [open, setOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement | null>(null);
+
+    /* ✦ Secret — hold the light for ~0.6s to cycle the two hidden palettes
+       (Prism, Petey) and back. Not advertised anywhere; just here for whoever
+       presses and waits. The press timer also suppresses the tap-to-open so a
+       long-press never also flips the menu. */
+    const holdTimer = useRef<number | null>(null);
+    const heldFired = useRef(false);
+    const beginHold = () => {
+        heldFired.current = false;
+        holdTimer.current = window.setTimeout(() => {
+            heldFired.current = true;
+            setOpts((o) => {
+                const i = SECRET_CYCLE.findIndex((s) => s.id === o.palette);
+                const next = SECRET_CYCLE[(i + 1) % SECRET_CYCLE.length] ?? SECRET_CYCLE[0];
+                showToast(next.toast);
+                return { ...o, palette: next.id };
+            });
+        }, 600);
+    };
+    const endHold = () => {
+        if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
+    };
 
     /* Hydrate saved options. */
     useEffect(() => {
@@ -77,12 +119,13 @@ export default function AmbientStrip() {
         return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
     }, []);
 
-    /* Dim the page via <body> classes — only while the strip is on. */
+    /* Dim the page via <body> classes — only while the strip is on. One class
+       per level (off = none); graduated darkness in the CSS. */
     useEffect(() => {
         const b = document.body.classList;
-        b.toggle('ambient-dim-soft', enabled && opts.dim === 'soft');
-        b.toggle('ambient-dim-deep', enabled && opts.dim === 'deep');
-        return () => b.remove('ambient-dim-soft', 'ambient-dim-deep');
+        b.remove(...DIM_CLASSES);
+        if (enabled && opts.dim !== 'off') b.add(`ambient-dim-${opts.dim}`);
+        return () => b.remove(...DIM_CLASSES);
     }, [enabled, opts.dim]);
 
     /* Close the popup on Escape or a tap outside. */
@@ -110,13 +153,20 @@ export default function AmbientStrip() {
             className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed}${open ? ' menu-open' : ''}`}
         >
             <div className="ambient-glow" aria-hidden="true" />
+            {/* Second, reaching glow — a diffuse spotlight in the same colour and
+                shape that extends further down so the light actually falls on the
+                art scrolling past, like it's held close to the canvas. */}
+            <div className="ambient-glow ambient-spot" aria-hidden="true" />
             <button
                 type="button"
                 className="ambient-pill"
                 title="Ambient light — tap for options"
                 aria-label="Ambient light options"
                 aria-expanded={open}
-                onClick={() => setOpen((o) => !o)}
+                onPointerDown={beginHold}
+                onPointerUp={endHold}
+                onPointerLeave={endHold}
+                onClick={() => { if (heldFired.current) { heldFired.current = false; return; } setOpen((o) => !o); }}
             >
                 <span className="ambient-pill-led" />
             </button>
