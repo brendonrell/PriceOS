@@ -76,6 +76,7 @@ export async function GET(
         .eq('artist_address', address),
     ]);
     if (projRes.error) return serverError(projRes.error.message);
+    if (userRes.error) return serverError(userRes.error.message);
 
     const user = userRes.data as { ens_name: string | null; handle: string | null } | null;
     const projects = (projRes.data ?? []) as {
@@ -99,6 +100,8 @@ export async function GET(
         db.from('listings').select('project_id, price_eth').in('project_id', ids).eq('active', true),
         db.from('events').select('project_id, price_eth').in('project_id', ids).not('price_eth', 'is', null),
       ]);
+      if (lRes.error) return serverError(lRes.error.message);
+      if (eRes.error) return serverError(eRes.error.message);
       for (const l of (lRes.data ?? []) as { project_id: string; price_eth: number | string }[]) {
         const p = Number(l.price_eth);
         if (floorByProj[l.project_id] === undefined || p < floorByProj[l.project_id]) {

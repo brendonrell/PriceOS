@@ -75,6 +75,10 @@ export async function GET(
 
     if (projectRes.error) return serverError(projectRes.error.message);
     if (holdersRes.error) return serverError(holdersRes.error.message);
+    // Floor + volume feed visible card prices — surface a failure rather than
+    // silently rendering "no floor / zero volume".
+    if (listingsRes.error) return serverError(listingsRes.error.message);
+    if (eventsRes.error) return serverError(eventsRes.error.message);
 
     const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null; custom_color?: string | null } | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];

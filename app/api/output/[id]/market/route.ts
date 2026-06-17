@@ -59,10 +59,21 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       db.from('events').select('price_eth, timestamp').eq('project_id', slug).eq('token_id', tokenId).eq('type', 'XFER').order('timestamp', { ascending: false }).limit(1).maybeSingle(),
       db.from('projects').select('floor_price_eth').eq('id', slug).maybeSingle(),
     ]);
+    // Surface a real DB failure instead of silently returning empty market
+    // state (which would paint a wrong owner / missing listing — e.g. a BUY
+    // button where it should read LIST). Absent rows are not errors here
+    // (maybeSingle returns null data, no error).
+    if (holder.error) return serverError(holder.error.message);
+    if (listing.error) return serverError(listing.error.message);
+    if (offers.error) return serverError(offers.error.message);
+    if (lastSale.error) return serverError(lastSale.error.message);
+    if (proj.error) return serverError(proj.error.message);
+
     const owner = (holder.data as { owner_address?: string } | null)?.owner_address ?? null;
     let ownerHandle: string | null = null;
     if (owner) {
       const u = await db.from('users').select('handle').eq('address', owner).maybeSingle();
+      if (u.error) return serverError(u.error.message);
       ownerHandle = (u.data as { handle?: string | null } | null)?.handle ?? null;
     }
     const viewerAddr = await verifySiweSession(req);

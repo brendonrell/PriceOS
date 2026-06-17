@@ -33,6 +33,8 @@ export async function GET(): Promise<NextResponse> {
     ]);
 
     if (projRes.error) return serverError(projRes.error.message);
+    if (holdersRes.error) return serverError(holdersRes.error.message);
+    if (eventsRes.error) return serverError(eventsRes.error.message);
 
     const projects = (projRes.data ?? []) as {
       artist_address: string | null;
