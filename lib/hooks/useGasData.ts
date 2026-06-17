@@ -40,7 +40,7 @@ interface UseGasDataReturn {
     error: string | null;
 }
 
-const POLL_MS = 12_000;
+const POLL_MS = 30_000;
 
 export function useGasData(active: boolean): UseGasDataReturn {
     const [data, setData] = useState<GasData | null>(null);

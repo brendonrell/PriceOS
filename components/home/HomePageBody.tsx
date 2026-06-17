@@ -353,11 +353,15 @@ function HomePageBodyInner({
         }
         const onRefresh = () => load();
         window.addEventListener('pd:project-refresh', onRefresh);
-        const poll = window.setInterval(load, FEED_POLL_MS);
+        // Only poll the home feed while the tab is visible; refresh on return.
+        const poll = window.setInterval(() => { if (!document.hidden) load(); }, FEED_POLL_MS);
+        const onVis = () => { if (!document.hidden) load(); };
+        document.addEventListener('visibilitychange', onVis);
         return () => {
             cancelled = true;
             window.clearInterval(poll);
             window.removeEventListener('pd:project-refresh', onRefresh);
+            document.removeEventListener('visibilitychange', onVis);
             if (channel) {
                 try {
                     getSupabaseBrowser().removeChannel(channel);

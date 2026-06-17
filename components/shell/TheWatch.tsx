@@ -70,8 +70,12 @@ export default function TheWatch() {
         .catch(() => { /* offline — keep the last value */ });
     };
     load();
-    const id = window.setInterval(load, 60_000);
-    return () => { cancelled = true; window.clearInterval(id); };
+    // Skip the poll while the tab is hidden; refresh on return. A backgrounded
+    // tab must not keep hitting the stats route.
+    const id = window.setInterval(() => { if (!document.hidden) load(); }, 60_000);
+    const onVis = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { cancelled = true; window.clearInterval(id); document.removeEventListener('visibilitychange', onVis); };
   }, [active]);
 
   /* Restore saved position; default to lower-right above the footer. */

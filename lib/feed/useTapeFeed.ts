@@ -29,11 +29,16 @@ export function useTapeFeed(): TapeFeedItem[] {
         load();
         const onR = () => load();
         window.addEventListener('pd:project-refresh', onR);
-        const poll = window.setInterval(load, TAPE_POLL_MS);
+        // Only poll while the tab is actually visible — a backgrounded tab does
+        // zero network calls (kills the idle invocation burn). Refresh on return.
+        const poll = window.setInterval(() => { if (!document.hidden) load(); }, TAPE_POLL_MS);
+        const onVis = () => { if (!document.hidden) load(); };
+        document.addEventListener('visibilitychange', onVis);
         return () => {
             cancelled = true;
             window.removeEventListener('pd:project-refresh', onR);
             window.clearInterval(poll);
+            document.removeEventListener('visibilitychange', onVis);
         };
     }, []);
     return items;
