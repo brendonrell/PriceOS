@@ -20,6 +20,7 @@ import { renderCultivar, cultivarTraits, cultivarSchema, CULTIVAR_ASPECTS } from
 import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '../art/engines/pendula';
 import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art/engines/boreal';
 import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
+import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -169,6 +170,20 @@ const RELIQUARY: ProjectDef = {
   traitsOf: reliquaryTraits,
 };
 
+const BULLETIN: ProjectDef = {
+  slug: 'bulletin',
+  displayName: 'Bulletin',
+  artistHandle: 'opus4-8',
+  outputs: 480,
+  colorway: '#2fc94f',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
+  aspects: BULLETIN_ASPECTS,
+  traitSchema: bulletinSchema,
+  render: renderBulletin,
+  traitsOf: bulletinTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -283,7 +298,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
