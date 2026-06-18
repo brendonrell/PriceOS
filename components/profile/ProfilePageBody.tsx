@@ -539,6 +539,31 @@ function ProfilePageBodyInner({
         return filtered;
     }, [enriched, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
 
+    /* Progressive gallery reveal (Brendon, 2026-06-18). Mounting hundreds of
+       cards in a single commit froze the page and crashed it into a reload on a
+       big collection. Render a first screenful immediately so the page is snappy
+       and interactive, then stream the rest of the artwork in over the following
+       frames — the art is always the LAST thing to fill in, never a blocker.
+       revealCount only grows, so once the whole grid is mounted, later filter /
+       sort changes render instantly. */
+    const REVEAL_FIRST = 24;
+    const REVEAL_STEP = 48;
+    const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
+    useEffect(() => {
+        if (revealCount >= visibleCollected.length) return;
+        const raf = requestAnimationFrame(() =>
+            setRevealCount((c) => c + REVEAL_STEP),
+        );
+        return () => cancelAnimationFrame(raf);
+    }, [revealCount, visibleCollected.length]);
+    const shownCollected = useMemo(
+        () =>
+            revealCount >= visibleCollected.length
+                ? visibleCollected
+                : visibleCollected.slice(0, revealCount),
+        [visibleCollected, revealCount],
+    );
+
     /* Group the filtered/sorted holdings by Project for rendering. Each group
        renders inside its own ProjectProvider so ArtworkCard paints the right
        Project's art + meta — the provider is a context-only node (no DOM), so
@@ -547,13 +572,13 @@ function ProfilePageBodyInner({
        the group order.) */
     const collectedByProject = useMemo(() => {
         const m = new Map<string, number[]>();
-        for (const h of visibleCollected) {
+        for (const h of shownCollected) {
             const arr = m.get(h.slug) ?? [];
             arr.push(h.token_id);
             m.set(h.slug, arr);
         }
         return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
-    }, [visibleCollected]);
+    }, [shownCollected]);
 
     /* Stored dominant colours for every project the wallet holds (any engine);
        resolveBucket prefers them, falls back to live palette-math. */
@@ -583,7 +608,7 @@ function ProfilePageBodyInner({
             return [{
                 key: 'soon',
                 heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
-                cards: visibleCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
+                cards: shownCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
             }];
         }
 
@@ -591,7 +616,7 @@ function ProfilePageBodyInner({
         // own provider so the art still paints with its project's context.
         if (group === 'color') {
             const buckets = new Map<string, { slug: string; id: number }[]>();
-            for (const h of visibleCollected) {
+            for (const h of shownCollected) {
                 const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
                 const arr = buckets.get(b) ?? [];
                 arr.push({ slug: h.slug, id: h.token_id });
@@ -607,7 +632,7 @@ function ProfilePageBodyInner({
         // provider per project), so group by slug then order/title by dimension.
         const bySlug = new Map<string, number[]>();
         const slugArtist = new Map<string, string>();
-        for (const h of visibleCollected) {
+        for (const h of shownCollected) {
             const arr = bySlug.get(h.slug) ?? [];
             arr.push(h.token_id);
             bySlug.set(h.slug, arr);
@@ -635,7 +660,7 @@ function ProfilePageBodyInner({
             blocks.push({ key: slug, heads, group: { slug, ids: bySlug.get(slug)! } });
         }
         return blocks;
-    }, [group, sort, visibleCollected, colorsVer]);
+    }, [group, sort, shownCollected, colorsVer]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
