@@ -1858,7 +1858,7 @@ function SortBtn({
     /* Group-by glyph — display-only indicator of the current grouping on the
        active grid sort (ID / PRICE), next to the direction arrow like FEED's
        `$`. The pure (no-group) state shows NOTHING; each grouping shows its
-       glyph at 1.5× (docs/GLYPHS.md). The button's single tap cycles
+       glyph (docs/GLYPHS.md). The button's single tap cycles
        direction+group. */
     const showGroupMod =
         active &&
@@ -1870,7 +1870,7 @@ function SortBtn({
             className="sort-group-mod on"
             style={{
                 fontFamily: "'Courier New', Courier, monospace",
-                fontSize: '18px',
+                fontSize: '12px',
                 marginRight: '4px',
             }}
         >
