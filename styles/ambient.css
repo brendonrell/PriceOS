@@ -234,6 +234,161 @@ body.is-pwa .ambient-strip-layer {
 .haze-soft   { --amb-blur: 44px; --amb-blur-spot: 62px; }
 .haze-dreamy { --amb-blur: 72px; --amb-blur-spot: 98px; }
 
+/* ---- Light FX (page 3, bottom half) ----------------------------------------
+   Two independent, screen-blended layers that ADD light over the wash, tinted
+   by the active palette (--amb1..4). UNLIKE atmosphere, these ride the share
+   code. Both default off (display:none) so they cost nothing until chosen.
+   · RAYS    = volumetric shafts fanning down from the bar
+   · WEATHER = particles drifting inside the glow ---------------------------- */
+.ambient-rays,
+.ambient-weather {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    will-change: transform, background-position, opacity;
+}
+
+/* ---- RAYS ---- */
+.ambient-rays {
+    top: 16px;
+    width: min(1000px, 100vw);
+    height: 62vh;
+    opacity: 0;
+    transform-origin: 50% 0;
+    -webkit-mask-image: radial-gradient(125% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 80%);
+    mask-image: radial-gradient(125% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 80%);
+}
+.rays-off .ambient-rays { display: none; }
+
+.rays-shafts .ambient-rays {
+    opacity: 0.5;
+    background: repeating-conic-gradient(from 180deg at 50% -2%,
+        transparent 0deg 3deg,
+        color-mix(in srgb, var(--amb2) 22%, transparent) 3deg 4.6deg,
+        transparent 4.6deg 8deg);
+    filter: blur(8px) saturate(1.1);
+    animation: amb-rays-sway calc(var(--amb-dur) * 1.4) ease-in-out infinite;
+}
+@keyframes amb-rays-sway {
+    0%, 100% { transform: translateX(-50%) rotate(-2.2deg); }
+    50%      { transform: translateX(-50%) rotate(2.2deg); }
+}
+
+.rays-beams .ambient-rays {
+    opacity: 0.58;
+    background: repeating-conic-gradient(from 180deg at 50% -4%,
+        transparent 0deg 6.5deg,
+        color-mix(in srgb, var(--amb1) 34%, transparent) 6.5deg 8.5deg,
+        transparent 8.5deg 17deg);
+    filter: blur(5px) saturate(1.2);
+    animation: amb-rays-sweep calc(var(--amb-dur) * 2) ease-in-out infinite;
+}
+@keyframes amb-rays-sweep {
+    0%, 100% { transform: translateX(-50%) rotate(-7deg); }
+    50%      { transform: translateX(-50%) rotate(7deg); }
+}
+
+.rays-halo .ambient-rays {
+    background: radial-gradient(58% 42% at 50% 5%,
+        transparent 30%,
+        color-mix(in srgb, var(--amb3) 32%, transparent) 46%,
+        color-mix(in srgb, var(--amb2) 16%, transparent) 60%,
+        transparent 72%);
+    filter: blur(10px) saturate(1.1);
+    animation: amb-halo-breathe var(--amb-dur) ease-in-out infinite;
+}
+@keyframes amb-halo-breathe {
+    0%, 100% { opacity: 0.5;  transform: translateX(-50%) scale(1); }
+    50%      { opacity: 0.78; transform: translateX(-50%) scale(1.06); }
+}
+
+.rays-curtain .ambient-rays {
+    opacity: 0.5;
+    background: repeating-linear-gradient(90deg,
+        transparent 0 16px,
+        color-mix(in srgb, var(--amb1) 20%, transparent) 22px 34px,
+        transparent 40px 58px,
+        color-mix(in srgb, var(--amb4) 18%, transparent) 64px 76px,
+        transparent 82px 100px);
+    background-size: 100px 100%;
+    filter: blur(9px) saturate(1.15);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 52%, transparent 88%);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 52%, transparent 88%);
+    animation: amb-curtain-wave calc(var(--amb-dur) * 1.2) ease-in-out infinite;
+}
+@keyframes amb-curtain-wave {
+    0%, 100% { background-position: 0 0;    transform: translateX(-50%) skewX(-7deg); }
+    50%      { background-position: 46px 0; transform: translateX(-50%) skewX(7deg); }
+}
+
+/* ---- WEATHER ---- */
+.ambient-weather {
+    top: 22px;
+    width: min(920px, 99vw);
+    height: 60vh;
+    opacity: 0;
+    -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.7) 48%, transparent 84%);
+    mask-image: radial-gradient(120% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.7) 48%, transparent 84%);
+}
+.weather-clear .ambient-weather { display: none; }
+
+.weather-rain .ambient-weather {
+    opacity: 0.5;
+    background-image: repeating-linear-gradient(7deg,
+        transparent 0 8px,
+        color-mix(in srgb, var(--amb3) 65%, transparent) 8px 9px,
+        transparent 9px 20px);
+    background-size: 100% 240px;
+    animation: amb-rain 0.6s linear infinite;
+}
+@keyframes amb-rain { from { background-position: 0 0; } to { background-position: 0 240px; } }
+
+.weather-snow .ambient-weather {
+    opacity: 0.72;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.92) 1.4px, transparent 1.9px),
+        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1.5px);
+    background-size: 64px 64px, 96px 96px;
+    background-position: 0 0, 32px 0;
+    animation: amb-snow 12s linear infinite;
+}
+@keyframes amb-snow {
+    from { background-position: 0 0, 32px 0; }
+    to   { background-position: 22px 620px, 6px 620px; }
+}
+
+.weather-embers .ambient-weather {
+    opacity: 0.7;
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--amb1) 92%, transparent) 1.5px, transparent 2px),
+        radial-gradient(circle, color-mix(in srgb, var(--amb2) 82%, transparent) 1px, transparent 1.5px);
+    background-size: 72px 72px, 52px 52px;
+    filter: blur(0.4px);
+    animation: amb-embers 7s linear infinite, amb-ember-blink 1.8s ease-in-out infinite;
+}
+@keyframes amb-embers {
+    from { background-position: 0 620px, 36px 620px; }
+    to   { background-position: 26px 0, 8px 0; }
+}
+@keyframes amb-ember-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.78; } }
+
+.weather-fireflies .ambient-weather {
+    opacity: 0.8;
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--amb4) 92%, transparent) 1.6px, transparent 2.3px),
+        radial-gradient(circle, color-mix(in srgb, var(--amb2) 85%, transparent) 1.3px, transparent 2px);
+    background-size: 130px 110px, 170px 150px;
+    filter: blur(0.3px) drop-shadow(0 0 3px color-mix(in srgb, var(--amb4) 55%, transparent));
+    animation: amb-fly 13s ease-in-out infinite, amb-firefly-blink 2.6s ease-in-out infinite;
+}
+@keyframes amb-fly {
+    0%, 100% { background-position: 0 12%, 44px 32%; }
+    50%      { background-position: 34px 26%, 10px 18%; }
+}
+@keyframes amb-firefly-blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
+
 /* ---- "Lights off" page dim — fully continuous, driven by --ambient-dim ---
    (the alpha is set inline from the slider value; 0 = off, ~0.92 = blackout). */
 body.ambient-dim-on:not(.zen-mode):not(.zero-context-mode)::after {
@@ -574,7 +729,7 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
    staying compact (Brendon, 2026-06-17). */
 .ambient-code-input {
     flex: 0 0 auto;
-    width: 10ch;
+    width: 12ch;
     min-width: 0;
     background: transparent;
     border: none;

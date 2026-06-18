@@ -26,6 +26,8 @@ import {
     type Reach,
     type Spread,
     type Haze,
+    type Rays,
+    type Weather,
     type AmbientOpts,
 } from '../../lib/state/AmbientCode';
 
@@ -37,7 +39,7 @@ const SECRET_CYCLE: { id: Palette; toast: string }[] = [
 ];
 
 type Opts = AmbientOpts;
-const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid', spread: 'mid', haze: 'soft', sphere: false };
+const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid', spread: 'mid', haze: 'soft', rays: 'off', weather: 'clear', sphere: false };
 const STORAGE = 'pd_ambient_opts';
 /* Remember which swipe page was last open so reopening doesn't snap to page 1. */
 const PAGE_STORAGE = 'pd_ambient_page';
@@ -98,6 +100,16 @@ const SPREADS: { id: Spread; label: string }[] = [
 ];
 const HAZES: { id: Haze; label: string }[] = [
     { id: 'crisp', label: 'Crisp' }, { id: 'soft', label: 'Soft' }, { id: 'dreamy', label: 'Dreamy' },
+];
+/* Light FX (page 3, bottom half) — shareable mood, so these DO ride the code.
+   Rays = volumetric shafts fanning down; Weather = particles drifting in the glow. */
+const RAYS: { id: Rays; label: string }[] = [
+    { id: 'off', label: 'Off' }, { id: 'shafts', label: 'Shafts' }, { id: 'beams', label: 'Beams' },
+    { id: 'halo', label: 'Halo' }, { id: 'curtain', label: 'Curtain' },
+];
+const WEATHERS: { id: Weather; label: string }[] = [
+    { id: 'clear', label: 'Clear' }, { id: 'rain', label: 'Rain' }, { id: 'snow', label: 'Snow' },
+    { id: 'embers', label: 'Embers' }, { id: 'fireflies', label: 'Fireflies' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -433,13 +445,17 @@ export default function AmbientStrip() {
     return (
         <div
             ref={rootRef}
-            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'} spread-${opts.spread ?? 'mid'} haze-${opts.haze ?? 'soft'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
+            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'} spread-${opts.spread ?? 'mid'} haze-${opts.haze ?? 'soft'} rays-${opts.rays ?? 'off'} weather-${opts.weather ?? 'clear'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
         >
+            {/* Volumetric light shafts fanning down from the bar (page-3 FX). */}
+            <div className="ambient-rays" aria-hidden="true" />
             <div className="ambient-glow" aria-hidden="true" />
             {/* Second, reaching glow — a diffuse spotlight in the same colour and
                 shape that extends further down so the light actually falls on the
                 art scrolling past, like it's held close to the canvas. */}
             <div className="ambient-glow ambient-spot" aria-hidden="true" />
+            {/* Drifting particles inside the glow (page-3 FX). */}
+            <div className="ambient-weather" aria-hidden="true" />
             <button
                 type="button"
                 className="ambient-pill"
@@ -560,6 +576,20 @@ export default function AmbientStrip() {
                                 {HAZES.map((h) => (
                                     <Chip key={h.id} on={(opts.haze ?? 'soft') === h.id} onClick={() => set('haze', h.id)}>
                                         {h.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Rays">
+                                {RAYS.map((r) => (
+                                    <Chip key={r.id} on={(opts.rays ?? 'off') === r.id} onClick={() => set('rays', r.id)}>
+                                        {r.label}
+                                    </Chip>
+                                ))}
+                            </Row>
+                            <Row label="Weather">
+                                {WEATHERS.map((w) => (
+                                    <Chip key={w.id} on={(opts.weather ?? 'clear') === w.id} onClick={() => set('weather', w.id)}>
+                                        {w.label}
                                     </Chip>
                                 ))}
                             </Row>

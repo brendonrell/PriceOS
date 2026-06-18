@@ -2,25 +2,27 @@
  * Ambient Code — a self-contained encoder/decoder for the Ambient Light
  * options, totally separate from the main Setup Code / Workspaces system.
  *
- * Ambient Light is its own little world: these codes carry ONLY the four
- * ambient options (palette, pattern, speed, dim) and never touch colorway,
- * sort, notifs, spells, or tape. The main Setup Code likewise never carries
- * ambient state.
+ * Ambient Light is its own little world: these codes carry the core look
+ * (palette, pattern, speed, dim) PLUS the two shareable light-FX sections
+ * (rays, weather) — and never touch colorway, sort, notifs, spells, or tape.
+ * The main Setup Code likewise never carries ambient state.
  *
  * Format (simple, no dashes, always starts with AMBI):
  *
- *   AMBI{palette}{pattern}{speed}{dim}{dim}
+ *   AMBI{palette}{pattern}{speed}{dim}{dim}{rays}{weather}
  *
- * palette / pattern / speed are one character each — the option's index in
- * its list below (A=0, B=1, …). Dim is a 0–100 percentage encoded as TWO
- * base-36 characters (so the slider value rides in the code), zero-padded.
- * An Ambient Code is therefore 9 characters:
+ * palette / pattern / speed / rays / weather are one character each — the
+ * option's index in its list below (A=0, B=1, …). Dim is a 0–100 percentage
+ * encoded as TWO base-36 characters (so the slider value rides in the code),
+ * zero-padded. A full Ambient Code is therefore 11 characters:
  *
- *   AMBIAAB1O  → aurora · wave · pulse-speed… etc, dim 60%
- *   AMBIGEC2S  → neon   · sweep · fast · dim 100%
+ *   AMBIAAB1OAA  → aurora · wave · slow · dim 60% · rays off · weather clear
+ *   AMBIGEC2SCB  → neon   · sweep · fast · dim 100% · rays halo · weather rain
  *
- * Legacy codes (8 chars, single-letter dim A–F from before the slider) still
- * decode: the lone dim letter maps onto its old preset percentage.
+ * The two FX chars are OPTIONAL on decode — older 9-char codes (no rays/
+ * weather) and legacy 8-char codes (single-letter dim A–F) still decode, the
+ * missing tail defaulting to rays=off / weather=clear. Atmosphere (glow/reach/
+ * spread/haze) is per-device calibration and is deliberately NOT in the code.
  *
  * Decoding is forgiving on case/whitespace but strict on shape.
  */
@@ -43,6 +45,11 @@ export type Reach = 'near' | 'mid' | 'far' | 'flood';
 export type Spread = 'narrow' | 'mid' | 'wide';
 export type Haze = 'crisp' | 'soft' | 'dreamy';
 
+/* Light FX (3rd menu page, bottom half) — shareable mood, so UNLIKE the
+   atmosphere block these DO ride the code (appended after dim). */
+export type Rays = 'off' | 'shafts' | 'beams' | 'halo' | 'curtain';
+export type Weather = 'clear' | 'rain' | 'snow' | 'embers' | 'fireflies';
+
 export interface AmbientOpts {
     palette: Palette;
     pattern: Pattern;
@@ -57,6 +64,10 @@ export interface AmbientOpts {
     spread?: Spread;
     /** Edge softness of the light (blur). */
     haze?: Haze;
+    /** Volumetric light shafts fanning down from the bar. Shared in the code. */
+    rays?: Rays;
+    /** Drifting particles inside the glow. Shared in the code. */
+    weather?: Weather;
     /** Hidden egg — the bar balled up into an orb. Persisted, never shared. */
     sphere?: boolean;
 }
@@ -73,6 +84,8 @@ export const PATTERN_IDS: ReadonlyArray<Pattern> = [
     'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb', 'shimmer',
 ];
 export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
+export const RAYS_IDS: ReadonlyArray<Rays> = ['off', 'shafts', 'beams', 'halo', 'curtain'];
+export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'rain', 'snow', 'embers', 'fireflies'];
 
 /** Legacy single-letter dim (A–F) → percentage, for decoding old 8-char codes
  *  written before dim became a slider. Order matches the old preset list. */
@@ -105,7 +118,9 @@ export function encodeAmbientCode(opts: AmbientOpts): string {
     const t = Math.max(0, PATTERN_IDS.indexOf(opts.pattern));
     const s = Math.max(0, SPEED_IDS.indexOf(opts.speed));
     const dim = clampDim(opts.dim).toString(36).toUpperCase().padStart(2, '0');
-    return PREFIX + letter(p) + letter(t) + letter(s) + dim;
+    const r = Math.max(0, RAYS_IDS.indexOf(opts.rays ?? 'off'));
+    const w = Math.max(0, WEATHER_IDS.indexOf(opts.weather ?? 'clear'));
+    return PREFIX + letter(p) + letter(t) + letter(s) + dim + letter(r) + letter(w);
 }
 
 /* ────────────────────────────────────────────────────────────── */
@@ -126,19 +141,33 @@ export function decodeAmbientCode(raw: string): AmbientDecodeResult {
     const speed = SPEED_IDS[index(body[2])];
 
     let dim: number;
+    let tail = '';
     const dimPart = body.slice(3);
     if (dimPart.length >= 2) {
         const parsed = parseInt(dimPart.slice(0, 2), 36);
         if (!Number.isFinite(parsed)) return { ok: false, error: 'Bad dim in code' };
         dim = clampDim(parsed);
+        tail = body.slice(5); // optional rays + weather chars
     } else {
-        // Legacy single-letter dim (A–F).
+        // Legacy single-letter dim (A–F) — no FX tail on those old codes.
         dim = LEGACY_DIM_PCT[index(dimPart)] ?? -1;
         if (dim < 0) return { ok: false, error: 'Bad dim in code' };
     }
 
+    // Rays + weather are optional: a missing/unknown char falls back to the
+    // first option (off / clear) so older + malformed codes still apply.
+    const rays = pick(RAYS_IDS, tail[0], 'off');
+    const weather = pick(WEATHER_IDS, tail[1], 'clear');
+
     if (!palette || !pattern || !speed) {
         return { ok: false, error: 'Unknown option in code' };
     }
-    return { ok: true, opts: { palette, pattern, speed, dim } };
+    return { ok: true, opts: { palette, pattern, speed, dim, rays, weather } };
+}
+
+/** Map an optional code char to its option, falling back to a default when the
+ *  char is absent or out of range. Keeps decode forgiving on the FX tail. */
+function pick<T>(list: ReadonlyArray<T>, ch: string | undefined, fallback: T): T {
+    if (!ch) return fallback;
+    return list[index(ch)] ?? fallback;
 }
