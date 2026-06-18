@@ -237,10 +237,10 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
   /* ── new set (2026-06-18): four projects, soundtracks matched to the work
      (drawn from our verified public-playlist set). ── */
-  'setback':                { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
-  'simultaneous':           { playlistId: 'OLAK5uy_nugJJjislAMW15DJOvKOuD5EudRNeRUzQ', label: 'Terry Riley — A Rainbow in Curved Air' },
-  'dynamicsymmetry':        { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
-  'strata':                 { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  'setback':                { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  'simultaneous':           { playlistId: 'OLAK5uy_lYdwxvfKoDIiUba2_Dh1Pc-zOLLANCwKY', label: 'Tame Impala — Currents' },
+  'dynamicsymmetry':        { playlistId: 'OLAK5uy_m4oH0MlcSO_9MADlNSvGWbiGPACnT7nqQ', label: 'Floating Points, Pharoah Sanders & the LSO — Promises' },
+  'strata':                 { playlistId: 'OLAK5uy_neqQaWuMLHzuuz7wgua5Z-o0W_yo4bXIY', label: 'Bonobo — Black Sands' },
 };
 
 /* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
