@@ -454,24 +454,6 @@ export default function PriceSpriteModal() {
                     ))}
                 </div>
 
-                {/* ASCII-ID toggle — moved here from the MY PD settings row.
-                    Hides the ASCII identity (sprite + level badge) across the
-                    UI. Negative flag, so the readout shows OFF when hidden. */}
-                <div className="ps-action-row ps-reveal ps-d7">
-                    <button
-                        className="ps-action-btn"
-                        type="button"
-                        aria-pressed={asciiIdHidden}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleAsciiId();
-                        }}
-                    >
-                        <span className="ps-action-icon">{`⍢${VS15}`}</span>
-                        {`ASCII-ID: ${asciiIdHidden ? 'OFF' : 'ON'}`}
-                    </button>
-                </div>
-
                 {/* Identity Plate Export — composes the live PriceSprite +
                     PriceRank + wallet name into a downloadable PNG on the
                     current colorway (real export; was a placeholder toast). */}
@@ -496,6 +478,25 @@ export default function PriceSpriteModal() {
                     >
                         <span className="ps-action-icon">{`⍈${VS15}`}</span>
                         EXPORT IDENTITY PLATE
+                    </button>
+                </div>
+
+                {/* ASCII-ID toggle — moved here from the MY PD settings row, and
+                    sits UNDER the Export plate button (Brendon, 2026-06-18). Hides
+                    the ASCII identity (sprite + level badge) across the UI. Negative
+                    flag, so the readout shows OFF when hidden. */}
+                <div className="ps-action-row ps-reveal ps-d7">
+                    <button
+                        className="ps-action-btn"
+                        type="button"
+                        aria-pressed={asciiIdHidden}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAsciiId();
+                        }}
+                    >
+                        <span className="ps-action-icon">{`⍢${VS15}`}</span>
+                        {`ASCII-ID: ${asciiIdHidden ? 'OFF' : 'ON'}`}
                     </button>
                 </div>
             </div>

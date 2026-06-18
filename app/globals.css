@@ -4139,8 +4139,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     line-height: 1.2;
 }
 
-/* Redacted @ — Arial-rendered, sharp; sim 1000-1001, 1006, 1541. */
-#sn-redacted .st-icon {
+/* Redacted @ — Arial-rendered, sharp; sim 1000-1001, 1006, 1541. The Spell
+   Book pill (#sb-redacted) wears the same glyph treatment. */
+#sn-redacted .st-icon,
+#sb-redacted .st-icon {
     font-family: Arial, 'Helvetica Neue', sans-serif !important;
     font-size: 14px !important;
     font-weight: 900 !important;
@@ -5121,7 +5123,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .gallery-group-header.is-collapsible { cursor: pointer; }
 .ggh-arrow {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 26px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.8;

@@ -635,7 +635,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                 </div>
 
                 {/* Row 2: Zerocontext / Pricelens / Sentiment / Audience /
-                    Redacted / BackButton / Tape / Autoscroll */}
+                    AsciiId / BackButton / Tape / Autoscroll */}
                 <div className="settings-pill-row" style={{ paddingTop: 0 }}>
                     <SettingsToggle
                         id="sn-zerocontext"
@@ -669,19 +669,18 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="The Audience — live viewers on a project"
                         active={notifs.audience}
                         onClick={() => toggleWithToast('audience', 'Audience')}
-                        icon={'◐\uFE0E'}
+                        icon={'●\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
-                        id="sn-redacted"
-                        title="Redacted Mode"
-                        active={notifs.redactedMode}
-                        onClick={() => toggleWithToast('redactedMode', 'Redacted Mode')}
-                        icon={'@\uFE0E'}
+                        id="sn-asciiId"
+                        title="ASCII-ID"
+                        active={notifs.asciiId}
+                        onClick={() => toggleWithToastNeg('asciiId', 'ASCII-ID')}
+                        icon={'\u2362\uFE0E'}
                         iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
-                        iconClassName="redacted-strike"
-                        style={{ padding: '0 5px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
+                        style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
                         id="sn-backbutton"

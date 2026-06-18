@@ -248,9 +248,27 @@ real presence, not a toggled "watching" button).
 | Live presence indicator | ● | U+25CF | solid dot, always breathing; distinct from the portfolio **Shadow** half-circle ◐ (U+25D0) |
 | Present watcher (reveal) | ● | U+25CF | one dot per live viewer |
 | Anon / signed-out watcher | ◌ | U+25CC | dotted circle, dimmed |
+| MY PD **Audience** toggle | ● | U+25CF | same dot as the feature (was ◐) |
 
 > ◐ (U+25D0) stays the **Shadow** portfolio-pill glyph — the Audience moved to a
 > solid ● so the two no longer read as the same thing (Brendon, 2026-06-18).
+
+---
+
+## 11. Settings toggles & Spell Book — 2026-06-18 reshuffle
+
+| Control | Glyph | Codepoint | Note |
+|---|---|---|---|
+| Spell Book **Redacted** (was Portal slot) | @ | U+0040 | Arial, bold; same glyph as the old MY PD Redacted toggle. Drives `redactedMode` |
+| Spell Book **Price Ghost** | ᗝ | U+15DD | reassigned from the retired **Portal** pill |
+| MY PD **ASCII-ID** (back in the Redacted slot) | ⍢ | U+2362 | also lives in the PriceSprite modal; both drive `asciiId` |
+
+> **Portal** retired (it did nothing): its slot became **Redacted**, its glyph
+> ᗝ moved to **Price Ghost**, and Price Ghost's old ⦾ (U+29BE) is freed. The
+> Redacted toggle left MY PD for the Spell Book; **ASCII-ID** returned to MY PD
+> in its place. (Brendon, 2026-06-18.)
+
+> Grouping-collapse triangles (§4 note) sized up: ▾/▸ now render at 26px.
 
 ---
 

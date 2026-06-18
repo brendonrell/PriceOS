@@ -111,8 +111,8 @@ export function SpellBookSection({ onTripleTap }: Props) {
                 SPELL BOOK
             </div>
             <div className="spell-book-pills">
-                {/* Spells 1–11: familiar → portal (Solar Flare retired). */}
-                {SPELLS.slice(0, 11).map((spell) => (
+                {/* Spells 1–10: familiar → price ghost (Solar Flare + Portal retired). */}
+                {SPELLS.slice(0, 10).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}
@@ -130,6 +130,21 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         label={spell.name}
                     />
                 ))}
+                {/* Redacted — moved here from MY PD (Brendon, 2026-06-18), taking
+                    the retired Portal slot. Plain `redactedMode` flag (not
+                    spell_*), so it's a hardcoded pill like Stargazing / Echo. Same
+                    @ glyph as the old MY PD toggle (Arial via #sb-redacted CSS). */}
+                <SettingsToggle
+                    id="sb-redacted"
+                    active={notifs.redactedMode}
+                    onClick={() => {
+                        const next = !notifs.redactedMode;
+                        toggle('redactedMode');
+                        showToast(`Redacted Mode: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    icon={'@︎'}
+                    label="Redacted"
+                />
                 {/* The Watch — hardcoded pill (like Stargazing / Echo) taking
                     the retired Solar Flare slot (Brendon 2026-06-14). Toggles
                     the plain `watch` flag; the floating live-stat chip mounts
@@ -192,8 +207,8 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'≫︎'}
                     label="Echo Chamber"
                 />
-                {/* Spells 12–17: offer shield → hammer */}
-                {SPELLS.slice(11).map((spell) => (
+                {/* Spells 11–16: offer shield → hammer */}
+                {SPELLS.slice(10).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}
