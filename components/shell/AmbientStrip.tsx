@@ -111,6 +111,12 @@ const SCENES: Scene[] = [
     { id: 'sunrise',  label: 'Sunrise',  opts: { palette: 'sunset', pattern: 'wave',    speed: 'slow', dim: 28 } },
     { id: 'tide',     label: 'Tide',     opts: { palette: 'ocean',  pattern: 'ripple',  speed: 'med',  dim: 74 } },
     { id: 'grove',    label: 'Grove',    opts: { palette: 'forest', pattern: 'breathe', speed: 'med',  dim: 46 } },
+    { id: 'thunder',  label: 'Thunder',  opts: { palette: 'ultra',  pattern: 'strobe',  speed: 'turbo', dim: 88 } },
+    { id: 'disco',    label: 'Disco',    opts: { palette: 'candy',  pattern: 'sweep',   speed: 'fast', dim: 84 } },
+    { id: 'ember',    label: 'Ember',    opts: { palette: 'gold',   pattern: 'throb',   speed: 'slow', dim: 70 } },
+    { id: 'frost',    label: 'Frost',    opts: { palette: 'ice',    pattern: 'shimmer', speed: 'med',  dim: 40 } },
+    { id: 'static',   label: 'Static',   opts: { palette: 'mono',   pattern: 'pulse',   speed: 'fast', dim: 34 } },
+    { id: 'nebula',   label: 'Nebula',   opts: { palette: 'aurora', pattern: 'drift',   speed: 'slow', dim: 72 } },
 ];
 
 const sameOpts = (a: Opts, b: Opts): boolean =>

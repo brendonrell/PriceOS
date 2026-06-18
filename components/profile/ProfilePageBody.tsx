@@ -1160,7 +1160,7 @@ function ProfilePageBodyInner({
                                 return (
                                     <div
                                         key={p.hex + p.name}
-                                        className={`pill pill-l1${active ? ' active' : ''}`}
+                                        className={`pill pill-l3${active ? ' active' : ''}`}
                                         role="button"
                                         tabIndex={0}
                                         onClick={() => setMyProfileHex(p.hex)}
