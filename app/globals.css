@@ -2886,6 +2886,23 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .hero-row-title .project-title { line-height: 1; }
 .hero-row-title .artist-tag { line-height: 0; }
 
+/* Name easter egg — the colourway pill row that shoves open under your own
+   @name (ProfilePageBody). In-flow inside the title band, so it pushes the
+   identity/stats rows down rather than floating over them. */
+.egg-name { cursor: pointer; }
+.profile-egg-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    transform-origin: top;
+    animation: egg-shove-open 0.18s ease-out;
+}
+@keyframes egg-shove-open {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Inline flow (not flex): the title text and the date live in one
    inline context so the date follows the last word of the name and only
    wraps WITH it — never drops to its own row when the name wraps. */

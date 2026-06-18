@@ -39,7 +39,8 @@ import {
     useSort,
     GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
 } from '../../lib/state/SortContext';
-import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { COLOR_BUCKET_ORDER, classifyRgb } from '../../lib/art/outputColor';
+import { signatureHexFor } from '../../lib/profile/signatureHex';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
@@ -204,7 +205,7 @@ function ProfilePageBodyInner({
        their OWN profile, use the live hook value so edits in the picker repaint
        instantly; for anyone else's profile, use the server-provided value. */
     const { setActiveProfileHex } = useColorway();
-    const { hex: myProfileHex } = useProfileHex();
+    const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex();
     const isOwnProfile =
         !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
     const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
@@ -214,6 +215,45 @@ function ProfilePageBodyInner({
     }, [ownerHex, setActiveProfileHex]);
 
     const displayHandle = user.handle ?? handle;
+
+    /* ── Name easter egg — colourway pills ──────────────────────────────
+       Triple-tapping your OWN @name shoves open an in-flow row of colour
+       pills (below the title, pushing the rest of the hero down — never a
+       floating overlay). Each pill names + sets the Profile Colorway via the
+       shared hook, so the change also reflects live in the Settings field.
+       The brand palette plus the user's own HIDDEN signature colour (derived
+       from their address; named by our colour-bucket classifier). */
+    const [eggOpen, setEggOpen] = useState(false);
+    const eggTap = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
+    const handleNameTap = () => {
+        if (!isOwnProfile) return;
+        const now = Date.now();
+        const s = eggTap.current;
+        s.count = now - s.lastTap > 600 ? 1 : s.count + 1;
+        s.lastTap = now;
+        if (s.count >= 3) {
+            s.count = 0;
+            setEggOpen((v) => !v);
+        }
+    };
+
+    const eggPills = useMemo(() => {
+        const sig = signatureHexFor(user.address);
+        const s = sig.replace('#', '');
+        const sigName = classifyRgb(
+            parseInt(s.slice(0, 2), 16) || 0,
+            parseInt(s.slice(2, 4), 16) || 0,
+            parseInt(s.slice(4, 6), 16) || 0,
+        );
+        return [
+            { name: 'Hothurt Red', hex: '#FF0055' },
+            { name: 'Attention Yellow', hex: '#FFE600' },
+            { name: 'Dot Black', hex: '#111111' },
+            { name: 'Matrix White', hex: '#E0E0E0' },
+            { name: '@brendon Blue', hex: '#0109FF' },
+            { name: `@${displayHandle} ${sigName}`, hex: sig },
+        ];
+    }, [user.address, displayHandle]);
 
     /* This profile's PriceSprite — a small STILL face beside the @name (the
        profile's avatar; PD has no uploaded pfps). Works for any user via the
@@ -1043,8 +1083,14 @@ function ProfilePageBodyInner({
             <Hero
                 ariaLabel="Profile Info"
                 titleRow={
+                    <>
                     <h1 className="project-title">
-                        <span>
+                        <span
+                            className={isOwnProfile ? 'egg-name' : undefined}
+                            role={isOwnProfile ? 'button' : undefined}
+                            tabIndex={isOwnProfile ? 0 : undefined}
+                            onClick={isOwnProfile ? handleNameTap : undefined}
+                        >
                             @{displayHandle}
                         </span>
                         <span className="project-date-wrap" ref={priceDayRef}>
@@ -1106,6 +1152,33 @@ function ProfilePageBodyInner({
                             )}
                         </span>
                     </h1>
+                    {isOwnProfile && eggOpen && (
+                        <div className="profile-egg-row">
+                            {eggPills.map((p) => {
+                                const active =
+                                    (myProfileHex ?? '').toUpperCase() === p.hex.toUpperCase();
+                                return (
+                                    <div
+                                        key={p.hex + p.name}
+                                        className={`pill pill-l1${active ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => setMyProfileHex(p.hex)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setMyProfileHex(p.hex);
+                                            }
+                                        }}
+                                        title={p.hex}
+                                    >
+                                        <span className="stat-name">{p.name}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    </>
                 }
                 identityRow={
                     <div className="hero-line project-custom id-row-fit" ref={idRowRef}>
