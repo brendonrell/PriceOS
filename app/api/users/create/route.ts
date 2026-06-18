@@ -34,6 +34,7 @@ import {
 } from '@/lib/handle/validate';
 import { isPriceSpriteVibe, type PriceSpriteVibe } from '@/lib/sprites/vibes';
 import { resolveSprite } from '@/lib/sprites/composer';
+import { uniqueSignatureHex } from '@/lib/profile/signatureHex';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,6 +145,26 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             return NextResponse.json(res, { status: 409 });
         }
 
+        /* Assign the account's HIDDEN signature colour, guaranteed unique
+           across accounts. Pull every colour already taken, then pick the
+           first free candidate (the bare address, else salted re-seeds). A
+           unique index on signature_hex is the hard backstop; this loop keeps
+           us off it. Reuse the existing colour on an idempotent retry. */
+        let signatureHex = existing?.signature_hex ?? null;
+        if (!signatureHex) {
+            const { data: takenRows, error: takenErr } = await supabase
+                .from('users')
+                .select('signature_hex')
+                .not('signature_hex', 'is', null);
+            if (takenErr) return serverError(takenErr.message);
+            const taken = new Set(
+                ((takenRows as { signature_hex: string | null }[] | null) ?? [])
+                    .map((r) => (r.signature_hex ?? '').toUpperCase())
+                    .filter(Boolean),
+            );
+            signatureHex = uniqueSignatureHex(address, (hex) => taken.has(hex.toUpperCase()));
+        }
+
         /* No row yet OR row exists with handle=null. Upsert covers
            both; the existing row case is hypothetical for v0 (nothing
            creates partial rows today) but the merge-friendly write
@@ -156,6 +177,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
                     handle,
                     price_sprite: priceSprite,
                     price_sprite_resolved: priceSpriteResolved,
+                    signature_hex: signatureHex,
                 } as never,
                 { onConflict: 'address' }
             )

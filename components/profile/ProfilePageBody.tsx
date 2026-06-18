@@ -238,7 +238,7 @@ function ProfilePageBodyInner({
     };
 
     const eggPills = useMemo(() => {
-        const sig = signatureHexFor(user.address);
+        const sig = user.signature_hex ?? signatureHexFor(user.address);
         const s = sig.replace('#', '');
         const sigName = classifyRgb(
             parseInt(s.slice(0, 2), 16) || 0,

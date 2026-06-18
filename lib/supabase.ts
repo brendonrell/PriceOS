@@ -154,6 +154,10 @@ export interface UserRow {
    *  from the "Custom" colorway (`pd_custom_color`) and "Haze Mode"
    *  (`pd_haze_color`) — never alias them together. */
   profile_hex: string | null;
+  /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
+   *  checked at signup, surfaced only in the profile-name easter egg. Distinct
+   *  from profile_hex (the colour the user actively picked). */
+  signature_hex: string | null;
   /** PriceRank = your TIER (0 = unranked). Derived from price_score crossing
    *  the thresholds in lib/achievements/tiers.ts. (Model locked 2026-06-14:
    *  Score is the number, Rank is the tier it unlocks — supersedes the older
@@ -477,7 +481,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, showcase, showcase_style, discord_id, discord_username, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, signature_hex, showcase, showcase_style, discord_id, discord_username, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

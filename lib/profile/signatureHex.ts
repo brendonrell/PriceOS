@@ -1,16 +1,19 @@
 /*
- * signatureHex — a user's HIDDEN "signature" colour.
+ * signatureHex — a user's HIDDEN, UNIQUE "signature" colour.
  *
  * Every account carries a unique colour the user is never told about; it's
  * surfaced only inside the profile-name easter egg (ProfilePageBody) as their
- * own pill. The value is derived DETERMINISTICALLY from the wallet address, so
- * it's stable, unique-per-user, and needs no stored column / backfill — every
- * existing account already "has" one the first time the egg is opened.
+ * own pill. The colour is ASSIGNED + STORED at account creation (users
+ * .signature_hex) with a per-account uniqueness check, so no two accounts ever
+ * share one. This module is the deterministic CANDIDATE generator behind that
+ * assignment: a seed string (normally the wallet address) hashes into a vivid,
+ * pleasant colour. On the rare collision, the caller re-seeds (address + salt)
+ * until a free colour is found, then persists it.
  *
- * The address hashes into a vivid hue at a fixed pleasant saturation/lightness
- * so the colour reads well as a profile background and classifies cleanly into
- * one of the named colour buckets (lib/art/outputColor → classifyRgb) for the
- * pill's name.
+ * The space is wide on purpose — hue × saturation × lightness all vary — so the
+ * assignment loop effectively never collides, and the result still reads well
+ * as a profile background and classifies cleanly into one of the named colour
+ * buckets (lib/art/outputColor → classifyRgb) for the pill's name.
  */
 
 function hslToHex(h: number, s: number, l: number): string {
@@ -46,10 +49,33 @@ function hash32(str: string): number {
 }
 
 /**
- * The hidden signature hex for an account. Pins overridden handles; otherwise
- * derives a vivid, stable colour from the wallet address.
+ * Deterministic candidate signature colour for a seed. Hue, saturation and
+ * lightness are each hashed from a differently-prefixed seed so they vary
+ * independently — ~200k distinct, pleasant colours. Same seed → same colour.
  */
-export function signatureHexFor(address: string): string {
-    const hue = hash32((address || '').toLowerCase()) % 360;
-    return hslToHex(hue, 0.72, 0.52);
+export function signatureHexFor(seed: string): string {
+    const s = (seed || '').toLowerCase();
+    const hue = hash32(`h:${s}`) % 360;
+    const sat = 0.56 + (hash32(`s:${s}`) % 30) / 100; // 0.56 – 0.85
+    const light = 0.44 + (hash32(`l:${s}`) % 20) / 100; // 0.44 – 0.63
+    return hslToHex(hue, sat, light);
+}
+
+/**
+ * Find a signature colour for `address` that isn't already taken. Tries the
+ * bare address first, then salted re-seeds (`address#1`, `address#2`, …). The
+ * `isTaken` predicate is supplied by the caller (a DB lookup at signup), so the
+ * stored colour is GUARANTEED unique across accounts.
+ */
+export function uniqueSignatureHex(
+    address: string,
+    isTaken: (hex: string) => boolean,
+    maxTries = 64,
+): string {
+    for (let i = 0; i < maxTries; i++) {
+        const hex = signatureHexFor(i === 0 ? address : `${address}#${i}`);
+        if (!isTaken(hex)) return hex;
+    }
+    // Exhausted the salt budget (astronomically unlikely) — last candidate.
+    return signatureHexFor(`${address}#${maxTries}`);
 }
