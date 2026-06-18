@@ -846,10 +846,15 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        already-sorted/filtered gallery into colour or owner buckets, preserving
        the sort order inside each. Colour is palette-derived (free, no canvas);
        owner reads the live outputs map. */
-    const groupedSections = useMemo(() => {
+    /* A grouping section row: a header (level-1 title, or level-2 sub-title in a
+       combo) plus the pieces beneath it. `ckey` toggles this header's fold;
+       `l1Key` is the section it belongs to (folding level-1 folds its level-2s). */
+    type GSec = { ckey: string; l1Key: string; level: 1 | 2; label: string; ids: number[]; soon: boolean };
+    const groupedSections = useMemo<GSec[] | null>(() => {
         /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-16) —
            it never applies to FEED (chronological activity) or fog (reveal).
-           Project-page dimensions: owner · colour · last-sold · rarity. */
+           Project-page dimensions: owner · colour · owner+colour · last-sold ·
+           rarity. */
         if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
         /* Ignore a group persisted on another surface (e.g. 'artist' from a
            profile) — it isn't a project-page dimension. */
@@ -857,8 +862,39 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         /* Last-sold + rarity have no data yet — one greyed "coming soon" group,
            the real art beneath it (Brendon: "mocked in and coming soon"). */
         if (GROUP_SOON[group]) {
-            return [{ label: GROUP_LABEL[group], ids: visibleTokenIds, soon: true }];
+            return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, soon: true }];
         }
+        const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
+
+        // owner + colour — two-level: each holder titles a section, colour
+        // buckets sub-title within it.
+        if (group === 'ownerColor') {
+            const byOwner = new Map<string, number[]>();
+            for (const id of visibleTokenIds) {
+                const o = project.outputs.get(id)?.ownerDisplay ?? '—';
+                const arr = byOwner.get(o);
+                if (arr) arr.push(id); else byOwner.set(o, [id]);
+            }
+            const out: GSec[] = [];
+            for (const [owner, ids] of byOwner) {
+                const oKey = `o:${owner}`;
+                out.push({ ckey: oKey, l1Key: oKey, level: 1, label: owner, ids: [], soon: false });
+                const byColor = new Map<string, number[]>();
+                for (const id of ids) {
+                    const c = resolveBucket(project.slug, id) ?? 'Other';
+                    const arr = byColor.get(c);
+                    if (arr) arr.push(id); else byColor.set(c, [id]);
+                }
+                const colors = [...byColor.entries()]
+                    .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
+                for (const [clabel, cids] of colors) {
+                    out.push({ ckey: `${oKey}|c:${clabel}`, l1Key: oKey, level: 2, label: clabel, ids: cids, soon: false });
+                }
+            }
+            return out;
+        }
+
+        // single-level: owner OR colour
         const map = new Map<string, number[]>();
         for (const id of visibleTokenIds) {
             const label =
@@ -869,10 +905,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             if (arr) arr.push(id);
             else map.set(label, [id]);
         }
-        const sections = Array.from(map, ([label, ids]) => ({ label, ids, soon: false }));
+        const sections: GSec[] = Array.from(map, ([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, soon: false }));
         if (group === 'color') {
-            const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-            sections.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
+            sections.sort((a, b) => colorOrder.indexOf(a.label) - colorOrder.indexOf(b.label));
         }
         return sections;
     }, [group, sort, visibleTokenIds, project, colorsVer]);
@@ -1329,19 +1364,22 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                            instant and can't jam, however heavy the art (Brendon,
                            2026-06-16). */
                         ? groupedSections.flatMap((sec) => {
-                            const folded = collapsedGroups.has(sec.label);
+                            const isL2 = sec.level === 2;
+                            // A folded level-1 hides its sub-headers and their cards.
+                            if (isL2 && collapsedGroups.has(sec.l1Key)) return [];
+                            const folded = collapsedGroups.has(sec.ckey);
                             return [
                             <div
-                                key={`hdr-${sec.label}`}
-                                className={`gallery-group-header is-collapsible${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                key={`hdr-${sec.ckey}`}
+                                className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                 role="button"
                                 tabIndex={0}
                                 aria-expanded={!folded}
-                                onClick={() => toggleGroupCollapse(sec.label)}
+                                onClick={() => toggleGroupCollapse(sec.ckey)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        toggleGroupCollapse(sec.label);
+                                        toggleGroupCollapse(sec.ckey);
                                     }
                                 }}
                             >
@@ -1349,7 +1387,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 <span className="ggh-label">{sec.label}</span>
                                 {sec.soon
                                     ? <span className="ggh-soon">coming soon</span>
-                                    : <span className="ggh-count">{sec.ids.length}</span>}
+                                    : sec.ids.length > 0
+                                        ? <span className="ggh-count">{sec.ids.length}</span>
+                                        : null}
                             </div>,
                             ...(folded ? [] : sec.ids.map((id) => (
                                 <ArtworkCard

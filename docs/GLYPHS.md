@@ -111,6 +111,7 @@ first state always = none. One glyph per dimension:
 | Dominant colour | ◉ | U+25C9 | the Haze dropper (samples colour — see §7) |
 | Artist + colour | ✺◉ | — | two-level combo (artist over colour) |
 | Project + colour | ⬚◉ | — | two-level combo (project over colour) |
+| Owner + colour | ⌂◉ | — | two-level combo (project page — owner over colour) |
 | Last sold $ | $ | — | coming soon |
 | Rarity | ❖ | U+2756 | freed from rank for rarity sitewide |
 

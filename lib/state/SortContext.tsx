@@ -59,18 +59,19 @@ export type FeedKind = 'time' | 'price';
      none → artist → project → artist+project → owner → colour → last-sold → rarity
    Each surface exposes only the dimensions that can apply, so the cycle never
    lands on a dead option:
-     - project page  (one artist / one project): owner · colour · last-sold · rarity
+     - project page  (one artist / one project): owner · colour · owner+colour ·
+       last-sold · rarity
      - collected grid (cross-project holdings):   artist · project · artist+project ·
        colour · artist+colour · project+colour · last-sold · rarity
    Combos are two-level: the first dimension titles the section, the second
    sub-titles within it (project+artist is omitted — a project has one artist). */
 export type GroupKey =
     | 'none' | 'artist' | 'project' | 'artistProject'
-    | 'artistColor' | 'projectColor'
+    | 'artistColor' | 'projectColor' | 'ownerColor'
     | 'owner' | 'color' | 'lastSold' | 'rarity';
 
 export const PROJECT_GROUP_ORDER: GroupKey[] =
-    ['none', 'owner', 'color', 'lastSold', 'rarity'];
+    ['none', 'owner', 'color', 'ownerColor', 'lastSold', 'rarity'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor', 'lastSold', 'rarity'];
 
@@ -85,6 +86,7 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     artistProject: '✺︎⬚︎',
     artistColor: '✺︎◉︎',
     projectColor: '⬚︎◉︎',
+    ownerColor: '⌂︎◉︎',
     owner: '⌂︎',
     color: '◉︎',
     lastSold: '$',
@@ -96,6 +98,7 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     none: 'OFF', artist: 'ARTIST', project: 'PROJECT',
     artistProject: 'ARTIST + PROJECT',
     artistColor: 'ARTIST + COLOR', projectColor: 'PROJECT + COLOR',
+    ownerColor: 'OWNER + COLOR',
     owner: 'OWNER',
     color: 'COLOR', lastSold: 'LAST SOLD', rarity: 'RARITY',
 };
@@ -105,7 +108,7 @@ export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true, 
 
 const ALL_GROUP_KEYS: GroupKey[] = [
     'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
-    'owner', 'color', 'lastSold', 'rarity',
+    'ownerColor', 'owner', 'color', 'lastSold', 'rarity',
 ];
 function isGroupKey(v: unknown): v is GroupKey {
     return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);
