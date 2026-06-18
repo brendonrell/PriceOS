@@ -407,65 +407,50 @@ body.is-pwa .ambient-strip-layer {
 @keyframes amb-ff-blink-c { 0%,12% { opacity: 0; } 20% { opacity: 0.9; } 44% { opacity: 0.12; } 70%,100% { opacity: 0; } }
 
 /* POLLEN — warm golden motes rising slowly, soft, no blink. */
-.weather-pollen .ambient-weather {
-    opacity: 0.6;
-    background-image:
-        radial-gradient(circle, color-mix(in srgb, var(--amb2) 82%, transparent) 1.2px, transparent 1.8px),
-        radial-gradient(circle, color-mix(in srgb, var(--amb1) 72%, transparent) 0.9px, transparent 1.4px);
-    background-size: 88px 78px, 124px 116px;
-    filter: blur(0.4px);
-    animation: amb-pollen 17s linear infinite;
-}
-@keyframes amb-pollen { from { background-position: 0 82%, 30px 70%; } to { background-position: 38px 4%, -22px 10%; } }
+/* Page-3 Nature — each option is a DISTINCT phenomenon (not one drifting field
+   with tweaked numbers): pollen rises, petals fall, spores hover + glow-pulse,
+   seeds drift sideways on a breeze, dust twinkles near-still. Particles are
+   SCATTERED via box-shadow (random offsets — no lattice), drawn in the layer
+   colour via currentColor, masked + screen-blended by the base .ambient-weather. */
+.weather-pollen .ambient-weather{opacity:0.6;}
+.weather-pollen .ambient-weather::before,.weather-pollen .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
+.weather-pollen .ambient-weather::before{width:1.3px;height:1.3px;color:var(--amb2);filter:blur(.3px);box-shadow:491px 339px 0.5px 0.3px, 491px -301px 0.5px 0.3px, 817px 344px 0.1px 0.2px, 817px -296px 0.1px 0.2px, 583px 288px 0.4px 0.5px, 583px -352px 0.4px 0.5px, 403px 429px 0.5px -0.1px, 403px -211px 0.5px -0.1px, 171px 177px 0.3px 0.1px, 171px -463px 0.3px 0.1px, 559px 82px 0.5px 0.3px, 559px -558px 0.5px 0.3px, 402px 540px 0.6px 0.5px, 402px -100px 0.6px 0.5px, 305px 399px 0.2px -0.2px, 305px -241px 0.2px -0.2px, 711px 626px 0.2px -0.2px, 711px -14px 0.2px -0.2px, 714px 222px 0.4px 0.3px, 714px -418px 0.4px 0.3px, 812px 92px 0.7px 0.5px, 812px -548px 0.7px 0.5px, 369px 16px 0.1px 0.5px, 369px -624px 0.1px 0.5px, 477px 337px 0.2px 0.2px, 477px -303px 0.2px 0.2px, 705px 57px 0.5px -0.3px, 705px -583px 0.5px -0.3px, 427px 406px 0.8px 0.1px, 427px -234px 0.8px 0.1px, 448px 226px 0.0px 0.4px, 448px -414px 0.0px 0.4px, 403px 486px 0.2px 0.3px, 403px -154px 0.2px 0.3px, 334px 539px 0.1px -0.2px, 334px -101px 0.1px -0.2px, 605px 399px 0.1px 0.1px, 605px -241px 0.1px 0.1px, 363px 600px 0.7px 0.3px, 363px -40px 0.7px 0.3px, 394px 588px 0.5px 0.1px, 394px -52px 0.5px 0.1px, 296px 329px 0.0px 0.6px, 296px -311px 0.0px 0.6px, 290px 261px 0.1px -0.2px, 290px -379px 0.1px -0.2px, 715px 348px 0.4px -0.2px, 715px -292px 0.4px -0.2px, 537px 398px 0.7px 0.7px, 537px -242px 0.7px 0.7px, 574px 386px 0.5px 0.2px, 574px -254px 0.5px 0.2px, 91px 417px 0.5px 0.7px, 91px -223px 0.5px 0.7px, 682px 86px 0.1px 0.3px, 682px -554px 0.1px 0.3px, 933px 220px 0.7px 0.1px, 933px -420px 0.7px 0.1px, 730px 418px 0.1px -0.0px, 730px -222px 0.1px -0.0px, 637px 315px 0.5px -0.1px, 637px -325px 0.5px -0.1px, 689px 202px 0.1px 0.3px, 689px -438px 0.1px 0.3px, 366px 116px 0.7px 0.6px, 366px -524px 0.7px 0.6px, 721px 3px 0.3px 0.6px, 721px -637px 0.3px 0.6px, 547px 448px 0.5px -0.3px, 547px -192px 0.5px -0.3px, 476px 314px 0.1px 0.5px, 476px -326px 0.1px 0.5px, 61px 54px 0.8px 0.3px, 61px -586px 0.8px 0.3px, 676px 534px 0.7px 0.7px, 676px -106px 0.7px 0.7px, 49px 108px 0.5px 0.1px, 49px -532px 0.5px 0.1px, 401px 341px 0.0px -0.2px, 401px -299px 0.0px -0.2px;animation:amb-rise-a 22s linear infinite;}
+.weather-pollen .ambient-weather::after{width:1.6px;height:1.6px;color:var(--amb1);filter:blur(.5px);box-shadow:202px 96px 0.4px -0.1px, 202px -544px 0.4px -0.1px, 372px 221px 0.4px 0.0px, 372px -419px 0.4px 0.0px, 237px 23px 0.8px -0.3px, 237px -617px 0.8px -0.3px, 587px 474px 1.2px 0.2px, 587px -166px 1.2px 0.2px, 668px 35px 1.1px 0.5px, 668px -605px 1.1px 0.5px, 724px 176px 0.7px -0.2px, 724px -464px 0.7px -0.2px, 273px 55px 0.1px 0.3px, 273px -585px 0.1px 0.3px, 245px 222px 0.2px 0.0px, 245px -418px 0.2px 0.0px, 600px 200px 1.1px 0.4px, 600px -440px 1.1px 0.4px, 595px 210px 1.0px 0.2px, 595px -430px 1.0px 0.2px, 783px 53px 0.1px 0.5px, 783px -587px 0.1px 0.5px, 279px 23px 0.9px 0.1px, 279px -617px 0.9px 0.1px, 198px 105px 0.7px -0.1px, 198px -535px 0.7px -0.1px, 241px 409px 0.7px -0.2px, 241px -231px 0.7px -0.2px, 707px 353px 0.6px 0.2px, 707px -287px 0.6px 0.2px, 195px 563px 0.2px 0.6px, 195px -77px 0.2px 0.6px, 289px 557px 0.3px 0.5px, 289px -83px 0.3px 0.5px, 826px 247px 0.6px 0.1px, 826px -393px 0.6px 0.1px, 858px 167px 0.5px -0.1px, 858px -473px 0.5px -0.1px, 351px 569px 1.1px 0.2px, 351px -71px 1.1px 0.2px, 372px 33px 0.1px 0.1px, 372px -607px 0.1px 0.1px, 568px 284px 0.7px -0.1px, 568px -356px 0.7px -0.1px, 214px 638px 0.7px -0.1px, 214px -2px 0.7px -0.1px, 633px 264px 0.5px 0.4px, 633px -376px 0.5px 0.4px, 795px 377px 1.1px 0.2px, 795px -263px 1.1px 0.2px, 699px 550px 0.3px -0.2px, 699px -90px 0.3px -0.2px;animation:amb-rise-b 31s linear infinite;}
+@keyframes amb-rise-a{from{transform:translateY(0);}to{transform:translateY(-640px);}}
+@keyframes amb-rise-b{from{transform:translateY(0);}to{transform:translateY(-640px);}}
 
-/* PETALS — soft palette-tinted petals drifting down with a sideways sway. */
-.weather-petals .ambient-weather {
-    opacity: 0.6;
-    background-image:
-        radial-gradient(3px 2px, color-mix(in srgb, var(--amb3) 80%, transparent) 58%, transparent 62%),
-        radial-gradient(2.4px 1.6px, color-mix(in srgb, var(--amb1) 72%, transparent) 58%, transparent 62%);
-    background-size: 130px 160px, 180px 210px;
-    animation: amb-petals 12s linear infinite;
-}
-@keyframes amb-petals { from { background-position: 0 -12%, 44px -22%; } to { background-position: 54px 112%, -34px 122%; } }
+.weather-petals .ambient-weather{opacity:0.6;}
+.weather-petals .ambient-weather::before,.weather-petals .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
+.weather-petals .ambient-weather::before{width:3px;height:2.2px;color:var(--amb3);box-shadow:11px 40px 0.6px 0.4px, 11px -600px 0.6px 0.4px, 501px 260px 0.3px -0.1px, 501px -380px 0.3px -0.1px, 531px 467px 0.2px -0.1px, 531px -173px 0.2px -0.1px, 734px 332px 0.1px 0.1px, 734px -308px 0.1px 0.1px, 282px 342px 0.2px 0.7px, 282px -298px 0.2px 0.7px, 238px 562px 0.1px -0.2px, 238px -78px 0.1px -0.2px, 148px 186px 0.3px 0.5px, 148px -454px 0.3px 0.5px, 72px 584px 0.3px 0.3px, 72px -56px 0.3px 0.3px, 653px 618px 0.4px 0.6px, 653px -22px 0.4px 0.6px, 795px 26px 0.1px 0.1px, 795px -614px 0.1px 0.1px, 408px 13px 0.1px 0.5px, 408px -627px 0.1px 0.5px, 354px 273px 0.3px 0.6px, 354px -367px 0.3px 0.6px, 675px 441px 0.2px 0.1px, 675px -199px 0.2px 0.1px, 133px 85px 0.5px 0.0px, 133px -555px 0.5px 0.0px, 183px 405px 0.2px -0.3px, 183px -235px 0.2px -0.3px, 657px 590px 0.3px 0.5px, 657px -50px 0.3px 0.5px, 629px 589px 0.1px 0.2px, 629px -51px 0.1px 0.2px, 623px 570px 0.6px 0.5px, 623px -70px 0.6px 0.5px, 570px 617px 0.6px 0.2px, 570px -23px 0.6px 0.2px, 786px 4px 0.3px 0.0px, 786px -636px 0.3px 0.0px;animation:amb-fall-a 14s linear infinite;}
+.weather-petals .ambient-weather::after{width:3.6px;height:2.6px;color:var(--amb1);filter:blur(.4px);box-shadow:89px 44px 0.6px 0.0px, 89px -596px 0.6px 0.0px, 311px 137px 0.5px 0.7px, 311px -503px 0.5px 0.7px, 793px 6px 0.7px -0.1px, 793px -634px 0.7px -0.1px, 83px 631px 0.8px 0.2px, 83px -9px 0.8px 0.2px, 712px 35px 0.5px 0.4px, 712px -605px 0.5px 0.4px, 946px 136px 0.8px -0.1px, 946px -504px 0.8px -0.1px, 183px 501px 0.2px 0.4px, 183px -139px 0.2px 0.4px, 356px 326px 0.9px 0.5px, 356px -314px 0.9px 0.5px, 859px 584px 0.6px 0.5px, 859px -56px 0.6px 0.5px, 680px 139px 0.3px 0.2px, 680px -501px 0.3px 0.2px, 860px 609px 0.8px 0.3px, 860px -31px 0.8px 0.3px, 305px 581px 0.2px 0.1px, 305px -59px 0.2px 0.1px, 770px 103px 0.7px 0.6px, 770px -537px 0.7px 0.6px;animation:amb-fall-b 19s linear infinite;}
+@keyframes amb-fall-a{from{transform:translateY(-640px) rotate(-4deg);}to{transform:translateY(0) rotate(4deg);}}
+@keyframes amb-fall-b{from{transform:translateY(-640px) rotate(3deg);}to{transform:translateY(0) rotate(-3deg);}}
 
-/* SPORES — bioluminescent cool motes floating up with a faint blink + glow. */
-.weather-spores .ambient-weather {
-    opacity: 0.68;
-    background-image:
-        radial-gradient(circle, color-mix(in srgb, var(--amb3) 90%, transparent) 1.4px, transparent 2px),
-        radial-gradient(circle, color-mix(in srgb, var(--amb4) 85%, transparent) 1.1px, transparent 1.7px);
-    background-size: 116px 134px, 156px 176px;
-    filter: blur(0.3px) drop-shadow(0 0 5px color-mix(in srgb, var(--amb3) 55%, transparent));
-    animation: amb-spores 16s ease-in-out infinite, amb-spore-blink 3.3s ease-in-out infinite;
-}
-@keyframes amb-spores { 0% { background-position: 0 92%, 30px 82%; } 50% { background-position: 24px 46%, 8px 52%; } 100% { background-position: 0 6%, 30px 0; } }
-@keyframes amb-spore-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.78; } }
+.weather-spores .ambient-weather{opacity:0.72;}
+.weather-spores .ambient-weather::before,.weather-spores .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
+.weather-spores .ambient-weather::before{width:2px;height:2px;color:var(--amb3);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--amb3) 70%,transparent));box-shadow:650px 123px 0.3px -0.1px, 84px 487px 0.2px 0.2px, 246px 437px 0.5px 0.0px, 227px 127px 0.4px 0.4px, 282px 310px 0.4px 0.4px, 534px 390px 0.3px 0.1px, 61px 41px 0.5px 0.0px, 407px 406px 0.4px -0.3px, 221px 514px 0.1px 0.7px, 307px 70px 0.4px -0.1px, 375px 465px 0.1px 0.5px, 238px 520px 0.6px 0.1px, 179px 145px 0.5px 0.3px, 674px 80px 0.3px 0.6px, 564px 536px 0.0px 0.5px, 912px 173px 0.0px 0.4px, 137px 222px 0.5px 0.4px, 532px 427px 0.5px 0.4px, 418px 38px 0.4px 0.2px, 604px 25px 0.6px -0.2px, 530px 73px 0.2px 0.2px, 534px 92px 0.3px 0.5px, 23px 492px 0.6px 0.1px, 869px 198px 0.2px 0.3px, 302px 75px 0.4px 0.5px, 358px 344px 0.3px 0.3px, 240px 593px 0.3px 0.6px, 556px 354px 0.4px -0.0px;animation:amb-hover-a 17s ease-in-out infinite,amb-pulse-a 3s ease-in-out infinite;}
+.weather-spores .ambient-weather::after{width:1.6px;height:1.6px;color:var(--amb4);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--amb4) 60%,transparent));box-shadow:817px 326px 0.3px 0.2px, 818px 315px 0.5px 0.1px, 55px 454px 0.4px 0.0px, 328px 612px 0.2px -0.1px, 252px 457px 0.4px 0.0px, 255px 346px 0.1px 0.1px, 145px 306px 0.2px -0.3px, 817px 115px 0.0px 0.4px, 460px 319px 0.4px -0.1px, 690px 293px 0.3px -0.1px, 184px 459px 0.3px -0.0px, 842px 456px 0.1px -0.3px, 225px 1px 0.2px -0.1px, 540px 81px 0.2px 0.6px, 740px 250px 0.4px -0.2px, 192px 361px 0.5px 0.6px, 574px 617px 0.1px 0.3px, 281px 389px 0.1px -0.0px, 886px 403px 0.1px -0.1px, 925px 227px 0.4px -0.2px;animation:amb-hover-b 23s ease-in-out infinite,amb-pulse-b 4.4s ease-in-out infinite;}
+@keyframes amb-hover-a{0%,100%{transform:translate(-8px,6px);}50%{transform:translate(10px,-8px);}}
+@keyframes amb-hover-b{0%,100%{transform:translate(7px,-5px);}50%{transform:translate(-9px,8px);}}
+@keyframes amb-pulse-a{0%,100%{opacity:.25;}50%{opacity:1;}}
+@keyframes amb-pulse-b{0%,100%{opacity:.4;}50%{opacity:.95;}}
 
-/* SEEDS — wispy white dandelion seeds drifting sideways with a gentle bob. */
-.weather-seeds .ambient-weather {
-    opacity: 0.6;
-    background-image:
-        radial-gradient(circle, rgba(255,255,255,0.85) 1px, rgba(255,255,255,0) 2.6px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 0.8px, rgba(255,255,255,0) 2px);
-    background-size: 140px 120px, 200px 170px;
-    filter: blur(0.5px);
-    animation: amb-seeds 28s linear infinite, amb-seeds-bob 6s ease-in-out infinite;
-}
-@keyframes amb-seeds { from { background-position: -60px 30%, 0 60%; } to { background-position: 520px 24%, 560px 66%; } }
-@keyframes amb-seeds-bob { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8px); } }
+.weather-seeds .ambient-weather{opacity:0.62;}
+.weather-seeds .ambient-weather::before,.weather-seeds .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
+.weather-seeds .ambient-weather::before{width:1.6px;height:1.6px;color:rgba(255,255,255,.85);filter:blur(.5px);box-shadow:544px 230px 0.1px -0.3px, -416px 230px 0.1px -0.3px, 35px 4px 0.1px 0.1px, -925px 4px 0.1px 0.1px, 536px 557px 0.7px 0.5px, -424px 557px 0.7px 0.5px, 280px 106px 0.6px 0.1px, -680px 106px 0.6px 0.1px, 554px 394px 0.1px 0.3px, -406px 394px 0.1px 0.3px, 417px 420px 0.3px -0.2px, -543px 420px 0.3px -0.2px, 716px 258px 0.1px 0.0px, -244px 258px 0.1px 0.0px, 39px 39px 0.3px 0.6px, -921px 39px 0.3px 0.6px, 351px 464px 0.2px 0.1px, -609px 464px 0.2px 0.1px, 282px 449px 0.0px 0.2px, -678px 449px 0.0px 0.2px, 79px 122px 0.4px -0.2px, -881px 122px 0.4px -0.2px, 165px 168px 0.9px -0.2px, -795px 168px 0.9px -0.2px, 163px 486px 0.2px -0.2px, -797px 486px 0.2px -0.2px, 253px 576px 1.0px 0.5px, -707px 576px 1.0px 0.5px, 124px 241px 0.0px 0.5px, -836px 241px 0.0px 0.5px, 143px 156px 0.1px 0.4px, -817px 156px 0.1px 0.4px, 798px 619px 0.4px 0.1px, -162px 619px 0.4px 0.1px, 669px 579px 0.6px 0.4px, -291px 579px 0.6px 0.4px, 688px 591px 0.5px 0.5px, -272px 591px 0.5px 0.5px, 512px 542px 0.3px 0.3px, -448px 542px 0.3px 0.3px;animation:amb-breeze-a 26s linear infinite;}
+.weather-seeds .ambient-weather::after{width:1.2px;height:1.2px;color:rgba(255,255,255,.6);filter:blur(.8px);box-shadow:496px 638px 0.0px 0.4px, -464px 638px 0.0px 0.4px, 190px 376px 0.2px 0.7px, -770px 376px 0.2px 0.7px, 613px 318px 0.8px 0.5px, -347px 318px 0.8px 0.5px, 214px 477px 1.3px 0.6px, -746px 477px 1.3px 0.6px, 923px 145px 0.8px 0.5px, -37px 145px 0.8px 0.5px, 105px 304px 0.2px 0.4px, -855px 304px 0.2px 0.4px, 293px 482px 0.4px 0.4px, -667px 482px 0.4px 0.4px, 455px 371px 1.4px 0.1px, -505px 371px 1.4px 0.1px, 346px 335px 0.2px 0.6px, -614px 335px 0.2px 0.6px, 878px 82px 0.3px 0.3px, -82px 82px 0.3px 0.3px, 669px 202px 1.2px -0.1px, -291px 202px 1.2px -0.1px, 210px 428px 0.0px 0.3px, -750px 428px 0.0px 0.3px, 951px 579px 0.1px -0.0px, -9px 579px 0.1px -0.0px, 296px 570px 0.7px 0.1px, -664px 570px 0.7px 0.1px;animation:amb-breeze-b 38s linear infinite;}
+@keyframes amb-breeze-a{from{transform:translateX(-960px);}to{transform:translateX(0);}}
+@keyframes amb-breeze-b{from{transform:translateX(-960px);}to{transform:translateX(0);}}
 
-/* DUST — fine sunlit motes, faint, hovering in place with a slow drift. */
-.weather-dust .ambient-weather {
-    opacity: 0.5;
-    background-image:
-        radial-gradient(circle, color-mix(in srgb, var(--amb3) 60%, #ffffff 40%) 0.8px, transparent 1.2px),
-        radial-gradient(circle, color-mix(in srgb, var(--amb2) 55%, #ffffff 45%) 0.7px, transparent 1.1px);
-    background-size: 66px 66px, 96px 88px;
-    filter: blur(0.3px);
-    animation: amb-dust 24s ease-in-out infinite;
-}
-@keyframes amb-dust { 0%, 100% { background-position: 0 22%, 28px 40%; } 50% { background-position: 16px 30%, 12px 30%; } }
+.weather-dust .ambient-weather{opacity:0.5;}
+.weather-dust .ambient-weather::before,.weather-dust .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
+.weather-dust .ambient-weather::before{width:1px;height:1px;color:color-mix(in srgb,var(--amb3) 55%,#ffffff);box-shadow:56px 209px 0.2px 0.5px, 947px 206px 0.3px 0.2px, 509px 526px 0.1px 0.2px, 554px 255px 0.3px -0.2px, 92px 322px 0.4px 0.5px, 448px 125px 0.0px -0.2px, 584px 184px 0.1px 0.6px, 260px 616px 0.5px 0.2px, 148px 169px 0.5px 0.6px, 1px 198px 0.5px 0.6px, 473px 251px 0.1px -0.0px, 814px 42px 0.2px 0.2px, 501px 595px 0.3px -0.1px, 99px 443px 0.3px 0.5px, 853px 0px 0.2px 0.2px, 139px 229px 0.4px -0.1px, 546px 15px 0.0px -0.0px, 620px 522px 0.1px 0.3px, 624px 275px 0.3px -0.0px, 109px 8px 0.4px 0.6px, 426px 587px 0.1px 0.1px, 529px 277px 0.0px -0.3px, 845px 599px 0.2px 0.2px, 603px 186px 0.4px -0.3px, 558px 296px 0.3px 0.2px, 754px 427px 0.4px -0.2px, 809px 523px 0.4px 0.3px, 81px 536px 0.2px 0.5px, 514px 171px 0.1px 0.5px, 917px 171px 0.5px -0.1px, 56px 588px 0.4px 0.2px, 672px 541px 0.3px 0.2px, 564px 287px 0.1px -0.1px, 85px 578px 0.1px 0.0px, 82px 238px 0.0px 0.0px, 120px 585px 0.4px 0.5px, 246px 186px 0.5px 0.2px, 539px 443px 0.3px -0.1px, 480px 193px 0.0px 0.6px, 698px 20px 0.5px 0.3px, 838px 0px 0.5px -0.1px, 585px 450px 0.3px 0.7px, 554px 497px 0.5px -0.0px, 669px 241px 0.2px 0.2px, 732px 61px 0.2px 0.5px, 616px 630px 0.2px -0.0px, 786px 207px 0.2px 0.3px, 68px 120px 0.0px 0.3px, 934px 237px 0.5px -0.2px, 901px 154px 0.0px 0.6px, 507px 118px 0.2px 0.5px, 882px 216px 0.3px -0.2px, 464px 11px 0.1px 0.6px, 731px 328px 0.3px -0.1px, 85px 549px 0.3px 0.6px, 639px 19px 0.2px -0.1px, 762px 121px 0.1px -0.2px, 927px 39px 0.5px 0.4px, 713px 255px 0.1px -0.1px, 782px 581px 0.2px 0.3px, 726px 499px 0.2px 0.6px, 319px 327px 0.4px 0.0px, 494px 269px 0.4px -0.0px, 305px 251px 0.5px -0.1px;animation:amb-twinkle-a 5.5s ease-in-out infinite,amb-hoverdust-a 40s ease-in-out infinite;}
+.weather-dust .ambient-weather::after{width:1.2px;height:1.2px;color:color-mix(in srgb,var(--amb2) 50%,#ffffff);box-shadow:62px 525px 0.0px 0.7px, 79px 341px 0.1px 0.5px, 516px 610px 0.5px 0.6px, 705px 532px 0.7px 0.3px, 144px 531px 0.1px 0.2px, 476px 605px 0.6px 0.5px, 215px 435px 0.3px -0.2px, 69px 409px 0.1px -0.2px, 780px 190px 0.6px 0.6px, 104px 610px 0.7px 0.2px, 101px 141px 0.2px 0.6px, 64px 521px 0.4px 0.6px, 753px 62px 0.7px 0.6px, 818px 550px 0.2px 0.3px, 773px 373px 0.3px -0.3px, 607px 19px 0.6px 0.1px, 846px 121px 0.1px 0.2px, 650px 96px 0.2px -0.1px, 470px 15px 0.5px -0.1px, 233px 471px 0.3px 0.1px, 271px 377px 0.7px 0.2px, 180px 514px 0.7px 0.6px, 101px 439px 0.3px 0.4px, 55px 33px 0.1px 0.6px, 480px 194px 0.3px -0.1px, 202px 248px 0.2px -0.3px, 82px 605px 0.4px 0.3px, 337px 200px 0.4px 0.2px, 124px 210px 0.3px 0.2px, 366px 277px 0.2px 0.5px, 446px 175px 0.1px -0.1px, 784px 193px 0.3px -0.3px, 410px 397px 0.2px 0.3px, 333px 552px 0.4px 0.5px, 108px 127px 0.2px 0.3px, 198px 265px 0.1px 0.2px, 299px 216px 0.2px -0.3px, 764px 558px 0.1px 0.6px, 957px 477px 0.1px 0.5px, 857px 197px 0.1px 0.6px;animation:amb-twinkle-b 7.5s ease-in-out infinite,amb-hoverdust-b 52s ease-in-out infinite;}
+@keyframes amb-twinkle-a{0%,100%{opacity:.35;}50%{opacity:.85;}}
+@keyframes amb-twinkle-b{0%,100%{opacity:.55;}50%{opacity:.25;}}
+@keyframes amb-hoverdust-a{0%,100%{transform:translate(0,0);}50%{transform:translate(5px,4px);}}
+@keyframes amb-hoverdust-b{0%,100%{transform:translate(0,0);}50%{transform:translate(-4px,3px);}}
+
 
 /* Lightning sky-flash — a pure-light overlay (NO rain) that lights the whole
    top in sync with the Lightning pattern's strike. Hidden otherwise; works the
