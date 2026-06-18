@@ -439,11 +439,22 @@ function ProfilePageBodyInner({
        no-op fetch). */
     useEffect(() => {
         let cancelled = false;
+        /* Signature of a holdings set — identity of every card plus its listed
+           price. The on-mount reconcile usually returns the SAME data the server
+           already seeded; replacing state with an identical-but-new array forced
+           a full re-enrich + re-sort + repaint of hundreds of cards (the "loads
+           twice / almost crashes" jank). Comparing signatures lets us keep the
+           existing array (React bails the update) unless something truly changed,
+           while still picking up new mints / price changes. */
+        const sig = (hs: Holding[]) =>
+            hs.map((h) => `${h.slug}:${h.token_id}:${h.list_price_eth ?? ''}`).join('|');
         const load = () =>
             fetch(`/api/user/${user.address.toLowerCase()}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: { holdings?: Holding[] } | null) => {
-                    if (!cancelled && d?.holdings) setHoldings(d.holdings);
+                    if (cancelled || !d?.holdings) return;
+                    const next = d.holdings;
+                    setHoldings((prev) => (sig(prev) === sig(next) ? prev : next));
                 })
                 .catch(() => {});
         // Always reconcile on mount (Brendon 2026-06-12): the seed gives an

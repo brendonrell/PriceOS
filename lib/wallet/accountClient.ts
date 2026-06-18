@@ -89,6 +89,45 @@ export async function fetchUserRow(
     return (await r.json()) as UserProfileResponse;
 }
 
+/* Instant-identity cache (Brendon, 2026-06-18). The user row (handle, rank,
+   etc.) is fetched client-side after the wallet address is known, so the
+   connect menu flashed the bare 0x… address before the @handle landed. We stash
+   the last row in localStorage keyed by wallet — only ever the signed-in user's
+   own row, on their own device — and hydrate it instantly; the live fetch then
+   revalidates. */
+const USER_ROW_CACHE_KEY = 'pd_user_row_cache';
+export function readUserRowCache(address: string): UserProfileResponse | null {
+    try {
+        const raw = localStorage.getItem(USER_ROW_CACHE_KEY);
+        if (!raw) return null;
+        const c = JSON.parse(raw) as { addr: string; row: UserProfileResponse };
+        return c && c.addr === address.toLowerCase() && c.row ? c.row : null;
+    } catch {
+        return null;
+    }
+}
+export function writeUserRowCache(address: string, row: UserProfileResponse | null) {
+    try {
+        if (!row) {
+            localStorage.removeItem(USER_ROW_CACHE_KEY);
+            return;
+        }
+        localStorage.setItem(
+            USER_ROW_CACHE_KEY,
+            JSON.stringify({ addr: address.toLowerCase(), row })
+        );
+    } catch {
+        /* quota / unavailable — cache is best-effort */
+    }
+}
+export function clearUserRowCache() {
+    try {
+        localStorage.removeItem(USER_ROW_CACHE_KEY);
+    } catch {
+        /* ignore */
+    }
+}
+
 /**
  * Fetch the user row for a handle. Handles are permanently 1:1 with a
  * wallet and never change, so this is the stable lookup for the public

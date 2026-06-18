@@ -81,7 +81,7 @@ import type { State as WagmiState } from 'wagmi';
 import { serverSignOut } from '../../lib/wallet/siweSession';
 import { AuthContextProvider } from '../../lib/state/AuthContext';
 import { AccountCreateModal } from './AccountCreateModal';
-import { fetchUserRow, fetchMe } from '../../lib/wallet/accountClient';
+import { fetchUserRow, fetchMe, readUserRowCache, writeUserRowCache, clearUserRowCache } from '../../lib/wallet/accountClient';
 import { hydrateFromRow, resetUserState } from '../../lib/state/userState';
 import type { UserRow } from '../../lib/supabase';
 import type { UserProfileResponse } from '../../app/api/user/[address]/route';
@@ -271,23 +271,28 @@ export function WalletProviders({
     useEffect(() => {
         if (!siweAddress) {
             setUserRow(undefined);
+            clearUserRowCache();
             return;
         }
         let cancelled = false;
-        setUserRow(undefined);
+        /* Paint the cached identity instantly (so the menu shows @handle, not the
+           bare 0x… address, on the very next frame); the fetch below revalidates
+           it. Falls back to undefined on a cache miss, exactly as before. */
+        const cached = readUserRowCache(siweAddress);
+        setUserRow(cached ?? undefined);
         fetchUserRow(siweAddress)
             .then((row) => {
                 if (cancelled) return;
                 setUserRow(row);
+                writeUserRowCache(siweAddress, row);
             })
             .catch(() => {
-                /* Network / 5xx — leave state as undefined so
-                   needsSignup stays false and the user isn't blocked
-                   behind an empty modal they can't close. A future
-                   retry surface or "Refresh" CTA can recover this;
-                   for v0 the user can re-trigger via sign-out + sign-
-                   in. */
-                if (!cancelled) setUserRow(undefined);
+                /* Network / 5xx — keep whatever the cache gave us (or undefined on
+                   a miss) so needsSignup stays false and the user isn't blocked
+                   behind an empty modal they can't close. A future retry surface
+                   or "Refresh" CTA can recover this; for v0 the user can re-
+                   trigger via sign-out + sign-in. */
+                if (!cancelled) setUserRow(cached ?? undefined);
             });
         return () => {
             cancelled = true;
@@ -301,7 +306,7 @@ export function WalletProviders({
         if (!siweAddress) return;
         const onChange = () => {
             fetchUserRow(siweAddress)
-                .then((row) => { if (row) setUserRow(row); })
+                .then((row) => { if (row) { setUserRow(row); writeUserRowCache(siweAddress, row); } })
                 .catch(() => {});
         };
         window.addEventListener('pd:pricerank-changed', onChange);
