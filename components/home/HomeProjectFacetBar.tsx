@@ -49,7 +49,7 @@ export interface EnrichedProject {
     /** Upload moment (Unix ms) — the project's birthday; source of its astrology
         / PriceDay traits. */
     birthMs: number | null;
-    /** When it crossed 12 mints into Now Minting (Unix ms) — the Date sort key,
+    /** When it crossed 18 mints into Now Minting (Unix ms) — the Date sort key,
         so a fresh graduate pops to the top. Null sorts last. */
     reachedMs: number | null;
     /** Platform traits: Artist · Project(@name) · PriceDay · Sun · Moon · Rising · Fate · Status. */

@@ -1,7 +1,7 @@
 /*
  * Project milestones — count-based moments in a project's mint life that get a
  * timestamp the instant they're crossed and surface in the home feed. (UI name:
- * "project milestones".) Graduation (12) and sold-out have their own first-class
+ * "project milestones".) Graduation (18) and sold-out have their own first-class
  * columns + feed labels; THESE for-fun ones live together in projects.milestones
  * (JSONB), keyed by the count threshold as a string → ISO timestamp.
  *
@@ -54,12 +54,12 @@ export function milestoneLabel(key: string | number): string | null {
 }
 
 /* The Status facet ladder — the project's standing by mint count. First Blood +
-   Graduation (12) + the milestones, in Title Case (facet-pill style; the feed
+   Graduation (18) + the milestones, in Title Case (facet-pill style; the feed
    uses the ALLCAPS labels). Sold-out / Ascension is deliberately NOT a status
    (Brendon 2026-06-15 — "we just don't show sold out"). */
 export const STATUS_LADDER: readonly { count: number; label: string }[] = [
     { count: 1,    label: 'First Blood' },
-    { count: 12,   label: 'Graduated' },
+    { count: 18,   label: 'Graduated' },
     { count: 22,   label: 'Lucky 22' },
     { count: 100,  label: 'Century Club' },
     { count: 777,  label: 'Halo' },

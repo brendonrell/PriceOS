@@ -184,7 +184,7 @@ live in `app/globals.css` (`.af-ic--*`).
 | Event | Count | Glyph | Codepoint | Note |
 |---|---|---|---|---|
 | Uploaded | — | ✧ | U+2727 | a new piece arrives |
-| Graduated | 12 | ⟢⟢ | U+27E2 ×2 | doubled — entered Now Minting |
+| Graduated | 18 | ⟢⟢ | U+27E2 ×2 | doubled — entered Now Minting |
 | First Blood | 1 | † | U+2020 | first mint (sized down a touch) |
 | Lucky 22 | 22 | ♧ | U+2667 | white club = clover/luck (☘ is emoji — banned) |
 | Century Club | 100 | Ⅽ | U+216D | Roman numeral 100 |

@@ -4,7 +4,7 @@
  * HomeFacetBar — the sort / filter / search row for the home project feeds.
  *
  * Now Minting became the platform's de-facto Projects directory (Brendon,
- * 2026-06-13): every graduated project (12+ mints) pours in, so it needs the
+ * 2026-06-13): every graduated project (18+ mints) pours in, so it needs the
  * same kind of controls the project Artworks tab has — minus the gallery-only
  * machinery (multi-select, grid presets, the colorway/sort row). What stays:
  * a few sort pills, an Artist filter, and the search glass.

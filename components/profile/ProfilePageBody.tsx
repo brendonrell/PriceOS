@@ -129,8 +129,8 @@ function fmtFeedTime(ms: number | null): string {
         .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
 }
 
-/* Outputs per artist-project carousel (matches the home carousel). */
-const CAROUSEL_SIZE = 12;
+/* Outputs per artist-project carousel (matches the home carousel: 18). */
+const CAROUSEL_SIZE = 18;
 
 /* One artist-project carousel — same markup + classes as the home page's
    per-project carousel, mounted under its own ProjectProvider so the cards

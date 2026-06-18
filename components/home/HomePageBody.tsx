@@ -7,12 +7,12 @@
  * + same tab row, different center.
  *
  * Home tabs (Brendon, 2026-06-12 — tab set is exactly these three):
- *   - Now Minting (default) → per-project carousels for projects at ≥12
- *                             mints, in the order they reached 12 — just
+ *   - Now Minting (default) → per-project carousels for projects at ≥18
+ *                             mints, in the order they reached 18 — just
  *                             the carousels, no section header.
  *   - New Art               → the "New Uploads" text feed of uploaded
  *                             projects, newest first (a project graduates
- *                             to Now Minting at 12 mints).
+ *                             to Now Minting at 18 mints).
  *   - ⟳ (Shuffle)           → randomized discovery, re-rolls on demand.
  *                             Icon-only pill (Courier), real build later.
  *
@@ -52,8 +52,10 @@ import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
 
-/* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop). */
-const CAROUSEL_SIZE = 12;
+/* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop;
+   raised to 18 on 2026-06-18). Off-screen tiles paint lazily via the
+   virtualizer, so the extra six don't cost page-load time. */
+const CAROUSEL_SIZE = 18;
 /* Now-Minting carousels deliberately omit the "by @artist" byline today
    (Brendon's call). Flip this to true to show it on every carousel — it's
    already formatted + wraps as a unit (Brendon, 2026-06-16). */
@@ -487,7 +489,7 @@ function HomePageBodyInner({
     }, [enrichedMinting, activeFilters, searchQuery, priceMin, priceMax, mintSort]);
 
     /* Activity feed (FEED sort) — project LIFECYCLE events merged across every
-       project: UPLOADED (born), GRADUATED (crossed 12 into Now Minting), SOLD
+       project: UPLOADED (born), GRADUATED (crossed 18 into Now Minting), SOLD
        OUT. Newest first by default; the sort dir flips it. A graduated project
        contributes both its upload and graduation rows. */
     const feedView = useMemo<HomeFeedItem[]>(() => {
@@ -806,7 +808,7 @@ function HomePageBodyInner({
             </Hero>
 
             {/* Now Minting (default) — just the carousels: one per project
-                at 12+ mints, in the order they reached 12. No section header,
+                at 18+ mints, in the order they reached 18. No section header,
                 the tab is the label. */}
             {activeTab === 'minting' && mintSort.key !== 'feed' && (
                 <section aria-label="Now Minting">
@@ -821,7 +823,7 @@ function HomePageBodyInner({
                     )}
                     {/* Only the first carousel paints eagerly; every other
                         row lazy-paints through the card virtualizer as it
-                        scrolls into view. Painting every project's 12 canvases
+                        scrolls into view. Painting every project's canvases
                         up front is what made home crawl (Brendon, 2026-06-13). */}
                     {visibleMinting.map((m, i) => (
                         <ProjectProvider
@@ -867,7 +869,7 @@ function HomePageBodyInner({
             )}
 
             {/* New Art — the New Uploads text feed: uploaded projects,
-                newest first (a project graduates to Now Minting at 12). */}
+                newest first (a project graduates to Now Minting at 18). */}
             {activeTab === 'new' && (
                 <section className="home-uploads" aria-label="New Uploads">
                     <div className="home-section-head">

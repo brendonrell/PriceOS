@@ -1,7 +1,7 @@
 /*
  * Home surface data — one fresh read powering the home page's live bits:
  * hero platform stats (projects / volume / minted), the New Uploads list,
- * and the Now Minting set (projects at ≥12 mints, in the order they got
+ * and the Now Minting set (projects at ≥18 mints, in the order they got
  * there). Computed straight off the chainless ledger (projects / events),
  * same source the mint + market routes write.
  *
@@ -14,9 +14,11 @@
 import { getSupabaseService } from '@/lib/supabase';
 
 /* Mints a project needs before it graduates from the New Uploads list into
-   the Now Minting carousels (Brendon, 2026-06-11). Exported so the mint route
-   stamps `projects.graduated_at` on the same threshold. */
-export const MINTING_NOW_THRESHOLD = 12;
+   the Now Minting carousels (Brendon, 2026-06-11; raised 12→18 2026-06-18).
+   Exported so the mint route stamps `projects.graduated_at` on the same
+   threshold. NOTE: keep STATUS_LADDER's "Graduated" tier in lib/home/
+   milestones.ts in lockstep with this value. */
+export const MINTING_NOW_THRESHOLD = 18;
 
 /* The 60-day artist cooldown clock fires at UPLOAD (cooldown semantics,
    2026-06-11), so cooldown_until − 60d IS the upload moment. Used until a
@@ -140,7 +142,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
             ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
             : null,
         // Prefer the persisted graduation moment; fall back to the computed
-        // 12th-mint walk so a project with an unstamped graduation never drops
+        // 18th-mint walk so a project with an unstamped graduation never drops
         // out of the recency sort.
         reached_at: p.graduated_at
           ? new Date(p.graduated_at).getTime()
