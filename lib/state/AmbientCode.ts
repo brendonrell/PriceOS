@@ -34,7 +34,7 @@ export type Palette =
     | 'prism' | 'petey'
     /* Hidden — no chip and no documented entry point. */
     | 'spectrum' | 'nova';
-export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe' | 'drift' | 'throb' | 'shimmer';
+export type Pattern = 'wave' | 'pulse' | 'breathe' | 'solid' | 'sweep' | 'ripple' | 'flicker' | 'strobe' | 'drift' | 'throb' | 'shimmer' | 'lightning';
 export type Speed = 'slow' | 'med' | 'fast' | 'turbo';
 
 /* Atmosphere (3rd menu page) — the light's physical character. Persisted +
@@ -48,7 +48,8 @@ export type Haze = 'crisp' | 'soft' | 'dreamy';
 /* Light FX (3rd menu page, bottom half) — shareable mood, so UNLIKE the
    atmosphere block these DO ride the code (appended after dim). */
 export type Rays = 'off' | 'shafts' | 'beams' | 'halo' | 'curtain';
-export type Weather = 'clear' | 'rain' | 'snow' | 'embers' | 'fireflies';
+/* "Nature" in the menu — ambient floating particles in the glow. */
+export type Weather = 'clear' | 'fireflies' | 'pollen' | 'petals' | 'spores' | 'seeds' | 'dust';
 
 export interface AmbientOpts {
     palette: Palette;
@@ -81,11 +82,11 @@ export const PALETTE_IDS: ReadonlyArray<Palette> = [
     'prism', 'petey', 'spectrum', 'nova',
 ];
 export const PATTERN_IDS: ReadonlyArray<Pattern> = [
-    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb', 'shimmer',
+    'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb', 'shimmer', 'lightning',
 ];
 export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
 export const RAYS_IDS: ReadonlyArray<Rays> = ['off', 'shafts', 'beams', 'halo', 'curtain'];
-export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'rain', 'snow', 'embers', 'fireflies'];
+export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'fireflies', 'pollen', 'petals', 'spores', 'seeds', 'dust'];
 
 /** Legacy single-letter dim (A–F) → percentage, for decoding old 8-char codes
  *  written before dim became a slider. Order matches the old preset list. */

@@ -74,7 +74,7 @@ const PATTERNS: { id: Pattern; label: string }[] = [
     { id: 'sweep', label: 'Sweep' }, { id: 'ripple', label: 'Ripple' },
     { id: 'flicker', label: 'Flicker' }, { id: 'strobe', label: 'Strobe' },
     { id: 'drift', label: 'Drift' }, { id: 'throb', label: 'Throb' },
-    { id: 'shimmer', label: 'Shimmer' },
+    { id: 'shimmer', label: 'Shimmer' }, { id: 'lightning', label: 'Lightning' },
 ];
 const SPEEDS: { id: Speed; label: string }[] = [
     { id: 'slow', label: 'Slow' }, { id: 'med', label: 'Med' }, { id: 'fast', label: 'Fast' }, { id: 'turbo', label: 'Turbo' },
@@ -108,8 +108,9 @@ const RAYS: { id: Rays; label: string }[] = [
     { id: 'halo', label: 'Halo' }, { id: 'curtain', label: 'Curtain' },
 ];
 const WEATHERS: { id: Weather; label: string }[] = [
-    { id: 'clear', label: 'Clear' }, { id: 'rain', label: 'Rain' }, { id: 'snow', label: 'Snow' },
-    { id: 'embers', label: 'Embers' }, { id: 'fireflies', label: 'Fireflies' },
+    { id: 'clear', label: 'Clear' }, { id: 'fireflies', label: 'Fireflies' }, { id: 'pollen', label: 'Pollen' },
+    { id: 'petals', label: 'Petals' }, { id: 'spores', label: 'Spores' }, { id: 'seeds', label: 'Seeds' },
+    { id: 'dust', label: 'Dust' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -123,7 +124,7 @@ const SCENES: Scene[] = [
     { id: 'sunrise',  label: 'Sunrise',  opts: { palette: 'sunset', pattern: 'wave',    speed: 'slow', dim: 28 } },
     { id: 'tide',     label: 'Tide',     opts: { palette: 'ocean',  pattern: 'ripple',  speed: 'med',  dim: 74 } },
     { id: 'grove',    label: 'Grove',    opts: { palette: 'forest', pattern: 'breathe', speed: 'med',  dim: 46 } },
-    { id: 'thunder',  label: 'Thunder',  opts: { palette: 'ultra',  pattern: 'strobe',  speed: 'turbo', dim: 88 } },
+    { id: 'thunder',  label: 'Thunder',  opts: { palette: 'ice',    pattern: 'lightning', speed: 'fast', dim: 88 } },
     { id: 'disco',    label: 'Disco',    opts: { palette: 'candy',  pattern: 'sweep',   speed: 'fast', dim: 84 } },
     { id: 'ember',    label: 'Ember',    opts: { palette: 'gold',   pattern: 'throb',   speed: 'slow', dim: 70 } },
     { id: 'frost',    label: 'Frost',    opts: { palette: 'ice',    pattern: 'shimmer', speed: 'med',  dim: 40 } },
@@ -456,6 +457,8 @@ export default function AmbientStrip() {
             <div className="ambient-glow ambient-spot" aria-hidden="true" />
             {/* Drifting particles inside the glow (page-3 FX). */}
             <div className="ambient-weather" aria-hidden="true" />
+            {/* Lightning sky-flash — pure light, only lit by the Lightning pattern. */}
+            <div className="ambient-flash" aria-hidden="true" />
             <button
                 type="button"
                 className="ambient-pill"
@@ -586,7 +589,7 @@ export default function AmbientStrip() {
                                     </Chip>
                                 ))}
                             </Row>
-                            <Row label="Weather">
+                            <Row label="Nature">
                                 {WEATHERS.map((w) => (
                                     <Chip key={w.id} on={(opts.weather ?? 'clear') === w.id} onClick={() => set('weather', w.id)}>
                                         {w.label}

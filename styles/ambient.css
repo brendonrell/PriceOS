@@ -203,6 +203,35 @@ body.is-pwa .ambient-strip-layer {
 @keyframes amb-throb { 0% { filter: brightness(0.75); } 12% { filter: brightness(1.35); } 24% { filter: brightness(0.85); } 36% { filter: brightness(1.2); } 50%, 100% { filter: brightness(0.75); } }
 @keyframes amb-throb-glow { 0% { opacity: 0.5; } 12% { opacity: 1; } 24% { opacity: 0.6; } 36% { opacity: 0.9; } 50%, 100% { opacity: 0.5; } }
 
+/* LIGHTNING — a whole storm in light alone (no rain — Brendon). The bar + spill
+   sit DARK with a faint rumble flicker, then a sharp flash-flash strike with a
+   bright afterglow, then dark again — irregular and spaced. The .ambient-flash
+   layer lights the whole top in sync (its keyframe below). Speed sets the gap
+   between strikes (Thunder rides 'fast'). steps(1) keeps the flashes crisp. */
+.pat-lightning .ambient-pill-led,
+.pat-lightning .ambient-glow { animation: amb-lightning var(--amb-dur) steps(1, end) infinite; }
+@keyframes amb-lightning {
+    0%   { opacity: 0.14; }
+    12%  { opacity: 0.10; }
+    24%  { opacity: 0.16; }
+    38%  { opacity: 0.11; }
+    50%  { opacity: 0.14; }
+    53%  { opacity: 0.12; }
+    54%  { opacity: 1; }      /* strike */
+    56%  { opacity: 0.28; }
+    57%  { opacity: 0.92; }   /* flash-flash */
+    59%  { opacity: 0.14; }
+    60%  { opacity: 0.66; }   /* afterglow */
+    62%  { opacity: 0.12; }
+    72%  { opacity: 0.15; }
+    84%  { opacity: 0.10; }
+    85%  { opacity: 0.85; }   /* distant later strike */
+    87%  { opacity: 0.13; }
+    88%  { opacity: 0.46; }
+    90%  { opacity: 0.12; }
+    100% { opacity: 0.14; }
+}
+
 /* ---- Atmosphere (page 3): the light's physical character. None of these ride
    the share code — they persist per-device + account.
    · Glow   = spill brightness (opacity-only, so it never clobbers the pattern
@@ -334,60 +363,148 @@ body.is-pwa .ambient-strip-layer {
 }
 .weather-clear .ambient-weather { display: none; }
 
-.weather-rain .ambient-weather {
-    opacity: 0.5;
-    background-image: repeating-linear-gradient(7deg,
-        transparent 0 8px,
-        color-mix(in srgb, var(--amb3) 65%, transparent) 8px 9px,
-        transparent 9px 20px);
-    background-size: 100% 240px;
-    animation: amb-rain 0.6s linear infinite;
-}
-@keyframes amb-rain { from { background-position: 0 0; } to { background-position: 0 240px; } }
-
-.weather-snow .ambient-weather {
-    opacity: 0.72;
-    background-image:
-        radial-gradient(circle, rgba(255,255,255,0.92) 1.4px, transparent 1.9px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1.5px);
-    background-size: 64px 64px, 96px 96px;
-    background-position: 0 0, 32px 0;
-    animation: amb-snow 12s linear infinite;
-}
-@keyframes amb-snow {
-    from { background-position: 0 0, 32px 0; }
-    to   { background-position: 22px 620px, 6px 620px; }
-}
-
-.weather-embers .ambient-weather {
-    opacity: 0.7;
-    background-image:
-        radial-gradient(circle, color-mix(in srgb, var(--amb1) 92%, transparent) 1.5px, transparent 2px),
-        radial-gradient(circle, color-mix(in srgb, var(--amb2) 82%, transparent) 1px, transparent 1.5px);
-    background-size: 72px 72px, 52px 52px;
-    filter: blur(0.4px);
-    animation: amb-embers 7s linear infinite, amb-ember-blink 1.8s ease-in-out infinite;
-}
-@keyframes amb-embers {
-    from { background-position: 0 620px, 36px 620px; }
-    to   { background-position: 26px 0, 8px 0; }
-}
-@keyframes amb-ember-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.78; } }
-
+/* FIREFLIES — the hero. Three independent layers so the lights blink OUT of
+   sync (a steady faint field + two bright blinkers on different phases), warm
+   yellow-green with a soft bloom, a lazy country-night wander. Deliberately NOT
+   palette-tinted — real fireflies are a fixed colour (Brendon's high bar). */
 .weather-fireflies .ambient-weather {
-    opacity: 0.8;
+    opacity: 1;
+    background-image: radial-gradient(circle, rgba(190,255,95,0.30) 1.2px, rgba(190,255,95,0) 2px);
+    background-size: 170px 150px;
+    background-position: 30px 40%;
+    filter: blur(0.2px) drop-shadow(0 0 3px rgba(180,255,90,0.4));
+    animation: amb-ff-drift-a 24s ease-in-out infinite;
+}
+.weather-fireflies .ambient-weather::before,
+.weather-fireflies .ambient-weather::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+}
+.weather-fireflies .ambient-weather::before {
+    background-image: radial-gradient(circle, rgba(201,255,106,0.95) 1.5px, rgba(201,255,106,0) 2.4px);
+    background-size: 150px 130px;
+    background-position: 80px 55%;
+    filter: drop-shadow(0 0 5px rgba(180,255,90,0.65));
+    animation: amb-ff-drift-b 17s ease-in-out infinite, amb-ff-blink-b 2.9s ease-in-out infinite;
+}
+.weather-fireflies .ambient-weather::after {
+    background-image: radial-gradient(circle, rgba(234,255,158,0.95) 1.2px, rgba(234,255,158,0) 2px);
+    background-size: 210px 180px;
+    background-position: 150px 38%;
+    filter: drop-shadow(0 0 6px rgba(210,255,120,0.55));
+    animation: amb-ff-drift-c 21s ease-in-out infinite, amb-ff-blink-c 3.7s ease-in-out infinite;
+}
+@keyframes amb-ff-drift-a { 0%,100% { background-position: 30px 40%; } 50% { background-position: 54px 33%; } }
+@keyframes amb-ff-drift-b { 0%,100% { background-position: 80px 55%; } 50% { background-position: 56px 47%; } }
+@keyframes amb-ff-drift-c { 0%,100% { background-position: 150px 38%; } 50% { background-position: 178px 46%; } }
+/* Asymmetric glow — quick swell, slow fade, long dark gap (a real firefly pulse). */
+@keyframes amb-ff-blink-b { 0%,22% { opacity: 0; } 30% { opacity: 0.95; } 52% { opacity: 0.08; } 60%,100% { opacity: 0; } }
+@keyframes amb-ff-blink-c { 0%,12% { opacity: 0; } 20% { opacity: 0.9; } 44% { opacity: 0.12; } 70%,100% { opacity: 0; } }
+
+/* POLLEN — warm golden motes rising slowly, soft, no blink. */
+.weather-pollen .ambient-weather {
+    opacity: 0.6;
     background-image:
-        radial-gradient(circle, color-mix(in srgb, var(--amb4) 92%, transparent) 1.6px, transparent 2.3px),
-        radial-gradient(circle, color-mix(in srgb, var(--amb2) 85%, transparent) 1.3px, transparent 2px);
-    background-size: 130px 110px, 170px 150px;
-    filter: blur(0.3px) drop-shadow(0 0 3px color-mix(in srgb, var(--amb4) 55%, transparent));
-    animation: amb-fly 13s ease-in-out infinite, amb-firefly-blink 2.6s ease-in-out infinite;
+        radial-gradient(circle, color-mix(in srgb, var(--amb2) 82%, transparent) 1.2px, transparent 1.8px),
+        radial-gradient(circle, color-mix(in srgb, var(--amb1) 72%, transparent) 0.9px, transparent 1.4px);
+    background-size: 88px 78px, 124px 116px;
+    filter: blur(0.4px);
+    animation: amb-pollen 17s linear infinite;
 }
-@keyframes amb-fly {
-    0%, 100% { background-position: 0 12%, 44px 32%; }
-    50%      { background-position: 34px 26%, 10px 18%; }
+@keyframes amb-pollen { from { background-position: 0 82%, 30px 70%; } to { background-position: 38px 4%, -22px 10%; } }
+
+/* PETALS — soft palette-tinted petals drifting down with a sideways sway. */
+.weather-petals .ambient-weather {
+    opacity: 0.6;
+    background-image:
+        radial-gradient(3px 2px, color-mix(in srgb, var(--amb3) 80%, transparent) 58%, transparent 62%),
+        radial-gradient(2.4px 1.6px, color-mix(in srgb, var(--amb1) 72%, transparent) 58%, transparent 62%);
+    background-size: 130px 160px, 180px 210px;
+    animation: amb-petals 12s linear infinite;
 }
-@keyframes amb-firefly-blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
+@keyframes amb-petals { from { background-position: 0 -12%, 44px -22%; } to { background-position: 54px 112%, -34px 122%; } }
+
+/* SPORES — bioluminescent cool motes floating up with a faint blink + glow. */
+.weather-spores .ambient-weather {
+    opacity: 0.68;
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--amb3) 90%, transparent) 1.4px, transparent 2px),
+        radial-gradient(circle, color-mix(in srgb, var(--amb4) 85%, transparent) 1.1px, transparent 1.7px);
+    background-size: 116px 134px, 156px 176px;
+    filter: blur(0.3px) drop-shadow(0 0 5px color-mix(in srgb, var(--amb3) 55%, transparent));
+    animation: amb-spores 16s ease-in-out infinite, amb-spore-blink 3.3s ease-in-out infinite;
+}
+@keyframes amb-spores { 0% { background-position: 0 92%, 30px 82%; } 50% { background-position: 24px 46%, 8px 52%; } 100% { background-position: 0 6%, 30px 0; } }
+@keyframes amb-spore-blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.78; } }
+
+/* SEEDS — wispy white dandelion seeds drifting sideways with a gentle bob. */
+.weather-seeds .ambient-weather {
+    opacity: 0.6;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.85) 1px, rgba(255,255,255,0) 2.6px),
+        radial-gradient(circle, rgba(255,255,255,0.6) 0.8px, rgba(255,255,255,0) 2px);
+    background-size: 140px 120px, 200px 170px;
+    filter: blur(0.5px);
+    animation: amb-seeds 28s linear infinite, amb-seeds-bob 6s ease-in-out infinite;
+}
+@keyframes amb-seeds { from { background-position: -60px 30%, 0 60%; } to { background-position: 520px 24%, 560px 66%; } }
+@keyframes amb-seeds-bob { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8px); } }
+
+/* DUST — fine sunlit motes, faint, hovering in place with a slow drift. */
+.weather-dust .ambient-weather {
+    opacity: 0.5;
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--amb3) 60%, #ffffff 40%) 0.8px, transparent 1.2px),
+        radial-gradient(circle, color-mix(in srgb, var(--amb2) 55%, #ffffff 45%) 0.7px, transparent 1.1px);
+    background-size: 66px 66px, 96px 88px;
+    filter: blur(0.3px);
+    animation: amb-dust 24s ease-in-out infinite;
+}
+@keyframes amb-dust { 0%, 100% { background-position: 0 22%, 28px 40%; } 50% { background-position: 16px 30%, 12px 30%; } }
+
+/* Lightning sky-flash — a pure-light overlay (NO rain) that lights the whole
+   top in sync with the Lightning pattern's strike. Hidden otherwise; works the
+   same whether the bar is a strip or the Sphere orb (independent layer). */
+.ambient-flash { display: none; }
+.pat-lightning .ambient-flash {
+    display: block;
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1200px, 100vw);
+    height: 74vh;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0;
+    background: radial-gradient(125% 84% at 50% 0%,
+        color-mix(in srgb, var(--amb3) 75%, #ffffff 25%) 0%,
+        color-mix(in srgb, var(--amb4) 55%, transparent) 34%,
+        color-mix(in srgb, var(--amb1) 22%, transparent) 58%,
+        transparent 76%);
+    filter: blur(6px) saturate(1.1);
+    -webkit-mask-image: radial-gradient(130% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 44%, transparent 82%);
+    mask-image: radial-gradient(130% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 44%, transparent 82%);
+    animation: amb-flash var(--amb-dur) steps(1, end) infinite;
+}
+@keyframes amb-flash {
+    0%, 53% { opacity: 0; }
+    54% { opacity: 0.9; }
+    56% { opacity: 0.12; }
+    57% { opacity: 0.78; }
+    59% { opacity: 0.04; }
+    60% { opacity: 0.5; }
+    62% { opacity: 0; }
+    84% { opacity: 0; }
+    85% { opacity: 0.66; }
+    87% { opacity: 0.08; }
+    88% { opacity: 0.38; }
+    90% { opacity: 0; }
+    100% { opacity: 0; }
+}
 
 /* ---- "Lights off" page dim — fully continuous, driven by --ambient-dim ---
    (the alpha is set inline from the slider value; 0 = off, ~0.92 = blackout). */
@@ -764,5 +881,9 @@ body.zen-mode .ambient-strip-layer,
 body.zero-context-mode .ambient-strip-layer { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
-    .ambient-pill-led, .ambient-glow { animation: none !important; }
+    .ambient-pill-led, .ambient-glow, .ambient-flash,
+    .ambient-rays, .ambient-weather,
+    .ambient-weather::before, .ambient-weather::after { animation: none !important; }
+    /* Kill the bright lightning flash entirely for photosensitive users. */
+    .pat-lightning .ambient-flash { display: none; }
 }
