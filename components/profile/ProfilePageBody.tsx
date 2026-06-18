@@ -225,6 +225,10 @@ function ProfilePageBodyInner({
        from their address; named by our colour-bucket classifier). */
     const [eggOpen, setEggOpen] = useState(false);
     const eggTap = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
+    /* The colorway the user had when they opened the egg — the back pill
+       restores it (so a curious tap-through never strands a colour they
+       didn't mean to keep). Snapshotted on each open. */
+    const preEggHex = useRef<string>(myProfileHex);
     const handleNameTap = () => {
         if (!isOwnProfile) return;
         const now = Date.now();
@@ -233,7 +237,10 @@ function ProfilePageBodyInner({
         s.lastTap = now;
         if (s.count >= 3) {
             s.count = 0;
-            setEggOpen((v) => !v);
+            setEggOpen((v) => {
+                if (!v) preEggHex.current = myProfileHex;
+                return !v;
+            });
         }
     };
 
@@ -1176,6 +1183,24 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                            {/* Back pill — reverts to the colorway in play when the
+                                egg was opened. Just the back glyph, no label. */}
+                            <div
+                                className="pill pill-l3 egg-back-pill"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setMyProfileHex(preEggHex.current)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setMyProfileHex(preEggHex.current);
+                                    }
+                                }}
+                                title="Revert to your previous colorway"
+                                aria-label="Revert to your previous colorway"
+                            >
+                                <span className="stat-name">{'⇠⇠︎'}</span>
+                            </div>
                         </div>
                     )}
                     </>
