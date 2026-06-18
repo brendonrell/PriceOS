@@ -211,25 +211,27 @@ body.is-pwa .ambient-strip-layer {
 .pat-lightning .ambient-pill-led,
 .pat-lightning .ambient-glow { animation: amb-lightning var(--amb-dur) steps(1, end) infinite; }
 @keyframes amb-lightning {
-    0%   { opacity: 0.14; }
-    12%  { opacity: 0.10; }
-    24%  { opacity: 0.16; }
-    38%  { opacity: 0.11; }
-    50%  { opacity: 0.14; }
-    53%  { opacity: 0.12; }
-    54%  { opacity: 1; }      /* strike */
-    56%  { opacity: 0.28; }
-    57%  { opacity: 0.92; }   /* flash-flash */
-    59%  { opacity: 0.14; }
-    60%  { opacity: 0.66; }   /* afterglow */
-    62%  { opacity: 0.12; }
-    72%  { opacity: 0.15; }
-    84%  { opacity: 0.10; }
-    85%  { opacity: 0.85; }   /* distant later strike */
-    87%  { opacity: 0.13; }
-    88%  { opacity: 0.46; }
-    90%  { opacity: 0.12; }
-    100% { opacity: 0.14; }
+    /* Longer, slightly brighter rumble (most of the cycle) — a moody glow that
+       breathes — then SOFTER, later strikes (peaks pulled down so it never goes
+       harsh/scary). */
+    0%   { opacity: 0.20; }
+    10%  { opacity: 0.24; }
+    20%  { opacity: 0.18; }
+    30%  { opacity: 0.23; }
+    40%  { opacity: 0.19; }
+    50%  { opacity: 0.24; }
+    60%  { opacity: 0.20; }
+    66%  { opacity: 0.22; }
+    68%  { opacity: 0.58; }   /* strike (soft) */
+    70%  { opacity: 0.27; }
+    71%  { opacity: 0.50; }   /* flash-flash (soft) */
+    73%  { opacity: 0.22; }
+    74%  { opacity: 0.38; }   /* afterglow */
+    76%  { opacity: 0.21; }
+    84%  { opacity: 0.23; }
+    92%  { opacity: 0.46; }   /* distant later strike (soft) */
+    94%  { opacity: 0.21; }
+    100% { opacity: 0.20; }
 }
 
 /* ---- Atmosphere (page 3): the light's physical character. None of these ride
@@ -491,18 +493,19 @@ body.is-pwa .ambient-strip-layer {
     animation: amb-flash var(--amb-dur) steps(1, end) infinite;
 }
 @keyframes amb-flash {
-    0%, 53% { opacity: 0; }
-    54% { opacity: 0.9; }
-    56% { opacity: 0.12; }
-    57% { opacity: 0.78; }
-    59% { opacity: 0.04; }
-    60% { opacity: 0.5; }
-    62% { opacity: 0; }
-    84% { opacity: 0; }
-    85% { opacity: 0.66; }
-    87% { opacity: 0.08; }
-    88% { opacity: 0.38; }
-    90% { opacity: 0; }
+    /* Softer sky-flash, aligned to the later/gentler strikes — moody, not scary. */
+    0%, 67% { opacity: 0; }
+    68% { opacity: 0.40; }
+    70% { opacity: 0.07; }
+    71% { opacity: 0.30; }
+    73% { opacity: 0.03; }
+    74% { opacity: 0.18; }
+    76% { opacity: 0; }
+    91% { opacity: 0; }
+    92% { opacity: 0.28; }
+    94% { opacity: 0.05; }
+    95% { opacity: 0.14; }
+    97% { opacity: 0; }
     100% { opacity: 0; }
 }
 
