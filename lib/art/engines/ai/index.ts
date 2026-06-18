@@ -769,8 +769,8 @@ export const orbitsSchema: TraitSchema = { traits: [
 export const renderOrbits = blit(C.orbits, orbitsTraits);
 export const ORBITS_ASPECTS = [1, 0.78, 1.28] as const;
 
-/* ── core2 engines (2026-06-18): Setback / Simultaneous / Dynamic Symmetry /
- * Strata. Same boundary shape as above; raw engines live in ./core2.ts. ── */
+/* ── core2 engines (2026-06-18): Setback / Simultaneous / Strata. Same
+ * boundary shape as above; raw engines live in ./core2.ts. ── */
 
 /* Setback — axonometric brutalist massing */
 export const setbackTraits: TraitsFn = (id) => { const c = C2.castSetback(id) as any; return { Palette: c.palette, Format: c.format, Massing: c.massing, Light: c.light, Aperture: c.aperture }; };
@@ -785,28 +785,16 @@ export const renderSetback = blit(C2.setback, setbackTraits);
 export const SETBACK_ASPECTS = [0.82, 1, 1.27] as const;
 
 /* Simultaneous — interacting colour fields */
-export const simultaneousTraits: TraitsFn = (id) => { const c = C2.castSimultaneous(id) as any; return { Palette: c.palette, Harmony: c.harmony, Composition: c.composition, Key: c.key, Grain: c.grain }; };
+export const simultaneousTraits: TraitsFn = (id) => { const c = C2.castSimultaneous(id) as any; return { Palette: c.palette, Harmony: c.harmony, Scaffold: c.scaffold, Motif: c.motif, Key: c.key }; };
 export const simultaneousSchema: TraitSchema = { traits: [
   { name: 'Palette', values: ['Cadmium / Cyan','Ultramarine / Amber','Magenta / Viridian','Sienna / Teal','Plum / Chartreuse','Ochre Triad','Rose Analogous','Forest Analogous','Slate / Coral','Oxblood / Sky'] },
   { name: 'Harmony', values: ['Complementary','Split','Triad','Analogous'] },
-  { name: 'Composition', values: ['Bands','Nested','Bisect','Disc','Stack'] },
+  { name: 'Scaffold', values: ['Field','Split','Quadrant','Bands'] },
+  { name: 'Motif', values: ['Disc','Fan','Rings','Wedge','Bars'] },
   { name: 'Key', values: ['High','Low'] },
-  { name: 'Grain', values: ['Fine','Medium','Heavy'] },
 ] };
 export const renderSimultaneous = blit(C2.simultaneous, simultaneousTraits);
 export const SIMULTANEOUS_ASPECTS = [1, 0.81, 1.24] as const;
-
-/* Dynamic Symmetry — leafed root-rectangle armature + log spiral */
-export const dynsymTraits: TraitsFn = (id) => { const c = C2.castDynsym(id) as any; return { Palette: c.palette, Format: c.format, Armature: c.armature, Spiral: c.spiral, Leaf: c.leaf }; };
-export const dynsymSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Gold / Indigo','Sanguine / Cream','Silverpoint','Verdigris','Oxblood','Prussian'] },
-  { name: 'Format', values: ['Landscape','Portrait','Square'] },
-  { name: 'Armature', values: ['Phi','Root2','Root3','Root5'] },
-  { name: 'Spiral', values: ['Present','Absent'] },
-  { name: 'Leaf', values: ['Sparse','Rich'] },
-] };
-export const renderDynsym = blit(C2.dynsym, dynsymTraits);
-export const DYNSYM_ASPECTS = [1.24, 0.81, 1] as const;
 
 /* Strata — pressed-pigment sediment fields */
 export const strataTraits: TraitsFn = (id) => { const c = C2.castStrata(id) as any; return { Palette: c.palette, Format: c.format, Structure: c.structure, Strata: c.strata, Key: c.key }; };

@@ -1,10 +1,9 @@
 // @ts-nocheck
 /*
- * AI sample projects — engine core 2. Four deterministic canvas engines
- * (Setback / Simultaneous / Dynamic Symmetry / Strata), same contract as
- * ./core.ts: each engine paints (cv, seed) and sets its own size; the typed
- * boundary + trait schemas live in ./index.ts. Plain JS under @ts-nocheck by
- * design — frozen art code.
+ * AI sample projects — engine core 2. Three deterministic canvas engines
+ * (Setback / Simultaneous / Strata), same contract as ./core.ts: each engine
+ * paints (cv, seed) and sets its own size; the typed boundary + trait schemas
+ * live in ./index.ts. Plain JS under @ts-nocheck by design — frozen art code.
  */
 function mulberry32(a){return function(){let t=(a+=0x6d2b79f5);t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
 function rng(seed){return mulberry32(((Math.imul(seed>>>0,2654435761))>>>0)||1);}
@@ -159,163 +158,76 @@ const SM_PALS=[
   {name:'Oxblood / Sky', harmony:'Complementary', g:'#7a2420', f:'#4aa6c2', a:'#e8c46a'},
 ];
 const SM_FMTS=[{W:1080,H:1080,t:'Square'},{W:1000,H:1240,t:'Portrait'},{W:1240,H:1000,t:'Landscape'}];
-const SM_COMP=['Bands','Nested','Bisect','Bisect','Disc','Disc','Stack'];
+const SM_SCAFFOLD=['Field','Split','Quadrant','Bands'];
+const SM_MOTIF=['Disc','Fan','Rings','Wedge','Bars'];
 function simultaneous(cv,seed){
   const r=rng(seed);
   const palI=Math.floor(r()*SM_PALS.length);
   const fmt=pick(SM_FMTS,r);
-  const compMode=pick(SM_COMP,r);
+  const scaffold=pick(SM_SCAFFOLD,r);
+  const motif=pick(SM_MOTIF,r);
   const key=r()<0.5?'High':'Low';
   const grainLvl=pick(['Fine','Medium','Heavy'],r);
   // ---- end trait draws ----
   const P=SM_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d');
-  const ground=key==='Low'?mix(P.g,'#000',0.3):mix(P.g,'#fff',0.06);
-  const fig=key==='Low'?mix(P.f,'#000',0.05):mix(P.f,'#fff',0.03);
-  const S=Math.min(W,H);
-  // warm paper base so ink reads as printed
-  const paper=mix(ground, '#efe9da', key==='Low'?0.06:0.12);
+  const S=Math.min(W,H); const dark=key==='Low';
+  const tone=c=>dark?mix(c,'#fff',0.1):mix(c,'#fff',0.03);
+  const deck=[P.f,P.a,mix(P.f,P.a,0.5),mix(P.g,P.a,0.5),mix(P.g,P.f,0.55),P.g].map(tone);
+  const ground=dark?mix(P.g,'#000',0.34):mix(P.g,'#fff',0.08);
+  const blend=dark?'screen':'multiply';
+  const rndCol=()=>deck[Math.floor(r()*deck.length)];
   const gg=x.createLinearGradient(0,0,0,H);gg.addColorStop(0,mix(ground,'#fff',0.05));gg.addColorStop(1,mix(ground,'#000',0.07));x.fillStyle=gg;x.fillRect(0,0,W,H);
-  const cx=W*INVPHI, cy=H*(1-INVPHI);
-  function roundRect(X,Y,w,h,rr){x.beginPath();x.moveTo(X+rr,Y);x.arcTo(X+w,Y,X+w,Y+h,rr);x.arcTo(X+w,Y+h,X,Y+h,rr);x.arcTo(X,Y+h,X,Y,rr);x.arcTo(X,Y,X+w,Y,rr);x.closePath();}
-  // flat with ink-mottle + misregistration fringe + a hard contrasting keyline
-  function inkShape(drawPath, col, edgeCol){
-    // misregistration ghost (accent), offset
-    x.save();x.globalAlpha=0.5;x.translate((r()-0.5)*S*0.02,(r()-0.5)*S*0.02);x.fillStyle=edgeCol;drawPath();x.fill();x.restore();
-    x.save();x.globalAlpha=0.93;x.fillStyle=col;drawPath();x.fill();x.restore();
-    // ink mottle inside
-    x.save();drawPath();x.clip();mottle(x,0,0,W,H,col,520,r,'multiply');x.restore();
-    // hard simultaneous-contrast keyline
-    x.save();x.globalAlpha=0.85;x.lineWidth=Math.max(1.5,S*0.004);x.strokeStyle=edgeCol;drawPath();x.stroke();x.restore();
+  // ink a path: misregistration ghost + flat + interior mottle + optional keyline
+  function inked(path,col,doKey,edge){
+    x.save();x.globalCompositeOperation=blend;x.globalAlpha=0.42;x.translate((r()-0.5)*S*0.016,(r()-0.5)*S*0.016);x.fillStyle=edge||rndCol();path();x.fill();x.restore();
+    x.save();x.globalCompositeOperation=blend;x.globalAlpha=0.84+r()*0.12;x.fillStyle=col;path();x.fill();x.restore();
+    x.save();path();x.clip();mottle(x,0,0,W,H,col,560,r,blend);x.restore();
+    if(doKey){x.save();x.globalAlpha=0.8;x.lineWidth=Math.max(1.2,S*0.0035);x.strokeStyle=edge||mix(col,'#000',0.4);path();x.stroke();x.restore();}
   }
-  function disc(px,py,rad,col,edgeCol){inkShape(()=>{x.beginPath();x.arc(px,py,rad,0,6.29);},col,edgeCol);}
-  if(compMode==='Bands'){
-    const n=rint(r,3,5);const cols=[fig,P.a,mix(fig,P.a,0.5),P.g];const splits=[];let acc=0;for(let i=0;i<n;i++){const w=0.5+r();splits.push(w);acc+=w;}
-    let y=0;for(let i=0;i<n;i++){const hh=H*splits[i]/acc;x.save();x.beginPath();x.rect(0,y,W,hh+1);x.clip();x.fillStyle=mix(cols[i%cols.length],ground,i%2?0:0.08);x.fillRect(0,y,W,hh+1);mottle(x,0,y,W,hh,cols[i%cols.length],520,r,'multiply');x.restore();y+=hh;}
-    x.save();x.globalAlpha=0.92;x.fillStyle=P.a;x.fillRect(0,H*INVPHI-S*0.012,W,S*0.024);x.restore();
-  } else if(compMode==='Nested'){
-    let w=W*0.8,h=H*0.8,px=(W-w)*0.32,py=(H-h)*0.64;const cols=[fig,P.a,mix(fig,P.g,0.4),P.g];let i=0;
-    while(w>S*0.1&&h>S*0.1){const c=cols[i%cols.length];const e=cols[(i+1)%cols.length];const PX=px,PY=py,WW=w,HH=h;inkShape(()=>roundRect(PX,PY,WW,HH,S*0.015),mix(c,ground,(i%2)*0.05),e);const k=INVPHI;const nw=w*k,nh=h*k;px=px+(w-nw)*0.5;py=py+(h-nh)*0.5;w=nw;h=nh;i++;}
-  } else if(compMode==='Bisect'){
-    const ang=(r()-0.5)*0.5; const yL=H*(1-INVPHI)+ang*H, yR=H*INVPHI-ang*H;
-    inkShape(()=>{x.beginPath();x.moveTo(0,0);x.lineTo(W,0);x.lineTo(W,yR);x.lineTo(0,yL);x.closePath();},fig,P.a);
-    disc(cx,cy,S*0.15,P.a,fig);
-  } else if(compMode==='Disc'){
-    disc(cx,cy,S*0.3,fig,P.a);
-    x.save();x.globalAlpha=0.95;disc(W-cx,H-cy,S*0.06,P.a,fig);x.restore();
-  } else {
-    const n=rint(r,2,3);const cols=[fig,P.a,mix(fig,P.a,0.5)];
-    for(let i=0;i<n;i++){const w=W*(0.52-i*0.08),h=H*0.34;const px=W*(0.12+i*0.2),py=H*(0.14+i*0.22);const c=cols[i%cols.length],e=cols[(i+1)%cols.length];inkShape(()=>roundRect(px,py,w,h,S*0.012),c,e);}
-  }
-  // real angled halftone — two screens at 45°/75° tied to figure & accent
+  function fillField(x0,y0,w,h,col){x.save();x.globalCompositeOperation=blend;x.globalAlpha=0.82;x.beginPath();x.rect(x0,y0,w,h);x.clip();x.fillStyle=col;x.fillRect(x0,y0,w,h);mottle(x,x0,y0,w,h,col,560,r,blend);x.restore();}
+  const disc=(px,py,rad,col,k,e)=>inked(()=>{x.beginPath();x.arc(px,py,rad,0,6.29);},col,k,e);
+  const bar=(px,py,w,h,ang,col,k,e)=>{const ca=Math.cos(ang),sa=Math.sin(ang);const p=[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]].map(([X,Y])=>[px+X*ca-Y*sa,py+X*sa+Y*ca]);inked(()=>{x.beginPath();x.moveTo(p[0][0],p[0][1]);for(let i=1;i<4;i++)x.lineTo(p[i][0],p[i][1]);x.closePath();},col,k,e);};
+  const wedge=(px,py,rad,a0,a1,col,k,e)=>inked(()=>{x.beginPath();x.moveTo(px,py);x.arc(px,py,rad,a0,a1);x.closePath();},col,k,e);
+  function rings(px,py,rad,nb,a0,a1){let rr=rad;const step=rad/nb;for(let i=0;i<nb;i++){const r1=rr,r0=Math.max(0,rr-step);inked(()=>{x.beginPath();x.arc(px,py,r1,a0,a1);x.arc(px,py,r0,a1,a0,true);x.closePath();},deck[i%deck.length], i%2===0);rr-=step;}}
+  const half=(ang,off,col)=>bar(W/2+Math.cos(ang+Math.PI/2)*off,H/2+Math.sin(ang+Math.PI/2)*off,S*3.2,S*3.2,ang,col,false);
+
+  // ── scaffold (structural variety) ──
+  if(scaffold==='Split'){const n=rint(r,1,2);for(let i=0;i<n;i++)half((r()-0.5)*Math.PI,(0.1+r()*0.4)*S*(r()<0.5?1:-1),rndCol());}
+  else if(scaffold==='Quadrant'){const vx=W*(0.32+r()*0.36),hy=H*(0.32+r()*0.36);const cells=[[0,0,vx,hy],[vx,0,W-vx,hy],[0,hy,vx,H-hy],[vx,hy,W-vx,H-hy]];cells.forEach((c,i)=>{if(r()<0.8)fillField(c[0],c[1],c[2],c[3],deck[(i+1)%deck.length]);});}
+  else if(scaffold==='Bands'){const n=rint(r,3,5),vert=r()<0.4;const splits=[];let acc=0;for(let i=0;i<n;i++){const w=0.5+r();splits.push(w);acc+=w;}let p=0;for(let i=0;i<n;i++){const len=(vert?W:H)*splits[i]/acc;if(vert)fillField(p,0,len+1,H,deck[i%deck.length]);else fillField(0,p,W,len+1,deck[i%deck.length]);p+=len;}}
+
+  // ── hero motif on a phi anchor ──
+  const hx=W*(r()<0.5?INVPHI:1-INVPHI)+(r()-0.5)*W*0.1, hy=H*(r()<0.5?INVPHI:1-INVPHI)+(r()-0.5)*H*0.1;
+  const HR=S*(0.24+r()*0.12);
+  if(motif==='Disc'){disc(hx,hy,HR,rndCol(),true,rndCol());}
+  else if(motif==='Fan'){const a0=r()*6.283;rings(hx,hy,HR*1.4,rint(r,4,7),a0,a0+Math.PI*(0.6+r()*0.9));}
+  else if(motif==='Rings'){rings(hx,hy,HR*1.25,rint(r,5,8),0,6.283);}
+  else if(motif==='Wedge'){const a0=r()*6.283;wedge(hx,hy,HR*1.6,a0,a0+Math.PI*(0.4+r()*0.5),rndCol(),true,rndCol());}
+  else {const n=rint(r,3,6),ang=(r()<0.5?0:Math.PI/2)+(r()-0.5)*0.5;for(let i=0;i<n;i++)bar(hx+(i-(n-1)/2)*S*0.07*Math.cos(ang+Math.PI/2),hy+(i-(n-1)/2)*S*0.07*Math.sin(ang+Math.PI/2),S*(0.5+r()*0.3),S*(0.035+r()*0.04),ang,deck[i%deck.length], r()<0.3);}
+
+  // ── supporting forms ──
+  const nS=rint(r,2,3);
+  for(let k=0;k<nS;k++){const sx=W*(0.14+r()*0.72),sy=H*(0.14+r()*0.72),sr=S*(0.06+r()*0.13);const t=pick(['disc','wedge','bar','rings'],r);
+    if(t==='disc')disc(sx,sy,sr,rndCol(),r()<0.5,rndCol());
+    else if(t==='wedge'){const a0=r()*6.283;wedge(sx,sy,sr*1.4,a0,a0+Math.PI*(0.4+r()*0.6),rndCol(),r()<0.4);}
+    else if(t==='bar')bar(sx,sy,sr*2.4,sr*0.4,(r()-0.5)*Math.PI,rndCol(),r()<0.3);
+    else rings(sx,sy,sr*1.1,rint(r,3,5),0,6.283);}
+
+  // ── small accents (rhythm) ──
+  const nd=rint(r,3,7);for(let i=0;i<nd;i++){x.save();x.globalCompositeOperation=blend;x.globalAlpha=0.9;x.fillStyle=P.a;x.beginPath();x.arc(W*(0.1+r()*0.8),H*(0.1+r()*0.8),S*(0.01+r()*0.018),0,6.29);x.fill();x.restore();}
+  if(r()<0.6){x.save();x.globalAlpha=0.8;x.strokeStyle=dark?mix(P.a,'#fff',0.2):mix(P.g,'#000',0.2);x.lineWidth=Math.max(1.5,S*0.004);const yy=H*INVPHI;x.beginPath();x.moveTo(0,yy);x.lineTo(W,yy+(r()-0.5)*H*0.1);x.stroke();x.restore();}
+
+  // ── print texture ──
   function screen(col,ang,cell,a){x.save();x.globalCompositeOperation='multiply';x.globalAlpha=a;x.translate(W/2,H/2);x.rotate(ang);x.fillStyle=col;const R=Math.hypot(W,H);for(let yy=-R;yy<R;yy+=cell)for(let xx=-R;xx<R;xx+=cell){x.beginPath();x.arc(xx,yy,cell*0.2,0,6.29);x.fill();}x.restore();}
   const cell=grainLvl==='Heavy'?7:grainLvl==='Medium'?10:14;
-  screen(fig,Math.PI/4,cell,0.05);screen(P.a,Math.PI*5/12,cell*1.15,0.045);
-  // riso speckle
+  screen(P.f,Math.PI/4,cell,0.05);screen(P.a,Math.PI*5/12,cell*1.15,0.045);
   const amt=grainLvl==='Heavy'?440:grainLvl==='Medium'?800:1500;
-  x.save();for(let i=0;i<W*H/amt;i++){x.fillStyle=rgba(r()<0.5?fig:P.a,0.05+r()*0.06);x.fillRect(r()*W,r()*H,1.6,1.6);}x.restore();
+  x.save();for(let i=0;i<W*H/amt;i++){x.fillStyle=rgba(r()<0.5?P.f:P.a,0.05+r()*0.06);x.fillRect(r()*W,r()*H,1.6,1.6);}x.restore();
   paperTooth(x,W,H,r);
   grain(x,W,H,1400,r);
-  vignette(x,W,H,key==='Low'?0.32:0.16);
+  vignette(x,W,H,dark?0.32:0.16);
 }
-function castSimultaneous(seed){const r=rng(seed);const palI=Math.floor(r()*SM_PALS.length);const fmt=pick(SM_FMTS,r);const compMode=pick(SM_COMP,r);const key=r()<0.5?'High':'Low';const grainLvl=pick(['Fine','Medium','Heavy'],r);return {palette:SM_PALS[palI].name, harmony:SM_PALS[palI].harmony, composition:compMode, key, grain:grainLvl};}
-
-/* ========================================================================
- * 3. DYNAMIC SYMMETRY — a root-rectangle armature, but the LEAFED CELLS are
- *    the subject: 2-3 big reciprocal squares leafed (overlapping sheets,
- *    holidays, burnish), construction lines whispered, a tapering log spiral
- *    as the hero gesture. Off-centre, big quiet ground.
- * ====================================================================== */
-const DS_PALS=[
-  {name:'Gold / Indigo', bg:'#0e1230', line:'#e8c466', fill:'#c89a3a', bole:'#5a2a1a', spark:'#fff3cf'},
-  {name:'Sanguine / Cream', bg:'#efe6d4', line:'#9a3b22', fill:'#c2603a', bole:'#6e2414', spark:'#fff0dc'},
-  {name:'Silverpoint', bg:'#1a1d24', line:'#c9d2dc', fill:'#8a96a4', bole:'#3a3f48', spark:'#ffffff'},
-  {name:'Verdigris', bg:'#0c1a18', line:'#5fd0b0', fill:'#2a7d68', bole:'#123028', spark:'#dffff4'},
-  {name:'Oxblood', bg:'#1c0e12', line:'#d4a373', fill:'#8a2f2c', bole:'#3a1210', spark:'#ffe6c0'},
-  {name:'Prussian', bg:'#07182a', line:'#9ec7e8', fill:'#2f6f9f', bole:'#0e2c44', spark:'#eaf6ff'},
-];
-const DS_FMTS=[{W:1240,H:1000,t:'Landscape'},{W:1000,H:1240,t:'Portrait'},{W:1120,H:1120,t:'Square'}];
-const DS_ROOTS=[{t:'Phi',v:PHI},{t:'Root2',v:Math.SQRT2},{t:'Root3',v:Math.sqrt(3)},{t:'Root5',v:Math.sqrt(5)}];
-function dynsym(cv,seed){
-  const r=rng(seed);
-  const palI=Math.floor(r()*DS_PALS.length);
-  const fmt=pick(DS_FMTS,r);
-  const root=pick(DS_ROOTS,r);
-  const spiral=r()<0.8;
-  const leaf=pick(['Sparse','Rich','Rich'],r);
-  // ---- end trait draws ----
-  const P=DS_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d');
-  const dark=lum(P.bg)<0.5;
-  x.fillStyle=P.bg;x.fillRect(0,0,W,H);
-  const bgg=x.createRadialGradient(W*0.5,H*0.42,0,W*0.5,H*0.5,Math.max(W,H)*0.8);bgg.addColorStop(0,mix(P.bg,dark?'#fff':'#000',0.07));bgg.addColorStop(1,P.bg);x.fillStyle=bgg;x.fillRect(0,0,W,H);
-  // gesso ground: panel grain + craquelure crack network
-  mottle(x,0,0,W,H,P.bg,500,r,'overlay');
-  x.save();x.globalAlpha=0.12;x.strokeStyle=dark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)';x.lineWidth=0.6;
-  for(let i=0;i<rint(r,8,16);i++){let px=r()*W,py=r()*H;x.beginPath();x.moveTo(px,py);const segs=rint(r,3,6);for(let s=0;s<segs;s++){px+=(r()-0.5)*W*0.12;py+=(r()-0.5)*H*0.12;x.lineTo(px,py);}x.stroke();}x.restore();
-  // off-centre armature
-  const margin=Math.min(W,H)*0.09, availW=W-2*margin, availH=H-2*margin;
-  let rw,rh;const ratio=root.v;
-  // armature occupies ~0.62 of frame, pushed to one side → quiet ground opposite
-  const fitW=availW*0.96, fitH=availH*0.96;
-  if(fitW/fitH>ratio){rh=fitH;rw=rh*ratio;}else{rw=fitW;rh=rw/ratio;}
-  const sideX=r()<0.5?1:-1, sideY=r()<0.5?1:-1;
-  const X0=clamp(W/2 - rw/2 + sideX*(W-rw-2*margin)*0.28, margin, W-rw-margin);
-  const Y0=clamp(H/2 - rh/2 + sideY*(H-rh-2*margin)*0.2, margin, H-rh-margin);
-  const cells=[];const spiralPts=[];
-  let cx0=X0,cy0=Y0,cw=rw,ch=rh,turns=rint(r,6,9);
-  for(let k=0;k<turns;k++){const land=cw>=ch;const sq=land?ch:cw;let sqx,sqy;const m=k%4;
-    if(land){if(m===0){sqx=cx0;sqy=cy0;cx0+=sq;}else{sqx=cx0+cw-sq;sqy=cy0;}cw-=sq;}
-    else{if(m===1){sqx=cx0;sqy=cy0;cy0+=sq;}else{sqx=cx0;sqy=cy0+ch-sq;}ch-=sq;}
-    cells.push({x:sqx,y:sqy,s:sq,k});spiralPts.push({x:sqx,y:sqy,s:sq,m});
-    if(cw<2||ch<2)break;}
-  // leaf a cell: overlapping rotated square sheets, holidays, burnish streak
-  function leafCell(c){
-    x.save();x.beginPath();x.rect(c.x,c.y,c.s,c.s);x.clip();
-    // bole-red underlayer
-    x.fillStyle=P.bole;x.fillRect(c.x,c.y,c.s,c.s);
-    // overlapping leaf sheets
-    const sheet=c.s*(0.34+r()*0.16);
-    for(let yy=-1;yy<c.s/sheet+1;yy++)for(let xx=-1;xx<c.s/sheet+1;xx++){
-      if(r()<0.12)continue; // holiday — bole shows through
-      const px=c.x+xx*sheet+(r()-0.5)*sheet*0.2, py=c.y+yy*sheet+(r()-0.5)*sheet*0.2;
-      x.save();x.translate(px+sheet/2,py+sheet/2);x.rotate((r()-0.5)*0.12);x.globalAlpha=0.8+r()*0.2;
-      const tone=mix(P.fill, r()<0.5?mix(P.fill,'#000',0.2):mix(P.fill,P.line,0.4), r());
-      x.fillStyle=tone;x.fillRect(-sheet/2,-sheet/2,sheet*0.98,sheet*0.98);
-      x.strokeStyle=rgba(mix(P.fill,'#000',0.4),0.4);x.lineWidth=0.8;x.strokeRect(-sheet/2,-sheet/2,sheet*0.98,sheet*0.98);
-      x.restore();
-    }
-    // burnish: a high-angle specular sweep
-    const bg2=x.createLinearGradient(c.x,c.y,c.x+c.s,c.y+c.s);bg2.addColorStop(0,'rgba(255,255,255,0)');bg2.addColorStop(0.5,rgba(P.spark,0.5));bg2.addColorStop(0.62,'rgba(255,255,255,0)');bg2.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=bg2;x.fillRect(c.x,c.y,c.s,c.s);
-    x.restore();
-  }
-  // choose the biggest cells as the subject
-  const bySize=cells.slice().sort((a,b)=>b.s-a.s);
-  const nLeaf= leaf==='Rich'?Math.min(4,bySize.length):Math.min(2,bySize.length);
-  bySize.slice(0,nLeaf).forEach(leafCell);
-  // whisper the construction lines (subordinate)
-  x.save();x.globalAlpha=0.4;x.strokeStyle=rgba(P.line,0.16);x.lineWidth=1;
-  x.beginPath();x.moveTo(X0,Y0);x.lineTo(X0+rw,Y0+rh);x.stroke();x.beginPath();x.moveTo(X0+rw,Y0);x.lineTo(X0,Y0+rh);x.stroke();
-  // only stroke 2 deliberate cells, not all
-  bySize.slice(0,2).forEach(c=>x.strokeRect(c.x,c.y,c.s,c.s));
-  x.restore();
-  // outer rectangle: present but not shouting
-  x.save();x.strokeStyle=rgba(P.line,0.45);x.lineWidth=1.6;x.strokeRect(X0,Y0,rw,rh);x.restore();
-  // the spiral — hero gesture, tapering, slight glow only on dark grounds
-  if(spiral){x.save();if(dark){x.shadowColor=P.line;x.shadowBlur=6;}
-    let wprev=4.5;
-    for(let i=0;i<spiralPts.length;i++){const sp=spiralPts[i];const {x:sx,y:sy,s,m}=sp;let acx,acy,a0,a1;
-      if(m===0){acx=sx+s;acy=sy+s;a0=Math.PI;a1=Math.PI*1.5;}
-      else if(m===1){acx=sx;acy=sy+s;a0=Math.PI*1.5;a1=Math.PI*2;}
-      else if(m===2){acx=sx;acy=sy;a0=0;a1=Math.PI*0.5;}
-      else {acx=sx+s;acy=sy;a0=Math.PI*0.5;a1=Math.PI;}
-      const wt=Math.max(1,4.5*(1-i/spiralPts.length)+0.6);
-      x.strokeStyle=rgba(P.line,0.96);x.lineWidth=wt;x.beginPath();x.arc(acx,acy,s,a0,a1);x.stroke();}
-    x.restore();x.shadowBlur=0;}
-  // single accent spark at the spiral eye (the tightest coil)
-  if(spiral&&spiralPts.length){const e=spiralPts[spiralPts.length-1];x.save();x.shadowColor=P.spark;x.shadowBlur=12;x.fillStyle=P.spark;x.globalAlpha=0.9;x.beginPath();x.arc(e.x+e.s/2,e.y+e.s/2,3,0,6.29);x.fill();x.restore();x.shadowBlur=0;}
-  grain(x,W,H,1500,r);
-  vignette(x,W,H,dark?0.44:0.22);
-}
-function castDynsym(seed){const r=rng(seed);const palI=Math.floor(r()*DS_PALS.length);const fmt=pick(DS_FMTS,r);const root=pick(DS_ROOTS,r);const spiral=r()<0.8;const leaf=pick(['Sparse','Rich','Rich'],r);return {palette:DS_PALS[palI].name, format:fmt.t, armature:root.t, spiral:spiral?'Present':'Absent', leaf};}
+function castSimultaneous(seed){const r=rng(seed);const palI=Math.floor(r()*SM_PALS.length);const fmt=pick(SM_FMTS,r);const scaffold=pick(SM_SCAFFOLD,r);const motif=pick(SM_MOTIF,r);const key=r()<0.5?'High':'Low';const grainLvl=pick(['Fine','Medium','Heavy'],r);return {palette:SM_PALS[palI].name, harmony:SM_PALS[palI].harmony, scaffold, motif, key};}
 
 /* ========================================================================
  * 4. STRATA — pressed-pigment sediment fields. In-band optical mottle (now
@@ -412,4 +324,4 @@ function strata(cv,seed){
 }
 function castStrata(seed){const r=rng(seed);const palI=Math.floor(r()*ST_PALS.length);const fmt=pick(ST_FMTS,r);const mode=pick(ST_MODES,r);const bands=rint(r,5,9);const key=r()<0.5?'High':'Low';return {palette:ST_PALS[palI].name, format:fmt.t, structure:mode, strata:String(bands), key};}
 
-export { setback, castSetback, simultaneous, castSimultaneous, dynsym, castDynsym, strata, castStrata };
+export { setback, castSetback, simultaneous, castSimultaneous, strata, castStrata };

@@ -239,7 +239,6 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
      (drawn from our verified public-playlist set). ── */
   'setback':                { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
   'simultaneous':           { playlistId: 'OLAK5uy_lYdwxvfKoDIiUba2_Dh1Pc-zOLLANCwKY', label: 'Tame Impala — Currents' },
-  'dynamicsymmetry':        { playlistId: 'OLAK5uy_m4oH0MlcSO_9MADlNSvGWbiGPACnT7nqQ', label: 'Floating Points, Pharoah Sanders & the LSO — Promises' },
   'strata':                 { playlistId: 'OLAK5uy_neqQaWuMLHzuuz7wgua5Z-o0W_yo4bXIY', label: 'Bonobo — Black Sands' },
 };
 
@@ -305,7 +304,6 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   /* ── new set (2026-06-18): a second project for four single-project artists ── */
   aiDef('setback', 'Setback', 'walkup-ai', 404, '#e0552e', 0.08, AI.SETBACK_ASPECTS, AI.setbackSchema, AI.renderSetback, AI.setbackTraits),
   aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 256, '#13a89e', 0.06, AI.SIMULTANEOUS_ASPECTS, AI.simultaneousSchema, AI.renderSimultaneous, AI.simultaneousTraits),
-  aiDef('dynamicsymmetry', 'Dynamic Symmetry', 'phyllo-ai', 233, '#e8c466', 0.1, AI.DYNSYM_ASPECTS, AI.dynsymSchema, AI.renderDynsym, AI.dynsymTraits),
   aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, AI.STRATA_ASPECTS, AI.strataSchema, AI.renderStrata, AI.strataTraits),
 ];
 
