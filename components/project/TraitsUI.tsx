@@ -965,6 +965,11 @@ export default function TraitsUI({
                             const catCounts = gridCounts[l3FilterCat];
                             const hasCount = catCounts != null;
                             const count: number = hasCount ? (catCounts[value] ?? 0) : -1;
+                            /* Hide trait values with nothing minted yet — a "0"
+                               spoils the surprise of an unrevealed value (Brendon,
+                               2026-06-18). count < 0 = feed-special category with no
+                               tally, which still shows. */
+                            if (count === 0) return null;
                             return (
                                 <L3Pill
                                     key={`${l3FilterCat}:${value}`}
