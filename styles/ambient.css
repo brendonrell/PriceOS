@@ -335,25 +335,6 @@ body.is-pwa .ambient-strip-layer {
     50%      { opacity: 0.78; transform: translateX(-50%) scale(1.06); }
 }
 
-.rays-curtain .ambient-rays {
-    opacity: 0.5;
-    background: repeating-linear-gradient(90deg,
-        transparent 0 16px,
-        color-mix(in srgb, var(--amb1) 20%, transparent) 22px 34px,
-        transparent 40px 58px,
-        color-mix(in srgb, var(--amb4) 18%, transparent) 64px 76px,
-        transparent 82px 100px);
-    background-size: 100px 100%;
-    filter: blur(9px) saturate(1.15);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 52%, transparent 88%);
-    mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 52%, transparent 88%);
-    animation: amb-curtain-wave calc(var(--amb-dur) * 1.2) ease-in-out infinite;
-}
-@keyframes amb-curtain-wave {
-    0%, 100% { background-position: 0 0;    transform: translateX(-50%) skewX(-7deg); }
-    50%      { background-position: 46px 0; transform: translateX(-50%) skewX(7deg); }
-}
-
 /* ---- WEATHER ---- */
 .ambient-weather {
     top: 22px;
@@ -434,24 +415,6 @@ body.is-pwa .ambient-strip-layer {
 @keyframes amb-hover-b{0%,100%{transform:translate(7px,-5px);}50%{transform:translate(-9px,8px);}}
 @keyframes amb-pulse-a{0%,100%{opacity:.25;}50%{opacity:1;}}
 @keyframes amb-pulse-b{0%,100%{opacity:.4;}50%{opacity:.95;}}
-
-.weather-seeds .ambient-weather{opacity:0.62;}
-.weather-seeds .ambient-weather::before,.weather-seeds .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
-.weather-seeds .ambient-weather::before{width:1.6px;height:1.6px;color:rgba(255,255,255,.85);filter:blur(.5px);box-shadow:544px 230px 0.1px -0.3px, -416px 230px 0.1px -0.3px, 35px 4px 0.1px 0.1px, -925px 4px 0.1px 0.1px, 536px 557px 0.7px 0.5px, -424px 557px 0.7px 0.5px, 280px 106px 0.6px 0.1px, -680px 106px 0.6px 0.1px, 554px 394px 0.1px 0.3px, -406px 394px 0.1px 0.3px, 417px 420px 0.3px -0.2px, -543px 420px 0.3px -0.2px, 716px 258px 0.1px 0.0px, -244px 258px 0.1px 0.0px, 39px 39px 0.3px 0.6px, -921px 39px 0.3px 0.6px, 351px 464px 0.2px 0.1px, -609px 464px 0.2px 0.1px, 282px 449px 0.0px 0.2px, -678px 449px 0.0px 0.2px, 79px 122px 0.4px -0.2px, -881px 122px 0.4px -0.2px, 165px 168px 0.9px -0.2px, -795px 168px 0.9px -0.2px, 163px 486px 0.2px -0.2px, -797px 486px 0.2px -0.2px, 253px 576px 1.0px 0.5px, -707px 576px 1.0px 0.5px, 124px 241px 0.0px 0.5px, -836px 241px 0.0px 0.5px, 143px 156px 0.1px 0.4px, -817px 156px 0.1px 0.4px, 798px 619px 0.4px 0.1px, -162px 619px 0.4px 0.1px, 669px 579px 0.6px 0.4px, -291px 579px 0.6px 0.4px, 688px 591px 0.5px 0.5px, -272px 591px 0.5px 0.5px, 512px 542px 0.3px 0.3px, -448px 542px 0.3px 0.3px;animation:amb-breeze-a 26s linear infinite;}
-.weather-seeds .ambient-weather::after{width:1.2px;height:1.2px;color:rgba(255,255,255,.6);filter:blur(.8px);box-shadow:496px 638px 0.0px 0.4px, -464px 638px 0.0px 0.4px, 190px 376px 0.2px 0.7px, -770px 376px 0.2px 0.7px, 613px 318px 0.8px 0.5px, -347px 318px 0.8px 0.5px, 214px 477px 1.3px 0.6px, -746px 477px 1.3px 0.6px, 923px 145px 0.8px 0.5px, -37px 145px 0.8px 0.5px, 105px 304px 0.2px 0.4px, -855px 304px 0.2px 0.4px, 293px 482px 0.4px 0.4px, -667px 482px 0.4px 0.4px, 455px 371px 1.4px 0.1px, -505px 371px 1.4px 0.1px, 346px 335px 0.2px 0.6px, -614px 335px 0.2px 0.6px, 878px 82px 0.3px 0.3px, -82px 82px 0.3px 0.3px, 669px 202px 1.2px -0.1px, -291px 202px 1.2px -0.1px, 210px 428px 0.0px 0.3px, -750px 428px 0.0px 0.3px, 951px 579px 0.1px -0.0px, -9px 579px 0.1px -0.0px, 296px 570px 0.7px 0.1px, -664px 570px 0.7px 0.1px;animation:amb-breeze-b 38s linear infinite;}
-@keyframes amb-breeze-a{from{transform:translateX(-960px);}to{transform:translateX(0);}}
-@keyframes amb-breeze-b{from{transform:translateX(-960px);}to{transform:translateX(0);}}
-
-.weather-dust .ambient-weather{opacity:0.5;}
-.weather-dust .ambient-weather::before,.weather-dust .ambient-weather::after{content:'';position:absolute;top:0;left:0;border-radius:50%;background:currentColor;}
-.weather-dust .ambient-weather::before{width:1px;height:1px;color:color-mix(in srgb,var(--amb3) 55%,#ffffff);box-shadow:56px 209px 0.2px 0.5px, 947px 206px 0.3px 0.2px, 509px 526px 0.1px 0.2px, 554px 255px 0.3px -0.2px, 92px 322px 0.4px 0.5px, 448px 125px 0.0px -0.2px, 584px 184px 0.1px 0.6px, 260px 616px 0.5px 0.2px, 148px 169px 0.5px 0.6px, 1px 198px 0.5px 0.6px, 473px 251px 0.1px -0.0px, 814px 42px 0.2px 0.2px, 501px 595px 0.3px -0.1px, 99px 443px 0.3px 0.5px, 853px 0px 0.2px 0.2px, 139px 229px 0.4px -0.1px, 546px 15px 0.0px -0.0px, 620px 522px 0.1px 0.3px, 624px 275px 0.3px -0.0px, 109px 8px 0.4px 0.6px, 426px 587px 0.1px 0.1px, 529px 277px 0.0px -0.3px, 845px 599px 0.2px 0.2px, 603px 186px 0.4px -0.3px, 558px 296px 0.3px 0.2px, 754px 427px 0.4px -0.2px, 809px 523px 0.4px 0.3px, 81px 536px 0.2px 0.5px, 514px 171px 0.1px 0.5px, 917px 171px 0.5px -0.1px, 56px 588px 0.4px 0.2px, 672px 541px 0.3px 0.2px, 564px 287px 0.1px -0.1px, 85px 578px 0.1px 0.0px, 82px 238px 0.0px 0.0px, 120px 585px 0.4px 0.5px, 246px 186px 0.5px 0.2px, 539px 443px 0.3px -0.1px, 480px 193px 0.0px 0.6px, 698px 20px 0.5px 0.3px, 838px 0px 0.5px -0.1px, 585px 450px 0.3px 0.7px, 554px 497px 0.5px -0.0px, 669px 241px 0.2px 0.2px, 732px 61px 0.2px 0.5px, 616px 630px 0.2px -0.0px, 786px 207px 0.2px 0.3px, 68px 120px 0.0px 0.3px, 934px 237px 0.5px -0.2px, 901px 154px 0.0px 0.6px, 507px 118px 0.2px 0.5px, 882px 216px 0.3px -0.2px, 464px 11px 0.1px 0.6px, 731px 328px 0.3px -0.1px, 85px 549px 0.3px 0.6px, 639px 19px 0.2px -0.1px, 762px 121px 0.1px -0.2px, 927px 39px 0.5px 0.4px, 713px 255px 0.1px -0.1px, 782px 581px 0.2px 0.3px, 726px 499px 0.2px 0.6px, 319px 327px 0.4px 0.0px, 494px 269px 0.4px -0.0px, 305px 251px 0.5px -0.1px;animation:amb-twinkle-a 5.5s ease-in-out infinite,amb-hoverdust-a 40s ease-in-out infinite;}
-.weather-dust .ambient-weather::after{width:1.2px;height:1.2px;color:color-mix(in srgb,var(--amb2) 50%,#ffffff);box-shadow:62px 525px 0.0px 0.7px, 79px 341px 0.1px 0.5px, 516px 610px 0.5px 0.6px, 705px 532px 0.7px 0.3px, 144px 531px 0.1px 0.2px, 476px 605px 0.6px 0.5px, 215px 435px 0.3px -0.2px, 69px 409px 0.1px -0.2px, 780px 190px 0.6px 0.6px, 104px 610px 0.7px 0.2px, 101px 141px 0.2px 0.6px, 64px 521px 0.4px 0.6px, 753px 62px 0.7px 0.6px, 818px 550px 0.2px 0.3px, 773px 373px 0.3px -0.3px, 607px 19px 0.6px 0.1px, 846px 121px 0.1px 0.2px, 650px 96px 0.2px -0.1px, 470px 15px 0.5px -0.1px, 233px 471px 0.3px 0.1px, 271px 377px 0.7px 0.2px, 180px 514px 0.7px 0.6px, 101px 439px 0.3px 0.4px, 55px 33px 0.1px 0.6px, 480px 194px 0.3px -0.1px, 202px 248px 0.2px -0.3px, 82px 605px 0.4px 0.3px, 337px 200px 0.4px 0.2px, 124px 210px 0.3px 0.2px, 366px 277px 0.2px 0.5px, 446px 175px 0.1px -0.1px, 784px 193px 0.3px -0.3px, 410px 397px 0.2px 0.3px, 333px 552px 0.4px 0.5px, 108px 127px 0.2px 0.3px, 198px 265px 0.1px 0.2px, 299px 216px 0.2px -0.3px, 764px 558px 0.1px 0.6px, 957px 477px 0.1px 0.5px, 857px 197px 0.1px 0.6px;animation:amb-twinkle-b 7.5s ease-in-out infinite,amb-hoverdust-b 52s ease-in-out infinite;}
-@keyframes amb-twinkle-a{0%,100%{opacity:.35;}50%{opacity:.85;}}
-@keyframes amb-twinkle-b{0%,100%{opacity:.55;}50%{opacity:.25;}}
-@keyframes amb-hoverdust-a{0%,100%{transform:translate(0,0);}50%{transform:translate(5px,4px);}}
-@keyframes amb-hoverdust-b{0%,100%{transform:translate(0,0);}50%{transform:translate(-4px,3px);}}
-
-
 /* Lightning sky-flash — a pure-light overlay (NO rain) that lights the whole
    top in sync with the Lightning pattern's strike. Hidden otherwise; works the
    same whether the bar is a strip or the Sphere orb (independent layer). */

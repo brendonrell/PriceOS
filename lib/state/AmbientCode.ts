@@ -47,9 +47,9 @@ export type Haze = 'crisp' | 'soft' | 'dreamy';
 
 /* Light FX (3rd menu page, bottom half) — shareable mood, so UNLIKE the
    atmosphere block these DO ride the code (appended after dim). */
-export type Rays = 'off' | 'shafts' | 'beams' | 'halo' | 'curtain';
+export type Rays = 'off' | 'shafts' | 'beams' | 'halo';
 /* "Nature" in the menu — ambient floating particles in the glow. */
-export type Weather = 'clear' | 'fireflies' | 'pollen' | 'petals' | 'spores' | 'seeds' | 'dust';
+export type Weather = 'clear' | 'fireflies' | 'pollen' | 'petals' | 'spores';
 
 export interface AmbientOpts {
     palette: Palette;
@@ -85,8 +85,8 @@ export const PATTERN_IDS: ReadonlyArray<Pattern> = [
     'wave', 'pulse', 'breathe', 'solid', 'sweep', 'ripple', 'flicker', 'strobe', 'drift', 'throb', 'shimmer', 'lightning',
 ];
 export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
-export const RAYS_IDS: ReadonlyArray<Rays> = ['off', 'shafts', 'beams', 'halo', 'curtain'];
-export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'fireflies', 'pollen', 'petals', 'spores', 'seeds', 'dust'];
+export const RAYS_IDS: ReadonlyArray<Rays> = ['off', 'shafts', 'beams', 'halo'];
+export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'fireflies', 'pollen', 'petals', 'spores'];
 
 /** Legacy single-letter dim (A–F) → percentage, for decoding old 8-char codes
  *  written before dim became a slider. Order matches the old preset list. */

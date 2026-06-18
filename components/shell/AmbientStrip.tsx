@@ -105,12 +105,11 @@ const HAZES: { id: Haze; label: string }[] = [
    Rays = volumetric shafts fanning down; Weather = particles drifting in the glow. */
 const RAYS: { id: Rays; label: string }[] = [
     { id: 'off', label: 'Off' }, { id: 'shafts', label: 'Shafts' }, { id: 'beams', label: 'Beams' },
-    { id: 'halo', label: 'Halo' }, { id: 'curtain', label: 'Curtain' },
+    { id: 'halo', label: 'Halo' },
 ];
 const WEATHERS: { id: Weather; label: string }[] = [
     { id: 'clear', label: 'Clear' }, { id: 'fireflies', label: 'Fireflies' }, { id: 'pollen', label: 'Pollen' },
-    { id: 'petals', label: 'Petals' }, { id: 'spores', label: 'Spores' }, { id: 'seeds', label: 'Seeds' },
-    { id: 'dust', label: 'Dust' },
+    { id: 'petals', label: 'Petals' }, { id: 'spores', label: 'Spores' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
