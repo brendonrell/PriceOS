@@ -5855,10 +5855,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 4px 40px 16px 40px;
-}
-@media (max-width: 600px) {
-    .more-attrs { padding: 4px 20px 16px 20px; }
+    /* Sits inside the dashed .more-box-card now — no indent of its own. */
+    padding: 0;
 }
 .attr-row {
     display: flex;
@@ -5950,6 +5948,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .more-genome-wrap,
 .more-seal-wrap,
 .more-disagree-wrap,
+.more-box-wrap,
 .more-price-stats-row {
     padding: 0 0 20px 0;
     max-width: min(62.5vw, 900px);
@@ -5972,6 +5971,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .more-genome-wrap,
     .more-seal-wrap,
     .more-disagree-wrap,
+    .more-box-wrap,
     .more-price-stats-row {
         padding: 0 0 20px 0;
         max-width: none;
@@ -5983,6 +5983,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .more-genome-card,
 .more-seal-card,
 .more-disagree-card,
+.more-box-card,
 .more-stat-tile {
     border: 1px dashed var(--text-color);
     border-radius: 4px;
@@ -5992,6 +5993,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     transition: background 0.2s;
     font-family: 'Courier New', Courier, monospace;
 }
+/* Generic +More content frame (Brendon, 2026-06-18) — same dashed box as the
+   other sections, for tabs whose content was floating or empty. Not clickable,
+   so it stays default-cursor and an empty one still reserves a home. */
+.more-box-card { cursor: default; }
+.more-box-empty { min-height: 64px; }
 .more-replay-card:hover,
 .more-genome-card:hover,
 .more-seal-card:hover,

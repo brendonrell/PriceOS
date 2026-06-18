@@ -1455,6 +1455,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     with project data — @name + upload date, the PriceSprite + the
                     simulated contract address (wallet stand-in) + copy, the follow
                     graph, and Follow + Share. The True Name sits below. */}
+                <div className="more-section-header">PROJECT SOCIAL PROFILE</div>
+                <div className="more-box-wrap">
+                  <div className="more-box-card">
                 <Hero
                     ariaLabel="Project Profile"
                     titleRow={
@@ -1519,6 +1522,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         </button>
                     </div>
                 </Hero>
+                  </div>
+                </div>
                 </>)}
                 {moreL1 === 'stats' && (<>
                 {/* PRICE STATS — stats-row-2 restored here from hero.
@@ -1527,7 +1532,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     price. Moved out of the hero into +More so it is
                     accessible without crowding the main hero on mobile. */}
                 <div className="more-section-header">PRICE STATS</div>
-                <div className="more-price-stats-row stats-row stats-row-2">
+                <div className="more-box-wrap">
+                  <div className="more-box-card">
+                    <div className="stats-row stats-row-2">
                     <span className="stat-item">
                         <span
                             className="stat-icon stat-icon-box stat-icon-owned"
@@ -1591,6 +1598,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 : ''}
                         </span>
                     </span>
+                    </div>
+                  </div>
                 </div>
 
                 </>)}
@@ -1661,8 +1670,11 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 </>)}
                 {moreL1 === 'gnome' && (<>
                 {/* GNOME — paired with Genome for the pun; empty for now
-                    (Brendon, 2026-06-16). */}
+                    (Brendon, 2026-06-16). Empty box gives the title a home. */}
                 <div className="more-section-header">GNOME</div>
+                <div className="more-box-wrap">
+                    <div className="more-box-card more-box-empty" />
+                </div>
                 </>)}
                 {moreL1 === 'sentiment' && (<>
                 {/* PRICE TARGETS — sim 5285-5306 */}
@@ -1769,19 +1781,27 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     return (
                         <>
                         <div className="more-section-header">ATTRIBUTES</div>
-                        <div className="more-attrs">
-                            <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{fate.glyph} {fate.fate}</span></div>
-                            <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {chart.sun}</span></div>
-                            <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {chart.moon}</span></div>
-                            <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {chart.rising}</span></div>
-                            <div className="attr-row"><span className="attr-label">True Name</span><span className="attr-val project-true-name">{projectTrueName(project.slug)}</span></div>
+                        <div className="more-box-wrap">
+                          <div className="more-box-card">
+                            <div className="more-attrs">
+                                <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{fate.glyph} {fate.fate}</span></div>
+                                <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {chart.sun}</span></div>
+                                <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {chart.moon}</span></div>
+                                <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {chart.rising}</span></div>
+                                <div className="attr-row"><span className="attr-label">True Name</span><span className="attr-val project-true-name">{projectTrueName(project.slug)}</span></div>
+                            </div>
+                          </div>
                         </div>
                         </>
                     );
                 })()}
                 {moreL1 === 'pricestory' && (<>
-                {/* PRICE STORY — empty for now (Brendon, 2026-06-16). */}
+                {/* PRICE STORY — empty for now (Brendon, 2026-06-16). Empty box
+                    gives the title a home. */}
                 <div className="more-section-header">PRICE STORY</div>
+                <div className="more-box-wrap">
+                    <div className="more-box-card more-box-empty" />
+                </div>
                 </>)}
             </section>
         </>
