@@ -5116,6 +5116,18 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     letter-spacing: 0.04em;
     color: var(--text-color);
 }
+/* Collapsible grouping header — the whole row is the tap target; the little
+   triangle folds (▸) / unfolds (▾) the pieces beneath it (Brendon, 2026-06-18). */
+.gallery-group-header.is-collapsible { cursor: pointer; }
+.ggh-arrow {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--text-color);
+    opacity: 0.8;
+    /* Nudge the small triangle onto the text baseline of the label. */
+    transform: translateY(-1px);
+}
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
 .ggh-by {
     font-family: 'Courier New', Courier, monospace;

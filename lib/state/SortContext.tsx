@@ -61,24 +61,30 @@ export type FeedKind = 'time' | 'price';
    lands on a dead option:
      - project page  (one artist / one project): owner · colour · last-sold · rarity
      - collected grid (cross-project holdings):   artist · project · artist+project ·
-       colour · last-sold · rarity */
+       colour · artist+colour · project+colour · last-sold · rarity
+   Combos are two-level: the first dimension titles the section, the second
+   sub-titles within it (project+artist is omitted — a project has one artist). */
 export type GroupKey =
     | 'none' | 'artist' | 'project' | 'artistProject'
+    | 'artistColor' | 'projectColor'
     | 'owner' | 'color' | 'lastSold' | 'rarity';
 
 export const PROJECT_GROUP_ORDER: GroupKey[] =
     ['none', 'owner', 'color', 'lastSold', 'rarity'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
-    ['none', 'artist', 'project', 'artistProject', 'color', 'lastSold', 'rarity'];
+    ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor', 'lastSold', 'rarity'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' is the resting
    "pure sort" state and shows NO glyph at all (Brendon, 2026-06-18 — the old
-   neutral dot is gone); each grouping shows its own glyph. */
+   neutral dot is gone); each grouping shows its own glyph. Combos read left→
+   right: the level-1 dimension's glyph then the level-2 dimension's. */
 export const GROUP_GLYPH: Record<GroupKey, string> = {
     none: '',
     artist: '✺︎',
     project: '⬚︎',
     artistProject: '✺︎⬚︎',
+    artistColor: '✺︎◉︎',
+    projectColor: '⬚︎◉︎',
     owner: '⌂︎',
     color: '◉︎',
     lastSold: '$',
@@ -88,7 +94,9 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
 /* ALLCAPS state for the toast (Brendon's toast-casing rule). */
 export const GROUP_LABEL: Record<GroupKey, string> = {
     none: 'OFF', artist: 'ARTIST', project: 'PROJECT',
-    artistProject: 'ARTIST + PROJECT', owner: 'OWNER',
+    artistProject: 'ARTIST + PROJECT',
+    artistColor: 'ARTIST + COLOR', projectColor: 'PROJECT + COLOR',
+    owner: 'OWNER',
     color: 'COLOR', lastSold: 'LAST SOLD', rarity: 'RARITY',
 };
 
@@ -96,7 +104,8 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
 export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true, rarity: true };
 
 const ALL_GROUP_KEYS: GroupKey[] = [
-    'none', 'artist', 'project', 'artistProject', 'owner', 'color', 'lastSold', 'rarity',
+    'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
+    'owner', 'color', 'lastSold', 'rarity',
 ];
 function isGroupKey(v: unknown): v is GroupKey {
     return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);

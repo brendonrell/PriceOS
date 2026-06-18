@@ -236,6 +236,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        arrive); resolveBucket prefers them, falls back to live palette-math. */
     const colorsVer = useStoredColors([project.slug]);
     const { sort, dir, feedKind, group } = useSort();
+    /* Collapsible grouping headers — tap one to fold its pieces away, tap again
+       to reopen. Reset when the grouping dimension changes (keys are labels). */
+    const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => new Set());
+    const toggleGroupCollapse = (key: string) =>
+        setCollapsedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key); else next.add(key);
+            return next;
+        });
+    useEffect(() => { setCollapsedGroups(new Set()); }, [group]);
     const { showToast } = useToast();
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
@@ -1318,14 +1328,30 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                            never unmounted, so they never repaint. Tap-to-group is
                            instant and can't jam, however heavy the art (Brendon,
                            2026-06-16). */
-                        ? groupedSections.flatMap((sec) => [
-                            <div key={`hdr-${sec.label}`} className={`gallery-group-header${sec.soon ? ' soon' : ''}`}>
+                        ? groupedSections.flatMap((sec) => {
+                            const folded = collapsedGroups.has(sec.label);
+                            return [
+                            <div
+                                key={`hdr-${sec.label}`}
+                                className={`gallery-group-header is-collapsible${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                aria-expanded={!folded}
+                                onClick={() => toggleGroupCollapse(sec.label)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        toggleGroupCollapse(sec.label);
+                                    }
+                                }}
+                            >
+                                <span className="ggh-arrow" aria-hidden="true">{folded ? '▸︎' : '▾︎'}</span>
                                 <span className="ggh-label">{sec.label}</span>
                                 {sec.soon
                                     ? <span className="ggh-soon">coming soon</span>
                                     : <span className="ggh-count">{sec.ids.length}</span>}
                             </div>,
-                            ...sec.ids.map((id) => (
+                            ...(folded ? [] : sec.ids.map((id) => (
                                 <ArtworkCard
                                     key={id}
                                     id={id}
@@ -1333,8 +1359,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                     isBreadcrumb={breadcrumbSample.has(id)}
                                     eager={eagerIds.has(id)}
                                 />
-                            )),
-                        ])
+                            ))),
+                        ];
+                        })
                         : visibleTokenIds.map((id) => (
                             <ArtworkCard
                                 key={id}

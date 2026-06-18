@@ -601,6 +601,10 @@ function ProfilePageBodyInner({
     type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean };
     type GBlock = {
         key: string;
+        /** Collapse key for the section (level-1) this block belongs to. */
+        l1Key: string;
+        /** Collapse key for this block's own level-2 sub-section, when it has one. */
+        l2Key?: string;
         heads: GBHead[];
         group?: { slug: string; ids: number[] };
         cards?: { slug: string; id: number }[];
@@ -614,6 +618,7 @@ function ProfilePageBodyInner({
         if (GROUP_SOON[group]) {
             return [{
                 key: 'soon',
+                l1Key: 'soon',
                 heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
                 cards: shownCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
             }];
@@ -632,7 +637,62 @@ function ProfilePageBodyInner({
             const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
             return [...buckets.entries()]
                 .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-                .map(([label, cards]) => ({ key: `c-${label}`, heads: [{ level: 1 as const, label }], cards }));
+                .map(([label, cards]) => ({ key: `c-${label}`, l1Key: `c-${label}`, heads: [{ level: 1 as const, label }], cards }));
+        }
+
+        // artist+colour / project+colour — two-level: the identity (artist or
+        // project) titles the section, colour buckets sub-title within it.
+        // Colour mixes projects under an artist, so pieces render per-card (like
+        // the plain colour grouping), not per-project.
+        if (group === 'artistColor' || group === 'projectColor') {
+            type Hold = (typeof shownCollected)[number];
+            const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
+            const idOf = (h: Hold) =>
+                group === 'artistColor' ? (h.traits.Artist ?? '—') : h.slug;
+            const idLabel = (k: string) => (group === 'artistColor' ? k : projName(k));
+            const byId = new Map<string, Hold[]>();
+            const artistOf = new Map<string, string>();
+            for (const h of shownCollected) {
+                const k = idOf(h);
+                const arr = byId.get(k) ?? [];
+                arr.push(h);
+                byId.set(k, arr);
+                if (!artistOf.has(k)) artistOf.set(k, h.traits.Artist ?? '—');
+            }
+            const ids = [...byId.keys()].sort((a, b) => idLabel(a).localeCompare(idLabel(b)));
+            const blocks: GBlock[] = [];
+            for (const k of ids) {
+                const cbuckets = new Map<string, { slug: string; id: number }[]>();
+                for (const h of byId.get(k)!) {
+                    const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
+                    const arr = cbuckets.get(b) ?? [];
+                    arr.push({ slug: h.slug, id: h.token_id });
+                    cbuckets.set(b, arr);
+                }
+                const ordered = [...cbuckets.entries()]
+                    .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
+                let first = true;
+                for (const [clabel, cards] of ordered) {
+                    const heads: GBHead[] = [];
+                    if (first) {
+                        heads.push(
+                            group === 'projectColor'
+                                ? { level: 1, label: idLabel(k), by: artistOf.get(k) ?? null }
+                                : { level: 1, label: idLabel(k) },
+                        );
+                        first = false;
+                    }
+                    heads.push({ level: 2, label: clabel });
+                    blocks.push({
+                        key: `${k}::${clabel}`,
+                        l1Key: `i:${k}`,
+                        l2Key: `s:${k}::${clabel}`,
+                        heads,
+                        cards,
+                    });
+                }
+            }
+            return blocks;
         }
 
         // artist / project / artist+project respect project boundaries (one
@@ -650,6 +710,7 @@ function ProfilePageBodyInner({
             slugs.sort((a, b) => projName(a).localeCompare(projName(b)));
             return slugs.map((slug) => ({
                 key: slug,
+                l1Key: slug,
                 heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null }],
                 group: { slug, ids: bySlug.get(slug)! },
             }));
@@ -664,10 +725,29 @@ function ProfilePageBodyInner({
             const heads: GBHead[] = [];
             if (artist !== lastArtist) { heads.push({ level: 1, label: artist }); lastArtist = artist; }
             if (group === 'artistProject') heads.push({ level: 2, label: projName(slug) });
-            blocks.push({ key: slug, heads, group: { slug, ids: bySlug.get(slug)! } });
+            blocks.push({
+                key: slug,
+                l1Key: `a:${artist}`,
+                ...(group === 'artistProject' ? { l2Key: `p:${slug}` } : {}),
+                heads,
+                group: { slug, ids: bySlug.get(slug)! },
+            });
         }
         return blocks;
     }, [group, sort, shownCollected, colorsVer]);
+
+    /* Collapsible grouping headers — tap a header (or its arrow) to fold its
+       pieces away; tap again to reopen. Folding a section (level-1) hides
+       everything nested under it, including its sub-headers. Keys are
+       dimension-specific, so a grouping change starts fresh (effect below). */
+    const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => new Set());
+    const toggleGroupCollapse = (key: string) =>
+        setCollapsedGroups((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key); else next.add(key);
+            return next;
+        });
+    useEffect(() => { setCollapsedGroups(new Set()); }, [group]);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -1642,19 +1722,45 @@ function ProfilePageBodyInner({
                             ? collectedGroups.map((blk) => {
                                   const g = blk.group;
                                   const cards = blk.cards;
+                                  const l1Collapsed = collapsedGroups.has(blk.l1Key);
+                                  const l2Collapsed = blk.l2Key ? collapsedGroups.has(blk.l2Key) : false;
+                                  // Section folded → hide all cards (and any sub-header).
+                                  const cardsHidden = l1Collapsed || l2Collapsed;
                                   return (
                                       <Fragment key={blk.key}>
-                                          {blk.heads.map((h, hi) => (
-                                              <div
-                                                  key={hi}
-                                                  className={`gallery-group-header${h.level === 2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}`}
-                                              >
-                                                  <span className="ggh-label">{h.label}</span>
-                                                  {h.by ? <span className="ggh-by"> by @{h.by}</span> : null}
-                                                  {h.soon ? <span className="ggh-soon">coming soon</span> : null}
-                                              </div>
-                                          ))}
-                                          {g
+                                          {blk.heads.map((h, hi) => {
+                                              const isL2 = h.level === 2;
+                                              // A folded level-1 also folds away its sub-headers.
+                                              if (isL2 && l1Collapsed) return null;
+                                              const ckey = isL2 ? blk.l2Key! : blk.l1Key;
+                                              const folded = isL2 ? l2Collapsed : l1Collapsed;
+                                              return (
+                                                  <div
+                                                      key={hi}
+                                                      className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                                      role="button"
+                                                      tabIndex={0}
+                                                      aria-expanded={!folded}
+                                                      onClick={() => toggleGroupCollapse(ckey)}
+                                                      onKeyDown={(e) => {
+                                                          if (e.key === 'Enter' || e.key === ' ') {
+                                                              e.preventDefault();
+                                                              toggleGroupCollapse(ckey);
+                                                          }
+                                                      }}
+                                                  >
+                                                      <span className="ggh-arrow" aria-hidden="true">
+                                                          {folded ? '▸︎' : '▾︎'}
+                                                      </span>
+                                                      <span className="ggh-label">{h.label}</span>
+                                                      {h.by ? <span className="ggh-by"> by @{h.by}</span> : null}
+                                                      {h.soon ? <span className="ggh-soon">coming soon</span> : null}
+                                                  </div>
+                                              );
+                                          })}
+                                          {cardsHidden
+                                              ? null
+                                              : g
                                               ? (
                                                   <ProjectProvider slug={g.slug}>
                                                       {g.ids.map((id) => (

@@ -109,8 +109,14 @@ first state always = none. One glyph per dimension:
 | Artist + Project | ✺⬚ | — | two-level combo (artist over project) |
 | Owner | ⌂ | U+2302 | holder / where the piece lives |
 | Dominant colour | ◉ | U+25C9 | the Haze dropper (samples colour — see §7) |
+| Artist + colour | ✺◉ | — | two-level combo (artist over colour) |
+| Project + colour | ⬚◉ | — | two-level combo (project over colour) |
 | Last sold $ | $ | — | coming soon |
 | Rarity | ❖ | U+2756 | freed from rank for rarity sitewide |
+
+> Grouping headers are **collapsible**: a small triangle leads each header —
+> ▾ (U+25BE) open, ▸ (U+25B8) folded — and tapping the row folds its pieces
+> away. Folding a section also folds its sub-headers. (Brendon, 2026-06-18.)
 
 ---
 
