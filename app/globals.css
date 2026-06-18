@@ -5311,6 +5311,27 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     transform: rotate(45deg);
     margin-bottom: 2px;
 }
+/* Artist-owned badge — same 14px circle as the owned-by-you check, carrying the
+   canonical artist glyph ✺ (GLYPHS.md §4). Sits right after the check, so a
+   piece the viewing artist owns shows both (check then artist). */
+.badge-artist {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--text-color);
+    background: transparent;
+    color: var(--text-color);
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+}
+.artist-mark {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    line-height: 1;
+}
 .meta-owner {
     /* Dimmed — the owner sits quieter than the #ID, as it used to (Brendon, 2026-06-16). */
     opacity: 0.6;

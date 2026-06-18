@@ -80,6 +80,7 @@ import { memo, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
+import { getProject } from '../lib/project/registry';
 import { sampleCanvasBucket } from '../lib/art/sampleColor';
 import { needsColorSample, reportBucket } from '../lib/art/colorStore';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
@@ -417,6 +418,14 @@ function ArtworkCard({
     const listed = meta?.price != null;
     const ownerDisplay = meta?.ownerDisplay ?? '';
     const ownedByBrendon = meta?.isOwnedByBrendon ?? false;
+    /* The piece is held by the Project's own artist — shown as a badge in the
+       same spot + size as the "owned by you" check. Viewer-independent (everyone
+       sees it). If YOU are the artist and own it, both render: check first,
+       artist badge second. */
+    const projectArtist = (getProject(slug)?.artistHandle ?? '').toLowerCase();
+    const ownerIsArtist =
+        projectArtist !== '' &&
+        ownerDisplay.replace(/^@/, '').toLowerCase() === projectArtist;
 
     /* The Bench — press-and-hold then drag this piece onto the dock (BENCH
        always; CART when listed). Same gesture on touch and mouse. Disabled in
@@ -920,6 +929,14 @@ function ArtworkCard({
                                 {' '}
                                 <span className="badge-owned" title="Owned by You">
                                     <span className="css-check" />
+                                </span>
+                            </>
+                        )}
+                        {ownerIsArtist && !hideOwnedBadge && (
+                            <>
+                                {' '}
+                                <span className="badge-artist" title="Owned by the Artist">
+                                    <span className="artist-mark">{'✺︎'}</span>
                                 </span>
                             </>
                         )}
