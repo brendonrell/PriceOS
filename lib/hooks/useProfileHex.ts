@@ -45,25 +45,36 @@ const HEX_RE = /^#[0-9A-F]{6}$/i;
 const EVENT_NAME = 'pd:profile-hex-changed';
 const CSS_VAR = '--profile-hex';
 
-function readStoredColor(): string {
-    if (typeof window === 'undefined') return PROFILE_HEX_DEFAULT;
+function readStoredColor(fallback: string = PROFILE_HEX_DEFAULT): string {
+    if (typeof window === 'undefined') return fallback;
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return PROFILE_HEX_DEFAULT;
-        if (OLD_DEFAULTS.includes(saved.toUpperCase())) return PROFILE_HEX_DEFAULT;
+        if (!saved) return fallback;
+        if (OLD_DEFAULTS.includes(saved.toUpperCase())) return fallback;
         if (HEX_RE.test(saved)) return saved.toUpperCase();
     } catch {
         /* ignore */
     }
-    return PROFILE_HEX_DEFAULT;
+    return fallback;
 }
 
-export function useProfileHex() {
-    const [hex, setHexState] = useState<string>(PROFILE_HEX_DEFAULT);
+/**
+ * @param serverHex Server-known value (`users.profile_hex`) for the OWNER of the
+ *   profile being viewed — pass it ONLY when the viewer is on their OWN profile.
+ *   It seeds the initial colour so the page paints the real colour on the first
+ *   pass instead of booting to placeholder white and repainting after hydration
+ *   (the "flash white → real colour" that only hit your own profile). When the
+ *   viewer's own saved colour is in localStorage that still wins; the server
+ *   value is only the fallback for an empty/first-load store.
+ */
+export function useProfileHex(serverHex?: string | null) {
+    const seed =
+        serverHex && HEX_RE.test(serverHex) ? serverHex.toUpperCase() : PROFILE_HEX_DEFAULT;
+    const [hex, setHexState] = useState<string>(seed);
 
     // Hydrate + listen on mount.
     useEffect(() => {
-        const c = readStoredColor();
+        const c = readStoredColor(seed);
         setHexState(c);
         try {
             localStorage.setItem(STORAGE_KEY, c);
@@ -85,6 +96,7 @@ export function useProfileHex() {
         };
         window.addEventListener(EVENT_NAME, sync);
         return () => window.removeEventListener(EVENT_NAME, sync);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**

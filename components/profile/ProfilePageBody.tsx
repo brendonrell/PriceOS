@@ -214,9 +214,16 @@ function ProfilePageBodyInner({
        their OWN profile, use the live hook value so edits in the picker repaint
        instantly; for anyone else's profile, use the server-provided value. */
     const { setActiveProfileHex } = useColorway();
-    const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex();
     const isOwnProfile =
         !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
+    /* Seed the Profile Colorway hook with the server-known colour on your OWN
+       profile so it paints the real colour on the first pass instead of flashing
+       white then repainting (Brendon, 2026-06-18). Only on own profile — on
+       someone else's, this hook is the VIEWER's colour and must not be seeded
+       with the page owner's. */
+    const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex(
+        isOwnProfile ? user.profile_hex : undefined,
+    );
     const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
     useEffect(() => {
         setActiveProfileHex(ownerHex ?? null);
