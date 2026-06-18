@@ -61,7 +61,7 @@
  * naming for sim-diff legibility.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
@@ -269,6 +269,17 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         },
     });
     const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive, activeCategory } = useTraits();
+
+    /* Decouple the gallery from the trait pills (Brendon, 2026-06-18). Pills read
+       the live filter state and dim instantly; the heavy gallery predicate reads
+       a DEFERRED copy, so a pill tap never waits on the grid to recompute — the
+       grid updates on its own frame. */
+    const dActiveFilters = useDeferredValue(activeFilters);
+    const dSearchQuery = useDeferredValue(searchQuery);
+    const dPriceMin = useDeferredValue(priceMin);
+    const dPriceMax = useDeferredValue(priceMax);
+    const dMyNotesActive = useDeferredValue(myNotesActive);
+    const dActiveCategory = useDeferredValue(activeCategory);
 
     /* Re-run the gallery filter when notes change so the My Notes view updates
        live as notes are added/removed (Brendon, 2026-06-13). */
@@ -694,15 +705,15 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         const ids: number[] = [];
         for (let i = 1; i <= project.totalOutputs; i++) ids.push(i);
 
-        const minVal = parseFloat(priceMin);
-        const maxVal = parseFloat(priceMax);
+        const minVal = parseFloat(dPriceMin);
+        const maxVal = parseFloat(dPriceMax);
         const hasMin = !Number.isNaN(minVal);
         const hasMax = !Number.isNaN(maxVal);
-        const q = searchQuery.trim().toLowerCase();
+        const q = dSearchQuery.trim().toLowerCase();
 
         const activeCats = (
-            Object.keys(activeFilters) as TraitCategory[]
-        ).filter((cat) => activeFilters[cat].size > 0);
+            Object.keys(dActiveFilters) as TraitCategory[]
+        ).filter((cat) => dActiveFilters[cat].size > 0);
 
         const filtered = ids.filter((id) => {
             const meta = project.outputs.get(id);
@@ -710,7 +721,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
 
             // 1. Trait filters
             for (const cat of activeCats) {
-                const set = activeFilters[cat];
+                const set = dActiveFilters[cat];
                 if (cat === 'Breadcrumb') {
                     if (!set.has(String(id))) return false;
                     continue;
@@ -772,7 +783,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             //    Reads from the same localStorage key used by
             //    NotePromptContext ('pd_token_notes') so no new
             //    context plumbing is needed.
-            if (myNotesActive) {
+            if (dMyNotesActive) {
                 try {
                     const raw = typeof localStorage !== 'undefined'
                         ? localStorage.getItem('pd_token_notes')
@@ -787,7 +798,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             // 5. Recent (breadcrumbs) — when the Recent pill is active, show
             //    only Outputs the viewer has actually opened in this Project
             //    (the live recently-seen trail from breadcrumbStore).
-            if (activeCategory === 'Breadcrumb') {
+            if (dActiveCategory === 'Breadcrumb') {
                 if (!breadcrumbSample.has(id)) return false;
             }
 
@@ -819,7 +830,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, activeFilters, searchQuery, priceMin, priceMax, myNotesActive, notesVersion, activeCategory, breadcrumbSample, siweAddress, netSets, topHolders]);
+    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbSample, siweAddress, netSets, topHolders]);
 
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving
@@ -1264,7 +1275,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
 
             {/* My Notes empty state — shown when the notes filter is active
                 but no outputs have notes yet. Sits above the (empty) gallery. */}
-            {myNotesActive && visibleTokenIds.length === 0 && (
+            {dMyNotesActive && visibleTokenIds.length === 0 && (
                 <div className="my-notes-empty-state">
                     <span className="my-notes-empty-msg">
                         You haven&rsquo;t created any Artwork Notes yet
@@ -1282,7 +1293,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 .meta. Full list still mounted — CSS does the filtering. */}
             <section
                 id="gallery"
-                data-my-notes={myNotesActive ? '1' : undefined}
+                data-my-notes={dMyNotesActive ? '1' : undefined}
                 aria-label="Gallery"
                 className={[
                     onShowcaseTab ? 'project-showcase-mode' : null,

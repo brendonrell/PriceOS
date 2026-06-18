@@ -25,7 +25,7 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useMemo, useRef, Fragment, type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -193,6 +193,15 @@ function ProfilePageBodyInner({
     const isZen = notifs.zenMode;
     const { sort, dir, feedKind, group } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
+
+    /* Decouple the gallery grid from the trait pills (Brendon, 2026-06-18). The
+       pills read the live filter state and paint their dim/active instantly;
+       the heavy grid filter/sort reads a DEFERRED copy, so a pill tap no longer
+       waits on the grid to recompute — the grid catches up on its own frame. */
+    const dActiveFilters = useDeferredValue(activeFilters);
+    const dSearchQuery = useDeferredValue(searchQuery);
+    const dPriceMin = useDeferredValue(priceMin);
+    const dPriceMax = useDeferredValue(priceMax);
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -474,18 +483,18 @@ function ProfilePageBodyInner({
        by the platform facets (facetValueOf), searches @artist / @project / id,
        ranges on listing price, sorts by id or price. */
     const visibleCollected = useMemo<EnrichedHolding[]>(() => {
-        const minVal = parseFloat(priceMin);
-        const maxVal = parseFloat(priceMax);
+        const minVal = parseFloat(dPriceMin);
+        const maxVal = parseFloat(dPriceMax);
         const hasMin = !Number.isNaN(minVal);
         const hasMax = !Number.isNaN(maxVal);
-        const q = searchQuery.trim().toLowerCase();
-        const activeCats = Object.keys(activeFilters).filter((c) => activeFilters[c].size > 0);
+        const q = dSearchQuery.trim().toLowerCase();
+        const activeCats = Object.keys(dActiveFilters).filter((c) => dActiveFilters[c].size > 0);
 
         const filtered = enriched.filter((h) => {
             const priceNum = h.list_price_eth ? parseFloat(h.list_price_eth) : null;
             for (const cat of activeCats) {
                 const v = facetValueOf(cat, h);
-                if (v === undefined || !activeFilters[cat].has(v)) return false;
+                if (v === undefined || !dActiveFilters[cat].has(v)) return false;
             }
             if (q) {
                 const hay = `${h.traits.Artist ?? ''} ${h.traits.Project ?? ''} #${h.token_id}`.toLowerCase();
@@ -517,7 +526,7 @@ function ProfilePageBodyInner({
             filtered.sort(byId);
         }
         return filtered;
-    }, [enriched, sort, dir, activeFilters, searchQuery, priceMin, priceMax]);
+    }, [enriched, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
 
     /* Group the filtered/sorted holdings by Project for rendering. Each group
        renders inside its own ProjectProvider so ArtworkCard paints the right
@@ -943,21 +952,21 @@ function ProfilePageBodyInner({
     /* Filter + sort the artist's projects by the showcase facets / search /
        mint-price range — the home Now-Minting predicate, scoped to one artist. */
     const visibleArtistProjects = useMemo<EnrichedProject[]>(() => {
-        const minV = parseFloat(priceMin);
-        const maxV = parseFloat(priceMax);
+        const minV = parseFloat(dPriceMin);
+        const maxV = parseFloat(dPriceMax);
         const hasMin = !Number.isNaN(minV);
         const hasMax = !Number.isNaN(maxV);
-        const q = searchQuery.trim().toLowerCase();
+        const q = dSearchQuery.trim().toLowerCase();
         // Only this view's own facets — so a filter left over from the Collected
         // tab (Artist/Project) can't wipe the showcase (shared TraitsContext).
         const showcaseFacets = ARTIST_SHOWCASE_FACETS as readonly string[];
-        const activeCats = Object.keys(activeFilters).filter(
-            (c) => activeFilters[c].size > 0 && showcaseFacets.includes(c),
+        const activeCats = Object.keys(dActiveFilters).filter(
+            (c) => dActiveFilters[c].size > 0 && showcaseFacets.includes(c),
         );
         const filtered = enrichedArtistProjects.filter((p) => {
             for (const cat of activeCats) {
                 const v = projectFacetValueOf(cat, p);
-                if (v === undefined || !activeFilters[cat].has(v)) return false;
+                if (v === undefined || !dActiveFilters[cat].has(v)) return false;
             }
             if (q && !`${p.traits.Project ?? ''} ${p.title}`.toLowerCase().includes(q)) return false;
             if (hasMin && p.mintPriceEth < minV) return false;
@@ -973,7 +982,7 @@ function ProfilePageBodyInner({
             filtered.sort((a, b) => ((a.reachedMs ?? -Infinity) - (b.reachedMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
         }
         return filtered;
-    }, [enrichedArtistProjects, activeFilters, searchQuery, priceMin, priceMax, mintSort]);
+    }, [enrichedArtistProjects, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, mintSort]);
 
     /* Activity feed for the showcase Created view (FEED sort) — the artist's
        project lifecycle moments (uploaded · milestones · graduated · sold out). */
