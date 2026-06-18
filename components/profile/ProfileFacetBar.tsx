@@ -133,30 +133,34 @@ export default function ProfileFacetBar({
         multiSelectActive,
         toggleMultiSelect,
     } = useTraits();
-    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGridSort } = useSort();
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
-    /* Group cycling — the little modifier glyph on the active grid sort. Collected
-       surface (Brendon, 2026-06-16): artist ✺ → project ⬚ → artist+project ✺⬚ →
-       colour ◉ → last-sold $ → rarity ❖; first = none. */
+    /* One-button grid sort (Brendon, 2026-06-18). #ID / $PRICE / AZ each cycle
+       every direction × grouping combo in a single tap — like FEED — instead of
+       a separate untappable group chip. Collected cycle: none → artist → project
+       → artist+project → colour → last-sold → rarity, each asc then desc. */
     const effGroup: GroupKey = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
-    const cycleGroupWithToast = () => {
-        const cur = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
-        const next = COLLECTED_GROUP_ORDER[(COLLECTED_GROUP_ORDER.indexOf(cur) + 1) % COLLECTED_GROUP_ORDER.length];
-        cycleGroup(COLLECTED_GROUP_ORDER);
-        showToast('Group: ' + GROUP_LABEL[next]);
+    const cycleGridSortWithToast = (family: 'id' | 'price' | 'az') => {
+        const r = cycleGridSort(family, COLLECTED_GROUP_ORDER);
+        const arrow = r.dir === 'asc' ? '↑' : '↓';
+        const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : 'AZ';
+        if (r.changed === 'group') {
+            showToast('GROUP: ' + GROUP_LABEL[r.group]);
+        } else {
+            showToast(
+                'SORT: ' + lbl + ' ' + arrow +
+                (r.group !== 'none' ? ' · ' + GROUP_LABEL[r.group] : ''),
+            );
+        }
     };
+    /* Display-only grouping indicator next to the arrow (no separate tap). */
     const groupMod = (active: boolean) =>
         active ? (
             <span
                 className={`sort-group-mod${effGroup !== 'none' ? ' on' : ''}`}
-                role="button"
-                tabIndex={0}
-                title={`Group: ${GROUP_LABEL[effGroup]} — tap to cycle`}
-                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', marginRight: '4px', cursor: 'pointer' }}
-                onClick={(e) => { e.stopPropagation(); cycleGroupWithToast(); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); cycleGroupWithToast(); } }}
+                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', marginRight: '4px' }}
             >
                 {GROUP_GLYPH[effGroup]}
             </span>
@@ -224,7 +228,7 @@ export default function ProfileFacetBar({
                         })}
                         {hasActiveFilter && (
                             <div
-                                className="pill pill-l1"
+                                className="pill pill-l1 pill-clear-icon"
                                 role="button"
                                 tabIndex={0}
                                 onClick={clearAllFilters}
@@ -233,7 +237,7 @@ export default function ProfileFacetBar({
                                 }}
                                 title="Clear all filters"
                             >
-                                <span className="stat-name">✕ Clear</span>
+                                <span className="stat-name">✕︎</span>
                             </div>
                         )}
 
@@ -337,8 +341,8 @@ export default function ProfileFacetBar({
                         role="button"
                         tabIndex={0}
                         title="Sort by ID"
-                        onClick={() => cycleSort('id')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('id'); } }}
+                        onClick={() => cycleGridSortWithToast('id')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('id'); } }}
                     >
                         <span className="sort-lbl">{'#ID'}</span>
                         <span className="sort-arrow">{groupMod(sort === 'id')}{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
@@ -348,8 +352,8 @@ export default function ProfileFacetBar({
                         role="button"
                         tabIndex={0}
                         title="Sort by Price"
-                        onClick={() => cycleSort('price')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('price'); } }}
+                        onClick={() => cycleGridSortWithToast('price')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('price'); } }}
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
                         <span className="sort-arrow">{groupMod(sort === 'price')}{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
@@ -359,8 +363,8 @@ export default function ProfileFacetBar({
                         role="button"
                         tabIndex={0}
                         title="Sort A–Z by project"
-                        onClick={() => cycleSort('az')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('az'); } }}
+                        onClick={() => cycleGridSortWithToast('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('az'); } }}
                     >
                         <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
                         <span className="sort-arrow">{groupMod(sort === 'az')}{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>

@@ -4510,11 +4510,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .pill.pill-l1.pill-notes-icon .stat-name,
 .pill.pill-l1.pill-breadcrumb .stat-name,
 .pill.pill-l1.pill-fate-icon .stat-name,
+.pill.pill-l1.pill-clear-icon .stat-name,
 .pill.pill-l1.pill-shuffle-icon .stat-name {
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
     line-height: 1;
 }
+/* Clear ✕ — icon-only, tight side padding so it reads as a compact close
+   pill rather than the old "✕ Clear" word pill (Brendon, 2026-06-18). */
+.pill.pill-l1.pill-clear-icon { padding: 0 9px; }
 /* Shuffle tab is icon-only — side padding tuned by hand (not %) to sit right
    next to the wider "New Gen Art" label (Brendon, 2026-06-15). */
 .pill.pill-l1.pill-shuffle-icon { padding: 0 11px; }

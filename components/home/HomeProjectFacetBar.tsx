@@ -249,7 +249,7 @@ export default function HomeProjectFacetBar({
                         })}
                         {!compact && hasActiveFilter && (
                             <div
-                                className="pill pill-l1"
+                                className="pill pill-l1 pill-clear-icon"
                                 role="button"
                                 tabIndex={0}
                                 onClick={clearAllFilters}
@@ -258,7 +258,7 @@ export default function HomeProjectFacetBar({
                                 }}
                                 title="Clear all filters"
                             >
-                                <span className="stat-name">✕ Clear</span>
+                                <span className="stat-name">✕︎</span>
                             </div>
                         )}
 

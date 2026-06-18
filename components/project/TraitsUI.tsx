@@ -321,7 +321,7 @@ export default function TraitsUI({
     } = useTraits();
     const { showToast } = useToast();
     const { isAuthenticated } = useAuth();
-    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
     const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
@@ -409,14 +409,23 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* GROUP cycling — a MODIFIER on the active sort (Brendon, 2026-06-16). The
-       project page is single-artist / single-project, so its cycle is
-       owner → colour → last-sold → rarity (PROJECT_GROUP_ORDER); first = none. */
-    const cycleGroupWithToast = () => {
-        const cur = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
-        const next = PROJECT_GROUP_ORDER[(PROJECT_GROUP_ORDER.indexOf(cur) + 1) % PROJECT_GROUP_ORDER.length];
-        cycleGroup(PROJECT_GROUP_ORDER);
-        showToast('Group: ' + GROUP_LABEL[next]);
+    /* One-button grid sort (Brendon, 2026-06-18). #ID / $PRICE now cycle every
+       direction × grouping combo in a single tap — exactly like FEED — instead
+       of a separate untappable group chip. Project cycle: none → owner → colour
+       → last-sold → rarity (PROJECT_GROUP_ORDER), each in asc then desc. Toast
+       calls out whatever changed (ALLCAPS state). */
+    const cycleGridSortWithToast = (family: SortKey) => {
+        const r = cycleGridSort(family, PROJECT_GROUP_ORDER);
+        const arrow = r.dir === 'asc' ? '↑' : '↓';
+        const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : family.toUpperCase();
+        if (r.changed === 'group') {
+            showToast('GROUP: ' + GROUP_LABEL[r.group]);
+        } else {
+            showToast(
+                'SORT: ' + lbl + ' ' + arrow +
+                (r.group !== 'none' ? ' · ' + GROUP_LABEL[r.group] : ''),
+            );
+        }
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -633,6 +642,20 @@ export default function TraitsUI({
                                 );
                             })}
 
+                        {/* Feed-mode Clear — feed is the row regular personas
+                            see, so the ✕ must live here too. Final pill, just
+                            the glyph (Brendon, 2026-06-18). */}
+                        {isFeed && hasActiveFilter && (
+                            <BarPill
+                                label={'✕︎'}
+                                active={false}
+                                dimmed={false}
+                                onClick={clearAllFilters}
+                                title="Clear all filters"
+                                extraClass="pill-clear-icon"
+                            />
+                        )}
+
                         {/* Non-feed pill cluster — sim 8510-8557 ('else if
                             (!isRegular || debugState === "zero")' arm).
                             Layer / Mineral / Fate / My Network / My Notes /
@@ -720,17 +743,43 @@ export default function TraitsUI({
                                 />
                                 )}
 
+                                {/* Recent — only shown when logged in. Pulled
+                                    out of the sort-icons cluster (Brendon,
+                                    2026-06-18) so the icon group no longer
+                                    grabs a trait pill; Recent is now a normal
+                                    trailing pill and Clear stays the final
+                                    pill in the row. */}
+                                {isAuthenticated && (
+                                <BarPill
+                                    label={"◷︎"}
+                                    active={activeCategory === 'Breadcrumb'}
+                                    dimmed={
+                                        activeCategory !== null &&
+                                        activeCategory !== 'Breadcrumb'
+                                    }
+                                    count={countOf('Breadcrumb')}
+                                    onClick={
+                                        activeCategory === 'Breadcrumb'
+                                            ? clearActiveCategory
+                                            : () => setActiveCategory('Breadcrumb')
+                                    }
+                                    title="Recent — recently-seen tokens"
+                                    extraClass="pill-breadcrumb"
+                                />
+                                )}
+
                                 {/* Clear — pops up only while a filter is
                                     active, drains every selected trait value in
-                                    one tap. Same chip as the Collected / Now
-                                    Minting bars (Brendon, 2026-06-16). */}
+                                    one tap. Just the ✕ glyph, always the final
+                                    pill in the row (Brendon, 2026-06-18). */}
                                 {hasActiveFilter && (
                                     <BarPill
-                                        label={'✕ Clear'}
+                                        label={'✕︎'}
                                         active={false}
                                         dimmed={false}
                                         onClick={clearAllFilters}
                                         title="Clear all filters"
+                                        extraClass="pill-clear-icon"
                                     />
                                 )}
 
@@ -740,44 +789,15 @@ export default function TraitsUI({
                                     Profile Page v0 — hidden entirely via hideSortBar
                                     so the +More tab only shows the L1 profilePills. */}
                                 {!hideSortBar && (
-                                <div
-                                    style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: 8,
-                                        flexShrink: 0,
-                                    }}
-                                >
                                     <div
                                         className="sort-icons"
                                         style={{
                                             display: 'inline-flex',
                                             alignItems: 'center',
                                             gap: 8,
+                                            flexShrink: 0,
                                         }}
                                     >
-                                        {/* Recent — only shown when logged in */}
-                                        {isAuthenticated && (
-                                        <BarPill
-                                            label={"\u25F7\uFE0E"}
-                                            active={activeCategory === 'Breadcrumb'}
-                                            dimmed={
-                                                activeCategory !== null &&
-                                                activeCategory !== 'Breadcrumb'
-                                            }
-                                            count={countOf('Breadcrumb')}
-                                            onClick={
-                                                activeCategory === 'Breadcrumb'
-                                                    ? clearActiveCategory
-                                                    : () =>
-                                                          setActiveCategory(
-                                                              'Breadcrumb'
-                                                          )
-                                            }
-                                            title="Recent — recently-seen tokens"
-                                            extraClass="pill-breadcrumb"
-                                        />
-                                        )}
                                         <span style={{ marginLeft: 6, display: 'inline-flex' }}>
                                         <IconBtn
                                             cls="burn-btn"
@@ -813,7 +833,6 @@ export default function TraitsUI({
                                             />
                                         )}
                                     </div>
-                                </div>
                                 )}
                             </>
                         )}
@@ -1014,8 +1033,7 @@ export default function TraitsUI({
                         dir={dir}
                         feedKind={feedKind}
                         group={effGroup}
-                        onCycleGroup={cycleGroupWithToast}
-                        onClick={() => cycleSortWithToast('id')}
+                        onClick={() => cycleGridSortWithToast('id')}
                     />
                     <SortBtn
                         label={'$PRICE'}
@@ -1024,8 +1042,7 @@ export default function TraitsUI({
                         dir={dir}
                         feedKind={feedKind}
                         group={effGroup}
-                        onCycleGroup={cycleGroupWithToast}
-                        onClick={() => cycleSortWithToast('price')}
+                        onClick={() => cycleGridSortWithToast('price')}
                     />
                     <SortBtn
                         label="FEED"
@@ -1810,12 +1827,11 @@ interface SortBtnProps {
     active: boolean;
     dir: SortDir;
     feedKind: FeedKind;
-    /* Group-by modifier (Brendon, 2026-06-13). Grouping is a MODIFIER on the
-       ID and PRICE sorts — rendered as a little tappable letter next to the
-       direction arrow, exactly like FEED's `$`. Only the id/price buttons
-       receive these; FEED/fog don't group. */
+    /* Group-by indicator (Brendon, 2026-06-18). Grouping is folded INTO the
+       single button's cycle now, so this glyph is display-only — it shows which
+       grouping the current tap landed on (next to the direction arrow, like
+       FEED's `$`). No separate tap target. Only id/price carry a group. */
     group?: GroupKey;
-    onCycleGroup?: () => void;
     onClick: () => void;
 }
 
@@ -1835,43 +1851,25 @@ function SortBtn({
     dir,
     feedKind,
     group,
-    onCycleGroup,
     onClick,
 }: SortBtnProps) {
     let arrowGlyph = '';
     let dollarSpan: ReactNode = null;
-    /* Group-by glyph modifier — the little cycling character on the active grid
-       sort (ID / PRICE), exactly like FEED's `$`. FULLY VISIBLE (never dimmed):
-       'none' shows a small neutral dot, each grouping shows its glyph
-       (docs/GLYPHS.md). Tapping cycles the grouping WITHOUT flipping the sort
-       direction (stopPropagation keeps the parent's dir-toggle from firing). */
+    /* Group-by glyph — display-only indicator of the current grouping on the
+       active grid sort (ID / PRICE), next to the direction arrow like FEED's
+       `$`. 'none' shows a small neutral dot; each grouping shows its glyph
+       (docs/GLYPHS.md). The button's single tap cycles direction+group. */
     const showGroupMod =
         active &&
         (family === 'id' || family === 'price') &&
-        group !== undefined &&
-        onCycleGroup !== undefined;
+        group !== undefined;
     const groupMod: ReactNode = showGroupMod ? (
         <span
             className={`sort-group-mod${group !== 'none' ? ' on' : ''}`}
-            role="button"
-            tabIndex={0}
-            title={`Group: ${GROUP_LABEL[group!]} — tap to cycle`}
             style={{
                 fontFamily: "'Courier New', Courier, monospace",
                 fontSize: '12px',
                 marginRight: '4px',
-                cursor: 'pointer',
-            }}
-            onClick={(e) => {
-                e.stopPropagation();
-                onCycleGroup!();
-            }}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onCycleGroup!();
-                }
             }}
         >
             {GROUP_GLYPH[group!]}

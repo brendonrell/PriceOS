@@ -119,6 +119,16 @@ interface SortContextValue {
     group: GroupKey;
     /** Advance the group dimension through the given surface's cycle order. */
     cycleGroup: (order: GroupKey[]) => void;
+    /** Unified grid-sort tap (Brendon, 2026-06-18). One button advances the
+        whole sort/group/direction space for a grid family (id/price/az) so the
+        grouping is no longer a separate tiny chip — mirrors how FEED cycles its
+        kind+direction in a single button. Sequence per tap:
+        enter family (asc, no group) → flip to desc → next group (asc) → its desc
+        → … → wrap. Returns which facet changed so the caller can toast it. */
+    cycleGridSort: (
+        family: SortKey,
+        order: GroupKey[],
+    ) => { changed: 'enter' | 'dir' | 'group'; dir: SortDir; group: GroupKey };
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
@@ -252,9 +262,42 @@ export function SortProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    /* One-button grid sort — folds direction + group into a single cycle so the
+       grouping is no longer a separate (untappable) chip. Mirrors FEED. */
+    const cycleGridSort = useCallback(
+        (family: SortKey, order: GroupKey[]) => {
+            const persistGroup = (g: GroupKey) => {
+                try { localStorage.setItem(GROUP_STORAGE_KEY, g); } catch { /* ignore */ }
+            };
+            if (sort !== family) {
+                // Enter the family fresh: ascending, no grouping.
+                setSortState(family);
+                setDir('asc');
+                setGroupState('none');
+                persistGroup('none');
+                // 'az' is Collected-only — never persist it as the boot sort.
+                if (family !== 'az') persistFamily(family);
+                return { changed: 'enter' as const, dir: 'asc' as SortDir, group: 'none' as GroupKey };
+            }
+            if (dir === 'asc') {
+                // Same group, flip to descending.
+                setDir('desc');
+                return { changed: 'dir' as const, dir: 'desc' as SortDir, group };
+            }
+            // Was descending — advance to the next group, back to ascending.
+            const cur = order.includes(group) ? group : 'none';
+            const next = order[(order.indexOf(cur) + 1) % order.length];
+            setGroupState(next);
+            setDir('asc');
+            persistGroup(next);
+            return { changed: 'group' as const, dir: 'asc' as SortDir, group: next };
+        },
+        [sort, dir, group],
+    );
+
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup, cycleGridSort }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup, cycleGridSort]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;
