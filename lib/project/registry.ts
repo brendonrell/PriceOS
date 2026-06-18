@@ -235,6 +235,12 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'quasicrystal':           { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   'circuit':                { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
   'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
+  /* ── new set (2026-06-18): four projects, soundtracks matched to the work
+     (drawn from our verified public-playlist set). ── */
+  'setback':                { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  'simultaneous':           { playlistId: 'OLAK5uy_nugJJjislAMW15DJOvKOuD5EudRNeRUzQ', label: 'Terry Riley — A Rainbow in Curved Air' },
+  'dynamicsymmetry':        { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
+  'strata':                 { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
 };
 
 /* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
@@ -296,6 +302,11 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('asterism', 'Asterism', 'nightclerk-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
   aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#CC6B49', 0.06, AI.SEEDHEAD_ASPECTS, AI.seedheadSchema, AI.renderSeedhead, AI.seedheadTraits),
   aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
+  /* ── new set (2026-06-18): a second project for four single-project artists ── */
+  aiDef('setback', 'Setback', 'walkup-ai', 404, '#e0552e', 0.08, AI.SETBACK_ASPECTS, AI.setbackSchema, AI.renderSetback, AI.setbackTraits),
+  aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 256, '#13a89e', 0.06, AI.SIMULTANEOUS_ASPECTS, AI.simultaneousSchema, AI.renderSimultaneous, AI.simultaneousTraits),
+  aiDef('dynamicsymmetry', 'Dynamic Symmetry', 'phyllo-ai', 233, '#e8c466', 0.1, AI.DYNSYM_ASPECTS, AI.dynsymSchema, AI.renderDynsym, AI.dynsymTraits),
+  aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, AI.STRATA_ASPECTS, AI.strataSchema, AI.renderStrata, AI.strataTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN];
