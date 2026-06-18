@@ -41,8 +41,8 @@
   (`.ambient-flash`), NO rain (moody not scary). Reduced-motion disables the flash.
 - **AMBI codes** (`lib/state/AmbientCode.ts`): lightning appended to patterns; rays+nature ride the
   11-char code. **Full round-trip verified (0 failures).** All FX independent layers → work in Sphere too.
-- ⚠️ **ClickUp doc drift to sync next touch:** Atlas → Global UI Ambient section still lists Rays w/
-  Curtain + Nature w/ Seeds/Dust + the old grid-particle approach — update those lines when options settle.
+- **KEEPERS LOCKED** (Brendon, final): Rays = Off/Shafts/Beams/Halo · Nature = Clear/Fireflies/Pollen/
+  Petals/Spores. Atlas → Global UI / Persistent Layers fully synced to match.
 
 ## 🎚️ AMBIENT MENU v2 — 3-PAGE PAGER, ATMOSPHERE, EGGS 2026-06-17 (latest) — SHIPPED to dev
 - **3-page swipe pager** (half-size iOS dots; remembers last page in localStorage `pd_ambient_page`):
