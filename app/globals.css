@@ -5127,8 +5127,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     line-height: 1;
     color: var(--text-color);
     opacity: 0.8;
-    /* Nudge the small triangle onto the text baseline of the label. */
-    transform: translateY(-1px);
+    /* The big triangle baseline-aligns high in the row; drop it so it sits
+       centred on the label text (Brendon, 2026-06-18). */
+    transform: translateY(4px);
 }
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
 .ggh-by {
