@@ -3,10 +3,11 @@
 /*
  * AudienceIndicator — "The Audience" (WOW · 86b9fcmg2).
  *
- * A tiny live presence read on a project page: ◐ N watching. Pulses gently once
- * the room hits 10. Tap it to reveal the watchers as glyphs — ● for a present
- * viewer (their Sigil once that feature ships), ◌ for anyone in Anon mode or
- * signed out. Collection-level only, per Brendon's call.
+ * A tiny live presence read on a project page: ● N here now. The dot breathes
+ * the whole time the room is live, so it reads as "people are here right now",
+ * not a "watching" button someone pressed. Tap it to reveal the watchers as
+ * glyphs — ● for a present viewer (their Sigil once that feature ships), ◌ for
+ * anyone in Anon mode or signed out. Collection-level only, per Brendon's call.
  *
  * Solo-preview: presence needs other humans to feel alive, and Brendon doesn't
  * have a crowd yet — so `?crowd=N` on the project URL seeds N simulated watchers
@@ -23,7 +24,6 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useProjectAudience, type AudienceMember } from '../../lib/hooks/useProjectAudience';
 
 const VS15 = '︎';
-const PULSE_AT = 10; // room size where the indicator starts pulsing
 
 export default function AudienceIndicator({ slug }: { slug: string }) {
     const { siweAddress } = useAuth();
@@ -61,15 +61,13 @@ export default function AudienceIndicator({ slug }: { slug: string }) {
     if (!notifs.audience) return null; // opted out via the MY PD Audience toggle
     if (count < 1) return null; // empty room / Realtime down → render nothing
 
-    const pulsing = count >= PULSE_AT;
-
     return (
         <span className="audience-wrap">
             <span
-                className={`stat-item audience-indicator${pulsing ? ' pulsing' : ''}`}
+                className="stat-item audience-indicator"
                 role="button"
                 tabIndex={0}
-                title={`${count} watching this project right now`}
+                title={`${count} here right now`}
                 aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}
                 onKeyDown={(e) => {
@@ -79,13 +77,13 @@ export default function AudienceIndicator({ slug }: { slug: string }) {
                     }
                 }}
             >
-                <span className="stat-icon audience-eye">{`◐${VS15}`}</span>{' '}
-                <span className="stat-val audience-val">{count} watching</span>
+                <span className="stat-icon audience-eye">{`●${VS15}`}</span>{' '}
+                <span className="stat-val audience-val">{count} here now</span>
             </span>
 
             {open && (
                 <span className="audience-reveal" role="dialog" aria-label="Who's watching">
-                    <span className="audience-reveal-head">{count} watching now</span>
+                    <span className="audience-reveal-head">{count} here now</span>
                     <span className="audience-glyphs">
                         {members.map((m) => (
                             <span

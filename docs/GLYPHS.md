@@ -230,6 +230,23 @@ Examples (live): PRISMS = `ⰅⰒⰗⰚ`, ORACLE = `ⰓⰆⰬⰏ`.
 
 ---
 
+## 10. The Audience — live presence (`components/project/AudienceIndicator.tsx`)
+
+Per-project "people here right now" read in the project header stats row. The
+indicator dot **breathes** continuously while the room is live (so it reads as
+real presence, not a toggled "watching" button).
+
+| Slot | Glyph | Codepoint | Note |
+|---|---|---|---|
+| Live presence indicator | ● | U+25CF | solid dot, always breathing; distinct from the portfolio **Shadow** half-circle ◐ (U+25D0) |
+| Present watcher (reveal) | ● | U+25CF | one dot per live viewer |
+| Anon / signed-out watcher | ◌ | U+25CC | dotted circle, dimmed |
+
+> ◐ (U+25D0) stays the **Shadow** portfolio-pill glyph — the Audience moved to a
+> solid ● so the two no longer read as the same thing (Brendon, 2026-06-18).
+
+---
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`

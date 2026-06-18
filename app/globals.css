@@ -3227,13 +3227,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .audience-indicator .audience-eye {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
-}
-.audience-indicator.pulsing .audience-eye {
-    animation: audience-pulse 1.8s ease-in-out infinite;
+    /* Always breathing while the room is live — the motion is what tells the
+       eye "real people are here right now", not a button someone toggled. */
+    animation: audience-pulse 2.4s ease-in-out infinite;
 }
 @keyframes audience-pulse {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50%      { opacity: 1;    transform: scale(1.18); }
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.16); }
 }
 .audience-reveal {
     position: absolute;
