@@ -1354,7 +1354,21 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             index={i}
                         />
                     ))
-                    : groupedSections && !onShowcaseTab
+                    : onShowcaseTab
+                        /* Showcase = the first 6 minted, rendered DIRECTLY. It does
+                           not read the sorted/filtered gallery list, so Artworks
+                           sort / group / filter can never touch it (Brendon,
+                           2026-06-18). */
+                        ? [...projectShowcasePicks].map((id) => (
+                            <ArtworkCard
+                                key={id}
+                                id={id}
+                                projectShowcasePick
+                                isBreadcrumb={breadcrumbSample.has(id)}
+                                eager={eagerIds.has(id)}
+                            />
+                        ))
+                    : groupedSections
                         /* Grouped grid renders FLAT — headers and cards are direct
                            children of #gallery (no per-group wrappers), every card
                            keeps its stable key={id} + stable `eager`. So changing
