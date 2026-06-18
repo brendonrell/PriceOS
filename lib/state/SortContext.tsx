@@ -72,10 +72,10 @@ export const COLLECTED_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'color', 'lastSold', 'rarity'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' is the resting
-   state of the control — a small, FULLY VISIBLE neutral dot ("no grouping; tap
-   to group"), never a hidden affordance. */
+   "pure sort" state and shows NO glyph at all (Brendon, 2026-06-18 — the old
+   neutral dot is gone); each grouping shows its own glyph. */
 export const GROUP_GLYPH: Record<GroupKey, string> = {
-    none: '·',
+    none: '',
     artist: '✺︎',
     project: '⬚︎',
     artistProject: '✺︎⬚︎',

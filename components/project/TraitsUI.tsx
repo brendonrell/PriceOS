@@ -1857,18 +1857,20 @@ function SortBtn({
     let dollarSpan: ReactNode = null;
     /* Group-by glyph — display-only indicator of the current grouping on the
        active grid sort (ID / PRICE), next to the direction arrow like FEED's
-       `$`. 'none' shows a small neutral dot; each grouping shows its glyph
-       (docs/GLYPHS.md). The button's single tap cycles direction+group. */
+       `$`. The pure (no-group) state shows NOTHING; each grouping shows its
+       glyph at 1.5× (docs/GLYPHS.md). The button's single tap cycles
+       direction+group. */
     const showGroupMod =
         active &&
         (family === 'id' || family === 'price') &&
-        group !== undefined;
+        group !== undefined &&
+        group !== 'none';
     const groupMod: ReactNode = showGroupMod ? (
         <span
-            className={`sort-group-mod${group !== 'none' ? ' on' : ''}`}
+            className="sort-group-mod on"
             style={{
                 fontFamily: "'Courier New', Courier, monospace",
-                fontSize: '12px',
+                fontSize: '18px',
                 marginRight: '4px',
             }}
         >

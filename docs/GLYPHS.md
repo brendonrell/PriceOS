@@ -103,7 +103,7 @@ first state always = none. One glyph per dimension:
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|
-| none (resting) | · | U+00B7 | small neutral dot — "tap to group" |
+| none (resting) | *(none)* | — | pure sort — NO glyph shown (Brendon, 2026-06-18) |
 | Artist | ✺ | U+273A | the artist-category glyph (§4) |
 | Project | ⬚ | U+2B1A | the project stats-row dotted square (`.stat-icon-box`) |
 | Artist + Project | ✺⬚ | — | two-level combo (artist over project) |

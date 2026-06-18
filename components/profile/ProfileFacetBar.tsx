@@ -157,10 +157,10 @@ export default function ProfileFacetBar({
     };
     /* Display-only grouping indicator next to the arrow (no separate tap). */
     const groupMod = (active: boolean) =>
-        active ? (
+        active && effGroup !== 'none' ? (
             <span
-                className={`sort-group-mod${effGroup !== 'none' ? ' on' : ''}`}
-                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', marginRight: '4px' }}
+                className="sort-group-mod on"
+                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '18px', marginRight: '4px' }}
             >
                 {GROUP_GLYPH[effGroup]}
             </span>
