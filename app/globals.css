@@ -5121,7 +5121,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .gallery-group-header.is-collapsible { cursor: pointer; }
 .ggh-arrow {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
+    font-size: 13px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.8;
