@@ -6,25 +6,38 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `ba19c53`). This chat's task
+- **Branch:** all work is on `dev`, pushed, tree clean (head `225ff43`). This chat's task
   branch `claude/profile-easter-egg-colors-avmkr3` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-18 (latest). This session = **GENERATIVE COLORWAY** (🎨🥚 below). Prior:
-  PWA STEP 3 + CONVERSION TRACKING (📲), AMBIENT MENU v2 / setup codes / eggs (🎚️), 6 gen-art
+- **Updated:** 2026-06-18 (latest). This session = **GENERATIVE COLORWAY** (🎨🥚) + **AMBIENT FX**
+  (🌦️ below). Prior: PWA STEP 3 (📲), AMBIENT MENU v2 / setup codes / eggs (🎚️), 6 gen-art
   projects (🖼️), colorway-from-DB, ARTIST SHOWCASE / mood palette, HOME draw.
 
 ## 🎨🥚 GENERATIVE COLORWAY — profile name easter egg 2026-06-18 (latest) — SHIPPED to dev
 - **Triple-tap your OWN @name** on your Profile Page → a row of colourway pills shoves open in-flow
-  under the title (pushes the hero down, never floats; tap again to close). Owner-only — visitors
-  never get the trigger.
+  under the title (pushes the hero down, never floats; tap again to close). Owner-only. Pills wear the
+  faint PriceDay value-pill style (`pill-l3`).
 - **Pills** (each sets Profile Colorway live via `useProfileHex.setHex`, so the Settings → Profile
   Colorway field updates in lockstep): Hothurt Red `#FF0055` · Attention Yellow `#FFE600` · Dot Black
   `#111111` · Matrix White `#E0E0E0` · fixed **@brendon Blue `#0109FF`** · the user's **own generated
-  colour**, named by the dominant-colour classifier (`classifyRgb`), e.g. Brendon = `#DD6D2C` "Orange".
-- **Hidden signature hex** = `lib/profile/signatureHex.ts` — FNV-1a hash of the lowercased wallet
-  address → vivid hue at fixed S/L. **Deterministic, no DB column / backfill** — every existing
-  account already has its colour. Files: `ProfilePageBody.tsx`, `signatureHex.ts`, `globals.css`
-  (`.profile-egg-row` / `egg-shove-open`). Logged in Atlas → Profile Page → Identity.
+  colour** (named by `classifyRgb`, e.g. Brendon = `#E33BC1` "Magenta") · a **back pill** (⇠⇠) that
+  reverts to the colorway in play when the egg opened.
+- **GUARANTEED UNIQUE** (Brendon's call): signature colour stored in `users.signature_hex` (partial
+  unique index; column-granted anon/authenticated). Assigned + uniqueness-checked at signup
+  (`uniqueSignatureHex` in `lib/profile/signatureHex.ts`, wide H×S×L generator ~200k colours), egg
+  reads the stored value. **All 52 existing accounts backfilled** (migrations applied; Brendon rerolled
+  through the system). Files: `ProfilePageBody.tsx`, `signatureHex.ts`, `app/api/users/create/route.ts`,
+  `lib/supabase.ts`. Logged in Atlas → Profile Page → Identity.
+
+## 🌦️ AMBIENT FX — scenes + Rays + Weather 2026-06-18 (latest) — SHIPPED to dev
+- **6 new scenes** (P1, total 12): Thunder · Disco · Ember · Frost · Static · Nebula. Palette/pattern/
+  speed/dim only → ride the AMBI code automatically.
+- **P3 bottom-half, two new sections** (`AmbientStrip.tsx`, `styles/ambient.css`):
+  **Rays** (Off/Shafts/Beams/Halo/Curtain — volumetric shafts fanning from the bar) + **Weather**
+  (Clear/Rain/Snow/Embers/Fireflies — particles in the glow), palette-tinted, screen-blended layers.
+- **AMBI codes extended** (`lib/state/AmbientCode.ts`): rays + weather appended after dim → 11-char code,
+  back-compatible decode (old 9/8-char codes default off/clear). Atmosphere stays device-only.
+- Ambient Light + the **Setup Codes system** fully written up in Atlas → Global UI / Persistent Layers.
 
 ## 🎚️ AMBIENT MENU v2 — 3-PAGE PAGER, ATMOSPHERE, EGGS 2026-06-17 (latest) — SHIPPED to dev
 - **3-page swipe pager** (half-size iOS dots; remembers last page in localStorage `pd_ambient_page`):
