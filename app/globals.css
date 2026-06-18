@@ -5325,7 +5325,9 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .artist-mark {
     display: block;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    /* ✺ fills only ~⅔ of its em, so the glyph reads at ~14px (the check-circle
+       diameter) at this size on iOS Courier. */
+    font-size: 22px;
     line-height: 1;
 }
 .meta-owner {
