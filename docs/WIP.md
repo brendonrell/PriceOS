@@ -6,12 +6,25 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `575df1d`). This chat's task
-  branch `claude/ambient-light-setup-codes-ohkop1` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean (head `ba19c53`). This chat's task
+  branch `claude/profile-easter-egg-colors-avmkr3` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-17 (latest). This session = **PWA STEP 3 + CONVERSION TRACKING** (📲 below)
-  + AMBIENT MENU v2 / setup codes / 3rd page / eggs + UI fixes (🎚️ below). Prior: 6 gen-art
-  projects (🖼️), colorway-from-DB, ARTIST SHOWCASE / mood palette (🎨), HOME draw (🏠).
+- **Updated:** 2026-06-18 (latest). This session = **GENERATIVE COLORWAY** (🎨🥚 below). Prior:
+  PWA STEP 3 + CONVERSION TRACKING (📲), AMBIENT MENU v2 / setup codes / eggs (🎚️), 6 gen-art
+  projects (🖼️), colorway-from-DB, ARTIST SHOWCASE / mood palette, HOME draw.
+
+## 🎨🥚 GENERATIVE COLORWAY — profile name easter egg 2026-06-18 (latest) — SHIPPED to dev
+- **Triple-tap your OWN @name** on your Profile Page → a row of colourway pills shoves open in-flow
+  under the title (pushes the hero down, never floats; tap again to close). Owner-only — visitors
+  never get the trigger.
+- **Pills** (each sets Profile Colorway live via `useProfileHex.setHex`, so the Settings → Profile
+  Colorway field updates in lockstep): Hothurt Red `#FF0055` · Attention Yellow `#FFE600` · Dot Black
+  `#111111` · Matrix White `#E0E0E0` · fixed **@brendon Blue `#0109FF`** · the user's **own generated
+  colour**, named by the dominant-colour classifier (`classifyRgb`), e.g. Brendon = `#DD6D2C` "Orange".
+- **Hidden signature hex** = `lib/profile/signatureHex.ts` — FNV-1a hash of the lowercased wallet
+  address → vivid hue at fixed S/L. **Deterministic, no DB column / backfill** — every existing
+  account already has its colour. Files: `ProfilePageBody.tsx`, `signatureHex.ts`, `globals.css`
+  (`.profile-egg-row` / `egg-shove-open`). Logged in Atlas → Profile Page → Identity.
 
 ## 🎚️ AMBIENT MENU v2 — 3-PAGE PAGER, ATMOSPHERE, EGGS 2026-06-17 (latest) — SHIPPED to dev
 - **3-page swipe pager** (half-size iOS dots; remembers last page in localStorage `pd_ambient_page`):
