@@ -76,7 +76,7 @@
  * (gallery-wide event delegation per sim 8364-8389), not here.
  */
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { memo, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
@@ -123,7 +123,7 @@ import { useBench } from '../lib/state/BenchContext';
 import { useHoldDrag } from '../lib/hooks/useHoldDrag';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
-import { useTraits } from '../lib/state/TraitsContext';
+import { useMultiSelect } from '../lib/state/TraitsContext';
 import {
     getActiveBudgetEth,
     subscribeBudgets,
@@ -179,7 +179,7 @@ interface ArtworkCardProps {
    indexer floor wiring lands later; this is the visual demo. */
 const MOCK_FLOOR_ETH = 0.042;
 
-export default function ArtworkCard({
+function ArtworkCard({
     id,
     projectShowcasePick = false,
     isBreadcrumb = false,
@@ -266,7 +266,7 @@ export default function ArtworkCard({
        toast branch + `add` for the mutation. Toast strings mirror sim
        11827 (already-in-cart) + 11834 (added) verbatim. */
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
-    const { multiSelectActive, isSelected: isOutputSelected, toggleSelected } = useTraits();
+    const { multiSelectActive, isSelected: isOutputSelected, toggleSelected } = useMultiSelect();
 
     /* sim 7295-7310 — when toggleMute flips Mute → MUTED, the label first
        shows ⟙ + .punch-hammer for 700ms (the swing keyframe), then
@@ -949,3 +949,8 @@ export default function ArtworkCard({
         </article>
     );
 }
+
+/* Memoized so a parent re-render (e.g. a filter-pill tap on a big gallery) skips
+   every card whose props are unchanged. Combined with the multi-select context
+   split, a pill tap no longer re-renders hundreds of cards. */
+export default memo(ArtworkCard);

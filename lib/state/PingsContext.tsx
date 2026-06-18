@@ -52,6 +52,38 @@ const QUALIFYING_EVENTS = [
   'pd:pricerank-changed', // achievement unlock
 ] as const;
 
+/* Instant-open cache (Brendon, 2026-06-18). The panel showed an empty "No pings
+   yet" on every cold load until /api/pings answered, so the menu read as broken.
+   We stash the last-loaded list in localStorage (keyed by wallet so it never
+   leaks across accounts on a shared browser) and hydrate it the instant the user
+   signs in — the fresh fetch then revalidates in the background. */
+const PINGS_CACHE_KEY = 'pd_pings_cache';
+type PingsCache = { addr: string; items: FeedItem[]; du: number; bu: number };
+function readPingsCache(addr: string): PingsCache | null {
+  try {
+    const raw = localStorage.getItem(PINGS_CACHE_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw) as PingsCache;
+    return c && c.addr === addr && Array.isArray(c.items) ? c : null;
+  } catch {
+    return null;
+  }
+}
+function writePingsCache(c: PingsCache) {
+  try {
+    localStorage.setItem(PINGS_CACHE_KEY, JSON.stringify(c));
+  } catch {
+    /* quota / unavailable — cache is best-effort */
+  }
+}
+function clearPingsCache() {
+  try {
+    localStorage.removeItem(PINGS_CACHE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 interface PingsState {
   items: FeedItem[];
   /** Directed (to-you) unread — refreshed live by the cheap count poll. */
@@ -128,6 +160,7 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       const du = j.directed_unread ?? 0;
       const bu = j.broadcast_unread ?? 0;
       setState({ items, directedUnread: du, broadcastUnread: bu, unreadCount: du + bu, loading: false });
+      if (siweAddress) writePingsCache({ addr: siweAddress, items, du, bu });
     } catch {
       setState((s) => ({ ...s, loading: false }));
     } finally {
@@ -155,13 +188,17 @@ export function PingsProvider({ children }: { children: ReactNode }) {
 
   const markAllRead = useCallback(() => {
     if (!siweAddress) return;
-    setState((s) => ({
-      ...s,
-      directedUnread: 0,
-      broadcastUnread: 0,
-      unreadCount: 0,
-      items: s.items.map((p) => ({ ...p, read: true })),
-    }));
+    setState((s) => {
+      const next = {
+        ...s,
+        directedUnread: 0,
+        broadcastUnread: 0,
+        unreadCount: 0,
+        items: s.items.map((p) => ({ ...p, read: true })),
+      };
+      writePingsCache({ addr: siweAddress, items: next.items, du: 0, bu: 0 });
+      return next;
+    });
     fetch('/api/pings/read', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -175,7 +212,21 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     primed.current = false;
     if (!siweAddress) {
       setState({ items: [], directedUnread: 0, broadcastUnread: 0, unreadCount: 0, loading: false });
+      clearPingsCache();
       return;
+    }
+    // Paint the last-known pings immediately so the menu is never empty on a
+    // cold open; the fetch below revalidates them in the background.
+    const cached = readPingsCache(siweAddress);
+    if (cached) {
+      cached.items.forEach((p) => seenIds.current.add(p.id));
+      setState({
+        items: cached.items,
+        directedUnread: cached.du,
+        broadcastUnread: cached.bu,
+        unreadCount: cached.du + cached.bu,
+        loading: true,
+      });
     }
     void fetchFull();
 

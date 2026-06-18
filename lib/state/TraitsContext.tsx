@@ -187,6 +187,19 @@ export interface TraitsContextValue {
 
 const TraitsContext = createContext<TraitsContextValue | null>(null);
 
+/* Multi-select slice on its OWN context (Brendon, 2026-06-18). The gallery cards
+   only need the multi-select state, but they were subscribing to the whole
+   TraitsContext — so every filter-pill tap re-rendered ALL of them (hundreds on
+   a big profile), which is why the pills painted slow. This context's value only
+   changes when the selection mode / set changes, so a filter tap never touches a
+   card. */
+interface MultiSelectContextValue {
+    multiSelectActive: boolean;
+    toggleSelected: (slug: string, id: number) => void;
+    isSelected: (slug: string, id: number) => boolean;
+}
+const MultiSelectContext = createContext<MultiSelectContextValue | null>(null);
+
 export function TraitsProvider({ children }: { children: ReactNode }) {
     const [activeCategory, setActiveCategoryState] =
         useState<TraitCategory | null>(null);
@@ -627,8 +640,19 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
         ]
     );
 
+    /* Stable slice for the gallery cards — only re-notifies on selection-mode /
+       selection-set changes, never on filter or search changes. */
+    const multiSelectValue = useMemo<MultiSelectContextValue>(
+        () => ({ multiSelectActive, toggleSelected, isSelected }),
+        [multiSelectActive, toggleSelected, isSelected]
+    );
+
     return (
-        <TraitsContext.Provider value={value}>{children}</TraitsContext.Provider>
+        <TraitsContext.Provider value={value}>
+            <MultiSelectContext.Provider value={multiSelectValue}>
+                {children}
+            </MultiSelectContext.Provider>
+        </TraitsContext.Provider>
     );
 }
 
@@ -636,6 +660,16 @@ export function useTraits(): TraitsContextValue {
     const ctx = useContext(TraitsContext);
     if (!ctx) {
         throw new Error('useTraits must be used inside <TraitsProvider>');
+    }
+    return ctx;
+}
+
+/* Subscribe to ONLY the multi-select slice. Gallery cards use this instead of
+   useTraits so a filter-pill tap doesn't re-render the whole grid. */
+export function useMultiSelect(): MultiSelectContextValue {
+    const ctx = useContext(MultiSelectContext);
+    if (!ctx) {
+        throw new Error('useMultiSelect must be used inside <TraitsProvider>');
     }
     return ctx;
 }
