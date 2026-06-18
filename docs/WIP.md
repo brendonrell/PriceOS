@@ -29,15 +29,19 @@
   through the system). Files: `ProfilePageBody.tsx`, `signatureHex.ts`, `app/api/users/create/route.ts`,
   `lib/supabase.ts`. Logged in Atlas → Profile Page → Identity.
 
-## 🌦️ AMBIENT FX — scenes + Rays + Weather 2026-06-18 (latest) — SHIPPED to dev
-- **6 new scenes** (P1, total 12): Thunder · Disco · Ember · Frost · Static · Nebula. Palette/pattern/
-  speed/dim only → ride the AMBI code automatically.
-- **P3 bottom-half, two new sections** (`AmbientStrip.tsx`, `styles/ambient.css`):
-  **Rays** (Off/Shafts/Beams/Halo/Curtain — volumetric shafts fanning from the bar) + **Weather**
-  (Clear/Rain/Snow/Embers/Fireflies — particles in the glow), palette-tinted, screen-blended layers.
-- **AMBI codes extended** (`lib/state/AmbientCode.ts`): rays + weather appended after dim → 11-char code,
-  back-compatible decode (old 9/8-char codes default off/clear). Atmosphere stays device-only.
-- Ambient Light + the **Setup Codes system** fully written up in Atlas → Global UI / Persistent Layers.
+## 🌦️ AMBIENT FX — scenes + Rays + Nature + Lightning storm 2026-06-18 (latest) — SHIPPED to dev
+- **6 new scenes** (P1, total 12): Thunder · Disco · Ember · Frost · Static · Nebula.
+- **P3 bottom-half, two sections** (`AmbientStrip.tsx`, `styles/ambient.css`): **Rays**
+  (Off/Shafts/Beams/Halo/Curtain) + **Nature** (Clear/Fireflies/Pollen/Petals/Spores/Seeds/Dust —
+  renamed from "Weather"; rain/snow/embers dropped per Brendon).
+- **Lightning storm pattern** (12th pattern): Thunder = ice + lightning + fast + dim 88 — dark with
+  rumble-flicker → flash-flash strike + a synced sky-flash overlay (`.ambient-flash`), NO rain.
+  Reduced-motion disables the flash. **Fireflies rebuilt** = 3 independent out-of-sync warm glow-pulse
+  layers (fixed natural colour, soft bloom).
+- **AMBI codes** (`lib/state/AmbientCode.ts`): lightning appended to patterns, nature ids updated;
+  rays+nature ride the 11-char code. **Full round-trip verified (0 failures across all combos).**
+  All FX are independent layers → work in Sphere mode too.
+- Ambient Light + **Setup Codes** fully written up in Atlas → Global UI / Persistent Layers.
 
 ## 🎚️ AMBIENT MENU v2 — 3-PAGE PAGER, ATMOSPHERE, EGGS 2026-06-17 (latest) — SHIPPED to dev
 - **3-page swipe pager** (half-size iOS dots; remembers last page in localStorage `pd_ambient_page`):
