@@ -31,6 +31,7 @@ import {
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import CollectedPair from './hero/CollectedPair';
+import { projectSpriteFace } from '../lib/project/projectSprite';
 
 const VS15 = '\uFE0E';
 
@@ -213,19 +214,20 @@ export default function FollowersModal() {
                         </div>
                     ) : tab === 'projects' ? (
                         projects.map((proj) => (
-                            <a
-                                className="fm-row fm-project-row"
-                                key={proj.project_id}
-                                href={`/art/${proj.handle ?? proj.project_id}`}
-                            >
-                                <span className="fm-project-title">{proj.title}</span>
-                                {proj.handle && (
-                                    <span className="fm-project-handle">@{proj.handle}</span>
-                                )}
+                            <div className="fm-row fm-project-row" key={proj.project_id}>
+                                <a
+                                    className="collected-pair"
+                                    href={`/art/${proj.handle ?? proj.project_id}`}
+                                >
+                                    <span className="collected-sprite">
+                                        {projectSpriteFace(proj.project_id)}
+                                    </span>
+                                    <span className="profile-link">{proj.title}</span>
+                                </a>
                                 <span className="fm-project-tag">
                                     {proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}
                                 </span>
-                            </a>
+                            </div>
                         ))
                     ) : (
                         peopleRows.map((handle) => (

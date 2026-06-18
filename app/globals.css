@@ -1669,6 +1669,8 @@ body.tape-framed .tape-rail {
 #followersModal {
     padding-left: 20px;
     padding-right: 20px;
+    /* Pin the whole modal to the top instead of floating it centred. */
+    justify-content: flex-start;
 }
 #followersModal .fm-box {
     margin-top: 0;
@@ -1704,6 +1706,23 @@ body.tape-framed .tape-rail {
     text-align: left;
 }
 .fm-row { line-height: 1.6; }
+/* PROJECTS tab rows — the project's own sprite+name chip (same .collected-pair
+   treatment as the people rows), with the follow-state tag pushed to the right.
+   Without this the title/handle/tag ran together. (Brendon, 2026-06-18) */
+.fm-project-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.fm-project-tag {
+    margin-left: auto;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    opacity: 0.5;
+    white-space: nowrap;
+}
 .fm-empty {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
