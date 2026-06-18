@@ -160,7 +160,7 @@ export default function ProfileFacetBar({
         active && effGroup !== 'none' ? (
             <span
                 className="sort-group-mod on"
-                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', marginRight: '4px' }}
+                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}
             >
                 {GROUP_GLYPH[effGroup]}
             </span>
