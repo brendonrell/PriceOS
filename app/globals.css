@@ -5325,9 +5325,9 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .artist-mark {
     display: block;
     font-family: 'Courier New', Courier, monospace;
-    /* ✺ fills only ~⅔ of its em, so the glyph reads at ~14px (the check-circle
-       diameter) at this size on iOS Courier. */
-    font-size: 22px;
+    /* ✺ fills only a fraction of its em, so it's sized up to read at the
+       check-circle diameter on iOS Courier (Brendon, 2026-06-18). */
+    font-size: 32px;
     line-height: 1;
 }
 .meta-owner {
