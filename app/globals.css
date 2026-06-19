@@ -8025,6 +8025,22 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (max-width: 600px) {
     .starred-list { padding: 0 20px 48px; }
 }
+/* ── STRUCTURAL ALIGNMENT GUARANTEE (Brendon 2026-06-19) ──────────────────────
+   The ONLY thing that sets the horizontal indent in the Starred area is the
+   .starred-list container's side padding (40px desktop / 20px mobile, matching
+   the hero + colorway picker + everything else on the page). Every top-level
+   block here AND every row is FORCED flush to that edge — no per-element left
+   padding/margin is allowed to creep in. So ANY content added to this area in
+   future (a new filter row, a new section, a new row type) is aligned by
+   construction and CANNOT be misaligned. Do not add horizontal padding to a
+   direct child to "indent" it — the container already owns the indent. */
+.starred-list > *,
+.starred-list .starred-rows > * {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
 .starred-list-controls {
     display: flex;
     flex-wrap: wrap;
