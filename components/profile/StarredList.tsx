@@ -17,12 +17,14 @@
  * so the list paints instantly.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway } from '../../lib/project/registry';
+import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { resolveBucket } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
@@ -42,6 +44,17 @@ export interface StarredItem {
 type Mode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
 type SortKey = 'recent' | 'id' | 'project';
 
+/* A labelled group section; `label` null = ungrouped (no header rendered). */
+interface Section<T> { label: string | null; key: string; rows: T[]; }
+function sectionize<T>(rows: T[], keyOf: (r: T) => string, order?: string[]): Section<T>[] {
+    const m = new Map<string, T[]>();
+    for (const r of rows) { const k = keyOf(r); let a = m.get(k); if (!a) { a = []; m.set(k, a); } a.push(r); }
+    let entries = [...m.entries()];
+    if (order) entries = entries.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+    return entries.map(([label, rs]) => ({ label, key: label, rows: rs }));
+}
+const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
+
 export default function StarredList({
     items,
     traits = [],
@@ -56,6 +69,8 @@ export default function StarredList({
     onExitMulti,
     sortKey = 'recent',
     sortDir = 'asc',
+    group = 'none',
+    onModeChange,
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
@@ -75,10 +90,19 @@ export default function StarredList({
        active one to flip direction, same as the gallery sorts. */
     sortKey?: SortKey;
     sortDir?: 'asc' | 'desc';
+    /* Active grouping dimension for the current filter (none | color | project
+       | artist | type-for-All). Parent only sends one valid for the mode. */
+    group?: string;
+    /* Report the active filter pill up so the sub-nav shows the sorts + groups
+       that make sense for it. */
+    onModeChange?: (m: Mode) => void;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
     const [mode, setMode] = useState<Mode>('all');
+    useEffect(() => { onModeChange?.(mode); }, [mode, onModeChange]);
+    /* A dim only applies inside its own single-filter view; in All it's flat. */
+    const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
@@ -225,6 +249,48 @@ export default function StarredList({
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [projects, query, sortKey, sortDir]);
 
+    /* ── Group sections (only inside a single filter; All groups by type via the
+       render). Outputs sub-group by Project inside each section so one
+       ProjectProvider mounts per project. ── */
+    const artistOf = (slug: string) => { const h = getProject(slug)?.artistHandle; return h ? `@${h}` : '—'; };
+    const projOf = (slug: string) => getProject(slug)?.displayName ?? `@${slug}`;
+    const bySlug = (rows: typeof visibleOutputs) => {
+        const m = new Map<string, typeof visibleOutputs>();
+        for (const r of rows) { let a = m.get(r.slug); if (!a) { a = []; m.set(r.slug, a); } a.push(r); }
+        return [...m.entries()];
+    };
+    const outputSections = useMemo(() => {
+        const dim = dimFor('outputs');
+        let secs: Section<typeof visibleOutputs[number]>[];
+        if (dim === 'color') secs = sectionize(visibleOutputs, (r) => resolveBucket(r.slug, r.id) ?? 'Other', COLOR_ORDER);
+        else if (dim === 'artist') secs = sectionize(visibleOutputs, (r) => r.artist || '—');
+        else if (dim === 'project') secs = sectionize(visibleOutputs, (r) => projOf(r.slug));
+        else return [{ label: null as string | null, key: '_', groups: outputGroups }];
+        return secs.map((s) => ({ label: s.label, key: s.key, groups: bySlug(s.rows) }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleOutputs, outputGroups]);
+    const traitSections = useMemo(() => {
+        const dim = dimFor('traits');
+        if (dim === 'project') return sectionize(visibleTraits, (r) => projOf(r.slug));
+        if (dim === 'artist') return sectionize(visibleTraits, (r) => artistOf(r.slug));
+        return [{ label: null as string | null, key: '_', rows: visibleTraits }];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleTraits]);
+    const projectSections = useMemo(() => {
+        if (dimFor('projects') === 'artist') return sectionize(visibleProjects, (r) => artistOf(r.slug));
+        return [{ label: null as string | null, key: '_', rows: visibleProjects }];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleProjects]);
+    const soundtrackSections = useMemo(() => {
+        const dim = dimFor('soundtracks');
+        if (dim === 'artist') return sectionize(visibleSoundtracks, (r) => artistOf(r.slug));
+        if (dim === 'project') return sectionize(visibleSoundtracks, (r) => projOf(r.slug));
+        return [{ label: null as string | null, key: '_', rows: visibleSoundtracks }];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleSoundtracks]);
+    /* All-Starred groups by TYPE — a header before each non-empty block. */
+    const typeHdr = mode === 'all' && group === 'type';
+
     /* Removing from Starred asks first (the ✕ on the right) — a small confirm
        card, the same style as multi-select's. */
     const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
@@ -334,32 +400,42 @@ export default function StarredList({
             <div className="starred-rows">
                 {(mode === 'all' || mode === 'outputs') && (
                     <>
-                        {outputGroups.map(([slug, groupRows]) => (
-                            <ProjectProvider key={slug} slug={slug}>
-                                {groupRows.map((r) => (
-                                    <StarredOutputRow
-                                        key={`${r.slug}:${r.id}`}
-                                        slug={r.slug}
-                                        id={r.id}
-                                        project={r.project}
-                                        artist={r.artist}
-                                        extra={r.extra || r.fate}
-                                        wished={wishKeys.has(`${r.slug}:${r.id}`)}
-                                        multiActive={multiActive}
-                                        selected={selected.has(`${r.slug}:${r.id}`)}
-                                        onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
-                                        onOpen={() => open('output', r.id, r.slug)}
-                                        onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
-                                        onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
-                                    />
+                        {typeHdr && visibleOutputs.length > 0 && <div className="starred-group-header">Outputs</div>}
+                        {outputSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.groups.map(([slug, groupRows]) => (
+                                    <ProjectProvider key={`${sec.key}|${slug}`} slug={slug}>
+                                        {groupRows.map((r) => (
+                                            <StarredOutputRow
+                                                key={`${r.slug}:${r.id}`}
+                                                slug={r.slug}
+                                                id={r.id}
+                                                project={r.project}
+                                                artist={r.artist}
+                                                extra={r.extra || r.fate}
+                                                wished={wishKeys.has(`${r.slug}:${r.id}`)}
+                                                multiActive={multiActive}
+                                                selected={selected.has(`${r.slug}:${r.id}`)}
+                                                onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
+                                                onOpen={() => open('output', r.id, r.slug)}
+                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
+                                            />
+                                        ))}
+                                    </ProjectProvider>
                                 ))}
-                            </ProjectProvider>
+                            </Fragment>
                         ))}
                     </>
                 )}
                 {(mode === 'all' || mode === 'traits') && (
                     <>
-                        {visibleTraits.map((r) => {
+                        {typeHdr && visibleTraits.length > 0 && <div className="starred-group-header">Traits</div>}
+                        {traitSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.rows.map((r) => {
                             const selKey = `${r.slug}|${r.category}|${r.value}`;
                             return (
                             <div
@@ -406,10 +482,13 @@ export default function StarredList({
                             </div>
                             );
                         })}
+                            </Fragment>
+                        ))}
                     </>
                 )}
                 {(mode === 'all' || mode === 'artists') && (
                     <>
+                        {typeHdr && visibleArtists.length > 0 && <div className="starred-group-header">Artists</div>}
                         {visibleArtists.map((r) => {
                             const act = () => multiActive ? toggleSel(r.name) : window.location.assign('/' + r.handle);
                             return (
@@ -461,7 +540,11 @@ export default function StarredList({
                 )}
                 {(mode === 'all' || mode === 'soundtracks') && (
                     <>
-                        {visibleSoundtracks.map((r) => {
+                        {typeHdr && visibleSoundtracks.length > 0 && <div className="starred-group-header">Soundtracks</div>}
+                        {soundtrackSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.rows.map((r) => {
                             const selKey = `${r.slug}|${r.playlistId}`;
                             return (
                             <div
@@ -508,11 +591,17 @@ export default function StarredList({
                             </div>
                             );
                         })}
+                            </Fragment>
+                        ))}
                     </>
                 )}
                 {(mode === 'all' || mode === 'projects') && (
                     <>
-                        {visibleProjects.map((r) => {
+                        {typeHdr && visibleProjects.length > 0 && <div className="starred-group-header">Projects</div>}
+                        {projectSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.rows.map((r) => {
                             const selKey = `p:${r.slug}`;
                             return (
                             <div
@@ -559,6 +648,8 @@ export default function StarredList({
                             </div>
                             );
                         })}
+                            </Fragment>
+                        ))}
                     </>
                 )}
                 {totalVisible === 0 && <GhostRows variant="starred" />}
