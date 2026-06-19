@@ -15,8 +15,9 @@
  *   - Engages only when the document is genuinely at the top, the gesture
  *     didn't start inside a scrolled inner scroller, it's a single finger, and
  *     no modal / Bench drag is in play — so it never false-fires.
- *   - touchmove is non-passive so the iOS document rubber-band is suppressed
- *     WHILE pulling (and only then); it early-returns before any work otherwise.
+ *   - Listeners stay PASSIVE and we never preventDefault: the native iOS
+ *     document rubber-band IS the visible pull (the page follows the finger).
+ *     An earlier build suppressed it, which left nothing moving — "doesn't pull".
  *
  * Haptics: a short Vibration-API buzz fires on commit. That's a real haptic on
  * Android; iOS ignores it (no web haptics in an iOS PWA) — harmless either way.
@@ -158,8 +159,10 @@ export function mountPtr(): void {
         }
 
         pulling = true;
-        // Suppress the iOS document rubber-band, but only while actively pulling.
-        if (e.cancelable) e.preventDefault();
+        /* Listener stays PASSIVE — we do NOT preventDefault. The native iOS
+           document rubber-band IS the pull (the page visibly follows the
+           finger); suppressing it left nothing moving, so it felt dead. We just
+           read the travel and ramp the tint; the decision happens on release. */
 
         const visual = damp(raw);
         overlay.style.transition = 'none';
@@ -186,8 +189,8 @@ export function mountPtr(): void {
     setOverlayColor();
 
     document.addEventListener('touchstart', onTouchStart, { passive: true });
-    // Non-passive: we preventDefault the iOS bounce while actively pulling.
-    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    // Passive — we never preventDefault; the native rubber-band is the pull.
+    document.addEventListener('touchmove', onTouchMove, { passive: true });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
     document.addEventListener('touchcancel', onTouchCancel, { passive: true });
 

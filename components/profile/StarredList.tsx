@@ -476,7 +476,7 @@ export default function StarredList({
                                     <span className="artist-row-tile-glyph soundtrack-tile-glyph" style={{ color: projectColorway(r.slug) ?? undefined }}>▶&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{r.title}</span>
+                                    <span className="starred-row-id">@{r.slug}</span>
                                     <span className="starred-row-sub">{'\u00A0'}</span>
                                     <span className="starred-row-sub">{'\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
@@ -527,7 +527,7 @@ export default function StarredList({
                                     <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{r.name}</span>
+                                    <span className="starred-row-id">@{r.slug}</span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                     <span className="starred-row-sub">Project</span>
