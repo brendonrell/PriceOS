@@ -8364,6 +8364,18 @@ body.colorway-dark .ghost-feed-bar {
     vertical-align: middle;
 }
 
+/* Starred list — responsive tuning (Brendon 2026-06-19). Mobile is the
+   reference; only these deltas differ per breakpoint. */
+@media (max-width: 600px) {
+    /* Double the breathing room between rows on mobile. */
+    .starred-row { padding: 16px 0; }
+}
+@media (min-width: 601px) {
+    /* The offer glyph + remove ✕ read oversized on desktop — halve them. */
+    .trait-offer-glyph { font-size: 0.85em; }
+    .starred-row-unstar { font-size: 10px; }
+}
+
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
    for the Output thumbnail. */
 .trait-row { cursor: default; }
