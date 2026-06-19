@@ -35,6 +35,7 @@ export default function MintButton({
   const [phase, setPhase] = useState<Phase>('idle');
   const [qty, setQty] = useState(1);
   const [pct, setPct] = useState(0);
+  const [confirming, setConfirming] = useState(false);
   const [result, setResult] = useState<{ count: number; balance: number } | null>(null);
 
   const max = Math.min(MAX_PER_MINT, Math.max(1, remaining));
@@ -95,18 +96,31 @@ export default function MintButton({
     // (action + tab share one rounded shell, divided by a hairline). CONFIRM is
     // filled (inverted) so it reads "press me"; the ✕ is the slim secondary tab.
     return (
+      <>
       <div className="btn-mint mint-chooser" role="group" aria-label={`Mint ${projectTitle}`}>
         <div className="mint-seg mint-seg-qty">
           <button type="button" className="mint-step" aria-label="Fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
           <span className="mint-qty-val">{qty}</span>
           <button type="button" className="mint-step" aria-label="More" disabled={qty >= max} onClick={() => setQty((q) => Math.min(max, q + 1))}>+</button>
         </div>
-        <button type="button" className="mint-seg mint-confirm" onClick={confirm}>
+        <button type="button" className="mint-seg mint-confirm" onClick={() => setConfirming(true)}>
           <span className="mint-lbl">CONFIRM</span>
           <span className="mint-price">({total} ETH){MINT_FEE_ETH > 0 ? ` · incl. ${(MINT_FEE_ETH * qty).toFixed(3)} fee` : ''}</span>
         </button>
         <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
       </div>
+      {confirming && (
+        <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirming(false)}>
+          <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+            <div className="ms-confirm-question">Mint {qty} × {projectTitle}?</div>
+            <div className="ms-confirm-btns">
+              <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirming(false)}>Cancel</button>
+              <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={() => { setConfirming(false); void confirm(); }}>Mint</button>
+            </div>
+          </div>
+        </div>
+      )}
+      </>
     );
   }
 
