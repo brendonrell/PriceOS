@@ -94,7 +94,7 @@ export default function SoundtrackStarButton({
                 touchAction: 'pan-y',
             }}
         >
-            <span className="btn-icon-play">{starred ? '★︎' : '▶︎'}</span>{' '}SOUNDTRACK
+            <span className={`btn-icon-play${starred ? ' soundtrack-star-icon' : ''}`}>{starred ? '★︎' : '▶︎'}</span>{' '}SOUNDTRACK
             {floatId > 0 && <span key={floatId} className="soundtrack-star-float" aria-hidden="true">{'★︎'}</span>}
         </a>
     );

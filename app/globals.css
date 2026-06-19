@@ -8015,10 +8015,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    A compact, sortable + filterable ROW list (not the gallery grid). Themed
    off the live colorway vars so it matches every mode. Wishlist reuses it. */
 .starred-list {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 0 12px 48px;
+    /* Full-width with the SAME side padding as the hero/colorway picker above
+       (40px desktop / 20px mobile), so the pills + rows line up exactly with
+       the colorway picker and the rest of the page (Brendon 2026-06-19). */
+    margin: 0;
+    padding: 0 40px 48px;
     font-family: 'Courier New', Courier, monospace;
+}
+@media (max-width: 600px) {
+    .starred-list { padding: 0 20px 48px; }
 }
 .starred-list-controls {
     display: flex;
@@ -8040,7 +8045,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 6px;
+    /* No horizontal inset — the row content lines up flush with the pills /
+       colorway picker (Brendon 2026-06-19). */
+    padding: 8px 0;
+    /* All text in a starred item is bold (Brendon 2026-06-19 — readability). */
+    font-weight: bold;
     /* No divider line — Brendon 2026-06-13 (applies to Starred + Wishlist,
        which share this row class). */
     cursor: pointer;
@@ -8292,6 +8301,15 @@ body.colorway-dark .ghost-feed-bar {
 /* Starred Soundtracks — long-press the SOUNDTRACK button to star it. When
    starred, the leading ▶ glyph becomes ★ (same slot, so the button keeps its
    size); the float confirm rises from that icon. */
+/* Starred icon = the ★ that replaces ▶ in the play slot, at the same 24px as
+   the trait/earlier soundtrack star (Brendon 2026-06-19) — so the button keeps
+   its width (no appended element) while the star stays full size. */
+.btn-soundtrack .soundtrack-star-icon {
+    font-size: 24px;
+    line-height: 1;
+    color: var(--accent);
+    vertical-align: middle;
+}
 .btn-soundtrack .soundtrack-star-float {
     position: absolute;
     left: 12px;
