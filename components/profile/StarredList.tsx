@@ -372,9 +372,9 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
-                                    <span className="starred-row-sub">Trait</span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Trait</span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
@@ -412,7 +412,7 @@ export default function StarredList({
                             return (
                             <div
                                 key={r.name}
-                                className={`starred-row${multiActive && selected.has(r.name) ? ' is-selected' : ''}`}
+                                className={`starred-row has-actions-abs${multiActive && selected.has(r.name) ? ' is-selected' : ''}`}
                                 role="button"
                                 tabIndex={0}
                                 onClick={act}
@@ -424,29 +424,33 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Artist</span>
+                                    <span className="starred-row-sub">{' '}</span>
+                                    <span className="starred-row-sub">{' '}</span>
                                 </div>
-                                <span
-                                    className="starred-row-cta"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Follow (coming soon)"
-                                    aria-label="Follow"
-                                    onClick={(e) => { e.stopPropagation(); showToast('Follow: COMING SOON'); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Follow: COMING SOON'); } }}
-                                >
-                                    ⚯︎ Follow
-                                </span>
-                                <span
-                                    className="starred-row-unstar"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Remove from Starred"
-                                    aria-label="Remove from Starred"
-                                    onClick={(e) => handleArtistUnstar(e, r.name)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArtistUnstar(e as unknown as React.MouseEvent, r.name); } }}
-                                >
-                                    ✕&#xFE0E;
-                                </span>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Follow (coming soon)"
+                                        aria-label="Follow"
+                                        onClick={(e) => { e.stopPropagation(); showToast('Follow: COMING SOON'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Follow: COMING SOON'); } }}
+                                    >
+                                        ⚯︎ Follow
+                                    </span>
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => handleArtistUnstar(e, r.name)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArtistUnstar(e as unknown as React.MouseEvent, r.name); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
                             </div>
                             );
                         })}
@@ -459,7 +463,7 @@ export default function StarredList({
                             return (
                             <div
                                 key={selKey}
-                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role={multiActive ? 'button' : undefined}
                                 tabIndex={multiActive ? 0 : undefined}
                                 onClick={multiActive ? () => toggleSel(selKey) : undefined}
@@ -470,30 +474,34 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.title}</span>
+                                    <span className="starred-row-sub">{'\u00A0'}</span>
+                                    <span className="starred-row-sub">{'\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
-                                <span
-                                    className="starred-row-cta"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Play on YouTube"
-                                    aria-label="Play"
-                                    onClick={() => window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer')}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
-                                >
-                                    ▶︎ Play
-                                </span>
-                                <span
-                                    className="starred-row-unstar"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Remove from Starred"
-                                    aria-label="Remove from Starred"
-                                    onClick={(e) => handleSoundtrackUnstar(e, r)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSoundtrackUnstar(e as unknown as React.MouseEvent, r); } }}
-                                >
-                                    ✕&#xFE0E;
-                                </span>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Play on YouTube"
+                                        aria-label="Play"
+                                        onClick={() => window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer')}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
+                                    >
+                                        ▶︎ Play
+                                    </span>
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => handleSoundtrackUnstar(e, r)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSoundtrackUnstar(e as unknown as React.MouseEvent, r); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
                             </div>
                             );
                         })}
@@ -517,9 +525,9 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
-                                    <span className="starred-row-sub">Project</span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Project</span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
@@ -646,9 +654,9 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
+                <span className="starred-row-sub">{artist || ' '}</span>
+                <span className="starred-row-sub">{extra || ' '}</span>
                 <span className="starred-row-sub">Output</span>
-                {artist && <span className="starred-row-sub">{artist}</span>}
-                {extra && <span className="starred-row-sub">{extra}</span>}
             </div>
             <div className="starred-row-actions">
                 {listed ? (
