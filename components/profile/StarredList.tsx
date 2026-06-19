@@ -35,6 +35,7 @@ import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
+import { useArtistSocial, relGlyphOf, relLabelOf, fmtFollowers } from '../../lib/social/useArtistSocial';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import OutputThumb from './OutputThumb';
@@ -425,12 +426,12 @@ export default function StarredList({
         });
     };
 
-    /* Brendon's order: All Starred › Artists › Projects › Outputs › Traits ›
-       Soundtracks. */
+    /* Brendon's order: All Starred › Collectors › Artists › Projects › Outputs ›
+       Traits › Soundtracks. */
     const PILLS: { key: Mode; label: string; count: number }[] = [
         { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + collectors.length + soundtracks.length + visibleProjects.length },
-        { key: 'artists',     label: 'Artists',     count: artists.length       },
         { key: 'collectors',  label: 'Collectors',  count: collectors.length    },
+        { key: 'artists',     label: 'Artists',     count: artists.length       },
         { key: 'projects',    label: 'Projects',    count: projects.length      },
         { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
         { key: 'traits',      label: 'Traits',      count: traitRows.length     },
@@ -936,12 +937,6 @@ function StarredOutputRow({
     );
 }
 
-/* Per-artist follow data cache (handle → { count, rel }). One by-handle fetch
-   gives the follower count + the artist's address; one follows fetch resolves
-   the viewer's relationship. Cached per session so re-renders don't refetch. */
-type ArtistRel = 'mutual' | 'following' | 'follower' | 'none';
-const artistMetaCache = new Map<string, { count: number; rel: ArtistRel }>();
-
 function StarredArtistRow({
     name,
     handle,
@@ -969,43 +964,10 @@ function StarredArtistRow({
     variant?: 'artist' | 'collector';
     sprite?: string | null;
 }) {
-    const cacheKey = `${handle}|${(viewerAddress ?? '').toLowerCase()}`;
-    const cached = artistMetaCache.get(cacheKey);
-    const [count, setCount] = useState<number | null>(cached?.count ?? null);
-    const [rel, setRel] = useState<ArtistRel>(cached?.rel ?? 'none');
+    const { count, rel } = useArtistSocial(handle, viewerAddress);
     const projectCount = useMemo(() => projectsByArtist(handle).length, [handle]);
-
-    useEffect(() => {
-        if (cached) return;
-        let cancel = false;
-        (async () => {
-            try {
-                const u = await fetch(`/api/user/by-handle/${handle}`).then((r) => (r.ok ? r.json() : null));
-                if (cancel || !u) return;
-                const cnt = typeof u.follower_count === 'number' ? u.follower_count : 0;
-                setCount(cnt);
-                let relation: ArtistRel = 'none';
-                const addr = (u.address ?? '').toLowerCase();
-                const me = (viewerAddress ?? '').toLowerCase();
-                if (addr && me) {
-                    const f = await fetch(`/api/follows/${addr}`).then((r) => (r.ok ? r.json() : null));
-                    if (!cancel && f) {
-                        const followers = ((f.followers ?? []) as string[]).map((a) => a.toLowerCase());
-                        const following = ((f.following ?? []) as string[]).map((a) => a.toLowerCase());
-                        const iFollow = followers.includes(me);
-                        const theyFollow = following.includes(me);
-                        relation = iFollow && theyFollow ? 'mutual' : iFollow ? 'following' : theyFollow ? 'follower' : 'none';
-                    }
-                }
-                if (!cancel) { setRel(relation); artistMetaCache.set(cacheKey, { count: cnt, rel: relation }); }
-            } catch { /* leave as null/none */ }
-        })();
-        return () => { cancel = true; };
-    }, [handle, viewerAddress, cacheKey, cached]);
-
-    /* Social glyph (docs/GLYPHS.md): ⚭ mutual · ⚯ following · ⚬ follower. */
-    const relGlyph = rel === 'mutual' ? '⚭︎' : rel === 'following' ? '⚯︎' : rel === 'follower' ? '⚬︎' : '';
-    const relLabel = rel === 'mutual' ? 'Mutual' : rel === 'following' ? 'Following' : rel === 'follower' ? 'Follows you' : '';
+    const relGlyph = relGlyphOf(rel);
+    const relLabel = relLabelOf(rel);
     const act = () => (multiActive ? onToggleSel() : window.location.assign('/' + handle));
 
     return (
@@ -1023,9 +985,9 @@ function StarredArtistRow({
                 <span className="starred-row-id">
                     {name}
                     {variant === 'artist' && <span className="artist-tag" aria-label="artist">{'✺︎'}</span>}
-                    {relGlyph && <span className={`artist-social-ico${rel === 'mutual' ? '' : ' is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
+                    {relGlyph && <span className={`artist-social-ico ${rel === 'mutual' ? 'is-mutual-lg' : 'is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
                     {count != null && count > 0 && (
-                        <span className="follower-count">{count >= 1000 ? `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k` : count}</span>
+                        <span className="follower-count">{fmtFollowers(count)}</span>
                     )}
                 </span>
                 {variant === 'collector' ? (

@@ -900,13 +900,13 @@ function ProfilePageBodyInner({
        are cycled THROUGH the AZ button. */
     const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
         all:         { sorts: ['recent'],                     groups: ['none'] },
-        outputs:     { sorts: ['recent', 'project', 'price'], groups: ['none', 'color', 'project', 'artist'] },
-        traits:      { sorts: ['recent', 'project', 'price'], groups: ['none', 'project', 'artist'] },
-        projects:    { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist'] },
-        artists:     { sorts: ['recent', 'project', 'followers', 'price'], groups: ['none', 'color'] },
-        collectors:  { sorts: ['recent', 'project', 'followers', 'price'], groups: ['none', 'color'] },
-        soundtracks: { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist', 'project'] },
-        wishlist:    { sorts: ['recent', 'id', 'project', 'price'], groups: ['none'] },
+        outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
+        traits:      { sorts: ['recent', 'price', 'project'], groups: ['none', 'project', 'artist'] },
+        projects:    { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist'] },
+        artists:     { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
+        collectors:  { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
+        soundtracks: { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist', 'project'] },
+        wishlist:    { sorts: ['recent', 'price', 'id', 'project'], groups: ['none'] },
     };
     useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMorePresetActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
     /* Reset sort + grouping when the active filter pill changes so a grouping
@@ -1723,6 +1723,9 @@ function ProfilePageBodyInner({
                                             // AZ flips to ZA when descending (gallery parity); the active
                                             // grouping shows as a glyph modifier before the arrow.
                                             const lbl = key === 'project' && active && moreSortDir === 'desc' ? 'ZA' : MORE_SORT_LABEL[key];
+                                            /* 'Recent' shows as the canonical recent glyph (◷), the same icon
+                                               the project artworks trait pills use (Brendon 2026-06-19). */
+                                            const isRecentIcon = key === 'recent';
                                             const gGlyph = active && key !== 'recent' && moreGroup !== 'none' ? (MORE_GROUP_GLYPH[moreGroup] ?? '') : '';
                                             return (
                                                 <span
@@ -1734,7 +1737,7 @@ function ProfilePageBodyInner({
                                                     onClick={() => cycleMoreSort(key)}
                                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
                                                 >
-                                                    <span className="sort-lbl">{lbl}</span>
+                                                    <span className={`sort-lbl${isRecentIcon ? ' sort-lbl-recent' : ''}`}>{isRecentIcon ? '◷︎' : lbl}</span>
                                                     <span className="sort-arrow">
                                                         {gGlyph && <span className="sort-group-mod on" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}>{gGlyph}</span>}
                                                         {active ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}
@@ -2131,6 +2134,7 @@ function ProfilePageBodyInner({
                     onExitMulti={() => setMoreMultiActive(false)}
                     sortKey={moreSort}
                     sortDir={moreSortDir}
+                    viewerAddress={user.address}
                 />
             )}
 

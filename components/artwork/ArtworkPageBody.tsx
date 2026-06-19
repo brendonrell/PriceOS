@@ -227,42 +227,42 @@ export default function ArtworkPageBody({
                         </span>
                     </div>
 
-                    {/* Stats grid — FIRST row only in the hero. The second row
+                    {/* Stats row — transplanted from the profile hero so it lays
+                        out identically (plain flex, not the grid). Same icons,
+                        the output's own data (Brendon 2026-06-19). The second row
                         moved into the Stats sub-tab under + More. */}
-                    <div className="stats-grid">
-                        <div className="hero-line stats-row">
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Output / Supply')}
-                                >
-                                    ⬚&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">
-                                    {numberPart}/222
-                                </span>
+                    <div className="hero-line stats-row">
+                        <span className="stat-item">
+                            <span
+                                className="stat-icon stat-icon-box"
+                                {...iconToastProps('Output / Supply')}
+                            >
+                                ⬚&#xFE0E;
+                            </span>{' '}
+                            <span className="stat-val">
+                                {numberPart}/222
                             </span>
-                            <span className="stat-item stat-item-vol">
-                                <span
-                                    className="stat-icon stat-icon-eth"
-                                    {...iconToastProps('Total Volume')}
-                                >⟠&#xFE0E;</span>{' '}
-                                <span className="stat-val stat-val-vol">
-                                    {market ? `${market.volume_eth ?? '0'} VOL` : '—'}
-                                </span>
+                        </span>
+                        <span className="stat-item stat-item-vol">
+                            <span
+                                className="stat-icon-eth"
+                                {...iconToastProps('Total Volume')}
+                            >⟠&#xFE0E;</span>{' '}
+                            <span className="stat-val stat-val-vol">
+                                {market ? `${market.volume_eth ?? '0'} VOL` : '—'}
                             </span>
-                            <span className="stat-item stat-item-owners">
-                                <span
-                                    className="stat-icon stat-icon-owners stat-icon-followers"
-                                    {...iconToastProps('Followers')}
-                                >
-                                    {'⚬︎'}
-                                </span>{' '}
-                                <span className="stat-val stat-val-owners">
-                                    {market?.followers ?? 0} {(market?.followers ?? 0) === 1 ? 'FOLLOWER' : 'FOLLOWERS'}
-                                </span>
+                        </span>
+                        <span className="stat-item stat-item-owners">
+                            <span
+                                className="stat-icon stat-icon-owners stat-icon-followers"
+                                {...iconToastProps('Followers')}
+                            >
+                                {'⚬︎'}
+                            </span>{' '}
+                            <span className="stat-val stat-val-owners">
+                                {market?.followers ?? 0} {(market?.followers ?? 0) === 1 ? 'FOLLOWER' : 'FOLLOWERS'}
                             </span>
-                        </div>
+                        </span>
                     </div>
                 </div>
 

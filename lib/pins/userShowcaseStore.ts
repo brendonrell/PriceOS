@@ -24,6 +24,7 @@
 
 import type { Showcase, ShowcaseSlot } from '../supabase';
 import { pushState, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+import { getProject } from '../project/registry';
 
 const STORAGE_KEY = STATE_CACHE_KEYS.showcase;
 const MAX_SLOTS = 6;
@@ -38,6 +39,16 @@ function keyOf(slug: string, id: number): string {
     return `${slug}:${id}`;
 }
 
+/* A pick only counts if its Project still exists in the registry — the SAME
+   filter the showcase grid uses to render. A stale key (a project that was
+   later renamed/removed) renders as an empty frame, so it must NOT eat a slot
+   or the cap wrongly reads "full" while a frame sits open (Brendon 2026-06-19). */
+function keyRenders(k: string): boolean {
+    const i = k.indexOf(':');
+    if (i < 0) return false;
+    return getProject(k.slice(0, i)) != null;
+}
+
 function loadFromCache(): Set<string> {
     const out = new Set<string>();
     if (typeof window === 'undefined') return out;
@@ -47,7 +58,7 @@ function loadFromCache(): Set<string> {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
             parsed.forEach((k) => {
-                if (typeof k === 'string' && k.includes(':')) out.add(k);
+                if (typeof k === 'string' && k.includes(':') && keyRenders(k)) out.add(k);
             });
         }
     } catch {

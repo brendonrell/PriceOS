@@ -24,6 +24,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleWishlist } from '../../lib/pins/wishlistStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
+import { useArtistSocial, relGlyphOf, relLabelOf, fmtFollowers } from '../../lib/social/useArtistSocial';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
 
@@ -44,6 +45,7 @@ export default function WishlistList({
     onExitMulti,
     sortKey = 'recent',
     sortDir = 'asc',
+    viewerAddress,
 }: {
     items: WishlistItem[];
     /* Search is controlled by the +More sub-nav's ⌕ icon (shared across the
@@ -59,6 +61,10 @@ export default function WishlistList({
        active one to flip direction. */
     sortKey?: SortKey;
     sortDir?: 'asc' | 'desc';
+    /* The viewer's wallet (own profile = the owner) — lets each row resolve the
+       artist's follow relationship (mutual / following / follower), same as the
+       Starred artist rows. */
+    viewerAddress?: string | null;
 }) {
     const { showToast } = useToast();
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -171,6 +177,7 @@ export default function WishlistList({
                                 id={r.id}
                                 project={r.project}
                                 artist={r.artist}
+                                viewerAddress={viewerAddress}
                                 multiActive={multiActive}
                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
@@ -207,6 +214,7 @@ function WishlistRow({
     id,
     project,
     artist,
+    viewerAddress,
     multiActive,
     selected,
     onToggleSel,
@@ -215,6 +223,7 @@ function WishlistRow({
     id: number;
     project: string;
     artist: string;
+    viewerAddress?: string | null;
     multiActive: boolean;
     selected: boolean;
     onToggleSel: () => void;
@@ -223,6 +232,14 @@ function WishlistRow({
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas } = useCart();
     const meta = useOutputMeta(id);
+
+    /* The artist's social tags beside their @name — same treatment as Starred:
+       the relationship glyph + follower count (Brendon 2026-06-19). The bare
+       handle comes from the registry (the Artist trait is the @display). */
+    const artistHandle = getProject(slug)?.artistHandle ?? '';
+    const { count, rel } = useArtistSocial(artistHandle, viewerAddress);
+    const relGlyph = relGlyphOf(rel);
+    const relLabel = relLabelOf(rel);
 
     const listed = meta?.price != null;
     const owned = meta?.isOwnedByBrendon ?? false;
@@ -253,7 +270,21 @@ function WishlistRow({
             <OutputThumb slug={slug} id={id} />
             <div className="starred-row-meta">
                 <span className="starred-row-id">#{id}</span>
-                <span className="starred-row-sub">{project}{artist ? ` · ${artist}` : ''}</span>
+                <span className="starred-row-sub">
+                    {project}
+                    {artist && (
+                        <>
+                            {' · by: '}{artist}
+                            <span className="artist-tag is-sm" aria-label="artist">{'✺︎'}</span>
+                            {relGlyph && (
+                                <span className={`artist-social-ico ${rel === 'mutual' ? 'is-mutual-lg' : 'is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>
+                            )}
+                            {count != null && count > 0 && (
+                                <span className="follower-count">{fmtFollowers(count)}</span>
+                            )}
+                        </>
+                    )}
+                </span>
             </div>
             <span className="wishlist-row-price">{listed ? meta!.price : 'Not listed'}</span>
             {listed && !owned && (

@@ -42,7 +42,7 @@
  * supports the four base keys today.
  */
 
-import type { PdNotifs } from './PdNotifsContext';
+import type { PdNotifs, PingToastMode, MenuTapeMode } from './PdNotifsContext';
 import type { ColorwayKey } from './ColorwayContext';
 import type { SortKey } from './SortContext';
 
@@ -55,6 +55,11 @@ export interface DecodedState {
     tape: DecodedTape;
     /** Patch object — pdNotifs key → true. Always-truthy by construction. */
     flags: Partial<Record<keyof PdNotifs, true>>;
+    /** Multi-value settings, present only when their token is in the code. */
+    watchMetric?: number;
+    pingToasts?: PingToastMode;
+    menutape?: MenuTapeMode;
+    audience?: boolean;
 }
 
 export interface DecodeResult {
@@ -189,6 +194,17 @@ const SPELL_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromE
     Object.entries(SPELL_TOKEN_TO_KEY).map(([tok, key]) => [key, tok])
 );
 
+// ── Multi-value tokens (Brendon 2026-06-19 — Setup Codes catch-up) ──────
+// Only the NON-default value is encoded; absence restores the default on apply.
+//   watchMetric: 0 (default) omitted; 1-3 → WMT1..3
+//   pingToasts:  'all' (default) omitted; off/money/social → PTOF/PTMN/PTSO
+//   menutape:    0 (default) omitted; 3/4 → MNT3/MNT4
+//   audience:    true (default) omitted; false → NAUD
+const TOKEN_TO_WATCHMETRIC: Record<string, number> = { WMT1: 1, WMT2: 2, WMT3: 3 };
+const PINGTOAST_TO_TOKEN: Record<PingToastMode, string> = { off: 'PTOF', money: 'PTMN', social: 'PTSO', all: 'PTAL' };
+const TOKEN_TO_PINGTOAST: Record<string, PingToastMode> = { PTOF: 'off', PTMN: 'money', PTSO: 'social', PTAL: 'all' };
+const TOKEN_TO_MENUTAPE: Record<string, MenuTapeMode> = { MNT3: 3, MNT4: 4 };
+
 /** All flag keys that participate in the Setup Code envelope. */
 export const SETUP_CODE_FLAG_KEYS: ReadonlyArray<keyof PdNotifs> = [
     ...Object.values(MODE_TOKEN_TO_KEY),
@@ -224,6 +240,11 @@ export function encodeSetupCode(
     for (const [tok, key] of Object.entries(SPELL_TOKEN_TO_KEY)) {
         if (notifs[key]) activeTokens.push(tok);
     }
+    // Multi-value settings — only the non-default value is encoded.
+    if (notifs.watchMetric >= 1 && notifs.watchMetric <= 3) activeTokens.push(`WMT${notifs.watchMetric}`);
+    if (notifs.pingToasts && notifs.pingToasts !== 'all') activeTokens.push(PINGTOAST_TO_TOKEN[notifs.pingToasts]);
+    if (notifs.menutape === 3 || notifs.menutape === 4) activeTokens.push(`MNT${notifs.menutape}`);
+    if (!notifs.audience) activeTokens.push('NAUD');
     activeTokens.sort();
 
     // Tape — only included if non-zero (sim 9822-9824).
@@ -287,6 +308,14 @@ export function decodeSetupCode(raw: string): DecodeResult {
             state.flags[MODE_TOKEN_TO_KEY[t]] = true;
         } else if (t in SPELL_TOKEN_TO_KEY) {
             state.flags[SPELL_TOKEN_TO_KEY[t]] = true;
+        } else if (t in TOKEN_TO_WATCHMETRIC) {
+            state.watchMetric = TOKEN_TO_WATCHMETRIC[t];
+        } else if (t in TOKEN_TO_PINGTOAST) {
+            state.pingToasts = TOKEN_TO_PINGTOAST[t];
+        } else if (t in TOKEN_TO_MENUTAPE) {
+            state.menutape = TOKEN_TO_MENUTAPE[t];
+        } else if (t === 'NAUD') {
+            state.audience = false;
         } else {
             unknown.push(t);
         }
@@ -312,6 +341,11 @@ export function notifsPatchFromDecodedState(state: DecodedState): Partial<PdNoti
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (patch as any)[key] = !!state.flags[key];
     }
+    // Multi-value settings reset to their DEFAULT when the code omits them.
+    patch.watchMetric = state.watchMetric ?? 0;
+    patch.pingToasts = state.pingToasts ?? 'all';
+    patch.menutape = state.menutape ?? 0;
+    patch.audience = state.audience ?? true;
     return patch;
 }
 

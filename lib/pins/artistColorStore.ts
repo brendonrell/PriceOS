@@ -14,6 +14,8 @@
 
 import { useEffect, useReducer } from 'react';
 import { classifyRgb } from '../art/outputColor';
+import { composeResolved, resolveSprite } from '../sprites/composer';
+import { isPriceSpriteVibe } from '../sprites/vibes';
 
 interface UserMeta {
     bucket?: string;       // official-colour bucket
@@ -68,11 +70,12 @@ async function loadMeta(handles: string[]): Promise<void> {
                 const res = await fetch(`/api/user/by-handle/${h}`);
                 if (!res.ok) return;
                 const u = (await res.json()) as {
+                    address?: string;
                     profile_hex?: string | null;
                     signature_hex?: string | null;
                     follower_count?: number;
-                    price_sprite_resolved?: string | null;
-                    price_sprite?: string | null;
+                    price_sprite_resolved?: Parameters<typeof composeResolved>[0] | null;
+                    price_sprite?: unknown;
                     owned_projects?: number;
                 };
                 const meta: UserMeta = {};
@@ -83,7 +86,18 @@ async function loadMeta(handles: string[]): Promise<void> {
                 }
                 if (typeof u.follower_count === 'number') meta.followers = u.follower_count;
                 if (typeof u.owned_projects === 'number') meta.ownedProjects = u.owned_projects;
-                meta.sprite = u.price_sprite_resolved ?? u.price_sprite ?? null;
+                // PriceSprite face — frozen signup composition if present, else
+                // compose live from the wallet + vibe (same as useSpriteFace), so
+                // every user shows their sprite even when nothing is stored yet.
+                if (u.price_sprite_resolved) {
+                    meta.sprite = composeResolved(u.price_sprite_resolved).fullString;
+                } else if (u.address) {
+                    const vibe = isPriceSpriteVibe(u.price_sprite) ? u.price_sprite : 'observer';
+                    const resolved = resolveSprite(u.address, vibe);
+                    meta.sprite = resolved ? composeResolved(resolved).fullString : null;
+                } else {
+                    meta.sprite = null;
+                }
                 cache.set(h, meta);
             } catch { /* ignore */ }
         }),

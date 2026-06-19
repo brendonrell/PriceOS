@@ -3081,6 +3081,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-weight: bold;
     opacity: 0.6;
     margin-left: 4px;
+    /* inline-block so the starred row's @name underline never runs under the
+       follower number (Brendon 2026-06-19). */
+    display: inline-block;
+    text-decoration: none;
 }
 
 /* Identity-row copy icon (profile hero) — reuses the settings .icon-copy
@@ -3127,6 +3131,14 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     text-decoration-thickness: 1px;
 }
 .artist-lockup:hover .artist-tag { opacity: 0.75; }
+/* Slightly smaller ✺ artist badge for the Wishlist artist line (Brendon
+   2026-06-19) — reads as a tag beside the @name, not a headline. */
+.artist-tag.is-sm { font-size: 16px; top: 1px; }
+/* On desktop the Starred artist-row badge runs one size smaller than mobile
+   (Brendon 2026-06-19). */
+@media (min-width: 601px) {
+    .starred-row-id .artist-tag { font-size: 18px; }
+}
 
 /* Artist badge living in the identity line (right after the address). Courier,
    sized + coloured to read as part of the address row, at the address's own
@@ -4043,6 +4055,14 @@ button,
 .sort-btn.active .sort-lbl {
     text-decoration: underline;
     text-underline-offset: 4px;
+}
+/* The 'Recent' sort shows as the ◷ recent glyph — Courier so it renders as the
+   canonical VS-15 icon, nudged to sit on the row baseline (Brendon 2026-06-19). */
+.sort-lbl-recent {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.15em;
+    position: relative;
+    top: 1px;
 }
 .sort-arrow {
     font-size: 20px;
@@ -8169,6 +8189,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* ⚯ following / ⚬ follower draw smaller than ⚭ mutual in this glyph set — bump
    the two small ones up a size so they match (Brendon 2026-06-19). */
 .artist-social-ico.is-bump { font-size: 1.18em; line-height: 1; vertical-align: middle; }
+/* ⚭ mutual reads as the closest relationship — draw it two sizes larger than
+   the others so it stands out (Brendon 2026-06-19). */
+.artist-social-ico.is-mutual-lg { font-size: 1.54em; line-height: 1; vertical-align: middle; }
 /* Group section header — flush with the rows, muted ALLCAPS label (Brendon
    2026-06-19). Shown when a grouping is active in the Starred list. */
 .starred-group-header {
@@ -8203,7 +8226,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     gap: 12px;
 }
 .starred-row.has-actions-abs .starred-row-meta > span:nth-last-child(-n+2) {
-    padding-right: 150px;
+    /* Clears the CTA + ✕ on the right; trimmed from 150px so the PriceSprite line
+       only truncates when it actually nears the CTA, not way short of it
+       (Brendon 2026-06-19). */
+    padding-right: 118px;
 }
 /* Top two lines now stop at the CTA's right edge (not the row's), clearing the
    top-right corner for the grail-pin icon above the ✕ (Brendon 2026-06-19). */
