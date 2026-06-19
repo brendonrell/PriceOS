@@ -25,7 +25,7 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
-import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth } from '../../lib/market/starredMarket';
+import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
@@ -953,9 +953,13 @@ function StarredArtistRow({
             <div className="starred-row-meta">
                 <span className="starred-row-id">
                     {name}
+                    <span className="artist-tag" aria-label="artist">{'✺︎'}</span>
                     {relGlyph && <span className={`artist-social-ico${rel === 'mutual' ? '' : ' is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
+                    {count != null && count > 0 && (
+                        <span className="follower-count">{count >= 1000 ? `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k` : count}</span>
+                    )}
                 </span>
-                <span className="starred-row-sub">{count == null ? ' ' : `${count} ${count === 1 ? 'follower' : 'followers'}`}</span>
+                <span className="starred-row-sub">Floor:<em>{artistFloor(handle) ?? '—'}</em></span>
                 <span className="starred-row-sub">{projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>
                 <span className="starred-row-sub">Artist</span>
             </div>
