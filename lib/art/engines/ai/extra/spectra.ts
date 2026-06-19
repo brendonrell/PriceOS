@@ -1,176 +1,215 @@
 // @ts-nocheck
 /*
- * SPECTRA — Direction A: "Refraction".
+ * SPECTRA — by divisionist-ai. "White light refracted through glass."
  *
- * White light split into spectrum bands and caustics by simulated glass/prisms.
- * The image reads as beams of light entering invisible prismatic bodies and
- * fanning out into dispersed spectral wedges, refracted rainbow streaks that
- * bend through the glass, and additive caustic glints scattered where the light
- * focuses. Everything is built with additive light ('screen'/'lighter') on a
- * deep indigo ground (#241a52 page colorway), so colours add up to luminous,
- * jewel-like, optical layers rather than flat fills.
+ * v2 rebuild (2026-06-19). The image is a REFRACTION EVENT, not a starburst:
+ * one or a few collimated white beams strike the edge of a triangular glass
+ * prism and exit as an ORDERED fan of parallel spectral bands — violet, indigo,
+ * blue, green, yellow, orange, red, in sequence, never a smeared rainbow. Soft
+ * caustic ribbons curve onto an atmospheric indigo ground that harmonises with
+ * the #241a52 page colorway. Volumetric haze gives the beams body; a grain field
+ * sits over the whole frame. Brightness is capped below pure white so colour
+ * survives — this reads as light through glass, not RGB lasers.
  *
- * Artist lineage: divisionist-ai works in OPTICAL COLOUR. Honored here by
- * dispersing every white beam into separated hue bands (no pre-mixed colour)
- * and letting the additive blend re-fuse them in the viewer's eye.
+ * The prism origin is anchored on phi points and travels across the whole frame
+ * (corners, off-frame), with varying beam count, prism angle, and scale, so
+ * seeds range from intimate slivers to frame-filling dispersions.
  *
- * Deterministic from tokenId only. All trait-determining randomness is drawn
- * in paramsOf() in a FIXED order so traits() and draw() never disagree.
+ * Artist lineage: divisionist-ai works in OPTICAL COLOUR — separated, ordered
+ * hue bands the eye re-fuses, rather than pre-mixed pigment.
+ *
+ * Deterministic from tokenId only. All trait-determining randomness is drawn in
+ * paramsOf() in a FIXED order so traits() and draw() never disagree.
  */
 import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette, mottle, blit, PHI, INVPHI } from './_kit';
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
-/* ── Palettes ──────────────────────────────────────────────────────────────
- * Each palette: a deep ground harmonizing with #241a52, plus a spectral hue
- * span (h0..h0+span degrees) the prisms disperse across, and a white-point for
- * the incoming beam. Named for the optical mood. */
+/* ── Spectral order ─────────────────────────────────────────────────────────
+ * The visible spectrum as ordered hue stops (violet→red). A palette samples a
+ * contiguous slice of this so bands always read in sequence, never smeared. */
+const VIOLET = 280, RED = 0; // hue at the two ends of the band fan (degrees)
+
+/* ── Palettes — each gives the dispersion a real spectral BIAS ──────────────
+ * span  : which slice of violet(280)→red(0) the prism throws (h0 = violet end,
+ *         h1 = red end, walked in order; degrees may wrap through 360/0).
+ * sat/lt: dusty, atmospheric glass colour — never neon.
+ * ground: deep indigo harmonised with #241a52.
+ * cap   : peak band lightness (kept under 1.0 so nothing clips to #fff). */
 const PALS = [
-  { name: 'Full Spectrum', ground: '#150f33', h0: 0,   span: 320, white: '#fff6ff', sat: 0.95, glow: '#bfe8ff' },
-  { name: 'Cool Dispersion', ground: '#101b3a', h0: 175, span: 150, white: '#eafcff', sat: 0.92, glow: '#9fe6ff' },
-  { name: 'Warm Caustic',  ground: '#231233', h0: 330, span: 130, white: '#fff2e6', sat: 0.96, glow: '#ffcf8f' },
-  { name: 'Halcyon',       ground: '#0e1430', h0: 200, span: 110, white: '#f0f8ff', sat: 0.85, glow: '#a9d8ff' },
-  { name: 'Magenta Refraction', ground: '#1d0f30', h0: 270, span: 170, white: '#fdeaff', sat: 0.98, glow: '#e6a8ff' },
-  { name: 'Emerald Prism', ground: '#0c1f24', h0: 120, span: 160, white: '#eafff4', sat: 0.9,  glow: '#9affd0' },
-  { name: 'Aurora',        ground: '#0f1338', h0: 90,  span: 210, white: '#f3fbff', sat: 0.9,  glow: '#aef0d8' },
+  // Full spectrum — the textbook prism, all seven bands, slightly muted.
+  { name: 'Full Spectrum',    ground: '#191145', h0: 282, h1: 4,   sat: 0.52, lt: 0.62, cap: 0.78, haze: '#3a2f74', cast: '#6f8fd8' },
+  // Warm / sodium — amber, rose, orange end of the spectrum.
+  { name: 'Sodium',           ground: '#241634', h0: 58,  h1: 2,   sat: 0.5,  lt: 0.6,  cap: 0.76, haze: '#4a2f52', cast: '#d8a86f' },
+  // Cool / aqueous — steel blue through aqua, like light under water.
+  { name: 'Aqueous',          ground: '#0f1d3e', h0: 250, h1: 158, sat: 0.46, lt: 0.62, cap: 0.74, haze: '#244a6e', cast: '#7fc8e0' },
+  // Near-monochrome dispersion — a tight indigo→blue slice, the quietest seed.
+  { name: 'Indigo Dispersion',ground: '#141038', h0: 268, h1: 214, sat: 0.4,  lt: 0.6,  cap: 0.7,  haze: '#2a2566', cast: '#8a9be8' },
+  // Magenta / rose — violet through magenta into rose.
+  { name: 'Rose Refraction',  ground: '#221038', h0: 300, h1: 348, sat: 0.5,  lt: 0.63, cap: 0.76, haze: '#43295e', cast: '#d89bc8' },
+  // Verdant — emerald through gold, a glassy garden light.
+  { name: 'Verdant Prism',    ground: '#0f1f33', h0: 168, h1: 52,  sat: 0.46, lt: 0.6,  cap: 0.74, haze: '#1f4a52', cast: '#9ad8a8' },
 ];
 
+/* Formats — real W/H ratios live in SPECTRA_ASPECTS below. */
 const FMTS = [
-  { W: 1080, H: 1080, t: 'Square' },
-  { W: 1000, H: 1240, t: 'Portrait' },
-  { W: 1240, H: 1000, t: 'Landscape' },
+  { W: 1240, H: 1240, t: 'Square' },
+  { W: 1000, H: 1300, t: 'Tall' },
+  { W: 1300, H: 1000, t: 'Wide' },
 ];
 
-const MODES = ['Fan', 'Cascade', 'Convergence'];   // how prism beams are arranged
-const DENS  = ['Sparse', 'Layered', 'Saturated'];  // how many beams/caustics
-const FOCUS = ['Single', 'Twin', 'Field'];         // number of prism bodies
+const PLACE  = ['Centred', 'Edge', 'Cornered', 'Off-frame']; // where the prism sits
+const BEAMS  = ['Sliver', 'Pair', 'Sheaf'];                  // how many incoming beams
+const SCALE  = ['Intimate', 'Standard', 'Expansive'];        // dispersion scale
+const GROUNDF= ['Misted', 'Caustic'];                        // ground finish
 
 /* ── Param draw (FIXED ORDER) ───────────────────────────────────────────── */
 function paramsOf(r) {
-  const palI  = Math.floor(r() * PALS.length);
-  const fmt   = pick(FMTS, r);
-  const mode  = pick(MODES, r);
-  const dens  = pick(DENS, r);
-  const focus = pick(FOCUS, r);
-  return { palI, fmt, mode, dens, focus };
+  const palI    = Math.floor(r() * PALS.length);
+  const fmt     = pick(FMTS, r);
+  const place   = pick(PLACE, r);
+  const beams   = pick(BEAMS, r);
+  const scale   = pick(SCALE, r);
+  const ground  = pick(GROUNDF, r);
+  return { palI, fmt, place, beams, scale, ground };
 }
 
 function labels(p) {
   return {
-    Palette: PALS[p.palI].name,
-    Format:  p.fmt.t,
-    Mode:    p.mode,
-    Density: p.dens,
-    Focus:   p.focus,
+    Palette:  PALS[p.palI].name,
+    Format:   p.fmt.t,
+    Placement:p.place,
+    Beams:    p.beams,
+    Scale:    p.scale,
+    Ground:   p.ground,
   };
 }
 
-/* spectral hue at parametric t (0..1) across the palette span */
-function specHue(P, t) { return P.h0 + t * P.span; }
-
-/* a single dispersed beam: a thin white core that fans into N hue slivers,
-   all additive. origin (ox,oy), aimed at angle a, length len, fan spread.  */
-function drawBeam(x, P, ox, oy, a, len, spread, width, bands, r, intensity) {
-  const half = spread / 2;
-  for (let b = 0; b < bands; b++) {
-    const bt = bands === 1 ? 0.5 : b / (bands - 1);
-    // each band offset slightly in angle (dispersion) and tinted by spectral hue
-    const ba = a - half + bt * spread;
-    const hue = specHue(P, bt);
-    const col = hsl2hex(hue, P.sat, 0.55);
-    const ex = ox + Math.cos(ba) * len;
-    const ey = oy + Math.sin(ba) * len;
-    const g = x.createLinearGradient(ox, oy, ex, ey);
-    g.addColorStop(0, rgba(P.white, 0.0));
-    g.addColorStop(0.06, rgba(P.white, 0.5 * intensity));
-    g.addColorStop(0.35, rgba(col, 0.42 * intensity));
-    g.addColorStop(1, rgba(col, 0.0));
-    x.strokeStyle = g;
-    x.lineWidth = width * (0.5 + 0.9 * (1 - Math.abs(bt - 0.5) * 1.2));
-    x.beginPath();
-    x.moveTo(ox, oy);
-    // a gentle bend mid-beam to suggest refraction through glass
-    const mx = ox + Math.cos(ba) * len * 0.5 + Math.cos(ba + Math.PI / 2) * (randn(r) * len * 0.04);
-    const my = oy + Math.sin(ba) * len * 0.5 + Math.sin(ba + Math.PI / 2) * (randn(r) * len * 0.04);
-    x.quadraticCurveTo(mx, my, ex, ey);
-    x.stroke();
-  }
+/* Ordered spectral hue at parametric t (0=violet end, 1=red end of palette). */
+function bandHue(P, t) {
+  // walk h0→h1 the short way so the sequence is monotone, not a wrap-around smear
+  let a = P.h0, b = P.h1;
+  let d = b - a;
+  if (d > 180) d -= 360; else if (d < -180) d += 360;
+  return a + d * t;
 }
 
-/* a translucent spectral wedge (a prism's exit fan as a filled sweep) */
-function drawWedge(x, P, ox, oy, a, len, spread, bands, r, intensity) {
+/* ── A collimated incoming white beam striking the prism edge ───────────────
+ * Drawn as a soft, slightly hazy shaft from the source toward the prism hit
+ * point. Capped white (no clip). */
+function drawIncoming(x, P, sx, sy, hx, hy, w, intensity) {
+  const g = x.createLinearGradient(sx, sy, hx, hy);
+  const wht = mix('#ffffff', P.haze, 1 - P.cap); // softened white-point
+  g.addColorStop(0,    rgba(wht, 0.0));
+  g.addColorStop(0.25, rgba(wht, 0.10 * intensity));
+  g.addColorStop(0.85, rgba(wht, 0.34 * intensity));
+  g.addColorStop(1,    rgba(wht, 0.40 * intensity));
+  x.strokeStyle = g;
+  x.lineCap = 'round';
+  x.lineWidth = w;
+  x.beginPath();
+  x.moveTo(sx, sy);
+  x.lineTo(hx, hy);
+  x.stroke();
+}
+
+/* ── The dispersion fan: ORDERED spectral bands leaving the prism ────────────
+ * hx,hy = exit point on the prism edge. a = central exit angle. spread = total
+ * angular fan. len = band length. Bands are drawn as ADJACENT filled angular
+ * wedges so neighbours touch and form one continuous ordered spectrum strip
+ * (violet→red), not separated laser lines. Each wedge is bright (capped) near
+ * the prism and bleeds to transparent at the tip; thin bright edge strokes keep
+ * the banding crisp. Additive blend lets the strip re-fuse softly. */
+function drawDispersion(x, P, hx, hy, a, spread, len, bands, r, intensity) {
+  const a0 = a - spread / 2;
   for (let b = 0; b < bands; b++) {
-    const bt = bands === 1 ? 0.5 : b / (bands - 1);
-    const a0 = a - spread / 2 + (b / bands) * spread;
-    const a1 = a - spread / 2 + ((b + 1) / bands) * spread;
-    const hue = specHue(P, bt);
-    const col = hsl2hex(hue, P.sat, 0.5);
-    const l = len * (0.7 + r() * 0.5);
-    const g = x.createRadialGradient(ox, oy, 0, ox, oy, l);
-    g.addColorStop(0, rgba(P.white, 0.22 * intensity));
-    g.addColorStop(0.25, rgba(col, 0.18 * intensity));
-    g.addColorStop(1, rgba(col, 0.0));
+    const t0 = b / bands, t1 = (b + 1) / bands;
+    const tc = (t0 + t1) / 2;                       // band centre, 0=violet 1=red
+    const ang0 = a0 + t0 * spread;
+    const ang1 = a0 + t1 * spread;
+    const hue  = bandHue(P, tc);
+    // gentle brightness arch across the strip, always capped below pure white
+    const lt   = Math.min(P.cap, P.lt + 0.05 * Math.cos((tc - 0.5) * Math.PI));
+    const col  = hsl2hex(hue, P.sat, lt);
+    const l    = len * (0.92 + 0.08 * Math.cos((tc - 0.5) * Math.PI)); // slight curve to the tip line
+    // filled wedge, radial fade from prism to tip
+    const g = x.createRadialGradient(hx, hy, 0, hx, hy, l);
+    g.addColorStop(0,    rgba(mix(col, '#ffffff', 0.3 * P.cap), 0.30 * intensity));
+    g.addColorStop(0.12, rgba(col, 0.34 * intensity));
+    g.addColorStop(0.55, rgba(col, 0.16 * intensity));
+    g.addColorStop(1,    rgba(col, 0.0));
     x.fillStyle = g;
     x.beginPath();
-    x.moveTo(ox, oy);
-    x.arc(ox, oy, l, a0, a1);
+    x.moveTo(hx, hy);
+    x.arc(hx, hy, l, ang0, ang1);
     x.closePath();
     x.fill();
   }
-}
-
-/* a caustic glint — a small additive bloom where light focuses */
-function drawCaustic(x, P, cx, cy, rad, r) {
-  const hue = specHue(P, r());
-  const col = mix(P.glow, hsl2hex(hue, P.sat, 0.6), 0.5);
-  const g = x.createRadialGradient(cx, cy, 0, cx, cy, rad);
-  g.addColorStop(0, rgba(P.white, 0.7));
-  g.addColorStop(0.4, rgba(col, 0.35));
-  g.addColorStop(1, rgba(col, 0.0));
-  x.fillStyle = g;
-  x.beginPath();
-  x.arc(cx, cy, rad, 0, Math.PI * 2);
-  x.fill();
-  // tiny cross-flare streaks
-  for (let k = 0; k < 4; k++) {
-    const ang = (k / 4) * Math.PI;
-    const len = rad * (1.4 + r() * 1.4);
-    const gg = x.createLinearGradient(cx - Math.cos(ang) * len, cy - Math.sin(ang) * len, cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
-    gg.addColorStop(0, rgba(col, 0));
-    gg.addColorStop(0.5, rgba(P.white, 0.5));
-    gg.addColorStop(1, rgba(col, 0));
-    x.strokeStyle = gg;
-    x.lineWidth = 1 + r() * 1.5;
+  // thin bright band-edge strokes for crisp ordered separation
+  for (let b = 0; b <= bands; b++) {
+    const t  = b / bands;
+    const ba = a0 + t * spread;
+    const hue = bandHue(P, clamp(t, 0, 1));
+    const col = hsl2hex(hue, Math.min(0.7, P.sat + 0.12), Math.min(P.cap, P.lt + 0.08));
+    const ex = hx + Math.cos(ba) * len;
+    const ey = hy + Math.sin(ba) * len;
+    const g = x.createLinearGradient(hx, hy, ex, ey);
+    g.addColorStop(0,   rgba(mix(col, '#ffffff', 0.25), 0.22 * intensity));
+    g.addColorStop(0.5, rgba(col, 0.14 * intensity));
+    g.addColorStop(1,   rgba(col, 0.0));
+    x.strokeStyle = g;
+    x.lineCap = 'round';
+    x.lineWidth = Math.max(0.8, len * 0.004);
     x.beginPath();
-    x.moveTo(cx - Math.cos(ang) * len, cy - Math.sin(ang) * len);
-    x.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
+    x.moveTo(hx, hy);
+    x.lineTo(ex, ey);
     x.stroke();
   }
 }
 
-/* faint suggestion of the prism body itself — a soft translucent facet */
-function drawPrismGhost(x, P, cx, cy, rad, a, r) {
-  x.save();
-  x.globalCompositeOperation = 'screen';
-  x.translate(cx, cy);
-  x.rotate(a);
-  const n = 3; // triangular facet
-  const g = x.createLinearGradient(-rad, -rad, rad, rad);
-  g.addColorStop(0, rgba(P.glow, 0.05));
-  g.addColorStop(0.5, rgba(P.white, 0.12));
-  g.addColorStop(1, rgba(P.glow, 0.03));
-  x.fillStyle = g;
+/* ── A caustic ribbon cast onto the ground — a curved tinted sweep ──────────*/
+function drawCaustic(x, P, x0, y0, x1, y1, w, hue, r) {
+  const col = hsl2hex(hue, P.sat * 0.9, Math.min(P.cap, P.lt + 0.05));
+  const cx = (x0 + x1) / 2 + (r() - 0.5) * (x1 - x0) * 0.4;
+  const cy = (y0 + y1) / 2 + (r() - 0.5) * Math.abs(x1 - x0) * 0.5 + Math.abs(y1 - y0) * 0.2;
+  const g = x.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0,   rgba(col, 0.0));
+  g.addColorStop(0.5, rgba(col, 0.22));
+  g.addColorStop(1,   rgba(col, 0.0));
+  x.strokeStyle = g;
+  x.lineCap = 'round';
+  x.lineWidth = w;
   x.beginPath();
-  for (let i = 0; i < n; i++) {
-    const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
-    const px = Math.cos(ang) * rad;
-    const py = Math.sin(ang) * rad * 1.15;
-    if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+  x.moveTo(x0, y0);
+  x.quadraticCurveTo(cx, cy, x1, y1);
+  x.stroke();
+}
+
+/* ── The prism body itself — a faint triangular glass facet with bright edges */
+function drawPrism(x, P, cx, cy, rad, rot) {
+  x.save();
+  x.translate(cx, cy);
+  x.rotate(rot);
+  const pts = [];
+  for (let i = 0; i < 3; i++) {
+    const ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+    pts.push([Math.cos(ang) * rad, Math.sin(ang) * rad * 1.08]);
   }
+  // glass fill — a soft internal gradient, never opaque white
+  x.globalCompositeOperation = 'screen';
+  const gg = x.createLinearGradient(-rad, -rad, rad, rad);
+  gg.addColorStop(0,   rgba(P.haze, 0.10));
+  gg.addColorStop(0.5, rgba(mix('#ffffff', P.haze, 0.4), 0.16));
+  gg.addColorStop(1,   rgba(P.haze, 0.06));
+  x.fillStyle = gg;
+  x.beginPath();
+  x.moveTo(pts[0][0], pts[0][1]);
+  x.lineTo(pts[1][0], pts[1][1]);
+  x.lineTo(pts[2][0], pts[2][1]);
   x.closePath();
   x.fill();
-  // bright refracting edges
-  x.strokeStyle = rgba(P.white, 0.25);
-  x.lineWidth = 1.5;
+  // refracting edges — bright but capped
+  x.strokeStyle = rgba(mix('#ffffff', P.haze, 0.25), 0.4);
+  x.lineWidth = Math.max(1.2, rad * 0.02);
   x.stroke();
   x.restore();
 }
@@ -183,167 +222,152 @@ function draw(cv, seed) {
   const x = cv.getContext('2d');
   const S = Math.min(W, H);
 
-  // ── Ground: deep indigo with a subtle nebular wash ──────────────────────
-  const bg = x.createRadialGradient(W * 0.5, H * 0.42, S * 0.05, W * 0.5, H * 0.5, S * 0.9);
-  bg.addColorStop(0, mix(P.ground, '#000010', 0.15));
-  bg.addColorStop(0.6, P.ground);
-  bg.addColorStop(1, mix(P.ground, '#000', 0.55));
+  // ── Atmospheric indigo ground ───────────────────────────────────────────
+  const bg = x.createLinearGradient(0, 0, W * 0.3, H);
+  bg.addColorStop(0,   mix(P.ground, '#ffffff', 0.06));
+  bg.addColorStop(0.5, P.ground);
+  bg.addColorStop(1,   mix(P.ground, '#000008', 0.5));
   x.fillStyle = bg;
   x.fillRect(0, 0, W, H);
 
-  // faint colour fog clouds (still subtractive-ish, low alpha) to break flatness
+  // a soft directional fog wash so the ground isn't flat
   x.save();
   x.globalCompositeOperation = 'screen';
-  const fogN = 5;
-  for (let i = 0; i < fogN; i++) {
-    const fx = r() * W, fy = r() * H, fr = S * (0.25 + r() * 0.4);
-    const hue = specHue(P, r());
+  for (let i = 0; i < 4; i++) {
+    const fx = W * (0.2 + r() * 0.6), fy = H * (0.15 + r() * 0.6), fr = S * (0.4 + r() * 0.5);
     const g = x.createRadialGradient(fx, fy, 0, fx, fy, fr);
-    g.addColorStop(0, rgba(hsl2hex(hue, P.sat * 0.7, 0.35), 0.10));
-    g.addColorStop(1, rgba(P.ground, 0));
+    g.addColorStop(0, rgba(P.haze, 0.10));
+    g.addColorStop(1, rgba(P.haze, 0));
     x.fillStyle = g;
     x.fillRect(0, 0, W, H);
   }
   x.restore();
 
-  // ── Prism bodies: phi-anchored origins where beams disperse ─────────────
-  const focusN = p.focus === 'Single' ? 1 : p.focus === 'Twin' ? 2 : rint(r, 3, 5);
-  const anchors = [];
-  for (let i = 0; i < focusN; i++) {
-    // distribute on a phi grid, jittered
-    const gx = (i % 2 === 0) ? INVPHI : 1 - INVPHI;
-    const gy = ((i >> 1) % 2 === 0) ? INVPHI : 1 - INVPHI;
-    const ax = (focusN === 1) ? W * (0.32 + r() * 0.36) : W * (gx + (r() - 0.5) * 0.2);
-    const ay = (focusN === 1) ? H * (0.34 + r() * 0.32) : H * (gy + (r() - 0.5) * 0.2);
-    anchors.push({ x: clamp(ax, W * 0.12, W * 0.88), y: clamp(ay, H * 0.12, H * 0.88) });
+  // ── Compose the refraction event ────────────────────────────────────────
+  // prism scale & placement vary widely across seeds.
+  const scaleMul = p.scale === 'Intimate' ? 0.45 : p.scale === 'Standard' ? 0.8 : 1.2;
+  const prad = S * (0.06 + 0.05 * r()) * scaleMul;
+
+  // anchor the prism on a phi point, then push toward edge/corner/off-frame.
+  let px, py;
+  const lo = INVPHI, hi = 1 - INVPHI; // 0.618 / 0.382
+  const phiX = r() < 0.5 ? lo : hi, phiY = r() < 0.5 ? lo : hi;
+  if (p.place === 'Centred') {
+    px = W * (phiX); py = H * (phiY);
+  } else if (p.place === 'Edge') {
+    // ride one frame edge
+    if (r() < 0.5) { px = r() < 0.5 ? W * 0.12 : W * 0.88; py = H * phiY; }
+    else           { px = W * phiX; py = r() < 0.5 ? H * 0.12 : H * 0.88; }
+  } else if (p.place === 'Cornered') {
+    px = r() < 0.5 ? W * 0.1 : W * 0.9; py = r() < 0.5 ? H * 0.1 : H * 0.9;
+  } else { // Off-frame — prism sits partly outside, dispersion sweeps inward
+    const side = rint(r, 0, 3);
+    if (side === 0)      { px = -prad * 0.4; py = H * phiY; }
+    else if (side === 1) { px = W + prad * 0.4; py = H * phiY; }
+    else if (side === 2) { px = W * phiX; py = -prad * 0.4; }
+    else                 { px = W * phiX; py = H + prad * 0.4; }
   }
 
-  // density → counts
-  const densMul = p.dens === 'Sparse' ? 0.55 : p.dens === 'Layered' ? 1.0 : 1.7;
+  // central exit direction = aimed roughly toward the open expanse of the frame
+  const toCentre = Math.atan2(H * 0.5 - py, W * 0.5 - px);
+  const exitA = toCentre + randn(r) * 0.45;
+  const prismRot = randn(r) * 1.5;
 
-  // ── Wedges (filled spectral sweeps) — painted first, soft and wide ───────
+  // incoming beam(s) come from the opposite side of the prism.
+  const inA = exitA + Math.PI + randn(r) * 0.2;
+  const beamN = p.beams === 'Sliver' ? 1 : p.beams === 'Pair' ? 2 : rint(r, 3, 4);
+  const fanLen = S * (0.55 + r() * 0.45) * (0.7 + scaleMul * 0.5);
+  const fanSpread = (0.65 + r() * 0.5) * (p.beams === 'Sliver' ? 0.8 : 1.0);
+
+  // ── Volumetric haze around the dispersion cone, gives the beams body ──────
   x.save();
   x.globalCompositeOperation = 'screen';
-  for (const an of anchors) {
-    const sweeps = Math.round((2 + rint(r, 1, 3)) * densMul);
-    for (let s = 0; s < sweeps; s++) {
-      let baseA;
-      if (p.mode === 'Fan') baseA = -Math.PI / 2 + randn(r) * 0.5 + s * 0.4;
-      else if (p.mode === 'Cascade') baseA = Math.PI * (0.15 + 0.7 * (s / Math.max(1, sweeps)));
-      else baseA = Math.atan2(H / 2 - an.y, W / 2 - an.x) + randn(r) * 0.3; // Convergence
-      const spread = 0.35 + r() * 0.55;
-      const len = S * (0.5 + r() * 0.55);
-      drawWedge(x, P, an.x, an.y, baseA, len, spread, rint(r, 5, 8), r, 0.9);
-    }
-  }
+  const coneG = x.createRadialGradient(px, py, 0, px, py, fanLen);
+  coneG.addColorStop(0, rgba(P.haze, 0.18));
+  coneG.addColorStop(0.5, rgba(P.haze, 0.08));
+  coneG.addColorStop(1, rgba(P.haze, 0));
+  x.fillStyle = coneG;
+  x.beginPath();
+  x.moveTo(px, py);
+  x.arc(px, py, fanLen, exitA - fanSpread * 0.7, exitA + fanSpread * 0.7);
+  x.closePath();
+  x.fill();
   x.restore();
 
-  // ── Beams (dispersed fanned light) — additive, the structural drawing ───
+  // ── Incoming white shaft(s) striking the prism edge ──────────────────────
   x.save();
   x.globalCompositeOperation = 'lighter';
-  for (const an of anchors) {
-    const beams = Math.round((6 + rint(r, 2, 6)) * densMul);
-    for (let s = 0; s < beams; s++) {
-      let a;
-      if (p.mode === 'Fan') {
-        a = -Math.PI / 2 + (s / beams - 0.5) * (0.8 + r() * 0.7) + randn(r) * 0.08;
-      } else if (p.mode === 'Cascade') {
-        a = Math.PI * (0.1 + 0.8 * (s / beams)) + randn(r) * 0.06;
-      } else { // Convergence — beams aim toward centre then fan out past it
-        const toC = Math.atan2(H / 2 - an.y, W / 2 - an.x);
-        a = toC + (s / beams - 0.5) * 0.9 + randn(r) * 0.07;
-      }
-      const len = S * (0.55 + r() * 0.6);
-      const spread = 0.04 + r() * 0.14;
-      const width = S * (0.004 + r() * 0.012);
-      const bands = rint(r, 6, 11);
-      drawBeam(x, P, an.x, an.y, a, len, spread, width, bands, r, 0.6 + r() * 0.5);
-    }
+  for (let b = 0; b < beamN; b++) {
+    const off = beamN === 1 ? 0 : (b / (beamN - 1) - 0.5);
+    const ia  = inA + off * 0.18;
+    const dist = S * (0.7 + r() * 0.5);
+    const sx = px + Math.cos(ia) * dist;
+    const sy = py + Math.sin(ia) * dist;
+    // hit point slightly offset along the prism edge per beam
+    const hx = px + Math.cos(exitA + Math.PI / 2) * off * prad * 1.4;
+    const hy = py + Math.sin(exitA + Math.PI / 2) * off * prad * 1.4;
+    drawIncoming(x, P, sx, sy, hx, hy, S * (0.006 + r() * 0.01) * (0.6 + scaleMul * 0.4), 0.7 + r() * 0.3);
   }
   x.restore();
 
-  // ── Long refracted streaks crossing the field (chromatic threads) ───────
+  // ── The ordered spectral dispersion fan(s) — the heart of the piece ──────
   x.save();
   x.globalCompositeOperation = 'lighter';
-  const threads = Math.round(rint(r, 6, 14) * densMul);
-  for (let i = 0; i < threads; i++) {
-    const sx = r() * W, sy = r() * H;
-    const a = randn(r) * 0.6 + (p.mode === 'Cascade' ? Math.PI / 2 : 0);
-    const len = S * (0.4 + r() * 0.7);
-    const hue = specHue(P, r());
-    const col = hsl2hex(hue, P.sat, 0.6);
-    const ex = sx + Math.cos(a) * len, ey = sy + Math.sin(a) * len;
-    const g = x.createLinearGradient(sx, sy, ex, ey);
-    g.addColorStop(0, rgba(col, 0));
-    g.addColorStop(0.5, rgba(col, 0.25 + r() * 0.2));
-    g.addColorStop(1, rgba(col, 0));
-    x.strokeStyle = g;
-    x.lineWidth = 0.6 + r() * 1.8;
-    x.beginPath();
-    x.moveTo(sx, sy);
-    const mx = (sx + ex) / 2 + Math.cos(a + Math.PI / 2) * randn(r) * len * 0.08;
-    const my = (sy + ey) / 2 + Math.sin(a + Math.PI / 2) * randn(r) * len * 0.08;
-    x.quadraticCurveTo(mx, my, ex, ey);
-    x.stroke();
+  const bandsPerFan = rint(r, 9, 13);
+  for (let b = 0; b < beamN; b++) {
+    const off = beamN === 1 ? 0 : (b / (beamN - 1) - 0.5);
+    const hx = px + Math.cos(exitA + Math.PI / 2) * off * prad * 1.4;
+    const hy = py + Math.sin(exitA + Math.PI / 2) * off * prad * 1.4;
+    const ea = exitA + off * 0.12;
+    const sp = fanSpread * (0.9 + r() * 0.25);
+    const ln = fanLen * (0.85 + r() * 0.3);
+    drawDispersion(x, P, hx, hy, ea, sp, ln, bandsPerFan, r, 0.9 + r() * 0.25);
   }
   x.restore();
 
-  // ── Prism ghosts at anchors (faint glass facets) ────────────────────────
-  for (const an of anchors) {
-    drawPrismGhost(x, P, an.x, an.y, S * (0.05 + r() * 0.06), randn(r) * 1.2, r);
-  }
+  // ── The prism body ───────────────────────────────────────────────────────
+  drawPrism(x, P, px, py, prad, prismRot);
 
-  // ── Caustic glints — focal sparkles, clustered near anchors + scattered ──
+  // ── Caustic ribbons cast onto the ground ─────────────────────────────────
   x.save();
   x.globalCompositeOperation = 'lighter';
-  const glints = Math.round(rint(r, 18, 40) * densMul);
-  for (let i = 0; i < glints; i++) {
-    let cx, cy;
-    if (r() < 0.6 && anchors.length) {
-      const an = pick(anchors, r);
-      cx = an.x + randn(r) * S * 0.18;
-      cy = an.y + randn(r) * S * 0.18;
-    } else {
-      cx = r() * W; cy = r() * H;
-    }
-    const rad = S * (0.004 + Math.pow(r(), 2) * 0.03);
-    drawCaustic(x, P, clamp(cx, 0, W), clamp(cy, 0, H), rad, r);
+  const causticN = p.ground === 'Caustic' ? rint(r, 5, 8) : rint(r, 2, 3);
+  for (let i = 0; i < causticN; i++) {
+    const t = bandsPerFan > 1 ? i / Math.max(1, causticN - 1) : 0.5;
+    const a0 = exitA - fanSpread / 2 + t * fanSpread + randn(r) * 0.1;
+    const r0 = fanLen * (0.5 + r() * 0.4);
+    const x0 = px + Math.cos(a0) * r0 * 0.4;
+    const y0 = py + Math.sin(a0) * r0 * 0.4;
+    const x1 = px + Math.cos(a0) * r0;
+    const y1 = py + Math.sin(a0) * r0;
+    drawCaustic(x, P, x0, y0, x1, y1, S * (0.01 + r() * 0.02), bandHue(P, t), r);
   }
   x.restore();
 
-  // ── Optical-colour texture: spectral mottle in a few zones ──────────────
-  for (const an of anchors) {
-    const hue = specHue(P, r());
-    mottle(x, an.x - S * 0.2, an.y - S * 0.2, S * 0.4, S * 0.4, hsl2hex(hue, P.sat, 0.5), 90, r, 'screen');
-  }
+  // ── Optical-colour mottle in the dispersion zone (divisionist texture) ────
+  const mzx = px + Math.cos(exitA) * fanLen * 0.4;
+  const mzy = py + Math.sin(exitA) * fanLen * 0.4;
+  mottle(x, mzx - S * 0.25, mzy - S * 0.25, S * 0.5, S * 0.5, hsl2hex(bandHue(P, 0.5), P.sat, P.lt), 70, r, 'screen');
 
-  // ── Finishing texture ───────────────────────────────────────────────────
-  grain(x, W, H, 1000, r);
-  vignette(x, W, H, 0.34);
-
-  // a final faint central bloom to lift the additive light off the ground
-  x.save();
-  x.globalCompositeOperation = 'screen';
-  const cb = x.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, S * 0.6);
-  cb.addColorStop(0, rgba(P.glow, 0.06));
-  cb.addColorStop(1, rgba(P.glow, 0));
-  x.fillStyle = cb;
-  x.fillRect(0, 0, W, H);
-  x.restore();
+  // ── Whole-frame finishing texture ────────────────────────────────────────
+  grain(x, W, H, 800, r);
+  vignette(x, W, H, 0.38);
 }
 
 export const spectraTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const spectraSchema: TraitSchema = {
   traits: [
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format',  values: ['Square', 'Portrait', 'Landscape'] },
-    { name: 'Mode',    values: MODES },
-    { name: 'Density', values: DENS },
-    { name: 'Focus',   values: FOCUS },
+    { name: 'Palette',   values: PALS.map((p) => p.name) },
+    { name: 'Format',    values: ['Square', 'Tall', 'Wide'] },
+    { name: 'Placement', values: PLACE },
+    { name: 'Beams',     values: BEAMS },
+    { name: 'Scale',     values: SCALE },
+    { name: 'Ground',    values: GROUNDF },
   ],
 };
 
 export const renderSpectra: EngineFn = blit(draw, spectraTraits);
 
-export const SPECTRA_ASPECTS = [1, 0.81, 1.24] as const; // W/H of Square, Portrait, Landscape
+// W/H of Square, Tall, Wide (matches FMTS order).
+export const SPECTRA_ASPECTS = [1, 0.77, 1.3] as const;
