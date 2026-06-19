@@ -3450,6 +3450,10 @@ body.persona-default .stats-row-2 { display: none !important; }
 .collected-sprite {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
+    /* Bolder face so the PriceSprite reads against the tinted rectangle
+       (Brendon, 2026-06-19 — hard to see otherwise). Applies to every ID
+       Rectangle since they all share this class. */
+    font-weight: bold;
     letter-spacing: 0;
     text-transform: none;
     margin-right: 0;
