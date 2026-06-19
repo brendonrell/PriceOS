@@ -57,6 +57,9 @@ export const STATE_CACHE_KEYS = {
     /** Starred (pinned) artists — ordered artist names. Read + written by
      *  ArtistsView; lives in the settings envelope (private). */
     artistStars: 'pd_artist_pinned',
+    /** Starred Traits (`${slug}|${category}|${value}` keys). Read + written by
+     *  traitStarStore; lives in the settings envelope (private). */
+    traitStars: 'pd_trait_stars',
     /** Per-page last-viewed tab map `{ project: {slug:tab}, profile: {handle:tab} }`.
      *  Read + written by tabMemoryStore; lives in the settings envelope. */
     tabMemory: 'pd_tab_memory',
@@ -167,6 +170,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.artistStars,
             JSON.stringify(Array.isArray(s.artistStars) ? s.artistStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.traitStars,
+            JSON.stringify(Array.isArray(s.traitStars) ? s.traitStars : []),
         );
         // Per-page tab memory — server wins; tabMemoryStore reads this cache
         // synchronously in the project/profile page tab initializers.

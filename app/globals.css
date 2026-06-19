@@ -8189,6 +8189,81 @@ body.colorway-dark .ghost-feed-bar {
     border-color: var(--stat-active-bg);
 }
 
+/* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
+.starred-mode-pills {
+    display: flex;
+    gap: 8px;
+    padding: 12px 0 2px;
+    flex-wrap: wrap;
+}
+/* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
+   rows) — same footprint as the wishlist cart button. */
+.starred-row-cta {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.starred-row-cta:hover { background: var(--stat-bg); }
+.starred-row-cta.is-on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+
+/* Trait rows — a small colour tile (the Project's signature colour) stands in
+   for the Output thumbnail. */
+.trait-row { cursor: default; }
+.trait-row:hover { background: none; }
+.trait-row-tile {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.trait-row-tile-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 22px;
+    color: #fff;
+    mix-blend-mode: difference;
+    opacity: 0.92;
+}
+
+/* ── Starred Trait: the ★ on a trait value pill + the long-press float ───── */
+.pill-l3 .l3-trait-star {
+    margin-left: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+}
+.pill-l3.trait-starred { box-shadow: inset 0 0 0 1px var(--accent); }
+/* Float-up confirm star — rises out of the pill and fades (Brendon's "fun
+   little animation"). Keyed remount in JSX replays it on every long-press. */
+.pill-l3 .trait-star-float {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, 0);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    color: var(--accent);
+    pointer-events: none;
+    animation: traitStarFloat 0.9s ease-out forwards;
+    will-change: transform, opacity;
+    z-index: 5;
+}
+@keyframes traitStarFloat {
+    0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.6); }
+    25%  { opacity: 1; transform: translate(-50%, -6px) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -38px) scale(1); }
+}
+
 /* ── Dev-preview-only "Login Brendon" shortcut ──────────────────────
    Rendered only on non-production deploys (layout gate) and only on
    desktop (hidden under 768px below — mobile uses the real wallet).
