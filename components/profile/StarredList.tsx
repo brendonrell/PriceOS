@@ -422,7 +422,7 @@ export default function StarredList({
                                     onClick={(e) => { e.stopPropagation(); showToast('Follow: COMING SOON'); }}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Follow: COMING SOON'); } }}
                                 >
-                                    ⚭︎ Follow
+                                    ⚯︎ Follow
                                 </span>
                                 <span
                                     className="starred-row-unstar"
@@ -454,7 +454,7 @@ export default function StarredList({
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph" style={{ color: projectColorway(r.slug) ?? undefined }}>▶&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph soundtrack-tile-glyph" style={{ color: projectColorway(r.slug) ?? undefined }}>▶&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.title}</span>

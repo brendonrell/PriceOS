@@ -8335,6 +8335,11 @@ body.colorway-dark .ghost-feed-bar {
     color: var(--accent);
     opacity: 0.95;
 }
+/* The ▶ play glyph reads larger than ★/⬚/✺ at the same size — trim it 25%
+   (Brendon 2026-06-19). */
+.soundtrack-tile-glyph {
+    font-size: 25px;
+}
 /* Kept for the artist/soundtrack/project tiles' selector; same neutral well. */
 .trait-row-tile.artist-tile {
     background: var(--stat-bg);
