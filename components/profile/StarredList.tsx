@@ -74,7 +74,8 @@ export default function StarredList({
     sortKey = 'recent',
     sortDir = 'asc',
     group = 'none',
-    onModeChange,
+    mode = 'all',
+    onSetMode,
     viewerAddress,
 }: {
     items: StarredItem[];
@@ -99,17 +100,17 @@ export default function StarredList({
     /* Active grouping dimension for the current filter (none | color | project
        | artist | type-for-All). Parent only sends one valid for the mode. */
     group?: string;
-    /* Report the active filter pill up so the sub-nav shows the sorts + groups
-       that make sense for it. */
-    onModeChange?: (m: Mode) => void;
+    /* The active filter pill — CONTROLLED by the parent so Starred Presets can
+       restore it. The pills call onSetMode to change it. */
+    mode?: Mode;
+    onSetMode?: (m: Mode) => void;
     /* The viewer's wallet (own profile = the owner) — lets each artist row
        resolve the follow relationship (mutual / following / follower). */
     viewerAddress?: string | null;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const [mode, setMode] = useState<Mode>('all');
-    useEffect(() => { onModeChange?.(mode); }, [mode, onModeChange]);
+    const setMode = (m: Mode) => onSetMode?.(m);
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 

@@ -56,6 +56,8 @@ import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcase
 import AddToShowcaseModal from './AddToShowcaseModal';
 import ArtistTitleStar from './ArtistTitleStar';
 import StarredList from './StarredList';
+import StarredPresetRow from './StarredPresetRow';
+import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
@@ -882,6 +884,7 @@ function ProfilePageBodyInner({
     /* +More multi-select — same idea as Collected's ❐. Lives beside the search
        icon and drives the open sub-tab's row selection. */
     const [moreMultiActive, setMoreMultiActive] = useState(false);
+    const [morePresetActive, setMorePresetActive] = useState(false);
     /* +More sort — Recent / AZ. Lives in the sub-nav sort-bar beside the colorway
        picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
        like the gallery), so there's no separate Group button (Brendon 2026-06-19).
@@ -905,10 +908,24 @@ function ProfilePageBodyInner({
         soundtracks: { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist', 'project'] },
         wishlist:    { sorts: ['recent', 'id', 'project', 'price'], groups: ['none'] },
     };
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
-    /* Reset sort + grouping when the active filter pill changes (StarredList
-       reports it up) so a grouping never carries into a filter it can't apply. */
-    useEffect(() => { setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreMode]);
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMorePresetActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
+    /* Reset sort + grouping when the active filter pill changes so a grouping
+       never carries into a filter it can't apply — UNLESS we're applying a
+       Starred Preset (which sets mode + sort + group together). */
+    const applyingPreset = useRef(false);
+    useEffect(() => {
+        if (applyingPreset.current) { applyingPreset.current = false; return; }
+        setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none');
+    }, [moreMode]);
+    const applyStarredPreset = (s: StarredPresetState) => {
+        if (s.mode !== moreMode) applyingPreset.current = true;
+        setMoreMode(s.mode as MoreMode);
+        setMoreSort(s.sort as MoreSortKey);
+        setMoreSortDir(s.dir);
+        setMoreGroup(s.group);
+        setMoreQuery(s.query);
+        if (s.query) setMoreSearchOpen(true);
+    };
     const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
     const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
     /* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
@@ -1666,6 +1683,16 @@ function ProfilePageBodyInner({
                                 (onStarredTab || onWishlistTab) ? (
                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                         <div
+                                            className={`burn-btn${morePresetActive ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Starred Presets"
+                                            onClick={() => setMorePresetActive((v) => !v)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMorePresetActive((v) => !v); } }}
+                                        >
+                                            ⏚&#xFE0E;
+                                        </div>
+                                        <div
                                             className={`multiselect-btn${moreMultiActive ? ' active' : ''}`}
                                             role="button"
                                             tabIndex={0}
@@ -2061,6 +2088,13 @@ function ProfilePageBodyInner({
             {/* Starred — a compact bookmark ROW list (not the gallery grid):
                 sortable/filterable rows with a small preview that opens the
                 Artwork modal. Own profile only (Stars are private). */}
+            {(onStarredTab || onWishlistTab) && isOwnProfile && (
+                <StarredPresetRow
+                    open={morePresetActive}
+                    current={{ mode: onWishlistTab ? 'wishlist' : moreMode, sort: moreSort, dir: moreSortDir, group: moreGroup, query: moreQuery }}
+                    onApply={applyStarredPreset}
+                />
+            )}
             {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) && (
                 <StarredList
                     items={starredValid}
@@ -2078,7 +2112,8 @@ function ProfilePageBodyInner({
                     sortKey={moreSort}
                     sortDir={moreSortDir}
                     group={moreGroup}
-                    onModeChange={setMoreMode}
+                    mode={moreMode}
+                    onSetMode={setMoreMode}
                     viewerAddress={user.address}
                 />
             )}
