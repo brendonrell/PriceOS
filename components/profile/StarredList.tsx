@@ -36,6 +36,7 @@ import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } fr
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { projectSpriteFace } from '../../lib/project/projectSprite';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
 
@@ -724,7 +725,7 @@ export default function StarredList({
                                     <span className="starred-row-id">@{r.slug}</span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
-                                    <span className="starred-row-sub">Project</span>
+                                    <span className="starred-row-sub">Project {projectSpriteFace(r.slug)}</span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
