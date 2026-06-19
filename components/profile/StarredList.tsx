@@ -360,8 +360,8 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
                                     <span className="starred-row-sub">Trait</span>
-                                    <span className="starred-row-sub">Floor: {r.market.floor}</span>
-                                    <span className="starred-row-sub">Last: {r.market.lastSale}</span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
+                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                 </div>
                                 <span
                                     className="starred-row-cta trait-offer-cta"
@@ -503,8 +503,8 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Project</span>
-                                    <span className="starred-row-sub">Floor: {r.market.floor}</span>
-                                    <span className="starred-row-sub">Last: {r.market.lastSale}</span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
+                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                 </div>
                                 <span
                                     className="starred-row-cta"
