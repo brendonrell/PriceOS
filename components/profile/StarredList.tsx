@@ -358,13 +358,10 @@ export default function StarredList({
                                     <span className="trait-row-tile-glyph" style={{ color: r.color }}>★&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id is-split">
-                                        <span className="srl-handle">@{r.slug}</span>
-                                        <span className="srl-suffix">· {r.category}</span>
-                                    </span>
+                                    <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
                                     <span className="starred-row-sub">Trait</span>
-                                    <span className="starred-row-sub">{r.value}</span>
-                                    <span className="starred-row-sub">Floor {r.market.floor} · Last {r.market.lastSale}</span>
+                                    <span className="starred-row-sub">Floor: {r.market.floor}</span>
+                                    <span className="starred-row-sub">Last: {r.market.lastSale}</span>
                                 </div>
                                 <span
                                     className="starred-row-cta trait-offer-cta"
@@ -464,12 +461,12 @@ export default function StarredList({
                                     className="starred-row-cta"
                                     role="button"
                                     tabIndex={0}
-                                    title="Listen on YouTube"
-                                    aria-label="Listen"
+                                    title="Play on YouTube"
+                                    aria-label="Play"
                                     onClick={() => window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer')}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
                                 >
-                                    ▶︎ Listen
+                                    ▶︎ Play
                                 </span>
                                 <span
                                     className="starred-row-unstar"
@@ -506,8 +503,8 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Project</span>
-                                    <span className="starred-row-sub">Floor {r.market.floor}</span>
-                                    <span className="starred-row-sub">Last {r.market.lastSale}</span>
+                                    <span className="starred-row-sub">Floor: {r.market.floor}</span>
+                                    <span className="starred-row-sub">Last: {r.market.lastSale}</span>
                                 </div>
                                 <span
                                     className="starred-row-cta"
