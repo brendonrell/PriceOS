@@ -145,6 +145,13 @@ const MODE_TOKEN_TO_KEY: Record<string, keyof PdNotifs> = {
        Earlier port had it routed into the spell bucket as
        `spell_stargazing`; that field never existed in sim. */
     STAR: 'stargazing',
+    /* Newer UI toggles, all default-OFF so the presence/absence model is
+       lossless (Brendon 2026-06-19 — Setup Codes catch-up). */
+    TBCL: 'topBarCalendar', // Top-bar calendar
+    BACK: 'backButton',     // Persistent back button
+    AMBS: 'ambientStrip',   // Ambient light strip
+    WTCH: 'watch',          // The Watch
+    NITE: 'nightmode',      // Night mode
 };
 
 const MODE_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromEntries(
