@@ -209,29 +209,35 @@ body.is-pwa .ambient-strip-layer {
    layer lights the whole top in sync (its keyframe below). Speed sets the gap
    between strikes (Thunder rides 'fast'). steps(1) keeps the flashes crisp. */
 .pat-lightning .ambient-pill-led,
-.pat-lightning .ambient-glow { animation: amb-lightning var(--amb-dur) steps(1, end) infinite; }
+.pat-lightning .ambient-glow { animation: amb-lightning calc(var(--amb-dur) * 1.85) steps(1, end) infinite; }
 @keyframes amb-lightning {
-    /* Longer, slightly brighter rumble (most of the cycle) — a moody glow that
-       breathes — then SOFTER, later strikes (peaks pulled down so it never goes
-       harsh/scary). */
-    0%   { opacity: 0.20; }
-    10%  { opacity: 0.24; }
-    20%  { opacity: 0.18; }
-    30%  { opacity: 0.23; }
-    40%  { opacity: 0.19; }
-    50%  { opacity: 0.24; }
-    60%  { opacity: 0.20; }
-    66%  { opacity: 0.22; }
-    68%  { opacity: 0.58; }   /* strike (soft) */
-    70%  { opacity: 0.27; }
-    71%  { opacity: 0.50; }   /* flash-flash (soft) */
-    73%  { opacity: 0.22; }
-    74%  { opacity: 0.38; }   /* afterglow */
-    76%  { opacity: 0.21; }
-    84%  { opacity: 0.23; }
-    92%  { opacity: 0.46; }   /* distant later strike (soft) */
-    94%  { opacity: 0.21; }
-    100% { opacity: 0.20; }
+    /* A REAL storm (Brendon 2026-06-19): a long, dark, moody rumble fills ~80%
+       of the cycle (the quiet, ~3× longer than before), then a dramatic strike
+       sequence — a hot main bolt, the characteristic double flash-flash, a
+       burning afterglow that fades, then a dimmer distant strike — before it
+       falls dark again. steps(1) keeps every flash crisp. */
+    0%   { opacity: 0.16; }
+    9%   { opacity: 0.20; }
+    18%  { opacity: 0.13; }
+    28%  { opacity: 0.19; }
+    38%  { opacity: 0.14; }
+    48%  { opacity: 0.20; }
+    58%  { opacity: 0.15; }
+    68%  { opacity: 0.19; }
+    78%  { opacity: 0.14; }
+    80%  { opacity: 0.22; }   /* calm before */
+    81%  { opacity: 0.92; }   /* MAIN BOLT — hot */
+    82%  { opacity: 0.30; }
+    83%  { opacity: 0.80; }   /* flash-flash */
+    84%  { opacity: 0.24; }
+    85%  { opacity: 0.54; }   /* burning afterglow */
+    87%  { opacity: 0.34; }
+    89%  { opacity: 0.20; }
+    92%  { opacity: 0.17; }
+    93%  { opacity: 0.66; }   /* distant strike */
+    94%  { opacity: 0.22; }
+    96%  { opacity: 0.16; }
+    100% { opacity: 0.15; }
 }
 
 /* ---- Atmosphere (page 3): the light's physical character. None of these ride
@@ -438,22 +444,23 @@ body.is-pwa .ambient-strip-layer {
     filter: blur(6px) saturate(1.1);
     -webkit-mask-image: radial-gradient(130% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 44%, transparent 82%);
     mask-image: radial-gradient(130% 100% at 50% 0%, #000 0%, rgba(0,0,0,0.55) 44%, transparent 82%);
-    animation: amb-flash var(--amb-dur) steps(1, end) infinite;
+    animation: amb-flash calc(var(--amb-dur) * 1.85) steps(1, end) infinite;
 }
 @keyframes amb-flash {
-    /* Softer sky-flash, aligned to the later/gentler strikes — moody, not scary. */
-    0%, 67% { opacity: 0; }
-    68% { opacity: 0.40; }
-    70% { opacity: 0.07; }
-    71% { opacity: 0.30; }
-    73% { opacity: 0.03; }
-    74% { opacity: 0.18; }
-    76% { opacity: 0; }
-    91% { opacity: 0; }
-    92% { opacity: 0.28; }
+    /* The sky lights in sync with the bolts — a big bright main flash, the
+       flash-flash flicker, a soft afterglow, then the dimmer distant strike. */
+    0%, 80% { opacity: 0; }
+    81% { opacity: 0.88; }   /* main flash */
+    82% { opacity: 0.12; }
+    83% { opacity: 0.62; }   /* flash-flash */
+    84% { opacity: 0.05; }
+    85% { opacity: 0.34; }   /* afterglow */
+    87% { opacity: 0.08; }
+    89% { opacity: 0; }
+    92% { opacity: 0; }
+    93% { opacity: 0.42; }   /* distant */
     94% { opacity: 0.05; }
-    95% { opacity: 0.14; }
-    97% { opacity: 0; }
+    96% { opacity: 0; }
     100% { opacity: 0; }
 }
 
