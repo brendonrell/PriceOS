@@ -228,15 +228,15 @@ export default function StarredList({
         showToast('Removed from your Starred Soundtracks List');
     };
 
-    /* Brendon's order: All Starred › Artists › Outputs › Traits › Soundtracks ›
-       Projects. */
+    /* Brendon's order: All Starred › Artists › Projects › Outputs › Traits ›
+       Soundtracks. */
     const PILLS: { key: Mode; label: string; count: number }[] = [
         { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + soundtracks.length + visibleProjects.length },
         { key: 'artists',     label: 'Artists',     count: artists.length       },
+        { key: 'projects',    label: 'Projects',    count: projects.length      },
         { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
         { key: 'traits',      label: 'Traits',      count: traitRows.length     },
         { key: 'soundtracks', label: 'Soundtracks', count: soundtracks.length   },
-        { key: 'projects',    label: 'Projects',    count: projects.length      },
     ];
 
     const totalVisible =

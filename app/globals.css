@@ -8256,18 +8256,23 @@ body.colorway-dark .ghost-feed-bar {
    rows) — same footprint as the wishlist cart button. */
 .starred-row-cta {
     flex-shrink: 0;
-    padding: 4px 8px;
+    padding: 4px 10px;
     font-size: 12px;
-    border: 1px solid var(--border-color);
+    font-weight: bold;
+    /* Filled, clearly-visible CTA by default (Brendon 2026-06-19 — the faint
+       outline was near-invisible). Same filled treatment as the active pill. */
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border: 1px solid var(--stat-active-bg);
     border-radius: 5px;
     cursor: pointer;
     white-space: nowrap;
 }
-.starred-row-cta:hover { background: var(--stat-bg); }
+.starred-row-cta:hover { opacity: 0.85; }
+/* Already-on (e.g. wishlisted) — muted so the actionable state still reads as
+   filled but distinct. */
 .starred-row-cta.is-on {
-    background: var(--stat-active-bg);
-    color: var(--stat-active-text);
-    border-color: var(--stat-active-bg);
+    opacity: 0.6;
 }
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
