@@ -141,10 +141,10 @@ export default function StarredList({
                 .map((it, i) => {
                     const t = outputTraits(it.slug, it.id);
                     const PLAT = new Set(['Artist', 'Project', 'Fate', 'PriceDay', 'Sun', 'Moon', 'Rising']);
-                    const extra = Object.entries(t)
+                    const extraPairs = Object.entries(t)
                         .filter(([k, v]) => !PLAT.has(k) && v)
-                        .map(([k, v]) => `${k}: ${v}`)
-                        .join(' · ');
+                        .map(([k, v]) => ({ k, v: String(v) }));
+                    const extra = extraPairs.map((p) => `${p.k}: ${p.v}`).join(' · ');
                     return {
                         ...it,
                         recentIndex: i,
@@ -153,6 +153,7 @@ export default function StarredList({
                         artist: t.Artist ?? '',
                         fate: t.Fate ?? '',
                         extra,
+                        extraPairs,
                     };
                 }),
         [items],
@@ -418,7 +419,8 @@ export default function StarredList({
                                                 id={r.id}
                                                 project={r.project}
                                                 artist={r.artist}
-                                                extra={r.extra || r.fate}
+                                                extraPairs={r.extraPairs}
+                                                fate={r.fate}
                                                 wished={wishKeys.has(`${r.slug}:${r.id}`)}
                                                 multiActive={multiActive}
                                                 selected={selected.has(`${r.slug}:${r.id}`)}
@@ -565,8 +567,8 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug}</span>
-                                    <span className="starred-row-sub">{'\u00A0'}</span>
-                                    <span className="starred-row-sub">{'\u00A0'}</span>
+                                    <span className="starred-row-sub">YT Playlist ID: <em>{r.playlistId}</em></span>
+                                    <span className="starred-row-sub">{getProject(r.slug)?.artistHandle ? `by: @${getProject(r.slug)!.artistHandle}` : '\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
                                 <div className="starred-row-actions">
@@ -714,7 +716,8 @@ function StarredOutputRow({
     id,
     project,
     artist,
-    extra,
+    extraPairs,
+    fate,
     wished,
     multiActive,
     selected,
@@ -727,7 +730,8 @@ function StarredOutputRow({
     id: number;
     project: string;
     artist: string;
-    extra: string;
+    extraPairs: { k: string; v: string }[];
+    fate: string;
     wished: boolean;
     multiActive: boolean;
     selected: boolean;
@@ -753,7 +757,13 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
-                <span className="starred-row-sub">{extra || ' '}</span>
+                <span className="starred-row-sub">
+                    {extraPairs.length > 0
+                        ? extraPairs.map((p, i) => (
+                            <Fragment key={p.k}>{i > 0 ? ' · ' : ''}{p.k}: <em>{p.v}</em></Fragment>
+                          ))
+                        : (fate || ' ')}
+                </span>
                 <span className="starred-row-sub">{artist ? `by: ${artist}` : ' '}</span>
                 <span className="starred-row-sub">Output</span>
             </div>

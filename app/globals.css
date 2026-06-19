@@ -5202,11 +5202,17 @@ body.colorway-dark .canvas-wrapper {
    splash in layout.tsx). Brendon 2026-06-19: this replaces the old three-dot
    loader everywhere it appeared (route transitions + pull-to-refresh). */
 .route-loading {
-    flex: 1;
+    /* Fixed, viewport-centered overlay (same as the boot splash + pull-to-
+       refresh cover) so the "Loading" bar is ALWAYS dead-centre and never
+       jumps with the page layout (Brendon 2026-06-19). */
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 50vh;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
 }
 .pd-load-panel {
     background: #000;
@@ -8068,10 +8074,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
        the colorway picker and the rest of the page (Brendon 2026-06-19). */
     margin: 0;
     padding: 0 40px 48px;
+    /* Cap the content width to the same as every other +More section (sentiment
+       / replay etc.) on desktop, so it doesn't run edge-to-edge (Brendon
+       2026-06-19). */
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
     font-family: 'Courier New', Courier, monospace;
 }
 @media (max-width: 600px) {
-    .starred-list { padding: 0 20px 48px; }
+    .starred-list { padding: 0 20px 48px; max-width: none; }
 }
 /* ── STRUCTURAL ALIGNMENT GUARANTEE (Brendon 2026-06-19) ──────────────────────
    The ONLY thing that sets the horizontal indent in the Starred area is the
@@ -8475,6 +8486,18 @@ body.colorway-dark .ghost-feed-bar {
     will-change: transform, opacity;
     z-index: 5;
 }
+/* Unstar confirm — same star, but it sinks DOWN and fades instead of rising
+   (Brendon 2026-06-19). The float elements add .is-down when a press removes. */
+.pill-l3 .trait-star-float.is-down,
+.btn-soundtrack .soundtrack-star-float.is-down,
+.project-name-star-float.is-down {
+    animation-name: traitStarFloatDown;
+}
+@keyframes traitStarFloatDown {
+    0%   { opacity: 0; transform: translateY(-50%) scale(1); }
+    25%  { opacity: 1; transform: translateY(calc(-50% + 12px)) scale(1.05); }
+    100% { opacity: 0; transform: translateY(calc(-50% + 60px)) scale(0.8); }
+}
 @keyframes traitStarFloat {
     0%   { opacity: 0; transform: translateY(-50%) scale(0.6); }
     25%  { opacity: 1; transform: translateY(calc(-50% - 14px)) scale(1.1); }
@@ -8501,10 +8524,10 @@ body.colorway-dark .ghost-feed-bar {
    beside the name (before the date); the float confirm rises from it. */
 .project-name-star {
     /* Typed directly beside the name (no gap), in our usual Courier glyph font;
-       exactly 2× the title size (Brendon 2026-06-19). */
+       same type size as the title letters — NOT oversized (Brendon 2026-06-19). */
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
-    font-size: 2em;
+    font-size: 1em;
     line-height: 1;
     vertical-align: baseline;
 }

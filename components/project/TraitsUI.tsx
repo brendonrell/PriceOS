@@ -1825,6 +1825,7 @@ function L3Pill({
     const longFired = React.useRef(false);
     const startPt = React.useRef<{ x: number; y: number } | null>(null);
     const [floatId, setFloatId] = React.useState(0);
+    const [floatDown, setFloatDown] = React.useState(false);
     const clearTimer = () => {
         if (timerRef.current != null) {
             window.clearTimeout(timerRef.current);
@@ -1839,6 +1840,8 @@ function L3Pill({
         timerRef.current = window.setTimeout(() => {
             longFired.current = true;
             timerRef.current = null;
+            // Was starred → this press UNSTARS → float down; else float up.
+            setFloatDown(starred);
             setFloatId((n) => n + 1);
             onToggleStar();
         }, 460);
@@ -1900,7 +1903,7 @@ function L3Pill({
             {/* Float-up confirm — remounts on each long-press (keyed) so the
                 rise+fade replays every time. */}
             {starrable && floatId > 0 && (
-                <span key={floatId} className="trait-star-float" aria-hidden="true">{'★︎'}</span>
+                <span key={floatId} className={`trait-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>
             )}
         </div>
     );

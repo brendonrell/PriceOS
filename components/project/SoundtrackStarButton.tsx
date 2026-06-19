@@ -45,6 +45,7 @@ export default function SoundtrackStarButton({
     const longFired = React.useRef(false);
     const startPt = React.useRef<{ x: number; y: number } | null>(null);
     const [floatId, setFloatId] = React.useState(0);
+    const [floatDown, setFloatDown] = React.useState(false);
     const clearTimer = () => {
         if (timerRef.current != null) { window.clearTimeout(timerRef.current); timerRef.current = null; }
     };
@@ -55,8 +56,9 @@ export default function SoundtrackStarButton({
         timerRef.current = window.setTimeout(() => {
             longFired.current = true;
             timerRef.current = null;
-            setFloatId((n) => n + 1);
             const r = toggleSoundtrackStar(slug, playlistId, title);
+            setFloatDown(r !== 'starred');
+            setFloatId((n) => n + 1);
             showToast(r === 'starred' ? 'Added to your Starred Soundtracks List (Private)' : 'Removed from your Starred Soundtracks List');
         }, 460);
     };
@@ -91,11 +93,15 @@ export default function SoundtrackStarButton({
                 // Stop iOS's long-press link preview / share callout on the <a>,
                 // so the press registers as a star instead (Brendon 2026-06-19).
                 WebkitTouchCallout: 'none',
+                // Kill the translucent grey box iOS draws under a long-pressed
+                // link/element (Brendon 2026-06-19).
+                WebkitTapHighlightColor: 'transparent',
+                WebkitUserDrag: 'none',
                 touchAction: 'pan-y',
-            }}
+            } as React.CSSProperties}
         >
             <span className={`btn-icon-play${starred ? ' soundtrack-star-icon' : ''}`}>{starred ? '★︎' : '▶︎'}</span>{' '}SOUNDTRACK
-            {floatId > 0 && <span key={floatId} className="soundtrack-star-float" aria-hidden="true">{'★︎'}</span>}
+            {floatId > 0 && <span key={floatId} className={`soundtrack-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </a>
     );
 }

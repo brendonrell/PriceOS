@@ -30,6 +30,7 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
     const longFired = React.useRef(false);
     const startPt = React.useRef<{ x: number; y: number } | null>(null);
     const [floatId, setFloatId] = React.useState(0);
+    const [floatDown, setFloatDown] = React.useState(false);
     const clearTimer = () => {
         if (timerRef.current != null) { window.clearTimeout(timerRef.current); timerRef.current = null; }
     };
@@ -40,8 +41,9 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
         timerRef.current = window.setTimeout(() => {
             longFired.current = true;
             timerRef.current = null;
-            setFloatId((n) => n + 1);
             const r = toggleProjectStar(slug);
+            setFloatDown(r !== 'starred');
+            setFloatId((n) => n + 1);
             showToast(r === 'starred' ? 'Added to your Starred Projects List (Private)' : 'Removed from your Starred Projects List');
         }, 460);
     };
@@ -66,7 +68,7 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
         >
             <span>{title}</span>
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
-            {floatId > 0 && <span key={floatId} className="project-name-star-float" aria-hidden="true">{'★︎'}</span>}
+            {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </span>
     );
 }
