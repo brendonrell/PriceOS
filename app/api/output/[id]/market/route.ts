@@ -52,12 +52,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { slug, tokenId } = parsed;
   try {
     const db = getSupabaseService();
-    const [holder, listing, offers, lastSale, proj] = await Promise.all([
+    const [holder, listing, offers, lastSale, proj, vol] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db.from('offers').select('id, bidder_address, price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('status', 'open').order('price_eth', { ascending: false }),
       db.from('events').select('price_eth, timestamp').eq('project_id', slug).eq('token_id', tokenId).eq('type', 'XFER').order('timestamp', { ascending: false }).limit(1).maybeSingle(),
       db.from('projects').select('floor_price_eth').eq('id', slug).maybeSingle(),
+      // All-time ETH that changed hands for THIS piece — primary (MINT) +
+      // secondary (XFER) sales, mirroring the project-level Total Volume.
+      db.from('events').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).in('type', ['MINT', 'XFER']).not('price_eth', 'is', null),
     ]);
     // Surface a real DB failure instead of silently returning empty market
     // state (which would paint a wrong owner / missing listing — e.g. a BUY
@@ -68,6 +71,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (offers.error) return serverError(offers.error.message);
     if (lastSale.error) return serverError(lastSale.error.message);
     if (proj.error) return serverError(proj.error.message);
+    if (vol.error) return serverError(vol.error.message);
+
+    const volumeEth = ((vol.data ?? []) as { price_eth: number | string | null }[])
+      .reduce((s, e) => s + Number(e.price_eth ?? 0), 0);
 
     const owner = (holder.data as { owner_address?: string } | null)?.owner_address ?? null;
     let ownerHandle: string | null = null;
@@ -99,6 +106,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       floor: (proj.data as { floor_price_eth?: number } | null)?.floor_price_eth != null
         ? String((proj.data as unknown as { floor_price_eth: number }).floor_price_eth)
         : null,
+      volume_eth: String(Number(volumeEth.toFixed(4))),
       viewer,
     });
   } catch (err) {

@@ -105,7 +105,7 @@ export default function ArtworkPageBody({
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
         listing: { price_eth: string } | null;
-        last_sale: string | null; floor: string | null;
+        last_sale: string | null; floor: string | null; volume_eth: string | null;
         viewer: { address: string; isOwner: boolean; balance: number } | null;
     } | null>(null);
     useEffect(() => {
@@ -226,10 +226,10 @@ export default function ArtworkPageBody({
                             <span className="stat-item stat-item-vol">
                                 <span
                                     className="stat-icon stat-icon-eth"
-                                    {...iconToastProps('Last Sale')}
+                                    {...iconToastProps('Total Volume')}
                                 >⟠&#xFE0E;</span>{' '}
                                 <span className="stat-val stat-val-vol">
-                                    {market?.last_sale ? `${market.last_sale} ETH` : '—'}
+                                    {market ? `${market.volume_eth ?? '0'} VOL` : '—'}
                                 </span>
                             </span>
                             <span className="stat-item stat-item-owners">
