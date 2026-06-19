@@ -37,16 +37,16 @@ import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types'
    Each carries its own warm accent (sand/coral/amber) so caustic edges + highlights
    read against the teal page. warmLit moods tint the sun toward the accent. */
 const PALS = [
-  { name:'Reef Shallows', deep:'#1d6e57', water:'#3a9a72', shallow:'#8fd39a', warm:'#f3d59a', sun:'#fff6df', warmLit:false }, // yellow-green
-  { name:'Deep End',      deep:'#0a2f4a', water:'#155a72', shallow:'#3f9bb0', warm:'#e8b487', sun:'#eef8ff', warmLit:false }, // teal-navy
-  { name:'High Noon',     deep:'#0e6f7e', water:'#26a6ad', shallow:'#79dcc6', warm:'#ffcf86', sun:'#fff3cf', warmLit:true  }, // turquoise
-  { name:'Dusk',          deep:'#2a2750', water:'#4a4f86', shallow:'#8f86c4', warm:'#f3a07f', sun:'#ffe2d6', warmLit:true  }, // violet
-  { name:'Night Swim',    deep:'#06101c', water:'#0e2638', shallow:'#27566b', warm:'#c98f6a', sun:'#dbeaf2', warmLit:false }, // near-black
-  { name:'First Light',   deep:'#2a4a5c', water:'#5a8a96', shallow:'#b6ddd2', warm:'#ffbf9a', sun:'#fff0e0', warmLit:true  }, // dawn rose-gold
-  { name:'Jade Lane',     deep:'#0c5040', water:'#159a78', shallow:'#5fd9a8', warm:'#f6a98a', sun:'#f4fff4', warmLit:false }, // jade
-  { name:'Chlorine',      deep:'#0b5f78', water:'#19a8c2', shallow:'#7ef0ee', warm:'#ffd2a0', sun:'#f2ffff', warmLit:false }, // bright cyan
-  { name:'Storm',         deep:'#283642', water:'#46606e', shallow:'#86a4ad', warm:'#d8a982', sun:'#e6eef0', warmLit:false }, // slate/storm
-  { name:'Tropic',        deep:'#0d6a82', water:'#13b6c0', shallow:'#7af2d8', warm:'#ffc27a', sun:'#fffae8', warmLit:true  }, // tropical aqua
+  { name:'Chlorine Pop',   deep:'#0566a8', water:'#00b8e6', shallow:'#5ff4ff', warm:'#ffcf70', sun:'#f4ffff', warmLit:false }, // vivid chlorine cyan
+  { name:'Tropic Aqua',    deep:'#018a8c', water:'#06d6c4', shallow:'#74ffe0', warm:'#ffb347', sun:'#fffae0', warmLit:true  }, // tropical aqua
+  { name:'Emerald Jade',   deep:'#0a7a4a', water:'#11c46f', shallow:'#5dffae', warm:'#ff9a5a', sun:'#f2fff0', warmLit:false }, // emerald jade
+  { name:'Deep Sapphire',  deep:'#04265e', water:'#0b54c8', shallow:'#3f9fff', warm:'#ffb066', sun:'#eaf3ff', warmLit:false }, // deep sapphire
+  { name:'High Noon',      deep:'#0792a0', water:'#15d4d0', shallow:'#86ffe6', warm:'#ffd24d', sun:'#fffae6', warmLit:true  }, // turquoise high-noon
+  { name:'Sunlit Amber',   deep:'#0c8f8a', water:'#1fc9b0', shallow:'#9bf7c8', warm:'#ffb52e', sun:'#fff2c2', warmLit:true  }, // warm sunlit amber-tint
+  { name:'Dawn Rose-Gold', deep:'#3a6e88', water:'#4fb4c4', shallow:'#bdf0e2', warm:'#ff9d7a', sun:'#ffe3cf', warmLit:true  }, // dawn rose-gold
+  { name:'Dusk Violet',    deep:'#3a2270', water:'#6a3fc8', shallow:'#b58fff', warm:'#ff7eb0', sun:'#ffe0f2', warmLit:true  }, // dusk violet
+  { name:'Night Swim',     deep:'#04132e', water:'#0a3d72', shallow:'#2f86c4', warm:'#e0985a', sun:'#cfe6ff', warmLit:false }, // darker night
+  { name:'Storm Slate',    deep:'#1c2e3a', water:'#2f6a82', shallow:'#6fb4c4', warm:'#e0a060', sun:'#e6f2f4', warmLit:false }, // storm slate
 ];
 
 const FMTS = [

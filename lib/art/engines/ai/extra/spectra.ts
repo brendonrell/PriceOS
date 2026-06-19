@@ -39,30 +39,36 @@
 import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette, mottle, blit, PHI, INVPHI } from './_kit';
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
-/* ── Palettes — 9 with WIDE separation (dominant hue + temperature) ──────────
+/* ── Palettes — 10 JEWEL-BRIGHT spectra: refracted light, maximally luminous ──
+ * COLOUR IDENTITY: white light split by a prism — the most saturated, high-
+ * chroma piece in the set. Brilliant full rainbows + saturated jewel near-monos.
  * span  : which slice of violet(280)→red(0) the prism throws (h0 = violet end,
  *         h1 = red end, walked in order; degrees may wrap through 360/0).
- * sat/lt: dusty, atmospheric glass colour — never neon.
- * ground: deep indigo/teal/oxblood ground; cap = peak band lightness (<1). */
+ * sat/lt: HIGH chroma, bright cores — jewel light through glass, not a haze.
+ * ground: VARIED — near-black, deep jewel grounds, and a couple bright/misty
+ *         light grounds, so a 9-seed sheet shows clearly different schemes.
+ * cap   : peak band lightness ceiling (kept <1 so the brightest core glows). */
 const PALS = [
-  // 1. Full spectrum — the textbook prism, all bands, slightly muted.
-  { name: 'Full Spectrum',    ground: '#191145', h0: 282, h1: 4,   sat: 0.54, lt: 0.62, cap: 0.80, haze: '#3a2f74', cast: '#6f8fd8' },
-  // 2. Sodium / warm — amber, orange, rose; sodium-lamp glow.
-  { name: 'Sodium Lamp',      ground: '#241432', h0: 56,  h1: 2,   sat: 0.56, lt: 0.60, cap: 0.78, haze: '#522f3a', cast: '#e0a86a' },
-  // 3. Aqueous / cool — steel blue through aqua, light under water.
-  { name: 'Aqueous',          ground: '#0c1c3a', h0: 248, h1: 156, sat: 0.50, lt: 0.62, cap: 0.76, haze: '#1f4a6e', cast: '#7fc8e0' },
-  // 4. Indigo near-mono — a tight indigo→blue slice, the quietest seed.
-  { name: 'Indigo Dusk',      ground: '#120e34', h0: 270, h1: 216, sat: 0.42, lt: 0.58, cap: 0.72, haze: '#2a2566', cast: '#8a9be8' },
-  // 5. Rose / magenta — violet through magenta into rose.
-  { name: 'Rose Refraction',  ground: '#221038', h0: 304, h1: 346, sat: 0.54, lt: 0.63, cap: 0.78, haze: '#4a2a5e', cast: '#e09bc8' },
-  // 6. Verdant — emerald through gold, a glassy garden light.
-  { name: 'Verdant Prism',    ground: '#0d2128', h0: 166, h1: 50,  sat: 0.50, lt: 0.60, cap: 0.76, haze: '#1f4a48', cast: '#9ad8a0' },
-  // 7. Amber / teal split — the two ends pulled apart, warm + cool together.
-  { name: 'Amber–Teal',       ground: '#0f1e2e', h0: 184, h1: 38,  sat: 0.56, lt: 0.61, cap: 0.78, haze: '#244a4a', cast: '#e0b878' },
-  // 8. Steel / ice — desaturated blue-grey, a cold winter dispersion.
-  { name: 'Steel Ice',        ground: '#101626', h0: 230, h1: 188, sat: 0.34, lt: 0.66, cap: 0.82, haze: '#33445e', cast: '#acc6e0' },
-  // 9. Oxblood / gold — deep red through ochre-gold, an alchemical glass.
-  { name: 'Oxblood Gold',     ground: '#26101a', h0: 36,  h1: 354, sat: 0.58, lt: 0.56, cap: 0.74, haze: '#5a2430', cast: '#d09858' },
+  // 1. Prismatic — the textbook full rainbow, now blazing full-chroma.
+  { name: 'Prismatic',        ground: '#05030f', h0: 282, h1: 2,   sat: 0.96, lt: 0.62, cap: 0.94, haze: '#5a3fd0', cast: '#8fb0ff' },
+  // 2. Solar Flare — amber→orange→scarlet, a molten warm spectrum on near-black.
+  { name: 'Solar Flare',      ground: '#0c0400', h0: 58,  h1: 358, sat: 0.98, lt: 0.60, cap: 0.92, haze: '#a8401a', cast: '#ffc24d' },
+  // 3. Aqua Prism — cyan→aqua→teal, electric water-light on a deep teal ground.
+  { name: 'Aqua Prism',       ground: '#021a26', h0: 196, h1: 150, sat: 0.95, lt: 0.62, cap: 0.94, haze: '#0aa0b8', cast: '#7df0ff' },
+  // 4. Sapphire — vivid indigo→blue→azure jewel on a deep sapphire ground.
+  { name: 'Sapphire',         ground: '#04103a', h0: 262, h1: 206, sat: 0.95, lt: 0.60, cap: 0.92, haze: '#2a44e0', cast: '#7ea8ff' },
+  // 5. Magenta Bloom — violet→magenta→rose, hot pink light on a misty mauve.
+  { name: 'Magenta Bloom',    ground: '#2a1340', h0: 300, h1: 344, sat: 0.97, lt: 0.64, cap: 0.94, haze: '#c030a0', cast: '#ff8fe0' },
+  // 6. Emerald Prism — chartreuse→emerald→spring-green jewel on deep green.
+  { name: 'Emerald Prism',    ground: '#031a10', h0: 95,  h1: 158, sat: 0.96, lt: 0.60, cap: 0.92, haze: '#10b85a', cast: '#7dffc0' },
+  // 7. Aurora — full cool-to-warm rainbow (green→aqua→violet→rose) on indigo.
+  { name: 'Aurora',           ground: '#0a0628', h0: 150, h1: 330, sat: 0.95, lt: 0.63, cap: 0.94, haze: '#4a30c0', cast: '#90ffd0' },
+  // 8. Ruby Garnet — deep crimson→scarlet→ember, garnet jewel on oxblood-black.
+  { name: 'Ruby Garnet',      ground: '#160006', h0: 18,  h1: 340, sat: 0.97, lt: 0.58, cap: 0.90, haze: '#c01030', cast: '#ff7060' },
+  // 9. Amethyst — bright violet→purple→lilac jewel on a luminous misty lilac.
+  { name: 'Amethyst',         ground: '#1a0c33', h0: 278, h1: 312, sat: 0.94, lt: 0.64, cap: 0.94, haze: '#7a30d0', cast: '#c69bff' },
+  // 10. Gold Amber — radiant gold→amber→honey on a bright warm misty ground.
+  { name: 'Gold Amber',       ground: '#3a2606', h0: 48,  h1: 28,  sat: 0.98, lt: 0.64, cap: 0.95, haze: '#e0a020', cast: '#ffe08a' },
 ];
 
 /* Formats — real W/H ratios live in SPECTRA_ASPECTS below (same order). */
@@ -134,13 +140,13 @@ function drawDispersion(x, P, hx, hy, a, spread, len, bands, intensity) {
     const ang0 = a0 + t0 * spread;
     const ang1 = a0 + t1 * spread;
     const hue  = bandHue(P, tc);
-    const lt   = Math.min(P.cap, P.lt + 0.05 * Math.cos((tc - 0.5) * Math.PI));
+    const lt   = Math.min(P.cap, P.lt + 0.07 * Math.cos((tc - 0.5) * Math.PI));
     const col  = hsl2hex(hue, P.sat, lt);
     const l    = len * (0.92 + 0.08 * Math.cos((tc - 0.5) * Math.PI));
     const g = x.createRadialGradient(hx, hy, 0, hx, hy, l);
-    g.addColorStop(0,    rgba(mix(col, '#ffffff', 0.3 * P.cap), 0.30 * intensity));
-    g.addColorStop(0.12, rgba(col, 0.34 * intensity));
-    g.addColorStop(0.55, rgba(col, 0.16 * intensity));
+    g.addColorStop(0,    rgba(mix(col, '#ffffff', 0.22 * P.cap), 0.46 * intensity));
+    g.addColorStop(0.12, rgba(col, 0.52 * intensity));
+    g.addColorStop(0.55, rgba(col, 0.26 * intensity));
     g.addColorStop(1,    rgba(col, 0.0));
     x.fillStyle = g;
     x.beginPath();
@@ -153,12 +159,12 @@ function drawDispersion(x, P, hx, hy, a, spread, len, bands, intensity) {
     const t  = b / bands;
     const ba = a0 + t * spread;
     const hue = bandHue(P, clamp(t, 0, 1));
-    const col = hsl2hex(hue, Math.min(0.7, P.sat + 0.12), Math.min(P.cap, P.lt + 0.08));
+    const col = hsl2hex(hue, Math.min(1, P.sat + 0.02), Math.min(P.cap, P.lt + 0.10));
     const ex = hx + Math.cos(ba) * len;
     const ey = hy + Math.sin(ba) * len;
     const g = x.createLinearGradient(hx, hy, ex, ey);
-    g.addColorStop(0,   rgba(mix(col, '#ffffff', 0.25), 0.22 * intensity));
-    g.addColorStop(0.5, rgba(col, 0.14 * intensity));
+    g.addColorStop(0,   rgba(mix(col, '#ffffff', 0.22), 0.34 * intensity));
+    g.addColorStop(0.5, rgba(col, 0.22 * intensity));
     g.addColorStop(1,   rgba(col, 0.0));
     x.strokeStyle = g;
     x.lineCap = 'round';
@@ -172,12 +178,12 @@ function drawDispersion(x, P, hx, hy, a, spread, len, bands, intensity) {
 
 /* ── A caustic ribbon cast onto the ground — a curved tinted sweep ──────────*/
 function drawCaustic(x, P, x0, y0, x1, y1, w, hue, r) {
-  const col = hsl2hex(hue, P.sat * 0.9, Math.min(P.cap, P.lt + 0.05));
+  const col = hsl2hex(hue, P.sat, Math.min(P.cap, P.lt + 0.07));
   const cx = (x0 + x1) / 2 + (r() - 0.5) * (x1 - x0) * 0.4;
   const cy = (y0 + y1) / 2 + (r() - 0.5) * Math.abs(x1 - x0) * 0.5 + Math.abs(y1 - y0) * 0.2;
   const g = x.createLinearGradient(x0, y0, x1, y1);
   g.addColorStop(0,   rgba(col, 0.0));
-  g.addColorStop(0.5, rgba(col, 0.22));
+  g.addColorStop(0.5, rgba(col, 0.32));
   g.addColorStop(1,   rgba(col, 0.0));
   x.strokeStyle = g;
   x.lineCap = 'round';
@@ -408,7 +414,7 @@ function layoutField(x, P, W, H, S, sm, gf, r) {
     const spread = 0.5 + r() * 0.5;
     x.save();
     x.globalCompositeOperation = 'lighter';
-    drawDispersion(x, P, px, py, a, spread, len, rint(r, 7, 11), 0.5 + r() * 0.2);
+    drawDispersion(x, P, px, py, a, spread, len, rint(r, 7, 11), 0.62 + r() * 0.22);
     x.restore();
   }
   // a dense wash of long caustic ribbons across the frame to fill negative space
@@ -430,7 +436,7 @@ function layoutField(x, P, W, H, S, sm, gf, r) {
     const hue = bandHue(P, r());
     const fx = W * r(), fy = H * r(), fr = diag * (0.4 + r() * 0.4);
     const g = x.createRadialGradient(fx, fy, 0, fx, fy, fr);
-    g.addColorStop(0, rgba(hsl2hex(hue, P.sat, P.lt), 0.14));
+    g.addColorStop(0, rgba(hsl2hex(hue, P.sat, P.lt), 0.22));
     g.addColorStop(1, rgba(hsl2hex(hue, P.sat, P.lt), 0));
     x.fillStyle = g;
     x.fillRect(0, 0, W, H);
@@ -455,9 +461,9 @@ function layoutStack(x, P, W, H, S, sm, gf, r) {
     const col = hsl2hex(hue, P.sat, lt);
     // each stratum: a horizontal translucent band with a soft glow seam
     const g = x.createLinearGradient(0, y, 0, y + h);
-    g.addColorStop(0,   rgba(col, 0.30));
-    g.addColorStop(0.5, rgba(col, 0.16));
-    g.addColorStop(1,   rgba(mix(col, P.ground, 0.4), 0.10));
+    g.addColorStop(0,   rgba(col, 0.48));
+    g.addColorStop(0.5, rgba(col, 0.28));
+    g.addColorStop(1,   rgba(mix(col, P.ground, 0.4), 0.16));
     x.save();
     x.globalCompositeOperation = 'lighter';
     x.fillStyle = g;

@@ -25,36 +25,36 @@ import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types'
    confetti[] = the paper colours (multi), up = green-up tint, down = red-down tint,
    bright = the hottest highlight, dark flag = is the ground dark (city-dusk default). */
 const PALS = [
-  // Wall Street Dusk — deep blue-violet city dusk, gold + paper-white confetti
-  { name:'Wall Street Dusk', sky:'#1a2342', ground:'#0c1226', ink:'#070a16', bright:'#ffe9b0',
-    up:'#54e08a', down:'#ff6a6a', confetti:['#f4f1e6','#ffd166','#e8a33d','#cdd6f0','#8fa0d8','#ffffff'], dark:true },
-  // Newsprint — cream/black, classic broadsheet parade
-  { name:'Newsprint', sky:'#efe9da', ground:'#d8cfba', ink:'#1a1712', bright:'#ffffff',
-    up:'#2f7d4f', down:'#b23a3a', confetti:['#1a1712','#5a5346','#9a8f78','#cabfa4','#3a352b','#ffffff'], dark:false },
-  // Confetti Pop — multi primary on near-black, loud & festive
+  // Full Party — every primary blazing on bright newsprint white (LIGHT ground)
+  { name:'Full Party', sky:'#ffffff', ground:'#f3eee2', ink:'#161019', bright:'#ffffff',
+    up:'#0fae5a', down:'#ee2d52', confetti:['#ff2d6f','#ffcc00','#1bd35e','#16b9ff','#9b30ff','#ff7a1a'], dark:false },
+  // Bright Newsprint — hot multicolour scraps on clean broadsheet cream (LIGHT ground)
+  { name:'Bright Newsprint', sky:'#fbf7ec', ground:'#e8dfc8', ink:'#15120c', bright:'#ffffff',
+    up:'#0e9f50', down:'#d62f3a', confetti:['#e01e63','#ffb300','#1aa84f','#1390e0','#7b2ff7','#ff5a1f'], dark:false },
+  // Candy Pop — pink/mint/yellow candy festival on warm white (LIGHT ground)
+  { name:'Candy Pop', sky:'#fff4fa', ground:'#ffe6d8', ink:'#3a1030', bright:'#ffffff',
+    up:'#19c97a', down:'#ff3d7f', confetti:['#ff5fa2','#7bf0c0','#ffe14d','#5fd0ff','#ff9ec7','#b07bff'], dark:false },
+  // Confetti Pop — multi primary on near-black, loud & festive (DARK ground)
   { name:'Confetti Pop', sky:'#141018', ground:'#0a0710', ink:'#050308', bright:'#fffae0',
-    up:'#3ddc84', down:'#ff5d7a', confetti:['#ff5d7a','#ffd23f','#3ddc84','#4cc9f0','#b15dff','#ffffff'], dark:true },
-  // Brass & Navy — naval parade, brass gold on deep navy
-  { name:'Brass & Navy', sky:'#10243f', ground:'#081424', ink:'#040b16', bright:'#ffe7a8',
-    up:'#7bd6a0', down:'#e8786e', confetti:['#e8b94a','#c79a2e','#f3e2b0','#9fb6d6','#5c7aa6','#fff7df'], dark:true },
-  // Sepia Parade — vintage photo, warm browns & cream
-  { name:'Sepia Parade', sky:'#5a4632', ground:'#3a2c1d', ink:'#241a10', bright:'#fff2d6',
-    up:'#9bb56a', down:'#cc7a55', confetti:['#f2e3c4','#d8b87e','#b08a52','#8a663a','#e9d2a0','#fffaf0'], dark:true },
-  // Neon Night — electric club-night, cyan/magenta on black
-  { name:'Neon Night', sky:'#0a0716', ground:'#050310', ink:'#020108', bright:'#eafcff',
-    up:'#39ff88', down:'#ff3d6e', confetti:['#13e0ff','#ff2bd6','#a0ff2b','#ffe600','#8a2bff','#ffffff'], dark:true },
-  // Mint & Coral — soft pastel celebration on teal-dusk
-  { name:'Mint & Coral', sky:'#163a3a', ground:'#0c2424', ink:'#061414', bright:'#fff4ec',
-    up:'#74e0a8', down:'#ff8f7a', confetti:['#9defc8','#ff9d8a','#ffe1a8','#bfeede','#7fd0c0','#fffdf6'], dark:true },
-  // Monochrome Grey — newsroom grey, tonal restraint
-  { name:'Monochrome Grey', sky:'#3a3d42', ground:'#202327', ink:'#0c0d10', bright:'#f4f6f8',
-    up:'#a8c0b0', down:'#c0a0a0', confetti:['#e8eaed','#b8bcc2','#888d94','#5a5f66','#cfd3d8','#ffffff'], dark:true },
-  // Gold Rush — opulent gold on oxblood, victory parade
-  { name:'Gold Rush', sky:'#3a1414', ground:'#1f0a0a', ink:'#120505', bright:'#fff0bf',
-    up:'#9ad17a', down:'#ff7a6a', confetti:['#ffd24a','#f5b820','#e8d6a0','#b8862a','#fff0bf','#ffffff'], dark:true },
-  // Cyan/Magenta — bright print primaries on indigo
+    up:'#3ddc84', down:'#ff5d7a', confetti:['#ff2d6f','#ffd23f','#27e36a','#1ec8ff','#b15dff','#ff7a1a'], dark:true },
+  // Brass & Navy — gleaming brass + bright signal flags on deep navy (DARK ground)
+  { name:'Brass & Navy', sky:'#11294a', ground:'#06142a', ink:'#030a18', bright:'#ffe7a8',
+    up:'#39e08a', down:'#ff5d63', confetti:['#ffcb3a','#ffe27a','#37c8ff','#ff3d6e','#36e08a','#fff3cf'], dark:true },
+  // Hot Primaries — pure RGB+yellow fireworks on midnight blue (DARK ground)
+  { name:'Hot Primaries', sky:'#101a36', ground:'#070d22', ink:'#03060f', bright:'#eef6ff',
+    up:'#28e36a', down:'#ff3344', confetti:['#ff1f3d','#ffd400','#1fa8ff','#22d65f','#ff7a00','#ffffff'], dark:true },
+  // Cyan/Magenta — electric print primaries on indigo (DARK ground)
   { name:'Cyan/Magenta', sky:'#161a3a', ground:'#0a0c22', ink:'#05060f', bright:'#f0fbff',
-    up:'#37e6a0', down:'#ff5390', confetti:['#19c8e6','#ff4fb0','#ffe14f','#ffffff','#8a7bff','#5ce0ff'], dark:true },
+    up:'#37e6a0', down:'#ff5390', confetti:['#19c8e6','#ff2bd6','#ffe14f','#5cff9e','#8a7bff','#5ce0ff'], dark:true },
+  // Gold Rush — opulent gold + jewel sparks on oxblood (DARK ground)
+  { name:'Gold Rush', sky:'#4a1616', ground:'#220909', ink:'#120505', bright:'#fff0bf',
+    up:'#5fd87a', down:'#ff5a4a', confetti:['#ffd24a','#ffe98a','#ff4b7a','#37d0ff','#7bff9e','#fff0bf'], dark:true },
+  // Kraft Carnival — vivid scraps on warm kraft/sepia paper (LIGHT-ish ground)
+  { name:'Kraft Carnival', sky:'#d8b483', ground:'#b98d56', ink:'#2a190c', bright:'#fff6e2',
+    up:'#0c8f4a', down:'#d8322f', confetti:['#ff2f5e','#ffce1f','#10b85a','#1f9fe0','#8a3bff','#ff6a1f'], dark:false },
+  // Dusk Plum — neon party colours over a warm plum-dusk sky (DARK ground)
+  { name:'Dusk Plum', sky:'#3a1840', ground:'#1c0a24', ink:'#0c0410', bright:'#ffe9f6',
+    up:'#3df0a0', down:'#ff4d8a', confetti:['#ff3d9a','#ffd23f','#3df0a0','#3dc8ff','#c46bff','#ff8a3d'], dark:true },
 ];
 
 const FMTS = [

@@ -2,9 +2,9 @@
 /*
  * SOUNDINGS — Direction A ("Sonar"), by fathom-ai.
  *
- * A bathymetric depth instrument on an abyssal blue-black ground (#05131e):
- * muted CRT phosphor traces, ping returns, seabed contours, clustered contacts
- * and labelled callouts. Nautical / sounding instrument — NOT space.
+ * A bathymetric depth instrument with a PUNCHY NEON INSTRUMENT GLOW: vivid CRT
+ * phosphor traces, ping returns, seabed contours, clustered contacts and
+ * labelled callouts. Nautical / sounding instrument — NOT space.
  *
  * v3 (2026-06-19): COMPOSITION is now a primary trait. `Layout` has 6
  * structurally different arrangements — only ONE (Scope) is a centred-ish
@@ -13,7 +13,8 @@
  * horizontal waterfall strip-chart (no circle), a top-down bathymetric depth
  * chart (no circle), twin dials on opposite thirds, and a near-empty deep
  * field with a single labelled target and a corner dial. Palettes shift the
- * dominant hue hard (10 of them) with one restrained second accent each.
+ * dominant glow hue hard (11 of them — 9 vivid dark-ground scopes + 2 light
+ * "paper chart" grounds) with one restrained second accent each.
  *
  * Deterministic from seed only. Additive 'screen'/'lighter' glow for the
  * luminous returns over the dark sea; radial gradients for ping decay.
@@ -22,22 +23,27 @@ import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
 /* ── Palettes ─────────────────────────────────────────────────────────────
-   ground = sea/face base (harmonised toward an abyssal blue-black),
-   deep = far-field tint, phos = the dominant luminous trace,
-   hot = blip/sweep-edge highlight, grid = faint gridline tint,
-   accent = the ONE restrained second colour used sparingly on labels +
-   a few contacts. 10 palettes, each with a clearly different dominant hue. */
+   ground = sea/face base (a saturated dark tint of the glow hue, or a pale
+   paper ground on the two chart palettes),
+   deep = far-field tint, phos = the dominant luminous trace (kept bright +
+   saturated so screen/lighter blends POP), hot = blip/sweep-edge highlight,
+   grid = gridline/contour tint, accent = the ONE restrained second colour
+   used sparingly on labels + a few contacts. 11 palettes — 9 vivid
+   dark-ground glow scopes + 2 light "paper chart" grounds for contrast. */
 const PALS = [
-  { name: 'Phosphor Green', ground: '#05131e', deep: '#06222b', phos: '#36ffb0', hot: '#aaffd8', grid: '#1d5c4a', accent: '#8fd4ff' },
-  { name: 'Sodium Amber',   ground: '#06121b', deep: '#171008', phos: '#ffb43c', hot: '#ffe7a8', grid: '#6a4a1c', accent: '#7fd8ff' },
-  { name: 'Ice Blue',       ground: '#05131e', deep: '#082534', phos: '#5fd0ff', hot: '#d6f3ff', grid: '#235873', accent: '#c8a06a' },
-  { name: 'Faint Phosphor', ground: '#061018', deep: '#0a1c1c', phos: '#6fd9a8', hot: '#bff0d6', grid: '#244b42', accent: '#b07a52' },
-  { name: 'Abyss Teal',     ground: '#04131c', deep: '#04282c', phos: '#2ee0c6', hot: '#bafff2', grid: '#1c6055', accent: '#caa46a' },
-  { name: 'Rust Buoy',      ground: '#06121b', deep: '#1a1110', phos: '#48d6b0', hot: '#bff0e0', grid: '#235048', accent: '#d07a4a' },
-  { name: 'CRT Cyan',       ground: '#04141a', deep: '#062028', phos: '#3df0ff', hot: '#c8fbff', grid: '#1f5a66', accent: '#ffb27a' },
-  { name: 'Sodium on Navy', ground: '#050f1f', deep: '#0a1730', phos: '#f0a64a', hot: '#ffdca0', grid: '#2a3a66', accent: '#7fc6ff' },
-  { name: 'Magenta Lab',    ground: '#0a0a16', deep: '#1a0a1e', phos: '#e468d0', hot: '#ffc4f2', grid: '#5a2a55', accent: '#6fe0c8' },
-  { name: 'Bone Chart',     ground: '#0c0f12', deep: '#171a1c', phos: '#d8d2c2', hot: '#fbf6ea', grid: '#4a4e50', accent: '#7fb8c8' },
+  // ── DARK-GROUND GLOW SCOPES — each a strong, distinct, high-luminance hue ──
+  { name: 'Phosphor Green', ground: '#031a12', deep: '#063a24', phos: '#38ff84', hot: '#ccffd0', grid: '#1fa05c', accent: '#ffd24a' },
+  { name: 'Sodium Amber',   ground: '#1a0e02', deep: '#3a2204', phos: '#ffae18', hot: '#ffe9a0', grid: '#c47a14', accent: '#34e0ff' },
+  { name: 'Bright Cyan',    ground: '#031622', deep: '#063646', phos: '#1ad8ff', hot: '#c8fbff', grid: '#1f9ec4', accent: '#ff7ad0' },
+  { name: 'Magenta Lab',    ground: '#16021a', deep: '#360940', phos: '#ff3ce0', hot: '#ffc4f6', grid: '#b22aa0', accent: '#46ffd0' },
+  { name: 'Ice Blue',       ground: '#040e22', deep: '#0a2456', phos: '#5aa8ff', hot: '#e0eeff', grid: '#3a6cd8', accent: '#ffcf4a' },
+  { name: 'Lime Scope',     ground: '#0c1602', deep: '#1e3604', phos: '#b6ff1f', hot: '#eaffb0', grid: '#7ac414', accent: '#ff4fa0' },
+  { name: 'Sodium on Navy', ground: '#050a26', deep: '#0a165a', phos: '#ffb22c', hot: '#ffdca0', grid: '#3450c0', accent: '#5ad8ff' },
+  { name: 'Red Alert',      ground: '#1a0404', deep: '#3a0808', phos: '#ff4438', hot: '#ffc0a0', grid: '#c43020', accent: '#ffd24a' },
+  { name: 'Violet Sweep',   ground: '#0c0626', deep: '#1e125a', phos: '#9a6cff', hot: '#dccaff', grid: '#6a48d8', accent: '#46ffc8' },
+  // ── LIGHT "PAPER CHART" GROUNDS — pale ground, vivid saturated ink traces ──
+  { name: 'Sea Chart',      ground: '#e8e2cc', deep: '#cdd8c0', phos: '#0aa05a', hot: '#ff7a28', grid: '#3a7a8a', accent: '#d03020' },
+  { name: 'Amber Paper',    ground: '#efe4c4', deep: '#e0cda0', phos: '#d0481a', hot: '#1a90c0', grid: '#a06a2a', accent: '#1aa050' },
 ];
 
 const FMTS = [

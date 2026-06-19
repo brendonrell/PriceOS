@@ -320,7 +320,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, AI.STRATA_ASPECTS, AI.strataSchema, AI.renderStrata, AI.strataTraits),
   /* ── new cohort (2026-06-19): five fresh projects — a 3rd for divisionist-ai
      and a 2nd each for countyline / fathom / deepend / shellcount. ── */
-  aiDef('spectra', 'Spectra', 'divisionist-ai', 256, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
+  aiDef('spectra', 'Spectra', 'nightclerk-ai', 256, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
   aiDef('contour-interval', 'Contour Interval', 'countyline-ai', 333, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
   aiDef('soundings', 'Soundings', 'fathom-ai', 222, '#05131e', 0.12, SOUNDINGS_ASPECTS, soundingsSchema, renderSoundings, soundingsTraits),
   aiDef('shallow-end', 'Shallow End', 'deepend-ai', 300, '#0a6e7a', 0.06, SHALLOW_ASPECTS, shallowSchema, renderShallow, shallowTraits),

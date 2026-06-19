@@ -30,22 +30,28 @@
 import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette, mottle, blit, PHI, INVPHI } from './_kit';
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
-/* ── Palettes — 10, WIDE hue separation ───────────────────────────────────
- * paper (sheet), ink (line colour), 5-stop hypsometric ramp lowland→highland.
- * Dominant hue is deliberately different per palette so no two read alike:
- * USGS green→brown · bathy blue · sepia · blueprint cyan · glacier · slate-teal
- * · violet · ash&ochre · graphite mono · alpine snow-cap. */
+/* ── Palettes — 10, BOLD CARTOGRAPHIC COLOUR ──────────────────────────────
+ * paper (sheet/ground), ink (line colour), 5-stop hypsometric ramp lowland→
+ * highland. Each palette is its OWN colour world — high chroma so the elevation
+ * bands stay vivid through the paper-wash + hillshade, with a deliberate mix of
+ * LIGHT grounds (parchment / blueprint-cyan / snow / mint / sand) and DARK
+ * grounds (abyssal navy / ink-blue / black / midnight-violet) so a 9-up sheet
+ * reads as many colour identities, never one murky scheme.
+ *   light: USGS · Sepia · Blueprint Cyan · Alpine Snow · Desert Relief
+ *   dark : Bathymetric · Blue Print(dark) · Volcanic · Aurora · Neon Relief */
 const PALS = [
-  { name: 'USGS Land',    paper: '#f4ecd8', ink: '#4f3f24', ramp: ['#2f6b4a', '#6fa063', '#c7cf86', '#d8b066', '#bd7e49'] },
-  { name: 'Bathymetric',  paper: '#0b2236', ink: '#cfe6f2', ramp: ['#08233e', '#155b86', '#2f93bc', '#86cad9', '#e6f4f4'] },
-  { name: 'Sepia Survey', paper: '#f0e3c9', ink: '#473320', ramp: ['#7a5a39', '#9c7c50', '#bc9d6c', '#d6c194', '#efe2c4'] },
-  { name: 'Blueprint',    paper: '#0a2c52', ink: '#eaf4ff', ramp: ['#0c3060', '#15539b', '#2f7fce', '#7db4ec', '#ffffff'] },
-  { name: 'Glacier',      paper: '#dde9ef', ink: '#2a4452', ramp: ['#3c6f86', '#6fa0b4', '#a7cad6', '#d2e6ec', '#f6fbfd'] },
-  { name: 'Slate Teal',   paper: '#13262b', ink: '#cfe9e6', ramp: ['#16363c', '#1f5c5e', '#2f8f86', '#79c0b1', '#dcefe6'] },
-  { name: 'Violet Relief',paper: '#1a1430', ink: '#e6dcff', ramp: ['#241a44', '#42306f', '#6b4ba0', '#a585d6', '#e3d2f2'] },
-  { name: 'Ash & Ochre',  paper: '#e8e2d4', ink: '#34302b', ramp: ['#46433f', '#7b7165', '#ab977a', '#d0b47e', '#ecdca8'] },
-  { name: 'Graphite',     paper: '#1b1b1d', ink: '#e7e7e9', ramp: ['#252528', '#46464b', '#6e6e74', '#9c9ca3', '#d6d6dc'] },
-  { name: 'Alpine',       paper: '#eef0e9', ink: '#33402f', ramp: ['#365c3b', '#5f8455', '#9aa583', '#c9c5b6', '#fbfcfa'] },
+  // LIGHT GROUNDS
+  { name: 'USGS Land',     paper: '#f3ecd2', ink: '#3a2a12', ramp: ['#1f8a4c', '#7fc23a', '#e8d24a', '#e0962a', '#9c4a18'] },
+  { name: 'Sepia Survey',  paper: '#f1e2bf', ink: '#3d2710', ramp: ['#b5651d', '#cf8a2c', '#e0aa45', '#c97a2a', '#7a3d12'] },
+  { name: 'Blueprint Cyan',paper: '#1fc4e0', ink: '#ffffff', ramp: ['#0e8fb8', '#3fb6d8', '#6fd0e8', '#aee6f4', '#ffffff'] },
+  { name: 'Alpine Snow',   paper: '#eef4f0', ink: '#163d2a', ramp: ['#108a55', '#46c07a', '#8fd9a6', '#cfeede', '#ffffff'] },
+  { name: 'Desert Relief', paper: '#f6e7cf', ink: '#5a2410', ramp: ['#d98a1f', '#e8b13a', '#f0d56a', '#e0703a', '#a52a1c'] },
+  // DARK GROUNDS
+  { name: 'Bathymetric',   paper: '#03182e', ink: '#dff3ff', ramp: ['#06335f', '#0b6fb0', '#1aa6da', '#5fd6ee', '#c8f6ff'] },
+  { name: 'Blue Print',    paper: '#06234d', ink: '#eaf4ff', ramp: ['#0a4ca0', '#1f74d6', '#4f9cef', '#9cc8ff', '#ffffff'] },
+  { name: 'Volcanic',      paper: '#160a0a', ink: '#ffe9d6', ramp: ['#5a1a12', '#a32915', '#e0561a', '#f59e2a', '#ffe04a'] },
+  { name: 'Aurora',        paper: '#0a1426', ink: '#e6fff4', ramp: ['#123a6e', '#16a6b0', '#2fd6a0', '#9cf06a', '#e8ff7a'] },
+  { name: 'Neon Relief',   paper: '#120a26', ink: '#f0e6ff', ramp: ['#3a1f8a', '#7b2fd6', '#c83fd0', '#f0509a', '#ffd24a'] },
 ];
 
 const FMTS = [
