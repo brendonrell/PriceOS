@@ -28,6 +28,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
+import TraitsUI from '../project/TraitsUI';
 import ArtworkLive from './ArtworkLive';
 
 function shortAddr(a: string | null): string {
@@ -115,6 +116,19 @@ export default function ArtworkPageBody({
         fetch(`/api/output/${slug}-${numberPart}/market`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => { if (!cancelled && d) setMarket(d); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [slug, numberPart]);
+
+    /* This Output's platform traits (Artist/Project/PriceDay/Sun/Moon/Rising/
+       Fate/…) — computed server-side from its mint moment, so Sun/Moon/Rising
+       are real. Powers the + More → Attributes box. */
+    const [traits, setTraits] = useState<Record<string, string>>({});
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/output/${slug}-${numberPart}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d?.traits) setTraits(d.traits as Record<string, string>); })
             .catch(() => {});
         return () => { cancelled = true; };
     }, [slug, numberPart]);
@@ -378,28 +392,21 @@ export default function ArtworkPageBody({
                 aria-label="Details"
                 style={{ display: onMore ? 'block' : 'none' }}
             >
-                <div className="profile-tabs-row artwork-more-pills">
-                    {MORE_PILLS.map((p) => (
-                        <div
-                            key={p.key}
-                            className={`pill pill-l1${moreL1 === p.key ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setMoreL1(p.key)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    setMoreL1(p.key);
-                                }
-                            }}
-                            title={p.label}
-                        >
-                            <span className="stat-name">{p.label}</span>
-                        </div>
-                    ))}
-                </div>
+                {/* + More sub-nav — the SAME pill surface as the Project page's
+                    + More (compact trait pills via TraitsUI), not the big main-tab
+                    buttons. */}
+                <TraitsUI
+                    visible
+                    hideSortBar
+                    profilePills={MORE_PILLS.map((p) => ({
+                        key: p.key,
+                        label: p.label,
+                        active: moreL1 === p.key,
+                        onClick: () => setMoreL1(p.key),
+                    }))}
+                />
 
-                {moreL1 === 'stats' ? (
+                {moreL1 === 'stats' && (
                     <div className="stats-grid artwork-more-stats">
                         <div className="hero-line stats-row stats-row-2">
                             <span className="stat-item">
@@ -443,8 +450,42 @@ export default function ArtworkPageBody({
                             </span>
                         </div>
                     </div>
-                ) : (
-                    <p className="info-rubik">Coming soon.</p>
+                )}
+
+                {/* ATTRIBUTES — this Output's birth attributes (mirrors the
+                    Project page's box). Sun/Moon/Rising/Fate are real, from the
+                    mint moment; empty box until the piece is minted. */}
+                {moreL1 === 'attributes' && (
+                    <>
+                        <div className="more-section-header">ATTRIBUTES</div>
+                        <div className="more-box-wrap">
+                            {(traits.Fate || traits.Sun || traits.Moon || traits.Rising) ? (
+                                <div className="more-box-card">
+                                    <div className="more-attrs">
+                                        {traits.Fate && <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{traits.Fate}</span></div>}
+                                        {traits.Sun && <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {traits.Sun}</span></div>}
+                                        {traits.Moon && <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {traits.Moon}</span></div>}
+                                        {traits.Rising && <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {traits.Rising}</span></div>}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="more-box-card more-box-empty" />
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {/* Remaining sections — titled empty boxes, same as the Project
+                    page's not-yet-filled sections. Content lands later. */}
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && (
+                    <>
+                        <div className="more-section-header">
+                            {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}
+                        </div>
+                        <div className="more-box-wrap">
+                            <div className="more-box-card more-box-empty" />
+                        </div>
+                    </>
                 )}
             </section>
             </TraitsProvider>
