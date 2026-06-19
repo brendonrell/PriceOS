@@ -84,7 +84,15 @@ export default function SoundtrackStarButton({
             onPointerLeave={endPress}
             onPointerCancel={endPress}
             onContextMenu={(e) => e.preventDefault()}
-            style={{ position: 'relative', userSelect: 'none', touchAction: 'pan-y' }}
+            style={{
+                position: 'relative',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                // Stop iOS's long-press link preview / share callout on the <a>,
+                // so the press registers as a star instead (Brendon 2026-06-19).
+                WebkitTouchCallout: 'none',
+                touchAction: 'pan-y',
+            }}
         >
             <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
             {starred && <span className="soundtrack-star" aria-hidden="true">{'★︎'}</span>}

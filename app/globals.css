@@ -8199,9 +8199,9 @@ body.colorway-dark .ghost-feed-bar {
     display: flex;
     align-items: center;
     gap: 8px;
-    /* Left-align with the row content (rows carry 6px inner padding), so the
-       pills line up with the thumbnails below (Brendon 2026-06-19). */
-    padding: 12px 0 2px 6px;
+    /* Flush with the section edge — same left as the search bar, sort row and
+       the starred rows themselves (Brendon 2026-06-19). */
+    padding: 12px 0 2px;
     flex-wrap: wrap;
 }
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
