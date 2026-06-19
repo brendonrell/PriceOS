@@ -372,7 +372,7 @@ export default function StarredList({
                                     onClick={() => showToast('Trait Offer: COMING SOON')}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Trait Offer: COMING SOON'); } }}
                                 >
-                                    ✦︎ Offer
+                                    <span className="trait-offer-glyph">✦︎</span> Trait Offer
                                 </span>
                                 <span
                                     className="starred-row-unstar"

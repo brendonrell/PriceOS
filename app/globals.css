@@ -8149,8 +8149,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .starred-row-unstar {
     flex-shrink: 0;
     padding: 4px 6px;
-    /* Double size — the far-right ★ on each row (Brendon 2026-06-19). */
-    font-size: 32px;
+    /* The far-right ★ on each row — 25% over the 16px base (Brendon 2026-06-19;
+       2× then 1.5× both read too big). */
+    font-size: 20px;
     line-height: 1;
     color: var(--accent);
     cursor: pointer;
@@ -8307,6 +8308,13 @@ body.colorway-dark .ghost-feed-bar {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
+}
+/* The ✦ in the Trait Offer CTA reads small next to the text — bump it 70%
+   (Brendon 2026-06-19). */
+.trait-offer-glyph {
+    font-size: 1.7em;
+    line-height: 0;
+    vertical-align: middle;
 }
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
