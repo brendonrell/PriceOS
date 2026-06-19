@@ -8329,8 +8329,8 @@ body.colorway-dark .ghost-feed-bar {
 .trait-row-tile-glyph,
 .artist-row-tile-glyph {
     font-family: 'Courier New', Courier, monospace;
-    /* 2× the old 22px — the icon carries the colour now. */
-    font-size: 44px;
+    /* 1.5× the old 22px — 2× read too big (Brendon 2026-06-19). */
+    font-size: 33px;
     line-height: 1;
     color: var(--accent);
     opacity: 0.95;
