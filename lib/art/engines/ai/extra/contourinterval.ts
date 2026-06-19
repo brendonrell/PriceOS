@@ -2,35 +2,50 @@
 /*
  * Contour Interval — countyline-ai, cartographic lane.
  *
- * A real topographic survey map. A deterministic height field is built from ONE
- * dominant landform (basin or massif) plus a few subordinate folds, then traced
- * with marching-squares into clean iso-elevation lines: thin intermediates with
- * a BOLD index contour every 5th, carrying elevation numbers. A muted
- * hypsometric tint sits FAR back (low contrast, gentle hillshade) so the lines
- * are unambiguously the hero — a plotted map, not a smudge. Map furniture
- * (neat-line, coordinate ticks, scale bar, north arrow) is varied per seed so
- * the frame is earned, not a stamp. Paper tooth on top.
+ * A real topographic survey map. A deterministic height field is traced with
+ * marching-squares into clean iso-elevation lines — thin intermediates with a
+ * BOLD index contour every 5th carrying elevation numbers — over a muted
+ * hypsometric tint with gentle hillshade. The map technique is the keeper.
  *
- * v2 (2026-06-19): jury fix pass — layer separation, line hierarchy + labels,
- * varied furniture, legible land/thermal ramps, one guaranteed focal landform,
- * wider cool-palette spread (slate-teal + violet added).
+ * v3 (2026-06-19): COMPOSITION REBUILD. The jury verdict was "zero grasp of
+ * composition — one big thing in the middle, every seed the same". Fixed by
+ * making LAYOUT a primary trait with 6 STRUCTURALLY different arrangements,
+ * none of which centre one massif. The height field is now built into a chosen
+ * REGION of the frame (one side, two massifs, a strip, a corner) rather than a
+ * centred blob, and map furniture (neatline, scale bar, north arrow, title
+ * block, locator inset, section strip) appears per-layout, not on every seed.
+ * Palettes widened to 10 with deliberately separated dominant hues.
+ *
+ * Layouts:
+ *   Survey Plate — formal framed sheet: neatline, margin, title block, scale
+ *                  bar, north arrow. Land on a phi anchor inside the sheet.
+ *   Full Bleed   — terrain edge to edge, NO frame, allover dense contours.
+ *   Coastal Crop — landmass on ONE side, the rest open flat lowland/sea; big
+ *                  negative space, asymmetric.
+ *   Twin Massif  — two distinct landforms split by a valley/fault across frame.
+ *   Plan + Section — plan map upper ~2/3, a cross-section elevation strip across
+ *                  the bottom (the cut through the terrain).
+ *   Detail Inset — zoomed corner of terrain + a small framed locator inset.
  */
 import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette, mottle, blit, PHI, INVPHI } from './_kit';
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
-/* ── Palettes ─────────────────────────────────────────────────────────────
- * paper (sheet), ink (line colour), and a 5-stop hypsometric ramp lowland→
- * highland. Two families: warm "land" ramps (green→tan→brown) and cool ramps
- * (bathy / blueprint / slate-teal / violet) — kept distinct, not close cousins. */
+/* ── Palettes — 10, WIDE hue separation ───────────────────────────────────
+ * paper (sheet), ink (line colour), 5-stop hypsometric ramp lowland→highland.
+ * Dominant hue is deliberately different per palette so no two read alike:
+ * USGS green→brown · bathy blue · sepia · blueprint cyan · glacier · slate-teal
+ * · violet · ash&ochre · graphite mono · alpine snow-cap. */
 const PALS = [
   { name: 'USGS Land',    paper: '#f4ecd8', ink: '#4f3f24', ramp: ['#2f6b4a', '#6fa063', '#c7cf86', '#d8b066', '#bd7e49'] },
-  { name: 'Bathymetric',  paper: '#0b2236', ink: '#cfe6f2', ramp: ['#0a2c4a', '#155b86', '#2f93bc', '#86cad9', '#e6f4f4'] },
+  { name: 'Bathymetric',  paper: '#0b2236', ink: '#cfe6f2', ramp: ['#08233e', '#155b86', '#2f93bc', '#86cad9', '#e6f4f4'] },
   { name: 'Sepia Survey', paper: '#f0e3c9', ink: '#473320', ramp: ['#7a5a39', '#9c7c50', '#bc9d6c', '#d6c194', '#efe2c4'] },
-  { name: 'Blueprint',    paper: '#0d2748', ink: '#d6e8ff', ramp: ['#0f2c52', '#1b477e', '#2d68ad', '#6699d4', '#bcd9f5'] },
-  { name: 'Topo Green',   paper: '#10362d', ink: '#cdeccf', ramp: ['#0f3a30', '#1f6149', '#469a6a', '#92c98e', '#e2f0c6'] },
+  { name: 'Blueprint',    paper: '#0a2c52', ink: '#eaf4ff', ramp: ['#0c3060', '#15539b', '#2f7fce', '#7db4ec', '#ffffff'] },
+  { name: 'Glacier',      paper: '#dde9ef', ink: '#2a4452', ramp: ['#3c6f86', '#6fa0b4', '#a7cad6', '#d2e6ec', '#f6fbfd'] },
   { name: 'Slate Teal',   paper: '#13262b', ink: '#cfe9e6', ramp: ['#16363c', '#1f5c5e', '#2f8f86', '#79c0b1', '#dcefe6'] },
   { name: 'Violet Relief',paper: '#1a1430', ink: '#e6dcff', ramp: ['#241a44', '#42306f', '#6b4ba0', '#a585d6', '#e3d2f2'] },
   { name: 'Ash & Ochre',  paper: '#e8e2d4', ink: '#34302b', ramp: ['#46433f', '#7b7165', '#ab977a', '#d0b47e', '#ecdca8'] },
+  { name: 'Graphite',     paper: '#1b1b1d', ink: '#e7e7e9', ramp: ['#252528', '#46464b', '#6e6e74', '#9c9ca3', '#d6d6dc'] },
+  { name: 'Alpine',       paper: '#eef0e9', ink: '#33402f', ramp: ['#365c3b', '#5f8455', '#9aa583', '#c9c5b6', '#fbfcfa'] },
 ];
 
 const FMTS = [
@@ -39,9 +54,10 @@ const FMTS = [
   { W: 1280, H: 1040, t: 'Landscape' },
 ];
 
-const RELIEFS = ['Basin', 'Rolling', 'Massif', 'Caldera'];  // dominant landform character
+/* PRIMARY composition trait — 6 structurally different arrangements */
+const LAYOUTS = ['Survey Plate', 'Full Bleed', 'Coastal Crop', 'Twin Massif', 'Plan + Section', 'Detail Inset'];
+const RELIEFS = ['Basin', 'Rolling', 'Massif', 'Caldera'];  // landform character
 const DENS    = ['Sparse', 'Standard', 'Dense'];            // contour interval
-const FRAMES  = ['Neatline', 'Ticked', 'Bleed'];            // map-furniture frame treatment
 
 /* phi-based focal anchors — vary peak placement off-centre, never dead-centre */
 const ANCHORS = [
@@ -53,10 +69,9 @@ const ANCHORS = [
 function paramsOf(r) {
   const palI   = Math.floor(r() * PALS.length);
   const fmt    = pick(FMTS, r);
+  const layI   = Math.floor(r() * LAYOUTS.length);   // PRIMARY composition
   const relI   = Math.floor(r() * RELIEFS.length);
   const denI   = Math.floor(r() * DENS.length);
-  const frmI   = Math.floor(r() * FRAMES.length);
-  const grat   = r() < 0.7;                  // graticule ticks on/off
 
   // ── field params (consumed after trait draws, fixed order) ──
   const anchI  = Math.floor(r() * ANCHORS.length);
@@ -65,58 +80,56 @@ function paramsOf(r) {
   const warp   = 0.7 + r() * 1.2;            // domain warp strength
   const ridges = relI >= 1 && relI <= 2 ? rint(r, 1, 2) : 0;
   const basinV = relI === 0;                 // invert -> depression basin
-  return { palI, fmt, relI, denI, frmI, grat, anchI, scale, folds, warp, ridges, basinV };
+  const side   = r() < 0.5 ? 0 : 1;          // coastal: land left/right (or top/bottom on portrait)
+  const corner = Math.floor(r() * 4);        // detail-inset locator corner
+  const flip   = r() < 0.5;                  // twin-massif diagonal of the fault
+  return { palI, fmt, layI, relI, denI, anchI, scale, folds, warp, ridges, basinV, side, corner, flip };
 }
 
 function labels(p) {
   return {
+    Layout:   LAYOUTS[p.layI],
     Palette:  PALS[p.palI].name,
     Format:   p.fmt.t,
     Relief:   RELIEFS[p.relI],
     Interval: DENS[p.denI],
-    Frame:    FRAMES[p.frmI],
   };
 }
 
-/* ── Height field ─────────────────────────────────────────────────────────
- * ONE dominant landform (placed on a phi anchor, scaled) + a few subordinate
- * folds + faint summed-sine texture. Domain-warped. Basin relief inverts the
- * dominant form to a depression. Returns normalised [0,1]. */
-function buildField(p, r, W, H) {
+/* ── Height field ──────────────────────────────────────────────────────────
+ * Builds a normalised [0,1] height field across the WHOLE map grid, but places
+ * its landforms into a layout-defined REGION via `placer`. `placer` returns the
+ * list of dominant bumps (centres in [0,1] grid space). This is what kills the
+ * "one centred blob" problem — Coastal pushes land to a side, Twin makes two,
+ * Section confines land to a band, Inset zooms one corner. */
+function buildField(p, r, W, H, placer) {
   const cols = 230, rows = Math.round(230 * H / W);
   const field = new Float32Array(cols * rows);
 
-  // dominant landform on a phi anchor
-  const [ax, ay] = ANCHORS[p.anchI];
-  const bumps = [];
-  bumps.push({
-    cx: clamp(ax + (r() - 0.5) * 0.1, 0.15, 0.85),
-    cy: clamp(ay + (r() - 0.5) * 0.1, 0.15, 0.85),
-    amp: 1.0 + (p.relI === 2 ? 0.4 : 0) + (p.relI === 3 ? 0.3 : 0),
-    sig: (0.20 + r() * 0.12) * p.scale,
-    ell: 0.6 + r() * 1.0,
-    rot: r() * Math.PI,
-    caldera: p.relI === 3,
-    dominant: true,
-  });
-  // subordinate folds — smaller, lower amplitude, scattered
+  const bumps = placer(p, r);  // layout decides dominant landform placement
+
+  // subordinate folds — smaller, scattered within the active land region
+  const reg = bumps._region || { x0: 0.1, y0: 0.1, x1: 0.9, y1: 0.9 };
   for (let i = 0; i < p.folds; i++) {
     bumps.push({
-      cx: 0.14 + r() * 0.72,
-      cy: 0.14 + r() * 0.72,
-      amp: 0.25 + r() * 0.35,
-      sig: (0.08 + r() * 0.12) * p.scale,
+      cx: reg.x0 + r() * (reg.x1 - reg.x0),
+      cy: reg.y0 + r() * (reg.y1 - reg.y0),
+      amp: 0.22 + r() * 0.32,
+      sig: (0.07 + r() * 0.10) * p.scale,
       ell: 0.6 + r() * 1.0,
       rot: r() * Math.PI,
       caldera: false,
-      dominant: false,
     });
   }
 
-  // ridge segments (raised spurs for rolling/massif)
+  // ridge spurs (rolling/massif) — confined to the land region
   const ridgeSegs = [];
   for (let i = 0; i < p.ridges; i++) {
-    ridgeSegs.push({ x0: r(), y0: r(), x1: r(), y1: r(), amp: 0.2 + r() * 0.35, w: 0.05 + r() * 0.05 });
+    ridgeSegs.push({
+      x0: reg.x0 + r() * (reg.x1 - reg.x0), y0: reg.y0 + r() * (reg.y1 - reg.y0),
+      x1: reg.x0 + r() * (reg.x1 - reg.x0), y1: reg.y0 + r() * (reg.y1 - reg.y0),
+      amp: 0.2 + r() * 0.32, w: 0.05 + r() * 0.05,
+    });
   }
 
   // faint summed-sine texture (kept LOW so it doesn't smudge the lines)
@@ -178,6 +191,102 @@ function buildField(p, r, W, H) {
   return { field, cols, rows };
 }
 
+/* ── Layout placers ────────────────────────────────────────────────────────
+ * Each returns the dominant-bump list (with a ._region for subordinate folds).
+ * Centres are in [0,1] grid space. NONE of them centres a single massif. */
+function makeBump(cx, cy, p, r, ampBoost) {
+  return {
+    cx: clamp(cx, 0.06, 0.94), cy: clamp(cy, 0.06, 0.94),
+    amp: 1.0 + (p.relI === 2 ? 0.4 : 0) + (p.relI === 3 ? 0.3 : 0) + (ampBoost || 0),
+    sig: (0.20 + r() * 0.12) * p.scale,
+    ell: 0.6 + r() * 1.0,
+    rot: r() * Math.PI,
+    caldera: p.relI === 3,
+  };
+}
+
+function placeStandard(p, r) {
+  // phi anchor, off-centre by construction
+  const [ax, ay] = ANCHORS[p.anchI];
+  const b = makeBump(ax + (r() - 0.5) * 0.1, ay + (r() - 0.5) * 0.1, p, r);
+  const arr = [b];
+  arr._region = { x0: 0.12, y0: 0.12, x1: 0.88, y1: 0.88 };
+  return arr;
+}
+
+function placeBleed(p, r) {
+  // allover: a few comparable forms spread across the whole field, none dominant
+  const arr = [];
+  const pts = [[0.28, 0.32], [0.72, 0.4], [0.5, 0.74], [0.18, 0.78], [0.82, 0.74]];
+  const n = 3 + Math.floor(r() * 2);
+  for (let i = 0; i < n; i++) {
+    const [bx, by] = pts[i % pts.length];
+    const b = makeBump(bx + (r() - 0.5) * 0.16, by + (r() - 0.5) * 0.16, p, r, -0.25);
+    b.sig = (0.16 + r() * 0.10) * p.scale;
+    arr.push(b);
+  }
+  arr._region = { x0: 0.05, y0: 0.05, x1: 0.95, y1: 0.95 };
+  return arr;
+}
+
+function placeCoastal(p, r) {
+  // landmass crowded to ONE side; the rest stays flat lowland (negative space)
+  const portrait = p.fmt.H > p.fmt.W;
+  const arr = [];
+  if (portrait) {
+    const top = p.side === 0;                 // land top or bottom
+    const cy = top ? 0.26 : 0.74;
+    arr.push(makeBump(0.42, cy, p, r, 0.2));
+    arr.push(makeBump(0.6, cy + (top ? 0.14 : -0.14), p, r, -0.1));
+    arr._region = top ? { x0: 0.1, y0: 0.08, x1: 0.9, y1: 0.42 } : { x0: 0.1, y0: 0.58, x1: 0.9, y1: 0.92 };
+  } else {
+    const left = p.side === 0;                 // land left or right
+    const cx = left ? 0.26 : 0.74;
+    arr.push(makeBump(cx, 0.46, p, r, 0.2));
+    arr.push(makeBump(cx + (left ? 0.14 : -0.14), 0.66, p, r, -0.1));
+    arr._region = left ? { x0: 0.08, y0: 0.1, x1: 0.42, y1: 0.9 } : { x0: 0.58, y0: 0.1, x1: 0.92, y1: 0.9 };
+  }
+  return arr;
+}
+
+function placeTwin(p, r) {
+  // two distinct massifs split by a valley/fault running across the frame
+  const arr = [];
+  if (p.flip) {  // fault runs roughly vertical → land left & right
+    arr.push(makeBump(0.24, 0.4 + (r() - 0.5) * 0.2, p, r, 0.1));
+    arr.push(makeBump(0.76, 0.6 + (r() - 0.5) * 0.2, p, r, 0.05));
+  } else {       // fault runs roughly horizontal → land top & bottom
+    arr.push(makeBump(0.4 + (r() - 0.5) * 0.2, 0.24, p, r, 0.1));
+    arr.push(makeBump(0.6 + (r() - 0.5) * 0.2, 0.76, p, r, 0.05));
+  }
+  arr._region = { x0: 0.1, y0: 0.1, x1: 0.9, y1: 0.9 };
+  return arr;
+}
+
+function placeSection(p, r) {
+  // plan map confined to upper region (section strip drawn separately below)
+  const [ax, ay] = ANCHORS[p.anchI];
+  const cy = clamp(ay * 0.62, 0.12, 0.5);   // keep land in the top ~2/3
+  const b = makeBump(ax + (r() - 0.5) * 0.1, cy, p, r);
+  b.sig = (0.16 + r() * 0.10) * p.scale;
+  const arr = [b];
+  arr._region = { x0: 0.12, y0: 0.08, x1: 0.88, y1: 0.6 };
+  return arr;
+}
+
+function placeInset(p, r) {
+  // zoomed terrain: ONE large form bleeding off a corner edge, big scale
+  const corners = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
+  const [cx, cy] = corners[p.corner];
+  const b = makeBump(cx + (cx < 0.5 ? 0.32 : -0.32), cy + (cy < 0.5 ? 0.32 : -0.32), p, r, 0.3);
+  b.sig = (0.34 + r() * 0.12) * p.scale;   // zoomed in → fewer, fatter contours
+  const arr = [b];
+  arr._region = { x0: 0.1, y0: 0.1, x1: 0.9, y1: 0.9 };
+  return arr;
+}
+
+const PLACERS = [placeStandard, placeBleed, placeCoastal, placeTwin, placeSection, placeInset];
+
 /* bilinear sample from normalised grid */
 function sampleAt(field, cols, rows, fx, fy) {
   const gx = clamp(fx * (cols - 1), 0, cols - 1.001);
@@ -233,49 +342,33 @@ function isoSegments(field, cols, rows, level, ox, oy, sx, sy) {
   return segs;
 }
 
-/* ── Paint ───────────────────────────────────────────────────────────────── */
-function draw(cv, seed) {
-  const r = rng(seed);
-  const p = paramsOf(r);
-  const P = PALS[p.palI], W = p.fmt.W, H = p.fmt.H;
-  cv.width = W; cv.height = H;
-  const x = cv.getContext('2d');
-  const dark = lum(P.paper) < 0.5;
-
-  // paper base
-  x.fillStyle = P.paper;
-  x.fillRect(0, 0, W, H);
-
-  // Bleed frame draws map to the very edge; others inset to leave a margin.
-  const bleed = p.frmI === 2;
-  const pad = bleed ? 0 : Math.round(Math.min(W, H) * 0.06);
-  const iw = W - pad * 2, ih = H - pad * 2;
-
-  // build height field over the map area
-  const { field, cols, rows } = buildField(p, r, iw, ih);
-  const sx = iw / (cols - 1), sy = ih / (rows - 1);
-
-  // ── 1. hypsometric tint — pushed FAR back (muted, low contrast) ──
+/* ── Terrain painter: tint + hillshade + contours for a given pixel rect ────
+ * Used by every layout. The rect (mx0,my0,mw,mh) is where the map lives; the
+ * field is normalised so it fills it. `frac` lets Plan+Section paint into a
+ * sub-rect. */
+function paintTerrain(x, P, field, cols, rows, mx0, my0, mw, mh, p, r, labelLines) {
+  const sx = mw / (cols - 1), sy = mh / (rows - 1);
   const bandCount = p.denI === 0 ? 8 : p.denI === 1 ? 12 : 16;
-  const fcols = 200, frows = Math.round(200 * ih / iw);
-  const fcw = iw / fcols, fch = ih / frows;
+
+  // 1. hypsometric tint — pushed back (muted toward paper)
+  const fcols = 200, frows = Math.max(2, Math.round(200 * mh / mw));
+  const fcw = mw / fcols, fch = mh / frows;
   for (let gy = 0; gy < frows; gy++) {
     for (let gx = 0; gx < fcols; gx++) {
       const t = sampleAt(field, cols, rows, gx / (fcols - 1), gy / (frows - 1));
       const band = Math.floor(t * bandCount) / bandCount;
       let col = rampColor(P, band + 0.5 / bandCount);
-      // mute toward paper so tint recedes behind the lines (the key layer fix)
       col = mix(col, P.paper, 0.42);
       x.fillStyle = col;
-      x.fillRect(pad + gx * fcw, pad + gy * fch, fcw + 1, fch + 1);
+      x.fillRect(mx0 + gx * fcw, my0 + gy * fch, fcw + 1, fch + 1);
     }
   }
 
-  // gentle hillshade (SE light) — soft, just enough to read relief
+  // hillshade (SE light), soft
   x.save();
   x.globalCompositeOperation = 'overlay';
-  const hcols = 150, hrows = Math.round(150 * ih / iw);
-  const hcw = iw / hcols, hch = ih / hrows;
+  const hcols = 150, hrows = Math.max(2, Math.round(150 * mh / mw));
+  const hcw = mw / hcols, hch = mh / hrows;
   const e = 0.012;
   for (let gy = 0; gy < hrows; gy++) {
     for (let gx = 0; gx < hcols; gx++) {
@@ -285,49 +378,27 @@ function draw(cv, seed) {
       const shade = clamp(0.5 + (dzdx + dzdy) * 5, 0, 1);
       const tone = shade > 0.5 ? '#fff' : '#000';
       x.fillStyle = rgba(tone, Math.abs(shade - 0.5) * 0.30);
-      x.fillRect(pad + gx * hcw, pad + gy * hch, hcw + 1, hch + 1);
+      x.fillRect(mx0 + gx * hcw, my0 + gy * hch, hcw + 1, hch + 1);
     }
   }
   x.restore();
 
-  // faint paper mottle UNDER the lines (texture stays back)
-  mottle(x, pad, pad, iw, ih, P.paper, 1600, r, 'overlay');
+  mottle(x, mx0, my0, mw, mh, P.paper, 1600, r, 'overlay');
 
-  // ── 2. graticule ticks along the edges (not a full smothering grid) ──
-  if (p.grat && !bleed) {
-    x.strokeStyle = rgba(P.ink, 0.55);
-    x.lineWidth = Math.max(1, Math.min(W, H) * 0.0012);
-    const gn = p.denI === 2 ? 12 : 8;
-    const tk = Math.min(W, H) * 0.012;
-    for (let i = 1; i < gn; i++) {
-      const gxp = pad + (iw * i) / gn, gyp = pad + (ih * i) / gn;
-      // top + bottom ticks
-      x.beginPath(); x.moveTo(gxp, pad); x.lineTo(gxp, pad + tk); x.stroke();
-      x.beginPath(); x.moveTo(gxp, pad + ih); x.lineTo(gxp, pad + ih - tk); x.stroke();
-      // left + right ticks
-      x.beginPath(); x.moveTo(pad, gyp); x.lineTo(pad + tk, gyp); x.stroke();
-      x.beginPath(); x.moveTo(pad + iw, gyp); x.lineTo(pad + iw - tk, gyp); x.stroke();
-    }
-  }
-
-  // clip contours/labels to the map area so labels don't spill past the sheet
-  x.save();
-  x.beginPath(); x.rect(pad, pad, iw, ih); x.clip();
-
-  // ── 3. contour lines — clean, hierarchical, the HERO layer ──
+  // 2. contour lines — hierarchical hero layer
+  const W = x.canvas.width, H = x.canvas.height;
   const levels = bandCount;
-  const indexEvery = 5;                                  // bold index every 5th
-  const baseElev = rint(r, 0, 9) * 100;                  // map datum for labels
-  const interval = p.denI === 0 ? 40 : p.denI === 1 ? 20 : 10;  // metres per line
-  const thin  = Math.max(0.9, Math.min(W, H) * 0.0012);
-  const bold  = Math.max(2.2, Math.min(W, H) * 0.0032);
+  const indexEvery = 5;
+  const baseElev = rint(r, 0, 9) * 100;
+  const interval = p.denI === 0 ? 40 : p.denI === 1 ? 20 : 10;
+  const thin = Math.max(0.9, Math.min(W, H) * 0.0012);
+  const bold = Math.max(2.2, Math.min(W, H) * 0.0032);
   x.lineJoin = 'round'; x.lineCap = 'round';
 
-  // collect index segments so we can place labels after
   for (let i = 1; i < levels; i++) {
     const lvl = i / levels;
     const isIndex = i % indexEvery === 0;
-    const segs = isoSegments(field, cols, rows, lvl, pad, pad, sx, sy);
+    const segs = isoSegments(field, cols, rows, lvl, mx0, my0, sx, sy);
     if (!segs.length) continue;
     x.strokeStyle = isIndex ? rgba(P.ink, 0.95) : rgba(P.ink, 0.55);
     x.lineWidth = isIndex ? bold : thin;
@@ -335,8 +406,7 @@ function draw(cv, seed) {
     for (const s of segs) { x.moveTo(s[0], s[1]); x.lineTo(s[2], s[3]); }
     x.stroke();
 
-    // elevation labels on index lines
-    if (isIndex) {
+    if (isIndex && labelLines) {
       const elevM = baseElev + i * interval;
       const fontPx = Math.max(11, Math.min(W, H) * 0.013);
       x.font = `${fontPx}px Georgia, "Times New Roman", serif`;
@@ -344,12 +414,10 @@ function draw(cv, seed) {
       const stride = Math.max(40, Math.floor(segs.length / 3));
       for (let k = Math.floor(stride * 0.5); k < segs.length; k += stride) {
         const s = segs[k];
-        const lx = s[0], ly = s[1];
         const ang = Math.atan2(s[3] - s[1], s[2] - s[0]);
         x.save();
-        x.translate(lx, ly);
+        x.translate(s[0], s[1]);
         x.rotate(Math.abs(ang) > Math.PI / 2 ? ang + Math.PI : ang);
-        // paper halo so the number sits cleanly over the line
         const tw = x.measureText(String(elevM)).width;
         x.fillStyle = rgba(P.paper, 0.85);
         x.fillRect(-tw / 2 - 2, -fontPx * 0.55, tw + 4, fontPx * 1.1);
@@ -359,79 +427,233 @@ function draw(cv, seed) {
       }
     }
   }
-  x.restore();  // end clip
+  return { bandCount, baseElev, interval };
+}
 
-  // ── 4. map furniture: frame (varied per seed) ──
-  if (!bleed) {
-    x.strokeStyle = rgba(P.ink, 0.9);
-    if (p.frmI === 0) {
-      // Neatline: single crisp rule
-      x.lineWidth = Math.max(1.6, Math.min(W, H) * 0.002);
-      x.strokeRect(pad, pad, iw, ih);
-    } else {
-      // Ticked: rule + corner registration crosses
-      x.lineWidth = Math.max(1.4, Math.min(W, H) * 0.0016);
-      x.strokeRect(pad, pad, iw, ih);
-      const tick = Math.min(W, H) * 0.02;
-      const corners = [[pad, pad], [pad + iw, pad], [pad, pad + ih], [pad + iw, pad + ih]];
-      x.lineWidth = Math.max(1.4, Math.min(W, H) * 0.0018);
-      for (const [cx, cy] of corners) {
-        x.beginPath();
-        x.moveTo(cx - tick, cy); x.lineTo(cx + tick, cy);
-        x.moveTo(cx, cy - tick); x.lineTo(cx, cy + tick);
-        x.stroke();
-      }
+/* ── Furniture helpers ─────────────────────────────────────────────────── */
+function neatline(x, P, mx0, my0, mw, mh, W, H, ticked) {
+  x.strokeStyle = rgba(P.ink, 0.9);
+  x.lineWidth = Math.max(1.6, Math.min(W, H) * 0.002);
+  x.strokeRect(mx0, my0, mw, mh);
+  if (ticked) {
+    const tick = Math.min(W, H) * 0.02;
+    const corners = [[mx0, my0], [mx0 + mw, my0], [mx0, my0 + mh], [mx0 + mw, my0 + mh]];
+    x.lineWidth = Math.max(1.4, Math.min(W, H) * 0.0018);
+    for (const [cx, cy] of corners) {
+      x.beginPath();
+      x.moveTo(cx - tick, cy); x.lineTo(cx + tick, cy);
+      x.moveTo(cx, cy - tick); x.lineTo(cx, cy + tick);
+      x.stroke();
     }
   }
+}
 
-  // ── 5. scale bar (bottom-left, inside map) ──
-  {
+function scaleBar(x, P, bx, by, w, W, H) {
+  const sbH = Math.min(W, H) * 0.011, segsN = 4;
+  for (let i = 0; i < segsN; i++) {
+    x.fillStyle = i % 2 === 0 ? rgba(P.ink, 0.85) : rgba(P.paper, 0.9);
+    x.fillRect(bx + (w / segsN) * i, by, w / segsN, sbH);
+  }
+  x.strokeStyle = rgba(P.ink, 0.85); x.lineWidth = 1;
+  x.strokeRect(bx, by, w, sbH);
+  const fp = Math.max(9, Math.min(W, H) * 0.0095);
+  x.font = `${fp}px Georgia, serif`;
+  x.fillStyle = rgba(P.ink, 0.85);
+  x.textAlign = 'left'; x.textBaseline = 'bottom';
+  x.fillText('0', bx, by - 2);
+  x.textAlign = 'right';
+  x.fillText('1 km', bx + w, by - 2);
+}
+
+function northArrow(x, P, nx, ny, W, H) {
+  const nr = Math.min(W, H) * 0.022;
+  x.save(); x.translate(nx, ny - nr);
+  x.fillStyle = rgba(P.ink, 0.9); x.strokeStyle = rgba(P.ink, 0.9);
+  x.lineWidth = Math.max(1, Math.min(W, H) * 0.0011);
+  x.beginPath();
+  x.moveTo(0, -nr); x.lineTo(nr * 0.42, 0); x.lineTo(0, nr * 0.5); x.lineTo(-nr * 0.42, 0); x.closePath();
+  x.stroke();
+  x.beginPath();
+  x.moveTo(0, -nr); x.lineTo(nr * 0.42, 0); x.lineTo(0, 0); x.lineTo(-nr * 0.42, 0); x.closePath();
+  x.fill();
+  const fp = Math.max(9, Math.min(W, H) * 0.011);
+  x.font = `bold ${fp}px Georgia, serif`;
+  x.fillStyle = rgba(P.ink, 0.95);
+  x.textAlign = 'center'; x.textBaseline = 'bottom';
+  x.fillText('N', 0, -nr - 2);
+  x.restore();
+}
+
+function titleBlock(x, P, bx, by, bw, bh, W, H, r) {
+  x.fillStyle = rgba(P.paper, 0.92);
+  x.fillRect(bx, by, bw, bh);
+  x.strokeStyle = rgba(P.ink, 0.9);
+  x.lineWidth = Math.max(1.2, Math.min(W, H) * 0.0014);
+  x.strokeRect(bx, by, bw, bh);
+  x.beginPath();
+  x.moveTo(bx, by + bh * 0.5); x.lineTo(bx + bw, by + bh * 0.5); x.stroke();
+  const f1 = Math.max(11, bh * 0.26), f2 = Math.max(8, bh * 0.17);
+  x.fillStyle = rgba(P.ink, 0.95);
+  x.textAlign = 'left'; x.textBaseline = 'middle';
+  x.font = `bold ${f1}px Georgia, serif`;
+  x.fillText('CONTOUR INTERVAL', bx + bw * 0.05, by + bh * 0.27);
+  x.font = `${f2}px Georgia, serif`;
+  x.fillStyle = rgba(P.ink, 0.8);
+  const sheet = `SHEET ${rint(r, 1, 48)} · ${rint(r, 1, 24)}/${rint(r, 1, 64)}`;
+  x.fillText(sheet, bx + bw * 0.05, by + bh * 0.72);
+  x.textAlign = 'right';
+  x.fillText('countyline-ai', bx + bw * 0.95, by + bh * 0.72);
+}
+
+/* cross-section strip: the cut through the terrain, drawn across a bottom band */
+function sectionStrip(x, P, field, cols, rows, sx0, sy0, sw, sh, W, H, p) {
+  // baseline + a sampled profile across the middle of the field
+  x.fillStyle = rgba(P.paper, 0.9);
+  x.fillRect(sx0, sy0, sw, sh);
+  const samp = 220;
+  const prof = new Array(samp);
+  const cutRow = 0.42 + 0.16 * INVPHI;   // sample a representative cut line
+  for (let i = 0; i < samp; i++) {
+    prof[i] = sampleAt(field, cols, rows, i / (samp - 1), cutRow);
+  }
+  // hypsometric fill under the profile
+  for (let i = 0; i < samp - 1; i++) {
+    const h0 = prof[i], h1 = prof[i + 1];
+    const px0 = sx0 + (i / (samp - 1)) * sw, px1 = sx0 + ((i + 1) / (samp - 1)) * sw;
+    const top0 = sy0 + sh * (1 - h0 * 0.82) - sh * 0.08;
+    const top1 = sy0 + sh * (1 - h1 * 0.82) - sh * 0.08;
+    let col = rampColor(P, (h0 + h1) * 0.5);
+    col = mix(col, P.paper, 0.32);
+    x.fillStyle = col;
+    x.beginPath();
+    x.moveTo(px0, top0); x.lineTo(px1, top1);
+    x.lineTo(px1, sy0 + sh); x.lineTo(px0, sy0 + sh); x.closePath();
+    x.fill();
+  }
+  // profile line on top
+  x.strokeStyle = rgba(P.ink, 0.95);
+  x.lineWidth = Math.max(1.6, Math.min(W, H) * 0.0022);
+  x.beginPath();
+  for (let i = 0; i < samp; i++) {
+    const px = sx0 + (i / (samp - 1)) * sw;
+    const py = sy0 + sh * (1 - prof[i] * 0.82) - sh * 0.08;
+    if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+  }
+  x.stroke();
+  // section frame + label
+  x.strokeStyle = rgba(P.ink, 0.85);
+  x.lineWidth = Math.max(1.2, Math.min(W, H) * 0.0014);
+  x.strokeRect(sx0, sy0, sw, sh);
+  const fp = Math.max(9, Math.min(W, H) * 0.011);
+  x.font = `${fp}px Georgia, serif`;
+  x.fillStyle = rgba(P.ink, 0.85);
+  x.textAlign = 'left'; x.textBaseline = 'top';
+  x.fillText("SECTION  A — A'", sx0 + 6, sy0 + 5);
+}
+
+/* ── Paint ───────────────────────────────────────────────────────────────── */
+function draw(cv, seed) {
+  const r = rng(seed);
+  const p = paramsOf(r);
+  const P = PALS[p.palI], W = p.fmt.W, H = p.fmt.H;
+  cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  const dark = lum(P.paper) < 0.5;
+  const lay = p.layI;
+
+  x.fillStyle = P.paper;
+  x.fillRect(0, 0, W, H);
+
+  // map rect + whether a frame is drawn — depends on layout
+  let mx0, my0, mw, mh, framed = false, ticked = false;
+  const m = Math.round(Math.min(W, H) * 0.06);
+
+  if (lay === 0) {                 // Survey Plate — formal framed sheet
+    mx0 = m; my0 = m; mw = W - m * 2; mh = H - m * 2; framed = true; ticked = true;
+  } else if (lay === 1) {          // Full Bleed — edge to edge, no frame
+    mx0 = 0; my0 = 0; mw = W; mh = H;
+  } else if (lay === 2) {          // Coastal Crop — bleed terrain, no frame
+    mx0 = 0; my0 = 0; mw = W; mh = H;
+  } else if (lay === 3) {          // Twin Massif — bleed, no frame
+    mx0 = 0; my0 = 0; mw = W; mh = H;
+  } else if (lay === 4) {          // Plan + Section — plan upper 2/3
+    const split = Math.round(H * 0.68);
+    mx0 = m; my0 = m; mw = W - m * 2; mh = split - m * 2;
+  } else {                         // Detail Inset — bleed terrain + locator box
+    mx0 = 0; my0 = 0; mw = W; mh = H;
+  }
+
+  // build field into the layout's region, painted into the map rect
+  const placer = PLACERS[lay];
+  const { field, cols, rows } = buildField(p, r, mw, mh, placer);
+
+  // clip terrain + labels to the map rect
+  x.save();
+  x.beginPath(); x.rect(mx0, my0, mw, mh); x.clip();
+  paintTerrain(x, P, field, cols, rows, mx0, my0, mw, mh, p, r, true);
+  x.restore();
+
+  // ── layout-specific furniture ──
+  if (lay === 0) {                 // Survey Plate: full formal furniture
+    neatline(x, P, mx0, my0, mw, mh, W, H, ticked);
     const inset = Math.min(W, H) * 0.045;
-    const sbW = iw * 0.2, sbH = Math.min(W, H) * 0.011;
-    const sbx = pad + inset, sby = pad + ih - sbH - inset;
-    const segsN = 4;
-    for (let i = 0; i < segsN; i++) {
-      x.fillStyle = i % 2 === 0 ? rgba(P.ink, 0.85) : rgba(P.paper, 0.9);
-      x.fillRect(sbx + (sbW / segsN) * i, sby, sbW / segsN, sbH);
+    scaleBar(x, P, mx0 + inset, my0 + mh - inset, mw * 0.2, W, H);
+    northArrow(x, P, mx0 + mw - inset, my0 + inset + Math.min(W, H) * 0.022, W, H);
+    const tbw = mw * 0.4, tbh = Math.min(W, H) * 0.075;
+    titleBlock(x, P, mx0 + mw - tbw - inset, my0 + mh - tbh - inset, tbw, tbh, W, H, r);
+  } else if (lay === 1 || lay === 2 || lay === 3) {
+    // Full Bleed / Coastal / Twin — minimal: a discreet scale bar + north only,
+    // NO frame. Tucked corners so the terrain stays the subject.
+    const inset = Math.min(W, H) * 0.05;
+    scaleBar(x, P, inset, H - inset, mw * 0.18, W, H);
+    northArrow(x, P, W - inset, inset + Math.min(W, H) * 0.022, W, H);
+  } else if (lay === 4) {          // Plan + Section
+    neatline(x, P, mx0, my0, mw, mh, W, H, false);
+    const inset = Math.min(W, H) * 0.04;
+    northArrow(x, P, mx0 + mw - inset, my0 + inset + Math.min(W, H) * 0.022, W, H);
+    // section strip across the bottom band
+    const split = Math.round(H * 0.68);
+    const sx0 = m, sy0 = split + Math.round(m * 0.4), sw = W - m * 2, sh = H - split - m * 1.4;
+    sectionStrip(x, P, field, cols, rows, sx0, sy0, sw, sh, W, H, p);
+    scaleBar(x, P, mx0, my0 + mh + Math.min(W, H) * 0.025, mw * 0.2, W, H);
+  } else {                         // Detail Inset: locator inset in a corner
+    const inset = Math.min(W, H) * 0.045;
+    scaleBar(x, P, inset, H - inset, mw * 0.18, W, H);
+    // small framed locator map in the corner opposite the terrain mass
+    const lw = Math.min(W, H) * 0.26, lh = lw * (H / W) * 1.0;
+    const oppX = p.corner % 2 === 0 ? W - lw - inset : inset;
+    const oppY = p.corner < 2 ? H - lh - inset : inset;
+    // locator background sheet
+    x.fillStyle = rgba(P.paper, 0.94);
+    x.fillRect(oppX, oppY, lw, lh);
+    // a coarse mini contour set inside the locator (low band count)
+    x.save();
+    x.beginPath(); x.rect(oppX, oppY, lw, lh); x.clip();
+    const miniBands = 5, msx = lw / (cols - 1), msy = lh / (rows - 1);
+    for (let i = 1; i < miniBands; i++) {
+      const segs = isoSegments(field, cols, rows, i / miniBands, oppX, oppY, msx, msy);
+      x.strokeStyle = rgba(P.ink, i === Math.floor(miniBands / 2) ? 0.9 : 0.55);
+      x.lineWidth = i === Math.floor(miniBands / 2) ? 1.8 : 1;
+      x.beginPath();
+      for (const s of segs) { x.moveTo(s[0], s[1]); x.lineTo(s[2], s[3]); }
+      x.stroke();
     }
-    x.strokeStyle = rgba(P.ink, 0.85);
-    x.lineWidth = 1;
-    x.strokeRect(sbx, sby, sbW, sbH);
-    const fp = Math.max(9, Math.min(W, H) * 0.0095);
+    // "you are here" extent rectangle on the locator
+    x.strokeStyle = rgba(P.ink, 0.95);
+    x.lineWidth = Math.max(1.4, Math.min(W, H) * 0.0016);
+    x.strokeRect(oppX + lw * 0.32, oppY + lh * 0.3, lw * 0.34, lh * 0.34);
+    x.restore();
+    x.strokeStyle = rgba(P.ink, 0.9);
+    x.lineWidth = Math.max(1.4, Math.min(W, H) * 0.0018);
+    x.strokeRect(oppX, oppY, lw, lh);
+    const fp = Math.max(8, Math.min(W, H) * 0.0095);
     x.font = `${fp}px Georgia, serif`;
     x.fillStyle = rgba(P.ink, 0.85);
-    x.textAlign = 'left'; x.textBaseline = 'bottom';
-    x.fillText('0', sbx, sby - 2);
-    x.textAlign = 'right';
-    x.fillText('1 km', sbx + sbW, sby - 2);
+    x.textAlign = 'left'; x.textBaseline = 'top';
+    x.fillText('LOCATOR', oppX + 5, oppY + 4);
   }
 
-  // ── 6. north arrow (top-right, inside map) ──
-  {
-    const inset = Math.min(W, H) * 0.045;
-    const nr = Math.min(W, H) * 0.022;
-    const nx = pad + iw - inset, ny = pad + inset + nr;
-    x.save();
-    x.translate(nx, ny);
-    x.fillStyle = rgba(P.ink, 0.9);
-    x.strokeStyle = rgba(P.ink, 0.9);
-    x.lineWidth = Math.max(1, Math.min(W, H) * 0.0011);
-    // diamond compass needle: filled north half, hollow south half
-    x.beginPath();
-    x.moveTo(0, -nr); x.lineTo(nr * 0.42, 0); x.lineTo(0, nr * 0.5); x.lineTo(-nr * 0.42, 0); x.closePath();
-    x.stroke();
-    x.beginPath();
-    x.moveTo(0, -nr); x.lineTo(nr * 0.42, 0); x.lineTo(0, 0); x.lineTo(-nr * 0.42, 0); x.closePath();
-    x.fill();
-    const fp = Math.max(9, Math.min(W, H) * 0.011);
-    x.font = `bold ${fp}px Georgia, serif`;
-    x.fillStyle = rgba(P.ink, 0.95);
-    x.textAlign = 'center'; x.textBaseline = 'bottom';
-    x.fillText('N', 0, -nr - 2);
-    x.restore();
-  }
-
-  // ── 7. finish ──
+  // finish
   grain(x, W, H, 1400, r);
   vignette(x, W, H, dark ? 0.22 : 0.16);
 }
@@ -441,11 +663,11 @@ export const contourTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const contourSchema: TraitSchema = {
   traits: [
+    { name: 'Layout',   values: LAYOUTS },
     { name: 'Palette',  values: PALS.map((p) => p.name) },
     { name: 'Format',   values: ['Square', 'Portrait', 'Landscape'] },
     { name: 'Relief',   values: RELIEFS },
     { name: 'Interval', values: DENS },
-    { name: 'Frame',    values: FRAMES },
   ],
 };
 
