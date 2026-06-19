@@ -3786,6 +3786,10 @@ button,
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    /* Fixed slot so the (larger) ★ and the ▶ take the SAME width — the button
+       no longer grows when starred, so it can't wrap (Brendon 2026-06-19). */
+    width: 22px;
+    flex: none;
 }
 
 /* ── PROFILE MORE TAB — stats moved from hero ───────────── */
@@ -8467,11 +8471,11 @@ body.colorway-dark .ghost-feed-bar {
 /* Starred Project — long-press the Project name to star it. A large ★ sits
    beside the name (before the date); the float confirm rises from it. */
 .project-name-star {
-    margin-left: 10px;
+    /* Typed directly beside the name (no gap), same size as the title, in our
+       usual Courier glyph font (Brendon 2026-06-19 — was floating big/detached). */
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
-    font-size: 2.1em;
-    vertical-align: middle;
+    vertical-align: baseline;
 }
 .project-name-star-float {
     position: absolute;

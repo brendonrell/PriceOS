@@ -654,8 +654,8 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
-                <span className="starred-row-sub">{artist || ' '}</span>
                 <span className="starred-row-sub">{extra || ' '}</span>
+                <span className="starred-row-sub">{artist ? `by: ${artist}` : ' '}</span>
                 <span className="starred-row-sub">Output</span>
             </div>
             <div className="starred-row-actions">
