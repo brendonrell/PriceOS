@@ -66,7 +66,12 @@ function paramsOf(r) {
   const fy = clamp((r() < 0.5 ? INVPHI : 1 - INVPHI) + (r() - 0.5) * 0.18, 0.24, 0.76);
 
   // DENSITY FLOOR — even the lowest band is dense. No bare seeds, ever.
-  const trailCount = densI === 0 ? rint(r, 16, 22) : densI === 1 ? rint(r, 23, 32) : rint(r, 33, 46);
+  // Star Trails reads thinner per-arc, so it gets a count boost below.
+  const starMode = motionI === 4;
+  const base0 = starMode ? rint(r, 26, 34) : rint(r, 16, 22);
+  const base1 = starMode ? rint(r, 35, 46) : rint(r, 23, 32);
+  const base2 = starMode ? rint(r, 47, 62) : rint(r, 33, 46);
+  const trailCount = densI === 0 ? base0 : densI === 1 ? base1 : base2;
 
   // bloom multiplier from band
   const bloomMul = bloomI === 0 ? 1.3 : bloomI === 1 ? 2.1 : 3.2;
