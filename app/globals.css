@@ -8289,19 +8289,12 @@ body.colorway-dark .ghost-feed-bar {
     100% { opacity: 0; transform: translateY(calc(-50% - 64px)) scale(1); }
 }
 
-/* Starred Soundtracks — long-press the SOUNDTRACK button to star it. Same
-   treatment as the trait star (2×, accent, float rises from the star). */
-.btn-soundtrack .soundtrack-star {
-    margin-left: 8px;
-    font-family: 'Courier New', Courier, monospace;
-    color: var(--accent);
-    font-size: 24px;
-    line-height: 1;
-    vertical-align: middle;
-}
+/* Starred Soundtracks — long-press the SOUNDTRACK button to star it. When
+   starred, the leading ▶ glyph becomes ★ (same slot, so the button keeps its
+   size); the float confirm rises from that icon. */
 .btn-soundtrack .soundtrack-star-float {
     position: absolute;
-    right: 8px;
+    left: 12px;
     top: 50%;
     font-family: 'Courier New', Courier, monospace;
     font-size: 36px;
