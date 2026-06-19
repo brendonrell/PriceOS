@@ -19,6 +19,7 @@ interface UserMeta {
     bucket?: string;       // official-colour bucket
     followers?: number;    // follower count
     sprite?: string | null; // PriceSprite (emoji/key) or null
+    ownedProjects?: number; // distinct projects owned (collectors)
 }
 
 const cache = new Map<string, UserMeta>(); // handle (lower) -> meta
@@ -52,6 +53,11 @@ export function artistSprite(handle: string): string | null {
     return cache.get(handle.toLowerCase())?.sprite ?? null;
 }
 
+/** Distinct projects a starred user owns, or null if not loaded yet. */
+export function artistProjectsOwned(handle: string): number | null {
+    return cache.get(handle.toLowerCase())?.ownedProjects ?? null;
+}
+
 async function loadMeta(handles: string[]): Promise<void> {
     const fresh = handles.map((h) => h.toLowerCase()).filter((h) => h && !loaded.has(h));
     if (fresh.length === 0) return;
@@ -67,6 +73,7 @@ async function loadMeta(handles: string[]): Promise<void> {
                     follower_count?: number;
                     price_sprite_resolved?: string | null;
                     price_sprite?: string | null;
+                    owned_projects?: number;
                 };
                 const meta: UserMeta = {};
                 const hex = u.profile_hex || u.signature_hex;
@@ -75,6 +82,7 @@ async function loadMeta(handles: string[]): Promise<void> {
                     if (rgb) meta.bucket = classifyRgb(rgb[0], rgb[1], rgb[2]);
                 }
                 if (typeof u.follower_count === 'number') meta.followers = u.follower_count;
+                if (typeof u.owned_projects === 'number') meta.ownedProjects = u.owned_projects;
                 meta.sprite = u.price_sprite_resolved ?? u.price_sprite ?? null;
                 cache.set(h, meta);
             } catch { /* ignore */ }

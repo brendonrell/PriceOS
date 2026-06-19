@@ -46,6 +46,25 @@ export async function getUserHoldingsCount(rawAddress: string): Promise<number> 
   return count ?? 0;
 }
 
+/**
+ * Count of DISTINCT projects a wallet owns pieces from — a real, reusable
+ * capability (Brendon 2026-06-19, "X projects owned" for collectors). Distinct
+ * projects are few (well under the 1000-row page cap), so deduping the
+ * project_id column is exact. Returns 0 for a malformed address or on error.
+ */
+export async function getUserOwnedProjectsCount(rawAddress: string): Promise<number> {
+  const address = rawAddress.toLowerCase();
+  if (!ADDRESS_RE.test(address)) return 0;
+  const supabase = getSupabaseService();
+  const { data, error } = await supabase
+    .from('holders')
+    .select('project_id')
+    .eq('owner_address', address);
+  if (error) return 0;
+  const set = new Set((data ?? []).map((r: { project_id: string }) => r.project_id));
+  return set.size;
+}
+
 export async function getUserHoldings(
   rawAddress: string
 ): Promise<UserHolding[] | null> {

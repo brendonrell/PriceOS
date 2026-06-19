@@ -34,7 +34,7 @@ import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundt
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
-import { useArtistColors, artistBucket, artistFollowers, artistSprite } from '../../lib/pins/artistColorStore';
+import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -1029,7 +1029,7 @@ function StarredArtistRow({
                 {variant === 'collector' ? (
                     <>
                         <span className="starred-row-sub">Top buy:<em>{collectorTopBuy(handle)}</em></span>
-                        <span className="starred-row-sub">{collectorProjectsOwned(handle)} projects owned</span>
+                        <span className="starred-row-sub">{artistProjectsOwned(handle) ?? collectorProjectsOwned(handle)} projects owned</span>
                     </>
                 ) : (
                     <>
