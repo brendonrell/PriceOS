@@ -4943,6 +4943,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (min-width: 601px) {
     .search-row.open { max-width: 467px; }
 }
+/* A bit more breathing room below the Starred/Wishlist search before the rows
+   (Brendon 2026-06-19). */
+.starred-list .search-row.open { padding-bottom: 16px; }
 .search-input {
     flex: 1;
     background: transparent;
@@ -5035,6 +5038,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .preset-row.open {
     display: flex;
+}
+/* The Starred Presets row lives ABOVE the starred list, outside its side
+   padding, so it needs the SAME left/right inset (40px desktop / 20px mobile)
+   to line up with the pills, search and rows below it (Brendon 2026-06-19). */
+.preset-row--starred { padding-left: 40px; padding-right: 40px; }
+@media (max-width: 600px) {
+    .preset-row--starred { padding-left: 20px; padding-right: 20px; }
 }
 
 /* Base pill — shared by SAVE, filled slots, and empty slots */

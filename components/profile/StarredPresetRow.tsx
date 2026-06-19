@@ -56,7 +56,7 @@ export default function StarredPresetRow({
     };
 
     return (
-        <div className="preset-row open">
+        <div className="preset-row preset-row--starred open">
             <button className="pill-preset pill-preset--save" onClick={handleSave} title="Save current Starred view as a preset">
                 SAVE
             </button>

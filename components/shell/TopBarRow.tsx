@@ -471,7 +471,9 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
     let displayTitle: string;
     let idText: string | null = null;
     let priceText: string | null = null;
-    let playGlyph = false;
+    /* Leading glyph before the title: ⨝ for traits, ▶ for soundtracks
+       (Brendon 2026-06-19). */
+    let leadGlyph: string | null = null;
     let titleAttr: string;
 
     if (pin.kind === 'output') {
@@ -487,6 +489,7 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
         titleAttr = `${projectTitle}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
     } else if (pin.kind === 'trait') {
         displayTitle = redacted ? redactedTitle : (pin.value ?? projectTitle);
+        leadGlyph = '\u2a1d\ufe0e';
         const floor = traitMarketStat(pin.slug, pin.category ?? '', pin.value ?? '').floor;
         priceText = floor && floor !== '\u2014' ? fmtEth4(floor.replace(' ETH', '')) : null;
         titleAttr = `${projectTitle} \u00b7 ${pin.category}: ${pin.value}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
@@ -497,7 +500,7 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
     } else {
         // soundtrack
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
-        playGlyph = true;
+        leadGlyph = '\u25b6\ufe0e';
         titleAttr = `${projectTitle} soundtrack \u2014 play`;
     }
 
@@ -511,7 +514,7 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
             role="button"
             tabIndex={0}
         >
-            {playGlyph && <span className="grail-pill-play" aria-hidden="true">{'▶︎'}</span>}
+            {leadGlyph && <span className="grail-pill-play" aria-hidden="true">{leadGlyph}</span>}
             <span className={`grail-pill-title${titleShortClass}`}>
                 {displayTitle}
             </span>

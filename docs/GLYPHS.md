@@ -272,6 +272,43 @@ real presence, not a toggled "watching" button).
 
 ---
 
+## 12. Starred / Wishlist row surface — 2026-06-19
+
+The profile +More Starred + Wishlist row lists, their sort bar, the per-row
+square tiles, and the top-bar Grail-pin pills.
+
+| Concept | Glyph | Codepoint | Where |
+|---|---|---|---|
+| **Trait** (the trait icon) | ⨝ | U+2A1D | Starred trait-row square tile + the top-bar **trait** Grail pin. Replaced the old ★ tile (Brendon, 2026-06-19) |
+| Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ |
+| Soundtrack (row tile + Grail pin) | ▶ | U+25B6 | soundtrack row square + the top-bar **soundtrack** Grail pin leading glyph |
+| Project (row tile) | ⬚ | U+2B1A | project row square |
+| Artist / Collector (row tile) | ✺ / ☻ | U+273A / U+263B | artist vs collector row square |
+| Grail Pin (per-row toggle) | ⟟ | U+27DF | the pin toggle above each row's ✕ (matches §3); bigger + lower on desktop |
+| Artist badge (beside @name) | ✺ | U+273A | Starred + Wishlist artist rows; one size smaller on desktop, slightly smaller again in Wishlist |
+
+**Social relationship glyphs** — beside an artist/collector @name in Starred and
+Wishlist rows (and the held-by / collected-by chips):
+
+| Relationship | Glyph | Codepoint | Note |
+|---|---|---|---|
+| Mutual | ⚭ | U+26AD | renders large here — drawn two sizes up from the others |
+| Following (you → them) | ⚯ | U+26AF | bumped one size to match |
+| Follower (them → you) | ⚬ | U+26AC | bumped one size to match |
+
+> **⨝ (U+2A1D) is a math operator** — it's the new Trait icon (Brendon,
+> 2026-06-19). Like every glyph here it must device-verify as monochrome text on
+> iOS before it's locked; if it tofus, it needs a fallback.
+
+> **PriceSprite eyebrows on Windows** (not a glyph — a render note): the eyebrow
+> combining marks (U+0300 grave / U+0301 acute / etc.) don't anchor over the eye
+> in Windows Courier New. The ID Rectangle (held-by chip + profile identity
+> sprite) and the connect-menu sprite overlay each brow's spacing twin above the
+> eye on Windows only. Apple/iOS render the combining marks natively and are
+> never touched. (`lib/sprites/winBrow.ts`, `components/SpriteFace.tsx`.)
+
+---
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`

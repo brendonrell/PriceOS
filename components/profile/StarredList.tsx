@@ -544,7 +544,7 @@ export default function StarredList({
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile">
-                                    <span className="trait-row-tile-glyph" style={{ color: r.color }}>★&#xFE0E;</span>
+                                    <span className="trait-row-tile-glyph" style={{ color: r.color }}>⨝&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
