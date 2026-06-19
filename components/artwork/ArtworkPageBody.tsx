@@ -92,10 +92,12 @@ export default function ArtworkPageBody({
     const onAlbums = activeTab === 'albums';
     const onMore = activeTab === 'more';
 
-    /* Title: "Prisms #1". */
-    const projectName = projectSlug ? titleCase(projectSlug) : 'Prisms';
     const numberPart = typeof localId === 'number' ? localId : globalId;
     const slug = (projectSlug ?? 'prisms').toLowerCase();
+    /* Title name = the Project's real display name (proper casing + punctuation),
+       same source as the Project page. Falls back to a title-cased slug only for
+       an unknown project. */
+    const projectName = getProject(slug)?.displayName ?? (projectSlug ? titleCase(projectSlug) : 'Prisms');
     const projectHref = `/art/${slug}`;
     const fullscreenHref = `/art/${slug}/${numberPart}/full`;
 
