@@ -401,6 +401,21 @@ export function TopBarRow() {
    session so re-renders don't refetch (the pill shows the bare number). */
 const artistFollowerCache = new Map<string, number>();
 
+/* ETH amounts in a pill: show 4 significant digits, decimal where it fits —
+   25.67, 0.228, 1.234 (Brendon 2026-06-19). */
+function fmtEth4(s: string): string {
+    const n = parseFloat(s);
+    if (!isFinite(n)) return s;
+    const intDigits = Math.max(1, Math.trunc(Math.abs(n)).toString().length);
+    return n.toFixed(Math.max(0, 4 - intDigits));
+}
+/* Follower counts: compact, max 2 significant figures — 2.2k, 10k, 1.2m. */
+function fmtCount(n: number): string {
+    if (n < 1000) return String(n);
+    if (n < 1_000_000) { const k = n / 1000; return (k < 10 ? k.toFixed(1) : Math.round(k).toString()) + 'k'; }
+    const m = n / 1_000_000; return (m < 10 ? m.toFixed(1) : Math.round(m).toString()) + 'm';
+}
+
 /* Short, human label for a pin (toast text). */
 function grailPillLabel(pin: GrailPin): string {
     const name = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
@@ -463,21 +478,21 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
         const meta = buildOutputMetaFor(pin.slug, pin.id!);
         displayTitle = redacted ? redactedTitle : projectTitle;
         idText = `#${pin.id}`;
-        priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
+        priceText = meta?.price ? fmtEth4(meta.price.replace(' ETH', '')) : null;
         titleAttr = `${projectTitle} #${pin.id}${meta?.price ? ` \u00b7 ${meta.price}` : ''}`;
     } else if (pin.kind === 'project') {
         displayTitle = redacted ? redactedTitle : projectTitle;
         const floor = projectMarketStat(pin.slug).floor;
-        priceText = floor && floor !== '\u2014' ? floor.replace(' ETH', '') : null;
+        priceText = floor && floor !== '\u2014' ? fmtEth4(floor.replace(' ETH', '')) : null;
         titleAttr = `${projectTitle}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
     } else if (pin.kind === 'trait') {
         displayTitle = redacted ? redactedTitle : (pin.value ?? projectTitle);
         const floor = traitMarketStat(pin.slug, pin.category ?? '', pin.value ?? '').floor;
-        priceText = floor && floor !== '\u2014' ? floor.replace(' ETH', '') : null;
+        priceText = floor && floor !== '\u2014' ? fmtEth4(floor.replace(' ETH', '')) : null;
         titleAttr = `${projectTitle} \u00b7 ${pin.category}: ${pin.value}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
     } else if (pin.kind === 'artist') {
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
-        priceText = artistFollowers != null ? String(artistFollowers) : null;
+        priceText = artistFollowers != null ? fmtCount(artistFollowers) : null;
         titleAttr = `@${pin.slug}${artistFollowers != null ? ` · ${artistFollowers} followers` : ''}`;
     } else {
         // soundtrack

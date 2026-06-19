@@ -890,6 +890,7 @@ function ProfilePageBodyInner({
     const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
         all:         { sorts: ['recent'],            groups: ['none'] },
         outputs:     { sorts: ['recent', 'project'], groups: ['none', 'color', 'project', 'artist'] },
+        // 'artists' can group by each artist's OFFICIAL colour (just for fun).
         traits:      { sorts: ['recent', 'project'], groups: ['none', 'project', 'artist'] },
         projects:    { sorts: ['recent', 'project'], groups: ['none', 'artist'] },
         artists:     { sorts: ['recent', 'project'], groups: ['none'] },
