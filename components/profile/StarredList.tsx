@@ -588,19 +588,10 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
-                                {/* Soundtrack exception: the top-right slot is a play button, not a
-                                    grail pin (Brendon 2026-06-19). Tapping plays the playlist. */}
-                                <span
-                                    className="starred-row-grail starred-row-grail-play"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Play on YouTube"
-                                    aria-label="Play"
-                                    onClick={(e) => { e.stopPropagation(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
-                                >
-                                    ▶︎
-                                </span>
+                                <GrailDot
+                                    pinned={grailKeys.has(grailKey({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }))}
+                                    onToggle={() => handleGrail({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title })}
+                                />
                             </div>
                             );
                         })}
