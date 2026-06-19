@@ -3786,10 +3786,6 @@ button,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* Fixed slot so the (larger) ★ and the ▶ take the SAME width — the button
-       no longer grows when starred, so it can't wrap (Brendon 2026-06-19). */
-    width: 22px;
-    flex: none;
 }
 
 /* ── PROFILE MORE TAB — stats moved from hero ───────────── */
@@ -8480,18 +8476,24 @@ body.colorway-dark .ghost-feed-bar {
    the trait/earlier soundtrack star (Brendon 2026-06-19) — so the button keeps
    its width (no appended element) while the star stays full size. */
 .btn-soundtrack .soundtrack-star-icon {
-    font-size: 24px;
-    line-height: 1;
+    /* ▶ and ★ are the SAME width at the same size in our monospace font, so the
+       star keeps the play glyph's size (identical layout width → the button
+       never grows or wraps) and is only VISUALLY enlarged via transform, which
+       doesn't affect layout (Brendon 2026-06-19 — the fixed-slot attempt bloated
+       it; this keeps the button width pinned). */
     color: var(--accent);
-    vertical-align: middle;
+    transform: scale(2.2);
+    transform-origin: center;
 }
 /* Starred Project — long-press the Project name to star it. A large ★ sits
    beside the name (before the date); the float confirm rises from it. */
 .project-name-star {
-    /* Typed directly beside the name (no gap), same size as the title, in our
-       usual Courier glyph font (Brendon 2026-06-19 — was floating big/detached). */
+    /* Typed directly beside the name (no gap), in our usual Courier glyph font;
+       exactly 2× the title size (Brendon 2026-06-19). */
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
+    font-size: 2em;
+    line-height: 1;
     vertical-align: baseline;
 }
 .project-name-star-float {
