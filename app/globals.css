@@ -8299,11 +8299,20 @@ body.colorway-dark .ghost-feed-bar {
 .starred-row-cta.is-on {
     opacity: 0.6;
 }
+/* Listed output → a money CTA in the accent, so a buyable piece pops out of the
+   list (Brendon 2026-06-19). */
+.starred-row-cta.is-buy {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
    for the Output thumbnail. */
 .trait-row { cursor: default; }
 .trait-row:hover { background: none; }
+/* The square stays NEUTRAL (like a thumbnail well); the COLOUR rides the glyph
+   only, at 2× size (Brendon 2026-06-19). */
 .trait-row-tile {
     width: 64px;
     height: 64px;
@@ -8312,25 +8321,22 @@ body.colorway-dark .ghost-feed-bar {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
-}
-.trait-row-tile-glyph {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 22px;
-    color: #fff;
-    mix-blend-mode: difference;
-    opacity: 0.92;
-}
-/* Artist row tile — neutral fill, accent glyph (no colour blend). */
-.trait-row-tile.artist-tile {
     background: var(--stat-bg);
     box-shadow: inset 0 0 0 1px var(--border-color);
 }
+.trait-row-tile-glyph,
 .artist-row-tile-glyph {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 22px;
+    /* 2× the old 22px — the icon carries the colour now. */
+    font-size: 44px;
+    line-height: 1;
     color: var(--accent);
-    opacity: 0.92;
+    opacity: 0.95;
+}
+/* Kept for the artist/soundtrack/project tiles' selector; same neutral well. */
+.trait-row-tile.artist-tile {
+    background: var(--stat-bg);
+    box-shadow: inset 0 0 0 1px var(--border-color);
 }
 
 /* ── Starred Trait: the ★ on a trait value pill + the long-press float ───── */

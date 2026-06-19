@@ -20,7 +20,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway } from '../../lib/project/registry';
+import { traitMarketStat, projectMarketStat, artistColor } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
@@ -142,6 +145,19 @@ export default function StarredList({
         return sorted;
     }, [outputRows, query, sortKey]);
 
+    /* Group output rows by Project so each group mounts ONE ProjectProvider —
+       that's how each row reads its live listing price (and the Buy CTA lights
+       up the instant a piece is listed), the same pattern Wishlist uses. */
+    const outputGroups = useMemo(() => {
+        const m = new Map<string, typeof visibleOutputs>();
+        for (const r of visibleOutputs) {
+            const arr = m.get(r.slug) ?? [];
+            arr.push(r);
+            m.set(r.slug, arr);
+        }
+        return [...m.entries()];
+    }, [visibleOutputs]);
+
     /* ── Trait rows ───────────────────────────────────────────────────── */
     const traitRows = useMemo(
         () =>
@@ -152,6 +168,7 @@ export default function StarredList({
                     recentIndex: i,
                     project: getProject(t.slug)?.displayName ?? `@${t.slug}`,
                     color: projectColorway(t.slug) ?? 'var(--stat-bg)',
+                    market: traitMarketStat(t.slug, t.category, t.value),
                 })),
         [traits],
     );
@@ -197,7 +214,7 @@ export default function StarredList({
         const q = query.trim().toLowerCase();
         const rows = projects
             .filter((slug) => getProject(slug) != null)
-            .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, recentIndex: i }));
+            .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, color: projectColorway(slug) ?? 'var(--stat-bg)', market: projectMarketStat(slug), recentIndex: i }));
         const filtered = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
         const sorted = [...filtered];
         if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -301,54 +318,28 @@ export default function StarredList({
             <div className="starred-rows">
                 {(mode === 'all' || mode === 'outputs') && (
                     <>
-                        {visibleOutputs.map((r) => {
-                            const wished = wishKeys.has(`${r.slug}:${r.id}`);
-                            const selKey = `${r.slug}:${r.id}`;
-                            const act = () => multiActive ? toggleSel(selKey) : open('output', r.id, r.slug);
-                            return (
-                                <div
-                                    key={selKey}
-                                    className={`starred-row${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={act}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
-                                >
-                                    <OutputThumb slug={r.slug} id={r.id} />
-                                    <div className="starred-row-meta">
-                                        <span className="starred-row-id is-split">
-                                            <span className="srl-handle">{r.project}</span>
-                                            <span className="srl-suffix">#{r.id}</span>
-                                        </span>
-                                        {r.projectName && <span className="starred-row-sub">{r.projectName}</span>}
-                                        {r.artist && <span className="starred-row-sub">{r.artist}</span>}
-                                        {(r.extra || r.fate) && <span className="starred-row-sub">{r.extra || r.fate}</span>}
-                                    </div>
-                                    <span
-                                        className={`starred-row-cta${wished ? ' is-on' : ''}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        title={wished ? 'On your wishlist' : 'Add to wishlist'}
-                                        aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
-                                        onClick={(e) => handleWishlist(e, r.slug, r.id)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleWishlist(e as unknown as React.MouseEvent, r.slug, r.id); } }}
-                                    >
-                                        {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
-                                    </span>
-                                    <span
-                                        className="starred-row-unstar"
-                                        role="button"
-                                        tabIndex={0}
-                                        title="Remove from Starred"
-                                        aria-label="Remove from Starred"
-                                        onClick={(e) => handleUnstar(e, r.slug, r.id)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleUnstar(e as unknown as React.MouseEvent, r.slug, r.id); } }}
-                                    >
-                                        ★&#xFE0E;
-                                    </span>
-                                </div>
-                            );
-                        })}
+                        {outputGroups.map(([slug, groupRows]) => (
+                            <ProjectProvider key={slug} slug={slug}>
+                                {groupRows.map((r) => (
+                                    <StarredOutputRow
+                                        key={`${r.slug}:${r.id}`}
+                                        slug={r.slug}
+                                        id={r.id}
+                                        project={r.project}
+                                        projectName={r.projectName}
+                                        artist={r.artist}
+                                        extra={r.extra || r.fate}
+                                        wished={wishKeys.has(`${r.slug}:${r.id}`)}
+                                        multiActive={multiActive}
+                                        selected={selected.has(`${r.slug}:${r.id}`)}
+                                        onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
+                                        onOpen={() => open('output', r.id, r.slug)}
+                                        onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                        onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
+                                    />
+                                ))}
+                            </ProjectProvider>
+                        ))}
                     </>
                 )}
                 {(mode === 'all' || mode === 'traits') && (
@@ -364,8 +355,8 @@ export default function StarredList({
                                 onClick={multiActive ? () => toggleSel(selKey) : undefined}
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
-                                <div className="trait-row-tile" style={{ background: r.color }}>
-                                    <span className="trait-row-tile-glyph">★&#xFE0E;</span>
+                                <div className="trait-row-tile">
+                                    <span className="trait-row-tile-glyph" style={{ color: r.color }}>★&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id is-split">
@@ -374,7 +365,7 @@ export default function StarredList({
                                     </span>
                                     <span className="starred-row-sub">{r.project}</span>
                                     <span className="starred-row-sub">{r.value}</span>
-                                    <span className="starred-row-sub">Trait</span>
+                                    <span className="starred-row-sub">Trait · Floor {r.market.floor} · Last {r.market.lastSale}</span>
                                 </div>
                                 <span
                                     className="starred-row-cta trait-offer-cta"
@@ -417,7 +408,7 @@ export default function StarredList({
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph">✺&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph" style={{ color: artistColor(r.handle) }}>✺&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
@@ -464,7 +455,7 @@ export default function StarredList({
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph">▶&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph" style={{ color: projectColorway(r.slug) ?? undefined }}>▶&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.title}</span>
@@ -511,11 +502,13 @@ export default function StarredList({
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph">⬚&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Project</span>
+                                    <span className="starred-row-sub">Floor {r.market.floor}</span>
+                                    <span className="starred-row-sub">Last {r.market.lastSale}</span>
                                 </div>
                                 <span
                                     className="starred-row-cta"
@@ -563,5 +556,99 @@ export default function StarredList({
                 </div>
             )}
         </section>
+    );
+}
+
+/* One starred Output row. Lives inside a ProjectProvider (grouped by slug) so it
+   reads its OWN live listing price: listed → a filled Buy CTA showing the price
+   (works the moment a piece is fake-listed); not listed → the Add-to-Wishlist
+   CTA. Trait values fill the meta lines either way. */
+function StarredOutputRow({
+    slug,
+    id,
+    project,
+    projectName,
+    artist,
+    extra,
+    wished,
+    multiActive,
+    selected,
+    onToggleSel,
+    onOpen,
+    onWishlist,
+    onUnstar,
+}: {
+    slug: string;
+    id: number;
+    project: string;
+    projectName: string;
+    artist: string;
+    extra: string;
+    wished: boolean;
+    multiActive: boolean;
+    selected: boolean;
+    onToggleSel: () => void;
+    onOpen: () => void;
+    onWishlist: (e: React.MouseEvent) => void;
+    onUnstar: (e: React.MouseEvent) => void;
+}) {
+    const meta = useOutputMeta(id);
+    const listed = meta?.price != null;
+    const act = () => (multiActive ? onToggleSel() : onOpen());
+    return (
+        <div
+            className={`starred-row${multiActive && selected ? ' is-selected' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={act}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+        >
+            <OutputThumb slug={slug} id={id} />
+            <div className="starred-row-meta">
+                <span className="starred-row-id is-split">
+                    <span className="srl-handle">{project}</span>
+                    <span className="srl-suffix">#{id}</span>
+                </span>
+                {projectName && <span className="starred-row-sub">{projectName}</span>}
+                {artist && <span className="starred-row-sub">{artist}</span>}
+                {extra && <span className="starred-row-sub">{extra}</span>}
+            </div>
+            {listed ? (
+                <span
+                    className="starred-row-cta is-buy"
+                    role="button"
+                    tabIndex={0}
+                    title={`Buy — ${meta!.price}`}
+                    aria-label={`Buy for ${meta!.price}`}
+                    onClick={(e) => { e.stopPropagation(); onOpen(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOpen(); } }}
+                >
+                    {`▢︎ Buy ${meta!.price}`}
+                </span>
+            ) : (
+                <span
+                    className={`starred-row-cta${wished ? ' is-on' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    title={wished ? 'On your wishlist' : 'Add to wishlist'}
+                    aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
+                    onClick={onWishlist}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWishlist(e as unknown as React.MouseEvent); } }}
+                >
+                    {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
+                </span>
+            )}
+            <span
+                className="starred-row-unstar"
+                role="button"
+                tabIndex={0}
+                title="Remove from Starred"
+                aria-label="Remove from Starred"
+                onClick={onUnstar}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
+            >
+                ★&#xFE0E;
+            </span>
+        </div>
     );
 }
