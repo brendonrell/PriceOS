@@ -423,9 +423,9 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
+                                    <span className="starred-row-sub">{' '}</span>
+                                    <span className="starred-row-sub">{' '}</span>
                                     <span className="starred-row-sub">Artist</span>
-                                    <span className="starred-row-sub">{' '}</span>
-                                    <span className="starred-row-sub">{' '}</span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span

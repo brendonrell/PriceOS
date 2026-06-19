@@ -8112,6 +8112,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     box-shadow: inset 0 0 0 2px var(--accent);
     border-radius: 4px;
 }
+/* Underline the top (title) line + extra-bold the bottom (type) line of every
+   Starred row (Brendon 2026-06-19). Scoped to the Starred surface so the
+   Wishlist sibling is untouched. */
+.starred-list[aria-label="Starred"] .starred-row-id { text-decoration: underline; }
+.starred-list[aria-label="Starred"] .starred-row-meta > span:last-child { font-weight: 800; }
 .starred-row-meta {
     display: flex;
     flex-direction: column;

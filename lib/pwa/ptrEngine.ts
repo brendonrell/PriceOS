@@ -1,30 +1,34 @@
 /*
- * PWA pull-to-refresh engine (rebuilt 2026-06-19 for reliability + feel).
+ * PWA pull-to-refresh engine (rebuilt 2026-06-19 — release-to-refresh + feel).
  *
- * The old version only decided to refresh on touch-END, comparing the final
- * release delta to the threshold, then waited 380ms before reloading — so a
- * short or rubber-banded pull missed entirely ("works half the time") and the
- * ones that worked felt "hugely delayed". This version is a real pull-to-
- * refresh:
+ * A real pull-to-refresh, decided on RELEASE — not mid-pull (mid-pull firing is
+ * what made the previous build feel "way too sensitive"):
  *
- *   - It ARMS and fires the instant the pull crosses the threshold DURING the
- *     move — no waiting for release, no timeout. The reload commits on the next
- *     frame, so the loading screen appears immediately.
- *   - A haptic tick fires the moment it arms (Android via Vibration API; iOS
- *     17.4+ via the system "switch" control haptic — best-effort, since iOS
- *     web/PWA has no real haptics API).
- *   - The pull overlay responds from the first pixel (eased), so the gesture
- *     feels connected to the finger instead of dead until near the threshold.
- *   - It only engages when the page is genuinely at the top and no modal /
- *     Bench drag is in play, so it doesn't false-fire.
+ *   - While dragging from the top, a colorway-tinted band follows the pull with
+ *     rubber-band RESISTANCE (a damping curve: it moves less the further you
+ *     pull). The arming THRESHOLD is measured against raw finger travel; once
+ *     past it the band snaps to a full "release to refresh" state.
+ *   - The refresh commits ONLY on touchend, and ONLY if the pull passed the
+ *     threshold at release. Released early → snaps back, nothing happens.
+ *   - On a valid release it shows the full-screen loading cover and reloads on
+ *     the next frame (the cover paints first) — no timeout, instant feedback.
+ *   - Engages only when the document is genuinely at the top, the gesture
+ *     didn't start inside a scrolled inner scroller, it's a single finger, and
+ *     no modal / Bench drag is in play — so it never false-fires.
+ *   - touchmove is non-passive so the iOS document rubber-band is suppressed
+ *     WHILE pulling (and only then); it early-returns before any work otherwise.
+ *
+ * Haptics: a short Vibration-API buzz fires on commit. That's a real haptic on
+ * Android; iOS ignores it (no web haptics in an iOS PWA) — harmless either way.
  */
 
-const PTR_THRESHOLD = 80; // px of downward pull that arms the refresh
+const PTR_THRESHOLD = 80;   // px of RAW downward pull (at release) that refreshes
+const TOP_EPSILON = 2;      // px slop on "at top" (sub-pixel scroll offsets)
+const MAX_PULL = 150;       // px the damped band asymptotes toward
 
 let mounted = false;
 let overlayEl: HTMLDivElement | null = null;
 let coverEl: HTMLDivElement | null = null;
-let hapticLabel: HTMLLabelElement | null = null;
 let cleanup: (() => void) | null = null;
 
 export function mountPtr(): void {
@@ -33,7 +37,7 @@ export function mountPtr(): void {
 
     mounted = true;
 
-    /* Pull overlay — a colorway-tinted band that fills as you pull. */
+    /* Pull overlay — a colorway-tinted band that grows with the damped pull. */
     const overlay = document.createElement('div');
     overlay.style.cssText =
         'position:fixed;top:0;left:0;right:0;' +
@@ -43,44 +47,41 @@ export function mountPtr(): void {
     document.body.appendChild(overlay);
     overlayEl = overlay;
 
-    /* Hidden iOS switch control — toggling it inside the touch gesture fires
-       the system haptic on iOS 17.4+ (the only web haptic iOS exposes). Kept
-       off-screen; a no-op on browsers that don't support it. */
-    const label = document.createElement('label');
-    label.setAttribute('aria-hidden', 'true');
-    label.style.cssText =
-        'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
-    const sw = document.createElement('input');
-    sw.type = 'checkbox';
-    sw.setAttribute('switch', '');
-    sw.tabIndex = -1;
-    label.appendChild(sw);
-    document.body.appendChild(label);
-    hapticLabel = label;
-
     let startY = 0;
-    let active = false;
-    let armed = false;
+    let active = false;     // a valid pull is in progress (started at top)
+    let pulling = false;    // finger has moved downward past the start
+    let committed = false;  // refresh fired — ignore everything else
+    let lastRaw = 0;        // raw finger travel at the most recent move
 
+    /* The document is the scroller (body is a flex column, main is flex:1 — no
+       inner page-scroll container). "At top" = document scroll offset ~0. */
     const atTop = (): boolean => {
         const y =
             window.scrollY ||
             document.scrollingElement?.scrollTop ||
             document.documentElement.scrollTop ||
             0;
-        return y <= 0;
+        return y <= TOP_EPSILON;
     };
 
-    /* Don't fight the Bench hold-drag (a downward drag from the top) or a pull
-       inside an open modal. */
+    /* Don't fight the Bench hold-drag or a pull inside an open modal. */
     const blocked = (): boolean => {
         const cl = document.body.classList;
         return cl.contains('bench-dragging') || cl.contains('modal-open');
     };
 
-    const fireHaptic = (): void => {
-        try { navigator.vibrate?.(10); } catch { /* unsupported */ }
-        try { hapticLabel?.click(); } catch { /* unsupported */ }
+    /* Bail if the gesture began inside an inner overflow scroller that is itself
+       scrolled down (lists, modal bodies) — only the page top should pull. */
+    const startedInScrolledInner = (target: EventTarget | null): boolean => {
+        let node = target as HTMLElement | null;
+        while (node && node !== document.body) {
+            if (node.scrollTop > TOP_EPSILON) {
+                const oy = getComputedStyle(node).overflowY;
+                if (oy === 'auto' || oy === 'scroll') return true;
+            }
+            node = node.parentElement;
+        }
+        return false;
     };
 
     function setOverlayColor() {
@@ -95,18 +96,26 @@ export function mountPtr(): void {
             `linear-gradient(to bottom, rgba(${r},${g},${b},0.34) 0%, transparent 100%)`;
     }
 
-    const hideOverlay = () => {
+    /* Rubber-band: raw finger travel → damped visual distance (asymptotes to
+       MAX_PULL, so it moves less the harder you pull). */
+    const damp = (raw: number): number => MAX_PULL * (1 - Math.exp(-raw / MAX_PULL));
+    const armedVisual = damp(PTR_THRESHOLD);
+
+    const resetGesture = () => { active = false; pulling = false; lastRaw = 0; };
+
+    const snapBack = () => {
         overlay.style.transition = 'opacity 0.3s ease';
         overlay.style.opacity = '0';
     };
 
-    /* Commit the refresh: haptic + show the loading screen NOW, reload next
-       frame so the screen actually paints before navigation. */
-    const trigger = () => {
-        if (armed) return;
-        armed = true;
-        active = false;
-        fireHaptic();
+    /* Commit: haptic + show the loading cover NOW, reload next frame so the
+       cover paints before navigation. */
+    const commit = () => {
+        if (committed) return;
+        committed = true;
+        resetGesture();
+        try { navigator.vibrate?.(12); } catch { /* unsupported (iOS) */ }
+
         overlay.style.transition = 'opacity 0.15s ease';
         overlay.style.opacity = '1';
 
@@ -120,50 +129,64 @@ export function mountPtr(): void {
         document.body.appendChild(cover);
         coverEl = cover;
 
-        requestAnimationFrame(() =>
-            requestAnimationFrame(() => location.reload()),
-        );
+        requestAnimationFrame(() => location.reload());
     };
 
     const onTouchStart = (e: TouchEvent) => {
-        if (armed) return;
-        if (atTop() && !blocked()) {
-            startY = e.touches[0].clientY;
-            active = true;
-            armed = false;
-            setOverlayColor();
-        } else {
-            active = false;
-        }
+        if (committed) return;
+        resetGesture();
+        if (e.touches.length !== 1) return;            // ignore multi-touch
+        if (blocked()) return;
+        if (!atTop()) return;                           // started mid-scroll
+        if (startedInScrolledInner(e.target)) return;   // inner scroller
+        startY = e.touches[0].clientY;
+        active = true;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-        if (!active || armed) return;
-        if (blocked()) { active = false; hideOverlay(); return; }
-        const dy = e.touches[0].clientY - startY;
-        if (dy <= 0) { overlay.style.opacity = '0'; return; }
-        const raw = Math.min(dy / PTR_THRESHOLD, 1);
-        // easeOutQuad — connected to the finger from the first pixel.
-        const eased = 1 - (1 - raw) * (1 - raw);
+        if (committed || !active) return;
+        if (e.touches.length !== 1 || blocked()) { resetGesture(); snapBack(); return; }
+
+        const raw = e.touches[0].clientY - startY;
+        lastRaw = raw;
+
+        if (raw <= 0) {                  // pulling up / not moved down — let scroll be
+            pulling = false;
+            overlay.style.opacity = '0';
+            return;
+        }
+
+        pulling = true;
+        // Suppress the iOS document rubber-band, but only while actively pulling.
+        if (e.cancelable) e.preventDefault();
+
+        const visual = damp(raw);
         overlay.style.transition = 'none';
-        overlay.style.opacity = String(eased);
-        if (dy >= PTR_THRESHOLD) trigger();
+        // Build toward 0.7 as you near the threshold, then snap to full when
+        // armed — the "release to refresh" affordance (no haptics on iOS).
+        overlay.style.opacity =
+            raw >= PTR_THRESHOLD ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
     };
 
     const onTouchEnd = () => {
-        if (armed) return;
-        active = false;
-        hideOverlay();
+        if (committed || !active) return;
+        const shouldRefresh = pulling && lastRaw >= PTR_THRESHOLD;
+        resetGesture();
+        if (shouldRefresh) commit();
+        else snapBack();
     };
 
     const onTouchCancel = () => {
-        if (armed) return;
-        active = false;
-        hideOverlay();
+        if (committed) return;
+        resetGesture();
+        snapBack();
     };
 
+    setOverlayColor();
+
     document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchmove', onTouchMove, { passive: true });
+    // Non-passive: we preventDefault the iOS bounce while actively pulling.
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
     document.addEventListener('touchcancel', onTouchCancel, { passive: true });
 
@@ -174,10 +197,8 @@ export function mountPtr(): void {
         document.removeEventListener('touchcancel', onTouchCancel);
         if (overlayEl?.parentNode) overlayEl.parentNode.removeChild(overlayEl);
         if (coverEl?.parentNode) coverEl.parentNode.removeChild(coverEl);
-        if (hapticLabel?.parentNode) hapticLabel.parentNode.removeChild(hapticLabel);
         overlayEl = null;
         coverEl = null;
-        hapticLabel = null;
         mounted = false;
     };
 }
