@@ -24,7 +24,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
-import { resolveBucket } from '../../lib/art/colorStore';
+import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
@@ -259,6 +259,11 @@ export default function StarredList({
         for (const r of rows) { let a = m.get(r.slug); if (!a) { a = []; m.set(r.slug, a); } a.push(r); }
         return [...m.entries()];
     };
+    /* Load the stored (DB) colour buckets for the starred outputs' projects so
+       colour grouping uses the real captured colour, not the "Other" fallback.
+       colorsVer bumps when they arrive so the sections recompute. */
+    const outputSlugs = useMemo(() => [...new Set(visibleOutputs.map((r) => r.slug))], [visibleOutputs]);
+    const colorsVer = useStoredColors(outputSlugs);
     const outputSections = useMemo(() => {
         const dim = dimFor('outputs');
         let secs: Section<typeof visibleOutputs[number]>[];
@@ -268,7 +273,7 @@ export default function StarredList({
         else return [{ label: null as string | null, key: '_', groups: outputGroups }];
         return secs.map((s) => ({ label: s.label, key: s.key, groups: bySlug(s.rows) }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mode, group, visibleOutputs, outputGroups]);
+    }, [mode, group, visibleOutputs, outputGroups, colorsVer]);
     const traitSections = useMemo(() => {
         const dim = dimFor('traits');
         if (dim === 'project') return sectionize(visibleTraits, (r) => projOf(r.slug));
