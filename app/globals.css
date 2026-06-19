@@ -8274,7 +8274,9 @@ body.colorway-dark .ghost-feed-bar {
     gap: 8px;
     /* Flush with the section edge — same left as the search bar, sort row and
        the starred rows themselves (Brendon 2026-06-19). */
-    padding: 12px 0 2px;
+    /* Extra breathing room below the pills so the rows aren't crowding them
+       (Brendon 2026-06-19). */
+    padding: 12px 0 16px;
     flex-wrap: wrap;
 }
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
@@ -8284,11 +8286,11 @@ body.colorway-dark .ghost-feed-bar {
     padding: 4px 10px;
     font-size: 12px;
     font-weight: bold;
-    /* Filled, clearly-visible CTA by default (Brendon 2026-06-19 — the faint
-       outline was near-invisible). Same filled treatment as the active pill. */
-    background: var(--stat-active-bg);
-    color: var(--stat-active-text);
-    border: 1px solid var(--stat-active-bg);
+    /* Faded translucent treatment — the SAME look as the filter pills, matching
+       Brendon's reference screenshot (2026-06-19). Not the stark white fill. */
+    background: var(--stat-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
     border-radius: 5px;
     cursor: pointer;
     white-space: nowrap;
