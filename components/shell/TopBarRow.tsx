@@ -397,6 +397,10 @@ export function TopBarRow() {
 
    onOpen handles the body click — same as sim's `onclick = function() {
    openModal(id); }` at sim 12352. */
+/* Follower counts for pinned artists — fetched once per handle, cached for the
+   session so re-renders don't refetch (the pill shows the bare number). */
+const artistFollowerCache = new Map<string, number>();
+
 /* Short, human label for a pin (toast text). */
 function grailPillLabel(pin: GrailPin): string {
     const name = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
@@ -422,6 +426,28 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
        reads the actual pinned item, e.g. Oracle #7 (Brendon 2026-06-13). */
     const projectTitle = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
     const redactedTitle = '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588';
+
+    /* Artist pin shows the artist's follower count (a bare number \u2014 no label,
+       Brendon 2026-06-19). One cached fetch per handle. */
+    const [artistFollowers, setArtistFollowers] = useState<number | null>(
+        pin.kind === 'artist' ? artistFollowerCache.get(pin.slug) ?? null : null,
+    );
+    useEffect(() => {
+        if (pin.kind !== 'artist') return;
+        const cached = artistFollowerCache.get(pin.slug);
+        if (cached != null) { setArtistFollowers(cached); return; }
+        let cancel = false;
+        fetch(`/api/user/by-handle/${pin.slug}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((u) => {
+                if (cancel || !u) return;
+                const c = typeof u.follower_count === 'number' ? u.follower_count : 0;
+                artistFollowerCache.set(pin.slug, c);
+                setArtistFollowers(c);
+            })
+            .catch(() => { /* leave null */ });
+        return () => { cancel = true; };
+    }, [pin.kind, pin.slug]);
 
     /* Per-kind body. Output keeps its original look (title, #id, listed price).
        Project/Trait show the FLOOR price (Brendon 2026-06-19), not a listing.
@@ -451,7 +477,8 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
         titleAttr = `${projectTitle} \u00b7 ${pin.category}: ${pin.value}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
     } else if (pin.kind === 'artist') {
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
-        titleAttr = `@${pin.slug}`;
+        priceText = artistFollowers != null ? String(artistFollowers) : null;
+        titleAttr = `@${pin.slug}${artistFollowers != null ? ` · ${artistFollowers} followers` : ''}`;
     } else {
         // soundtrack
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;

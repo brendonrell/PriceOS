@@ -24,7 +24,7 @@
  */
 
 const STORAGE_KEY = 'pd_grail_pins';
-const MAX_PINS = 5;
+const MAX_PINS = 10;
 export const MAX_GRAIL_PINS = MAX_PINS;
 
 export type GrailKind = 'output' | 'project' | 'trait' | 'artist' | 'soundtrack';

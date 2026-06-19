@@ -148,7 +148,7 @@ export default function StarredList({
     }, []);
     const handleGrail = (pin: GrailPin) => {
         const r = togglePinItem(pin);
-        if (r === 'limit') { showToast('Grail Pins: 5 MAX'); return; }
+        if (r === 'limit') { showToast('Grail Pins: 10 MAX'); return; }
         showToast(r === 'pinned' ? 'Grail: PINNED' : 'Grail: UNPINNED');
     };
 
@@ -588,10 +588,19 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
-                                <GrailDot
-                                    pinned={grailKeys.has(grailKey({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }))}
-                                    onToggle={() => handleGrail({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title })}
-                                />
+                                {/* Soundtrack exception: the top-right slot is a play button, not a
+                                    grail pin (Brendon 2026-06-19). Tapping plays the playlist. */}
+                                <span
+                                    className="starred-row-grail starred-row-grail-play"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Play on YouTube"
+                                    aria-label="Play"
+                                    onClick={(e) => { e.stopPropagation(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
+                                >
+                                    ▶︎
+                                </span>
                             </div>
                             );
                         })}
