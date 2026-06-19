@@ -283,12 +283,16 @@ interface TraitsUIProps {
        in profile mode. Project page passes nothing and gets the
        project trait pills. */
     profilePills?: ProfilePill[];
+    /* Optional node rendered at the END of the profilePills row (e.g. a search
+       icon beside the last pill). Profile-mode only. */
+    profilePillsTrailing?: ReactNode;
 }
 
 export default function TraitsUI({
     visible,
     hideSortBar = false,
     profilePills,
+    profilePillsTrailing,
 }: TraitsUIProps) {
     const {
         activeCategory,
@@ -617,7 +621,9 @@ export default function TraitsUI({
                                     onClick={p.onClick}
                                 />
                             ))
-                        ) : (
+                        ) : null}
+                        {profilePills && profilePillsTrailing}
+                        {!profilePills && (
                             <>
                         {/* Chat H item 3 — feed-mode L1 row (sim 8475-8509).
                             When sort==='feed' the regular pill cluster is

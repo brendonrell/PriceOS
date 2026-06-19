@@ -861,6 +861,16 @@ function ProfilePageBodyInner({
         [traitStarItems],
     );
 
+    /* +More search — lifted here so the ⌕ icon lives in the +More sub-nav row
+       beside the Info pill (where Collected's search lives) and drives WHICHEVER
+       +More sub-tab is open (the sub-tabs behave like real tabs). Resets when
+       you switch sub-tab. The bar + filtering live in the open sub-tab's list. */
+    const [moreSearchOpen, setMoreSearchOpen] = useState(false);
+    const [moreQuery, setMoreQuery] = useState('');
+    const toggleMoreSearch = () => setMoreSearchOpen((v) => { if (v) setMoreQuery(''); return !v; });
+    const closeMoreSearch = () => { setMoreQuery(''); setMoreSearchOpen(false); };
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); }, [moreL1]);
+
     /* Starred Artists — the pinned-artist set from the Artists list, surfaced
        under the Starred tab's Artists filter (read-only mirror; the pin itself
        still lives in the Artists list). */
@@ -1553,6 +1563,20 @@ function ProfilePageBodyInner({
                                     ]
                                 )
                             }
+                            profilePillsTrailing={
+                                (onStarredTab || onWishlistTab) ? (
+                                    <div
+                                        className={`search-btn${moreSearchOpen ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Search"
+                                        onClick={toggleMoreSearch}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMoreSearch(); } }}
+                                    >
+                                        ⌕&#xFE0E;
+                                    </div>
+                                ) : undefined
+                            }
                         />
                     )}
 
@@ -1897,13 +1921,28 @@ function ProfilePageBodyInner({
                 sortable/filterable rows with a small preview that opens the
                 Artwork modal. Own profile only (Stars are private). */}
             {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0) && (
-                <StarredList items={starredValid} traits={traitStarsValid} artists={artistStars} soundtracks={soundtrackStars} />
+                <StarredList
+                    items={starredValid}
+                    traits={traitStarsValid}
+                    artists={artistStars}
+                    soundtracks={soundtrackStars}
+                    searchOpen={moreSearchOpen}
+                    query={moreQuery}
+                    onQueryChange={setMoreQuery}
+                    onCloseSearch={closeMoreSearch}
+                />
             )}
 
             {/* Wishlist — buy-focused row list (price + cart + remove). Own
                 profile only (private). */}
             {onWishlistTab && isOwnProfile && wishlistValid.length > 0 && (
-                <WishlistList items={wishlistValid} />
+                <WishlistList
+                    items={wishlistValid}
+                    searchOpen={moreSearchOpen}
+                    query={moreQuery}
+                    onQueryChange={setMoreQuery}
+                    onCloseSearch={closeMoreSearch}
+                />
             )}
 
             {/* Add-to-Showcase picker — opened by tapping a ghost frame on your

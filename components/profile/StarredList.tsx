@@ -49,23 +49,26 @@ export default function StarredList({
     traits = [],
     artists = [],
     soundtracks = [],
+    searchOpen = false,
+    query = '',
+    onQueryChange,
+    onCloseSearch,
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
     artists?: ReadonlyArray<string>;
     soundtracks?: ReadonlyArray<SoundtrackStar>;
+    /* Search is controlled by the parent so its ⌕ icon can live up in the
+       +More sub-nav beside the Info pill (where Collected's search lives). */
+    searchOpen?: boolean;
+    query?: string;
+    onQueryChange?: (q: string) => void;
+    onCloseSearch?: () => void;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
     const [mode, setMode] = useState<Mode>('outputs');
     const [sortKey, setSortKey] = useState<SortKey>('recent');
-    const [query, setQuery] = useState('');
-    /* Search is hidden behind the ⌕ icon and revealed on tap — the exact same
-       button + reveal as the project Artworks page. Closing clears the query
-       (matches the project page's search ✕ / toggle-off). */
-    const [searchOpen, setSearchOpen] = useState(false);
-    const toggleSearch = () => setSearchOpen((v) => { if (v) setQuery(''); return !v; });
-    const closeSearch = () => { setQuery(''); setSearchOpen(false); };
 
     /* Live wishlist membership so each Output row's CTA reflects whether it's
        already on the wishlist (one subscription for the whole list). */
@@ -208,17 +211,6 @@ export default function StarredList({
                         {p.count > 0 && <span className="badge">{p.count}</span>}
                     </div>
                 ))}
-                {/* Same search button + reveal as the project Artworks page. */}
-                <div
-                    className={`search-btn${searchOpen ? ' active' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    title="Search"
-                    onClick={toggleSearch}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSearch(); } }}
-                >
-                    ⌕&#xFE0E;
-                </div>
             </div>
 
             {/* Sort bar */}
@@ -249,15 +241,15 @@ export default function StarredList({
                     placeholder={mode === 'outputs' ? 'Filter starred — @project, @artist, # id…' : 'Filter traits — @project, trait, value…'}
                     autoComplete="off"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => onQueryChange?.(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
                 />
                 <span
                     className="search-clear"
                     role="button"
                     tabIndex={0}
-                    onClick={closeSearch}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeSearch(); } }}
+                    onClick={() => onCloseSearch?.()}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCloseSearch?.(); } }}
                     title="Clear"
                 >
                     ✕&#xFE0E;

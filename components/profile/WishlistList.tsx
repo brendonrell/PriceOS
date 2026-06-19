@@ -39,10 +39,23 @@ const SORTS: { key: SortKey; label: string }[] = [
     { key: 'project', label: 'Project' },
 ];
 
-export default function WishlistList({ items }: { items: WishlistItem[] }) {
+export default function WishlistList({
+    items,
+    searchOpen = false,
+    query = '',
+    onQueryChange,
+    onCloseSearch,
+}: {
+    items: WishlistItem[];
+    /* Search is controlled by the +More sub-nav's ⌕ icon (shared across the
+       searchable +More sub-tabs), same as StarredList. */
+    searchOpen?: boolean;
+    query?: string;
+    onQueryChange?: (q: string) => void;
+    onCloseSearch?: () => void;
+}) {
     const { showToast } = useToast();
     const [sortKey, setSortKey] = useState<SortKey>('recent');
-    const [query, setQuery] = useState('');
 
     const rows = useMemo(
         () =>
@@ -87,15 +100,6 @@ export default function WishlistList({ items }: { items: WishlistItem[] }) {
     return (
         <section className="starred-list" aria-label="Wishlist">
             <div className="starred-list-controls">
-                <input
-                    className="search-input starred-list-search"
-                    type="text"
-                    placeholder="Filter wishlist — @project, @artist, # id…"
-                    autoComplete="off"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
-                />
                 <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     {SORTS.map((s) => (
                         <span
@@ -111,6 +115,29 @@ export default function WishlistList({ items }: { items: WishlistItem[] }) {
                         </span>
                     ))}
                 </div>
+            </div>
+
+            {/* Search row — revealed by the +More sub-nav's ⌕ icon, same as Starred. */}
+            <div className={`search-row${searchOpen ? ' open' : ''}`}>
+                <input
+                    className="search-input"
+                    type="text"
+                    placeholder="Filter wishlist — @project, @artist, # id…"
+                    autoComplete="off"
+                    value={query}
+                    onChange={(e) => onQueryChange?.(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
+                />
+                <span
+                    className="search-clear"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onCloseSearch?.()}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCloseSearch?.(); } }}
+                    title="Clear"
+                >
+                    ✕&#xFE0E;
+                </span>
             </div>
 
             <div className="starred-rows">
