@@ -916,7 +916,7 @@ function StarredArtistRow({
             <div className="starred-row-meta">
                 <span className="starred-row-id">
                     {name}
-                    {relGlyph && <span className="artist-social-ico" title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
+                    {relGlyph && <span className={`artist-social-ico${rel === 'mutual' ? '' : ' is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
                 </span>
                 <span className="starred-row-sub">{count == null ? ' ' : `${count} ${count === 1 ? 'follower' : 'followers'}`}</span>
                 <span className="starred-row-sub">{projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>
