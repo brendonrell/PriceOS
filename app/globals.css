@@ -8211,6 +8211,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Nudge down a touch so it sits comfortably over the top two lines rather
+       than riding their top edge (Brendon 2026-06-19). */
+    transform: translateY(4px);
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
