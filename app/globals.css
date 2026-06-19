@@ -8278,6 +8278,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     opacity: 1;
     color: var(--accent);
 }
+/* Desktop runs the grail pin bigger and a touch lower (Brendon 2026-06-19). */
+@media (min-width: 601px) {
+    .starred-row-grail { font-size: 29px; transform: translateY(8px); }
+}
 /* Remove-from-Starred confirm — reuses the multi-select confirm card style,
    re-centred as a modal over the page (Brendon 2026-06-19). */
 .starred-confirm-overlay {
@@ -8521,8 +8525,8 @@ body.colorway-dark .ghost-feed-bar {
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
    for the Output thumbnail. */
-.trait-row { cursor: default; }
-.trait-row:hover { background: none; }
+/* Trait/soundtrack/project rows share the row hover highlight with every other
+   starred row (Brendon 2026-06-19) — no background:none override. */
 /* The square stays NEUTRAL (like a thumbnail well); the COLOUR rides the glyph
    only, at 2× size (Brendon 2026-06-19). */
 .trait-row-tile {
