@@ -8872,7 +8872,8 @@ body.colorway-dark .ghost-feed-bar {
 .artwork-feature-stage {
     display: flex;
     align-items: center;
-    justify-content: center;
+    /* Left-aligned like the rest of the page (Brendon 2026-06-19) — was centred. */
+    justify-content: flex-start;
     /* Same horizontal inset as the gallery so the art never hits the screen
        edges. In landscape the inset grows to clear the notch / Dynamic Island
        (safe-area), so the art lines up with the menu + logo instead of sliding
@@ -8948,7 +8949,10 @@ body:has(.artwork-fullscreen) .priceos-footer { display: none; }
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4vmin;
+    /* Side buffers honour the notch in landscape (Brendon 2026-06-19) — the art +
+       chrome stay inside the safe area instead of sliding under the Dynamic
+       Island / notch, matching the rest of the design. */
+    padding: 4vmin max(4vmin, env(safe-area-inset-right)) 4vmin max(4vmin, env(safe-area-inset-left));
 }
 .artwork-fullscreen-art {
     max-width: 100%;
@@ -8962,7 +8966,7 @@ body:has(.artwork-fullscreen) .priceos-footer { display: none; }
 .fullscreen-back {
     position: absolute;
     top: calc(max(25px, env(safe-area-inset-top)) + 40px + var(--pd-backbtn-nudge));
-    right: 40px;
+    right: max(40px, env(safe-area-inset-right));
     z-index: 110;
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
@@ -8981,7 +8985,7 @@ body.is-pwa .fullscreen-back {
 }
 @media (max-width: 600px) {
     .fullscreen-back {
-        right: 20px;
+        right: max(20px, env(safe-area-inset-right));
         top: calc(max(15px, env(safe-area-inset-top)) + 40px + var(--pd-backbtn-nudge));
     }
     body.is-pwa .fullscreen-back {

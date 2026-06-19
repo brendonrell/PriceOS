@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { slug, tokenId } = parsed;
   try {
     const db = getSupabaseService();
-    const [holder, listing, offers, lastSale, proj, vol] = await Promise.all([
+    const [holder, listing, offers, lastSale, proj, vol, follows] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db.from('offers').select('id, bidder_address, price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('status', 'open').order('price_eth', { ascending: false }),
@@ -61,6 +61,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       // All-time ETH that changed hands for THIS piece — primary (MINT) +
       // secondary (XFER) sales, mirroring the project-level Total Volume.
       db.from('events').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).in('type', ['MINT', 'XFER']).not('price_eth', 'is', null),
+      // Followers of this piece's PROJECT (shown on the Output page hero).
+      db.from('project_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug),
     ]);
     // Surface a real DB failure instead of silently returning empty market
     // state (which would paint a wrong owner / missing listing — e.g. a BUY
@@ -107,6 +109,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         ? String((proj.data as unknown as { floor_price_eth: number }).floor_price_eth)
         : null,
       volume_eth: String(Number(volumeEth.toFixed(4))),
+      followers: follows.count ?? 0,
       viewer,
     });
   } catch (err) {

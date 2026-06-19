@@ -26,7 +26,7 @@ import { getProject, outputTraits, renderArtwork, setProjectColorOverride } from
 import type { OutputTraits } from '../project/types';
 import type { ProjectStats } from '../../app/api/project/[slug]/outputs/route';
 
-const EMPTY_STATS: ProjectStats = { collectors: 0, volume_eth: '0', floor_eth: null, collected_by_following: [] };
+const EMPTY_STATS: ProjectStats = { collectors: 0, volume_eth: '0', floor_eth: null, followers: 0, collected_by_following: [] };
 
 export interface OutputMeta {
     ownerDisplay: string;

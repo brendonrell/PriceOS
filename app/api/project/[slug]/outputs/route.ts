@@ -12,6 +12,7 @@ import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
 import { verifySiweSession } from '@/lib/auth/siwe';
 import { normalizePlaylistId } from '@/lib/project/soundtrack';
+import { projectSpriteFace } from '@/lib/project/projectSprite';
 import { rankSocialCandidates } from '@/lib/social/relevance';
 
 export const revalidate = 0;
@@ -34,6 +35,8 @@ export interface ProjectStats {
   volume_eth: string;
   /** Lowest active listing, or null. */
   floor_eth: string | null;
+  /** Followers — wallets following this project (project_follows rows). */
+  followers: number;
   /** Collectors the viewer follows (handles, @-prefixed). Empty if signed out
       or following none — the hero "Collected by" row is follow-graph only. */
   collected_by_following: string[];
@@ -69,11 +72,12 @@ export async function GET(
   try {
     const supabase = getSupabaseService();
 
-    const [projectRes, holdersRes, listingsRes, eventsRes] = await Promise.all([
+    const [projectRes, holdersRes, listingsRes, eventsRes, followsRes] = await Promise.all([
       supabase.from('projects').select('minted_count, showcase_ids, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
       supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true),
       supabase.from('events').select('price_eth').eq('project_id', slug).not('price_eth', 'is', null),
+      supabase.from('project_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug),
     ]);
 
     if (projectRes.error) return serverError(projectRes.error.message);
@@ -85,6 +89,16 @@ export async function GET(
 
     const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null; custom_color?: string | null; price_sprite?: string | null } | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
+
+    // PriceSprite — projects carry one like users. Self-heal: if the row exists
+    // but has no stored sprite yet (a freshly-added project), compute the
+    // deterministic face and persist it once (fire-and-forget), so every project
+    // ends up with a stored, fetchable sprite without a creation hook
+    // (Brendon 2026-06-19).
+    const priceSprite = project?.price_sprite ?? projectSpriteFace(slug);
+    if (project && !project.price_sprite && priceSprite) {
+      supabase.from('projects').update({ price_sprite: priceSprite } as never).eq('id', slug).then(() => {}, () => {});
+    }
 
     const priceByToken: Record<string, string> = {};
     let floor: number | null = null;
@@ -162,12 +176,13 @@ export async function GET(
       showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
       soundtrack: normalizePlaylistId(project?.soundtrack),
       colorway: (project?.custom_color ?? null),
-      price_sprite: (project?.price_sprite ?? null),
+      price_sprite: priceSprite,
       outputs,
       stats: {
         collectors: addrs.length,
         volume_eth: String(Number(volume.toFixed(4))),
         floor_eth: floor === null ? null : String(floor),
+        followers: followsRes.count ?? 0,
         collected_by_following: collectedByFollowing,
       },
     };

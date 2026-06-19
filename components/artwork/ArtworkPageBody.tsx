@@ -110,6 +110,7 @@ export default function ArtworkPageBody({
         owner: string | null; owner_handle: string | null;
         listing: { price_eth: string } | null;
         last_sale: string | null; floor: string | null; volume_eth: string | null;
+        followers: number | null;
         viewer: { address: string; isOwner: boolean; balance: number } | null;
     } | null>(null);
     useEffect(() => {
@@ -252,24 +253,13 @@ export default function ArtworkPageBody({
                             </span>
                             <span className="stat-item stat-item-owners">
                                 <span
-                                    className="stat-icon stat-icon-owners"
-                                    {...iconToastProps('Past Owners')}
+                                    className="stat-icon stat-icon-owners stat-icon-followers"
+                                    {...iconToastProps('Followers')}
                                 >
-                                    ⌗&#xFE0E;
+                                    {'⚬︎'}
                                 </span>{' '}
-                                <span
-                                    className="stat-val stat-val-owners"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => showToast('Ownership History: COMING SOON')}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            showToast('Ownership History: COMING SOON');
-                                        }
-                                    }}
-                                >
-                                    7 PPL
+                                <span className="stat-val stat-val-owners">
+                                    {market?.followers ?? 0} {(market?.followers ?? 0) === 1 ? 'FOLLOWER' : 'FOLLOWERS'}
                                 </span>
                             </span>
                         </div>

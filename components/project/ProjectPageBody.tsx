@@ -1181,16 +1181,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             className="stat-item stat-item-owners"
                             role="button"
                             tabIndex={0}
-                            onClick={() => showToast('Followers: COMING SOON')}
+                            onClick={() => open('collectors')}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    showToast('Followers: COMING SOON');
+                                    open('collectors');
                                 }
                             }}
                         >
-                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'⚬︎'}</span>{' '}
-                            <span className="stat-val stat-val-owners">0 FOLLOWERS</span>
+                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
+                            <span className="stat-val stat-val-owners">{project.stats.collectors} {project.stats.collectors === 1 ? 'PRSN' : 'PPL'}</span>
                         </span>
                         <AudienceIndicator slug={project.slug} />
                     </div>
