@@ -15,6 +15,7 @@
 import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { suppressNav } from '../../lib/pwa/navSuppress';
 import {
     isSoundtrackStarred,
     toggleSoundtrackStar,
@@ -56,6 +57,9 @@ export default function SoundtrackStarButton({
         timerRef.current = window.setTimeout(() => {
             longFired.current = true;
             timerRef.current = null;
+            // Swallow the trailing click so the PWA link-interceptor doesn't open
+            // YouTube when the press was meant to star (Brendon 2026-06-19).
+            suppressNav();
             const r = toggleSoundtrackStar(slug, playlistId, title);
             setFloatDown(r !== 'starred');
             setFloatId((n) => n + 1);

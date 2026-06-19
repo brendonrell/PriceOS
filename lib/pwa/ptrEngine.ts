@@ -97,9 +97,10 @@ export function mountPtr(): void {
             `linear-gradient(to bottom, rgba(${r},${g},${b},0.34) 0%, transparent 100%)`;
     }
 
-    /* Rubber-band: raw finger travel → damped visual distance (asymptotes to
-       MAX_PULL, so it moves less the harder you pull). */
-    const damp = (raw: number): number => MAX_PULL * (1 - Math.exp(-raw / MAX_PULL));
+    /* Linear, 1:1 tracking (capped at MAX_PULL) — a NORMAL pull, not the old
+       exponential rubber-band that fought the finger and read as "aggressive"
+       (Brendon 2026-06-19). */
+    const damp = (raw: number): number => Math.min(raw, MAX_PULL);
     const armedVisual = damp(PTR_THRESHOLD);
 
     const resetGesture = () => { active = false; pulling = false; lastRaw = 0; };

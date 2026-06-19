@@ -60,6 +60,7 @@ import { pickTabstractTitle } from '../../lib/title/tabstract';
 import { getProject } from '../../lib/project/registry';
 import { mountPtr, unmountPtr } from '../../lib/pwa/ptrEngine';
 import { isStandalonePWA } from '../../lib/pwa/openExternal';
+import { navSuppressed, clearNavSuppress } from '../../lib/pwa/navSuppress';
 import { markPwaUsed, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 // Side-effect: start capturing Chrome's beforeinstallprompt as early as possible
 // so signup Step 3 can fire the native Android install dialog.
@@ -220,6 +221,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
                 | HTMLAnchorElement
                 | null;
             if (!a) return;
+            // A long-press just handled this gesture (e.g. starring a soundtrack)
+            // — swallow the trailing synthetic click so it doesn't ALSO navigate.
+            if (navSuppressed()) { e.preventDefault(); e.stopPropagation(); clearNavSuppress(); return; }
             const href = a.href;
             if (!/^https?:\/\//i.test(href)) return; // leave mailto:, tel:, in-app schemes
             if (a.origin === window.location.origin) return; // in-app routing
