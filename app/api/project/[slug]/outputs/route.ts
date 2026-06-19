@@ -52,6 +52,9 @@ export interface ProjectOutputsResponse {
   /** Signature colour hex from the DB `projects.custom_color` column, or null.
       The registry colorway is the fallback when this is absent. */
   colorway: string | null;
+  /** The project's stored PriceSprite (projects.price_sprite) — projects carry
+      one like users do, fetchable the same way (Brendon 2026-06-19). */
+  price_sprite: string | null;
   outputs: OutputOwner[];
   stats: ProjectStats;
 }
@@ -67,7 +70,7 @@ export async function GET(
     const supabase = getSupabaseService();
 
     const [projectRes, holdersRes, listingsRes, eventsRes] = await Promise.all([
-      supabase.from('projects').select('minted_count, showcase_ids, soundtrack, custom_color').eq('id', slug).maybeSingle(),
+      supabase.from('projects').select('minted_count, showcase_ids, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
       supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true),
       supabase.from('events').select('price_eth').eq('project_id', slug).not('price_eth', 'is', null),
@@ -80,7 +83,7 @@ export async function GET(
     if (listingsRes.error) return serverError(listingsRes.error.message);
     if (eventsRes.error) return serverError(eventsRes.error.message);
 
-    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null; custom_color?: string | null } | null;
+    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null; custom_color?: string | null; price_sprite?: string | null } | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
 
     const priceByToken: Record<string, string> = {};
@@ -159,6 +162,7 @@ export async function GET(
       showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
       soundtrack: normalizePlaylistId(project?.soundtrack),
       colorway: (project?.custom_color ?? null),
+      price_sprite: (project?.price_sprite ?? null),
       outputs,
       stats: {
         collectors: addrs.length,
