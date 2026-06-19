@@ -3831,10 +3831,10 @@ button,
     height: 28px;
     border-radius: 4px;
     cursor: pointer;
-    /* Pill FILL snaps on toggle (Brendon, 2026-06-13 — the 0.2s background/
-       color fade read as laggy on/off). Opacity (the dim of inactive pills)
-       keeps a light fade so the row still settles softly. */
-    transition: opacity 0.12s, border-color 0.12s;
+    /* Pill FILL and DIM both snap on toggle (Brendon, 2026-06-13 fill; dim
+       de-animated 2026-06-19 — the opacity fade on inactive pills read as
+       laggy and was never in sim). Only border-color keeps a light settle. */
+    transition: border-color 0.12s;
     user-select: none;
     align-items: center;
     font-size: 12px;
