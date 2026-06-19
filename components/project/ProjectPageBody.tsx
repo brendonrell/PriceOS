@@ -71,7 +71,7 @@ import { projectFateReading } from '../../lib/project/fate';
 import { natalChart } from '../../lib/project/natal';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import SoundtrackStarButton from './SoundtrackStarButton';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
@@ -1224,14 +1224,12 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             />
                         )}
                         {soundtrack && (
-                            <a
-                                href={playlistWatchUrl(soundtrack.playlistId)}
-                                onClick={(e) => { e.preventDefault(); window.open(playlistWatchUrl(soundtrack.playlistId), '_blank', 'noopener,noreferrer'); }}
-                                className="btn-soundtrack"
-                                title={soundtrack.label}
-                            >
-                                <span className="btn-icon-play">▶&#xFE0E;</span>{' '}SOUNDTRACK
-                            </a>
+                            <SoundtrackStarButton
+                                slug={project.slug}
+                                playlistId={soundtrack.playlistId}
+                                label={soundtrack.label}
+                                title={`${project.title} by @${def?.artistHandle ?? 'opus4-6'} Soundtrack`}
+                            />
                         )}
                     </div>
 

@@ -8060,8 +8060,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     color: var(--text-color);
 }
 .starred-row-sub {
-    font-size: 12px;
-    opacity: 0.7;
+    /* Readable secondary line — not tiny / low-opacity (Brendon 2026-06-19). */
+    font-size: 13px;
+    opacity: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -8198,7 +8199,9 @@ body.colorway-dark .ghost-feed-bar {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 0 2px;
+    /* Left-align with the row content (rows carry 6px inner padding), so the
+       pills line up with the thumbnails below (Brendon 2026-06-19). */
+    padding: 12px 0 2px 6px;
     flex-wrap: wrap;
 }
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
@@ -8284,6 +8287,30 @@ body.colorway-dark .ghost-feed-bar {
     0%   { opacity: 0; transform: translateY(-50%) scale(0.6); }
     25%  { opacity: 1; transform: translateY(calc(-50% - 14px)) scale(1.1); }
     100% { opacity: 0; transform: translateY(calc(-50% - 64px)) scale(1); }
+}
+
+/* Starred Soundtracks — long-press the SOUNDTRACK button to star it. Same
+   treatment as the trait star (2×, accent, float rises from the star). */
+.btn-soundtrack .soundtrack-star {
+    margin-left: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    font-size: 24px;
+    line-height: 1;
+    vertical-align: middle;
+}
+.btn-soundtrack .soundtrack-star-float {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--accent);
+    pointer-events: none;
+    animation: traitStarFloat 0.9s ease-out forwards;
+    will-change: transform, opacity;
+    z-index: 5;
 }
 
 /* ── Dev-preview-only "Login Brendon" shortcut ──────────────────────

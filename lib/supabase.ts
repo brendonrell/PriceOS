@@ -68,6 +68,9 @@ export interface UserSettings {
   /** Starred Traits — PRIVATE favourites of a (Project, category, value) tuple,
    *  keyed `${slug}|${category}|${value}`. Same envelope + privacy as `starred`. */
   traitStars?: string[];
+  /** Starred Soundtracks — PRIVATE favourites of a Project's soundtrack, keyed
+   *  `${slug}|${playlistId}|${title}`. Same envelope + privacy as `starred`. */
+  soundtrackStars?: string[];
   /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
    *  choice on each project / profile follows them across devices and overrides
    *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased

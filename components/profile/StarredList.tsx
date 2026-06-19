@@ -25,6 +25,8 @@ import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
+import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
 
@@ -33,7 +35,7 @@ export interface StarredItem {
     id: number;
 }
 
-type Mode = 'outputs' | 'traits' | 'artists';
+type Mode = 'outputs' | 'traits' | 'artists' | 'soundtracks';
 type SortKey = 'recent' | 'id' | 'project';
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -46,10 +48,12 @@ export default function StarredList({
     items,
     traits = [],
     artists = [],
+    soundtracks = [],
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
     artists?: ReadonlyArray<string>;
+    soundtracks?: ReadonlyArray<SoundtrackStar>;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -139,6 +143,17 @@ export default function StarredList({
         return sorted;
     }, [artists, query, sortKey]);
 
+    /* ── Soundtrack rows ──────────────────────────────────────────────── */
+    const visibleSoundtracks = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = soundtracks.map((s, i) => ({ ...s, recentIndex: i }));
+        const filtered = q ? rows.filter((r) => r.title.toLowerCase().includes(q)) : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.title.localeCompare(b.title));
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sorted;
+    }, [soundtracks, query, sortKey]);
+
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
         toggleStar(slug, id);
@@ -163,10 +178,17 @@ export default function StarredList({
         showToast('Starred: REMOVED');
     };
 
+    const handleSoundtrackUnstar = (e: React.MouseEvent, s: SoundtrackStar) => {
+        e.stopPropagation();
+        toggleSoundtrackStar(s.slug, s.playlistId, s.title);
+        showToast('Starred: REMOVED');
+    };
+
     const PILLS: { key: Mode; label: string; count: number }[] = [
-        { key: 'outputs', label: 'Outputs', count: outputRows.length },
-        { key: 'traits',  label: 'Traits',  count: traitRows.length  },
-        { key: 'artists', label: 'Artists', count: artists.length    },
+        { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
+        { key: 'traits',      label: 'Traits',      count: traitRows.length     },
+        { key: 'artists',     label: 'Artists',     count: artists.length       },
+        { key: 'soundtracks', label: 'Soundtracks', count: soundtracks.length   },
     ];
 
     return (
@@ -176,7 +198,7 @@ export default function StarredList({
                 {PILLS.map((p) => (
                     <div
                         key={p.key}
-                        className={`pill pill-l1${mode === p.key ? ' active' : ''}`}
+                        className={`pill pill-l3${mode === p.key ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         onClick={() => setMode(p.key)}
@@ -331,7 +353,7 @@ export default function StarredList({
                         ))}
                         {visibleTraits.length === 0 && <GhostRows variant="starred" />}
                     </>
-                ) : (
+                ) : mode === 'artists' ? (
                     <>
                         {visibleArtists.map((r) => (
                             <div
@@ -374,6 +396,46 @@ export default function StarredList({
                             </div>
                         ))}
                         {visibleArtists.length === 0 && <GhostRows variant="starred" />}
+                    </>
+                ) : (
+                    <>
+                        {visibleSoundtracks.map((r) => (
+                            <div
+                                key={`${r.slug}|${r.playlistId}`}
+                                className="starred-row trait-row"
+                            >
+                                <div className="trait-row-tile artist-tile">
+                                    <span className="artist-row-tile-glyph">▶&#xFE0E;</span>
+                                </div>
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{r.title}</span>
+                                    <span className="starred-row-sub">Soundtrack</span>
+                                </div>
+                                <span
+                                    className="starred-row-cta"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Listen on YouTube"
+                                    aria-label="Listen"
+                                    onClick={() => window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer')}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
+                                >
+                                    ▶︎ Listen
+                                </span>
+                                <span
+                                    className="starred-row-unstar"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Remove from Starred"
+                                    aria-label="Remove from Starred"
+                                    onClick={(e) => handleSoundtrackUnstar(e, r)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSoundtrackUnstar(e as unknown as React.MouseEvent, r); } }}
+                                >
+                                    ★&#xFE0E;
+                                </span>
+                            </div>
+                        ))}
+                        {visibleSoundtracks.length === 0 && <GhostRows variant="starred" />}
                     </>
                 )}
             </div>
