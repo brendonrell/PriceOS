@@ -5940,6 +5940,21 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     padding: 10px 40px 100px 40px;
     box-sizing: border-box;
 }
+/* ── STRUCTURAL ALIGNMENT GUARANTEE for +More content (Brendon 2026-06-19) ────
+   Same contract as the Starred list. The panel owns the side indent (40px
+   desktop / 20px mobile); EVERY direct child is forced flush to it — so every
+   +More section (project page, output page, anywhere this panel is used) aligns
+   by construction and can't drift. Section headers previously added their own
+   40px on top of the panel's 40px (a double-indent) — this kills that class of
+   bug for good. Do NOT add horizontal padding to a child to indent it; the
+   panel already owns the indent. */
+#details-panel > *,
+#albums-panel > * {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
 
 /* The project-as-user hero in +More (Social) already sits inside the panel's
    side padding, so it must NOT add its own — otherwise it double-indents and
