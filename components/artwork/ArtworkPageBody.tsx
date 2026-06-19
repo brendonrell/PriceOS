@@ -27,6 +27,7 @@ import { useCart } from '../../lib/state/CartContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
+import CollectedPair from '../hero/CollectedPair';
 import ArtworkLive from './ArtworkLive';
 
 function shortAddr(a: string | null): string {
@@ -188,18 +189,22 @@ export default function ArtworkPageBody({
                         </div>
                     </div>
 
-                    {/* Held-by line — current owner, linked to their profile. */}
+                    {/* Held-by line — the live ID Rectangle (real PriceSprite +
+                        @name) for the current owner, same chip as the Followers
+                        modal. Falls back to an address-only chip when the holder
+                        has no handle (no fake sprite). */}
                     <div className="hero-line info-line">
                         <span className="info-rubik">
                             Held by{' '}
-                            <span className="collected-pair">
-                                <span className="collected-sprite">
-                                    (⌐■_■)
+                            {market?.owner_handle ? (
+                                <CollectedPair handle={market.owner_handle} />
+                            ) : (
+                                <span className="collected-pair">
+                                    {ownerHref
+                                        ? <a className="profile-link" href={ownerHref}>{heldBy}</a>
+                                        : <span className="profile-link">{heldBy}</span>}
                                 </span>
-                                {ownerHref
-                                    ? <a className="profile-link" href={ownerHref}>{heldBy}</a>
-                                    : <span className="profile-link">{heldBy}</span>}
-                            </span>
+                            )}
                         </span>
                     </div>
 
