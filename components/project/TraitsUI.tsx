@@ -69,6 +69,7 @@ import { fullTraitSchema, outputTraits } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../../lib/pins/grailStore';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import {
     getPresets,
@@ -335,6 +336,24 @@ export default function TraitsUI({
        specials come from L2_DICT; the feed-mode 'Traits' wrapper is rebuilt
        from the Project's trait names. */
     const { slug: projectSlug, totalOutputs } = useProject();
+
+    /* Starred Traits (Brendon, 2026-06-18) — long-press a trait value pill to
+       favourite that (Project, category, value); it lands as its own row in
+       +More → Starred with a Trait Offer action. Subscribed so the pill's ★
+       indicator flips live. A real project trait only — the feed-special pills
+       (Network / Recent / Event / Market) aren't token traits and aren't
+       starrable (gated on gridCounts below). */
+    const [traitStarKeys, setTraitStarKeys] = React.useState<ReadonlySet<string>>(new Set());
+    React.useEffect(() => subscribeTraitStarred((next) => setTraitStarKeys(next)), []);
+    const handleTraitStar = (category: string, value: string) => {
+        const r = toggleTraitStar(projectSlug, category, value);
+        showToast(
+            r === 'starred'
+                ? `Trait Starred: ${value.toUpperCase()}`
+                : `Trait Unstarred: ${value.toUpperCase()}`,
+        );
+    };
+
     const projectTraits = useMemo(
         () => fullTraitSchema(projectSlug).traits,
         [projectSlug],
@@ -970,6 +989,13 @@ export default function TraitsUI({
                                2026-06-18). count < 0 = feed-special category with no
                                tally, which still shows. */
                             if (count === 0) return null;
+                            /* Starrable only for real token traits (those with a
+                               grid tally); feed-special categories can't be
+                               favourited. */
+                            const starrable = hasCount;
+                            const traitStarred =
+                                starrable &&
+                                traitStarKeys.has(traitStarKey(projectSlug, l3FilterCat, value));
                             return (
                                 <L3Pill
                                     key={`${l3FilterCat}:${value}`}
@@ -979,6 +1005,9 @@ export default function TraitsUI({
                                     dimmed={dimmed}
                                     isZero={count === 0}
                                     category={l3FilterCat}
+                                    starrable={starrable}
+                                    starred={traitStarred}
+                                    onToggleStar={() => handleTraitStar(l3FilterCat, value)}
                                     /* count===0 → genuinely none in grid;
                                        count<0 → no tally for this category. */
                                     onClick={() => {
@@ -1724,6 +1753,12 @@ interface L3PillProps {
      *  (none today, but keeps the surface flexible) keep the original
      *  rendering by default. */
     category?: string;
+    /** Long-press to favourite this trait value (Brendon, 2026-06-18). Only
+     *  real token traits are starrable; feed-special pills pass starrable=false
+     *  and behave exactly as before. */
+    starrable?: boolean;
+    starred?: boolean;
+    onToggleStar?: () => void;
     onClick: () => void;
 }
 
@@ -1751,6 +1786,9 @@ function L3Pill({
     dimmed,
     isZero,
     category,
+    starrable = false,
+    starred = false,
+    onToggleStar,
     onClick,
 }: L3PillProps) {
     const cls = [
@@ -1759,9 +1797,44 @@ function L3Pill({
         isZero ? 'is-zero' : '',
         active ? 'active' : '',
         dimmed ? 'dimmed' : '',
+        starred ? 'trait-starred' : '',
     ]
         .filter(Boolean)
         .join(' ');
+
+    /* Long-press → favourite. A press that fires the timer toggles the star,
+       launches the float-up ★ confirm, and swallows the trailing click so the
+       trait filter doesn't also toggle. A short tap, or a press that drags
+       >10px (a scroll), falls through to the normal filter toggle. */
+    const timerRef = React.useRef<number | null>(null);
+    const longFired = React.useRef(false);
+    const startPt = React.useRef<{ x: number; y: number } | null>(null);
+    const [floatId, setFloatId] = React.useState(0);
+    const clearTimer = () => {
+        if (timerRef.current != null) {
+            window.clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+    };
+    const onPointerDown = (e: React.PointerEvent) => {
+        if (!starrable || !onToggleStar) return;
+        longFired.current = false;
+        startPt.current = { x: e.clientX, y: e.clientY };
+        clearTimer();
+        timerRef.current = window.setTimeout(() => {
+            longFired.current = true;
+            timerRef.current = null;
+            setFloatId((n) => n + 1);
+            onToggleStar();
+        }, 460);
+    };
+    const onPointerMove = (e: React.PointerEvent) => {
+        if (timerRef.current == null || !startPt.current) return;
+        const dx = e.clientX - startPt.current.x;
+        const dy = e.clientY - startPt.current.y;
+        if (dx * dx + dy * dy > 100) clearTimer();
+    };
+    const endPress = () => clearTimer();
     /* Build 24 — Breadcrumb (Recent) variant per sim 8679. Renders
        the leading `⬤` glyph as `.recent-dot`, prefixes the label
        with `#`, and omits the stat-count entirely (Breadcrumb counts
@@ -1773,13 +1846,23 @@ function L3Pill({
             className={cls}
             role="button"
             tabIndex={0}
-            onClick={onClick}
+            onClick={() => {
+                if (longFired.current) { longFired.current = false; return; }
+                onClick();
+            }}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     onClick();
                 }
             }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endPress}
+            onPointerLeave={endPress}
+            onPointerCancel={endPress}
+            onContextMenu={(e) => { if (starrable) e.preventDefault(); }}
+            style={starrable ? { position: 'relative', userSelect: 'none', touchAction: 'pan-y' } : undefined}
         >
             {isBreadcrumb ? (
                 <span className="stat-name">
@@ -1793,6 +1876,16 @@ function L3Pill({
                         than a placeholder. */}
                     {count >= 0 && <span className="stat-count">{count}</span>}
                 </>
+            )}
+            {/* Persistent ★ when this trait is starred — same glyph + treatment
+                as the artist-list star. */}
+            {starrable && starred && (
+                <span className="l3-trait-star" aria-hidden="true">{'★︎'}</span>
+            )}
+            {/* Float-up confirm — remounts on each long-press (keyed) so the
+                rise+fade replays every time. */}
+            {starrable && floatId > 0 && (
+                <span key={floatId} className="trait-star-float" aria-hidden="true">{'★︎'}</span>
             )}
         </div>
     );

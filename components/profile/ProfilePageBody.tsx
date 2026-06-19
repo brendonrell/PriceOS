@@ -47,6 +47,7 @@ import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
+import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
@@ -844,6 +845,18 @@ function ProfilePageBodyInner({
     const starredValid = useMemo(
         () => starredItems.filter((s) => getProject(s.slug) != null),
         [starredItems],
+    );
+
+    /* Starred Traits — favourited (Project, category, value) tuples, shown under
+       the Starred tab's Traits filter. Private, own-profile only, like stars. */
+    const [traitStarItems, setTraitStarItems] = useState(() => getTraitStarItems());
+    useEffect(() => {
+        setTraitStarItems(getTraitStarItems());
+        return subscribeTraitStarred(() => setTraitStarItems(getTraitStarItems()));
+    }, []);
+    const traitStarsValid = useMemo(
+        () => traitStarItems.filter((t) => getProject(t.slug) != null),
+        [traitStarItems],
     );
 
     /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
@@ -1668,7 +1681,7 @@ function ProfilePageBodyInner({
                 content, no notes). 1:1 stand-ins of the real rows, no
                 copy; same wrapper classes so ghosts sit exactly where
                 real rows render. */}
-            {onStarredTab && starredValid.length === 0 && (
+            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && (
                 <section className="starred-list" aria-label="Starred">
                     <div className="starred-rows">
                         <GhostRows variant="starred" />
@@ -1864,8 +1877,8 @@ function ProfilePageBodyInner({
             {/* Starred — a compact bookmark ROW list (not the gallery grid):
                 sortable/filterable rows with a small preview that opens the
                 Artwork modal. Own profile only (Stars are private). */}
-            {onStarredTab && isOwnProfile && starredValid.length > 0 && (
-                <StarredList items={starredValid} />
+            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0) && (
+                <StarredList items={starredValid} traits={traitStarsValid} />
             )}
 
             {/* Wishlist — buy-focused row list (price + cart + remove). Own

@@ -65,6 +65,9 @@ export interface UserSettings {
    *  envelope as `starred`. Account-backed so starred artists follow the viewer
    *  across devices (Brendon, 2026-06-13). Was localStorage `pd_artist_pinned`. */
   artistStars?: string[];
+  /** Starred Traits — PRIVATE favourites of a (Project, category, value) tuple,
+   *  keyed `${slug}|${category}|${value}`. Same envelope + privacy as `starred`. */
+  traitStars?: string[];
   /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
    *  choice on each project / profile follows them across devices and overrides
    *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased
