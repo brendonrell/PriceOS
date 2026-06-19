@@ -15,7 +15,7 @@
  * Private + own-profile only (Wishlist is private, like Stars).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -45,6 +45,8 @@ export default function WishlistList({
     query = '',
     onQueryChange,
     onCloseSearch,
+    multiActive = false,
+    onExitMulti,
 }: {
     items: WishlistItem[];
     /* Search is controlled by the +More sub-nav's ⌕ icon (shared across the
@@ -53,9 +55,20 @@ export default function WishlistList({
     query?: string;
     onQueryChange?: (q: string) => void;
     onCloseSearch?: () => void;
+    /* Multi-select, driven by the sub-nav's ❐ icon. */
+    multiActive?: boolean;
+    onExitMulti?: () => void;
 }) {
     const { showToast } = useToast();
     const [sortKey, setSortKey] = useState<SortKey>('recent');
+    const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+    useEffect(() => { setSelected(new Set()); }, [multiActive]);
+    const toggleSel = (k: string) =>
+        setSelected((prev) => {
+            const n = new Set(prev);
+            if (n.has(k)) n.delete(k); else n.add(k);
+            return n;
+        });
 
     const rows = useMemo(
         () =>
@@ -84,6 +97,15 @@ export default function WishlistList({
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sorted;
     }, [rows, query, sortKey]);
+
+    const handleRemoveSelected = () => {
+        if (selected.size === 0) return;
+        const n = selected.size;
+        visible.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleWishlist(r.slug, r.id); });
+        setSelected(new Set());
+        onExitMulti?.();
+        showToast(`Wishlist: REMOVED · ${n}`);
+    };
 
     /* Group the sorted/filtered rows by Project (first-appearance order) so each
        group mounts one ProjectProvider. */
@@ -144,7 +166,16 @@ export default function WishlistList({
                 {groups.map(([slug, groupRows]) => (
                     <ProjectProvider key={slug} slug={slug}>
                         {groupRows.map((r) => (
-                            <WishlistRow key={`${r.slug}:${r.id}`} slug={r.slug} id={r.id} project={r.project} artist={r.artist} />
+                            <WishlistRow
+                                key={`${r.slug}:${r.id}`}
+                                slug={r.slug}
+                                id={r.id}
+                                project={r.project}
+                                artist={r.artist}
+                                multiActive={multiActive}
+                                selected={selected.has(`${r.slug}:${r.id}`)}
+                                onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
+                            />
                         ))}
                     </ProjectProvider>
                 ))}
@@ -152,6 +183,22 @@ export default function WishlistList({
                     don't tell — the row shapes imply "this fills up"). */}
                 {visible.length === 0 && <GhostRows variant="wishlist" />}
             </div>
+            {multiActive && (
+                <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                    <div className="ms-float-wrap">
+                        <button
+                            className="ms-float-action"
+                            onClick={handleRemoveSelected}
+                            disabled={selected.size === 0}
+                        >
+                            <span className="ms-float-label">Remove</span>
+                        </button>
+                    </div>
+                    <div className="ms-float-count">
+                        {selected.size === 0 ? 'Select items' : `${selected.size} selected`}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
@@ -161,11 +208,17 @@ function WishlistRow({
     id,
     project,
     artist,
+    multiActive,
+    selected,
+    onToggleSel,
 }: {
     slug: string;
     id: number;
     project: string;
     artist: string;
+    multiActive: boolean;
+    selected: boolean;
+    onToggleSel: () => void;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -189,13 +242,14 @@ function WishlistRow({
         showToast('Cart: ADDED');
     };
 
+    const act = () => (multiActive ? onToggleSel() : open('output', id, slug));
     return (
         <div
-            className="starred-row"
+            className={`starred-row${multiActive && selected ? ' is-selected' : ''}`}
             role="button"
             tabIndex={0}
-            onClick={() => open('output', id, slug)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open('output', id, slug); } }}
+            onClick={act}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
             <OutputThumb slug={slug} id={id} />
             <div className="starred-row-meta">

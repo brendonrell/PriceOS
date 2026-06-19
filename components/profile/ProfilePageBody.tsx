@@ -869,7 +869,10 @@ function ProfilePageBodyInner({
     const [moreQuery, setMoreQuery] = useState('');
     const toggleMoreSearch = () => setMoreSearchOpen((v) => { if (v) setMoreQuery(''); return !v; });
     const closeMoreSearch = () => { setMoreQuery(''); setMoreSearchOpen(false); };
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); }, [moreL1]);
+    /* +More multi-select — same idea as Collected's ❐. Lives beside the search
+       icon and drives the open sub-tab's row selection. */
+    const [moreMultiActive, setMoreMultiActive] = useState(false);
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); }, [moreL1]);
 
     /* Starred Artists — the pinned-artist set from the Artists list, surfaced
        under the Starred tab's Artists filter (read-only mirror; the pin itself
@@ -1565,15 +1568,27 @@ function ProfilePageBodyInner({
                             }
                             profilePillsTrailing={
                                 (onStarredTab || onWishlistTab) ? (
-                                    <div
-                                        className={`search-btn${moreSearchOpen ? ' active' : ''}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        title="Search"
-                                        onClick={toggleMoreSearch}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMoreSearch(); } }}
-                                    >
-                                        ⌕&#xFE0E;
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                        <div
+                                            className={`multiselect-btn${moreMultiActive ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Multi-Select"
+                                            onClick={() => setMoreMultiActive((v) => !v)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMoreMultiActive((v) => !v); } }}
+                                        >
+                                            ❐&#xFE0E;
+                                        </div>
+                                        <div
+                                            className={`search-btn${moreSearchOpen ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Search"
+                                            onClick={toggleMoreSearch}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMoreSearch(); } }}
+                                        >
+                                            ⌕&#xFE0E;
+                                        </div>
                                     </div>
                                 ) : undefined
                             }
@@ -1930,6 +1945,8 @@ function ProfilePageBodyInner({
                     query={moreQuery}
                     onQueryChange={setMoreQuery}
                     onCloseSearch={closeMoreSearch}
+                    multiActive={moreMultiActive}
+                    onExitMulti={() => setMoreMultiActive(false)}
                 />
             )}
 
@@ -1942,6 +1959,8 @@ function ProfilePageBodyInner({
                     query={moreQuery}
                     onQueryChange={setMoreQuery}
                     onCloseSearch={closeMoreSearch}
+                    multiActive={moreMultiActive}
+                    onExitMulti={() => setMoreMultiActive(false)}
                 />
             )}
 

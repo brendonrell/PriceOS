@@ -53,6 +53,8 @@ export default function StarredList({
     query = '',
     onQueryChange,
     onCloseSearch,
+    multiActive = false,
+    onExitMulti,
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
@@ -64,11 +66,36 @@ export default function StarredList({
     query?: string;
     onQueryChange?: (q: string) => void;
     onCloseSearch?: () => void;
+    /* Multi-select, driven by the sub-nav's ❐ icon (same spot as search). */
+    multiActive?: boolean;
+    onExitMulti?: () => void;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
     const [mode, setMode] = useState<Mode>('outputs');
     const [sortKey, setSortKey] = useState<SortKey>('recent');
+
+    /* Multi-select selection — keys match each row's React key. Cleared when
+       multi-select turns off or the filter changes. */
+    const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+    useEffect(() => { setSelected(new Set()); }, [multiActive, mode]);
+    const toggleSel = (k: string) =>
+        setSelected((prev) => {
+            const n = new Set(prev);
+            if (n.has(k)) n.delete(k); else n.add(k);
+            return n;
+        });
+    const handleRemoveSelected = () => {
+        if (selected.size === 0) return;
+        if (mode === 'outputs') visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
+        else if (mode === 'traits') visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
+        else if (mode === 'artists') visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
+        else visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
+        const n = selected.size;
+        setSelected(new Set());
+        onExitMulti?.();
+        showToast(`Starred: REMOVED · ${n}`);
+    };
 
     /* Live wishlist membership so each Output row's CTA reflects whether it's
        already on the wishlist (one subscription for the whole list). */
@@ -262,14 +289,16 @@ export default function StarredList({
                     <>
                         {visibleOutputs.map((r) => {
                             const wished = wishKeys.has(`${r.slug}:${r.id}`);
+                            const selKey = `${r.slug}:${r.id}`;
+                            const act = () => multiActive ? toggleSel(selKey) : open('output', r.id, r.slug);
                             return (
                                 <div
-                                    key={`${r.slug}:${r.id}`}
-                                    className="starred-row"
+                                    key={selKey}
+                                    className={`starred-row${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => open('output', r.id, r.slug)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open('output', r.id, r.slug); } }}
+                                    onClick={act}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
                                 >
                                     <OutputThumb slug={r.slug} id={r.id} />
                                     <div className="starred-row-meta">
@@ -307,10 +336,16 @@ export default function StarredList({
                     </>
                 ) : mode === 'traits' ? (
                     <>
-                        {visibleTraits.map((r) => (
+                        {visibleTraits.map((r) => {
+                            const selKey = `${r.slug}|${r.category}|${r.value}`;
+                            return (
                             <div
-                                key={`${r.slug}|${r.category}|${r.value}`}
-                                className="starred-row trait-row"
+                                key={selKey}
+                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role={multiActive ? 'button' : undefined}
+                                tabIndex={multiActive ? 0 : undefined}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile" style={{ background: r.color }}>
                                     <span className="trait-row-tile-glyph">★&#xFE0E;</span>
@@ -342,19 +377,22 @@ export default function StarredList({
                                     ★&#xFE0E;
                                 </span>
                             </div>
-                        ))}
+                            );
+                        })}
                         {visibleTraits.length === 0 && <GhostRows variant="starred" />}
                     </>
                 ) : mode === 'artists' ? (
                     <>
-                        {visibleArtists.map((r) => (
+                        {visibleArtists.map((r) => {
+                            const act = () => multiActive ? toggleSel(r.name) : window.location.assign('/' + r.handle);
+                            return (
                             <div
                                 key={r.name}
-                                className="starred-row"
+                                className={`starred-row${multiActive && selected.has(r.name) ? ' is-selected' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => window.location.assign('/' + r.handle)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.assign('/' + r.handle); } }}
+                                onClick={act}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
                                     <span className="artist-row-tile-glyph">✺&#xFE0E;</span>
@@ -386,15 +424,22 @@ export default function StarredList({
                                     ★&#xFE0E;
                                 </span>
                             </div>
-                        ))}
+                            );
+                        })}
                         {visibleArtists.length === 0 && <GhostRows variant="starred" />}
                     </>
                 ) : (
                     <>
-                        {visibleSoundtracks.map((r) => (
+                        {visibleSoundtracks.map((r) => {
+                            const selKey = `${r.slug}|${r.playlistId}`;
+                            return (
                             <div
-                                key={`${r.slug}|${r.playlistId}`}
-                                className="starred-row trait-row"
+                                key={selKey}
+                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role={multiActive ? 'button' : undefined}
+                                tabIndex={multiActive ? 0 : undefined}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile artist-tile">
                                     <span className="artist-row-tile-glyph">▶&#xFE0E;</span>
@@ -426,11 +471,28 @@ export default function StarredList({
                                     ★&#xFE0E;
                                 </span>
                             </div>
-                        ))}
+                            );
+                        })}
                         {visibleSoundtracks.length === 0 && <GhostRows variant="starred" />}
                     </>
                 )}
             </div>
+            {multiActive && (
+                <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                    <div className="ms-float-wrap">
+                        <button
+                            className="ms-float-action"
+                            onClick={handleRemoveSelected}
+                            disabled={selected.size === 0}
+                        >
+                            <span className="ms-float-label">Remove</span>
+                        </button>
+                    </div>
+                    <div className="ms-float-count">
+                        {selected.size === 0 ? 'Select items' : `${selected.size} selected`}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
