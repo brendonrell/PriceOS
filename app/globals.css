@@ -8257,17 +8257,23 @@ body.colorway-dark .ghost-feed-bar {
     margin-left: 6px;
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
+    /* 3× the pill text, centred on the pill row (Brendon 2026-06-19). */
+    font-size: 36px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 }
 .pill-l3.trait-starred { box-shadow: inset 0 0 0 1px var(--accent); }
-/* Float-up confirm star — rises out of the pill and fades (Brendon's "fun
-   little animation"). Keyed remount in JSX replays it on every long-press. */
+/* Float-up confirm star — rises from the STAR itself (the pill's right edge),
+   not the pill centre, and 3× the size (Brendon 2026-06-19). Keyed remount in
+   JSX replays it on every long-press. */
 .pill-l3 .trait-star-float {
     position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translate(-50%, 0);
+    right: 4px;
+    top: 50%;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 18px;
+    font-size: 54px;
+    line-height: 1;
     color: var(--accent);
     pointer-events: none;
     animation: traitStarFloat 0.9s ease-out forwards;
@@ -8275,9 +8281,9 @@ body.colorway-dark .ghost-feed-bar {
     z-index: 5;
 }
 @keyframes traitStarFloat {
-    0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.6); }
-    25%  { opacity: 1; transform: translate(-50%, -6px) scale(1.1); }
-    100% { opacity: 0; transform: translate(-50%, -38px) scale(1); }
+    0%   { opacity: 0; transform: translateY(-50%) scale(0.6); }
+    25%  { opacity: 1; transform: translateY(calc(-50% - 14px)) scale(1.1); }
+    100% { opacity: 0; transform: translateY(calc(-50% - 64px)) scale(1); }
 }
 
 /* ── Dev-preview-only "Login Brendon" shortcut ──────────────────────
