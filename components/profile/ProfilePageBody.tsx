@@ -48,6 +48,7 @@ import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
 import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
+import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
@@ -858,6 +859,15 @@ function ProfilePageBodyInner({
         () => traitStarItems.filter((t) => getProject(t.slug) != null),
         [traitStarItems],
     );
+
+    /* Starred Artists — the pinned-artist set from the Artists list, surfaced
+       under the Starred tab's Artists filter (read-only mirror; the pin itself
+       still lives in the Artists list). */
+    const [artistStars, setArtistStars] = useState<readonly string[]>(() => getArtistStars());
+    useEffect(() => {
+        setArtistStars(getArtistStars());
+        return subscribeArtistStars((next) => setArtistStars(next));
+    }, []);
 
     /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
        shown only on your own profile. */
@@ -1681,7 +1691,7 @@ function ProfilePageBodyInner({
                 content, no notes). 1:1 stand-ins of the real rows, no
                 copy; same wrapper classes so ghosts sit exactly where
                 real rows render. */}
-            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && (
+            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && artistStars.length === 0 && (
                 <section className="starred-list" aria-label="Starred">
                     <div className="starred-rows">
                         <GhostRows variant="starred" />
@@ -1877,8 +1887,8 @@ function ProfilePageBodyInner({
             {/* Starred — a compact bookmark ROW list (not the gallery grid):
                 sortable/filterable rows with a small preview that opens the
                 Artwork modal. Own profile only (Stars are private). */}
-            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0) && (
-                <StarredList items={starredValid} traits={traitStarsValid} />
+            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0) && (
+                <StarredList items={starredValid} traits={traitStarsValid} artists={artistStars} />
             )}
 
             {/* Wishlist — buy-focused row list (price + cart + remove). Own

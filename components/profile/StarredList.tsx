@@ -24,6 +24,7 @@ import { outputTraits, getProject, projectColorway } from '../../lib/project/reg
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
+import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
 
@@ -32,7 +33,7 @@ export interface StarredItem {
     id: number;
 }
 
-type Mode = 'outputs' | 'traits';
+type Mode = 'outputs' | 'traits' | 'artists';
 type SortKey = 'recent' | 'id' | 'project';
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -44,9 +45,11 @@ const SORTS: { key: SortKey; label: string }[] = [
 export default function StarredList({
     items,
     traits = [],
+    artists = [],
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
+    artists?: ReadonlyArray<string>;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -125,6 +128,17 @@ export default function StarredList({
         return sorted;
     }, [traitRows, query, sortKey]);
 
+    /* ── Artist rows ──────────────────────────────────────────────────── */
+    const visibleArtists = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = artists.map((name, i) => ({ name, handle: name.replace(/^@/, ''), recentIndex: i }));
+        const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sorted;
+    }, [artists, query, sortKey]);
+
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
         toggleStar(slug, id);
@@ -143,9 +157,16 @@ export default function StarredList({
         showToast('Starred: REMOVED');
     };
 
+    const handleArtistUnstar = (e: React.MouseEvent, name: string) => {
+        e.stopPropagation();
+        removeArtistStar(name);
+        showToast('Starred: REMOVED');
+    };
+
     const PILLS: { key: Mode; label: string; count: number }[] = [
         { key: 'outputs', label: 'Outputs', count: outputRows.length },
         { key: 'traits',  label: 'Traits',  count: traitRows.length  },
+        { key: 'artists', label: 'Artists', count: artists.length    },
     ];
 
     return (
@@ -270,7 +291,7 @@ export default function StarredList({
                         })}
                         {visibleOutputs.length === 0 && <GhostRows variant="starred" />}
                     </>
-                ) : (
+                ) : mode === 'traits' ? (
                     <>
                         {visibleTraits.map((r) => (
                             <div
@@ -309,6 +330,50 @@ export default function StarredList({
                             </div>
                         ))}
                         {visibleTraits.length === 0 && <GhostRows variant="starred" />}
+                    </>
+                ) : (
+                    <>
+                        {visibleArtists.map((r) => (
+                            <div
+                                key={r.name}
+                                className="starred-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => window.location.assign('/' + r.handle)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.assign('/' + r.handle); } }}
+                            >
+                                <div className="trait-row-tile artist-tile">
+                                    <span className="artist-row-tile-glyph">✺&#xFE0E;</span>
+                                </div>
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{r.name}</span>
+                                    <span className="starred-row-sub">Artist</span>
+                                </div>
+                                <span
+                                    className="starred-row-cta"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Follow (coming soon)"
+                                    aria-label="Follow"
+                                    onClick={(e) => { e.stopPropagation(); showToast('Follow: COMING SOON'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Follow: COMING SOON'); } }}
+                                >
+                                    ⚭︎ Follow
+                                </span>
+                                <span
+                                    className="starred-row-unstar"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Remove from Starred"
+                                    aria-label="Remove from Starred"
+                                    onClick={(e) => handleArtistUnstar(e, r.name)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArtistUnstar(e as unknown as React.MouseEvent, r.name); } }}
+                                >
+                                    ★&#xFE0E;
+                                </span>
+                            </div>
+                        ))}
+                        {visibleArtists.length === 0 && <GhostRows variant="starred" />}
                     </>
                 )}
             </div>
