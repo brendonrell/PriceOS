@@ -16,12 +16,13 @@ import { PrismsEngine } from './engines/prismsCore';
 
 export type ColorBucket =
     | 'Hothurt' | 'Red' | 'Orange' | 'Yellow' | 'Green' | 'Blue'
-    | 'Purple' | 'Moon' | 'Magenta' | 'Brown' | 'Beige' | 'Grey' | 'Black' | 'White';
+    | 'Purple' | 'Magenta' | 'Brown' | 'Cream' | 'Moon' | 'Grey' | 'Black' | 'White';
 
-/** Fixed display order for colour group headers. */
+/** Fixed display order for colour group headers (Brendon 2026-06-19: Moon
+    follows Cream; the old "Beige" is renamed Cream). */
 export const COLOR_BUCKET_ORDER: ColorBucket[] = [
     'Hothurt', 'Red', 'Orange', 'Yellow', 'Green', 'Blue',
-    'Purple', 'Moon', 'Magenta', 'Brown', 'Beige', 'Grey', 'Black', 'White',
+    'Purple', 'Magenta', 'Brown', 'Cream', 'Moon', 'Grey', 'Black', 'White',
 ];
 
 const HOTHURT_HEX = 'FF0055';
@@ -72,7 +73,7 @@ function classify(r: number, g: number, b: number): ColorBucket {
     if (l >= 0.90 && s <= 0.15) return 'White';
     if (s <= 0.15) return 'Grey';
     // Desaturated warm tones read as wood/sand, not pure orange.
-    if (s <= 0.45 && h >= 20 && h < 50) return l >= 0.55 ? 'Beige' : 'Brown';
+    if (s <= 0.45 && h >= 20 && h < 50) return l >= 0.55 ? 'Cream' : 'Brown';
     if (h < 15 || h >= 345) return 'Red';
     if (h < 45) return l < 0.45 ? 'Brown' : 'Orange';
     if (h < 70) return 'Yellow';

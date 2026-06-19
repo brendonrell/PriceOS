@@ -11,9 +11,12 @@ import { badRequest, serverError } from '@/lib/errors';
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
+// Mirrors the canonical bucket list (lib/art/outputColor COLOR_BUCKET_ORDER).
+// Was out of sync (had 'Pink', missing Moon/Magenta, used 'Beige') — realigned
+// so every real bucket persists and the renamed Cream is accepted.
 const VALID = new Set<string>([
   'Hothurt', 'Red', 'Orange', 'Yellow', 'Green', 'Blue',
-  'Purple', 'Pink', 'Brown', 'Beige', 'Grey', 'Black', 'White',
+  'Purple', 'Magenta', 'Brown', 'Cream', 'Moon', 'Grey', 'Black', 'White',
 ]);
 
 export async function POST(req: NextRequest) {
