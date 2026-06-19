@@ -121,11 +121,12 @@ export function mountPtr(): void {
 
         const cover = document.createElement('div');
         cover.className = 'ptr-refresh-cover';
+        cover.setAttribute('role', 'status');
+        cover.setAttribute('aria-label', 'Refreshing');
         cover.innerHTML =
-            '<div class="route-loading" role="status" aria-label="Refreshing">' +
-            '<span class="route-loading-dot"></span>' +
-            '<span class="route-loading-dot"></span>' +
-            '<span class="route-loading-dot"></span></div>';
+            '<span class="pd-load-panel"><span class="pd-load-text">' +
+            '<span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span>' +
+            '</span></span>';
         document.body.appendChild(cover);
         coverEl = cover;
 

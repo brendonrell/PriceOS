@@ -42,6 +42,7 @@ export default function WishlistList({
     multiActive = false,
     onExitMulti,
     sortKey = 'recent',
+    sortDir = 'asc',
 }: {
     items: WishlistItem[];
     /* Search is controlled by the +More sub-nav's ⌕ icon (shared across the
@@ -53,8 +54,10 @@ export default function WishlistList({
     /* Multi-select, driven by the sub-nav's ❐ icon. */
     multiActive?: boolean;
     onExitMulti?: () => void;
-    /* Sort, driven by the sub-nav sort-bar (Recent / # ID / Project). */
+    /* Sort, driven by the sub-nav sort-bar (Recent / #ID / Project) — tap the
+       active one to flip direction. */
     sortKey?: SortKey;
+    sortDir?: 'asc' | 'desc';
 }) {
     const { showToast } = useToast();
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -91,8 +94,8 @@ export default function WishlistList({
         if (sortKey === 'id') sorted.sort((a, b) => a.id - b.id || a.slug.localeCompare(b.slug));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.id - b.id);
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [rows, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [rows, query, sortKey, sortDir]);
 
     const handleRemoveSelected = () => {
         if (selected.size === 0) return;

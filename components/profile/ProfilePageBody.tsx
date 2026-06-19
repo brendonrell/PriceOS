@@ -877,10 +877,17 @@ function ProfilePageBodyInner({
        beside the colorway picker (same spot + font as the project sorts) and
        drives the open sub-tab's list. */
     const [moreSort, setMoreSort] = useState<'recent' | 'id' | 'project'>('recent');
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); }, [moreL1]);
+    const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); setMoreSortDir('asc'); }, [moreL1]);
+    /* Tap an inactive sort → enter it ascending; tap the active one → flip
+       direction (asc↔desc), same as the gallery sort buttons. */
+    const cycleMoreSort = (key: 'recent' | 'id' | 'project') => {
+        if (moreSort === key) setMoreSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        else { setMoreSort(key); setMoreSortDir('asc'); }
+    };
     const MORE_SORTS: { key: 'recent' | 'id' | 'project'; label: string }[] = [
         { key: 'recent', label: 'Recent' },
-        { key: 'id', label: '# ID' },
+        { key: 'id', label: '#ID' },
         { key: 'project', label: 'Project' },
     ];
 
@@ -1624,10 +1631,11 @@ function ProfilePageBodyInner({
                                                 role="button"
                                                 tabIndex={0}
                                                 title={`Sort by ${s.label}`}
-                                                onClick={() => setMoreSort(s.key)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMoreSort(s.key); } }}
+                                                onClick={() => cycleMoreSort(s.key)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(s.key); } }}
                                             >
                                                 <span className="sort-lbl">{s.label}</span>
+                                                <span className="sort-arrow">{moreSort === s.key ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                                             </span>
                                         ))}
                                     </div>
@@ -1990,6 +1998,7 @@ function ProfilePageBodyInner({
                     multiActive={moreMultiActive}
                     onExitMulti={() => setMoreMultiActive(false)}
                     sortKey={moreSort}
+                    sortDir={moreSortDir}
                 />
             )}
 
@@ -2005,6 +2014,7 @@ function ProfilePageBodyInner({
                     multiActive={moreMultiActive}
                     onExitMulti={() => setMoreMultiActive(false)}
                     sortKey={moreSort}
+                    sortDir={moreSortDir}
                 />
             )}
 

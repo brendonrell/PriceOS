@@ -55,6 +55,7 @@ export default function StarredList({
     multiActive = false,
     onExitMulti,
     sortKey = 'recent',
+    sortDir = 'asc',
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
@@ -70,8 +71,10 @@ export default function StarredList({
     /* Multi-select, driven by the sub-nav's ❐ icon (same spot as search). */
     multiActive?: boolean;
     onExitMulti?: () => void;
-    /* Sort, driven by the sub-nav sort-bar (Recent / # ID / Project). */
+    /* Sort, driven by the sub-nav sort-bar (Recent / #ID / Project) — tap the
+       active one to flip direction, same as the gallery sorts. */
     sortKey?: SortKey;
+    sortDir?: 'asc' | 'desc';
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -142,8 +145,8 @@ export default function StarredList({
         if (sortKey === 'id') sorted.sort((a, b) => a.id - b.id || a.slug.localeCompare(b.slug));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.id - b.id);
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [outputRows, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [outputRows, query, sortKey, sortDir]);
 
     /* Group output rows by Project so each group mounts ONE ProjectProvider —
        that's how each row reads its live listing price (and the Buy CTA lights
@@ -184,8 +187,8 @@ export default function StarredList({
         if (sortKey === 'id') sorted.sort((a, b) => a.value.localeCompare(b.value) || a.project.localeCompare(b.project));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.value.localeCompare(b.value));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [traitRows, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [traitRows, query, sortKey, sortDir]);
 
     /* ── Artist rows ──────────────────────────────────────────────────── */
     const visibleArtists = useMemo(() => {
@@ -195,8 +198,8 @@ export default function StarredList({
         const sorted = [...filtered];
         if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [artists, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [artists, query, sortKey, sortDir]);
 
     /* ── Soundtrack rows ──────────────────────────────────────────────── */
     const visibleSoundtracks = useMemo(() => {
@@ -206,8 +209,8 @@ export default function StarredList({
         const sorted = [...filtered];
         if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.title.localeCompare(b.title));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [soundtracks, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [soundtracks, query, sortKey, sortDir]);
 
     /* ── Project rows ─────────────────────────────────────────────────── */
     const visibleProjects = useMemo(() => {
@@ -219,8 +222,8 @@ export default function StarredList({
         const sorted = [...filtered];
         if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
-        return sorted;
-    }, [projects, query, sortKey]);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [projects, query, sortKey, sortDir]);
 
     /* Removing from Starred asks first (the ✕ on the right) — a small confirm
        card, the same style as multi-select's. */
