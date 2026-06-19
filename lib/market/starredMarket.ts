@@ -17,7 +17,7 @@
  * for real with zero change.
  */
 
-import { getProject } from '../project/registry';
+import { getProject, projectsByArtist } from '../project/registry';
 
 /* FNV-1a → stable float in [0,1) from any string. */
 function seedFloat(seed: string): number {
@@ -60,6 +60,28 @@ export function traitMarketStat(slug: string, category: string, value: string): 
 export function projectMarketStat(slug: string): MarketStat {
     const mint = getProject(slug)?.mintPriceEth ?? 0.05;
     return statFromAnchor(`project|${slug}`, mint);
+}
+
+/* ── Artist floor ────────────────────────────────────────────────────────────
+   An artist's floor = the LOWEST project floor across all their projects — a
+   known, derived number. Shared (not buried in the Starred list) so other
+   surfaces can read it too (Brendon 2026-06-19). */
+
+/** Artist floor in ETH (number); Infinity when the artist has no projects. */
+export function artistFloorEth(handle: string): number {
+    const h = handle.replace(/^@/, '').toLowerCase();
+    let min = Infinity;
+    for (const p of projectsByArtist(h)) {
+        const f = parseFloat(projectMarketStat(p.slug).floor);
+        if (Number.isFinite(f)) min = Math.min(min, f);
+    }
+    return min;
+}
+
+/** Formatted artist floor ("0.180 ETH"), or null when they have no projects. */
+export function artistFloor(handle: string): string | null {
+    const f = artistFloorEth(handle);
+    return Number.isFinite(f) ? eth(f) : null;
 }
 
 /* ── Artist colour ───────────────────────────────────────────────────────────

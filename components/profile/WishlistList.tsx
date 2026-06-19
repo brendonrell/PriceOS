@@ -23,6 +23,7 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleWishlist } from '../../lib/pins/wishlistStore';
+import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
 
@@ -31,7 +32,7 @@ export interface WishlistItem {
     id: number;
 }
 
-type SortKey = 'recent' | 'id' | 'project';
+type SortKey = 'recent' | 'id' | 'project' | 'price';
 
 export default function WishlistList({
     items,
@@ -85,17 +86,33 @@ export default function WishlistList({
         [items],
     );
 
+    const slugs = useMemo(() => [...new Set(rows.map((r) => r.slug))], [rows]);
+    const pricesVer = useStarredPrices(slugs);
+
     const visible = useMemo(() => {
         const q = query.trim().toLowerCase();
         const filtered = q
             ? rows.filter((r) => `${r.project} ${r.artist} #${r.id}`.toLowerCase().includes(q))
             : rows;
         const sorted = [...filtered];
+        if (sortKey === 'price') {
+            const dirMul = sortDir === 'desc' ? -1 : 1;
+            sorted.sort((a, b) => {
+                const pa = priceOf(a.slug, a.id);
+                const pb = priceOf(b.slug, b.id);
+                if (pa == null && pb == null) return a.id - b.id;
+                if (pa == null) return 1;
+                if (pb == null) return -1;
+                return (pa - pb) * dirMul;
+            });
+            return sorted;
+        }
         if (sortKey === 'id') sorted.sort((a, b) => a.id - b.id || a.slug.localeCompare(b.slug));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.id - b.id);
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
-    }, [rows, query, sortKey, sortDir]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rows, query, sortKey, sortDir, pricesVer]);
 
     const handleRemoveSelected = () => {
         if (selected.size === 0) return;

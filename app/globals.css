@@ -3908,6 +3908,13 @@ button,
     border: 1px solid var(--stat-active-bg);
 }
 .pill-l3.dimmed { opacity: 0.6; }
+/* Dotted variant — the Starred filter pills wear a dotted outline when inactive
+   (Brendon 2026-06-19); the active pill keeps its solid fill. */
+.pill-l3.pill-dotted:not(.active) {
+    background: transparent;
+    border: 1px dotted var(--text-color);
+    opacity: 0.8;
+}
 .pill-l3.is-zero {
     opacity: 0.6;
     background: transparent;

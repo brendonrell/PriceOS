@@ -25,7 +25,7 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
-import { traitMarketStat, projectMarketStat, artistColor } from '../../lib/market/starredMarket';
+import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
@@ -33,6 +33,8 @@ import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
+import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
+import { useArtistColors, artistBucket } from '../../lib/pins/artistColorStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -43,7 +45,7 @@ export interface StarredItem {
 }
 
 type Mode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
-type SortKey = 'recent' | 'id' | 'project';
+type SortKey = 'recent' | 'id' | 'project' | 'price';
 
 /* A labelled group section; `label` null = ungrouped (no header rendered). */
 interface Section<T> { label: string | null; key: string; rows: T[]; }
@@ -178,6 +180,11 @@ export default function StarredList({
         [items],
     );
 
+    /* Listing prices for the starred outputs, loaded at the list level so $PRICE
+       can sort (unlisted pieces always sort last). */
+    const outputProjectSlugs = useMemo(() => [...new Set(outputRows.map((r) => r.slug))], [outputRows]);
+    const pricesVer = useStarredPrices(outputProjectSlugs);
+
     const visibleOutputs = useMemo(() => {
         const q = query.trim().toLowerCase();
         const filtered = q
@@ -186,11 +193,24 @@ export default function StarredList({
               )
             : outputRows;
         const sorted = [...filtered];
+        if (sortKey === 'price') {
+            const dirMul = sortDir === 'desc' ? -1 : 1;
+            sorted.sort((a, b) => {
+                const pa = priceOf(a.slug, a.id);
+                const pb = priceOf(b.slug, b.id);
+                if (pa == null && pb == null) return a.id - b.id;
+                if (pa == null) return 1;   // unlisted always last
+                if (pb == null) return -1;
+                return (pa - pb) * dirMul;
+            });
+            return sorted;
+        }
         if (sortKey === 'id') sorted.sort((a, b) => a.id - b.id || a.slug.localeCompare(b.slug));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.id - b.id);
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
-    }, [outputRows, query, sortKey, sortDir]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [outputRows, query, sortKey, sortDir, pricesVer]);
 
     /* Group output rows by Project so each group mounts ONE ProjectProvider —
        that's how each row reads its live listing price (and the Buy CTA lights
@@ -228,7 +248,8 @@ export default function StarredList({
               )
             : traitRows;
         const sorted = [...filtered];
-        if (sortKey === 'id') sorted.sort((a, b) => a.value.localeCompare(b.value) || a.project.localeCompare(b.project));
+        if (sortKey === 'price') sorted.sort((a, b) => parseFloat(a.market.floor) - parseFloat(b.market.floor));
+        else if (sortKey === 'id') sorted.sort((a, b) => a.value.localeCompare(b.value) || a.project.localeCompare(b.project));
         else if (sortKey === 'project') sorted.sort((a, b) => a.project.localeCompare(b.project) || a.value.localeCompare(b.value));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
@@ -240,7 +261,8 @@ export default function StarredList({
         const rows = artists.map((name, i) => ({ name, handle: name.replace(/^@/, ''), recentIndex: i }));
         const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
         const sorted = [...filtered];
-        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        if (sortKey === 'price') sorted.sort((a, b) => artistFloorEth(a.handle) - artistFloorEth(b.handle));
+        else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [artists, query, sortKey, sortDir]);
@@ -251,7 +273,8 @@ export default function StarredList({
         const rows = soundtracks.map((s, i) => ({ ...s, recentIndex: i }));
         const filtered = q ? rows.filter((r) => r.title.toLowerCase().includes(q)) : rows;
         const sorted = [...filtered];
-        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.title.localeCompare(b.title));
+        if (sortKey === 'price') sorted.sort((a, b) => parseFloat(projectMarketStat(a.slug).floor) - parseFloat(projectMarketStat(b.slug).floor));
+        else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.title.localeCompare(b.title));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [soundtracks, query, sortKey, sortDir]);
@@ -264,7 +287,8 @@ export default function StarredList({
             .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, color: projectColorway(slug) ?? 'var(--stat-bg)', market: projectMarketStat(slug), recentIndex: i }));
         const filtered = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
         const sorted = [...filtered];
-        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        if (sortKey === 'price') sorted.sort((a, b) => parseFloat(a.market.floor) - parseFloat(b.market.floor));
+        else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [projects, query, sortKey, sortDir]);
@@ -301,6 +325,14 @@ export default function StarredList({
         return [{ label: null as string | null, key: '_', rows: visibleTraits }];
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, group, visibleTraits]);
+    /* Artists can group by their OFFICIAL colour (loaded at the list level). */
+    const artistHandles = useMemo(() => visibleArtists.map((r) => r.handle), [visibleArtists]);
+    const artistColorsVer = useArtistColors(artistHandles);
+    const artistSections = useMemo(() => {
+        if (dimFor('artists') === 'color') return sectionize(visibleArtists, (r) => artistBucket(r.handle) ?? 'Other', COLOR_ORDER);
+        return [{ label: null as string | null, key: '_', rows: visibleArtists }];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleArtists, artistColorsVer]);
     const projectSections = useMemo(() => {
         if (dimFor('projects') === 'artist') return sectionize(visibleProjects, (r) => artistOf(r.slug));
         return [{ label: null as string | null, key: '_', rows: visibleProjects }];
@@ -385,7 +417,7 @@ export default function StarredList({
                 {PILLS.map((p) => (
                     <div
                         key={p.key}
-                        className={`pill pill-l3${mode === p.key ? ' active' : ''}`}
+                        className={`pill pill-l3 pill-dotted${mode === p.key ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         onClick={() => setMode(p.key)}
@@ -521,20 +553,25 @@ export default function StarredList({
                 {(mode === 'all' || mode === 'artists') && (
                     <>
                         {typeHdr && visibleArtists.length > 0 && <div className="starred-group-header">Artists</div>}
-                        {visibleArtists.map((r) => (
-                            <StarredArtistRow
-                                key={r.name}
-                                name={r.name}
-                                handle={r.handle}
-                                viewerAddress={viewerAddress}
-                                multiActive={multiActive}
-                                selected={selected.has(r.name)}
-                                onToggleSel={() => toggleSel(r.name)}
-                                onFollow={() => showToast('Follow: COMING SOON')}
-                                onUnstar={(e) => handleArtistUnstar(e, r.name)}
-                                grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
-                                onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
-                            />
+                        {artistSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.rows.map((r) => (
+                                    <StarredArtistRow
+                                        key={r.name}
+                                        name={r.name}
+                                        handle={r.handle}
+                                        viewerAddress={viewerAddress}
+                                        multiActive={multiActive}
+                                        selected={selected.has(r.name)}
+                                        onToggleSel={() => toggleSel(r.name)}
+                                        onFollow={() => showToast('Follow: COMING SOON')}
+                                        onUnstar={(e) => handleArtistUnstar(e, r.name)}
+                                        grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
+                                        onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
+                                    />
+                                ))}
+                            </Fragment>
                         ))}
                     </>
                 )}

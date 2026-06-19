@@ -878,7 +878,7 @@ function ProfilePageBodyInner({
        picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
        like the gallery), so there's no separate Group button (Brendon 2026-06-19).
        Wishlist keeps its own #ID sort. */
-    type MoreSortKey = 'recent' | 'id' | 'project';
+    type MoreSortKey = 'recent' | 'id' | 'project' | 'price';
     type MoreMode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
@@ -888,20 +888,19 @@ function ProfilePageBodyInner({
        Groupings reuse the gallery's dimensions (color = outputs only, etc.) and
        are cycled THROUGH the AZ button. */
     const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
-        all:         { sorts: ['recent'],            groups: ['none'] },
-        outputs:     { sorts: ['recent', 'project'], groups: ['none', 'color', 'project', 'artist'] },
-        // 'artists' can group by each artist's OFFICIAL colour (just for fun).
-        traits:      { sorts: ['recent', 'project'], groups: ['none', 'project', 'artist'] },
-        projects:    { sorts: ['recent', 'project'], groups: ['none', 'artist'] },
-        artists:     { sorts: ['recent', 'project'], groups: ['none'] },
-        soundtracks: { sorts: ['recent', 'project'], groups: ['none', 'artist', 'project'] },
-        wishlist:    { sorts: ['recent', 'id', 'project'], groups: ['none'] },
+        all:         { sorts: ['recent'],                     groups: ['none'] },
+        outputs:     { sorts: ['recent', 'project', 'price'], groups: ['none', 'color', 'project', 'artist'] },
+        traits:      { sorts: ['recent', 'project', 'price'], groups: ['none', 'project', 'artist'] },
+        projects:    { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist'] },
+        artists:     { sorts: ['recent', 'project', 'price'], groups: ['none', 'color'] },
+        soundtracks: { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist', 'project'] },
+        wishlist:    { sorts: ['recent', 'id', 'project', 'price'], groups: ['none'] },
     };
     useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
     /* Reset sort + grouping when the active filter pill changes (StarredList
        reports it up) so a grouping never carries into a filter it can't apply. */
     useEffect(() => { setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreMode]);
-    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ' };
+    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE' };
     const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
     /* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
        button, same as the gallery. */
