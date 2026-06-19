@@ -2914,6 +2914,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 12px;
+    /* A little breathing room below the colourway pills before the identity row,
+       so the pill block reads as its own group (Brendon 2026-06-19). */
+    margin-bottom: 16px;
     transform-origin: top;
     animation: egg-shove-open 0.18s ease-out;
 }
@@ -4148,7 +4151,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 #sn-redacted .st-icon,
 #sb-redacted .st-icon {
     font-family: Arial, 'Helvetica Neue', sans-serif !important;
-    font-size: 14px !important;
+    font-size: 12px !important;
     font-weight: 900 !important;
     letter-spacing: 0;
 }
@@ -8538,8 +8541,13 @@ body.colorway-dark .ghost-feed-bar {
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
     font-size: 1.2em;
-    line-height: 1;
-    vertical-align: baseline;
+    /* The 1.2× glyph must NOT grow the title row. inline-block + line-height:0
+       collapses its own line-box contribution to zero, so the star overflows
+       its box visually but the row height stays locked to the title text
+       (Brendon 2026-06-19). vertical-align:middle keeps it centred on the name. */
+    display: inline-block;
+    line-height: 0;
+    vertical-align: middle;
 }
 .project-name-star-float {
     position: absolute;

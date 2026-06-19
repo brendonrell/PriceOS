@@ -11,6 +11,7 @@
  */
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { MINT_FEE_ETH } from '../../lib/project/registry';
@@ -109,7 +110,11 @@ export default function MintButton({
         </button>
         <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
       </div>
-      {confirming && (
+      {/* Portal to <body> so the overlay is a true full-screen, screen-centred
+          card — identical to the Starred unstar confirm. Rendered in-place it
+          was confined/cramped by the project hero's stacking context
+          (Brendon 2026-06-19, screenshots). */}
+      {confirming && typeof document !== 'undefined' && createPortal(
         <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirming(false)}>
           <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
             <div className="ms-confirm-question">Mint {qty} × {projectTitle}?</div>
@@ -118,7 +123,8 @@ export default function MintButton({
               <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={() => { setConfirming(false); void confirm(); }}>Mint</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
       </>
     );

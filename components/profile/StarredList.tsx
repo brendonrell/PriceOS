@@ -476,7 +476,7 @@ export default function StarredList({
                                         onClick={() => showToast('Trait Offer: COMING SOON')}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Trait Offer: COMING SOON'); } }}
                                     >
-                                        <span className="trait-offer-glyph">✦︎</span> Trait Offer
+                                        <span className="trait-offer-glyph">✦︎</span> Make Trait Offer
                                     </span>
                                     <span
                                         className="starred-row-unstar"
@@ -537,7 +537,7 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug}</span>
-                                    <span className="starred-row-sub">YT Playlist ID: <em>{r.playlistId}</em></span>
+                                    <span className="starred-row-sub">YT ID: <em>{r.playlistId}</em></span>
                                     <span className="starred-row-sub">{getProject(r.slug)?.artistHandle ? `by: @${getProject(r.slug)!.artistHandle}` : '\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
