@@ -1,34 +1,30 @@
 /*
- * F43 / BUG-05 — PWA pull-to-refresh engine
+ * PWA pull-to-refresh engine (rebuilt 2026-06-19 for reliability + feel).
  *
- * Sim 5637-5699. When the page runs in standalone PWA mode (iOS
- * home-screen install or Chrome installed-app), the native browser
- * pull-to-refresh gesture isn't available. Sim ports its own:
- * a touchstart→move→end gesture sampled at the document level, with
- * an ambient gradient overlay that fades in via a power curve and
- * triggers location.reload() once the threshold is exceeded.
+ * The old version only decided to refresh on touch-END, comparing the final
+ * release delta to the threshold, then waited 380ms before reloading — so a
+ * short or rubber-banded pull missed entirely ("works half the time") and the
+ * ones that worked felt "hugely delayed". This version is a real pull-to-
+ * refresh:
  *
- * Engine ownership:
- *   - mountPtr() is idempotent — guards on a module flag so duplicate
- *     mounts (StrictMode double-effects, body-class flicker) don't
- *     install duplicate handlers.
- *   - The engine itself owns the overlay DOM node (creation +
- *     removal) — keeps cleanup atomic when the consumer unmounts.
- *   - PTR_THRESHOLD = 100, power curve Math.pow(raw, 2.5),
- *     overlay opacity gated to 0 below raw=0.2 then `eased * 0.92`.
- *     Threshold trigger sets opacity 0 and fires
- *     `setTimeout(location.reload, 380)` so the fade reads before
- *     the navigation. All values verbatim from sim.
- *
- * Sim reads --bg-color and --text-color from documentElement at
- * touchstart and uses the text-color rgb to build the gradient
- * (text always contrasts bg per the colorway system). Same here.
+ *   - It ARMS and fires the instant the pull crosses the threshold DURING the
+ *     move — no waiting for release, no timeout. The reload commits on the next
+ *     frame, so the loading screen appears immediately.
+ *   - A haptic tick fires the moment it arms (Android via Vibration API; iOS
+ *     17.4+ via the system "switch" control haptic — best-effort, since iOS
+ *     web/PWA has no real haptics API).
+ *   - The pull overlay responds from the first pixel (eased), so the gesture
+ *     feels connected to the finger instead of dead until near the threshold.
+ *   - It only engages when the page is genuinely at the top and no modal /
+ *     Bench drag is in play, so it doesn't false-fire.
  */
 
-const PTR_THRESHOLD = 100;
+const PTR_THRESHOLD = 80; // px of downward pull that arms the refresh
 
 let mounted = false;
 let overlayEl: HTMLDivElement | null = null;
+let coverEl: HTMLDivElement | null = null;
+let hapticLabel: HTMLLabelElement | null = null;
 let cleanup: (() => void) | null = null;
 
 export function mountPtr(): void {
@@ -37,23 +33,57 @@ export function mountPtr(): void {
 
     mounted = true;
 
-    // Ambient pull overlay — color derived from current colorway at touch time
+    /* Pull overlay — a colorway-tinted band that fills as you pull. */
     const overlay = document.createElement('div');
     overlay.style.cssText =
         'position:fixed;top:0;left:0;right:0;' +
-        'height:calc(env(safe-area-inset-top) + 72px);' +
+        'height:calc(env(safe-area-inset-top) + 84px);' +
         'opacity:0;z-index:99998;pointer-events:none;' +
-        'transition:opacity 0.5s ease;';
+        'transition:opacity 0.3s ease;';
     document.body.appendChild(overlay);
     overlayEl = overlay;
 
-    let ptrStartY = 0;
-    let ptrActive = false;
-    let ptrTriggered = false;
+    /* Hidden iOS switch control — toggling it inside the touch gesture fires
+       the system haptic on iOS 17.4+ (the only web haptic iOS exposes). Kept
+       off-screen; a no-op on browsers that don't support it. */
+    const label = document.createElement('label');
+    label.setAttribute('aria-hidden', 'true');
+    label.style.cssText =
+        'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;';
+    const sw = document.createElement('input');
+    sw.type = 'checkbox';
+    sw.setAttribute('switch', '');
+    sw.tabIndex = -1;
+    label.appendChild(sw);
+    document.body.appendChild(label);
+    hapticLabel = label;
+
+    let startY = 0;
+    let active = false;
+    let armed = false;
+
+    const atTop = (): boolean => {
+        const y =
+            window.scrollY ||
+            document.scrollingElement?.scrollTop ||
+            document.documentElement.scrollTop ||
+            0;
+        return y <= 0;
+    };
+
+    /* Don't fight the Bench hold-drag (a downward drag from the top) or a pull
+       inside an open modal. */
+    const blocked = (): boolean => {
+        const cl = document.body.classList;
+        return cl.contains('bench-dragging') || cl.contains('modal-open');
+    };
+
+    const fireHaptic = (): void => {
+        try { navigator.vibrate?.(10); } catch { /* unsupported */ }
+        try { hapticLabel?.click(); } catch { /* unsupported */ }
+    };
 
     function setOverlayColor() {
-        // Use the text color (always contrasts bg per colorway) for the
-        // gradient so it works on every colorway — sim 5650-5657.
         const txt = getComputedStyle(document.documentElement)
             .getPropertyValue('--text-color')
             .trim();
@@ -62,62 +92,74 @@ export function mountPtr(): void {
         const g = parseInt(hex.substr(2, 2), 16) || 0;
         const b = parseInt(hex.substr(4, 2), 16) || 0;
         overlay.style.background =
-            `linear-gradient(to bottom, rgba(${r},${g},${b},0.28) 0%, transparent 100%)`;
+            `linear-gradient(to bottom, rgba(${r},${g},${b},0.34) 0%, transparent 100%)`;
     }
 
+    const hideOverlay = () => {
+        overlay.style.transition = 'opacity 0.3s ease';
+        overlay.style.opacity = '0';
+    };
+
+    /* Commit the refresh: haptic + show the loading screen NOW, reload next
+       frame so the screen actually paints before navigation. */
+    const trigger = () => {
+        if (armed) return;
+        armed = true;
+        active = false;
+        fireHaptic();
+        overlay.style.transition = 'opacity 0.15s ease';
+        overlay.style.opacity = '1';
+
+        const cover = document.createElement('div');
+        cover.className = 'ptr-refresh-cover';
+        cover.innerHTML =
+            '<div class="route-loading" role="status" aria-label="Refreshing">' +
+            '<span class="route-loading-dot"></span>' +
+            '<span class="route-loading-dot"></span>' +
+            '<span class="route-loading-dot"></span></div>';
+        document.body.appendChild(cover);
+        coverEl = cover;
+
+        requestAnimationFrame(() =>
+            requestAnimationFrame(() => location.reload()),
+        );
+    };
+
     const onTouchStart = (e: TouchEvent) => {
-        if (window.scrollY === 0) {
-            ptrStartY = e.touches[0].clientY;
-            ptrActive = true;
-            ptrTriggered = false;
+        if (armed) return;
+        if (atTop() && !blocked()) {
+            startY = e.touches[0].clientY;
+            active = true;
+            armed = false;
             setOverlayColor();
+        } else {
+            active = false;
         }
     };
 
     const onTouchMove = (e: TouchEvent) => {
-        if (!ptrActive) return;
-        /* The Bench hold-drag is a downward gesture from the top of the page,
-           which the PTR would otherwise read as a pull and reload mid-drag
-           (Brendon, 2026-06-16 — "drag a second piece and the app refreshes").
-           The instant a bench drag engages it adds body.bench-dragging; bow out
-           for the rest of this gesture so the two never fight. Done in MOVE (not
-           END) so it lands before release, sidestepping touch/pointer ordering. */
-        if (document.body.classList.contains('bench-dragging')) {
-            ptrActive = false;
-            overlay.style.transition = 'opacity 0.3s ease';
-            overlay.style.opacity = '0';
-            return;
-        }
-        const dy = e.touches[0].clientY - ptrStartY;
-        if (dy > 0) {
-            // Power-curve easing — barely visible early, builds
-            // deliberately near threshold.
-            const raw = Math.min(dy / PTR_THRESHOLD, 1);
-            const eased = Math.pow(raw, 2.5);
-            overlay.style.transition = 'none';
-            overlay.style.opacity = raw > 0.2 ? String(eased * 0.92) : '0';
-        }
+        if (!active || armed) return;
+        if (blocked()) { active = false; hideOverlay(); return; }
+        const dy = e.touches[0].clientY - startY;
+        if (dy <= 0) { overlay.style.opacity = '0'; return; }
+        const raw = Math.min(dy / PTR_THRESHOLD, 1);
+        // easeOutQuad — connected to the finger from the first pixel.
+        const eased = 1 - (1 - raw) * (1 - raw);
+        overlay.style.transition = 'none';
+        overlay.style.opacity = String(eased);
+        if (dy >= PTR_THRESHOLD) trigger();
     };
 
-    const onTouchEnd = (e: TouchEvent) => {
-        if (!ptrActive) return;
-        const dy = e.changedTouches[0].clientY - ptrStartY;
-        if (dy > PTR_THRESHOLD && !ptrTriggered) {
-            ptrTriggered = true;
-            overlay.style.transition = 'opacity 0.5s ease';
-            overlay.style.opacity = '0';
-            setTimeout(() => location.reload(), 380);
-        } else {
-            overlay.style.transition = 'opacity 0.5s ease';
-            overlay.style.opacity = '0';
-        }
-        ptrActive = false;
+    const onTouchEnd = () => {
+        if (armed) return;
+        active = false;
+        hideOverlay();
     };
 
     const onTouchCancel = () => {
-        ptrActive = false;
-        overlay.style.transition = 'opacity 0.5s ease';
-        overlay.style.opacity = '0';
+        if (armed) return;
+        active = false;
+        hideOverlay();
     };
 
     document.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -130,10 +172,12 @@ export function mountPtr(): void {
         document.removeEventListener('touchmove', onTouchMove);
         document.removeEventListener('touchend', onTouchEnd);
         document.removeEventListener('touchcancel', onTouchCancel);
-        if (overlayEl && overlayEl.parentNode) {
-            overlayEl.parentNode.removeChild(overlayEl);
-        }
+        if (overlayEl?.parentNode) overlayEl.parentNode.removeChild(overlayEl);
+        if (coverEl?.parentNode) coverEl.parentNode.removeChild(coverEl);
+        if (hapticLabel?.parentNode) hapticLabel.parentNode.removeChild(hapticLabel);
         overlayEl = null;
+        coverEl = null;
+        hapticLabel = null;
         mounted = false;
     };
 }
