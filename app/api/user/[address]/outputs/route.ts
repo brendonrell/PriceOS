@@ -11,7 +11,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
-import { getUserHoldings, type UserHolding } from '@/lib/profile/getUserHoldings';
+import { getUserHoldings, getUserHoldingsCount, type UserHolding } from '@/lib/profile/getUserHoldings';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -34,9 +34,13 @@ export async function GET(
     const holdings = await getUserHoldings(address);
     if (holdings === null) return badRequest('Invalid Ethereum address');
 
+    // Real owned total (exact count) — holdings caps at 1000 rows, so its
+    // length under-reports for big collections (Brendon 2026-06-19).
+    const total = await getUserHoldingsCount(address);
+
     const response: UserOutputsResponse = {
       address,
-      total: holdings.length,
+      total,
       holdings,
     };
     return NextResponse.json(response);

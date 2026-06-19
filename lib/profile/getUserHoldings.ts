@@ -28,6 +28,24 @@ export interface UserHolding {
  * real DB error; returns [] for a valid address with no rows. Returns null
  * for a malformed address (callers map that to 400 / skip as appropriate).
  */
+/**
+ * EXACT count of a wallet's holdings. getUserHoldings returns at most 1000 rows
+ * (the PostgREST page cap), so its length under-reports for big collections —
+ * this head/count query gives the real "owned" total (Brendon 2026-06-19, his
+ * 1234 showing as 1000). Returns 0 for a malformed address or on error.
+ */
+export async function getUserHoldingsCount(rawAddress: string): Promise<number> {
+  const address = rawAddress.toLowerCase();
+  if (!ADDRESS_RE.test(address)) return 0;
+  const supabase = getSupabaseService();
+  const { count, error } = await supabase
+    .from('holders')
+    .select('*', { count: 'exact', head: true })
+    .eq('owner_address', address);
+  if (error) return 0;
+  return count ?? 0;
+}
+
 export async function getUserHoldings(
   rawAddress: string
 ): Promise<UserHolding[] | null> {

@@ -184,11 +184,13 @@ function ProfilePageBodyInner({
     handle,
     initialUser,
     initialHoldings,
+    initialOwnedCount = 0,
     artistStatus,
 }: {
     handle: string;
     initialUser: UserProfileData;
     initialHoldings: Holding[];
+    initialOwnedCount?: number;
     artistStatus: 'active' | 'cooldown' | null;
 }) {
     const { showToast } = useToast();
@@ -309,6 +311,10 @@ function ProfilePageBodyInner({
        paints on arrival; perf batch 2026-06-10). Declared here, above the
        identity-reset block that re-seeds it. */
     const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
+    /* Exact owned total (holdings caps at 1000 rows, so its length under-reports
+       for big collections — Brendon 2026-06-19). Seeded server-side, refreshed
+       from the outputs route's `total`. */
+    const [ownedCount, setOwnedCount] = useState<number>(initialOwnedCount);
 
     /* Client-nav identity reset — the App Router reuses this component
        instance when navigating between two profile pages (same segment,
@@ -321,6 +327,7 @@ function ProfilePageBodyInner({
         setSeededFor(user.address);
         setCounts({ followers: user.follower_count, following: user.following_count });
         setHoldings(initialHoldings);
+        setOwnedCount(initialOwnedCount);
     }
 
     useEffect(() => {
@@ -463,10 +470,11 @@ function ProfilePageBodyInner({
         const load = () =>
             fetch(`/api/user/${user.address.toLowerCase()}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((d: { holdings?: Holding[] } | null) => {
+                .then((d: { holdings?: Holding[]; total?: number } | null) => {
                     if (cancelled || !d?.holdings) return;
                     const next = d.holdings;
                     setHoldings((prev) => (sig(prev) === sig(next) ? prev : next));
+                    if (typeof d.total === 'number') setOwnedCount(d.total);
                 })
                 .catch(() => {});
         // Always reconcile on mount (Brendon 2026-06-12): the seed gives an
@@ -1536,7 +1544,7 @@ function ProfilePageBodyInner({
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">{holdings.length}</span>
+                            <span className="stat-val">{Math.max(ownedCount, holdings.length)}</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span
@@ -2096,11 +2104,13 @@ export default function ProfilePageBody({
     handle,
     initialUser,
     initialHoldings,
+    initialOwnedCount = 0,
     artistStatus = null,
 }: {
     handle: string;
     initialUser: UserProfileData;
     initialHoldings: Holding[];
+    initialOwnedCount?: number;
     artistStatus?: 'active' | 'cooldown' | null;
 }) {
     return (
@@ -2109,6 +2119,7 @@ export default function ProfilePageBody({
                 handle={handle}
                 initialUser={initialUser}
                 initialHoldings={initialHoldings}
+                initialOwnedCount={initialOwnedCount}
                 artistStatus={artistStatus}
             />
         </TraitsProvider>

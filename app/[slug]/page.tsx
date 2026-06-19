@@ -16,7 +16,7 @@ import {
   getUserProfileByHandle,
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
-import { getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { getUserHoldings, getUserHoldingsCount } from '@/lib/profile/getUserHoldings';
 import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
@@ -64,8 +64,12 @@ export default async function SlugRootPage({ params }: Props) {
   // actions). Best-effort: a holdings error falls back to the old behavior
   // (empty seed; nothing renders worse than before this change).
   let initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> = [];
+  let initialOwnedCount = 0;
   try {
     initialHoldings = (await getUserHoldings(initialUser.address)) ?? [];
+    // Exact owned total (holdings caps at 1000 rows) so the stat is right on
+    // first paint (Brendon 2026-06-19).
+    initialOwnedCount = await getUserHoldingsCount(initialUser.address);
   } catch {
     initialHoldings = [];
   }
@@ -85,6 +89,7 @@ export default async function SlugRootPage({ params }: Props) {
       handle={r.handle}
       initialUser={initialUser}
       initialHoldings={initialHoldings ?? []}
+      initialOwnedCount={initialOwnedCount}
       artistStatus={artistStatus}
     />
   );
