@@ -409,49 +409,54 @@ export default function ArtworkPageBody({
                 style={{ display: onMore ? 'block' : 'none' }}
             >
                 {moreL1 === 'stats' && (
-                    <div className="stats-grid artwork-more-stats">
-                        <div className="hero-line stats-row stats-row-2">
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box stat-icon-owned"
-                                    {...iconToastProps('Your Holding Status')}
-                                >
-                                    ⊡&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val stat-val-empty">{owned ? 'OWNED' : ''}</span>
-                            </span>
-                            <span className="stat-item">
-                                <span
-                                    className="stat-icon stat-icon-box stat-icon-spent"
-                                    {...iconToastProps('Floor Price')}
-                                >
-                                    ↨&#xFE0E;
-                                </span>{' '}
-                                <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
-                            </span>
-                            <span className="stat-item stat-item-anchor">
-                                <span
-                                    className="stat-icon stat-icon-box"
-                                    {...iconToastProps('Your Personal Reference Price')}
-                                >
-                                    ⚓&#xFE0E;
-                                </span>{' '}
-                                <span
-                                    className="stat-val stat-val-empty"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Tap to set"
-                                    onClick={() => showToast('Anchor: COMING SOON')}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            showToast('Anchor: COMING SOON');
-                                        }
-                                    }}
-                                ></span>
-                            </span>
+                    <>
+                        <div className="more-section-header">STATS</div>
+                        <div className="more-box-wrap">
+                          <div className="more-box-card">
+                            <div className="stats-row stats-row-2">
+                                <span className="stat-item">
+                                    <span
+                                        className="stat-icon stat-icon-box stat-icon-owned"
+                                        {...iconToastProps('Your Holding Status')}
+                                    >
+                                        ⊡&#xFE0E;
+                                    </span>{' '}
+                                    <span className="stat-val stat-val-empty">{owned ? 'OWNED' : ''}</span>
+                                </span>
+                                <span className="stat-item">
+                                    <span
+                                        className="stat-icon stat-icon-box stat-icon-spent"
+                                        {...iconToastProps('Floor Price')}
+                                    >
+                                        ↨&#xFE0E;
+                                    </span>{' '}
+                                    <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
+                                </span>
+                                <span className="stat-item stat-item-anchor">
+                                    <span
+                                        className="stat-icon stat-icon-box"
+                                        {...iconToastProps('Your Personal Reference Price')}
+                                    >
+                                        ⚓&#xFE0E;
+                                    </span>{' '}
+                                    <span
+                                        className="stat-val stat-val-empty"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Tap to set"
+                                        onClick={() => showToast('Anchor: COMING SOON')}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                showToast('Anchor: COMING SOON');
+                                            }
+                                        }}
+                                    ></span>
+                                </span>
+                            </div>
+                          </div>
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* ATTRIBUTES — this Output's birth attributes (mirrors the
@@ -477,9 +482,25 @@ export default function ArtworkPageBody({
                     </>
                 )}
 
-                {/* Remaining sections — titled empty boxes, same as the Project
+                {/* Replay + Albums are the ONLY sections without a dotted box
+                    (Brendon) — plain content under the header, same as the
+                    Project page. */}
+                {moreL1 === 'replay' && (
+                    <>
+                        <div className="more-section-header">REPLAY</div>
+                        <p className="info-rubik">Coming soon.</p>
+                    </>
+                )}
+                {moreL1 === 'albums' && (
+                    <>
+                        <div className="more-section-header">ALBUMS</div>
+                        <p className="info-rubik">Not in any albums yet.</p>
+                    </>
+                )}
+
+                {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'albums' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}

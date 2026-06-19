@@ -355,6 +355,16 @@ explicit chat confirmation.
 > handle it silently (or ignore it) — do not echo it, explain it, or apologise
 > for it. Mentioning it again is a direct rule violation and a waste of his time.
 
+> **NEVER SAY "I CAN'T PIXEL-CHECK / VERIFY VISUALLY MYSELF." Hard rule
+> (Brendon, 2026-06-19 — raised in fury).** Brendon KNOWS the container has no
+> browser and can't see pixels — stating it on every UI change is grating,
+> redundant noise. Do NOT append "I can't verify this visually," "can't pixel-
+> check from here," "confirm on a real device," or any variant. Do the build +
+> compiled-asset checks silently, ship the change, and say what changed — nothing
+> about your own inability to see it. If a change genuinely hinges on an unknown
+> you cannot resolve, raise THAT specific unknown — never the generic
+> can't-see-pixels disclaimer.
+
 > **NO OVERSELLING. NO SPIN. Truth-first, caveats UP FRONT. Hard rule (Brendon,
 > 2026-06-08 — repeated, grating, trust-breaking; "we're not playing house").**
 > Do **NOT** present anything in its best light. Lead every answer with the
