@@ -62,3 +62,34 @@ export function splitEyeSlot(slot: string): SplitEye {
     if (!twin) return { eye: slot, brow: null };
     return { eye: points.slice(0, -1).join(''), brow: twin };
 }
+
+export type FaceSeg =
+    | { kind: 'text'; text: string }
+    | { kind: 'eye'; eye: string; brow: string };
+
+/**
+ * Split a FULL composed face string into renderable segments: plain text
+ * runs, plus eye+brow slots whose combining brow has a WGL4 spacing twin.
+ * Lets the ID Rectangle apply the same Windows brow overlay the connect-menu
+ * sprite gets per-slot, generalised to the whole string (Brendon 2026-06-19).
+ * A combining mark with no twin stays in the text run (rendered verbatim).
+ */
+export function splitFace(face: string): FaceSeg[] {
+    const pts = Array.from(face);
+    const segs: FaceSeg[] = [];
+    let buf = '';
+    const flush = () => { if (buf) { segs.push({ kind: 'text', text: buf }); buf = ''; } };
+    for (let i = 0; i < pts.length; i++) {
+        const next = pts[i + 1];
+        const twin = next ? SPACING_TWIN[next] : undefined;
+        if (twin) {
+            flush();
+            segs.push({ kind: 'eye', eye: pts[i], brow: twin });
+            i += 1; // consume the combining brow
+            continue;
+        }
+        buf += pts[i];
+    }
+    flush();
+    return segs;
+}

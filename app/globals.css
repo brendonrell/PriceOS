@@ -573,6 +573,10 @@ body.sentiment-on .sentiment-widget {
     width: 1ch;
 }
 
+/* Windows-only eye slot inside a full SpriteFace string (components/SpriteFace).
+   inline-block so the overlaid brow centers over just the eye glyph, same as the
+   connect-menu's per-slot wrapper. Apple devices never emit this node. */
+.sprite-eye-win { display: inline-block; }
 /* Windows-only brow overlay (SpriteEyeSlot / lib/sprites/winBrow.ts).
    This node only EXISTS in the DOM on Windows user agents — Apple
    devices never render it, and the eye glyph + font are untouched
@@ -2908,7 +2912,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* Name easter egg — the colourway pill row that shoves open under your own
    @name (ProfilePageBody). In-flow inside the title band, so it pushes the
    identity/stats rows down rather than floating over them. */
-.egg-name { cursor: pointer; }
+/* The triple-tap @name (own profile) is a hidden affordance — it must read as
+   plain text, never a link, so the colourway egg stays a secret (Brendon
+   2026-06-19). The PriceSprite beside it carries the only visible link. */
+.egg-name { cursor: default; }
+/* Owner's identity-row PriceSprite is the visible link — taps open the
+   PriceSprite modal (Brendon 2026-06-19). */
+.id-row-sprite.is-own { cursor: pointer; }
 .profile-egg-row {
     display: flex;
     flex-wrap: wrap;
@@ -8192,6 +8202,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* ⚭ mutual reads as the closest relationship — draw it two sizes larger than
    the others so it stands out (Brendon 2026-06-19). */
 .artist-social-ico.is-mutual-lg { font-size: 1.54em; line-height: 1; vertical-align: middle; }
+/* In Wishlist the social glyph + follower count ride 1px high to sit on the
+   @name baseline (Brendon 2026-06-19). */
+.starred-list[aria-label="Wishlist"] .artist-social-ico,
+.starred-list[aria-label="Wishlist"] .follower-count { position: relative; top: -1px; }
 /* Group section header — flush with the rows, muted ALLCAPS label (Brendon
    2026-06-19). Shown when a grouping is active in the Starred list. */
 .starred-group-header {
@@ -8620,6 +8634,10 @@ body.colorway-dark .ghost-feed-bar {
     display: inline-block;
     line-height: 0;
     vertical-align: middle;
+}
+/* Desktop runs the title star 20% smaller (Brendon 2026-06-19). */
+@media (min-width: 601px) {
+    .project-name-star { font-size: 0.96em; }
 }
 .project-name-star-float {
     position: absolute;

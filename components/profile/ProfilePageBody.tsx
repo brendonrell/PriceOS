@@ -31,6 +31,8 @@ import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
+import { useModal } from '../../lib/state/ModalContext';
+import SpriteFace from '../SpriteFace';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
@@ -292,6 +294,7 @@ function ProfilePageBodyInner({
        frozen signup sprite (useSpriteFace, cached). Courier, understated —
        not the loud chip that was reverted on the project hero. */
     const nameFace = useSpriteFace(displayHandle);
+    const { open: openModal } = useModal();
     const memberSince = formatMemberSince(user.created_at);
 
     // Identity row: chosen ENS if set, else the truncated wallet address.
@@ -1497,7 +1500,21 @@ function ProfilePageBodyInner({
                 }
                 identityRow={
                     <div className="hero-line project-custom id-row-fit" ref={idRowRef}>
-                        {nameFace && <span className="id-row-sprite">{nameFace}</span>}
+                        {nameFace && (isOwnProfile ? (
+                            <span
+                                className="id-row-sprite is-own"
+                                role="button"
+                                tabIndex={0}
+                                title="Your PriceSprite"
+                                aria-label="Open your PriceSprite"
+                                onClick={() => openModal('priceSprite')}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('priceSprite'); } }}
+                            >
+                                <SpriteFace face={nameFace} />
+                            </span>
+                        ) : (
+                            <SpriteFace className="id-row-sprite" face={nameFace} />
+                        ))}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
                                 {/* Links to the owner's Etherscan page (Brendon

@@ -13,13 +13,14 @@
  */
 
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
+import SpriteFace from '../SpriteFace';
 
 export default function CollectedPair({ handle }: { handle: string }) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
     return (
         <span className="collected-pair">
-            {face && <span className="collected-sprite">{face}</span>}
+            {face && <SpriteFace className="collected-sprite" face={face} />}
             <a className="profile-link" href={`/${h}`}>
                 @{h}
             </a>
