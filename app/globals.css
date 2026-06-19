@@ -8532,8 +8532,10 @@ body.colorway-dark .ghost-feed-bar {
     align-items: center;
     justify-content: center;
     /* Same horizontal inset as the gallery so the art never hits the screen
-       edges. */
-    padding: 6px 40px 0 40px;
+       edges. In landscape the inset grows to clear the notch / Dynamic Island
+       (safe-area), so the art lines up with the menu + logo instead of sliding
+       under the notch. */
+    padding: 6px max(40px, env(safe-area-inset-right)) 0 max(40px, env(safe-area-inset-left));
 }
 .artwork-feature-art {
     /* Cap by the VIEWPORT (not a parent %), so a tall piece can never balloon
