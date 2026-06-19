@@ -326,7 +326,6 @@ export default function StarredList({
                                         slug={r.slug}
                                         id={r.id}
                                         project={r.project}
-                                        projectName={r.projectName}
                                         artist={r.artist}
                                         extra={r.extra || r.fate}
                                         wished={wishKeys.has(`${r.slug}:${r.id}`)}
@@ -363,9 +362,9 @@ export default function StarredList({
                                         <span className="srl-handle">@{r.slug}</span>
                                         <span className="srl-suffix">· {r.category}</span>
                                     </span>
-                                    <span className="starred-row-sub">{r.project}</span>
+                                    <span className="starred-row-sub">Trait</span>
                                     <span className="starred-row-sub">{r.value}</span>
-                                    <span className="starred-row-sub">Trait · Floor {r.market.floor} · Last {r.market.lastSale}</span>
+                                    <span className="starred-row-sub">Floor {r.market.floor} · Last {r.market.lastSale}</span>
                                 </div>
                                 <span
                                     className="starred-row-cta trait-offer-cta"
@@ -567,7 +566,6 @@ function StarredOutputRow({
     slug,
     id,
     project,
-    projectName,
     artist,
     extra,
     wished,
@@ -581,7 +579,6 @@ function StarredOutputRow({
     slug: string;
     id: number;
     project: string;
-    projectName: string;
     artist: string;
     extra: string;
     wished: boolean;
@@ -609,7 +606,7 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
-                {projectName && <span className="starred-row-sub">{projectName}</span>}
+                <span className="starred-row-sub">Output</span>
                 {artist && <span className="starred-row-sub">{artist}</span>}
                 {extra && <span className="starred-row-sub">{extra}</span>}
             </div>
