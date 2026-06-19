@@ -8192,6 +8192,7 @@ body.colorway-dark .ghost-feed-bar {
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 .starred-mode-pills {
     display: flex;
+    align-items: center;
     gap: 8px;
     padding: 12px 0 2px;
     flex-wrap: wrap;
