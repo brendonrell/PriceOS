@@ -874,9 +874,10 @@ function ProfilePageBodyInner({
     /* +More multi-select — same idea as Collected's ❐. Lives beside the search
        icon and drives the open sub-tab's row selection. */
     const [moreMultiActive, setMoreMultiActive] = useState(false);
-    /* +More sort — Recent / # ID / Project. Lives in the sub-nav sort-bar
-       beside the colorway picker (same spot + font as the project sorts) and
-       drives the open sub-tab's list. */
+    /* +More sort — Recent / AZ. Lives in the sub-nav sort-bar beside the colorway
+       picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
+       like the gallery), so there's no separate Group button (Brendon 2026-06-19).
+       Wishlist keeps its own #ID sort. */
     type MoreSortKey = 'recent' | 'id' | 'project';
     type MoreMode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
@@ -884,28 +885,52 @@ function ProfilePageBodyInner({
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
     const [moreGroup, setMoreGroup] = useState<string>('none');
     /* Which sorts + groupings make sense for each Starred filter (and Wishlist).
-       Groupings reuse the gallery's dimensions (color = outputs only, etc.). */
+       Groupings reuse the gallery's dimensions (color = outputs only, etc.) and
+       are cycled THROUGH the AZ button. */
     const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
-        all:         { sorts: ['recent'],                groups: ['none', 'type'] },
-        outputs:     { sorts: ['recent', 'id', 'project'], groups: ['none', 'color', 'project', 'artist'] },
-        traits:      { sorts: ['recent', 'project'],     groups: ['none', 'project', 'artist'] },
-        projects:    { sorts: ['recent', 'project'],     groups: ['none', 'artist'] },
-        artists:     { sorts: ['recent'],                groups: ['none'] },
-        soundtracks: { sorts: ['recent', 'project'],     groups: ['none', 'artist', 'project'] },
+        all:         { sorts: ['recent'],            groups: ['none'] },
+        outputs:     { sorts: ['recent', 'project'], groups: ['none', 'color', 'project', 'artist'] },
+        traits:      { sorts: ['recent', 'project'], groups: ['none', 'project', 'artist'] },
+        projects:    { sorts: ['recent', 'project'], groups: ['none', 'artist'] },
+        artists:     { sorts: ['recent', 'project'], groups: ['none'] },
+        soundtracks: { sorts: ['recent', 'project'], groups: ['none', 'artist', 'project'] },
         wishlist:    { sorts: ['recent', 'id', 'project'], groups: ['none'] },
     };
     useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
     /* Reset sort + grouping when the active filter pill changes (StarredList
        reports it up) so a grouping never carries into a filter it can't apply. */
     useEffect(() => { setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreMode]);
-    /* Tap an inactive sort → enter it ascending; tap the active one → flip
-       direction (asc↔desc), same as the gallery sort buttons. */
-    const cycleMoreSort = (key: MoreSortKey) => {
-        if (moreSort === key) setMoreSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-        else { setMoreSort(key); setMoreSortDir('asc'); }
-    };
-    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'Project' };
+    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ' };
     const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
+    /* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
+       button, same as the gallery. */
+    const MORE_GROUP_GLYPH: Record<string, string> = { none: '', color: '◉︎', project: '⬚︎', artist: '✺︎' };
+    /* Tap an inactive sort → enter ascending, ungrouped. Tap the active groupable
+       sort → asc flips to desc, then desc advances to the next grouping (back to
+       asc) — mirroring the gallery's AZ button. 'recent' just flips direction. */
+    const cycleMoreSort = (key: MoreSortKey) => {
+        const groups = MORE_CFG[onWishlistTab ? 'wishlist' : moreMode]?.groups ?? ['none'];
+        if (moreSort !== key) {
+            setMoreSort(key); setMoreSortDir('asc'); setMoreGroup('none');
+            showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↑');
+            return;
+        }
+        if (key === 'recent' || groups.length <= 1) {
+            const nd = moreSortDir === 'asc' ? 'desc' : 'asc';
+            setMoreSortDir(nd);
+            showToast('SORT: ' + MORE_SORT_LABEL[key] + (nd === 'asc' ? ' ↑' : ' ↓'));
+            return;
+        }
+        if (moreSortDir === 'asc') {
+            setMoreSortDir('desc');
+            showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↓' + (moreGroup !== 'none' ? ' · ' + (MORE_GROUP_NAME[moreGroup] ?? moreGroup).toUpperCase() : ''));
+            return;
+        }
+        const cur = groups.includes(moreGroup) ? moreGroup : 'none';
+        const next = groups[(groups.indexOf(cur) + 1) % groups.length];
+        setMoreGroup(next); setMoreSortDir('asc');
+        showToast(next === 'none' ? 'GROUP: OFF' : 'GROUP: ' + (MORE_GROUP_NAME[next] ?? next).toUpperCase());
+    };
 
     /* Starred Artists — the pinned-artist set from the Artists list, surfaced
        under the Starred tab's Artists filter (read-only mirror; the pin itself
@@ -1247,13 +1272,6 @@ function ProfilePageBodyInner({
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
     /* Active sort/group config for the current Starred filter (or Wishlist). */
     const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : moreMode] ?? MORE_CFG.all;
-    /* Cycle the grouping through the dimensions that make sense for this filter. */
-    const cycleMoreGroup = () => {
-        const order = moreCfg.groups;
-        const next = order[(order.indexOf(moreGroup) + 1) % order.length];
-        setMoreGroup(next);
-        showToast(next === 'none' ? 'Grouped: OFF' : `Grouped: ${(MORE_GROUP_NAME[next] ?? next).toUpperCase()}`);
-    };
     /* Created carousels shown either inside the Artist-style showcase or as the
        +More sub-tab for traditional-Top-6 artists. */
     const moreCreatedActive = onMore && createdUnderMore && effMoreL1 === 'created';
@@ -1653,32 +1671,30 @@ function ProfilePageBodyInner({
                             profileSortControls={
                                 (onStarredTab || onWishlistTab) ? (
                                     <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
-                                        {moreCfg.sorts.map((key) => (
-                                            <span
-                                                key={key}
-                                                className={`sort-btn${moreSort === key ? ' active' : ''}`}
-                                                role="button"
-                                                tabIndex={0}
-                                                title={`Sort by ${MORE_SORT_LABEL[key]}`}
-                                                onClick={() => cycleMoreSort(key)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
-                                            >
-                                                <span className="sort-lbl">{MORE_SORT_LABEL[key]}</span>
-                                                <span className="sort-arrow">{moreSort === key ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
-                                            </span>
-                                        ))}
-                                        {moreCfg.groups.length > 1 && (
-                                            <span
-                                                className={`sort-btn${moreGroup !== 'none' ? ' active' : ''}`}
-                                                role="button"
-                                                tabIndex={0}
-                                                title="Group by"
-                                                onClick={cycleMoreGroup}
-                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreGroup(); } }}
-                                            >
-                                                <span className="sort-lbl">{moreGroup === 'none' ? 'Group' : (MORE_GROUP_NAME[moreGroup] ?? moreGroup)}</span>
-                                            </span>
-                                        )}
+                                        {moreCfg.sorts.map((key) => {
+                                            const active = moreSort === key;
+                                            // AZ flips to ZA when descending (gallery parity); the active
+                                            // grouping shows as a glyph modifier before the arrow.
+                                            const lbl = key === 'project' && active && moreSortDir === 'desc' ? 'ZA' : MORE_SORT_LABEL[key];
+                                            const gGlyph = active && key !== 'recent' && moreGroup !== 'none' ? (MORE_GROUP_GLYPH[moreGroup] ?? '') : '';
+                                            return (
+                                                <span
+                                                    key={key}
+                                                    className={`sort-btn${active ? ' active' : ''}`}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    title={`Sort by ${MORE_SORT_LABEL[key]}`}
+                                                    onClick={() => cycleMoreSort(key)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
+                                                >
+                                                    <span className="sort-lbl">{lbl}</span>
+                                                    <span className="sort-arrow">
+                                                        {gGlyph && <span className="sort-group-mod on" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}>{gGlyph}</span>}
+                                                        {active ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}
+                                                    </span>
+                                                </span>
+                                            );
+                                        })}
                                     </div>
                                 ) : undefined
                             }
