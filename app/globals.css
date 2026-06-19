@@ -8104,22 +8104,36 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     flex: 1 1 auto;
     justify-content: center;
 }
-/* Full-length top & bottom lines: the CTA + star only occupy the vertical
-   MIDDLE of the row, so the first and last meta lines can run the row's full
-   width (under the buttons) while the middle lines stop short of them
-   (Brendon 2026-06-19). Used by Output / Trait / Project rows. */
+/* The CTA + star occupy the vertical BOTTOM two lines of the row, so the top
+   two lines run the row's full width and the bottom two stop short of the
+   buttons (Brendon 2026-06-19). Used by Output / Trait / Project rows. */
 .starred-row.has-actions-abs { position: relative; }
 .starred-row.has-actions-abs .starred-row-actions {
     position: absolute;
     right: 0;
     top: 50%;
-    transform: translateY(-50%);
+    bottom: 0;
     display: flex;
     align-items: center;
     gap: 12px;
 }
-.starred-row.has-actions-abs .starred-row-meta > span:not(:first-child):not(:last-child) {
-    padding-right: 172px;
+.starred-row.has-actions-abs .starred-row-meta > span:nth-last-child(-n+2) {
+    padding-right: 150px;
+}
+/* Remove-from-Starred confirm — reuses the multi-select confirm card style,
+   re-centred as a modal over the page (Brendon 2026-06-19). */
+.starred-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+}
+.ms-confirm-card.is-centered {
+    position: static;
+    width: 240px;
 }
 .starred-row-id {
     font-weight: bold;

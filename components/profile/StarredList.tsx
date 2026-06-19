@@ -222,10 +222,17 @@ export default function StarredList({
         return sorted;
     }, [projects, query, sortKey]);
 
+    /* Removing from Starred asks first (the ✕ on the right) — a small confirm
+       card, the same style as multi-select's. */
+    const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
+    const askRemove = (question: string, onConfirm: () => void) => setConfirm({ question, onConfirm });
+
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
-        toggleStar(slug, id);
-        showToast('Removed from your Starred Outputs List');
+        askRemove('Remove this output from your Starred list?', () => {
+            toggleStar(slug, id);
+            showToast('Removed from your Starred Outputs List');
+        });
     };
 
     const handleWishlist = (e: React.MouseEvent, slug: string, id: number) => {
@@ -236,20 +243,26 @@ export default function StarredList({
 
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
         e.stopPropagation();
-        toggleTraitStar(t.slug, t.category, t.value);
-        showToast('Removed from your Starred Traits List');
+        askRemove('Remove this trait from your Starred list?', () => {
+            toggleTraitStar(t.slug, t.category, t.value);
+            showToast('Removed from your Starred Traits List');
+        });
     };
 
     const handleArtistUnstar = (e: React.MouseEvent, name: string) => {
         e.stopPropagation();
-        removeArtistStar(name);
-        showToast('Removed from your Starred Artists List');
+        askRemove('Remove this artist from your Starred list?', () => {
+            removeArtistStar(name);
+            showToast('Removed from your Starred Artists List');
+        });
     };
 
     const handleSoundtrackUnstar = (e: React.MouseEvent, s: SoundtrackStar) => {
         e.stopPropagation();
-        toggleSoundtrackStar(s.slug, s.playlistId, s.title);
-        showToast('Removed from your Starred Soundtracks List');
+        askRemove('Remove this soundtrack from your Starred list?', () => {
+            toggleSoundtrackStar(s.slug, s.playlistId, s.title);
+            showToast('Removed from your Starred Soundtracks List');
+        });
     };
 
     /* Brendon's order: All Starred › Artists › Projects › Outputs › Traits ›
@@ -360,7 +373,8 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
                                     <span className="starred-row-sub">Trait</span>
-                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em> · Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
+                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
@@ -383,7 +397,7 @@ export default function StarredList({
                                         onClick={(e) => handleTraitUnstar(e, r)}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTraitUnstar(e as unknown as React.MouseEvent, r); } }}
                                     >
-                                        ★&#xFE0E;
+                                        ✕&#xFE0E;
                                     </span>
                                 </div>
                             </div>
@@ -431,7 +445,7 @@ export default function StarredList({
                                     onClick={(e) => handleArtistUnstar(e, r.name)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArtistUnstar(e as unknown as React.MouseEvent, r.name); } }}
                                 >
-                                    ★&#xFE0E;
+                                    ✕&#xFE0E;
                                 </span>
                             </div>
                             );
@@ -478,7 +492,7 @@ export default function StarredList({
                                     onClick={(e) => handleSoundtrackUnstar(e, r)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSoundtrackUnstar(e as unknown as React.MouseEvent, r); } }}
                                 >
-                                    ★&#xFE0E;
+                                    ✕&#xFE0E;
                                 </span>
                             </div>
                             );
@@ -504,7 +518,8 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Project</span>
-                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em> · Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
+                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
@@ -524,10 +539,10 @@ export default function StarredList({
                                         tabIndex={0}
                                         title="Remove from Starred"
                                         aria-label="Remove from Starred"
-                                        onClick={(e) => { e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); } }}
+                                        onClick={(e) => { e.stopPropagation(); askRemove('Remove this project from your Starred list?', () => { removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); askRemove('Remove this project from your Starred list?', () => { removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }); } }}
                                     >
-                                        ★&#xFE0E;
+                                        ✕&#xFE0E;
                                     </span>
                                 </div>
                             </div>
@@ -550,6 +565,32 @@ export default function StarredList({
                     </div>
                     <div className="ms-float-count">
                         {selected.size === 0 ? 'Select items' : `${selected.size} selected`}
+                    </div>
+                </div>
+            )}
+            {confirm && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setConfirm(null)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">{confirm.question}</div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setConfirm(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => { confirm.onConfirm(); setConfirm(null); }}
+                            >
+                                Remove
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -644,7 +685,7 @@ function StarredOutputRow({
                     onClick={onUnstar}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
                 >
-                    ★&#xFE0E;
+                    ✕&#xFE0E;
                 </span>
             </div>
         </div>
