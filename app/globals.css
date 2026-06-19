@@ -8145,6 +8145,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    Wishlist sibling is untouched. */
 .starred-list[aria-label="Starred"] .starred-row-id { text-decoration: underline; }
 .starred-list[aria-label="Starred"] .starred-row-meta > span:last-child { text-transform: uppercase; }
+/* Social-relationship glyph beside a starred artist's @name — inline-block so
+   the row's underline doesn't run under it (Brendon 2026-06-19). */
+.artist-social-ico {
+    display: inline-block;
+    text-decoration: none;
+    margin-left: 6px;
+    color: var(--accent);
+    font-family: 'Courier New', Courier, monospace;
+}
 /* Group section header — flush with the rows, muted ALLCAPS label (Brendon
    2026-06-19). Shown when a grouping is active in the Starred list. */
 .starred-group-header {

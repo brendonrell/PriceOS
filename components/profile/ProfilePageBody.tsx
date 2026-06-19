@@ -54,6 +54,7 @@ import { getProjectStars, subscribeProjectStars } from '../../lib/pins/projectSt
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
+import ArtistTitleStar from './ArtistTitleStar';
 import StarredList from './StarredList';
 import WishlistList from './WishlistList';
 import GhostRows from './GhostRows';
@@ -1322,14 +1323,18 @@ function ProfilePageBodyInner({
                 titleRow={
                     <>
                     <h1 className="project-title">
-                        <span
-                            className={isOwnProfile ? 'egg-name' : undefined}
-                            role={isOwnProfile ? 'button' : undefined}
-                            tabIndex={isOwnProfile ? 0 : undefined}
-                            onClick={isOwnProfile ? handleNameTap : undefined}
-                        >
-                            @{displayHandle}
-                        </span>
+                        {isOwnProfile ? (
+                            <span
+                                className="egg-name"
+                                role="button"
+                                tabIndex={0}
+                                onClick={handleNameTap}
+                            >
+                                @{displayHandle}
+                            </span>
+                        ) : (
+                            <ArtistTitleStar handle={displayHandle} />
+                        )}
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
                                 className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
@@ -2037,6 +2042,7 @@ function ProfilePageBodyInner({
                     sortDir={moreSortDir}
                     group={moreGroup}
                     onModeChange={setMoreMode}
+                    viewerAddress={user.address}
                 />
             )}
 

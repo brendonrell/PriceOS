@@ -22,7 +22,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
-import { outputTraits, getProject, projectColorway } from '../../lib/project/registry';
+import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor } from '../../lib/market/starredMarket';
@@ -71,6 +71,7 @@ export default function StarredList({
     sortDir = 'asc',
     group = 'none',
     onModeChange,
+    viewerAddress,
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
@@ -96,6 +97,9 @@ export default function StarredList({
     /* Report the active filter pill up so the sub-nav shows the sorts + groups
        that make sense for it. */
     onModeChange?: (m: Mode) => void;
+    /* The viewer's wallet (own profile = the owner) — lets each artist row
+       resolve the follow relationship (mutual / following / follower). */
+    viewerAddress?: string | null;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -496,53 +500,19 @@ export default function StarredList({
                 {(mode === 'all' || mode === 'artists') && (
                     <>
                         {typeHdr && visibleArtists.length > 0 && <div className="starred-group-header">Artists</div>}
-                        {visibleArtists.map((r) => {
-                            const act = () => multiActive ? toggleSel(r.name) : window.location.assign('/' + r.handle);
-                            return (
-                            <div
+                        {visibleArtists.map((r) => (
+                            <StarredArtistRow
                                 key={r.name}
-                                className={`starred-row has-actions-abs${multiActive && selected.has(r.name) ? ' is-selected' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={act}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
-                            >
-                                <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph" style={{ color: artistColor(r.handle) }}>✺&#xFE0E;</span>
-                                </div>
-                                <div className="starred-row-meta">
-                                    <span className="starred-row-id">{r.name}</span>
-                                    <span className="starred-row-sub">{' '}</span>
-                                    <span className="starred-row-sub">{' '}</span>
-                                    <span className="starred-row-sub">Artist</span>
-                                </div>
-                                <div className="starred-row-actions">
-                                    <span
-                                        className="starred-row-cta"
-                                        role="button"
-                                        tabIndex={0}
-                                        title="Follow (coming soon)"
-                                        aria-label="Follow"
-                                        onClick={(e) => { e.stopPropagation(); showToast('Follow: COMING SOON'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Follow: COMING SOON'); } }}
-                                    >
-                                        ⚯︎ Follow
-                                    </span>
-                                    <span
-                                        className="starred-row-unstar"
-                                        role="button"
-                                        tabIndex={0}
-                                        title="Remove from Starred"
-                                        aria-label="Remove from Starred"
-                                        onClick={(e) => handleArtistUnstar(e, r.name)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleArtistUnstar(e as unknown as React.MouseEvent, r.name); } }}
-                                    >
-                                        ✕&#xFE0E;
-                                    </span>
-                                </div>
-                            </div>
-                            );
-                        })}
+                                name={r.name}
+                                handle={r.handle}
+                                viewerAddress={viewerAddress}
+                                multiActive={multiActive}
+                                selected={selected.has(r.name)}
+                                onToggleSel={() => toggleSel(r.name)}
+                                onFollow={() => showToast('Follow: COMING SOON')}
+                                onUnstar={(e) => handleArtistUnstar(e, r.name)}
+                            />
+                        ))}
                     </>
                 )}
                 {(mode === 'all' || mode === 'soundtracks') && (
@@ -793,6 +763,118 @@ function StarredOutputRow({
                         {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
                     </span>
                 )}
+                <span
+                    className="starred-row-unstar"
+                    role="button"
+                    tabIndex={0}
+                    title="Remove from Starred"
+                    aria-label="Remove from Starred"
+                    onClick={onUnstar}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
+                >
+                    ✕&#xFE0E;
+                </span>
+            </div>
+        </div>
+    );
+}
+
+/* Per-artist follow data cache (handle → { count, rel }). One by-handle fetch
+   gives the follower count + the artist's address; one follows fetch resolves
+   the viewer's relationship. Cached per session so re-renders don't refetch. */
+type ArtistRel = 'mutual' | 'following' | 'follower' | 'none';
+const artistMetaCache = new Map<string, { count: number; rel: ArtistRel }>();
+
+function StarredArtistRow({
+    name,
+    handle,
+    viewerAddress,
+    multiActive,
+    selected,
+    onToggleSel,
+    onFollow,
+    onUnstar,
+}: {
+    name: string;
+    handle: string;
+    viewerAddress?: string | null;
+    multiActive: boolean;
+    selected: boolean;
+    onToggleSel: () => void;
+    onFollow: (e: React.MouseEvent) => void;
+    onUnstar: (e: React.MouseEvent) => void;
+}) {
+    const cacheKey = `${handle}|${(viewerAddress ?? '').toLowerCase()}`;
+    const cached = artistMetaCache.get(cacheKey);
+    const [count, setCount] = useState<number | null>(cached?.count ?? null);
+    const [rel, setRel] = useState<ArtistRel>(cached?.rel ?? 'none');
+    const projectCount = useMemo(() => projectsByArtist(handle).length, [handle]);
+
+    useEffect(() => {
+        if (cached) return;
+        let cancel = false;
+        (async () => {
+            try {
+                const u = await fetch(`/api/user/by-handle/${handle}`).then((r) => (r.ok ? r.json() : null));
+                if (cancel || !u) return;
+                const cnt = typeof u.follower_count === 'number' ? u.follower_count : 0;
+                setCount(cnt);
+                let relation: ArtistRel = 'none';
+                const addr = (u.address ?? '').toLowerCase();
+                const me = (viewerAddress ?? '').toLowerCase();
+                if (addr && me) {
+                    const f = await fetch(`/api/follows/${addr}`).then((r) => (r.ok ? r.json() : null));
+                    if (!cancel && f) {
+                        const followers = ((f.followers ?? []) as string[]).map((a) => a.toLowerCase());
+                        const following = ((f.following ?? []) as string[]).map((a) => a.toLowerCase());
+                        const iFollow = followers.includes(me);
+                        const theyFollow = following.includes(me);
+                        relation = iFollow && theyFollow ? 'mutual' : iFollow ? 'following' : theyFollow ? 'follower' : 'none';
+                    }
+                }
+                if (!cancel) { setRel(relation); artistMetaCache.set(cacheKey, { count: cnt, rel: relation }); }
+            } catch { /* leave as null/none */ }
+        })();
+        return () => { cancel = true; };
+    }, [handle, viewerAddress, cacheKey, cached]);
+
+    /* Social glyph (docs/GLYPHS.md): ⚭ mutual · ⚯ following · ⚬ follower. */
+    const relGlyph = rel === 'mutual' ? '⚭︎' : rel === 'following' ? '⚯︎' : rel === 'follower' ? '⚬︎' : '';
+    const relLabel = rel === 'mutual' ? 'Mutual' : rel === 'following' ? 'Following' : rel === 'follower' ? 'Follows you' : '';
+    const act = () => (multiActive ? onToggleSel() : window.location.assign('/' + handle));
+
+    return (
+        <div
+            className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={act}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+        >
+            <div className="trait-row-tile artist-tile">
+                <span className="artist-row-tile-glyph" style={{ color: artistColor(handle) }}>✺&#xFE0E;</span>
+            </div>
+            <div className="starred-row-meta">
+                <span className="starred-row-id">
+                    {name}
+                    {relGlyph && <span className="artist-social-ico" title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
+                </span>
+                <span className="starred-row-sub">{count == null ? ' ' : `${count} ${count === 1 ? 'follower' : 'followers'}`}</span>
+                <span className="starred-row-sub">{projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>
+                <span className="starred-row-sub">Artist</span>
+            </div>
+            <div className="starred-row-actions">
+                <span
+                    className="starred-row-cta"
+                    role="button"
+                    tabIndex={0}
+                    title="Follow (coming soon)"
+                    aria-label="Follow"
+                    onClick={(e) => { e.stopPropagation(); onFollow(e); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onFollow(e as unknown as React.MouseEvent); } }}
+                >
+                    ⚯︎ Follow
+                </span>
                 <span
                     className="starred-row-unstar"
                     role="button"

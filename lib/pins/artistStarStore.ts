@@ -99,6 +99,20 @@ export function removeArtistStar(name: string): void {
     }
 }
 
+/** Toggle an artist's star (used by long-press on an artist's profile name).
+ *  Mirrors removeArtistStar's write-through + cross-surface notify. */
+export function toggleArtistStar(name: string): 'starred' | 'removed' {
+    hydrate();
+    if (names.includes(name)) { removeArtistStar(name); return 'removed'; }
+    names = [...names, name];
+    persist();
+    emit();
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(ARTIST_STARS_CHANGED_EVENT));
+    }
+    return 'starred';
+}
+
 export function subscribeArtistStars(cb: Listener): () => void {
     hydrate();
     listeners.add(cb);

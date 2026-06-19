@@ -30,6 +30,7 @@ import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
 import TraitsUI from '../project/TraitsUI';
 import ArtworkLive from './ArtworkLive';
+import OutputTitleStar from './OutputTitleStar';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -179,9 +180,10 @@ export default function ArtworkPageBody({
             <section className="project-hero" aria-label="Artwork Info">
                 <div className="hero-group-1">
                     <h1 className="project-title">
-                        {/* Project name → project page (like the modal). The
-                            #id stays plain text, not a link. */}
-                        <span><a className="artwork-title-link" href={projectHref}>{projectName}</a> #{numberPart}</span>
+                        {/* Project name → project page (like the modal); the #id
+                            stays plain text. Long-press the title to star this
+                            Output (Brendon 2026-06-19). */}
+                        <OutputTitleStar slug={slug} id={numberPart} projectName={projectName} projectHref={projectHref} />
                     </h1>
 
                     <div className="hero-line project-custom">
