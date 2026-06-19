@@ -7032,6 +7032,8 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
     mask-image: linear-gradient(to right, black 70%, transparent 100%);
 }
 .grail-pill-title.short { -webkit-mask-image: none; mask-image: none; flex: 0 0 auto; }
+/* Soundtrack pin — a ▶ play affordance instead of a price (Brendon 2026-06-19). */
+.grail-pill-play { font-size: 11px; line-height: 1; flex-shrink: 0; opacity: 0.85; }
 .grail-pill-id {
     font-size: 13px; font-weight: 900; line-height: 1; flex-shrink: 0;
     -webkit-text-stroke: 0.25px currentColor;
@@ -8193,6 +8195,31 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .starred-row.has-actions-abs .starred-row-meta > span:nth-last-child(-n+2) {
     padding-right: 150px;
 }
+/* Top two lines now stop at the CTA's right edge (not the row's), clearing the
+   top-right corner for the grail-pin icon above the ✕ (Brendon 2026-06-19). */
+.starred-row.has-actions-abs .starred-row-meta > span:nth-child(-n+2) {
+    padding-right: 44px;
+}
+/* Grail-pin toggle — a plain icon (no button), same size as the ✕, sitting
+   directly above it in the row's top-right corner. */
+.starred-row-grail {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.5;
+    color: var(--text-color);
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 2;
+}
+.starred-row-grail:hover { opacity: 0.85; }
+.starred-row-grail.is-pinned {
+    opacity: 1;
+    color: var(--accent);
+}
 /* Remove-from-Starred confirm — reuses the multi-select confirm card style,
    re-centred as a modal over the page (Brendon 2026-06-19). */
 .starred-confirm-overlay {
@@ -8431,6 +8458,7 @@ body.colorway-dark .ghost-feed-bar {
     /* The offer glyph + remove ✕ read oversized on desktop — halve them. */
     .trait-offer-glyph { font-size: 0.85em; }
     .starred-row-unstar { font-size: 10px; }
+    .starred-row-grail { font-size: 10px; top: 3px; }
 }
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in

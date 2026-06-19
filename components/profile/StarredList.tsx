@@ -32,6 +32,7 @@ import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
+import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -136,6 +137,20 @@ export default function StarredList({
        already on the wishlist (one subscription for the whole list). */
     const [wishKeys, setWishKeys] = useState<ReadonlySet<string>>(new Set());
     useEffect(() => subscribeWishlist((next) => setWishKeys(next)), []);
+
+    /* Live Grail-pin membership — each row carries a grail-pin toggle (the ⟟ above
+       its ✕). Any kind can be pinned; the top-bar pills render them. */
+    const [grailKeys, setGrailKeys] = useState<ReadonlySet<string>>(new Set());
+    useEffect(() => {
+        const apply = (p: readonly GrailPin[]) => setGrailKeys(new Set(p.map(grailKey)));
+        apply(getGrails());
+        return subscribeGrails(apply);
+    }, []);
+    const handleGrail = (pin: GrailPin) => {
+        const r = togglePinItem(pin);
+        if (r === 'limit') { showToast('Grail Pins: 5 MAX'); return; }
+        showToast(r === 'pinned' ? 'Grail: PINNED' : 'Grail: UNPINNED');
+    };
 
     /* ── Output rows ──────────────────────────────────────────────────── */
     const outputRows = useMemo(
@@ -432,6 +447,8 @@ export default function StarredList({
                                                 onOpen={() => open('output', r.id, r.slug)}
                                                 onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
+                                                grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
+                                                onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
                                             />
                                         ))}
                                     </ProjectProvider>
@@ -490,6 +507,10 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
+                                <GrailDot
+                                    pinned={grailKeys.has(grailKey({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }))}
+                                    onToggle={() => handleGrail({ kind: 'trait', slug: r.slug, category: r.category, value: r.value })}
+                                />
                             </div>
                             );
                         })}
@@ -511,6 +532,8 @@ export default function StarredList({
                                 onToggleSel={() => toggleSel(r.name)}
                                 onFollow={() => showToast('Follow: COMING SOON')}
                                 onUnstar={(e) => handleArtistUnstar(e, r.name)}
+                                grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
+                                onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
                             />
                         ))}
                     </>
@@ -565,6 +588,10 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
+                                <GrailDot
+                                    pinned={grailKeys.has(grailKey({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }))}
+                                    onToggle={() => handleGrail({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title })}
+                                />
                             </div>
                             );
                         })}
@@ -622,6 +649,10 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
+                                <GrailDot
+                                    pinned={grailKeys.has(grailKey({ kind: 'project', slug: r.slug }))}
+                                    onToggle={() => handleGrail({ kind: 'project', slug: r.slug })}
+                                />
                             </div>
                             );
                         })}
@@ -677,6 +708,25 @@ export default function StarredList({
     );
 }
 
+/* The grail-pin toggle that sits ABOVE the ✕ on every starred row — a plain
+   icon (no button), the same size as the ✕ (Brendon 2026-06-19). Tapping it
+   pins/unpins the row's item so it rides the top-bar pills. */
+function GrailDot({ pinned, onToggle }: { pinned: boolean; onToggle: () => void }) {
+    return (
+        <span
+            className={`starred-row-grail${pinned ? ' is-pinned' : ''}`}
+            role="button"
+            tabIndex={0}
+            title={pinned ? 'Unpin from your Grail pins' : 'Grail Pin'}
+            aria-label={pinned ? 'Unpin from your Grail pins' : 'Grail Pin'}
+            onClick={(e) => { e.stopPropagation(); onToggle(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onToggle(); } }}
+        >
+            {'⟟︎'}
+        </span>
+    );
+}
+
 /* One starred Output row. Lives inside a ProjectProvider (grouped by slug) so it
    reads its OWN live listing price: listed → a filled Buy CTA showing the price
    (works the moment a piece is fake-listed); not listed → the Add-to-Wishlist
@@ -695,6 +745,8 @@ function StarredOutputRow({
     onOpen,
     onWishlist,
     onUnstar,
+    grailPinned,
+    onGrail,
 }: {
     slug: string;
     id: number;
@@ -709,6 +761,8 @@ function StarredOutputRow({
     onOpen: () => void;
     onWishlist: (e: React.MouseEvent) => void;
     onUnstar: (e: React.MouseEvent) => void;
+    grailPinned: boolean;
+    onGrail: () => void;
 }) {
     const meta = useOutputMeta(id);
     const listed = meta?.price != null;
@@ -775,6 +829,7 @@ function StarredOutputRow({
                     ✕&#xFE0E;
                 </span>
             </div>
+            <GrailDot pinned={grailPinned} onToggle={onGrail} />
         </div>
     );
 }
@@ -794,6 +849,8 @@ function StarredArtistRow({
     onToggleSel,
     onFollow,
     onUnstar,
+    grailPinned,
+    onGrail,
 }: {
     name: string;
     handle: string;
@@ -803,6 +860,8 @@ function StarredArtistRow({
     onToggleSel: () => void;
     onFollow: (e: React.MouseEvent) => void;
     onUnstar: (e: React.MouseEvent) => void;
+    grailPinned: boolean;
+    onGrail: () => void;
 }) {
     const cacheKey = `${handle}|${(viewerAddress ?? '').toLowerCase()}`;
     const cached = artistMetaCache.get(cacheKey);
@@ -887,6 +946,7 @@ function StarredArtistRow({
                     ✕&#xFE0E;
                 </span>
             </div>
+            <GrailDot pinned={grailPinned} onToggle={onGrail} />
         </div>
     );
 }

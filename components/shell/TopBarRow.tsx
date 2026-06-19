@@ -90,12 +90,15 @@ import {
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { buildOutputMetaFor } from '../../lib/state/ProjectContext';
 import { getProject } from '../../lib/project/registry';
+import { projectMarketStat, traitMarketStat } from '../../lib/market/starredMarket';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
     getGrails,
     subscribeGrails,
-    unpinGrail,
+    unpinGrailItem,
+    grailKey,
     type GrailPin,
 } from '../../lib/pins/grailStore';
 import { TopBarCalendar } from './TopBarCalendar';
@@ -257,19 +260,23 @@ export function TopBarRow() {
                     {grailsVisible &&
                         grailPins.map((pin) => (
                             <GrailPill
-                                key={`${pin.slug}:${pin.id}`}
-                                slug={pin.slug}
-                                id={pin.id}
+                                key={grailKey(pin)}
+                                pin={pin}
                                 redacted={!!notifs.redactedMode}
-                                onOpen={() => openOutputModal('output', pin.id, pin.slug)}
+                                onOpen={() => {
+                                    if (pin.kind === 'output' && pin.id != null) {
+                                        openOutputModal('output', pin.id, pin.slug);
+                                    } else if (pin.kind === 'soundtrack' && pin.playlistId) {
+                                        window.open(playlistWatchUrl(pin.playlistId), '_blank', 'noopener,noreferrer');
+                                    } else if (pin.kind === 'artist') {
+                                        window.location.assign('/' + pin.slug);
+                                    } else {
+                                        window.location.assign('/art/' + pin.slug);
+                                    }
+                                }}
                                 onUnpin={() => {
-                                    if (unpinGrail(pin.slug, pin.id)) {
-                                        const name =
-                                            getProject(pin.slug)?.displayName ??
-                                            pin.slug.toUpperCase();
-                                        const collName =
-                                            name.charAt(0) + name.slice(1).toLowerCase();
-                                        showToast(`${collName} #${pin.id} DE-PINNED`);
+                                    if (unpinGrailItem(pin)) {
+                                        showToast(`${grailPillLabel(pin)} DE-PINNED`);
                                     }
                                 }}
                             />
@@ -390,33 +397,69 @@ export function TopBarRow() {
 
    onOpen handles the body click — same as sim's `onclick = function() {
    openModal(id); }` at sim 12352. */
+/* Short, human label for a pin (toast text). */
+function grailPillLabel(pin: GrailPin): string {
+    const name = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
+    const coll = name.charAt(0) + name.slice(1).toLowerCase();
+    switch (pin.kind) {
+        case 'output': return `${coll} #${pin.id}`;
+        case 'trait': return `${coll} \u00b7 ${pin.value}`;
+        case 'artist': return `@${pin.slug}`;
+        case 'soundtrack': return `${coll} \u266a`;
+        default: return coll;
+    }
+}
+
 interface GrailPillProps {
-    slug: string;
-    id: number;
+    pin: GrailPin;
     redacted: boolean;
     onOpen: () => void;
     onUnpin: () => void;
 }
 
-function GrailPill({
-    slug,
-    id,
-    redacted,
-    onOpen,
-    onUnpin,
-}: GrailPillProps) {
+function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
     /* Resolve the pin's OWN project (not the active page's) so the pill always
-       reads the actual pinned Output, e.g. Oracle #7 (Brendon 2026-06-13). */
-    const projectTitle = getProject(slug)?.displayName ?? slug.toUpperCase();
-    const meta = buildOutputMetaFor(slug, id);
-    const displayTitle = redacted ? '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588' : projectTitle;
+       reads the actual pinned item, e.g. Oracle #7 (Brendon 2026-06-13). */
+    const projectTitle = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
+    const redactedTitle = '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588';
+
+    /* Per-kind body. Output keeps its original look (title, #id, listed price).
+       Project/Trait show the FLOOR price (Brendon 2026-06-19), not a listing.
+       Artist shows just the @handle. Soundtrack shows the @project with a play
+       affordance instead of a price. */
+    let displayTitle: string;
+    let idText: string | null = null;
+    let priceText: string | null = null;
+    let playGlyph = false;
+    let titleAttr: string;
+
+    if (pin.kind === 'output') {
+        const meta = buildOutputMetaFor(pin.slug, pin.id!);
+        displayTitle = redacted ? redactedTitle : projectTitle;
+        idText = `#${pin.id}`;
+        priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
+        titleAttr = `${projectTitle} #${pin.id}${meta?.price ? ` \u00b7 ${meta.price}` : ''}`;
+    } else if (pin.kind === 'project') {
+        displayTitle = redacted ? redactedTitle : projectTitle;
+        const floor = projectMarketStat(pin.slug).floor;
+        priceText = floor && floor !== '\u2014' ? floor.replace(' ETH', '') : null;
+        titleAttr = `${projectTitle}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
+    } else if (pin.kind === 'trait') {
+        displayTitle = redacted ? redactedTitle : (pin.value ?? projectTitle);
+        const floor = traitMarketStat(pin.slug, pin.category ?? '', pin.value ?? '').floor;
+        priceText = floor && floor !== '\u2014' ? floor.replace(' ETH', '') : null;
+        titleAttr = `${projectTitle} \u00b7 ${pin.category}: ${pin.value}${priceText ? ` \u00b7 floor ${priceText}` : ''}`;
+    } else if (pin.kind === 'artist') {
+        displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
+        titleAttr = `@${pin.slug}`;
+    } else {
+        // soundtrack
+        displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
+        playGlyph = true;
+        titleAttr = `${projectTitle} soundtrack \u2014 play`;
+    }
+
     const titleShortClass = displayTitle.length <= 8 ? ' short' : '';
-    /* Sim 12356 — price renders the numeric portion only ("0.014" not
-       "0.014 ETH") because the pill is space-constrained. The repo's
-       OutputMeta.price is already a string like "0.014 ETH"; replace
-       trailing " ETH" to match sim verbatim. */
-    const priceText = meta?.price ? meta.price.replace(' ETH', '') : null;
-    const titleAttr = `${projectTitle} #${id}${meta?.price ? ` · ${meta.price}` : ''}`;
 
     return (
         <span
@@ -426,10 +469,11 @@ function GrailPill({
             role="button"
             tabIndex={0}
         >
+            {playGlyph && <span className="grail-pill-play" aria-hidden="true">{'▶︎'}</span>}
             <span className={`grail-pill-title${titleShortClass}`}>
                 {displayTitle}
             </span>
-            <span className="grail-pill-id">{`#${id}`}</span>
+            {idText && <span className="grail-pill-id">{idText}</span>}
             {priceText && <span className="grail-pill-price">{priceText}</span>}
             <span
                 className="grail-pill-unpin"
