@@ -338,6 +338,22 @@ export default function ArtworkPageBody({
                             <span className="stat-name">+ More</span>
                         </div>
                     </div>
+
+                    {/* + More sub-nav — placed INSIDE the hero right after the
+                        main tabs, exactly like the Project page, so the pill row
+                        sits in the same constrained container (identical spacing). */}
+                    {onMore && (
+                        <TraitsUI
+                            visible
+                            hideSortBar
+                            profilePills={MORE_PILLS.map((p) => ({
+                                key: p.key,
+                                label: p.label,
+                                active: moreL1 === p.key,
+                                onClick: () => setMoreL1(p.key),
+                            }))}
+                        />
+                    )}
                 </div>
             </section>
 
@@ -392,20 +408,6 @@ export default function ArtworkPageBody({
                 aria-label="Details"
                 style={{ display: onMore ? 'block' : 'none' }}
             >
-                {/* + More sub-nav — the SAME pill surface as the Project page's
-                    + More (compact trait pills via TraitsUI), not the big main-tab
-                    buttons. */}
-                <TraitsUI
-                    visible
-                    hideSortBar
-                    profilePills={MORE_PILLS.map((p) => ({
-                        key: p.key,
-                        label: p.label,
-                        active: moreL1 === p.key,
-                        onClick: () => setMoreL1(p.key),
-                    }))}
-                />
-
                 {moreL1 === 'stats' && (
                     <div className="stats-grid artwork-more-stats">
                         <div className="hero-line stats-row stats-row-2">
