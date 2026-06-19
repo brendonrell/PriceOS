@@ -8099,17 +8099,40 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .starred-row-meta {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     min-width: 0;
     flex: 1 1 auto;
+    justify-content: center;
 }
 .starred-row-id {
     font-weight: bold;
     color: var(--text-color);
+    font-size: 14px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+/* Split top line: the @handle truncates with an ellipsis while the suffix
+   (#28 / · Palette) stays pinned — "@theriverdis…#28" (Brendon 2026-06-19). */
+.starred-row-id.is-split {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    min-width: 0;
+}
+.starred-row-id.is-split .srl-handle {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.starred-row-id.is-split .srl-suffix { flex: none; }
 .starred-row-sub {
-    /* Readable secondary line — not tiny / low-opacity (Brendon 2026-06-19). */
-    font-size: 13px;
+    /* Readable secondary line — not tiny / low-opacity (Brendon 2026-06-19).
+       Four lines fit the 64px row, so keep them tight. */
+    font-size: 12px;
+    line-height: 1.15;
     opacity: 1;
     white-space: nowrap;
     overflow: hidden;
@@ -8126,7 +8149,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .starred-row-unstar {
     flex-shrink: 0;
     padding: 4px 6px;
-    font-size: 16px;
+    /* Double size — the far-right ★ on each row (Brendon 2026-06-19). */
+    font-size: 32px;
+    line-height: 1;
     color: var(--accent);
     cursor: pointer;
 }

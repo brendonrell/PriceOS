@@ -110,12 +110,19 @@ export default function StarredList({
                 .filter((it) => getProject(it.slug) != null)
                 .map((it, i) => {
                     const t = outputTraits(it.slug, it.id);
+                    const PLAT = new Set(['Artist', 'Project', 'Fate', 'PriceDay', 'Sun', 'Moon', 'Rising']);
+                    const extra = Object.entries(t)
+                        .filter(([k, v]) => !PLAT.has(k) && v)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(' · ');
                     return {
                         ...it,
                         recentIndex: i,
                         project: t.Project ?? `@${it.slug}`,
+                        projectName: getProject(it.slug)?.displayName ?? '',
                         artist: t.Artist ?? '',
                         fate: t.Fate ?? '',
+                        extra,
                     };
                 }),
         [items],
@@ -309,10 +316,13 @@ export default function StarredList({
                                 >
                                     <OutputThumb slug={r.slug} id={r.id} />
                                     <div className="starred-row-meta">
-                                        <span className="starred-row-id">#{r.id}</span>
-                                        <span className="starred-row-sub">
-                                            {r.project}{r.artist ? ` · ${r.artist}` : ''}
+                                        <span className="starred-row-id is-split">
+                                            <span className="srl-handle">{r.project}</span>
+                                            <span className="srl-suffix">#{r.id}</span>
                                         </span>
+                                        {r.projectName && <span className="starred-row-sub">{r.projectName}</span>}
+                                        {r.artist && <span className="starred-row-sub">{r.artist}</span>}
+                                        {(r.extra || r.fate) && <span className="starred-row-sub">{r.extra || r.fate}</span>}
                                     </div>
                                     <span
                                         className={`starred-row-cta${wished ? ' is-on' : ''}`}
@@ -358,8 +368,13 @@ export default function StarredList({
                                     <span className="trait-row-tile-glyph">★&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{r.category}: {r.value}</span>
+                                    <span className="starred-row-id is-split">
+                                        <span className="srl-handle">@{r.slug}</span>
+                                        <span className="srl-suffix">· {r.category}</span>
+                                    </span>
                                     <span className="starred-row-sub">{r.project}</span>
+                                    <span className="starred-row-sub">{r.value}</span>
+                                    <span className="starred-row-sub">Trait</span>
                                 </div>
                                 <span
                                     className="starred-row-cta trait-offer-cta"
