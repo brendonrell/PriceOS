@@ -8533,10 +8533,11 @@ body.colorway-dark .ghost-feed-bar {
    beside the name (before the date); the float confirm rises from it. */
 .project-name-star {
     /* Typed directly beside the name (no gap), in our usual Courier glyph font;
-       same type size as the title letters — NOT oversized (Brendon 2026-06-19). */
+       1.2× the title letters — a touch larger than the text, not oversized
+       (Brendon 2026-06-19). */
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
-    font-size: 1em;
+    font-size: 1.2em;
     line-height: 1;
     vertical-align: baseline;
 }
