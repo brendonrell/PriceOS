@@ -107,9 +107,13 @@ const RAYS: { id: Rays; label: string }[] = [
     { id: 'off', label: 'Off' }, { id: 'shafts', label: 'Shafts' }, { id: 'beams', label: 'Beams' },
     { id: 'halo', label: 'Halo' },
 ];
+/* On-brand "Market" atmosphere (Brendon 2026-06-19) — re-themed from the old
+   nature set: Bull = green motes rising, Bear = red drifting down, Ticker =
+   glowing drift, Sparks = blinking mint. Ids kept so saved ambient codes don't
+   break; only the look + labels change. */
 const WEATHERS: { id: Weather; label: string }[] = [
-    { id: 'clear', label: 'Clear' }, { id: 'fireflies', label: 'Fireflies' }, { id: 'pollen', label: 'Pollen' },
-    { id: 'petals', label: 'Petals' }, { id: 'spores', label: 'Spores' },
+    { id: 'clear', label: 'Clear' }, { id: 'pollen', label: 'Bull' }, { id: 'petals', label: 'Bear' },
+    { id: 'spores', label: 'Ticker' }, { id: 'fireflies', label: 'Sparks' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -588,7 +592,7 @@ export default function AmbientStrip() {
                                     </Chip>
                                 ))}
                             </Row>
-                            <Row label="Nature">
+                            <Row label="Market">
                                 {WEATHERS.map((w) => (
                                     <Chip key={w.id} on={(opts.weather ?? 'clear') === w.id} onClick={() => set('weather', w.id)}>
                                         {w.label}

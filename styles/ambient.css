@@ -421,6 +421,13 @@ body.is-pwa .ambient-strip-layer {
 @keyframes amb-hover-b{0%,100%{transform:translate(7px,-5px);}50%{transform:translate(-9px,8px);}}
 @keyframes amb-pulse-a{0%,100%{opacity:.25;}50%{opacity:1;}}
 @keyframes amb-pulse-b{0%,100%{opacity:.4;}50%{opacity:.95;}}
+/* Market re-theme (Brendon 2026-06-19): Bull rides the rising-mote engine in
+   market green; Bear rides the falling engine in market red. Ticker (spores) +
+   Sparks (fireflies) stay colourway-driven. */
+.weather-pollen .ambient-weather::before,
+.weather-pollen .ambient-weather::after{color:#19d27a;filter:drop-shadow(0 0 3px color-mix(in srgb,#19d27a 60%,transparent));}
+.weather-petals .ambient-weather::before,
+.weather-petals .ambient-weather::after{color:#ff4d4f;filter:drop-shadow(0 0 3px color-mix(in srgb,#ff4d4f 55%,transparent));}
 /* Lightning sky-flash — a pure-light overlay (NO rain) that lights the whole
    top in sync with the Lightning pattern's strike. Hidden otherwise; works the
    same whether the bar is a strip or the Sphere orb (independent layer). */
