@@ -57,7 +57,7 @@ export default function SoundtrackStarButton({
             timerRef.current = null;
             setFloatId((n) => n + 1);
             const r = toggleSoundtrackStar(slug, playlistId, title);
-            showToast(r === 'starred' ? 'Soundtrack: STARRED' : 'Soundtrack: REMOVED');
+            showToast(r === 'starred' ? 'Added to your Starred Soundtracks List (Private)' : 'Removed from your Starred Soundtracks List');
         }, 460);
     };
     const onPointerMove = (e: React.PointerEvent) => {

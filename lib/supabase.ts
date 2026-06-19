@@ -71,6 +71,8 @@ export interface UserSettings {
   /** Starred Soundtracks — PRIVATE favourites of a Project's soundtrack, keyed
    *  `${slug}|${playlistId}|${title}`. Same envelope + privacy as `starred`. */
   soundtrackStars?: string[];
+  /** Starred Projects — PRIVATE favourited Project slugs. Same envelope. */
+  projectStars?: string[];
   /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
    *  choice on each project / profile follows them across devices and overrides
    *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased

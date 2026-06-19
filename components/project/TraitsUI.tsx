@@ -286,6 +286,10 @@ interface TraitsUIProps {
     /* Optional node rendered at the END of the profilePills row (e.g. a search
        icon beside the last pill). Profile-mode only. */
     profilePillsTrailing?: ReactNode;
+    /* Optional sort controls rendered in the sort-bar beside the colorway
+       picker (profile +More — Starred/Wishlist sorts live here, same spot +
+       font as the project sorts). */
+    profileSortControls?: ReactNode;
 }
 
 export default function TraitsUI({
@@ -293,6 +297,7 @@ export default function TraitsUI({
     hideSortBar = false,
     profilePills,
     profilePillsTrailing,
+    profileSortControls,
 }: TraitsUIProps) {
     const {
         activeCategory,
@@ -353,8 +358,8 @@ export default function TraitsUI({
         const r = toggleTraitStar(projectSlug, category, value);
         showToast(
             r === 'starred'
-                ? `Trait Starred: ${value.toUpperCase()}`
-                : `Trait Unstarred: ${value.toUpperCase()}`,
+                ? 'Added to your Starred Traits List (Private)'
+                : 'Removed from your Starred Traits List',
         );
     };
 
@@ -1053,6 +1058,10 @@ export default function TraitsUI({
                         </div>
                     ))}
                 </div>
+                {/* Profile +More — Starred/Wishlist sorts sit here beside the
+                    colorway picker (same sort-bar font + .sort-btn styling as
+                    the project sorts). */}
+                {profileSortControls}
                 {/* Profile Page v0 — .sort-btn-group hides under
                     hideSortBar. The four-square view-mode switcher
                     (.colorway-pills above) stays visible. */}
@@ -1291,14 +1300,14 @@ function MsFloatBar() {
         selectedItems.forEach(({ slug, id }) => {
             if (!isStarred(slug, id)) { toggleStar(slug, id); added++; }
         });
-        showToast(added === 0 ? 'ALL ALREADY STARRED' : `STARRED · ${added} output${added === 1 ? '' : 's'}`);
+        showToast(added === 0 ? 'ALL ALREADY STARRED' : `Added ${added} to your Starred Outputs List (Private)`);
     };
     const handleWishlistAll = () => {
         let added = 0;
         selectedItems.forEach(({ slug, id }) => {
             if (!isWishlisted(slug, id)) { toggleWishlist(slug, id); added++; }
         });
-        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Wishlist: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
 
     const handleAddToCart = () => {

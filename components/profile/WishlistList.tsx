@@ -33,12 +33,6 @@ export interface WishlistItem {
 
 type SortKey = 'recent' | 'id' | 'project';
 
-const SORTS: { key: SortKey; label: string }[] = [
-    { key: 'recent',  label: 'Recent'  },
-    { key: 'id',      label: '# ID'    },
-    { key: 'project', label: 'Project' },
-];
-
 export default function WishlistList({
     items,
     searchOpen = false,
@@ -47,6 +41,7 @@ export default function WishlistList({
     onCloseSearch,
     multiActive = false,
     onExitMulti,
+    sortKey = 'recent',
 }: {
     items: WishlistItem[];
     /* Search is controlled by the +More sub-nav's ⌕ icon (shared across the
@@ -58,9 +53,10 @@ export default function WishlistList({
     /* Multi-select, driven by the sub-nav's ❐ icon. */
     multiActive?: boolean;
     onExitMulti?: () => void;
+    /* Sort, driven by the sub-nav sort-bar (Recent / # ID / Project). */
+    sortKey?: SortKey;
 }) {
     const { showToast } = useToast();
-    const [sortKey, setSortKey] = useState<SortKey>('recent');
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
     useEffect(() => { setSelected(new Set()); }, [multiActive]);
     const toggleSel = (k: string) =>
@@ -104,7 +100,7 @@ export default function WishlistList({
         visible.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleWishlist(r.slug, r.id); });
         setSelected(new Set());
         onExitMulti?.();
-        showToast(`Wishlist: REMOVED · ${n}`);
+        showToast(`Removed ${n} from your Wishlist`);
     };
 
     /* Group the sorted/filtered rows by Project (first-appearance order) so each
@@ -121,25 +117,8 @@ export default function WishlistList({
 
     return (
         <section className="starred-list" aria-label="Wishlist">
-            <div className="starred-list-controls">
-                <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {SORTS.map((s) => (
-                        <span
-                            key={s.key}
-                            className={`sort-btn${sortKey === s.key ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title={`Sort by ${s.label}`}
-                            onClick={() => setSortKey(s.key)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSortKey(s.key); } }}
-                        >
-                            <span className="sort-lbl">{s.label}</span>
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Search row — revealed by the +More sub-nav's ⌕ icon, same as Starred. */}
+            {/* Search row — revealed by the +More sub-nav's ⌕ icon, same as Starred.
+                Sorts live in the sub-nav sort-bar now. */}
             <div className={`search-row${searchOpen ? ' open' : ''}`}>
                 <input
                     className="search-input"
@@ -232,7 +211,7 @@ function WishlistRow({
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
         toggleWishlist(slug, id);
-        showToast('Wishlist: REMOVED');
+        showToast('Removed from your Wishlist');
     };
 
     const handleCart = (e: React.MouseEvent) => {

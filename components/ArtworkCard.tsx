@@ -543,9 +543,9 @@ function ArtworkCard({
         e.stopPropagation();
         const result = storeToggleStar(slug, id);
         if (result === 'starred') {
-            showToast(`STARRED #${id}`);
+            showToast('Added to your Starred Outputs List (Private)');
         } else {
-            showToast(`UNSTARRED #${id}`);
+            showToast('Removed from your Starred Outputs List');
         }
     };
 
@@ -553,7 +553,7 @@ function ArtworkCard({
     const handleWishlistClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         const result = storeToggleWishlist(slug, id);
-        showToast(result === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
+        showToast(result === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
 
     /* Add to / remove from your profile Showcase (account-backed, 6-slot cap).

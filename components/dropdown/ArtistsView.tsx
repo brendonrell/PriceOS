@@ -139,13 +139,13 @@ export function ArtistsView() {
             setPinned((prev) => {
                 let next: string[];
                 if (prev.includes(name)) {
-                    showToast(`${name}: UNPINNED`);
+                    showToast('Removed from your Starred Artists List');
                     next = prev.filter((n) => n !== name);
                 } else if (prev.length >= PIN_LIMIT) {
-                    showToast(`Pin Limit: ${PIN_LIMIT} MAX`);
+                    showToast(`Starred Artists Limit: ${PIN_LIMIT} MAX`);
                     return prev;
                 } else {
-                    showToast(`${name}: PINNED`);
+                    showToast('Added to your Starred Artists List (Private)');
                     next = [...prev, name];
                 }
                 // Account write-through — no-op until an authed snapshot has

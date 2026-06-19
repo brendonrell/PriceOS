@@ -26,6 +26,7 @@ import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
+import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -35,31 +36,28 @@ export interface StarredItem {
     id: number;
 }
 
-type Mode = 'outputs' | 'traits' | 'artists' | 'soundtracks';
+type Mode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
 type SortKey = 'recent' | 'id' | 'project';
-
-const SORTS: { key: SortKey; label: string }[] = [
-    { key: 'recent',  label: 'Recent'  },
-    { key: 'id',      label: '# ID'    },
-    { key: 'project', label: 'Project' },
-];
 
 export default function StarredList({
     items,
     traits = [],
     artists = [],
     soundtracks = [],
+    projects = [],
     searchOpen = false,
     query = '',
     onQueryChange,
     onCloseSearch,
     multiActive = false,
     onExitMulti,
+    sortKey = 'recent',
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
     artists?: ReadonlyArray<string>;
     soundtracks?: ReadonlyArray<SoundtrackStar>;
+    projects?: ReadonlyArray<string>;
     /* Search is controlled by the parent so its ⌕ icon can live up in the
        +More sub-nav beside the Info pill (where Collected's search lives). */
     searchOpen?: boolean;
@@ -69,11 +67,12 @@ export default function StarredList({
     /* Multi-select, driven by the sub-nav's ❐ icon (same spot as search). */
     multiActive?: boolean;
     onExitMulti?: () => void;
+    /* Sort, driven by the sub-nav sort-bar (Recent / # ID / Project). */
+    sortKey?: SortKey;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const [mode, setMode] = useState<Mode>('outputs');
-    const [sortKey, setSortKey] = useState<SortKey>('recent');
+    const [mode, setMode] = useState<Mode>('all');
 
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
@@ -87,14 +86,16 @@ export default function StarredList({
         });
     const handleRemoveSelected = () => {
         if (selected.size === 0) return;
-        if (mode === 'outputs') visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
-        else if (mode === 'traits') visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
-        else if (mode === 'artists') visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
-        else visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
+        const inMode = (m: Mode) => mode === 'all' || mode === m;
+        if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
+        if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
+        if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
+        if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
+        if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
         const n = selected.size;
         setSelected(new Set());
         onExitMulti?.();
-        showToast(`Starred: REMOVED · ${n}`);
+        showToast(`Removed ${n} from your Starred List`);
     };
 
     /* Live wishlist membership so each Output row's CTA reflects whether it's
@@ -184,46 +185,71 @@ export default function StarredList({
         return sorted;
     }, [soundtracks, query, sortKey]);
 
+    /* ── Project rows ─────────────────────────────────────────────────── */
+    const visibleProjects = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = projects
+            .filter((slug) => getProject(slug) != null)
+            .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, recentIndex: i }));
+        const filtered = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sorted;
+    }, [projects, query, sortKey]);
+
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
         toggleStar(slug, id);
-        showToast('Starred: REMOVED');
+        showToast('Removed from your Starred Outputs List');
     };
 
     const handleWishlist = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
         const r = toggleWishlist(slug, id);
-        showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
+        showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
 
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
         e.stopPropagation();
         toggleTraitStar(t.slug, t.category, t.value);
-        showToast('Starred: REMOVED');
+        showToast('Removed from your Starred Traits List');
     };
 
     const handleArtistUnstar = (e: React.MouseEvent, name: string) => {
         e.stopPropagation();
         removeArtistStar(name);
-        showToast('Starred: REMOVED');
+        showToast('Removed from your Starred Artists List');
     };
 
     const handleSoundtrackUnstar = (e: React.MouseEvent, s: SoundtrackStar) => {
         e.stopPropagation();
         toggleSoundtrackStar(s.slug, s.playlistId, s.title);
-        showToast('Starred: REMOVED');
+        showToast('Removed from your Starred Soundtracks List');
     };
 
+    /* Brendon's order: All Starred › Artists › Outputs › Traits › Soundtracks ›
+       Projects. */
     const PILLS: { key: Mode; label: string; count: number }[] = [
+        { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + soundtracks.length + visibleProjects.length },
+        { key: 'artists',     label: 'Artists',     count: artists.length       },
         { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
         { key: 'traits',      label: 'Traits',      count: traitRows.length     },
-        { key: 'artists',     label: 'Artists',     count: artists.length       },
         { key: 'soundtracks', label: 'Soundtracks', count: soundtracks.length   },
+        { key: 'projects',    label: 'Projects',    count: projects.length      },
     ];
+
+    const totalVisible =
+        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleSoundtracks.length + visibleProjects.length
+        : mode === 'outputs' ? visibleOutputs.length
+        : mode === 'traits' ? visibleTraits.length
+        : mode === 'artists' ? visibleArtists.length
+        : mode === 'soundtracks' ? visibleSoundtracks.length
+        : visibleProjects.length;
 
     return (
         <section className="starred-list" aria-label="Starred">
-            {/* Outputs / Traits filter pills + the ⌕ search icon beside them. */}
+            {/* Filter pills + the ⌕ search icon (in the +More sub-nav). */}
             <div className="starred-mode-pills">
                 {PILLS.map((p) => (
                     <div
@@ -240,32 +266,13 @@ export default function StarredList({
                 ))}
             </div>
 
-            {/* Sort bar */}
-            <div className="starred-list-controls">
-                <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {SORTS.map((s) => (
-                        <span
-                            key={s.key}
-                            className={`sort-btn${sortKey === s.key ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title={`Sort by ${s.label}`}
-                            onClick={() => setSortKey(s.key)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSortKey(s.key); } }}
-                        >
-                            <span className="sort-lbl">{mode === 'traits' && s.key === 'id' ? 'A–Z' : s.label}</span>
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Search row — collapsed until the ⌕ icon is tapped (.open), exactly
-                like the project Artworks page's search reveal. */}
+            {/* Search row — collapsed until the ⌕ icon (in the +More sub-nav) is
+                tapped (.open). Sorts live in the sub-nav sort-bar now. */}
             <div className={`search-row${searchOpen ? ' open' : ''}`}>
                 <input
                     className="search-input"
                     type="text"
-                    placeholder={mode === 'outputs' ? 'Filter starred — @project, @artist, # id…' : 'Filter traits — @project, trait, value…'}
+                    placeholder={mode === 'traits' ? 'Filter traits — @project, trait, value…' : 'Filter starred — @project, @artist, # id…'}
                     autoComplete="off"
                     value={query}
                     onChange={(e) => onQueryChange?.(e.target.value)}
@@ -283,9 +290,9 @@ export default function StarredList({
                 </span>
             </div>
 
-            {/* Rows */}
+            {/* Rows — each type renders when 'all' or its own filter is active. */}
             <div className="starred-rows">
-                {mode === 'outputs' ? (
+                {(mode === 'all' || mode === 'outputs') && (
                     <>
                         {visibleOutputs.map((r) => {
                             const wished = wishKeys.has(`${r.slug}:${r.id}`);
@@ -332,9 +339,9 @@ export default function StarredList({
                                 </div>
                             );
                         })}
-                        {visibleOutputs.length === 0 && <GhostRows variant="starred" />}
                     </>
-                ) : mode === 'traits' ? (
+                )}
+                {(mode === 'all' || mode === 'traits') && (
                     <>
                         {visibleTraits.map((r) => {
                             const selKey = `${r.slug}|${r.category}|${r.value}`;
@@ -379,9 +386,9 @@ export default function StarredList({
                             </div>
                             );
                         })}
-                        {visibleTraits.length === 0 && <GhostRows variant="starred" />}
                     </>
-                ) : mode === 'artists' ? (
+                )}
+                {(mode === 'all' || mode === 'artists') && (
                     <>
                         {visibleArtists.map((r) => {
                             const act = () => multiActive ? toggleSel(r.name) : window.location.assign('/' + r.handle);
@@ -426,9 +433,9 @@ export default function StarredList({
                             </div>
                             );
                         })}
-                        {visibleArtists.length === 0 && <GhostRows variant="starred" />}
                     </>
-                ) : (
+                )}
+                {(mode === 'all' || mode === 'soundtracks') && (
                     <>
                         {visibleSoundtracks.map((r) => {
                             const selKey = `${r.slug}|${r.playlistId}`;
@@ -473,9 +480,56 @@ export default function StarredList({
                             </div>
                             );
                         })}
-                        {visibleSoundtracks.length === 0 && <GhostRows variant="starred" />}
                     </>
                 )}
+                {(mode === 'all' || mode === 'projects') && (
+                    <>
+                        {visibleProjects.map((r) => {
+                            const selKey = `p:${r.slug}`;
+                            return (
+                            <div
+                                key={selKey}
+                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role={multiActive ? 'button' : undefined}
+                                tabIndex={multiActive ? 0 : undefined}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
+                            >
+                                <div className="trait-row-tile artist-tile">
+                                    <span className="artist-row-tile-glyph">⬚&#xFE0E;</span>
+                                </div>
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{r.name}</span>
+                                    <span className="starred-row-sub">Project</span>
+                                </div>
+                                <span
+                                    className="starred-row-cta"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="View project"
+                                    aria-label="View project"
+                                    onClick={(e) => { e.stopPropagation(); window.location.assign('/art/' + r.slug); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.location.assign('/art/' + r.slug); } }}
+                                >
+                                    ⬚︎ View
+                                </span>
+                                <span
+                                    className="starred-row-unstar"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Remove from Starred"
+                                    aria-label="Remove from Starred"
+                                    onClick={(e) => { e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); } }}
+                                >
+                                    ★&#xFE0E;
+                                </span>
+                            </div>
+                            );
+                        })}
+                    </>
+                )}
+                {totalVisible === 0 && <GhostRows variant="starred" />}
             </div>
             {multiActive && (
                 <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">

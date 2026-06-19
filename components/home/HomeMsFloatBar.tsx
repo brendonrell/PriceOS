@@ -94,14 +94,14 @@ export default function HomeMsFloatBar() {
         selectedItems.forEach(({ slug, id }) => {
             if (!isStarred(slug, id)) { toggleStar(slug, id); added++; }
         });
-        showToast(added === 0 ? 'ALL ALREADY STARRED' : `STARRED · ${added} output${added === 1 ? '' : 's'}`);
+        showToast(added === 0 ? 'ALL ALREADY STARRED' : `Added ${added} to your Starred Outputs List (Private)`);
     };
     const handleWishlistAll = () => {
         let added = 0;
         selectedItems.forEach(({ slug, id }) => {
             if (!isWishlisted(slug, id)) { toggleWishlist(slug, id); added++; }
         });
-        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Wishlist: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
 
     /* Ownership-scoped stubs — report how many eligible pieces the action hit. */

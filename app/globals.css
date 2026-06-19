@@ -8349,6 +8349,28 @@ body.colorway-dark .ghost-feed-bar {
     color: var(--accent);
     vertical-align: middle;
 }
+/* Starred Project — long-press the Project name to star it. A large ★ sits
+   beside the name (before the date); the float confirm rises from it. */
+.project-name-star {
+    margin-left: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    font-size: 0.7em;
+    vertical-align: middle;
+}
+.project-name-star-float {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    font-size: 0.85em;
+    line-height: 1;
+    pointer-events: none;
+    animation: traitStarFloat 0.9s ease-out forwards;
+    will-change: transform, opacity;
+    z-index: 5;
+}
 .btn-soundtrack .soundtrack-star-float {
     position: absolute;
     left: 12px;

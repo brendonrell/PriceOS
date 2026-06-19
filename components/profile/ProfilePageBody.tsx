@@ -50,6 +50,7 @@ import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
 import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
+import { getProjectStars, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
@@ -872,7 +873,16 @@ function ProfilePageBodyInner({
     /* +More multi-select — same idea as Collected's ❐. Lives beside the search
        icon and drives the open sub-tab's row selection. */
     const [moreMultiActive, setMoreMultiActive] = useState(false);
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); }, [moreL1]);
+    /* +More sort — Recent / # ID / Project. Lives in the sub-nav sort-bar
+       beside the colorway picker (same spot + font as the project sorts) and
+       drives the open sub-tab's list. */
+    const [moreSort, setMoreSort] = useState<'recent' | 'id' | 'project'>('recent');
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMoreSort('recent'); }, [moreL1]);
+    const MORE_SORTS: { key: 'recent' | 'id' | 'project'; label: string }[] = [
+        { key: 'recent', label: 'Recent' },
+        { key: 'id', label: '# ID' },
+        { key: 'project', label: 'Project' },
+    ];
 
     /* Starred Artists — the pinned-artist set from the Artists list, surfaced
        under the Starred tab's Artists filter (read-only mirror; the pin itself
@@ -890,6 +900,18 @@ function ProfilePageBodyInner({
         setSoundtrackStars(getSoundtrackStarItems());
         return subscribeSoundtrackStars(() => setSoundtrackStars(getSoundtrackStarItems()));
     }, []);
+
+    /* Starred Projects — favourited Project slugs, under the Starred tab's
+       Projects filter. */
+    const [projectStars, setProjectStars] = useState<readonly string[]>(() => getProjectStars());
+    useEffect(() => {
+        setProjectStars(getProjectStars());
+        return subscribeProjectStars((next) => setProjectStars(next));
+    }, []);
+    const projectStarsValid = useMemo(
+        () => projectStars.filter((slug) => getProject(slug) != null),
+        [projectStars],
+    );
 
     /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
        shown only on your own profile. */
@@ -1592,6 +1614,25 @@ function ProfilePageBodyInner({
                                     </div>
                                 ) : undefined
                             }
+                            profileSortControls={
+                                (onStarredTab || onWishlistTab) ? (
+                                    <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+                                        {MORE_SORTS.map((s) => (
+                                            <span
+                                                key={s.key}
+                                                className={`sort-btn${moreSort === s.key ? ' active' : ''}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                title={`Sort by ${s.label}`}
+                                                onClick={() => setMoreSort(s.key)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMoreSort(s.key); } }}
+                                            >
+                                                <span className="sort-lbl">{s.label}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : undefined
+                            }
                         />
                     )}
 
@@ -1739,7 +1780,7 @@ function ProfilePageBodyInner({
                 content, no notes). 1:1 stand-ins of the real rows, no
                 copy; same wrapper classes so ghosts sit exactly where
                 real rows render. */}
-            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && artistStars.length === 0 && soundtrackStars.length === 0 && (
+            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && artistStars.length === 0 && soundtrackStars.length === 0 && projectStarsValid.length === 0 && (
                 <section className="starred-list" aria-label="Starred">
                     <div className="starred-rows">
                         <GhostRows variant="starred" />
@@ -1935,18 +1976,20 @@ function ProfilePageBodyInner({
             {/* Starred — a compact bookmark ROW list (not the gallery grid):
                 sortable/filterable rows with a small preview that opens the
                 Artwork modal. Own profile only (Stars are private). */}
-            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0) && (
+            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) && (
                 <StarredList
                     items={starredValid}
                     traits={traitStarsValid}
                     artists={artistStars}
                     soundtracks={soundtrackStars}
+                    projects={projectStarsValid}
                     searchOpen={moreSearchOpen}
                     query={moreQuery}
                     onQueryChange={setMoreQuery}
                     onCloseSearch={closeMoreSearch}
                     multiActive={moreMultiActive}
                     onExitMulti={() => setMoreMultiActive(false)}
+                    sortKey={moreSort}
                 />
             )}
 
@@ -1961,6 +2004,7 @@ function ProfilePageBodyInner({
                     onCloseSearch={closeMoreSearch}
                     multiActive={moreMultiActive}
                     onExitMulti={() => setMoreMultiActive(false)}
+                    sortKey={moreSort}
                 />
             )}
 

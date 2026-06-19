@@ -625,12 +625,12 @@ export default function OutputPreview() {
     const handleStar = () => {
         if (id == null) return;
         const r = storeToggleStar(slug, id);
-        showToast(r === 'starred' ? `STARRED #${id}` : `UNSTARRED #${id}`);
+        showToast(r === 'starred' ? 'Added to your Starred Outputs List (Private)' : 'Removed from your Starred Outputs List');
     };
     const handleWishlist = () => {
         if (id == null) return;
         const r = storeToggleWishlist(slug, id);
-        showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
+        showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
 

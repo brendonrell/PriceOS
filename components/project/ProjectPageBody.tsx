@@ -72,6 +72,7 @@ import { natalChart } from '../../lib/project/natal';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import SoundtrackStarButton from './SoundtrackStarButton';
+import ProjectTitleStar from './ProjectTitleStar';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
@@ -1078,7 +1079,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 ariaLabel="Project Info"
                 titleRow={
                     <h1 className="project-title">
-                        <span>{project.title}</span>
+                        <ProjectTitleStar slug={project.slug} title={project.title} />
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
                                 className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
