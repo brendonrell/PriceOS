@@ -6,12 +6,35 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `225ff43`). This chat's task
-  branch `claude/profile-easter-egg-colors-avmkr3` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean (head `329480a`). This chat's task
+  branch `claude/app-ui-feature-edits-z7rixs` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-18 (latest). This session = **GENERATIVE COLORWAY** (🎨🥚) + **AMBIENT FX**
-  (🌦️ below). Prior: PWA STEP 3 (📲), AMBIENT MENU v2 / setup codes / eggs (🎚️), 6 gen-art
-  projects (🖼️), colorway-from-DB, ARTIST SHOWCASE / mood palette, HOME draw.
+- **Updated:** 2026-06-19 (latest). This session = **STARRED/WISHLIST + SPRITE POLISH** (⭐ below).
+  Prior: GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️), PWA STEP 3 (📲), AMBIENT MENU v2 / setup
+  codes / eggs (🎚️), 6 gen-art projects (🖼️), ARTIST SHOWCASE / mood palette, HOME draw.
+
+## ⭐ STARRED/WISHLIST + SPRITE POLISH — 2026-06-19 (latest) — SHIPPED to dev
+- **Wishlist artist line:** social tags (mutual/following/follower glyph + follower count) +
+  `by:` prefix + slightly-smaller ✺ badge, mirroring Starred. Shared via `lib/social/useArtistSocial.ts`.
+  Social glyph + count nudged up 1px in Wishlist only.
+- **Starred:** follower count no longer underlined; mutual glyph 2 sizes larger (`is-mutual-lg`
+  1.54em); desktop artist badge 18px; PriceSprite type-line truncates only near the CTA (118px, was
+  150px). Collectors pill moved to first slot after All Starred.
+- **Sort bar:** 'Recent' shows the ◷ recent glyph; order Recent > $PRICE > FLWRS > AZ.
+- **Output page hero stats row** transplanted from profile (plain flex `.stats-row`, no `.stats-grid`)
+  so it lays out identically; output's own data.
+- **Showcase cap fix:** the 6-cap now counts only renderable picks (`getProject != null`), so a
+  stale slug never shows an empty frame while blocking adds; stale keys self-heal on load. Brendon's
+  DB showcase cleared to empty (had a dead `lettersneversent` no-hyphen slug).
+- **User PriceSprite storage:** already frozen at signup (`price_sprite_resolved`); **50 legacy
+  seeded users backfilled in DB**. `artistColorStore` composes the stored/derived face for starred users.
+- **PriceSprite eyebrows (Windows):** ID Rectangles (held-by chip + profile identity sprite) now
+  overlay each brow correctly via new `components/SpriteFace.tsx` + `winBrow.splitFace` — the
+  connect-menu fix generalised to a whole face string. Apple/iOS untouched.
+- **Own profile:** @name (triple-tap egg) reads as plain text (no link cursor); the PriceSprite beside
+  it is the visible link → opens the PriceSprite modal, owner only. Title star 20% smaller on desktop.
+- Setup Codes multi-value + audience tokens (watch metric / ping toasts / menu tape / audience) landed
+  in `lib/state/SetupCode.ts`.
 
 ## 🎨🥚 GENERATIVE COLORWAY — profile name easter egg 2026-06-18 (latest) — SHIPPED to dev
 - **Triple-tap your OWN @name** on your Profile Page → a row of colourway pills shoves open in-flow
