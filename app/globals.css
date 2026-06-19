@@ -8104,6 +8104,23 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     flex: 1 1 auto;
     justify-content: center;
 }
+/* Full-length top & bottom lines: the CTA + star only occupy the vertical
+   MIDDLE of the row, so the first and last meta lines can run the row's full
+   width (under the buttons) while the middle lines stop short of them
+   (Brendon 2026-06-19). Used by Output / Trait / Project rows. */
+.starred-row.has-actions-abs { position: relative; }
+.starred-row.has-actions-abs .starred-row-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.starred-row.has-actions-abs .starred-row-meta > span:not(:first-child):not(:last-child) {
+    padding-right: 172px;
+}
 .starred-row-id {
     font-weight: bold;
     color: var(--text-color);

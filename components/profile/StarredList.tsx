@@ -348,7 +348,7 @@ export default function StarredList({
                             return (
                             <div
                                 key={selKey}
-                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role={multiActive ? 'button' : undefined}
                                 tabIndex={multiActive ? 0 : undefined}
                                 onClick={multiActive ? () => toggleSel(selKey) : undefined}
@@ -360,31 +360,32 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug} · {r.category}: {r.value}</span>
                                     <span className="starred-row-sub">Trait</span>
-                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
-                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em> · Last:<em>{r.market.lastSale}</em></span>
                                 </div>
-                                <span
-                                    className="starred-row-cta trait-offer-cta"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Make a trait offer (coming soon)"
-                                    aria-label="Make a trait offer"
-                                    onClick={() => showToast('Trait Offer: COMING SOON')}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Trait Offer: COMING SOON'); } }}
-                                >
-                                    <span className="trait-offer-glyph">✦︎</span> Trait Offer
-                                </span>
-                                <span
-                                    className="starred-row-unstar"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Remove from Starred"
-                                    aria-label="Remove from Starred"
-                                    onClick={(e) => handleTraitUnstar(e, r)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTraitUnstar(e as unknown as React.MouseEvent, r); } }}
-                                >
-                                    ★&#xFE0E;
-                                </span>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-cta trait-offer-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Make a trait offer (coming soon)"
+                                        aria-label="Make a trait offer"
+                                        onClick={() => showToast('Trait Offer: COMING SOON')}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Trait Offer: COMING SOON'); } }}
+                                    >
+                                        <span className="trait-offer-glyph">✦︎</span> Trait Offer
+                                    </span>
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => handleTraitUnstar(e, r)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTraitUnstar(e as unknown as React.MouseEvent, r); } }}
+                                    >
+                                        ★&#xFE0E;
+                                    </span>
+                                </div>
                             </div>
                             );
                         })}
@@ -491,7 +492,7 @@ export default function StarredList({
                             return (
                             <div
                                 key={selKey}
-                                className={`starred-row trait-row${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role={multiActive ? 'button' : undefined}
                                 tabIndex={multiActive ? 0 : undefined}
                                 onClick={multiActive ? () => toggleSel(selKey) : undefined}
@@ -503,31 +504,32 @@ export default function StarredList({
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.name}</span>
                                     <span className="starred-row-sub">Project</span>
-                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
-                                    <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
+                                    <span className="starred-row-sub">Floor:<em>{r.market.floor}</em> · Last:<em>{r.market.lastSale}</em></span>
                                 </div>
-                                <span
-                                    className="starred-row-cta"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="View project"
-                                    aria-label="View project"
-                                    onClick={(e) => { e.stopPropagation(); window.location.assign('/art/' + r.slug); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.location.assign('/art/' + r.slug); } }}
-                                >
-                                    ⬚︎ View
-                                </span>
-                                <span
-                                    className="starred-row-unstar"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Remove from Starred"
-                                    aria-label="Remove from Starred"
-                                    onClick={(e) => { e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); } }}
-                                >
-                                    ★&#xFE0E;
-                                </span>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="View project"
+                                        aria-label="View project"
+                                        onClick={(e) => { e.stopPropagation(); window.location.assign('/art/' + r.slug); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.location.assign('/art/' + r.slug); } }}
+                                    >
+                                        ⬚︎ View
+                                    </span>
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => { e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeProjectStar(r.slug); showToast('Removed from your Starred Projects List'); } }}
+                                    >
+                                        ★&#xFE0E;
+                                    </span>
+                                </div>
                             </div>
                             );
                         })}
@@ -591,7 +593,7 @@ function StarredOutputRow({
     const act = () => (multiActive ? onToggleSel() : onOpen());
     return (
         <div
-            className={`starred-row${multiActive && selected ? ' is-selected' : ''}`}
+            className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
             role="button"
             tabIndex={0}
             onClick={act}
@@ -607,42 +609,44 @@ function StarredOutputRow({
                 {artist && <span className="starred-row-sub">{artist}</span>}
                 {extra && <span className="starred-row-sub">{extra}</span>}
             </div>
-            {listed ? (
+            <div className="starred-row-actions">
+                {listed ? (
+                    <span
+                        className="starred-row-cta is-buy"
+                        role="button"
+                        tabIndex={0}
+                        title={`Buy — ${meta!.price}`}
+                        aria-label={`Buy for ${meta!.price}`}
+                        onClick={(e) => { e.stopPropagation(); onOpen(); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOpen(); } }}
+                    >
+                        {`▢︎ Buy ${meta!.price}`}
+                    </span>
+                ) : (
+                    <span
+                        className={`starred-row-cta${wished ? ' is-on' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title={wished ? 'On your wishlist' : 'Add to wishlist'}
+                        aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
+                        onClick={onWishlist}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWishlist(e as unknown as React.MouseEvent); } }}
+                    >
+                        {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
+                    </span>
+                )}
                 <span
-                    className="starred-row-cta is-buy"
+                    className="starred-row-unstar"
                     role="button"
                     tabIndex={0}
-                    title={`Buy — ${meta!.price}`}
-                    aria-label={`Buy for ${meta!.price}`}
-                    onClick={(e) => { e.stopPropagation(); onOpen(); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOpen(); } }}
+                    title="Remove from Starred"
+                    aria-label="Remove from Starred"
+                    onClick={onUnstar}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
                 >
-                    {`▢︎ Buy ${meta!.price}`}
+                    ★&#xFE0E;
                 </span>
-            ) : (
-                <span
-                    className={`starred-row-cta${wished ? ' is-on' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    title={wished ? 'On your wishlist' : 'Add to wishlist'}
-                    aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
-                    onClick={onWishlist}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWishlist(e as unknown as React.MouseEvent); } }}
-                >
-                    {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
-                </span>
-            )}
-            <span
-                className="starred-row-unstar"
-                role="button"
-                tabIndex={0}
-                title="Remove from Starred"
-                aria-label="Remove from Starred"
-                onClick={onUnstar}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
-            >
-                ★&#xFE0E;
-            </span>
+            </div>
         </div>
     );
 }
