@@ -223,6 +223,11 @@ never `TO public`.
 > all three had to be ripped out, and it read as "you do stupid shit." **If
 > Brendon didn't name it, don't build it.** When you think something extra would
 > genuinely help, **NAME it and ask — never just add it.**
+> **Applies to ANIMATIONS / motion too (Brendon, 2026-06-19).** When a feature is
+> spec'd as "the same as X," give it the SAME treatment as X — identical size,
+> motion, and flourish, nothing more. Do NOT invent a bigger or more "dramatic"
+> animation, effect, or affordance for the new surface. "Work exactly the same
+> as the trait stars" means the trait star animation, verbatim — not a louder one.
 
 > **FIX THE NAMED BUG, NOTHING ELSE. Hard rule (Brendon, 2026-06-08 — learned
 > the hard way, do NOT repeat).** When the task is "fix X," you fix **X and only
