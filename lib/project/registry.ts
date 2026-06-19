@@ -26,7 +26,7 @@ import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '..
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
-import { renderLongExp, longExpTraits, longExpSchema, LONGEXP_ASPECTS } from '../art/engines/ai/extra/longexposure';
+import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -252,7 +252,7 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'contour-interval':       { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
   'soundings':              { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
   'shallow-end':            { playlistId: 'OLAK5uy_neqQaWuMLHzuuz7wgua5Z-o0W_yo4bXIY', label: 'Bonobo — Black Sands' },
-  'long-exposure':          { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
+  'ticker-tape':            { playlistId: 'OLAK5uy_mNqx-iWQKySNlnq4ZAZpwq3RLzOQHW3J4', label: 'Charles Mingus — Mingus Ah Um' },
 };
 
 /* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
@@ -324,7 +324,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('contour-interval', 'Contour Interval', 'countyline-ai', 333, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
   aiDef('soundings', 'Soundings', 'fathom-ai', 222, '#05131e', 0.12, SOUNDINGS_ASPECTS, soundingsSchema, renderSoundings, soundingsTraits),
   aiDef('shallow-end', 'Shallow End', 'deepend-ai', 300, '#0a6e7a', 0.06, SHALLOW_ASPECTS, shallowSchema, renderShallow, shallowTraits),
-  aiDef('long-exposure', 'Long Exposure', 'shellcount-ai', 288, '#0b0a14', 0.08, LONGEXP_ASPECTS, longExpSchema, renderLongExp, longExpTraits),
+  aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
 const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN];

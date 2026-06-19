@@ -3,22 +3,29 @@
  * SHALLOWEND — "Shallow End" by deepend-ai. Rippling pool-floor sunlight CAUSTICS,
  * composed as a PIECE rather than a seamless swatch.
  *
- * v2 rework (jury notes addressed):
- *  - FOCAL SYSTEM: a bright sunlit pool-of-light anchored on a phi point that
- *    moves seed to seed (scaled 0.3–1.0x). Caustic density + brightness fall off
- *    with distance from it, so the field has sparse/darker negative space and the
- *    eye lands somewhere. Field is cropped/biased, not edge-to-edge even.
- *  - POOL CUES: a wall→floor bend (the deep end seam) with the floor receding
- *    below it in perspective grout, plus optional angled light shafts and a step
- *    edge. It reads as a pool, not just water texture. Light angle varies/seed.
- *  - PALETTE VARIETY: 6+ genuinely distinct water moods with wide hue
- *    separation (green shallow, deep teal-navy, sunlit warm, dusk violet, night
- *    near-black, dawn warm). Desaturated slightly + a complementary WARM
- *    (sand/coral) at caustic edges + highlights so the piece reads AGAINST the
- *    #0a6e7a teal page instead of dissolving into it.
- *  - PHOTOGRAPHIC: soft vignette + directional light gradient (brighter toward
- *    the sun side), tonal range varies per seed (deep shadow pockets vs bright
- *    caustic hits). Keeps mottle + grain.
+ * v3 rework — COMPOSITION IS A PRIMARY TRAIT.
+ *  The jury slammed the cohort for "no compositional variety — every seed looks
+ *  the same, one thing in the middle." This engine now carries a LAYOUT trait with
+ *  6 structurally different views, so seeds read like different photographs of a
+ *  pool, not one tile recoloured:
+ *   1. Overhead  — top-down allover floor caustics, focal bright pool on a phi
+ *                  point, darker corners. (the loved original look, fixed.)
+ *   2. Deep End  — pool wall meets floor at a waterline seam; caustics on the
+ *                  floor below, darker wall above, grout receding in perspective.
+ *   3. Sunbeam   — diagonal underwater god-rays cutting from one corner across
+ *                  deep water; caustics pooled where they land; lots of dark space.
+ *   4. Lane      — lane-lines / tile rows in strong perspective to an off-centre
+ *                  vanishing point; caustics riding over them.
+ *   5. Macro     — extreme close-up of the caustic net as a near-abstract field,
+ *                  one bright knot off-centre, texture-forward.
+ *   6. Steps     — pool steps / ladder edge in one corner, water + caustics
+ *                  filling the rest; architectural asymmetric crop.
+ *  NEVER a dead-centre single bright blob. Focal light anchors on phi points;
+ *  bright-water vs deep-shadow balance and light direction vary per seed.
+ *
+ *  Caustic quality preserved (two crossing warped ribbon families + knots, warm
+ *  complementary accent so it reads against the #0a6e7a teal page, photographic
+ *  mottle/grain/vignette finish). 10 distinct water moods, wide hue separation.
  *
  * Deterministic from seed only — no Date/Math.random/network/DOM beyond canvas.
  * mix(hexA,hexB,t) is COLOURS ONLY — numeric interpolation uses plain arithmetic.
@@ -26,24 +33,20 @@
 import { rng, pick, rint, randn, clamp, mix, lum, rgba, hsl2hex, grain, vignette, mottle, blit, PHI, INVPHI } from './_kit';
 import type { EngineFn, TraitsFn, TraitSchema } from '../../../../project/types';
 
-/* ---------------- palettes — distinct water MOODS, wide hue separation ----------------
+/* ---------------- palettes — 10 distinct water MOODS, wide hue separation ----------------
    Each carries its own warm accent (sand/coral/amber) so caustic edges + highlights
-   read against the teal page. Tones kept a notch desaturated on purpose. */
+   read against the teal page. warmLit moods tint the sun toward the accent. */
 const PALS = [
-  // green-shade shallow — yellow-green water, sandy warm
-  { name:'Reef Shallows', deep:'#1d6e57', water:'#3a9a72', shallow:'#8fd39a', warm:'#f3d59a', sun:'#fff6df', mood:0 },
-  // deep teal → navy, cold and deep
-  { name:'Deep End',      deep:'#0a2f4a', water:'#155a72', shallow:'#3f9bb0', warm:'#e8b487', sun:'#eef8ff', mood:1 },
-  // sunlit warm-tinted turquoise, strong amber light
-  { name:'High Noon',     deep:'#0e6f7e', water:'#26a6ad', shallow:'#79dcc6', warm:'#ffcf86', sun:'#fff3cf', mood:2 },
-  // dusk violet caustics over plum water
-  { name:'Dusk',          deep:'#2a2750', water:'#4a4f86', shallow:'#8f86c4', warm:'#f3a07f', sun:'#ffe2d6', mood:3 },
-  // near-black night water, cold silver light
-  { name:'Night Swim',    deep:'#06101c', water:'#0e2638', shallow:'#27566b', warm:'#c98f6a', sun:'#dbeaf2', mood:4 },
-  // dawn warm — rose-gold light on pale teal
-  { name:'First Light',   deep:'#2a4a5c', water:'#5a8a96', shallow:'#b6ddd2', warm:'#ffbf9a', sun:'#fff0e0', mood:5 },
-  // emerald lap pool, jade + coral
-  { name:'Jade Lane',     deep:'#0c5040', water:'#159a78', shallow:'#5fd9a8', warm:'#f6a98a', sun:'#f4fff4', mood:0 },
+  { name:'Reef Shallows', deep:'#1d6e57', water:'#3a9a72', shallow:'#8fd39a', warm:'#f3d59a', sun:'#fff6df', warmLit:false }, // yellow-green
+  { name:'Deep End',      deep:'#0a2f4a', water:'#155a72', shallow:'#3f9bb0', warm:'#e8b487', sun:'#eef8ff', warmLit:false }, // teal-navy
+  { name:'High Noon',     deep:'#0e6f7e', water:'#26a6ad', shallow:'#79dcc6', warm:'#ffcf86', sun:'#fff3cf', warmLit:true  }, // turquoise
+  { name:'Dusk',          deep:'#2a2750', water:'#4a4f86', shallow:'#8f86c4', warm:'#f3a07f', sun:'#ffe2d6', warmLit:true  }, // violet
+  { name:'Night Swim',    deep:'#06101c', water:'#0e2638', shallow:'#27566b', warm:'#c98f6a', sun:'#dbeaf2', warmLit:false }, // near-black
+  { name:'First Light',   deep:'#2a4a5c', water:'#5a8a96', shallow:'#b6ddd2', warm:'#ffbf9a', sun:'#fff0e0', warmLit:true  }, // dawn rose-gold
+  { name:'Jade Lane',     deep:'#0c5040', water:'#159a78', shallow:'#5fd9a8', warm:'#f6a98a', sun:'#f4fff4', warmLit:false }, // jade
+  { name:'Chlorine',      deep:'#0b5f78', water:'#19a8c2', shallow:'#7ef0ee', warm:'#ffd2a0', sun:'#f2ffff', warmLit:false }, // bright cyan
+  { name:'Storm',         deep:'#283642', water:'#46606e', shallow:'#86a4ad', warm:'#d8a982', sun:'#e6eef0', warmLit:false }, // slate/storm
+  { name:'Tropic',        deep:'#0d6a82', water:'#13b6c0', shallow:'#7af2d8', warm:'#ffc27a', sun:'#fffae8', warmLit:true  }, // tropical aqua
 ];
 
 const FMTS = [
@@ -52,41 +55,42 @@ const FMTS = [
   { W:1240, H:1000, t:'Landscape' },
 ];
 
-const DENS    = ['Sparse','Woven','Dense'];                       // caustic mesh density near focus
-const FOCUS   = ['Spotlit','Seam','Drift'];                       // what the focal event is
-const VIEWS   = ['Floor','Deep End','Step','Shaft'];              // pool structure cue
-const SURFACES= ['Still','Lapping','Choppy'];                     // ripple warp amplitude
+const LAYOUTS  = ['Overhead','Deep End','Sunbeam','Lane','Macro','Steps']; // PRIMARY compositional trait
+const DENS     = ['Sparse','Woven','Dense'];                              // caustic mesh density near focus
+const SURFACES = ['Still','Lapping','Choppy'];                            // ripple warp amplitude
 
 /* ---------------- params (fixed draw order — all labelled traits first) ---------------- */
 function paramsOf(r){
-  const palI  = Math.floor(r()*PALS.length);
-  const fmt   = pick(FMTS, r);
-  const densI = Math.floor(r()*DENS.length);
-  const focusI= Math.floor(r()*FOCUS.length);
-  const viewI = Math.floor(r()*VIEWS.length);
-  const surfI = Math.floor(r()*SURFACES.length);
+  const palI   = Math.floor(r()*PALS.length);
+  const fmt    = pick(FMTS, r);
+  const layI   = Math.floor(r()*LAYOUTS.length);
+  const densI  = Math.floor(r()*DENS.length);
+  const surfI  = Math.floor(r()*SURFACES.length);
   // continuous knobs — drawn AFTER all labelled traits so label order is fixed
-  const lightAngle = r()*Math.PI*2;            // direction the net leans / sun comes from
+  const lightAngle = r()*Math.PI*2;            // sun / net lean direction
   const focalScale = 0.3 + r()*0.7;            // 0.3–1.0x size of the focal pool of light
-  // focal anchor snapped toward a phi point, jittered, MOVES per seed
-  const phiX = (r() < 0.5 ? INVPHI : 1 - INVPHI) + (r()-0.5)*0.18;
-  const phiY = (r() < 0.5 ? INVPHI : 1 - INVPHI) + (r()-0.5)*0.18;
+  // focal anchor snapped toward a phi point, jittered, MOVES per seed (never centre)
+  const phiX = (r() < 0.5 ? INVPHI : 1 - INVPHI) + (r()-0.5)*0.16;
+  const phiY = (r() < 0.5 ? INVPHI : 1 - INVPHI) + (r()-0.5)*0.16;
   const tonal      = 0.25 + r()*0.6;           // tonal range: shadow depth vs caustic punch
   const causticScale = 0.7 + r()*0.85;         // cell size of the mesh
-  const seamY      = 0.32 + r()*0.34;          // wall→floor bend height (for Deep End / Step)
+  const seamY      = 0.30 + r()*0.34;          // waterline / step seam height
   const seedJit    = r()*1000;                 // phase jitter for the warps
   const accentMix  = 0.18 + r()*0.22;          // how much warm complementary bleeds in
-  return { palI, fmt, densI, focusI, viewI, surfI, lightAngle, focalScale, phiX, phiY, tonal, causticScale, seamY, seedJit, accentMix };
+  const corner     = Math.floor(r()*4);        // which corner the beam / steps anchor to
+  const vanX       = (r()<0.5 ? 0.22 : 0.78) + (r()-0.5)*0.12; // off-centre vanishing point for Lane
+  const macroZoom  = 1.7 + r()*1.3;            // close-up factor for Macro
+  return { palI, fmt, layI, densI, surfI, lightAngle, focalScale, phiX, phiY, tonal,
+           causticScale, seamY, seedJit, accentMix, corner, vanX, macroZoom };
 }
 
 function labels(p){
   return {
-    Palette:  PALS[p.palI].name,
-    Format:   p.fmt.t,
-    Caustics: DENS[p.densI],
-    Focus:    FOCUS[p.focusI],
-    View:     VIEWS[p.viewI],
-    Surface:  SURFACES[p.surfI],
+    Palette: PALS[p.palI].name,
+    Format:  p.fmt.t,
+    Layout:  LAYOUTS[p.layI],
+    Caustics:DENS[p.densI],
+    Surface: SURFACES[p.surfI],
   };
 }
 
@@ -104,27 +108,56 @@ function draw(cv, seed){
   const water   = P.water;
   const shallow = P.shallow;
   const warm    = P.warm;
+  const layout  = LAYOUTS[p.layI];
   const dens    = DENS[p.densI];
-  const focus   = FOCUS[p.focusI];
-  const view    = VIEWS[p.viewI];
   const surf    = SURFACES[p.surfI];
 
-  // light/caustic colour — sun tinted toward the palette's warm, more so at dusk/dawn/noon
-  const warmLit = P.mood === 2 || P.mood === 3 || P.mood === 5;
-  const sunCol     = mix(P.sun, warm, warmLit ? 0.32 : 0.12);
+  // light/caustic colour — sun tinted toward the palette's warm on warmLit moods
+  const sunCol     = mix(P.sun, warm, P.warmLit ? 0.32 : 0.12);
   const causticCol = mix(shallow, warm, p.accentMix);     // caustics carry the complementary warm
   const causticHi  = mix(causticCol, sunCol, 0.55);
-
-  // focal anchor (the bright pool of light) — phi point, scaled, moves per seed
-  const fx = W * clamp(p.phiX, 0.12, 0.88);
-  const fy = H * clamp(p.phiY, 0.12, 0.88);
-  const focalR = span * (0.30 + p.focalScale * 0.40);     // pool-of-light radius
 
   // directional sun vector
   const ga = p.lightAngle;
   const gx = Math.cos(ga), gy = Math.sin(ga);
 
-  // ---- 1. water depth gradient — runs along the sun axis so the floor recedes ----
+  // corner anchor (for Sunbeam / Steps) — one of four corners
+  const cornerXY = [[0,0],[1,0],[1,1],[0,1]][p.corner];
+  const cornX = cornerXY[0]*W, cornY = cornerXY[1]*H;
+
+  // focal anchor (the bright pool of light) — phi point, scaled, moves per seed.
+  // Each layout overrides this so the focus sits where that composition wants it.
+  let fx = W * clamp(p.phiX, 0.12, 0.88);
+  let fy = H * clamp(p.phiY, 0.12, 0.88);
+  let focalR = span * (0.30 + p.focalScale * 0.40);
+  const seamPx = H * p.seamY;
+
+  if (layout === 'Deep End'){
+    // focus lands on the lit floor BELOW the waterline seam
+    fy = clamp(seamPx + H*0.32, seamPx + H*0.12, H*0.86);
+  } else if (layout === 'Sunbeam'){
+    // focus where the beam lands — diagonally opposite the corner it falls from
+    fx = W*(0.5 + (0.5 - cornerXY[0])*0.7);
+    fy = H*(0.5 + (0.5 - cornerXY[1])*0.7);
+    focalR = span * (0.22 + p.focalScale*0.3);
+  } else if (layout === 'Macro'){
+    // a single bright knot, off-centre on a phi point, tight
+    focalR = span * (0.18 + p.focalScale*0.22);
+  } else if (layout === 'Steps'){
+    // focus in the open water away from the step corner
+    fx = W*(0.5 + (0.5 - cornerXY[0])*0.6);
+    fy = H*(0.5 + (0.5 - cornerXY[1])*0.6);
+  }
+
+  // density falloff helper: 1 near focus → low in far negative space
+  const focalFall = (cx, cy) => {
+    const dx2 = (cx - fx) / focalR, dy2 = (cy - fy) / focalR;
+    const d = Math.sqrt(dx2*dx2 + dy2*dy2);
+    return clamp(1 - d*0.78, 0.06, 1);
+  };
+
+  // ============================================================ 1. WATER BASE
+  // depth gradient runs along the sun axis so the floor recedes
   const grad = x.createLinearGradient(
     W/2 - gx*W*0.6, H/2 - gy*H*0.6,
     W/2 + gx*W*0.6, H/2 + gy*H*0.6
@@ -135,56 +168,48 @@ function draw(cv, seed){
   x.fillStyle = grad;
   x.fillRect(0, 0, W, H);
 
-  // ---- 1b. POOL STRUCTURE — wall→floor bend + receding floor (the "this is a pool" cue) ----
-  // Deep End / Step views draw a darker wall above the seam and a lighter floor below.
-  const hasSeam = view === 'Deep End' || view === 'Step';
-  const seamPx = H * p.seamY;
-  if (hasSeam){
-    // wall (above seam) sits in shadow / deeper colour
-    const wallG = x.createLinearGradient(0, 0, 0, seamPx);
-    wallG.addColorStop(0, rgba(mix(deep,'#000',0.25), 0.85));
-    wallG.addColorStop(1, rgba(deep, 0.55));
-    x.fillStyle = wallG;
-    x.fillRect(0, 0, W, seamPx);
-    // a soft refracted-light line at the wall-to-floor bend
-    x.save();
-    x.globalCompositeOperation = 'lighter';
-    const lg = x.createLinearGradient(0, seamPx - H*0.04, 0, seamPx + H*0.04);
-    lg.addColorStop(0, rgba(causticHi, 0));
-    lg.addColorStop(0.5, rgba(causticHi, 0.18 + p.tonal*0.1));
-    lg.addColorStop(1, rgba(causticHi, 0));
-    x.fillStyle = lg;
-    x.fillRect(0, seamPx - H*0.04, W, H*0.08);
-    x.restore();
-    // a step edge ledge for Step view
-    if (view === 'Step'){
-      const stepY = seamPx + H*0.16;
-      x.save();
-      x.globalCompositeOperation = 'multiply';
-      x.fillStyle = rgba(mix(deep,'#000',0.15), 0.28);
-      x.fillRect(0, seamPx, W, H*0.16);
-      x.restore();
-      x.save();
-      x.globalCompositeOperation = 'lighter';
-      x.fillStyle = rgba(causticHi, 0.12);
-      x.fillRect(0, stepY - 3, W, 3);
-      x.restore();
-    }
+  // Sunbeam wants the base pushed deeper (more negative space / darker field)
+  if (layout === 'Sunbeam'){
+    x.save(); x.globalCompositeOperation='multiply';
+    x.fillStyle = rgba(mix(deep,'#000',0.25), 0.4 + p.tonal*0.2);
+    x.fillRect(0,0,W,H); x.restore();
   }
 
-  // ---- 2. tile grout in perspective (receding toward the seam / top) ----
-  // vanishing point pulled toward the sun side & seam for depth.
-  {
+  // ============================================================ 2. STRUCTURE
+  // ---- Deep End: darker wall above the waterline seam, lit floor below ----
+  if (layout === 'Deep End'){
+    const wallG = x.createLinearGradient(0, 0, 0, seamPx);
+    wallG.addColorStop(0, rgba(mix(deep,'#000',0.30), 0.92));
+    wallG.addColorStop(1, rgba(deep, 0.6));
+    x.fillStyle = wallG;
+    x.fillRect(0, 0, W, seamPx);
+    // refracted-light line at the wall→floor bend
+    x.save(); x.globalCompositeOperation='lighter';
+    const lg = x.createLinearGradient(0, seamPx - H*0.05, 0, seamPx + H*0.05);
+    lg.addColorStop(0, rgba(causticHi, 0));
+    lg.addColorStop(0.5, rgba(causticHi, 0.22 + p.tonal*0.12));
+    lg.addColorStop(1, rgba(causticHi, 0));
+    x.fillStyle = lg; x.fillRect(0, seamPx - H*0.05, W, H*0.1);
+    x.restore();
+    // faint vertical wall tiling above the seam
+    x.save(); x.globalAlpha=0.4;
+    x.strokeStyle = rgba(mix(deep,'#000',0.2), 0.5);
+    x.lineWidth = Math.max(1, span*0.0014);
+    for (let i=1;i<8;i++){ const wx=i/8*W; x.beginPath(); x.moveTo(wx,0); x.lineTo(wx,seamPx); x.stroke(); }
+    for (let j=1;j<3;j++){ const wy=j/3*seamPx; x.beginPath(); x.moveTo(0,wy); x.lineTo(W,wy); x.stroke(); }
+    x.restore();
+  }
+
+  // ---- floor grout in perspective: Overhead / Deep End / Steps get a recede ----
+  if (layout === 'Overhead' || layout === 'Deep End' || layout === 'Steps'){
+    const floorTop = layout === 'Deep End' ? seamPx : 0;
     const vpX = W * (0.5 + gx*0.22);
-    const vpY = hasSeam ? seamPx : H * (0.5 + gy*0.42 - 0.35);
-    const floorTop = hasSeam ? seamPx : 0;
+    const vpY = layout === 'Deep End' ? seamPx : H * (0.18 + (gy*0.5+0.5)*0.1);
     const groutCol = mix(P.deep, '#000', 0.2);
     const cols = 9, rows = 11;
-    x.save();
-    x.globalAlpha = 0.5;
+    x.save(); x.globalAlpha = 0.45;
     x.strokeStyle = rgba(groutCol, 0.5);
     x.lineWidth = Math.max(1, span*0.0016);
-    // vertical grout lines fan from the vanishing point down to the bottom edge
     for (let i = 0; i <= cols; i++){
       const bx = (i / cols) * W;
       x.beginPath();
@@ -192,21 +217,51 @@ function draw(cv, seed){
       x.lineTo(bx, H);
       x.stroke();
     }
-    // horizontal grout lines compress toward the vanishing line (perspective)
     for (let j = 0; j <= rows; j++){
       const t = j / rows;
-      const yy = floorTop + (H - floorTop) * (t*t);   // quadratic spacing = receding
-      x.beginPath();
-      x.moveTo(0, yy);
-      x.lineTo(W, yy);
-      x.stroke();
+      const yy = floorTop + (H - floorTop) * (t*t);
+      x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke();
     }
     x.restore();
   }
 
-  // ---- 3. FOCAL pool-of-light — the bright sunlit hotspot anchored on the phi point ----
-  // This is the subject. Density of everything else falls off from it.
-  {
+  // ---- Lane: strong perspective lane-lines to an OFF-CENTRE vanishing point ----
+  if (layout === 'Lane'){
+    const vpX = W * p.vanX;
+    const vpY = H * (0.30 + (gy*0.5+0.5)*0.12);
+    const laneCol = mix(P.deep, '#000', 0.28);
+    const laneHi  = mix(shallow, sunCol, 0.4);
+    x.save();
+    const lanes = 7 + rint(r,0,2);
+    for (let i = 0; i <= lanes; i++){
+      const bx = (i / lanes) * W * 1.4 - W*0.2;
+      // dark grout band
+      x.strokeStyle = rgba(laneCol, 0.55);
+      x.lineWidth = Math.max(2, span*0.006 * (1 - (vpY/H)*0.3));
+      x.beginPath(); x.moveTo(vpX, vpY); x.lineTo(bx, H); x.stroke();
+      // bright tile crown beside it (the painted lane line)
+      x.save(); x.globalCompositeOperation='lighter';
+      x.strokeStyle = rgba(laneHi, 0.1 + p.tonal*0.06);
+      x.lineWidth = Math.max(1, span*0.003);
+      x.beginPath(); x.moveTo(vpX, vpY); x.lineTo(bx + W*0.02, H); x.stroke();
+      x.restore();
+    }
+    // cross tile rows compressing toward the vanishing line
+    x.globalAlpha = 0.4;
+    x.strokeStyle = rgba(laneCol, 0.5);
+    x.lineWidth = Math.max(1, span*0.0016);
+    for (let j = 1; j <= 9; j++){
+      const t = j/9;
+      const yy = vpY + (H - vpY) * (t*t);
+      x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke();
+    }
+    x.restore();
+  }
+
+  // ============================================================ 3. FOCAL LIGHT
+  // bright sunlit pool anchored on the phi/layout focus — the subject; everything falls off from it.
+  // Macro skips the broad pool (it IS the close-up net); others paint it.
+  if (layout !== 'Macro'){
     x.save();
     x.globalCompositeOperation = 'lighter';
     const g = x.createRadialGradient(fx, fy, 0, fx, fy, focalR);
@@ -218,30 +273,35 @@ function draw(cv, seed){
     x.fillStyle = g;
     x.fillRect(0, 0, W, H);
     x.restore();
-    // darken the far corners away from focus (negative space the eye skips)
+  }
+  // darken corners away from focus (negative space the eye skips)
+  {
     x.save();
     x.globalCompositeOperation = 'multiply';
+    const darkPunch = (layout==='Sunbeam'||layout==='Macro') ? 0.42 : 0.32;
     const dgC = x.createRadialGradient(fx, fy, focalR*0.5, fx, fy, span*1.05);
     dgC.addColorStop(0, rgba(deep, 0));
-    dgC.addColorStop(1, rgba(mix(deep,'#000',0.3), 0.32 + p.tonal*0.2));
+    dgC.addColorStop(1, rgba(mix(deep,'#000',0.3), darkPunch + p.tonal*0.2));
     x.fillStyle = dgC;
     x.fillRect(0, 0, W, H);
     x.restore();
   }
 
-  // density helper: 1 near the focal pool, → 0 in the far negative space
-  const focalFall = (cx, cy) => {
-    const dx2 = (cx - fx) / focalR, dy2 = (cy - fy) / focalR;
-    const d = Math.sqrt(dx2*dx2 + dy2*dy2);
-    return clamp(1 - d*0.78, 0.06, 1);
-  };
-
-  // ---- 4. the caustic net: two crossing families of warped bright ribbons, additive ----
-  // Brightness modulated by focalFall so the net concentrates around the subject.
+  // ============================================================ 4. CAUSTIC NET
+  // two crossing families of warped bright ribbons, additive; brightness modulated
+  // by focalFall so the net concentrates around the subject. Macro zooms the cell
+  // size way up for the near-abstract close-up.
   const layerCount = dens === 'Dense' ? 5 : dens === 'Woven' ? 4 : 3;
   const baseLines  = dens === 'Dense' ? 28 : dens === 'Woven' ? 20 : 13;
   const amp = surf === 'Choppy' ? 1.0 : surf === 'Lapping' ? 0.62 : 0.32;
-  const cellSize = span * 0.085 * p.causticScale;
+  const macroMul = layout === 'Macro' ? p.macroZoom : 1;
+  const cellSize = span * 0.085 * p.causticScale * macroMul;
+  // Sunbeam: net only really shows where the beam lands (near focus) — clamp falloff tighter.
+  const netFall = (cx, cy) => {
+    let ff = focalFall(cx, cy);
+    if (layout === 'Sunbeam') ff = clamp(ff*1.15 - 0.12, 0.02, 1);
+    return ff;
+  };
 
   x.save();
   x.globalCompositeOperation = 'lighter';
@@ -268,10 +328,8 @@ function draw(cv, seed){
         const oy = H/2 + py*off;
         const baseBright = clamp(glow * (0.6 + r()*0.9), 0.02, 0.2);
         x.lineWidth = lineW;
-        x.beginPath();
         const steps = 44;
         const length = span*1.8;
-        // stroke in short segments so brightness can vary with focal proximity
         let prevX = 0, prevY = 0;
         for (let s = 0; s <= steps; s++){
           const t = s/steps;
@@ -283,7 +341,10 @@ function draw(cv, seed){
           const cy = oy + dy*along + py*warp;
           if (s > 0){
             const midX = (cx+prevX)/2, midY = (cy+prevY)/2;
-            const ff = focalFall(midX, midY);
+            // Deep End: kill caustics above the waterline (they live on the floor)
+            let gate = 1;
+            if (layout === 'Deep End' && midY < seamPx) gate = 0.04;
+            const ff = netFall(midX, midY) * gate;
             x.strokeStyle = rgba(col, clamp(baseBright * (0.25 + ff*0.95), 0.01, 0.26));
             x.beginPath();
             x.moveTo(prevX, prevY);
@@ -297,16 +358,17 @@ function draw(cv, seed){
   }
   x.restore();
 
-  // ---- 5. caustic knots — brightest where the net crosses, biased to the focal pool ----
+  // ============================================================ 5. CAUSTIC KNOTS
+  // brightest where the net crosses, biased to the focal pool.
   x.save();
   x.globalCompositeOperation = 'lighter';
   const knotsBase = dens === 'Dense' ? 200 : dens === 'Woven' ? 140 : 80;
   for (let i = 0; i < knotsBase; i++){
-    // sample biased toward the focal pool (numeric lerp — NOT mix())
     const rx = r()*W, ry = r()*H;
     const bx = rx + (fx - rx)*0.45*r(), by = ry + (fy - ry)*0.45*r();
-    const ff = focalFall(bx, by);
-    if (r() > ff*0.95 + 0.05) continue;               // thin out away from focus → negative space
+    if (layout === 'Deep End' && by < seamPx) continue;        // floor only
+    const ff = netFall(bx, by);
+    if (r() > ff*0.95 + 0.05) continue;
     const rad = cellSize * (0.07 + r()*0.2) * (surf === 'Choppy' ? 1.3 : 1);
     const a = (0.05 + r()*0.13) * (0.4 + ff*0.8);
     const g = x.createRadialGradient(bx, by, 0, bx, by, rad);
@@ -320,79 +382,126 @@ function draw(cv, seed){
   }
   x.restore();
 
-  // ---- 6. FOCUS event: Spotlit core / Seam of light / Drift of pools ----
-  x.save();
-  x.globalCompositeOperation = 'screen';
-  if (focus === 'Spotlit'){
-    // a tight bright core inside the focal pool
-    const g = x.createRadialGradient(fx, fy, 0, fx, fy, focalR*0.4);
-    g.addColorStop(0, rgba(sunCol, 0.4 + p.tonal*0.25));
-    g.addColorStop(0.5, rgba(causticHi, 0.16));
+  // ============================================================ 6. LAYOUT FOCAL EVENT
+  if (layout === 'Macro'){
+    // a single bright knot off-centre — the close-up subject
+    x.save(); x.globalCompositeOperation='screen';
+    const g = x.createRadialGradient(fx, fy, 0, fx, fy, focalR);
+    g.addColorStop(0, rgba(sunCol, 0.5 + p.tonal*0.25));
+    g.addColorStop(0.4, rgba(causticHi, 0.22));
     g.addColorStop(1, rgba(causticHi, 0));
     x.fillStyle = g; x.fillRect(0,0,W,H);
-  } else if (focus === 'Seam'){
-    // a sunlit pool-floor seam crossing through the focal point along the light axis
-    const sx = -gy, sy = gx; // perpendicular to sun → the seam runs across
-    x.lineCap = 'round';
-    for (let k = 0; k < 3; k++){
-      const w = focalR * (0.5 - k*0.13);
-      x.strokeStyle = rgba(k === 0 ? sunCol : causticHi, (0.22 - k*0.05) + p.tonal*0.12);
-      x.lineWidth = Math.max(2, focalR*(0.06 - k*0.015));
-      x.beginPath();
-      x.moveTo(fx - sx*w*1.4, fy - sy*w*1.4);
-      x.quadraticCurveTo(fx + gx*focalR*0.12, fy + gy*focalR*0.12, fx + sx*w*1.4, fy + sy*w*1.4);
-      x.stroke();
-    }
+    x.restore();
   } else {
-    // Drift: a short chain of warm sunlit pools leading the eye away from focus
-    let cxp = fx, cyp = fy;
-    const lead = 4 + Math.floor(p.focalScale*3);
-    for (let k = 0; k < lead; k++){
-      const rad = focalR * (0.26 - k*0.03) * (0.7 + r()*0.6);
-      if (rad <= 0) break;
-      const g = x.createRadialGradient(cxp, cyp, 0, cxp, cyp, rad);
-      const a = (0.26 - k*0.03) + p.tonal*0.1;
-      g.addColorStop(0, rgba(k===0?sunCol:causticHi, a));
-      g.addColorStop(0.6, rgba(causticHi, a*0.3));
-      g.addColorStop(1, rgba(causticHi, 0));
-      x.fillStyle = g;
-      x.beginPath(); x.arc(cxp, cyp, rad, 0, Math.PI*2); x.fill();
-      cxp += gx*focalR*0.28 + (r()-0.5)*focalR*0.2;
-      cyp += gy*focalR*0.28 + (r()-0.5)*focalR*0.2;
-    }
+    // a tight bright core inside the focal pool (gives the eye a landing point)
+    x.save(); x.globalCompositeOperation='screen';
+    const g = x.createRadialGradient(fx, fy, 0, fx, fy, focalR*0.4);
+    g.addColorStop(0, rgba(sunCol, 0.36 + p.tonal*0.22));
+    g.addColorStop(0.5, rgba(causticHi, 0.14));
+    g.addColorStop(1, rgba(causticHi, 0));
+    x.fillStyle = g; x.fillRect(0,0,W,H);
+    x.restore();
   }
-  x.restore();
 
-  // ---- 7. angled light SHAFTS down through the water (Shaft view, or warm-lit moods) ----
-  if (view === 'Shaft'){
+  // ============================================================ 7. GOD-RAYS / SHAFTS
+  // Sunbeam: strong diagonal underwater light shafts from one corner across deep water.
+  if (layout === 'Sunbeam'){
     x.save();
     x.globalCompositeOperation = 'screen';
-    const shafts = 4 + rint(r, 0, 3);
+    // beam axis runs from the chosen corner toward the focus
+    const ang = Math.atan2(fy - cornY, fx - cornX);
+    const ax = Math.cos(ang), ay = Math.sin(ang);
+    const perpX = -ay, perpY = ax;
+    const shafts = 5 + rint(r, 0, 3);
+    const reach = span * 1.5;
     for (let i = 0; i < shafts; i++){
-      const baseX = fx + (i - shafts/2) * (focalR*0.5/shafts) + randn(r)*W*0.06;
-      const topX  = baseX - gx*W*0.5;
-      const wTop = W*(0.02 + r()*0.03), wBot = wTop*2.4;
-      const a = (0.05 + r()*0.06) + p.tonal*0.04;
-      const lg = x.createLinearGradient(topX, 0, baseX, H);
+      const spread = (i - shafts/2) * (span*0.05) + randn(r)*span*0.04;
+      const sx0 = cornX + perpX*spread;
+      const sy0 = cornY + perpY*spread;
+      const ex  = cornX + ax*reach + perpX*spread*2.2;
+      const ey  = cornY + ay*reach + perpY*spread*2.2;
+      const wTop = span*(0.012 + r()*0.02), wBot = wTop*2.6;
+      const a = (0.06 + r()*0.07) + p.tonal*0.05;
+      const lg = x.createLinearGradient(sx0, sy0, ex, ey);
       lg.addColorStop(0, rgba(sunCol, a));
+      lg.addColorStop(0.7, rgba(sunCol, a*0.4));
       lg.addColorStop(1, rgba(sunCol, 0));
       x.fillStyle = lg;
       x.beginPath();
-      x.moveTo(topX - wTop, 0); x.lineTo(topX + wTop, 0);
-      x.lineTo(baseX + wBot, H); x.lineTo(baseX - wBot, H);
+      x.moveTo(sx0 - perpX*wTop, sy0 - perpY*wTop);
+      x.lineTo(sx0 + perpX*wTop, sy0 + perpY*wTop);
+      x.lineTo(ex  + perpX*wBot, ey  + perpY*wBot);
+      x.lineTo(ex  - perpX*wBot, ey  - perpY*wBot);
       x.closePath(); x.fill();
     }
     x.restore();
   }
 
-  // ---- 8. surface shimmer streaks (ripple glints) ----
+  // ============================================================ 8. STEPS / EDGE
+  // pool steps or ladder edge tucked into one corner; an architectural asymmetric crop.
+  if (layout === 'Steps'){
+    x.save();
+    const flipX = cornerXY[0] === 1 ? -1 : 1;
+    const flipY = cornerXY[1] === 1 ? -1 : 1;
+    const reg = 0.42;                       // steps occupy ~42% of the short side from the corner
+    const sw = W*reg, sh = H*reg;
+    const ux = (u) => cornX + flipX*u*sw;   // u in [0,1] outward from corner
+    const uy = (v) => cornY + flipY*v*sh;
+    // shadowed corner wedge under the steps
+    x.globalCompositeOperation='multiply';
+    x.fillStyle = rgba(mix(deep,'#000',0.22), 0.42);
+    x.beginPath();
+    x.moveTo(cornX, cornY); x.lineTo(ux(1.05), cornY); x.lineTo(cornX, uy(1.05));
+    x.closePath(); x.fill();
+    x.restore();
+    // the step treads — receding nested bands, each lit on its front lip
+    const treads = 4;
+    for (let s = 0; s < treads; s++){
+      const t0 = s / treads, t1 = (s+1) / treads;
+      const inset = 1 - t0*0.85;             // each tread smaller toward the corner
+      x.save();
+      x.globalCompositeOperation='multiply';
+      x.fillStyle = rgba(mix(deep,'#000',0.12), 0.18 + s*0.04);
+      x.beginPath();
+      x.moveTo(cornX, uy(t0*inset));
+      x.lineTo(ux(t0*inset), cornY);
+      x.lineTo(ux(t1*inset), cornY);
+      x.lineTo(cornX, uy(t1*inset));
+      x.closePath(); x.fill();
+      x.restore();
+      // lit lip on the tread edge (caustic-lit tile nosing)
+      x.save(); x.globalCompositeOperation='lighter';
+      x.strokeStyle = rgba(causticHi, 0.18 + p.tonal*0.1);
+      x.lineWidth = Math.max(2, span*0.004);
+      x.beginPath();
+      x.moveTo(cornX, uy(t1*inset));
+      x.lineTo(ux(t1*inset), cornY);
+      x.stroke();
+      x.restore();
+    }
+    // a slim ladder rail along the very edge for some seeds
+    if (r() < 0.5){
+      x.save(); x.globalCompositeOperation='screen';
+      x.strokeStyle = rgba(sunCol, 0.3);
+      x.lineWidth = Math.max(2, span*0.006);
+      const rail = 0.12;
+      x.beginPath();
+      x.moveTo(ux(rail), cornY); x.lineTo(ux(rail), uy(0.9));
+      x.moveTo(ux(rail*2.4), cornY); x.lineTo(ux(rail*2.4), uy(0.9));
+      x.stroke();
+      x.restore();
+    }
+  }
+
+  // ============================================================ 9. SURFACE SHIMMER
   if (surf !== 'Still'){
     x.save();
     x.globalCompositeOperation = 'lighter';
     const streaks = surf === 'Choppy' ? 24 : 12;
     for (let i = 0; i < streaks; i++){
       const sy = r()*H, sw = W*(0.1 + r()*0.4), sx0 = r()*W;
-      const ff = focalFall(sx0 + sw*0.5, sy);
+      if (layout === 'Deep End' && sy < seamPx) continue;
+      const ff = netFall(sx0 + sw*0.5, sy);
       x.strokeStyle = rgba(sunCol, (0.03 + r()*0.05) * (0.4 + ff*0.7));
       x.lineWidth = 1 + r()*2.5;
       x.beginPath();
@@ -404,7 +513,8 @@ function draw(cv, seed){
     x.restore();
   }
 
-  // ---- 9. directional light gradient — brighter toward the sun side ----
+  // ============================================================ 10. PHOTOGRAPHIC FINISH
+  // directional light gradient — brighter toward the sun side
   x.save();
   x.globalCompositeOperation = 'soft-light';
   const lgr = x.createLinearGradient(W/2 - gx*W*0.5, H/2 - gy*H*0.5, W/2 + gx*W*0.5, H/2 + gy*H*0.5);
@@ -415,7 +525,7 @@ function draw(cv, seed){
   x.fillRect(0, 0, W, H);
   x.restore();
 
-  // ---- 10. warm complementary edge bleed so the piece reads against the teal page ----
+  // warm complementary edge bleed so the piece reads against the teal page
   x.save();
   x.globalCompositeOperation = 'overlay';
   const eg = x.createRadialGradient(W/2, H/2, span*0.35, W/2, H/2, span*0.72);
@@ -425,7 +535,7 @@ function draw(cv, seed){
   x.fillRect(0, 0, W, H);
   x.restore();
 
-  // ---- 11. far-side depth darkening (tonal range — deep shadow pockets) ----
+  // far-side depth darkening (tonal range — deep shadow pockets)
   x.save();
   x.globalCompositeOperation = 'multiply';
   const dg = x.createLinearGradient(W/2 + gx*W*0.5, H/2 + gy*H*0.5, W/2 - gx*W*0.5, H/2 - gy*H*0.5);
@@ -435,7 +545,7 @@ function draw(cv, seed){
   x.fillRect(0, 0, W, H);
   x.restore();
 
-  // ---- 12. organic texture + photographic finish ----
+  // organic texture + finish
   mottle(x, 0, 0, W, H, water, 1100, r, 'overlay');
   grain(x, W, H, 1400, r);
   vignette(x, W, H, 0.2 + p.tonal*0.12);
@@ -448,9 +558,8 @@ export const shallowSchema: TraitSchema = {
   traits: [
     { name:'Palette',  values: PALS.map(p => p.name) },
     { name:'Format',   values: ['Square','Portrait','Landscape'] },
+    { name:'Layout',   values: LAYOUTS.slice() },
     { name:'Caustics', values: DENS.slice() },
-    { name:'Focus',    values: FOCUS.slice() },
-    { name:'View',     values: VIEWS.slice() },
     { name:'Surface',  values: SURFACES.slice() },
   ],
 };
