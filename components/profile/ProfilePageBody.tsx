@@ -886,8 +886,8 @@ function ProfilePageBodyInner({
        picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
        like the gallery), so there's no separate Group button (Brendon 2026-06-19).
        Wishlist keeps its own #ID sort. */
-    type MoreSortKey = 'recent' | 'id' | 'project' | 'price';
-    type MoreMode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
+    type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
+    type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
@@ -900,7 +900,8 @@ function ProfilePageBodyInner({
         outputs:     { sorts: ['recent', 'project', 'price'], groups: ['none', 'color', 'project', 'artist'] },
         traits:      { sorts: ['recent', 'project', 'price'], groups: ['none', 'project', 'artist'] },
         projects:    { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist'] },
-        artists:     { sorts: ['recent', 'project', 'price'], groups: ['none', 'color'] },
+        artists:     { sorts: ['recent', 'project', 'followers', 'price'], groups: ['none', 'color'] },
+        collectors:  { sorts: ['recent', 'project', 'followers', 'price'], groups: ['none', 'color'] },
         soundtracks: { sorts: ['recent', 'project', 'price'], groups: ['none', 'artist', 'project'] },
         wishlist:    { sorts: ['recent', 'id', 'project', 'price'], groups: ['none'] },
     };
@@ -908,7 +909,7 @@ function ProfilePageBodyInner({
     /* Reset sort + grouping when the active filter pill changes (StarredList
        reports it up) so a grouping never carries into a filter it can't apply. */
     useEffect(() => { setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreMode]);
-    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE' };
+    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
     const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
     /* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
        button, same as the gallery. */
@@ -948,6 +949,17 @@ function ProfilePageBodyInner({
         setArtistStars(getArtistStars());
         return subscribeArtistStars((next) => setArtistStars(next));
     }, []);
+    /* Any user can be starred; we split the starred handles into ARTISTS (handles
+       that have ≥1 project) and COLLECTORS (everyone else) so each gets its own
+       filter (Brendon 2026-06-19). */
+    const starredArtistHandles = useMemo(
+        () => artistStars.filter((h) => projectsByArtist(h.replace(/^@/, '')).length > 0),
+        [artistStars],
+    );
+    const starredCollectorHandles = useMemo(
+        () => artistStars.filter((h) => projectsByArtist(h.replace(/^@/, '')).length === 0),
+        [artistStars],
+    );
 
     /* Starred Soundtracks — favourited Project soundtracks, under the Starred
        tab's Soundtracks filter. */
@@ -2053,7 +2065,8 @@ function ProfilePageBodyInner({
                 <StarredList
                     items={starredValid}
                     traits={traitStarsValid}
-                    artists={artistStars}
+                    artists={starredArtistHandles}
+                    collectors={starredCollectorHandles}
                     soundtracks={soundtrackStars}
                     projects={projectStarsValid}
                     searchOpen={moreSearchOpen}

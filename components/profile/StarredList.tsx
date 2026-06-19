@@ -25,7 +25,7 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
-import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor } from '../../lib/market/starredMarket';
+import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor, collectorTopBuy, collectorTopBuyEth, collectorProjectsOwned } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
@@ -34,7 +34,7 @@ import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundt
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
-import { useArtistColors, artistBucket } from '../../lib/pins/artistColorStore';
+import { useArtistColors, artistBucket, artistFollowers, artistSprite } from '../../lib/pins/artistColorStore';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -44,8 +44,8 @@ export interface StarredItem {
     id: number;
 }
 
-type Mode = 'all' | 'artists' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
-type SortKey = 'recent' | 'id' | 'project' | 'price';
+type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
+type SortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 
 /* A labelled group section; `label` null = ungrouped (no header rendered). */
 interface Section<T> { label: string | null; key: string; rows: T[]; }
@@ -62,6 +62,7 @@ export default function StarredList({
     items,
     traits = [],
     artists = [],
+    collectors = [],
     soundtracks = [],
     projects = [],
     searchOpen = false,
@@ -79,6 +80,7 @@ export default function StarredList({
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
     artists?: ReadonlyArray<string>;
+    collectors?: ReadonlyArray<string>;
     soundtracks?: ReadonlyArray<SoundtrackStar>;
     projects?: ReadonlyArray<string>;
     /* Search is controlled by the parent so its ⌕ icon can live up in the
@@ -127,6 +129,7 @@ export default function StarredList({
         if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
         if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
         if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
+        if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
         if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
         if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
         const n = selected.size;
@@ -255,6 +258,16 @@ export default function StarredList({
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [traitRows, query, sortKey, sortDir]);
 
+    /* Official colour + follower count + sprite for every starred USER (artists
+       AND collectors), loaded once at the list level so we can group by colour
+       and sort by followers across the whole list. */
+    const userMetaHandles = useMemo(
+        () => [...artists, ...collectors].map((h) => h.replace(/^@/, '')),
+        [artists, collectors],
+    );
+    const userMetaVer = useArtistColors(userMetaHandles);
+    const followersOf = (handle: string) => artistFollowers(handle) ?? -1; // unknown sorts last (asc)
+
     /* ── Artist rows ──────────────────────────────────────────────────── */
     const visibleArtists = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -262,10 +275,26 @@ export default function StarredList({
         const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => artistFloorEth(a.handle) - artistFloorEth(b.handle));
+        else if (sortKey === 'followers') sorted.sort((a, b) => followersOf(a.handle) - followersOf(b.handle));
         else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
-    }, [artists, query, sortKey, sortDir]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [artists, query, sortKey, sortDir, userMetaVer]);
+
+    /* ── Collector rows (starred users with no projects) ──────────────── */
+    const visibleCollectors = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = collectors.map((name, i) => ({ name, handle: name.replace(/^@/, ''), recentIndex: i }));
+        const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'price') sorted.sort((a, b) => collectorTopBuyEth(a.handle) - collectorTopBuyEth(b.handle));
+        else if (sortKey === 'followers') sorted.sort((a, b) => followersOf(a.handle) - followersOf(b.handle));
+        else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectors, query, sortKey, sortDir, userMetaVer]);
 
     /* ── Soundtrack rows ──────────────────────────────────────────────── */
     const visibleSoundtracks = useMemo(() => {
@@ -325,14 +354,17 @@ export default function StarredList({
         return [{ label: null as string | null, key: '_', rows: visibleTraits }];
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, group, visibleTraits]);
-    /* Artists can group by their OFFICIAL colour (loaded at the list level). */
-    const artistHandles = useMemo(() => visibleArtists.map((r) => r.handle), [visibleArtists]);
-    const artistColorsVer = useArtistColors(artistHandles);
+    /* Artists + Collectors can group by their OFFICIAL colour (loaded above). */
     const artistSections = useMemo(() => {
         if (dimFor('artists') === 'color') return sectionize(visibleArtists, (r) => artistBucket(r.handle) ?? 'Other', COLOR_ORDER);
         return [{ label: null as string | null, key: '_', rows: visibleArtists }];
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mode, group, visibleArtists, artistColorsVer]);
+    }, [mode, group, visibleArtists, userMetaVer]);
+    const collectorSections = useMemo(() => {
+        if (dimFor('collectors') === 'color') return sectionize(visibleCollectors, (r) => artistBucket(r.handle) ?? 'Other', COLOR_ORDER);
+        return [{ label: null as string | null, key: '_', rows: visibleCollectors }];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, group, visibleCollectors, userMetaVer]);
     const projectSections = useMemo(() => {
         if (dimFor('projects') === 'artist') return sectionize(visibleProjects, (r) => artistOf(r.slug));
         return [{ label: null as string | null, key: '_', rows: visibleProjects }];
@@ -394,8 +426,9 @@ export default function StarredList({
     /* Brendon's order: All Starred › Artists › Projects › Outputs › Traits ›
        Soundtracks. */
     const PILLS: { key: Mode; label: string; count: number }[] = [
-        { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + soundtracks.length + visibleProjects.length },
+        { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + collectors.length + soundtracks.length + visibleProjects.length },
         { key: 'artists',     label: 'Artists',     count: artists.length       },
+        { key: 'collectors',  label: 'Collectors',  count: collectors.length    },
         { key: 'projects',    label: 'Projects',    count: projects.length      },
         { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
         { key: 'traits',      label: 'Traits',      count: traitRows.length     },
@@ -403,10 +436,11 @@ export default function StarredList({
     ];
 
     const totalVisible =
-        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleSoundtracks.length + visibleProjects.length
+        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
         : mode === 'artists' ? visibleArtists.length
+        : mode === 'collectors' ? visibleCollectors.length
         : mode === 'soundtracks' ? visibleSoundtracks.length
         : visibleProjects.length;
 
@@ -569,6 +603,35 @@ export default function StarredList({
                                         onUnstar={(e) => handleArtistUnstar(e, r.name)}
                                         grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
                                         onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
+                                        variant="artist"
+                                        sprite={artistSprite(r.handle)}
+                                    />
+                                ))}
+                            </Fragment>
+                        ))}
+                    </>
+                )}
+                {(mode === 'all' || mode === 'collectors') && (
+                    <>
+                        {typeHdr && visibleCollectors.length > 0 && <div className="starred-group-header">Collectors</div>}
+                        {collectorSections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.rows.map((r) => (
+                                    <StarredArtistRow
+                                        key={r.name}
+                                        name={r.name}
+                                        handle={r.handle}
+                                        viewerAddress={viewerAddress}
+                                        multiActive={multiActive}
+                                        selected={selected.has(r.name)}
+                                        onToggleSel={() => toggleSel(r.name)}
+                                        onFollow={() => showToast('Follow: COMING SOON')}
+                                        onUnstar={(e) => handleArtistUnstar(e, r.name)}
+                                        grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
+                                        onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
+                                        variant="collector"
+                                        sprite={artistSprite(r.handle)}
                                     />
                                 ))}
                             </Fragment>
@@ -888,6 +951,8 @@ function StarredArtistRow({
     onUnstar,
     grailPinned,
     onGrail,
+    variant = 'artist',
+    sprite = null,
 }: {
     name: string;
     handle: string;
@@ -899,6 +964,8 @@ function StarredArtistRow({
     onUnstar: (e: React.MouseEvent) => void;
     grailPinned: boolean;
     onGrail: () => void;
+    variant?: 'artist' | 'collector';
+    sprite?: string | null;
 }) {
     const cacheKey = `${handle}|${(viewerAddress ?? '').toLowerCase()}`;
     const cached = artistMetaCache.get(cacheKey);
@@ -948,20 +1015,29 @@ function StarredArtistRow({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
             <div className="trait-row-tile artist-tile">
-                <span className="artist-row-tile-glyph" style={{ color: artistColor(handle) }}>✺&#xFE0E;</span>
+                <span className="artist-row-tile-glyph" style={{ color: artistColor(handle) }}>{variant === 'collector' ? '☻︎' : '✺︎'}</span>
             </div>
             <div className="starred-row-meta">
                 <span className="starred-row-id">
                     {name}
-                    <span className="artist-tag" aria-label="artist">{'✺︎'}</span>
+                    {variant === 'artist' && <span className="artist-tag" aria-label="artist">{'✺︎'}</span>}
                     {relGlyph && <span className={`artist-social-ico${rel === 'mutual' ? '' : ' is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
                     {count != null && count > 0 && (
                         <span className="follower-count">{count >= 1000 ? `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k` : count}</span>
                     )}
                 </span>
-                <span className="starred-row-sub">Floor:<em>{artistFloor(handle) ?? '—'}</em></span>
-                <span className="starred-row-sub">{projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>
-                <span className="starred-row-sub">Artist</span>
+                {variant === 'collector' ? (
+                    <>
+                        <span className="starred-row-sub">Top buy:<em>{collectorTopBuy(handle)}</em></span>
+                        <span className="starred-row-sub">{collectorProjectsOwned(handle)} projects owned</span>
+                    </>
+                ) : (
+                    <>
+                        <span className="starred-row-sub">Floor:<em>{artistFloor(handle) ?? '—'}</em></span>
+                        <span className="starred-row-sub">{projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>
+                    </>
+                )}
+                <span className="starred-row-sub">{variant === 'collector' ? 'Collector' : 'Artist'}{sprite ? ' ' + sprite : ''}</span>
             </div>
             <div className="starred-row-actions">
                 <span

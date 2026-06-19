@@ -84,6 +84,24 @@ export function artistFloor(handle: string): string | null {
     return Number.isFinite(f) ? eth(f) : null;
 }
 
+/* ── Collector "top buy" ──────────────────────────────────────────────────────
+   A collector's headline number = their HIGHEST purchase on the platform. We'll
+   track this for real later; for now it's a deterministic dummy in a believable
+   range so the row + sort light up (Brendon 2026-06-19). */
+export function collectorTopBuyEth(handle: string): number {
+    const h = handle.replace(/^@/, '').toLowerCase();
+    return 0.05 + seedFloat('topbuy|' + h) * 2.4; // ~0.05–2.45 ETH
+}
+export function collectorTopBuy(handle: string): string {
+    return eth(collectorTopBuyEth(handle));
+}
+
+/** Dummy count of distinct projects a collector OWNS (real count lands later). */
+export function collectorProjectsOwned(handle: string): number {
+    const h = handle.replace(/^@/, '').toLowerCase();
+    return 1 + Math.floor(seedFloat('projowned|' + h) * 12); // 1–12
+}
+
 /* ── Artist colour ───────────────────────────────────────────────────────────
    Brendon's spec: colour the artist tile by the artist's LIVE colorway, else
    their Generative Colorway from their DB row. We don't have a handle→address

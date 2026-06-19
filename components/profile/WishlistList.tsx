@@ -32,7 +32,7 @@ export interface WishlistItem {
     id: number;
 }
 
-type SortKey = 'recent' | 'id' | 'project' | 'price';
+type SortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 
 export default function WishlistList({
     items,
