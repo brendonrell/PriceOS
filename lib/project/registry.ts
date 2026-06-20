@@ -27,6 +27,13 @@ import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '..
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
+/* ── HALO competition cohort (2026-06-20) — opus4-8 flagship contenders ──
+ * Four self-contained cyberpunk-terminal engines, one per art director. The
+ * jury crowns one as the platform halo; the rest stay live per Brendon's call. */
+import { renderHaloA, haloATraits, haloASchema, HALOA_ASPECTS } from '../art/engines/ai/extra/halo/aDirector';
+import { renderHaloB, haloBTraits, haloBSchema, HALOB_ASPECTS } from '../art/engines/ai/extra/halo/bDirector';
+import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
+import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -190,6 +197,34 @@ const BULLETIN: ProjectDef = {
   traitsOf: bulletinTraits,
 };
 
+/* ── HALO cohort (2026-06-20) — opus4-8 flagship contenders. Provisional
+ * soundtracks/colorways/supplies pending the jury verdict + soundtrack pass. */
+const HALO_A: ProjectDef = {
+  slug: 'stratavox', displayName: 'STRATAVOX', artistHandle: 'opus4-8', outputs: 333,
+  colorway: '#27f0d0', mintPriceEth: 0,
+  soundtrack: { playlistId: 'PLFvmcIFHwju3yMswUDb6pbeW4HqTEGI9f', label: 'Darksynth / Cyberpunk / Industrial Mixes' },
+  aspects: HALOA_ASPECTS, traitSchema: haloASchema, render: renderHaloA, traitsOf: haloATraits,
+};
+/* GLYPHSTORM — the platform HALO (jury winner, 2026-06-20). */
+const HALO_B: ProjectDef = {
+  slug: 'glyphstorm', displayName: 'GLYPHSTORM', artistHandle: 'opus4-8', outputs: 256,
+  colorway: '#33e0ff', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
+  aspects: HALOB_ASPECTS, traitSchema: haloBSchema, render: renderHaloB, traitsOf: haloBTraits,
+};
+const HALO_C: ProjectDef = {
+  slug: 'gridlock', displayName: 'GRIDLOCK', artistHandle: 'opus4-8', outputs: 256,
+  colorway: '#1bff8c', mintPriceEth: 0,
+  soundtrack: { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
+  aspects: HALOC_ASPECTS, traitSchema: haloCSchema, render: renderHaloC, traitsOf: haloCTraits,
+};
+const HALO_D: ProjectDef = {
+  slug: 'oraclenave', displayName: 'ORACLE NAVE', artistHandle: 'opus4-8', outputs: 256,
+  colorway: '#2bff9a', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  aspects: HALOD_ASPECTS, traitSchema: haloDSchema, render: renderHaloD, traitsOf: haloDTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -327,7 +362,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, HALO_A, HALO_B, HALO_C, HALO_D];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
