@@ -8616,8 +8616,10 @@ body.colorway-dark .ghost-feed-bar {
     position: relative;
     top: -1px;
 }
-/* The ★ Starred icon runs one size larger than the others (Brendon 2026-06-19). */
-.pill-tab-ico.is-star { font-size: 1.5em; }
+/* The ★ Starred icon runs one size larger than the others (Brendon 2026-06-19).
+   Its larger glyph carries more right side-bearing, so trim the margin to keep
+   the icon→word gap matching the other tabs (Brendon 2026-06-20). */
+.pill-tab-ico.is-star { font-size: 1.5em; margin-right: 1px; }
 /* On mobile the three +More tab icons settle down 1px inside their pills
    (Brendon 2026-06-20). */
 @media (max-width: 600px) {
