@@ -377,7 +377,7 @@ export default function HomeProjectFacetBar({
                         onClick={() => onSort('price')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('price'); } }}
                     >
-                        <span className="sort-lbl">{'$MINT'}</span>
+                        <span className="sort-lbl">{'$PRICE'}</span>
                         <span className="sort-arrow">{arrow('price')}</span>
                     </span>
                     <span

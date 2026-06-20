@@ -1,0 +1,19 @@
+-- ════════════════════════════════════════════════════════════════════════
+--  FIX · Every profile 500s ("permission denied" on users) — platform-wide
+--  2026-06-20 · Applied live to zspxpfwlwikdxwavffjn.
+--
+--  Same failure mode as 20260614_fix_public_reputation_grants.sql: `users` uses
+--  COLUMN-level anon/authenticated SELECT grants (private columns stay
+--  ungranted). The Discord profile build ADDED discord_avatar,
+--  discord_accent_color and discord_in_server to `users` but never granted an
+--  anon read on them.
+--
+--  PUBLIC_USER_COLUMNS (profile pages, /api/user, /api/user/by-handle) selects
+--  all three, so every public profile read 500'd with permission denied → the
+--  route error boundary ("SOMETHING GLITCHED") replaced every profile.
+--
+--  These three are public profile data (the Discord pfp, accent ring and the
+--  "In the PD Discord" badge), siblings of the already-public discord_id /
+--  discord_username. Grant read on ONLY these; private columns stay ungranted.
+-- ════════════════════════════════════════════════════════════════════════
+grant select (discord_avatar, discord_accent_color, discord_in_server) on public.users to anon, authenticated;

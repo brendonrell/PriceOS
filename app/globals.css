@@ -3809,7 +3809,9 @@ button,
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
 }
-.btn-soundtrack:hover { background: var(--text-color); color: var(--bg-color); }
+/* No hover/press inversion — on touch the :hover state stuck through a long
+   press and flipped the button to its dark fill, fighting the long-press-to-star
+   gesture (Brendon, 2026-06-20). The button keeps its base look at all times. */
 .btn-icon-play {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
@@ -5199,12 +5201,25 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* The top group title was zeroed (too tight); give it a little air so the gap
    above it reads like the gaps between sections — the gallery's own top padding
    supplies the rest (Brendon, 2026-06-16). */
-.gallery-group-header:first-child { margin-top: 14px; }
-/* Level-2 title (project under an artist, in the Artist+Project combo) —
-   indented + a touch quieter, sits closer to its own grid. */
+/* Half the old gap to the sort bar / colorway picker above (Brendon 2026-06-20). */
+.gallery-group-header:first-child { margin-top: 7px; }
+/* Level-2 title (a sub-group, e.g. a colour bucket under an owner/artist) —
+   indented deeper than before with a little connector line running in from the
+   left margin so it clearly reads as a CHILD of the group above it. Sits half
+   as far below its parent header as before (Brendon, 2026-06-20). */
 .gallery-group-header.level-2 {
-    margin-top: 14px;
-    padding-left: 16px;
+    margin-top: 7px;
+    padding-left: 30px;
+    position: relative;
+}
+.gallery-group-header.level-2::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0.62em;
+    width: 16px;
+    border-top: 1px solid var(--text-color);
+    opacity: 0.45;
 }
 .ggh-label {
     font-family: var(--font-rubik-mono), monospace;
@@ -5217,13 +5232,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .gallery-group-header.is-collapsible { cursor: pointer; }
 .ggh-arrow {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 26px;
+    /* Two sizes larger than before (Brendon, 2026-06-20). */
+    font-size: 32px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.8;
     /* The big triangle baseline-aligns high in the row; drop it so it sits
        centred on the label text (Brendon, 2026-06-18). */
-    transform: translateY(4px);
+    transform: translateY(5px);
 }
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
 .ggh-by {
@@ -5238,6 +5254,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     /* Full strength — group titles are NEVER dimmed (Brendon, 2026-06-16). */
     opacity: 1;
     color: var(--text-color);
+}
+/* Trailing dimension glyph — the same icon the sort-cycle button shows for this
+   grouping, pushed to the END of the header row (Brendon, 2026-06-20). */
+.ggh-glyph {
+    margin-left: auto;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--text-color);
+    opacity: 0.85;
 }
 .ggh-soon {
     font-family: 'Courier New', Courier, monospace;

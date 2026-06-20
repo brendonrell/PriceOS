@@ -78,7 +78,7 @@ import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import type { EventRow } from '../../lib/supabase';
 import { GhostFeedRows } from '../GhostFeed';
-import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
+import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -236,7 +236,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* Stored dominant colours for this project (re-renders grouping when they
        arrive); resolveBucket prefers them, falls back to live palette-math. */
     const colorsVer = useStoredColors([project.slug]);
-    const { sort, dir, feedKind, group } = useSort();
+    const { sort, dir, feedKind, group, resetToDefault } = useSort();
+    /* Entering a project resets the gallery sort + grouping to the user's
+       default, so an in-project sort/grouping never carries over to the next
+       project (Brendon, 2026-06-20). Keyed on slug, so it fires on first mount
+       and on every project-to-project navigation, but NOT on in-project sort
+       taps (those depend on other state). */
+    useEffect(() => { resetToDefault(); }, [project.slug, resetToDefault]);
     /* Collapsible grouping headers — tap one to fold its pieces away, tap again
        to reopen. Reset when the grouping dimension changes (keys are labels). */
     const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => new Set());
@@ -850,7 +856,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* A grouping section row: a header (level-1 title, or level-2 sub-title in a
        combo) plus the pieces beneath it. `ckey` toggles this header's fold;
        `l1Key` is the section it belongs to (folding level-1 folds its level-2s). */
-    type GSec = { ckey: string; l1Key: string; level: 1 | 2; label: string; ids: number[]; soon: boolean };
+    type GSec = { ckey: string; l1Key: string; level: 1 | 2; label: string; ids: number[]; total: number; soon: boolean };
     const groupedSections = useMemo<GSec[] | null>(() => {
         /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-16) —
            it never applies to FEED (chronological activity) or fog (reveal).
@@ -863,7 +869,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         /* Last-sold + rarity have no data yet — one greyed "coming soon" group,
            the real art beneath it (Brendon: "mocked in and coming soon"). */
         if (GROUP_SOON[group]) {
-            return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, soon: true }];
+            return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, total: visibleTokenIds.length, soon: true }];
         }
         const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
 
@@ -879,7 +885,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             const out: GSec[] = [];
             for (const [owner, ids] of byOwner) {
                 const oKey = `o:${owner}`;
-                out.push({ ckey: oKey, l1Key: oKey, level: 1, label: owner, ids: [], soon: false });
+                // Level-1 owner header has no direct cards (its colours do), but
+                // its count totals every piece beneath it (Brendon, 2026-06-20).
+                out.push({ ckey: oKey, l1Key: oKey, level: 1, label: owner, ids: [], total: ids.length, soon: false });
                 const byColor = new Map<string, number[]>();
                 for (const id of ids) {
                     const c = resolveBucket(project.slug, id) ?? 'Other';
@@ -889,7 +897,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 const colors = [...byColor.entries()]
                     .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
                 for (const [clabel, cids] of colors) {
-                    out.push({ ckey: `${oKey}|c:${clabel}`, l1Key: oKey, level: 2, label: clabel, ids: cids, soon: false });
+                    out.push({ ckey: `${oKey}|c:${clabel}`, l1Key: oKey, level: 2, label: clabel, ids: cids, total: cids.length, soon: false });
                 }
             }
             return out;
@@ -906,7 +914,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             if (arr) arr.push(id);
             else map.set(label, [id]);
         }
-        const sections: GSec[] = Array.from(map, ([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, soon: false }));
+        const sections: GSec[] = Array.from(map, ([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, total: ids.length, soon: false }));
         if (group === 'color') {
             sections.sort((a, b) => colorOrder.indexOf(a.label) - colorOrder.indexOf(b.label));
         }
@@ -1400,9 +1408,12 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 <span className="ggh-label">{sec.label}</span>
                                 {sec.soon
                                     ? <span className="ggh-soon">coming soon</span>
-                                    : sec.ids.length > 0
-                                        ? <span className="ggh-count">{sec.ids.length}</span>
+                                    : sec.total > 0
+                                        ? <span className="ggh-count">{sec.total}</span>
                                         : null}
+                                {!sec.soon && groupHeaderGlyph(group, sec.level)
+                                    ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, sec.level)}</span>
+                                    : null}
                             </div>,
                             ...(folded ? [] : sec.ids.map((id) => (
                                 <ArtworkCard

@@ -106,6 +106,26 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
 /* Dimensions with no data yet — render as a single greyed "coming soon" group. */
 export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true, rarity: true };
 
+/* Per-LEVEL dimension key for a grouping — so a group HEADER can show the glyph
+   for what THAT header represents (level-1 = primary dimension, level-2 = the
+   sub-dimension), reusing GROUP_GLYPH. Combos split into their two parts; a
+   single-dimension group is its own primary with no secondary. */
+export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
+    none: 'none', artist: 'artist', project: 'project', owner: 'owner',
+    color: 'color', lastSold: 'lastSold', rarity: 'rarity',
+    artistProject: 'artist', artistColor: 'artist', projectColor: 'project',
+    ownerColor: 'owner',
+};
+export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
+    artistProject: 'project', artistColor: 'color', projectColor: 'color',
+    ownerColor: 'color',
+};
+/** Glyph for a grouping header at the given level (1 = primary, 2 = sub). */
+export function groupHeaderGlyph(group: GroupKey, level: 1 | 2): string {
+    const key = level === 2 ? GROUP_SECONDARY_KEY[group] : GROUP_PRIMARY_KEY[group];
+    return key ? GROUP_GLYPH[key] : '';
+}
+
 const ALL_GROUP_KEYS: GroupKey[] = [
     'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
     'ownerColor', 'owner', 'color', 'lastSold', 'rarity',
@@ -127,6 +147,10 @@ interface SortContextValue {
     cycleSort: (s: SortKey) => void;
     /** Restore a full sort snapshot (used by Gallery View Presets). */
     applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind) => void;
+    /** Reset the gallery sort + grouping to the user's saved DEFAULT sort with
+        no grouping. Called when a project page is entered so an in-project sort/
+        grouping never carries over to the next project (Brendon, 2026-06-20). */
+    resetToDefault: () => void;
     /** Current group-by dimension for the gallery. */
     group: GroupKey;
     /** Advance the group dimension through the given surface's cycle order. */
@@ -171,8 +195,10 @@ export function SortProvider({ children }: { children: ReactNode }) {
                     setDir('asc');
                 }
             }
-            const g = localStorage.getItem(GROUP_STORAGE_KEY);
-            if (isGroupKey(g)) setGroupState(g);
+            /* Grouping is a per-project, transient view modifier (Brendon,
+               2026-06-20) — NOT a persisted setting. It always boots at 'none'
+               and is reset on each project entry, so it never carries across
+               projects or sessions. (The old boot-time restore is gone.) */
         } catch {
             // ignore
         }
@@ -264,6 +290,28 @@ export function SortProvider({ children }: { children: ReactNode }) {
         setFeedKind(fk);
     }, []);
 
+    /* Reset to the user's saved DEFAULT sort family + no grouping. Used on
+       project entry so each project starts clean and an in-project sort /
+       grouping never bleeds into the next project (Brendon, 2026-06-20). */
+    const resetToDefault = useCallback(() => {
+        let fam: SortKey = 'id';
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (isSortKey(raw)) fam = raw;
+        } catch {
+            // ignore
+        }
+        setSortState(fam);
+        if (fam === 'feed') {
+            setFeedKind('time');
+            setDir('desc');
+        } else {
+            // id / price / fog — asc (dir is inert for fog).
+            setDir('asc');
+        }
+        setGroupState('none');
+    }, []);
+
     const cycleGroup = useCallback((order: GroupKey[]) => {
         setGroupState((g) => {
             // If the current dimension isn't in this surface's cycle, restart from none.
@@ -308,8 +356,8 @@ export function SortProvider({ children }: { children: ReactNode }) {
     );
 
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup, cycleGridSort }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, group, cycleGroup, cycleGridSort]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

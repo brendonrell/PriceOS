@@ -74,7 +74,9 @@ export interface DecodeResult {
 // behaviour at sim 9807 — never to the encoded output, which always
 // places exactly one colorway token at slot 0.
 const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
-    custom:  'ARTS',
+    // The Custom colorway was renamed from "Artist" long ago; its Setup Code
+    // token reads CSTM to match (Brendon, 2026-06-20).
+    custom:  'CSTM',
     light:   'LITE',
     dark:    'DARK',
     orange:  'ORNG',
@@ -176,6 +178,7 @@ const SPELL_TOKEN_TO_KEY: Record<string, keyof PdNotifs> = {
     TRBN: 'spell_tribunal',
     PNOP: 'spell_panopticon',
     INVS: 'spell_invisible',
+    NPCM: 'spell_npc',
     TROT: 'spell_tarot',
     PGHO: 'spell_priceghost',
     PRTL: 'spell_portal',

@@ -111,8 +111,9 @@ export function SpellBookSection({ onTripleTap }: Props) {
                 SPELL BOOK
             </div>
             <div className="spell-book-pills">
-                {/* Spells 1–10: familiar → price ghost (Solar Flare + Portal retired). */}
-                {SPELLS.slice(0, 10).map((spell) => (
+                {/* Spells 1–11: familiar → price ghost (incl. the icon-less NPC
+                    pill after Deactivate; Solar Flare + Portal retired). */}
+                {SPELLS.slice(0, 11).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}
@@ -207,8 +208,8 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'≫︎'}
                     label="Echo Chamber"
                 />
-                {/* Spells 11–16: offer shield → hammer */}
-                {SPELLS.slice(10).map((spell) => (
+                {/* Spells 12–17: offer shield → hammer */}
+                {SPELLS.slice(11).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}

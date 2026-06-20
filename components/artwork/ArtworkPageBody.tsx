@@ -29,6 +29,7 @@ import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
 import TraitsUI from '../project/TraitsUI';
+import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
 import AttributesPanel from './AttributesPanel';
@@ -482,10 +483,12 @@ export default function ArtworkPageBody({
                 {/* Replay + Albums are the ONLY sections without a dotted box
                     (Brendon) — plain content under the header, same as the
                     Project page. */}
+                {/* Same Replay tab as the Project page — the live time-machine
+                    player, not a "coming soon" stub (Brendon, 2026-06-20). */}
                 {moreL1 === 'replay' && (
                     <>
                         <div className="more-section-header">REPLAY</div>
-                        <p className="info-rubik">Coming soon.</p>
+                        <ReplayPanel />
                     </>
                 )}
                 {moreL1 === 'albums' && (

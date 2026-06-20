@@ -53,24 +53,44 @@ export default function RouteError({
             <div style={{ fontSize: 12, maxWidth: 320, lineHeight: 1.5, opacity: 0.6 }}>
                 This part of the page hit a snag. The rest of the app is fine.
             </div>
-            <button
-                type="button"
-                onClick={reset}
-                style={{
-                    fontFamily: "'Courier New', Courier, monospace",
-                    fontSize: 12,
-                    fontWeight: 'bold',
-                    letterSpacing: '0.1em',
-                    padding: '10px 18px',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    border: 'none',
-                    background: 'var(--text-color, #e0e0e0)',
-                    color: 'var(--bg-color, #111)',
-                }}
-            >
-                TRY AGAIN
-            </button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                    type="button"
+                    onClick={reset}
+                    style={{
+                        fontFamily: "'Courier New', Courier, monospace",
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        letterSpacing: '0.1em',
+                        padding: '10px 18px',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: 'var(--text-color, #e0e0e0)',
+                        color: 'var(--bg-color, #111)',
+                    }}
+                >
+                    TRY AGAIN
+                </button>
+                <button
+                    type="button"
+                    onClick={() => window.history.back()}
+                    style={{
+                        fontFamily: "'Courier New', Courier, monospace",
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        letterSpacing: '0.1em',
+                        padding: '10px 18px',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        background: 'transparent',
+                        border: '1px solid var(--text-color, #e0e0e0)',
+                        color: 'var(--text-color, #e0e0e0)',
+                    }}
+                >
+                    BACK
+                </button>
+            </div>
         </div>
     );
 }

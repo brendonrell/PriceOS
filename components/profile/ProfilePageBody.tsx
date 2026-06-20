@@ -39,7 +39,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import {
     useSort,
-    GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
+    GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER, groupHeaderGlyph,
 } from '../../lib/state/SortContext';
 import { COLOR_BUCKET_ORDER, classifyRgb } from '../../lib/art/outputColor';
 import { signatureHexFor } from '../../lib/profile/signatureHex';
@@ -2072,6 +2072,9 @@ function ProfilePageBodyInner({
                                                       <span className="ggh-label">{h.label}</span>
                                                       {h.by ? <span className="ggh-by"> by @{h.by}</span> : null}
                                                       {h.soon ? <span className="ggh-soon">coming soon</span> : null}
+                                                      {!h.soon && groupHeaderGlyph(group, h.level)
+                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
+                                                          : null}
                                                   </div>
                                               );
                                           })}

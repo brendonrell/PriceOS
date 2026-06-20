@@ -10,7 +10,7 @@
  * ship out of the box (Degen RETIRED 2026-06-12 — Brendon: a new default
  * will replace it later; Zen gained the blue colorway the same day):
  *
- *   1 · Main  — ‰ARTS-IDAS                                      (clean)
+ *   1 · Main  — ‰CSTM-IDAS                                      (clean)
  *   2 · Zen   — ‰BLUE-NASC-NSTK-ZNMD-IDAS                       (zen, blue)
  *
  * Tapping a dot loads (decode + apply via applySetupCodeState). Long-press
@@ -67,7 +67,7 @@ export const MAX_WORKSPACES = 10;
 
 const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = [
     // Sim 10120-10127 — codes are post-v1.0.45 short form.
-    { id: 1, name: 'Main',  code: '\u2030ARTS-IDAS', isDefault: true },
+    { id: 1, name: 'Main',  code: '\u2030CSTM-IDAS', isDefault: true },
     // Zen carries the blue colorway (Brendon 2026-06-12 — "pick a colour";
     // blue is the calm pick). Pre-blue Zen migrates via OLD_DEFAULT_CODES.
     { id: 2, name: 'Zen',   code: '\u2030BLUE-NASC-NSTK-ZNMD-IDAS', isDefault: true },
@@ -76,7 +76,7 @@ const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = [
 // Sim 10133-10141. When changing a default workspace's shipped code,
 // drop the OLD code into this map so existing users migrate automatically.
 const OLD_DEFAULT_CODES: Record<number, string[]> = {
-    1: ['[\u2030-ARTS-IDAS-V1]'],
+    1: ['[\u2030-ARTS-IDAS-V1]', '\u2030ARTS-IDAS'],
     2: [
         '[\u2030-ARTS-NASC-NSTK-ZNMD-ZRCX-IDAS-V1]', // v1.0.34 had ZRCX (removed v1.0.35)
         '[\u2030-ARTS-NASC-NSTK-ZNMD-IDAS-V1]',

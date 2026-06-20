@@ -920,7 +920,9 @@ function ArtworkCard({
                         (Rubik), no owner/price (Brendon 2026-06-16). */
                     <div className="meta meta-profile">
                         <span className="meta-proj-name">{projectTitle}</span>
-                        <span className="meta-proj-id">#{id}</span>
+                        {/* Starred → a filled ★ as the character left of the id
+                            (Brendon, 2026-06-20), same as a starred project name. */}
+                        <span className="meta-proj-id">{starred ? '★︎ ' : ''}#{id}</span>
                     </div>
                 ) : (
                 <div className="meta">
@@ -929,7 +931,9 @@ function ArtworkCard({
                         hardcoded to the first 3 ids), hidden only inside the
                         Collected tab where ownership is a given. */}
                     <span className="meta-id">
-                        #{id}
+                        {/* Starred → a filled ★ as the character left of the id
+                            (Brendon, 2026-06-20), same as a starred project name. */}
+                        {starred ? '★︎ ' : ''}#{id}
                         {ownedByBrendon && !hideOwnedBadge && (
                             <>
                                 {' '}
