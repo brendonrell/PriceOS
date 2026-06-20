@@ -629,7 +629,9 @@ export default function TraitsUI({
                                     key={p.key}
                                     label={p.label}
                                     active={p.active}
-                                    dimmed={false}
+                                    /* Same dim as Collected's trait pills: the
+                                       non-active pills dim while one is active. */
+                                    dimmed={!p.active}
                                     onClick={p.onClick}
                                 />
                             ))
