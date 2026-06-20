@@ -8256,6 +8256,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (max-width: 600px) {
     .starred-list[aria-label="Wishlist"] .follower-count { font-size: 13.5px; top: 0; }
 }
+/* Wishlist runs the social (follower) glyph + the ✺ artist badge one size larger
+   than Starred — same spot (Brendon 2026-06-19). */
+.starred-list[aria-label="Wishlist"] .artist-social-ico.is-bump { font-size: 1.36em; }
+.starred-list[aria-label="Wishlist"] .artist-social-ico.is-mutual-lg { font-size: 1.72em; }
+.starred-list[aria-label="Wishlist"] .artist-tag.is-sm { font-size: 19px; }
 /* Group section header — flush with the rows, muted ALLCAPS label (Brendon
    2026-06-19). Shown when a grouping is active in the Starred list. */
 .starred-group-header {
