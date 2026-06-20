@@ -282,35 +282,130 @@ function renderGlyph(x, kind, gx, gy, s, col, bright, jitter, r) {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
- * SECOND MEDIUM — sparse OVERSIZED hero glyphs riding ABOVE the fine grid. A
- * guaranteed large-form anchor at the focus so every seed (even low-density /
- * low-resolve ones, the old "Apparition noise mush" failure) reads as a coherent
- * structure, not dust. A handful of colossal drawn glyphs stacked at the focus,
- * brightest at centre, fading out — deterministic, hard-capped, no fillText.
+ * COMPOSITION — phi-point focal hierarchy (the fix).
+ *
+ * The old engine dumped ONE oversized glyph dead-centre on every seed. This
+ * builds a real composition instead: a DOMINANT focal point on a golden-ratio /
+ * rule-of-thirds line (never 0.5,0.5), ANSWERED by a SECONDARY mass on the
+ * opposite phi line and a smaller TERTIARY accent — asymmetric balance — with
+ * one quadrant left deliberately quiet as negative space. All of it is drawn
+ * from a FREE composition RNG created in draw() AFTER paramsOf(), so traits()
+ * never sees this randomness and determinism by tokenId is preserved.
+ *
+ * `composeFoci` returns the focal set for a seed. `anchor` is an optional layout
+ * hint (e.g. Eye/Wellspring pin the dominant to their structural centre); when
+ * absent the dominant lands on a varied phi/thirds intersection.
  * ════════════════════════════════════════════════════════════════════════ */
-function heroAnchor(x, W, H, P, p, r, cxp, cyp, size, maskFn) {
+const PHI_PTS = [INVPHI, 1 - INVPHI, 1 / 3, 2 / 3];   // 0.618, 0.382, 0.333, 0.667
+// The four golden/thirds intersections — strong off-centre focal anchors. Every
+// one sits well clear of the dead-centre 40% box (0.30..0.70 on both axes), so a
+// dominant placed here can NEVER read as a centred hero.
+const PHI_X = [INVPHI, 1 - INVPHI];   // 0.618 / 0.382
+const PHI_Y = [INVPHI, 1 - INVPHI];   // 0.618 / 0.382
+// "is this point inside the dead-centre box?" — used to assert no centred hero.
+function inDeadZone(x, y) { return x > 0.40 && x < 0.60 && y > 0.40 && y < 0.60; }
+
+/* Build the off-centre focal CONSTELLATION for a seed: a dominant on a chosen
+ * phi intersection, a phi-scaled secondary diagonally opposite (asymmetric
+ * balance), two smaller tertiaries scattered to the remaining thirds, and a
+ * deliberately QUIET quadrant left empty as negative space. The dominant is
+ * pushed HARD off-centre — if a caller-supplied anchor lands near the middle it
+ * is shoved to the nearest phi corner. This is the single focal authority; no
+ * layout dumps a glyph at the geometric centre any more. */
+function composeFoci(W, H, cr, anchor) {
+  // dominant: a golden intersection, varied per seed; pushed off-centre always.
+  let dx, dy;
+  if (anchor) {
+    // snap a structural anchor away from the dead zone toward a phi corner.
+    dx = inDeadZone(anchor.x, 0.4) ? (anchor.x < 0.5 ? 1 - INVPHI : INVPHI) : clamp(anchor.x, 0.18, 0.82);
+    dy = anchor.yLock != null ? anchor.y
+       : (inDeadZone(0.4, anchor.y) ? (anchor.y < 0.5 ? 1 - INVPHI : INVPHI) : clamp(anchor.y, 0.18, 0.82));
+  } else {
+    dx = PHI_X[Math.floor(cr() * 2)];
+    dy = PHI_Y[Math.floor(cr() * 2)];
+  }
+  // which corner is the dominant in? secondary answers DIAGONALLY opposite for
+  // asymmetric balance; the empty diagonal becomes the quiet negative-space.
+  const leftDom = dx < 0.5, topDom = dy < 0.5;
+  const sx = clamp((leftDom ? 0.66 : 0.34) + (cr() - 0.5) * 0.10, 0.18, 0.82);
+  const sy = clamp((topDom ? 0.64 : 0.36) + (cr() - 0.5) * 0.14, 0.18, 0.82);
+  // tertiary A — same vertical band as dominant, pushed to the far horizontal
+  // third (spreads mass across, threads the eye sideways).
+  const tx = clamp((leftDom ? 0.78 : 0.22) + (cr() - 0.5) * 0.10, 0.12, 0.88);
+  const ty = clamp(dy + (cr() - 0.5) * 0.22, 0.14, 0.86);
+  // tertiary B — a far accent in the OTHER vertical band but same side as
+  // dominant, to break the diagonal symmetry without filling the quiet corner.
+  const ux = clamp(dx + (cr() - 0.5) * 0.16, 0.12, 0.88);
+  const uy = clamp((topDom ? 0.72 : 0.28) + (cr() - 0.5) * 0.16, 0.14, 0.86);
+  return {
+    dom: { x: dx, y: dy, w: 1.0 },                       // dominant
+    sec: { x: sx, y: sy, w: INVPHI },                    // secondary (phi)
+    ter: { x: tx, y: ty, w: INVPHI * INVPHI },           // tertiary (phi²)
+    qad: { x: ux, y: uy, w: INVPHI * INVPHI * INVPHI },  // far accent (phi³)
+    leftDom, topDom,
+    list: [
+      { x: dx, y: dy, w: 1 },
+      { x: sx, y: sy, w: INVPHI },
+      { x: tx, y: ty, w: INVPHI * INVPHI },
+      { x: ux, y: uy, w: INVPHI * INVPHI * INVPHI },
+    ],
+  };
+}
+
+/* A FOCAL MASS — a tight cluster of a few oversized glyphs centred on a focal
+ * point, brightest at the core, with bloom backing so it reads as one coherent
+ * resolved form sitting above the fine grid. Replaces the old single centred
+ * tower: called once per focal point (dominant + secondary + tertiary) so every
+ * seed has multiple weighted forms, never one lonely thing. */
+function focalMass(x, W, H, P, p, r, cxp, cyp, size, weight, maskFn, seedOff) {
   const S = Math.min(W, H);
-  const n = 5;                                   // sparse — a few big marks only
+  const n = weight > 0.8 ? 5 : weight > 0.45 ? 3 : 2;   // dominant denser
   x.save();
   x.globalCompositeOperation = 'lighter';
+  // a soft mass halo so the cluster reads as one body, not scattered marks
+  bloom(x, cxp, cyp, size * 0.85, mix(P.deep, P.phos, 0.45), 0.05 + weight * 0.05);
   for (let i = 0; i < n; i++) {
-    const t = i / (n - 1);                        // 0..1 down the stack
-    const sz = size * (1.0 - t * 0.34);           // tapering oversized marks
-    const gy = cyp + (t - 0.5) * size * 1.05;
-    const gx = cxp + (vnoise(i * 4.1, p.seedNoise + 7) - 0.5) * size * 0.18;
-    // resolve at this mark drives brightness, but with a guaranteed floor so the
-    // anchor reads even where the field is unresolved noise.
+    // a tight rosette around the focus rather than a tall vertical stack
+    const ang = (i / n) * Math.PI * 2 + vnoise(i * 2.9, p.seedNoise + seedOff) * 1.4;
+    const rad = i === 0 ? 0 : size * (0.20 + vnoise(i * 5.1, p.seedNoise + seedOff + 3) * 0.30);
+    const sz = size * (i === 0 ? 1.0 : 0.46 + vnoise(i * 7.3, p.seedNoise + seedOff) * 0.22) * (0.7 + weight * 0.5);
+    const gx = cxp + Math.cos(ang) * rad;
+    const gy = cyp + Math.sin(ang) * rad;
     const m = maskFn ? clamp(maskFn(gx / W, gy / H), 0, 1) : 0.7;
-    const bright = clamp(0.45 + m * 0.55, 0, 1);  // FLOOR 0.45 → never invisible
-    const col = bright > 0.7 ? mix(P.hot, coolHot(P), 0.5)
-              : bright > 0.5 ? P.phos
+    // brightness scales with the focal WEIGHT (hierarchy) and local resolve.
+    const bright = clamp((0.40 + m * 0.5) * (0.55 + weight * 0.5), 0, 1);
+    const col = bright > 0.66 ? mix(P.hot, coolHot(P), 0.5)
+              : bright > 0.46 ? P.phos
               : mix(coldHue(P), P.phos, 0.5);
-    const kind = Math.floor(vnoise(i * 3.7, p.seedNoise + 11) * GLYPH_KINDS);
-    // soft bloom behind each hero so it sits above the fine grid as a mass
-    bloom(x, gx, gy, sz * 0.7, mix(P.deep, P.phos, 0.5), 0.05 + bright * 0.06);
-    renderGlyph(x, kind, gx, gy, sz, col, bright, (1 - m) * 0.2, r);
+    const kind = Math.floor(vnoise(i * 3.7 + seedOff, p.seedNoise + 11) * GLYPH_KINDS);
+    bloom(x, gx, gy, sz * 0.6, mix(P.deep, P.phos, 0.5), 0.04 + bright * 0.05);
+    renderGlyph(x, kind, gx, gy, sz, col, bright, (1 - m) * 0.18, r);
   }
   x.restore();
+}
+
+/* Draw the full focal hierarchy for a seed: dominant + answering masses. The
+ * dominant is colossal; secondary and tertiary are phi-scaled and dimmer, placed
+ * by composeFoci for asymmetric balance. This is what fills the frame with a
+ * multi-focal SCENE instead of one centred hero. */
+function heroAnchor(x, W, H, P, p, r, cxp, cyp, size, maskFn) {
+  // Back-compat shim: the dominant focal mass at the layout's structural centre.
+  // (Kept so any direct callers still get a strong anchor; the richer multi-focal
+  // pass runs via drawFoci below, driven by p.foci set in draw().)
+  focalMass(x, W, H, P, p, r, cxp, cyp, size, 1.0, maskFn, 0);
+}
+
+function drawFoci(x, W, H, P, p, r, maskFn, domSize) {
+  const f = p.foci;
+  if (!f) return;
+  // The full off-centre constellation: dominant + diagonally-opposite secondary
+  // + two scattered phi-scaled accents. Sizes step down by phi so a clear focal
+  // HIERARCHY reads (near/large → mid → far), the eye travels across the frame,
+  // and the heaviest mass sits OFF-centre with a quiet quadrant left open.
+  focalMass(x, W, H, P, p, r, f.dom.x * W, f.dom.y * H, domSize, 1.0, maskFn, 0);
+  focalMass(x, W, H, P, p, r, f.sec.x * W, f.sec.y * H, domSize * INVPHI, INVPHI, maskFn, 17);
+  focalMass(x, W, H, P, p, r, f.ter.x * W, f.ter.y * H, domSize * INVPHI * INVPHI, INVPHI * INVPHI, maskFn, 41);
+  focalMass(x, W, H, P, p, r, f.qad.x * W, f.qad.y * H, domSize * INVPHI * INVPHI * INVPHI, INVPHI * INVPHI * INVPHI, maskFn, 73);
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -323,12 +418,18 @@ function heroAnchor(x, W, H, P, p, r, cxp, cyp, size, maskFn) {
 function glyphStorm(x, W, H, P, p, r, maskFn, opts) {
   opts = opts || {};
   const S = Math.min(W, H);
-  // cell size scales with density; capped to keep mark count bounded.
-  const cell = S * (opts.cell || 0.028) / Math.sqrt(p.stormMul);
+  // cell size scales with density; capped to keep mark count bounded. Tighter
+  // base cell than before so the field reads BUSY and fills the frame instead
+  // of leaving the void mostly black.
+  const cell = S * (opts.cell || 0.024) / Math.sqrt(p.stormMul);
   const cols = Math.ceil(W / cell) + 1;
   const rows = Math.ceil(H / cell) + 1;
   // hard cap on drawn glyphs so big/Storm seeds never blow up.
   const cap = opts.cap || 6500;
+  // FOCAL FIELD — extra resolve pooled around every focal point so the storm
+  // condenses into the multi-focal hierarchy, not one centre. A leading-line
+  // term threads brightness between the dominant and secondary so the eye flows.
+  const foci = p.foci ? p.foci.list : null;
   const total = cols * rows;
   const stride = Math.max(1, Math.ceil(total / cap));
   const hotCol = phos(P, p.hueShift > 0 ? 0.18 : 0.0);
@@ -345,13 +446,44 @@ function glyphStorm(x, W, H, P, p, r, maskFn, opts) {
       const gy0 = cy * cell + cell * 0.5;
       const u = gx0 / W, v = gy0 / H;
       let m = clamp(maskFn(u, v), 0, 1);
+      // pool extra resolve around each focal point (hierarchy-weighted) and along
+      // the dominant→secondary axis (a leading line), so the field condenses into
+      // the composition and threads the eye between the masses.
+      if (foci) {
+        let fb = 0;
+        for (const fp of foci) {
+          const d = Math.hypot((u - fp.x) * W, (v - fp.y) * H) / (S * (0.34 + 0.18 * fp.w));
+          fb = Math.max(fb, clamp(1 - d, 0, 1) * (0.45 + 0.55 * fp.w));
+        }
+        // leading line: distance to the dominant→secondary segment
+        const a = foci[0], b = foci[1];
+        const ax = a.x * W, ay = a.y * H, bx = b.x * W, by = b.y * H;
+        const vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy || 1;
+        const t = clamp(((u * W - ax) * vx + (v * H - ay) * vy) / L2, 0, 1);
+        const lx = ax + vx * t, ly = ay + vy * t;
+        const ld = Math.hypot(u * W - lx, v * H - ly) / (S * 0.06);
+        const line = clamp(1 - ld, 0, 1) * 0.4;
+        m = clamp(m + fb * 0.6 + line, 0, 1);
+      }
       // noise threshold: drop most loose cells so the void breathes,
       // keep almost all coherent ones for density at the focus.
       // DENSITY FLOOR: a baseline of loose dust survives everywhere so even a
-      // sparse / low-resolve seed never renders thin or empty.
-      const floor = 0.18 + (1 - p.stormMul / 1.6) * 0.04;
-      const keep = m * 0.9 + 0.10 + floor * 0.5 + (vnoise(cx * 3.1 + cy * 7.7, p.seedNoise) - 0.5) * 0.3;
-      if (keep < 0.32) continue;
+      // sparse / low-resolve seed never renders thin or empty. Raised so the
+      // frame is filled, not mostly black — deliberate quiet quadrants come from
+      // the focal layout, not from a globally empty void.
+      // ASYMMETRIC FLOOR: full baseline dust on the dominant's side of the frame,
+      // but it THINS toward the quadrant diagonally opposite the dominant — that
+      // corner becomes deliberate negative space, so the densest mass sits clearly
+      // off-centre and the eye reads a composed scene, not an even rectangular haze.
+      let floor = 0.26 + (1 - p.stormMul / 1.6) * 0.05;
+      if (p.foci) {
+        const d0 = p.foci.dom;
+        // 1 near the dominant corner → 0 in the opposite (quiet) corner.
+        const side = clamp(1 - (Math.abs(u - d0.x) + Math.abs(v - d0.y)) / 1.3, 0, 1);
+        floor *= 0.32 + 0.68 * side;       // up to ~⅔ thinner in the quiet corner
+      }
+      const keep = m * 0.9 + 0.10 + floor * 0.6 + (vnoise(cx * 3.1 + cy * 7.7, p.seedNoise) - 0.5) * 0.3;
+      if (keep < 0.30) continue;
       const bright = clamp(m * m * 1.15, 0, 1);
       const jitter = (1 - m) * 0.55;                 // loose at edges, snapped at focus
       const sz = cell * (0.78 + bright * 0.5);
@@ -466,15 +598,27 @@ function paintGround(x, W, H, P, p, r) {
   bg.addColorStop(0.5, P.ground);
   bg.addColorStop(1, mix(P.ground, P.deep, 0.45));
   x.fillStyle = bg; x.fillRect(0, 0, W, H);
-  // pooled haze at focus
+  // pooled haze — a near plane at the DOMINANT focus + a dimmer, hazier far
+  // plane at the secondary, so the ground reads DEEP (two depth planes) and the
+  // glow follows the off-centre composition instead of the dead centre.
+  const dom = p.foci ? p.foci.dom : { x: p.focusX, y: p.focusY };
+  const sec = p.foci ? p.foci.sec : { x: 1 - p.focusX, y: 1 - p.focusY };
   x.save();
   x.globalCompositeOperation = 'screen';
-  const fx = W * p.focusX, fy = H * p.focusY, fr = Math.min(W, H) * 0.7;
+  const fx = W * dom.x, fy = H * dom.y, fr = Math.min(W, H) * 0.66;
   const g = x.createRadialGradient(fx, fy, 0, fx, fy, fr);
-  g.addColorStop(0, rgba(P.deep, 0.5));
-  g.addColorStop(0.5, rgba(P.deep, 0.18));
+  g.addColorStop(0, rgba(P.deep, 0.52));
+  g.addColorStop(0.5, rgba(P.deep, 0.2));
   g.addColorStop(1, 'rgba(0,0,0,0)');
   x.fillStyle = g; x.fillRect(0, 0, W, H);
+  // far/hazed plane at the secondary mass — dimmer, desaturated toward the cold
+  // hue so it recedes (depth), filling the frame opposite the dominant.
+  const sxp = W * sec.x, syp = H * sec.y, sr = Math.min(W, H) * 0.5;
+  const g2 = x.createRadialGradient(sxp, syp, 0, sxp, syp, sr);
+  g2.addColorStop(0, rgba(coldHue(P), 0.3));
+  g2.addColorStop(0.6, rgba(coldHue(P), 0.1));
+  g2.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g2; x.fillRect(0, 0, W, H);
   x.restore();
   mottle(x, 0, 0, W, H, P.deep, 1100, r, 'overlay');
   mottle(x, 0, 0, W, H, mix(P.deep, P.phos, 0.25), 2800, r, 'screen');
@@ -505,9 +649,10 @@ function wireBox(x, P, x0, y0, w, h, skew, col, alpha) {
  * THE FIVE LAYOUTS — each defines a resolve MASK + bespoke structure.
  * ════════════════════════════════════════════════════════════════════════ */
 
-/* 1 — MONOLITH: a tall data-tower rises from the cascade. */
+/* 1 — MONOLITH: a tall off-centre data-tower on a phi line, answered by smaller
+ * masses on the opposite side (asymmetric balance) with a quiet quadrant. */
 function layoutMonolith(x, W, H, P, p, r) {
-  const cxF = p.focusX, halfW = p.monoW;
+  const cxF = p.foci.dom.x, halfW = p.monoW;     // tower on the dominant phi line
   const lean = p.monoLean;
   // resolve mask: a vertical slab around cxF, brightest mid-height, with the
   // storm condensing INTO the tower column; noise outside falls away.
@@ -530,26 +675,30 @@ function layoutMonolith(x, W, H, P, p, r) {
     wireBox(x, P, tx + inset + W * lean * (0.5 - t), y0, tw - inset * 2, tierH * 0.92,
             0.10, mix(P.wire, P.phos, t * 0.5), 0.18 + 0.22 * (1 - Math.abs(0.5 - t) * 1.4));
   }
-  // OVERSIZED hero anchor: a colossal glyph spine up the centre of the tower.
-  heroAnchor(x, W, H, P, p, r, W * cxF, H * 0.5, Math.min(W, H) * 0.46, mask);
-  // the glyph storm
-  glyphStorm(x, W, H, P, p, r, mask, { cell: 0.026, gain: 1.0 });
+  // the glyph storm (under the masses)
+  glyphStorm(x, W, H, P, p, r, mask, { cell: 0.024, gain: 1.0 });
   // bright resolved spine bloom up the tower
   const spineX = W * cxF;
   for (let i = 0; i <= 10; i++) {
     const t = i / 10;
-    bloom(x, spineX + W * lean * (0.5 - t), H * (0.08 + t * 0.84), Math.min(W, H) * 0.06,
+    bloom(x, spineX + W * lean * (0.5 - t), H * (0.08 + t * 0.84), Math.min(W, H) * 0.055,
           mix(P.phos, P.hot, 0.5), 0.05 + 0.06 * (1 - Math.abs(0.5 - t)));
   }
   // crown beacon
-  bloom(x, spineX + W * lean * 0.5, H * 0.1, Math.min(W, H) * 0.12, P.hot, 0.22);
-  glyphDust(x, W, H, P, p, r, [{ x: spineX, y: H * 0.5 }]);
+  bloom(x, spineX + W * lean * 0.5, H * 0.1, Math.min(W, H) * 0.11, P.hot, 0.2);
+  // FOCAL HIERARCHY: dominant spine mass on the off-centre tower + answering
+  // secondary/tertiary masses across the other thirds (asymmetric balance).
+  drawFoci(x, W, H, P, p, r, mask, Math.min(W, H) * 0.30);
+  glyphDust(x, W, H, P, p, r, p.foci.list.map((f) => ({ x: f.x * W, y: f.y * H })));
 }
 
 /* 2 — APPARITION: a colossal face decodes from the storm. */
 function layoutApparition(x, W, H, P, p, r) {
-  const fcx = p.focusX, fcy = p.focusY - 0.02;
-  const fw = p.faceW, fh = fw * 1.25;
+  // PORTRAIT, not medallion: the face sits ON the dominant phi point (off-centre),
+  // smaller than before so a supporting glyph-mass constellation fills the rest of
+  // the frame. The dominant focus IS the face centre.
+  const fcx = p.foci.dom.x, fcy = p.foci.dom.y - 0.01;
+  const fw = (0.34 + p.faceW * 0.18), fh = fw * 1.28;     // narrower head → room for scene
   const tilt = p.faceTilt * p.flip;
   // face mask: an oval head, with brow ridge, eye sockets (bright cores),
   // nose ridge and cheekbones sculpting glyph density.
@@ -576,10 +725,11 @@ function layoutApparition(x, W, H, P, p, r) {
     }
     return clamp(m, 0, 1) * (0.7 + p.resolveR);
   };
-  // OVERSIZED hero anchor down the face's nose ridge — guarantees a large-form
-  // read even on low-density / low-resolve seeds (fixes "Apparition = noise mush").
-  heroAnchor(x, W, H, P, p, r, fcx * W, fcy * H, Math.min(W, H) * fw * 0.85, mask);
   glyphStorm(x, W, H, P, p, r, mask, { cell: 0.024, gain: 1.05 });
+  // Multi-focal hierarchy: the face anchors the dominant; secondary/tertiary
+  // glyph-masses spread to the answering thirds so it reads as a composed scene
+  // around an off-centre portrait, never a lone centred medallion.
+  drawFoci(x, W, H, P, p, r, mask, Math.min(W, H) * fw * 0.5);
   // blazing eyes
   for (const s of [-1, 1]) {
     const ru = s * eyeDx, rv = (eyeY - fcy);
@@ -631,10 +781,12 @@ function layoutCascade(x, W, H, P, p, r) {
     bloom(x, cx, cv * H, W / p.colN * 1.6, P.hot, 0.3);
   }
   x.restore();
-  // OVERSIZED hero anchor riding the breaking crest centre.
-  heroAnchor(x, W, H, P, p, r, W * 0.5, crestAt(0.5) * H, Math.min(W, H) * 0.4, mask);
   // the glyph storm sculpted to the wave
   glyphStorm(x, W, H, P, p, r, mask, { cell: 0.024, gain: 1.0 });
+  // HARD-asymmetric foci: the dominant rides the breaking crest at its off-centre
+  // phi-x, the answering masses scatter to the other thirds (foam beads + decode
+  // clusters) so the diagonal wave reads as a full scene, not a centred glyph.
+  drawFoci(x, W, H, P, p, r, mask, Math.min(W, H) * 0.30);
   // breaking foam: a bright drawn ribbon along the crest
   x.save();
   x.globalCompositeOperation = 'lighter';
@@ -652,7 +804,10 @@ function layoutCascade(x, W, H, P, p, r) {
  * source low in the frame, spreading outward, ringed by concentric radial decode
  * rings condensing out of the noise. NO vanishing point, NO horizon cue. */
 function layoutWellspring(x, W, H, P, p, r) {
-  const sx = W * p.wellX, sy = H * p.wellY;     // source point (low in frame)
+  // SOURCE off-centre: bias the upwelling origin firmly to one side so the
+  // fountain rises off-axis (asymmetric), never straight up the middle.
+  const wellXoff = p.wellX < 0.5 ? clamp(p.wellX, 0.18, 0.34) : clamp(p.wellX, 0.66, 0.82);
+  const sx = W * wellXoff, sy = H * p.wellY;     // source point (low, off-centre)
   const S = Math.min(W, H);
   const reach = S * 0.92;                        // how far the plume rises/spreads
   // resolve mask: bright dense at the source, fanning UPWARD in a plume that
@@ -699,9 +854,11 @@ function layoutWellspring(x, W, H, P, p, r) {
     x.beginPath(); x.moveTo(sx, sy); x.lineTo(ex, ey); x.stroke();
   }
   x.restore();
-  // OVERSIZED hero anchor: a colossal upwelling glyph column rising from source.
-  heroAnchor(x, W, H, P, p, r, sx, sy - reach * 0.34, S * 0.5, mask);
   glyphStorm(x, W, H, P, p, r, mask, { cell: 0.025, gain: 1.0 });
+  // Multi-focal hierarchy: dominant in the rising plume (off-centre, above the
+  // off-centre source), answered by masses fanning across the upper thirds so the
+  // upwelling reads as a spreading scene, not one column up the middle.
+  drawFoci(x, W, H, P, p, r, mask, S * 0.34);
   // blazing source core
   bloom(x, sx, sy, S * 0.22, P.phos, 0.18);
   bloom(x, sx, sy, S * 0.08, P.hot, 0.36);
@@ -711,9 +868,12 @@ function layoutWellspring(x, W, H, P, p, r) {
 
 /* 5 — EYE: a vast iris/aperture of glyph rings spiralling into a pupil. */
 function layoutEye(x, W, H, P, p, r) {
-  const cx = p.focusX, cy = p.focusY;
+  // The iris sits ON the off-centre dominant phi point — an asymmetric portrait of
+  // a watching eye, not a centred target. Pulled in a touch so a supporting
+  // glyph-mass constellation fills the rest of the frame.
+  const cx = p.foci.dom.x, cy = p.foci.dom.y;
   const cxp = cx * W, cyp = cy * H;
-  const R = Math.min(W, H) * 0.46;
+  const R = Math.min(W, H) * 0.28;   // portrait-scale iris, not a frame-filling target
   const mask = (u, v) => {
     const d = Math.hypot((u - cx) * W, (v - cy) * H) / R;
     if (d > 1.05) return clamp(0.3 - (d - 1.05), 0, 0.3);    // faint outer noise
@@ -739,9 +899,11 @@ function layoutEye(x, W, H, P, p, r) {
     x.lineTo(cxp + Math.cos(a) * R, cyp + Math.sin(a) * R); x.stroke();
   }
   x.restore();
-  // OVERSIZED hero anchor: a colossal glyph at the pupil core.
-  heroAnchor(x, W, H, P, p, r, cxp, cyp, R * 0.7, mask);
   glyphStorm(x, W, H, P, p, r, mask, { cell: 0.024, gain: 1.0 });
+  // Supporting constellation around the off-centre eye — the dominant is the iris
+  // itself; secondary/tertiary glyph-masses answer on the far thirds so the eye
+  // sits as an asymmetric portrait with scene mass, not a lone centred aperture.
+  drawFoci(x, W, H, P, p, r, mask, R * 0.66);
   // a scanning decode-bar crossing the eye
   x.save();
   x.globalCompositeOperation = 'lighter';
@@ -769,6 +931,29 @@ function draw(cv, seed) {
   const P = PALS[p.palI], W = p.fmt.W, H = p.fmt.H;
   cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
+
+  // FREE composition RNG — drawn AFTER paramsOf so traits() is untouched. All
+  // phi-point focal placement uses this stream; pure function of tokenId.
+  const cr = rng(((seed >>> 0) ^ 0x9e3779b9) >>> 0);
+  // per-layout dominant anchor — every layout's primary focal element lands on a
+  // golden/thirds intersection OFF the dead centre. composeFoci then builds the
+  // answering constellation. No anchor => a freely-chosen phi corner.
+  let anchor = null;
+  if (p.layoutI === 1) {                         // Apparition — face on a phi corner
+    anchor = { x: PHI_X[Math.floor(cr() * 2)], y: 1 - INVPHI + (cr() - 0.5) * 0.06 };
+  } else if (p.layoutI === 4) {                  // Eye — iris on a phi corner
+    anchor = { x: PHI_X[Math.floor(cr() * 2)], y: PHI_Y[Math.floor(cr() * 2)] };
+  } else if (p.layoutI === 3) {                  // Wellspring — plume above off-x source
+    const wxo = p.wellX < 0.5 ? clamp(p.wellX, 0.18, 0.34) : clamp(p.wellX, 0.66, 0.82);
+    anchor = { x: clamp(wxo + (cr() - 0.5) * 0.08, 0.16, 0.84), y: 0.40 + (cr() - 0.5) * 0.1, yLock: 1 };
+  } else if (p.layoutI === 2) {                  // Cascade — dominant rides the crest at a phi-x
+    const ux = PHI_X[Math.floor(cr() * 2)];
+    const cv = p.waveCrest + Math.sin(ux * Math.PI * 1.5 + p.seedNoise) * 0.10 * p.waveDir + ux * 0.18 * p.waveDir;
+    anchor = { x: ux, y: clamp(cv, 0.22, 0.78), yLock: 1 };
+  } else if (p.layoutI === 0) {                  // Monolith — tower on a phi-x
+    anchor = { x: PHI_X[Math.floor(cr() * 2)], y: 1 - INVPHI + (cr() - 0.5) * 0.08, yLock: 1 };
+  }
+  p.foci = composeFoci(W, H, cr, anchor);
 
   paintGround(x, W, H, P, p, r);
 
