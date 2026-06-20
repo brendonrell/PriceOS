@@ -491,7 +491,7 @@ export default function StarredList({
             </div>
 
             {/* Rows — each type renders when 'all' or its own filter is active. */}
-            <div className="starred-rows">
+            <div className={`starred-rows${multiActive ? ' is-multi' : ''}`}>
                 {(mode === 'all' || mode === 'outputs') && (
                     <>
                         {typeHdr && visibleOutputs.length > 0 && <div className="starred-group-header">Outputs</div>}

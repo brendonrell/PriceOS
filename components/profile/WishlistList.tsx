@@ -167,7 +167,7 @@ export default function WishlistList({
                 </span>
             </div>
 
-            <div className="starred-rows">
+            <div className={`starred-rows${multiActive ? ' is-multi' : ''}`}>
                 {groups.map(([slug, groupRows]) => (
                     <ProjectProvider key={slug} slug={slug}>
                         {groupRows.map((r) => (

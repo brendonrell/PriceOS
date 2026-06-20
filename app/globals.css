@@ -8185,10 +8185,39 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     background: var(--stat-bg);
 }
 /* Multi-select: selectable rows show a pointer; selected rows get an accent
-   ring + fill (Brendon 2026-06-19). */
+   ring + light tint, plus a checkbox in the top-left corner of the row's square
+   (Brendon 2026-06-19). */
 .starred-row.is-selectable { cursor: pointer; }
+.starred-rows.is-multi .starred-row { position: relative; cursor: pointer; }
+.starred-rows.is-multi .starred-row::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 6px;
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1;
+    color: #fff;
+    pointer-events: none;
+}
+.starred-rows.is-multi .starred-row.is-selected::before {
+    content: '✓';
+    background: var(--accent);
+    border-color: var(--accent);
+}
 .starred-row.is-selected {
-    background: var(--stat-active-bg);
+    /* Selected = just the outline, no fill (Brendon 2026-06-19). */
     box-shadow: inset 0 0 0 2px var(--accent);
     border-radius: 4px;
 }
