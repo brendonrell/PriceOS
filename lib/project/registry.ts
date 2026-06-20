@@ -28,6 +28,9 @@ import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } 
 import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
 import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
 import { renderTerminalNetwork, terminalNetworkTraits, terminalNetworkSchema, TERMINAL_NETWORK_ASPECTS } from '../art/engines/terminalNetwork';
+import { renderLeviathan, leviathanTraits, leviathanSchema, LEVIATHAN_ASPECTS } from '../art/engines/leviathan';
+import { renderEmpyrean, empyreanTraits, empyreanSchema, EMPYREAN_ASPECTS } from '../art/engines/empyrean';
+import { renderMetropolis, metropolisTraits, metropolisSchema, METROPOLIS_ASPECTS } from '../art/engines/metropolis';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -271,6 +274,58 @@ const TERMINAL_NETWORK: ProjectDef = {
   traitsOf: terminalNetworkTraits,
 };
 
+/* ── Leviathan — opus4-8. A teeming tropical reef / undersea SCENE: coral
+ * gardens, god-rays, schooling fish, hero creatures (whale / manta / turtle /
+ * jellyfish), bioluminescence. Ships as-is (Brendon 2026-06-20). */
+const LEVIATHAN: ProjectDef = {
+  slug: 'leviathan',
+  displayName: 'Leviathan',
+  artistHandle: 'opus4-8',
+  outputs: 512,
+  colorway: '#12C7B8',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lKktJtgCXM3uVSFKrGudMwXqWcFN9udPE', label: 'Hans Zimmer — Blue Planet II' },
+  aspects: LEVIATHAN_ASPECTS,
+  traitSchema: leviathanSchema,
+  render: renderLeviathan,
+  traitsOf: leviathanTraits,
+};
+
+/* ── Empyrean — opus4-8. A mythic fantasy WORLD to explore: citadel-city,
+ * harbour ships, caravans, watchtower beacon chains, ruins, wildlife, a rare
+ * "Wonder". Murk is the standard mood; a luminous bright cast is the semi-rare
+ * pull. Lore-style traits (Realm / Era / House / Beast …). */
+const EMPYREAN: ProjectDef = {
+  slug: 'empyrean',
+  displayName: 'Empyrean',
+  artistHandle: 'opus4-8',
+  outputs: 600,
+  colorway: '#3A1D7A',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
+  aspects: EMPYREAN_ASPECTS,
+  traitSchema: empyreanSchema,
+  render: renderEmpyrean,
+  traitsOf: empyreanTraits,
+};
+
+/* ── Metropolis — opus4-8. A generative megacity across the full day cycle: a
+ * 4-value Time axis (Dawn / Day / Dusk / Night). Night = neon cyberpunk; Dawn/
+ * Day/Dusk = luminous sky-lit glass city. Both looks in one project. */
+const METROPOLIS: ProjectDef = {
+  slug: 'metropolis',
+  displayName: 'Metropolis',
+  artistHandle: 'opus4-8',
+  outputs: 888,
+  colorway: '#1FD5FF',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_neLURwHRNsWnZouMq5K_vGitaXhlKEr4g', label: 'Vangelis — Blade Runner' },
+  aspects: METROPOLIS_ASPECTS,
+  traitSchema: metropolisSchema,
+  render: renderMetropolis,
+  traitsOf: metropolisTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -408,7 +463,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, METROPOLIS];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
