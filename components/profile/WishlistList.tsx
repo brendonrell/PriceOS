@@ -85,6 +85,15 @@ export default function WishlistList({
         showToast(r === 'pinned' ? 'Grail: PINNED' : 'Grail: UNPINNED');
     };
 
+    /* Removing from the Wishlist asks first — the same confirm card the Starred
+       list uses (Brendon 2026-06-19). */
+    const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
+    const requestRemove = (slug: string, id: number) =>
+        setConfirm({
+            question: 'Remove this output from your Wishlist?',
+            onConfirm: () => { toggleWishlist(slug, id); showToast('Removed from your Wishlist'); },
+        });
+
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
     useEffect(() => { setSelected(new Set()); }, [multiActive]);
     const toggleSel = (k: string) =>
@@ -207,6 +216,7 @@ export default function WishlistList({
                                 multiActive={multiActive}
                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
+                                onRequestRemove={() => requestRemove(r.slug, r.id)}
                                 grailPinned={grailKeys.has(grailKey({ kind: 'wishlist', slug: r.slug, id: r.id }))}
                                 onGrail={() => handleGrail({ kind: 'wishlist', slug: r.slug, id: r.id })}
                             />
@@ -233,6 +243,32 @@ export default function WishlistList({
                     </div>
                 </div>
             )}
+            {confirm && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setConfirm(null)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">{confirm.question}</div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setConfirm(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => { confirm.onConfirm(); setConfirm(null); }}
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
@@ -248,6 +284,7 @@ function WishlistRow({
     multiActive,
     selected,
     onToggleSel,
+    onRequestRemove,
     grailPinned,
     onGrail,
 }: {
@@ -261,6 +298,7 @@ function WishlistRow({
     multiActive: boolean;
     selected: boolean;
     onToggleSel: () => void;
+    onRequestRemove: () => void;
     grailPinned: boolean;
     onGrail: () => void;
 }) {
@@ -286,8 +324,7 @@ function WishlistRow({
 
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toggleWishlist(slug, id);
-        showToast('Removed from your Wishlist');
+        onRequestRemove();
     };
 
     const handleCart = (e: React.MouseEvent) => {
