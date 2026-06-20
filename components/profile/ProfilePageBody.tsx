@@ -1605,11 +1605,11 @@ function ProfilePageBodyInner({
                             className="stat-item stat-item-owners"
                             role="button"
                             tabIndex={0}
-                            onClick={() => showToast('Followers: COMING SOON')}
+                            onClick={() => openModal('followers', 'followers')}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    showToast('Followers: COMING SOON');
+                                    openModal('followers', 'followers');
                                 }
                             }}
                         >
