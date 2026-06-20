@@ -6,12 +6,34 @@
 
 ---
 
-- **Branch:** all work is on `dev`, pushed, tree clean (head `5605218`). This chat's task
-  branch `claude/app-ui-feature-edits-z7rixs` is trash (work is on dev) — Brendon deletes on GitHub.
+- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
+  branch `claude/subfilter-pills-styling-fysgj2` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-19 (latest). This session = **STARRED/WISHLIST + SPRITE POLISH** (⭐ below).
-  Prior: GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️), PWA STEP 3 (📲), AMBIENT MENU v2 / setup
-  codes / eggs (🎚️), 6 gen-art projects (🖼️), ARTIST SHOWCASE / mood palette, HOME draw.
+- **Updated:** 2026-06-20 (latest). This session = **OUTPUT ATTRIBUTES / CHARACTER SHEET** (🪪 below).
+  Prior: STARRED/WISHLIST + SPRITE POLISH (⭐), GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️),
+  PWA STEP 3 (📲), 6 gen-art projects (🖼️), ARTIST SHOWCASE / mood palette, HOME draw.
+
+## 🪪 OUTPUT ATTRIBUTES / CHARACTER SHEET — 2026-06-20 (latest) — SHIPPED to dev
+- **Stored platform traits:** Artist/Project/PriceDay/Natal/Fate + the **Output true name**
+  (`outputTrueName` = project Glagolitic name + id) now persist to `outputs`, computed once from the
+  mint moment + registry. UI computes live as the fallback until a row fills. Backfills as pieces are
+  browsed: ArtworkCard + ArtworkLive fire `reportTraits` (own session dedupe, ungated by colour).
+- **~30 deep captures** added to `outputs` (migrations `outputs_stored_platform_traits` +
+  `outputs_deep_attributes`): natal element/modality/polarity/ruler/harmony; weekday/season/
+  time-of-day/lunar phase+illumination (Montreal tz); I Ching hexagram number/name/glyph/upper+lower
+  trigram/changing count/transform/stable; brightness/saturation/complexity bands + tone mood + colour
+  temperature + orientation; edition-set rarity (trait/fate/colour count+rank+pct, overall score+bits),
+  supply. Derivations live in `lib/output/derive.ts`; rarity tally (memoised per project, deterministic
+  over 1..supply) in `lib/output/rarity.ts`.
+- **Capture routes:** colour POST (`/api/outputs/color`) now also stores the fingerprint bands;
+  new `/api/outputs/traits` POST computes+stores natal/fate/birth/rarity. `/api/outputs/colors` GET
+  returns all new columns; `/api/output/[id]` returns stored fingerprint + true_name.
+- **Attributes screen** (`components/artwork/AttributesPanel.tsx`, `lib/output/attributes.ts`):
+  Artwork ▸ +More ▸ Attributes renders the full sheet as grouped tiles in the achievements-wall
+  language (`.attr-*` in globals.css). Groups: Identity, Form, Sky, Almanac, Oracle, Rarity.
+- **NOTE:** deep columns are unfilled until pieces are browsed (self-populating); the screen shows
+  everything live immediately so nothing looks empty. Brightness/sat/complexity tiles need a piece to
+  have rendered once (stored sample). Straggling edits expected — Brendon sending more.
 
 ## ⭐ STARRED/WISHLIST + SPRITE POLISH — 2026-06-19 (latest) — SHIPPED to dev
 - **Wishlist artist line:** social tags (mutual/following/follower glyph + follower count) +
