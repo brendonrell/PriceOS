@@ -6602,6 +6602,7 @@ body.redacted-mode .tape-item,
 body.redacted-mode .cal-event-title,
 body.redacted-mode .cal-event-item,
 body.redacted-mode .topbarcal-events,
+body.redacted-mode .starred-row-id,
 body.redacted-mode .project-title {
     color: transparent !important;
     background: #000000 !important;
@@ -6644,6 +6645,7 @@ body.colorway-dark.redacted-mode .tape-item,
 body.colorway-dark.redacted-mode .cal-event-title,
 body.colorway-dark.redacted-mode .cal-event-item,
 body.colorway-dark.redacted-mode .topbarcal-events,
+body.colorway-dark.redacted-mode .starred-row-id,
 body.colorway-dark.redacted-mode .project-title { background: rgba(224,224,224,0.88) !important; }
 
 /* sim 3872-3879 — ANON MODE (project page hides). Hides
@@ -6653,6 +6655,9 @@ body.colorway-dark.redacted-mode .project-title { background: rgba(224,224,224,0
 body.anon-mode .info-line { display: none !important; }
 body.anon-mode .follow-badge { display: none !important; }
 body.anon-mode .follower-count { display: none !important; }
+/* Anon mode hides relationship signals in the Starred/Wishlist rows too — the
+   social glyph beside an @name (the follower count is already hidden above). */
+body.anon-mode .artist-social-ico { display: none !important; }
 body.anon-mode #ctab-network-pill { display: none !important; }
 body.anon-mode #artistsPanel .artist-rel-icon { display: none !important; }
 body.anon-mode #artistsPanel .pill-artist-filter[data-rel="mutual"],
@@ -8531,13 +8536,13 @@ body.colorway-dark .ghost-feed-bar {
     align-items: flex-end;
     justify-content: center;
     gap: 6px;
-    padding-right: 24px;
 }
 .wishlist-row-price--stack {
     text-align: right;
     line-height: 1.05;
     opacity: 0.6;
     font-size: 12px;
+    text-transform: uppercase;
 }
 
 /* Icon prefixing the +More sub-nav tab labels (Starred ★ / Wishlists ✛ /

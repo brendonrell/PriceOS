@@ -1688,7 +1688,7 @@ function ProfilePageBodyInner({
                                         ...(isOwnProfile
                                             ? [
                                                 { key: 'starred',   label: <><span className="pill-tab-ico">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
-                                                { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlists</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
+                                                { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
                                             ]
                                             : []),
                                         { key: 'albums',    label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
