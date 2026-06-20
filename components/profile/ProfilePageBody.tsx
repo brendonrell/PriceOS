@@ -1601,20 +1601,21 @@ function ProfilePageBodyInner({
                             </span>{' '}
                             <span className="stat-val stat-val-vol">0</span>
                         </span>
-                        <span
-                            className="stat-item stat-item-owners"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => openModal('followers', 'followers')}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    openModal('followers', 'followers');
-                                }
-                            }}
-                        >
+                        <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
-                            <span className="stat-val stat-val-owners">{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
+                            <span
+                                className="stat-val stat-val-owners"
+                                role="button"
+                                tabIndex={0}
+                                title="Followers"
+                                onClick={() => openModal('followers', 'followers')}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        openModal('followers', 'followers');
+                                    }
+                                }}
+                            >{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
                         </span>
                     </div>
                 }

@@ -45,6 +45,7 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
+import { useEffect, useState } from 'react';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -52,6 +53,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import { openConnectModal } from '../../lib/wallet/walletBus';
 import { DISCORD_URL } from '../../lib/config/discord';
 import { useGasData } from '../../lib/hooks/useGasData';
+import { fmtFollowers } from '../../lib/social/useArtistSocial';
 
 export function LinksView() {
     const { setView, closeMenu } = useDropdown();
@@ -60,6 +62,24 @@ export function LinksView() {
     const { showToast } = useToast();
 
     const isAuthed = !!siweAddress;
+
+    /* Real follower / following counts for the signed-in wallet. */
+    const [followCounts, setFollowCounts] = useState<{ followers: number; following: number } | null>(null);
+    useEffect(() => {
+        if (!siweAddress) { setFollowCounts(null); return; }
+        let cancel = false;
+        fetch(`/api/follows/${siweAddress}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancel || !d) return;
+                setFollowCounts({
+                    followers: typeof d.follower_count === 'number' ? d.follower_count : 0,
+                    following: typeof d.following_count === 'number' ? d.following_count : 0,
+                });
+            })
+            .catch(() => {});
+        return () => { cancel = true; };
+    }, [siweAddress]);
 
     const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
 
@@ -132,7 +152,7 @@ export function LinksView() {
                             ⚬{'\uFE0E'}
                         </span>
                         {' '}&nbsp;
-                        <b>850</b>
+                        <b>{followCounts ? fmtFollowers(followCounts.followers) : '—'}</b>
                     </span>
                     <span
                         className="nav-stat-link"
@@ -156,7 +176,7 @@ export function LinksView() {
                             ⚯{'\uFE0E'}
                         </span>
                         {' '}&nbsp;
-                        <b>2.2k</b>
+                        <b>{followCounts ? fmtFollowers(followCounts.following) : '—'}</b>
                     </span>
                 </span>
                 )}
