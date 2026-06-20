@@ -14,16 +14,17 @@ import { useEffect, useState } from 'react';
 
 export type ArtistRel = 'mutual' | 'following' | 'follower' | 'none';
 
-const cache = new Map<string, { count: number; rel: ArtistRel }>();
+const cache = new Map<string, { count: number; rel: ArtistRel; address: string | null }>();
 
 export function useArtistSocial(
     handle: string,
     viewerAddress?: string | null,
-): { count: number | null; rel: ArtistRel } {
+): { count: number | null; rel: ArtistRel; address: string | null } {
     const cacheKey = `${handle}|${(viewerAddress ?? '').toLowerCase()}`;
     const cached = cache.get(cacheKey);
     const [count, setCount] = useState<number | null>(cached?.count ?? null);
     const [rel, setRel] = useState<ArtistRel>(cached?.rel ?? 'none');
+    const [address, setAddress] = useState<string | null>(cached?.address ?? null);
 
     useEffect(() => {
         if (cached || !handle) return;
@@ -36,6 +37,7 @@ export function useArtistSocial(
                 setCount(cnt);
                 let relation: ArtistRel = 'none';
                 const addr = (u.address ?? '').toLowerCase();
+                setAddress(addr || null);
                 const me = (viewerAddress ?? '').toLowerCase();
                 if (addr && me) {
                     const f = await fetch(`/api/follows/${addr}`).then((r) => (r.ok ? r.json() : null));
@@ -47,13 +49,13 @@ export function useArtistSocial(
                         relation = iFollow && theyFollow ? 'mutual' : iFollow ? 'following' : theyFollow ? 'follower' : 'none';
                     }
                 }
-                if (!cancel) { setRel(relation); cache.set(cacheKey, { count: cnt, rel: relation }); }
+                if (!cancel) { setRel(relation); cache.set(cacheKey, { count: cnt, rel: relation, address: addr || null }); }
             } catch { /* leave as null/none */ }
         })();
         return () => { cancel = true; };
     }, [handle, viewerAddress, cacheKey, cached]);
 
-    return { count, rel };
+    return { count, rel, address };
 }
 
 /* Social glyphs (docs/GLYPHS.md): ⚭ mutual · ⚯ following · ⚬ follower. */

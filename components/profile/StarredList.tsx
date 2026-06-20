@@ -576,7 +576,6 @@ export default function StarredList({
                                         multiActive={multiActive}
                                         selected={selected.has(r.name)}
                                         onToggleSel={() => toggleSel(r.name)}
-                                        onFollow={() => showToast('Follow: COMING SOON')}
                                         onUnstar={(e) => handleArtistUnstar(e, r.name)}
                                         grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
                                         onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
@@ -603,7 +602,6 @@ export default function StarredList({
                                         multiActive={multiActive}
                                         selected={selected.has(r.name)}
                                         onToggleSel={() => toggleSel(r.name)}
-                                        onFollow={() => showToast('Follow: COMING SOON')}
                                         onUnstar={(e) => handleArtistUnstar(e, r.name)}
                                         grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
                                         onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
@@ -918,7 +916,6 @@ function StarredArtistRow({
     multiActive,
     selected,
     onToggleSel,
-    onFollow,
     onUnstar,
     grailPinned,
     onGrail,
@@ -931,18 +928,45 @@ function StarredArtistRow({
     multiActive: boolean;
     selected: boolean;
     onToggleSel: () => void;
-    onFollow: (e: React.MouseEvent) => void;
     onUnstar: (e: React.MouseEvent) => void;
     grailPinned: boolean;
     onGrail: () => void;
     variant?: 'artist' | 'collector';
     sprite?: string | null;
 }) {
-    const { count, rel } = useArtistSocial(handle, viewerAddress);
+    const { showToast } = useToast();
+    const { count, rel, address } = useArtistSocial(handle, viewerAddress);
     const projectCount = useMemo(() => projectsByArtist(handle).length, [handle]);
     const relGlyph = relGlyphOf(rel);
     const relLabel = relLabelOf(rel);
     const act = () => (multiActive ? onToggleSel() : window.location.assign('/' + handle));
+
+    /* Follow / unfollow — the SAME flow as the profile Follow button
+       (/api/follows, @name-keyed, fires pd:follows-changed). Following state
+       seeds from the social relationship and flips on tap. */
+    const [following, setFollowing] = useState(rel === 'mutual' || rel === 'following');
+    const [followBusy, setFollowBusy] = useState(false);
+    useEffect(() => { setFollowing(rel === 'mutual' || rel === 'following'); }, [rel]);
+    const toggleFollow = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (followBusy) return;
+        const me = (viewerAddress ?? '').toLowerCase();
+        if (!me) { showToast('Wallet: CONNECT TO FOLLOW'); return; }
+        if (!address) { showToast(`@${handle}: NO @NAME YET`); return; }
+        setFollowBusy(true);
+        try {
+            if (following) {
+                const r = await fetch(`/api/follows?target=${address}`, { method: 'DELETE' });
+                if (r.ok) { setFollowing(false); showToast(`@${handle}: UNFOLLOWED`); window.dispatchEvent(new Event('pd:follows-changed')); }
+                else showToast('Unfollow: FAILED');
+            } else {
+                const r = await fetch('/api/follows', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ target: address }) });
+                if (r.status === 201) { setFollowing(true); showToast(`@${handle}: FOLLOWED`); window.dispatchEvent(new Event('pd:follows-changed')); }
+                else if (r.status === 204) showToast(`@${handle}: NO @NAME YET`);
+                else showToast('Follow: FAILED');
+            }
+        } finally { setFollowBusy(false); }
+    };
 
     return (
         <div
@@ -979,15 +1003,15 @@ function StarredArtistRow({
             </div>
             <div className="starred-row-actions">
                 <span
-                    className="starred-row-cta"
+                    className={`starred-row-cta${following ? ' is-on' : ''}`}
                     role="button"
                     tabIndex={0}
-                    title="Follow (coming soon)"
-                    aria-label="Follow"
-                    onClick={(e) => { e.stopPropagation(); onFollow(e); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onFollow(e as unknown as React.MouseEvent); } }}
+                    title={following ? `Unfollow @${handle}` : `Follow @${handle}`}
+                    aria-label={following ? 'Unfollow' : 'Follow'}
+                    onClick={toggleFollow}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFollow(e as unknown as React.MouseEvent); } }}
                 >
-                    ⚯︎ Follow
+                    {followBusy ? '⚯︎ …' : following ? '⚯︎ Following' : '⚯︎ Follow'}
                 </span>
                 <span
                     className="starred-row-unstar"
