@@ -9025,6 +9025,7 @@ body.colorway-dark .ghost-feed-bar {
     text-decoration: none;
 }
 .pd-discord-join-arrow { font-size: 14px; position: relative; top: -2px; }
+.pd-discord-logo { flex-shrink: 0; }
 
 /* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
 /* Same small, fully-visible card-meta type as the project name under each

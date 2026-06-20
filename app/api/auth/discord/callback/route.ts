@@ -63,13 +63,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       id: string;
       username: string;
       global_name?: string | null;
+      avatar?: string | null;        // CDN hash — we store the hash, never the image
+      accent_color?: number | null;  // the user's chosen profile accent colour
     };
     const name = dUser.global_name || dUser.username;
 
     const db = getSupabaseService();
     const { error } = await db
       .from('users')
-      .update({ discord_id: dUser.id, discord_username: name } as never)
+      .update({
+        discord_id: dUser.id,
+        discord_username: name,
+        discord_avatar: dUser.avatar ?? null,
+        discord_accent_color: dUser.accent_color ?? null,
+      } as never)
       .eq('address', address);
     if (error) return back('error');
 

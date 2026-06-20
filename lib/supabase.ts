@@ -201,6 +201,13 @@ export interface UserRow {
   discord_id: string | null;
   /** The linked Discord account's display name, shown on the profile. */
   discord_username: string | null;
+  /** The Discord avatar HASH (not the image). The pfp streams from Discord's
+   *  CDN: cdn.discordapp.com/avatars/{discord_id}/{discord_avatar}.png — we pay
+   *  no image storage. Null = no custom avatar (use the default blob). */
+  discord_avatar: string | null;
+  /** The user's chosen Discord profile accent colour, as an integer (0xRRGGBB).
+   *  Null = none set. */
+  discord_accent_color: number | null;
 }
 
 /** The subset of columns a user may write to their own row via
@@ -489,7 +496,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, signature_hex, showcase, showcase_style, discord_id, discord_username, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

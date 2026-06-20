@@ -1885,6 +1885,8 @@ function ProfilePageBodyInner({
                         <DiscordSection
                             discordId={user.discord_id}
                             discordUsername={user.discord_username}
+                            discordAvatar={user.discord_avatar}
+                            discordAccent={user.discord_accent_color}
                             isOwnProfile={isOwnProfile}
                             isAuthed={isAuthed}
                         />
