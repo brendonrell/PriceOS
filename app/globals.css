@@ -4047,6 +4047,11 @@ button,
     position: relative;
     top: -1px;
 }
+/* Hash-synesthesia (⁂) colorway icon in settings — down 1px on mobile only
+   (Brendon 2026-06-20). */
+@media (max-width: 600px) {
+    .pill-colorway.t-hashsyn span { position: relative; top: 1px; }
+}
 .pill-colorway.active {
     border-color: var(--text-color);
     background: var(--text-color);
@@ -4290,6 +4295,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 
 .burn-btn {
+    /* Nudge the icon down 1px everywhere it's used; a transform adds exactly 1px
+       on top of any per-breakpoint top nudge without reflowing the row (Brendon
+       2026-06-20). */
+    transform: translateY(1px);
     cursor: pointer;
     font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
@@ -4322,6 +4331,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     }
 }
 .search-btn {
+    /* Down 1px everywhere (Brendon 2026-06-20) — see .burn-btn note. */
+    transform: translateY(1px);
     cursor: pointer;
     font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
@@ -4359,6 +4370,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 
 /* Multi-select icon (.multiselect-btn) shares the burn-btn / search-btn rules. */
 .multiselect-btn {
+    /* Down 1px everywhere (Brendon 2026-06-20) — see .burn-btn note. */
+    transform: translateY(1px);
     cursor: pointer;
     font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
