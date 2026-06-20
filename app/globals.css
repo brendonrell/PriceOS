@@ -4085,7 +4085,7 @@ button,
     display: inline-flex;
     align-items: center;
     position: relative;
-    top: 0.07em;
+    top: 0;
 }
 /* Recent glyph one size larger on mobile only (Brendon 2026-06-20). */
 @media (max-width: 600px) {
