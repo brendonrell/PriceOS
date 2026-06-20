@@ -40,7 +40,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', `${origin}/api/auth/discord/callback`);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'identify');
+  url.searchParams.set('scope', 'identify guilds');
   url.searchParams.set('state', state);
   url.searchParams.set('prompt', 'consent');
   return NextResponse.redirect(url.toString());
@@ -51,7 +51,13 @@ export const DELETE = requireAuth(async (_req, _ctx, address) => {
     const db = getSupabaseService();
     const { error } = await db
       .from('users')
-      .update({ discord_id: null, discord_username: null } as never)
+      .update({
+        discord_id: null,
+        discord_username: null,
+        discord_avatar: null,
+        discord_accent_color: null,
+        discord_in_server: null,
+      } as never)
       .eq('address', address);
     if (error) return serverError(error.message);
     return NextResponse.json({ ok: true });

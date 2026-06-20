@@ -1887,6 +1887,7 @@ function ProfilePageBodyInner({
                             discordUsername={user.discord_username}
                             discordAvatar={user.discord_avatar}
                             discordAccent={user.discord_accent_color}
+                            discordInServer={user.discord_in_server}
                             isOwnProfile={isOwnProfile}
                             isAuthed={isAuthed}
                         />

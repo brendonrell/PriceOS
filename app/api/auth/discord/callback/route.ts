@@ -11,6 +11,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/siwe';
 import { getSupabaseService } from '@/lib/supabase';
 import { getHandleByAddress } from '@/lib/profile/getUserProfileByHandle';
+import { DISCORD_URL } from '@/lib/config/discord';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,26 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     };
     const name = dUser.global_name || dUser.username;
 
+    // Server membership: resolve the PD invite → guild id, then check the user's
+    // guild list (the `guilds` scope). Null = couldn't determine (left unknown).
+    let inServer: boolean | null = null;
+    try {
+      const code = DISCORD_URL.split('/').filter(Boolean).pop();
+      const inv = code
+        ? await fetch(`https://discord.com/api/v10/invites/${code}`).then((r) => (r.ok ? r.json() : null))
+        : null;
+      const guildId = (inv as { guild?: { id?: string } } | null)?.guild?.id ?? null;
+      if (guildId) {
+        const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
+          headers: { Authorization: `Bearer ${token.access_token}` },
+        });
+        if (guildsRes.ok) {
+          const guilds = (await guildsRes.json()) as { id: string }[];
+          inServer = Array.isArray(guilds) && guilds.some((g) => g.id === guildId);
+        }
+      }
+    } catch { /* leave unknown */ }
+
     const db = getSupabaseService();
     const { error } = await db
       .from('users')
@@ -76,6 +97,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         discord_username: name,
         discord_avatar: dUser.avatar ?? null,
         discord_accent_color: dUser.accent_color ?? null,
+        discord_in_server: inServer,
       } as never)
       .eq('address', address);
     if (error) return back('error');

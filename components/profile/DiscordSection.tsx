@@ -36,6 +36,7 @@ export default function DiscordSection({
     discordUsername,
     discordAvatar,
     discordAccent,
+    discordInServer,
     isOwnProfile,
     isAuthed,
 }: {
@@ -43,6 +44,7 @@ export default function DiscordSection({
     discordUsername: string | null;
     discordAvatar?: string | null;
     discordAccent?: number | null;
+    discordInServer?: boolean | null;
     isOwnProfile: boolean;
     isAuthed: boolean;
 }) {
@@ -82,6 +84,12 @@ export default function DiscordSection({
                             >
                                 @{discordUsername}
                             </a>
+                            {discordInServer === true && (
+                                <span className="pd-discord-member is-in">✓ In the PD Discord</span>
+                            )}
+                            {discordInServer === false && (
+                                <span className="pd-discord-member">Not in the server yet</span>
+                            )}
                         </div>
                         {isOwnProfile && (
                             <button type="button" className="pd-discord-unlink" onClick={unlink}>Unlink</button>
