@@ -209,7 +209,7 @@ const ARCOLOGY: ProjectDef = {
   displayName: 'Arcology',
   artistHandle: 'opus4-8',
   outputs: 999,
-  colorway: '#1fb6ff',
+  colorway: '#111111',
   mintPriceEth: 0.2,
   soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
   aspects: ARCOLOGY_ASPECTS,
@@ -255,10 +255,10 @@ const HALO_D: ProjectDef = {
   aspects: HALOD_ASPECTS, traitSchema: haloDSchema, render: renderHaloD, traitsOf: haloDTraits,
 };
 /* GLYPHSTORM — the platform HALO. glyphfield-ai (whose Teletext is the closest
-   glyph/decode twin). Cyan signature, distinct from the green/violet pair. */
+   glyph/decode twin). Dark teal signature (Brendon 2026-06-20). */
 const HALO_B: ProjectDef = {
   slug: 'glyphstorm', displayName: 'GLYPHSTORM', artistHandle: 'glyphfield-ai', outputs: 256,
-  colorway: '#1ad8ff', mintPriceEth: 0,
+  colorway: '#0a1f2e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
   aspects: HALOB_ASPECTS, traitSchema: haloBSchema, render: renderHaloB, traitsOf: haloBTraits,
 };
