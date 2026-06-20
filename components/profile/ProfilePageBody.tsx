@@ -64,6 +64,7 @@ import WishlistList from './WishlistList';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
+import DiscordSection from './DiscordSection';
 import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
@@ -104,7 +105,7 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements';
+type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements' | 'discord';
 /* Artist Showcase (Artist style): 'created' = the now-minting view of the
    projects this artist made; 'regular' = their curated Top 6 grid. */
 type ShowcaseView = 'created' | 'regular';
@@ -1693,6 +1694,7 @@ function ProfilePageBodyInner({
                                             : []),
                                         { key: 'albums',    label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
+                                        { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                     ]
                                 )
@@ -1816,58 +1818,20 @@ function ProfilePageBodyInner({
                                     <span className="stat-val stat-val-empty">—</span>
                                 </span>
                             </div>
-
-                            {user.discord_id && user.discord_username ? (
-                                <div style={{ marginTop: 14, fontFamily: 'Courier New, monospace' }}>
-                                    <a
-                                        href={`https://discord.com/users/${user.discord_id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        Discord: @{user.discord_username}
-                                    </a>
-                                    {isOwnProfile && (
-                                        <button
-                                            type="button"
-                                            style={{
-                                                marginLeft: 10,
-                                                cursor: 'pointer',
-                                                fontFamily: 'inherit',
-                                                background: 'none',
-                                                border: 'none',
-                                                padding: 0,
-                                                opacity: 0.6,
-                                            }}
-                                            onClick={async () => {
-                                                await fetch('/api/auth/discord', { method: 'DELETE' });
-                                                window.location.reload();
-                                            }}
-                                        >
-                                            (unlink)
-                                        </button>
-                                    )}
-                                </div>
-                            ) : isOwnProfile ? (
-                                <button
-                                    type="button"
-                                    className={!isAuthed ? 'auth-gated' : undefined}
-                                    style={{
-                                        cursor: 'pointer',
-                                        fontFamily: 'Courier New, monospace',
-                                        marginTop: 14,
-                                        background: 'none',
-                                        border: 'none',
-                                        padding: 0,
-                                    }}
-                                    onClick={() => {
-                                        if (!isAuthed) return;
-                                        window.location.href = '/api/auth/discord';
-                                    }}
-                                >
-                                    Link Discord
-                                </button>
-                            ) : null}
                         </div>
+                    )}
+
+                    {/* Discord sub-tab — PUBLIC, shows for everyone. Discord is the
+                        centre of the PD world, so this is its home: the user's linked
+                        identity (or a Link CTA on your own profile) plus the join-the
+                        -server CTA. Account ASSOCIATION only — not login-with-Discord. */}
+                    {onMore && effMoreL1 === 'discord' && (
+                        <DiscordSection
+                            discordId={user.discord_id}
+                            discordUsername={user.discord_username}
+                            isOwnProfile={isOwnProfile}
+                            isAuthed={isAuthed}
+                        />
                     )}
 
                     {/* Achievements sub-tab — PUBLIC wall for the profile owner.

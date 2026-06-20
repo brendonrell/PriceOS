@@ -4085,7 +4085,7 @@ button,
     display: inline-flex;
     align-items: center;
     position: relative;
-    top: 0;
+    top: -1px;
 }
 /* Recent glyph one size larger on mobile only (Brendon 2026-06-20). */
 @media (max-width: 600px) {
@@ -8225,32 +8225,28 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    (Brendon 2026-06-19). */
 .starred-row.is-selectable { cursor: pointer; }
 .starred-rows.is-multi .starred-row { position: relative; cursor: pointer; }
+/* Per-row indicator = the canonical multi-select glyph (same as .ms-check-badge):
+   ❐ unselected → ▣ selected, haloed so it reads on any thumbnail (Brendon
+   2026-06-20). NOT the add-to-cart box. */
 .starred-rows.is-multi .starred-row::before {
-    content: '';
+    content: '\2750\FE0E';
     position: absolute;
-    top: 12px;
+    top: 10px;
     left: 6px;
-    width: 18px;
-    height: 18px;
-    box-sizing: border-box;
-    border: 2px solid #fff;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.4);
     z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 20px;
     line-height: 1;
-    color: #fff;
+    color: var(--text-color);
+    text-shadow:
+        0 0 4px var(--bg-color),
+        0 0 8px var(--bg-color),
+        0 0 2px var(--bg-color);
     pointer-events: none;
 }
 .starred-rows.is-multi .starred-row.is-selected::before {
-    content: '✓';
-    background: var(--accent);
-    border-color: var(--accent);
+    content: '\25A3\FE0E';
+    color: var(--accent);
 }
 .starred-row.is-selected {
     /* Selected = just the outline, no fill (Brendon 2026-06-19). */
@@ -8865,6 +8861,115 @@ body.colorway-dark .ghost-feed-bar {
 .ps-ach-tile.secret .ps-ach-name {
     opacity: 0.85;
 }
+
+/* ── Profile Discord sub-tab ───────────────────────────────────────── */
+/* Discord blurple #5865F2 · online green #3BA55D. Reuses .ach-section for the
+   monospace body + spacing, then a blurple identity card + CTAs on top. */
+.pd-discord-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 2px 4px 18px;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 22%, transparent);
+    margin-bottom: 18px;
+}
+.pd-discord-wordmark {
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    color: #5865F2;
+}
+.pd-discord-tag { font-size: 12px; opacity: 0.6; }
+.pd-discord-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    background: color-mix(in srgb, #5865F2 14%, transparent);
+    border: 1px solid color-mix(in srgb, #5865F2 40%, transparent);
+    margin-bottom: 14px;
+}
+.pd-discord-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #5865F2;
+}
+.pd-discord-avatar--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    opacity: 0.45;
+}
+.pd-discord-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+.pd-discord-status {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    opacity: 0.5;
+}
+.pd-discord-status.is-on { color: #3BA55D; opacity: 1; }
+.pd-discord-handle {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pd-discord-handle:hover { text-decoration: underline; }
+.pd-discord-sub { font-size: 11px; opacity: 0.55; }
+.pd-discord-cta,
+.pd-discord-join {
+    flex-shrink: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    background: #5865F2;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    transition: opacity 0.15s;
+}
+.pd-discord-cta:hover,
+.pd-discord-join:hover { opacity: 0.85; }
+.pd-discord-cta.auth-gated { opacity: 0.4; cursor: not-allowed; }
+.pd-discord-unlink {
+    flex-shrink: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-color);
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 6px;
+    padding: 6px 10px;
+    opacity: 0.6;
+}
+.pd-discord-unlink:hover { opacity: 1; }
+.pd-discord-join {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    text-decoration: none;
+}
+.pd-discord-join-arrow { font-size: 14px; }
 
 /* ── Profile Achievements wall ─────────────────────────────────────── */
 .ach-section {
