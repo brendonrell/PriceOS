@@ -702,15 +702,15 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
-                                        className="starred-row-cta"
+                                        className="starred-row-cta trait-offer-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="View project"
-                                        aria-label="View project"
-                                        onClick={(e) => { e.stopPropagation(); window.location.assign('/art/' + r.slug); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); window.location.assign('/art/' + r.slug); } }}
+                                        title="Make an offer (coming soon)"
+                                        aria-label="Make an offer"
+                                        onClick={(e) => { e.stopPropagation(); showToast('Offer: COMING SOON'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Offer: COMING SOON'); } }}
                                     >
-                                        ⬚︎ View
+                                        <span className="trait-offer-glyph">✦︎</span> Offer
                                     </span>
                                     <span
                                         className="starred-row-unstar"
