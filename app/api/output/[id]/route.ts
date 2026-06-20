@@ -24,6 +24,15 @@ export interface OutputDetailResponse {
   last_sale_eth: string | null;
   traits: OutputTraits;
   history: EventRow[];
+  /** Stored visual fingerprint (sampled pixels) — null until captured. */
+  fingerprint: {
+    dominant_color: string | null;
+    aspect: string | null;
+    brightness: number | null;
+    saturation: number | null;
+    complexity: number | null;
+  } | null;
+  true_name: string | null;
 }
 
 interface DbEvent {
@@ -51,7 +60,7 @@ export async function GET(
 
   try {
     const db = getSupabaseService();
-    const [holderRes, listingRes, eventsRes] = await Promise.all([
+    const [holderRes, listingRes, eventsRes, metaRes] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db
@@ -60,7 +69,15 @@ export async function GET(
         .eq('project_id', slug)
         .eq('token_id', tokenId)
         .order('timestamp', { ascending: true }),
+      db.from('outputs')
+        .select('dominant_color, aspect, brightness, saturation, complexity, true_name')
+        .eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
     ]);
+    const meta = metaRes.data as {
+      dominant_color: string | null; aspect: string | null;
+      brightness: number | null; saturation: number | null; complexity: number | null;
+      true_name: string | null;
+    } | null;
 
     const owner = (holderRes.data as { owner_address?: string } | null)?.owner_address ?? null;
     const events = (eventsRes.data ?? []) as DbEvent[];
@@ -115,6 +132,16 @@ export async function GET(
       last_sale_eth: lastSale,
       traits: outputTraits(slug, Number(tokenId), mintedAtMs ?? undefined) as OutputTraits,
       history,
+      fingerprint: meta
+        ? {
+            dominant_color: meta.dominant_color,
+            aspect: meta.aspect,
+            brightness: meta.brightness,
+            saturation: meta.saturation,
+            complexity: meta.complexity,
+          }
+        : null,
+      true_name: meta?.true_name ?? null,
     };
     return NextResponse.json(response);
   } catch (err) {

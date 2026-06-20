@@ -359,6 +359,21 @@ export interface OutputMetaRow {
   rarity: string | null;
   minted_at: string | null;
   updated_at: string | null;
+  // Visual fingerprint (sampled in the same pass as the colour).
+  aspect: string | null;
+  brightness: number | null;
+  saturation: number | null;
+  complexity: number | null;
+  // Durable platform traits (computed once from the mint moment + registry,
+  // then stored; UI computes live as the fallback until filled).
+  artist: string | null;
+  project_name: string | null;
+  true_name: string | null;
+  price_day: string | null;
+  natal_sun: string | null;
+  natal_moon: string | null;
+  natal_rising: string | null;
+  fate: string | null;
 }
 
 export type Database = {

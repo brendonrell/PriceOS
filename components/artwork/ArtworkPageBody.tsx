@@ -31,6 +31,8 @@ import CollectedPair from '../hero/CollectedPair';
 import TraitsUI from '../project/TraitsUI';
 import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
+import AttributesPanel from './AttributesPanel';
+import type { AttrInput } from '../../lib/output/attributes';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -126,11 +128,20 @@ export default function ArtworkPageBody({
        Fate/…) — computed server-side from its mint moment, so Sun/Moon/Rising
        are real. Powers the + More → Attributes box. */
     const [traits, setTraits] = useState<Record<string, string>>({});
+    const [mintMs, setMintMs] = useState<number | null>(null);
+    const [trueName, setTrueName] = useState<string>('');
+    const [fingerprint, setFingerprint] = useState<AttrInput['fingerprint']>(null);
     useEffect(() => {
         let cancelled = false;
         fetch(`/api/output/${slug}-${numberPart}`)
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d?.traits) setTraits(d.traits as Record<string, string>); })
+            .then((d) => {
+                if (cancelled || !d) return;
+                if (d.traits) setTraits(d.traits as Record<string, string>);
+                if (d.minted_at) setMintMs(new Date(d.minted_at).getTime());
+                if (d.true_name) setTrueName(d.true_name as string);
+                if (d.fingerprint) setFingerprint(d.fingerprint as AttrInput['fingerprint']);
+            })
             .catch(() => {});
         return () => { cancelled = true; };
     }, [slug, numberPart]);
@@ -451,26 +462,20 @@ export default function ArtworkPageBody({
                     </>
                 )}
 
-                {/* ATTRIBUTES — this Output's birth attributes (mirrors the
-                    Project page's box). Sun/Moon/Rising/Fate are real, from the
-                    mint moment; empty box until the piece is minted. */}
+                {/* ATTRIBUTES — this Output's full character sheet: identity +
+                    true name, sampled form, natal sky, mint-moment almanac, the
+                    I Ching oracle, and deterministic edition-set rarity. */}
                 {moreL1 === 'attributes' && (
                     <>
                         <div className="more-section-header">ATTRIBUTES</div>
-                        <div className="more-box-wrap">
-                            {(traits.Fate || traits.Sun || traits.Moon || traits.Rising) ? (
-                                <div className="more-box-card">
-                                    <div className="more-attrs">
-                                        {traits.Fate && <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{traits.Fate}</span></div>}
-                                        {traits.Sun && <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {traits.Sun}</span></div>}
-                                        {traits.Moon && <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {traits.Moon}</span></div>}
-                                        {traits.Rising && <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {traits.Rising}</span></div>}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="more-box-card more-box-empty" />
-                            )}
-                        </div>
+                        <AttributesPanel
+                            slug={slug}
+                            id={numberPart}
+                            mintMs={mintMs}
+                            traits={traits}
+                            fingerprint={fingerprint}
+                            trueName={trueName}
+                        />
                     </>
                 )}
 

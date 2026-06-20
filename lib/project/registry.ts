@@ -388,6 +388,13 @@ export function projectTrueName(slug: string): string {
   return TRUE_NAMES.get(slug.toLowerCase()) ?? '';
 }
 
+/** An Output's true name — the Project's true name with the edition number
+    appended (id ≤ 4 digits, 9,999 max per the contract): e.g. `ⰀⰁⰂⰃ1234`. */
+export function outputTrueName(slug: string, tokenId: number): string {
+  const base = projectTrueName(slug);
+  return base ? `${base}${tokenId}` : '';
+}
+
 /** Resolve a true name (the glyph string) back to its Project, or null. */
 export function findProjectByTrueName(name: string): ProjectDef | null {
   const slug = SLUG_BY_TRUE_NAME.get(name);

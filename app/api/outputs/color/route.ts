@@ -7,6 +7,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
+import {
+  brightnessBand, saturationBand, complexityBand, toneMood, colorTemperature, orientationOf,
+} from '@/lib/output/derive';
 
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
@@ -45,10 +48,20 @@ export async function POST(req: NextRequest) {
       dominant_color: bucket,
       updated_at: new Date().toISOString(),
     };
-    if (body?.aspect && ASPECTS.has(body.aspect)) row.aspect = body.aspect;
+    const aspect = body?.aspect && ASPECTS.has(body.aspect) ? body.aspect : null;
+    if (aspect) row.aspect = aspect;
     const br = unit(body?.brightness); if (br != null) row.brightness = br;
     const sa = unit(body?.saturation); if (sa != null) row.saturation = sa;
     const cx = unit(body?.complexity); if (cx != null) row.complexity = cx;
+
+    // Fingerprint-derived bands / mood — denormalised so the attribute sheet
+    // reads them straight from the row (same derivations the UI computes live).
+    row.color_temperature = colorTemperature(bucket);
+    if (aspect) row.orientation = orientationOf(aspect);
+    if (br != null) row.brightness_band = brightnessBand(br);
+    if (sa != null) row.saturation_band = saturationBand(sa);
+    if (cx != null) row.complexity_band = complexityBand(cx);
+    if (br != null && sa != null) row.tone_mood = toneMood(br, sa);
 
     const sb = getSupabaseService();
     const { error } = await sb.from('outputs').upsert(row as never, {

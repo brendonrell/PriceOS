@@ -82,7 +82,7 @@ import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
-import { needsColorSample, reportFingerprint } from '../lib/art/colorStore';
+import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
@@ -382,6 +382,11 @@ function ArtworkCard({
             if (needsColorSample(slug, id)) {
                 reportFingerprint(slug, id, sampleCanvasFingerprint(canvas));
             }
+            /* Persist the durable platform traits (Artist/Project/PriceDay/Natal/
+               Fate + true name) once per token, backfilling as the gallery is
+               browsed. Independent of the colour gate, so already-coloured pieces
+               still fill their trait columns. (Brendon, 2026-06-20.) */
+            reportTraits(slug, id);
         };
 
         const vkey = `${slug}:${id}`;

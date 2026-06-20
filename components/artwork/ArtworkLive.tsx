@@ -16,6 +16,8 @@
 
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { needsColorSample, reportFingerprint, reportTraits } from '../../lib/art/colorStore';
+import { sampleCanvasFingerprint } from '../../lib/art/sampleColor';
 
 export default function ArtworkLive({
     slug,
@@ -41,6 +43,12 @@ export default function ArtworkLive({
         const big = Math.max(window.innerWidth, window.innerHeight);
         const target = Math.round(Math.min(2000, Math.max(640, big * dpr)));
         paintOutput(canvas, slug, id, target);
+        // Viewing a piece's page backfills its stored fingerprint + traits, same
+        // self-populating model as the gallery cards.
+        if (needsColorSample(slug, id)) {
+            reportFingerprint(slug, id, sampleCanvasFingerprint(canvas));
+        }
+        reportTraits(slug, id);
     }, [slug, id]);
 
     // Sizing is CSS-driven via `className` (so it can use viewport-relative
