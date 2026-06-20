@@ -8638,6 +8638,8 @@ body.colorway-dark .ghost-feed-bar {
 @media (max-width: 600px) {
     /* Double the breathing room between rows on mobile. */
     .starred-row { padding: 16px 0; }
+    /* Pinned grail icon on trait rows sits 1px lower on mobile (Brendon 2026-06-20). */
+    .trait-row .starred-row-grail.is-pinned { transform: translateY(7px); }
 }
 @media (min-width: 601px) {
     /* The offer glyph + remove ✕ read oversized on desktop — halve them. */
