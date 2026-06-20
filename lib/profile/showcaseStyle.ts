@@ -18,6 +18,7 @@ export function effectiveShowcaseStyle(
   _seed?: string,
 ): ShowcaseStyle {
   if (stored === 'generative') return 'generative';
+  if (stored === 'gen-curated') return 'gen-curated';
   if (stored === 'artist') return 'artist';
   if (stored === 'static') return 'static';
   // 'grid' (legacy default) / null / unknown → unset.

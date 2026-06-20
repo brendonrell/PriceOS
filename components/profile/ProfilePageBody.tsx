@@ -77,6 +77,7 @@ import HomeProjectFacetBar, {
 } from '../home/HomeProjectFacetBar';
 import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
 import { effectiveShowcaseStyle } from '../../lib/profile/showcaseStyle';
+import { genCuratedSet, type CuratedCandidate, type SpriteVibe } from '../../lib/profile/genCurated';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
@@ -1168,6 +1169,32 @@ function ProfilePageBodyInner({
     const [showcaseView, setShowcaseView] = useState<ShowcaseView>('created');
     const artistShowcaseCreated = artistMode && showcaseView === 'created';
 
+    /* Gen Curated — when this profile runs the gen-curated showcase style, build
+       a fresh themed pull from the owner's WHOLE collection (re-rolled each
+       mount). The PriceSprite vibe + @handle let the sprite curate in character.
+       colorsVer re-rolls once the captured colours hydrate. */
+    const genCurated = useMemo(() => {
+        if (!onShowcase || effStyle !== 'gen-curated') return null;
+        const pool: CuratedCandidate[] = enriched.map((h) => ({
+            slug: h.slug,
+            id: h.token_id,
+            color: resolveBucket(h.slug, h.token_id),
+            artist: h.traits.Artist,
+            project: h.traits.Project,
+            sun: h.traits.Sun,
+            moon: h.traits.Moon,
+            rising: h.traits.Rising,
+            priceDay: h.traits.PriceDay,
+            fate: h.traits.Fate,
+            listed: h.listed,
+        }));
+        return genCuratedSet(pool, {
+            vibe: (user.price_sprite as SpriteVibe | null) ?? null,
+            handle: user.handle ?? handle,
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onShowcase, effStyle, enriched, colorsVer]);
+
     /* Live per-project stats for this artist's projects (birth time, mint
        count, graduation, sold-out, milestones) — the ledger timestamps the
        registry can't carry, feeding the showcase facets / sort / feed. */
@@ -1924,13 +1951,28 @@ function ProfilePageBodyInner({
                 order is preserved exactly regardless of which project each pick is
                 from (the provider is a context-only node, no DOM, so every card
                 still lands in the single #gallery grid). */}
+            {/* Gen Curated's faint synopsis — the buried gem. Deliberately low
+                contrast, in the small card-meta type; sits just above the set. */}
+            {onShowcase && effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
+                <div className="gencurated-caption">{genCurated.caption}</div>
+            )}
             <section
                 id="gallery"
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {onShowcase
-                    ? ((isOwnProfile ? ownShowcaseItems.length : showcaseSlots.length) > 0
+                    ? (effStyle === 'gen-curated'
+                        ? (genCurated && genCurated.picks.length > 0
+                            ? genCurated.picks.map((s, i) => (
+                                  <ProjectProvider key={`gc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
+                                      <ArtworkCard id={s.id} showProjectName />
+                                  </ProjectProvider>
+                              ))
+                            : showcaseGhosts.map((aspect, i) => (
+                                  <GhostCard key={`gcghost-${i}`} aspect={aspect} index={i} onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined} />
+                              )))
+                        : ((isOwnProfile ? ownShowcaseItems.length : showcaseSlots.length) > 0
                         ? (isOwnProfile
                             ? ownShowcaseItems.map((s, i) => (
                                   <ProjectProvider key={`sc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
@@ -1949,7 +1991,7 @@ function ProfilePageBodyInner({
                                   index={i}
                                   onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined}
                               />
-                          )))
+                          ))))
                     : enriched.length === 0
                         ? collectedGhosts.map((aspect, i) => (
                               <GhostCard key={`coghost-${i}`} aspect={aspect} index={i} />

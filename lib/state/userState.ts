@@ -130,7 +130,7 @@ export function hydrateFromRow(row: UserRow): void {
         // else falls back to 'static'.
         const rawStyle = row.showcase_style;
         const style =
-            rawStyle === 'generative' || rawStyle === 'artist' || rawStyle === 'static' || rawStyle === 'grid'
+            rawStyle === 'generative' || rawStyle === 'gen-curated' || rawStyle === 'artist' || rawStyle === 'static' || rawStyle === 'grid'
                 ? rawStyle
                 : 'static';
         localStorage.setItem(STATE_CACHE_KEYS.showcaseStyle, style);

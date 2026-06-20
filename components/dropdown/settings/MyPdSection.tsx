@@ -102,22 +102,29 @@ export function MyPdSection({ onTripleTap }: Props) {
     const showcaseMode = effectiveShowcaseStyle(rawShowcase, isArtist, siweAddress ?? undefined);
     const cycleUserShowcaseMode = () => {
         const order: ShowcaseStyle[] = isArtist
-            ? ['static', 'generative', 'artist']
-            : ['static', 'generative'];
+            ? ['static', 'generative', 'gen-curated', 'artist']
+            : ['static', 'generative', 'gen-curated'];
         const idx = order.indexOf(showcaseMode);
         const next: ShowcaseStyle = order[(idx + 1) % order.length] ?? 'static';
         try { localStorage.setItem(USER_SHOWCASE_KEY, next); } catch { /* ignore */ }
         setRawShowcase(next);
         pushState({ showcase_style: next });
-        const label = next === 'generative' ? 'GENERATIVE MODE ON' : next === 'artist' ? 'ARTIST MODE ON' : 'STATIC MODE ON';
+        const label = next === 'generative' ? 'GENERATIVE MODE ON'
+            : next === 'gen-curated' ? 'GEN CURATED MODE ON'
+            : next === 'artist' ? 'ARTIST MODE ON' : 'STATIC MODE ON';
         showToast('Showcase: ' + label);
     };
-    const showcaseGlyph = showcaseMode === 'static' ? '⑆' : showcaseMode === 'generative' ? '⑇' : '⑈';
+    const showcaseGlyph = showcaseMode === 'static' ? '⑆'
+        : showcaseMode === 'generative' ? '⑇'
+        : showcaseMode === 'gen-curated' ? '⑉'
+        : '⑈';
     const showcaseTitle = showcaseMode === 'static'
         ? 'User Showcase Mode — Static'
         : showcaseMode === 'generative'
             ? 'User Showcase Mode — Generative'
-            : 'User Showcase Mode — Artist';
+            : showcaseMode === 'gen-curated'
+                ? 'User Showcase Mode — Gen Curated'
+                : 'User Showcase Mode — Artist';
 
     // Keep the hex field synced to the live color whenever the user
     // isn't mid-edit and the copy-blink isn't holding the slot.

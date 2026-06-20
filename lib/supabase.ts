@@ -142,7 +142,7 @@ export interface ShowcaseSlot {
 
 /** Static (user-ordered) vs generative (randomised each visit). The DB column
  *  defaults to 'grid' on legacy rows; read it as 'static' for back-compat. */
-export type ShowcaseStyle = 'static' | 'generative' | 'artist';
+export type ShowcaseStyle = 'static' | 'generative' | 'gen-curated' | 'artist';
 
 export interface UserRow {
   address: string;
