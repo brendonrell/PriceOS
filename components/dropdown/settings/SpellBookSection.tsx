@@ -167,7 +167,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         toggle('watch');
                         showToast(`The Watch: ${next ? 'ON' : 'OFF'}`);
                     }}
-                    icon={'◎︎'}
+                    icon={'◴︎'}
                     label="The Watch"
                 />
                 {/* Degen — moved here from MY PD (Brendon, 2026-06-16), right
