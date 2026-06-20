@@ -1770,6 +1770,28 @@ body.stargazing-mode {
     color: #c5a8f0 !important;
     --bg-color: #0d0618 !important;
     --text-color: #c5a8f0 !important;
+    /* The colorway sets a whole family of derived tokens on the page root;
+       stargazing used to remap only the two base colours, leaving every
+       inactive signature pill (Showcase / Artworks / +More, Now Minting /
+       New Gen Art), the mint button, and the stat chips on the previous
+       colorway's light values. Remap the full family to the lavender void so
+       stargazing paints 100% of the site (Brendon, 2026-06-20). */
+    --border-color: rgba(197, 168, 240, 0.18) !important;
+    --accent: #c5a8f0 !important;
+    --stat-bg: rgba(197, 168, 240, 0.10) !important;
+    --stat-active-bg: #c5a8f0 !important;
+    --stat-active-text: #0d0618 !important;
+    --modal-bg: rgba(13, 6, 24, 0.98) !important;
+    --mint-bg: #160a28 !important;
+    --mint-bg-img: none !important;
+    --mint-text: #c5a8f0 !important;
+    --mint-border: rgba(197, 168, 240, 0.45) !important;
+    --pill-l1-bg: rgba(197, 168, 240, 0.08) !important;
+    --pill-l1-bg-img: none !important;
+    --pill-l1-text: #c5a8f0 !important;
+    --pill-l1-border: rgba(197, 168, 240, 0.30) !important;
+    --pill-l1-active-bg-img: none !important;
+    --btn-user-hover: #2a1a45 !important;
 }
 
 /* Stargazing star primitives (sim 1636-1665).
@@ -7369,12 +7391,13 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 0;
+    /* Vertical room so the active dot's enlarged size + ring clears the
+       footer's clipped bottom edge and shows fully (Brendon, 2026-06-20). */
+    padding: 4px 0 10px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
     position: relative;
-    top: 4px;
 }
 .ws-dot {
     position: relative;
