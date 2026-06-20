@@ -1675,7 +1675,7 @@ function ProfilePageBodyInner({
                             hideSortBar
                             profilePills={
                                 (isZen
-                                    ? [{ key: 'albums', label: 'Albums', active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
+                                    ? [{ key: 'albums', label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
                                         /* Created leads the row for traditional-Top-6
                                            artists — their works are always reachable. */
@@ -1686,11 +1686,11 @@ function ProfilePageBodyInner({
                                            pills exist on YOUR OWN profile only. */
                                         ...(isOwnProfile
                                             ? [
-                                                { key: 'starred',   label: 'Starred',   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
-                                                { key: 'wishlists', label: 'Wishlists', active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
+                                                { key: 'starred',   label: <><span className="pill-tab-ico">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
+                                                { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlists</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
                                             ]
                                             : []),
-                                        { key: 'albums',    label: 'Albums',    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'albums',    label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                     ]

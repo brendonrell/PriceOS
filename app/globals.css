@@ -8302,7 +8302,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     justify-content: center;
     /* Nudge so it sits comfortably over the top two lines, directly above the ✕
        (Brendon 2026-06-19). */
-    transform: translateY(5px);
+    transform: translateY(6px);
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
@@ -8319,7 +8319,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 }
 /* Desktop runs the grail pin bigger and a touch lower (Brendon 2026-06-19). */
 @media (min-width: 601px) {
-    .starred-row-grail { font-size: 29px; transform: translateY(8px); }
+    .starred-row-grail { font-size: 29px; transform: translateY(9px); }
 }
 /* Remove-from-Starred confirm — reuses the multi-select confirm card style,
    re-centred as a modal over the page (Brendon 2026-06-19). */
@@ -8498,6 +8498,45 @@ body.colorway-dark .ghost-feed-bar {
     background: var(--stat-active-bg);
     color: var(--stat-active-text);
     border-color: var(--stat-active-bg);
+}
+
+/* ── Wishlist rows — taller (5 lines) than Starred, richer market read ───────
+   Same row shell as Starred; the bigger thumbnail + 5 meta lines make it taller,
+   and the buy column on the right stacks the price/cart (Brendon 2026-06-19). */
+.wishlist-row { position: relative; }
+/* A touch more line spacing so 5 lines stay easy to read. */
+.wishlist-row .starred-row-meta { gap: 3px; }
+/* The right-hand buy block — price (or stacked "Not Listed") over the Cart pill,
+   clear of the grail pin that sits in the top-right corner. */
+.wishlist-row-buy {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    padding-right: 24px;
+}
+.wishlist-row-price--stack {
+    text-align: right;
+    line-height: 1.05;
+    opacity: 0.6;
+    font-size: 12px;
+}
+
+/* Icon prefixing the +More sub-nav tab labels (Starred ★ / Wishlists ✛ /
+   Albums ◰) — Courier so the glyph renders as a text icon (Brendon 2026-06-19). */
+.pill-tab-ico {
+    font-family: 'Courier New', Courier, monospace;
+    margin-right: 3px;
+    font-size: 1.05em;
+    display: inline-block;
+}
+
+/* MY PD ASCII-ID toggle sits 1px high against its row on mobile — settle it
+   (Brendon 2026-06-19). */
+@media (max-width: 600px) {
+    #sn-asciiId { position: relative; top: 1px; }
 }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */

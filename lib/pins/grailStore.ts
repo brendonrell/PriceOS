@@ -27,7 +27,7 @@ const STORAGE_KEY = 'pd_grail_pins';
 const MAX_PINS = 10;
 export const MAX_GRAIL_PINS = MAX_PINS;
 
-export type GrailKind = 'output' | 'project' | 'trait' | 'artist' | 'soundtrack';
+export type GrailKind = 'output' | 'wishlist' | 'project' | 'trait' | 'artist' | 'soundtrack';
 
 export interface GrailPin {
     kind: GrailKind;
@@ -53,6 +53,7 @@ const listeners = new Set<Listener>();
 export function grailKey(p: GrailPin): string {
     switch (p.kind) {
         case 'output': return `o:${p.slug}:${p.id}`;
+        case 'wishlist': return `w:${p.slug}:${p.id}`;
         case 'project': return `p:${p.slug}`;
         case 'trait': return `t:${p.slug}|${p.category}|${p.value}`;
         case 'artist': return `a:${p.slug}`;
@@ -75,9 +76,9 @@ function hydrate(): void {
                     if (!p || typeof p !== 'object' || typeof p.slug !== 'string') return null;
                     // Legacy entry (no kind) = an Output pin {slug, id}.
                     const kind: GrailKind = typeof p.kind === 'string' ? p.kind : 'output';
-                    if (kind === 'output') {
+                    if (kind === 'output' || kind === 'wishlist') {
                         if (typeof p.id !== 'number' || !Number.isFinite(p.id)) return null;
-                        return { kind: 'output', slug: p.slug, id: p.id };
+                        return { kind, slug: p.slug, id: p.id };
                     }
                     if (kind === 'project') return { kind: 'project', slug: p.slug };
                     if (kind === 'trait') {

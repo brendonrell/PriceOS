@@ -1157,6 +1157,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
    achievements workstream. */
 .ps-ach-header {
     display: flex; justify-content: space-between; align-items: baseline;
+    /* A min gap so the label never butts against the tally when they fill the
+       row width (Brendon 2026-06-19 — "ACHIEVEMENTS66"). */
+    gap: 8px;
     width: 100%; box-sizing: border-box;
 }
 .ps-ach-tally { letter-spacing: 1px; }

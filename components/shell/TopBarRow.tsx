@@ -264,7 +264,7 @@ export function TopBarRow() {
                                 pin={pin}
                                 redacted={!!notifs.redactedMode}
                                 onOpen={() => {
-                                    if (pin.kind === 'output' && pin.id != null) {
+                                    if ((pin.kind === 'output' || pin.kind === 'wishlist') && pin.id != null) {
                                         openOutputModal('output', pin.id, pin.slug);
                                     } else if (pin.kind === 'soundtrack' && pin.playlistId) {
                                         window.open(playlistWatchUrl(pin.playlistId), '_blank', 'noopener,noreferrer');
@@ -422,6 +422,7 @@ function grailPillLabel(pin: GrailPin): string {
     const coll = name.charAt(0) + name.slice(1).toLowerCase();
     switch (pin.kind) {
         case 'output': return `${coll} #${pin.id}`;
+        case 'wishlist': return `${coll} #${pin.id}`;
         case 'trait': return `${coll} \u00b7 ${pin.value}`;
         case 'artist': return `@${pin.slug}`;
         case 'soundtrack': return `${coll} \u266a`;
@@ -476,12 +477,13 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
     let leadGlyph: string | null = null;
     let titleAttr: string;
 
-    if (pin.kind === 'output') {
+    if (pin.kind === 'output' || pin.kind === 'wishlist') {
         const meta = buildOutputMetaFor(pin.slug, pin.id!);
         displayTitle = redacted ? redactedTitle : projectTitle;
+        if (pin.kind === 'wishlist') leadGlyph = '\u271b\ufe0e';
         idText = `#${pin.id}`;
         priceText = meta?.price ? fmtEth4(meta.price.replace(' ETH', '')) : null;
-        titleAttr = `${projectTitle} #${pin.id}${meta?.price ? ` \u00b7 ${meta.price}` : ''}`;
+        titleAttr = `${pin.kind === 'wishlist' ? 'Wishlist \u2014 ' : ''}${projectTitle} #${pin.id}${meta?.price ? ` \u00b7 ${meta.price}` : ''}`;
     } else if (pin.kind === 'project') {
         displayTitle = redacted ? redactedTitle : projectTitle;
         const floor = projectMarketStat(pin.slug).floor;

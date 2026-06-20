@@ -119,6 +119,7 @@ function computeNextSortKey(
 
 /* Colorway names for the sort-bar view-mode pills (mirrors ColorwayPicker.tsx). */
 const SORT_BAR_THEME_NAMES: Record<string, string> = {
+    custom:  'Custom',
     artist:  'Artist Custom',
     light:   'Light Mode',
     dark:    'Dark Mode',
@@ -257,7 +258,7 @@ const THEME_PILLS: {
    gallery filter wiring behind it. */
 export interface ProfilePill {
     key: string;
-    label: string;
+    label: ReactNode;
     active: boolean;
     onClick: () => void;
 }

@@ -62,6 +62,13 @@ export function projectMarketStat(slug: string): MarketStat {
     return statFromAnchor(`project|${slug}`, mint);
 }
 
+/** Dummy floor + last sale for a single output (token) — same deterministic
+    shape, seeded per token so each wishlisted piece shows a stable last sale. */
+export function outputMarketStat(slug: string, id: number): MarketStat {
+    const mint = getProject(slug)?.mintPriceEth ?? 0.05;
+    return statFromAnchor(`output|${slug}|${id}`, mint);
+}
+
 /* ── Artist floor ────────────────────────────────────────────────────────────
    An artist's floor = the LOWEST project floor across all their projects — a
    known, derived number. Shared (not buried in the Starred list) so other
