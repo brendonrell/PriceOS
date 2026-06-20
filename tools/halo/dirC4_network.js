@@ -5,15 +5,16 @@
 window.ENGINE = (function () {
   const K = window.KIT;
 
+  // NO black (or near-black) backgrounds. Every ground is bright or saturated.
   const PALS = [
-    { name: 'Blueprint', bg: '#dde7ec', fog: '#c2d2da', edge: '#16455f', node: '#0a2a3a', hot: '#e2231a', pkt: '#0a66ff', dark: false },
-    { name: 'Amber Day', bg: '#e08a1a', fog: '#c06e10', edge: '#5a2e00', node: '#2a1400', hot: '#ffffff', pkt: '#b01020', dark: false },
-    { name: 'Acid',      bg: '#c6e618', fog: '#a6c810', edge: '#2a4a0a', node: '#13280a', hot: '#ff2d8a', pkt: '#0a3a14', dark: false },
-    { name: 'Concrete',  bg: '#d6d9de', fog: '#bcc0c8', edge: '#1a2230', node: '#0a0e16', hot: '#0a5cff', pkt: '#e2231a', dark: false },
-    { name: 'Red Room',  bg: '#160206', fog: '#2a0608', edge: '#ff3b3b', node: '#ff8a4d', hot: '#ffd9cf', pkt: '#ffd400', dark: true },
-    { name: 'Electric',  bg: '#03040c', fog: '#0b1a3a', edge: '#1fa7ff', node: '#7cf6ff', hot: '#ffffff', pkt: '#ffe11f', dark: true },
-    { name: 'Magenta',   bg: '#0a000c', fog: '#2a0535', edge: '#b026ff', node: '#ff4fd8', hot: '#ffd6f4', pkt: '#3df0ff', dark: true },
-    { name: 'Solar',     bg: '#0a0600', fog: '#2e1500', edge: '#ff9a1f', node: '#ffc000', hot: '#fff0c8', pkt: '#3df0ff', dark: true },
+    { name: 'Blueprint',   bg: '#dde7ec', fog: '#c2d2da', edge: '#16455f', node: '#0a2a3a', hot: '#e2231a', pkt: '#0a66ff', dark: false },
+    { name: 'Concrete',    bg: '#d6d9de', fog: '#bcc0c8', edge: '#1a2230', node: '#0a0e16', hot: '#0a5cff', pkt: '#e2231a', dark: false },
+    { name: 'Acid',        bg: '#c6e618', fog: '#a6c810', edge: '#2a4a0a', node: '#13280a', hot: '#ff2d8a', pkt: '#0a3a14', dark: false },
+    { name: 'Amber Day',   bg: '#e08a1a', fog: '#c06e10', edge: '#5a2e00', node: '#2a1400', hot: '#103a6a', pkt: '#b01020', dark: false },
+    { name: 'Signal Red',  bg: '#d61a2b', fog: '#a81020', edge: '#ffe9d0', node: '#fff0e0', hot: '#ffd400', pkt: '#2a0006', dark: false },
+    { name: 'Viola',       bg: '#7a3ad0', fog: '#5a2aa0', edge: '#e6d8ff', node: '#ffffff', hot: '#ffe11f', pkt: '#2af0ff', dark: false },
+    { name: 'Teal Sea',    bg: '#14b0b0', fog: '#0e8a8a', edge: '#06303a', node: '#062028', hot: '#ff2d8a', pkt: '#fff0c0', dark: false },
+    { name: 'Magenta Day', bg: '#e01f8a', fog: '#b01070', edge: '#3a0420', node: '#2a0418', hot: '#2af0ff', pkt: '#ffe11f', dark: false },
   ];
   const FMTS = [ { W: 1340, H: 1340, t: 'Field' }, { W: 1500, H: 1120, t: 'Span' }, { W: 1120, H: 1500, t: 'Column' } ];
   const TOPO = ['Core', 'Mesh', 'Spine', 'Circuit', 'Constellation', 'Burst'];

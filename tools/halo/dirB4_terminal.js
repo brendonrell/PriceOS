@@ -7,15 +7,16 @@ window.ENGINE = (function () {
   const K = window.KIT;
 
   // dark:false => BRIGHT/SATURATED ground, dark ink, no glow (poster look).
+  // NO black backgrounds. Every ground is bright or saturated; dark/contrast ink.
   const PALS = [
-    { name: 'Hazard',     bg: '#f2d400', dim: '#7a6c00', hot: '#e2231a', txt: '#0c0c00', alt: '#0c0c00', warn: '#e2231a', dark: false },
-    { name: 'Bone OS',    bg: '#dde1e6', dim: '#8a93a0', hot: '#0a5cff', txt: '#11151c', alt: '#11151c', warn: '#e2231a', dark: false },
-    { name: 'Amber Flood',bg: '#e07814', dim: '#7a3e00', hot: '#fff2c0', txt: '#2a1200', alt: '#2a1200', warn: '#ffffff', dark: false },
-    { name: 'Acid Wash',  bg: '#c6e618', dim: '#5a7012', hot: '#ff2d8a', txt: '#13280a', alt: '#13280a', warn: '#ff2d8a', dark: false },
-    { name: 'Cyan Print', bg: '#d6ebef', dim: '#7aa6ae', hot: '#e2231a', txt: '#06242c', alt: '#06242c', warn: '#d61a2b', dark: false },
-    { name: 'Phosphor',   bg: '#02160b', dim: '#0b3d2e', hot: '#5bff9e', txt: '#1fbf6b', alt: '#c8ffe0', warn: '#ff5d5d', dark: true },
-    { name: 'Red Team',   bg: '#1a0305', dim: '#2e0608', hot: '#ff3b3b', txt: '#ff5c4d', alt: '#ffd9cf', warn: '#ffd400', dark: true },
-    { name: 'Deep Cyber', bg: '#040a1a', dim: '#0b2545', hot: '#3de0e8', txt: '#1fa7b8', alt: '#7cf6ff', warn: '#ffb020', dark: true },
+    { name: 'Hazard',       bg: '#f2d400', dim: '#7a6c00', hot: '#e2231a', txt: '#0c0c00', alt: '#0c0c00', warn: '#e2231a', dark: false },
+    { name: 'Bone OS',      bg: '#dde1e6', dim: '#8a93a0', hot: '#0a5cff', txt: '#11151c', alt: '#11151c', warn: '#e2231a', dark: false },
+    { name: 'Amber Flood',  bg: '#e07814', dim: '#7a3e00', hot: '#103a6a', txt: '#2a1200', alt: '#fff2c0', warn: '#d61a2b', dark: false },
+    { name: 'Acid Wash',    bg: '#c6e618', dim: '#5a7012', hot: '#ff2d8a', txt: '#13280a', alt: '#13280a', warn: '#ff2d8a', dark: false },
+    { name: 'Cyan Print',   bg: '#d6ebef', dim: '#7aa6ae', hot: '#e2231a', txt: '#06242c', alt: '#06242c', warn: '#d61a2b', dark: false },
+    { name: 'Signal Red',   bg: '#d61a2b', dim: '#7a0c14', hot: '#ffd400', txt: '#fff0e0', alt: '#fff0e0', warn: '#ffffff', dark: false },
+    { name: 'Electric Teal',bg: '#16c0c0', dim: '#0a5a5a', hot: '#ff2d8a', txt: '#06303a', alt: '#06303a', warn: '#ffffff', dark: false },
+    { name: 'Klein Blue',   bg: '#1f44d0', dim: '#0a2080', hot: '#ffd400', txt: '#eaf0ff', alt: '#eaf0ff', warn: '#ff5db0', dark: false },
   ];
   const FMTS = [ { W: 1320, H: 1320, t: 'Screen' }, { W: 1500, H: 1120, t: 'Console' }, { W: 1120, H: 1500, t: 'Stack' } ];
   const LAYOUTS = ['Boot', 'Flood', 'Breach', 'Dossier', 'Map', 'Alert'];
