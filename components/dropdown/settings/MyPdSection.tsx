@@ -353,7 +353,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                     <div
                         className="settings-header"
                         id="myPdHeader"
-                        style={{ cursor: 'default', userSelect: 'none' }}
+                        style={{ cursor: 'default', userSelect: 'none', WebkitTapHighlightColor: 'transparent' }}
                         onClick={handleHeaderTap}
                         title="Triple-tap to open the Spell Book"
                     >
