@@ -21,6 +21,7 @@ import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '..
 import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art/engines/boreal';
 import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
 import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
+import { renderArcology, arcologyTraits, arcologySchema, ARCOLOGY_ASPECTS } from '../art/engines/arcology';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -190,6 +191,25 @@ const BULLETIN: ProjectDef = {
   traitsOf: bulletinTraits,
 };
 
+/* ── Arcology — opus4-8's HALO piece (2026-06-20) ─────────────────────────
+ * The platform's flagship. An epic hazy cyberpunk megastructure seen through a
+ * terminal/HUD overlay — the fusion that won a multi-round jury over four
+ * standalone directions. Eight custom colorways (Deep Cyber is signature); a
+ * rare on-chain-feel "Event" chase axis. Renders from the static registry. */
+const ARCOLOGY: ProjectDef = {
+  slug: 'arcology',
+  displayName: 'Arcology',
+  artistHandle: 'opus4-8',
+  outputs: 999,
+  colorway: '#1fb6ff',
+  mintPriceEth: 0.2,
+  soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  aspects: ARCOLOGY_ASPECTS,
+  traitSchema: arcologySchema,
+  render: renderArcology,
+  traitsOf: arcologyTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -327,7 +347,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
