@@ -4283,18 +4283,32 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-tape .st-icon         { position: relative; top: -1px; }
     #sn-autoscroll .st-icon   { position: relative; top: 1px; }
 
-    /* ── Spell Book row (sb-) — untouched in this pass ─────────────
-       These are a different surface and weren't in IMG_3825. Leaving
-       sim-derived values verbatim until a Spell Book screenshot pass. */
+    /* ── Spell Book row (sb-) — mobile icon size + nudge pass
+       (Brendon, 2026-06-20). Sizes step 1px off the 16px .st-icon base;
+       vertical nudges use `top` (mobile resets the base transform). Only
+       the pills Brendon named are touched — cartel / familiar / celestial /
+       tribunal keep their prior values. */
     #sb-spitebook { font-size: 12px !important; position: relative; top: 2px; }
     #sb-tribunal  { font-size: 12px !important; }
     #sb-cartel    { position: relative; top: 1px; }
-    #sb-spitebook .st-icon { position: relative; top: 3px; }
     #sb-celestial .st-icon { position: relative; top: 2px; }
     #sb-cartel .st-icon,
-    #sb-familiar .st-icon,
-    #sb-invisible .st-icon { position: relative; top: 1px; }
-    #sb-stargazing .st-icon { font-size: 21px !important; position: relative; top: 3px; }
+    #sb-familiar .st-icon { position: relative; top: 1px; }
+
+    /* Named tuning (Brendon's list, 2026-06-20). */
+    #sb-priceghost .st-icon  { font-size: 14px !important; position: relative; top: 1px; }
+    #sb-gravitydrop .st-icon { font-size: 18px !important; }
+    #sb-panopticon .st-icon  { font-size: 17px !important; }
+    #sb-spitebook .st-icon   { font-size: 18px !important; position: relative; top: 1px; }
+    #sb-invisible .st-icon   { font-size: 17px !important; position: relative; top: 0; }
+    #sb-tarot .st-icon       { font-size: 17px !important; position: relative; top: 2px; }
+    #sb-redacted .st-icon    { position: relative; top: -1px; }
+    #sb-degen .st-icon       { font-size: 17px !important; }
+    #sb-stargazing .st-icon  { font-size: 21px !important; position: relative; top: 1px; }
+    #sb-echo .st-icon        { font-size: 17px !important; }
+    #sb-sybilnet .st-icon    { font-size: 19px !important; position: relative; top: -3px; }
+    #sb-gossip .st-icon      { font-size: 17px !important; }
+    #sb-arbitrage .st-icon   { position: relative; top: 1px; }
 }
 
 .burn-btn {
