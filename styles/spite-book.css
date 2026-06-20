@@ -1,0 +1,211 @@
+/* ============================================================================
+   THE SPITE BOOK — a whimsical two-page grimoire modal (Spell Book feature).
+   Opened from the Spite Book pill. Tap a page to inscribe a name; tap the ✗
+   beside a name to scratch it out. Self-contained parchment/leather aesthetic —
+   intentionally NOT colorway-driven (it's a physical book, like a prop), the
+   same way the Sticker Exchange carries its own surface. Imported by globals.
+   Mobile-first: the book fills the viewport width, two pages flank a central
+   spine, capped to a comfortable max on desktop.
+   ============================================================================ */
+
+.spite-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+.spite-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* The book — a dark leather cover wrapping two parchment pages. */
+.spite-book {
+    position: relative;
+    width: min(94vw, 480px);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 12px 10px;
+    border-radius: 8px;
+    /* Tooled leather cover — deep oxblood with a subtle grain gradient. */
+    background:
+        radial-gradient(120% 90% at 50% 0%, #4a2018 0%, #2e130d 70%, #210c08 100%);
+    border: 1px solid #150705;
+    box-shadow:
+        0 26px 70px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 2px rgba(216, 180, 90, 0.18),  /* gilt inner rule */
+        inset 0 0 36px rgba(0, 0, 0, 0.45);
+    color: #4a3525;
+    font-family: Georgia, 'Times New Roman', serif;
+    transform: scale(0.94);
+    transition: transform 0.3s cubic-bezier(0.16, 0.84, 0.34, 1);
+}
+.spite-backdrop.active .spite-book {
+    transform: scale(1);
+}
+
+/* Wax-seal close, top-right on the cover. */
+.spite-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    z-index: 2;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    color: #d8b45a;
+    opacity: 0.78;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: opacity 0.15s ease, background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.spite-close:hover { opacity: 1; background: rgba(216, 180, 90, 0.12); }
+
+/* Title banner across the top of the cover. */
+.spite-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 2px 30px 12px;
+    color: #d8b45a;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.spite-title-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;
+    opacity: 0.95;
+}
+.spite-title-text {
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.22em;
+}
+
+/* The open spread — two pages with a fold between them. */
+.spite-spread {
+    flex: 1 1 auto;
+    min-height: 320px;
+    display: flex;
+    align-items: stretch;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.spite-page {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 13px;
+    cursor: text;
+    /* Aged parchment — warm cream with a faint vignette. */
+    background:
+        radial-gradient(130% 100% at 50% 0%, #f6eed7 0%, #efe2c2 100%);
+}
+/* Inner-edge shading so each page curves into the spine. */
+.spite-page:first-child  { box-shadow: inset -14px 0 18px -12px rgba(60, 36, 18, 0.55); }
+.spite-page:last-child   { box-shadow: inset  14px 0 18px -12px rgba(60, 36, 18, 0.55); }
+
+/* The central fold. */
+.spite-spine {
+    flex: 0 0 2px;
+    background: linear-gradient(
+        to right,
+        rgba(60, 36, 18, 0.45),
+        rgba(60, 36, 18, 0.75),
+        rgba(60, 36, 18, 0.45)
+    );
+}
+
+.spite-page-lines {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+/* Each ruled line. */
+.spite-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 2px 2px 1px;
+    border-bottom: 1px solid rgba(74, 53, 37, 0.22);
+    font-size: 15px;
+    line-height: 1.25;
+}
+
+.spite-line--name .spite-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #3c2a18;
+    word-break: break-word;
+    font-style: italic;
+}
+.spite-scratch {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #8c2b1e;
+    opacity: 0.55;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.spite-scratch:hover { opacity: 1; }
+
+/* The "add a name" ghost line + the live quill input. */
+.spite-line--ghost {
+    color: rgba(74, 53, 37, 0.5);
+    font-style: italic;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.spite-line--ghost:hover { color: rgba(74, 53, 37, 0.8); }
+
+.spite-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 15px;
+    font-style: italic;
+    color: #3c2a18;
+    padding: 0;
+}
+.spite-input::placeholder { color: rgba(74, 53, 37, 0.45); }
+
+/* Foot caption on the cover, below the pages. */
+.spite-foot {
+    text-align: center;
+    padding: 9px 8px 2px;
+    font-size: 11px;
+    font-style: italic;
+    letter-spacing: 0.05em;
+    color: rgba(216, 180, 90, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spite-book { transition: none; transform: none; }
+    .spite-backdrop.active .spite-book { transform: none; }
+}

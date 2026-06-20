@@ -80,6 +80,7 @@ import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
+import SpiteBookModal from '../SpiteBookModal';
 import CartPanel from '../CartPanel';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
@@ -308,6 +309,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="StickersModal">
                 <StickersModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="SpiteBookModal">
+                <SpiteBookModal />
             </ErrorBoundary>
             <ErrorBoundary name="CartPanel">
                 <CartPanel />

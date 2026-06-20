@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useSort } from '../../../lib/state/SortContext';
+import { useModal } from '../../../lib/state/ModalContext';
 import { SettingsToggle } from './SettingsToggle';
 import { SPELLS } from '../../../lib/data/spells';
 
@@ -31,6 +32,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle } = usePdNotifs();
     const { showToast } = useToast();
     const { setSort } = useSort();
+    const { open } = useModal();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
         lastTap: 0,
@@ -118,7 +120,14 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         key={spell.id}
                         id={`sb-${spell.id}`}
                         active={notifs[spell.flag]}
-                        onClick={() => toggleSpellWithToast(spell)}
+                        /* Spite Book opens its book modal instead of flipping a
+                           flag (Familiar-pill precedent — the pill drives a
+                           surface, not a body class). */
+                        onClick={() =>
+                            spell.id === 'spitebook'
+                                ? open('spiteBook')
+                                : toggleSpellWithToast(spell)
+                        }
                         icon={spell.icon}
                         iconStyle={{
                             ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),

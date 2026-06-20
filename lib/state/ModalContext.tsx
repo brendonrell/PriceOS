@@ -37,7 +37,8 @@ export type ModalName =
     | 'familiar'
     | 'priceos'
     | 'gasTracker'
-    | 'stickers';
+    | 'stickers'
+    | 'spiteBook';
 
 interface OpenModalState {
     name: ModalName;
