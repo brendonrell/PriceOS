@@ -5481,8 +5481,10 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 12px;
     color: var(--text-color);
-    /* #ID stays full strength (visible), like the gallery #ID (Brendon, 2026-06-16). */
-    opacity: 1;
+    /* #ID dimmed to MATCH the project name beside it in showcase (Brendon,
+       2026-06-20) — the heavy Rubik face reads stronger, so it needs an actual
+       knock-down to sit level with the lighter Courier name. */
+    opacity: 0.6;
     flex-shrink: 0;
 }
 .price-trigger {
@@ -9011,22 +9013,18 @@ body.colorway-dark .ghost-feed-bar {
 }
 .pd-discord-join-arrow { font-size: 14px; }
 
-/* ── Gen Curated caption — the buried gem ──────────────────────────────── */
-/* The little synopsis under a curated showcase set. Deliberately faint (a
-   secret you only notice if you look), in the small card-meta type; it warms up
-   on hover to reward the curious (Brendon 2026-06-20). */
+/* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
+/* Same small, fully-visible card-meta type as the project name under each
+   piece. Plainly readable (Brendon 2026-06-20). */
 .gencurated-caption {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.5px;
     color: var(--text-color);
-    opacity: 0.26;
     margin: 0 0 10px 2px;
     user-select: none;
-    transition: opacity 0.25s;
 }
-.gencurated-caption:hover { opacity: 0.62; }
 
 /* ── Profile Achievements wall ─────────────────────────────────────── */
 .ach-section {
