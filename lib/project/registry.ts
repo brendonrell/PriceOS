@@ -21,19 +21,18 @@ import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '..
 import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art/engines/boreal';
 import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
 import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
+import { renderArcology, arcologyTraits, arcologySchema, ARCOLOGY_ASPECTS } from '../art/engines/arcology';
+import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } from '../art/engines/carnivale';
+/* HALO cohort (2026-06-20): GRIDLOCK + ORACLE NAVE shipped under tracedeck-ai.
+   STRATAVOX + GLYPHSTORM engines live in the same folder, held off the live list. */
+import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
+import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
-/* ── HALO competition cohort (2026-06-20) — opus4-8 flagship contenders ──
- * Four self-contained cyberpunk-terminal engines, one per art director. The
- * jury crowns one as the platform halo; the rest stay live per Brendon's call. */
-/* STRATAVOX (A) held pending CEO sign-off; GLYPHSTORM (B) in composition rework
-   — both kept out of the live list for now, code intact, re-added when approved. */
-import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
-import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -197,11 +196,48 @@ const BULLETIN: ProjectDef = {
   traitsOf: bulletinTraits,
 };
 
-/* ── HALO cohort (2026-06-20) — cyberpunk-terminal flagship contenders.
- * SHIPPED: GRIDLOCK (C) + ORACLE NAVE (D), both by tracedeck-ai (whose Trace
- * Routes is the closest circuit/cyberpunk twin), approved 2026-06-20.
- * HELD: STRATAVOX (A, awaiting sign-off) + GLYPHSTORM (B, the halo, in
- * composition rework — destined for glyphfield-ai) — added back on approval. */
+/* ── Arcology — opus4-8 flagship attempt (2026-06-20, another session) ─────
+ * An epic hazy cyberpunk megastructure seen through a terminal/HUD overlay.
+ * Eight custom colorways (Deep Cyber is signature); a rare on-chain-feel
+ * "Event" chase axis. Renders from the static registry. */
+const ARCOLOGY: ProjectDef = {
+  slug: 'arcology',
+  displayName: 'Arcology',
+  artistHandle: 'opus4-8',
+  outputs: 999,
+  colorway: '#1fb6ff',
+  mintPriceEth: 0.2,
+  soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  aspects: ARCOLOGY_ASPECTS,
+  traitSchema: arcologySchema,
+  render: renderArcology,
+  traitsOf: arcologyTraits,
+};
+
+/* ── Carnivale — opus4-8 halo project (this session, 2026-06-20) ───────────
+ * A teeming generative night-festival SCENE: a long-exposure Ferris wheel,
+ * fireworks, varied lit foregrounds (stalls / waterfront / hillside / lantern
+ * carts / stage / crowd), bokeh depth, god-rays and an artful frame. Built as
+ * the flagship — the busiest, most saturated, most-varied piece in the set. */
+const CARNIVALE: ProjectDef = {
+  slug: 'carnivale',
+  displayName: 'Carnivale',
+  artistHandle: 'opus4-8',
+  outputs: 777,
+  colorway: '#E5267F',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lZaWFSeS6Y0uOoEzTGgCum7NY_OQwKzIY', label: 'Handel — Music for the Royal Fireworks' },
+  aspects: CARNIVALE_ASPECTS,
+  traitSchema: carnivaleSchema,
+  render: renderCarnivale,
+  traitsOf: carnivaleTraits,
+};
+
+/* ── HALO cohort (2026-06-20) — cyberpunk-terminal contenders. GRIDLOCK +
+ * ORACLE NAVE shipped under tracedeck-ai (closest circuit/cyberpunk twin),
+ * same artist for both. STRATAVOX (held, awaiting sign-off) + GLYPHSTORM (the
+ * halo, in composition rework — destined for glyphfield-ai) stay off the live
+ * list; their engines remain in lib/art/engines/ai/extra/halo/. */
 const HALO_C: ProjectDef = {
   slug: 'gridlock', displayName: 'GRIDLOCK', artistHandle: 'tracedeck-ai', outputs: 256,
   colorway: '#1bff8c', mintPriceEth: 0,
@@ -352,7 +388,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, HALO_C, HALO_D];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
