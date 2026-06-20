@@ -17,10 +17,24 @@
 
 import { useEffect, useReducer } from 'react';
 import { COLOR_BUCKET_ORDER, outputColorBucket, type ColorBucket } from './outputColor';
+import type { AspectKind, Fingerprint } from './sampleColor';
 
 const cache = new Map<string, ColorBucket>(); // `${slug}:${id}` -> stored bucket
 const reported = new Set<string>();           // POST dedupe (per session)
 const loadedSlugs = new Set<string>();        // GET dedupe (per session)
+
+/* The rest of the visual fingerprint (everything beyond the colour bucket),
+   cached + served alongside the colour from the same rows. */
+export interface StoredFingerprint {
+    aspect: AspectKind | null;
+    brightness: number | null;
+    saturation: number | null;
+    complexity: number | null;
+}
+const fpCache = new Map<string, StoredFingerprint>();
+export function resolveFingerprint(slug: string, id: number): StoredFingerprint | null {
+    return fpCache.get(`${slug}:${id}`) ?? null;
+}
 let version = 0;
 const listeners = new Set<() => void>();
 function bump() { version += 1; listeners.forEach((l) => l()); }
@@ -67,6 +81,38 @@ export function reportBucket(slug: string, id: number, bucket: ColorBucket | nul
     } catch { /* ignore */ }
 }
 
+/** Persist a freshly-sampled FULL fingerprint (colour + aspect + brightness +
+ *  saturation + complexity) in one fire-and-forget POST + cache it locally.
+ *  Same per-session dedupe + no-re-render policy as reportBucket. */
+export function reportFingerprint(slug: string, id: number, fp: Fingerprint | null): void {
+    if (!fp) return;
+    const k = `${slug}:${id}`;
+    if (reported.has(k)) return;
+    reported.add(k);
+    if (fp.bucket && VALID.has(fp.bucket)) cache.set(k, fp.bucket);
+    fpCache.set(k, {
+        aspect: fp.aspect,
+        brightness: fp.brightness,
+        saturation: fp.saturation,
+        complexity: fp.complexity,
+    });
+    try {
+        fetch('/api/outputs/color', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+                slug, id,
+                bucket: fp.bucket,
+                aspect: fp.aspect,
+                brightness: fp.brightness,
+                saturation: fp.saturation,
+                complexity: fp.complexity,
+            }),
+            keepalive: true,
+        }).catch(() => { /* ignore */ });
+    } catch { /* ignore */ }
+}
+
 async function loadColors(slugs: string[]): Promise<void> {
     const fresh = slugs.filter((s) => s && !loadedSlugs.has(s));
     if (fresh.length === 0) return;
@@ -74,11 +120,24 @@ async function loadColors(slugs: string[]): Promise<void> {
     try {
         const res = await fetch(`/api/outputs/colors?slugs=${encodeURIComponent(fresh.join(','))}`);
         if (!res.ok) return;
-        const rows = (await res.json()) as { slug: string; id: number; bucket: string }[];
+        const rows = (await res.json()) as {
+            slug: string; id: number; bucket: string;
+            aspect?: AspectKind | null; brightness?: number | null;
+            saturation?: number | null; complexity?: number | null;
+        }[];
         let changed = false;
         for (const r of rows) {
             if (VALID.has(r.bucket)) {
                 cache.set(`${r.slug}:${r.id}`, r.bucket as ColorBucket);
+                changed = true;
+            }
+            if (r.aspect != null || r.brightness != null || r.saturation != null || r.complexity != null) {
+                fpCache.set(`${r.slug}:${r.id}`, {
+                    aspect: r.aspect ?? null,
+                    brightness: r.brightness ?? null,
+                    saturation: r.saturation ?? null,
+                    complexity: r.complexity ?? null,
+                });
                 changed = true;
             }
         }

@@ -19,10 +19,17 @@ const VALID = new Set<string>([
   'Purple', 'Magenta', 'Brown', 'Cream', 'Moon', 'Grey', 'Black', 'White',
 ]);
 
+const ASPECTS = new Set(['square', 'wide', 'tall']);
+const unit = (n: unknown): number | null =>
+  typeof n === 'number' && isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
+
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => null)) as
-      | { slug?: string; id?: number | string; bucket?: string }
+      | {
+          slug?: string; id?: number | string; bucket?: string;
+          aspect?: string; brightness?: number; saturation?: number; complexity?: number;
+        }
       | null;
     const slug = body?.slug?.trim();
     const id = body?.id;
@@ -31,16 +38,22 @@ export async function POST(req: NextRequest) {
       return badRequest('slug, id and a valid bucket are required');
     }
 
+    // The visual fingerprint rides along when present (validated; nulls skipped).
+    const row: Record<string, unknown> = {
+      project_id: slug,
+      token_id: String(id),
+      dominant_color: bucket,
+      updated_at: new Date().toISOString(),
+    };
+    if (body?.aspect && ASPECTS.has(body.aspect)) row.aspect = body.aspect;
+    const br = unit(body?.brightness); if (br != null) row.brightness = br;
+    const sa = unit(body?.saturation); if (sa != null) row.saturation = sa;
+    const cx = unit(body?.complexity); if (cx != null) row.complexity = cx;
+
     const sb = getSupabaseService();
-    const { error } = await sb.from('outputs').upsert(
-      {
-        project_id: slug,
-        token_id: String(id),
-        dominant_color: bucket,
-        updated_at: new Date().toISOString(),
-      } as never,
-      { onConflict: 'project_id,token_id' },
-    );
+    const { error } = await sb.from('outputs').upsert(row as never, {
+      onConflict: 'project_id,token_id',
+    });
     if (error) return serverError(error);
     return NextResponse.json({ ok: true });
   } catch (e) {

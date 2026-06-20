@@ -20,16 +20,23 @@ export async function GET(req: NextRequest) {
     const sb = getSupabaseAnon();
     const { data, error } = await sb
       .from('outputs')
-      .select('project_id, token_id, dominant_color')
+      .select('project_id, token_id, dominant_color, aspect, brightness, saturation, complexity')
       .in('project_id', slugs)
       .not('dominant_color', 'is', null);
     if (error) return serverError(error);
 
-    const out = (data ?? []) as { project_id: string; token_id: string; dominant_color: string | null }[];
+    const out = (data ?? []) as {
+      project_id: string; token_id: string; dominant_color: string | null;
+      aspect: string | null; brightness: number | null; saturation: number | null; complexity: number | null;
+    }[];
     const rows = out.map((r) => ({
       slug: r.project_id,
       id: Number(r.token_id),
       bucket: r.dominant_color,
+      aspect: r.aspect,
+      brightness: r.brightness,
+      saturation: r.saturation,
+      complexity: r.complexity,
     }));
     return NextResponse.json(rows);
   } catch (e) {

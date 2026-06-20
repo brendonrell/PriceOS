@@ -29,6 +29,7 @@ import {
     ELEMENT_NAMES, PRICEDAY_NAMES, RANGE_NAMES, FATE_NAMES,
     ANGEL_NAMES, LOWMINT_NAMES, SAMENUM_NAMES, LISTED_NAMES, HELD_NAMES,
     TRIPLE_NAMES, MODALITY_NAMES, ASPECT_NAMES, FOLLOWING_NAMES, VIBE_CAPTIONS,
+    DARK_NAMES, LIGHT_NAMES, VIVID_NAMES, MUTED_NAMES, BUSY_NAMES, MINIMAL_NAMES,
 } from './genCuratedNames';
 
 export type SpriteVibe = 'observer' | 'instigator' | 'hacker' | 'mystic';
@@ -45,8 +46,11 @@ export interface CuratedCandidate {
     priceDay?: string;
     fate?: string;
     listed?: boolean;
-    /* Light up when captured (see docs/output-visual-capture.md). */
+    /* Visual fingerprint (sampled with the colour; see sampleColor.ts). */
     aspect?: 'square' | 'wide' | 'tall';
+    brightness?: number;   // 0..1
+    saturation?: number;   // 0..1
+    complexity?: number;   // 0..1
     following?: boolean;   // this piece's artist is followed by the profile owner
 }
 export interface CuratedPick { slug: string; id: number; }
@@ -80,9 +84,9 @@ const MODALITIES: Record<'Cardinal' | 'Fixed' | 'Mutable', string[]> = {
 
 /* Which kinds each PriceSprite vibe is drawn to when it curates. */
 const VIBE_AFFINITY: Record<SpriteVibe, string[]> = {
-    observer: ['mono', 'neutral', 'cool', 'monochrome', 'analogous', 'range', 'held', 'aspect'],
-    instigator: ['complement', 'triadic', 'rainbow', 'warm', 'samenum', 'listed', 'angel'],
-    hacker: ['random', 'rainbow', 'range', 'angel', 'samenum', 'triadic', 'lowmint'],
+    observer: ['mono', 'neutral', 'cool', 'monochrome', 'analogous', 'range', 'held', 'aspect', 'muted', 'minimal', 'dark'],
+    instigator: ['complement', 'triadic', 'rainbow', 'warm', 'samenum', 'listed', 'angel', 'vivid', 'busy', 'light'],
+    hacker: ['random', 'rainbow', 'range', 'angel', 'samenum', 'triadic', 'lowmint', 'busy', 'vivid'],
     mystic: ['sun', 'moon', 'rising', 'element', 'modality', 'triple', 'fate', 'cohort'],
 };
 
@@ -308,6 +312,23 @@ function aspect(pool: CuratedCandidate[]): Recipe[] {
     }
     return out;
 }
+/* A fingerprint scalar split into a low band + a high band (dark/light,
+   muted/vivid, minimal/busy). Each band emits when ≥4 pieces qualify. */
+function band(
+    pool: CuratedCandidate[],
+    pick: (c: CuratedCandidate) => number | undefined,
+    lo: number, hi: number,
+    loKind: string, hiKind: string,
+    loNames: readonly string[], hiNames: readonly string[],
+): Recipe[] {
+    const out: Recipe[] = [];
+    const low = pool.filter((c) => { const v = pick(c); return v != null && v <= lo; });
+    if (low.length >= 4) out.push({ kind: loKind, picks: shuffle(low).slice(0, MAX), caption: randOf(loNames) ?? loKind });
+    const high = pool.filter((c) => { const v = pick(c); return v != null && v >= hi; });
+    if (high.length >= 4) out.push({ kind: hiKind, picks: shuffle(high).slice(0, MAX), caption: randOf(hiNames) ?? hiKind });
+    return out;
+}
+
 /* Lights up once the owner's follow graph is threaded in. */
 function following(pool: CuratedCandidate[]): Recipe[] {
     const items = pool.filter((c) => c.following === true);
@@ -341,6 +362,9 @@ function allRecipes(pool: CuratedCandidate[]): Recipe[] {
         ...element(pool), ...modality(pool), ...triple(pool),
         ...fate(pool), ...cohort(pool), ...tokenMagic(pool), ...status(pool),
         ...aspect(pool), ...following(pool), ...range(pool),
+        ...band(pool, (c) => c.brightness, 0.3, 0.7, 'dark', 'light', DARK_NAMES, LIGHT_NAMES),
+        ...band(pool, (c) => c.saturation, 0.25, 0.6, 'muted', 'vivid', MUTED_NAMES, VIVID_NAMES),
+        ...band(pool, (c) => c.complexity, 0.25, 0.6, 'minimal', 'busy', MINIMAL_NAMES, BUSY_NAMES),
     ];
 }
 

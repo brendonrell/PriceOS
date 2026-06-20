@@ -43,7 +43,7 @@ import {
 } from '../../lib/state/SortContext';
 import { COLOR_BUCKET_ORDER, classifyRgb } from '../../lib/art/outputColor';
 import { signatureHexFor } from '../../lib/profile/signatureHex';
-import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
+import { resolveBucket, resolveFingerprint, useStoredColors } from '../../lib/art/colorStore';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
@@ -1200,23 +1200,30 @@ function ProfilePageBodyInner({
        colorsVer re-rolls once the captured colours hydrate. */
     const genCurated = useMemo(() => {
         if (!onShowcase || effStyle !== 'gen-curated') return null;
-        const pool: CuratedCandidate[] = enriched.map((h) => ({
-            slug: h.slug,
-            id: h.token_id,
-            color: resolveBucket(h.slug, h.token_id),
-            /* Artist trait is the @handle (an @name) — keep it. Project trait is
-               slug-based (@slug), so use the project's REAL display name instead;
-               never surface a slug (Brendon 2026-06-20). */
-            artist: h.traits.Artist,
-            project: getProject(h.slug)?.displayName ?? undefined,
-            sun: h.traits.Sun,
-            moon: h.traits.Moon,
-            rising: h.traits.Rising,
-            priceDay: h.traits.PriceDay,
-            fate: h.traits.Fate,
-            listed: h.listed,
-            following: ownerFollowing.has((h.traits.Artist ?? '').replace(/^@/, '').toLowerCase()),
-        }));
+        const pool: CuratedCandidate[] = enriched.map((h) => {
+            const fp = resolveFingerprint(h.slug, h.token_id);
+            return {
+                slug: h.slug,
+                id: h.token_id,
+                color: resolveBucket(h.slug, h.token_id),
+                /* Artist trait is the @handle (an @name) — keep it. Project trait
+                   is slug-based (@slug), so use the project's REAL display name
+                   instead; never surface a slug (Brendon 2026-06-20). */
+                artist: h.traits.Artist,
+                project: getProject(h.slug)?.displayName ?? undefined,
+                sun: h.traits.Sun,
+                moon: h.traits.Moon,
+                rising: h.traits.Rising,
+                priceDay: h.traits.PriceDay,
+                fate: h.traits.Fate,
+                listed: h.listed,
+                aspect: fp?.aspect ?? undefined,
+                brightness: fp?.brightness ?? undefined,
+                saturation: fp?.saturation ?? undefined,
+                complexity: fp?.complexity ?? undefined,
+                following: ownerFollowing.has((h.traits.Artist ?? '').replace(/^@/, '').toLowerCase()),
+            };
+        });
         return genCuratedSet(pool, {
             vibe: (user.price_sprite as SpriteVibe | null) ?? null,
             handle: user.handle ?? handle,

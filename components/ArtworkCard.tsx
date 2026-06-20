@@ -81,8 +81,8 @@ import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
-import { sampleCanvasBucket } from '../lib/art/sampleColor';
-import { needsColorSample, reportBucket } from '../lib/art/colorStore';
+import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
+import { needsColorSample, reportFingerprint } from '../lib/art/colorStore';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
@@ -375,11 +375,12 @@ function ArtworkCard({
             if (wrapper) {
                 wrapper.style.aspectRatio = String(ratio);
             }
-            /* Sample this piece's dominant colour once and persist it (any
-               engine) so grouping-by-colour works beyond Prisms. No-op if it's
-               already stored/sampled this session. (Brendon, 2026-06-16) */
+            /* Sample this piece's visual fingerprint once (colour + aspect +
+               brightness + saturation + complexity) from its painted pixels and
+               persist it (any engine), in one pass. No-op if already sampled this
+               session. (Brendon, 2026-06-16 colour; fingerprint 2026-06-20) */
             if (needsColorSample(slug, id)) {
-                reportBucket(slug, id, sampleCanvasBucket(canvas));
+                reportFingerprint(slug, id, sampleCanvasFingerprint(canvas));
             }
         };
 
