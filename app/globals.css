@@ -8551,7 +8551,12 @@ body.colorway-dark .ghost-feed-bar {
     font-family: 'Courier New', Courier, monospace;
     margin-right: 3px;
     font-size: 1.32em;
+    /* line-height:0 so the bigger glyph overflows its own line-box instead of
+       growing the pill — keeps these pills the same height as the text-only ones
+       (Brendon 2026-06-19). */
     display: inline-block;
+    line-height: 0;
+    vertical-align: middle;
 }
 
 /* MY PD ASCII-ID toggle sits 1px high against its row on mobile — settle it
