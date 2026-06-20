@@ -1766,6 +1766,33 @@ function ProfilePageBodyInner({
                                     </div>
                                 ) : undefined
                             }
+                            profileValueRow={
+                                onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) ? (
+                                    <div className="stats-container collected-values" style={{ display: 'flex' }}>
+                                        {([
+                                            { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length },
+                                            { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
+                                            { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
+                                            { key: 'projects',    label: 'Projects',    count: projectStarsValid.length },
+                                            { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
+                                            { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },
+                                            { key: 'soundtracks', label: 'Soundtracks', count: soundtrackStars.length },
+                                        ] as { key: MoreMode; label: string; count: number }[]).map((p) => (
+                                            <div
+                                                key={p.key}
+                                                className={`pill pill-l3${moreMode === p.key ? ' active' : ''}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => setMoreMode(p.key)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMoreMode(p.key); } }}
+                                            >
+                                                <span className="stat-name">↳ {p.label}</span>
+                                                {p.count > 0 && <span className="stat-count">{p.count}</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : undefined
+                            }
                         />
                     )}
 

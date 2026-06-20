@@ -291,6 +291,11 @@ interface TraitsUIProps {
        picker (profile +More — Starred/Wishlist sorts live here, same spot +
        font as the project sorts). */
     profileSortControls?: ReactNode;
+    /* Optional pop-out value row rendered directly under the L1 profilePills
+       and ABOVE the colorway/sort bar — the same slot the Collected tab's
+       value pills (↳ value) occupy. Profile +More uses it for the Starred
+       sub-category pills (All Starred / Collectors / …). */
+    profileValueRow?: ReactNode;
 }
 
 export default function TraitsUI({
@@ -299,6 +304,7 @@ export default function TraitsUI({
     profilePills,
     profilePillsTrailing,
     profileSortControls,
+    profileValueRow,
 }: TraitsUIProps) {
     const {
         activeCategory,
@@ -898,6 +904,12 @@ export default function TraitsUI({
                         )}
                     </div>
                 </div>
+
+                {/* Profile +More pop-out value row (sibling of
+                    `.traits-header-bar`, same slot as the Collected value
+                    pills): the active L1's sub-categories pop out here, above
+                    the sort bar. */}
+                {profileValueRow}
 
                 {/* Sibling of `.traits-header-bar` (sim 5168-5174). Pre-
                     chat-B these two `.stats-container` blocks were nested

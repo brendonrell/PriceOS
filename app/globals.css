@@ -3991,7 +3991,7 @@ button,
    the viewport — so a wallet holding many artists drags the open Artist list
    UP over the facet pills, colliding the two rows. Scoped to the profile's
    value row (id+class) so the project page is untouched (Brendon, 2026-06-16). */
-#statsOutput.collected-values {
+.collected-values {
     position: static;
     bottom: auto;
 }
@@ -4079,6 +4079,10 @@ button,
     font-size: 1.15em;
     position: relative;
     top: 1px;
+}
+/* Recent glyph one size larger on mobile only (Brendon 2026-06-20). */
+@media (max-width: 600px) {
+    .sort-lbl-recent { font-size: 1.3em; }
 }
 .sort-arrow {
     font-size: 20px;
@@ -8592,17 +8596,6 @@ body.colorway-dark .ghost-feed-bar {
 }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
-.starred-mode-pills {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* Flush with the section edge — same left as the search bar, sort row and
-       the starred rows themselves (Brendon 2026-06-19). */
-    /* Extra breathing room below the pills so the rows aren't crowding them
-       (Brendon 2026-06-19). */
-    padding: 12px 0 16px;
-    flex-wrap: wrap;
-}
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
    rows) — same footprint as the wishlist cart button. */
 .starred-row-cta {

@@ -77,7 +77,6 @@ export default function StarredList({
     sortDir = 'asc',
     group = 'none',
     mode = 'all',
-    onSetMode,
     viewerAddress,
 }: {
     items: StarredItem[];
@@ -112,7 +111,6 @@ export default function StarredList({
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const setMode = (m: Mode) => onSetMode?.(m);
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
@@ -426,18 +424,6 @@ export default function StarredList({
         });
     };
 
-    /* Brendon's order: All Starred › Collectors › Artists › Projects › Outputs ›
-       Traits › Soundtracks. */
-    const PILLS: { key: Mode; label: string; count: number }[] = [
-        { key: 'all',         label: 'All Starred', count: outputRows.length + traitRows.length + artists.length + collectors.length + soundtracks.length + visibleProjects.length },
-        { key: 'collectors',  label: 'Collectors',  count: collectors.length    },
-        { key: 'artists',     label: 'Artists',     count: artists.length       },
-        { key: 'projects',    label: 'Projects',    count: projects.length      },
-        { key: 'outputs',     label: 'Outputs',     count: outputRows.length    },
-        { key: 'traits',      label: 'Traits',      count: traitRows.length     },
-        { key: 'soundtracks', label: 'Soundtracks', count: soundtracks.length   },
-    ];
-
     const totalVisible =
         mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length
         : mode === 'outputs' ? visibleOutputs.length
@@ -449,22 +435,10 @@ export default function StarredList({
 
     return (
         <section className="starred-list" aria-label="Starred">
-            {/* Filter pills + the ⌕ search icon (in the +More sub-nav). */}
-            <div className="starred-mode-pills">
-                {PILLS.map((p) => (
-                    <div
-                        key={p.key}
-                        className={`pill pill-l3 pill-dotted${mode === p.key ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setMode(p.key)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode(p.key); } }}
-                    >
-                        <span className="stat-name">{p.label}</span>
-                        {p.count > 0 && <span className="badge">{p.count}</span>}
-                    </div>
-                ))}
-            </div>
+            {/* The sub-category filter pills (All Starred / Collectors / …) now
+                render as the +More pop-out value row up under the L1 pills
+                (above the colorway/sort bar) — see ProfilePageBody's
+                profileValueRow — matching the Collected tab's layout. */}
 
             {/* Search row — collapsed until the ⌕ icon (in the +More sub-nav) is
                 tapped (.open). Sorts live in the sub-nav sort-bar now. */}
