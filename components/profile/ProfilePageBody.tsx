@@ -1169,6 +1169,23 @@ function ProfilePageBodyInner({
     const [showcaseView, setShowcaseView] = useState<ShowcaseView>('created');
     const artistShowcaseCreated = artistMode && showcaseView === 'created';
 
+    /* The set of artist @handles this profile FOLLOWS — lets Gen Curated build
+       "From the Feed" (pieces by artists they follow). Only fetched while the
+       gen-curated showcase is actually showing. */
+    const [ownerFollowing, setOwnerFollowing] = useState<ReadonlySet<string>>(new Set());
+    useEffect(() => {
+        if (!(onShowcase && effStyle === 'gen-curated') || !user.address) return;
+        let cancelled = false;
+        fetch(`/api/follows/${user.address.toLowerCase()}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !d?.following_handles) return;
+                setOwnerFollowing(new Set((d.following_handles as string[]).map((h) => h.replace(/^@/, '').toLowerCase())));
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [onShowcase, effStyle, user.address]);
+
     /* Gen Curated — when this profile runs the gen-curated showcase style, build
        a fresh themed pull from the owner's WHOLE collection (re-rolled each
        mount). The PriceSprite vibe + @handle let the sprite curate in character.
@@ -1187,13 +1204,14 @@ function ProfilePageBodyInner({
             priceDay: h.traits.PriceDay,
             fate: h.traits.Fate,
             listed: h.listed,
+            following: ownerFollowing.has((h.traits.Artist ?? '').replace(/^@/, '').toLowerCase()),
         }));
         return genCuratedSet(pool, {
             vibe: (user.price_sprite as SpriteVibe | null) ?? null,
             handle: user.handle ?? handle,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onShowcase, effStyle, enriched, colorsVer]);
+    }, [onShowcase, effStyle, enriched, colorsVer, ownerFollowing]);
 
     /* Live per-project stats for this artist's projects (birth time, mint
        count, graduation, sold-out, milestones) — the ledger timestamps the

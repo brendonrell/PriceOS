@@ -88,21 +88,24 @@ export function MyPdSection({ onTripleTap }: Props) {
         window.addEventListener(USERSTATE_HYDRATED_EVENT, handler);
         return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, handler);
     }, []);
-    // Whitelist status — the Artist option only exists for whitelisted artists.
+    // The Artist option only exists for whitelisted artists who've ALSO released
+    // at least one project (Brendon 2026-06-20) — both come from /api/me/artist.
     useEffect(() => {
         if (!siweAddress) { setIsArtist(false); return; }
         let cancelled = false;
         fetch('/api/me/artist', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setIsArtist(!!d.is_artist); })
+            .then((d) => { if (!cancelled && d) setIsArtist(!!d.is_artist && !!d.has_project); })
             .catch(() => {});
         return () => { cancelled = true; };
     }, [siweAddress]);
 
     const showcaseMode = effectiveShowcaseStyle(rawShowcase, isArtist, siweAddress ?? undefined);
     const cycleUserShowcaseMode = () => {
+        // Order: Artist › Static › Generative › Gen Curated (Brendon 2026-06-20);
+        // Artist only present for project-having whitelisted artists.
         const order: ShowcaseStyle[] = isArtist
-            ? ['static', 'generative', 'gen-curated', 'artist']
+            ? ['artist', 'static', 'generative', 'gen-curated']
             : ['static', 'generative', 'gen-curated'];
         const idx = order.indexOf(showcaseMode);
         const next: ShowcaseStyle = order[(idx + 1) % order.length] ?? 'static';
@@ -116,8 +119,8 @@ export function MyPdSection({ onTripleTap }: Props) {
     };
     const showcaseGlyph = showcaseMode === 'static' ? '⑆'
         : showcaseMode === 'generative' ? '⑇'
-        : showcaseMode === 'gen-curated' ? '⑉'
-        : '⑈';
+        : showcaseMode === 'gen-curated' ? '⑈'
+        : '⑉';
     const showcaseTitle = showcaseMode === 'static'
         ? 'User Showcase Mode — Static'
         : showcaseMode === 'generative'

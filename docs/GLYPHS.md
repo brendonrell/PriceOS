@@ -75,6 +75,31 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 > generates a Ping. Wishlist is the opposite (a buy-intent signal) and DOES
 > drive financial Pings.
 
+### Showcase-mode toggle (`components/dropdown/settings/MyPdSection.tsx`)
+
+The profile Showcase style cycles through an OCR-dingbat family (U+2446–U+2449).
+Cycle order (Brendon, 2026-06-20): **Artist › Static › Generative › Gen Curated**
+— Artist only appears for whitelisted artists who've released ≥1 project.
+
+| Style | Glyph | Codepoint |
+|---|---|---|
+| Static | ⑆ | U+2446 |
+| Generative | ⑇ | U+2447 |
+| Gen Curated | ⑈ | U+2448 |
+| Artist | ⑉ | U+2449 |
+
+> **Gen Curated** added 2026-06-20 (auto-curates the collection into themed
+> sets). Its glyph and **Artist**'s were **swapped** the same day — Gen Curated
+> took `⑈`, Artist took `⑉` (Brendon). The toggle's base `Showcase` glyph in the
+> §3 table (`⑆`) is the Static/default face.
+
+### Multi-select per-row indicator (Starred / Wishlist rows)
+
+The selectable-row badge reuses the canonical gallery multi-select glyph
+(`.ms-check-badge`): **❐ (U+2750)** unselected → **▣ (U+25A3)** selected. The
+Starred/Wishlist rows adopted it 2026-06-20 (they previously drew a plain box,
+which read as the Cart `▢`). Never use the Cart `▢` (U+25A2) for selection.
+
 ---
 
 ## 4. Achievement category glyphs (`components/achievements/AchievementsGrid.tsx`)

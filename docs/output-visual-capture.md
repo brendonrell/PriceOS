@@ -67,3 +67,23 @@ Plus: **populate `rarity`** (trait-frequency based) while we're in there.
 ## Recommended first slice (smallest win)
 `aspect` + `brightness` + `saturation` + `complexity`. Four numbers, one pass,
 and Gen Curated + the gallery facets both get noticeably richer the same day.
+
+## Ready-to-run migration (apply on Brendon's go)
+```sql
+-- First slice: the aesthetic fingerprint, alongside the colour we already store.
+alter table public.outputs
+  add column if not exists aspect       text,   -- 'square' | 'wide' | 'tall'
+  add column if not exists aspect_ratio real,   -- exact w/h
+  add column if not exists brightness   real,   -- 0..1 mean luminance
+  add column if not exists saturation   real,   -- 0..1 mean chroma
+  add column if not exists complexity   real,   -- 0..1 edge density
+  add column if not exists temperature  real,   -- -1..1 warm↔cool
+  add column if not exists palette       jsonb, -- [{hex,weight}, …]
+  add column if not exists palette_count int,   -- distinct significant hues
+  add column if not exists is_animated  boolean,
+  add column if not exists dominant_hex text;   -- exact, not just the bucket
+-- (rarity column already exists — populate it in the same sweep.)
+```
+The Gen Curated engine already keys on `aspect` and lights up the moment the
+column is populated; the other fields each unlock another recipe kind + a
+gallery facet.
