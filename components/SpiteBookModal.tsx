@@ -4,20 +4,18 @@
  * SpiteBookModal — "THE SPITE BOOK"
  *
  * A whimsical Spell Book feature: tapping the Spite Book pill opens a literal
- * two-page book on screen. You write a name on a page's ruled line to inscribe
- * it; tap the small mark beside a name to scratch it out. The list lives in
- * spiteStore and persists across sessions.
+ * book. Ten unnumbered parchment pages (five spreads); drag a page sideways to
+ * turn it like an eReader. Write a real @name on a ruled line to inscribe it;
+ * tap the mark beside a name to scratch it out. A name only takes if it's a
+ * real user/project on the site (validated) — otherwise it's rejected. The
+ * list lives in spiteStore (matched @-insensitively across the site).
  *
- * Mobile-first: the book fills the viewport width with two pages flanking a
- * central spine, capped to a comfortable max on desktop. Self-contained
- * parchment aesthetic — independent of the active colorway, like StickersModal's
- * own surface.
+ * The turn is a 3D sheet-flip driven by the drag, not a paper-curl (which the
+ * web can't do natively). Faces shown mid-flip are read-only snapshots; the
+ * resting spread carries the live inputs + scratch marks, so typing/iOS-focus
+ * only ever happens on a flat page.
  *
- * Each page keeps an always-present writing line (the AddLine input). Tapping
- * it — or anywhere on the page — focuses it directly inside the tap gesture, so
- * iOS reliably raises the keyboard (a programmatic focus AFTER a re-render does
- * not). Mounted once in PriceOSShell; rides ModalContext for scroll-lock +
- * Escape-to-close.
+ * Mounted once in PriceOSShell; rides ModalContext for scroll-lock + Escape.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -34,16 +32,20 @@ import { validateSpiteHandle } from '../lib/pins/spiteValidate';
 
 const VS15 = '︎';
 
-type Side = 'left' | 'right';
+const PAGES = 10;
+const LINES_PER_PAGE = 6;
+const CAP = PAGES * LINES_PER_PAGE;
+const MAX_SPREAD = Math.ceil(PAGES / 2) - 1; // 0..4
 
-/* A page's writing line — its own draft state, always in the DOM so a tap
-   focuses it natively (iOS keyboard). Commits on Enter or blur. */
+type FlipDir = 'fwd' | 'back';
+
+/* A page's active writing line — own draft state, always in the DOM so a tap
+   focuses it natively (iOS keyboard). Commits on Enter or blur; keeps the text
+   if the name is rejected so it can be fixed. */
 function AddLine({
-    placeholder,
     onAdd,
     inputRef,
 }: {
-    placeholder: string;
     onAdd: (name: string) => Promise<boolean>;
     inputRef: React.RefObject<HTMLInputElement>;
 }) {
@@ -52,7 +54,7 @@ function AddLine({
         const t = value.trim();
         if (!t) return;
         const ok = await onAdd(t);
-        if (ok) setValue(''); // keep the text on a rejection so they can fix it
+        if (ok) setValue('');
     };
     return (
         <div className="spite-line spite-line--add">
@@ -60,11 +62,12 @@ function AddLine({
                 ref={inputRef}
                 className="spite-input"
                 value={value}
-                placeholder={placeholder}
+                placeholder={`✛${VS15} name a foe`}
                 maxLength={40}
                 spellCheck={false}
                 autoCorrect="off"
                 onChange={(e) => setValue(e.target.value)}
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -87,8 +90,19 @@ export default function SpiteBookModal() {
     const isOpen = openModal?.name === 'spiteBook';
 
     const [names, setNames] = useState<readonly string[]>([]);
-    const leftInputRef = useRef<HTMLInputElement>(null);
-    const rightInputRef = useRef<HTMLInputElement>(null);
+    const [spread, setSpread] = useState(0);
+    const [flip, setFlip] = useState<FlipDir | null>(null);
+
+    const spreadRef = useRef<HTMLDivElement>(null);
+    const leafRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Drag bookkeeping (refs so pointermove doesn't churn React state).
+    const drag = useRef<{ startX: number; dir: FlipDir | null; committed: boolean }>({
+        startX: 0,
+        dir: null,
+        committed: false,
+    });
 
     // Subscribe to the spite list (hydrates from localStorage on first read).
     useEffect(() => {
@@ -96,10 +110,22 @@ export default function SpiteBookModal() {
         return subscribeSpite((next) => setNames(next.slice()));
     }, []);
 
+    // Reset to the first spread each time the book opens.
+    useEffect(() => {
+        if (isOpen) {
+            setSpread(0);
+            setFlip(null);
+        }
+    }, [isOpen]);
+
     const handleAdd = async (name: string): Promise<boolean> => {
         if (isSpited(name)) {
             showToast('Spite Book: ALREADY NAMED');
             return true;
+        }
+        if (getSpiteNames().length >= CAP) {
+            showToast('Spite Book: FULL');
+            return false;
         }
         const valid = await validateSpiteHandle(name);
         if (!valid) {
@@ -120,57 +146,125 @@ export default function SpiteBookModal() {
         showToast(`Spite Book: SCRATCHED · ${getSpiteNames().length}`);
     };
 
-    // Split the list across the two pages, left fills first.
-    const mid = Math.ceil(names.length / 2);
-    const pages: Record<Side, string[]> = {
-        left: names.slice(0, mid),
-        right: names.slice(mid),
+    const frontierPage = Math.min(Math.floor(names.length / LINES_PER_PAGE), PAGES - 1);
+
+    /* Render one page's six ruled lines. `live` pages carry the scratch marks +
+       the active writing input; snapshot faces (mid-flip) are text-only. */
+    const renderLines = (page: number, live: boolean) => {
+        const start = page * LINES_PER_PAGE;
+        const pageNames = names.slice(start, start + LINES_PER_PAGE);
+        const rows: React.ReactNode[] = [];
+
+        pageNames.forEach((name) => {
+            rows.push(
+                <div className="spite-line spite-line--name" key={`n-${name}`}>
+                    <span className="spite-name">{name}</span>
+                    {live && (
+                        <span
+                            className="spite-scratch"
+                            role="button"
+                            tabIndex={0}
+                            title="Scratch out"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                scratch(name);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    scratch(name);
+                                }
+                            }}
+                        >
+                            {`✗${VS15}`}
+                        </span>
+                    )}
+                </div>
+            );
+        });
+
+        // The active writing line lands on the page holding the next free slot.
+        const showInput =
+            live && page === frontierPage && names.length < CAP;
+        if (showInput) {
+            rows.push(<AddLine key="add" onAdd={handleAdd} inputRef={inputRef} />);
+        }
+
+        // Pad to a full page of ruled lines so every page reads the same height.
+        while (rows.length < LINES_PER_PAGE) {
+            rows.push(<div className="spite-line spite-line--blank" key={`b-${rows.length}`} />);
+        }
+        return <div className="spite-page-lines">{rows}</div>;
     };
 
-    const renderPage = (side: Side) => {
-        const list = pages[side];
-        const inputRef = side === 'left' ? leftInputRef : rightInputRef;
-        const placeholder =
-            names.length === 0 && side === 'left'
-                ? 'inscribe a name…'
-                : `✛${VS15} add a name`;
-        return (
-            <div
-                className="spite-page"
-                onClick={() => inputRef.current?.focus()}
-            >
-                <div className="spite-page-lines">
-                    {list.map((name) => (
-                        <div className="spite-line spite-line--name" key={name}>
-                            <span className="spite-name">{name}</span>
-                            <span
-                                className="spite-scratch"
-                                role="button"
-                                tabIndex={0}
-                                title="Scratch out"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    scratch(name);
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        scratch(name);
-                                    }
-                                }}
-                            >
-                                {`✗${VS15}`}
-                            </span>
-                        </div>
-                    ))}
-                    <AddLine
-                        placeholder={placeholder}
-                        onAdd={handleAdd}
-                        inputRef={inputRef}
-                    />
-                </div>
-            </div>
-        );
+    const renderPage = (page: number, live: boolean) => (
+        <div
+            className="spite-page"
+            onClick={() => {
+                if (live && page === frontierPage) inputRef.current?.focus();
+            }}
+        >
+            {renderLines(page, live)}
+        </div>
+    );
+
+    // ── Drag-to-turn ──────────────────────────────────────────────────────
+    const setLeafTransform = (deg: number, withTransition: boolean) => {
+        const leaf = leafRef.current;
+        if (!leaf) return;
+        leaf.style.transition = withTransition ? 'transform 0.35s ease' : 'none';
+        leaf.style.transform = `rotateY(${deg}deg)`;
+    };
+
+    const onPointerDown = (e: React.PointerEvent) => {
+        if (flip) return;
+        drag.current = { startX: e.clientX, dir: null, committed: false };
+    };
+
+    const onPointerMove = (e: React.PointerEvent) => {
+        const d = drag.current;
+        if (e.buttons === 0 && e.pointerType === 'mouse') return;
+        const dx = e.clientX - d.startX;
+        const w = spreadRef.current?.clientWidth ?? 1;
+
+        // Decide a direction once the drag is meaningful.
+        if (!d.dir) {
+            if (dx <= -6 && spread < MAX_SPREAD) d.dir = 'fwd';
+            else if (dx >= 6 && spread > 0) d.dir = 'back';
+            else return;
+            setFlip(d.dir);
+            return; // leaf mounts this frame; transform applies on the next move
+        }
+
+        if (d.dir === 'fwd') {
+            // right leaf rotates 0 → -180 as dx goes 0 → -w
+            const deg = Math.max(-180, Math.min(0, (dx / w) * 180));
+            setLeafTransform(deg, false);
+        } else {
+            // left leaf rotates 0 → 180 as dx goes 0 → w
+            const deg = Math.min(180, Math.max(0, (dx / w) * 180));
+            setLeafTransform(deg, false);
+        }
+    };
+
+    const finishFlip = (dir: FlipDir, commit: boolean) => {
+        const target = commit ? (dir === 'fwd' ? -180 : 180) : 0;
+        setLeafTransform(target, true);
+        window.setTimeout(() => {
+            if (commit) setSpread((s) => (dir === 'fwd' ? s + 1 : s - 1));
+            setFlip(null);
+        }, 360);
+    };
+
+    const onPointerUp = (e: React.PointerEvent) => {
+        const d = drag.current;
+        if (!d.dir) return;
+        const dx = e.clientX - d.startX;
+        const w = spreadRef.current?.clientWidth ?? 1;
+        const commit = Math.abs(dx) > w * 0.22;
+        finishFlip(d.dir, commit);
+        d.dir = null;
     };
 
     return (
@@ -198,10 +292,41 @@ export default function SpiteBookModal() {
                     <span className="spite-title-text">THE SPITE BOOK</span>
                 </div>
 
-                <div className="spite-spread">
-                    {renderPage('left')}
+                <div
+                    className="spite-spread"
+                    ref={spreadRef}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerUp}
+                >
+                    {/* Live spread underneath. During a forward flip the upcoming
+                        right page peeks through; during a back flip the previous
+                        left page does. */}
+                    {renderPage(flip === 'fwd' ? spread * 2 : (flip === 'back' ? spread * 2 - 2 : spread * 2), true)}
                     <div className="spite-spine" aria-hidden="true" />
-                    {renderPage('right')}
+                    {renderPage(flip === 'fwd' ? spread * 2 + 3 : spread * 2 + 1, true)}
+
+                    {/* The turning leaf — two read-only faces. */}
+                    {flip && (
+                        <div
+                            className={`spite-leaf spite-leaf--${flip}`}
+                            ref={leafRef}
+                        >
+                            <div className="spite-leaf-face spite-leaf-front">
+                                {renderPage(
+                                    flip === 'fwd' ? spread * 2 + 1 : spread * 2,
+                                    false
+                                )}
+                            </div>
+                            <div className="spite-leaf-face spite-leaf-back">
+                                {renderPage(
+                                    flip === 'fwd' ? spread * 2 + 2 : spread * 2 - 1,
+                                    false
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="spite-foot">
