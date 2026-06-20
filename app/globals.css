@@ -4036,8 +4036,14 @@ button,
     display: flex;
     align-items: center;
     justify-content: center;
-    /* All four colorway icons ride 1px high inside their squares (Brendon
-       2026-06-20). One shared picker, so this lands everywhere it's used. */
+}
+/* Only the four STANDARD colorway icons ride 1px high inside their squares
+   (Brendon 2026-06-20). Scoped to the standard theme classes so the extra
+   settings-picker pills (# hash-syn, B, R, hex swatch) are NOT touched. */
+.pill-colorway.t-custom span,
+.pill-colorway.t-light span,
+.pill-colorway.t-dark span,
+.pill-colorway.t-orange span {
     position: relative;
     top: -1px;
 }
