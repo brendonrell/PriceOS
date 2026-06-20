@@ -341,7 +341,17 @@ function WishlistRow({
                 {listed ? (
                     <span className="wishlist-row-price">{meta!.price}</span>
                 ) : (
-                    <span className="wishlist-row-price wishlist-row-price--stack">Not<br />Listed</span>
+                    <span
+                        className="starred-row-cta trait-offer-cta wishlist-offer-cta"
+                        role="button"
+                        tabIndex={0}
+                        title="Make an offer (coming soon)"
+                        aria-label="Make an offer"
+                        onClick={(e) => { e.stopPropagation(); showToast('Make Offer: COMING SOON'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Make Offer: COMING SOON'); } }}
+                    >
+                        <span className="trait-offer-glyph">✦︎</span> Make<br />Offer
+                    </span>
                 )}
                 {listed && !owned && (
                     <span

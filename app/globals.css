@@ -8544,6 +8544,13 @@ body.colorway-dark .ghost-feed-bar {
     font-size: 12px;
     text-transform: uppercase;
 }
+/* Wishlist unlisted CTA — the Trait-Offer button, text stacked ("✦ Make" /
+   "Offer") to save horizontal space (Brendon 2026-06-19). */
+.wishlist-offer-cta {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.05;
+}
 
 /* Icon prefixing the +More sub-nav tab labels (Starred ★ / Wishlists ✛ /
    Albums ◰) — Courier so the glyph renders as a text icon (Brendon 2026-06-19). */
