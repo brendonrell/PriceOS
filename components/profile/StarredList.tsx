@@ -663,8 +663,8 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug}</span>
-                                    <span className="starred-row-sub">YT ID: <em>{r.playlistId}</em></span>
-                                    <span className="starred-row-sub">{getProject(r.slug)?.artistHandle ? `by: @${getProject(r.slug)!.artistHandle}` : '\u00A0'}</span>
+                                    <span className="starred-row-sub srl-redact">YT ID: <em>{r.playlistId}</em></span>
+                                    <span className="starred-row-sub srl-by">{getProject(r.slug)?.artistHandle ? `by: @${getProject(r.slug)!.artistHandle}` : '\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
                                 <div className="starred-row-actions">
@@ -884,14 +884,14 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
-                <span className="starred-row-sub">
+                <span className="starred-row-sub srl-redact">
                     {extraPairs.length > 0
                         ? extraPairs.map((p, i) => (
                             <Fragment key={p.k}>{i > 0 ? ' · ' : ''}{p.k}: <em>{p.v}</em></Fragment>
                           ))
                         : (fate || ' ')}
                 </span>
-                <span className="starred-row-sub">{artist ? `by: ${artist}` : ' '}</span>
+                <span className="starred-row-sub srl-by">{artist ? `by: ${artist}` : ' '}</span>
                 <span className="starred-row-sub">Output</span>
             </div>
             <div className="starred-row-actions">

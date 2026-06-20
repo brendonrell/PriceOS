@@ -1687,7 +1687,7 @@ function ProfilePageBodyInner({
                                            pills exist on YOUR OWN profile only. */
                                         ...(isOwnProfile
                                             ? [
-                                                { key: 'starred',   label: <><span className="pill-tab-ico">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
+                                                { key: 'starred',   label: <><span className="pill-tab-ico is-star">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
                                             ]
                                             : []),

@@ -300,7 +300,7 @@ function WishlistRow({
     const act = () => (multiActive ? onToggleSel() : open('output', id, slug));
     return (
         <div
-            className={`starred-row wishlist-row${multiActive && selected ? ' is-selected' : ''}`}
+            className={`starred-row wishlist-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
             role="button"
             tabIndex={0}
             onClick={act}
@@ -313,14 +313,14 @@ function WishlistRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
-                <span className="starred-row-sub">
+                <span className="starred-row-sub srl-redact">
                     {extraPairs.length > 0
                         ? extraPairs.map((p, i) => (
                             <Fragment key={p.k}>{i > 0 ? ' · ' : ''}{p.k}: <em>{p.v}</em></Fragment>
                           ))
                         : (fate || ' ')}
                 </span>
-                <span className="starred-row-sub">
+                <span className="starred-row-sub srl-by">
                     by: {artist || '—'}
                     {artist && (
                         <>
@@ -337,6 +337,7 @@ function WishlistRow({
                 <span className="starred-row-sub">Floor:<em>{market.floor}</em></span>
                 <span className="starred-row-sub">Last:<em>{market.lastSale}</em></span>
             </div>
+            <div className="starred-row-actions">
             <div className="wishlist-row-buy">
                 {listed ? (
                     <span className="wishlist-row-price">{meta!.price}</span>
@@ -378,6 +379,7 @@ function WishlistRow({
             >
                 ✕&#xFE0E;
             </span>
+            </div>
             <WishlistGrailDot pinned={grailPinned} onToggle={onGrail} />
         </div>
     );

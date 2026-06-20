@@ -6603,6 +6603,8 @@ body.redacted-mode .cal-event-title,
 body.redacted-mode .cal-event-item,
 body.redacted-mode .topbarcal-events,
 body.redacted-mode .starred-row-id,
+body.redacted-mode .srl-by,
+body.redacted-mode .srl-redact,
 body.redacted-mode .project-title {
     color: transparent !important;
     background: #000000 !important;
@@ -6615,7 +6617,9 @@ body.redacted-mode .project-title .project-date { color: transparent !important;
 /* The Starred/Wishlist row title is a full-width flex item, so its redaction bar
    spanned the whole row (under the CTA + grail pin). Shrink it to its own text
    width so the bar stops where the @name ends (Brendon 2026-06-19). */
-body.redacted-mode .starred-row-id {
+body.redacted-mode .starred-row-id,
+body.redacted-mode .srl-by,
+body.redacted-mode .srl-redact {
     width: -webkit-fit-content !important;
     width: fit-content !important;
     max-width: 100% !important;
@@ -6654,6 +6658,8 @@ body.colorway-dark.redacted-mode .cal-event-title,
 body.colorway-dark.redacted-mode .cal-event-item,
 body.colorway-dark.redacted-mode .topbarcal-events,
 body.colorway-dark.redacted-mode .starred-row-id,
+body.colorway-dark.redacted-mode .srl-by,
+body.colorway-dark.redacted-mode .srl-redact,
 body.colorway-dark.redacted-mode .project-title { background: rgba(224,224,224,0.88) !important; }
 
 /* sim 3872-3879 — ANON MODE (project page hides). Hides
@@ -8556,7 +8562,7 @@ body.colorway-dark .ghost-feed-bar {
    "Offer") to save horizontal space (Brendon 2026-06-19). */
 .wishlist-offer-cta {
     white-space: normal;
-    text-align: center;
+    text-align: right;
     line-height: 1.05;
 }
 
@@ -8572,7 +8578,12 @@ body.colorway-dark .ghost-feed-bar {
     display: inline-block;
     line-height: 0;
     vertical-align: middle;
+    /* All three tab icons ride 1px high (Brendon 2026-06-19). */
+    position: relative;
+    top: -1px;
 }
+/* The ★ Starred icon runs one size larger than the others (Brendon 2026-06-19). */
+.pill-tab-ico.is-star { font-size: 1.5em; }
 
 /* MY PD ASCII-ID toggle sits 1px high against its row on mobile — settle it
    (Brendon 2026-06-19). */
