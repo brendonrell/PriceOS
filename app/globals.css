@@ -4077,13 +4077,15 @@ button,
 .sort-lbl-recent {
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.15em;
-    position: relative;
-    top: 1px;
-    /* The glyph paints at its size but its line box is clamped to 0 so a larger
-       icon can't stretch the sort row taller; the flex row centres it. */
-    line-height: 0;
+    /* Clamp the line box + centre in the flex button so the glyph paints at its
+       size but never stretches the sort row taller. The optical nudge is in em,
+       not px, so it holds at ANY font-size instead of drifting when the icon
+       grows (Brendon 2026-06-20). */
+    line-height: 1;
     display: inline-flex;
     align-items: center;
+    position: relative;
+    top: 0.07em;
 }
 /* Recent glyph one size larger on mobile only (Brendon 2026-06-20). */
 @media (max-width: 600px) {
