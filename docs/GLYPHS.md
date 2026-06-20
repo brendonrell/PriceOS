@@ -286,6 +286,7 @@ real presence, not a toggled "watching" button).
 |---|---|---|---|
 | Spell Book **Redacted** (was Portal slot) | @ | U+0040 | Arial, bold; same glyph as the old MY PD Redacted toggle. Drives `redactedMode` |
 | Spell Book **Price Ghost** | ᗝ | U+15DD | reassigned from the retired **Portal** pill |
+| Spell Book **The Watch** | ⬬ | U+2B2C | solid horizontal oval — echoes the live MINTED stat chip's oval shape; the free twin of Halo's hollow ⬭ (U+2B2D, §8), so the ellipse family is iOS-proven (Brendon, 2026-06-20) |
 | MY PD **ASCII-ID** (back in the Redacted slot) | ⍢ | U+2362 | also lives in the PriceSprite modal; both drive `asciiId` |
 
 > **Portal** retired (it did nothing): its slot became **Redacted**, its glyph
