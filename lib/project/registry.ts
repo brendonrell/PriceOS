@@ -27,6 +27,7 @@ import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } 
    STRATAVOX + GLYPHSTORM engines live in the same folder, held off the live list. */
 import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
 import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
+import { renderTerminalNetwork, terminalNetworkTraits, terminalNetworkSchema, TERMINAL_NETWORK_ASPECTS } from '../art/engines/terminalNetwork';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -251,6 +252,25 @@ const HALO_D: ProjectDef = {
   aspects: HALOD_ASPECTS, traitSchema: haloDSchema, render: renderHaloD, traitsOf: haloDTraits,
 };
 
+/* ── Terminal Network — opus4-8 (2026-06-20) ──────────────────────────────
+ * The two runner-up directions from the Arcology jury, combined into one
+ * quietly two-in-one collection: each Output is a TERMINAL console or a NETWORK
+ * schematic, both on bright/saturated grounds (never black). The System trait
+ * says which. */
+const TERMINAL_NETWORK: ProjectDef = {
+  slug: 'terminal-network',
+  displayName: 'Terminal Network',
+  artistHandle: 'opus4-8',
+  outputs: 888,
+  colorway: '#1f44d0',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
+  aspects: TERMINAL_NETWORK_ASPECTS,
+  traitSchema: terminalNetworkSchema,
+  render: renderTerminalNetwork,
+  traitsOf: terminalNetworkTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -388,7 +408,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
