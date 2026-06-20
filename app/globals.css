@@ -4036,6 +4036,10 @@ button,
     display: flex;
     align-items: center;
     justify-content: center;
+    /* All four colorway icons ride 1px high inside their squares (Brendon
+       2026-06-20). One shared picker, so this lands everywhere it's used. */
+    position: relative;
+    top: -1px;
 }
 .pill-colorway.active {
     border-color: var(--text-color);
@@ -8217,7 +8221,26 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
        which share this row class). */
     cursor: pointer;
 }
-.starred-row:hover {
+/* Extended frame layer (Brendon 2026-06-20). The hover grey AND the multi-select
+   border both ride this one ::after, which overhangs the row's usual side
+   boundary (an exception) so they read wider than the content — the content
+   keeps an inner buffer left/right. It sits BEHIND the row content (children are
+   lifted above it) so the ✕ / CTAs / thumbnail never shift. */
+.starred-row { position: relative; }
+.starred-row > * { position: relative; z-index: 1; }
+.starred-row::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -8px;
+    right: -8px;
+    border-radius: 4px;
+    z-index: 0;
+    pointer-events: none;
+}
+.starred-row:hover::after {
+    /* Same extended width as the selected rectangle; full row height (unchanged). */
     background: var(--stat-bg);
 }
 /* Multi-select: selectable rows show a pointer; selected rows get an accent
@@ -8248,10 +8271,14 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     content: '\25A3\FE0E';
     color: var(--accent);
 }
-.starred-row.is-selected {
-    /* Selected = just the outline, no fill (Brendon 2026-06-19). */
-    box-shadow: inset 0 0 0 2px var(--accent);
-    border-radius: 4px;
+.starred-row.is-selected::after {
+    /* Selected = the black border rectangle, pulled in top/bottom so stacked
+       selections don't touch; overhangs the sides with the content buffered in
+       (Brendon 2026-06-20). */
+    top: 4px;
+    bottom: 4px;
+    border: 2px solid var(--accent);
+    background: transparent;
 }
 /* Underline the top (title) line + extra-bold the bottom (type) line of every
    Starred row (Brendon 2026-06-19). Scoped to the Starred surface so the
@@ -8591,6 +8618,11 @@ body.colorway-dark .ghost-feed-bar {
 }
 /* The ★ Starred icon runs one size larger than the others (Brendon 2026-06-19). */
 .pill-tab-ico.is-star { font-size: 1.5em; }
+/* On mobile the three +More tab icons settle down 1px inside their pills
+   (Brendon 2026-06-20). */
+@media (max-width: 600px) {
+    .pill-tab-ico { top: 0; }
+}
 
 /* MY PD ASCII-ID toggle sits 1px high against its row on mobile — settle it
    (Brendon 2026-06-19). */
