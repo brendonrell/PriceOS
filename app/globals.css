@@ -6612,6 +6612,14 @@ body.redacted-mode .project-title {
     text-decoration: none !important;
 }
 body.redacted-mode .project-title .project-date { color: transparent !important; }
+/* The Starred/Wishlist row title is a full-width flex item, so its redaction bar
+   spanned the whole row (under the CTA + grail pin). Shrink it to its own text
+   width so the bar stops where the @name ends (Brendon 2026-06-19). */
+body.redacted-mode .starred-row-id {
+    width: -webkit-fit-content !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+}
 /* Redacted mode: modals */
 body.redacted-mode .modal-title,
 body.redacted-mode .modal-fields .mf-val,
