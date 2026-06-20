@@ -19,3 +19,4 @@ next-env.d.ts.bak
 .artcheck/
 artsheet.js
 captest.js
+.halo/
