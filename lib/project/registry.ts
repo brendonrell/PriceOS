@@ -21,19 +21,22 @@ import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '..
 import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art/engines/boreal';
 import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
 import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
+import { renderArcology, arcologyTraits, arcologySchema, ARCOLOGY_ASPECTS } from '../art/engines/arcology';
+import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } from '../art/engines/carnivale';
+/* HALO cohort (2026-06-20): GRIDLOCK + ORACLE NAVE shipped under tracedeck-ai.
+   STRATAVOX + GLYPHSTORM engines live in the same folder, held off the live list. */
+import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
+import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
+import { renderTerminalNetwork, terminalNetworkTraits, terminalNetworkSchema, TERMINAL_NETWORK_ASPECTS } from '../art/engines/terminalNetwork';
+import { renderLeviathan, leviathanTraits, leviathanSchema, LEVIATHAN_ASPECTS } from '../art/engines/leviathan';
+import { renderEmpyrean, empyreanTraits, empyreanSchema, EMPYREAN_ASPECTS } from '../art/engines/empyrean';
+import { renderMetropolis, metropolisTraits, metropolisSchema, METROPOLIS_ASPECTS } from '../art/engines/metropolis';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
-/* ── HALO competition cohort (2026-06-20) — opus4-8 flagship contenders ──
- * Four self-contained cyberpunk-terminal engines, one per art director. The
- * jury crowns one as the platform halo; the rest stay live per Brendon's call. */
-/* STRATAVOX (A) held pending CEO sign-off; GLYPHSTORM (B) in composition rework
-   — both kept out of the live list for now, code intact, re-added when approved. */
-import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
-import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/engines/ai/extra/halo/dDirector';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -197,11 +200,48 @@ const BULLETIN: ProjectDef = {
   traitsOf: bulletinTraits,
 };
 
-/* ── HALO cohort (2026-06-20) — cyberpunk-terminal flagship contenders.
- * SHIPPED: GRIDLOCK (C) + ORACLE NAVE (D), both by tracedeck-ai (whose Trace
- * Routes is the closest circuit/cyberpunk twin), approved 2026-06-20.
- * HELD: STRATAVOX (A, awaiting sign-off) + GLYPHSTORM (B, the halo, in
- * composition rework — destined for glyphfield-ai) — added back on approval. */
+/* ── Arcology — opus4-8 flagship attempt (2026-06-20, another session) ─────
+ * An epic hazy cyberpunk megastructure seen through a terminal/HUD overlay.
+ * Eight custom colorways (Deep Cyber is signature); a rare on-chain-feel
+ * "Event" chase axis. Renders from the static registry. */
+const ARCOLOGY: ProjectDef = {
+  slug: 'arcology',
+  displayName: 'Arcology',
+  artistHandle: 'opus4-8',
+  outputs: 999,
+  colorway: '#1fb6ff',
+  mintPriceEth: 0.2,
+  soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  aspects: ARCOLOGY_ASPECTS,
+  traitSchema: arcologySchema,
+  render: renderArcology,
+  traitsOf: arcologyTraits,
+};
+
+/* ── Carnivale — opus4-8 halo project (this session, 2026-06-20) ───────────
+ * A teeming generative night-festival SCENE: a long-exposure Ferris wheel,
+ * fireworks, varied lit foregrounds (stalls / waterfront / hillside / lantern
+ * carts / stage / crowd), bokeh depth, god-rays and an artful frame. Built as
+ * the flagship — the busiest, most saturated, most-varied piece in the set. */
+const CARNIVALE: ProjectDef = {
+  slug: 'carnivale',
+  displayName: 'Carnivale',
+  artistHandle: 'opus4-8',
+  outputs: 777,
+  colorway: '#E5267F',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lZaWFSeS6Y0uOoEzTGgCum7NY_OQwKzIY', label: 'Handel — Music for the Royal Fireworks' },
+  aspects: CARNIVALE_ASPECTS,
+  traitSchema: carnivaleSchema,
+  render: renderCarnivale,
+  traitsOf: carnivaleTraits,
+};
+
+/* ── HALO cohort (2026-06-20) — cyberpunk-terminal contenders. GRIDLOCK +
+ * ORACLE NAVE shipped under tracedeck-ai (closest circuit/cyberpunk twin),
+ * same artist for both. STRATAVOX (held, awaiting sign-off) + GLYPHSTORM (the
+ * halo, in composition rework — destined for glyphfield-ai) stay off the live
+ * list; their engines remain in lib/art/engines/ai/extra/halo/. */
 const HALO_C: ProjectDef = {
   slug: 'gridlock', displayName: 'GRIDLOCK', artistHandle: 'tracedeck-ai', outputs: 256,
   colorway: '#1bff8c', mintPriceEth: 0,
@@ -213,6 +253,77 @@ const HALO_D: ProjectDef = {
   colorway: '#2bff9a', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   aspects: HALOD_ASPECTS, traitSchema: haloDSchema, render: renderHaloD, traitsOf: haloDTraits,
+};
+
+/* ── Terminal Network — opus4-8 (2026-06-20) ──────────────────────────────
+ * The two runner-up directions from the Arcology jury, combined into one
+ * quietly two-in-one collection: each Output is a TERMINAL console or a NETWORK
+ * schematic, both on bright/saturated grounds (never black). The System trait
+ * says which. */
+const TERMINAL_NETWORK: ProjectDef = {
+  slug: 'terminal-network',
+  displayName: 'Terminal Network',
+  artistHandle: 'opus4-8',
+  outputs: 888,
+  colorway: '#1f44d0',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
+  aspects: TERMINAL_NETWORK_ASPECTS,
+  traitSchema: terminalNetworkSchema,
+  render: renderTerminalNetwork,
+  traitsOf: terminalNetworkTraits,
+};
+
+/* ── Leviathan — opus4-8. A teeming tropical reef / undersea SCENE: coral
+ * gardens, god-rays, schooling fish, hero creatures (whale / manta / turtle /
+ * jellyfish), bioluminescence. Ships as-is (Brendon 2026-06-20). */
+const LEVIATHAN: ProjectDef = {
+  slug: 'leviathan',
+  displayName: 'Leviathan',
+  artistHandle: 'opus4-8',
+  outputs: 512,
+  colorway: '#12C7B8',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lKktJtgCXM3uVSFKrGudMwXqWcFN9udPE', label: 'Hans Zimmer — Blue Planet II' },
+  aspects: LEVIATHAN_ASPECTS,
+  traitSchema: leviathanSchema,
+  render: renderLeviathan,
+  traitsOf: leviathanTraits,
+};
+
+/* ── Empyrean — opus4-8. A mythic fantasy WORLD to explore: citadel-city,
+ * harbour ships, caravans, watchtower beacon chains, ruins, wildlife, a rare
+ * "Wonder". Murk is the standard mood; a luminous bright cast is the semi-rare
+ * pull. Lore-style traits (Realm / Era / House / Beast …). */
+const EMPYREAN: ProjectDef = {
+  slug: 'empyrean',
+  displayName: 'Empyrean',
+  artistHandle: 'opus4-8',
+  outputs: 600,
+  colorway: '#3A1D7A',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
+  aspects: EMPYREAN_ASPECTS,
+  traitSchema: empyreanSchema,
+  render: renderEmpyrean,
+  traitsOf: empyreanTraits,
+};
+
+/* ── Metropolis — opus4-8. A generative megacity across the full day cycle: a
+ * 4-value Time axis (Dawn / Day / Dusk / Night). Night = neon cyberpunk; Dawn/
+ * Day/Dusk = luminous sky-lit glass city. Both looks in one project. */
+const METROPOLIS: ProjectDef = {
+  slug: 'metropolis',
+  displayName: 'Metropolis',
+  artistHandle: 'opus4-8',
+  outputs: 888,
+  colorway: '#1FD5FF',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_neLURwHRNsWnZouMq5K_vGitaXhlKEr4g', label: 'Vangelis — Blade Runner' },
+  aspects: METROPOLIS_ASPECTS,
+  traitSchema: metropolisSchema,
+  render: renderMetropolis,
+  traitsOf: metropolisTraits,
 };
 
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
@@ -352,7 +463,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, HALO_C, HALO_D];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, METROPOLIS];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
