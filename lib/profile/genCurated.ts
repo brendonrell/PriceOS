@@ -193,7 +193,7 @@ function byArtist(pool: CuratedCandidate[]): Recipe[] {
     const out: Recipe[] = [];
     for (const [artist, g] of groupBy(pool, (c) => c.artist)) {
         if (g.length < 5) continue;
-        out.push({ kind: 'artist', picks: shuffle(g).slice(0, MAX), caption: fill(randOf(ARTIST_NAMES) ?? 'All {x}', { x: clean(artist) }) });
+        out.push({ kind: 'artist', picks: shuffle(g).slice(0, MAX), caption: fill(randOf(ARTIST_NAMES) ?? 'All {x}', { x: artist }) });
     }
     return out;
 }
@@ -201,7 +201,7 @@ function byProject(pool: CuratedCandidate[]): Recipe[] {
     const out: Recipe[] = [];
     for (const [project, g] of groupBy(pool, (c) => c.project)) {
         if (g.length < 5) continue;
-        out.push({ kind: 'project', picks: shuffle(g).slice(0, MAX), caption: fill(randOf(PROJECT_NAMES) ?? 'All {x}', { x: clean(project) }) });
+        out.push({ kind: 'project', picks: shuffle(g).slice(0, MAX), caption: fill(randOf(PROJECT_NAMES) ?? 'All {x}', { x: project }) });
     }
     return out;
 }
@@ -211,7 +211,7 @@ function combo(pool: CuratedCandidate[], kind: string, keyOf: (c: CuratedCandida
     for (const [key, g] of groupBy(pool, keyOf)) {
         if (g.length < 3) continue;
         const [name, color] = key.split('|||');
-        out.push({ kind, picks: shuffle(g).slice(0, MAX), caption: fill(randOf(names) ?? '{x} in {c}', { x: clean(name), c: color }) });
+        out.push({ kind, picks: shuffle(g).slice(0, MAX), caption: fill(randOf(names) ?? '{x} in {c}', { x: name, c: color }) });
     }
     return out;
 }

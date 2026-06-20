@@ -9024,18 +9024,19 @@ body.colorway-dark .ghost-feed-bar {
     width: fit-content;
     text-decoration: none;
 }
-.pd-discord-join-arrow { font-size: 14px; }
+.pd-discord-join-arrow { font-size: 14px; position: relative; top: -2px; }
 
 /* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
 /* Same small, fully-visible card-meta type as the project name under each
    piece. Plainly readable (Brendon 2026-06-20). */
 .gencurated-caption {
+    grid-column: 1 / -1;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.5px;
     color: var(--text-color);
-    margin: 0 0 10px 2px;
+    margin: 0;
     user-select: none;
 }
 

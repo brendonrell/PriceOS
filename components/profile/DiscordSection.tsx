@@ -45,8 +45,7 @@ export default function DiscordSection({
     return (
         <div className="ach-section pd-discord">
             <div className="pd-discord-hero">
-                <span className="pd-discord-wordmark">Discord</span>
-                <span className="pd-discord-tag">The beating heart of Price Discussion.</span>
+                <span className="pd-discord-tag">#price-discussion</span>
             </div>
 
             <div className="pd-discord-card">

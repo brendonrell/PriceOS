@@ -1162,11 +1162,19 @@ function ProfilePageBodyInner({
     const hasCreated = artistProjects.length > 0;
 
     const effStyle = effectiveShowcaseStyle(user.showcase_style, isArtist, user.address);
-    const artistMode = onShowcase && isArtist && effStyle === 'artist';
-    const createdUnderMore = isArtist && effStyle !== 'artist' && hasCreated;
+    /* An artist with ≥1 project keeps the Created · Top 6 toggle on EVERY style
+       (Brendon 2026-06-20). 'artist' style lands on Created; Static / Generative
+       / Gen Curated land on Top 6 — the Created pill stays to its left either
+       way. So Created lives in the showcase toggle now, never under +More. */
+    const artistMode = onShowcase && isArtist && hasCreated;
+    const createdUnderMore = false;
 
-    /* Created vs Top 6 toggle inside the Artist-style showcase. */
+    /* Created vs Top 6 toggle. Default follows the style: Artist → Created,
+       the three Top-6 styles → Top 6. Re-defaults whenever the style changes. */
     const [showcaseView, setShowcaseView] = useState<ShowcaseView>('created');
+    useEffect(() => {
+        setShowcaseView(effStyle === 'artist' ? 'created' : 'regular');
+    }, [effStyle]);
     const artistShowcaseCreated = artistMode && showcaseView === 'created';
 
     /* The set of artist @handles this profile FOLLOWS — lets Gen Curated build
@@ -1196,8 +1204,11 @@ function ProfilePageBodyInner({
             slug: h.slug,
             id: h.token_id,
             color: resolveBucket(h.slug, h.token_id),
+            /* Artist trait is the @handle (an @name) — keep it. Project trait is
+               slug-based (@slug), so use the project's REAL display name instead;
+               never surface a slug (Brendon 2026-06-20). */
             artist: h.traits.Artist,
-            project: h.traits.Project,
+            project: getProject(h.slug)?.displayName ?? undefined,
             sun: h.traits.Sun,
             moon: h.traits.Moon,
             rising: h.traits.Rising,
@@ -1969,16 +1980,16 @@ function ProfilePageBodyInner({
                 order is preserved exactly regardless of which project each pick is
                 from (the provider is a context-only node, no DOM, so every card
                 still lands in the single #gallery grid). */}
-            {/* Gen Curated's faint synopsis — the buried gem. Deliberately low
-                contrast, in the small card-meta type; sits just above the set. */}
-            {onShowcase && effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
-                <div className="gencurated-caption">{genCurated.caption}</div>
-            )}
             <section
                 id="gallery"
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
+                {/* Gen Curated's set name — a full-row grid item so it lines up
+                    with the cards' left edge at every width. */}
+                {onShowcase && effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
+                    <div className="gencurated-caption">{genCurated.caption}</div>
+                )}
                 {onShowcase
                     ? (effStyle === 'gen-curated'
                         ? (genCurated && genCurated.picks.length > 0
