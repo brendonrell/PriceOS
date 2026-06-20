@@ -99,6 +99,11 @@ export function SpellBookSection({ onTripleTap }: Props) {
     const toggleSpellWithToast = (spell: typeof SPELLS[number]) => {
         const next = !notifs[spell.flag];
         toggle(spell.flag);
+        // Cartel gets its own flavour on (off stays the plain label).
+        if (spell.id === 'cartel') {
+            showToast(next ? '⟁ You + Your Mutuals = The Cabal ⟁' : 'Cartel: OFF');
+            return;
+        }
         showToast(`${spell.name}: ${next ? 'ON' : 'OFF'}`);
     };
 

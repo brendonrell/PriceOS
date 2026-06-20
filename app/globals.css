@@ -8903,6 +8903,24 @@ body.colorway-dark .ghost-feed-bar {
 @media (min-width: 601px) {
     .project-name-star { font-size: 0.96em; }
 }
+
+/* Cartel badge — ⟁ + the mutual count, beside the name like the star (and
+   right after it when starred). Same line-height:0 trick so it overflows
+   visually without growing the title row. (Brendon, 2026-06-20.) */
+.project-cartel {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    display: inline-block;
+    line-height: 0;
+    vertical-align: middle;
+    margin-left: 0.3em;
+    white-space: nowrap;
+}
+.project-cartel .pc-ico { font-size: 1.15em; }
+.project-cartel .pc-num { font-size: 0.82em; margin-left: 1px; }
+@media (min-width: 601px) {
+    .project-cartel .pc-ico { font-size: 0.95em; }
+}
 .project-name-star-float {
     position: absolute;
     right: 0;

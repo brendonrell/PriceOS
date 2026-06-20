@@ -12,6 +12,8 @@
 
 import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useCartelMutualCount } from '../../lib/social/cartel';
 import {
     isProjectStarred,
     toggleProjectStar,
@@ -20,6 +22,9 @@ import {
 
 export default function ProjectTitleStar({ slug, title }: { slug: string; title: string }) {
     const { showToast } = useToast();
+    const { notifs } = usePdNotifs();
+    const cartelOn = notifs.spell_cartel;
+    const cartelCount = useCartelMutualCount(slug);
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isProjectStarred(slug));
@@ -68,6 +73,15 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
         >
             <span>{title}</span>
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
+            {/* Cartel badge — when Cartel is on, ⟁ + the count of the user's
+                mutuals controlling this project, sitting right after the star
+                (or the name, if unstarred). */}
+            {cartelOn && (
+                <span className="project-cartel" aria-label={`${cartelCount} mutuals in the cartel`}>
+                    <span className="pc-ico">{'⟁︎'}</span>
+                    <span className="pc-num">{cartelCount}</span>
+                </span>
+            )}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </span>
     );
