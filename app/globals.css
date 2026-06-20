@@ -173,8 +173,14 @@ button {
    artwork shows through with frosted glass instead of a hard
    black bar. z-index 9999 sits above all surfaces; pointer-
    events:none so taps fall through to navbar controls below.
+
+   PWA-ONLY (Brendon 2026-06-19): in mobile Safari's compact mode this band
+   blurred/"sampled" the pills scrolling under the notch and its fade mask cut
+   the top off. Safari runs the page full-length under the status bar instead —
+   the synced theme-color tints the status bar. Installed app keeps the frosted
+   band.
    ============================================================ */
-body::before {
+body.is-pwa::before {
     content: '';
     position: fixed;
     top: 0;
@@ -8245,6 +8251,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    @name baseline (Brendon 2026-06-19). */
 .starred-list[aria-label="Wishlist"] .artist-social-ico,
 .starred-list[aria-label="Wishlist"] .follower-count { position: relative; top: -1px; }
+/* Mobile: the Wishlist follower count runs half a size smaller and sits 1px
+   lower than desktop (Brendon 2026-06-19). */
+@media (max-width: 600px) {
+    .starred-list[aria-label="Wishlist"] .follower-count { font-size: 13.5px; top: 0; }
+}
 /* Group section header — flush with the rows, muted ALLCAPS label (Brendon
    2026-06-19). Shown when a grouping is active in the Starred list. */
 .starred-group-header {
@@ -8529,7 +8540,7 @@ body.colorway-dark .ghost-feed-bar {
 .pill-tab-ico {
     font-family: 'Courier New', Courier, monospace;
     margin-right: 3px;
-    font-size: 1.05em;
+    font-size: 1.32em;
     display: inline-block;
 }
 
@@ -8626,6 +8637,11 @@ body.colorway-dark .ghost-feed-bar {
     line-height: 1;
     color: var(--accent);
     opacity: 0.95;
+}
+/* The ⨝ trait glyph runs one size smaller than the other tile glyphs in its
+   square (Brendon 2026-06-19). */
+.trait-row-tile-glyph {
+    font-size: 30px;
 }
 /* The ▶ play glyph reads larger than ★/⬚/✺ at the same size — trim it 25%
    (Brendon 2026-06-19). */
