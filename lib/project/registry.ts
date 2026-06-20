@@ -22,6 +22,7 @@ import { renderBoreal, borealTraits, borealSchema, BOREAL_ASPECTS } from '../art
 import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } from '../art/engines/reliquary';
 import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
 import { renderArcology, arcologyTraits, arcologySchema, ARCOLOGY_ASPECTS } from '../art/engines/arcology';
+import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } from '../art/engines/carnivale';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -191,11 +192,10 @@ const BULLETIN: ProjectDef = {
   traitsOf: bulletinTraits,
 };
 
-/* ── Arcology — opus4-8's HALO piece (2026-06-20) ─────────────────────────
- * The platform's flagship. An epic hazy cyberpunk megastructure seen through a
- * terminal/HUD overlay — the fusion that won a multi-round jury over four
- * standalone directions. Eight custom colorways (Deep Cyber is signature); a
- * rare on-chain-feel "Event" chase axis. Renders from the static registry. */
+/* ── Arcology — opus4-8 flagship attempt (2026-06-20, another session) ─────
+ * An epic hazy cyberpunk megastructure seen through a terminal/HUD overlay.
+ * Eight custom colorways (Deep Cyber is signature); a rare on-chain-feel
+ * "Event" chase axis. Renders from the static registry. */
 const ARCOLOGY: ProjectDef = {
   slug: 'arcology',
   displayName: 'Arcology',
@@ -208,6 +208,25 @@ const ARCOLOGY: ProjectDef = {
   traitSchema: arcologySchema,
   render: renderArcology,
   traitsOf: arcologyTraits,
+};
+
+/* ── Carnivale — opus4-8 halo project (this session, 2026-06-20) ───────────
+ * A teeming generative night-festival SCENE: a long-exposure Ferris wheel,
+ * fireworks, varied lit foregrounds (stalls / waterfront / hillside / lantern
+ * carts / stage / crowd), bokeh depth, god-rays and an artful frame. Built as
+ * the flagship — the busiest, most saturated, most-varied piece in the set. */
+const CARNIVALE: ProjectDef = {
+  slug: 'carnivale',
+  displayName: 'Carnivale',
+  artistHandle: 'opus4-8',
+  outputs: 777,
+  colorway: '#E5267F',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lZaWFSeS6Y0uOoEzTGgCum7NY_OQwKzIY', label: 'Handel — Music for the Royal Fireworks' },
+  aspects: CARNIVALE_ASPECTS,
+  traitSchema: carnivaleSchema,
+  render: renderCarnivale,
+  traitsOf: carnivaleTraits,
 };
 
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
@@ -347,7 +366,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
