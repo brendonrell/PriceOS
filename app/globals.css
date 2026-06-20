@@ -4079,6 +4079,11 @@ button,
     font-size: 1.15em;
     position: relative;
     top: 1px;
+    /* The glyph paints at its size but its line box is clamped to 0 so a larger
+       icon can't stretch the sort row taller; the flex row centres it. */
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
 }
 /* Recent glyph one size larger on mobile only (Brendon 2026-06-20). */
 @media (max-width: 600px) {
