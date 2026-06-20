@@ -8994,7 +8994,13 @@ body.colorway-dark .ghost-feed-bar {
     opacity: 0.55;
 }
 .pd-discord-member.is-in { color: #3BA55D; opacity: 1; }
-.pd-discord-cta,
+/* Not-connected state — the purple Discord buttons, stacked + left-aligned. */
+.pd-discord-cta-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
 .pd-discord-join {
     flex-shrink: 0;
     cursor: pointer;
@@ -9008,9 +9014,8 @@ body.colorway-dark .ghost-feed-bar {
     padding: 8px 14px;
     transition: opacity 0.15s;
 }
-.pd-discord-cta:hover,
 .pd-discord-join:hover { opacity: 0.85; }
-.pd-discord-cta.auth-gated { opacity: 0.4; cursor: not-allowed; }
+.pd-discord-join.auth-gated { opacity: 0.4; cursor: not-allowed; }
 .pd-discord-unlink {
     flex-shrink: 0;
     cursor: pointer;
