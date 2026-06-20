@@ -4,18 +4,20 @@
  * SpiteBookModal — "THE SPITE BOOK"
  *
  * A whimsical Spell Book feature: tapping the Spite Book pill opens a literal
- * two-page book on screen. You tap a page to inscribe a name; tap the small
- * mark beside a name to scratch it out. The list lives in spiteStore and
- * persists across sessions.
+ * two-page book on screen. You write a name on a page's ruled line to inscribe
+ * it; tap the small mark beside a name to scratch it out. The list lives in
+ * spiteStore and persists across sessions.
  *
  * Mobile-first: the book fills the viewport width with two pages flanking a
  * central spine, capped to a comfortable max on desktop. Self-contained
  * parchment aesthetic — independent of the active colorway, like StickersModal's
  * own surface.
  *
- * Rides ModalContext like every other modal: isOpen = openModal === 'spiteBook',
- * inheriting the shared scroll-lock + Escape-to-close. Mounted once in
- * PriceOSShell.
+ * Each page keeps an always-present writing line (the AddLine input). Tapping
+ * it — or anywhere on the page — focuses it directly inside the tap gesture, so
+ * iOS reliably raises the keyboard (a programmatic focus AFTER a re-render does
+ * not). Mounted once in PriceOSShell; rides ModalContext for scroll-lock +
+ * Escape-to-close.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -26,11 +28,58 @@ import {
     addSpiteName,
     removeSpiteName,
     subscribeSpite,
+    isSpited,
 } from '../lib/pins/spiteStore';
+import { validateSpiteHandle } from '../lib/pins/spiteValidate';
 
 const VS15 = '︎';
 
 type Side = 'left' | 'right';
+
+/* A page's writing line — its own draft state, always in the DOM so a tap
+   focuses it natively (iOS keyboard). Commits on Enter or blur. */
+function AddLine({
+    placeholder,
+    onAdd,
+    inputRef,
+}: {
+    placeholder: string;
+    onAdd: (name: string) => Promise<boolean>;
+    inputRef: React.RefObject<HTMLInputElement>;
+}) {
+    const [value, setValue] = useState('');
+    const submit = async () => {
+        const t = value.trim();
+        if (!t) return;
+        const ok = await onAdd(t);
+        if (ok) setValue(''); // keep the text on a rejection so they can fix it
+    };
+    return (
+        <div className="spite-line spite-line--add">
+            <input
+                ref={inputRef}
+                className="spite-input"
+                value={value}
+                placeholder={placeholder}
+                maxLength={40}
+                spellCheck={false}
+                autoCorrect="off"
+                onChange={(e) => setValue(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submit();
+                    } else if (e.key === 'Escape') {
+                        setValue('');
+                        e.currentTarget.blur();
+                    }
+                }}
+                onBlur={submit}
+            />
+        </div>
+    );
+}
 
 export default function SpiteBookModal() {
     const { openModal, close } = useModal();
@@ -38,9 +87,8 @@ export default function SpiteBookModal() {
     const isOpen = openModal?.name === 'spiteBook';
 
     const [names, setNames] = useState<readonly string[]>([]);
-    const [adding, setAdding] = useState<Side | null>(null);
-    const [draft, setDraft] = useState('');
-    const inputRef = useRef<HTMLInputElement>(null);
+    const leftInputRef = useRef<HTMLInputElement>(null);
+    const rightInputRef = useRef<HTMLInputElement>(null);
 
     // Subscribe to the spite list (hydrates from localStorage on first read).
     useEffect(() => {
@@ -48,30 +96,23 @@ export default function SpiteBookModal() {
         return subscribeSpite((next) => setNames(next.slice()));
     }, []);
 
-    // Reset the add field whenever the book closes.
-    useEffect(() => {
-        if (!isOpen) {
-            setAdding(null);
-            setDraft('');
+    const handleAdd = async (name: string): Promise<boolean> => {
+        if (isSpited(name)) {
+            showToast('Spite Book: ALREADY NAMED');
+            return true;
         }
-    }, [isOpen]);
-
-    // Focus the quill input as soon as a page opens it.
-    useEffect(() => {
-        if (adding) inputRef.current?.focus();
-    }, [adding]);
-
-    const beginAdd = (side: Side) => {
-        setAdding(side);
-        setDraft('');
-    };
-
-    const commit = () => {
-        const ok = addSpiteName(draft);
-        if (ok) showToast(`Spite Book: ADDED · ${getSpiteNames().length}`);
-        else if (draft.trim()) showToast('Spite Book: ALREADY NAMED');
-        setDraft('');
-        setAdding(null);
+        const valid = await validateSpiteHandle(name);
+        if (!valid) {
+            showToast('Spite Book: NOT FOUND');
+            return false;
+        }
+        const added = addSpiteName(name);
+        showToast(
+            added
+                ? `Spite Book: ADDED · ${getSpiteNames().length}`
+                : 'Spite Book: ALREADY NAMED'
+        );
+        return added;
     };
 
     const scratch = (name: string) => {
@@ -88,14 +129,15 @@ export default function SpiteBookModal() {
 
     const renderPage = (side: Side) => {
         const list = pages[side];
-        const empty = names.length === 0;
+        const inputRef = side === 'left' ? leftInputRef : rightInputRef;
+        const placeholder =
+            names.length === 0 && side === 'left'
+                ? 'inscribe a name…'
+                : `✛${VS15} add a name`;
         return (
             <div
                 className="spite-page"
-                onClick={(e) => {
-                    // Tapping blank page space opens the quill on this page.
-                    if (e.target === e.currentTarget) beginAdd(side);
-                }}
+                onClick={() => inputRef.current?.focus()}
             >
                 <div className="spite-page-lines">
                     {list.map((name) => (
@@ -121,53 +163,11 @@ export default function SpiteBookModal() {
                             </span>
                         </div>
                     ))}
-
-                    {adding === side ? (
-                        <div className="spite-line spite-line--add">
-                            <input
-                                ref={inputRef}
-                                className="spite-input"
-                                value={draft}
-                                placeholder="name a foe…"
-                                maxLength={40}
-                                spellCheck={false}
-                                autoCorrect="off"
-                                onChange={(e) => setDraft(e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        commit();
-                                    } else if (e.key === 'Escape') {
-                                        e.preventDefault();
-                                        setDraft('');
-                                        setAdding(null);
-                                    }
-                                }}
-                                onBlur={commit}
-                            />
-                        </div>
-                    ) : (
-                        <div
-                            className="spite-line spite-line--ghost"
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                beginAdd(side);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    beginAdd(side);
-                                }
-                            }}
-                        >
-                            {empty && side === 'left'
-                                ? 'tap to inscribe a name…'
-                                : `${'✛'}${VS15} add a name`}
-                        </div>
-                    )}
+                    <AddLine
+                        placeholder={placeholder}
+                        onAdd={handleAdd}
+                        inputRef={inputRef}
+                    />
                 </div>
             </div>
         );

@@ -16,6 +16,8 @@
  * clean because every entry point runs inside a `'use client'` boundary.
  */
 
+import { useSyncExternalStore } from 'react';
+
 const STORAGE_KEY = 'pd_spite_names';
 const MAX_LEN = 40; // a single name can't exceed this many chars
 
@@ -24,6 +26,31 @@ type Listener = (names: readonly string[]) => void;
 let names: string[] = [];
 let hydrated = false;
 const listeners = new Set<Listener>();
+
+/* Normalised form used for matching: lower-cased, trimmed, leading "@"
+   stripped. So a spite entry of "@matty" matches a rendered "@matty",
+   "matty", "MATTY", and vice-versa — the user can write it either way and
+   the site finds them. Kept as a live Set rebuilt on every mutation. */
+let matchSet: Set<string> = new Set();
+
+export function normalizeHandle(raw: string): string {
+    return (raw || '').trim().replace(/^@+/, '').toLowerCase();
+}
+
+function rebuildMatchSet(): void {
+    matchSet = new Set(names.map(normalizeHandle).filter(Boolean));
+}
+
+/**
+ * Is this handle/name on the spite list? Accepts the value with or without
+ * a leading "@" (and any casing). Empty/blank → false.
+ */
+export function isSpited(handle: string | null | undefined): boolean {
+    if (!handle) return false;
+    hydrate();
+    const n = normalizeHandle(handle);
+    return n.length > 0 && matchSet.has(n);
+}
 
 function hydrate(): void {
     if (hydrated) return;
@@ -42,9 +69,11 @@ function hydrate(): void {
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    rebuildMatchSet();
 }
 
 function persist(): void {
+    rebuildMatchSet();
     if (typeof window === 'undefined') return;
     try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(names));
@@ -53,9 +82,26 @@ function persist(): void {
     }
 }
 
+let version = 0;
+
 function emit(): void {
+    version += 1;
     const snapshot = names.slice();
     listeners.forEach((l) => l(snapshot));
+}
+
+/**
+ * React hook — returns a matcher `(handle) => boolean` that re-renders the
+ * caller whenever the spite list changes. Use anywhere a person's handle is
+ * rendered to gate the `.spited` dim + strikethrough treatment.
+ */
+export function useSpiteMatcher(): (handle: string | null | undefined) => boolean {
+    useSyncExternalStore(
+        subscribeSpite,
+        () => version,
+        () => 0
+    );
+    return isSpited;
 }
 
 /** Snapshot of the current spite list. Triggers hydrate on first call. */

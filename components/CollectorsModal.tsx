@@ -23,6 +23,7 @@
 
 import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { useSpiteMatcher } from '../lib/pins/spiteStore';
 
 const VS15 = '\uFE0E';
 
@@ -50,6 +51,7 @@ const COLLECTORS: CollectorRow[] = [
 
 export default function CollectorsModal() {
     const { openModal, close } = useModal();
+    const isSpited = useSpiteMatcher();
     const listRef = useRef<HTMLDivElement>(null);
 
     const isOpen = openModal?.name === 'collectors';
@@ -134,7 +136,7 @@ export default function CollectorsModal() {
                         {COLLECTORS.map((c) => (
                             <span
                                 key={c.handle}
-                                className="hover-link"
+                                className={`hover-link${isSpited(c.handle) ? ' spited' : ''}`}
                                 role="link"
                                 tabIndex={0}
                             >

@@ -21,14 +21,16 @@ import { isFinancial } from '../../lib/pings/tiers';
 import { tapeFeedItems } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
+    const isSpited = useSpiteMatcher();
     const boldClass = item.type === 'mint' ? ' bold' : '';
     return (
         <span className={`tape-item${boldClass}`}>
             {item.name && (
                 <>
-                    <b>{item.name}</b>
+                    <b className={isSpited(item.name) ? 'spited' : undefined}>{item.name}</b>
                     {item.sigil && (
                         <span
                             className="tape-sigil"
@@ -61,6 +63,7 @@ export function PingsBox() {
     const { notifs, setAccordion } = usePdNotifs();
     const { state: pingsState, markAllRead } = usePings();
     const { siweAddress } = useAuth();
+    const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
     // "Money" filter — isolate financial-signal pings from social noise.
     // Control removed from the header (Brendon 2026-06-14, to be re-homed
@@ -151,7 +154,7 @@ export function PingsBox() {
                     <div key={p.id} className={`notif-item${p.read ? ' read' : ''}`}>
                         <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
                         <span>
-                            {p.handle && <strong>{p.handle}</strong>}
+                            {p.handle && <strong className={isSpited(p.handle) ? 'spited' : undefined}>{p.handle}</strong>}
                             {p.handle ? ' ' : ''}
                             {p.action}
                         </span>

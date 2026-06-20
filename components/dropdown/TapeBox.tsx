@@ -24,14 +24,16 @@ import { tapeBodyIcon } from '../../lib/data/tapeEvents';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
+    const isSpited = useSpiteMatcher();
     const boldClass = item.type === 'mint' ? ' bold' : '';
     return (
         <span className={`tape-item${boldClass}`}>
             {item.name && (
                 <>
-                    <b>{item.name}</b>
+                    <b className={isSpited(item.name) ? 'spited' : undefined}>{item.name}</b>
                     {item.sigil && (
                         <span
                             className="tape-sigil"
@@ -61,6 +63,7 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 }
 
 function BodyItem({ item }: { item: TapeFeedItem }) {
+    const isSpited = useSpiteMatcher();
     return (
         <div className="notif-item">
             <span className="n-icon">
@@ -71,7 +74,7 @@ function BodyItem({ item }: { item: TapeFeedItem }) {
             <span>
                 {item.name && (
                     <>
-                        <b>{item.name}</b>
+                        <b className={isSpited(item.name) ? 'spited' : undefined}>{item.name}</b>
                         {item.sigil && (
                             <span
                                 className="tape-sigil"
