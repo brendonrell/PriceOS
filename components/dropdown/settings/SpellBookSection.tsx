@@ -104,6 +104,11 @@ export function SpellBookSection({ onTripleTap }: Props) {
             showToast(next ? '⟁ You + Your Mutuals = The Cabal ⟁' : 'Cartel: OFF');
             return;
         }
+        // Celestial Tracker — flavour on, plain off.
+        if (spell.id === 'celestial') {
+            showToast(next ? '☽ Reading the Birth Skies ☽' : 'Celestial Tracker: OFF');
+            return;
+        }
         showToast(`${spell.name}: ${next ? 'ON' : 'OFF'}`);
     };
 

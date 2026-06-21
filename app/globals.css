@@ -8921,6 +8921,39 @@ body.colorway-dark .ghost-feed-bar {
 @media (min-width: 601px) {
     .project-cartel .pc-ico { font-size: 0.95em; }
 }
+
+/* Celestial Tracker — the mint moon. On the artwork card it sits in the art's
+   top-left corner; beside the Output name it pairs the moon glyph with the
+   phase. Glyph brightness (opacity) is set inline from mint illumination. */
+.celestial-moon {
+    position: absolute;
+    top: 6px;
+    left: 7px;
+    z-index: 3;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+}
+.output-celestial {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 0;
+    margin-left: 0.4em;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    white-space: nowrap;
+}
+.output-celestial .oc-moon { font-size: 1.05em; }
+.output-celestial .oc-phase {
+    font-size: 0.5em;
+    letter-spacing: 0.04em;
+    margin-left: 0.4em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
 .project-name-star-float {
     position: absolute;
     right: 0;

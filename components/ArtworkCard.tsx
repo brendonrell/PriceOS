@@ -83,6 +83,7 @@ import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
+import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
@@ -250,6 +251,10 @@ function ArtworkCard({
         return subscribeStarred((next) => setStarredKeys(next));
     }, []);
     const starred = starredKeys.has(`${slug}:${id}`);
+
+    /* Celestial Tracker — the moon the piece was minted under, shown in the
+       art's corner when the spell is on. Brightness = mint illumination. */
+    const celMark = useCelestialMark(slug, id, notifs.spell_celestial);
 
     /* Wishlist — "want to buy". Same Project-exact, account-backed store as
        stars; the heart on the card adds/removes. */
@@ -685,6 +690,16 @@ function ArtworkCard({
                         className="output-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
                     />
+                    {celMark && (
+                        <span
+                            className="celestial-moon"
+                            style={{ opacity: celestialOpacity(celMark.illum) }}
+                            title={`Minted under a ${celMark.phase}`}
+                            aria-hidden="true"
+                        >
+                            {celMark.glyph}
+                        </span>
+                    )}
                     {/* Brendon list item 8 — Degen Mode overlay.
                         Sim 9342-9351 + 1015-1031. When body.degen-mode is
                         active, sim hides the canvas (CSS opacity 0) and
