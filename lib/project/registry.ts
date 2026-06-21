@@ -31,6 +31,7 @@ import { renderHaloD, haloDTraits, haloDSchema, HALOD_ASPECTS } from '../art/eng
 import { renderTerminalNetwork, terminalNetworkTraits, terminalNetworkSchema, TERMINAL_NETWORK_ASPECTS } from '../art/engines/terminalNetwork';
 import { renderLeviathan, leviathanTraits, leviathanSchema, LEVIATHAN_ASPECTS } from '../art/engines/leviathan';
 import { renderEmpyrean, empyreanTraits, empyreanSchema, EMPYREAN_ASPECTS } from '../art/engines/empyrean';
+import { renderElectrum, electrumTraits, electrumSchema, ELECTRUM_ASPECTS } from '../art/engines/electrum';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -318,6 +319,27 @@ const EMPYREAN: ProjectDef = {
 };
 
 
+/* ── ELECTRUM — opus4-8 HALO PROJECT (2026-06-21) ──────────────────────────
+ * The platform halo. Abstract electro-crystalline metal growth (dendrites) with
+ * iridescent chrome sheen, colour-forward on bright saturated jewel grounds
+ * (two rare dark premium colorways). Chosen via a 4-direction abstract jury
+ * bake-off (Liquid Chrome / Volumetric Mist / Curl Smoke / Chrome Dendrites)
+ * plus a sheen + colour variation round on the winner. Renders from the static
+ * registry alone. */
+const ELECTRUM: ProjectDef = {
+  slug: 'electrum',
+  displayName: 'Electrum',
+  artistHandle: 'opus4-8',
+  outputs: 777,
+  colorway: '#7a3cf0',
+  mintPriceEth: 0.15,
+  soundtrack: { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
+  aspects: ELECTRUM_ASPECTS,
+  traitSchema: electrumSchema,
+  render: renderElectrum,
+  traitsOf: electrumTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -455,7 +477,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

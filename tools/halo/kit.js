@@ -65,6 +65,23 @@
   /* Scanline / CRT terminal texture. */
   function scanlines(x,W,H,gap,a){x.save();x.globalCompositeOperation='multiply';x.fillStyle='rgba(0,0,0,'+a+')';for(let y=0;y<H;y+=gap){x.fillRect(0,y,W,1);}x.restore();}
 
+  /* ── SHEEN toolkit (halo R&D, abstract/futuristic) ───────────────────────── */
+  /* Thin-film / soap-film / oil-slick iridescence. phase in turns (0..1+);
+     returns a saturated spectral hex with the characteristic teal→magenta→gold
+     band ordering. `tint` (0..1) leans the band toward a base hue for colorways. */
+  function iridescent(phase, sat, light){
+    const h = ((phase * 360) % 360 + 360) % 360;
+    return hsl2hex(h, sat == null ? 0.85 : sat, light == null ? 0.6 : light);
+  }
+  /* Specular sheen highlight: a tight bright lobe at (cx,cy). */
+  function sheen(x,cx,cy,rad,col,a0){x.save();x.globalCompositeOperation='lighter';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,rgba(col,a0));g.addColorStop(0.4,rgba(col,a0*0.35));g.addColorStop(1,rgba(col,0));x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
+  /* Curl of a 2D value-noise field → divergence-free flow (smoke/fluid look). */
+  function curl(noise,x,y,eps){eps=eps||1;const n1=noise.fbm((x)/100,(y+eps)/100,4),n2=noise.fbm((x)/100,(y-eps)/100,4);const n3=noise.fbm((x+eps)/100,(y)/100,4),n4=noise.fbm((x-eps)/100,(y)/100,4);return [(n1-n2)/(2*eps),-(n3-n4)/(2*eps)];}
+  /* Soft drop bloom under a form to fake depth/AO. */
+  function softShadow(x,cx,cy,rad,a){x.save();x.globalCompositeOperation='multiply';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
+  /* Linear metallic ramp across an angle — chrome gradient from a base hue. */
+  function chromeRamp(x,x0,y0,w,h,ang,base){const cx=x0+w/2,cy=y0+h/2,L=Math.max(w,h);const dx=Math.cos(ang)*L,dy=Math.sin(ang)*L;const g=x.createLinearGradient(cx-dx/2,cy-dy/2,cx+dx/2,cy+dy/2);g.addColorStop(0,mix(base,'#05060a',0.55));g.addColorStop(0.32,mix(base,'#ffffff',0.55));g.addColorStop(0.46,mix(base,'#06070c',0.35));g.addColorStop(0.6,mix(base,'#ffffff',0.85));g.addColorStop(0.78,mix(base,'#04050a',0.6));g.addColorStop(1,mix(base,'#ffffff',0.4));return g;}
+
   /* Chromatic-aberration split of whatever is already drawn, by px offset. */
   function chromaSplit(x,W,H,off){
     try{
@@ -79,5 +96,5 @@
     }catch(e){}
   }
 
-  window.KIT={mulberry32,rng,pick,rint,shuffle,randn,clamp,h2r,r2h,mix,lum,rgba,hsl2hex,grain,vignette,mottle,makeNoise,bloom,hazeSheet,scanlines,chromaSplit,PHI:1.61803398875,INVPHI:0.61803398875};
+  window.KIT={mulberry32,rng,pick,rint,shuffle,randn,clamp,h2r,r2h,mix,lum,rgba,hsl2hex,grain,vignette,mottle,makeNoise,bloom,hazeSheet,scanlines,chromaSplit,iridescent,sheen,curl,softShadow,chromeRamp,PHI:1.61803398875,INVPHI:0.61803398875};
 })();
