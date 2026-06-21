@@ -111,35 +111,43 @@ window.ENGINE = (function () {
       x.fillRect(cx - rad * 1.6, yy, rad * 3.2, rad * 2 / bands + 1);
     }
 
-    // ── RIDGED / BEADED SKIN: concentric ridge highlights + bead bumps so the
-    //    body surface is never a flat smooth shade. Always on for mid/large. ──
-    if (ridge !== false && rad > 18) {
-      x.globalCompositeOperation = 'soft-light';
-      const rings = K.rint(r, 3, 5);
+    // ── ENCRUSTED SKIN: deep beveled grooves + raised 3D beads so the body
+    //    surface is visibly textured metal, never a clean polished ball. ──
+    if (ridge !== false && rad > 16) {
+      // grooved concentric ridges — each groove is a dark line shadowed by a
+      // bright lip just inside it, reading as a carved bevel.
+      const rings = K.rint(r, 4, 7);
       for (let i = 0; i < rings; i++) {
-        const rr = rad * (0.30 + i / rings * 0.62);
-        x.lineWidth = Math.max(1, rad * 0.05);
-        x.strokeStyle = K.rgba('#ffffff', 0.20);
-        x.beginPath();
-        for (let s = 0; s <= 40; s++) {
-          const a = s / 40 * Math.PI * 2;
-          const wr = rr * (1 + 0.10 * noise.noise2(Math.cos(a) * 2.2 + ph + i, Math.sin(a) * 2.2 + i));
-          const px = cx + Math.cos(a) * wr, py = cy + Math.sin(a) * wr;
-          if (s === 0) x.moveTo(px, py); else x.lineTo(px, py);
-        }
-        x.stroke();
-        x.strokeStyle = K.rgba('#000000', 0.16); x.lineWidth = Math.max(1, rad * 0.03);
-        x.stroke();
+        const rr = rad * (0.22 + i / rings * 0.72);
+        const drawRing = (off, col, a0, lw) => {
+          x.globalCompositeOperation = 'soft-light';
+          x.strokeStyle = K.rgba(col, a0); x.lineWidth = Math.max(1, rad * lw);
+          x.beginPath();
+          for (let s = 0; s <= 44; s++) {
+            const a = s / 44 * Math.PI * 2;
+            const wr = rr * (1 + 0.12 * noise.noise2(Math.cos(a) * 2.4 + ph + i, Math.sin(a) * 2.4 + i)) + off;
+            const px = cx + Math.cos(a) * wr, py = cy + Math.sin(a) * wr;
+            if (s === 0) x.moveTo(px, py); else x.lineTo(px, py);
+          }
+          x.stroke();
+        };
+        drawRing(rad * 0.025, '#ffffff', 0.30, 0.045); // bright lip (upper)
+        drawRing(0, '#000000', 0.34, 0.05);            // dark groove
       }
-      // scattered bead bumps (tiny specular dots)
-      x.globalCompositeOperation = 'lighter';
-      const beads = Math.floor(rad * 0.5);
+      // sparse raised beads near the rim only (kept subtle so they don't read as
+      // water droplets); the spike carpet does the heavy texturing.
+      const lx = Math.cos(light), ly = Math.sin(light);
+      const beads = Math.floor(rad * 0.3);
       for (let i = 0; i < beads; i++) {
-        const a = r() * Math.PI * 2, dd = Math.sqrt(r()) * rad * 0.92;
+        const a = r() * Math.PI * 2, dd = (0.55 + r() * 0.35) * rad;
         const bx = cx + Math.cos(a) * dd, by = cy + Math.sin(a) * dd;
-        const br = rad * (0.02 + r() * 0.035);
-        x.fillStyle = K.rgba(P.spec, 0.18 + r() * 0.2);
-        x.beginPath(); x.arc(bx, by, br, 0, 6.283); x.fill();
+        const br = rad * (0.02 + r() * 0.03);
+        x.globalCompositeOperation = 'multiply';
+        x.fillStyle = K.rgba('#000', 0.20);
+        x.beginPath(); x.arc(bx - lx * br * 0.4, by - ly * br * 0.4, br, 0, 6.283); x.fill();
+        x.globalCompositeOperation = 'lighter';
+        x.fillStyle = K.rgba(P.spec, 0.32 + r() * 0.2);
+        x.beginPath(); x.arc(bx + lx * br * 0.4, by + ly * br * 0.4, br * 0.5, 0, 6.283); x.fill();
       }
     }
 
@@ -270,6 +278,18 @@ window.ENGINE = (function () {
       const bw = rad * (0.04 + r() * 0.035);
       const bx = cx + Math.cos(a) * rad * 0.95, by = cy + Math.sin(a) * rad * 0.92;
       spike(x, P, bx, by, len, bw, a, light, iridStr, r, seedPhase, noise, false);
+    }
+    // STUBBLE CARPET: short stubby cones planted across the upper body surface so
+    // the skin itself reads spiky/encrusted, not a smooth dome. Lit hemisphere
+    // only (front-facing), pointing outward from the body normal.
+    const nStub = Math.round(rad * 0.5 * spikeAmt);
+    for (let i = 0; i < nStub; i++) {
+      const a = (r() - 0.5) * Math.PI * 1.4 - Math.PI / 2; // upper/front arc
+      const dd = (0.4 + r() * 0.5) * rad;
+      const bx = cx + Math.cos(a) * dd, by = cy + Math.sin(a) * dd;
+      const len = rad * (0.10 + r() * 0.16);
+      const bw = rad * (0.03 + r() * 0.03);
+      spike(x, P, bx, by, len, bw, a + (r() - 0.5) * 0.4, light, iridStr, r, seedPhase, noise, false);
     }
     // gentle central specular so the crown still reads metal (kept small so the
     // body never flattens into a bright flat disc/button)
