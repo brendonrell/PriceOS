@@ -33,14 +33,6 @@ import { renderLeviathan, leviathanTraits, leviathanSchema, LEVIATHAN_ASPECTS } 
 import { renderEmpyrean, empyreanTraits, empyreanSchema, EMPYREAN_ASPECTS } from '../art/engines/empyrean';
 import { renderElectrum, electrumTraits, electrumSchema, ELECTRUM_ASPECTS } from '../art/engines/electrum';
 import { renderQuicksilver, quicksilverTraits, quicksilverSchema, QUICKSILVER_ASPECTS } from '../art/engines/quicksilver';
-/* ── HALO sibling cohort (2026-06-21): four abstract bright-cyberpunk projects,
-   each with its OWN bespoke palette world, assigned to four single-project AI
-   artists with kindred work. Built via a 4-direction jury + evolution + per-
-   project palette pass. ── */
-import { renderLustre, lustreTraits, lustreSchema, LUSTRE_ASPECTS } from '../art/engines/lustre';
-import { renderBloomwater, bloomwaterTraits, bloomwaterSchema, BLOOMWATER_ASPECTS } from '../art/engines/bloomwater';
-import { renderVoltaic, voltaicTraits, voltaicSchema, VOLTAIC_ASPECTS } from '../art/engines/voltaic';
-import { renderFacet, facetTraits, facetSchema, FACET_ASPECTS } from '../art/engines/facet';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -368,67 +360,6 @@ const QUICKSILVER: ProjectDef = {
   traitsOf: quicksilverTraits,
 };
 
-/* ── HALO sibling cohort (2026-06-21) — four abstract bright-cyberpunk projects,
- * each a distinct material world with its own bespoke palette, given to a kindred
- * single-project artist. Lustre = warm iridescent foil (firstchannel-ai, oil-slick
- * lineage). Bloomwater = deep-jewel marbled ink (overprint-ai). Voltaic = high-
- * voltage plasma (filament-ai). Facet = pastel-prism cut glass (lapidary-ai). */
-const LUSTRE: ProjectDef = {
-  slug: 'lustre',
-  displayName: 'Lustre',
-  artistHandle: 'firstchannel-ai',
-  outputs: 333,
-  colorway: '#F2B01E',
-  mintPriceEth: 0.14,
-  soundtrack: { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
-  aspects: LUSTRE_ASPECTS,
-  traitSchema: lustreSchema,
-  render: renderLustre,
-  traitsOf: lustreTraits,
-};
-
-const BLOOMWATER: ProjectDef = {
-  slug: 'bloomwater',
-  displayName: 'Bloomwater',
-  artistHandle: 'overprint-ai',
-  outputs: 256,
-  colorway: '#1A2E8C',
-  mintPriceEth: 0.1,
-  soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
-  aspects: BLOOMWATER_ASPECTS,
-  traitSchema: bloomwaterSchema,
-  render: renderBloomwater,
-  traitsOf: bloomwaterTraits,
-};
-
-const VOLTAIC: ProjectDef = {
-  slug: 'voltaic',
-  displayName: 'Voltaic',
-  artistHandle: 'filament-ai',
-  outputs: 444,
-  colorway: '#A3FF12',
-  mintPriceEth: 0.12,
-  soundtrack: { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
-  aspects: VOLTAIC_ASPECTS,
-  traitSchema: voltaicSchema,
-  render: renderVoltaic,
-  traitsOf: voltaicTraits,
-};
-
-const FACET: ProjectDef = {
-  slug: 'facet',
-  displayName: 'Facet',
-  artistHandle: 'lapidary-ai',
-  outputs: 288,
-  colorway: '#C9B6FF',
-  mintPriceEth: 0.16,
-  soundtrack: { playlistId: 'OLAK5uy_kS0xK-8stFnvAtN5wIIAidUD2MAXSOxAI', label: 'Sigur Rós — Ágætis byrjun' },
-  aspects: FACET_ASPECTS,
-  traitSchema: facetSchema,
-  render: renderFacet,
-  traitsOf: facetTraits,
-};
-
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -566,7 +497,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

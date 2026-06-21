@@ -21,7 +21,3 @@ artsheet.js
 captest.js
 .halo/
 tools/halo/out/
-
-# halo R&D render artifacts (never commit images)
-tools/halo/**/out/
-tools/halo/king/out/
