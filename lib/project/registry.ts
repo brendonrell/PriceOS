@@ -32,6 +32,7 @@ import { renderTerminalNetwork, terminalNetworkTraits, terminalNetworkSchema, TE
 import { renderLeviathan, leviathanTraits, leviathanSchema, LEVIATHAN_ASPECTS } from '../art/engines/leviathan';
 import { renderEmpyrean, empyreanTraits, empyreanSchema, EMPYREAN_ASPECTS } from '../art/engines/empyrean';
 import { renderElectrum, electrumTraits, electrumSchema, ELECTRUM_ASPECTS } from '../art/engines/electrum';
+import { renderQuicksilver, quicksilverTraits, quicksilverSchema, QUICKSILVER_ASPECTS } from '../art/engines/quicksilver';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -340,6 +341,25 @@ const ELECTRUM: ProjectDef = {
   traitsOf: electrumTraits,
 };
 
+/* ── QUICKSILVER — opus4-8 (2026-06-21) ────────────────────────────────────
+ * Sister to the Electrum halo. Abstract liquid-chrome / ferrofluid: dense
+ * encrusted spike-urchin masses (the lead look) on saturated jewel grounds,
+ * heavy iridescent + specular sheen. Distinct hot-pink signature so it doesn't
+ * read as Electrum. Medium + fine-thread variants fold in next. Fresh upload. */
+const QUICKSILVER: ProjectDef = {
+  slug: 'quicksilver',
+  displayName: 'Quicksilver',
+  artistHandle: 'opus4-8',
+  outputs: 512,
+  colorway: '#ff7ae0',
+  mintPriceEth: 0.12,
+  soundtrack: { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
+  aspects: QUICKSILVER_ASPECTS,
+  traitSchema: quicksilverSchema,
+  render: renderQuicksilver,
+  traitsOf: quicksilverTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -477,7 +497,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
