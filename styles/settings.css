@@ -306,11 +306,13 @@
 }
 .settings-toggle .st-icon {
     font-family: 'Courier New', Courier, monospace;
-    /* line-height 0 collapses the glyph's line box so a tall Unicode glyph
-       (cards, hexagrams, etc.) can never grow the pill / row height — the
-       glyph overflows its own box visually but the pill stays a fixed 24px,
-       keeping every row level. Same trick as the title star. (Brendon, 2026-06-21) */
+    /* The icon contributes ZERO height: a 0-height, 0-line-height box that the
+       glyph overflows visually (centered on the pill) without ever growing the
+       pill or its row — so a tall Unicode glyph (cards, hexagrams) can't tilt a
+       pill below its neighbour. Same trick as the title star. (Brendon, 2026-06-21) */
+    height: 0;
     line-height: 0;
+    overflow: visible;
     display: inline-flex;
     align-items: center;
 }

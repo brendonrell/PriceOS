@@ -47,7 +47,7 @@ export const SPELLS: SpellEntry[] = [
     /* NPC — icon-less by design (Brendon, 2026-06-20): no glyph, just the
        label. Our "icon-less" pill. */
     { id: 'npc',         flag: 'spell_npc',         name: 'NPC' },
-    { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '▮▮▮\uFE0E' },
+    { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '▯▯▯\uFE0E' },
     { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: 'ᗝ\uFE0E' },
     /* Solar Flare (id 'cme') retired 2026-06-14 — its inactive Spell Book slot
        was reassigned to The Watch (a hardcoded pill in SpellBookSection, like
