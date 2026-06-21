@@ -91,10 +91,10 @@ window.ENGINE = (function () {
     x.clip();
     // cross-section chrome ramp perpendicular to the axis
     const g = x.createLinearGradient(bx + px * baseW, by + py * baseW, bx - px * baseW, by - py * baseW);
-    g.addColorStop(0.0, K.mix(P.metal, '#05060a', 0.62));
+    g.addColorStop(0.0, K.mix(P.metal, '#04050a', 0.74));
     g.addColorStop(0.42, K.mix(P.metal, '#ffffff', 0.96));
-    g.addColorStop(0.60, K.mix(P.metal, '#06070c', 0.40));
-    g.addColorStop(1.0, K.mix(P.metal, '#ffffff', 0.38));
+    g.addColorStop(0.60, K.mix(P.metal, '#05060c', 0.55));
+    g.addColorStop(1.0, K.mix(P.metal, '#ffffff', 0.34));
     const bb = baseW * 2 + len;
     x.fillStyle = g;
     x.fillRect(Math.min(bx, tx, mx) - bb, Math.min(by, ty, my) - bb, bb * 2, bb * 2);
@@ -112,12 +112,15 @@ window.ENGINE = (function () {
     x.restore();
     // specular streak up one flank, stops short of the tip (sharp dark point)
     x.save(); x.globalCompositeOperation = 'lighter';
-    x.strokeStyle = K.rgba(P.spec, 0.42); x.lineWidth = Math.max(0.6, baseW * 0.18); x.lineCap = 'round';
+    x.strokeStyle = K.rgba(P.spec, 0.5); x.lineWidth = Math.max(0.7, baseW * 0.22); x.lineCap = 'round';
     x.beginPath();
     x.moveTo(bx + px * baseW * 0.4, by + py * baseW * 0.4);
     x.quadraticCurveTo(mx + px * baseW * 0.1, my + py * baseW * 0.1,
-      bx + ux * len * 0.8 + px * bend * 0.8, by + uy * len * 0.8 + py * bend * 0.8);
+      bx + ux * len * 0.82 + px * bend * 0.82, by + uy * len * 0.82 + py * bend * 0.82);
     x.stroke();
+    // bright gleam near the tip so quills read as polished metal, not flecks
+    const gx = bx + ux * len * 0.7 + px * bend * 0.7, gy = by + uy * len * 0.7 + py * bend * 0.7;
+    K.sheen(x, gx, gy, Math.max(2, baseW * 1.3), P.spec, 0.55);
     x.restore();
   }
 
@@ -352,23 +355,24 @@ window.ENGINE = (function () {
       }
     } else { // Reef
       // A coral-like reef: many small clusters ("polyps") of short spikes + beads
-      // growing across the lower/anchor region and thinning upward, like a dense
-      // ferrofluid colony. Each polyp is tiny; the picture is the colony.
-      const clusters = Math.floor((90 + r() * 60) * dm);
+      // growing across the frame, like a dense ferrofluid colony. Each polyp is
+      // tiny; the picture is the colony. Spread wide so the field stays packed
+      // edge to edge — no empty ground.
+      const clusters = Math.floor((220 + r() * 120) * dm);
       const polyps = [];
       for (let i = 0; i < clusters; i++) {
-        // bias toward anchor, with vertical gravity so the reef "grows" up
+        // most cover the whole frame; a portion bias toward the anchor to swell it
         let px, py;
-        if (r() < 0.7) { const a = r() * Math.PI * 2, rad = Math.pow(r(), 0.6) * minD * 0.75; px = ax + Math.cos(a) * rad; py = ay + Math.sin(a) * rad * 1.05; }
+        if (r() < 0.45) { const a = r() * Math.PI * 2, rad = Math.pow(r(), 0.6) * minD * 0.8; px = ax + Math.cos(a) * rad; py = ay + Math.sin(a) * rad * 1.05; }
         else { px = r() * W; py = r() * H; }
         if (!inB(px, py, 20)) continue;
         polyps.push({ px, py });
       }
       polyps.sort((a, b) => a.py - b.py);
       for (const pl of polyps) {
-        const grow = -Math.PI / 2 + (r() - 0.5) * 0.6;   // mostly upward growth
-        const spikes = 4 + Math.floor(r() * 7);
-        const base = minD * (0.02 + r() * 0.03);
+        const grow = -Math.PI / 2 + (r() - 0.5) * 0.8;   // mostly upward growth
+        const spikes = 5 + Math.floor(r() * 8);
+        const base = minD * (0.022 + r() * 0.032);
         for (let s = 0; s < spikes; s++) {
           const ang = grow + (s / spikes - 0.5) * (0.7 + r() * 0.6);
           const len = base * (0.7 + r() * 0.9);

@@ -80,7 +80,11 @@ window.ENGINE = (function () {
     x.save();
     blobPath(x, cx, cy, rad, wob, noise, ph); x.clip();
 
-    const g = x.createLinearGradient(cx, cy - rad, cx, cy + rad);
+    // per-body tilt so the bright reflected horizon isn't a flat horizontal
+    // stripe on every form (kills the "stamped button" repetition at small scale)
+    const tilt = Math.sin(ph * 1.7) * 0.5;
+    const gdx = Math.sin(tilt) * rad, gdy = Math.cos(tilt) * rad;
+    const g = x.createLinearGradient(cx - gdx, cy - gdy, cx + gdx, cy + gdy);
     g.addColorStop(0.00, K.mix(P.metal, '#05060a', 0.70));
     g.addColorStop(0.16, K.mix(P.metal, '#ffffff', 0.32));
     g.addColorStop(0.38, K.mix(P.metal, '#04050a', 0.42));
@@ -225,41 +229,52 @@ window.ENGINE = (function () {
     const spikeAmt = opts.spikeAmt == null ? 1 : opts.spikeAmt;
     const wob = opts.wob == null ? 0.24 : opts.wob;
     const upBias = opts.upBias == null ? 1 : opts.upBias; // how much spikes favour "up"
-    // back layer of spikes (behind body) — gives the crown depth
-    const nBack = Math.round(K.rint(r, 9, 14) * spikeAmt);
+    // FULL 360° crown: spikes radiate all the way around so the body never shows a
+    // smooth bare dome. Each spike points OUTWARD along its own radial; up-facing
+    // ones are longest (field pull) but the underside still bristles.
+    const nBack = Math.round(K.rint(r, 16, 22) * spikeAmt);
     const backSpikes = [];
     for (let i = 0; i < nBack; i++) {
-      const a = -Math.PI / 2 + (r() - 0.5) * Math.PI * 1.9;
-      const up = (-Math.sin(a) + 1) / 2;
-      const len = rad * (0.7 + up * upBias * 1.5 + Math.abs(K.randn(r)) * 0.5);
-      const bw = rad * (0.10 + r() * 0.06) * (0.6 + up * 0.6);
-      const bx = cx + Math.cos(a) * rad * 0.8, by = cy + Math.sin(a) * rad * 0.7;
+      const a = (i / nBack) * Math.PI * 2 + (r() - 0.5) * (Math.PI / nBack) * 1.4;
+      const up = (-Math.sin(a) + 1) / 2; // 1 at top, 0 at bottom
+      // chunky Rosensweig cones, length swelling upward, never zero on the underside
+      const len = rad * (0.75 + up * upBias * 1.15 + Math.abs(K.randn(r)) * 0.45);
+      const bw = rad * (0.13 + r() * 0.08) * (0.75 + up * 0.4);
+      const bx = cx + Math.cos(a) * rad * 0.82, by = cy + Math.sin(a) * rad * 0.78;
       backSpikes.push({ a, len, bw, bx, by, up });
     }
-    backSpikes.sort((s1, s2) => s1.up - s2.up); // shortest/down first
-    // draw the down/back ones behind the body
-    for (const s of backSpikes) if (s.up < 0.5) spike(x, P, s.bx, s.by, s.len, s.bw, s.a, light, iridStr, r, seedPhase, noise, true);
+    // draw bottom/back spikes (sin a > ~0, i.e. lower half) BEHIND the body first
+    for (const s of backSpikes) if (Math.sin(s.a) > 0.15) spike(x, P, s.bx, s.by, s.len, s.bw, s.a, light, iridStr, r, seedPhase, noise, true);
 
     // the core body (ridged + beaded)
     chromeBlob(x, P, cx, cy, rad, light, iridStr, finish, r, seedPhase, noise, wob, true);
 
-    // front/up spikes over the body — the visible crown
-    backSpikes.sort((s1, s2) => s1.by - s2.by);
-    for (const s of backSpikes) if (s.up >= 0.5) spike(x, P, s.bx, s.by, s.len, s.bw, s.a, light, iridStr, r, seedPhase, noise, false);
+    // remaining spikes (sides + top) OVER the body, painter-sorted by base-y
+    const front = backSpikes.filter((s) => Math.sin(s.a) <= 0.15).sort((s1, s2) => s1.by - s2.by);
+    for (const s of front) {
+      spike(x, P, s.bx, s.by, s.len, s.bw, s.a, light, iridStr, r, seedPhase, noise, false);
+      // ferrofluid clumping: a shorter sibling cone leaning off the main one
+      if (r() < 0.4) {
+        const da = (r() - 0.5) * 0.6;
+        spike(x, P, s.bx + Math.cos(s.a) * s.len * 0.18, s.by + Math.sin(s.a) * s.len * 0.18,
+          s.len * (0.4 + r() * 0.35), s.bw * 0.7, s.a + da, light, iridStr, r, seedPhase, noise, false);
+      }
+    }
 
-    // micro-spike fringe all around the rim — crawling spiky skin, no smooth edge
-    const nFr = Math.round((18 + rad * 0.16) * spikeAmt);
+    // dense micro-spike fringe all the way around — crawling spiky skin, varied
+    const nFr = Math.round((26 + rad * 0.22) * spikeAmt);
     for (let i = 0; i < nFr; i++) {
-      const a = (i / nFr) * Math.PI * 2 + (r() - 0.5) * 0.2;
+      const a = (i / nFr) * Math.PI * 2 + (r() - 0.5) * 0.22;
       const up = (-Math.sin(a) + 1) / 2;
-      const len = rad * (0.12 + up * 0.30 + r() * 0.14);
-      const bw = rad * (0.035 + r() * 0.03);
-      const bx = cx + Math.cos(a) * rad * 0.94, by = cy + Math.sin(a) * rad * 0.9;
+      const len = rad * (0.16 + up * 0.26 + Math.abs(K.randn(r)) * 0.18);
+      const bw = rad * (0.04 + r() * 0.035);
+      const bx = cx + Math.cos(a) * rad * 0.95, by = cy + Math.sin(a) * rad * 0.92;
       spike(x, P, bx, by, len, bw, a, light, iridStr, r, seedPhase, noise, false);
     }
-    // re-pop the central specular so the crown still reads metal
+    // gentle central specular so the crown still reads metal (kept small so the
+    // body never flattens into a bright flat disc/button)
     const hx = cx + Math.cos(light) * rad * 0.4, hy = cy + Math.sin(light) * rad * 0.4;
-    K.sheen(x, hx, hy, rad * 0.34, P.spec, 0.4);
+    K.sheen(x, hx, hy, rad * 0.24, P.spec, 0.28);
   }
 
   // ground reflection smear
@@ -306,13 +321,12 @@ window.ENGINE = (function () {
     function colony(centers) {
       centers.sort((a, b) => b.rad - a.rad);
       for (const c of centers) {
-        const amt = c.rad < minD * 0.05 ? 0.45 : 1;
-        if (c.rad < minD * 0.035) {
+        if (c.rad < minD * 0.03) {
           // tiny: spiky bead, light crown only
-          chromeBlob(x, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, 0.26, c.rad > 18);
+          chromeBlob(x, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, 0.3, c.rad > 18);
         } else {
           ferroBody(x, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise,
-            { spikeAmt: amt, wob: 0.22 + r() * 0.1, upBias: 0.7 + r() * 0.7 });
+            { spikeAmt: 1.0 + r() * 0.3, wob: 0.28 + r() * 0.14, upBias: 0.9 + r() * 0.9 });
         }
       }
     }
