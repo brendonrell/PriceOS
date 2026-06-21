@@ -297,7 +297,7 @@
 }
 .ss-paper-wrap {
     padding: 14px 16px 18px;
-    max-height: min(60vh, 520px);
+    max-height: min(74vh, 680px);
     overflow-y: auto;
     display: flex;
     justify-content: center;
@@ -307,9 +307,8 @@
    (--sticker-cut) is that same paper colour, so each sticker reads as cut from
    the sheet. No shadows. Stickers sit in a tidy grid, never overlapping. */
 .ss-paper {
-    position: relative;
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
     border-radius: 0;
     background: var(--text-color);
     --sticker-cut: var(--text-color);
@@ -317,11 +316,34 @@
        line (Brendon 2026-06-21). */
     --sticker-line: color-mix(in srgb, var(--text-color) 82%, var(--bg-color) 18%);
 }
-.ss-paper-sticker {
-    position: absolute;
-    display: inline-flex;
+/* Tidy grid — every sticker in its own cell, gaps guarantee no overlap, padding
+   keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
+.ss-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 20px;
+    padding: 20px 18px 24px;
+}
+.ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(134px, 1fr)); }
+.ss-cell {
+    display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 0;
+    /* Breathing room: the sticker never fills its cell, so none ever butt up. */
+    padding: 7px;
+    box-sizing: border-box;
+}
+/* Outputs vary in size → masonry columns, stacked, never overlapping. */
+.ss-masonry {
+    columns: 3 96px;
+    column-gap: 14px;
+    padding: 18px 16px 22px;
+}
+.ss-masonry .ss-cell {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: 14px;
 }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */

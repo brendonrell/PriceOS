@@ -25,7 +25,6 @@ import { useDragScroll } from '../lib/hooks/useDragScroll';
 import {
     SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId,
 } from '../lib/stickers/catalog';
-import { buildSheetLayout } from '../lib/stickers/sheetLayout';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import { useOwnedStickerIds } from '../lib/stickers/owned';
@@ -73,10 +72,16 @@ export default function StickersModal() {
     const ownedIds = useOwnedStickerIds();
     const totalSheets = REAL_SHEETS.length;
     const detail = openSheet ? REAL_SHEETS.find((s) => s.id === openSheet) ?? null : null;
-    const layout = useMemo(
-        () => (detail ? buildSheetLayout(stickersForSheet(detail.id), seed) : null),
-        [detail, seed],
-    );
+    /* The whole sheet, shuffled by the seed (fresh order each open) and shown in
+       a tidy contained grid — never overlapping, never past the sheet edge. */
+    const draw = useMemo(() => {
+        if (!detail) return [];
+        const pool = [...stickersForSheet(detail.id)];
+        let a = seed || 1;
+        const rnd = () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j]!, pool[i]!]; }
+        return pool;
+    }, [detail, seed]);
 
     return (
         <div
@@ -140,26 +145,14 @@ export default function StickersModal() {
                     )}
                 </div>
 
-                {detail && layout ? (
-                    /* ── Generative sticker sheet — die-cut scatter on one backing ── */
+                {detail ? (
+                    /* ── The sticker sheet — a tidy, contained grid (masonry for the
+                         varying-size Outputs). Never overlaps, never bleeds past. ── */
                     <div className="ss-paper-wrap">
-                        <div
-                            className="ss-paper"
-                            style={{ aspectRatio: `${layout.cols} / ${layout.rows}` }}
-                        >
-                            {layout.items.map((p) => (
-                                <span
-                                    key={p.sticker.id}
-                                    className="ss-paper-sticker"
-                                    title={p.sticker.name}
-                                    style={{
-                                        left: `${p.x}%`,
-                                        top: `${p.y}%`,
-                                        width: `${p.cw * (p.sticker.kind === 'face' || p.sticker.kind === 'output' ? 0.92 : 0.8)}%`,
-                                        transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
-                                    }}
-                                >
-                                    <StickerArt sticker={p.sticker} fill diecut />
+                        <div className={`ss-paper ${detail.id === 'output' ? 'ss-masonry' : draw[0]?.kind === 'face' ? 'ss-grid ss-grid-wide' : 'ss-grid'}`}>
+                            {draw.map((s) => (
+                                <span key={s.id} className="ss-cell" title={s.name}>
+                                    <StickerArt sticker={s} fill diecut />
                                 </span>
                             ))}
                         </div>

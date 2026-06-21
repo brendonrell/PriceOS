@@ -4,12 +4,16 @@
  * HeroStickers — the profile owner's stickers on their hero, arranged per the
  * manager's settings (Spread / Row / 2 Rows / Scatter / Fill + tilt + shuffle).
  *
- * Renders nothing unless the owner holds (active) stickers, so other profiles
- * are unchanged. The viewer's hide switch (pdNotifs.sticker) also suppresses it.
- * Tapping your OWN arrangement opens the manager modal.
+ * Width: by default the row is clamped to the tab row's width (its right edge =
+ * the +More button), so on wide / landscape screens it doesn't run off. A
+ * landscape EXPAND button releases that clamp and fills the extra space with
+ * more stickers.
+ *
+ * Renders nothing unless the owner holds (active) stickers. Tapping your OWN
+ * arrangement opens the manager modal.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
 import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom } from '../../lib/stickers/heroPrefs';
@@ -27,6 +31,27 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const { offSheets, offIds } = useStickerPrefs();
     const { arrange, tilt, seed } = useHeroPrefs();
     const [mgrOpen, setMgrOpen] = useState(false);
+    const [expanded, setExpanded] = useState(false);
+    const [clampW, setClampW] = useState<number | null>(null);
+
+    // Track the tab row's width so the stickers stop at the +More edge.
+    useEffect(() => {
+        const measure = () => {
+            const el = document.getElementById('profileTabsRow');
+            if (el) setClampW(el.getBoundingClientRect().width || null);
+        };
+        measure();
+        const el = document.getElementById('profileTabsRow');
+        const ro = el && 'ResizeObserver' in window ? new ResizeObserver(measure) : null;
+        if (ro && el) ro.observe(el);
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        return () => {
+            ro?.disconnect();
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
 
     const active = useMemo(
         () => owned.filter((s) => isActive(s, offSheets, offIds)),
@@ -34,18 +59,19 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     );
 
     const { rows, cap, scatter } = arrangeShape(arrange);
+    // Expanding fills the wider space with more stickers.
+    const effCap = expanded ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
-    // Tidy modes take a stable slice; scattered modes take a seeded sample.
     const picked = useMemo(() => {
-        if (!scatter) return active.slice(0, cap);
+        if (!scatter) return active.slice(0, effCap);
         const pool = [...active];
         const rnd = rngFrom(seed);
         for (let i = pool.length - 1; i > 0; i--) {
             const j = Math.floor(rnd() * (i + 1));
             [pool[i], pool[j]] = [pool[j]!, pool[i]!];
         }
-        return pool.slice(0, cap);
-    }, [active, scatter, cap, seed]);
+        return pool.slice(0, effCap);
+    }, [active, scatter, effCap, seed]);
 
     const manager = isOwn ? (
         <StickerManagerModal open={mgrOpen} onClose={() => setMgrOpen(false)} handle={(ownerHandle ?? '').replace(/^@/, '')} />
@@ -59,8 +85,11 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const jrnd = rngFrom(seed + 7);
     const sz = (k: string) => (k === 'face' || k === 'output' ? 50 : 40);
 
-    const body = (
-        <div className={`hero-stickers-rows arr-${arrange}`}>
+    const rowsEl = (
+        <div
+            className={`hero-stickers-rows arr-${arrange}`}
+            style={{ maxWidth: expanded ? undefined : (clampW ?? undefined) }}
+        >
             {rowChunks.map((chunk, ri) => (
                 <div className="hero-stickers-row" key={ri}>
                     {chunk.map((s, i) => {
@@ -85,15 +114,22 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     return (
         <div className="hero-stickers" aria-label="Stickers">
             {isOwn ? (
-                <>
-                    <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
-                        {body}
-                    </button>
-                    {manager}
-                </>
+                <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
+                    {rowsEl}
+                </button>
             ) : (
-                body
+                rowsEl
             )}
+            <button
+                type="button"
+                className="hero-sticker-expand"
+                title={expanded ? 'Fit to width' : 'Expand stickers'}
+                aria-pressed={expanded}
+                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+            >
+                {expanded ? '⤡︎' : '⤢︎'}
+            </button>
+            {manager}
         </div>
     );
 }
