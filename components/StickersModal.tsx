@@ -139,7 +139,7 @@ export default function StickersModal() {
                                     style={{
                                         left: `${p.x}%`,
                                         top: `${p.y}%`,
-                                        width: `${100 / layout.cols}%`,
+                                        width: `${p.cw * 0.82}%`,
                                         transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
                                     }}
                                 >

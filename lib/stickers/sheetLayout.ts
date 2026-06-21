@@ -11,10 +11,11 @@ import type { Sticker } from './catalog';
 
 export interface Placed {
     sticker: Sticker;
-    x: number;     // % across the paper
-    y: number;     // % down the paper
+    x: number;     // % across the paper (cell centre)
+    y: number;     // % down the paper (cell centre)
     rot: number;   // deg
     scale: number;
+    cw: number;    // cell width % (sticker is sized just under this — never overlaps)
 }
 export interface SheetLayout {
     cols: number;
@@ -40,11 +41,13 @@ export function buildSheetLayout(hopper: readonly Sticker[], seed: number): Shee
         const j = Math.floor(rnd() * (i + 1));
         [pool[i], pool[j]] = [pool[j]!, pool[i]!];
     }
-    const draw = Math.min(pool.length, 12 + Math.floor(rnd() * 5)); // 12–16
+    // Zoomed-out sheet: more stickers, each smaller. Real sticker sheet = a tidy
+    // grid, NEVER overlapping.
+    const draw = Math.min(pool.length, 18 + Math.floor(rnd() * 7)); // 18–24
     const stickers = pool.slice(0, draw);
 
     const n = stickers.length;
-    const cols = Math.max(3, Math.round(Math.sqrt(n * 0.9)));
+    const cols = Math.max(4, Math.round(Math.sqrt(n * 1.1)));
     const rows = Math.ceil(n / cols);
 
     // Shuffle which cell each sticker lands in.
@@ -60,14 +63,16 @@ export function buildSheetLayout(hopper: readonly Sticker[], seed: number): Shee
         const cell = cells[i]!;
         const col = cell % cols;
         const row = Math.floor(cell / cols);
-        const jx = (rnd() - 0.5) * cw * 0.45;
-        const jy = (rnd() - 0.5) * ch * 0.45;
+        // Tiny jitter only — stays well inside the cell so nothing ever touches.
+        const jx = (rnd() - 0.5) * cw * 0.14;
+        const jy = (rnd() - 0.5) * ch * 0.14;
         return {
             sticker: st,
             x: (col + 0.5) * cw + jx,
             y: (row + 0.5) * ch + jy,
-            rot: (rnd() - 0.5) * 34,
-            scale: 0.78 + rnd() * 0.32,
+            rot: (rnd() - 0.5) * 24,
+            scale: 0.92 + rnd() * 0.12,
+            cw,
         };
     });
 

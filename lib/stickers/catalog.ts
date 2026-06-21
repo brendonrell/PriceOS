@@ -16,12 +16,12 @@
  * reads (ERC-1155) wire in later.
  */
 
-export type SheetId = 'genesis' | 'petey';
+export type SheetId = 'genesis' | 'petey' | 'icon';
 
 export interface Sticker {
     id: string;
     sheet: SheetId;
-    kind: 'logo' | 'price';
+    kind: 'logo' | 'price' | 'glyph';
     name: string;
     /** logo: bubble/dots colour. */
     color?: string;
@@ -33,6 +33,8 @@ export interface Sticker {
     bg?: string;
     /** $PRICE: letter colour. */
     fg?: string;
+    /** glyph: the icon character (VS-15 text glyph) for icon-sheet stickers. */
+    glyph?: string;
 }
 
 const PRICE_RED = '#FF0055';
@@ -120,7 +122,34 @@ const PETEY: Sticker[] = [
     })),
 ];
 
-export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY];
+/* ── Icon sheet — our canonical glyph vocabulary (docs/GLYPHS.md) ─────────── */
+const ICON_GLYPHS: { g: string; name: string }[] = [
+    { g: '✶', name: 'Mint' },       { g: '✹', name: 'List' },       { g: '✦', name: 'Offer' },
+    { g: '✸', name: 'Transfer' },   { g: '⚭', name: 'Mutual' },     { g: '⇡', name: 'Pingtoasts' },
+    { g: '⏾', name: 'Silent' },     { g: '★', name: 'Star' },       { g: '✛', name: 'Wishlist' },
+    { g: '◰', name: 'Album' },      { g: '⊟', name: 'Note' },       { g: '❍', name: 'To-Do' },
+    { g: '⟟', name: 'Grail' },      { g: '▢', name: 'Cart' },       { g: '⑆', name: 'Showcase' },
+    { g: '◈', name: 'Streak' },     { g: '◉', name: 'Identity' },   { g: '❖', name: 'Rarity' },
+    { g: '❂', name: 'PriceRank' },  { g: '⍟', name: 'Stargazing' }, { g: '✺', name: 'Artist' },
+    { g: '☻', name: 'Collector' },  { g: '⨝', name: 'Trait' },      { g: '▶', name: 'Soundtrack' },
+    { g: '⬚', name: 'Project' },    { g: '△', name: 'Ascension' },  { g: '⬢', name: 'Hi-Def' },
+    { g: '✧', name: 'Uploaded' },
+];
+const ICON_HUES = genHues(ICON_GLYPHS.length, 'i', { sat: 84, lights: [50, 60, 42], phase: 0 });
+const ICONS: Sticker[] = ICON_GLYPHS.map<Sticker>((it, i) => {
+    const hex = ICON_HUES[i]!.hex;
+    return {
+        id: `icon-${it.name.toLowerCase().replace(/[^a-z0-9]+/g, '')}`,
+        sheet: 'icon',
+        kind: 'glyph',
+        name: it.name,
+        glyph: `${it.g}︎`,
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
+export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY, ...ICONS];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
 export function stickerById(id: string): Sticker | undefined {
@@ -139,6 +168,7 @@ export interface SheetMeta {
 export const SHEETS: readonly SheetMeta[] = [
     { id: 'genesis', name: 'GENESIS', tag: 'MYTHIC',   count: GENESIS.length, price: '0.010', cover: GENESIS[0]! },
     { id: 'petey',   name: 'PETEY',   tag: 'UNCOMMON', count: PETEY.length,   price: '0.008', cover: PETEY[0]! },
+    { id: 'icon',    name: 'ICONS',   tag: 'COMMON',   count: ICONS.length,   price: '0.006', cover: ICONS[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {

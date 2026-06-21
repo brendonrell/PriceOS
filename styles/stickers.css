@@ -302,29 +302,24 @@
     display: flex;
     justify-content: center;
 }
-/* One standard backing sheet; stickers are die-cut and scattered on it. */
+/* One standard backing sheet. Square corners, solid paper that's the OPPOSITE of
+   the page (white on dark colorways, black on light) — and the die-cut margin
+   (--sticker-cut) is that same paper colour, so each sticker reads as cut from
+   the sheet. No shadows. Stickers sit in a tidy grid, never overlapping. */
 .ss-paper {
     position: relative;
     width: 100%;
     max-width: 520px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background:
-        repeating-linear-gradient(
-            45deg,
-            color-mix(in srgb, var(--text-color) 3%, transparent) 0 10px,
-            color-mix(in srgb, var(--text-color) 6%, transparent) 10px 20px
-        );
+    border-radius: 0;
+    background: var(--text-color);
+    --sticker-cut: var(--text-color);
 }
 .ss-paper-sticker {
     position: absolute;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-    transition: transform 0.12s ease;
 }
-.ss-paper-sticker:hover { z-index: 5; }
 @media (max-width: 600px) {
     .ss-buy-head .ss-buy-cta { display: none; }
 }
