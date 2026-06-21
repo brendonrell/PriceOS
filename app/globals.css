@@ -4310,9 +4310,11 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
        vertical nudges use `top` (mobile resets the base transform). Only
        the pills Brendon named are touched — cartel / familiar / celestial /
        tribunal keep their prior values. */
-    #sb-spitebook { font-size: 12px !important; position: relative; top: 2px; }
+    /* NOTE: never offset the PILL itself (#sb-xxx) — that drops the whole pill
+       below its row-mate (the "Cartel drops" bug). Only ever nudge the GLYPH
+       via `#sb-xxx .st-icon`. (Brendon, 2026-06-21.) */
+    #sb-spitebook { font-size: 12px !important; }
     #sb-tribunal  { font-size: 12px !important; }
-    #sb-cartel    { position: relative; top: 1px; }
     #sb-celestial .st-icon { position: relative; top: 2px; }
     #sb-cartel .st-icon,
     #sb-familiar .st-icon { position: relative; top: 1px; }

@@ -131,31 +131,52 @@ export function SpellBookSection({ onTripleTap }: Props) {
             <div className="spell-book-pills">
                 {/* Spells 1–11: familiar → price ghost (incl. the icon-less NPC
                     pill after Deactivate; Solar Flare + Portal retired). */}
-                {SPELLS.slice(0, 11).map((spell) => (
-                    <SettingsToggle
-                        key={spell.id}
-                        id={`sb-${spell.id}`}
-                        active={notifs[spell.flag]}
-                        /* Spite Book opens its book modal instead of flipping a
-                           flag (Familiar-pill precedent — the pill drives a
-                           surface, not a body class). */
-                        onClick={() =>
-                            spell.id === 'spitebook'
-                                ? open('spiteBook')
-                                : toggleSpellWithToast(spell)
-                        }
-                        icon={spell.icon}
-                        iconStyle={{
-                            ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
-                            ...(spell.iconStyle?.lineHeight ? { lineHeight: spell.iconStyle.lineHeight } : {}),
-                            ...(spell.iconStyle?.top
-                                ? { position: 'relative', top: spell.iconStyle.top }
-                                : {}),
-                        }}
-                        sharp={spell.sharp}
-                        label={spell.name}
-                    />
-                ))}
+                {SPELLS.slice(0, 11).map((spell) => {
+                    /* NPC ⇄ Degen swap (Brendon, 2026-06-21): Degen renders in
+                       NPC's slot here; NPC renders in Degen's old slot below. */
+                    if (spell.id === 'npc') {
+                        return (
+                            <SettingsToggle
+                                key="sb-degen"
+                                id="sb-degen"
+                                active={notifs.degen}
+                                onClick={() => {
+                                    const next = !notifs.degen;
+                                    toggle('degen');
+                                    showToast(`Degen: ${next ? 'ON' : 'OFF'}`);
+                                    if (next) setSort('price');
+                                }}
+                                icon={'⚔︎'}
+                                label="Degen"
+                            />
+                        );
+                    }
+                    return (
+                        <SettingsToggle
+                            key={spell.id}
+                            id={`sb-${spell.id}`}
+                            active={notifs[spell.flag]}
+                            /* Spite Book opens its book modal instead of flipping a
+                               flag (Familiar-pill precedent — the pill drives a
+                               surface, not a body class). */
+                            onClick={() =>
+                                spell.id === 'spitebook'
+                                    ? open('spiteBook')
+                                    : toggleSpellWithToast(spell)
+                            }
+                            icon={spell.icon}
+                            iconStyle={{
+                                ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
+                                ...(spell.iconStyle?.lineHeight ? { lineHeight: spell.iconStyle.lineHeight } : {}),
+                                ...(spell.iconStyle?.top
+                                    ? { position: 'relative', top: spell.iconStyle.top }
+                                    : {}),
+                            }}
+                            sharp={spell.sharp}
+                            label={spell.name}
+                        />
+                    );
+                })}
                 {/* Redacted — moved here from MY PD (Brendon, 2026-06-18), taking
                     the retired Portal slot. Plain `redactedMode` flag (not
                     spell_*), so it's a hardcoded pill like Stargazing / Echo. Same
@@ -169,7 +190,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         showToast(`Redacted Mode: ${next ? 'ON' : 'OFF'}`);
                     }}
                     icon={'@︎'}
-                    label="Redacted"
+                    label="Redacted!"
                 />
                 {/* The Watch — hardcoded pill (like Stargazing / Echo) taking
                     the retired Solar Flare slot (Brendon 2026-06-14). Toggles
@@ -186,22 +207,17 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'⬬︎'}
                     label="The Watch"
                 />
-                {/* Degen — moved here from MY PD (Brendon, 2026-06-16), right
-                    after The Watch. Plain `degen` flag (not spell_*), so it's a
-                    hardcoded pill like Stargazing / Echo. Preserves the sim
-                    9357-9358 side-effect: activating Degen auto-sorts the gallery
-                    by price. */}
+                {/* NPC — swapped into Degen's old slot (Brendon, 2026-06-21).
+                    Icon-less by design; Degen now renders up in NPC's old slot. */}
                 <SettingsToggle
-                    id="sb-degen"
-                    active={notifs.degen}
+                    id="sb-npc"
+                    active={notifs.spell_npc}
                     onClick={() => {
-                        const next = !notifs.degen;
-                        toggle('degen');
-                        showToast(`Degen: ${next ? 'ON' : 'OFF'}`);
-                        if (next) setSort('price');
+                        const next = !notifs.spell_npc;
+                        toggle('spell_npc');
+                        showToast(`NPC: ${next ? 'ON' : 'OFF'}`);
                     }}
-                    icon={'⚔︎'}
-                    label="Degen"
+                    label="NPC"
                 />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs
