@@ -9,31 +9,31 @@
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
   branch `claude/subfilter-pills-styling-fysgj2` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-21 (latest). This session = **HALO 4-PROJECT ATTEMPT — REVERTED** (⛔ below).
+- **Updated:** 2026-06-21 (latest). This session = **HALO 4-PROJECT — SHIPPED to dev** (✅ below).
   Prior: OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST + SPRITE POLISH (⭐),
   GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️), PWA STEP 3 (📲), 6 gen-art projects (🖼️).
 
-## ⛔ HALO 4-PROJECT ATTEMPT — BUILT, SHIPPED BROKEN, REVERTED 2026-06-21
-- Goal: 4 abstract bright-cyberpunk (anime/Promare) gen-art projects — **Lustre** (warm
-  iridescent foil), **Bloomwater** (deep-jewel marbled ink), **Voltaic** (high-voltage
-  plasma), **Facet** (pastel-prism cut glass) — each its own bespoke palette, assigned to
-  kindred 1-project AI artists (firstchannel-ai / overprint-ai / filament-ai / lapidary-ai).
-- Built via a 4-direction jury + evolution + per-project palette pass. The R&D engines live
-  only in git history (`b75d5c3`, since reverted); the **render harness is `tools/halo/`**
-  (kit.js + render.mjs, `PW_EXEC=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
-- **What went wrong:** the ported TS engines exported each `traitSchema` as a bare array
-  instead of `{ traits: [...] }`, so `primaryTrait` (`lib/output/rarity.ts`) read
-  `traitSchema.traits[0]` of undefined → `/api/outputs/traits` 500 → project pages hit the
-  error boundary ("SOMETHING GLITCHED"). My port bug, caught only after it reached dev.
-- **Root cause FOUND + fixed** in the engine files (wrap schema in `{ traits: [...] }`);
-  verified the prod build then fails identically to existing projects (a local-only
-  `outputColorBucket is not a function` dev/RLS artifact, NOT a prod bug). But Brendon
-  **called it and had me revert everything** before re-shipping.
-- **State now:** all 4 projects + engines reverted off `dev` (revert commit `c4e3897`,
-  rebased to `92e19c4`); the 4 `projects` DB rows DELETED; dev healthy, tree clean.
-  Nothing halo is live. If ever revisited: restore engines from `b75d5c3`, apply the
-  schema-shape fix, re-test `/api/outputs/traits` against a known-good project in a
-  **production** build before pushing.
+## ✅ HALO 4-PROJECT — SHIPPED to dev 2026-06-21 (commit `d145e2c`)
+- 4 abstract bright-cyberpunk (anime/Promare) gen-art projects, LIVE on dev, 0 mints:
+  **Lustre** (warm iridescent foil · firstchannel-ai · `#F2B01E`),
+  **Bloomwater** (deep-jewel marbled ink · overprint-ai · `#1A2E8C`),
+  **Voltaic** (high-voltage plasma · filament-ai · `#A3FF12`),
+  **Facet** (pastel-prism cut glass · lapidary-ai · `#C9B6FF`). Each its own bespoke palette;
+  given to kindred 1-project AI artists (NOT opus4-8/Brendon). Distinct soundtracks
+  (Tim Hecker / Hiroshi Yoshimura / Plastikman / Sigur Rós), **staggered `uploaded_at`** to
+  read as a release series. DB rows added (0 mints, milestones {}, graduated_at null).
+- Built via 4-direction jury + evolution + per-project palette pass. Engines: self-contained
+  TS in `lib/art/engines/{lustre,bloomwater,voltaic,facet}.ts`, wired in `registry.ts`.
+  R&D harness was `tools/halo/` (gitignored renders; removed locally after ship).
+- **The bug that cost this session (fixed):** ported engines first exported `traitSchema` as a
+  bare array instead of `{ traits: [...] }` → `primaryTrait` (`lib/output/rarity.ts`) read
+  `traitSchema.traits[0]` of undefined → client error boundary ("SOMETHING GLITCHED") + a
+  `/api/outputs/traits` 500. Fix = wrap each schema in `{ traits: [...] }`.
+- **VERIFIED on the live preview** (Vercel share-bypass + headless Chromium): all 4 pages
+  render, art canvases draw, no error boundary; matches the `electrum` control. NOTE:
+  `/api/outputs/traits` returns 500 for **every** project incl. live electrum — a pre-existing,
+  harmless (fire-and-forget) route issue, NOT these projects. Lesson: verify on the real deploy
+  before claiming done.
 
 ## 🪪 OUTPUT ATTRIBUTES / CHARACTER SHEET — 2026-06-20 — SHIPPED to dev
 - **Stored platform traits:** Artist/Project/PriceDay/Natal/Fate + the **Output true name**
