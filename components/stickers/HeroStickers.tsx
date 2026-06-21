@@ -29,9 +29,8 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
-    const { arrange, tilt, seed } = useHeroPrefs();
+    const { arrange, tilt, seed, expand } = useHeroPrefs();
     const [mgrOpen, setMgrOpen] = useState(false);
-    const [expanded, setExpanded] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
 
     // Track the tab row's width so the stickers stop at the +More edge.
@@ -60,7 +59,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
 
     const { rows, cap, scatter } = arrangeShape(arrange);
     // Expanding fills the wider space with more stickers.
-    const effCap = expanded ? Math.min(active.length, Math.max(cap, 18)) : cap;
+    const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
     const picked = useMemo(() => {
         if (!scatter) return active.slice(0, effCap);
@@ -88,7 +87,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const rowsEl = (
         <div
             className={`hero-stickers-rows arr-${arrange}`}
-            style={{ maxWidth: expanded ? undefined : (clampW ?? undefined) }}
+            style={{ maxWidth: expand ? undefined : (clampW ?? undefined) }}
         >
             {rowChunks.map((chunk, ri) => (
                 <div className="hero-stickers-row" key={ri}>
@@ -120,15 +119,6 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
             ) : (
                 rowsEl
             )}
-            <button
-                type="button"
-                className="hero-sticker-expand"
-                title={expanded ? 'Fit to width' : 'Expand stickers'}
-                aria-pressed={expanded}
-                onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-            >
-                {expanded ? '⤡︎' : '⤢︎'}
-            </button>
             {manager}
         </div>
     );

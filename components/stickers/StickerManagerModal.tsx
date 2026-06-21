@@ -19,7 +19,7 @@ import {
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    getArrange, getTilt, setArrange, setTilt, shuffleSeed,
+    getArrange, getTilt, getExpand, setArrange, setTilt, setExpand, shuffleSeed,
     ARRANGES, TILTS, type Arrange, type Tilt,
 } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
@@ -41,6 +41,7 @@ export function StickerManagerModal({
     const [offIds, setOffIds] = useState<Set<string>>(new Set());
     const [arrange, setArr] = useState<Arrange>('spread');
     const [tilt, setTl] = useState<Tilt>('soft');
+    const [expand, setExp] = useState(false);
 
     useEffect(() => {
         if (!open) return;
@@ -49,6 +50,7 @@ export function StickerManagerModal({
         setOffIds(new Set(getOffIds()));
         setArr(getArrange());
         setTl(getTilt());
+        setExp(getExpand());
     }, [open, handle]);
 
     useEffect(() => {
@@ -70,6 +72,7 @@ export function StickerManagerModal({
     };
     const pickArrange = (a: Arrange) => { setArr(a); setArrange(a); };
     const pickTilt = (t: Tilt) => { setTl(t); setTilt(t); };
+    const pickExpand = (b: boolean) => { setExp(b); setExpand(b); };
 
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
 
@@ -104,6 +107,14 @@ export function StickerManagerModal({
                         <button className="smgr-chip smgr-shuffle" type="button" onClick={() => shuffleSeed()} title="Shuffle">
                             {`⟳${VS15}`}
                         </button>
+                    </div>
+                </div>
+
+                <div className="smgr-row">
+                    <span className="smgr-label">WIDTH</span>
+                    <div className="smgr-chips">
+                        <button className={`smgr-chip${!expand ? ' active' : ''}`} type="button" onClick={() => pickExpand(false)}>FIT</button>
+                        <button className={`smgr-chip${expand ? ' active' : ''}`} type="button" onClick={() => pickExpand(true)}>WIDE</button>
                     </div>
                 </div>
 

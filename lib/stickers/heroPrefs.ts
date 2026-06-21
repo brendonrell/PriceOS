@@ -27,6 +27,7 @@ export const TILTS: { id: Tilt; label: string }[] = [
 const K_ARRANGE = 'pd_sticker_arrange';
 const K_TILT = 'pd_sticker_tilt';
 const K_SEED = 'pd_sticker_seed';
+const K_EXPAND = 'pd_sticker_expand';
 const EVT = 'pd:stickers-changed';
 
 function read(key: string, fallback: string): string {
@@ -40,21 +41,24 @@ function write(key: string, val: string) {
 
 export function setArrange(a: Arrange) { write(K_ARRANGE, a); }
 export function setTilt(t: Tilt) { write(K_TILT, t); }
+export function setExpand(b: boolean) { write(K_EXPAND, b ? '1' : '0'); }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
 
 /* Non-reactive reads — for the manager, which holds its own local copy. */
 export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
 export function getTilt(): Tilt { return read(K_TILT, 'soft') as Tilt; }
+export function getExpand(): boolean { return read(K_EXPAND, '0') === '1'; }
 
-export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; }
+export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; }
 
 export function useHeroPrefs(): HeroPrefs {
-    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1 });
+    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false });
     useEffect(() => {
         const sync = () => setV({
             arrange: read(K_ARRANGE, 'spread') as Arrange,
             tilt: read(K_TILT, 'soft') as Tilt,
             seed: Number(read(K_SEED, '1')) || 1,
+            expand: read(K_EXPAND, '0') === '1',
         });
         sync();
         window.addEventListener(EVT, sync);
