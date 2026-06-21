@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-export type Arrange = 'row' | 'tworows' | 'spread' | 'scatter' | 'fill' | 'stack';
+export type Arrange = 'row' | 'tworows' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
 
 export const ARRANGES: { id: Arrange; label: string }[] = [
@@ -18,6 +18,7 @@ export const ARRANGES: { id: Arrange; label: string }[] = [
     { id: 'stack', label: 'STACK' },
     { id: 'scatter', label: 'SCATTER' },
     { id: 'fill', label: 'FILL' },
+    { id: 'collage', label: 'COLLAGE' },
 ];
 export const TILTS: { id: Tilt; label: string }[] = [
     { id: 'flat', label: 'FLAT' },
@@ -78,8 +79,36 @@ export function arrangeShape(a: Arrange): { rows: number; cap: number; scatter: 
         case 'stack':   return { rows: 1, cap: 8, scatter: false, overlap: true };
         case 'scatter': return { rows: 2, cap: 14, scatter: true, overlap: false };
         case 'fill':    return { rows: 3, cap: 24, scatter: true, overlap: false };
+        case 'collage': return { rows: 0, cap: 20, scatter: true, overlap: true };
         default:        return { rows: 1, cap: 6, scatter: false, overlap: false };
     }
+}
+
+/* COLLAGE — laptop-lid style: a balanced, dense, overlapping composition with
+   mixed sizes. Jittered grid keeps it balanced; scale variety + overlap give the
+   collaged look. Positions in % of one large area. */
+export interface CollagePiece { x: number; y: number; scale: number; rot: number; z: number; }
+export function buildCollage(n: number, seed: number): { cols: number; rows: number; items: CollagePiece[] } {
+    const rnd = rngFrom(seed);
+    const cols = Math.max(4, Math.round(Math.sqrt(n * 1.3)));
+    const rows = Math.max(1, Math.ceil(n / cols));
+    const cells = [...Array(cols * rows).keys()];
+    for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [cells[i], cells[j]] = [cells[j]!, cells[i]!]; }
+    const cw = 100 / cols, ch = 100 / rows;
+    const items: CollagePiece[] = [];
+    for (let i = 0; i < n; i++) {
+        const cell = cells[i]!;
+        const col = cell % cols, row = Math.floor(cell / cols);
+        const jx = (rnd() - 0.5) * cw * 0.7;
+        const jy = (rnd() - 0.5) * ch * 0.7;
+        const x = Math.min(92, Math.max(8, (col + 0.5) * cw + jx));
+        const y = Math.min(90, Math.max(10, (row + 0.5) * ch + jy));
+        // Mostly mid-size with a few anchors larger and a few smaller → balanced.
+        const r = rnd();
+        const scale = r < 0.18 ? 1.15 + rnd() * 0.35 : r > 0.78 ? 0.55 + rnd() * 0.15 : 0.78 + rnd() * 0.3;
+        items.push({ x, y, scale, rot: (rnd() - 0.5) * 28, z: Math.floor(rnd() * 1000) });
+    }
+    return { cols, rows, items };
 }
 
 export function tiltDeg(t: Tilt): number {

@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
 
@@ -78,11 +78,57 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
 
     if (notifs.sticker || active.length === 0) return manager;
 
-    const perRow = Math.ceil(picked.length / rows);
-    const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
     const baseTilt = tiltDeg(tilt);
     const jrnd = rngFrom(seed + 7);
     const sz = (k: string) => (k === 'face' || k === 'output' ? 50 : 40);
+
+    // COLLAGE — one large area, generatively composed, overlapping, mixed sizes.
+    if (arrange === 'collage') {
+        const comp = buildCollage(picked.length, seed);
+        const collageEl = (
+            <div
+                className="hero-collage"
+                style={{
+                    aspectRatio: `${comp.cols} / ${comp.rows}`,
+                    maxWidth: expand ? undefined : (clampW ?? undefined),
+                }}
+            >
+                {picked.map((s, i) => {
+                    const p = comp.items[i]!;
+                    return (
+                        <span
+                            key={s.id}
+                            className="hero-sticker hero-collage-item"
+                            style={{
+                                left: `${p.x}%`,
+                                top: `${p.y}%`,
+                                zIndex: p.z,
+                                transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
+                            }}
+                            title={s.name}
+                        >
+                            <StickerArt sticker={s} size={sz(s.kind)} />
+                        </span>
+                    );
+                })}
+            </div>
+        );
+        return (
+            <div className="hero-stickers" aria-label="Stickers">
+                {isOwn ? (
+                    <>
+                        <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
+                            {collageEl}
+                        </button>
+                        {manager}
+                    </>
+                ) : collageEl}
+            </div>
+        );
+    }
+
+    const perRow = Math.ceil(picked.length / rows);
+    const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
     const rowsEl = (
         <div

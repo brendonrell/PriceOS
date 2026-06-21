@@ -422,6 +422,9 @@
 .arr-row .hero-stickers-row { justify-content: center; gap: 12px; }
 /* STACK mode overlaps the peeled stickers into a centred pile. */
 .hero-stickers-row.is-stack { justify-content: center; gap: 0; }
+/* COLLAGE mode — one large composed area, stickers absolutely placed. */
+.hero-collage { position: relative; width: 100%; margin: 0 auto; }
+.hero-collage-item { position: absolute; }
 .hero-sticker {
     display: inline-flex;
     align-items: center;
