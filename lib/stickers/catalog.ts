@@ -22,7 +22,7 @@ import { spriteFaceFor } from './sprites';
 
 export type SheetId =
     | 'genesis' | 'petey' | 'icon' | 'familiar'
-    | 'project' | 'artist' | 'pricesprite';
+    | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname';
 
 export interface Sticker {
     id: string;
@@ -223,9 +223,36 @@ const PRICESPRITES: Sticker[] = COMMUNITY_HANDLES.map<Sticker>((h, i) => {
     };
 });
 
+/* ── Artist @name sheet — the handles as name-tag stickers ───────────────── */
+const NAME_HUES = genHues(ARTIST_HANDLES.length, 'n', { sat: 86, lights: [54, 46, 60], phase: 280 });
+const ARTIST_NAMES: Sticker[] = ARTIST_HANDLES.map<Sticker>((h, i) => {
+    const hex = NAME_HUES[i]!.hex;
+    return {
+        id: `handle-${h}`,
+        sheet: 'handle',
+        kind: 'face',
+        name: `@${h}`,
+        glyph: `@${h}`,
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
+/* ── Project name sheet — project names as tags, in each signature colour ─── */
+const PROJECT_NAMES: Sticker[] = PROJECT_LIST.map<Sticker>((p) => ({
+    id: `projectname-${p.slug}`,
+    sheet: 'projectname',
+    kind: 'face',
+    name: p.displayName,
+    glyph: p.displayName,
+    color: p.colorway,
+    cutout: cutoutFor(p.colorway),
+}));
+
 export const STICKERS: readonly Sticker[] = [
     ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS,
     ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
+    ...ARTIST_NAMES, ...PROJECT_NAMES,
 ];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
@@ -250,6 +277,8 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'project', name: 'PROJECTS', tag: 'MYTHIC',   count: PROJECT_SPRITES.length, price: '0.016', cover: PROJECT_SPRITES[0]! },
     { id: 'artist',  name: 'ARTISTS',  tag: 'MYTHIC',   count: ARTIST_SPRITES.length,  price: '0.014', cover: ARTIST_SPRITES[0]! },
     { id: 'pricesprite', name: 'PRICESPRITES', tag: 'RARE', count: PRICESPRITES.length, price: '0.010', cover: PRICESPRITES[0]! },
+    { id: 'handle', name: 'ARTIST NAMES', tag: 'COMMON', count: ARTIST_NAMES.length, price: '0.006', cover: ARTIST_NAMES[0]! },
+    { id: 'projectname', name: 'PROJECT NAMES', tag: 'COMMON', count: PROJECT_NAMES.length, price: '0.008', cover: PROJECT_NAMES[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {
