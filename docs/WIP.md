@@ -7,11 +7,31 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
-  branch `claude/subfilter-pills-styling-fysgj2` is trash (work is on dev) — Brendon deletes on GitHub.
+  branch `claude/site-edits-formatting-sijaz0` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-21 (latest). This session = **HALO 4-PROJECT — SHIPPED to dev** (✅ below).
-  Prior: OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST + SPRITE POLISH (⭐),
-  GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️), PWA STEP 3 (📲), 6 gen-art projects (🖼️).
+- **Updated:** 2026-06-21 (latest). This session = **STICKER MODE — shipped to dev, mid-polish** (🏷️ below).
+  Prior: HALO 4-PROJECT (🌗), OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST (⭐),
+  GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️).
+
+## 🏷️ STICKER MODE — shipped to dev 2026-06-21, sheet visuals still being dialled
+- Simulated sticker NFTs end-to-end: **store** (Fable 5's slide-up exchange) sells whole
+  **sheets**; buying runs the mint-style confirm + progress, grants to localStorage, and the
+  stickers populate your **profile hero** (capped pull from your owned/active set).
+- **Sheets (10):** Genesis ($PRICE logo + 2 variants), Petey (logo rotated 90° CCW), Icons
+  (GLYPHS.md), Familiars (whole bestiary), Project/Artist/PriceSprite **sprite** sheets,
+  Artist/Project **name** tags, Outputs (real art painted small). All in `lib/stickers/`.
+- **Manager modal** (tap your hero, ambient-menu style, fully local/no-flash): per-sheet +
+  per-sticker on/off, LAYOUT (Spread/Row/2 Rows/Scatter/Fill), TILT, WIDTH (Fit/Wide), Shuffle.
+- **Sheet detail = a die-cut peel sheet** (tidy grid; masonry for outputs). **STILL ROUGH** —
+  Brendon went many rounds on it and it's not right yet. HARD RULES learned: stickers NEVER
+  overlap, NEVER extend past the sheet edge; the cut line is a **grey variation of the sheet**
+  (black/white), NEVER the theme colour; logos = grid, sprite/@name = **skinny chips** (L/R
+  buffer only, NOT fat tiles). Last "skinny chip" pass (commit `36965da`) was **reverted**
+  (`518a361`) — it made faces worse. Next session: redo the face-sheet layout from the
+  reverted-to state (`b1c9f87`) carefully, with Brendon's eyes.
+- Files: `lib/stickers/{catalog,owned,heroPrefs,sprites,logoPaths,sheetLayout}.ts`,
+  `components/stickers/{StickerArt,OutputSticker,HeroStickers,StickerManagerModal,BuySheetButton}.tsx`,
+  `components/StickersModal.tsx`, `styles/stickers.css`. Ownership is localStorage (no DB yet).
 
 ## ✅ HALO 4-PROJECT — SHIPPED to dev 2026-06-21 (commit `d145e2c`)
 - 4 abstract bright-cyberpunk (anime/Promare) gen-art projects, LIVE on dev, 0 mints:
