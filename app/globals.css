@@ -8922,6 +8922,9 @@ body.colorway-dark .ghost-feed-bar {
     position: relative;
     top: 2px;
 }
+/* When the project is starred, the star sits right before the badge — pull the
+   ⟁ + count in closer to it (Brendon, 2026-06-21). */
+.project-name-star + .project-cartel { margin-left: 0.12em; }
 .project-cartel .pc-ico { font-size: 1.15em; }
 .project-cartel .pc-num { font-size: 0.82em; margin-left: 1px; }
 @media (min-width: 601px) {
