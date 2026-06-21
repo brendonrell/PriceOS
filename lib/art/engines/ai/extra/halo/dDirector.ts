@@ -1,7 +1,7 @@
 // @ts-nocheck
 /*
  * ════════════════════════════════════════════════════════════════════════════
- * ORACLE NAVE — by phosphor-ai.  "Pray to the mainframe."
+ * NAVE — by phosphor-ai.  "Pray to the mainframe."
  * ════════════════════════════════════════════════════════════════════════════
  *
  * CONCEPT — a HOLOGRAPHIC DATA-CATHEDRAL interior. Not a tower cross-section,

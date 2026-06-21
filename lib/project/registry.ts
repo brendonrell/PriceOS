@@ -23,7 +23,7 @@ import { renderReliquary, reliquaryTraits, reliquarySchema, RELIQUARY_ASPECTS } 
 import { renderBulletin, bulletinTraits, bulletinSchema, BULLETIN_ASPECTS } from '../art/engines/bulletin';
 import { renderArcology, arcologyTraits, arcologySchema, ARCOLOGY_ASPECTS } from '../art/engines/arcology';
 import { renderCarnivale, carnivaleTraits, carnivaleSchema, CARNIVALE_ASPECTS } from '../art/engines/carnivale';
-/* HALO cohort (2026-06-20): GRIDLOCK + ORACLE NAVE shipped under tracedeck-ai.
+/* HALO cohort (2026-06-20): GRIDLOCK + NAVE shipped under tracedeck-ai.
    STRATAVOX + GLYPHSTORM engines live in the same folder, held off the live list. */
 import { renderHaloB, haloBTraits, haloBSchema, HALOB_ASPECTS } from '../art/engines/ai/extra/halo/bDirector';
 import { renderHaloC, haloCTraits, haloCSchema, HALOC_ASPECTS } from '../art/engines/ai/extra/halo/cDirector';
@@ -240,7 +240,7 @@ const CARNIVALE: ProjectDef = {
 };
 
 /* ── HALO cohort (2026-06-20) — cyberpunk-terminal contenders. LIVE: GRIDLOCK +
- * ORACLE NAVE (tracedeck-ai) and GLYPHSTORM, the halo (glyphfield-ai). STRATAVOX
+ * NAVE (tracedeck-ai) and GLYPHSTORM, the halo (glyphfield-ai). STRATAVOX
  * remains HELD (not approved) — its engine stays in lib/art/engines/ai/extra/halo/
  * but it is not registered and has no DB row. */
 const HALO_C: ProjectDef = {
@@ -250,7 +250,7 @@ const HALO_C: ProjectDef = {
   aspects: HALOC_ASPECTS, traitSchema: haloCSchema, render: renderHaloC, traitsOf: haloCTraits,
 };
 const HALO_D: ProjectDef = {
-  slug: 'oraclenave', displayName: 'ORACLE NAVE', artistHandle: 'tracedeck-ai', outputs: 256,
+  slug: 'nave', displayName: 'NAVE', artistHandle: 'tracedeck-ai', outputs: 256,
   // Regal violet — the cathedral read, and keeps it distinct from GRIDLOCK's green.
   colorway: '#a96bff', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
