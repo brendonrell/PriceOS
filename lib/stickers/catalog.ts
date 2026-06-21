@@ -16,7 +16,13 @@
  * reads (ERC-1155) wire in later.
  */
 
-export type SheetId = 'genesis' | 'petey' | 'icon' | 'familiar';
+import { allProjects } from '../project/registry';
+import { projectSpriteFace } from '../project/projectSprite';
+import { spriteFaceFor } from './sprites';
+
+export type SheetId =
+    | 'genesis' | 'petey' | 'icon' | 'familiar'
+    | 'project' | 'artist' | 'pricesprite';
 
 export interface Sticker {
     id: string;
@@ -171,7 +177,56 @@ const FAMILIARS: Sticker[] = FAMILIAR_FACES.map<Sticker>((it, i) => {
     };
 });
 
-export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS];
+/* ── Project / Artist / PriceSprite sheets — the live sprite system ───────── */
+const PROJECT_LIST = allProjects();
+
+const PROJECT_SPRITES: Sticker[] = PROJECT_LIST.map<Sticker>((p) => ({
+    id: `project-${p.slug}`,
+    sheet: 'project',
+    kind: 'face',
+    name: p.displayName,
+    glyph: projectSpriteFace(p.slug) || '( · _ · )',
+    color: p.colorway,
+    cutout: cutoutFor(p.colorway),
+}));
+
+const ARTIST_HANDLES = [...new Set(PROJECT_LIST.map((p) => p.artistHandle))];
+const ARTIST_HUES = genHues(ARTIST_HANDLES.length, 'a', { sat: 80, lights: [52, 44, 60], phase: 200 });
+const ARTIST_SPRITES: Sticker[] = ARTIST_HANDLES.map<Sticker>((h, i) => {
+    const hex = ARTIST_HUES[i]!.hex;
+    return {
+        id: `artist-${h}`,
+        sheet: 'artist',
+        kind: 'face',
+        name: `@${h}`,
+        glyph: spriteFaceFor(`artist:${h}`),
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
+/* Community PriceSprites — real, app-referenced handles (the live DB scan that
+   would gather these isn't reachable from here; these are generated for known
+   people the same way the live sprite renders them). */
+const COMMUNITY_HANDLES = ['brendon', 'claude', 'snowfro', 'piterpasma', 'xcopy', 'tylerxhobbs', 'dmitricherniak', 'jackbutcher'];
+const COMMUNITY_HUES = genHues(COMMUNITY_HANDLES.length, 'u', { sat: 84, lights: [54, 46, 62], phase: 120 });
+const PRICESPRITES: Sticker[] = COMMUNITY_HANDLES.map<Sticker>((h, i) => {
+    const hex = COMMUNITY_HUES[i]!.hex;
+    return {
+        id: `pricesprite-${h}`,
+        sheet: 'pricesprite',
+        kind: 'face',
+        name: `@${h}`,
+        glyph: spriteFaceFor(`user:${h}`),
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
+export const STICKERS: readonly Sticker[] = [
+    ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS,
+    ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
+];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
 export function stickerById(id: string): Sticker | undefined {
@@ -192,6 +247,9 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'petey',   name: 'PETEY',   tag: 'UNCOMMON', count: PETEY.length,   price: '0.008', cover: PETEY[0]! },
     { id: 'icon',    name: 'ICONS',   tag: 'COMMON',   count: ICONS.length,   price: '0.006', cover: ICONS[0]! },
     { id: 'familiar', name: 'FAMILIARS', tag: 'RARE',  count: FAMILIARS.length, price: '0.012', cover: FAMILIARS[0]! },
+    { id: 'project', name: 'PROJECTS', tag: 'MYTHIC',   count: PROJECT_SPRITES.length, price: '0.016', cover: PROJECT_SPRITES[0]! },
+    { id: 'artist',  name: 'ARTISTS',  tag: 'MYTHIC',   count: ARTIST_SPRITES.length,  price: '0.014', cover: ARTIST_SPRITES[0]! },
+    { id: 'pricesprite', name: 'PRICESPRITES', tag: 'RARE', count: PRICESPRITES.length, price: '0.010', cover: PRICESPRITES[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {
