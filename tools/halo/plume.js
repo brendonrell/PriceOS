@@ -196,8 +196,14 @@ window.ENGINE = (function () {
           // iridescent colour shifts along arclength
           const phase = phase0 + (arc / (STEPS * CM)) * span;
           let col = K.iridescent(phase, P.sat, P.light);
-          // lean toward palette ink/glow so colorways stay coherent
-          col = P.dark ? K.mix(col, P.glow, 0.18) : K.mix(col, P.ink, 0.28);
+          // lean toward palette anchors so each colorway keeps a clear hue
+          // identity: glow gives the colorway tint, ink gives readable depth.
+          if (P.dark) {
+            col = K.mix(col, P.glow, 0.18);
+          } else {
+            col = K.mix(col, P.glow, 0.22);   // colorway hue
+            col = K.mix(col, P.ink, 0.24);    // depth vs pale ground
+          }
 
           // fade in at birth, fade out at death → wispy ends
           const t = s / life;
