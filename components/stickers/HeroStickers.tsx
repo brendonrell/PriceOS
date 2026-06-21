@@ -4,30 +4,29 @@
  * HeroStickers — the profile owner's stickers on their hero.
  *
  * Pass one: the modest default composition — a single row, spread wide, with a
- * whisper of tilt (±4°) so it reads as stickers, not a toolbar. Sits between the
- * stats row and the Follow button.
+ * whisper of tilt (±4°). Sits between the stats row and the Follow button.
  *
- * On by default for everyone, but renders NOTHING unless the profile owner
- * actually holds stickers — so every other profile is byte-for-byte unchanged.
- * The viewer's personal hide switch (pdNotifs.sticker, a negative flag) also
- * suppresses it. Richer arrangements + the generative menu land next.
+ * On by default for everyone, but renders NOTHING unless the profile owner holds
+ * (active) stickers — so every other profile is byte-for-byte unchanged. The
+ * viewer's personal hide switch (pdNotifs.sticker) also suppresses it.
+ *
+ * Tapping your OWN row opens the manager modal (sheets/stickers on-off + store).
+ * Richer arrangements + the generative menu land next.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { ownedStickers, stickerById, type Sticker } from '../../lib/stickers/catalog';
-import { useOwnedStickerIds } from '../../lib/stickers/owned';
+import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
+import { StickerManagerModal } from './StickerManagerModal';
 
 interface Props {
     ownerHandle: string | null | undefined;
-    /** Whether the viewer is looking at their own profile — merges their
-        simulated purchases on top of the seeded set. */
+    /** Whether the viewer is looking at their own profile. */
     isOwn?: boolean;
 }
 
-/* Deterministic whisper-tilt per slot — stable across renders so the wall never
-   jitters. Maps an index to roughly ±4°. */
+/* Deterministic whisper-tilt per slot — stable so the wall never jitters. */
 function tiltFor(i: number): number {
     const seq = [-4, 3, -2, 4, -3, 2, -4, 3, -2, 4];
     return seq[i % seq.length]!;
@@ -35,42 +34,60 @@ function tiltFor(i: number): number {
 
 export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
-    const purchasedIds = useOwnedStickerIds();
-    const owned = useMemo(() => {
-        const seed = ownedStickers(ownerHandle);
-        // On your own profile, your simulated purchases stack on top of the seed.
-        if (!isOwn) return seed;
-        const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
-        for (const id of purchasedIds) {
-            const s = stickerById(id);
-            if (s) map.set(id, s);
-        }
-        return [...map.values()];
-    }, [ownerHandle, isOwn, purchasedIds]);
+    const owned = useOwnedFor(ownerHandle, !!isOwn);
+    const { offSheets, offIds } = useStickerPrefs();
+    const [mgrOpen, setMgrOpen] = useState(false);
 
-    // Hidden by the viewer, or the owner holds none → render nothing at all.
-    if (notifs.sticker || owned.length === 0) return null;
+    // Only ACTIVE stickers feed the profile.
+    const active = useMemo(
+        () => owned.filter((s) => isActive(s, offSheets, offIds)),
+        [owned, offSheets, offIds],
+    );
 
-    // The profile shows a CAPPED pull from their list — not everything they own.
-    // Owning more fills the sheet denser, but the profile row stays modest (the
-    // generative menu lifts this later). Kept below the sheet's draw on purpose.
+    // Hidden by the viewer, or nothing active → render nothing at all.
+    if (notifs.sticker || active.length === 0) {
+        return isOwn ? (
+            <StickerManagerModal open={mgrOpen} onClose={() => setMgrOpen(false)} handle={(ownerHandle ?? '').replace(/^@/, '')} />
+        ) : null;
+    }
+
+    // The profile shows a CAPPED pull from your list — not everything. Owning
+    // more fills the sheet denser, but the profile row stays modest.
     const PROFILE_CAP = 8;
-    const shown = owned.slice(0, PROFILE_CAP);
+    const shown = active.slice(0, PROFILE_CAP);
+
+    const row = (
+        <div className="hero-stickers-row">
+            {shown.map((s, i) => (
+                <span
+                    key={s.id}
+                    className="hero-sticker"
+                    style={{ transform: `rotate(${tiltFor(i)}deg)` }}
+                    title={s.name}
+                >
+                    <StickerArt sticker={s} size={40} />
+                </span>
+            ))}
+        </div>
+    );
 
     return (
         <div className="hero-stickers" aria-label="Stickers">
-            <div className="hero-stickers-row">
-                {shown.map((s, i) => (
-                    <span
-                        key={s.id}
-                        className="hero-sticker"
-                        style={{ transform: `rotate(${tiltFor(i)}deg)` }}
-                        title={s.name}
+            {isOwn ? (
+                <>
+                    <button
+                        type="button"
+                        className="hero-stickers-tap"
+                        title="Manage your stickers"
+                        onClick={() => setMgrOpen(true)}
                     >
-                        <StickerArt sticker={s} size={40} />
-                    </span>
-                ))}
-            </div>
+                        {row}
+                    </button>
+                    <StickerManagerModal open={mgrOpen} onClose={() => setMgrOpen(false)} handle={(ownerHandle ?? '').replace(/^@/, '')} />
+                </>
+            ) : (
+                row
+            )}
         </div>
     );
 }

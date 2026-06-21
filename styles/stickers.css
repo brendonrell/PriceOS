@@ -362,3 +362,144 @@
     .hero-stickers { margin: 0 0 8px; }
     .hero-stickers-row { gap: 4px; }
 }
+
+/* Your own row is a tap target → opens the manager. Reset button chrome. */
+.hero-stickers-tap {
+    display: block;
+    width: 100%;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================================
+   Sticker manager — tap your profile stickers. Matches the Ambient Light menu
+   (panel + label/chip rows). Holds the store button + active on/off controls.
+   ============================================================================ */
+.sticker-mgr-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1320;
+    background: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: smgr-fade 0.16s ease both;
+}
+@keyframes smgr-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.sticker-mgr {
+    width: min(360px, 92vw);
+    max-height: min(80vh, 620px);
+    overflow-y: auto;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+    padding: 12px 14px;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: smgr-pop 0.16s ease both;
+}
+@keyframes smgr-pop { from { transform: translateY(8px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.smgr-head { display: flex; align-items: center; gap: 10px; }
+.smgr-title {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+}
+.smgr-store {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+.smgr-store-ic { font-size: 10px; }
+.smgr-close {
+    font-size: 18px;
+    line-height: 1;
+    color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    cursor: pointer;
+    padding: 2px 2px 2px 4px;
+}
+.smgr-close:hover { color: var(--text-color); }
+
+.smgr-row { display: flex; align-items: flex-start; gap: 10px; }
+.smgr-label {
+    flex: 0 0 56px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+    padding-top: 6px;
+}
+.smgr-chips { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 6px; }
+.smgr-chip {
+    display: inline-flex;
+    align-items: center;
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    height: 28px;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+.smgr-chip.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    opacity: 1;
+}
+
+.smgr-grid-wrap { display: flex; align-items: flex-start; gap: 10px; }
+.smgr-grid {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 6px;
+}
+.smgr-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 4px;
+    transition: opacity 0.15s, border-color 0.15s;
+}
+.smgr-tile.off { opacity: 0.28; }
+.smgr-tile.off:hover { opacity: 0.5; }
+.smgr-tile:not(.off):hover { border-color: color-mix(in srgb, var(--text-color) 50%, transparent); }
