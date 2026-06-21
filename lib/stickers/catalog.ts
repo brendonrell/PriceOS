@@ -22,13 +22,16 @@ import { spriteFaceFor } from './sprites';
 
 export type SheetId =
     | 'genesis' | 'petey' | 'icon' | 'familiar'
-    | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname';
+    | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname' | 'output';
 
 export interface Sticker {
     id: string;
     sheet: SheetId;
-    kind: 'logo' | 'price' | 'glyph' | 'face';
+    kind: 'logo' | 'price' | 'glyph' | 'face' | 'output';
     name: string;
+    /** output: the project slug + token id to paint. */
+    slug?: string;
+    tokenId?: number;
     /** logo: bubble/dots colour. */
     color?: string;
     /** logo: the slash-glyph cutout colour (reads against `color`). */
@@ -249,10 +252,23 @@ const PROJECT_NAMES: Sticker[] = PROJECT_LIST.map<Sticker>((p) => ({
     cutout: cutoutFor(p.colorway),
 }));
 
+/* ── Outputs sheet — real generative artworks, painted small ─────────────── */
+const OUTPUTS: Sticker[] = PROJECT_LIST.slice(0, 18).map<Sticker>((p, i) => {
+    const tid = (i % 7) + 1;
+    return {
+        id: `output-${p.slug}-${tid}`,
+        sheet: 'output',
+        kind: 'output',
+        name: `${p.displayName} #${tid}`,
+        slug: p.slug,
+        tokenId: tid,
+    };
+});
+
 export const STICKERS: readonly Sticker[] = [
     ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS,
     ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
-    ...ARTIST_NAMES, ...PROJECT_NAMES,
+    ...ARTIST_NAMES, ...PROJECT_NAMES, ...OUTPUTS,
 ];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
@@ -279,6 +295,7 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'pricesprite', name: 'PRICESPRITES', tag: 'RARE', count: PRICESPRITES.length, price: '0.010', cover: PRICESPRITES[0]! },
     { id: 'handle', name: 'ARTIST NAMES', tag: 'COMMON', count: ARTIST_NAMES.length, price: '0.006', cover: ARTIST_NAMES[0]! },
     { id: 'projectname', name: 'PROJECT NAMES', tag: 'COMMON', count: PROJECT_NAMES.length, price: '0.008', cover: PROJECT_NAMES[0]! },
+    { id: 'output', name: 'OUTPUTS', tag: 'MYTHIC', count: OUTPUTS.length, price: '0.020', cover: OUTPUTS[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {

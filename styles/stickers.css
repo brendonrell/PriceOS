@@ -320,6 +320,25 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
+.out-sticker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+.out-sticker.diecut {
+    background: var(--sticker-cut, #fff);
+    padding: 11%;
+    border-radius: 16%;
+}
+.out-sticker-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 9%;
+}
 @media (max-width: 600px) {
     .ss-buy-head .ss-buy-cta { display: none; }
 }

@@ -9,6 +9,7 @@
  */
 
 import type { Sticker } from '../../lib/stickers/catalog';
+import { OutputSticker } from './OutputSticker';
 import {
     PETEY_BUBBLE_PATH, PETEY_GLYPH_PATH,
     PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH,
@@ -33,6 +34,10 @@ const CUT_LOGO = 132;
 const CUT_PRICE = 104;
 
 export function StickerArt({ sticker, size = 44, fill, diecut, className }: Props) {
+    if (sticker.kind === 'output' && sticker.slug && sticker.tokenId != null) {
+        return <OutputSticker slug={sticker.slug} id={sticker.tokenId} size={size} fill={fill} diecut={diecut} />;
+    }
+
     const dims = fill
         ? { width: '100%' as const }
         : { height: size };
