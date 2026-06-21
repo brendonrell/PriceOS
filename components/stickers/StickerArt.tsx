@@ -105,6 +105,43 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
         );
     }
 
+    if (sticker.kind === 'face') {
+        const color = sticker.color ?? '#1A1A1A';
+        const fg = sticker.cutout ?? '#FFFFFF';
+        const text = sticker.glyph ?? '( ◕ )';
+        const chars = [...text].length;
+        const W = Math.max(150, chars * 30);
+        const H = 110;
+        const vb = diecut ? `-26 -26 ${W + 52} ${H + 52}` : `0 0 ${W} ${H}`;
+        return (
+            <svg
+                className={className}
+                {...(fill ? { width: '100%' as const } : { height: size })}
+                viewBox={vb}
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                role="img"
+                aria-label={sticker.name}
+                style={{ overflow: 'visible' }}
+            >
+                {diecut && <rect x={-17} y={-17} width={W + 34} height={H + 34} rx={42} fill={CUT} />}
+                <rect x={0} y={0} width={W} height={H} rx={30} fill={color} />
+                <text
+                    x={W / 2}
+                    y={H / 2 + 2}
+                    fill={fg}
+                    fontFamily="'Courier New', Courier, monospace"
+                    fontSize={52}
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                >
+                    {text}
+                </text>
+            </svg>
+        );
+    }
+
     // $PRICE wordmark — ratio 517:403.
     const bg = sticker.bg ?? '#FF0055';
     const fg = sticker.fg ?? '#FFE600';

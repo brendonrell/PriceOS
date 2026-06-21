@@ -16,12 +16,12 @@
  * reads (ERC-1155) wire in later.
  */
 
-export type SheetId = 'genesis' | 'petey' | 'icon';
+export type SheetId = 'genesis' | 'petey' | 'icon' | 'familiar';
 
 export interface Sticker {
     id: string;
     sheet: SheetId;
-    kind: 'logo' | 'price' | 'glyph';
+    kind: 'logo' | 'price' | 'glyph' | 'face';
     name: string;
     /** logo: bubble/dots colour. */
     color?: string;
@@ -149,7 +149,29 @@ const ICONS: Sticker[] = ICON_GLYPHS.map<Sticker>((it, i) => {
     };
 });
 
-export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY, ...ICONS];
+/* ── Familiar sheet — the five digital familiars (familiarEngine species) ─── */
+const FAMILIAR_FACES: { name: string; g: string }[] = [
+    { name: 'Wisp',    g: '( ¤ )' },
+    { name: 'Watcher', g: '[ ◉ ]' },
+    { name: 'Slime',   g: '(~o~)' },
+    { name: 'Spider',  g: '/|o.o|\\' },
+    { name: 'Orbit',   g: '(◯·)' },
+];
+const FAMILIAR_HUES = genHues(FAMILIAR_FACES.length, 'f', { sat: 82, lights: [54, 44, 62], phase: 30 });
+const FAMILIARS: Sticker[] = FAMILIAR_FACES.map<Sticker>((it, i) => {
+    const hex = FAMILIAR_HUES[i]!.hex;
+    return {
+        id: `familiar-${it.name.toLowerCase()}`,
+        sheet: 'familiar',
+        kind: 'face',
+        name: it.name,
+        glyph: it.g,
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
+export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
 export function stickerById(id: string): Sticker | undefined {
@@ -169,6 +191,7 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'genesis', name: 'GENESIS', tag: 'MYTHIC',   count: GENESIS.length, price: '0.010', cover: GENESIS[0]! },
     { id: 'petey',   name: 'PETEY',   tag: 'UNCOMMON', count: PETEY.length,   price: '0.008', cover: PETEY[0]! },
     { id: 'icon',    name: 'ICONS',   tag: 'COMMON',   count: ICONS.length,   price: '0.006', cover: ICONS[0]! },
+    { id: 'familiar', name: 'FAMILIARS', tag: 'RARE',  count: FAMILIARS.length, price: '0.012', cover: FAMILIARS[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {
