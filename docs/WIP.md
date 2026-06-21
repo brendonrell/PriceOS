@@ -9,11 +9,33 @@
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
   branch `claude/subfilter-pills-styling-fysgj2` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-20 (latest). This session = **OUTPUT ATTRIBUTES / CHARACTER SHEET** (🪪 below).
-  Prior: STARRED/WISHLIST + SPRITE POLISH (⭐), GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️),
-  PWA STEP 3 (📲), 6 gen-art projects (🖼️), ARTIST SHOWCASE / mood palette, HOME draw.
+- **Updated:** 2026-06-21 (latest). This session = **HALO 4-PROJECT ATTEMPT — REVERTED** (⛔ below).
+  Prior: OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST + SPRITE POLISH (⭐),
+  GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️), PWA STEP 3 (📲), 6 gen-art projects (🖼️).
 
-## 🪪 OUTPUT ATTRIBUTES / CHARACTER SHEET — 2026-06-20 (latest) — SHIPPED to dev
+## ⛔ HALO 4-PROJECT ATTEMPT — BUILT, SHIPPED BROKEN, REVERTED 2026-06-21
+- Goal: 4 abstract bright-cyberpunk (anime/Promare) gen-art projects — **Lustre** (warm
+  iridescent foil), **Bloomwater** (deep-jewel marbled ink), **Voltaic** (high-voltage
+  plasma), **Facet** (pastel-prism cut glass) — each its own bespoke palette, assigned to
+  kindred 1-project AI artists (firstchannel-ai / overprint-ai / filament-ai / lapidary-ai).
+- Built via a 4-direction jury + evolution + per-project palette pass. The R&D engines live
+  only in git history (`b75d5c3`, since reverted); the **render harness is `tools/halo/`**
+  (kit.js + render.mjs, `PW_EXEC=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
+- **What went wrong:** the ported TS engines exported each `traitSchema` as a bare array
+  instead of `{ traits: [...] }`, so `primaryTrait` (`lib/output/rarity.ts`) read
+  `traitSchema.traits[0]` of undefined → `/api/outputs/traits` 500 → project pages hit the
+  error boundary ("SOMETHING GLITCHED"). My port bug, caught only after it reached dev.
+- **Root cause FOUND + fixed** in the engine files (wrap schema in `{ traits: [...] }`);
+  verified the prod build then fails identically to existing projects (a local-only
+  `outputColorBucket is not a function` dev/RLS artifact, NOT a prod bug). But Brendon
+  **called it and had me revert everything** before re-shipping.
+- **State now:** all 4 projects + engines reverted off `dev` (revert commit `c4e3897`,
+  rebased to `92e19c4`); the 4 `projects` DB rows DELETED; dev healthy, tree clean.
+  Nothing halo is live. If ever revisited: restore engines from `b75d5c3`, apply the
+  schema-shape fix, re-test `/api/outputs/traits` against a known-good project in a
+  **production** build before pushing.
+
+## 🪪 OUTPUT ATTRIBUTES / CHARACTER SHEET — 2026-06-20 — SHIPPED to dev
 - **Stored platform traits:** Artist/Project/PriceDay/Natal/Fate + the **Output true name**
   (`outputTrueName` = project Glagolitic name + id) now persist to `outputs`, computed once from the
   mint moment + registry. UI computes live as the fallback until a row fills. Backfills as pieces are
