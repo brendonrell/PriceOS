@@ -4,15 +4,16 @@
  * Every sticker is one of our logos recoloured by the theming engine: the ONLY
  * thing that changes between stickers is a hex (the logo) or a bg/fg pair
  * ($PRICE). Two genesis sheets to start:
- *   - genesis : the REGULAR logo (the one in the corner) in a colour range,
- *               PLUS the $PRICE wordmark in its two canonical variants
+ *   - genesis : the REGULAR logo (the one in the corner) across a big colour
+ *               range, PLUS the $PRICE wordmark in its two canonical variants
  *               (classic red-bubble/yellow-text + inverted yellow/red).
  *   - petey   : the SAME logo rotated 90° counter-clockwise — that rotation is
- *               what turns the logo into Petey the mascot — in all new colours.
+ *               what turns the logo into Petey the mascot — in its own colours.
  *
- * Ownership is simulated the way minted projects are: a fixed mock set keyed by
- * @handle. Only Brendon owns stickers to start, so every other profile renders
- * exactly as it does today. Real on-chain reads (ERC-1155) wire in later.
+ * Ownership is simulated the way minted projects are: a fixed mock seed keyed by
+ * @handle, plus whatever the current user buys (owned.ts). Only Brendon is
+ * seeded, so every other profile renders exactly as it does today. Real on-chain
+ * reads (ERC-1155) wire in later.
  */
 
 export type SheetId = 'genesis' | 'petey';
@@ -39,32 +40,44 @@ const PRICE_YELLOW = '#FFE600';
 
 interface Hue { key: string; name: string; hex: string; }
 
-/* Genesis logo colours — the brand palette. */
-const GENESIS_HUES: readonly Hue[] = [
-    { key: 'hot',    name: 'Hot',    hex: '#FF0055' },
-    { key: 'blue',   name: 'Blue',   hex: '#3D9EFF' },
-    { key: 'haze',   name: 'Haze',   hex: '#25EC00' },
-    { key: 'violet', name: 'Violet', hex: '#7B2FFF' },
-    { key: 'orange', name: 'Orange', hex: '#FF6600' },
-    { key: 'gold',   name: 'Gold',   hex: '#FFE600' },
-    { key: 'ink',    name: 'Ink',    hex: '#1A1A1A' },
-    { key: 'bone',   name: 'Bone',   hex: '#E0E0E0' },
-];
+/* ── Colour generation — many vivid hues round the wheel ─────────────────── */
+function hslHex(h: number, s: number, l: number): string {
+    const sat = s / 100, lig = l / 100;
+    const a = sat * Math.min(lig, 1 - lig);
+    const f = (n: number) => {
+        const k = (n + h / 30) % 12;
+        return lig - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    };
+    const hx = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
+    return `#${hx(f(0))}${hx(f(8))}${hx(f(4))}`.toUpperCase();
+}
 
-/* Petey colours — all NEW hues, no overlap with Genesis. */
-const PETEY_HUES: readonly Hue[] = [
-    { key: 'teal',    name: 'Teal',    hex: '#00E5C7' },
-    { key: 'magenta', name: 'Magenta', hex: '#FF2D9B' },
-    { key: 'lime',    name: 'Lime',    hex: '#B6FF1A' },
-    { key: 'amber',   name: 'Amber',   hex: '#FFB000' },
-    { key: 'indigo',  name: 'Indigo',  hex: '#3A2DFF' },
-    { key: 'coral',   name: 'Coral',   hex: '#FF6F61' },
-    { key: 'mint',    name: 'Mint',    hex: '#6BFFB0' },
-    { key: 'slate',   name: 'Slate',   hex: '#5B6B7A' },
+const NAME_RING: [number, string][] = [
+    [0, 'Red'], [18, 'Scarlet'], [33, 'Orange'], [45, 'Amber'], [55, 'Gold'],
+    [70, 'Lime'], [90, 'Chartreuse'], [120, 'Green'], [150, 'Emerald'], [168, 'Teal'],
+    [182, 'Cyan'], [197, 'Sky'], [212, 'Azure'], [228, 'Blue'], [244, 'Indigo'],
+    [258, 'Violet'], [275, 'Purple'], [290, 'Magenta'], [312, 'Fuchsia'], [332, 'Pink'], [348, 'Rose'],
 ];
+function hueName(h: number): string {
+    let best = NAME_RING[0]!, bestD = 999;
+    for (const e of NAME_RING) {
+        const d = Math.min(Math.abs(e[0] - h), 360 - Math.abs(e[0] - h));
+        if (d < bestD) { bestD = d; best = e; }
+    }
+    return best[1];
+}
 
-/** YIQ luminance → is this hex a light colour? (same heuristic as the colorway
-    text-contrast engine). */
+/** Spread `n` vivid hues round the wheel; lightness cycles for extra variety. */
+function genHues(n: number, prefix: string, opts: { sat: number; lights: number[]; phase: number }): Hue[] {
+    const out: Hue[] = [];
+    for (let i = 0; i < n; i++) {
+        const h = (opts.phase + (i * 360) / n) % 360;
+        const l = opts.lights[i % opts.lights.length]!;
+        out.push({ key: `${prefix}${i}`, name: hueName(h), hex: hslHex(h, opts.sat, l) });
+    }
+    return out;
+}
+
 function isLight(hex: string): boolean {
     const h = hex.replace('#', '');
     const r = parseInt(h.slice(0, 2), 16) || 0;
@@ -72,30 +85,30 @@ function isLight(hex: string): boolean {
     const b = parseInt(h.slice(4, 6), 16) || 0;
     return (r * 299 + g * 587 + b * 114) / 1000 >= 140;
 }
-
 const cutoutFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#FFFFFF');
 
 /* ── Genesis sheet — the regular logo (upright) + the two $PRICE variants ─── */
+const GENESIS_HUES = genHues(27, 'g', { sat: 88, lights: [52, 62, 44], phase: 6 });
 const GENESIS: Sticker[] = [
+    /* Brand classic first: Hothurt-red bubble + attention-yellow per-mille. */
+    { id: 'genesis-hot', sheet: 'genesis', kind: 'logo', name: 'Logo — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
     ...GENESIS_HUES.map<Sticker>((h) => ({
         id: `genesis-${h.key}`,
         sheet: 'genesis',
         kind: 'logo',
-        name: h.key === 'hot' ? 'Logo — Classic' : `Logo — ${h.name}`,
+        name: `Logo — ${h.name}`,
         color: h.hex,
-        /* The 'hot' logo wears the brand scheme: Hothurt-red bubble + attention-
-           yellow per-mille — same two colours as the $PRICE logos. */
-        cutout: h.key === 'hot' ? PRICE_YELLOW : cutoutFor(h.hex),
+        cutout: cutoutFor(h.hex),
     })),
     { id: 'genesis-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED, fg: PRICE_YELLOW },
     { id: 'genesis-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
 ];
 
-/* ── Petey sheet — the same logo rotated 90° CCW ─────────────────────────── */
+/* ── Petey sheet — the same logo rotated 90° CCW, its own colour band ─────── */
+const PETEY_HUES = genHues(23, 'p', { sat: 80, lights: [58, 48, 67], phase: 15 });
 const PETEY: Sticker[] = [
     /* One Petey in the brand scheme: Hothurt-red bubble + attention-yellow. */
     { id: 'petey-classic', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
-    /* ...then all new colours. */
     ...PETEY_HUES.map<Sticker>((h) => ({
         id: `petey-${h.key}`,
         sheet: 'petey',
@@ -120,7 +133,6 @@ export interface SheetMeta {
     tag: string;
     count: number;
     price: string;
-    /** A representative sticker for the store card art. */
     cover: Sticker;
 }
 
@@ -133,24 +145,22 @@ export function stickersForSheet(id: SheetId): Sticker[] {
     return STICKERS.filter((s) => s.sheet === id);
 }
 
-/* ── Ownership (simulated) ───────────────────────────────────────────────── */
-/* Only Brendon owns stickers to start. A curated mix of both sheets — enough to
-   spread a modest single row wide across the hero. */
+/* ── Ownership (simulated seed) ──────────────────────────────────────────── */
+/* Only Brendon is seeded. A curated mix of both sheets so his hero shows a
+   modest spread before he buys anything. */
 const MOCK_OWNED: Record<string, string[]> = {
     brendon: [
         'genesis-hot',
-        'genesis-blue',
+        'genesis-g4',
+        'genesis-g13',
         'genesis-price-classic',
         'genesis-price-inverted',
         'petey-classic',
-        'petey-magenta',
-        'petey-amber',
-        'petey-indigo',
+        'petey-p6',
+        'petey-p15',
     ],
 };
 
-/** The stickers a profile owner holds (simulated). Empty for everyone but the
-    seeded owners, so their profile is unchanged. */
 export function ownedStickers(handle: string | null | undefined): Sticker[] {
     if (!handle) return [];
     const ids = MOCK_OWNED[handle.replace(/^@/, '').toLowerCase()];

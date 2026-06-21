@@ -19,12 +19,13 @@
  * PriceOSShell. Mouse drag-to-scroll on the rail mirrors the home carousels.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import {
     SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId,
 } from '../lib/stickers/catalog';
+import { buildSheetLayout } from '../lib/stickers/sheetLayout';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import { useOwnedStickerIds } from '../lib/stickers/owned';
@@ -39,12 +40,6 @@ function fanFor(sheet: SheetMeta) {
     return [all[0]!, all[mid]!, all[all.length - 1]!];
 }
 
-/* Stable whisper-tilt per sheet slot. */
-function tilt(i: number): number {
-    const seq = [-5, 4, -3, 5, -4, 3, -5, 4, -2, 5];
-    return seq[i % seq.length]!;
-}
-
 export default function StickersModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'stickers';
@@ -52,12 +47,20 @@ export default function StickersModal() {
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
+    /* A fresh seed on every open → the sheet re-scatters each time you look. */
+    const [seed, setSeed] = useState(1);
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
+
+    const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
     const ownedIds = useOwnedStickerIds();
     const totalSheets = REAL_SHEETS.length;
     const detail = openSheet ? REAL_SHEETS.find((s) => s.id === openSheet) ?? null : null;
+    const layout = useMemo(
+        () => (detail ? buildSheetLayout(stickersForSheet(detail.id), seed) : null),
+        [detail, seed],
+    );
 
     return (
         <div
@@ -88,7 +91,7 @@ export default function StickersModal() {
                                 onClick={() => setOpenSheet(null)}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(null); } }}
                             >
-                                {`←${VS15}`}
+                                {`⇠⇠${VS15}`}
                             </div>
                             <div className="ss-title">
                                 <span className="ss-title-main">{detail.name}</span>
@@ -121,17 +124,29 @@ export default function StickersModal() {
                     )}
                 </div>
 
-                {detail ? (
-                    /* ── Peel-off sticker sheet — every sticker inside ───────── */
-                    <div className="ss-sheet-grid">
-                        {stickersForSheet(detail.id).map((st, i) => (
-                            <div className="ss-peel" key={st.id} title={st.name}>
-                                <span className="ss-peel-art" style={{ transform: `rotate(${tilt(i)}deg)` }}>
-                                    <StickerArt sticker={st} size={62} />
+                {detail && layout ? (
+                    /* ── Generative sticker sheet — die-cut scatter on one backing ── */
+                    <div className="ss-paper-wrap">
+                        <div
+                            className="ss-paper"
+                            style={{ aspectRatio: `${layout.cols} / ${layout.rows}` }}
+                        >
+                            {layout.items.map((p) => (
+                                <span
+                                    key={p.sticker.id}
+                                    className="ss-paper-sticker"
+                                    title={p.sticker.name}
+                                    style={{
+                                        left: `${p.x}%`,
+                                        top: `${p.y}%`,
+                                        width: `${100 / layout.cols}%`,
+                                        transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
+                                    }}
+                                >
+                                    <StickerArt sticker={p.sticker} fill diecut />
                                 </span>
-                                <span className="ss-peel-name">{st.name}</span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -149,8 +164,8 @@ export default function StickersModal() {
                                     key={s.id}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => setOpenSheet(s.id)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(s.id); } }}
+                                    onClick={() => openDetail(s.id)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(s.id); } }}
                                 >
                                     <div className="ss-card-art">
                                         <span className="ss-fan">

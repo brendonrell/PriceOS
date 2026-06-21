@@ -51,10 +51,16 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     // Hidden by the viewer, or the owner holds none → render nothing at all.
     if (notifs.sticker || owned.length === 0) return null;
 
+    // The profile shows a CAPPED pull from their list — not everything they own.
+    // Owning more fills the sheet denser, but the profile row stays modest (the
+    // generative menu lifts this later). Kept below the sheet's draw on purpose.
+    const PROFILE_CAP = 8;
+    const shown = owned.slice(0, PROFILE_CAP);
+
     return (
         <div className="hero-stickers" aria-label="Stickers">
             <div className="hero-stickers-row">
-                {owned.map((s, i) => (
+                {shown.map((s, i) => (
                     <span
                         key={s.id}
                         className="hero-sticker"
