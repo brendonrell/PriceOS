@@ -8,13 +8,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-export type Arrange = 'row' | 'tworows' | 'spread' | 'scatter' | 'fill';
+export type Arrange = 'row' | 'tworows' | 'spread' | 'scatter' | 'fill' | 'stack';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
 
 export const ARRANGES: { id: Arrange; label: string }[] = [
     { id: 'spread', label: 'SPREAD' },
     { id: 'row', label: 'ROW' },
     { id: 'tworows', label: '2 ROWS' },
+    { id: 'stack', label: 'STACK' },
     { id: 'scatter', label: 'SCATTER' },
     { id: 'fill', label: 'FILL' },
 ];
@@ -68,15 +69,16 @@ export function useHeroPrefs(): HeroPrefs {
     return useMemo(() => v, [v]);
 }
 
-/* Per-mode shape: how many rows + the display cap. */
-export function arrangeShape(a: Arrange): { rows: number; cap: number; scatter: boolean } {
+/* Per-mode shape: how many rows + the display cap + overlap flag. */
+export function arrangeShape(a: Arrange): { rows: number; cap: number; scatter: boolean; overlap: boolean } {
     switch (a) {
-        case 'row':     return { rows: 1, cap: 6, scatter: false };
-        case 'spread':  return { rows: 1, cap: 6, scatter: false };
-        case 'tworows': return { rows: 2, cap: 12, scatter: false };
-        case 'scatter': return { rows: 2, cap: 14, scatter: true };
-        case 'fill':    return { rows: 3, cap: 24, scatter: true };
-        default:        return { rows: 1, cap: 6, scatter: false };
+        case 'row':     return { rows: 1, cap: 6, scatter: false, overlap: false };
+        case 'spread':  return { rows: 1, cap: 6, scatter: false, overlap: false };
+        case 'tworows': return { rows: 2, cap: 12, scatter: false, overlap: false };
+        case 'stack':   return { rows: 1, cap: 8, scatter: false, overlap: true };
+        case 'scatter': return { rows: 2, cap: 14, scatter: true, overlap: false };
+        case 'fill':    return { rows: 3, cap: 24, scatter: true, overlap: false };
+        default:        return { rows: 1, cap: 6, scatter: false, overlap: false };
     }
 }
 

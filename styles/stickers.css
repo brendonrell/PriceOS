@@ -420,6 +420,8 @@
 }
 /* ROW mode packs centred; the others spread across the width. */
 .arr-row .hero-stickers-row { justify-content: center; gap: 12px; }
+/* STACK mode overlaps the peeled stickers into a centred pile. */
+.hero-stickers-row.is-stack { justify-content: center; gap: 0; }
 .hero-sticker {
     display: inline-flex;
     align-items: center;

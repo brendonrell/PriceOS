@@ -57,7 +57,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
         [owned, offSheets, offIds],
     );
 
-    const { rows, cap, scatter } = arrangeShape(arrange);
+    const { rows, cap, scatter, overlap } = arrangeShape(arrange);
     // Expanding fills the wider space with more stickers.
     const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
@@ -90,7 +90,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
             style={{ maxWidth: expand ? undefined : (clampW ?? undefined) }}
         >
             {rowChunks.map((chunk, ri) => (
-                <div className="hero-stickers-row" key={ri}>
+                <div className={`hero-stickers-row${overlap ? ' is-stack' : ''}`} key={ri}>
                     {chunk.map((s, i) => {
                         const t = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
                         const jy = scatter ? Math.round((jrnd() - 0.5) * 14) : 0;
@@ -98,7 +98,12 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
                             <span
                                 key={s.id}
                                 className="hero-sticker"
-                                style={{ transform: `translateY(${jy}px) rotate(${t}deg)` }}
+                                style={{
+                                    transform: `translateY(${jy}px) rotate(${t}deg)`,
+                                    // STACK: overlap the peeled stickers into a pile.
+                                    marginLeft: overlap && i > 0 ? -18 : undefined,
+                                    zIndex: overlap ? i + 1 : undefined,
+                                }}
                                 title={s.name}
                             >
                                 <StickerArt sticker={s} size={sz(s.kind)} />
