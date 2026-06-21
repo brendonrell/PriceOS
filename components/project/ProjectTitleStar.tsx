@@ -24,7 +24,7 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
     const { showToast } = useToast();
     const { notifs } = usePdNotifs();
     const cartelOn = notifs.spell_cartel;
-    const cartelCount = useCartelMutualCount(slug);
+    const cartelCount = useCartelMutualCount(slug, cartelOn);
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isProjectStarred(slug));
