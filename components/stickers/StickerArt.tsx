@@ -107,15 +107,16 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
         const fg = sticker.cutout ?? '#FFFFFF';
         const lines = (sticker.glyph ?? '( ◕ )').split('\n');
         const maxLen = Math.max(1, ...lines.map((l) => [...l].length));
-        // UNIFORM tile — every face the same shape; the text scales to fit, so
-        // sprites/familiars tile tidily regardless of how long their art is.
-        const W = 178;
-        const H = 120;
-        const innerW = W - 30;   // side buffer
-        const innerH = H - 24;
-        const fs = Math.max(8, Math.min(54, innerW / (maxLen * 0.62), innerH / (lines.length * 1.18)));
-        const lineH = fs * 1.18;
-        const vb = diecut ? `-44 -44 ${W + 88} ${H + 88}` : `0 0 ${W} ${H}`;
+        // SKINNY chip that hugs the text — a little buffer on the LEFT/RIGHT only.
+        const SIDE = 20;
+        const charW = 30;
+        const fontSize = 46;
+        const lineH = 54;
+        const W = maxLen * charW + SIDE * 2;
+        const H = lines.length * lineH + 24;   // hugs the text height
+        const M = 24;                          // die-cut margin
+        const L = 8;                           // kiss-cut line peek
+        const vb = diecut ? `${-(M + L) - 2} ${-(M + L) - 2} ${W + 2 * (M + L) + 4} ${H + 2 * (M + L) + 4}` : `0 0 ${W} ${H}`;
         const y0 = H / 2 - ((lines.length - 1) * lineH) / 2;
         return (
             <svg
@@ -130,12 +131,12 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-36} y={-36} width={W + 72} height={H + 72} rx={54} fill={LINE} />
-                        <rect x={-28} y={-28} width={W + 56} height={H + 56} rx={46} fill={CUT} />
+                        <rect x={-(M + L)} y={-(M + L)} width={W + 2 * (M + L)} height={H + 2 * (M + L)} rx={M + L + 8} fill={LINE} />
+                        <rect x={-M} y={-M} width={W + 2 * M} height={H + 2 * M} rx={M + 6} fill={CUT} />
                     </>
                 )}
-                <rect x={0} y={0} width={W} height={H} rx={26} fill={color} />
-                <text fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fs} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+                <rect x={0} y={0} width={W} height={H} rx={20} fill={color} />
+                <text fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fontSize} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
                     {lines.map((ln, i) => (
                         <tspan key={i} x={W / 2} y={y0 + i * lineH}>{ln || ' '}</tspan>
                     ))}
