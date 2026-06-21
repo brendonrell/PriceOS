@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function StickerArt({ sticker, size = 44, className }: Props) {
-    if (sticker.kind === 'petey') {
+    if (sticker.kind === 'logo') {
         const color = sticker.color ?? '#FF0055';
         const cutout = sticker.cutout ?? '#FFFFFF';
         return (
@@ -34,6 +34,8 @@ export function StickerArt({ sticker, size = 44, className }: Props) {
                 xmlns="http://www.w3.org/2000/svg"
                 role="img"
                 aria-label={sticker.name}
+                /* Petey = the regular logo rotated 90° counter-clockwise. */
+                style={sticker.rotated ? { transform: 'rotate(-90deg)' } : undefined}
             >
                 <path d={PETEY_BUBBLE_PATH} fill={color} />
                 <path d={PETEY_GLYPH_PATH} fill={cutout} stroke={cutout} strokeWidth="1.5" />

@@ -1,12 +1,14 @@
 /*
  * Sticker catalog — the simulated sticker NFTs.
  *
- * Every sticker is one of our two logos recoloured by the theming engine: the
- * ONLY thing that changes between stickers is a hex (Petey) or a bg/fg pair
+ * Every sticker is one of our logos recoloured by the theming engine: the ONLY
+ * thing that changes between stickers is a hex (the logo) or a bg/fg pair
  * ($PRICE). Two genesis sheets to start:
- *   - genesis : the $PRICE wordmark — the two canonical variants (normal +
- *               the red-background colour-swap) plus a colour range.
- *   - petey   : the mascot, recoloured across the palette.
+ *   - genesis : the REGULAR logo (the one in the corner) in a colour range,
+ *               PLUS the $PRICE wordmark in its two canonical variants
+ *               (classic red-bubble/yellow-text + inverted yellow/red).
+ *   - petey   : the SAME logo rotated 90° counter-clockwise — that rotation is
+ *               what turns the logo into Petey the mascot — in all new colours.
  *
  * Ownership is simulated the way minted projects are: a fixed mock set keyed by
  * @handle. Only Brendon owns stickers to start, so every other profile renders
@@ -18,33 +20,47 @@ export type SheetId = 'genesis' | 'petey';
 export interface Sticker {
     id: string;
     sheet: SheetId;
-    kind: 'price' | 'petey';
+    kind: 'logo' | 'price';
     name: string;
-    /** Petey: bubble/dots colour. */
+    /** logo: bubble/dots colour. */
     color?: string;
-    /** Petey: the slash-glyph cutout colour (reads against `color`). */
+    /** logo: the slash-glyph cutout colour (reads against `color`). */
     cutout?: string;
+    /** logo: rotate the artwork 90° CCW → Petey the mascot. */
+    rotated?: boolean;
     /** $PRICE: rounded-rect background. */
     bg?: string;
     /** $PRICE: letter colour. */
     fg?: string;
 }
 
-/* ── Palette — the theming-engine hexes the logos recolour through ───────── */
 const PRICE_RED = '#FF0055';
 const PRICE_YELLOW = '#FFE600';
 
 interface Hue { key: string; name: string; hex: string; }
-const PALETTE: readonly Hue[] = [
+
+/* Genesis logo colours — the brand palette. */
+const GENESIS_HUES: readonly Hue[] = [
     { key: 'hot',    name: 'Hot',    hex: '#FF0055' },
-    { key: 'gold',   name: 'Gold',   hex: '#FFE600' },
-    { key: 'orange', name: 'Orange', hex: '#FF6600' },
     { key: 'blue',   name: 'Blue',   hex: '#3D9EFF' },
-    { key: 'red',    name: 'Red',    hex: '#FF0033' },
-    { key: 'violet', name: 'Violet', hex: '#7B2FFF' },
     { key: 'haze',   name: 'Haze',   hex: '#25EC00' },
+    { key: 'violet', name: 'Violet', hex: '#7B2FFF' },
+    { key: 'orange', name: 'Orange', hex: '#FF6600' },
+    { key: 'gold',   name: 'Gold',   hex: '#FFE600' },
     { key: 'ink',    name: 'Ink',    hex: '#1A1A1A' },
     { key: 'bone',   name: 'Bone',   hex: '#E0E0E0' },
+];
+
+/* Petey colours — all NEW hues, no overlap with Genesis. */
+const PETEY_HUES: readonly Hue[] = [
+    { key: 'teal',    name: 'Teal',    hex: '#00E5C7' },
+    { key: 'magenta', name: 'Magenta', hex: '#FF2D9B' },
+    { key: 'lime',    name: 'Lime',    hex: '#B6FF1A' },
+    { key: 'amber',   name: 'Amber',   hex: '#FFB000' },
+    { key: 'indigo',  name: 'Indigo',  hex: '#3A2DFF' },
+    { key: 'coral',   name: 'Coral',   hex: '#FF6F61' },
+    { key: 'mint',    name: 'Mint',    hex: '#6BFFB0' },
+    { key: 'slate',   name: 'Slate',   hex: '#5B6B7A' },
 ];
 
 /** YIQ luminance → is this hex a light colour? (same heuristic as the colorway
@@ -57,34 +73,39 @@ function isLight(hex: string): boolean {
     return (r * 299 + g * 587 + b * 114) / 1000 >= 140;
 }
 
-/* ── Genesis sheet — the $PRICE wordmark ─────────────────────────────────── */
+const cutoutFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#FFFFFF');
+
+/* ── Genesis sheet — the regular logo (upright) + the two $PRICE variants ─── */
 const GENESIS: Sticker[] = [
-    // The two canonical variants, first.
-    { id: 'genesis-normal', sheet: 'genesis', kind: 'price', name: '$PRICE — Classic', bg: PRICE_RED, fg: PRICE_YELLOW },
-    { id: 'genesis-swap',   sheet: 'genesis', kind: 'price', name: '$PRICE — Swap',    bg: PRICE_YELLOW, fg: PRICE_RED },
-    // Colour range: only the background hex changes; letters auto-contrast to the
-    // brand pair (yellow on dark grounds, red on light) so the wordmark stays legible.
-    ...PALETTE
-        .filter((h) => h.key !== 'hot' && h.key !== 'gold')
-        .map<Sticker>((h) => ({
-            id: `genesis-${h.key}`,
-            sheet: 'genesis',
-            kind: 'price',
-            name: `$PRICE — ${h.name}`,
-            bg: h.hex,
-            fg: isLight(h.hex) ? PRICE_RED : PRICE_YELLOW,
-        })),
+    ...GENESIS_HUES.map<Sticker>((h) => ({
+        id: `genesis-${h.key}`,
+        sheet: 'genesis',
+        kind: 'logo',
+        name: h.key === 'hot' ? 'Logo — Classic' : `Logo — ${h.name}`,
+        color: h.hex,
+        /* The 'hot' logo wears the brand scheme: Hothurt-red bubble + attention-
+           yellow per-mille — same two colours as the $PRICE logos. */
+        cutout: h.key === 'hot' ? PRICE_YELLOW : cutoutFor(h.hex),
+    })),
+    { id: 'genesis-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED, fg: PRICE_YELLOW },
+    { id: 'genesis-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
 ];
 
-/* ── Petey sheet — the mascot ────────────────────────────────────────────── */
-const PETEY: Sticker[] = PALETTE.map<Sticker>((h) => ({
-    id: `petey-${h.key}`,
-    sheet: 'petey',
-    kind: 'petey',
-    name: `Petey — ${h.name}`,
-    color: h.hex,
-    cutout: isLight(h.hex) ? '#1A1A1A' : '#FFFFFF',
-}));
+/* ── Petey sheet — the same logo rotated 90° CCW ─────────────────────────── */
+const PETEY: Sticker[] = [
+    /* One Petey in the brand scheme: Hothurt-red bubble + attention-yellow. */
+    { id: 'petey-classic', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
+    /* ...then all new colours. */
+    ...PETEY_HUES.map<Sticker>((h) => ({
+        id: `petey-${h.key}`,
+        sheet: 'petey',
+        kind: 'logo' as const,
+        rotated: true,
+        name: `Petey — ${h.name}`,
+        color: h.hex,
+        cutout: cutoutFor(h.hex),
+    })),
+];
 
 export const STICKERS: readonly Sticker[] = [...GENESIS, ...PETEY];
 
@@ -117,14 +138,14 @@ export function stickersForSheet(id: SheetId): Sticker[] {
    spread a modest single row wide across the hero. */
 const MOCK_OWNED: Record<string, string[]> = {
     brendon: [
-        'genesis-normal',
-        'genesis-swap',
+        'genesis-hot',
         'genesis-blue',
-        'genesis-haze',
-        'petey-hot',
-        'petey-violet',
-        'petey-orange',
-        'petey-gold',
+        'genesis-price-classic',
+        'genesis-price-inverted',
+        'petey-classic',
+        'petey-magenta',
+        'petey-amber',
+        'petey-indigo',
     ],
 };
 

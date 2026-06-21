@@ -217,6 +217,29 @@
     border-color: var(--text-color);
 }
 .ss-buy-px { font-weight: bold; }
+/* In-button purchase progress — mirrors the mint button's sliding fill. */
+.ss-buy-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: color-mix(in srgb, var(--text-color) 24%, transparent);
+    transition: width 0.9s ease;
+    pointer-events: none;
+}
+/* Owned — settled filled state, no longer pressable. */
+.ss-buy-owned {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    cursor: default;
+    opacity: 1;
+}
+.ss-buy-owned:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
 .ss-card.locked .ss-buy { cursor: not-allowed; }
 .ss-card.locked .ss-buy:hover {
     background: transparent;
@@ -252,6 +275,78 @@
     color: var(--bg-color);
     background: var(--text-color);
     border: none;
+}
+.ss-card-live { cursor: pointer; }
+
+/* ── Sheet detail — the peel-off sticker sheet (tap a live card) ─────────── */
+.ss-back {
+    font-size: 20px;
+    line-height: 1;
+    color: color-mix(in srgb, var(--text-color) 70%, transparent);
+    cursor: pointer;
+    padding: 2px 8px 2px 0;
+    transition: color 0.15s ease;
+    font-family: 'Courier New', Courier, monospace;
+}
+.ss-back:hover { color: var(--text-color); }
+.ss-buy-head {
+    width: auto;
+    margin-left: auto;
+    flex: 0 0 auto;
+    gap: 8px;
+}
+.ss-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 12px;
+    padding: 16px 18px 18px;
+    max-height: min(58vh, 460px);
+    overflow-y: auto;
+    /* The peel backing — a sheet of die-cut stickers on a card. */
+    background:
+        repeating-linear-gradient(
+            45deg,
+            color-mix(in srgb, var(--text-color) 3%, transparent) 0 9px,
+            color-mix(in srgb, var(--text-color) 6%, transparent) 9px 18px
+        );
+}
+.ss-peel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px 9px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-color) 78%, var(--text-color) 22%);
+    /* Kiss-cut dashed edge, like a peelable die-cut. */
+    border: 1px dashed color-mix(in srgb, var(--text-color) 38%, transparent);
+    transition: transform 0.16s ease, border-color 0.16s ease;
+}
+.ss-peel:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--text-color) 60%, transparent);
+}
+.ss-peel-art {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+.ss-peel-name {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: color-mix(in srgb, var(--text-color) 82%, transparent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+@media (max-width: 600px) {
+    .ss-sheet-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
+    .ss-buy-head .ss-buy-cta { display: none; }
 }
 
 /* ============================================================================

@@ -5,47 +5,31 @@
  *
  * Fable 5's bottom-sheet sticker marketplace, opened from the home action row's
  * Stickers button (open('stickers')). Slides up from the bottom with a
- * single-row, scroll-snapping carousel of sticker SHEETS (the on-chain shop
- * sells whole sheets — PDStickers `_mintBatch`).
+ * single-row, scroll-snapping carousel of sticker SHEETS.
  *
  * The store design is kept exactly as Fable 5 built it (slide-up sheet, rail,
- * ticker, buy chips, terminal vibe). The only adaptation: the first two cards
- * are now REAL — Genesis ($PRICE wordmark) and Petey (the mascot) — showing a
- * fan of their actual recoloured-logo stickers instead of a placeholder glyph.
- * The remaining cards stay as "soon" teasers. Buying is still a toast this pass;
- * real grant/ownership (ERC-1155) wires in later.
+ * ticker, buy chips, terminal vibe). Adaptations:
+ *   - Only OUR sheets show — Genesis and Petey — each card a fan of its actual
+ *     recoloured-logo stickers. (The old placeholder teaser sheets were removed.)
+ *   - Tapping a card opens the real SHEET: a die-cut grid of every sticker
+ *     inside, like a peel-off sticker sheet. Back returns to the rail.
+ * Buying is still a toast this pass; real grant/ownership (ERC-1155) wires later.
  *
- * Rides ModalContext like every other modal: isOpen = openModal === 'stickers',
- * so it inherits the shared scroll-lock + Escape-to-close. Mounted once in
+ * Rides ModalContext: isOpen = openModal === 'stickers'. Mounted once in
  * PriceOSShell. Mouse drag-to-scroll on the rail mirrors the home carousels.
  */
 
+import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
-import { useToast } from '../lib/state/ToastContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
-import { SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta } from '../lib/stickers/catalog';
+import {
+    SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId,
+} from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
+import { BuySheetButton } from './stickers/BuySheetButton';
+import { useOwnedStickerIds } from '../lib/stickers/owned';
 
 const VS15 = '︎';
-
-interface TeaserSheet {
-    name: string;
-    glyph: string;
-    count: number; // stickers in the sheet
-    price: string; // ETH
-    tag: string; // rarity / edition
-}
-
-/* Teaser sheet set — placeholders behind the two live sheets, Fable 5's flavour
-   kept. The last is a locked "secret" sheet. */
-const TEASERS: readonly TeaserSheet[] = [
-    { name: 'STARTER SET', glyph: '◈', count: 6, price: '0.004', tag: 'COMMON' },
-    { name: 'GM PACK', glyph: '☼', count: 8, price: '0.006', tag: 'COMMON' },
-    { name: 'DEGEN DROP', glyph: '⚔', count: 10, price: '0.009', tag: 'UNCOMMON' },
-    { name: 'GLITCH SET', glyph: '⌁', count: 7, price: '0.012', tag: 'RARE' },
-    { name: 'HOLO RARES', glyph: '❖', count: 5, price: '0.018', tag: 'RARE' },
-    { name: 'SECRET SHEET', glyph: '?', count: 0, price: '—', tag: 'LOCKED' },
-];
 
 /* A 3-sticker fan for a live sheet's card art — spaced across the range. */
 function fanFor(sheet: SheetMeta) {
@@ -55,20 +39,25 @@ function fanFor(sheet: SheetMeta) {
     return [all[0]!, all[mid]!, all[all.length - 1]!];
 }
 
+/* Stable whisper-tilt per sheet slot. */
+function tilt(i: number): number {
+    const seq = [-5, 4, -3, 5, -4, 3, -5, 4, -2, 5];
+    return seq[i % seq.length]!;
+}
+
 export default function StickersModal() {
     const { openModal, close } = useModal();
-    const { showToast } = useToast();
     const isOpen = openModal?.name === 'stickers';
-    /* Desktop mouse drag-to-scroll on the rail (touch scrolls natively). The
-       shared hook is mouse-only and swallows the trailing click after a real
-       drag so a pan doesn't fire a sheet's tap. */
     const railRef = useDragScroll<HTMLDivElement>();
 
-    const totalSheets = REAL_SHEETS.length + TEASERS.length;
+    /* Which live sheet is open in detail (peel-sheet view), if any. */
+    const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
+    // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
+    useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
 
-    const tapReal = (s: SheetMeta) => showToast(`${s.name} SHEET: COMING SOON`);
-    const tapTeaser = (s: TeaserSheet) =>
-        showToast(s.tag === 'LOCKED' ? 'Sticker Exchange: LOCKED' : `${s.name}: COMING SOON`);
+    const ownedIds = useOwnedStickerIds();
+    const totalSheets = REAL_SHEETS.length;
+    const detail = openSheet ? REAL_SHEETS.find((s) => s.id === openSheet) ?? null : null;
 
     return (
         <div
@@ -89,87 +78,109 @@ export default function StickersModal() {
                 />
 
                 <div className="ss-head">
-                    <div className="ss-title">
-                        <span className="ss-title-main">STICKER EXCHANGE</span>
-                        <span className="ss-title-sub">// PD SHOP</span>
-                    </div>
-                    <div className="ss-stats">
-                        <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
-                        <span className="ss-stat"><b>0</b> OWNED</span>
-                        <span className="ss-stat ss-bal">{`◊${VS15} 0.00`}</span>
-                    </div>
-                    <div
-                        className="ss-close"
-                        role="button"
-                        tabIndex={0}
-                        title="Close"
-                        onClick={close}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}
-                    >
-                        {`×${VS15}`}
-                    </div>
+                    {detail ? (
+                        <>
+                            <div
+                                className="ss-back"
+                                role="button"
+                                tabIndex={0}
+                                title="Back to sheets"
+                                onClick={() => setOpenSheet(null)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(null); } }}
+                            >
+                                {`←${VS15}`}
+                            </div>
+                            <div className="ss-title">
+                                <span className="ss-title-main">{detail.name}</span>
+                                <span className="ss-title-sub">{`// ${detail.count} STICKERS`}</span>
+                            </div>
+                            <BuySheetButton sheet={detail} className="ss-buy-head" />
+                        </>
+                    ) : (
+                        <>
+                            <div className="ss-title">
+                                <span className="ss-title-main">STICKER EXCHANGE</span>
+                                <span className="ss-title-sub">// PD SHOP</span>
+                            </div>
+                            <div className="ss-stats">
+                                <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
+                                <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
+                                <span className="ss-stat ss-bal">{`◊${VS15} 0.00`}</span>
+                            </div>
+                            <div
+                                className="ss-close"
+                                role="button"
+                                tabIndex={0}
+                                title="Close"
+                                onClick={close}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}
+                            >
+                                {`×${VS15}`}
+                            </div>
+                        </>
+                    )}
                 </div>
 
-                <div className="ss-ticker" aria-hidden="true">
-                    <div className="ss-ticker-track">
-                        <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
-                        <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
-                    </div>
-                </div>
-
-                <div className="ss-rail" ref={railRef}>
-                    {REAL_SHEETS.map((s) => (
-                        <div className="ss-card ss-card-live" key={s.id}>
-                            <div className="ss-card-art">
-                                <span className="ss-fan">
-                                    {fanFor(s).map((st, i) => (
-                                        <span
-                                            key={st.id}
-                                            className="ss-fan-item"
-                                            style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
-                                        >
-                                            <StickerArt sticker={st} size={52} />
-                                        </span>
-                                    ))}
+                {detail ? (
+                    /* ── Peel-off sticker sheet — every sticker inside ───────── */
+                    <div className="ss-sheet-grid">
+                        {stickersForSheet(detail.id).map((st, i) => (
+                            <div className="ss-peel" key={st.id} title={st.name}>
+                                <span className="ss-peel-art" style={{ transform: `rotate(${tilt(i)}deg)` }}>
+                                    <StickerArt sticker={st} size={62} />
                                 </span>
-                                <span className="ss-card-soon ss-card-new">LIVE</span>
+                                <span className="ss-peel-name">{st.name}</span>
                             </div>
-                            <div className="ss-card-meta">
-                                <div className="ss-card-name">{s.name}</div>
-                                <div className="ss-card-line">
-                                    <span className="ss-card-tag">{s.tag}</span>
-                                    <span className="ss-card-count">{s.count} stickers</span>
-                                </div>
-                                <button className="ss-buy" type="button" onClick={() => tapReal(s)}>
-                                    <span className="ss-buy-px">{`◊${VS15} ${s.price}`}</span>
-                                    <span className="ss-buy-cta">BUY SHEET</span>
-                                </button>
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        <div className="ss-ticker" aria-hidden="true">
+                            <div className="ss-ticker-track">
+                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
+                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
                             </div>
                         </div>
-                    ))}
 
-                    {TEASERS.map((s) => (
-                        <div className={`ss-card${s.tag === 'LOCKED' ? ' locked' : ''}`} key={s.name}>
-                            <div className="ss-card-art">
-                                <span className="ss-card-glyph">{`${s.glyph}${VS15}`}</span>
-                                <span className="ss-card-soon">{s.tag === 'LOCKED' ? 'LOCKED' : 'SOON'}</span>
-                            </div>
-                            <div className="ss-card-meta">
-                                <div className="ss-card-name">{s.name}</div>
-                                <div className="ss-card-line">
-                                    <span className="ss-card-tag">{s.tag}</span>
-                                    <span className="ss-card-count">{s.count > 0 ? `${s.count} stickers` : '— stickers'}</span>
+                        <div className="ss-rail" ref={railRef}>
+                            {REAL_SHEETS.map((s) => (
+                                <div
+                                    className="ss-card ss-card-live"
+                                    key={s.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setOpenSheet(s.id)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(s.id); } }}
+                                >
+                                    <div className="ss-card-art">
+                                        <span className="ss-fan">
+                                            {fanFor(s).map((st, i) => (
+                                                <span
+                                                    key={st.id}
+                                                    className="ss-fan-item"
+                                                    style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
+                                                >
+                                                    <StickerArt sticker={st} size={52} />
+                                                </span>
+                                            ))}
+                                        </span>
+                                        <span className="ss-card-soon ss-card-new">LIVE</span>
+                                    </div>
+                                    <div className="ss-card-meta">
+                                        <div className="ss-card-name">{s.name}</div>
+                                        <div className="ss-card-line">
+                                            <span className="ss-card-tag">{s.tag}</span>
+                                            <span className="ss-card-count">{s.count} stickers</span>
+                                        </div>
+                                        <BuySheetButton sheet={s} />
+                                    </div>
                                 </div>
-                                <button className="ss-buy" type="button" onClick={() => tapTeaser(s)}>
-                                    <span className="ss-buy-px">{`◊${VS15} ${s.price}`}</span>
-                                    <span className="ss-buy-cta">{s.tag === 'LOCKED' ? 'LOCKED' : 'BUY SHEET'}</span>
-                                </button>
-                            </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                <div className="ss-foot">two sheets live · more restocking · drag the row · tap a sheet for details</div>
+                        <div className="ss-foot">two sheets live · tap a sheet to peek inside · more restocking</div>
+                    </>
+                )}
             </div>
         </div>
     );

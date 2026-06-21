@@ -15,11 +15,15 @@
 
 import { useMemo } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { ownedStickers } from '../../lib/stickers/catalog';
+import { ownedStickers, stickerById, type Sticker } from '../../lib/stickers/catalog';
+import { useOwnedStickerIds } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
 
 interface Props {
     ownerHandle: string | null | undefined;
+    /** Whether the viewer is looking at their own profile — merges their
+        simulated purchases on top of the seeded set. */
+    isOwn?: boolean;
 }
 
 /* Deterministic whisper-tilt per slot — stable across renders so the wall never
@@ -29,9 +33,20 @@ function tiltFor(i: number): number {
     return seq[i % seq.length]!;
 }
 
-export function HeroStickers({ ownerHandle }: Props) {
+export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
-    const owned = useMemo(() => ownedStickers(ownerHandle), [ownerHandle]);
+    const purchasedIds = useOwnedStickerIds();
+    const owned = useMemo(() => {
+        const seed = ownedStickers(ownerHandle);
+        // On your own profile, your simulated purchases stack on top of the seed.
+        if (!isOwn) return seed;
+        const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
+        for (const id of purchasedIds) {
+            const s = stickerById(id);
+            if (s) map.set(id, s);
+        }
+        return [...map.values()];
+    }, [ownerHandle, isOwn, purchasedIds]);
 
     // Hidden by the viewer, or the owner holds none → render nothing at all.
     if (notifs.sticker || owned.length === 0) return null;

@@ -1685,7 +1685,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <HeroStickers ownerHandle={user.handle ?? handle} />
+                    <HeroStickers ownerHandle={user.handle ?? handle} isOwn={isOwnProfile} />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button
