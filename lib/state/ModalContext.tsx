@@ -38,7 +38,8 @@ export type ModalName =
     | 'priceos'
     | 'gasTracker'
     | 'stickers'
-    | 'spiteBook';
+    | 'spiteBook'
+    | 'panopticonConfirm';
 
 interface OpenModalState {
     name: ModalName;

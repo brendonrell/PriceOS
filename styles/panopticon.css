@@ -1,0 +1,121 @@
+/* ============================================================================
+   PANOPTICON — the opt-in surveillance spell.
+   (1) the consent modal shown on turn-on, colorway-aware dark glass.
+   (2) the floating "who's watching what" overlay, its own terminal surface.
+   Imported by globals.
+   ============================================================================ */
+
+/* ── Consent modal ──────────────────────────────────────────────────────── */
+.pan-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.pan-backdrop.active { opacity: 1; visibility: visible; }
+
+.pan-card {
+    width: min(94vw, 420px);
+    background: color-mix(in srgb, var(--bg-color) 92%, var(--text-color) 8%);
+    color: var(--text-color);
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    font-family: 'Courier New', Courier, monospace;
+    transform: scale(0.96);
+    transition: transform 0.25s cubic-bezier(0.16, 0.84, 0.34, 1);
+}
+.pan-backdrop.active .pan-card { transform: scale(1); }
+
+.pan-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.pan-title-glyph { font-size: 18px; }
+.pan-title-text { font-size: 15px; font-weight: bold; letter-spacing: 0.18em; }
+
+.pan-lead { margin: 0 0 12px; font-size: 13px; line-height: 1.5; opacity: 0.92; }
+.pan-points {
+    margin: 0 0 16px;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.pan-points li { font-size: 12.5px; line-height: 1.4; opacity: 0.85; }
+
+.pan-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.pan-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    transition: opacity 0.15s, background 0.15s;
+}
+.pan-btn--ghost { opacity: 0.6; }
+.pan-btn--ghost:hover { opacity: 1; }
+.pan-btn--go {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+.pan-btn--go:hover { opacity: 0.85; }
+
+/* ── Watch overlay ──────────────────────────────────────────────────────── */
+.panopticon-overlay {
+    position: fixed;
+    left: 14px;
+    bottom: 14px;
+    z-index: 1200;
+    width: min(78vw, 240px);
+    background: rgba(13, 13, 16, 0.82);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 9px 11px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #e6e6ea;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+.pan-ov-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.pan-ov-glyph { font-size: 13px; }
+.pan-ov-title { font-size: 10px; letter-spacing: 0.22em; font-weight: bold; flex: 1; }
+.pan-ov-count {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    padding: 0 5px;
+    line-height: 1.5;
+}
+.pan-ov-empty { font-size: 11px; opacity: 0.55; }
+.pan-ov-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.pan-ov-row { display: flex; align-items: baseline; gap: 5px; font-size: 11px; }
+.pan-ov-dot { font-size: 8px; color: #4ad06a; }
+.pan-ov-name { font-weight: bold; white-space: nowrap; }
+.pan-ov-view {
+    opacity: 0.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -81,6 +81,8 @@ import PriceSpriteModal from '../PriceSpriteModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
+import PanopticonConfirmModal from '../PanopticonConfirmModal';
+import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
@@ -312,6 +314,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="SpiteBookModal">
                 <SpiteBookModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PanopticonConfirmModal">
+                <PanopticonConfirmModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PanopticonOverlay">
+                <PanopticonOverlay />
             </ErrorBoundary>
             <ErrorBoundary name="CartPanel">
                 <CartPanel />

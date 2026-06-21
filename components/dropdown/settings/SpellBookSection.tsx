@@ -134,6 +134,35 @@ export function SpellBookSection({ onTripleTap }: Props) {
                 {SPELLS.slice(0, 11).map((spell) => {
                     /* NPC ⇄ Degen swap (Brendon, 2026-06-21): Degen renders in
                        NPC's slot here; NPC renders in Degen's old slot below. */
+                    /* Panopticon — turning ON requires explicit consent: open
+                       the confirmation modal instead of flipping the flag. Turning
+                       OFF is instant (no modal). (Brendon, 2026-06-21.) */
+                    if (spell.id === 'panopticon') {
+                        return (
+                            <SettingsToggle
+                                key={spell.id}
+                                id={`sb-${spell.id}`}
+                                active={notifs.spell_panopticon}
+                                onClick={() => {
+                                    if (notifs.spell_panopticon) {
+                                        toggle('spell_panopticon');
+                                        showToast('Panopticon: OFF');
+                                    } else {
+                                        open('panopticonConfirm');
+                                    }
+                                }}
+                                icon={spell.icon}
+                                iconStyle={{
+                                    ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
+                                    ...(spell.iconStyle?.top
+                                        ? { position: 'relative', top: spell.iconStyle.top }
+                                        : {}),
+                                }}
+                                sharp={spell.sharp}
+                                label={spell.name}
+                            />
+                        );
+                    }
                     if (spell.id === 'npc') {
                         return (
                             <SettingsToggle
