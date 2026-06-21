@@ -147,7 +147,7 @@ window.ENGINE = (function () {
     const densMul = p.density === 'Wispy' ? 0.62 : p.density === 'Dense' ? 1.35 : 1.0;
     const flowSteps = p.flow === 'Calm' ? 1.0 : p.flow === 'Violent' ? 1.5 : 1.2;
     const scaleArea = (W * H) / (1400 * 1400);
-    const N = Math.floor(4200 * densMul * scaleArea);     // particle count
+    const N = Math.floor(3800 * densMul * scaleArea);     // particle count
     const STEPS = Math.floor(180 * flowSteps);            // life of each filament
     const jitter = p.flow === 'Calm' ? 0.10 : p.flow === 'Violent' ? 0.55 : 0.28;
 
@@ -197,7 +197,7 @@ window.ENGINE = (function () {
           const phase = phase0 + (arc / (STEPS * CM)) * span;
           let col = K.iridescent(phase, P.sat, P.light);
           // lean toward palette ink/glow so colorways stay coherent
-          col = P.dark ? K.mix(col, P.glow, 0.18) : K.mix(col, P.ink, 0.16);
+          col = P.dark ? K.mix(col, P.glow, 0.18) : K.mix(col, P.ink, 0.28);
 
           // fade in at birth, fade out at death → wispy ends
           const t = s / life;

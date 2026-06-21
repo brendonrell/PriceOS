@@ -11,7 +11,7 @@ window.ENGINE = (function () {
   // pulls from; `irid` biases the thin-film band; `spec` is the highlight tint.
   const PALS = [
     { name: 'Aurum',     g0: '#f6d479', g1: '#b8731a', metal: '#caa23a', irid: 0.10, spec: '#fff4cf', dark: false },
-    { name: 'Mercury',   g0: '#e9eef5', g1: '#8c97ab', metal: '#aeb8c8', irid: 0.55, spec: '#ffffff', dark: false },
+    { name: 'Mercury',   g0: '#eef2f8', g1: '#5b6884', metal: '#aeb8c8', irid: 0.55, spec: '#ffffff', dark: false },
     { name: 'Plasma',    g0: '#ff7ae0', g1: '#7d18b8', metal: '#d05ad6', irid: 0.78, spec: '#ffe1ff', dark: false },
     { name: 'Lagoon',    g0: '#5ff0d6', g1: '#0c6f8f', metal: '#36c4c0', irid: 0.42, spec: '#e6fffb', dark: false },
     { name: 'Coral',     g0: '#ff9a6b', g1: '#c01f55', metal: '#e8584f', irid: 0.04, spec: '#fff0e6', dark: false },
