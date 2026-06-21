@@ -130,13 +130,16 @@ window.ENGINE = (function () {
       let vy = (c[0] * sa + c[1] * ca) * SW;
 
       if (p.mode === 'Rising Column') {
-        // buoyant rise that lifts harder low down → a clear base + crown
-        // silhouette rather than an even smear.
+        // buoyant rise, but the curl swirl is left dominant so the column
+        // BILLOWS and mushrooms outward as it climbs (a broad turbulent plume,
+        // not a thin stalk). Lift is strong low down; up high it flares as the
+        // horizontal pull inverts to a spreading crown.
         const ty = py / H;                       // 1 at bottom, 0 at top
-        vy -= 0.70 * (0.6 + ty);                 // stronger lift low down
-        // pull horizontally toward the column axis so it reads as a column
-        vx += (fx - px) / W * 1.1;
-        vx += Math.sin(py / 170 + px / 90) * 0.30;
+        vy -= 0.58 * (0.5 + ty);                 // buoyant rise, eases near top
+        // gentle pull toward axis low down, FLARE outward up high → crown
+        const axisPull = (fx - px) / W;
+        vx += axisPull * (ty > 0.45 ? 0.45 : -0.55); // gather low, spread high
+        vx += Math.sin(py / 150 + px / 80) * 0.40;   // billow waver
       } else if (p.mode === 'Twin Vortices') {
         const a1 = Math.atan2(py - vCY, px - vCX1), a2 = Math.atan2(py - vCY, px - vCX2);
         const sp = p.vortSpin;
@@ -171,11 +174,11 @@ window.ENGINE = (function () {
     // ── seeding: where particles are born, per mode (focal-anchored) ──
     function seedPoint() {
       if (p.mode === 'Rising Column') {
-        // wide base mouth in the lower-third, narrowing the spawn toward the
-        // column axis → a clear flared base feeding a rising column.
-        const baseW = 0.26 * (0.6 + r() * 0.8);
-        const sx = fx + K.randn(r) * W * baseW * 0.5;
-        const sy = H * (0.60 + r() * 0.38);
+        // broad base mouth across the lower-third feeding a tall plume that
+        // mushrooms upward → a full column with a clear flared base + crown,
+        // occupying the whole vertical frame rather than a small teardrop.
+        const sx = fx + K.randn(r) * W * 0.22;
+        const sy = H * (0.62 + r() * 0.40);
         return [sx, sy];
       }
       if (p.mode === 'Twin Vortices') {
