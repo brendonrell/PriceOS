@@ -215,7 +215,15 @@ body.is-pwa::before {
     justify-content: space-between;
     align-items: flex-start;
     padding: max(25px, env(safe-area-inset-top)) 40px 15px 40px;
-    background: transparent;
+    /* Solid page-colour fill (NOT transparent). iOS 26 Safari stopped honouring
+       the theme-color meta and now derives the top status-bar colour by sampling
+       the fixed/sticky element at the viewport's top edge — this navbar. When it
+       was transparent, Safari had nothing solid to lock onto and the page smeared
+       / cut off under its frosted system bar (the installed app sidesteps this by
+       not using that system bar). A solid fill in the live colourway gives Safari
+       a clean colour to latch the status bar to, so the top reads continuous.
+       Same colour as the page, so nothing changes visually at rest. */
+    background: var(--bg-color);
     position: sticky;
     top: 0;
     z-index: 100;
