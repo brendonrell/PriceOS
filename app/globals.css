@@ -3611,6 +3611,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     .stat-icon-box { font-size: 19px; }
 }
 
+/* Homepage identity-row mutual badge sits 1px high on mobile — settle it down
+   (Brendon 2026-06-21). Mobile only; homepage byline only. */
+@media (max-width: 600px) {
+    .home-id-row .ico-mutual { top: 1px; }
+}
+
 /* ── HERO GROUP 2 / ACTION ROW / MINT — sim ~2226-2244 ───── */
 .hero-group-2 {
     display: flex;
@@ -4259,12 +4265,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 
 /* Mints/mutuals nudges — sim 1666-1667. */
 #sn-mints .st-icon { transform: translateY(-2px) !important; }
-#sn-mutualsOnly .st-icon { transform: translateY(0px); }
+#sn-mutualsOnly .st-icon { font-size: 14px; transform: translateY(0px); }
 
 /* Desktop overrides — sim 2176-2177. Sim runs both the bare rules above
    AND these desktop-specific size + transform overrides at min-width:601. */
 @media (min-width: 601px) {
-    #sn-mutualsOnly .st-icon { font-size: 20px; transform: translateY(1px); }
+    #sn-mutualsOnly .st-icon { font-size: 18px; transform: translateY(1px); }
     #sn-mints .st-icon { font-size: 18px !important; transform: translateY(-1px) !important; }
 }
 
@@ -6648,7 +6654,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
        G item 13 — Brendon deviation: min-height equalized to max-height so the
        panel stays at canonical Settings-height across filter result counts. */
     #artistsList { min-height: 225px; max-height: 225px; }
-    .artist-rel-icon[title="Followers"] { font-size: 22px !important; transform: translateY(-1px); }
+    .artist-rel-icon[title="Followers"] { font-size: 23px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Following"] { font-size: 16px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Mutual"]    { font-size: 18px !important; transform: translateY(-1px); }
     .artist-status-icon { transform: translateY(-1px); }
@@ -8721,12 +8727,6 @@ body.colorway-dark .ghost-feed-bar {
    (Brendon 2026-06-20). */
 @media (max-width: 600px) {
     .pill-tab-ico { top: 0; }
-}
-
-/* MY PD ASCII-ID toggle sits 1px high against its row on mobile — settle it
-   (Brendon 2026-06-19). */
-@media (max-width: 600px) {
-    #sn-asciiId { position: relative; top: 1px; }
 }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */

@@ -117,7 +117,7 @@ export function MyPingsRow() {
                     }}
                     icon={'⏾\uFE0E'}
                     iconBare
-                    iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
             </div>

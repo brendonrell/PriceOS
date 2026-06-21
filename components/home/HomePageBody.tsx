@@ -685,7 +685,7 @@ function HomePageBodyInner({
                     </h1>
                 }
                 identityRow={
-                    <div className="hero-line project-custom">
+                    <div className="hero-line project-custom home-id-row">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">

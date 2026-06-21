@@ -112,9 +112,9 @@ export function MyPdSection({ onTripleTap }: Props) {
         try { localStorage.setItem(USER_SHOWCASE_KEY, next); } catch { /* ignore */ }
         setRawShowcase(next);
         pushState({ showcase_style: next });
-        const label = next === 'generative' ? 'GENERATIVE MODE ON'
-            : next === 'gen-curated' ? 'GEN CURATED MODE ON'
-            : next === 'artist' ? 'ARTIST MODE ON' : 'STATIC MODE ON';
+        const label = next === 'generative' ? 'GENERATIVE MODE'
+            : next === 'gen-curated' ? 'GEN CURATED MODE'
+            : next === 'artist' ? 'ARTIST MODE' : 'STATIC MODE';
         showToast('Showcase: ' + label);
     };
     const showcaseGlyph = showcaseMode === 'static' ? '⑆'
