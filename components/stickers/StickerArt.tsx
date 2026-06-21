@@ -28,8 +28,8 @@ interface Props {
 
 const CUT = 'var(--sticker-cut, #fff)';
 const LINE = 'var(--sticker-line, #d6d6d6)';
-const CUT_LOGO = 132;
-const CUT_PRICE = 104;
+const CUT_LOGO = 196;
+const CUT_PRICE = 150;
 
 function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) {
     if (sticker.kind === 'output' && sticker.slug && sticker.tokenId != null) {
@@ -76,7 +76,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
     if (sticker.kind === 'glyph') {
         const color = sticker.color ?? '#1A1A1A';
         const fg = sticker.cutout ?? '#FFFFFF';
-        const vb = diecut ? '-28 -28 156 156' : '0 0 100 100';
+        const vb = diecut ? '-40 -40 180 180' : '0 0 100 100';
         return (
             <svg
                 className={className}
@@ -90,8 +90,8 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-20} y={-20} width={140} height={140} rx={40} fill={LINE} />
-                        <rect x={-15} y={-15} width={130} height={130} rx={34} fill={CUT} />
+                        <rect x={-32} y={-32} width={164} height={164} rx={48} fill={LINE} />
+                        <rect x={-26} y={-26} width={152} height={152} rx={42} fill={CUT} />
                     </>
                 )}
                 <rect x={0} y={0} width={100} height={100} rx={22} fill={color} />
@@ -115,7 +115,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
         const innerH = H - 24;
         const fs = Math.max(8, Math.min(54, innerW / (maxLen * 0.62), innerH / (lines.length * 1.18)));
         const lineH = fs * 1.18;
-        const vb = diecut ? `-30 -30 ${W + 60} ${H + 60}` : `0 0 ${W} ${H}`;
+        const vb = diecut ? `-44 -44 ${W + 88} ${H + 88}` : `0 0 ${W} ${H}`;
         const y0 = H / 2 - ((lines.length - 1) * lineH) / 2;
         return (
             <svg
@@ -130,8 +130,8 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-22} y={-22} width={W + 44} height={H + 44} rx={44} fill={LINE} />
-                        <rect x={-16} y={-16} width={W + 32} height={H + 32} rx={38} fill={CUT} />
+                        <rect x={-36} y={-36} width={W + 72} height={H + 72} rx={54} fill={LINE} />
+                        <rect x={-28} y={-28} width={W + 56} height={H + 56} rx={46} fill={CUT} />
                     </>
                 )}
                 <rect x={0} y={0} width={W} height={H} rx={26} fill={color} />
@@ -147,7 +147,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
     // $PRICE wordmark — ratio 517:403.
     const bg = sticker.bg ?? '#FF0055';
     const fg = sticker.fg ?? '#FFE600';
-    const vb = diecut ? '-80 -80 677 563' : '0 0 517 403';
+    const vb = diecut ? '-100 -100 717 603' : '0 0 517 403';
     return (
         <svg
             className={className}

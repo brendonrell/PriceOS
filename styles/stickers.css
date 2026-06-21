@@ -317,9 +317,9 @@
     /* Hard clip — nothing can ever extend past the sheet edge. */
     overflow: hidden;
     --sticker-cut: var(--text-color);
-    /* Soft off-white score line tracing each cut — a gentle scoring, not a hard
-       line (Brendon 2026-06-21). */
-    --sticker-line: color-mix(in srgb, var(--text-color) 82%, var(--bg-color) 18%);
+    /* Soft score line tracing each cut — leans toward the page colour so it reads
+       on BOTH the white and the black sheet (Brendon 2026-06-21). */
+    --sticker-line: color-mix(in srgb, var(--text-color) 66%, var(--bg-color) 34%);
 }
 /* Tidy grid — every sticker in its own cell, gaps guarantee no overlap, padding
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
@@ -360,9 +360,9 @@
 }
 .out-sticker.diecut {
     background: var(--sticker-cut, #fff);
-    padding: 11%;
-    border-radius: 16%;
-    box-shadow: 0 0 0 2px var(--sticker-line, #d6d6d6);
+    padding: 17%;
+    border-radius: 18%;
+    box-shadow: 0 0 0 2.5px var(--sticker-line, #d6d6d6);
 }
 .out-sticker-canvas {
     width: 100%;
