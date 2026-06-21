@@ -238,3 +238,52 @@
     .ss-card { width: 138px; }
     .ss-card-art { height: 114px; }
 }
+
+/* ── Live sheet card art — a 3-sticker fan instead of a placeholder glyph ── */
+.ss-fan {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.ss-fan-item { display: inline-flex; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
+.ss-fan-item:nth-child(2) { z-index: 2; margin: 0 -6px; }
+.ss-card-new {
+    color: var(--bg-color);
+    background: var(--text-color);
+    border: none;
+}
+
+/* ============================================================================
+   Hero stickers — the profile owner's stickers on their hero.
+   Pass one: modest single row, spread wide, whisper tilt. Sits between the
+   stats row and the Follow button. Renders only when the owner holds stickers.
+   ============================================================================ */
+.hero-stickers {
+    width: 100%;
+    margin: 2px 0 10px;
+}
+.hero-stickers-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    /* A little breathing room at the ends so edge stickers don't kiss the margin. */
+    padding: 2px 2px 0;
+    gap: 6px;
+}
+.hero-sticker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    transition: transform 0.18s ease;
+    /* Soft lift so each sticker reads as applied onto the page. */
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+.hero-sticker:hover { transform: rotate(0deg) scale(1.08); }
+
+@media (max-width: 600px) {
+    .hero-stickers { margin: 0 0 8px; }
+    .hero-stickers-row { gap: 4px; }
+}

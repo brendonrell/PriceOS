@@ -625,7 +625,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                     />
                     <SettingsToggle
                         id="sn-sticker"
-                        title="Sticker Mode (stickers coming soon)"
+                        title="Sticker Mode — hide your stickers"
                         active={notifs.sticker}
                         onClick={() => toggleWithToastNeg('sticker', 'Sticker Mode')}
                         icon={'▣\uFE0E'}

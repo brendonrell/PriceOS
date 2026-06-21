@@ -68,6 +68,7 @@ import DiscordSection from './DiscordSection';
 import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import FollowButton from './FollowButton';
+import { HeroStickers } from '../stickers/HeroStickers';
 import { getProject, outputTraits, allProjects, projectsByArtist, projectTraits } from '../../lib/project/registry';
 import HomeProjectFacetBar, {
     projectFacetValueOf,
@@ -1684,6 +1685,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
+                    <HeroStickers ownerHandle={user.handle ?? handle} />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button
