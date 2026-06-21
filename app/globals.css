@@ -4321,13 +4321,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sb-priceghost .st-icon  { font-size: 13px !important; position: relative; top: 2px; }
     #sb-gravitydrop .st-icon { font-size: 18px !important; }
     #sb-panopticon .st-icon  { font-size: 17px !important; }
-    #sb-spitebook .st-icon   { font-size: 19px !important; position: relative; top: 1px; }
+    #sb-spitebook .st-icon   { font-size: 20px !important; position: relative; top: 1px; }
     #sb-invisible .st-icon   { font-size: 17px !important; position: relative; top: 0; }
     #sb-watch .st-icon       { position: relative; top: -1px; }
-    #sb-tarot .st-icon       { font-size: 11px !important; letter-spacing: -1px; position: relative; top: 1px; }
+    #sb-tarot .st-icon       { font-size: 11px !important; position: relative; top: 1px; }
     #sb-redacted .st-icon    { position: relative; top: -1px; }
     #sb-degen .st-icon       { font-size: 17px !important; }
-    #sb-stargazing .st-icon  { font-size: 20px !important; position: relative; top: 1px; }
+    #sb-stargazing .st-icon  { font-size: 20px !important; position: relative; top: 2px; }
     #sb-echo .st-icon        { font-size: 17px !important; }
     #sb-sybilnet .st-icon    { font-size: 21px !important; position: relative; top: -1px; }
     #sb-gossip .st-icon      { font-size: 17px !important; position: relative; top: -1px; }
