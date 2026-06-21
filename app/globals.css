@@ -176,19 +176,13 @@ button {
    black bar. z-index 9999 sits above all surfaces; pointer-
    events:none so taps fall through to navbar controls below.
 
-   Installed app (Brendon 2026-06-19): keeps the frosted band WITH the fade
-   mask, so artwork feathers out under the notch.
-
-   Mobile Safari (Brendon 2026-06-21): the band was previously OFF here, which
-   left the page stopping at a hard line below the status bar — content cut off
-   before the clock/battery instead of running up under them like the installed
-   app. The earlier Safari attempt used the same fade mask, and THAT mask is what
-   read as a cut. So Safari now gets the same continuous frost WITHOUT the fade
-   mask — a clean blur across the whole status-bar zone so content reads through
-   it right up to the top edge.
+   PWA-ONLY (Brendon 2026-06-19): in mobile Safari's compact mode this band
+   blurred/"sampled" the pills scrolling under the notch and its fade mask cut
+   the top off. Safari runs the page full-length under the status bar instead —
+   the synced theme-color tints the status bar. Installed app keeps the frosted
+   band.
    ============================================================ */
-body.is-pwa::before,
-body:not(.is-pwa)::before {
+body.is-pwa::before {
     content: '';
     position: fixed;
     top: 0;
@@ -197,14 +191,10 @@ body:not(.is-pwa)::before {
     height: env(safe-area-inset-top);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    z-index: 9999;
-    pointer-events: none;
-}
-/* Installed app keeps the soft fade-out; Safari does not (the fade is what
-   cut the top off there). */
-body.is-pwa::before {
     -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    z-index: 9999;
+    pointer-events: none;
 }
 
 /* ============================================================
@@ -215,15 +205,7 @@ body.is-pwa::before {
     justify-content: space-between;
     align-items: flex-start;
     padding: max(25px, env(safe-area-inset-top)) 40px 15px 40px;
-    /* Solid page-colour fill (NOT transparent). iOS 26 Safari stopped honouring
-       the theme-color meta and now derives the top status-bar colour by sampling
-       the fixed/sticky element at the viewport's top edge — this navbar. When it
-       was transparent, Safari had nothing solid to lock onto and the page smeared
-       / cut off under its frosted system bar (the installed app sidesteps this by
-       not using that system bar). A solid fill in the live colourway gives Safari
-       a clean colour to latch the status bar to, so the top reads continuous.
-       Same colour as the page, so nothing changes visually at rest. */
-    background: var(--bg-color);
+    background: transparent;
     position: sticky;
     top: 0;
     z-index: 100;
