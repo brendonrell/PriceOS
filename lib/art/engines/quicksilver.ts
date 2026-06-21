@@ -1,19 +1,18 @@
 /*
  * Quicksilver — by opus4-8. Sister project to the Electrum halo.
  *
- * Abstract liquid-chrome / ferrofluid. The lead look: dense, spiky encrusted
- * metal masses — every body wears a full 360° ferrofluid spike crown (Rosensweig
- * cones) plus ridged/beaded skin and a stubble carpet, so nothing reads as a
- * clean smooth ball. Each mode is a packed colony filling the frame with metal
- * incident: Crown (one dominant spike-crown + supporting colony), Colony (dense
- * all-over field), Reef (encrusted ridge wall), Flow (diagonal spiked chrome
- * river + spiked pools), Macro (tight crop of two merging spike-encrusted
- * masses). Saturated jewel grounds, heavy iridescent + specular sheen.
+ * Abstract liquid-chrome / ferrofluid, ONE collection across a Scale axis:
+ *   Massive (~50%, the lead) — big spiky encrusted ferrofluid-urchin colonies.
+ *   Medium  (~30%) — the same urchin system at reduced radius + higher count.
+ *   Fine    (~20%) — dense fine quill / filament / beadlet fields.
+ * All three share one jewel palette set and the same sheen / iridescence / grain
+ * / haze / vignette finish, so the whole drop reads as a single body of work.
  *
- * Deterministic in tokenId — params() fixes the frozen RNG prefix so traitsOf()
- * and render() agree. Painted at native resolution offscreen, blitted to the
- * requested width. Direct port of the approved R&D engine tools/halo/quicksilver3.js
- * (the "big spiky" jury/CEO pick); KIT helpers inlined here so it is self-contained.
+ * Deterministic in tokenId — params() fixes the frozen RNG prefix (Scale → Mode →
+ * Palette → Format → Finish → Density) so traitsOf() and render() agree. Painted
+ * at native resolution offscreen, blitted to the requested width. Direct port of
+ * the approved R&D engine tools/halo/quicksilver7.js; KIT helpers inlined here so
+ * it is self-contained.
  */
 
 import { seededRng, pick } from '../rng';
@@ -23,7 +22,7 @@ type Ctx = CanvasRenderingContext2D;
 type R = () => number;
 interface Noise { noise2(x: number, y: number): number; fbm(x: number, y: number, oct?: number, gain?: number, lac?: number): number; }
 
-interface Pal { name: string; g0: string; g1: string; metal: string; irid: number; spec: string; dark: boolean; }
+interface Pal { name: string; g0: string; g1: string; metal: string; irid: number; spec: string; dark: boolean; oil: number; }
 
 const PALS: Pal[] = [
   { name: 'Aurum', g0: '#f6d479', g1: '#b8731a', metal: '#caa23a', irid: 0.10, spec: '#fff4cf', dark: false },
@@ -35,7 +34,7 @@ const PALS: Pal[] = [
   { name: 'Cobalt', g0: '#7db8ff', g1: '#1830b8', metal: '#3f7be0', irid: 0.60, spec: '#e6f0ff', dark: false },
   { name: 'Obsidian', g0: '#2b3040', g1: '#070810', metal: '#5b6480', irid: 0.66, spec: '#dfe6ff', dark: true },
   { name: 'Oilslick', g0: '#241038', g1: '#06030c', metal: '#7a4bd0', irid: 0.85, spec: '#ffe6ff', dark: true },
-];
+].map((p) => ({ ...p, oil: 0.45 + p.irid * 0.45 }));
 
 const FMTS = [
   { W: 1400, H: 1400, t: 'Square' },
@@ -43,30 +42,44 @@ const FMTS = [
   { W: 1120, H: 1500, t: 'Portrait' },
 ] as const;
 
-const MODE_BAG = ['Crown', 'Crown', 'Crown', 'Colony', 'Colony', 'Colony', 'Reef', 'Reef', 'Flow', 'Flow', 'Macro', 'Macro'];
+const SCALE_BAG = ['Massive', 'Massive', 'Massive', 'Massive', 'Massive', 'Massive', 'Medium', 'Medium', 'Medium', 'Fine', 'Fine'];
+const MASSIVE_MODES = ['Crown', 'Crown', 'Crown', 'Colony', 'Colony', 'Colony', 'Reef', 'Reef', 'Flow', 'Flow', 'Macro', 'Macro'];
+const MEDIUM_MODES = ['Colony', 'Colony', 'Colony', 'Reef', 'Reef', 'Macro', 'Macro'];
+const FINE_MODES = ['Storm', 'Storm', 'Storm', 'Curtain', 'Curtain', 'Spray', 'Spray', 'Weave', 'Weave', 'Reef', 'Reef'];
 const FINISH = ['High Polish', 'Brushed', 'Wet'];
+const DENS = ['Dense', 'Packed', 'Teeming'];
+const densMul = (d: string) => (d === 'Teeming' ? 1.5 : d === 'Packed' ? 1.2 : 1.0);
 
 export const QUICKSILVER_ASPECTS: readonly number[] = [1, 1500 / 1120, 1120 / 1500];
 const INVPHI = 0.61803398875;
 
 interface Params {
-  pal: Pal; fmt: typeof FMTS[number]; mode: string; finish: string; iridStrength: number; lightAng: number;
-  g0: string; g1: string; metal: string; irid: number; spec: string; dark: boolean;
+  scale: string; pal: Pal; fmt: typeof FMTS[number]; mode: string; finish: string; density: string;
+  iridStrength: number; lightAng: number;
+  g0: string; g1: string; metal: string; irid: number; oil: number; spec: string; dark: boolean;
 }
 
-/* FROZEN DRAW ORDER — palette, format, mode, finish, iridStrength, lightAng. */
+interface ScaleCfg {
+  heroR: number[]; supN: number[]; supR: number[]; anchR: number[]; grid: number; cellR: number[];
+  reefN: number[]; reefR: number[]; reefFill: number[]; flowW: number; macroSep: number[]; macroR: number[];
+}
+
+/* FROZEN DRAW ORDER — scale, mode, palette, format, finish, density, iridStrength, lightAng. */
 function params(r: R): Params {
+  const scale = pick(SCALE_BAG, r);
+  const modeBag = scale === 'Fine' ? FINE_MODES : scale === 'Medium' ? MEDIUM_MODES : MASSIVE_MODES;
+  const mode = pick(modeBag, r);
   const pal = pick(PALS, r);
   const fmt = pick(FMTS, r);
-  const mode = pick(MODE_BAG, r);
   const finish = pick(FINISH, r);
+  const density = pick(DENS, r);
   const iridStrength = 0.55 + r() * 0.45;
   const lightAng = -Math.PI / 2 + (r() - 0.5) * 1.1;
-  return { pal, fmt, mode, finish, iridStrength, lightAng, g0: pal.g0, g1: pal.g1, metal: pal.metal, irid: pal.irid, spec: pal.spec, dark: pal.dark };
+  return { scale, pal, fmt, mode, finish, density, iridStrength, lightAng, g0: pal.g0, g1: pal.g1, metal: pal.metal, irid: pal.irid, oil: pal.oil, spec: pal.spec, dark: pal.dark };
 }
 
 function traitsFrom(p: Params): OutputTraits {
-  return { Palette: p.pal.name, Format: p.fmt.t, Mode: p.mode, Finish: p.finish };
+  return { Scale: p.scale, Mode: p.mode, Palette: p.pal.name, Format: p.fmt.t, Finish: p.finish };
 }
 
 export const quicksilverTraits: TraitsFn = (tokenId) => traitsFrom(params(seededRng(tokenId)));
@@ -132,7 +145,7 @@ function chromaSplit(x: Ctx, W: number, H: number, off: number) {
   } catch (e) { /* skip */ }
 }
 
-/* ── organic blob outline ── */
+/* ════ MASSIVE + MEDIUM primitives (spiky urchin language) ════ */
 function blobPath(x: Ctx, cx: number, cy: number, rad: number, wob: number, noise: Noise, ph: number) {
   const steps = 56; x.beginPath();
   for (let i = 0; i <= steps; i++) {
@@ -143,8 +156,6 @@ function blobPath(x: Ctx, cx: number, cy: number, rad: number, wob: number, nois
   }
   x.closePath();
 }
-
-/* ── chrome body (core under the spike crown) ── */
 function chromeBlob(x: Ctx, P: Params, cx: number, cy: number, rad: number, light: number, iridStr: number, finish: string, r: R, seedPhase: number, noise: Noise, wob: number, ridge: boolean) {
   wob = wob == null ? 0.20 : wob;
   const ph = (cx * 0.013 + cy * 0.017) % 6.28;
@@ -237,8 +248,6 @@ function chromeBlob(x: Ctx, P: Params, cx: number, cy: number, rad: number, ligh
   sheen(x, hx, hy, rad * 0.5, P.spec, 0.6);
   sheen(x, hx, hy, rad * 0.14, '#ffffff', 0.95);
 }
-
-/* ── ferrofluid spike (Rosensweig cone) ── */
 function spike(x: Ctx, P: Params, bx: number, by: number, len: number, baseW: number, ang: number, light: number, iridStr: number, r: R, seedPhase: number, noise: Noise, shadow: boolean) {
   const bend = (r() - 0.5) * len * 0.35;
   const ux = Math.cos(ang), uy = Math.sin(ang);
@@ -279,8 +288,6 @@ function spike(x: Ctx, P: Params, bx: number, by: number, len: number, baseW: nu
   x.stroke();
   x.restore();
 }
-
-/* ── FERRO BODY: chrome mass that always wears a spike crown + ridged skin ── */
 function ferroBody(x: Ctx, P: Params, cx: number, cy: number, rad: number, light: number, iridStr: number, finish: string, r: R, seedPhase: number, noise: Noise, opts: { spikeAmt?: number; wob?: number; upBias?: number }) {
   opts = opts || {};
   const spikeAmt = opts.spikeAmt == null ? 1 : opts.spikeAmt;
@@ -329,7 +336,6 @@ function ferroBody(x: Ctx, P: Params, cx: number, cy: number, rad: number, light
   const hx = cx + Math.cos(light) * rad * 0.4, hy = cy + Math.sin(light) * rad * 0.4;
   sheen(x, hx, hy, rad * 0.24, P.spec, 0.28);
 }
-
 function groundReflection(x: Ctx, gx: number, gy: number, gw: number) {
   x.save();
   x.globalCompositeOperation = 'multiply';
@@ -343,18 +349,107 @@ function groundReflection(x: Ctx, gx: number, gy: number, gw: number) {
   x.restore();
 }
 
-function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
-  const r = seededRng(tokenId);
-  const P = params(r);
-  const W = P.fmt.W, H = P.fmt.H;
-  canvas.width = W; canvas.height = H;
-  const x = canvas.getContext('2d');
-  if (!x) return P;
-  const noise = makeNoise(tokenId ^ 0x9e37);
-  const seedPhase = r();
-  const minD = Math.min(W, H);
-  const IS = P.iridStrength;
+/* ════ FINE primitives (quill / filament / beadlet) ════ */
+function quill(x: Ctx, P: Params, bx: number, by: number, len: number, baseW: number, ang: number, iridStr: number, r: R, seedPhase: number, bend?: number) {
+  const ux = Math.cos(ang), uy = Math.sin(ang);
+  const px = -uy, py = ux;
+  bend = bend == null ? (r() - 0.5) * len * 0.4 : bend;
+  const tx = bx + ux * len + px * bend, ty = by + uy * len + py * bend;
+  const mx = bx + ux * len * 0.5 + px * bend * 0.5, my = by + uy * len * 0.5 + py * bend * 0.5;
+  x.save();
+  x.beginPath();
+  x.moveTo(bx + px * baseW, by + py * baseW);
+  x.bezierCurveTo(bx + ux * len * 0.16 + px * baseW * 0.9, by + uy * len * 0.16 + py * baseW * 0.9, mx + px * baseW * 0.2, my + py * baseW * 0.2, tx, ty);
+  x.bezierCurveTo(mx - px * baseW * 0.2, my - py * baseW * 0.2, bx + ux * len * 0.16 - px * baseW * 0.9, by + uy * len * 0.16 - py * baseW * 0.9, bx - px * baseW, by - py * baseW);
+  x.closePath();
+  x.clip();
+  const g = x.createLinearGradient(bx + px * baseW, by + py * baseW, bx - px * baseW, by - py * baseW);
+  g.addColorStop(0.0, mix(P.metal, '#04050a', 0.74));
+  g.addColorStop(0.42, mix(P.metal, '#ffffff', 0.96));
+  g.addColorStop(0.60, mix(P.metal, '#05060c', 0.55));
+  g.addColorStop(1.0, mix(P.metal, '#ffffff', 0.34));
+  const bb = baseW * 2 + len;
+  x.fillStyle = g;
+  x.fillRect(Math.min(bx, tx, mx) - bb, Math.min(by, ty, my) - bb, bb * 2, bb * 2);
+  x.globalCompositeOperation = 'overlay';
+  const ag = x.createLinearGradient(bx, by, tx, ty);
+  ag.addColorStop(0, rgba(P.g1, 0.42));
+  ag.addColorStop(0.7, rgba('#000000', 0.0));
+  ag.addColorStop(1, rgba(P.spec, 0.34));
+  x.fillStyle = ag;
+  x.fillRect(Math.min(bx, tx, mx) - bb, Math.min(by, ty, my) - bb, bb * 2, bb * 2);
+  x.fillStyle = rgba(iridescent(seedPhase + P.irid + (bx + by) * 0.0008, 0.92, 0.6), 0.13 * iridStr * (0.7 + P.oil * 0.6));
+  x.fillRect(Math.min(bx, tx, mx) - bb, Math.min(by, ty, my) - bb, bb * 2, bb * 2);
+  x.restore();
+  x.save(); x.globalCompositeOperation = 'lighter';
+  x.strokeStyle = rgba(P.spec, 0.5); x.lineWidth = Math.max(0.7, baseW * 0.22); x.lineCap = 'round';
+  x.beginPath();
+  x.moveTo(bx + px * baseW * 0.4, by + py * baseW * 0.4);
+  x.quadraticCurveTo(mx + px * baseW * 0.1, my + py * baseW * 0.1, bx + ux * len * 0.82 + px * bend * 0.82, by + uy * len * 0.82 + py * bend * 0.82);
+  x.stroke();
+  const gx = bx + ux * len * 0.7 + px * bend * 0.7, gy = by + uy * len * 0.7 + py * bend * 0.7;
+  sheen(x, gx, gy, Math.max(2, baseW * 1.3), P.spec, 0.55);
+  x.restore();
+}
+function filament(x: Ctx, P: Params, sx: number, sy: number, noise: Noise, len: number, w: number, iridStr: number, r: R, seedPhase: number, drift: number) {
+  const steps = 26;
+  const pts: [number, number][] = [];
+  let cx = sx, cy = sy;
+  const stepLen = len / steps;
+  const baseAng = drift;
+  for (let s = 0; s < steps; s++) {
+    pts.push([cx, cy]);
+    const c = curl(noise, cx * 1.3, cy * 1.3, 1.4);
+    const ax = Math.cos(baseAng) + c[0] * 1.6;
+    const ay = Math.sin(baseAng) + c[1] * 1.6;
+    const m = Math.hypot(ax, ay) || 1;
+    cx += (ax / m) * stepLen;
+    cy += (ay / m) * stepLen;
+  }
+  if (pts.length < 3) return;
+  const stroke = (off: number, ww: number, style: string, comp: GlobalCompositeOperation | null) => {
+    x.save();
+    if (comp) x.globalCompositeOperation = comp;
+    x.strokeStyle = style; x.lineWidth = ww; x.lineCap = 'round'; x.lineJoin = 'round';
+    x.beginPath(); x.moveTo(pts[0][0] + off, pts[0][1] + off);
+    for (const p of pts) x.lineTo(p[0] + off, p[1] + off);
+    x.stroke(); x.restore();
+  };
+  stroke(1.2, w * 1.5, 'rgba(0,0,0,0.28)', 'multiply');
+  stroke(0, w, mix(P.metal, '#06070c', 0.35), null);
+  x.save(); x.globalCompositeOperation = 'lighter';
+  x.strokeStyle = rgba(P.spec, 0.5); x.lineWidth = Math.max(0.5, w * 0.42); x.lineCap = 'round';
+  x.beginPath(); x.moveTo(pts[0][0] - w * 0.22, pts[0][1] - w * 0.22);
+  for (const p of pts) x.lineTo(p[0] - w * 0.22, p[1] - w * 0.22);
+  x.stroke();
+  x.strokeStyle = rgba(iridescent(seedPhase + P.irid + sx * 0.001, 0.95, 0.64), 0.5 * iridStr * (0.7 + P.oil * 0.6));
+  x.lineWidth = Math.max(0.5, w * 0.4);
+  x.beginPath(); x.moveTo(pts[0][0] + w * 0.22, pts[0][1] + w * 0.22);
+  for (const p of pts) x.lineTo(p[0] + w * 0.22, p[1] + w * 0.22);
+  x.stroke();
+  x.restore();
+}
+function beadlet(x: Ctx, P: Params, cx: number, cy: number, rad: number, light: number, iridStr: number, seedPhase: number) {
+  softShadow(x, cx, cy + rad * 0.5, rad * 1.7, 0.3);
+  const g = x.createLinearGradient(cx, cy - rad, cx, cy + rad);
+  g.addColorStop(0.0, mix(P.metal, '#05060a', 0.6));
+  g.addColorStop(0.32, mix(P.metal, '#ffffff', 0.5));
+  g.addColorStop(0.52, mix(P.metal, '#ffffff', 0.95));
+  g.addColorStop(0.7, mix(P.metal, '#06070c', 0.45));
+  g.addColorStop(1.0, mix(P.metal, '#ffffff', 0.3));
+  x.save();
+  x.beginPath(); x.arc(cx, cy, rad, 0, Math.PI * 2); x.clip();
+  x.fillStyle = g; x.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+  x.globalCompositeOperation = 'overlay';
+  x.fillStyle = rgba(iridescent(seedPhase + P.irid + cx * 0.001, 0.9, 0.6), 0.16 * iridStr * (0.7 + P.oil * 0.6));
+  x.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+  x.restore();
+  const hx = cx + Math.cos(light) * rad * 0.4, hy = cy + Math.sin(light) * rad * 0.4;
+  sheen(x, hx, hy, rad * 0.55, P.spec, 0.7);
+}
 
+/* ════ shared ground + finish ════ */
+function paintGround(x: Ctx, P: Params, W: number, H: number, minD: number, noise: Noise, seedPhase: number, r: R) {
   const gg = x.createLinearGradient(0, 0, W * 0.2, H);
   gg.addColorStop(0, mix(P.g0, '#ffffff', P.dark ? 0.04 : 0.12));
   gg.addColorStop(0.55, P.g0);
@@ -363,33 +458,43 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
   const lcx = W * (0.35 + r() * 0.3), lcy = H * (0.3 + r() * 0.25);
   bloom(x, lcx, lcy, minD * 0.9, mix(P.g0, '#ffffff', 0.5), P.dark ? 0.18 : 0.32);
   hazeSheet(x, W, H, noise, mix(P.g1, '#ffffff', 0.3), P.dark ? 0.10 : 0.16, minD * 0.55, 'screen');
+  return { lcx, lcy };
+}
+function finishPass(x: Ctx, P: Params, W: number, H: number, minD: number, noise: Noise, lcx: number, lcy: number, r: R) {
+  hazeSheet(x, W, H, noise, mix(P.g0, '#ffffff', 0.4), P.dark ? 0.06 : 0.10, minD * 0.4, 'screen');
+  bloom(x, lcx, lcy, minD * 0.6, P.spec, 0.12);
+  mottle(x, 0, 0, W, H, P.metal, 2600, r, 'overlay');
+  chromaSplit(x, W, H, 1);
+  grain(x, W, H, 26, r);
+  vignette(x, W, H, P.dark ? 0.42 : 0.26);
+}
 
-  const light = P.lightAng;
-  const thirdsX = r() < 0.5 ? W * (1 - INVPHI) : W * INVPHI;
-  const fx = thirdsX;
+/* ════ scale drawers ════ */
+function drawUrchin(x: Ctx, P: Params, W: number, H: number, minD: number, noise: Noise, seedPhase: number, r: R, light: number, IS: number, sc: ScaleCfg) {
+  const fx = (r() < 0.5 ? W * (1 - INVPHI) : W * INVPHI);
   const fy = H * (0.40 + r() * 0.12);
 
   function colony(centers: { bx: number; by: number; rad: number }[]) {
     centers.sort((a, b) => b.rad - a.rad);
     for (const c of centers) {
       if (c.rad < minD * 0.03) {
-        chromeBlob(x as Ctx, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, 0.3, c.rad > 18);
+        chromeBlob(x, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, 0.3, c.rad > 18);
       } else {
-        ferroBody(x as Ctx, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, { spikeAmt: 1.0 + r() * 0.3, wob: 0.28 + r() * 0.14, upBias: 0.9 + r() * 0.9 });
+        ferroBody(x, P, c.bx, c.by, c.rad, light, IS, P.finish, r, seedPhase + c.bx * 0.001, noise, { spikeAmt: 1.0 + r() * 0.3, wob: 0.28 + r() * 0.14, upBias: 0.9 + r() * 0.9 });
       }
     }
   }
 
   if (P.mode === 'Crown') {
-    const Rr = minD * (0.20 + r() * 0.05);
+    const Rr = minD * (sc.heroR[0] + r() * sc.heroR[1]);
     const ccx = fx, ccy = H * (0.50 + r() * 0.08);
     groundReflection(x, ccx, ccy + Rr * 0.95, Rr * 2.1);
     const sup: { bx: number; by: number; rad: number }[] = [];
-    const supN = rint(r, 10, 14);
+    const supN = rint(r, sc.supN[0], sc.supN[1]);
     for (let i = 0; i < supN; i++) {
       const bx = W * (0.08 + r() * 0.84), by = H * (0.12 + r() * 0.80);
       if (Math.hypot(bx - ccx, by - ccy) < Rr * 1.3) continue;
-      sup.push({ bx, by, rad: minD * (0.04 + Math.pow(r(), 1.5) * 0.10) });
+      sup.push({ bx, by, rad: minD * (sc.supR[0] + Math.pow(r(), 1.5) * sc.supR[1]) });
     }
     colony(sup);
     ferroBody(x, P, ccx, ccy, Rr, light, IS, P.finish, r, seedPhase, noise, { spikeAmt: 1.4, wob: 0.26, upBias: 1.5 });
@@ -399,33 +504,33 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
     }
   } else if (P.mode === 'Colony') {
     const centers: { bx: number; by: number; rad: number }[] = [];
-    centers.push({ bx: fx, by: fy, rad: minD * (0.15 + r() * 0.05) });
-    centers.push({ bx: W - fx + (r() - 0.5) * W * 0.1, by: H * (0.62 + r() * 0.12), rad: minD * (0.12 + r() * 0.05) });
-    const cols = 4, rows = 4;
+    centers.push({ bx: fx, by: fy, rad: minD * (sc.anchR[0] + r() * sc.anchR[1]) });
+    centers.push({ bx: W - fx + (r() - 0.5) * W * 0.1, by: H * (0.62 + r() * 0.12), rad: minD * (sc.anchR[0] * 0.8 + r() * sc.anchR[1]) });
+    const cols = sc.grid, rows = sc.grid;
     for (let gx = 0; gx < cols; gx++) {
       for (let gy = 0; gy < rows; gy++) {
         const bx = W * ((gx + 0.5) / cols) + (r() - 0.5) * W / cols * 0.9;
         const by = H * ((gy + 0.5) / rows) + (r() - 0.5) * H / rows * 0.9;
-        centers.push({ bx, by, rad: minD * (0.04 + Math.pow(r(), 1.4) * 0.085) });
+        centers.push({ bx, by, rad: minD * (sc.cellR[0] + Math.pow(r(), 1.4) * sc.cellR[1]) });
       }
     }
     colony(centers);
   } else if (P.mode === 'Reef') {
     const baseY = H * (0.45 + (r() - 0.5) * 0.12);
     const amp = H * (0.14 + r() * 0.08);
-    const n = rint(r, 11, 15);
+    const n = rint(r, sc.reefN[0], sc.reefN[1]);
     const reef: { bx: number; by: number; rad: number }[] = [];
     for (let i = 0; i < n; i++) {
       const t = i / (n - 1);
       const bx = W * (t * 1.06 - 0.03);
       const by = baseY + Math.sin(t * Math.PI * (1.5 + r() * 1.5) + seedPhase * 6) * amp + (r() - 0.5) * H * 0.06;
-      reef.push({ bx, by, rad: minD * (0.085 + Math.pow(r(), 1.2) * 0.075) });
+      reef.push({ bx, by, rad: minD * (sc.reefR[0] + Math.pow(r(), 1.2) * sc.reefR[1]) });
     }
-    for (let i = 0; i < rint(r, 8, 12); i++) {
-      reef.push({ bx: W * (0.04 + r() * 0.92), by: H * (0.7 + r() * 0.26), rad: minD * (0.035 + Math.pow(r(), 1.5) * 0.06) });
+    for (let i = 0; i < rint(r, sc.reefFill[0], sc.reefFill[1]); i++) {
+      reef.push({ bx: W * (0.04 + r() * 0.92), by: H * (0.7 + r() * 0.26), rad: minD * (sc.cellR[0] * 0.9 + Math.pow(r(), 1.5) * sc.cellR[1]) });
     }
     for (let i = 0; i < rint(r, 4, 6); i++) {
-      reef.push({ bx: W * (0.04 + r() * 0.92), by: H * (0.06 + r() * 0.22), rad: minD * (0.03 + Math.pow(r(), 1.6) * 0.05) });
+      reef.push({ bx: W * (0.04 + r() * 0.92), by: H * (0.06 + r() * 0.22), rad: minD * (sc.cellR[0] * 0.8 + Math.pow(r(), 1.6) * sc.cellR[1] * 0.8) });
     }
     colony(reef);
   } else if (P.mode === 'Flow') {
@@ -483,7 +588,7 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
         }
       }
     };
-    const mainW = minD * (0.11 + r() * 0.05);
+    const mainW = minD * sc.flowW;
     const baseAng = (0.13 + r() * 0.12) * Math.PI;
     const axisAng = dir > 0 ? baseAng : Math.PI - baseAng;
     const ux = Math.cos(axisAng), uy = Math.sin(axisAng);
@@ -501,16 +606,16 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
       river(tsx, tsy, ta, mainW * (0.4 + r() * 0.3), span, 260, mainW * 0.5, 0.3 + t * 0.2, t === 0);
     }
     const scat: { bx: number; by: number; rad: number }[] = [];
-    for (let i = 0; i < rint(r, 8, 12); i++) {
-      scat.push({ bx: W * (0.05 + r() * 0.9), by: H * (0.05 + r() * 0.9), rad: minD * (0.035 + Math.pow(r(), 1.6) * 0.06) });
+    for (let i = 0; i < rint(r, sc.reefFill[0], sc.reefFill[1]); i++) {
+      scat.push({ bx: W * (0.05 + r() * 0.9), by: H * (0.05 + r() * 0.9), rad: minD * (sc.cellR[0] * 0.9 + Math.pow(r(), 1.6) * sc.cellR[1]) });
     }
     colony(scat);
   } else { // Macro
-    const sep = minD * (0.26 + r() * 0.06);
+    const sep = minD * (sc.macroSep[0] + r() * sc.macroSep[1]);
     const mergeAng = r() * Math.PI;
     const mx = Math.cos(mergeAng), my = Math.sin(mergeAng);
     const cX = W * (0.5 + (r() - 0.5) * 0.12), cY = H * (0.5 + (r() - 0.5) * 0.12);
-    const R1 = minD * (0.32 + r() * 0.07);
+    const R1 = minD * (sc.macroR[0] + r() * sc.macroR[1]);
     const R2 = R1 * (0.78 + r() * 0.18);
     const a1x = cX - mx * sep, a1y = cY - my * sep;
     const a2x = cX + mx * sep, a2y = cY + my * sep;
@@ -524,9 +629,9 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
     x.beginPath(); x.moveTo(a1x, a1y); x.lineTo(a2x, a2y); x.stroke();
     x.restore();
     const sats: { bx: number; by: number; rad: number }[] = [];
-    for (let i = 0; i < rint(r, 7, 10); i++) {
+    for (let i = 0; i < rint(r, sc.supN[0], sc.supN[1]); i++) {
       const a = r() * Math.PI * 2, dd = (R1 + R2) * (0.9 + r() * 0.8);
-      sats.push({ bx: cX + Math.cos(a) * dd, by: cY + Math.sin(a) * dd, rad: minD * (0.04 + Math.pow(r(), 1.5) * 0.08) });
+      sats.push({ bx: cX + Math.cos(a) * dd, by: cY + Math.sin(a) * dd, rad: minD * (sc.cellR[0] + Math.pow(r(), 1.5) * sc.cellR[1]) });
     }
     colony(sats);
     ferroBody(x, P, a2x, a2y, R2, light, IS, P.finish, r, seedPhase + 0.04, noise, { spikeAmt: 1.2, wob: 0.26, upBias: 1.1 });
@@ -538,13 +643,204 @@ function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
       chromeBlob(x, P, px, py, minD * (0.03 + r() * 0.05), light, IS, P.finish, r, seedPhase, noise, 0.28, true);
     }
   }
+}
 
-  hazeSheet(x, W, H, noise, mix(P.g0, '#ffffff', 0.4), P.dark ? 0.06 : 0.10, minD * 0.4, 'screen');
-  bloom(x, lcx, lcy, minD * 0.6, P.spec, 0.12);
-  mottle(x, 0, 0, W, H, P.metal, 2600, r, 'overlay');
-  chromaSplit(x, W, H, 1);
-  grain(x, W, H, 26, r);
-  vignette(x, W, H, P.dark ? 0.42 : 0.26);
+function drawFine(x: Ctx, P: Params, W: number, H: number, minD: number, noise: Noise, seedPhase: number, r: R, light: number) {
+  const dm = densMul(P.density);
+  const ax = r() < 0.5 ? W * INVPHI : W * (1 - INVPHI);
+  const ay = H * (0.34 + r() * 0.34);
+  const inB = (px: number, py: number, m: number) => px > -m && px < W + m && py > -m && py < H + m;
+
+  if (P.mode === 'Storm') {
+    const wind = -Math.PI / 2 + (r() - 0.5) * 1.3;
+    const N = Math.floor((1300 + r() * 600) * dm);
+    const quills: { px: number; py: number; ang: number; len: number; bw: number; depth: number }[] = [];
+    for (let i = 0; i < N; i++) {
+      let px, py;
+      if (r() < 0.72) { const a = r() * Math.PI * 2; const rad = Math.pow(r(), 0.55) * minD * 0.78; px = ax + Math.cos(a) * rad; py = ay + Math.sin(a) * rad * 0.92; }
+      else { px = r() * W; py = r() * H; }
+      if (!inB(px, py, 30)) continue;
+      const c = curl(noise, px, py, 1.5);
+      const ang = wind + (c[0] - c[1]) * 0.9 + (r() - 0.5) * 0.4;
+      const d2 = Math.hypot(px - ax, py - ay) / minD;
+      const sizeF = clamp(1.15 - d2 * 0.7, 0.45, 1.15);
+      const len = minD * (0.018 + Math.pow(r(), 1.6) * 0.06) * sizeF;
+      const bw = len * (0.14 + r() * 0.1);
+      quills.push({ px, py, ang, len, bw, depth: py });
+    }
+    quills.sort((a, b) => a.depth - b.depth);
+    for (const q of quills) quill(x, P, q.px, q.py, q.len, q.bw, q.ang, P.iridStrength, r, seedPhase);
+    const B = Math.floor((260 + r() * 200) * dm);
+    for (let i = 0; i < B; i++) {
+      const a = r() * Math.PI * 2, rad = Math.pow(r(), 0.6) * minD * 0.8;
+      const px = ax + Math.cos(a) * rad, py = ay + Math.sin(a) * rad;
+      if (!inB(px, py, 10)) continue;
+      beadlet(x, P, px, py, minD * (0.004 + r() * 0.009), light, P.iridStrength, seedPhase);
+    }
+  } else if (P.mode === 'Curtain') {
+    const cols = Math.floor((46 + r() * 26) * dm);
+    const side = r() < 0.5 ? 0 : 1;
+    for (let cI = 0; cI < cols; cI++) {
+      const t = cI / cols;
+      const bias = side ? Math.pow(t, 0.7) : Math.pow(1 - t, 0.7);
+      const colX = t * W + (r() - 0.5) * (W / cols) * 1.2;
+      const drift = Math.PI / 2 + (r() - 0.5) * 0.5;
+      const startY = -H * 0.05 + r() * H * 0.1;
+      const perCol = 2 + Math.floor(bias * 4 * dm + r() * 2);
+      for (let k = 0; k < perCol; k++) {
+        const sx = colX + (r() - 0.5) * (W / cols) * 0.9;
+        const len = H * (0.5 + r() * 0.55);
+        const w = minD * (0.0026 + r() * 0.004);
+        filament(x, P, sx, startY + r() * H * 0.12, noise, len, w, P.iridStrength, r, seedPhase, drift);
+      }
+      const buds = Math.floor(bias * 8 * dm);
+      for (let k = 0; k < buds; k++) {
+        const sx = colX + (r() - 0.5) * (W / cols) * 1.4;
+        const sy = r() * H;
+        const ang = (r() < 0.5 ? 1 : -1) * (Math.PI / 2) * (0.2 + r() * 0.5) + Math.PI / 2;
+        const len = minD * (0.02 + r() * 0.04);
+        quill(x, P, sx, sy, len, len * (0.16 + r() * 0.1), ang, P.iridStrength, r, seedPhase);
+      }
+    }
+    const B = Math.floor((420 + r() * 240) * dm);
+    for (let i = 0; i < B; i++) {
+      const px = r() * W, py = r() * H;
+      beadlet(x, P, px, py, minD * (0.0035 + r() * 0.008), light, P.iridStrength, seedPhase);
+    }
+  } else if (P.mode === 'Spray') {
+    const fx = ax + (r() - 0.5) * minD * 0.2;
+    const fy = ay + (r() - 0.5) * minD * 0.2;
+    const wind = r() * Math.PI * 2;
+    const fan = 0.7 + r() * 0.6;
+    const N = Math.floor((1100 + r() * 650) * dm);
+    const quills: { px: number; py: number; ang: number; len: number; bw: number; depth: number }[] = [];
+    for (let i = 0; i < N; i++) {
+      const a = wind + (r() - 0.5) * 2 * fan;
+      const rad = Math.pow(r(), 0.42) * minD * 1.05;
+      const px = fx + Math.cos(a) * rad, py = fy + Math.sin(a) * rad * 0.96;
+      if (!inB(px, py, 30)) continue;
+      const c = curl(noise, px, py, 1.4);
+      const outAng = a + (c[0] + c[1]) * 0.5 + (r() - 0.5) * 0.3;
+      const sizeF = clamp(1.2 - rad / minD, 0.4, 1.2);
+      const len = minD * (0.02 + Math.pow(r(), 1.5) * 0.07) * sizeF;
+      const bw = len * (0.12 + r() * 0.1);
+      quills.push({ px, py, ang: outAng, len, bw, depth: py });
+    }
+    const N2 = Math.floor((900 + r() * 500) * dm);
+    for (let i = 0; i < N2; i++) {
+      const px = r() * W, py = r() * H;
+      const c = curl(noise, px, py, 1.5);
+      const outAng = wind + (c[0] - c[1]) * 0.9 + (r() - 0.5) * 0.5;
+      const len = minD * (0.018 + Math.pow(r(), 1.6) * 0.05);
+      quills.push({ px, py, ang: outAng, len, bw: len * (0.14 + r() * 0.1), depth: py });
+    }
+    quills.sort((a, b) => a.depth - b.depth);
+    for (const q of quills) quill(x, P, q.px, q.py, q.len, q.bw, q.ang, P.iridStrength, r, seedPhase);
+    const B = Math.floor((360 + r() * 240) * dm);
+    for (let i = 0; i < B; i++) {
+      const a = wind + (r() - 0.5) * 2 * fan, rad = Math.pow(r(), 0.35) * minD * 1.1;
+      const px = fx + Math.cos(a) * rad, py = fy + Math.sin(a) * rad;
+      if (!inB(px, py, 8)) continue;
+      beadlet(x, P, px, py, minD * (0.003 + r() * 0.007), light, P.iridStrength, seedPhase);
+    }
+  } else if (P.mode === 'Weave') {
+    const fam = (driftBase: number, count: number, ww: number) => {
+      for (let i = 0; i < count; i++) {
+        const sx = r() * W * 1.1 - W * 0.05;
+        const sy = r() * H * 1.1 - H * 0.05;
+        const drift = driftBase + (r() - 0.5) * 0.5;
+        const len = minD * (0.35 + r() * 0.45);
+        filament(x, P, sx, sy, noise, len, ww, P.iridStrength, r, seedPhase, drift);
+      }
+    };
+    const baseA = r() * Math.PI;
+    fam(baseA, Math.floor((140 + r() * 80) * dm), minD * (0.0028 + r() * 0.003));
+    fam(baseA + Math.PI * 0.5 + (r() - 0.5) * 0.4, Math.floor((130 + r() * 80) * dm), minD * (0.0026 + r() * 0.003));
+    const Q = Math.floor((420 + r() * 280) * dm);
+    for (let i = 0; i < Q; i++) {
+      const px = r() * W, py = r() * H;
+      const c = curl(noise, px, py, 1.4);
+      const ang = Math.atan2(c[1], c[0]) + (r() - 0.5) * 0.6;
+      const len = minD * (0.015 + r() * 0.03);
+      quill(x, P, px, py, len, len * (0.16 + r() * 0.1), ang, P.iridStrength, r, seedPhase);
+    }
+    const B = Math.floor((700 + r() * 400) * dm);
+    for (let i = 0; i < B; i++) {
+      let px, py;
+      if (r() < 0.5) { const a = r() * Math.PI * 2, rad = Math.pow(r(), 0.7) * minD * 0.7; px = ax + Math.cos(a) * rad; py = ay + Math.sin(a) * rad; }
+      else { px = r() * W; py = r() * H; }
+      if (!inB(px, py, 6)) continue;
+      beadlet(x, P, px, py, minD * (0.0028 + r() * 0.006), light, P.iridStrength, seedPhase);
+    }
+  } else { // Reef (fine)
+    const clusters = Math.floor((220 + r() * 120) * dm);
+    const polyps: { px: number; py: number }[] = [];
+    for (let i = 0; i < clusters; i++) {
+      let px, py;
+      if (r() < 0.45) { const a = r() * Math.PI * 2, rad = Math.pow(r(), 0.6) * minD * 0.8; px = ax + Math.cos(a) * rad; py = ay + Math.sin(a) * rad * 1.05; }
+      else { px = r() * W; py = r() * H; }
+      if (!inB(px, py, 20)) continue;
+      polyps.push({ px, py });
+    }
+    polyps.sort((a, b) => a.py - b.py);
+    for (const pl of polyps) {
+      const grow = -Math.PI / 2 + (r() - 0.5) * 0.8;
+      const spikes = 5 + Math.floor(r() * 8);
+      const base = minD * (0.022 + r() * 0.032);
+      for (let s = 0; s < spikes; s++) {
+        const ang = grow + (s / spikes - 0.5) * (0.7 + r() * 0.6);
+        const len = base * (0.7 + r() * 0.9);
+        quill(x, P, pl.px + (r() - 0.5) * base * 0.5, pl.py, len, len * (0.18 + r() * 0.12), ang, P.iridStrength, r, seedPhase);
+      }
+      for (let b = 0; b < 2 + Math.floor(r() * 3); b++) {
+        beadlet(x, P, pl.px + (r() - 0.5) * base, pl.py + r() * base * 0.5, minD * (0.004 + r() * 0.008), light, P.iridStrength, seedPhase);
+      }
+    }
+    const B = Math.floor((600 + r() * 400) * dm);
+    for (let i = 0; i < B; i++) {
+      const px = r() * W, py = r() * H;
+      beadlet(x, P, px, py, minD * (0.0024 + r() * 0.005), light, P.iridStrength, seedPhase);
+    }
+  }
+}
+
+const SCALE_CFG: Record<string, ScaleCfg> = {
+  Massive: {
+    heroR: [0.20, 0.05], supN: [10, 14], supR: [0.04, 0.10],
+    anchR: [0.15, 0.05], grid: 4, cellR: [0.04, 0.085],
+    reefN: [11, 15], reefR: [0.085, 0.075], reefFill: [8, 12],
+    flowW: 0.13, macroSep: [0.26, 0.06], macroR: [0.32, 0.07],
+  },
+  Medium: {
+    heroR: [0.115, 0.03], supN: [16, 22], supR: [0.028, 0.06],
+    anchR: [0.085, 0.03], grid: 6, cellR: [0.026, 0.05],
+    reefN: [18, 24], reefR: [0.05, 0.045], reefFill: [16, 22],
+    flowW: 0.075, macroSep: [0.18, 0.05], macroR: [0.165, 0.045],
+  },
+};
+
+function paint(canvas: HTMLCanvasElement, tokenId: number): Params {
+  const r = seededRng(tokenId);
+  const P = params(r);
+  const W = P.fmt.W, H = P.fmt.H;
+  canvas.width = W; canvas.height = H;
+  const x = canvas.getContext('2d');
+  if (!x) return P;
+  const noise = makeNoise(tokenId ^ 0x9e37);
+  const seedPhase = r();
+  const minD = Math.min(W, H);
+  const IS = P.iridStrength;
+  const light = P.lightAng;
+
+  const { lcx, lcy } = paintGround(x, P, W, H, minD, noise, seedPhase, r);
+
+  if (P.scale === 'Fine') {
+    drawFine(x, P, W, H, minD, noise, seedPhase, r, light);
+  } else {
+    drawUrchin(x, P, W, H, minD, noise, seedPhase, r, light, IS, SCALE_CFG[P.scale]);
+  }
+
+  finishPass(x, P, W, H, minD, noise, lcx, lcy, r);
   return P;
 }
 
@@ -561,9 +857,10 @@ export const renderQuicksilver: EngineFn = (canvas, tokenId, width) => {
 
 export const quicksilverSchema: TraitSchema = {
   traits: [
+    { name: 'Scale', values: ['Massive', 'Medium', 'Fine'] },
+    { name: 'Mode', values: ['Crown', 'Colony', 'Reef', 'Flow', 'Macro', 'Storm', 'Curtain', 'Spray', 'Weave'] },
     { name: 'Palette', values: PALS.map((p) => p.name) },
     { name: 'Format', values: ['Square', 'Landscape', 'Portrait'] },
-    { name: 'Mode', values: ['Crown', 'Colony', 'Reef', 'Flow', 'Macro'] },
     { name: 'Finish', values: ['High Polish', 'Brushed', 'Wet'] },
   ],
 };
