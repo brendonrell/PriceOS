@@ -31,14 +31,23 @@ window.ENGINE = (function () {
     { W: 1120, H: 1500, t: 'Portrait' },
   ];
 
-  const MODES = ['Crown', 'Coalescence', 'Rivulet', 'Bead Field'];
+  // Mode weighting: Crown is the hero image and gets the heaviest weight so it
+  // appears ~1-in-3 seeds. The repeated pendant/rivulet motif is GONE. Each of
+  // the other four is a genuinely different composition.
+  const MODE_BAG = [
+    'Crown', 'Crown', 'Crown',          // hero — most frequent
+    'Pool', 'Pool',                     // frame-filling coalescence
+    'Constellation', 'Constellation',   // dense anchored bead cluster
+    'Flow', 'Flow',                     // sweeping diagonal chrome river
+    'Macro', 'Macro',                   // tight crop of merging metal
+  ];
   const FINISH = ['High Polish', 'Brushed', 'Wet'];
 
   function params(r) {
     let pal = K.pick(PALS, r);
     if (window.FORCE_PAL) pal = PALS.find((q) => q.name === window.FORCE_PAL) || pal;
     const fmt = K.pick(FMTS, r);
-    const mode = K.pick(MODES, r);
+    const mode = K.pick(MODE_BAG, r);
     const finish = K.pick(FINISH, r);
     const iridStrength = 0.55 + r() * 0.45; // how much oil-slick on the metal
     const lightAng = -Math.PI / 2 + (r() - 0.5) * 1.1; // global light from upper area
@@ -223,148 +232,262 @@ window.ENGINE = (function () {
     K.hazeSheet(x, W, H, noise, K.mix(P.g1, '#ffffff', 0.3), P.dark ? 0.10 : 0.16, minD * 0.55, 'screen');
 
     const light = P.lightAng;
-    const cx = W * (0.42 + r() * 0.16), cy = H * (0.5 + (r() - 0.5) * 0.12);
+
+    // ── COMPOSITION FRAMEWORK ──────────────────────────────────────────────
+    // Golden-ratio thirds anchors. Pick a strong off-centre focal point so the
+    // hero never floats in the dead centre or low in a void. Each mode then
+    // builds its own picture around `fx,fy` and fills the frame confidently.
+    const thirdsX = r() < 0.5 ? W * 0.5 : (r() < 0.5 ? W * (1 - K.INVPHI) : W * K.INVPHI);
+    const fx = thirdsX;
+    // vertical anchor kept in the upper-mid band so forms own the top of frame
+    const fy = H * (0.40 + r() * 0.12);
+
+    // A pooled "horizon" reflection band: a faint mirrored smear under the hero
+    // so it sits in space instead of floating. Drawn once, beneath the subject.
+    function groundReflection(gx, gy, gw) {
+      x.save();
+      x.globalCompositeOperation = 'multiply';
+      const sg = x.createRadialGradient(gx, gy, 0, gx, gy, gw);
+      sg.addColorStop(0, 'rgba(0,0,0,0.30)');
+      sg.addColorStop(0.6, 'rgba(0,0,0,0.12)');
+      sg.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = sg;
+      x.save(); x.translate(gx, gy); x.scale(1, 0.32); x.translate(-gx, -gy);
+      x.fillRect(gx - gw, gy - gw, gw * 2, gw * 2); x.restore();
+      x.restore();
+    }
 
     // ── MODE COMPOSITIONS ──
     if (P.mode === 'Crown') {
-      // ferrofluid spike crown: a central mound bristling with chrome horns that
-      // splay outward & upward — depth-ordered so it reads as a 3D sculpture.
-      const R = minD * (0.2 + r() * 0.05);
-      const n = K.rint(r, 11, 16);
-      // spikes emerge from the upper hemisphere of the mound and splay UP & OUT
-      // (ferrofluid defies gravity upward) — no downward starburst spokes.
+      // HERO: a single dominant ferrofluid spike crown that commands the frame.
+      // Scaled large, planted on a soft contact pool, spikes filling the upper
+      // frame so there is NO dead gradient at the top. Off-centre anchored.
+      const R = minD * (0.24 + r() * 0.05);
+      const ccx = fx, ccy = H * (0.56 + r() * 0.06); // plant slightly low-centre so spikes own the top
+      groundReflection(ccx, ccy + R * 0.95, R * 2.1);
+      const n = K.rint(r, 14, 20);
       const spikes = [];
       for (let i = 0; i < n; i++) {
-        // distribute emergence angles across the top ~230° arc
-        const a = -Math.PI + (i / (n - 1)) * Math.PI * 1.28 - Math.PI * 0.14 + (r() - 0.5) * 0.16;
-        // direction biased strongly upward: blend the radial angle with straight up
+        const a = -Math.PI + (i / (n - 1)) * Math.PI * 1.32 - Math.PI * 0.16 + (r() - 0.5) * 0.16;
         const radial = a;
-        const dir = Math.atan2(Math.sin(radial) * 0.55 - 0.85, Math.cos(radial) * 0.9);
+        const dir = Math.atan2(Math.sin(radial) * 0.5 - 0.9, Math.cos(radial) * 0.92);
         const up = (-Math.sin(dir) + 1) / 2;
-        const len = R * (1.0 + up * 1.25 + Math.abs(K.randn(r)) * 0.4);
-        const bw = R * (0.13 + r() * 0.07) * (0.7 + up * 0.5);
-        const bx = cx + Math.cos(a) * R * 0.66, by = cy + Math.sin(a) * R * 0.58;
+        // longer spikes than before so the crown reaches into the upper frame
+        const len = R * (1.15 + up * 1.55 + Math.abs(K.randn(r)) * 0.45);
+        const bw = R * (0.14 + r() * 0.07) * (0.7 + up * 0.5);
+        const bx = ccx + Math.cos(a) * R * 0.66, by = ccy + Math.sin(a) * R * 0.58;
         spikes.push({ a, dir, len, bw, bx, by });
       }
-      // central mound first (spikes sit on top, rooted in it)
-      chromeBlob(x, P, cx, cy, R, light, P.iridStrength, P.finish, r, seedPhase, noise, 0.26);
-      // draw spikes sorted by base x for a touch of overlap depth
+      chromeBlob(x, P, ccx, ccy, R, light, P.iridStrength, P.finish, r, seedPhase, noise, 0.26);
       spikes.sort((s1, s2) => s1.by - s2.by);
       for (const s of spikes) spike(x, P, s.bx, s.by, s.len, s.bw, s.dir, light, P.iridStrength, r, seedPhase, noise);
-      // re-cap the mound's lit hotspot so spikes read as rooted, not floating
-      const hx = cx + Math.cos(light) * R * 0.42, hy = cy + Math.sin(light) * R * 0.42;
+      const hx = ccx + Math.cos(light) * R * 0.42, hy = ccy + Math.sin(light) * R * 0.42;
       K.sheen(x, hx, hy, R * 0.4, P.spec, 0.4);
-      // a few beads flung up off the crown
-      for (let i = 0; i < K.rint(r, 3, 6); i++) {
-        const a = -Math.PI / 2 + (r() - 0.5) * 2.0, dd = R * (1.7 + r() * 1.4);
-        chromeBlob(x, P, cx + Math.cos(a) * dd, cy + Math.sin(a) * dd, R * (0.07 + r() * 0.13), light, P.iridStrength, P.finish, r, seedPhase + 0.1, noise, 0.3);
+      // supporting cast: a couple of resting satellite beads at the base + a few
+      // flung droplets up high — gives focal hierarchy without clutter.
+      const baseN = K.rint(r, 2, 3);
+      for (let i = 0; i < baseN; i++) {
+        const side = i % 2 === 0 ? -1 : 1;
+        const bx = ccx + side * R * (1.3 + r() * 0.5), by = ccy + R * (0.7 + r() * 0.3);
+        chromeBlob(x, P, bx, by, R * (0.18 + r() * 0.16), light, P.iridStrength, P.finish, r, seedPhase + 0.07, noise, 0.24);
       }
-    } else if (P.mode === 'Coalescence') {
-      // several large blobs merging — metaball cluster, big to small
-      const count = K.rint(r, 4, 7);
-      const sizes = [];
-      for (let i = 0; i < count; i++) sizes.push({ s: 0.22 - i * 0.02 + r() * 0.04, i });
-      // connective necks (metaball illusion): draw soft chrome links first
-      const pts = [];
-      for (let i = 0; i < count; i++) {
-        const a = r() * Math.PI * 2, dd = minD * (0.05 + r() * 0.22);
-        pts.push({ bx: cx + Math.cos(a) * dd, by: cy + Math.sin(a) * dd, R: minD * sizes[i].s });
+      for (let i = 0; i < K.rint(r, 3, 5); i++) {
+        const a = -Math.PI / 2 + (r() - 0.5) * 1.8, dd = R * (1.9 + r() * 1.3);
+        chromeBlob(x, P, ccx + Math.cos(a) * dd, ccy + Math.sin(a) * dd, R * (0.05 + r() * 0.09), light, P.iridStrength, P.finish, r, seedPhase + 0.1, noise, 0.3);
       }
-      // necks
+    } else if (P.mode === 'Pool') {
+      // FRAME-FILLING COALESCENCE: a dominant central mass with merging satellite
+      // pools, all large and overlapping so the field is FULL — the rebuild of
+      // the old flat "render-test" disc pile. One clear hero blob, descending
+      // sizes, connective necks, anchored off-centre.
+      const pcy = H * (0.46 + (r() - 0.5) * 0.08); // keep the mass centred in frame
+      const heroR = minD * (0.31 + r() * 0.06);
+      const pts = [{ bx: fx, by: pcy, R: heroR }];
+      const sat = K.rint(r, 5, 7);
+      // aspect-aware spread so the cluster fills wide on landscape, tall on portrait
+      const sprX = W * 0.30, sprY = H * 0.30;
+      for (let i = 0; i < sat; i++) {
+        // ring around the hero, touching/overlapping, biased to the long axis
+        const a = (i / sat) * Math.PI * 2 + r() * 0.8;
+        const dd = 0.80 + r() * 0.55;
+        const rr = heroR * (0.42 + r() * 0.40);
+        let bx = fx + Math.cos(a) * sprX * dd, by = pcy + Math.sin(a) * sprY * dd;
+        bx = K.clamp(bx, W * 0.14, W * 0.86);
+        by = K.clamp(by, H * 0.14, H * 0.86);
+        pts.push({ bx, by, R: rr });
+      }
+      // a few small merge droplets in the gaps for texture
+      for (let i = 0; i < K.rint(r, 4, 6); i++) {
+        const a = r() * Math.PI * 2, dd = 1.0 + r() * 0.7;
+        pts.push({ bx: K.clamp(fx + Math.cos(a) * sprX * dd, W * 0.08, W * 0.92),
+                   by: K.clamp(pcy + Math.sin(a) * sprY * dd, H * 0.08, H * 0.92),
+                   R: heroR * (0.12 + r() * 0.14) });
+      }
+      groundReflection(fx, pcy + heroR * 0.9, heroR * 2.2);
+      // connective necks (metaball illusion)
       x.save(); x.globalCompositeOperation = 'source-over';
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
           const d = Math.hypot(pts[i].bx - pts[j].bx, pts[i].by - pts[j].by);
-          if (d < (pts[i].R + pts[j].R) * 1.05) {
-            const mx = (pts[i].bx + pts[j].bx) / 2, my = (pts[i].by + pts[j].by) / 2;
-            K.softShadow(x, mx, my + 6, (pts[i].R + pts[j].R) * 0.4, 0.3);
+          if (d < (pts[i].R + pts[j].R) * 1.0) {
             const ng = x.createLinearGradient(pts[i].bx, pts[i].by, pts[j].bx, pts[j].by);
             ng.addColorStop(0, K.mix(P.metal, '#ffffff', 0.5));
             ng.addColorStop(0.5, K.mix(P.metal, '#06070c', 0.2));
             ng.addColorStop(1, K.mix(P.metal, '#ffffff', 0.4));
-            x.strokeStyle = ng; x.lineWidth = Math.min(pts[i].R, pts[j].R) * 0.9; x.lineCap = 'round';
+            x.strokeStyle = ng; x.lineWidth = Math.min(pts[i].R, pts[j].R) * 0.95; x.lineCap = 'round';
             x.beginPath(); x.moveTo(pts[i].bx, pts[i].by); x.lineTo(pts[j].bx, pts[j].by); x.stroke();
           }
         }
       }
       x.restore();
-      // blobs, big behind
+      // blobs: big behind, hero last so it reads on top and dominant
       const ordered = pts.slice().sort((a, b) => b.R - a.R);
-      for (const p of ordered) chromeBlob(x, P, p.bx, p.by, p.R, light, P.iridStrength, P.finish, r, seedPhase, noise, 0.16 + r() * 0.12);
-    } else if (P.mode === 'Rivulet') {
-      // flowing chrome rivulets following the curl field, beads pooling along & at end
-      const lanes = K.rint(r, 4, 7);
-      const drift = (r() - 0.5) * 0.6; // global lateral bias
-      for (let l = 0; l < lanes; l++) {
-        let px = (l / lanes) * W + (r() - 0.5) * W * 0.18, py = -30;
-        const segs = [];
-        const steps = 170;
+      for (const p of ordered) chromeBlob(x, P, p.bx, p.by, p.R, light, P.iridStrength, P.finish, r, seedPhase, noise, 0.14 + r() * 0.14);
+    } else if (P.mode === 'Constellation') {
+      // DENSE ANCHORED BEAD CLUSTER: one large keystone bead at the focal anchor,
+      // surrounded by a tightly-graded constellation that swells around it and
+      // thins toward the edges (intentional negative space at the margins, dense
+      // core). Reads as a single cluster-picture, not scattered loners in a void.
+      const keyR = minD * (0.18 + r() * 0.05);
+      const beads = [{ bx: fx, by: fy, rad: keyR }];
+      // a 2-3 bead "core triad" hugging the keystone so the focal mass is clearly
+      // dominant, then a graded cloud filling out toward every edge.
+      for (let i = 0; i < K.rint(r, 2, 3); i++) {
+        const a = r() * Math.PI * 2, dd = keyR * (0.9 + r() * 0.5);
+        beads.push({ bx: fx + Math.cos(a) * dd, by: fy + Math.sin(a) * dd, rad: keyR * (0.45 + r() * 0.3) });
+      }
+      // cluster cloud: spread wide enough to FILL the frame; density & size both
+      // fall off with distance from the keystone so the eye stays on the core but
+      // the margins are never empty.
+      const cloudN = K.rint(r, 44, 62);
+      const spread = minD * (0.46 + r() * 0.14);
+      for (let i = 0; i < cloudN; i++) {
+        const ang = r() * Math.PI * 2;
+        const rad = Math.pow(r(), 0.7) * spread * 1.7; // fills out to edges
+        const bx = fx + Math.cos(ang) * rad, by = fy + Math.sin(ang) * rad * 0.95;
+        if (bx < -40 || bx > W + 40 || by < -40 || by > H + 40) continue;
+        const falloff = K.clamp(1 - rad / (spread * 2.4), 0.14, 1);
+        const rr = minD * (0.016 + falloff * (0.07 + Math.pow(r(), 1.7) * 0.06));
+        beads.push({ bx, by, rad: rr });
+      }
+      groundReflection(fx, fy + keyR * 1.1, keyR * 2.2);
+      beads.sort((a, b) => a.rad - b.rad);
+      for (const b of beads) chromeBlob(x, P, b.bx, b.by, b.rad, light, P.iridStrength, P.finish, r, seedPhase + b.rad * 0.01, noise, 0.18 + r() * 0.16);
+    } else if (P.mode === 'Flow') {
+      // SWEEPING DIAGONAL CHROME FLOW: one bold molten river cutting corner-to-
+      // corner across the whole frame, swelling into pools, with secondary
+      // tributaries. Fills the field on the diagonal — strong directional
+      // composition, no curtain of identical stems.
+      const dir = r() < 0.5 ? 1 : -1; // TL->BR or TR->BL
+      // march along a fixed diagonal axis; curl only perturbs sideways so the
+      // river truly SWEEPS corner-to-corner instead of dribbling vertically.
+      function river(sx, sy, axisAng, baseW, span, steps, perturb, phaseOff) {
+        const ux = Math.cos(axisAng), uy = Math.sin(axisAng);     // travel axis
+        const pxp = -uy, pyp = ux;                                // perpendicular
+        let px = sx, py = sy; const segs = [];
+        const stepLen = span / steps;
         for (let s = 0; s < steps; s++) {
           segs.push([px, py]);
-          const c = K.curl(noise, px * 1.4, py * 1.4, 1.6);
-          px += c[0] * 46 + drift * 4; py += c[1] * 26 + (H / steps) * 1.15;
-          if (py > H + 30 || px < -40 || px > W + 40) break;
+          const c = K.curl(noise, px * 1.1, py * 1.1, 1.6);
+          const lateral = (c[0] + c[1]) * 0.5 * perturb; // sideways wobble only
+          px += ux * stepLen + pxp * lateral;
+          py += uy * stepLen + pyp * lateral;
+          // generous bounds: the path starts well outside and must be allowed to
+          // travel IN to the frame before the exit-side cull applies.
+          if (px < -W * 0.6 || px > W * 1.6 || py < -H * 0.6 || py > H * 1.6) break;
         }
-        if (segs.length < 4) continue;
-        // strongly varied widths so streams overlap & feel molten, not a curtain
-        const wdt = minD * (0.018 + Math.pow(r(), 1.6) * 0.07);
-        // shadow
-        x.save(); x.globalCompositeOperation = 'multiply'; x.strokeStyle = 'rgba(0,0,0,0.3)';
-        x.lineWidth = wdt * 1.5; x.lineCap = 'round'; x.lineJoin = 'round';
-        x.beginPath(); x.moveTo(segs[0][0] + 5, segs[0][1] + 8);
-        for (const s of segs) x.lineTo(s[0] + 5, s[1] + 8); x.stroke(); x.restore();
-        // chrome core — cross-section ramp gives a tubular wet read
-        const ax = segs[0][0];
-        const cg = x.createLinearGradient(ax - wdt, 0, ax + wdt, 0);
+        if (segs.length < 4) return;
+        const mid = segs[Math.floor(segs.length / 2)];
+        // shadow (offset roughly toward light's opposite)
+        x.save(); x.globalCompositeOperation = 'multiply'; x.strokeStyle = 'rgba(0,0,0,0.32)';
+        x.lineWidth = baseW * 1.4; x.lineCap = 'round'; x.lineJoin = 'round';
+        x.beginPath(); x.moveTo(segs[0][0] + 8, segs[0][1] + 12);
+        for (const s of segs) x.lineTo(s[0] + 8, s[1] + 12); x.stroke(); x.restore();
+        // chrome core — cross-section ramp PERPENDICULAR to the diagonal axis so
+        // the tube reads as a true diagonal flow, lit on one flank.
+        const cg = x.createLinearGradient(mid[0] - pxp * baseW, mid[1] - pyp * baseW,
+                                          mid[0] + pxp * baseW, mid[1] + pyp * baseW);
         cg.addColorStop(0, K.mix(P.metal, '#05060a', 0.5));
         cg.addColorStop(0.42, K.mix(P.metal, '#ffffff', 0.92));
         cg.addColorStop(0.62, K.mix(P.metal, '#06070c', 0.3));
         cg.addColorStop(1, K.mix(P.metal, '#ffffff', 0.45));
-        x.save(); x.strokeStyle = cg; x.lineWidth = wdt; x.lineCap = 'round'; x.lineJoin = 'round';
+        x.save(); x.strokeStyle = cg; x.lineWidth = baseW; x.lineCap = 'round'; x.lineJoin = 'round';
         x.beginPath(); x.moveTo(segs[0][0], segs[0][1]);
         for (const s of segs) x.lineTo(s[0], s[1]); x.stroke();
-        // bright specular spine
         x.globalCompositeOperation = 'lighter';
-        x.strokeStyle = K.rgba(P.spec, 0.5);
-        x.lineWidth = wdt * 0.22;
-        x.beginPath(); x.moveTo(segs[0][0] - wdt * 0.18, segs[0][1]);
-        for (const s of segs) x.lineTo(s[0] - wdt * 0.18, s[1]); x.stroke();
-        // iridescent thread
-        x.strokeStyle = K.rgba(K.iridescent(seedPhase + l * 0.13 + P.irid, 0.95, 0.65), 0.55 * P.iridStrength);
-        x.lineWidth = wdt * 0.3;
-        x.beginPath(); x.moveTo(segs[0][0] + wdt * 0.22, segs[0][1]);
-        for (const s of segs) x.lineTo(s[0] + wdt * 0.22, s[1]); x.stroke();
+        x.strokeStyle = K.rgba(P.spec, 0.5); x.lineWidth = baseW * 0.2;
+        x.beginPath(); x.moveTo(segs[0][0] - pxp * baseW * 0.18, segs[0][1] - pyp * baseW * 0.18);
+        for (const s of segs) x.lineTo(s[0] - pxp * baseW * 0.18, s[1] - pyp * baseW * 0.18); x.stroke();
+        x.strokeStyle = K.rgba(K.iridescent(seedPhase + phaseOff + P.irid, 0.95, 0.65), 0.55 * P.iridStrength);
+        x.lineWidth = baseW * 0.28;
+        x.beginPath(); x.moveTo(segs[0][0] + pxp * baseW * 0.2, segs[0][1] + pyp * baseW * 0.2);
+        for (const s of segs) x.lineTo(s[0] + pxp * baseW * 0.2, s[1] + pyp * baseW * 0.2); x.stroke();
         x.restore();
-        // beads pooling along the path + a fat pool at the end
-        for (let b = 0; b < K.rint(r, 1, 3); b++) {
-          const si = Math.floor((0.3 + r() * 0.6) * segs.length);
-          const sp = segs[Math.min(si, segs.length - 1)];
-          chromeBlob(x, P, sp[0], sp[1], wdt * (0.9 + r() * 0.8), light, P.iridStrength, P.finish, r, seedPhase, noise, 0.25);
-        }
-        const end = segs[segs.length - 1];
-        chromeBlob(x, P, end[0], Math.min(end[1], H - wdt * 2), wdt * (1.6 + r() * 1.4), light, P.iridStrength, P.finish, r, seedPhase, noise, 0.22);
-      }
-    } else { // Bead Field — beads strung along curl chains, like mercury on glass
-      const chains = K.rint(r, 4, 7);
-      const beads = [];
-      for (let c = 0; c < chains; c++) {
-        let px = r() * W, py = r() * H;
-        const link = K.rint(r, 5, 12);
-        const baseR = minD * (0.03 + Math.pow(r(), 1.6) * 0.1);
-        for (let i = 0; i < link; i++) {
-          const cv = K.curl(noise, px, py, 1.3);
-          const step = baseR * (1.4 + r() * 1.2);
-          px += cv[0] * step * 1.5 + (r() - 0.5) * step;
-          py += cv[1] * step * 1.5 + (r() - 0.5) * step;
-          if (px < 0 || px > W || py < 0 || py > H) break;
-          beads.push({ bx: px, by: py, rad: baseR * (0.5 + r() * 0.9) });
+        // pools swelling along the river — placed ONLY on the in-frame stretch so
+        // the focal swells always land in view (no empty river off-screen).
+        const inFrame = segs.filter((s) => s[0] > -baseW && s[0] < W + baseW && s[1] > -baseW && s[1] < H + baseW);
+        const pool = inFrame.length ? inFrame : segs;
+        for (let b = 0; b < K.rint(r, 3, 5); b++) {
+          const sp = pool[Math.floor(r() * pool.length)];
+          chromeBlob(x, P, sp[0], sp[1], baseW * (1.1 + r() * 1.4), light, P.iridStrength, P.finish, r, seedPhase, noise, 0.22);
         }
       }
-      // scatter a few loners for variety
-      for (let i = 0; i < K.rint(r, 6, 14); i++)
-        beads.push({ bx: r() * W, by: r() * H, rad: minD * (0.015 + Math.pow(r(), 2.4) * 0.09) });
-      beads.sort((a, b) => a.rad - b.rad);
-      for (const b of beads) chromeBlob(x, P, b.bx, b.by, b.rad, light, P.iridStrength, P.finish, r, seedPhase + b.rad * 0.01, noise, 0.2 + r() * 0.15);
+      const mainW = minD * (0.13 + r() * 0.06);
+      // a genuine diagonal: ~24°..46° below horizontal, routed THROUGH the frame
+      // centre so the river commands the whole field corner-to-corner.
+      const baseAng = (0.13 + r() * 0.12) * Math.PI; // ~24°..46°
+      const axisAng = dir > 0 ? baseAng : Math.PI - baseAng;
+      const ux = Math.cos(axisAng), uy = Math.sin(axisAng);
+      // back the start off from frame centre just far enough to clear the frame
+      // along the axis, so the river sweeps THROUGH centre and fully crosses it.
+      const back = Math.hypot(W, H) * 0.62;
+      const span = back * 2.2; // travel comfortably across and out the far side
+      const cxF = W * 0.5, cyF = H * 0.5;
+      const sx = cxF - ux * back, sy = cyF - uy * back;
+      river(sx, sy, axisAng, mainW, span, 260, mainW * 0.5, 0.0);
+      // 1-2 thinner tributaries on a slightly different angle, also through-centre
+      for (let t = 0; t < K.rint(r, 1, 2); t++) {
+        const ta = axisAng + (r() - 0.5) * 0.45;
+        const offp = (r() - 0.5) * minD * 0.45; // perpendicular offset so they cross
+        const uxt = Math.cos(ta), uyt = Math.sin(ta);
+        const tsx = cxF - uxt * back - (-uyt) * offp;
+        const tsy = cyF - uyt * back - (uxt) * offp;
+        river(tsx, tsy, ta, mainW * (0.42 + r() * 0.3), span, 260, mainW * 0.5, 0.3 + t * 0.2);
+      }
+    } else { // Macro — TIGHT CROP of two large merging metal bodies
+      // A close-up of two comparable lobes caught mid-merge: a clear waist
+      // between them (surface tension), both bodies running off the frame edges
+      // so it reads as a macro crop of something larger. Confident, frame-filling,
+      // unmistakably TWO forms becoming one — not a single disc.
+      const sep = minD * (0.30 + r() * 0.06);        // half-distance between lobes
+      const mergeAng = r() * Math.PI;                // axis the pair lies along
+      const mx = Math.cos(mergeAng), my = Math.sin(mergeAng);
+      const cX = W * (0.5 + (r() - 0.5) * 0.1), cY = H * (0.5 + (r() - 0.5) * 0.1);
+      const R1 = minD * (0.40 + r() * 0.08);
+      const R2 = R1 * (0.78 + r() * 0.18);            // comparable, slightly smaller
+      const a1x = cX - mx * sep, a1y = cY - my * sep;
+      const a2x = cX + mx * sep, a2y = cY + my * sep;
+      groundReflection(cX, cY + R1 * 0.7, R1 * 2.0);
+      // wide merge waist connecting them (the meniscus)
+      x.save();
+      const ng = x.createLinearGradient(a1x, a1y, a2x, a2y);
+      ng.addColorStop(0, K.mix(P.metal, '#ffffff', 0.5));
+      ng.addColorStop(0.5, K.mix(P.metal, '#06070c', 0.25));
+      ng.addColorStop(1, K.mix(P.metal, '#ffffff', 0.5));
+      x.strokeStyle = ng; x.lineWidth = Math.min(R1, R2) * 1.15; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(a1x, a1y); x.lineTo(a2x, a2y); x.stroke();
+      x.restore();
+      // the two lobes — higher wobble so each reads as living liquid metal. Draw
+      // smaller behind, hero lobe last & on top for clear dominance.
+      chromeBlob(x, P, a2x, a2y, R2, light, P.iridStrength, P.finish, r, seedPhase + 0.04, noise, 0.22 + r() * 0.1);
+      chromeBlob(x, P, a1x, a1y, R1, light, P.iridStrength, P.finish, r, seedPhase, noise, 0.2 + r() * 0.1);
+      // surface-tension droplets pinching off along the waist for life
+      for (let i = 0; i < K.rint(r, 3, 5); i++) {
+        const t = 0.32 + r() * 0.36;
+        const px = a1x + (a2x - a1x) * t + (r() - 0.5) * R1 * 0.4;
+        const py = a1y + (a2y - a1y) * t + (r() - 0.5) * R1 * 0.4;
+        chromeBlob(x, P, px, py, minD * (0.03 + r() * 0.05), light, P.iridStrength, P.finish, r, seedPhase, noise, 0.28);
+      }
     }
 
     // ── ATMOSPHERE / TEXTURE FINISH ──

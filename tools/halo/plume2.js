@@ -1,10 +1,20 @@
-/* PLUME — curl-noise smoke / ink-in-water.
+/* PLUME2 — curl-noise smoke / ink-in-water, COMPOSITION-FORWARD.
  * Tens of thousands of fine filaments advected through a divergence-free
- * curl-noise field, forming turbulent plumes, vortices and veils of haze.
+ * curl-noise field, forming turbulent plumes, vortices and veils of ink.
  * Streams are tinted with thin-film iridescence that shifts along flow
  * arclength so the smoke shimmers like fuel on water. Many translucent
  * passes build density + depth; soft bloom where streams bunch.
- * Modes per seed: Rising Plume / Twin Vortices / Drift Veil / Radial Burst.
+ *
+ * This revision fixes COMPOSITION (not the turbulence/iridescence, which
+ * already read well):
+ *  - Every seed has a deliberate FOCAL HIERARCHY: a hero plume/vortex/billow
+ *    placed on a golden/thirds anchor, supporting flow around it, intentional
+ *    (never dead) negative space.
+ *  - DENSITY/CONTRAST FLOOR: bright colorways get extra particle density, a
+ *    darker ink mix, and an anchored core bloom + soft-shadow grounding so
+ *    they read as vivid, structured pictures — never near-blank squares.
+ *  - Real compositional VARIETY: five distinct pictures, not one haze recoloured —
+ *    Rising Column, Twin Vortices, Sweeping Current, Central Bloom, Edge Veil.
  * Abstract only — no objects, no scenes. */
 window.ENGINE = (function () {
   const K = window.KIT;
@@ -12,13 +22,13 @@ window.ENGINE = (function () {
   // 7 bright/saturated grounds + 2 dark for range. `iri` = iridescence hue
   // centre (turns) the thin-film spectrum leans toward; `dark` flips blend.
   const PALS = [
-    { name: 'Opal Bloom',   bg: '#f4eefb', dark: false, iri: 0.62, sat: 0.78, light: 0.58, ink: '#3a2d5e', glow: '#a98cff' },
-    { name: 'Lagoon',       bg: '#d8f6f2', dark: false, iri: 0.48, sat: 0.82, light: 0.55, ink: '#0d4a55', glow: '#36e6d6' },
-    { name: 'Coral Mist',   bg: '#ffe9e2', dark: false, iri: 0.02, sat: 0.85, light: 0.60, ink: '#6e2438', glow: '#ff7a9c' },
-    { name: 'Sherbet',      bg: '#fdf0d8', dark: false, iri: 0.12, sat: 0.88, light: 0.60, ink: '#7a4a16', glow: '#ffb24d' },
-    { name: 'Iris Field',   bg: '#ece6ff', dark: false, iri: 0.74, sat: 0.80, light: 0.58, ink: '#3b2670', glow: '#c08cff' },
-    { name: 'Spring Veil',  bg: '#e6f7df', dark: false, iri: 0.34, sat: 0.80, light: 0.55, ink: '#26521f', glow: '#7ee06a' },
-    { name: 'Glacier',      bg: '#e2eefb', dark: false, iri: 0.55, sat: 0.78, light: 0.60, ink: '#1f3a63', glow: '#79b8ff' },
+    { name: 'Opal Bloom',   bg: '#f4eefb', dark: false, iri: 0.62, sat: 0.78, light: 0.56, ink: '#2c1f50', glow: '#a98cff' },
+    { name: 'Lagoon',       bg: '#d8f6f2', dark: false, iri: 0.48, sat: 0.84, light: 0.50, ink: '#063b45', glow: '#21d6c6' },
+    { name: 'Coral Mist',   bg: '#ffe9e2', dark: false, iri: 0.02, sat: 0.88, light: 0.54, ink: '#5e1530', glow: '#ff5f88' },
+    { name: 'Sherbet',      bg: '#fdf0d8', dark: false, iri: 0.12, sat: 0.90, light: 0.54, ink: '#6a3a0c', glow: '#ff9e2b' },
+    { name: 'Iris Field',   bg: '#ece6ff', dark: false, iri: 0.74, sat: 0.82, light: 0.54, ink: '#2c1a5c', glow: '#b673ff' },
+    { name: 'Spring Veil',  bg: '#e6f7df', dark: false, iri: 0.34, sat: 0.82, light: 0.50, ink: '#173f12', glow: '#5ad24a' },
+    { name: 'Glacier',      bg: '#e2eefb', dark: false, iri: 0.55, sat: 0.80, light: 0.54, ink: '#13294b', glow: '#5aa6ff' },
     { name: 'Obsidian Oil', bg: '#06070e', dark: true,  iri: 0.55, sat: 0.92, light: 0.62, ink: '#cfe6ff', glow: '#36d0ff' },
     { name: 'Nebula Ink',   bg: '#0a0518', dark: true,  iri: 0.78, sat: 0.95, light: 0.64, ink: '#f0d8ff', glow: '#c060ff' },
   ];
@@ -29,21 +39,27 @@ window.ENGINE = (function () {
     { W: 1120, H: 1500, t: 'Portrait' },
   ];
 
-  const MODES = ['Rising Plume', 'Twin Vortices', 'Drift Veil', 'Radial Burst'];
+  const MODES = ['Rising Column', 'Twin Vortices', 'Sweeping Current', 'Central Bloom', 'Edge Veil'];
 
   function params(r) {
     const pal = K.pick(PALS, r);
     const fmt = K.pick(FMTS, r);
     const mode = K.pick(MODES, r);
+    // Golden / rule-of-thirds focal anchor — biased toward a strong off-centre
+    // point so the hero never sits dead-centre except for Central Bloom.
+    const thirdsX = K.pick([0.382, 0.5, 0.618], r);
+    const thirdsY = K.pick([0.382, 0.5, 0.618], r);
     return {
       pal, fmt, mode,
       density: K.pick(['Wispy', 'Balanced', 'Dense'], r),
       flow: K.pick(['Calm', 'Turbulent', 'Violent'], r),
+      thirdsX, thirdsY,
       // numeric knobs (re-derived deterministically below)
-      noiseScale: 80 + r() * 90,    // larger = broader swirls
-      curlMag: 1.6 + r() * 1.8,     // advection step size
-      iriSpan: 0.22 + r() * 0.40,   // how much the thin-film hue travels over a stream
+      noiseScale: 78 + r() * 80,    // larger = broader swirls
+      curlMag: 1.7 + r() * 1.6,     // advection step size
+      iriSpan: 0.24 + r() * 0.40,   // how much the thin-film hue travels over a stream
       iriDir: r() < 0.5 ? 1 : -1,
+      vortSpin: r() < 0.5 ? 1 : -1, // base spin for vortex modes
     };
   }
 
@@ -66,115 +82,164 @@ window.ENGINE = (function () {
     const noise = K.makeNoise(seed);
     // a second, slower noise to warp the field over space → less repetitive
     const noise2 = K.makeNoise(seed ^ 0x9e3779b9);
+    const minWH = Math.min(W, H);
 
-    // ── ground: subtle vertical wash so smoke has somewhere to sit ──
+    // ── focal anchor (where the hero subject lives) ──
+    // Central Bloom anchors centre; everything else uses the thirds anchor.
+    let fx = W * p.thirdsX, fy = H * p.thirdsY;
+    if (p.mode === 'Central Bloom') { fx = W * 0.5; fy = H * 0.5; }
+    if (p.mode === 'Rising Column') { fx = W * (p.thirdsX < 0.5 ? 0.40 : 0.60); fy = H * 0.5; }
+    // Twin Vortices: two eyes mirrored about centre, vertically thirds-anchored
+    const vCY = H * p.thirdsY;
+    const vCX1 = W * 0.36, vCX2 = W * 0.64;
+    // Sweeping Current: a broad diagonal current crossing the whole frame.
+    const sweepDown = p.vortSpin > 0;
+    // Anchor the Sweeping Current focal on the centre of the diagonal so the
+    // dense spine sits on the hero point, not off in empty space.
+    if (p.mode === 'Sweeping Current') { fx = W * 0.5; fy = H * (sweepDown ? 0.52 : 0.48); }
+
+    // ── ground: subtle wash so the hero has somewhere to sit; for bright
+    // grounds we darken the lower corner toward ink so the plume grounds. ──
     const g = x.createLinearGradient(0, 0, W * 0.25, H);
     if (P.dark) {
       g.addColorStop(0, K.mix(P.bg, P.glow, 0.10));
       g.addColorStop(0.55, P.bg);
       g.addColorStop(1, K.mix(P.bg, '#000000', 0.45));
     } else {
-      g.addColorStop(0, K.mix(P.bg, '#ffffff', 0.30));
-      g.addColorStop(0.6, P.bg);
-      g.addColorStop(1, K.mix(P.bg, P.ink, 0.10));
+      g.addColorStop(0, K.mix(P.bg, '#ffffff', 0.32));
+      g.addColorStop(0.55, P.bg);
+      g.addColorStop(1, K.mix(P.bg, P.ink, 0.16));
     }
     x.fillStyle = g; x.fillRect(0, 0, W, H);
+
+    // For bright grounds: a soft anchored shadow under the focal point so the
+    // hero reads as a dense mass over the page, not a faint cloud. Grounds the
+    // composition and lifts contrast around the subject.
+    if (!P.dark) {
+      K.softShadow(x, fx, fy, minWH * 0.46, 0.10);
+    }
 
     // ── flow field helper: curl + a warping rotation so plumes feel organic ──
     const NS = p.noiseScale, CM = p.curlMag;
     function field(px, py) {
-      // curl() returns small values (~0.01-0.05); amplify so the swirl is the
-      // dominant force and the mode drift only nudges the overall shape.
       const c = K.curl(noise, px / (NS / 100), py / (NS / 100), 1.2);
       const SW = 36; // swirl gain
-      // warp angle by slow second field for spatial variety
       const w = noise2.fbm(px / 520, py / 520, 3) * 1.4;
       const ca = Math.cos(w), sa = Math.sin(w);
       let vx = (c[0] * ca - c[1] * sa) * SW;
       let vy = (c[0] * sa + c[1] * ca) * SW;
-      // mode bias: a GENTLE underlying drift — kept weaker than the curl so
-      // turbulence/swirl dominates and nothing reads as a literal sunburst.
-      if (p.mode === 'Rising Plume') {
-        vy -= 0.55;                                 // buoyant rise
-        vx += Math.sin(py / 180 + px / 90) * 0.30;  // waver
+
+      if (p.mode === 'Rising Column') {
+        // buoyant rise that lifts harder low down → a clear base + crown
+        // silhouette rather than an even smear.
+        const ty = py / H;                       // 1 at bottom, 0 at top
+        vy -= 0.70 * (0.6 + ty);                 // stronger lift low down
+        // pull horizontally toward the column axis so it reads as a column
+        vx += (fx - px) / W * 1.1;
+        vx += Math.sin(py / 170 + px / 90) * 0.30;
       } else if (p.mode === 'Twin Vortices') {
-        const cx1 = W * 0.34, cx2 = W * 0.66, cy = H * 0.5;
-        const a1 = Math.atan2(py - cy, px - cx1), a2 = Math.atan2(py - cy, px - cx2);
-        vx += (-Math.sin(a1) + Math.sin(a2)) * 0.6;
-        vy += (Math.cos(a1) - Math.cos(a2)) * 0.6;
-      } else if (p.mode === 'Drift Veil') {
-        vx += 0.5;                                   // soft horizontal drift
-        vy += Math.sin(px / 160 + py / 240) * 0.35; // undulation breaks the stripes
-      } else { // Radial Burst — outward push damped near a soft radius so the
-        // field bends it into curling tendrils, not a hard star.
-        const dx = px - W / 2, dy = py - H / 2;
+        const a1 = Math.atan2(py - vCY, px - vCX1), a2 = Math.atan2(py - vCY, px - vCX2);
+        const sp = p.vortSpin;
+        vx += (-Math.sin(a1) + Math.sin(a2)) * 0.85 * sp;
+        vy += (Math.cos(a1) - Math.cos(a2)) * 0.85 * sp;
+      } else if (p.mode === 'Sweeping Current') {
+        // a single strong diagonal current → clear directional gesture
+        vx += 0.85;
+        vy += (sweepDown ? 0.55 : -0.55);
+        vy += Math.sin(px / 150 + py / 220) * 0.30; // undulation
+      } else if (p.mode === 'Central Bloom') {
+        // outward bloom from centre, damped near a soft radius so the field
+        // curls it into a dense central billow with curling petals.
+        const dx = px - fx, dy = py - fy;
         const dist = Math.hypot(dx, dy) || 1;
-        const falloff = Math.min(1, dist / (Math.min(W, H) * 0.42));
-        const push = 0.55 * (1 - falloff * 0.7);
+        const falloff = Math.min(1, dist / (minWH * 0.40));
+        const push = 0.70 * (1 - falloff * 0.75);
         vx += (dx / dist) * push;
         vy += (dy / dist) * push;
+      } else { // Edge Veil — current sweeps in from one edge with a clear
+        // density gradient; gentle vertical undulation breaks stripes.
+        vx += 0.60;
+        vy += Math.sin(px / 180 + py / 260) * 0.40;
       }
       const len = Math.hypot(vx, vy) || 1;
       return [vx / len, vy / len];
     }
 
-    // ── seeding: where particles are born, per mode ──
+    // ── seeding: where particles are born, per mode (focal-anchored) ──
     function seedPoint() {
-      if (p.mode === 'Rising Plume') {
-        // wider base mouth near lower third → fuller column, not a thin stalk
-        const sx = W * (0.5 + K.randn(r) * 0.20);
-        const sy = H * (0.62 + r() * 0.36);
+      if (p.mode === 'Rising Column') {
+        // wide base mouth in the lower-third, narrowing the spawn toward the
+        // column axis → a clear flared base feeding a rising column.
+        const baseW = 0.26 * (0.6 + r() * 0.8);
+        const sx = fx + K.randn(r) * W * baseW * 0.5;
+        const sy = H * (0.60 + r() * 0.38);
         return [sx, sy];
       }
       if (p.mode === 'Twin Vortices') {
         const left = r() < 0.5;
-        const cx = left ? W * 0.32 : W * 0.68;
-        const rad = (0.04 + r() * 0.34) * Math.min(W, H);
+        const cx = left ? vCX1 : vCX2;
+        // tight core + a few outer arms → a readable eye for each vortex
+        const rad = (0.02 + Math.pow(r(), 1.5) * 0.30) * minWH;
         const a = r() * Math.PI * 2;
-        return [cx + Math.cos(a) * rad, H * 0.5 + Math.sin(a) * rad];
+        return [cx + Math.cos(a) * rad, vCY + Math.sin(a) * rad];
       }
-      if (p.mode === 'Drift Veil') {
-        return [W * (-0.05 + r() * 0.5), H * (0.06 + r() * 0.88)];
+      if (p.mode === 'Sweeping Current') {
+        // born across a broad upstream band so the current FILLS the frame as
+        // a thick sweeping body, not a thin streak. t spans the full entry
+        // edge; a wide perpendicular spread + dense spine gives a clear
+        // gradient of density across a confident diagonal gesture.
+        const t = r();
+        const ax = W * (-0.12 + t * 0.62);
+        const ay = sweepDown ? H * (-0.10 + t * 0.62) : H * (1.10 - t * 0.62);
+        const off = K.randn(r) * minWH * 0.30;   // wide body, not a stripe
+        return [ax + off, ay - off];
       }
-      // Radial Burst — born across a broad disc so it fills the frame as a
-      // bloom of ink rather than rays from a single pinhole.
-      const rad = Math.sqrt(r()) * 0.40 * Math.min(W, H);
-      const a = r() * Math.PI * 2;
-      return [W / 2 + Math.cos(a) * rad, H / 2 + Math.sin(a) * rad];
+      if (p.mode === 'Central Bloom') {
+        // dense disc around the centre anchor → a full central billow
+        const rad = Math.sqrt(r()) * 0.34 * minWH;
+        const a = r() * Math.PI * 2;
+        return [fx + Math.cos(a) * rad, fy + Math.sin(a) * rad];
+      }
+      // Edge Veil — born off the left/top edge, weighted so density falls off
+      // across the frame (clear gradient of density, intentional empty space).
+      return [W * (-0.06 + Math.pow(r(), 1.6) * 0.7), H * (0.04 + r() * 0.92)];
     }
 
-    // ── density tuning (capped for sub-minute render) ──
-    const densMul = p.density === 'Wispy' ? 0.62 : p.density === 'Dense' ? 1.35 : 1.0;
+    // ── density tuning. BRIGHT grounds get a higher floor (they need more
+    // ink to read against a pale page); dark grounds stay where they sang. ──
+    const densMul = p.density === 'Wispy' ? (P.dark ? 0.78 : 1.0) : p.density === 'Dense' ? 1.45 : 1.08;
+    const brightFloor = P.dark ? 1.0 : 1.45;   // raise the floor, smartly (~1.45x)
     const flowSteps = p.flow === 'Calm' ? 1.0 : p.flow === 'Violent' ? 1.5 : 1.2;
     const scaleArea = (W * H) / (1400 * 1400);
-    const N = Math.floor(3800 * densMul * scaleArea);     // particle count
-    const STEPS = Math.floor(180 * flowSteps);            // life of each filament
+    const N = Math.floor(3800 * densMul * brightFloor * scaleArea);
+    const STEPS = Math.floor(190 * flowSteps);
     const jitter = p.flow === 'Calm' ? 0.10 : p.flow === 'Violent' ? 0.55 : 0.28;
 
-    const margin = Math.min(W, H) * 0.18;
+    const margin = minWH * 0.16;
 
     // accumulate where strokes bunch → bloom seeds
     const bloomGrid = {};
     const BG = 64; // bloom cell px
 
-    // ── PASSES: a few translucent layers, each its own particle set ──
-    const PASSES = P.dark ? 3 : 2;
+    // ── PASSES: translucent layers, each its own particle set. Bright grounds
+    // get a structural multiply pass first for contrast, then glow screens. ──
+    const PASSES = 3;
     x.lineCap = 'round';
 
     for (let pass = 0; pass < PASSES; pass++) {
-      // each pass: slightly different blend + alpha for depth
       if (P.dark) {
         x.globalCompositeOperation = 'lighter';
       } else {
+        // pass 0 multiply lays down readable dark structure; later passes
+        // screen in the iridescent glow on top → contrast + shimmer.
         x.globalCompositeOperation = pass === 0 ? 'multiply' : 'screen';
       }
-      const passAlpha = (P.dark ? 0.055 : 0.075) * (pass === 0 ? 1 : 0.7);
-      const passWidth = (P.dark ? 1.0 : 1.15) * (pass === 0 ? 1.0 : 0.8);
+      const passAlpha = (P.dark ? 0.055 : (pass === 0 ? 0.115 : 0.075)) * (pass === 0 ? 1 : 0.78);
+      const passWidth = (P.dark ? 1.0 : 1.2) * (pass === 0 ? 1.0 : 0.82);
 
-      const count = Math.floor(N * (pass === 0 ? 1.0 : 0.7));
+      const count = Math.floor(N * (pass === 0 ? 1.0 : 0.72));
       for (let i = 0; i < count; i++) {
         let [px, py] = seedPoint();
-        // per-filament thin-film phase origin + travel direction
         const phase0 = P.iri + (r() - 0.5) * 0.5;
         const span = p.iriSpan * p.iriDir;
         const life = STEPS + K.rint(r, -30, 30);
@@ -184,7 +249,6 @@ window.ENGINE = (function () {
 
         for (let s = 0; s < life; s++) {
           const [vx, vy] = field(px, py);
-          // turbulence jitter on the heading
           const jx = vx + (r() - 0.5) * jitter;
           const jy = vy + (r() - 0.5) * jitter;
           const nx = px + jx * CM;
@@ -196,19 +260,23 @@ window.ENGINE = (function () {
           // iridescent colour shifts along arclength
           const phase = phase0 + (arc / (STEPS * CM)) * span;
           let col = K.iridescent(phase, P.sat, P.light);
-          // lean toward palette anchors so each colorway keeps a clear hue
-          // identity: glow gives the colorway tint, ink gives readable depth.
           if (P.dark) {
             col = K.mix(col, P.glow, 0.18);
           } else {
-            col = K.mix(col, P.glow, 0.22);   // colorway hue
-            col = K.mix(col, P.ink, 0.24);    // depth vs pale ground
+            // structural pass leans hard toward ink for contrast against the
+            // pale ground; glow passes carry the colorway hue + shimmer.
+            col = K.mix(col, P.glow, 0.22);
+            col = K.mix(col, P.ink, pass === 0 ? 0.42 : 0.20);
           }
 
           // fade in at birth, fade out at death → wispy ends
           const t = s / life;
           const env = Math.sin(Math.min(1, t * 3)) * (1 - t * t * 0.85);
-          const a = passAlpha * (0.5 + env);
+          // FOCAL EMPHASIS: strokes nearer the focal anchor get more opacity
+          // so the hero is denser/sharper than the supporting flow.
+          const fd = Math.hypot(nx - fx, ny - fy) / minWH;
+          const focal = K.clamp(1.35 - fd * 0.9, 0.55, 1.35);
+          const a = passAlpha * (0.5 + env) * focal;
 
           x.strokeStyle = K.rgba(col, a);
           x.lineWidth = lw;
@@ -217,7 +285,6 @@ window.ENGINE = (function () {
           x.lineTo(nx, ny);
           x.stroke();
 
-          // record bunching every few steps
           if ((s & 7) === 0) {
             const gx = Math.floor(nx / BG), gy = Math.floor(ny / BG);
             const key = gx + ',' + gy;
@@ -230,32 +297,43 @@ window.ENGINE = (function () {
       }
     }
 
+    // ── CORE bloom at the focal anchor: a soft, contained luminous heart that
+    // gives every seed (esp. bright ones) a clear focal subject. Restrained so
+    // it reads as a glowing core, not a blown-out sun. ──
+    {
+      const coreCol = P.dark ? K.mix(P.glow, '#ffffff', 0.25) : K.mix(P.glow, P.ink, 0.20);
+      if (p.mode === 'Twin Vortices') {
+        K.bloom(x, vCX1, vCY, minWH * 0.16, coreCol, P.dark ? 0.10 : 0.07);
+        K.bloom(x, vCX2, vCY, minWH * 0.16, coreCol, P.dark ? 0.10 : 0.07);
+      } else {
+        K.bloom(x, fx, fy, minWH * 0.20, coreCol, P.dark ? 0.11 : 0.075);
+      }
+    }
+
     // ── soft bloom where streams bunched up (sheen on dense knots) ──
-    // Restrained: small lobes only on the very densest knots, so the smoke
-    // structure stays visible instead of being washed into a white sun.
-    const cells = Object.values(bloomGrid).filter((e) => e.n >= 18).sort((a, b) => b.n - a.n);
-    const topN = Math.min(cells.length, P.dark ? 30 : 22);
+    const cells = Object.values(bloomGrid).filter((e) => e.n >= 16).sort((a, b) => b.n - a.n);
+    const topN = Math.min(cells.length, P.dark ? 30 : 26);
     for (let i = 0; i < topN; i++) {
       const e = cells[i];
       const cx = e.cx / e.n, cy = e.cy / e.n;
       const rad = BG * (0.7 + Math.min(1.2, e.n / 40));
       const bc = P.dark ? K.mix(e.col, '#ffffff', 0.30) : K.mix(e.col, '#ffffff', 0.40);
-      K.bloom(x, cx, cy, rad, bc, P.dark ? 0.055 : 0.030);
+      K.bloom(x, cx, cy, rad, bc, P.dark ? 0.055 : 0.034);
     }
 
     // ── a few tiny specular sheen lobes (the headline gloss) on top knots ──
-    for (let i = 0; i < Math.min(topN, 5); i++) {
+    for (let i = 0; i < Math.min(topN, 6); i++) {
       const e = cells[i]; if (!e) break;
       const cx = e.cx / e.n, cy = e.cy / e.n;
-      K.sheen(x, cx - BG * 0.2, cy - BG * 0.2, BG * 0.7, '#ffffff', P.dark ? 0.06 : 0.04);
+      K.sheen(x, cx - BG * 0.2, cy - BG * 0.2, BG * 0.7, '#ffffff', P.dark ? 0.06 : 0.045);
     }
 
     // ── atmospheric finish: haze veil, grain, vignette ──
-    K.hazeSheet(x, W, H, noise, P.glow, P.dark ? 0.16 : 0.14, 190, P.dark ? 'screen' : 'soft-light');
-    // a second, broader iridescent wash for thin-film "fuel on water" cast
+    K.hazeSheet(x, W, H, noise, P.glow, P.dark ? 0.16 : 0.12, 190, P.dark ? 'screen' : 'soft-light');
     K.hazeSheet(x, W, H, noise2, K.iridescent(P.iri + 0.3, 0.7, 0.6), 0.07, 320, P.dark ? 'screen' : 'soft-light');
     K.grain(x, W, H, P.dark ? 520 : 700, r);
-    K.vignette(x, W, H, P.dark ? 0.42 : 0.20);
+    // slightly stronger vignette on bright grounds focuses the eye on the hero
+    K.vignette(x, W, H, P.dark ? 0.42 : 0.26);
 
     return { aspect: W / H, traits: traits(seed) };
   }
