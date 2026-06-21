@@ -1,14 +1,13 @@
-/* Render ONE composition (fixed seed) across every palette, forcing FORCE_PAL,
-   so the jury judges colour in isolation. */
+/* K3 colorways runner — honors PW_EXEC (lives in king/ per write constraint). */
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
-const [, , enginePath, outDir, seedArg] = process.argv;
-const seed = parseInt(seedArg || '5', 10);
+const outDir = 'tools/halo/king/out/K3';
+const seed = 5;
 mkdirSync(outDir, { recursive: true });
 const kit = readFileSync(resolve('tools/halo/kit.js'), 'utf8');
-const engine = readFileSync(resolve(enginePath), 'utf8');
+const engine = readFileSync(resolve('tools/halo/king/k3_mosh.js'), 'utf8');
 
 const browser = await chromium.launch(process.env.PW_EXEC ? { executablePath: process.env.PW_EXEC } : {});
 const page = await browser.newPage();
@@ -17,7 +16,6 @@ await page.addScriptTag({ content: kit });
 await page.addScriptTag({ content: engine });
 
 const pals = await page.evaluate(() => {
-  // pull palette names by probing many seeds (names are stable in PALS order)
   const s = new Set(); for (let i = 0; i < 400; i++) s.add(window.ENGINE.traits(i).Palette); return [...s];
 });
 
