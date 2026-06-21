@@ -16,23 +16,28 @@
  * reads (ERC-1155) wire in later.
  */
 
-import { allProjects } from '../project/registry';
+import { allProjects, projectTrueName } from '../project/registry';
 import { projectSpriteFace } from '../project/projectSprite';
 import { spriteFaceFor } from './sprites';
 import { TIERS } from '../familiar/bestiary';
 
 export type SheetId =
     | 'genesis' | 'petey' | 'icon' | 'familiar'
-    | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname' | 'output';
+    | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname' | 'output'
+    | 'achievement' | 'rarity' | 'truename' | 'quip' | 'holo' | 'animated';
 
 export interface Sticker {
     id: string;
     sheet: SheetId;
-    kind: 'logo' | 'price' | 'glyph' | 'face' | 'output';
+    kind: 'logo' | 'price' | 'glyph' | 'face' | 'output' | 'anim';
     name: string;
     /** output: the project slug + token id to paint. */
     slug?: string;
     tokenId?: number;
+    /** logo: fill with the iridescent holographic gradient. */
+    holo?: boolean;
+    /** anim: the cycling face frames. */
+    frames?: string[];
     /** logo: bubble/dots colour. */
     color?: string;
     /** logo: the slash-glyph cutout colour (reads against `color`). */
@@ -260,10 +265,68 @@ const OUTPUTS: Sticker[] = PROJECT_LIST.slice(0, 18).map<Sticker>((p, i) => {
     };
 });
 
+/* ── Achievements sheet — the category glyphs (docs/GLYPHS.md §4) ──────────── */
+const ACH_GLYPHS: { g: string; name: string }[] = [
+    { g: '◍', name: 'Minting' }, { g: '⊟', name: 'Trading' }, { g: '⊙', name: 'Social' },
+    { g: '⌗', name: 'Projects' }, { g: '✢', name: 'Anointing' }, { g: '◈', name: 'Streak' },
+    { g: '✦', name: 'Curation' }, { g: '◉', name: 'Identity' }, { g: '❂', name: 'Rank' },
+    { g: '✺', name: 'Artist' }, { g: '⁂', name: 'Lore' }, { g: '⌖', name: 'OG' },
+];
+const ACH_HUES = genHues(ACH_GLYPHS.length, 'ac', { sat: 84, lights: [50, 60, 42], phase: 210 });
+const ACHIEVEMENTS: Sticker[] = ACH_GLYPHS.map<Sticker>((it, i) => {
+    const hex = ACH_HUES[i]!.hex;
+    return { id: `ach-${it.name.toLowerCase()}`, sheet: 'achievement', kind: 'glyph', name: it.name, glyph: `${it.g}︎`, color: hex, cutout: cutoutFor(hex) };
+});
+
+/* ── Rarity sheet — the tiers as name-tags ────────────────────────────────── */
+const RARITY_WORDS = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'MYTHIC', 'LEGENDARY', 'GRAIL'];
+const RARITY_HUES = genHues(RARITY_WORDS.length, 'rr', { sat: 86, lights: [54, 46, 60], phase: 50 });
+const RARITIES: Sticker[] = RARITY_WORDS.map<Sticker>((w, i) => {
+    const hex = RARITY_HUES[i]!.hex;
+    return { id: `rarity-${w.toLowerCase()}`, sheet: 'rarity', kind: 'face', name: w, glyph: w, color: hex, cutout: cutoutFor(hex) };
+});
+
+/* ── True Names sheet — each project's Glagolitic true name ────────────────── */
+const TRUE_HUES = genHues(PROJECT_LIST.length, 'tn', { sat: 80, lights: [52, 44, 60], phase: 160 });
+const TRUENAMES: Sticker[] = PROJECT_LIST.map<Sticker>((p, i) => {
+    const hex = TRUE_HUES[i]!.hex;
+    return { id: `truename-${p.slug}`, sheet: 'truename', kind: 'face', name: p.displayName, glyph: projectTrueName(p.slug), color: hex, cutout: cutoutFor(hex) };
+});
+
+/* ── Quips sheet — the familiar one-liners ────────────────────────────────── */
+const QUIPS = ['GM', 'GN', 'WAGMI', 'FEW', 'PROBABLY NOTHING', 'STAY HUMBLE', 'HODL', 'SER', 'DEGEN', 'TOUCH GRASS', 'VIBES', 'NGMI'];
+const QUIP_HUES = genHues(QUIPS.length, 'qp', { sat: 84, lights: [54, 46, 62], phase: 300 });
+const QUIP_STICKERS: Sticker[] = QUIPS.map<Sticker>((q, i) => {
+    const hex = QUIP_HUES[i]!.hex;
+    return { id: `quip-${i}`, sheet: 'quip', kind: 'face', name: q, glyph: q, color: hex, cutout: cutoutFor(hex) };
+});
+
+/* ── Holo sheet — the logo with an iridescent holographic finish ──────────── */
+const HOLO: Sticker[] = [
+    { id: 'holo-logo-1', rotated: false }, { id: 'holo-petey-1', rotated: true },
+    { id: 'holo-logo-2', rotated: false }, { id: 'holo-petey-2', rotated: true },
+    { id: 'holo-logo-3', rotated: false }, { id: 'holo-petey-3', rotated: true },
+].map<Sticker>((o) => ({ id: o.id, sheet: 'holo', kind: 'logo', name: 'Holo', color: '#FFFFFF', cutout: '#1A1A1A', rotated: o.rotated, holo: true }));
+
+/* ── Animated sheet — sprites that breathe (cycling frames) ────────────────── */
+const ANIM_FRAMES: { name: string; frames: string[] }[] = [
+    { name: 'Wisp', frames: ['( ¤ )', '( ☼ )', '( ¤ )'] },
+    { name: 'Watcher', frames: ['[ ◉ ]', '[ ◎ ]', '[ ◉ ]'] },
+    { name: 'Slime', frames: ['(~o~)', '(~O~)', '(~o~)'] },
+    { name: 'Spider', frames: ['/|o.o|\\', '\\|o.o|/', '/|o.o|\\'] },
+    { name: 'Orbit', frames: ['(◯·)', '(·◯)', '(◯·)'] },
+];
+const ANIM_HUES = genHues(ANIM_FRAMES.length, 'an', { sat: 82, lights: [54, 44, 62], phase: 90 });
+const ANIMATED: Sticker[] = ANIM_FRAMES.map<Sticker>((it, i) => {
+    const hex = ANIM_HUES[i]!.hex;
+    return { id: `anim-${it.name.toLowerCase()}`, sheet: 'animated', kind: 'anim', name: it.name, frames: it.frames, color: hex, cutout: cutoutFor(hex) };
+});
+
 export const STICKERS: readonly Sticker[] = [
     ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS,
     ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
     ...ARTIST_NAMES, ...PROJECT_NAMES, ...OUTPUTS,
+    ...ACHIEVEMENTS, ...RARITIES, ...TRUENAMES, ...QUIP_STICKERS, ...HOLO, ...ANIMATED,
 ];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
@@ -291,6 +354,12 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'handle', name: 'ARTIST NAMES', tag: 'COMMON', count: ARTIST_NAMES.length, price: '0.006', cover: ARTIST_NAMES[0]! },
     { id: 'projectname', name: 'PROJECT NAMES', tag: 'COMMON', count: PROJECT_NAMES.length, price: '0.008', cover: PROJECT_NAMES[0]! },
     { id: 'output', name: 'OUTPUTS', tag: 'MYTHIC', count: OUTPUTS.length, price: '0.020', cover: OUTPUTS[0]! },
+    { id: 'achievement', name: 'ACHIEVEMENTS', tag: 'RARE', count: ACHIEVEMENTS.length, price: '0.012', cover: ACHIEVEMENTS[0]! },
+    { id: 'rarity', name: 'RARITY', tag: 'UNCOMMON', count: RARITIES.length, price: '0.010', cover: RARITIES[0]! },
+    { id: 'truename', name: 'TRUE NAMES', tag: 'MYTHIC', count: TRUENAMES.length, price: '0.016', cover: TRUENAMES[0]! },
+    { id: 'quip', name: 'QUIPS', tag: 'COMMON', count: QUIP_STICKERS.length, price: '0.006', cover: QUIP_STICKERS[0]! },
+    { id: 'holo', name: 'HOLO', tag: 'MYTHIC', count: HOLO.length, price: '0.024', cover: HOLO[0]! },
+    { id: 'animated', name: 'ANIMATED', tag: 'MYTHIC', count: ANIMATED.length, price: '0.022', cover: ANIMATED[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {

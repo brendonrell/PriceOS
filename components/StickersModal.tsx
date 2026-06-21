@@ -150,15 +150,14 @@ export default function StickersModal() {
                          wider grid. Outputs → masonry. Sprites + @names (skinny
                          chips) → wrapping flow at a larger size, auto-fitting. ── */
                     (() => {
-                        const flowSheet = detail.id === 'artist' || detail.id === 'pricesprite'
-                            || detail.id === 'handle' || detail.id === 'projectname';
+                        const FLOW = new Set(['artist', 'pricesprite', 'handle', 'projectname', 'rarity', 'quip', 'truename', 'animated']);
                         const mode = detail.id === 'output' ? 'masonry'
-                            : flowSheet ? 'flow'
-                            : draw[0]?.kind === 'face' ? 'gridwide'
+                            : detail.id === 'familiar' ? 'fam'
+                            : FLOW.has(detail.id) ? 'flow'
                             : 'grid';
                         const cls = mode === 'masonry' ? 'ss-masonry'
                             : mode === 'flow' ? 'ss-flow'
-                            : mode === 'gridwide' ? 'ss-grid ss-grid-wide'
+                            : mode === 'fam' ? 'ss-grid ss-grid-fam'
                             : 'ss-grid';
                         return (
                             <div className="ss-paper-wrap">

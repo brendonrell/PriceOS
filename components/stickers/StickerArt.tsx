@@ -11,6 +11,7 @@
 import { memo } from 'react';
 import type { Sticker } from '../../lib/stickers/catalog';
 import { OutputSticker } from './OutputSticker';
+import { AnimatedSticker } from './AnimatedSticker';
 import {
     PETEY_BUBBLE_PATH, PETEY_GLYPH_PATH,
     PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH,
@@ -35,12 +36,16 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
     if (sticker.kind === 'output' && sticker.slug && sticker.tokenId != null) {
         return <OutputSticker slug={sticker.slug} id={sticker.tokenId} size={size} fill={fill} diecut={diecut} />;
     }
+    if (sticker.kind === 'anim') {
+        return <AnimatedSticker sticker={sticker} size={size} fill={fill} diecut={diecut} />;
+    }
 
     const dims = fill ? { width: '100%' as const } : { height: size };
 
     if (sticker.kind === 'logo') {
-        const color = sticker.color ?? '#FF0055';
         const cutout = sticker.cutout ?? '#FFFFFF';
+        const holoId = `holo-${sticker.id}`;
+        const color = sticker.holo ? `url(#${holoId})` : (sticker.color ?? '#FF0055');
         const sil = [PETEY_BUBBLE_PATH, PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH];
         const vb = diecut ? '-120 -120 1001 895' : '0 0 761 655';
         return (
@@ -54,6 +59,18 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
                 aria-label={sticker.name}
                 style={{ overflow: 'visible', ...(sticker.rotated ? { transform: 'rotate(-90deg)' } : {}) }}
             >
+                {sticker.holo && (
+                    <defs>
+                        <linearGradient id={holoId} x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#FF6EC4" />
+                            <stop offset="22%" stopColor="#7873F5" />
+                            <stop offset="44%" stopColor="#4ADEDE" />
+                            <stop offset="66%" stopColor="#9EFF6E" />
+                            <stop offset="84%" stopColor="#FFE86E" />
+                            <stop offset="100%" stopColor="#FF9F6E" />
+                        </linearGradient>
+                    </defs>
+                )}
                 {diecut && (
                     <>
                         <g fill={LINE} stroke={LINE} strokeWidth={CUT_LOGO + 18} strokeLinejoin="round">
