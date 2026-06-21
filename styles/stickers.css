@@ -206,10 +206,11 @@
     border: 1px solid var(--border-color);
     color: var(--text-color);
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 9px 10px;
     font-family: inherit;
-    font-size: 10px;
-    letter-spacing: 0.04em;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
@@ -219,6 +220,7 @@
     border-color: var(--text-color);
 }
 .ss-buy-px { font-weight: bold; }
+.ss-buy-cta { font-weight: bold; }
 /* In-button purchase progress — mirrors the mint button's sliding fill. */
 .ss-buy-bar {
     position: absolute;
