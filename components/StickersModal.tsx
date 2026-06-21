@@ -146,28 +146,17 @@ export default function StickersModal() {
                 </div>
 
                 {detail ? (
-                    /* ── The sticker sheet. Logos/glyphs → tidy grid. Outputs +
-                         familiars (varied sizes) → masonry. Sprites + @names
-                         (skinny chips) → wrapping flow at a larger size. Always
-                         contained, never overlapping. ── */
-                    (() => {
-                        const mode = detail.id === 'output' || detail.id === 'familiar'
-                            ? 'masonry'
-                            : draw[0]?.kind === 'face' ? 'flow' : 'grid';
-                        return (
-                            <div className="ss-paper-wrap">
-                                <div className={`ss-paper ss-${mode}`}>
-                                    {draw.map((s) => (
-                                        <span key={s.id} className="ss-cell" title={s.name}>
-                                            {mode === 'flow'
-                                                ? <StickerArt sticker={s} size={66} diecut />
-                                                : <StickerArt sticker={s} fill diecut />}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })()
+                    /* ── The sticker sheet — a tidy, contained grid (masonry for the
+                         varying-size Outputs). Never overlaps, never bleeds past. ── */
+                    <div className="ss-paper-wrap">
+                        <div className={`ss-paper ${detail.id === 'output' ? 'ss-masonry' : draw[0]?.kind === 'face' ? 'ss-grid ss-grid-wide' : 'ss-grid'}`}>
+                            {draw.map((s) => (
+                                <span key={s.id} className="ss-cell" title={s.name}>
+                                    <StickerArt sticker={s} fill diecut />
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <div className="ss-ticker" aria-hidden="true">

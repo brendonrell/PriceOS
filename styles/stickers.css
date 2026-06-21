@@ -319,9 +319,9 @@
     /* Hard clip — nothing can ever extend past the sheet edge. */
     overflow: hidden;
     --sticker-cut: var(--text-color);
-    /* Score line = a VARIATION OF THE SHEET (black/white) toward neutral grey —
-       NEVER the page/theme colour. Reads on both sheets (Brendon 2026-06-21). */
-    --sticker-line: color-mix(in srgb, var(--text-color) 68%, #808080 32%);
+    /* Soft score line tracing each cut — leans toward the page colour so it reads
+       on BOTH the white and the black sheet (Brendon 2026-06-21). */
+    --sticker-line: color-mix(in srgb, var(--text-color) 66%, var(--bg-color) 34%);
 }
 /* Tidy grid — every sticker in its own cell, gaps guarantee no overlap, padding
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
@@ -341,26 +341,16 @@
     padding: 4px;
     box-sizing: border-box;
 }
-/* Skinny sprite / @name chips → wrap at their natural width, larger, with gaps. */
-.ss-flow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 16px 14px;
-    padding: 16px 14px 20px;
-}
-.ss-flow .ss-cell { padding: 0; }
-/* Outputs + familiars vary in size → masonry columns, stacked with row spacing. */
+/* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    columns: 100px;
-    column-gap: 12px;
-    padding: 14px 12px 18px;
+    columns: 5 54px;
+    column-gap: 9px;
+    padding: 12px 12px 16px;
 }
 .ss-masonry .ss-cell {
     display: block;
     break-inside: avoid;
-    margin-bottom: 14px;
+    margin-bottom: 9px;
 }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
