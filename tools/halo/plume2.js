@@ -143,10 +143,13 @@ window.ENGINE = (function () {
         vx += (-Math.sin(a1) + Math.sin(a2)) * 0.85 * sp;
         vy += (Math.cos(a1) - Math.cos(a2)) * 0.85 * sp;
       } else if (p.mode === 'Sweeping Current') {
-        // a single strong diagonal current → clear directional gesture
-        vx += 0.85;
-        vy += (sweepDown ? 0.55 : -0.55);
-        vy += Math.sin(px / 150 + py / 220) * 0.30; // undulation
+        // a strong diagonal current → clear directional gesture, but with the
+        // curl swirl left dominant enough to throw wisps into the corners so
+        // the frame fills (no dead negative space) instead of a clean band.
+        vx += 0.62;
+        vy += (sweepDown ? 0.40 : -0.40);
+        vx += Math.sin(py / 130 + px / 90) * 0.45;   // cross-current waver
+        vy += Math.cos(px / 150 + py / 110) * 0.45;
       } else if (p.mode === 'Central Bloom') {
         // outward bloom from centre, damped near a soft radius so the field
         // curls it into a dense central billow with curling petals.
@@ -189,9 +192,9 @@ window.ENGINE = (function () {
         // edge; a wide perpendicular spread + dense spine gives a clear
         // gradient of density across a confident diagonal gesture.
         const t = r();
-        const ax = W * (-0.12 + t * 0.62);
-        const ay = sweepDown ? H * (-0.10 + t * 0.62) : H * (1.10 - t * 0.62);
-        const off = K.randn(r) * minWH * 0.30;   // wide body, not a stripe
+        const ax = W * (-0.15 + t * 0.72);
+        const ay = sweepDown ? H * (-0.15 + t * 0.72) : H * (1.15 - t * 0.72);
+        const off = K.randn(r) * minWH * 0.40;   // broad body that fills the frame
         return [ax + off, ay - off];
       }
       if (p.mode === 'Central Bloom') {
@@ -216,6 +219,11 @@ window.ENGINE = (function () {
     const jitter = p.flow === 'Calm' ? 0.10 : p.flow === 'Violent' ? 0.55 : 0.28;
 
     const margin = minWH * 0.16;
+    // Distributed modes (current/veil) read as a spread gesture — gentle focal
+    // bias. Concentrated modes (column/vortex/bloom) get a strong hero pull.
+    const spread = (p.mode === 'Sweeping Current' || p.mode === 'Edge Veil');
+    const focalGain = spread ? 0.35 : 0.9;
+    const focalFloor = spread ? 0.75 : 0.55;
 
     // accumulate where strokes bunch → bloom seeds
     const bloomGrid = {};
@@ -275,7 +283,7 @@ window.ENGINE = (function () {
           // FOCAL EMPHASIS: strokes nearer the focal anchor get more opacity
           // so the hero is denser/sharper than the supporting flow.
           const fd = Math.hypot(nx - fx, ny - fy) / minWH;
-          const focal = K.clamp(1.35 - fd * 0.9, 0.55, 1.35);
+          const focal = K.clamp(1.35 - fd * focalGain, focalFloor, 1.35);
           const a = passAlpha * (0.5 + env) * focal;
 
           x.strokeStyle = K.rgba(col, a);
