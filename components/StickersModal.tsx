@@ -146,17 +146,34 @@ export default function StickersModal() {
                 </div>
 
                 {detail ? (
-                    /* ── The sticker sheet — a tidy, contained grid (masonry for the
-                         varying-size Outputs). Never overlaps, never bleeds past. ── */
-                    <div className="ss-paper-wrap">
-                        <div className={`ss-paper ${detail.id === 'output' ? 'ss-masonry' : draw[0]?.kind === 'face' ? 'ss-grid ss-grid-wide' : 'ss-grid'}`}>
-                            {draw.map((s) => (
-                                <span key={s.id} className="ss-cell" title={s.name}>
-                                    <StickerArt sticker={s} fill diecut />
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+                    /* ── The sticker sheet. Logos/glyphs → tidy grid. Familiars →
+                         wider grid. Outputs → masonry. Sprites + @names (skinny
+                         chips) → wrapping flow at a larger size, auto-fitting. ── */
+                    (() => {
+                        const flowSheet = detail.id === 'artist' || detail.id === 'pricesprite'
+                            || detail.id === 'handle' || detail.id === 'projectname';
+                        const mode = detail.id === 'output' ? 'masonry'
+                            : flowSheet ? 'flow'
+                            : draw[0]?.kind === 'face' ? 'gridwide'
+                            : 'grid';
+                        const cls = mode === 'masonry' ? 'ss-masonry'
+                            : mode === 'flow' ? 'ss-flow'
+                            : mode === 'gridwide' ? 'ss-grid ss-grid-wide'
+                            : 'ss-grid';
+                        return (
+                            <div className="ss-paper-wrap">
+                                <div className={`ss-paper ${cls}`}>
+                                    {draw.map((s) => (
+                                        <span key={s.id} className="ss-cell" title={s.name}>
+                                            {mode === 'flow'
+                                                ? <StickerArt sticker={s} size={66} diecut />
+                                                : <StickerArt sticker={s} fill diecut />}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()
                 ) : (
                     <>
                         <div className="ss-ticker" aria-hidden="true">

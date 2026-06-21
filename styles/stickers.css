@@ -321,7 +321,7 @@
     --sticker-cut: var(--text-color);
     /* Soft score line tracing each cut — leans toward the page colour so it reads
        on BOTH the white and the black sheet (Brendon 2026-06-21). */
-    --sticker-line: color-mix(in srgb, var(--text-color) 66%, var(--bg-color) 34%);
+    --sticker-line: color-mix(in srgb, var(--text-color) 68%, #808080 32%);
 }
 /* Tidy grid — every sticker in its own cell, gaps guarantee no overlap, padding
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
@@ -341,6 +341,17 @@
     padding: 4px;
     box-sizing: border-box;
 }
+/* Skinny sprite / @name chips → wrap at their natural width, larger, with gaps,
+   auto-fitting the sheet. */
+.ss-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px 14px;
+    padding: 16px 14px 20px;
+}
+.ss-flow .ss-cell { padding: 0; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
     columns: 5 54px;

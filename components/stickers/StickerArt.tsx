@@ -107,11 +107,47 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
         const fg = sticker.cutout ?? '#FFFFFF';
         const lines = (sticker.glyph ?? '( ◕ )').split('\n');
         const maxLen = Math.max(1, ...lines.map((l) => [...l].length));
-        // UNIFORM tile — every face the same shape; the text scales to fit, so
-        // sprites/familiars tile tidily regardless of how long their art is.
+
+        if (lines.length === 1) {
+            // SKINNY chip (sprites / @names) — hugs the text, a little buffer on
+            // the LEFT/RIGHT only. From the old version Brendon kept.
+            const SIDE = 20;
+            const charW = 30;
+            const fontSize = 46;
+            const H = 78;
+            const W = maxLen * charW + SIDE * 2;
+            const M = 24;   // die-cut margin
+            const Ln = 8;   // kiss-cut line peek
+            const vb = diecut ? `${-(M + Ln) - 2} ${-(M + Ln) - 2} ${W + 2 * (M + Ln) + 4} ${H + 2 * (M + Ln) + 4}` : `0 0 ${W} ${H}`;
+            return (
+                <svg
+                    className={className}
+                    {...(fill ? { width: '100%' as const } : { height: size })}
+                    viewBox={vb}
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    aria-label={sticker.name}
+                    style={{ overflow: 'visible' }}
+                >
+                    {diecut && (
+                        <>
+                            <rect x={-(M + Ln)} y={-(M + Ln)} width={W + 2 * (M + Ln)} height={H + 2 * (M + Ln)} rx={M + Ln + 8} fill={LINE} />
+                            <rect x={-M} y={-M} width={W + 2 * M} height={H + 2 * M} rx={M + 6} fill={CUT} />
+                        </>
+                    )}
+                    <rect x={0} y={0} width={W} height={H} rx={20} fill={color} />
+                    <text x={W / 2} y={H / 2} fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fontSize} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+                        {lines[0]}
+                    </text>
+                </svg>
+            );
+        }
+
+        // Multi-line familiars → uniform tile, text scaled to fit (unchanged).
         const W = 178;
         const H = 120;
-        const innerW = W - 30;   // side buffer
+        const innerW = W - 30;
         const innerH = H - 24;
         const fs = Math.max(8, Math.min(54, innerW / (maxLen * 0.62), innerH / (lines.length * 1.18)));
         const lineH = fs * 1.18;
