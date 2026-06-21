@@ -39,10 +39,10 @@ export const SPELLS: SpellEntry[] = [
     { id: 'familiar',    flag: 'spell_familiar',    name: 'Digital Familiar',  icon: '⚝\uFE0E' },
     { id: 'cartel',      flag: 'spell_cartel',      name: 'Cartel',            icon: '⟁\uFE0E' },
     { id: 'panopticon',  flag: 'spell_panopticon',  name: 'Panopticon',        icon: '⎌\uFE0E' },
-    { id: 'gravitydrop', flag: 'spell_gravitydrop', name: 'Gravity',           icon: '↡\uFE0E' },
+    { id: 'spitebook',   flag: 'spell_spitebook',   name: 'Spite Book',        icon: '⌧\uFE0E' },
     { id: 'celestial',   flag: 'spell_celestial',   name: 'Celestial Tracker', icon: '♃\uFE0E', iconStyle: { fontSize: '14px', lineHeight: '1' } },
     { id: 'tribunal',    flag: 'spell_tribunal',    name: 'Tribunal',          icon: '⚖\uFE0E', sharp: true },
-    { id: 'spitebook',   flag: 'spell_spitebook',   name: 'Spite Book',        icon: '⌧\uFE0E' },
+    { id: 'gravitydrop', flag: 'spell_gravitydrop', name: 'Gravity',           icon: '↡\uFE0E' },
     { id: 'invisible',   flag: 'spell_invisible',   name: 'Deactivate',         icon: '⊖\uFE0E' },
     /* NPC — icon-less by design (Brendon, 2026-06-20): no glyph, just the
        label. Our "icon-less" pill. */
