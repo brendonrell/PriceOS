@@ -53,7 +53,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
 
     // The profile shows a CAPPED pull from your list — not everything. Owning
     // more fills the sheet denser, but the profile row stays modest.
-    const PROFILE_CAP = 8;
+    const PROFILE_CAP = 6;
     const shown = active.slice(0, PROFILE_CAP);
 
     const row = (
@@ -65,7 +65,8 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
                     style={{ transform: `rotate(${tiltFor(i)}deg)` }}
                     title={s.name}
                 >
-                    <StickerArt sticker={s} size={40} />
+                    {/* Faces (sprites / familiars) read smaller, so draw them larger. */}
+                    <StickerArt sticker={s} size={s.kind === 'face' || s.kind === 'output' ? 50 : 40} />
                 </span>
             ))}
         </div>

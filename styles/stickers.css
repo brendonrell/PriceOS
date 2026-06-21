@@ -313,6 +313,9 @@
     border-radius: 0;
     background: var(--text-color);
     --sticker-cut: var(--text-color);
+    /* Soft off-white score line tracing each cut — a gentle scoring, not a hard
+       line (Brendon 2026-06-21). */
+    --sticker-line: color-mix(in srgb, var(--text-color) 82%, var(--bg-color) 18%);
 }
 .ss-paper-sticker {
     position: absolute;
@@ -332,6 +335,7 @@
     background: var(--sticker-cut, #fff);
     padding: 11%;
     border-radius: 16%;
+    box-shadow: 0 0 0 2px var(--sticker-line, #d6d6d6);
 }
 .out-sticker-canvas {
     width: 100%;
@@ -339,8 +343,13 @@
     display: block;
     border-radius: 9%;
 }
-@media (max-width: 600px) {
-    .ss-buy-head .ss-buy-cta { display: none; }
+/* Sheet-detail buy button — a clear filled button pinned top-right. */
+.ss-buy-head {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+    height: 30px;
+    padding: 0 12px;
 }
 
 /* ============================================================================

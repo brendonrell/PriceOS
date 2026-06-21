@@ -19,6 +19,7 @@
 import { allProjects } from '../project/registry';
 import { projectSpriteFace } from '../project/projectSprite';
 import { spriteFaceFor } from './sprites';
+import { TIERS } from '../familiar/bestiary';
 
 export type SheetId =
     | 'genesis' | 'petey' | 'icon' | 'familiar'
@@ -158,23 +159,17 @@ const ICONS: Sticker[] = ICON_GLYPHS.map<Sticker>((it, i) => {
     };
 });
 
-/* ── Familiar sheet — the five digital familiars (familiarEngine species) ─── */
-const FAMILIAR_FACES: { name: string; g: string }[] = [
-    { name: 'Wisp',    g: '( ¤ )' },
-    { name: 'Watcher', g: '[ ◉ ]' },
-    { name: 'Slime',   g: '(~o~)' },
-    { name: 'Spider',  g: '/|o.o|\\' },
-    { name: 'Orbit',   g: '(◯·)' },
-];
-const FAMILIAR_HUES = genHues(FAMILIAR_FACES.length, 'f', { sat: 82, lights: [54, 44, 62], phase: 30 });
-const FAMILIARS: Sticker[] = FAMILIAR_FACES.map<Sticker>((it, i) => {
+/* ── Familiar sheet — the WHOLE bestiary, every tier (lib/familiar/bestiary) ── */
+const FAMILIAR_ENTRIES = TIERS.flatMap((t) => t.entries);
+const FAMILIAR_HUES = genHues(FAMILIAR_ENTRIES.length, 'f', { sat: 82, lights: [54, 44, 62], phase: 30 });
+const FAMILIARS: Sticker[] = FAMILIAR_ENTRIES.map<Sticker>((e, i) => {
     const hex = FAMILIAR_HUES[i]!.hex;
     return {
-        id: `familiar-${it.name.toLowerCase()}`,
+        id: `familiar-${e.name.toLowerCase()}`,
         sheet: 'familiar',
         kind: 'face',
-        name: it.name,
-        glyph: it.g,
+        name: e.name,
+        glyph: e.art,
         color: hex,
         cutout: cutoutFor(hex),
     };

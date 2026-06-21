@@ -1,10 +1,10 @@
 /*
- * StickerArt — renders a single sticker's artwork (logo / $PRICE / glyph),
- * recoloured. Pure SVG, no state.
+ * StickerArt — renders a single sticker's artwork (logo / $PRICE / glyph / face
+ * / output), recoloured. Pure SVG (output uses a small live canvas).
  *
- * `diecut` draws a FAT cut around the artwork's outer silhouette in the SHEET's
- * colour (var(--sticker-cut)) — so on the sheet each sticker reads as cut from
- * the paper, and overlaps show a clean paper margin between shapes. No shadows.
+ * `diecut` draws a FAT margin in the sheet colour (--sticker-cut) plus a thin
+ * kiss-cut LINE (--sticker-line, a soft off-white score) tracing the edge, so
+ * each sticker reads as cut from the paper. No shadows.
  * `fill` makes the SVG width:100% so a % wrapper controls its size.
  */
 
@@ -19,17 +19,14 @@ import {
 
 interface Props {
     sticker: Sticker;
-    /** Rendered height in px (width auto-scales). Ignored when `fill`. */
     size?: number;
-    /** width:100% / height:auto — let a wrapper size it. */
     fill?: boolean;
-    /** Draw the fat die-cut margin in the sheet colour. */
     diecut?: boolean;
     className?: string;
 }
 
-/* The cut is the sheet's colour, set on the paper as --sticker-cut. */
 const CUT = 'var(--sticker-cut, #fff)';
+const LINE = 'var(--sticker-line, #d6d6d6)';
 const CUT_LOGO = 132;
 const CUT_PRICE = 104;
 
@@ -38,14 +35,13 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
         return <OutputSticker slug={sticker.slug} id={sticker.tokenId} size={size} fill={fill} diecut={diecut} />;
     }
 
-    const dims = fill
-        ? { width: '100%' as const }
-        : { height: size };
+    const dims = fill ? { width: '100%' as const } : { height: size };
 
     if (sticker.kind === 'logo') {
         const color = sticker.color ?? '#FF0055';
         const cutout = sticker.cutout ?? '#FFFFFF';
-        const vb = diecut ? '-110 -110 981 875' : '0 0 761 655';
+        const sil = [PETEY_BUBBLE_PATH, PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH];
+        const vb = diecut ? '-120 -120 1001 895' : '0 0 761 655';
         return (
             <svg
                 className={className}
@@ -55,18 +51,17 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
                 xmlns="http://www.w3.org/2000/svg"
                 role="img"
                 aria-label={sticker.name}
-                style={{
-                    overflow: 'visible',
-                    ...(sticker.rotated ? { transform: 'rotate(-90deg)' } : {}),
-                }}
+                style={{ overflow: 'visible', ...(sticker.rotated ? { transform: 'rotate(-90deg)' } : {}) }}
             >
                 {diecut && (
-                    <g fill={CUT} stroke={CUT} strokeWidth={CUT_LOGO} strokeLinejoin="round">
-                        <path d={PETEY_BUBBLE_PATH} />
-                        <path d={PETEY_DOT_RIGHT_PATH} />
-                        <path d={PETEY_DOT_LEFT_PATH} />
-                        <path d={PETEY_DOT_TOP_PATH} />
-                    </g>
+                    <>
+                        <g fill={LINE} stroke={LINE} strokeWidth={CUT_LOGO + 18} strokeLinejoin="round">
+                            {sil.map((d, i) => <path key={i} d={d} />)}
+                        </g>
+                        <g fill={CUT} stroke={CUT} strokeWidth={CUT_LOGO} strokeLinejoin="round">
+                            {sil.map((d, i) => <path key={i} d={d} />)}
+                        </g>
+                    </>
                 )}
                 <path d={PETEY_BUBBLE_PATH} fill={color} />
                 <path d={PETEY_GLYPH_PATH} fill={cutout} stroke={cutout} strokeWidth="1.5" />
@@ -80,7 +75,7 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
     if (sticker.kind === 'glyph') {
         const color = sticker.color ?? '#1A1A1A';
         const fg = sticker.cutout ?? '#FFFFFF';
-        const vb = diecut ? '-26 -26 152 152' : '0 0 100 100';
+        const vb = diecut ? '-28 -28 156 156' : '0 0 100 100';
         return (
             <svg
                 className={className}
@@ -92,18 +87,14 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
                 aria-label={sticker.name}
                 style={{ overflow: 'visible' }}
             >
-                {diecut && <rect x={-17} y={-17} width={134} height={134} rx={36} fill={CUT} />}
+                {diecut && (
+                    <>
+                        <rect x={-20} y={-20} width={140} height={140} rx={40} fill={LINE} />
+                        <rect x={-15} y={-15} width={130} height={130} rx={34} fill={CUT} />
+                    </>
+                )}
                 <rect x={0} y={0} width={100} height={100} rx={22} fill={color} />
-                <text
-                    x={50}
-                    y={54}
-                    fill={fg}
-                    fontFamily="'Courier New', Courier, monospace"
-                    fontSize={58}
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                >
+                <text x={50} y={54} fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={58} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
                     {sticker.glyph}
                 </text>
             </svg>
@@ -113,11 +104,15 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
     if (sticker.kind === 'face') {
         const color = sticker.color ?? '#1A1A1A';
         const fg = sticker.cutout ?? '#FFFFFF';
-        const text = sticker.glyph ?? '( ◕ )';
-        const chars = [...text].length;
-        const W = Math.max(150, chars * 30);
-        const H = 110;
-        const vb = diecut ? `-26 -26 ${W + 52} ${H + 52}` : `0 0 ${W} ${H}`;
+        const lines = (sticker.glyph ?? '( ◕ )').split('\n');
+        const maxLen = Math.max(1, ...lines.map((l) => [...l].length));
+        const SIDE = 24;            // a touch of left/right buffer inside the chip
+        const charW = 30;
+        const lineH = 56;
+        const W = maxLen * charW + SIDE * 2;
+        const H = Math.max(118, lines.length * lineH + 48);
+        const vb = diecut ? `-30 -30 ${W + 60} ${H + 60}` : `0 0 ${W} ${H}`;
+        const y0 = H / 2 - ((lines.length - 1) * lineH) / 2;
         return (
             <svg
                 className={className}
@@ -129,19 +124,17 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
                 aria-label={sticker.name}
                 style={{ overflow: 'visible' }}
             >
-                {diecut && <rect x={-17} y={-17} width={W + 34} height={H + 34} rx={42} fill={CUT} />}
+                {diecut && (
+                    <>
+                        <rect x={-22} y={-22} width={W + 44} height={H + 44} rx={46} fill={LINE} />
+                        <rect x={-16} y={-16} width={W + 32} height={H + 32} rx={40} fill={CUT} />
+                    </>
+                )}
                 <rect x={0} y={0} width={W} height={H} rx={30} fill={color} />
-                <text
-                    x={W / 2}
-                    y={H / 2 + 2}
-                    fill={fg}
-                    fontFamily="'Courier New', Courier, monospace"
-                    fontSize={52}
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                >
-                    {text}
+                <text fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={48} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+                    {lines.map((ln, i) => (
+                        <tspan key={i} x={W / 2} y={y0 + i * lineH}>{ln || ' '}</tspan>
+                    ))}
                 </text>
             </svg>
         );
@@ -150,7 +143,7 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
     // $PRICE wordmark — ratio 517:403.
     const bg = sticker.bg ?? '#FF0055';
     const fg = sticker.fg ?? '#FFE600';
-    const vb = diecut ? '-72 -72 661 547' : '0 0 517 403';
+    const vb = diecut ? '-80 -80 677 563' : '0 0 517 403';
     return (
         <svg
             className={className}
@@ -163,7 +156,10 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
             style={{ overflow: 'visible' }}
         >
             {diecut && (
-                <path d={PRICE_LOGO_BG_PATH} fill={CUT} stroke={CUT} strokeWidth={CUT_PRICE} strokeLinejoin="round" />
+                <>
+                    <path d={PRICE_LOGO_BG_PATH} fill={LINE} stroke={LINE} strokeWidth={CUT_PRICE + 16} strokeLinejoin="round" />
+                    <path d={PRICE_LOGO_BG_PATH} fill={CUT} stroke={CUT} strokeWidth={CUT_PRICE} strokeLinejoin="round" />
+                </>
             )}
             <path d={PRICE_LOGO_BG_PATH} fill={bg} />
             <path d={PRICE_LOGO_P_PATH} fill={fg} />

@@ -19,7 +19,7 @@
  * PriceOSShell. Mouse drag-to-scroll on the rail mirrors the home carousels.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import {
@@ -49,6 +49,22 @@ export default function StickersModal() {
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
+
+    /* Remember the carousel scroll position across opening a sheet / reopening
+       the store, so it never snaps back to the start (Brendon 2026-06-21). */
+    const railXRef = useRef(0);
+    useEffect(() => {
+        try { railXRef.current = Number(localStorage.getItem('pd_sticker_rail_x')) || 0; } catch { /* ignore */ }
+    }, []);
+    const saveRailX = (x: number) => {
+        railXRef.current = x;
+        try { localStorage.setItem('pd_sticker_rail_x', String(x)); } catch { /* ignore */ }
+    };
+    // Restore the rail position whenever the rail is on screen.
+    useEffect(() => {
+        if (isOpen && !openSheet && railRef.current) railRef.current.scrollLeft = railXRef.current;
+    }, [isOpen, openSheet, railRef]);
+
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
 
@@ -139,7 +155,7 @@ export default function StickersModal() {
                                     style={{
                                         left: `${p.x}%`,
                                         top: `${p.y}%`,
-                                        width: `${p.cw * 0.82}%`,
+                                        width: `${p.cw * (p.sticker.kind === 'face' || p.sticker.kind === 'output' ? 0.92 : 0.8)}%`,
                                         transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
                                     }}
                                 >
@@ -157,7 +173,7 @@ export default function StickersModal() {
                             </div>
                         </div>
 
-                        <div className="ss-rail" ref={railRef}>
+                        <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
                             {REAL_SHEETS.map((s) => (
                                 <div
                                     className="ss-card ss-card-live"

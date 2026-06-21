@@ -73,6 +73,7 @@ export function BuySheetButton({ sheet, className }: { sheet: SheetMeta; classNa
                     className="starred-confirm-overlay"
                     role="dialog"
                     aria-modal="true"
+                    style={{ zIndex: 1400 }}
                     onClick={() => setConfirming(false)}
                 >
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
