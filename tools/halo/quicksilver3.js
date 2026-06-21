@@ -114,25 +114,29 @@ window.ENGINE = (function () {
     // ── ENCRUSTED SKIN: deep beveled grooves + raised 3D beads so the body
     //    surface is visibly textured metal, never a clean polished ball. ──
     if (ridge !== false && rad > 16) {
-      // grooved concentric ridges — each groove is a dark line shadowed by a
-      // bright lip just inside it, reading as a carved bevel.
-      const rings = K.rint(r, 4, 7);
-      for (let i = 0; i < rings; i++) {
-        const rr = rad * (0.22 + i / rings * 0.72);
-        const drawRing = (off, col, a0, lw) => {
+      // crinkled skin folds — broken, noise-warped arc grooves (NOT full
+      // concentric rings, which read as a bullseye). Each is a dark groove with a
+      // bright lip, scattered at random radii/spans across the body.
+      const folds = K.rint(r, 7, 12);
+      for (let i = 0; i < folds; i++) {
+        const rr = rad * (0.18 + r() * 0.74);
+        const a0 = r() * Math.PI * 2;
+        const span = (0.5 + r() * 1.4); // partial arc
+        const drawFold = (off, col, alpha, lw) => {
           x.globalCompositeOperation = 'soft-light';
-          x.strokeStyle = K.rgba(col, a0); x.lineWidth = Math.max(1, rad * lw);
+          x.strokeStyle = K.rgba(col, alpha); x.lineWidth = Math.max(1, rad * lw); x.lineCap = 'round';
           x.beginPath();
-          for (let s = 0; s <= 44; s++) {
-            const a = s / 44 * Math.PI * 2;
-            const wr = rr * (1 + 0.12 * noise.noise2(Math.cos(a) * 2.4 + ph + i, Math.sin(a) * 2.4 + i)) + off;
+          const steps = 18;
+          for (let s = 0; s <= steps; s++) {
+            const a = a0 + (s / steps) * span;
+            const wr = rr * (1 + 0.16 * noise.noise2(Math.cos(a) * 2.6 + ph + i, Math.sin(a) * 2.6 + i)) + off;
             const px = cx + Math.cos(a) * wr, py = cy + Math.sin(a) * wr;
             if (s === 0) x.moveTo(px, py); else x.lineTo(px, py);
           }
           x.stroke();
         };
-        drawRing(rad * 0.025, '#ffffff', 0.30, 0.045); // bright lip (upper)
-        drawRing(0, '#000000', 0.34, 0.05);            // dark groove
+        drawFold(rad * 0.022, '#ffffff', 0.28, 0.04); // bright lip
+        drawFold(0, '#000000', 0.32, 0.045);          // dark groove
       }
       // sparse raised beads near the rim only (kept subtle so they don't read as
       // water droplets); the spike carpet does the heavy texturing.
@@ -279,17 +283,21 @@ window.ENGINE = (function () {
       const bx = cx + Math.cos(a) * rad * 0.95, by = cy + Math.sin(a) * rad * 0.92;
       spike(x, P, bx, by, len, bw, a, light, iridStr, r, seedPhase, noise, false);
     }
-    // STUBBLE CARPET: short stubby cones planted across the upper body surface so
-    // the skin itself reads spiky/encrusted, not a smooth dome. Lit hemisphere
-    // only (front-facing), pointing outward from the body normal.
-    const nStub = Math.round(rad * 0.5 * spikeAmt);
+    // STUBBLE CARPET: short stubby cones planted ACROSS the whole body surface so
+    // the skin itself reads spiky/encrusted, not a smooth dome. Density scales with
+    // surface area so even big lobes are fully carpeted; points follow the body
+    // normal (radial), denser on the lit front.
+    const nStub = Math.round(rad * rad * 0.012 * spikeAmt);
     for (let i = 0; i < nStub; i++) {
-      const a = (r() - 0.5) * Math.PI * 1.4 - Math.PI / 2; // upper/front arc
-      const dd = (0.4 + r() * 0.5) * rad;
+      const a = r() * Math.PI * 2;
+      const up = (-Math.sin(a) + 1) / 2;
+      // bias coverage toward the front/upper hemisphere but never leave it bare
+      if (r() > 0.35 + up * 0.6) continue;
+      const dd = (0.25 + Math.sqrt(r()) * 0.65) * rad;
       const bx = cx + Math.cos(a) * dd, by = cy + Math.sin(a) * dd;
-      const len = rad * (0.10 + r() * 0.16);
-      const bw = rad * (0.03 + r() * 0.03);
-      spike(x, P, bx, by, len, bw, a + (r() - 0.5) * 0.4, light, iridStr, r, seedPhase, noise, false);
+      const len = rad * (0.08 + r() * 0.16);
+      const bw = rad * (0.025 + r() * 0.03);
+      spike(x, P, bx, by, len, bw, a + (r() - 0.5) * 0.45, light, iridStr, r, seedPhase, noise, false);
     }
     // gentle central specular so the crown still reads metal (kept small so the
     // body never flattens into a bright flat disc/button)
