@@ -8,6 +8,7 @@
  * `fill` makes the SVG width:100% so a % wrapper controls its size.
  */
 
+import { memo } from 'react';
 import type { Sticker } from '../../lib/stickers/catalog';
 import { OutputSticker } from './OutputSticker';
 import {
@@ -30,7 +31,7 @@ const LINE = 'var(--sticker-line, #d6d6d6)';
 const CUT_LOGO = 132;
 const CUT_PRICE = 104;
 
-export function StickerArt({ sticker, size = 44, fill, diecut, className }: Props) {
+function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) {
     if (sticker.kind === 'output' && sticker.slug && sticker.tokenId != null) {
         return <OutputSticker slug={sticker.slug} id={sticker.tokenId} size={size} fill={fill} diecut={diecut} />;
     }
@@ -170,3 +171,6 @@ export function StickerArt({ sticker, size = 44, fill, diecut, className }: Prop
         </svg>
     );
 }
+
+/* Memoised so toggling active stickers never repaints the unchanged ones. */
+export const StickerArt = memo(StickerArtImpl);

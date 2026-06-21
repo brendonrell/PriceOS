@@ -361,6 +361,12 @@
     width: 100%;
     margin: 2px 0 10px;
 }
+.hero-stickers-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
+}
 .hero-stickers-row {
     display: flex;
     align-items: center;
@@ -370,6 +376,8 @@
     padding: 2px 2px 0;
     gap: 6px;
 }
+/* ROW mode packs centred; the others spread across the width. */
+.arr-row .hero-stickers-row { justify-content: center; gap: 12px; }
 .hero-sticker {
     display: inline-flex;
     align-items: center;

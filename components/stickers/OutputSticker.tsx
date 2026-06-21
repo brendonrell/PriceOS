@@ -8,12 +8,12 @@
  * stickers. Paints client-side on mount; SSR renders an empty canvas.
  */
 
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 
 const PAINT_RES = 168;
 
-export function OutputSticker({
+function OutputStickerImpl({
     slug, id, size = 44, fill, diecut,
 }: {
     slug: string;
@@ -36,3 +36,5 @@ export function OutputSticker({
         </span>
     );
 }
+
+export const OutputSticker = memo(OutputStickerImpl);

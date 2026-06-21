@@ -18,6 +18,9 @@ import {
     useOwnedFor, useStickerPrefs, isActive,
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
+import {
+    useHeroPrefs, setArrange, setTilt, shuffleSeed, ARRANGES, TILTS,
+} from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 
 const VS15 = '︎';
@@ -32,6 +35,7 @@ export function StickerManagerModal({
     const { open: openStore } = useModal();
     const owned = useOwnedFor(handle, true);
     const { offSheets, offIds } = useStickerPrefs();
+    const { arrange, tilt } = useHeroPrefs();
 
     useEffect(() => {
         if (!open) return;
@@ -60,7 +64,7 @@ export function StickerManagerModal({
                         type="button"
                         onClick={() => { onClose(); openStore('stickers'); }}
                     >
-                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
+                        STICKER STORE
                     </button>
                     <span
                         className="smgr-close"
@@ -72,6 +76,41 @@ export function StickerManagerModal({
                     >
                         {`×${VS15}`}
                     </span>
+                </div>
+
+                <div className="smgr-row">
+                    <span className="smgr-label">LAYOUT</span>
+                    <div className="smgr-chips">
+                        {ARRANGES.map((a) => (
+                            <button
+                                key={a.id}
+                                className={`smgr-chip${arrange === a.id ? ' active' : ''}`}
+                                type="button"
+                                onClick={() => setArrange(a.id)}
+                            >
+                                {a.label}
+                            </button>
+                        ))}
+                        <button className="smgr-chip smgr-shuffle" type="button" onClick={() => shuffleSeed()} title="Shuffle">
+                            {`⟳${VS15}`}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="smgr-row">
+                    <span className="smgr-label">TILT</span>
+                    <div className="smgr-chips">
+                        {TILTS.map((tl) => (
+                            <button
+                                key={tl.id}
+                                className={`smgr-chip${tilt === tl.id ? ' active' : ''}`}
+                                type="button"
+                                onClick={() => setTilt(tl.id)}
+                            >
+                                {tl.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="smgr-row">
