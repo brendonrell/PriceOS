@@ -14,6 +14,7 @@ import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useCartelMutualCount } from '../../lib/social/cartel';
+import { useProjectCelestial } from '../../lib/output/celestial';
 import {
     isProjectStarred,
     toggleProjectStar,
@@ -25,6 +26,7 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
     const { notifs } = usePdNotifs();
     const cartelOn = notifs.spell_cartel;
     const cartelCount = useCartelMutualCount(slug, cartelOn);
+    const projFate = useProjectCelestial(slug, notifs.spell_celestial);
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isProjectStarred(slug));
@@ -80,6 +82,13 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
                 <span className="project-cartel" aria-label={`${cartelCount} mutuals in the cartel`}>
                     <span className="pc-ico">{'⟁︎'}</span>
                     <span className="pc-num">{cartelCount}</span>
+                </span>
+            )}
+            {/* Celestial Tracker — the project's own I Ching Fate beside the name. */}
+            {projFate && (
+                <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
+                    <span className="pcel-hex">{projFate.glyph}</span>
+                    <span className="pcel-name">{projFate.name}</span>
                 </span>
             )}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}

@@ -97,6 +97,12 @@ export function SpellBookSection({ onTripleTap }: Props) {
        spell, and the modal opens from clicking the floating sprite
        itself (sim 12879, ported via Backgrounds.tsx onClick). */
     const toggleSpellWithToast = (spell: typeof SPELLS[number]) => {
+        // Gravity needs the secondary-listing flow that isn't built — don't
+        // toggle, just flag it as coming soon (Brendon, 2026-06-21).
+        if (spell.id === 'gravitydrop') {
+            showToast('Gravity: COMING SOON');
+            return;
+        }
         const next = !notifs[spell.flag];
         toggle(spell.flag);
         // Cartel gets its own flavour on (off stays the plain label).

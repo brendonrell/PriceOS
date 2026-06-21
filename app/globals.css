@@ -4318,17 +4318,18 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sb-familiar .st-icon { position: relative; top: 1px; }
 
     /* Named tuning (Brendon's list, 2026-06-20). */
-    #sb-priceghost .st-icon  { font-size: 14px !important; position: relative; top: 2px; }
+    #sb-priceghost .st-icon  { font-size: 13px !important; position: relative; top: 2px; }
     #sb-gravitydrop .st-icon { font-size: 18px !important; }
     #sb-panopticon .st-icon  { font-size: 17px !important; }
-    #sb-spitebook .st-icon   { font-size: 19px !important; position: relative; top: 2px; }
+    #sb-spitebook .st-icon   { font-size: 19px !important; position: relative; top: 1px; }
     #sb-invisible .st-icon   { font-size: 17px !important; position: relative; top: 0; }
-    #sb-tarot .st-icon       { font-size: 17px !important; font-weight: bold !important; position: relative; top: 1px; }
+    #sb-watch .st-icon       { position: relative; top: -1px; }
+    #sb-tarot .st-icon       { font-size: 11px !important; letter-spacing: -1px; position: relative; top: 1px; }
     #sb-redacted .st-icon    { position: relative; top: -1px; }
     #sb-degen .st-icon       { font-size: 17px !important; }
-    #sb-stargazing .st-icon  { font-size: 21px !important; position: relative; top: 1px; }
+    #sb-stargazing .st-icon  { font-size: 20px !important; position: relative; top: 1px; }
     #sb-echo .st-icon        { font-size: 17px !important; }
-    #sb-sybilnet .st-icon    { font-size: 20px !important; position: relative; top: -1px; }
+    #sb-sybilnet .st-icon    { font-size: 21px !important; position: relative; top: -1px; }
     #sb-gossip .st-icon      { font-size: 17px !important; position: relative; top: -1px; }
     #sb-arbitrage .st-icon   { position: relative; top: 1px; }
 }
@@ -8937,7 +8938,8 @@ body.colorway-dark .ghost-feed-bar {
     text-shadow: 0 0 6px rgba(0, 0, 0, 0.55);
     pointer-events: none;
 }
-.output-celestial {
+.output-celestial,
+.project-celestial {
     display: inline-block;
     vertical-align: middle;
     line-height: 0;
@@ -8946,13 +8948,18 @@ body.colorway-dark .ghost-feed-bar {
     color: var(--accent);
     white-space: nowrap;
 }
-.output-celestial .oc-moon { font-size: 1.05em; }
-.output-celestial .oc-phase {
+.output-celestial .oc-moon,
+.output-celestial .oc-hex,
+.project-celestial .pcel-hex { font-size: 1.05em; }
+.output-celestial .oc-fate { margin-left: 0.5em; }
+.output-celestial .oc-phase,
+.project-celestial .pcel-name {
     font-size: 0.5em;
     letter-spacing: 0.04em;
     margin-left: 0.4em;
     text-transform: uppercase;
     opacity: 0.8;
+    font-family: 'Courier New', Courier, monospace;
 }
 .project-name-star-float {
     position: absolute;

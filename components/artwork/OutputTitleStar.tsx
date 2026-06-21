@@ -15,7 +15,7 @@ import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useCelestialMark, celestialOpacity } from '../../lib/output/celestial';
+import { useOutputCelestial, celestialOpacity } from '../../lib/output/celestial';
 
 export default function OutputTitleStar({
     slug,
@@ -30,7 +30,7 @@ export default function OutputTitleStar({
 }) {
     const { showToast } = useToast();
     const { notifs } = usePdNotifs();
-    const celMark = useCelestialMark(slug, id, notifs.spell_celestial);
+    const cel = useOutputCelestial(slug, id, notifs.spell_celestial);
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isStarred(slug, id));
@@ -85,12 +85,23 @@ export default function OutputTitleStar({
                 {projectName}
             </a>{' '}#{id}
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
-            {/* Celestial Tracker — the mint moon beside the name (after the
-                star), glyph brightness = illumination at mint. */}
-            {celMark && (
-                <span className="output-celestial" aria-label={`Minted under a ${celMark.phase}`}>
-                    <span className="oc-moon" style={{ opacity: celestialOpacity(celMark.illum) }}>{celMark.glyph}</span>
-                    <span className="oc-phase">{celMark.phase}</span>
+            {/* Celestial Tracker — the Output's birth sky beside the name: the
+                mint moon (brightness = illumination) + its I Ching Fate. */}
+            {cel && (
+                <span
+                    className="output-celestial"
+                    aria-label={`Fate ${cel.fate.name}${cel.moon ? `, minted under a ${cel.moon.phase}` : ''}`}
+                >
+                    {cel.moon && (
+                        <>
+                            <span className="oc-moon" style={{ opacity: celestialOpacity(cel.moon.illum) }}>{cel.moon.glyph}</span>
+                            <span className="oc-phase">{cel.moon.phase}</span>
+                        </>
+                    )}
+                    <span className="oc-fate">
+                        <span className="oc-hex">{cel.fate.glyph}</span>
+                        <span className="oc-phase">{cel.fate.name}</span>
+                    </span>
                 </span>
             )}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}

@@ -1,28 +1,41 @@
 'use client';
 
 /*
- * Celestial Tracker — the per-token mint-sky mark.
+ * Celestial Tracker — the per-entity "birth sky".
  *
- * Every Output is born under a sky: the moon phase at its mint moment is
- * stored per token (`minted_at`). When the Celestial spell is on we surface
- * that as the moon glyph ☽ — its BRIGHTNESS set to the moon's illumination at
- * mint, so a piece born under a full moon glows and a new-moon piece is barely
- * there. Text glyph (the same ☽ the attributes panel uses) — never an emoji.
+ * The mode reads the rich celestial layer we track and surfaces it wherever
+ * you are:
+ *   • Output — the moon it was minted under (☽, brightness = illumination at
+ *     mint) PLUS its I Ching Fate (hexagram + name). The moon needs the stored
+ *     mint timestamp (fills in as pieces are browsed); the Fate is pure from
+ *     (slug, id), so it's always there.
+ *   • Project — its own Fate hexagram (pure from the slug), shown beside the
+ *     project name.
  *
- * Data rides the colorStore (mintedAt is backfilled as the gallery is browsed),
- * so the mark fills in lazily; null until this token's row has loaded.
+ * Every glyph here is iOS-safe text (moon ☽, the I Ching hexagram block) —
+ * never an emoji. The card keeps the compact moon; the name spots carry the
+ * fuller readout.
  */
 
 import { resolveStoredTraits, useStoredColors } from '../art/colorStore';
-import { lunarPhase, lunarIllumination } from './derive';
+import { lunarPhase, lunarIllumination, fateDetail } from './derive';
+import { projectFateReading } from '../project/fate';
 
 export interface CelestialMark {
-    /** Text moon glyph. */
-    glyph: string;
-    /** Phase name, e.g. "Waning Gibbous". */
-    phase: string;
-    /** Illuminated fraction 0..1 — drives the glyph's brightness. */
-    illum: number;
+    glyph: string;   // ☽
+    phase: string;   // "Waning Gibbous"
+    illum: number;   // 0..1
+}
+
+export interface FateMark {
+    glyph: string;   // hexagram glyph
+    name: string;    // "The Creative"
+    n: number;       // hexagram number
+}
+
+export interface OutputCelestial {
+    moon: CelestialMark | null; // null until the mint timestamp is loaded
+    fate: FateMark;             // always present (pure)
 }
 
 export function celestialMark(slug: string, id: number): CelestialMark | null {
@@ -33,16 +46,37 @@ export function celestialMark(slug: string, id: number): CelestialMark | null {
     return { glyph: '☽', phase: lunarPhase(ms), illum: lunarIllumination(ms) };
 }
 
-/**
- * Hook form — subscribes to the colorStore (and triggers its load) while the
- * Celestial spell is on, returning the mint-sky mark for this token, or null
- * until its row is loaded / when the spell is off.
- */
+export function outputCelestial(slug: string, id: number): OutputCelestial {
+    const fd = fateDetail(slug, id);
+    return {
+        moon: celestialMark(slug, id),
+        fate: { glyph: fd.glyph, name: fd.hexagramName, n: fd.hexagram },
+    };
+}
+
+export function projectCelestial(slug: string): FateMark {
+    const r = projectFateReading(slug);
+    return { glyph: r.glyph, name: r.primary.name, n: r.primary.n };
+}
+
+/** Card hook — the compact moon only. */
 export function useCelestialMark(slug: string, id: number, enabled: boolean): CelestialMark | null {
-    // Always call the store hook (load + subscribe); pass [] when off.
     useStoredColors(enabled ? [slug] : []);
     if (!enabled) return null;
     return celestialMark(slug, id);
+}
+
+/** Output name hook — moon + Fate. */
+export function useOutputCelestial(slug: string, id: number, enabled: boolean): OutputCelestial | null {
+    useStoredColors(enabled ? [slug] : []);
+    if (!enabled) return null;
+    return outputCelestial(slug, id);
+}
+
+/** Project name hook — the project's Fate (always available). */
+export function useProjectCelestial(slug: string, enabled: boolean): FateMark | null {
+    if (!enabled) return null;
+    return projectCelestial(slug);
 }
 
 /** Brightness for the moon glyph: always faintly present, brighter when fuller. */
