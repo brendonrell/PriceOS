@@ -327,30 +327,30 @@
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
 .ss-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
-    gap: 14px;
-    padding: 16px 14px 20px;
+    grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+    gap: 9px;
+    padding: 12px 12px 16px;
 }
-.ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
 .ss-cell {
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 0;
     /* Breathing room: the sticker never fills its cell, so none ever butt up. */
-    padding: 6px;
+    padding: 4px;
     box-sizing: border-box;
 }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    columns: 4 66px;
-    column-gap: 12px;
-    padding: 16px 14px 20px;
+    columns: 5 54px;
+    column-gap: 9px;
+    padding: 12px 12px 16px;
 }
 .ss-masonry .ss-cell {
     display: block;
     break-inside: avoid;
-    margin-bottom: 12px;
+    margin-bottom: 9px;
 }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
