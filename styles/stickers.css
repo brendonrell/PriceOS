@@ -69,19 +69,20 @@
     color: var(--text-color);
 }
 .ss-title-sub {
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    color: color-mix(in srgb, var(--text-color) 72%, transparent);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.24em;
+    color: color-mix(in srgb, var(--text-color) 92%, transparent);
     margin-top: 2px;
 }
 .ss-stats {
     margin-left: auto;
     display: flex;
     gap: 14px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: color-mix(in srgb, var(--text-color) 80%, transparent);
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    color: var(--text-color);
 }
 .ss-stat b { color: var(--text-color); }
 .ss-close {
@@ -103,11 +104,11 @@
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    color: color-mix(in srgb, var(--text-color) 68%, transparent);
-    padding: 5px 0;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.18em;
+    color: color-mix(in srgb, var(--text-color) 92%, transparent);
+    padding: 6px 0;
     animation: ssTicker 26s linear infinite;
 }
 .ss-ticker-track span { padding-right: 20px; }
@@ -177,7 +178,7 @@
 
 .ss-card-meta { padding: 9px 10px 11px; }
 .ss-card-name {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     letter-spacing: 0.05em;
     color: var(--text-color);
@@ -185,11 +186,11 @@
 .ss-card-line {
     display: flex;
     justify-content: space-between;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: color-mix(in srgb, var(--text-color) 78%, transparent);
-    margin: 4px 0 9px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--text-color) 92%, transparent);
+    margin: 5px 0 9px;
 }
 .ss-card-tag { color: var(--text-color); }
 
@@ -249,15 +250,16 @@
 
 .ss-foot {
     text-align: center;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    color: color-mix(in srgb, var(--text-color) 65%, transparent);
-    padding: 8px 18px 0;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--text-color) 88%, transparent);
+    padding: 9px 18px 0;
 }
 
 @media (max-width: 600px) {
     .ss-title-main { font-size: 16px; }
-    .ss-stats { gap: 10px; font-size: 10px; }
+    .ss-stats { gap: 10px; font-size: 12px; }
     .ss-card { width: 138px; }
     .ss-card-art { height: 114px; }
 }
@@ -311,6 +313,8 @@
     max-width: 540px;
     border-radius: 0;
     background: var(--text-color);
+    /* Hard clip — nothing can ever extend past the sheet edge. */
+    overflow: hidden;
     --sticker-cut: var(--text-color);
     /* Soft off-white score line tracing each cut — a gentle scoring, not a hard
        line (Brendon 2026-06-21). */
@@ -320,30 +324,30 @@
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
 .ss-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 20px;
-    padding: 20px 18px 24px;
+    grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+    gap: 14px;
+    padding: 16px 14px 20px;
 }
-.ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(134px, 1fr)); }
+.ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
 .ss-cell {
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 0;
     /* Breathing room: the sticker never fills its cell, so none ever butt up. */
-    padding: 7px;
+    padding: 6px;
     box-sizing: border-box;
 }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    columns: 3 96px;
-    column-gap: 14px;
-    padding: 18px 16px 22px;
+    columns: 4 66px;
+    column-gap: 12px;
+    padding: 16px 14px 20px;
 }
 .ss-masonry .ss-cell {
     display: block;
     break-inside: avoid;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */

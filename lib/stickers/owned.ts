@@ -111,6 +111,17 @@ export function useOwnedFor(handle: string | null | undefined, isOwn: boolean): 
     }, [handle, isOwn, owned]);
 }
 
+/** Non-reactive owned list (seed + purchases) — for the manager's local copy. */
+export function computeOwnedFor(handle: string | null | undefined): Sticker[] {
+    const seed = ownedStickers(handle);
+    const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
+    for (const id of getOwnedIds()) {
+        const s = stickerById(id);
+        if (s) map.set(id, s);
+    }
+    return [...map.values()];
+}
+
 /** Owned + active sets for the current viewer, live. */
 export function useStickerPrefs() {
     const { offSheets, offIds } = useLedger();

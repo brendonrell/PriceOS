@@ -42,6 +42,10 @@ export function setArrange(a: Arrange) { write(K_ARRANGE, a); }
 export function setTilt(t: Tilt) { write(K_TILT, t); }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
 
+/* Non-reactive reads — for the manager, which holds its own local copy. */
+export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
+export function getTilt(): Tilt { return read(K_TILT, 'soft') as Tilt; }
+
 export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; }
 
 export function useHeroPrefs(): HeroPrefs {

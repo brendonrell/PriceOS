@@ -107,11 +107,14 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
         const fg = sticker.cutout ?? '#FFFFFF';
         const lines = (sticker.glyph ?? '( ◕ )').split('\n');
         const maxLen = Math.max(1, ...lines.map((l) => [...l].length));
-        const SIDE = 24;            // a touch of left/right buffer inside the chip
-        const charW = 30;
-        const lineH = 56;
-        const W = maxLen * charW + SIDE * 2;
-        const H = Math.max(118, lines.length * lineH + 48);
+        // UNIFORM tile — every face the same shape; the text scales to fit, so
+        // sprites/familiars tile tidily regardless of how long their art is.
+        const W = 178;
+        const H = 120;
+        const innerW = W - 30;   // side buffer
+        const innerH = H - 24;
+        const fs = Math.max(8, Math.min(54, innerW / (maxLen * 0.62), innerH / (lines.length * 1.18)));
+        const lineH = fs * 1.18;
         const vb = diecut ? `-30 -30 ${W + 60} ${H + 60}` : `0 0 ${W} ${H}`;
         const y0 = H / 2 - ((lines.length - 1) * lineH) / 2;
         return (
@@ -127,12 +130,12 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-22} y={-22} width={W + 44} height={H + 44} rx={46} fill={LINE} />
-                        <rect x={-16} y={-16} width={W + 32} height={H + 32} rx={40} fill={CUT} />
+                        <rect x={-22} y={-22} width={W + 44} height={H + 44} rx={44} fill={LINE} />
+                        <rect x={-16} y={-16} width={W + 32} height={H + 32} rx={38} fill={CUT} />
                     </>
                 )}
-                <rect x={0} y={0} width={W} height={H} rx={30} fill={color} />
-                <text fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={48} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+                <rect x={0} y={0} width={W} height={H} rx={26} fill={color} />
+                <text fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fs} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
                     {lines.map((ln, i) => (
                         <tspan key={i} x={W / 2} y={y0 + i * lineH}>{ln || ' '}</tspan>
                     ))}

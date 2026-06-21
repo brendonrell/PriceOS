@@ -2,24 +2,25 @@
 
 /*
  * StickerManagerModal — your sticker controls, opened by tapping your stickers
- * on your own profile. Styled to match the Ambient Light menu (panel + label/
- * chip rows). Holds:
- *   - the same STICKERS button as the home row, to pop the store from here;
- *   - per-SHEET active on/off (owned sheets);
- *   - per-STICKER granular on/off.
- * Only active stickers feed your hero. Generative arrangement controls land next.
+ * on your own profile. Styled like the Ambient Light menu (label + chip rows).
+ *
+ * Self-contained: it reads its state ONCE when it opens and manages a LOCAL copy
+ * from then on, so toggling a sheet/sticker updates instantly with no global
+ * re-render (no flash). Each change is saved in the background (and the hero,
+ * which has its own subscription, updates live).
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal } from '../../lib/state/ModalContext';
-import { SHEETS } from '../../lib/stickers/catalog';
+import { SHEETS, type Sticker } from '../../lib/stickers/catalog';
 import {
-    useOwnedFor, useStickerPrefs, isActive,
+    computeOwnedFor, getOffSheets, getOffIds, isActive,
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    useHeroPrefs, setArrange, setTilt, shuffleSeed, ARRANGES, TILTS,
+    getArrange, getTilt, setArrange, setTilt, shuffleSeed,
+    ARRANGES, TILTS, type Arrange, type Tilt,
 } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 
@@ -33,9 +34,22 @@ export function StickerManagerModal({
     handle: string;
 }) {
     const { open: openStore } = useModal();
-    const owned = useOwnedFor(handle, true);
-    const { offSheets, offIds } = useStickerPrefs();
-    const { arrange, tilt } = useHeroPrefs();
+
+    // Local state, seeded each time the menu opens — no global subscriptions.
+    const [owned, setOwned] = useState<Sticker[]>([]);
+    const [offSheets, setOffSheets] = useState<Set<string>>(new Set());
+    const [offIds, setOffIds] = useState<Set<string>>(new Set());
+    const [arrange, setArr] = useState<Arrange>('spread');
+    const [tilt, setTl] = useState<Tilt>('soft');
+
+    useEffect(() => {
+        if (!open) return;
+        setOwned(computeOwnedFor(handle));
+        setOffSheets(new Set(getOffSheets()));
+        setOffIds(new Set(getOffIds()));
+        setArr(getArrange());
+        setTl(getTilt());
+    }, [open, handle]);
 
     useEffect(() => {
         if (!open) return;
@@ -46,25 +60,26 @@ export function StickerManagerModal({
 
     if (!open || typeof document === 'undefined') return null;
 
+    const toggleSheet = (id: string) => {
+        toggleSheetActive(id as Parameters<typeof toggleSheetActive>[0]);
+        setOffSheets((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    };
+    const toggleSticker = (id: string) => {
+        toggleStickerActive(id);
+        setOffIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    };
+    const pickArrange = (a: Arrange) => { setArr(a); setArrange(a); };
+    const pickTilt = (t: Tilt) => { setTl(t); setTilt(t); };
+
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
 
     return createPortal(
-        <div
-            className="sticker-mgr-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Your stickers"
-            onClick={onClose}
-        >
+        <div className="sticker-mgr-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers" onClick={onClose}>
             <div className="sticker-mgr" onClick={(e) => e.stopPropagation()}>
                 <div className="smgr-head">
                     <span className="smgr-title">YOUR STICKERS</span>
-                    <button
-                        className="smgr-store"
-                        type="button"
-                        onClick={() => { onClose(); openStore('stickers'); }}
-                    >
-                        STICKER STORE
+                    <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }}>
+                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>
                     <span
                         className="smgr-close"
@@ -82,12 +97,7 @@ export function StickerManagerModal({
                     <span className="smgr-label">LAYOUT</span>
                     <div className="smgr-chips">
                         {ARRANGES.map((a) => (
-                            <button
-                                key={a.id}
-                                className={`smgr-chip${arrange === a.id ? ' active' : ''}`}
-                                type="button"
-                                onClick={() => setArrange(a.id)}
-                            >
+                            <button key={a.id} className={`smgr-chip${arrange === a.id ? ' active' : ''}`} type="button" onClick={() => pickArrange(a.id)}>
                                 {a.label}
                             </button>
                         ))}
@@ -101,12 +111,7 @@ export function StickerManagerModal({
                     <span className="smgr-label">TILT</span>
                     <div className="smgr-chips">
                         {TILTS.map((tl) => (
-                            <button
-                                key={tl.id}
-                                className={`smgr-chip${tilt === tl.id ? ' active' : ''}`}
-                                type="button"
-                                onClick={() => setTilt(tl.id)}
-                            >
+                            <button key={tl.id} className={`smgr-chip${tilt === tl.id ? ' active' : ''}`} type="button" onClick={() => pickTilt(tl.id)}>
                                 {tl.label}
                             </button>
                         ))}
@@ -119,12 +124,7 @@ export function StickerManagerModal({
                         {ownedSheets.map((sh) => {
                             const on = !offSheets.has(sh.id);
                             return (
-                                <button
-                                    key={sh.id}
-                                    className={`smgr-chip${on ? ' active' : ''}`}
-                                    type="button"
-                                    onClick={() => toggleSheetActive(sh.id)}
-                                >
+                                <button key={sh.id} className={`smgr-chip${on ? ' active' : ''}`} type="button" onClick={() => toggleSheet(sh.id)}>
                                     {sh.name}
                                 </button>
                             );
@@ -143,7 +143,7 @@ export function StickerManagerModal({
                                     className={`smgr-tile${on ? '' : ' off'}`}
                                     type="button"
                                     title={`${s.name} — ${on ? 'on' : 'off'}`}
-                                    onClick={() => toggleStickerActive(s.id)}
+                                    onClick={() => toggleSticker(s.id)}
                                 >
                                     <StickerArt sticker={s} size={34} />
                                 </button>
