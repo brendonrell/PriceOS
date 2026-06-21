@@ -63,9 +63,10 @@
 }
 .ss-title { display: flex; flex-direction: column; line-height: 1.1; }
 .ss-title-main {
-    font-size: 17px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 18px;
     font-weight: bold;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.1em;
     color: var(--text-color);
 }
 .ss-title-sub {
