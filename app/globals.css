@@ -8918,6 +8918,9 @@ body.colorway-dark .ghost-feed-bar {
     vertical-align: middle;
     margin-left: 0.3em;
     white-space: nowrap;
+    /* Sit the ⟁ + count a touch lower against the project name (Brendon, 2026-06-21). */
+    position: relative;
+    top: 2px;
 }
 .project-cartel .pc-ico { font-size: 1.15em; }
 .project-cartel .pc-num { font-size: 0.82em; margin-left: 1px; }
