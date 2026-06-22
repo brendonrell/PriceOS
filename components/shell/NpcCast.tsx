@@ -47,6 +47,10 @@ export function NpcCast() {
     const [lineFor, setLineFor] = useState<Record<string, string>>({});
     const [polarity, setPolarity] = useState<Polarity>('dark');
     const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+    /* Bubble DOM nodes + an off-screen measurer used to size each bubble to its
+       longest wrapped line (a solid box can't shrink to wrapped text on its own). */
+    const bubbleRefs = useRef<Record<string, HTMLSpanElement | null>>({});
+    const measureRef = useRef<HTMLSpanElement | null>(null);
 
     /* What you're doing right now — read from the route. The running speak timer
        reads the latest via a ref so navigation updates without restarting it. */
@@ -95,7 +99,7 @@ export function NpcCast() {
         };
 
         const scheduleTick = () => {
-            const delay = 6000 + Math.random() * 4000; // every ~6-10s
+            const delay = 12000 + Math.random() * 10000; // every ~12-22s (calmer)
             tickTimer = setTimeout(() => {
                 speakOne();
                 scheduleTick();
@@ -103,7 +107,7 @@ export function NpcCast() {
         };
 
         setPolarity(readPolarity());
-        const kickoff = setTimeout(speakOne, 1200); // quick first sign of life
+        const kickoff = setTimeout(speakOne, 2500); // first sign of life
         scheduleTick();
 
         return () => {
@@ -114,13 +118,36 @@ export function NpcCast() {
         };
     }, [on]);
 
+    /* Size each visible bubble to hug its longest wrapped line. The measurer has
+       no transformed ancestor, so its line widths are accurate even while a
+       bubble plays its entrance animation. */
+    useEffect(() => {
+        const m = measureRef.current;
+        if (!m || typeof window === 'undefined') return;
+        const cap = Math.min(168, window.innerWidth * 0.52);
+        const padX = 24; // must match .npc-bubble horizontal padding (12px * 2)
+        m.style.fontSize = '16px';
+        m.style.maxWidth = `${cap - padX}px`;
+        for (const c of CAST) {
+            const el = bubbleRefs.current[c.id];
+            if (!el) continue;
+            const text = lineFor[c.id];
+            if (!active[c.id] || !text) {
+                el.style.width = '';
+                continue;
+            }
+            m.textContent = styleText(text, c.style);
+            const rects = m.getClientRects();
+            let w = 0;
+            for (let i = 0; i < rects.length; i++) w = Math.max(w, rects[i].width);
+            el.style.width = w > 0 ? `${Math.ceil(w + padX + 1)}px` : '';
+        }
+    }, [active, lineFor]);
+
     if (!on) return null;
 
     return (
-        <div
-            className={`npc-cast ${polarity} npc-${(notifs.npc_size ?? 'M').toLowerCase()}`}
-            aria-hidden="true"
-        >
+        <div className={`npc-cast ${polarity}`} aria-hidden="true">
             {CAST.map((c) => (
                 <div
                     key={c.id}
@@ -128,13 +155,17 @@ export function NpcCast() {
                     style={{ top: `${c.top}%` }}
                 >
                     <span className="npc-name">{c.name}</span>
-                    <span className={`npc-bubble npc-anim-${c.anim}`}>
-                        <span className="npc-bubble-text">
-                            {styleText(lineFor[c.id] ?? '', c.style)}
-                        </span>
+                    <span
+                        ref={(el) => {
+                            bubbleRefs.current[c.id] = el;
+                        }}
+                        className={`npc-bubble npc-anim-${c.anim}`}
+                    >
+                        {styleText(lineFor[c.id] ?? '', c.style)}
                     </span>
                 </div>
             ))}
+            <span ref={measureRef} className="npc-measure" aria-hidden="true" />
         </div>
     );
 }

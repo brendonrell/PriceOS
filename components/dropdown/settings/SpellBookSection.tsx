@@ -236,24 +236,16 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'⬬︎'}
                     label="The Watch"
                 />
-                {/* NPC — cycling pill OFF → S → M → L (bubble text size). Medium
-                    is the standard size; S one down, L one up (Brendon, 2026-06-22). */}
+                {/* NPC — drives the off-screen NPC Cast. Simple on/off pill. */}
                 <SettingsToggle
                     id="sb-npc"
                     active={notifs.spell_npc}
                     onClick={() => {
-                        const cycle = ['off', 'S', 'M', 'L'] as const;
-                        const current = notifs.spell_npc ? notifs.npc_size : 'off';
-                        const next = cycle[(cycle.indexOf(current) + 1) % cycle.length];
-                        if (next === 'off') {
-                            update({ spell_npc: false });
-                            showToast('NPC: OFF');
-                        } else {
-                            update({ spell_npc: true, npc_size: next });
-                            showToast(`NPC: ${next}`);
-                        }
+                        const next = !notifs.spell_npc;
+                        toggle('spell_npc');
+                        showToast(`NPC: ${next ? 'ON' : 'OFF'}`);
                     }}
-                    label={notifs.spell_npc ? `NPC ${notifs.npc_size}` : 'NPC'}
+                    label="NPC"
                 />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs
