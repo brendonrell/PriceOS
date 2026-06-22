@@ -18,6 +18,7 @@ import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned
 import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
+import type { Sticker } from '../../lib/stickers/catalog';
 
 interface Props {
     ownerHandle: string | null | undefined;
@@ -81,20 +82,46 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
     const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
     const picked = useMemo(() => {
-        const base = (() => {
-            if (!scatter) return active.slice(0, effCap);
-            const pool = [...active];
-            const rnd = rngFrom(seed);
-            for (let i = pool.length - 1; i > 0; i--) {
+        const rnd = scatter ? rngFrom(seed) : null;
+        const shuffle = <T,>(a: T[]): T[] => {
+            if (!rnd) return a;
+            for (let i = a.length - 1; i > 0; i--) {
                 const j = Math.floor(rnd() * (i + 1));
-                [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+                [a[i], a[j]] = [a[j]!, a[i]!];
             }
-            return pool.slice(0, effCap);
-        })();
-        // Crash guard: keep only a few painted-art (output) stickers so the hero
-        // never mounts a wall of generative canvases at once.
-        let o = 0;
-        return base.filter((s) => s.kind !== 'output' || o++ < MAX_HERO_OUTPUTS);
+            return a;
+        };
+        // Group the active set by sheet so a multi-sheet selection is balanced.
+        const bySheet = new Map<string, Sticker[]>();
+        const sheetOrder: string[] = [];
+        for (const s of active) {
+            if (!bySheet.has(s.sheet)) { bySheet.set(s.sheet, []); sheetOrder.push(s.sheet); }
+            bySheet.get(s.sheet)!.push(s);
+        }
+        const queues = (rnd ? shuffle(sheetOrder.slice()) : sheetOrder).map((k) => shuffle(bySheet.get(k)!.slice()));
+
+        // SELECT by round-robin across sheets (one each, in turn) up to the
+        // arrangement's room — even spread, never all from one sheet. Only a few
+        // heavy painted-art stickers are taken (each paints a generative canvas).
+        // The chosen set is exactly what gets placed.
+        const chosen: Sticker[] = [];
+        let outs = 0;
+        let progressed = true;
+        while (chosen.length < effCap && progressed) {
+            progressed = false;
+            for (const q of queues) {
+                if (chosen.length >= effCap) break;
+                while (q.length) {
+                    const s = q.shift()!;
+                    if (s.kind === 'output' && outs >= MAX_HERO_OUTPUTS) continue;
+                    if (s.kind === 'output') outs++;
+                    chosen.push(s);
+                    progressed = true;
+                    break;
+                }
+            }
+        }
+        return chosen;
     }, [active, scatter, effCap, seed]);
 
     const manager = isOwn ? (
