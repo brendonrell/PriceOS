@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { CAST, styleText } from '@/lib/npc/cast';
@@ -45,6 +46,9 @@ export function NpcCast() {
 
     const [active, setActive] = useState<Record<string, boolean>>({});
     const [lineFor, setLineFor] = useState<Record<string, string>>({});
+    /* Small per-speak offset around each resident's home so the bubble doesn't
+       land in the exact same spot every time. */
+    const [jitter, setJitter] = useState<Record<string, { x: number; y: number }>>({});
     const [polarity, setPolarity] = useState<Polarity>('dark');
     const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
     /* Bubble DOM nodes + an off-screen measurer used to size each bubble to its
@@ -89,6 +93,10 @@ export function NpcCast() {
                     line = ownWorld;
                 }
                 setLineFor((lf) => ({ ...lf, [c.id]: line }));
+                setJitter((jt) => ({
+                    ...jt,
+                    [c.id]: { x: Math.round(Math.random() * 26), y: Math.round((Math.random() * 2 - 1) * 30) },
+                }));
                 if (timers[c.id]) clearTimeout(timers[c.id]);
                 timers[c.id] = setTimeout(() => {
                     setActive((p) => ({ ...p, [c.id]: false }));
@@ -148,11 +156,16 @@ export function NpcCast() {
 
     return (
         <div className={`npc-cast ${polarity}`} aria-hidden="true">
-            {CAST.map((c) => (
+            {CAST.map((c) => {
+                const j = jitter[c.id] ?? { x: 0, y: 0 };
+                const rStyle: CSSProperties = { top: `calc(${c.top}% + ${j.y}px)` };
+                if (c.wall === 'left') rStyle.marginLeft = j.x;
+                else rStyle.marginRight = j.x;
+                return (
                 <div
                     key={c.id}
                     className={`npc-resident ${c.wall}${active[c.id] ? ' active' : ''}`}
-                    style={{ top: `${c.top}%` }}
+                    style={rStyle}
                 >
                     <span className="npc-name">{c.name}</span>
                     <span
@@ -164,7 +177,8 @@ export function NpcCast() {
                         {styleText(lineFor[c.id] ?? '', c.style)}
                     </span>
                 </div>
-            ))}
+                );
+            })}
             <span ref={measureRef} className="npc-measure" aria-hidden="true" />
         </div>
     );
