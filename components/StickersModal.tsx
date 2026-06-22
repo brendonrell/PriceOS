@@ -231,24 +231,31 @@ export default function StickersModal() {
                             : mode === 'flow' ? 'ss-flow'
                             : mode === 'fam' ? 'ss-grid ss-grid-fam'
                             : 'ss-grid';
+                        /* Skinny sheets: order so each ROW pairs the widest chip with the
+                           narrowest (it's size-aware) — balances the rows automatically. */
+                        const glyphLen = (s: Sticker) => [...(s.glyph ?? '')].length;
+                        const flowOrder = (() => {
+                            const sorted = [...draw].sort((a, b) => glyphLen(b) - glyphLen(a));
+                            const out: Sticker[] = [];
+                            let i = 0, j = sorted.length - 1;
+                            while (i <= j) {
+                                out.push(sorted[i]!);
+                                if (i !== j) out.push(sorted[j]!);
+                                i++; j--;
+                            }
+                            return out;
+                        })();
+                        const cells = mode === 'flow' ? flowOrder : draw;
                         return (
                             <div className="ss-paper-wrap">
                                 <div className={`ss-paper ${cls}`}>
-                                    {mode === 'flow'
-                                        ? Array.from({ length: Math.ceil(draw.length / 2) }, (_, r) => (
-                                            <div className="ss-flow-row" key={r}>
-                                                {draw.slice(r * 2, r * 2 + 2).map((s) => (
-                                                    <span key={s.id} className="ss-cell" title={s.name}>
-                                                        <StickerArt sticker={s} size={40} diecut />
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ))
-                                        : draw.map((s) => (
-                                            <span key={s.id} className="ss-cell" title={s.name}>
-                                                <StickerArt sticker={s} fill diecut />
-                                            </span>
-                                        ))}
+                                    {cells.map((s) => (
+                                        <span key={s.id} className="ss-cell" title={s.name}>
+                                            {mode === 'flow'
+                                                ? <StickerArt sticker={s} size={40} diecut />
+                                                : <StickerArt sticker={s} fill diecut />}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         );

@@ -400,33 +400,17 @@
     padding: 4px;
     box-sizing: border-box;
 }
-/* Skinny sprite / @name chips → rows of TWO. Each chip butts the outer edge of
-   its half and grows inward at its NATURAL size, using any room the other chip
-   leaves free; only when the two would collide does the BIGGER one shrink to fit
-   (never the smaller, never overlapping). */
+/* Skinny sprite / @name chips → two centered columns; a chip that's too wide for
+   its column shrinks to fit. The render pairs wide with narrow so rows balance. */
 .ss-flow {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    gap: 16px 14px;
     padding: 16px 14px 20px;
 }
-.ss-flow-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-}
-.ss-flow-row .ss-cell {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    flex: 0 1 auto;
-    padding: 0;
-}
-.ss-flow-row .ss-cell:first-child { justify-content: flex-start; }
-.ss-flow-row .ss-cell:last-child { justify-content: flex-end; }
-/* Lets the bigger chip scale down to fit when the pair would collide. */
-.ss-flow-row .ss-cell svg { max-width: 100%; }
+.ss-flow .ss-cell { padding: 0; min-width: 0; justify-content: center; }
+.ss-flow .ss-cell svg { max-width: 100%; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
     columns: 3;

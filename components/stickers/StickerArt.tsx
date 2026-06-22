@@ -134,7 +134,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             const H = 78;
             const W = maxLen * charW + SIDE * 2;
             const M = 24;   // die-cut margin
-            const Ln = 8;   // kiss-cut line peek
+            const Ln = 4;   // kiss-cut line peek (half-thickness, Brendon 2026-06-22)
             const vb = diecut ? `${-(M + Ln) - 2} ${-(M + Ln) - 2} ${W + 2 * (M + Ln) + 4} ${H + 2 * (M + Ln) + 4}` : `0 0 ${W} ${H}`;
             const clipId = `clip-${sticker.id}`;
             return (
