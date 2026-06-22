@@ -36,9 +36,6 @@ import { StickerArt } from './StickerArt';
 const VS15 = '︎';
 const PAGE_KEY = 'pd_sticker_mgr_page';
 const PAGES = 3;
-/* Crash guard — never mount an unbounded wall of sticker tiles (each can paint a
-   live art canvas). Comfortably above any real owned set. (Brendon 2026-06-22.) */
-const MAX_GRID = 120;
 
 export function StickerManagerModal({
     open, onClose, handle,
@@ -253,7 +250,7 @@ export function StickerManagerModal({
                         <div className="ambient-pop-row smgr-grid-row">
                             <span className="ambient-pop-label">Stickers</span>
                             <div className="smgr-grid">
-                                {owned.slice(0, MAX_GRID).map((s) => {
+                                {owned.map((s) => {
                                     const on = isActive(s, offSheets, offIds);
                                     return (
                                         <button
