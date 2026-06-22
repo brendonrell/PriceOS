@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
+import { useAuth } from '@/lib/state/AuthContext';
 import { CAST, styleText } from '@/lib/npc/cast';
 import { readStage, pickAwareness, pickFourthWall } from '@/lib/npc/awareness';
 
@@ -56,7 +57,14 @@ function readPolarity(): Polarity {
 
 export function NpcCast() {
     const { notifs } = usePdNotifs();
+    const { handle } = useAuth();
     const on = notifs.spell_npc;
+    /* Your username (no @) — the residents weave it in instead of always "they".
+       Read via a ref so the running speak timer sees the latest without
+       restarting. */
+    const viewerName = handle ? handle.replace(/^@/, '') : null;
+    const nameRef = useRef<string | null>(viewerName);
+    nameRef.current = viewerName;
 
     const [active, setActive] = useState<Record<string, boolean>>({});
     const [lineFor, setLineFor] = useState<Record<string, string>>({});
@@ -149,9 +157,9 @@ export function NpcCast() {
                 const roll = Math.random();
                 let line: string;
                 if (roll < 0.04) {
-                    line = pickFourthWall(stageRef.current);
+                    line = pickFourthWall(stageRef.current, nameRef.current);
                 } else if (roll < 0.38) {
-                    line = pickAwareness(c.id, stageRef.current) ?? ownWorld;
+                    line = pickAwareness(c.id, stageRef.current, nameRef.current) ?? ownWorld;
                 } else {
                     line = ownWorld;
                 }
