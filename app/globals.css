@@ -4289,7 +4289,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     /* Size: match weight to ◻/◼ baseline (16px default). */
     #sn-anon .st-icon         { font-size: 15px !important; }
     #sn-zen .st-icon          { font-size: 16px !important; }
-    #sn-sticker .st-icon      { font-size: 15px !important; }
+    #sn-sticker .st-icon      { font-size: 16px !important; }
     #sn-zerocontext .st-icon  { font-size: 15px !important; }
     #sn-pricelens .st-icon    { font-size: 15px !important; }
     #sn-sentiment .st-icon    { font-size: 15px !important; }
