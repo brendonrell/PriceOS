@@ -162,7 +162,7 @@ export default function StickersModal() {
                                 <span className="ss-title-main">{detail.name}</span>
                                 <span className="ss-title-sub">{`// ${detail.count} STICKERS`}</span>
                             </div>
-                            <BuySheetButton sheet={detail} className="ss-buy-head" />
+                            <BuySheetButton sheet={detail} />
                         </>
                     ) : (
                         <>
