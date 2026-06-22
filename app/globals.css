@@ -2057,9 +2057,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-resident {
     position: absolute;
     display: flex; flex-direction: column; gap: 4px;
-    /* Narrow enough that a line tends to wrap to ~2 lines (saves vertical room
-       without going stubby), while the bubble still hugs its text. */
-    max-width: min(230px, 60vw);
+    /* Tight wrap keeps the bubble small + close to the wall, so the box hugs the
+       text (no empty "butt") instead of stretching wide on a wrapped line. */
+    max-width: min(168px, 52vw);
 }
 .npc-resident.left  { left: 12px;  align-items: flex-start; }
 .npc-resident.right { right: 12px; align-items: flex-end; text-align: right; }
@@ -2081,10 +2081,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-bubble {
     position: relative;
     border-radius: 6px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold; font-size: 16px; line-height: 1.3;
-    white-space: normal;
+    white-space: normal; text-wrap: balance;
     opacity: 0;
     transition: opacity 0.3s; /* exit fade; entrance is per-character keyframe */
 }
@@ -2092,14 +2092,14 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-cast.dark  .npc-bubble { background: #000; color: #fff; }
 .npc-cast.light .npc-bubble { background: #fff; color: #000; }
 
-/* Tail pointing back to the wall — half the original size (Brendon, 2026-06-22). */
+/* Tail pointing back to the wall (Brendon, 2026-06-22: half size, then +30%). */
 .npc-bubble::before {
     content: ''; position: absolute; top: 14px;
-    width: 5px; height: 5px; transform: rotate(45deg);
+    width: 6.5px; height: 6.5px; transform: rotate(45deg);
     background: inherit;
 }
-.npc-resident.left  .npc-bubble::before { left: -2.5px; }
-.npc-resident.right .npc-bubble::before { right: -2.5px; }
+.npc-resident.left  .npc-bubble::before { left: -3.25px; }
+.npc-resident.right .npc-bubble::before { right: -3.25px; }
 
 /* Active → run the character's entrance, ending settled (opacity 1, no offset). */
 .npc-resident.active .npc-bubble { opacity: 1; animation-fill-mode: both; }
