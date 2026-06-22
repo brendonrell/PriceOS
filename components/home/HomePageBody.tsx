@@ -736,13 +736,13 @@ function HomePageBodyInner({
                             <PriceDaySlot />
                         </h1>
                         {logoOpen && (
-                            <div className="home-logo-carousel" aria-label="Profile Logo options">
-                                <div className="home-logo-track">
+                            <section className="home-carousel-row home-logo-row" aria-label="Profile Logo options">
+                                <div className="home-carousel-track">
                                     {PROFILE_LOGOS.map((l) => (
                                         <button
                                             key={l.id}
                                             type="button"
-                                            className={`home-logo-cell${myLogo === l.id ? ' active' : ''}`}
+                                            className={`home-logo-card${myLogo === l.id ? ' active' : ''}`}
                                             title={l.label}
                                             onClick={() => pickLogo(l.id, l.label)}
                                         >
@@ -750,7 +750,7 @@ function HomePageBodyInner({
                                         </button>
                                     ))}
                                 </div>
-                            </div>
+                            </section>
                         )}
                     </>
                 }

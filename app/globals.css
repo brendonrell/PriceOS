@@ -8286,33 +8286,17 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     .home-title .project-date-wrap { display: none; }
 }
 
-/* ── Profile Logo picker — the long-press carousel under the home title ──
-   Same scroll + snap chrome as Now Minting (snap stops on each logo), but
-   title-less and tiles at the actual nav-logo size. Appears with the same
-   shove-open animation as the generative-colorway egg. */
-.home-logo-carousel {
+/* ── Profile Logo picker — the EXACT Now Minting carousel (.home-carousel-track),
+   dropped under the home title. The row breaks out of the hero's side padding so
+   it runs full-bleed like the body carousels — the track's own inset then lines
+   the first logo up with the title, snaps per logo, and scrolls with the same
+   insets both ends. Appears with the generative-colorway shove-open. */
+.home-logo-row {
+    margin: 4px -40px 4px;
     transform-origin: top;
     animation: egg-shove-open 0.18s ease-out;
 }
-.home-logo-track {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 14px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    /* Snap rests on each logo — same feel as the Now Minting row. */
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    /* No left inset: the first logo lines up with the title's left edge (the
-       hero already insets this whole row). Tail padding lets the last breathe. */
-    padding: 6px 24px 8px 0;
-    scroll-padding-left: 0;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    cursor: grab;
-}
-.home-logo-track::-webkit-scrollbar { height: 0; width: 0; background: transparent; }
-.home-logo-cell {
+.home-carousel-track .home-logo-card {
     flex: 0 0 auto;
     scroll-snap-align: start;
     display: flex;
@@ -8325,8 +8309,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
 }
-.home-logo-cell:hover { transform: translateY(-1px); }
-.home-logo-cell.active { border-color: var(--text-color); }
+.home-logo-card:hover { transform: translateY(-1px); }
+.home-logo-card.active { border-color: var(--text-color); }
+@media (max-width: 600px) {
+    .home-logo-row { margin-left: -20px; margin-right: -20px; }
+}
 
 /* The logo mark itself — bubble outline + the inner glyph/per-mille, used in
    the picker and as the site-chrome override on a profile. */
