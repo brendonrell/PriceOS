@@ -28,6 +28,7 @@ import {
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import { useOwnedStickerIds } from '../lib/stickers/owned';
+import { buildTickerText } from '../lib/stickers/ticker';
 
 const VS15 = '︎';
 
@@ -70,6 +71,10 @@ export default function StickersModal() {
     useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
+
+    /* The news crawl — auto-built from the store + release dates, refreshed each
+       time the store opens so recency badges stay current. */
+    const tickerText = useMemo(() => buildTickerText(), [isOpen]);
 
     const ownedIds = useOwnedStickerIds();
     const totalSheets = REAL_SHEETS.length;
@@ -226,9 +231,9 @@ export default function StickersModal() {
 
                         <div className="ss-ticker" aria-hidden="true">
                             <div className="ss-ticker-track">
-                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
-                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
-                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
+                                <span>{tickerText}</span>
+                                <span>{tickerText}</span>
+                                <span>{tickerText}</span>
                             </div>
                         </div>
 
