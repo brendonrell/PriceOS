@@ -6,6 +6,20 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ RULE #0 — REUSE, NEVER REINVENT. DO EXACTLY WHAT BRENDON SAYS, NOTHING
+> EXTRA. (Brendon, 2026-06-22 — the rule above all rules, by his order.)**
+> We do **NOT** roll our own version of anything the site already has. Before
+> building any UI or behaviour, **FIND the existing app element that already does
+> it and USE THAT — copy-paste the real component, classes, and markup.** When
+> Brendon says "use the carousel / the long-press / the colorway pop-out / any
+> part of the site already built," **HE FUCKING MEANS IT** — wire up that exact
+> thing, do not approximate it, do not hand-roll a lookalike. And build **ONLY
+> what he asked — nothing extra, ever.** No bonus affordances, no "improved"
+> variant, no reinvented mechanics. The failure that birthed this rule
+> (2026-06-22): a hand-rolled logo carousel instead of reusing the Now Minting
+> carousel — three rounds of his time burned. Reuse the real thing the first
+> time, every time.
+
 > **⛔ RULE #1 — DO NOT BE LAZY. It is a sin punishable by death. (Brendon,
 > 2026-06-08 — the rule above all rules.)**
 > Laziness is the root failure every other rule in this file exists to stop.
