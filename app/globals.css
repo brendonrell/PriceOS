@@ -8287,17 +8287,26 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 }
 
 /* ── Profile Logo picker — the long-press carousel under the home title ──
-   Same scroll chrome as Now Minting, but title-less and with smaller tiles
-   so many logos sit on screen at once. */
-.home-logo-carousel { margin: 6px 0 2px; }
+   Same scroll + snap chrome as Now Minting (snap stops on each logo), but
+   title-less and tiles at the actual nav-logo size. Appears with the same
+   shove-open animation as the generative-colorway egg. */
+.home-logo-carousel {
+    transform-origin: top;
+    animation: egg-shove-open 0.18s ease-out;
+}
 .home-logo-track {
     display: flex;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: 14px;
     overflow-x: auto;
     overflow-y: hidden;
+    /* Snap rests on each logo — same feel as the Now Minting row. */
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 40px 8px;
+    /* No left inset: the first logo lines up with the title's left edge (the
+       hero already insets this whole row). Tail padding lets the last breathe. */
+    padding: 6px 24px 8px 0;
+    scroll-padding-left: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
     cursor: grab;
@@ -8305,21 +8314,19 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .home-logo-track::-webkit-scrollbar { height: 0; width: 0; background: transparent; }
 .home-logo-cell {
     flex: 0 0 auto;
+    scroll-snap-align: start;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 5px;
+    padding: 3px;
     background: none;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
 }
 .home-logo-cell:hover { transform: translateY(-1px); }
 .home-logo-cell.active { border-color: var(--text-color); }
-@media (max-width: 600px) {
-    .home-logo-track { padding: 4px 20px 8px; }
-}
 
 /* The logo mark itself — bubble outline + the inner glyph/per-mille, used in
    the picker and as the site-chrome override on a profile. */

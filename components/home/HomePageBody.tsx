@@ -746,7 +746,7 @@ function HomePageBodyInner({
                                             title={l.label}
                                             onClick={() => pickLogo(l.id, l.label)}
                                         >
-                                            <ProfileLogoMark id={l.id} size={54} />
+                                            <ProfileLogoMark id={l.id} size={30} />
                                         </button>
                                     ))}
                                 </div>
