@@ -12,7 +12,7 @@
  * arrangement opens the manager modal.
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
 import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, shouldFlip } from '../../lib/stickers/heroPrefs';
@@ -24,7 +24,28 @@ interface Props {
     isOwn?: boolean;
 }
 
-export function HeroStickers({ ownerHandle, isOwn }: Props) {
+/* Output stickers each paint a full generative artwork to a canvas — heavy.
+   Never let the hero mount more than a handful at once (that's the crash). */
+const MAX_HERO_OUTPUTS = 4;
+
+/* Boundary so a single bad sticker can never take down the whole profile — the
+   feature just renders nothing instead of crashing the page. */
+class StickerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+    constructor(props: { children: ReactNode }) { super(props); this.state = { failed: false }; }
+    static getDerivedStateFromError() { return { failed: true }; }
+    componentDidCatch() { /* swallow — stickers are decorative */ }
+    render() { return this.state.failed ? null : this.props.children; }
+}
+
+export function HeroStickers(props: Props) {
+    return (
+        <StickerBoundary>
+            <HeroStickersInner {...props} />
+        </StickerBoundary>
+    );
+}
+
+function HeroStickersInner({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
@@ -60,14 +81,20 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
     const picked = useMemo(() => {
-        if (!scatter) return active.slice(0, effCap);
-        const pool = [...active];
-        const rnd = rngFrom(seed);
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(rnd() * (i + 1));
-            [pool[i], pool[j]] = [pool[j]!, pool[i]!];
-        }
-        return pool.slice(0, effCap);
+        const base = (() => {
+            if (!scatter) return active.slice(0, effCap);
+            const pool = [...active];
+            const rnd = rngFrom(seed);
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(rnd() * (i + 1));
+                [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+            }
+            return pool.slice(0, effCap);
+        })();
+        // Crash guard: keep only a few painted-art (output) stickers so the hero
+        // never mounts a wall of generative canvases at once.
+        let o = 0;
+        return base.filter((s) => s.kind !== 'output' || o++ < MAX_HERO_OUTPUTS);
     }, [active, scatter, effCap, seed]);
 
     const manager = isOwn ? (
