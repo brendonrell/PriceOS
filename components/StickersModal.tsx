@@ -47,8 +47,9 @@ export default function StickersModal() {
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
-    /* Rail (sideways) vs expanded grid (two-up, scrolls down). */
-    const [expanded, setExpanded] = useState(false);
+    /* Expanded grid (two-up, scrolls down) is the DEFAULT; the icon toggles to
+       the compact rail (Brendon 2026-06-22). */
+    const [expanded, setExpanded] = useState(true);
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
 
