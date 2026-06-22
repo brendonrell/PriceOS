@@ -198,6 +198,7 @@ export function NpcCast() {
                 el.style.width = '';
                 continue;
             }
+            m.style.letterSpacing = c.letterSpacing ?? '';
             m.textContent = styleText(text, c.style);
             const rects = m.getClientRects();
             let w = 0;
@@ -231,6 +232,7 @@ export function NpcCast() {
                             bubbleRefs.current[c.id] = el;
                         }}
                         className={`npc-bubble npc-anim-${c.anim}`}
+                        style={c.letterSpacing ? { letterSpacing: c.letterSpacing } : undefined}
                     >
                         {styleText(lineFor[c.id] ?? '', c.style)}
                     </span>

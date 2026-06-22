@@ -686,10 +686,10 @@ export default function StarredList({
                             <div
                                 key={selKey}
                                 className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
-                                role={multiActive ? 'button' : undefined}
-                                tabIndex={multiActive ? 0 : undefined}
-                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
-                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
+                                role="button"
+                                tabIndex={0}
+                                onClick={multiActive ? () => toggleSel(selKey) : () => window.location.assign('/' + r.slug)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : window.location.assign('/' + r.slug); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
                                     <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>

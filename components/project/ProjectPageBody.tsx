@@ -759,8 +759,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     if (!netMatch && set.has('⚭ Mutuals')
                         && inSet(netSets.following) && inSet(netSets.followers)) netMatch = true;
                     if (!netMatch && set.has('Top Holders') && topHolders.has(ownerAddr)) netMatch = true;
-                    if (!netMatch && set.has('New Wallets') && meta.ownerCreatedAt
+                    /* Fresh Wallets = freshly made on Ethereum. We don't index
+                       on-chain wallet age yet, so this is a stopgap on PD-account
+                       recency (< 30d) until Alchemy first-tx lands. */
+                    if (!netMatch && set.has('Fresh Wallets') && meta.ownerCreatedAt
                         && (Date.now() - new Date(meta.ownerCreatedAt).getTime()) < 30 * 86400e3) netMatch = true;
+                    /* New to PD = signed up a week or less ago (PD account age). */
+                    if (!netMatch && set.has('New to PD') && meta.ownerCreatedAt
+                        && (Date.now() - new Date(meta.ownerCreatedAt).getTime()) < 7 * 86400e3) netMatch = true;
                     if (!netMatch) return false;
                     continue;
                 }

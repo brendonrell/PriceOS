@@ -195,7 +195,7 @@ const L2_DICT: Record<
        (!isFeed && activeCategory === 'Network')`). */
     Network: {
         'My Circle': ['Me', '⚭ Mutuals', '⚯ Following', '⚬ Followers'],
-        'Global':    ['Top Holders', 'New Wallets'],
+        'Global':    ['Top Holders', 'Fresh Wallets', 'New to PD'],
     },
     Breadcrumb: {
         /* Sim's L3 = session-random token IDs; for v0 the L2 narrows are
@@ -1903,7 +1903,17 @@ function L3Pill({
                 </span>
             ) : (
                 <>
-                    <span className="stat-name">↳ {label}</span>
+                    <span className="stat-name">
+                        ↳{' '}
+                        {category === 'Network' && /^[⚬⚭⚯]/.test(label) ? (
+                            <>
+                                <span className="net-pill-ico">{label[0]}</span>
+                                {label.slice(1)}
+                            </>
+                        ) : (
+                            label
+                        )}
+                    </span>
                     {/* count < 0 = no grid tally for this category (feed
                         specials) — show the value with no number rather
                         than a placeholder. */}

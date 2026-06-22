@@ -55,6 +55,9 @@ export interface NpcCharacter {
     /** Per-character px nudge to the measured bubble width (some unicode fonts
      *  measure a hair wide). Optional; defaults to 0. */
     widthAdjust?: number;
+    /** Optional CSS letter-spacing for the bubble text (some script fonts read
+     *  loose). Mirrored on the measurer so the auto-hug stays accurate. */
+    letterSpacing?: string;
     lines: string[];
 }
 
@@ -191,6 +194,7 @@ export const CAST: NpcCharacter[] = [
     },
     {
         id: 'celestia', name: 'Celestia', wall: 'right', top: 85, style: 'boldscript', anim: 'drift',
+        letterSpacing: '-1px',
         lines: [
             "Out today. Doesn't feel right. You don't have to get it.",
             'Knew about this one before the price did.',

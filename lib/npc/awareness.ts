@@ -1,5 +1,7 @@
 'use client';
 
+import { getProject } from '../project/registry';
+
 /*
  * npc/awareness — the NPC Cast's read on what YOU'RE doing right now.
  *
@@ -124,9 +126,13 @@ function rand<T>(arr: T[]): T {
 }
 
 function fill(line: string, stage: Stage): string {
+    /* {slug} reads as the project's REGULAR display name, not the raw slug —
+       slugs are arbitrary all-caps strings that overrun the bubble (Brendon,
+       2026-06-22). */
+    const projName = stage.slug ? (getProject(stage.slug)?.displayName ?? stage.slug) : 'this';
     return line
         .replace(/\{piece\}/g, stage.piece ?? 'this one')
-        .replace(/\{slug\}/g, (stage.slug ?? 'this').toUpperCase());
+        .replace(/\{slug\}/g, projName);
 }
 
 /** An awareness line for this character + stage, or null if it has nothing. */

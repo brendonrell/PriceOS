@@ -2098,6 +2098,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold; font-size: 16px; line-height: 1.32;
     white-space: normal;
+    /* Project names are arbitrary, so a long unbroken name must wrap inside the
+       bubble instead of spilling past its edge (Brendon, 2026-06-22). The
+       measurer carries the same rule so the auto-hug width still matches. */
+    overflow-wrap: anywhere;
     opacity: 0;
     transition: opacity 0.3s; /* exit fade; entrance is per-character keyframe */
 }
@@ -2109,7 +2113,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    longest wrapped line. Mirrors the bubble's text metrics exactly. */
 .npc-measure {
     position: fixed; left: -99999px; top: 0; visibility: hidden;
-    pointer-events: none; white-space: normal; word-break: normal;
+    pointer-events: none; white-space: normal; overflow-wrap: anywhere;
     box-sizing: content-box; padding: 0;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold; line-height: 1.32;
@@ -4866,6 +4870,20 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Clock: +1px and nudge down 1px on desktop */
 @media (min-width: 601px) {
     .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; position: relative; top: 1px; }
+}
+/* Clear ✕ — nudge down 1px on desktop (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    .pill.pill-l1.pill-clear-icon .stat-name { position: relative; top: 1px; }
+}
+/* My Network value pills — the relationship glyphs (Mutuals/Following/Followers)
+   render two font sizes larger on desktop so they read at a glance (Brendon,
+   2026-06-22). Pill text is 12px → 16px; vertically centred so the word stays put. */
+@media (min-width: 601px) {
+    .pill-l3 .net-pill-ico {
+        font-size: 16px;
+        line-height: 0;
+        vertical-align: -0.12em;
+    }
 }
 /* Shuffle icon: nudge down 2px on desktop so the ⟳ sits centered in the
    pill against the text tabs (Brendon 2026-06-13). */
@@ -9071,7 +9089,7 @@ body.colorway-dark .ghost-feed-bar {
    lower (Brendon 2026-06-22). Also shrinks the starred-soundtrack ★ two sizes. */
 @media (min-width: 601px) {
     .project-name-star { font-size: 0.96em; position: relative; top: 2px; }
-    .btn-soundtrack .soundtrack-star-icon { transform: scale(1.8); }
+    .btn-soundtrack .soundtrack-star-icon { transform: scale(1.6); }
 }
 
 /* Cartel badge — ⟁ + the mutual count, beside the name like the star (and
