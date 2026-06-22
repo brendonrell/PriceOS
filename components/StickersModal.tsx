@@ -22,7 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
-import { useDragScroll } from '../lib/hooks/useDragScroll';
+import { useDragScroll, useDragScrollY } from '../lib/hooks/useDragScroll';
 import {
     SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId, type Sticker,
 } from '../lib/stickers/catalog';
@@ -57,10 +57,11 @@ export default function StickersModal() {
        only on this switch, never on opening the store. */
     const toggleView = () => setExpanded((v) => {
         const next = !v;
-        showToast(`View: ${next ? 'STACKED' : 'COMPACT'}`);
+        showToast(`Sticker Store: ${next ? 'STACKED' : 'COMPACT'}`);
         return next;
     });
     const railRef = useDragScroll<HTMLDivElement>();
+    const gridRef = useDragScrollY<HTMLDivElement>();
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
@@ -258,7 +259,7 @@ export default function StickersModal() {
                         </div>
 
                         {expanded ? (
-                            <div className="ss-grid-view">
+                            <div className="ss-grid-view" ref={gridRef}>
                                 {REAL_SHEETS.map((s) => renderCard(s))}
                             </div>
                         ) : (

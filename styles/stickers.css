@@ -167,6 +167,7 @@
     scrollbar-width: none;
 }
 .ss-grid-view::-webkit-scrollbar { display: none; }
+.ss-grid-view[data-dragging] { cursor: grabbing; }
 .ss-grid-view .ss-card { width: auto; }
 
 .ss-card {

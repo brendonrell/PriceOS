@@ -94,6 +94,72 @@ export function useDragScroll<T extends HTMLElement>() {
 }
 
 /**
+ * Vertical twin of attachDragScroll — desktop click-drag panning for an
+ * overflow-Y container (mouse users without a scroll wheel). Identical
+ * threshold / pointer-capture / trailing-click-swallow behaviour.
+ */
+export function attachDragScrollY(el: HTMLElement): () => void {
+    let startY = 0;
+    let startScroll = 0;
+    let dragging = false;
+    let moved = false;
+
+    const onPointerDown = (e: PointerEvent) => {
+        if (e.pointerType !== 'mouse' || e.button !== 0) return;
+        dragging = true;
+        moved = false;
+        startY = e.clientY;
+        startScroll = el.scrollTop;
+    };
+    const onPointerMove = (e: PointerEvent) => {
+        if (!dragging) return;
+        const dy = e.clientY - startY;
+        if (!moved && Math.abs(dy) > DRAG_THRESHOLD_PX) {
+            moved = true;
+            el.setAttribute('data-dragging', '');
+            el.setPointerCapture(e.pointerId);
+        }
+        if (moved) el.scrollTop = startScroll - dy;
+    };
+    const endDrag = (e: PointerEvent) => {
+        if (!dragging) return;
+        dragging = false;
+        el.removeAttribute('data-dragging');
+        if (moved && el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    };
+    const onClickCapture = (e: MouseEvent) => {
+        if (!moved) return;
+        moved = false;
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+    el.addEventListener('click', onClickCapture, true);
+    return () => {
+        el.removeEventListener('pointerdown', onPointerDown);
+        el.removeEventListener('pointermove', onPointerMove);
+        el.removeEventListener('pointerup', endDrag);
+        el.removeEventListener('pointercancel', endDrag);
+        el.removeEventListener('click', onClickCapture, true);
+    };
+}
+
+/** Attach vertical drag-pan to a single overflow-y container. */
+export function useDragScrollY<T extends HTMLElement>() {
+    const ref = useRef<T | null>(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        return attachDragScrollY(el);
+    }, []);
+    return ref;
+}
+
+/**
  * Attach drag-pan to EVERY descendant of the container matching `selector` —
  * for views with several stacked carousels/rails (e.g. the Familiar tiers).
  * Attach the returned ref to a stable ancestor that already contains the rails
