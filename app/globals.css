@@ -2071,7 +2071,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-name {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
-    font-size: 10px; letter-spacing: 1px;
+    font-size: 11px; letter-spacing: 1px;
     color: #000; opacity: 0;
     transition: opacity 0.3s;
     padding: 0 4px;
