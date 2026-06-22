@@ -117,5 +117,5 @@ export function buildTickerText(): string {
         out.splice(at, 0, egg);
     }
 
-    return `${out.join('  ·  ')}  ·  `;
+    return `${out.join('  ·  ')}  ·  `.toUpperCase();
 }
