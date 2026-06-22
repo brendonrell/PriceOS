@@ -764,7 +764,7 @@ function HomePageBodyInner({
                             }
                         }}
                     >
-                        <span className="btn-icon-play">▶&#xFE0E;</span>{' '}STICKERS
+                        <span className="btn-icon-play">⊞&#xFE0E;</span>{' '}STICKERS
                     </a>
                 </div>
 

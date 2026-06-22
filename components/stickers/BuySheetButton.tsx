@@ -11,7 +11,6 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { buySheet, ownsSheet, useOwnedStickerIds } from '../../lib/stickers/owned';
 import type { SheetMeta } from '../../lib/stickers/catalog';
@@ -20,7 +19,6 @@ const VS15 = '︎';
 type Phase = 'idle' | 'buying' | 'owned';
 
 export function BuySheetButton({ sheet, className }: { sheet: SheetMeta; className?: string }) {
-    const { siweAddress } = useAuth();
     const { showToast } = useToast();
     const ownedIds = useOwnedStickerIds();
     const [phase, setPhase] = useState<Phase>('idle');
@@ -32,7 +30,8 @@ export function BuySheetButton({ sheet, className }: { sheet: SheetMeta; classNa
     const start = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (isOwned || phase === 'buying') return;
-        if (!siweAddress) { showToast('Wallet: CONNECT TO BUY'); return; }
+        // Confirm pops for EVERY sheet (Brendon 2026-06-22, hard req). The buy is
+        // simulated, so it never blocks on the wallet.
         setConfirming(true);
     };
 

@@ -136,6 +136,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             const M = 24;   // die-cut margin
             const Ln = 8;   // kiss-cut line peek
             const vb = diecut ? `${-(M + Ln) - 2} ${-(M + Ln) - 2} ${W + 2 * (M + Ln) + 4} ${H + 2 * (M + Ln) + 4}` : `0 0 ${W} ${H}`;
+            const clipId = `clip-${sticker.id}`;
             return (
                 <svg
                     className={className}
@@ -147,6 +148,11 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
                     aria-label={sticker.name}
                     style={{ overflow: 'visible' }}
                 >
+                    {/* The sticker's own edge clips its content — nothing pokes past
+                        the rounded rect (True Names overflowed; Brendon 2026-06-22). */}
+                    <defs>
+                        <clipPath id={clipId}><rect x={0} y={0} width={W} height={H} rx={20} /></clipPath>
+                    </defs>
                     {diecut && (
                         <>
                             <rect x={-(M + Ln)} y={-(M + Ln)} width={W + 2 * (M + Ln)} height={H + 2 * (M + Ln)} rx={M + Ln + 8} fill={LINE} />
@@ -154,7 +160,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
                         </>
                     )}
                     <rect x={0} y={0} width={W} height={H} rx={20} fill={color} />
-                    <text x={W / 2} y={H / 2} fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fontSize} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+                    <text x={W / 2} y={H / 2} clipPath={`url(#${clipId})`} fill={fg} fontFamily="'Courier New', Courier, monospace" fontSize={fontSize} fontWeight="bold" textAnchor="middle" dominantBaseline="central">
                         {lines[0]}
                     </text>
                 </svg>

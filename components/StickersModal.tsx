@@ -161,7 +161,7 @@ export default function StickersModal() {
                         <>
                             <div className="ss-title">
                                 <span className="ss-title-main">STICKER STORE</span>
-                                <span className="ss-title-sub">// &amp; EXCHANGE</span>
+                                <span className="ss-title-sub">// BY PD</span>
                             </div>
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
@@ -238,7 +238,10 @@ export default function StickersModal() {
                             </div>
                         )}
 
-                        <div className="ss-foot">two sheets live · tap a sheet to peek inside · more restocking</div>
+                        <div className="ss-foot">
+                            {totalSheets} sheets live · tap a sheet to peek inside · more restocking ·{' '}
+                            <a className="ss-foot-link" href="https://opensea.io" target="_blank" rel="noopener noreferrer">OpenSea</a>
+                        </div>
                     </>
                 )}
             </div>

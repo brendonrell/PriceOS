@@ -628,8 +628,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="Sticker Mode — hide your stickers"
                         active={notifs.sticker}
                         onClick={() => toggleWithToastNeg('sticker', 'Sticker Mode')}
-                        icon={'▣\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 2px' }}
+                        icon={'⊞\uFE0E'}
+                        iconStyle={{ fontSize: '14px', lineHeight: '1', margin: '0 2px' }}
                         iconClassName="sticker-strike"
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
                     />

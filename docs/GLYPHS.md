@@ -288,6 +288,7 @@ real presence, not a toggled "watching" button).
 | Spell Book **Price Ghost** | ᗝ | U+15DD | reassigned from the retired **Portal** pill |
 | Spell Book **The Watch** | ⬬ | U+2B2C | solid horizontal oval — echoes the live MINTED stat chip's oval shape; the free twin of Halo's hollow ⬭ (U+2B2D, §8), so the ellipse family is iOS-proven (Brendon, 2026-06-20) |
 | MY PD **ASCII-ID** (back in the Redacted slot) | ⍢ | U+2362 | also lives in the PriceSprite modal; both drive `asciiId` |
+| **Stickers** (sitewide) | ⊞ | U+229E | the canonical Stickers icon — home action row, MY PD Sticker Mode toggle, and the store's expand control. Replaced the old ▶/▣ (Brendon, 2026-06-22) |
 
 > **Portal** retired (it did nothing): its slot became **Redacted**, its glyph
 > ᗝ moved to **Price Ghost**, and Price Ghost's old ⦾ (U+29BE) is freed. The

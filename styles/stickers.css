@@ -162,6 +162,8 @@
     flex: 0 0 auto;
     width: 150px;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
     background: color-mix(in srgb, var(--bg-color) 86%, var(--text-color) 14%);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -206,7 +208,9 @@
     padding: 2px 4px;
 }
 
-.ss-card-meta { padding: 9px 10px 11px; }
+/* Meta grows to fill the card so the buy CTA pins to the bottom on every card —
+   short-name cards just get empty space above, no jumping (Brendon 2026-06-22). */
+.ss-card-meta { padding: 9px 10px 11px; flex: 1 1 auto; display: flex; flex-direction: column; }
 .ss-card-name {
     font-size: 14px;
     font-weight: bold;
@@ -223,6 +227,7 @@
     margin: 5px 0 9px;
 }
 .ss-card-tag { color: var(--text-color); }
+.ss-card-meta .ss-buy { margin-top: auto; }
 
 /* Buy chip — the app's pill idiom: bordered, inverts on hover. */
 .ss-buy {
@@ -287,6 +292,11 @@
     letter-spacing: 0.06em;
     color: color-mix(in srgb, var(--text-color) 88%, transparent);
     padding: 9px 18px 0;
+}
+.ss-foot-link {
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 @media (max-width: 600px) {
@@ -385,14 +395,14 @@
 .ss-flow .ss-cell { padding: 0; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    columns: 5 54px;
-    column-gap: 9px;
+    columns: 3;
+    column-gap: 8px;
     padding: 12px 12px 16px;
 }
 .ss-masonry .ss-cell {
     display: block;
     break-inside: avoid;
-    margin-bottom: 9px;
+    margin-bottom: 11px;
 }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
@@ -406,7 +416,7 @@
     background: var(--sticker-cut, #fff);
     padding: 17%;
     border-radius: 18%;
-    box-shadow: 0 0 0 2.5px var(--sticker-line, #d6d6d6);
+    box-shadow: 0 0 0 1px var(--sticker-line, #d6d6d6);
 }
 .out-sticker-canvas {
     width: 100%;
@@ -544,19 +554,26 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    height: 26px;
-    padding: 0 10px;
+    height: 22px;
+    padding: 0 9px;
     background: var(--text-color);
     color: var(--bg-color);
     border: 1px solid var(--text-color);
-    border-radius: 5px;
+    border-radius: 4px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 0.06em;
     cursor: pointer;
 }
-.smgr-store-ic { font-size: 10px; }
+.smgr-store-ic { font-size: 9px; }
+
+/* The manager menu reuses the Ambient Light shell (.ambient-pop) verbatim — same
+   height, pager, dots, chips, code row. These are the only sticker-specific
+   extras: a compact STORE pill in the header + the owned-sticker grid row. */
+.sticker-pop .ambient-pop-title { padding-right: 56px; }
+.sticker-pop .ambient-pop-title .smgr-store { margin-right: 4px; }
+.ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 .smgr-close {
     font-size: 18px;
     line-height: 1;
