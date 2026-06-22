@@ -99,7 +99,7 @@ export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; ca
     switch (a) {
         case 'row':     return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'spread':  return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
-        case 'stack':   return { rows: 1, cap: 16, scatter: false, overlap: true };
+        case 'stack':   return { rows: 1, cap: 9, scatter: false, overlap: true };
         case 'scatter': return { rows: rowsPref, cap: 7 * rowsPref, scatter: true, overlap: false };
         case 'fill':    return { rows: 3, cap: 24, scatter: true, overlap: false };
         case 'collage': return { rows: 0, cap: 20, scatter: true, overlap: true };

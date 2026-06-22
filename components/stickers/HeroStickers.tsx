@@ -119,21 +119,28 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
         );
     }
 
-    // STACK — a wide overlapping fan that fills the area edge to edge.
+    // STACK — peeled stickers spread like fanned playing cards: spaced across the
+    // area with random jitter (position, height, angle), light overlap.
     if (arrange === 'stack') {
         const n = picked.length;
-        const PAD = 7;
+        const srnd = rngFrom(seed + 99);
+        const PAD = 8;
         const span = 100 - PAD * 2;
+        const slot = n <= 1 ? 0 : span / (n - 1);
+        const rotSpread = baseTilt * 1.4 + 7;
         return wrap(
             <div className={`hero-stack ${alignClass}`} style={areaStyle}>
                 {picked.map((s, i) => {
-                    const x = n <= 1 ? 50 : PAD + (i / (n - 1)) * span;
-                    const t = baseTilt === 0 ? 0 : (i % 2 === 0 ? -baseTilt : baseTilt);
+                    const base = n <= 1 ? 50 : PAD + i * slot;
+                    const jx = (srnd() - 0.5) * slot * 0.55;
+                    const x = Math.max(PAD, Math.min(100 - PAD, base + jx));
+                    const top = 50 + (srnd() - 0.5) * 34;
+                    const rot = (srnd() - 0.5) * 2 * rotSpread;
                     return (
                         <span
                             key={s.id}
                             className="hero-sticker hero-stack-item"
-                            style={{ left: `${x}%`, zIndex: i + 1, transform: `translate(-50%, -50%) rotate(${t + flipOf(s.id)}deg)` }}
+                            style={{ left: `${x}%`, top: `${top}%`, zIndex: i + 1, transform: `translate(-50%, -50%) rotate(${rot + flipOf(s.id)}deg)` }}
                             title={s.name}
                         >
                             <StickerArt sticker={s} size={sz(s.kind)} />
