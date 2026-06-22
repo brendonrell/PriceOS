@@ -467,17 +467,14 @@ export default function ArtworkPageBody({
                     true name, sampled form, natal sky, mint-moment almanac, the
                     I Ching oracle, and deterministic edition-set rarity. */}
                 {moreL1 === 'attributes' && (
-                    <>
-                        <div className="more-section-header">ATTRIBUTES</div>
-                        <AttributesPanel
-                            slug={slug}
-                            id={numberPart}
-                            mintMs={mintMs}
-                            traits={traits}
-                            fingerprint={fingerprint}
-                            trueName={trueName}
-                        />
-                    </>
+                    <AttributesPanel
+                        slug={slug}
+                        id={numberPart}
+                        mintMs={mintMs}
+                        traits={traits}
+                        fingerprint={fingerprint}
+                        trueName={trueName}
+                    />
                 )}
 
                 {/* Replay + Albums are the ONLY sections without a dotted box

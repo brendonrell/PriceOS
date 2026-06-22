@@ -23,7 +23,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import {
-    SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId,
+    SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId, type Sticker,
 } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
@@ -35,6 +35,13 @@ const VS15 = '︎';
 /* A 3-sticker fan for a live sheet's card art — spaced across the range. */
 function fanFor(sheet: SheetMeta) {
     const all = stickersForSheet(sheet.id);
+    /* Rarity preview reads better with a SHORT word (small chip) in the middle. */
+    if (sheet.id === 'rarity') {
+        const pick = ['rarity-common', 'rarity-rare', 'rarity-grail']
+            .map((id) => all.find((s) => s.id === id))
+            .filter((s): s is Sticker => Boolean(s));
+        if (pick.length === 3) return pick;
+    }
     if (all.length <= 3) return all;
     const mid = Math.floor(all.length / 2);
     return [all[0]!, all[mid]!, all[all.length - 1]!];
