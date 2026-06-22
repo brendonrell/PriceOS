@@ -78,6 +78,7 @@
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.24em;
+    white-space: nowrap;
     color: color-mix(in srgb, var(--text-color) 92%, transparent);
     margin-top: 2px;
 }
