@@ -117,6 +117,17 @@
     transition: color 0.15s ease;
 }
 .ss-expand:hover, .ss-expand.is-on { color: var(--text-color); }
+/* Desktop: centre the view toggle in the menu width (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    .ss-head { position: relative; }
+    .ss-expand {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin-left: 0;
+    }
+}
 
 /* Promo strip — a full-width attention band above the ticker (empty for now). */
 .ss-promo {
@@ -337,11 +348,14 @@
    the art fills with more of the sheet's stickers across multiple rows. Only
    rendered on desktop, so mobile is wholly unaffected. */
 .ss-card-preview .ss-card-art-fill {
-    height: auto;
-    min-height: 85px;
-    padding: 16px 14px;
+    /* Fixed so every preview card is the SAME height — about half the original
+       (Brendon, 2026-06-22); extra rows are clipped, centered as a peek. */
+    height: 90px;
+    padding: 10px 14px;
     align-items: center;
+    justify-content: center;
     border-bottom: none;
+    overflow: hidden;
 }
 .ss-preview-grid {
     display: flex;

@@ -228,7 +228,7 @@ export default function StickersModal() {
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
                                 type="button"
-                                title={expanded ? 'Single row' : 'Expand'}
+                                title={expanded ? 'Sticker Store: COMPACT' : 'Expand'}
                                 aria-pressed={expanded}
                                 onClick={toggleView}
                             >
