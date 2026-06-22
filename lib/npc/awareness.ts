@@ -83,20 +83,20 @@ const AWARE: Record<string, AwarePools> = {
         browsing: ['Browsing. Tuesday behavior.', "Seen this exact session a hundred times.", '{name}, browsing. Tuesday behavior.'],
     },
     carl: {
-        artwork: ["They like {piece}. It'll let them down.", '{piece}. Looks great. For now.', "{name} likes {piece}. That won't last."],
+        artwork: ["They like {piece}. It'll let them down.", '{piece}. Looks great. For now.', "{name} likes {piece}. It'll let them down."],
         project: ['All of {slug}? That is a lot to regret later.', "{slug}. Floor's coming for it.", 'All of {slug}, {name}? That is a lot to regret later.'],
-        profile: ['Looking at what they do not have.', 'Comparing up. Healthy. Sure.', '{name} is comparing up. Healthy. Sure.'],
+        profile: ['Looking at what they do not have.', 'Comparing up. Healthy. Sure.', '{name} is looking at what they do not have.'],
         browsing: ['Still looking. It will not help.', "They'll find something to lose money on.", "{name}'s still looking. It will not help."],
     },
     mimi: {
-        artwork: ["They want {piece}. I'll be there when they fold.", '{piece}. I own the better one.', "{name} wants {piece}. I'll be there when it folds."],
+        artwork: ["They want {piece}. I'll be there when they fold.", '{piece}. I own the better one.', "{name} wants {piece}. I'll be there when they fold."],
         project: ['Circling {slug}. So am I.', 'They like {slug}. Noted for later.', '{name} likes {slug}. Noted for later.'],
         profile: ['Sizing someone up. I size wallets.', 'Reading a profile. I read positions.', "{name}'s sizing someone up. I size wallets."],
         browsing: ['Indecisive. Cheap to take from.', "They're scared. Good.", "{name}'s scared. Good."],
     },
     romy: {
         artwork: ['They really like {piece}. That is nice.', '{piece}. Good eye, honestly.', '{name} really likes {piece}. That is nice.'],
-        project: ['They are enjoying {slug}. Let them.', '{slug} is a sweet little world.', "{name} is enjoying {slug}. That's lovely."],
+        project: ['They are enjoying {slug}. Let them.', '{slug} is a sweet little world.', '{name} is enjoying {slug}. Let them.'],
         profile: ['Curious about someone. That is the whole point.', 'Seeing what other people love.', '{name} is curious about someone. That is the whole point.'],
         browsing: ['Just looking around. Nothing wrong with that.', "They'll find their one.", '{name} is just looking around. Nothing wrong with that.'],
     },
@@ -110,7 +110,7 @@ const AWARE: Record<string, AwarePools> = {
         artwork: ['{piece} chose them, not the other way.', 'They linger on {piece}. The cards saw this.', '{piece} chose {name}, not the other way.'],
         project: ['{slug} is pulling them. I felt it too.', 'They wandered into {slug}. No accident.', '{slug} is pulling {name}. I felt it too.'],
         profile: ['They seek someone else’s path. Telling.', 'Reading a profile, looking for a sign.', '{name} seeks someone else’s path. Telling.'],
-        browsing: ["They're searching for something they can't name.", 'The scroll is a kind of divination.', '{name} searches for something without a name.'],
+        browsing: ["They're searching for something they can't name.", 'The scroll is a kind of divination.', "{name} is searching for something they can't name."],
     },
 };
 
