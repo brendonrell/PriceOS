@@ -9,28 +9,37 @@
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
   branch `claude/site-edits-formatting-sijaz0` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-21 (latest). This session = **STICKER MODE — shipped to dev, mid-polish** (🏷️ below).
-  Prior: HALO 4-PROJECT (🌗), OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST (⭐),
-  GENERATIVE COLORWAY (🎨🥚), AMBIENT FX (🌦️).
+- **Updated:** 2026-06-22 (latest). This session = **STICKER MODE polish — store, manager, hero,
+  ticker, crash-fix** (🏷️ below), all shipped to dev. Prior: HALO 4-PROJECT (🌗),
+  OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST (⭐), GENERATIVE COLORWAY (🎨🥚).
 
-## 🏷️ STICKER MODE — shipped to dev 2026-06-21, sheet visuals still being dialled
-- Simulated sticker NFTs end-to-end: **store** (Fable 5's slide-up exchange) sells whole
-  **sheets**; buying runs the mint-style confirm + progress, grants to localStorage, and the
-  stickers populate your **profile hero** (capped pull from your owned/active set).
-- **Sheets (10):** Genesis ($PRICE logo + 2 variants), Petey (logo rotated 90° CCW), Icons
-  (GLYPHS.md), Familiars (whole bestiary), Project/Artist/PriceSprite **sprite** sheets,
-  Artist/Project **name** tags, Outputs (real art painted small). All in `lib/stickers/`.
-- **Manager modal** (tap your hero, ambient-menu style, fully local/no-flash): per-sheet +
-  per-sticker on/off, LAYOUT (Spread/Row/2 Rows/Scatter/Fill), TILT, WIDTH (Fit/Wide), Shuffle.
-- **Sheet detail = a die-cut peel sheet** (tidy grid; masonry for outputs). **STILL ROUGH** —
-  Brendon went many rounds on it and it's not right yet. HARD RULES learned: stickers NEVER
-  overlap, NEVER extend past the sheet edge; the cut line is a **grey variation of the sheet**
-  (black/white), NEVER the theme colour; logos = grid, sprite/@name = **skinny chips** (L/R
-  buffer only, NOT fat tiles). Last "skinny chip" pass (commit `36965da`) was **reverted**
-  (`518a361`) — it made faces worse. Next session: redo the face-sheet layout from the
-  reverted-to state (`b1c9f87`) carefully, with Brendon's eyes.
-- Files: `lib/stickers/{catalog,owned,heroPrefs,sprites,logoPaths,sheetLayout}.ts`,
-  `components/stickers/{StickerArt,OutputSticker,HeroStickers,StickerManagerModal,BuySheetButton}.tsx`,
+## 🏷️ STICKER MODE — big polish pass shipped to dev 2026-06-22
+- **Store** = STICKER STORE // BY PD. Carousel CTAs pinned to card bottom (no jumping); a ⊞
+  **expand toggle** flips the rail into a two-up vertical grid. Empty **attention-yellow promo
+  strip** above the ticker (60px tall, hidden in expanded view). Footer auto-counts live sheets
+  + an **OpenSea** link. Buy **confirm modal now fires for EVERY sheet** (wallet gate removed —
+  sim buy). Output sheet = **3 columns** with gutters + a **thin** kiss-cut line.
+- **⊞ is now the sitewide Stickers icon** (home action row + MY PD Sticker Mode toggle); added to
+  `docs/GLYPHS.md`. Was ▶ / ▣.
+- **Ticker** = the store's salesman, AUTO-GENERATED from the catalog + per-sheet release dates
+  (`lib/stickers/ticker.ts`): per-sheet sell lines w/ recency badges, live store facts
+  (cheapest/top-shelf/newest/totals), sprite+familiar+true-name cameos, **rare eggs** (~12% of
+  opens). NO quips. **FORMATTING is the ORIGINAL** (2 copies, −50%, 26s) — Brendon was furious
+  about speed/size meddling; only the CONTENT changed. Do NOT touch the ticker speed/format again.
+- **Manager modal rebuilt on the Ambient Light shell** (`.ambient-pop`): same swipe **windows +
+  page dots**, chip rows, and a real **Sticker Setup Code** (`STCKR`, copy/paste/apply) + Surprise
+  + a hidden **SPILL** word-egg. Compact STORE pill in the header. Same height as ambient. Pages:
+  Layout(+Rows/Align) · Style(Tilt/Width/Flip) · Sheets+Stickers grid (grid shows ALL owned).
+- **CRASH FIX (the big one):** profile hero crashed when many sheets were owned+on — Output
+  stickers each paint a full generative canvas, so a hero full of them = a wall of renders. Hero
+  now **SELECTS its set up front** — round-robin **balanced across the on-sheets**, capped to the
+  arrangement's room, max ~4 painted-art stickers — then places exactly that (no render-then-hide).
+  Wrapped in an **error boundary** so a sticker fault can never take down the profile. Expected
+  case (10+ sheets all on) is handled: it samples a balanced spread, never everything.
+- **Reset:** mock seed zeroed (no profile auto-seeded) + a **one-time device wipe**
+  (`pd_stickers_reset_v2`) clears owned + on/off state once on load — clears Brendon's overloaded set.
+- Files: `lib/stickers/{catalog,owned,heroPrefs,setupCode,ticker,sprites,logoPaths}.ts`,
+  `components/stickers/{StickerArt,OutputSticker,AnimatedSticker,HeroStickers,StickerManagerModal,BuySheetButton}.tsx`,
   `components/StickersModal.tsx`, `styles/stickers.css`. Ownership is localStorage (no DB yet).
 
 ## ✅ HALO 4-PROJECT — SHIPPED to dev 2026-06-21 (commit `d145e2c`)
