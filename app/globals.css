@@ -1949,9 +1949,16 @@ body.zero-context-mode #digital-familiar { display: none !important; }
 body.echo-mode .notif-item:not(:has(.ico-mutual)) { display: none; }
 body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
+/* Full-viewport clip layer so a scurrying BitDaemon can run OFF the edge and
+   back without ever adding a scrollbar / shifting the viewport. Non-interactive;
+   the familiar inside re-enables pointer events. */
+#familiar-layer {
+    position: fixed; inset: 0; z-index: 150;
+    overflow: hidden; pointer-events: none;
+}
+
 #digital-familiar {
-    position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 20px;
-    z-index: 150;
+    position: absolute; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 20px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px; line-height: 1;
     color: var(--text-color);
@@ -1959,6 +1966,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     user-select: none; -webkit-user-select: none;
     pointer-events: auto; cursor: pointer;
     display: flex; align-items: flex-end; gap: 0;
+    will-change: transform;
 }
 
 .familiar-sprite {
@@ -2012,6 +2020,18 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .familiar-bubble.visible { opacity: 1; transform: translateX(0); }
 
+/* Poke/pet *thought* — a quick italic beat ABOVE the sprite (not the bubble). */
+.familiar-thought {
+    position: absolute; left: 0; bottom: 100%; margin-bottom: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-style: italic; font-weight: bold; font-size: 11px; letter-spacing: 0.3px;
+    color: var(--text-color); opacity: 0;
+    white-space: nowrap; pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.25s, transform 0.25s;
+}
+.familiar-thought.visible { opacity: 0.85; transform: translateY(0); }
+
 /* Mobile sizing — sim 3390-3401. Bubble's right reservation drops 82→40px
    per APR 20 round 3, gaining ~42px (~50% more) of usable horizontal space
    while still leaving a viewport-edge buffer. */
@@ -2037,7 +2057,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-resident {
     position: absolute;
     display: flex; flex-direction: column; gap: 4px;
-    max-width: min(300px, 62vw);
+    /* Narrow enough that a line tends to wrap to ~2 lines (saves vertical room
+       without going stubby), while the bubble still hugs its text. */
+    max-width: min(230px, 60vw);
 }
 .npc-resident.left  { left: 12px;  align-items: flex-start; }
 .npc-resident.right { right: 12px; align-items: flex-end; text-align: right; }
@@ -2047,9 +2069,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-resident.right { --npc-from: 120%; }
 
 .npc-name {
-    font-family: var(--font-rubik-mono), sans-serif;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
     font-size: 10px; letter-spacing: 1px;
-    color: var(--text-color); opacity: 0;
+    color: #000; opacity: 0;
     transition: opacity 0.3s;
     padding: 0 4px;
 }
@@ -2060,7 +2083,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     border-radius: 6px;
     padding: 10px 14px;
     font-family: 'Courier New', Courier, monospace;
-    font-weight: bold; font-size: 12px; line-height: 1.35;
+    font-weight: bold; font-size: 16px; line-height: 1.3;
     white-space: normal;
     opacity: 0;
     transition: opacity 0.3s; /* exit fade; entrance is per-character keyframe */
@@ -2068,15 +2091,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* Pure black/white by theme polarity. */
 .npc-cast.dark  .npc-bubble { background: #000; color: #fff; }
 .npc-cast.light .npc-bubble { background: #fff; color: #000; }
-
-/* Tail — rotated square pointing back to the wall (toast-solid, no dots). */
-.npc-bubble::before {
-    content: ''; position: absolute; top: 16px;
-    width: 10px; height: 10px; transform: rotate(45deg);
-    background: inherit;
-}
-.npc-resident.left  .npc-bubble::before { left: -5px; }
-.npc-resident.right .npc-bubble::before { right: -5px; }
 
 /* Active → run the character's entrance, ending settled (opacity 1, no offset). */
 .npc-resident.active .npc-bubble { opacity: 1; animation-fill-mode: both; }
@@ -2100,7 +2114,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 @media (max-width: 600px) {
     .npc-resident { max-width: 72vw; }
-    .npc-bubble { font-size: 11px; padding: 8px 11px; }
+    .npc-bubble { font-size: 14px; padding: 9px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .npc-resident.active .npc-bubble { animation: npc-plain 0.3s linear both; }

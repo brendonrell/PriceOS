@@ -553,6 +553,53 @@ const RANK_ATTITUDE: Record<FamiliarTierId, [string[], string[], string[], strin
     ],
 };
 
+/* ── Thoughts — poke/pet reactions (rendered italic, OUTSIDE the bubble) ────
+   When you poke the familiar it reacts; sometimes it speaks (persona action
+   line, via pickDialogue), sometimes it just emits a little *thought* — a
+   physical beat in italics, not speech. Tier-flavoured so a poked Old God feels
+   nothing like a poked BitDaemon (Brendon, 2026-06-22). */
+
+const THOUGHTS: Record<FamiliarTierId, string[]> = {
+    bitdaemons: ['*wobbles*', '*blinks*', '*perks up*', '*spins once*', '*bumps your cursor*', '*glows brighter*', '*does a little hop*'],
+    titans:     ['*rumbles*', '*shifts its weight*', '*regards you*', '*stands taller*', '*the floor hums*', '*does not move*', '*a low groan*'],
+    ascended:   ['*shimmers*', '*flickers between states*', '*radiates softly*', '*tilts toward you*', '*light bends around it*', '*exhales static*'],
+    oldgods:    ['*stirs from sleep*', '*an ancient eye opens*', '*the air goes cold*', '*regards you across eons*', '*stone grinds*', '*deigns to notice you*'],
+};
+
+/** A poke/pet reaction *thought* (italic, non-speech) for this tier. */
+export function pickThought(tier: FamiliarTierId): string {
+    return rand(THOUGHTS[tier]);
+}
+
+/* ── Hints — teach the gesture (long-press = settings, tap = poke) ──────────
+   Shown once early, then rarely. Lower tiers are playful ("tap me for
+   giggles"); higher tiers keep their dignity (Brendon, 2026-06-22). */
+
+const HINTS: Record<FamiliarTierId, string[]> = {
+    bitdaemons: [
+        'LONG PRESS ME FOR SETTINGS. TAP ME FOR GIGGLES.',
+        'HOLD ME TO OPEN UP. POKE ME FOR FUN.',
+        'PRESS AND HOLD = SETTINGS. A TAP = HELLO.',
+    ],
+    titans: [
+        'HOLD TO COMMAND ME. A TAP TO STIR ME.',
+        'PRESS AND HOLD FOR MY DOMAIN. TAP TO ROUSE ME.',
+    ],
+    ascended: [
+        'HOLD TO COMMUNE. A TOUCH ALSO REACHES ME.',
+        'PRESS AND HOLD TO ENTER. A TAP IS STILL HEARD.',
+    ],
+    oldgods: [
+        'HOLD, MORTAL, TO PARLEY. A POKE, IF YOU DARE.',
+        'PRESS AND HOLD TO TREAT WITH ME. TAP AT YOUR PERIL.',
+    ],
+};
+
+/** A gesture hint for this tier. */
+export function pickHint(tier: FamiliarTierId): string {
+    return rand(HINTS[tier]);
+}
+
 /* ── Pickers ────────────────────────────────────────────────────────────── */
 
 function rand<T>(arr: T[]): T {

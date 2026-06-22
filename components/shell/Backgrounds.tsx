@@ -74,6 +74,7 @@ import {
     disableFamiliar,
     subscribeFamiliar,
     setFamiliarContext,
+    pokeFamiliar,
     type FamiliarFrame,
 } from '../../lib/engines/familiarEngine';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -100,9 +101,36 @@ const EMPTY_FRAME: FamiliarFrame = {
     badgeText: '',
     bubbleText: '',
     bubbleVisible: false,
+    thoughtText: '',
+    thoughtVisible: false,
     outlined: false,
     outlineColor: null,
+    tier: null,
+    energy: 'chill',
     visible: false,
+};
+
+/* Energy → movement cadence/feel. The host reads frame.energy and frame.tier to
+   scurry the familiar; higher tiers move with restraint so it never disturbs
+   browsing (a god doesn't scurry). distance/off-screen are scaled by tier. */
+const ENERGY_PARAMS: Record<string, {
+    gapMin: number; gapVar: number; moveMin: number; moveVar: number;
+    offChance: number; offMs: number; backMs: number;
+}> = {
+    active: { gapMin: 4000, gapVar: 5000, moveMin: 1400, moveVar: 900, offChance: 0.25, offMs: 900, backMs: 700 },
+    hyped:  { gapMin: 1400, gapVar: 2200, moveMin: 480,  moveVar: 520, offChance: 0.40, offMs: 520, backMs: 380 },
+    greed:  { gapMin: 2800, gapVar: 3000, moveMin: 900,  moveVar: 700, offChance: 0.15, offMs: 800, backMs: 600 },
+    fear:   { gapMin: 1100, gapVar: 2600, moveMin: 360,  moveVar: 360, offChance: 0.50, offMs: 440, backMs: 320 },
+    ngmi:   { gapMin: 7000, gapVar: 9000, moveMin: 2200, moveVar: 1400, offChance: 0.05, offMs: 1700, backMs: 1500 },
+};
+
+/* Per-tier restraint: BitDaemons get the full playful run; the rarer tiers move
+   smaller, slower, and never bolt off-screen — classy, non-disruptive. */
+const TIER_MOVE: Record<string, { reach: number; slow: number; offOk: boolean }> = {
+    bitdaemons: { reach: 1.0,  slow: 1.0, offOk: true },
+    titans:     { reach: 0.5,  slow: 1.3, offOk: false },
+    ascended:   { reach: 0.4,  slow: 1.4, offOk: false },
+    oldgods:    { reach: 0.25, slow: 1.7, offOk: false },
 };
 
 export function Backgrounds() {
@@ -111,6 +139,11 @@ export function Backgrounds() {
     const { open: openModal } = useModal();
     const { colorway, setColorway } = useColorway();
     const { siweAddress, priceRank } = useAuth();
+    /* Familiar long-press (open modal) vs tap (poke) discrimination. */
+    const familiarPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const familiarLongPressed = useRef(false);
+    /* Familiar scurry — horizontal offset (px) + the duration of the current move. */
+    const [scurry, setScurry] = useState<{ x: number; ms: number }>({ x: 0, ms: 600 });
     const starfieldRef = useRef<HTMLDivElement | null>(null);
     /* Holds the colorway key that was active at the moment stargazing
        flipped on. Captured on the ON-edge so flip-off can restore it
@@ -333,25 +366,100 @@ export function Backgrounds() {
         setFamiliarContext({ address: siweAddress, rank: priceRank });
     }, [siweAddress, priceRank]);
 
+    /* Scurry — move the familiar along the bottom per its Energy + tier. 'chill'
+       (default) stays put. Off-screen darts are clipped by #familiar-layer so the
+       viewport never shifts. */
+    useEffect(() => {
+        const params = ENERGY_PARAMS[frame.energy];
+        const moves = !!params && frame.visible && notifs.spell_familiar;
+        if (!moves) {
+            setScurry({ x: 0, ms: 600 });
+            return;
+        }
+        const tierMove = TIER_MOVE[frame.tier ?? 'bitdaemons'] ?? TIER_MOVE.bitdaemons;
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout>;
+
+        const step = () => {
+            if (cancelled || typeof window === 'undefined') return;
+            const w = window.innerWidth;
+            const maxX = Math.max(40, (w - 160) * tierMove.reach);
+            const offRoll = Math.random();
+            if (tierMove.offOk && offRoll < params.offChance) {
+                // dart off an edge, then quickly scurry back on
+                const offTarget = Math.random() < 0.5 ? w + 60 : -180;
+                setScurry({ x: offTarget, ms: Math.round(params.offMs * tierMove.slow) });
+                timer = setTimeout(() => {
+                    if (cancelled) return;
+                    setScurry({ x: Math.random() * maxX, ms: Math.round(params.backMs * tierMove.slow) });
+                    timer = setTimeout(step, params.gapMin + Math.random() * params.gapVar);
+                }, params.offMs + 250);
+            } else {
+                const ms = Math.round((params.moveMin + Math.random() * params.moveVar) * tierMove.slow);
+                setScurry({ x: Math.random() * maxX, ms });
+                timer = setTimeout(step, params.gapMin + Math.random() * params.gapVar);
+            }
+        };
+
+        timer = setTimeout(step, 2500 + Math.random() * 3000);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [frame.energy, frame.tier, frame.visible, notifs.spell_familiar]);
+
     /* Inline style — only set --familiar-outline when an outline is
        active; otherwise leave the CSS var undefined so the rule
        falls through to var(--text-color) per the .familiar-sprite.outlined
        declaration at globals.css 1163+ / sim 3343-3346. */
     const familiarStyle: CSSProperties = {
         display: frame.visible ? '' : 'none',
+        transform: `translateX(${scurry.x}px)`,
+        transition: `transform ${scurry.ms}ms ease-in-out`,
     };
     if (frame.outlined && frame.outlineColor) {
         (familiarStyle as Record<string, string>)['--familiar-outline'] = frame.outlineColor;
     }
 
+    /* Long-press opens the modal; a short tap is a poke/pet (the familiar
+       reacts in its own way). A press held past the threshold opens the modal
+       and suppresses the poke on release (Brendon, 2026-06-22). */
+    const onFamiliarDown = () => {
+        familiarLongPressed.current = false;
+        if (familiarPressTimer.current) clearTimeout(familiarPressTimer.current);
+        familiarPressTimer.current = setTimeout(() => {
+            familiarLongPressed.current = true;
+            openModal('familiar');
+        }, 400);
+    };
+    const onFamiliarUp = () => {
+        if (familiarPressTimer.current) {
+            clearTimeout(familiarPressTimer.current);
+            familiarPressTimer.current = null;
+        }
+        if (!familiarLongPressed.current) pokeFamiliar();
+    };
+    const onFamiliarCancel = () => {
+        if (familiarPressTimer.current) {
+            clearTimeout(familiarPressTimer.current);
+            familiarPressTimer.current = null;
+        }
+        familiarLongPressed.current = false;
+    };
+
     return (
         <>
             <div id="starfield" ref={starfieldRef} aria-hidden="true" />
+            <div id="familiar-layer" aria-hidden="true">
             <div
                 id="digital-familiar"
                 aria-hidden="true"
+                data-tier={frame.tier ?? ''}
                 style={familiarStyle}
-                onClick={() => openModal('familiar')}
+                onPointerDown={onFamiliarDown}
+                onPointerUp={onFamiliarUp}
+                onPointerLeave={onFamiliarCancel}
+                onContextMenu={(e) => e.preventDefault()}
             >
                 <span
                     className={`familiar-sprite${frame.outlined ? ' outlined' : ''}`}
@@ -368,6 +476,13 @@ export function Backgrounds() {
                 >
                     {frame.bubbleText}
                 </span>
+                <span
+                    className={`familiar-thought${frame.thoughtVisible ? ' visible' : ''}`}
+                    id="familiarThought"
+                >
+                    {frame.thoughtText}
+                </span>
+            </div>
             </div>
             <NpcCast />
         </>

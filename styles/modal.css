@@ -1455,11 +1455,52 @@ body.modal-open { overflow: hidden; touch-action: none; }
     background: var(--text-color); color: var(--bg-color);
     border-color: var(--text-color);
 }
-.fam-omni-hint {
+/* Customize section — a little area for decorating your familiar
+   (outline now; accessories to follow). */
+.fam-section-label {
+    margin: 14px 20px 6px 20px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px; letter-spacing: 1px; opacity: 0.7;
+}
+.fam-custom-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
     margin: 0 20px 16px 20px;
+}
+.fam-custom-label {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 9px; font-weight: bold; letter-spacing: 1.2px;
-    text-transform: uppercase; opacity: 0.45; text-align: center;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px; opacity: 0.8;
+}
+.fam-outline-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fam-chip {
+    width: 24px; height: 24px; border-radius: 6px;
+    border: 1.5px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    background: transparent; color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    transition: border-color 0.15s, transform 0.1s;
+}
+.fam-chip:active { transform: scale(0.92); }
+.fam-chip.on { border-color: var(--text-color); border-width: 2px; }
+.fam-swatch { font-size: 0; }
+.fam-chip.on.fam-swatch {
+    box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 3.5px var(--text-color);
+}
+
+.fam-energy-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fam-energy-chip {
+    border: 1.5px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    background: transparent; color: var(--text-color);
+    border-radius: 6px; padding: 4px 9px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold; letter-spacing: 0.5px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.fam-energy-chip:active { transform: scale(0.94); }
+.fam-energy-chip.on {
+    border-color: var(--text-color);
+    background: var(--text-color); color: var(--bg-color);
 }
 
 /* Corner badge on a locked slot — same language as the Sticker SOON/LOCKED tag. */

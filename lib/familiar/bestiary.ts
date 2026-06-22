@@ -80,12 +80,12 @@ const ASCENDED: BestiaryEntry[] = [
 
 /* ── Old Gods (mythic, carved stone — multi-line) ─────────────── */
 const OLD_GODS: BestiaryEntry[] = [
-    { name: 'Forge',   art: '▓▓▓▓▓\n║▒▒▒║\n╲ ■ ╱\n╱ ■ ╲\n▓▓▓▓▓' },
-    { name: 'Ember',   art: '░▒▒▒░\n▒▓■▓▒\n▒▓■▓▒\n░▒▒▒░' },
-    { name: 'Gallows', art: '╔════╗\n║ ╱ │\n║ ╲ ┼\n║   │\n║   ┴' },
-    { name: 'Tide',    art: '  ○\n≈≈≈≈≈\n▒▒▒▒▒\n▓▓▓▓▓\n■■■■■' },
-    { name: 'Helm',    art: '╱═══╲\n║◧ ◨║\n╠╳╳╳╣\n║ ┼ ║\n╲═══╱' },
-    { name: 'Glacier', art: '▓▓▓▓▓\n╲▓▓▓╱\n▒╲▓╱▒\n░▒∇▒░\n░░░░░' },
+    { name: 'Forge',   art: '╔═══════╗\n║▓▓▓▓▓▓▓║\n╚╗▒▒▒▒▒╔╝\n ╲  ■  ╱\n ╱  ■  ╲\n╔╝▓▓▓▓▓╚╗\n╚═══════╝' },
+    { name: 'Ember',   art: ' ░▒▒▒▒▒░\n░▒▓▓▓▓▓▒░\n▒▓█████▓▒\n▒▓██■██▓▒\n▒▓█████▓▒\n░▒▓▓▓▓▓▒░\n ░▒▒▒▒▒░' },
+    { name: 'Gallows', art: '╔════════╗\n║ ╱      ║\n║╱       ║\n┃   ◯    ║\n┃   │    ║\n┃   │    ║\n┻━━━━━━━━┛' },
+    { name: 'Tide',    art: '    ◯\n ≈≈≈≈≈≈≈\n ≋≋≋≋≋≋≋\n ▒▒▒▒▒▒▒\n ▓▓▓▓▓▓▓\n ███████\n ■■■■■■■' },
+    { name: 'Helm',    art: ' ╱═══════╲\n ║ ◧   ◨ ║\n ╠═══════╣\n ║ ╳╳╳╳╳ ║\n ║   ┼   ║\n ╲═══════╱\n   ╲═══╱' },
+    { name: 'Glacier', art: '▓▓▓▓▓▓▓▓▓\n╲▓▓▓▓▓▓▓╱\n░╲▓▓▓▓▓╱░\n░░╲▓▓▓╱░░\n▒░░╲▓╱░░▒\n▒▒░░∇░░▒▒\n░░░░░░░░░' },
 ];
 
 /* TESTING (Brendon, 2026-06-22): every tier is unlocked so the whole roster is

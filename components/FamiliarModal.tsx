@@ -27,6 +27,10 @@ import {
     setFamiliarSpecies,
     getFamiliarOmniscience,
     setFamiliarOmniscience,
+    getFamiliarOutline,
+    setFamiliarOutline,
+    getFamiliarEnergy,
+    setFamiliarEnergy,
     subscribeFamiliar,
     type FamiliarFrame,
 } from '../lib/engines/familiarEngine';
@@ -34,6 +38,19 @@ import { TIERS } from '../lib/familiar/bestiary';
 import { useDragScrollAll } from '../lib/hooks/useDragScroll';
 
 const VS15 = '︎';
+
+/* Outline colour choices for the Customize section — the vivid PD palette. */
+const OUTLINE_SWATCHES = ['#FF0055', '#FFE600', '#00FFD1', '#9D00FF', '#FF8A00', '#FFFFFF'];
+
+/* Energy / movement moods. 'chill' is the calm default (stays in the corner). */
+const ENERGY_OPTIONS: { id: string; label: string }[] = [
+    { id: 'chill', label: 'Chill' },
+    { id: 'active', label: 'Active' },
+    { id: 'hyped', label: 'Hyped' },
+    { id: 'greed', label: 'Greed' },
+    { id: 'fear', label: 'Fear' },
+    { id: 'ngmi', label: 'NGMI' },
+];
 
 export default function FamiliarModal() {
     const { openModal, close } = useModal();
@@ -43,6 +60,8 @@ export default function FamiliarModal() {
     const [title, setTitle] = useState('FAMILIAR');
     const [species, setSpecies] = useState('');
     const [omni, setOmni] = useState(true);
+    const [outline, setOutline] = useState('random');
+    const [energy, setEnergy] = useState('chill');
 
     /* Desktop mouse drag-to-scroll on every tier rail (touch scrolls natively).
        Attached to the body that already contains all rails at mount. */
@@ -58,6 +77,8 @@ export default function FamiliarModal() {
         setTitle(name ? `FAMILIAR · ${name.toUpperCase()}` : 'FAMILIAR');
         setFrame(getFamiliarFrame());
         setOmni(getFamiliarOmniscience());
+        setOutline(getFamiliarOutline());
+        setEnergy(getFamiliarEnergy());
         return subscribeFamiliar((f) => setFrame(f));
     }, [isOpen]);
 
@@ -100,8 +121,13 @@ export default function FamiliarModal() {
                     {title}
                 </div>
 
-                {/* Hero — the live companion, floating. */}
-                <div className="fam-hero fam-reveal fam-d2" aria-hidden="true">
+                {/* Hero — the live companion, floating. Top tier (Old Gods)
+                    renders bigger for boss-scale presence. */}
+                <div
+                    className="fam-hero fam-reveal fam-d2"
+                    data-tier={frame.tier ?? ''}
+                    aria-hidden="true"
+                >
                     <span className="fam-hero-float">
                         <span className="fam-hero-sprite">{heroText}</span>
                     </span>
@@ -135,10 +161,75 @@ export default function FamiliarModal() {
                     <span className="fam-omni-label">Omniscience</span>
                     <span className="fam-omni-state">{omni ? 'ON' : 'OFF'}</span>
                 </button>
-                <div className="fam-omni-hint fam-reveal fam-d2">
-                    {omni
-                        ? 'your familiar knows your history, and may bring it up'
-                        : 'your familiar keeps to its own voice'}
+                {/* Customize — decorate your familiar. Outline now; accessories
+                    to follow (Brendon, 2026-06-22). */}
+                <div className="fam-section-label fam-reveal fam-d2">CUSTOMIZE</div>
+                <div className="fam-custom-row fam-reveal fam-d2">
+                    <span className="fam-custom-label">Outline</span>
+                    <div className="fam-outline-chips">
+                        <button
+                            type="button"
+                            className={`fam-chip${outline === 'off' ? ' on' : ''}`}
+                            title="No outline"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setOutline('off');
+                                setFamiliarOutline('off');
+                                showToast('Outline: OFF');
+                            }}
+                        >
+                            ✕
+                        </button>
+                        <button
+                            type="button"
+                            className={`fam-chip${outline === 'random' ? ' on' : ''}`}
+                            title="Random"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setOutline('random');
+                                setFamiliarOutline('random');
+                                showToast('Outline: RANDOM');
+                            }}
+                        >
+                            ⟳
+                        </button>
+                        {OUTLINE_SWATCHES.map((hex) => (
+                            <button
+                                type="button"
+                                key={hex}
+                                className={`fam-chip fam-swatch${outline.toLowerCase() === hex.toLowerCase() ? ' on' : ''}`}
+                                style={{ background: hex }}
+                                title={hex}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOutline(hex);
+                                    setFamiliarOutline(hex);
+                                    showToast('Outline: SET');
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="fam-custom-row fam-reveal fam-d2">
+                    <span className="fam-custom-label">Energy</span>
+                    <div className="fam-energy-chips">
+                        {ENERGY_OPTIONS.map((opt) => (
+                            <button
+                                type="button"
+                                key={opt.id}
+                                className={`fam-energy-chip${energy === opt.id ? ' on' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEnergy(opt.id);
+                                    setFamiliarEnergy(opt.id);
+                                    showToast(`Energy: ${opt.label.toUpperCase()}`);
+                                }}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* The four tiers — a collection you fill by playing. */}
@@ -160,6 +251,7 @@ export default function FamiliarModal() {
                                         <button
                                             className={`fam-tile${tier.locked ? ' locked' : ''}${yours ? ' yours' : ''}`}
                                             type="button"
+                                            data-tier={tier.id}
                                             key={sp.name}
                                             onClick={(e) => {
                                                 e.stopPropagation();

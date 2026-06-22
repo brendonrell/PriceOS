@@ -75,6 +75,12 @@ export const STATE_CACHE_KEYS = {
     /** Familiar Omniscience flag ('1'|'0'). Read + written by familiarEngine;
      *  lives in the settings envelope. Absent = on. */
     familiarOmniscience: 'pd_familiar_omniscience',
+    /** Familiar outline preference ('off' | 'random' | hex). Read + written by
+     *  familiarEngine; lives in the settings envelope. Absent = random. */
+    familiarOutline: 'pd_familiar_outline',
+    /** Familiar energy / movement mood. Read + written by familiarEngine; lives
+     *  in the settings envelope. Absent = chill. */
+    familiarEnergy: 'pd_familiar_energy',
     /** Ambient Light options blob. Read + written by AmbientStrip; lives in the
      *  settings envelope. */
     ambient: 'pd_ambient_opts',
@@ -215,6 +221,18 @@ export function hydrateFromRow(row: UserRow): void {
             localStorage.setItem(STATE_CACHE_KEYS.familiarOmniscience, '0');
         } else {
             localStorage.removeItem(STATE_CACHE_KEYS.familiarOmniscience);
+        }
+        // Familiar outline preference — server wins. Absent = random (default).
+        if (typeof s.familiarOutline === 'string' && s.familiarOutline) {
+            localStorage.setItem(STATE_CACHE_KEYS.familiarOutline, s.familiarOutline);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.familiarOutline);
+        }
+        // Familiar energy / movement mood — server wins. Absent = chill.
+        if (typeof s.familiarEnergy === 'string' && s.familiarEnergy) {
+            localStorage.setItem(STATE_CACHE_KEYS.familiarEnergy, s.familiarEnergy);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.familiarEnergy);
         }
         // Ambient Light options — server wins; AmbientStrip re-reads on the
         // hydrate event below so the bar restores across devices.

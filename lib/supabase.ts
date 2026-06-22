@@ -94,6 +94,16 @@ export interface UserSettings {
    *  personality + generic chatter only (Brendon, 2026-06-22). Account-backed
    *  so the choice follows you across devices. Absent = on. */
   familiarOmniscience?: boolean;
+  /** Familiar outline preference: 'off' (no outline), 'random' (the loved
+   *  ~25%-chance random palette outline — the default when absent), or a hex
+   *  colour string (always outline in that colour). Account-backed
+   *  (Brendon, 2026-06-22). */
+  familiarOutline?: string;
+  /** Familiar energy / movement mood: 'chill' (default — stays in the corner),
+   *  'active' (scurries the bottom, sometimes clipping off-edge and back),
+   *  'hyped' | 'greed' | 'fear' | 'ngmi' (mood-tuned pace + skittishness).
+   *  Account-backed (Brendon, 2026-06-22). Absent = chill. */
+  familiarEnergy?: string;
   /** Ambient Light options (palette / pattern / speed / page-dim). Account-backed
    *  so the LED bar "just works" across devices (Brendon, 2026-06-16). */
   ambient?: {

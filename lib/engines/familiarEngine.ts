@@ -28,8 +28,9 @@ import {
     ANIMATED_SPECIES,
     findAnimatedSpecies,
     type AnimatedSpecies,
+    type FamiliarTierId,
 } from '../familiar/species';
-import { pickDialogue } from '../familiar/dialogue';
+import { pickDialogue, pickThought, pickHint } from '../familiar/dialogue';
 import { loadIntel } from '../familiar/intel';
 
 type FamiliarState = 'idle' | 'scroll' | 'action' | 'sleep';
@@ -39,10 +40,23 @@ export interface FamiliarFrame {
     badgeText: string;
     bubbleText: string;
     bubbleVisible: boolean;
+    /** A poke/pet *thought* — italic, rendered OUTSIDE the bubble. */
+    thoughtText: string;
+    thoughtVisible: boolean;
     outlined: boolean;
     outlineColor: string | null;
+    /** The current familiar's tier — lets the host size the top tier bigger. */
+    tier: FamiliarTierId | null;
+    /** Energy / movement mood: 'chill' | 'active' | 'hyped' | 'greed' | 'fear' | 'ngmi'.
+     *  The host drives the scurry from this. */
+    energy: string;
     visible: boolean;
 }
+
+/* Outline palettes — keyed to body bg luminance so a random outline stays
+   legible on every colorway (dark bg → bright palette; light bg → deep). */
+const DARK_BG_PALETTE  = ['#FF0055', '#FFE600', '#FFFFFF', '#00FFD1', '#9D00FF', '#FF8A00'];
+const LIGHT_BG_PALETTE = ['#B8003C', '#7A6E00', '#000000', '#006E5C', '#4A007A', '#8A4A00'];
 
 /* ── Internal state ───────────────────────────────────────── */
 
@@ -58,16 +72,20 @@ let _spriteText = '';
 let _badgeText = '';
 let _bubbleText = '';
 let _bubbleVisible = false;
+let _thoughtText = '';
+let _thoughtVisible = false;
 
 /* Context the engine learns from the auth layer (set by Backgrounds.tsx). */
 let _rank = 0;
 let _address: string | null = null;
 let _omniscient = true;
+let _energy = 'chill';
 
 /* Omniscience knowledge of the user + its emergence / no-repeat cycle. */
 let _intelFacts: string[] = [];
 let _factQueue: string[] = [];
 let _enabledAt = 0;
+let _hintShown = false; // teach the long-press/tap gesture once, early
 const EMERGE_DELAY_MS = 40_000; // familiar must be present a while before it gets personal
 
 let _frameTimer: ReturnType<typeof setInterval> | null = null;
@@ -76,6 +94,7 @@ let _sleepTimer: ReturnType<typeof setTimeout> | null = null;
 let _scrollRevertTimer: ReturnType<typeof setTimeout> | null = null;
 let _actionRevertTimer: ReturnType<typeof setTimeout> | null = null;
 let _bubbleHideTimer: ReturnType<typeof setTimeout> | null = null;
+let _thoughtHideTimer: ReturnType<typeof setTimeout> | null = null;
 
 const _subscribers = new Set<(frame: FamiliarFrame) => void>();
 
@@ -87,8 +106,12 @@ function _snapshot(): FamiliarFrame {
         badgeText: _badgeText,
         bubbleText: _bubbleText,
         bubbleVisible: _bubbleVisible,
+        thoughtText: _thoughtText,
+        thoughtVisible: _thoughtVisible,
         outlined: _outlined,
         outlineColor: _outlineColor,
+        tier: _species ? _species.tier : null,
+        energy: _energy,
         visible: _visible,
     };
 }
@@ -137,6 +160,58 @@ function _readOmniscience(): boolean {
         return localStorage.getItem(STATE_CACHE_KEYS.familiarOmniscience) !== '0';
     } catch {
         return true;
+    }
+}
+
+/* Read the persisted outline preference (absent = 'random' — the loved default). */
+function _readOutlinePref(): string {
+    if (typeof window === 'undefined') return 'random';
+    try {
+        return localStorage.getItem(STATE_CACHE_KEYS.familiarOutline) || 'random';
+    } catch {
+        return 'random';
+    }
+}
+
+/* Read the persisted energy / movement mood (absent = 'chill'). */
+function _readEnergy(): string {
+    if (typeof window === 'undefined') return 'chill';
+    try {
+        return localStorage.getItem(STATE_CACHE_KEYS.familiarEnergy) || 'chill';
+    } catch {
+        return 'chill';
+    }
+}
+
+/* Roll the ~25%-chance random palette outline (the original behaviour). */
+function _rollRandomOutline(): void {
+    _outlined = false;
+    _outlineColor = null;
+    if (Math.random() < 0.25) {
+        const bg = getComputedStyle(document.body).backgroundColor;
+        const m = bg.match(/rgba?\(([^)]+)\)/);
+        let lum = 0;
+        if (m) {
+            const [r, g, b] = m[1].split(',').map((n) => parseInt(n.trim(), 10));
+            lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        }
+        const palette = lum < 0.5 ? DARK_BG_PALETTE : LIGHT_BG_PALETTE;
+        _outlineColor = palette[Math.floor(Math.random() * palette.length)];
+        _outlined = true;
+    }
+}
+
+/* Apply an outline preference: 'off' (none), 'random' (roll the palette), or a
+   hex colour (always that colour). */
+function _applyOutline(pref: string): void {
+    if (pref === 'off') {
+        _outlined = false;
+        _outlineColor = null;
+    } else if (pref === 'random') {
+        _rollRandomOutline();
+    } else {
+        _outlined = true;
+        _outlineColor = pref;
     }
 }
 
@@ -197,8 +272,35 @@ function _showBubble(text: string) {
     }, 4000);
 }
 
+/* A *thought* — a quick italic beat shown beside the sprite (not in the bubble),
+   used by the poke/pet reaction. Shorter dwell than a spoken line. */
+function _showThought(text: string) {
+    if (!text) return;
+    _thoughtText = text;
+    _thoughtVisible = true;
+    _emit();
+    if (_thoughtHideTimer) clearTimeout(_thoughtHideTimer);
+    _thoughtHideTimer = setTimeout(() => {
+        _thoughtVisible = false;
+        _thoughtHideTimer = null;
+        _emit();
+    }, 2500);
+}
+
 function _emitDialogue(state: FamiliarState) {
     if (!_species) return;
+    // Teach the gesture: first idle remark is a hint, then rarely after.
+    if (state === 'idle') {
+        if (!_hintShown) {
+            _hintShown = true;
+            _showBubble(pickHint(_species.tier));
+            return;
+        }
+        if (Math.random() < 0.06) {
+            _showBubble(pickHint(_species.tier));
+            return;
+        }
+    }
     // Idle remarks may surface a personal fact once Omniscience has emerged.
     if (state === 'idle' && Math.random() < _intelChance()) {
         const fact = _nextFact();
@@ -290,10 +392,12 @@ function _stop() {
     if (_scrollRevertTimer) clearTimeout(_scrollRevertTimer);
     if (_actionRevertTimer) clearTimeout(_actionRevertTimer);
     if (_bubbleHideTimer) clearTimeout(_bubbleHideTimer);
+    if (_thoughtHideTimer) clearTimeout(_thoughtHideTimer);
     _sleepTimer = null;
     _scrollRevertTimer = null;
     _actionRevertTimer = null;
     _bubbleHideTimer = null;
+    _thoughtHideTimer = null;
     if (typeof window !== 'undefined') {
         window.removeEventListener('scroll', _onScroll);
     }
@@ -305,6 +409,7 @@ function _stop() {
         document.removeEventListener('touchstart', _resetSleep);
     }
     _bubbleVisible = false;
+    _thoughtVisible = false;
 }
 
 /* Pull the user's knowledge for Omniscience (best-effort, async). */
@@ -354,28 +459,16 @@ export function setFamiliarContext(opts: { address?: string | null; rank?: numbe
 export function enableFamiliar(): void {
     if (typeof window === 'undefined') return;
     _omniscient = _readOmniscience();
+    _energy = _readEnergy();
     if (!_speciesPicked) {
         _species = _pickSpecies();
         _badgeText = _species.name;
         _spriteText = '';
         _frameIdx = 0;
         _state = 'idle';
-        _outlined = false;
-        _outlineColor = null;
-        if (Math.random() < 0.25) {
-            const bg = getComputedStyle(document.body).backgroundColor;
-            const m = bg.match(/rgba?\(([^)]+)\)/);
-            let lum = 0;
-            if (m) {
-                const [r, g, b] = m[1].split(',').map((n) => parseInt(n.trim(), 10));
-                lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-            }
-            const DARK_BG  = ['#FF0055', '#FFE600', '#FFFFFF', '#00FFD1', '#9D00FF', '#FF8A00'];
-            const LIGHT_BG = ['#B8003C', '#7A6E00', '#000000', '#006E5C', '#4A007A', '#8A4A00'];
-            const palette = lum < 0.5 ? DARK_BG : LIGHT_BG;
-            _outlineColor = palette[Math.floor(Math.random() * palette.length)];
-            _outlined = true;
-        }
+        /* Outline now follows the user's saved preference (off / random / a
+           chosen colour). Absent = 'random' — the original loved behaviour. */
+        _applyOutline(_readOutlinePref());
         _speciesPicked = true;
     }
     _visible = true;
@@ -468,4 +561,68 @@ export function setFamiliarOmniscience(on: boolean): void {
         _intelFacts = [];
         _factQueue = [];
     }
+}
+
+/** Current outline preference ('off' | 'random' | hex). Absent = 'random'. */
+export function getFamiliarOutline(): string {
+    return _readOutlinePref();
+}
+
+/**
+ * Set the outline preference: 'off', 'random', or a hex colour. Persists (local
+ * cache + server settings) and applies live to the floating companion.
+ */
+export function setFamiliarOutline(pref: string): void {
+    try {
+        localStorage.setItem(STATE_CACHE_KEYS.familiarOutline, pref);
+    } catch {
+        /* private mode / quota — server sync below still carries the change */
+    }
+    pushSettings({ familiarOutline: pref });
+    _applyOutline(pref);
+    _emit();
+}
+
+/** Current energy / movement mood (absent persisted value = 'chill'). */
+export function getFamiliarEnergy(): string {
+    return _readEnergy();
+}
+
+/**
+ * Set the energy / movement mood ('chill' | 'active' | 'hyped' | 'greed' |
+ * 'fear' | 'ngmi'). Persists (local cache + server settings) and takes effect
+ * live — the host reads it from the frame to drive movement.
+ */
+export function setFamiliarEnergy(energy: string): void {
+    _energy = energy;
+    try {
+        localStorage.setItem(STATE_CACHE_KEYS.familiarEnergy, energy);
+    } catch {
+        /* private mode / quota — server sync below still carries the change */
+    }
+    pushSettings({ familiarEnergy: energy });
+    _emit();
+}
+
+/**
+ * Poke / pet the familiar. Plays its action animation (unique per species) and
+ * sometimes reacts with text — either a spoken line or a little italic *thought*
+ * shown beside it. Some pokes are just the animation, no words.
+ */
+export function pokeFamiliar(): void {
+    if (!_species || !_visible) return;
+    _setState('action');
+    _frameIdx = 0;
+    const r = Math.random();
+    if (r < 0.4) {
+        _showBubble(pickDialogue(_species.name, _species.tier, 'action', _rank));
+    } else if (r < 0.8) {
+        _showThought(pickThought(_species.tier));
+    }
+    _renderFrame();
+    if (_actionRevertTimer) clearTimeout(_actionRevertTimer);
+    _actionRevertTimer = setTimeout(() => {
+        if (_state === 'action') _setState('idle');
+        _resetSleep();
+    }, 1500);
 }

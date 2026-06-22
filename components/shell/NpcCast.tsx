@@ -104,7 +104,7 @@ export function NpcCast() {
                     className={`npc-resident ${c.wall}${active[c.id] ? ' active' : ''}`}
                     style={{ top: `${c.top}%` }}
                 >
-                    <span className="npc-name">{styleText(c.name, c.style)}</span>
+                    <span className="npc-name">{c.name}</span>
                     <span className={`npc-bubble npc-anim-${c.anim}`}>
                         {styleText(lineFor[c.id] ?? '', c.style)}
                     </span>
