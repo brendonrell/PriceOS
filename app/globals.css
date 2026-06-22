@@ -4373,6 +4373,19 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Sticker (⊞) icon vertical centring: down 2px desktop, 1px higher on mobile. */
 .sticker-strike { transform: translateY(2px); }
 @media (max-width: 600px) { .sticker-strike { transform: translateY(1px); } }
+/* Desktop MY PD icon nudges (Brendon, 2026-06-22): Stickers two sizes smaller +
+   up 2px; Ambient two sizes larger + up 3px; Price/‰ logo one size smaller +
+   de-blurred (it's Inter on purpose). */
+@media (min-width: 601px) {
+    #sn-sticker .st-icon { font-size: 12px !important; }
+    #sn-sticker .sticker-strike { transform: translateY(0); }
+    #sn-ambient .st-icon { font-size: 20px !important; transform: translateY(-3px); }
+    #sn-priceLogo .st-icon {
+        font-size: 14px !important;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+    }
+}
 
 /* Build 32 D21 — Hammer pill badge (sim 4759 inline → CSS class).
    Inline pill rendered after the "The Hammer" label when the muted-id

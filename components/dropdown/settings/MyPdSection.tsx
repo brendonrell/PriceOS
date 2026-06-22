@@ -584,7 +584,11 @@ export function MyPdSection({ onTripleTap }: Props) {
                         id="sn-priceLogo"
                         title="Price Logo"
                         active={notifs.priceLogo}
-                        onClick={() => toggleWithToast('priceLogo', 'Price Logo')}
+                        onClick={() => {
+                            const next = !notifs.priceLogo;
+                            toggle('priceLogo');
+                            showToast(`Logo: ${next ? '$PRICE' : 'Standard'}`);
+                        }}
                         icon={'‰\uFE0E'}
                         iconStyle={{
                             /* Inter is REQUIRED here -- it's the exact per-mille
