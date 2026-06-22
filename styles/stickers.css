@@ -377,7 +377,7 @@
     --sticker-cut: var(--text-color);
     /* Soft score line tracing each cut — leans toward the page colour so it reads
        on BOTH the white and the black sheet (Brendon 2026-06-21). */
-    --sticker-line: color-mix(in srgb, var(--text-color) 68%, #808080 32%);
+    --sticker-line: color-mix(in srgb, var(--text-color) 48%, #9a9a9a 52%);
 }
 /* Tidy grid — every sticker in its own cell, gaps guarantee no overlap, padding
    keeps them off the sheet edge. Grows taller to fit (the wrap scrolls). */
