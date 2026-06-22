@@ -3611,7 +3611,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* Mobile: the ⌗ glyph's intrinsic metrics ride low in the hero stats row
    beside its label (Brendon screenshot, 2026-06-12) — optical nudge up. */
 @media (max-width: 600px) {
-    .stats-row .stat-icon-owners { position: relative; top: -1.5px; }
+    .stats-row .stat-icon-owners { position: relative; top: -2.5px; }
 }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
@@ -3746,10 +3746,10 @@ body.persona-default .stats-row-2 { display: none !important; }
     .stat-icon-box { font-size: 19px; }
 }
 
-/* Homepage identity-row mutual badge sits 1px high on mobile — settle it down
-   (Brendon 2026-06-21). Mobile only; homepage byline only. */
+/* Homepage identity-row mutual badge on mobile: one size smaller + nudged up
+   1px (Brendon 2026-06-22). Mobile only; homepage byline only. */
 @media (max-width: 600px) {
-    .home-id-row .ico-mutual { top: 1px; }
+    .home-id-row .ico-mutual { top: 0; font-size: 21px; }
 }
 
 /* ── HERO GROUP 2 / ACTION ROW / MINT — sim ~2226-2244 ───── */

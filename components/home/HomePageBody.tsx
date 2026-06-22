@@ -695,14 +695,15 @@ function HomePageBodyInner({
                                 <span className="artist-tag" aria-label="artist">
                                     {'✺︎'}
                                 </span>
-                                {brendonSocial.mutual && (
-                                    <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
-                                )}
                                 {/* Cartel ⟁ — perk of being mutuals with @brendon (or being
                                     him): when Cartel is on, his name carries the cartel mark.
-                                    Icon only, no count (Brendon, 2026-06-22). */}
+                                    Icon only, no count (Brendon, 2026-06-22). Sits between the
+                                    artist badge and the mutuals icon (Brendon, 2026-06-22). */}
                                 {notifs.spell_cartel && brendonSocial.mutual && (
                                     <span className="id-cartel" aria-label="cartel">{'⟁︎'}</span>
+                                )}
+                                {brendonSocial.mutual && (
+                                    <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
                                 )}
                             </span>
                             {brendonSocial.followers > 0 && (
