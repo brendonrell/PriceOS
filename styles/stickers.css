@@ -401,10 +401,14 @@
 /* Skinny sprite / @name chips → a tidy 2-column grid (every row the same). */
 .ss-flow {
     display: grid;
+    /* Locked to 2–3 columns: never 1, never 4+. 2 on phones, 3 when wider. */
     grid-template-columns: repeat(2, 1fr);
     align-items: center;
     gap: 16px 14px;
     padding: 16px 14px 20px;
+}
+@media (min-width: 560px) {
+    .ss-flow { grid-template-columns: repeat(3, 1fr); }
 }
 .ss-flow .ss-cell { padding: 0; justify-content: center; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
