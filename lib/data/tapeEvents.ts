@@ -40,6 +40,9 @@ export interface TapeFeedItem {
     coll: string;
     id: number;
     price: string | null;
+    /** Collect gag — render as "{PROJECT} started following {name}" instead of
+     *  the normal line (Brendon, 2026-06-22). */
+    follow?: boolean;
 }
 
 export const WALLETS: TapeWallet[] = [
@@ -140,6 +143,12 @@ export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
     const handle = toSide ? e.to_handle : e.from_handle;
     const addr = toSide ? e.to_address : e.from_address;
     const tid = e.token_id ? e.token_id.slice(e.token_id.lastIndexOf('-') + 1) : '0';
+    /* A collect makes the project follow you — render ~half of mints as
+       "{PROJECT} started following @you" for tape flavour. Deterministic per
+       event id so it stays stable across re-renders (Brendon, 2026-06-22). */
+    const follow =
+        e.type === 'MINT' &&
+        Array.from(e.id).reduce((s, c) => s + c.charCodeAt(0), 0) % 2 === 0;
     return {
         type: TAPE_TYPE[e.type] ?? 'mint',
         name: handle ? `@${handle}` : tapeShortAddr(addr ?? null),
@@ -148,6 +157,7 @@ export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
         coll: e.project_id,
         id: Number(tid) || 0,
         price: e.price_eth ? `${e.price_eth} ETH` : null,
+        follow,
     };
 }
 
