@@ -77,6 +77,7 @@ import {
     type FamiliarFrame,
 } from '../../lib/engines/familiarEngine';
 import { useAuth } from '../../lib/state/AuthContext';
+import { NpcCast } from './NpcCast';
 import {
     seedStarfield,
     clearStarfield,
@@ -368,6 +369,7 @@ export function Backgrounds() {
                     {frame.bubbleText}
                 </span>
             </div>
+            <NpcCast />
         </>
     );
 }
