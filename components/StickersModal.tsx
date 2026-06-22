@@ -179,7 +179,7 @@ export default function StickersModal() {
                             </div>
                             <div className="ss-title">
                                 <span className="ss-title-main">{detail.name}</span>
-                                <span className="ss-title-sub">{`// ${detail.count} STICKERS`}</span>
+                                <span className="ss-title-sub">{`// ${detail.count} Pcs`}</span>
                             </div>
                             <BuySheetButton sheet={detail} />
                         </>
