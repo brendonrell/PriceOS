@@ -398,17 +398,15 @@
     padding: 4px;
     box-sizing: border-box;
 }
-/* Skinny sprite / @name chips → wrap at their natural width, larger, with gaps,
-   auto-fitting the sheet. */
+/* Skinny sprite / @name chips → a tidy 2-column grid (every row the same). */
 .ss-flow {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     align-items: center;
-    justify-content: center;
     gap: 16px 14px;
     padding: 16px 14px 20px;
 }
-.ss-flow .ss-cell { padding: 0; }
+.ss-flow .ss-cell { padding: 0; justify-content: center; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
     columns: 3;
