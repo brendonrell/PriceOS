@@ -1,52 +1,36 @@
 'use client';
 
 /*
- * familiarEngine — Batch G / F56 / BUG-23
+ * familiarEngine — the floating Digital Familiar's brain.
  *
- * Sim port of the Digital Familiar IIFE at sim.html 12750–12935.
- * Module singleton — owns the floating ASCII companion's frame
- * lifecycle (sprite text, name badge, speech bubble, outline) and
- * drives the four-state machine: idle / scroll / action / sleep.
+ * Module singleton — owns the floating companion's frame lifecycle (sprite
+ * text, name badge, speech bubble, outline) and drives the four-state machine:
+ * idle / scroll / action / sleep. Lifecycle is callback-driven: enableFamiliar()
+ * mounts species + outline, starts timers + listeners, emits frames;
+ * disableFamiliar() stops everything and emits a hidden frame.
  *
- * Lifecycle is callback-driven, like hashSynEngine. enableFamiliar()
- * mounts species + outline (sticky for page lifetime per sim 12898's
- * `if (!mounted)` guard), starts timers + listeners, emits frames.
- * disableFamiliar() stops timers + listeners and emits a hidden
- * frame; species/outline persist for re-enable on the same page.
+ * The roster (all tiers, animated) lives in lib/familiar/species. Every
+ * familiar's voice — its personality lines plus how it regards you at your
+ * PriceRank — lives in lib/familiar/dialogue. The companion's knowledge of YOU
+ * (Omniscience: hold times, sold-at-a-loss, streak, collections, pulled live
+ * from your account record + activity) lives in lib/familiar/intel; those
+ * personal lines EMERGE the longer the familiar stays on screen, on a no-repeat
+ * cycle, and only when Omniscience is on (it is, by default).
  *
- * Frame consumer (Backgrounds.tsx) subscribes once at mount and
- * mirrors snapshot → JSX (sprite text, badge text, bubble text,
- * .visible toggle, .outlined class, --familiar-outline CSS var,
- * host display via `visible`).
- *
- * Sprite click → openModal('familiar') is owned by Backgrounds.tsx
- * via React onClick on the host. Sim handles this through a
- * document-level capture-phase click listener (sim 12877-12886);
- * the React port keeps the action-button branch (.btn-mint /
- * .modal-action-btn / .btn-list / .btn-offer → onAction) inside
- * the engine's document handler, since those targets are
- * scattered across many components and a global listener stays
- * faithful to sim's "ambient reaction to user activity" intent.
- *
- * Cadence verbatim from sim:
- *   frame:    setInterval(renderFrame, 600)        [sim 12861]
- *   idle:     setInterval(emitDialogue('idle'),     [sim 12863]
- *               20000 + Math.random()*20000)
- *   scroll:   500ms revert to idle                  [sim 12851]
- *   action:   1500ms revert to idle, 40% reaction   [sim 12856-12857]
- *   sleep:    5*60*1000 ms idle → sleep state       [sim 12845]
- *   bubble:   .visible class for 4000ms             [sim 12840]
+ * Cadence (unchanged from the original sim port):
+ *   frame:   600ms round-robin   ·   idle dialogue: every 20-40s
+ *   scroll:  500ms revert         ·   action: 1500ms revert, 40% reaction
+ *   sleep:   5min idle → sleep    ·   bubble: visible 4000ms
  */
 
 import { pushSettings, STATE_CACHE_KEYS } from '../state/userState';
-
-interface Species {
-    name: string;
-    idle: string[];
-    scroll: string[];
-    action: string[];
-    sleep: string[];
-}
+import {
+    ANIMATED_SPECIES,
+    findAnimatedSpecies,
+    type AnimatedSpecies,
+} from '../familiar/species';
+import { pickDialogue } from '../familiar/dialogue';
+import { loadIntel } from '../familiar/intel';
 
 type FamiliarState = 'idle' | 'scroll' | 'action' | 'sleep';
 
@@ -60,67 +44,12 @@ export interface FamiliarFrame {
     visible: boolean;
 }
 
-/* sim 12752-12756 verbatim. Five species; per-page random pick (or
-   ?familiar=name URL override per sim 12811). Frame arrays are read
-   round-robin via frameIdx % frames.length. Glyphs are copied
-   exactly — combining/box-drawing characters are intentional. */
-const SPECIES: Species[] = [
-    { name: 'Wisp',     idle: ['( ¤ )', '( ☼ )', '( ¤ )'],            scroll: ['~¤~ ', ' -☼-', ' ~¤~'],          action: ['< ❂ >', '« ✺ »', '< ❂ >'],         sleep:  ['( . )', '( . )', '( . )'] },
-    { name: 'Watcher',  idle: ['[ ◉ ]', '[ ◎ ]', '[ ◉ ]'],            scroll: ['[ » ]', '[ » ]', '[ » ]'],        action: ['[ ⊛ ]', '[ ⊛ ]', '[ ⊛ ]'],         sleep:  ['[ - ]', '[ - ]', '[ - ]'] },
-    { name: 'Slime',    idle: ['(~o~)', '(~O~)', '(~o~)'],            scroll: ['( o=)', '(= o)', '( o=)'],        action: ['(@o@)', '(@O@)', '(@o@)'],         sleep:  ['(--z)', '(--z)', '(--z)'] },
-    { name: 'Spider',   idle: ['/|o.o|\\', '\\|o.o|/', '/|o.o|\\'],   scroll: ['/|>.>|\\', '\\|<.<|/', '/|>.>|\\'], action: ['/|✱.✱|\\', '\\|✱.✱|/', '/|✱.✱|\\'], sleep:  ['/|-.-|\\', '\\|-.-|/', '/|-.-|\\'] },
-    { name: 'Orbit',    idle: ['(◯·)', '(·◯)', '(◯·)'],                scroll: ['(○»)', '(»○)', '(○»)'],           action: ['(◉‼)', '(‼◉)', '(◉‼)'],           sleep:  ['(◌-)', '(-◌)', '(◌-)'] },
-];
-
-/* sim 12765-12803 verbatim. Four dialogue pools: idle quips on
-   interval, action lines on user CTA clicks, scroll lines during
-   heavy scroll bursts, sleep whispers in the 5min-idle state. */
-const LINES_IDLE = [
-    'THE WATCHER HAS SEEN TOO MUCH.',
-    'PRICE DISCUSSION IN PROGRESS.',
-    'SOMEONE IS MINTING. I CAN FEEL IT.',
-    'THE CHART PLEADS FOR MERCY.',
-    'GENERATIVE. NOT RANDOM.',
-    "THAT ONE. THAT'S THE ONE.",
-    'FLOOR IS A SUGGESTION.',
-    'I DREAMT I WAS AN AUTOGLYPH.',
-    'HAVE YOU LOOKED AT #22 LATELY?',
-    'THE GRAILS ARE HIDING IN PLAIN SIGHT.',
-    'TRUST THE PROCESS. BID THE FLOOR.',
-    'LIQUIDITY IS A STATE OF MIND.',
-    'ALL PROVENANCE IS GOSSIP.',
-    'OBSERVED ENOUGH TO BECOME REAL.',
-    'SOMEWHERE A WALLET JUST WOKE UP.',
-    'THE CODE IS THE ART. MAYBE.',
-    'A 2X ON AN UGLY ONE STILL COUNTS.',
-    "YOU CAN'T UNSEE A BAD PALETTE.",
-    'THE SECONDARY KNOWS.',
-];
-const LINES_ACTION = [
-    'SEND IT.',
-    'CONFIRMED. BLOCK INBOUND.',
-    'BRAVE. OR STUPID. OR BOTH.',
-    'NO BACKSIES.',
-    'THIS IS A PRICE DISCUSSION.',
-    'GOSSIP PROTOCOL LIT UP.',
-];
-const LINES_SCROLL = [
-    'SLOW DOWN. LOOK AT THIS ONE.',
-    "YOU'RE MISSING THE GOOD STUFF.",
-    'FEED SPEED: REGRETTABLE.',
-];
-const LINES_SLEEP = [
-    'ZZZ... BID ZZZ... SOLD...',
-    'QUIET ON THE MEMPOOL.',
-    "WAKE ME WHEN IT'S INTERESTING.",
-];
-
 /* ── Internal state ───────────────────────────────────────── */
 
-let _species: Species | null = null;
+let _species: AnimatedSpecies | null = null;
 let _frameIdx = 0;
 let _state: FamiliarState = 'idle';
-let _speciesPicked = false; // sticky for page lifetime per sim 12898 `if (!mounted)`
+let _speciesPicked = false; // sticky for page lifetime
 let _visible = false;
 let _outlined = false;
 let _outlineColor: string | null = null;
@@ -129,6 +58,17 @@ let _spriteText = '';
 let _badgeText = '';
 let _bubbleText = '';
 let _bubbleVisible = false;
+
+/* Context the engine learns from the auth layer (set by Backgrounds.tsx). */
+let _rank = 0;
+let _address: string | null = null;
+let _omniscient = true;
+
+/* Omniscience knowledge of the user + its emergence / no-repeat cycle. */
+let _intelFacts: string[] = [];
+let _factQueue: string[] = [];
+let _enabledAt = 0;
+const EMERGE_DELAY_MS = 40_000; // familiar must be present a while before it gets personal
 
 let _frameTimer: ReturnType<typeof setInterval> | null = null;
 let _dialogueTimer: ReturnType<typeof setInterval> | null = null;
@@ -158,44 +98,49 @@ function _emit() {
     _subscribers.forEach((cb) => cb(frame));
 }
 
-/* ── Species + state machine ──────────────────────────────── */
+/* ── Species selection ────────────────────────────────────── */
 
-function _urlSpeciesOverride(): Species | null {
+function _urlSpeciesOverride(): AnimatedSpecies | null {
     if (typeof window === 'undefined') return null;
     try {
         const m = new URLSearchParams(window.location.search).get('familiar');
-        if (m) return SPECIES.find((s) => s.name.toLowerCase() === m.toLowerCase()) ?? null;
+        if (m) return findAnimatedSpecies(m);
     } catch {}
     return null;
 }
 
-function _findSpecies(name: string): Species | null {
-    return SPECIES.find((s) => s.name.toLowerCase() === name.toLowerCase()) ?? null;
-}
-
-/** The user's saved familiar choice from the write-through cache (set by
- *  setFamiliarSpecies + userState hydrate). Null when they've never chosen. */
-function _savedSpecies(): Species | null {
+/** The user's saved familiar choice from the write-through cache. */
+function _savedSpecies(): AnimatedSpecies | null {
     if (typeof window === 'undefined') return null;
     try {
         const name = localStorage.getItem(STATE_CACHE_KEYS.familiarSpecies);
-        return name ? _findSpecies(name) : null;
+        return name ? findAnimatedSpecies(name) : null;
     } catch {
         return null;
     }
 }
 
-/* Selection priority: an explicit ?familiar= URL override wins, then the user's
-   saved choice, then a random roll for a first-time visitor. The module
-   re-initialises per page load, so a saved choice is re-applied on every load
-   (and cross-device after the server snapshot hydrates the cache). */
-function _pickSpecies(): Species {
+/* Selection priority: ?familiar= URL override, then saved choice, then a random
+   roll for a first-time visitor. */
+function _pickSpecies(): AnimatedSpecies {
     return (
         _urlSpeciesOverride() ||
         _savedSpecies() ||
-        SPECIES[Math.floor(Math.random() * SPECIES.length)]
+        ANIMATED_SPECIES[Math.floor(Math.random() * ANIMATED_SPECIES.length)]
     );
 }
+
+/* Read the persisted omniscience flag (absent = on). */
+function _readOmniscience(): boolean {
+    if (typeof window === 'undefined') return true;
+    try {
+        return localStorage.getItem(STATE_CACHE_KEYS.familiarOmniscience) !== '0';
+    } catch {
+        return true;
+    }
+}
+
+/* ── State machine ────────────────────────────────────────── */
 
 function _setState(next: FamiliarState) {
     if (_state === next) return;
@@ -212,23 +157,57 @@ function _renderFrame() {
     _emit();
 }
 
-function _emitDialogue(pool: 'idle' | 'action' | 'scroll' | 'sleep') {
-    const pools = { idle: LINES_IDLE, action: LINES_ACTION, scroll: LINES_SCROLL, sleep: LINES_SLEEP };
-    const lines = pools[pool] || LINES_IDLE;
-    _bubbleText = lines[Math.floor(Math.random() * lines.length)];
+/* ── Dialogue + Omniscience ───────────────────────────────── */
+
+/** Next personal fact from the no-repeat cycle (full pass before any repeat). */
+function _nextFact(): string | null {
+    if (!_intelFacts.length) return null;
+    if (!_factQueue.length) {
+        // refill + shuffle so facts spread out and don't repeat until exhausted
+        _factQueue = [..._intelFacts];
+        for (let i = _factQueue.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [_factQueue[i], _factQueue[j]] = [_factQueue[j], _factQueue[i]];
+        }
+    }
+    return _factQueue.pop() ?? null;
+}
+
+/* Probability that an idle remark is a personal (Omniscience) line. Zero until
+   the familiar has been present EMERGE_DELAY_MS, then ramps with dwell time and
+   caps — the knowledge emerges as an ability, never dominates the chatter. */
+function _intelChance(): number {
+    if (!_omniscient || !_intelFacts.length) return 0;
+    const dwell = Date.now() - _enabledAt;
+    if (dwell < EMERGE_DELAY_MS) return 0;
+    const minutes = (dwell - EMERGE_DELAY_MS) / 60000;
+    return Math.min(0.5, 0.14 + 0.06 * minutes);
+}
+
+function _showBubble(text: string) {
+    if (!text) return;
+    _bubbleText = text;
     _bubbleVisible = true;
     _emit();
-    /* Sim's setTimeout in emitDialogue (sim 12840) doesn't track its
-       handle — rapid emissions stack and the latest one wins. We
-       track a single hide-timer so disableFamiliar() can clear it
-       cleanly; functionally identical UX (latest emission still
-       wins, just without orphan timers). */
     if (_bubbleHideTimer) clearTimeout(_bubbleHideTimer);
     _bubbleHideTimer = setTimeout(() => {
         _bubbleVisible = false;
         _bubbleHideTimer = null;
         _emit();
     }, 4000);
+}
+
+function _emitDialogue(state: FamiliarState) {
+    if (!_species) return;
+    // Idle remarks may surface a personal fact once Omniscience has emerged.
+    if (state === 'idle' && Math.random() < _intelChance()) {
+        const fact = _nextFact();
+        if (fact) {
+            _showBubble(fact);
+            return;
+        }
+    }
+    _showBubble(pickDialogue(_species.name, _species.tier, state, _rank));
 }
 
 function _resetSleep() {
@@ -252,7 +231,7 @@ function _onScroll() {
 
 function _onAction() {
     _setState('action');
-    /* 40% chance of reaction line per sim 12856 — preserves restraint */
+    /* 40% chance of a reaction line — preserves restraint */
     if (Math.random() < 0.4) _emitDialogue('action');
     if (_actionRevertTimer) clearTimeout(_actionRevertTimer);
     _actionRevertTimer = setTimeout(() => {
@@ -261,11 +240,6 @@ function _onAction() {
     }, 1500);
 }
 
-/* Document capture-phase click listener — fires onAction when major
-   CTAs are clicked. Sim's handler at 12877-12886 also detects
-   #digital-familiar to open the modal; that branch is owned by
-   Backgrounds.tsx (React onClick on the host JSX) so we keep it
-   out of here. */
 function _handleDocClick(ev: Event) {
     const target = ev.target as Element | null;
     if (!target || !target.closest) return;
@@ -290,12 +264,6 @@ function _stopTickers() {
     _dialogueTimer = null;
 }
 
-/* Visibility pause (perf batch 2026-06-10). The frame tick (600ms) and idle
-   dialogue tick keep firing in a backgrounded tab — animating a sprite
-   nobody can see. Pause both on hide, resume on return. Resume re-rolls the
-   dialogue interval — identical to a fresh start, so nothing observable
-   changes. One-shot timers (sleep / scroll / action / bubble-hide) are
-   activity-driven and left alone. */
 function _onVisibility() {
     if (document.hidden) {
         _stopTickers();
@@ -310,8 +278,6 @@ function _start() {
     window.addEventListener('scroll', _onScroll, { passive: true });
     document.addEventListener('click', _handleDocClick, true);
     document.addEventListener('visibilitychange', _onVisibility);
-    /* Activity reset for sleep timer — any of these inputs counts as
-       user being awake-and-around per sim 12866. */
     document.addEventListener('mousemove', _resetSleep, { passive: true });
     document.addEventListener('keydown', _resetSleep, { passive: true });
     document.addEventListener('touchstart', _resetSleep, { passive: true });
@@ -341,18 +307,53 @@ function _stop() {
     _bubbleVisible = false;
 }
 
+/* Pull the user's knowledge for Omniscience (best-effort, async). */
+function _loadIntel() {
+    if (!_omniscient) {
+        _intelFacts = [];
+        _factQueue = [];
+        return;
+    }
+    const forAddress = _address;
+    loadIntel(forAddress)
+        .then((facts) => {
+            // Ignore a late resolve for a since-changed address.
+            if (forAddress !== _address) return;
+            _intelFacts = facts;
+            _factQueue = [];
+        })
+        .catch(() => {
+            _intelFacts = [];
+            _factQueue = [];
+        });
+}
+
 /* ── Public API ───────────────────────────────────────────── */
 
 /**
- * Mount + start the engine. Sim 12894-12934 `_applyFamiliar(true)`.
- *
- * First call per page picks species + outline (25% chance, palette
- * keyed to body bg luminance). Subsequent calls re-show the same
- * species — the `_speciesPicked` flag is sticky for page lifetime,
- * matching sim's `mounted` flag at 12898.
+ * Tell the engine who the user is + their rank, so dialogue can address them
+ * correctly and Omniscience can read their record. Safe to call repeatedly
+ * (Backgrounds.tsx calls it when the auth context changes). Re-pulls knowledge
+ * when the address changes while enabled.
+ */
+export function setFamiliarContext(opts: { address?: string | null; rank?: number }): void {
+    if (typeof opts.rank === 'number') _rank = opts.rank;
+    if ('address' in opts) {
+        const next = opts.address ?? null;
+        if (next !== _address) {
+            _address = next;
+            if (_visible) _loadIntel();
+        }
+    }
+}
+
+/**
+ * Mount + start the engine. First call per page picks species + outline
+ * (~25% outline chance, palette keyed to body bg luminance).
  */
 export function enableFamiliar(): void {
     if (typeof window === 'undefined') return;
+    _omniscient = _readOmniscience();
     if (!_speciesPicked) {
         _species = _pickSpecies();
         _badgeText = _species.name;
@@ -361,17 +362,12 @@ export function enableFamiliar(): void {
         _state = 'idle';
         _outlined = false;
         _outlineColor = null;
-        /* Outline: ~25% per sim 12908. Palette keyed to body bg
-           luminance so the outline stays legible on every colorway.
-           Dark bg → bright palette; light/warm bg → deep palette.
-           Verbatim from sim 12909-12923. */
         if (Math.random() < 0.25) {
             const bg = getComputedStyle(document.body).backgroundColor;
             const m = bg.match(/rgba?\(([^)]+)\)/);
             let lum = 0;
             if (m) {
                 const [r, g, b] = m[1].split(',').map((n) => parseInt(n.trim(), 10));
-                /* Relative luminance, perceptual weights — sim 12915 */
                 lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
             }
             const DARK_BG  = ['#FF0055', '#FFE600', '#FFFFFF', '#00FFD1', '#9D00FF', '#FF8A00'];
@@ -383,18 +379,14 @@ export function enableFamiliar(): void {
         _speciesPicked = true;
     }
     _visible = true;
+    _enabledAt = Date.now();
+    _loadIntel();
     _start();
     _renderFrame();
     _emit();
 }
 
-/**
- * Stop + hide the engine. Sim 12930-12932 `_applyFamiliar(false)`.
- *
- * Clears all timers + listeners and flips `visible` false. Species
- * + outline stay set so re-enable on the same page reuses them
- * without picking a new species — matches sim's sticky `mounted`.
- */
+/** Stop + hide the engine. Species + outline persist for re-enable. */
 export function disableFamiliar(): void {
     _visible = false;
     _stop();
@@ -402,9 +394,8 @@ export function disableFamiliar(): void {
 }
 
 /**
- * Subscribe to frame snapshots. Returns an unsubscribe fn. Caller
- * receives the current snapshot synchronously on subscribe so it
- * can render immediately without waiting for the next tick.
+ * Subscribe to frame snapshots. Returns an unsubscribe fn. Caller receives the
+ * current snapshot synchronously on subscribe.
  */
 export function subscribeFamiliar(cb: (frame: FamiliarFrame) => void): () => void {
     _subscribers.add(cb);
@@ -414,36 +405,29 @@ export function subscribeFamiliar(cb: (frame: FamiliarFrame) => void): () => voi
     };
 }
 
-/**
- * Current frame snapshot — used by FamiliarModal to stamp the
- * species name into its title (sim 12942-12946).
- */
+/** Current frame snapshot — used by FamiliarModal to stamp its title. */
 export function getFamiliarFrame(): FamiliarFrame {
     return _snapshot();
 }
 
-/**
- * Current species name, '' if none picked yet. Sim's
- * `window._getFamiliarSpeciesName()` at 12890.
- */
+/** Current species name, '' if none picked yet. */
 export function getFamiliarSpeciesName(): string {
     return _species ? _species.name : '';
 }
 
-/** The selectable (live) species names — the five BitDaemons. */
+/** Every selectable familiar name (the full animated roster). */
 export function getFamiliarSpeciesList(): string[] {
-    return SPECIES.map((s) => s.name);
+    return ANIMATED_SPECIES.map((s) => s.name);
 }
 
 /**
  * Choose the active familiar species. Updates the live companion immediately
  * (floating sprite + any open modal hero) and persists the choice — local cache
  * for instant re-apply on reload, plus the server settings envelope so it
- * follows the user across devices. No-op for an unknown name. The user can
- * re-pick any time (Brendon, 2026-06-16).
+ * follows the user across devices. No-op for an unknown name.
  */
 export function setFamiliarSpecies(name: string): void {
-    const sp = _findSpecies(name);
+    const sp = findAnimatedSpecies(name);
     if (!sp || sp === _species) return;
     _species = sp;
     _speciesPicked = true;
@@ -456,7 +440,32 @@ export function setFamiliarSpecies(name: string): void {
         /* private mode / quota — server sync below still carries the change */
     }
     pushSettings({ familiarSpecies: sp.name });
-    /* Repaint now so the swap is instant whether or not the 600ms tick is
-       currently running (it pauses in a backgrounded tab). _renderFrame emits. */
     _renderFrame();
+}
+
+/** Whether Omniscience is currently on (absent persisted value = on). */
+export function getFamiliarOmniscience(): boolean {
+    return _readOmniscience();
+}
+
+/**
+ * Turn Omniscience on/off. Persists (local cache + server settings) and takes
+ * effect live: turning on pulls the user's knowledge now; turning off clears it
+ * so only personality + generic chatter remains.
+ */
+export function setFamiliarOmniscience(on: boolean): void {
+    _omniscient = on;
+    try {
+        if (on) localStorage.removeItem(STATE_CACHE_KEYS.familiarOmniscience);
+        else localStorage.setItem(STATE_CACHE_KEYS.familiarOmniscience, '0');
+    } catch {
+        /* private mode / quota — server sync below still carries the change */
+    }
+    pushSettings({ familiarOmniscience: on });
+    if (on) {
+        _loadIntel();
+    } else {
+        _intelFacts = [];
+        _factQueue = [];
+    }
 }

@@ -72,6 +72,9 @@ export const STATE_CACHE_KEYS = {
     /** Chosen Digital Familiar species name. Read + written by familiarEngine;
      *  lives in the settings envelope. */
     familiarSpecies: 'pd_familiar_species',
+    /** Familiar Omniscience flag ('1'|'0'). Read + written by familiarEngine;
+     *  lives in the settings envelope. Absent = on. */
+    familiarOmniscience: 'pd_familiar_omniscience',
     /** Ambient Light options blob. Read + written by AmbientStrip; lives in the
      *  settings envelope. */
     ambient: 'pd_ambient_opts',
@@ -205,6 +208,13 @@ export function hydrateFromRow(row: UserRow): void {
             localStorage.setItem(STATE_CACHE_KEYS.familiarSpecies, s.familiarSpecies);
         } else {
             localStorage.removeItem(STATE_CACHE_KEYS.familiarSpecies);
+        }
+        // Familiar Omniscience — server wins; familiarEngine reads this cache.
+        // Absent on the row = on (the default), so we only cache an explicit off.
+        if (s.familiarOmniscience === false) {
+            localStorage.setItem(STATE_CACHE_KEYS.familiarOmniscience, '0');
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.familiarOmniscience);
         }
         // Ambient Light options — server wins; AmbientStrip re-reads on the
         // hydrate event below so the bar restores across devices.

@@ -88,6 +88,12 @@ export interface UserSettings {
    *  across devices; re-pickable any time from the Familiar modal (Brendon,
    *  2026-06-16). Absent = never chosen (engine rolls a random one). */
   familiarSpecies?: string;
+  /** Omniscience — whether the Familiar may weave in facts pulled live from
+   *  your own account record + activity (hold times, sold-at-a-loss, streak,
+   *  collections…). ON by default; flip off to keep the companion to its
+   *  personality + generic chatter only (Brendon, 2026-06-22). Account-backed
+   *  so the choice follows you across devices. Absent = on. */
+  familiarOmniscience?: boolean;
   /** Ambient Light options (palette / pattern / speed / page-dim). Account-backed
    *  so the LED bar "just works" across devices (Brendon, 2026-06-16). */
   ambient?: {

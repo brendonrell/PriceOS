@@ -25,6 +25,8 @@ import {
     getFamiliarFrame,
     getFamiliarSpeciesName,
     setFamiliarSpecies,
+    getFamiliarOmniscience,
+    setFamiliarOmniscience,
     subscribeFamiliar,
     type FamiliarFrame,
 } from '../lib/engines/familiarEngine';
@@ -40,6 +42,7 @@ export default function FamiliarModal() {
 
     const [title, setTitle] = useState('FAMILIAR');
     const [species, setSpecies] = useState('');
+    const [omni, setOmni] = useState(true);
 
     /* Desktop mouse drag-to-scroll on every tier rail (touch scrolls natively).
        Attached to the body that already contains all rails at mount. */
@@ -54,6 +57,7 @@ export default function FamiliarModal() {
         setSpecies(name);
         setTitle(name ? `FAMILIAR · ${name.toUpperCase()}` : 'FAMILIAR');
         setFrame(getFamiliarFrame());
+        setOmni(getFamiliarOmniscience());
         return subscribeFamiliar((f) => setFrame(f));
     }, [isOpen]);
 
@@ -111,6 +115,30 @@ export default function FamiliarModal() {
                         <b>{discovered}</b> / {total} DISCOVERED
                     </span>
                     <span className="fam-tally-tiers">{TIERS.length} TIERS</span>
+                </div>
+
+                {/* Omniscience — when on, the familiar weaves in facts pulled
+                    live from your own record (hold times, sells, streak…). Off
+                    keeps it to personality + generic chatter (Brendon, 2026-06-22). */}
+                <button
+                    type="button"
+                    className={`fam-omni fam-reveal fam-d2${omni ? ' on' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        const next = !omni;
+                        setOmni(next);
+                        setFamiliarOmniscience(next);
+                        showToast(`Omniscience: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    aria-pressed={omni}
+                >
+                    <span className="fam-omni-label">Omniscience</span>
+                    <span className="fam-omni-state">{omni ? 'ON' : 'OFF'}</span>
+                </button>
+                <div className="fam-omni-hint fam-reveal fam-d2">
+                    {omni
+                        ? 'your familiar knows your history, and may bring it up'
+                        : 'your familiar keeps to its own voice'}
                 </div>
 
                 {/* The four tiers — a collection you fill by playing. */}
@@ -172,7 +200,9 @@ export default function FamiliarModal() {
                 })}
 
                 <div className="fam-foot fam-reveal fam-d6">
-                    tap a locked tier to see how it&apos;s earned
+                    {TIERS.some((t) => t.locked)
+                        ? "tap a locked tier to see how it's earned"
+                        : 'tap any familiar to make it your companion'}
                 </div>
             </div>
         </div>
