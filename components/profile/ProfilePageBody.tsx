@@ -914,7 +914,25 @@ function ProfilePageBodyInner({
         soundtracks: { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist', 'project'] },
         wishlist:    { sorts: ['recent', 'price', 'id', 'project'], groups: ['none'] },
     };
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMorePresetActive(false); setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); }, [moreL1]);
+    /* Remember the user's chosen sort per +More surface, locally — default to
+       Recent (newest-first) when nothing's saved (Brendon, 2026-06-22). */
+    const MORE_SORT_LS = 'pd_more_sort';
+    const readMoreSortStore = (): Record<string, { sort: string; dir: string; group: string }> => {
+        try { return JSON.parse(localStorage.getItem(MORE_SORT_LS) || '{}') || {}; } catch { return {}; }
+    };
+    const restoreMoreSort = () => {
+        const cfgKey = moreL1 === 'wishlists' ? 'wishlist' : moreMode;
+        const allowed = (MORE_CFG[cfgKey]?.sorts ?? ['recent']) as string[];
+        const saved = readMoreSortStore()[`${moreL1}:${moreMode}`];
+        if (saved && allowed.includes(saved.sort)) {
+            setMoreSort(saved.sort as MoreSortKey);
+            setMoreSortDir(saved.dir === 'desc' ? 'desc' : 'asc');
+            setMoreGroup(saved.group || 'none');
+        } else {
+            setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none');
+        }
+    };
+    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMorePresetActive(false); restoreMoreSort(); }, [moreL1]);
     /* Reset sort + grouping when the active filter pill changes so a grouping
        never carries into a filter it can't apply — UNLESS we're applying a
        Starred Preset (which sets mode + sort + group together). */
@@ -1742,7 +1760,7 @@ function ProfilePageBodyInner({
                             hideSortBar
                             profilePills={
                                 (isZen
-                                    ? [{ key: 'albums', label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
+                                    ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
                                         /* Created leads the row for traditional-Top-6
                                            artists — their works are always reachable. */
@@ -1757,7 +1775,7 @@ function ProfilePageBodyInner({
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
                                             ]
                                             : []),
-                                        { key: 'albums',    label: <><span className="pill-tab-ico">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },

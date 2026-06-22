@@ -2082,7 +2082,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* Name matches the bubble polarity: black on white bubbles, white on black. */
 .npc-cast.light .npc-name { color: #000; }
 .npc-cast.dark  .npc-name { color: #fff; }
-.npc-resident.active .npc-name { opacity: 0.65; }
+.npc-resident.active .npc-name { opacity: 1; }
 
 /* Single solid speech bubble. It can't shrink to wrapped text on its own, so
    JS measures the longest line and sets its width to hug exactly (NpcCast). */
@@ -8515,13 +8515,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     color: var(--accent);
 }
 .starred-row.is-selected::after {
-    /* Selected = the black border rectangle, pulled in top/bottom so stacked
-       selections don't touch; overhangs the sides with the content buffered in
-       (Brendon 2026-06-20). */
-    top: 4px;
-    bottom: 4px;
-    border: 2px solid var(--accent);
+    /* Selection ring sits just OUTSIDE the hover-highlight square — same
+       rectangle as the hover fill, with the line drawn outward via box-shadow
+       so it wraps the hover square exactly (Brendon, 2026-06-22). */
     background: transparent;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+/* Desktop: the +More selection ring runs half as thick (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    .starred-row.is-selected::after { box-shadow: 0 0 0 1px var(--accent); }
 }
 /* Underline the top (title) line + extra-bold the bottom (type) line of every
    Starred row (Brendon 2026-06-19). Scoped to the Starred surface so the
@@ -8871,8 +8873,9 @@ body.colorway-dark .ghost-feed-bar {
 /* Desktop: the +More tab icons (Starred / Wishlist / Albums) run two sizes
    smaller and sit 2px lower (Brendon, 2026-06-22). */
 @media (min-width: 601px) {
-    .pill-tab-ico { font-size: 1.08em; top: 1px; }
-    .pill-tab-ico.is-star { font-size: 1.24em; }
+    .pill-tab-ico { font-size: 1.08em; top: 0; }
+    .pill-tab-ico.is-star { font-size: 1.12em; }
+    .pill-tab-ico.is-album { font-size: 1.2em; }
 }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */

@@ -243,7 +243,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     onClick={() => {
                         const next = !notifs.spell_npc;
                         toggle('spell_npc');
-                        showToast(`NPC: ${next ? 'ON' : 'OFF'}`);
+                        showToast(`NPC Cast: ${next ? 'ON' : 'OFF'}`);
                     }}
                     label="NPC"
                 />
