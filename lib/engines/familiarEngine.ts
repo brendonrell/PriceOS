@@ -309,7 +309,7 @@ function _emitDialogue(state: FamiliarState) {
             return;
         }
     }
-    _showBubble(pickDialogue(_species.name, _species.tier, state, _rank));
+    _showBubble(pickDialogue(_species.name, _species.tier, state));
 }
 
 function _resetSleep() {
@@ -615,7 +615,7 @@ export function pokeFamiliar(): void {
     _frameIdx = 0;
     const r = Math.random();
     if (r < 0.4) {
-        _showBubble(pickDialogue(_species.name, _species.tier, 'action', _rank));
+        _showBubble(pickDialogue(_species.name, _species.tier, 'action'));
     } else if (r < 0.8) {
         _showThought(pickThought(_species.tier));
     }

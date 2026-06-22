@@ -25,6 +25,20 @@ import { readStage, pickAwareness, pickFourthWall } from '@/lib/npc/awareness';
 
 type Polarity = 'dark' | 'light';
 
+/* Mischief — one resident (Eddie, the gossip) occasionally sneaks onto the
+   opposite wall, then a neighbour there shoos him home after a couple messages.
+   Makes it read like they talk to each other, not shout into the ether. */
+const MISCHIEF_ID = 'eddie';
+const SNEAK_WALL = 'left'; // opposite Eddie's right-wall home
+const SNEAK_TOP = 33; // sits near a left-wall neighbour while sneaking
+const SHOO_LINES = [
+    'Eddie. Wrong side. Go home.',
+    'Back to your wall, Eddie.',
+    'Not over here, Eddie.',
+    "Eddie's snooping again. Shoo.",
+    'Wrong wall, Eddie. Out.',
+];
+
 /** Pure-B/W choice by page-background darkness: dark bg → black bubble. */
 function readPolarity(): Polarity {
     if (typeof window === 'undefined') return 'dark';
@@ -56,6 +70,12 @@ export function NpcCast() {
     const bubbleRefs = useRef<Record<string, HTMLSpanElement | null>>({});
     const measureRef = useRef<HTMLSpanElement | null>(null);
 
+    /* Mischief state — sneakWall drives render; refs drive the speak-timer logic. */
+    const [sneakWall, setSneakWall] = useState<'left' | null>(null);
+    const sneakWallRef = useRef<'left' | null>(null);
+    const sneakCount = useRef(0);
+    const sneakTarget = useRef(3);
+
     /* What you're doing right now — read from the route. The running speak timer
        reads the latest via a ref so navigation updates without restarting it. */
     const pathname = usePathname();
@@ -66,6 +86,9 @@ export function NpcCast() {
     useEffect(() => {
         if (!on) {
             setActive({});
+            sneakWallRef.current = null;
+            sneakCount.current = 0;
+            setSneakWall(null);
             return;
         }
 
@@ -79,7 +102,47 @@ export function NpcCast() {
                 if (liveIds.length >= 2) return prev; // keep the screen calm
                 const idle = CAST.filter((c) => !prev[c.id]);
                 if (!idle.length) return prev;
+
+                const show = (id: string, line: string) => {
+                    setLineFor((lf) => ({ ...lf, [id]: line }));
+                    setJitter((jt) => ({
+                        ...jt,
+                        [id]: { x: Math.round(Math.random() * 26), y: Math.round((Math.random() * 2 - 1) * 30) },
+                    }));
+                    if (timers[id]) clearTimeout(timers[id]);
+                    timers[id] = setTimeout(() => {
+                        setActive((p) => ({ ...p, [id]: false }));
+                        delete timers[id];
+                    }, 6000);
+                };
+
                 const c = idle[Math.floor(Math.random() * idle.length)];
+
+                // Mischief: Eddie sneaks onto the other wall, then a neighbour
+                // there shoos him home after a couple of messages.
+                if (c.id === MISCHIEF_ID) {
+                    if (sneakWallRef.current && sneakCount.current >= sneakTarget.current) {
+                        const shooers = CAST.filter(
+                            (x) => x.wall === SNEAK_WALL && x.id !== MISCHIEF_ID && !prev[x.id],
+                        );
+                        sneakWallRef.current = null;
+                        sneakCount.current = 0;
+                        setSneakWall(null);
+                        if (shooers.length) {
+                            const s = shooers[Math.floor(Math.random() * shooers.length)];
+                            show(s.id, SHOO_LINES[Math.floor(Math.random() * SHOO_LINES.length)]);
+                            return { ...prev, [s.id]: true };
+                        }
+                    } else if (sneakWallRef.current) {
+                        sneakCount.current += 1;
+                    } else if (Math.random() < 0.3) {
+                        sneakWallRef.current = SNEAK_WALL;
+                        setSneakWall(SNEAK_WALL);
+                        sneakCount.current = 1;
+                        sneakTarget.current = 3 + Math.round(Math.random()); // 3-4 turns → 2-3 messages
+                    }
+                }
+
                 /* Mostly own-world chatter; sometimes they clock what you're
                    doing (third-person), and once in a blue moon break the wall. */
                 const ownWorld = c.lines[Math.floor(Math.random() * c.lines.length)];
@@ -92,16 +155,7 @@ export function NpcCast() {
                 } else {
                     line = ownWorld;
                 }
-                setLineFor((lf) => ({ ...lf, [c.id]: line }));
-                setJitter((jt) => ({
-                    ...jt,
-                    [c.id]: { x: Math.round(Math.random() * 26), y: Math.round((Math.random() * 2 - 1) * 30) },
-                }));
-                if (timers[c.id]) clearTimeout(timers[c.id]);
-                timers[c.id] = setTimeout(() => {
-                    setActive((p) => ({ ...p, [c.id]: false }));
-                    delete timers[c.id];
-                }, 6000);
+                show(c.id, line);
                 return { ...prev, [c.id]: true };
             });
         };
@@ -158,13 +212,17 @@ export function NpcCast() {
         <div className={`npc-cast ${polarity}`} aria-hidden="true">
             {CAST.map((c) => {
                 const j = jitter[c.id] ?? { x: 0, y: 0 };
-                const rStyle: CSSProperties = { top: `calc(${c.top}% + ${j.y}px)` };
-                if (c.wall === 'left') rStyle.marginLeft = j.x;
+                /* Eddie renders on the sneak wall while mischievous. */
+                const sneaking = c.id === MISCHIEF_ID && !!sneakWall;
+                const wall = sneaking ? (sneakWall as 'left') : c.wall;
+                const topPct = sneaking ? SNEAK_TOP : c.top;
+                const rStyle: CSSProperties = { top: `calc(${topPct}% + ${j.y}px)` };
+                if (wall === 'left') rStyle.marginLeft = j.x;
                 else rStyle.marginRight = j.x;
                 return (
                 <div
                     key={c.id}
-                    className={`npc-resident ${c.wall}${active[c.id] ? ' active' : ''}`}
+                    className={`npc-resident ${wall}${active[c.id] ? ' active' : ''}`}
                     style={rStyle}
                 >
                     <span className="npc-name">{c.name}</span>

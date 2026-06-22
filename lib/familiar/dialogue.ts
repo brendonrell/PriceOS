@@ -457,102 +457,6 @@ const TIER_FLAVOR: Record<FamiliarTierId, { scroll: string[]; sleep: string[] }>
     },
 };
 
-/* ── 3. RANK_ATTITUDE — how a tier regards YOU at your rank ──────────────── */
-/* Indexed [tier][band]. Band rises with PriceRank (see rankBand). The arc:
-   BitDaemons grow reverent as you rise; Old Gods test the unworthy and salute
-   the apex as a peer. These are mixed sparingly into idle chatter. */
-
-const RANK_ATTITUDE: Record<FamiliarTierId, [string[], string[], string[], string[]]> = {
-    bitdaemons: [
-        [ // band 0 — newcomer: a buddy
-            'WE START SMALL, YOU AND I.',
-            "STICK WITH ME. WE'LL LEARN THE FLOOR.",
-            "YOU'RE NEW. THAT'S THE FUN PART.",
-        ],
-        [ // band 1 — established: proud
-            "YOU'RE GETTING GOOD AT THIS.",
-            'PEOPLE ARE STARTING TO NOTICE YOU.',
-            'NICE CLIMB. I SAW EVERY STEP.',
-        ],
-        [ // band 2 — authority: impressed
-            'LOOK AT YOU NOW. AN AUTHORITY.',
-            'I JUST RIDE ALONG. YOU DRIVE THE PRICE.',
-            'THE FEED WATCHES WHAT YOU DO.',
-        ],
-        [ // band 3 — apex: reverent
-            "YOU'VE BECOME SOMETHING. I JUST FOLLOW THE GLOW.",
-            'I AM A SMALL THING ORBITING A LARGE ONE: YOU.',
-            'TO THINK I FOUND YOU BEFORE ALL THIS.',
-        ],
-    ],
-    titans: [
-        [ // band 0 — testing, gruff
-            'YOU ARE SMALL. PROVE OTHERWISE.',
-            'I DO NOT FOLLOW THE UNTRIED.',
-            'CLIMB. THEN WE WILL SPEAK.',
-        ],
-        [ // band 1
-            'YOU SHOW STRENGTH. KEEP IT.',
-            'NOT NOTHING. NOT YET SOMETHING.',
-            'I AM WATCHING YOUR CLIMB.',
-        ],
-        [ // band 2
-            'YOU HAVE EARNED MY ATTENTION.',
-            'FEW REACH THIS HEIGHT. YOU DID.',
-            'I STAND WITH YOU NOW.',
-        ],
-        [ // band 3 — loyalty
-            'I FOLLOW FEW. I FOLLOW YOU.',
-            'YOU STAND AT MY HEIGHT. WELL DONE.',
-            'COMMAND ME. I ANSWER TO STRENGTH LIKE YOURS.',
-        ],
-    ],
-    ascended: [
-        [ // band 0 — cryptic, distant
-            'YOU ARE NOT YET READY TO SEE.',
-            'THE LIGHT IS FAINT TO NEW EYES.',
-            'ASCEND FIRST. THEN UNDERSTAND.',
-        ],
-        [ // band 1
-            'YOUR EYES BEGIN TO OPEN.',
-            'YOU SENSE THE PATTERN NOW.',
-            'THE CLIMB IS ALSO A RISING.',
-        ],
-        [ // band 2
-            'YOU SEE MORE THAN MOST EVER WILL.',
-            'THE SACRED IS LESS HIDDEN FROM YOU.',
-            'YOU NEAR THE THRESHOLD.',
-        ],
-        [ // band 3 — equals in ascension
-            'YOU HAVE ASCENDED. WE ARE OF ONE LIGHT.',
-            'I SPEAK TO YOU AS I SPEAK TO MY OWN.',
-            'YOU SEE WHAT I SEE NOW. WELCOME.',
-        ],
-    ],
-    oldgods: [
-        [ // band 0 — you have NOT earned them
-            'YOU HAVE NOT EARNED MY AGE.',
-            'A MAYFLY ADDRESSES A MOUNTAIN.',
-            'COME BACK WHEN YOU HAVE LIVED LONGER.',
-        ],
-        [ // band 1
-            'STILL YOUNG. BUT YOU PERSIST.',
-            'THE AGES HAVE NOTICED YOU. BARELY.',
-            'YOU ENDURE. THAT IS A BEGINNING.',
-        ],
-        [ // band 2
-            'YOU HAVE OUTLASTED MANY. I MARK IT.',
-            'FEW MORTALS REACH MY SHADOW. YOU HAVE.',
-            'YOUR NAME IS BEGINNING TO LAST.',
-        ],
-        [ // band 3 — equal on their level, respect not pandering
-            'YOU CLIMBED TO WHERE GODS DWELL. WE ARE EQUALS HERE.',
-            'I SPEAK TO YOU AS ONE ANCIENT TO ANOTHER.',
-            'YOU REACHED MY LEVEL. I RESPECT NO HIGHER THING.',
-        ],
-    ],
-};
-
 /* ── Thoughts — poke/pet reactions (rendered italic, OUTSIDE the bubble) ────
    When you poke the familiar it reacts; sometimes it speaks (persona action
    line, via pickDialogue), sometimes it just emits a little *thought* — a
@@ -607,17 +511,14 @@ function rand<T>(arr: T[]): T {
 }
 
 /**
- * Pick a line for the given familiar + state, coloured by PriceRank.
- *
- * For idle, ~1-in-3 lines is a rank-attitude line (how this creature regards
- * you right now) — the rest are the familiar's own personality. Action lines
- * are pure personality. Scroll / sleep use the tier flavour pool.
+ * Pick a line for the given familiar + state — pure personality. The familiar
+ * NEVER speaks about your rank / respecting you (Brendon, 2026-06-22); rank is
+ * only ever meant to colour tone, never to be stated.
  */
 export function pickDialogue(
     name: string,
     tier: FamiliarTierId,
     state: 'idle' | 'action' | 'scroll' | 'sleep',
-    rank: number,
 ): string {
     const persona = PERSONA[name];
 
@@ -629,12 +530,7 @@ export function pickDialogue(
         return rand(TIER_FLAVOR[tier].scroll);
     }
 
-    // idle
-    const band = rankBand(rank);
-    const attitude = RANK_ATTITUDE[tier][band];
-    if (attitude && attitude.length && Math.random() < 0.34) {
-        return rand(attitude);
-    }
+    // idle — the familiar's own personality
     if (persona && persona.idle.length) return rand(persona.idle);
-    return rand(attitude);
+    return rand(TIER_FLAVOR[tier].scroll);
 }
