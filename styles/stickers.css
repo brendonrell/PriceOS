@@ -338,7 +338,7 @@
    rendered on desktop, so mobile is wholly unaffected. */
 .ss-card-preview .ss-card-art-fill {
     height: auto;
-    min-height: 170px;
+    min-height: 85px;
     padding: 16px 14px;
     align-items: center;
     border-bottom: none;
