@@ -1513,6 +1513,20 @@ body.modal-open { overflow: hidden; touch-action: none; }
     opacity: 0.75;
 }
 
+/* Turn-off control — dismiss the whole feature (re-enable in the Spell Book). */
+.fam-off-btn {
+    display: block; margin: 18px auto 6px auto;
+    background: transparent;
+    border: 1.5px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+    border-radius: 8px; padding: 8px 18px;
+    color: var(--text-color); opacity: 0.8;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px; letter-spacing: 0.5px;
+    cursor: pointer; transition: opacity 0.15s, border-color 0.15s;
+}
+.fam-off-btn:hover { opacity: 1; border-color: var(--text-color); }
+.fam-off-btn:active { transform: scale(0.97); }
+
 /* Foot note — Sticker-modal idiom. */
 .fam-foot {
     text-align: center;

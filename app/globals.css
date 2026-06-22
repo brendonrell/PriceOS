@@ -2092,6 +2092,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .npc-cast.dark  .npc-bubble { background: #000; color: #fff; }
 .npc-cast.light .npc-bubble { background: #fff; color: #000; }
 
+/* Tail pointing back to the wall — half the original size (Brendon, 2026-06-22). */
+.npc-bubble::before {
+    content: ''; position: absolute; top: 14px;
+    width: 5px; height: 5px; transform: rotate(45deg);
+    background: inherit;
+}
+.npc-resident.left  .npc-bubble::before { left: -2.5px; }
+.npc-resident.right .npc-bubble::before { right: -2.5px; }
+
 /* Active → run the character's entrance, ending settled (opacity 1, no offset). */
 .npc-resident.active .npc-bubble { opacity: 1; animation-fill-mode: both; }
 .npc-resident.active .npc-anim-glide  { animation: npc-glide  0.55s cubic-bezier(0.22, 0.9, 0.3, 1); }

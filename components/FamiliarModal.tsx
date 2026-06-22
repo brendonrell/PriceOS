@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import {
     getFamiliarFrame,
     getFamiliarSpeciesName,
@@ -55,6 +56,7 @@ const ENERGY_OPTIONS: { id: string; label: string }[] = [
 export default function FamiliarModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
+    const { update } = usePdNotifs();
     const isOpen = openModal?.name === 'familiar';
 
     const [title, setTitle] = useState('FAMILIAR');
@@ -291,10 +293,20 @@ export default function FamiliarModal() {
                     );
                 })}
 
+                <button
+                    type="button"
+                    className="fam-off-btn fam-reveal fam-d6"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        update({ spell_familiar: false });
+                        showToast('Familiar: OFF');
+                        close();
+                    }}
+                >
+                    Turn off Familiar
+                </button>
                 <div className="fam-foot fam-reveal fam-d6">
-                    {TIERS.some((t) => t.locked)
-                        ? "tap a locked tier to see how it's earned"
-                        : 'tap any familiar to make it your companion'}
+                    re-enable any time in the Spell Book
                 </div>
             </div>
         </div>
