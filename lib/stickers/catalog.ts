@@ -284,7 +284,7 @@ const RARITY_HUES = genHues(RARITY_WORDS.length, 'rr', { sat: 86, lights: [54, 4
 const RARITIES: Sticker[] = RARITY_WORDS.map<Sticker>((w, i) => {
     const hex = RARITY_HUES[i]!.hex;
     return { id: `rarity-${w.toLowerCase()}`, sheet: 'rarity', kind: 'face', name: w, glyph: w, color: hex, cutout: cutoutFor(hex) };
-});
+}).filter((s) => s.id !== 'rarity-epic'); // EPIC removed; others keep their exact hue (Brendon 2026-06-22)
 
 /* ── True Names sheet — each project's Glagolitic true name ────────────────── */
 const TRUE_HUES = genHues(PROJECT_LIST.length, 'tn', { sat: 80, lights: [52, 44, 60], phase: 160 });
