@@ -38,6 +38,7 @@ import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
@@ -281,6 +282,7 @@ function HomePageBodyInner({
     /* @brendon's real follower count + mutual badge beside the home byline —
        PD is his art, so the home credits him exactly like an artist on a project
        page (Brendon 2026-06-15). Hidden when he has zero followers. */
+    const { notifs } = usePdNotifs();
     const [brendonSocial, setBrendonSocial] = useState<{ followers: number; mutual: boolean }>(
         { followers: 0, mutual: false },
     );
@@ -695,6 +697,12 @@ function HomePageBodyInner({
                                 </span>
                                 {brendonSocial.mutual && (
                                     <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                                )}
+                                {/* Cartel ⟁ — perk of being mutuals with @brendon (or being
+                                    him): when Cartel is on, his name carries the cartel mark.
+                                    Icon only, no count (Brendon, 2026-06-22). */}
+                                {notifs.spell_cartel && brendonSocial.mutual && (
+                                    <span className="id-cartel" aria-label="cartel">{'⟁︎'}</span>
                                 )}
                             </span>
                             {brendonSocial.followers > 0 && (

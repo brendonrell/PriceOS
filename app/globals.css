@@ -2054,6 +2054,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: fixed; inset: 0; z-index: 140;
     pointer-events: none;
 }
+/* Never obstruct clicks — the cast is purely decorative; the mouse passes
+   through every part of it to whatever's underneath (Brendon, 2026-06-22). */
+.npc-cast * { pointer-events: none; }
 .npc-resident {
     position: absolute;
     display: flex; flex-direction: column; gap: 4px;
@@ -4291,6 +4294,14 @@ button,
     -webkit-font-smoothing: antialiased;
     text-rendering: geometricPrecision;
     font-synthesis: none;
+}
+/* Per-pill desktop icon-size tweaks (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    #sb-arbitrage .st-icon { font-size: 14px; }
+    #sb-invisible .st-icon,
+    #sb-tarot .st-icon,
+    #sb-aura .st-icon { font-size: 14px; }
+    #sb-redacted .st-icon { font-size: 14px !important; }
 }
 
 /* Echo Chamber star sits a touch larger desktop-side. */
@@ -9032,9 +9043,11 @@ body.colorway-dark .ghost-feed-bar {
     line-height: 0;
     vertical-align: middle;
 }
-/* Desktop runs the title star 20% smaller (Brendon 2026-06-19). */
+/* Desktop runs the title star 20% smaller (Brendon 2026-06-19) + nudged 2px
+   lower (Brendon 2026-06-22). Also shrinks the starred-soundtrack ★ two sizes. */
 @media (min-width: 601px) {
-    .project-name-star { font-size: 0.96em; }
+    .project-name-star { font-size: 0.96em; position: relative; top: 2px; }
+    .btn-soundtrack .soundtrack-star-icon { transform: scale(1.8); }
 }
 
 /* Cartel badge — ⟁ + the mutual count, beside the name like the star (and
@@ -9054,6 +9067,18 @@ body.colorway-dark .ghost-feed-bar {
 }
 /* When the project is starred, the star sits right before the badge — pull the
    ⟁ + count in closer to it (Brendon, 2026-06-21). */
+/* Cartel mark beside @brendon in the home identity row — perk of being mutuals
+   with him. Icon only, no count; sized to read as a row tag (Brendon, 2026-06-22). */
+.id-cartel {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    font-size: 17px;
+    display: inline-block;
+    line-height: 0;
+    vertical-align: middle;
+    margin-left: 0.2em;
+    opacity: 0.85;
+}
 .project-name-star + .project-cartel { margin-left: 0.12em; }
 .project-cartel .pc-ico { font-size: 1.15em; }
 .project-cartel .pc-num { font-size: 0.82em; margin-left: 1px; }
