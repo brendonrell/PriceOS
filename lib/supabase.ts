@@ -311,6 +311,10 @@ export interface EventRow {
    *  by the feed routes so the UI can read "@you did X" without a second hop. */
   from_handle?: string | null;
   to_handle?: string | null;
+  /** SALE only: true when the seller now owns ZERO of this project (dumped
+   *  their whole bag) — drives the "{PROJECT} unfollowed @seller" tape gag.
+   *  Distinct from a project being sold out (Brendon, 2026-06-22). */
+  from_zeroed?: boolean;
 }
 
 export interface ProjectRow {

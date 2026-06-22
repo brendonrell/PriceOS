@@ -29,10 +29,10 @@ import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 function RailItem({ item }: { item: TapeFeedItem }) {
     const isSpited = useSpiteMatcher();
     const boldClass = item.type === 'mint' ? ' bold' : '';
-    if (item.follow) {
+    if (item.follow || item.unfollow) {
         return (
             <span className="tape-item bold">
-                <b>{item.coll.toUpperCase()}</b> started following{' '}
+                <b>{item.coll.toUpperCase()}</b> {item.follow ? 'started following' : 'unfollowed'}{' '}
                 <b className={item.name && isSpited(item.name) ? 'spited' : undefined}>{item.name}</b>
             </span>
         );

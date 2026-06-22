@@ -43,6 +43,9 @@ export interface TapeFeedItem {
     /** Collect gag — render as "{PROJECT} started following {name}" instead of
      *  the normal line (Brendon, 2026-06-22). */
     follow?: boolean;
+    /** Dump gag — render as "{PROJECT} unfollowed {name}" when the seller
+     *  zeroed out their bag of this project (Brendon, 2026-06-22). */
+    unfollow?: boolean;
 }
 
 export const WALLETS: TapeWallet[] = [
@@ -139,16 +142,20 @@ function tapeShortAddr(a: string | null): string {
 }
 
 export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
-    const toSide = e.type === 'MINT' || e.type === 'SALE';
-    const handle = toSide ? e.to_handle : e.from_handle;
-    const addr = toSide ? e.to_address : e.from_address;
-    const tid = e.token_id ? e.token_id.slice(e.token_id.lastIndexOf('-') + 1) : '0';
-    /* A collect makes the project follow you — render ~half of mints as
-       "{PROJECT} started following @you" for tape flavour. Deterministic per
-       event id so it stays stable across re-renders (Brendon, 2026-06-22). */
+    /* Dump gag wins: a SALE that zeroed the seller's bag reads as the project
+       unfollowing the SELLER. Otherwise a collect makes the project follow the
+       buyer — ~half of mints render as that, deterministic per event id. */
+    const unfollow = e.type === 'SALE' && !!e.from_zeroed;
     const follow =
+        !unfollow &&
         e.type === 'MINT' &&
         Array.from(e.id).reduce((s, c) => s + c.charCodeAt(0), 0) % 2 === 0;
+    /* Unfollow names the seller (from side); follow + normal lines name the
+       to-side for MINT/SALE, else the from side. */
+    const useFrom = unfollow || !(e.type === 'MINT' || e.type === 'SALE');
+    const handle = useFrom ? e.from_handle : e.to_handle;
+    const addr = useFrom ? e.from_address : e.to_address;
+    const tid = e.token_id ? e.token_id.slice(e.token_id.lastIndexOf('-') + 1) : '0';
     return {
         type: TAPE_TYPE[e.type] ?? 'mint',
         name: handle ? `@${handle}` : tapeShortAddr(addr ?? null),
@@ -158,6 +165,7 @@ export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
         id: Number(tid) || 0,
         price: e.price_eth ? `${e.price_eth} ETH` : null,
         follow,
+        unfollow,
     };
 }
 

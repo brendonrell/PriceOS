@@ -90,6 +90,30 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .slice(0, limit);
     await attachHandles(db, events);
 
+    /* Flag SALE events where the seller now owns ZERO of that project (dumped
+       the whole bag) → powers the tape's "{PROJECT} unfollowed @seller" gag.
+       One batched holders read for the sellers/projects on this page. */
+    const sales = events.filter((e) => e.type === 'SALE' && e.from_address);
+    if (sales.length > 0) {
+      const sellers = Array.from(new Set(sales.map((e) => e.from_address!.toLowerCase())));
+      const projs = Array.from(new Set(sales.map((e) => e.project_id)));
+      const { data: holds } = await db
+        .from('holders')
+        .select('owner_address, project_id')
+        .in('owner_address', sellers)
+        .in('project_id', projs);
+      const stillHolds = new Set(
+        ((holds ?? []) as Array<{ owner_address: string; project_id: string }>).map(
+          (h) => `${h.owner_address.toLowerCase()}|${h.project_id}`,
+        ),
+      );
+      for (const e of sales) {
+        if (!stillHolds.has(`${e.from_address!.toLowerCase()}|${e.project_id}`)) {
+          e.from_zeroed = true;
+        }
+      }
+    }
+
     const response: GlobalFeedResponse = {
       events,
       next_cursor: events.length === limit ? events[events.length - 1].timestamp : null,

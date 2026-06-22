@@ -45,10 +45,11 @@ const NULL_REPEAT = 8;
    diamond in the rail below, so a price never butts against the next name. */
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
-    if (item.follow) {
+    if (item.follow || item.unfollow) {
         return (
             <span className="tape-item bold">
-                <span className="tape-coll">{item.coll.toUpperCase()}</span> started following {item.name}
+                <span className="tape-coll">{item.coll.toUpperCase()}</span>{' '}
+                {item.follow ? 'started following' : 'unfollowed'} {item.name}
             </span>
         );
     }
