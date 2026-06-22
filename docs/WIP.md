@@ -12,11 +12,13 @@
 - **Updated:** 2026-06-22 (latest). This session = **DIGITAL FAMILIAR overhaul + NPC CAST +
   project-follow tape gags + a big batch of spot edits** (🐉 below), all shipped to dev.
   Prior: STICKER MODE polish (🏷️), HALO 4-PROJECT (🌗), OUTPUT ATTRIBUTES (🪪), STARRED/WISHLIST (⭐).
-- **QUEUED (not built):** **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
+- **QUEUED (not built):** (1) **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
   LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
   The Tape. Confirmed source = the homepage milestone feed (`projects.milestones` JSONB / home feed,
-  NOT the events ledger) — so this needs a global milestone source merged into `useTapeFeed`/`/api/feed`.
-  Follow + unfollow gags already shipped this session; milestones are the remaining piece Brendon asked for.
+  NOT the events ledger) — needs a global milestone source merged into `useTapeFeed`/`/api/feed`.
+  (2) **My Network "Fresh Wallets"** is meant to mean *freshly-made-on-Ethereum* wallets, but we don't
+  index on-chain wallet age — so it currently runs on a PD-account-recency proxy (< 30d). Real version
+  needs Alchemy first-tx/nonce per owner. "New to PD" (< 7d signup) IS data-backed and correct.
 
 ## 🐉 DIGITAL FAMILIAR + NPC CAST + tape gags — shipped to dev 2026-06-22
 - **Familiar:** all 35 species now selectable + animated (engine knew only 5); all tiers unlocked for
@@ -41,6 +43,11 @@
   removal + desktop width cap; menu tape uses the LIVE feed (was mock); sticker store desktop stacked
   previews (uniform half-height, toggle "Sticker Store: COMPACT", MOBILE UNCHANGED); MY PD price-logo
   toast → "Logo: \$PRICE / Standard"; MY PD desktop icon nudges (stickers/ambient/price-logo).
+- **Late batch (also shipped):** NPC bubbles now use a project's REGULAR display name (not the raw
+  slug) and wrap long names inside the bubble; Celestia's script letters tightened. Starred Projects
+  rows now navigate to the project on click (was dead unless multi-select). My Network: relationship
+  glyphs (Mutuals/Following/Followers) larger on desktop; renamed 'New Wallets' → 'Fresh Wallets' +
+  added 'New to PD' pill; trait-pill clear ✕ down 1px; project soundtrack ★ one size smaller — desktop.
 
 ## 🏷️ STICKER MODE — big polish pass shipped to dev 2026-06-22
 - **Store** = STICKER STORE // BY PD. Carousel CTAs pinned to card bottom (no jumping); a ⊞
