@@ -60,9 +60,9 @@ const CAROUSEL_SIZE = 18;
    (Brendon's call). Flip this to true to show it on every carousel — it's
    already formatted + wraps as a unit (Brendon, 2026-06-16). */
 const SHOW_CAROUSEL_ARTIST = false;
-/* Outputs in the Shuffle grid — a fresh random project's 24 random outputs
+/* Outputs in the Shuffle grid — a fresh random project's 18 random outputs
    on every entry (Brendon 2026-06-13). */
-const SHUFFLE_SIZE = 24;
+const SHUFFLE_SIZE = 18;
 
 /* "Featuring" credits — the REAL artist roster, from the registry
    (every project's artist, de-duped). New projects feed this automatically. */
