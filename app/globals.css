@@ -8285,6 +8285,69 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
        PriceDay date stamp is hidden (home hero only). */
     .home-title .project-date-wrap { display: none; }
 }
+
+/* ── Profile Logo picker — the long-press carousel under the home title ──
+   Same scroll chrome as Now Minting, but title-less and with smaller tiles
+   so many logos sit on screen at once. */
+.home-logo-carousel { margin: 6px 0 2px; }
+.home-logo-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 40px 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+}
+.home-logo-track::-webkit-scrollbar { height: 0; width: 0; background: transparent; }
+.home-logo-cell {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.home-logo-cell:hover { transform: translateY(-1px); }
+.home-logo-cell.active { border-color: var(--text-color); }
+@media (max-width: 600px) {
+    .home-logo-track { padding: 4px 20px 8px; }
+}
+
+/* The logo mark itself — bubble outline + the inner glyph/per-mille, used in
+   the picker and as the site-chrome override on a profile. */
+.plogo-mark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+.plogo-bubble-svg { width: 100%; height: 100%; display: block; }
+.plogo-glyph {
+    position: absolute;
+    left: 51%;
+    top: 43%;
+    transform: translate(-50%, -50%);
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+.plogo-glyph-inter {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 800;
+}
+/* Navbar override wrapper — match the default logo's 28px footprint. */
+.logo-profile-override { display: inline-flex; align-items: center; height: 28px; }
+
 /* ── Featuring rows (home hero) ──────────────────────────────────────
    Two lines, one chip each, re-rolled per page load. Markup mirrors the
    sim verbatim: one .info-rubik text span, a literal <br> between the
