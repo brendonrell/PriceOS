@@ -73,8 +73,10 @@ import {
     enableFamiliar,
     disableFamiliar,
     subscribeFamiliar,
+    setFamiliarContext,
     type FamiliarFrame,
 } from '../../lib/engines/familiarEngine';
+import { useAuth } from '../../lib/state/AuthContext';
 import {
     seedStarfield,
     clearStarfield,
@@ -107,6 +109,7 @@ export function Backgrounds() {
     const { notifs } = usePdNotifs();
     const { open: openModal } = useModal();
     const { colorway, setColorway } = useColorway();
+    const { siweAddress, priceRank } = useAuth();
     const starfieldRef = useRef<HTMLDivElement | null>(null);
     /* Holds the colorway key that was active at the moment stargazing
        flipped on. Captured on the ON-edge so flip-off can restore it
@@ -313,6 +316,7 @@ export function Backgrounds() {
             setFrame(EMPTY_FRAME);
             return;
         }
+        setFamiliarContext({ address: siweAddress, rank: priceRank });
         enableFamiliar();
         const unsub = subscribeFamiliar(setFrame);
         return () => {
@@ -320,6 +324,13 @@ export function Backgrounds() {
             disableFamiliar();
         };
     }, [notifs.spell_familiar]);
+
+    /* Keep the familiar's knowledge of you current: feed it your identity +
+       rank whenever the auth context settles or changes. Address change while
+       enabled re-pulls Omniscience knowledge; rank change recolours dialogue. */
+    useEffect(() => {
+        setFamiliarContext({ address: siweAddress, rank: priceRank });
+    }, [siweAddress, priceRank]);
 
     /* Inline style — only set --familiar-outline when an outline is
        active; otherwise leave the CSS var undefined so the rule

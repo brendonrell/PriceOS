@@ -1963,9 +1963,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 .familiar-sprite {
     font-family: 'Courier New', Courier, monospace !important;
-    font-size: 14px !important; font-weight: bold; line-height: 1;
+    font-size: 14px !important; font-weight: bold; line-height: 1.05;
     opacity: 0.75; letter-spacing: -0.5px;
     transition: opacity 0.3s;
+    /* Multi-line companions (the towering Titans / carved Old Gods) carry \n in
+       their frames — keep the rows intact and left-aligned. */
+    display: inline-block; white-space: pre; text-align: left;
 }
 
 .familiar-sprite.outlined {

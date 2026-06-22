@@ -88,6 +88,11 @@ const OLD_GODS: BestiaryEntry[] = [
     { name: 'Glacier', art: '▓▓▓▓▓\n╲▓▓▓╱\n▒╲▓╱▒\n░▒∇▒░\n░░░░░' },
 ];
 
+/* TESTING (Brendon, 2026-06-22): every tier is unlocked so the whole roster is
+   selectable right now. The unlock conditions below are the real gating copy —
+   flip this to false to re-arm tier locking when the rank gates wire in. */
+const ALL_UNLOCKED = true;
+
 export const TIERS: readonly BestiaryTier[] = [
     {
         id: 'bitdaemons',
@@ -102,7 +107,7 @@ export const TIERS: readonly BestiaryTier[] = [
         label: 'Titans',
         rarity: 'RARE',
         unlock: 'Earned through achievements.',
-        locked: true,
+        locked: !ALL_UNLOCKED,
         entries: TITANS,
     },
     {
@@ -110,7 +115,7 @@ export const TIERS: readonly BestiaryTier[] = [
         label: 'Ascended',
         rarity: 'RARE',
         unlock: 'Grown through time spent with your familiar.',
-        locked: true,
+        locked: !ALL_UNLOCKED,
         entries: ASCENDED,
     },
     {
@@ -118,7 +123,7 @@ export const TIERS: readonly BestiaryTier[] = [
         label: 'Old Gods',
         rarity: 'MYTHIC',
         unlock: 'Awakened by holding through long tenure.',
-        locked: true,
+        locked: !ALL_UNLOCKED,
         entries: OLD_GODS,
     },
 ];
