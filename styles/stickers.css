@@ -241,16 +241,16 @@
 .ss-card-tag { color: var(--text-color); }
 .ss-card-meta .ss-buy { margin-top: auto; }
 
-/* Buy chip — the app's pill idiom: bordered, inverts on hover. */
+/* Buy chip — filled (the swapped state); inverts to outlined on hover. */
 .ss-buy {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
+    background: var(--text-color);
+    border: 1px solid var(--text-color);
+    color: var(--bg-color);
     border-radius: 6px;
     padding: 9px 10px;
     font-family: inherit;
@@ -261,8 +261,8 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .ss-buy:hover {
-    background: var(--text-color);
-    color: var(--bg-color);
+    background: transparent;
+    color: var(--text-color);
     border-color: var(--text-color);
 }
 .ss-buy-px { font-weight: bold; }
@@ -277,18 +277,18 @@
     transition: width 0.9s ease;
     pointer-events: none;
 }
-/* Owned — settled filled state, no longer pressable. */
+/* Owned — settled outlined/themed state (the swapped look), no longer pressable. */
 .ss-buy-owned {
-    background: var(--text-color);
-    color: var(--bg-color);
-    border-color: var(--text-color);
+    background: transparent;
+    color: var(--text-color);
+    border-color: var(--border-color);
     cursor: default;
     opacity: 1;
 }
 .ss-buy-owned:hover {
-    background: var(--text-color);
-    color: var(--bg-color);
-    border-color: var(--text-color);
+    background: transparent;
+    color: var(--text-color);
+    border-color: var(--border-color);
 }
 .ss-card.locked .ss-buy { cursor: not-allowed; }
 .ss-card.locked .ss-buy:hover {
