@@ -234,13 +234,21 @@ export default function StickersModal() {
                         return (
                             <div className="ss-paper-wrap">
                                 <div className={`ss-paper ${cls}`}>
-                                    {draw.map((s) => (
-                                        <span key={s.id} className="ss-cell" title={s.name}>
-                                            {mode === 'flow'
-                                                ? <StickerArt sticker={s} size={40} diecut />
-                                                : <StickerArt sticker={s} fill diecut />}
-                                        </span>
-                                    ))}
+                                    {mode === 'flow'
+                                        ? Array.from({ length: Math.ceil(draw.length / 2) }, (_, r) => (
+                                            <div className="ss-flow-row" key={r}>
+                                                {draw.slice(r * 2, r * 2 + 2).map((s) => (
+                                                    <span key={s.id} className="ss-cell" title={s.name}>
+                                                        <StickerArt sticker={s} size={40} diecut />
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ))
+                                        : draw.map((s) => (
+                                            <span key={s.id} className="ss-cell" title={s.name}>
+                                                <StickerArt sticker={s} fill diecut />
+                                            </span>
+                                        ))}
                                 </div>
                             </div>
                         );
