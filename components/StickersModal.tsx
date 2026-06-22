@@ -38,7 +38,7 @@ function fanFor(sheet: SheetMeta) {
     const all = stickersForSheet(sheet.id);
     /* Rarity preview reads better with a SHORT word (small chip) in the middle. */
     if (sheet.id === 'rarity') {
-        const pick = ['rarity-common', 'rarity-grail', 'rarity-rare']
+        const pick = ['rarity-common', 'rarity-rare', 'rarity-grail']
             .map((id) => all.find((s) => s.id === id))
             .filter((s): s is Sticker => Boolean(s));
         if (pick.length === 3) return pick;
