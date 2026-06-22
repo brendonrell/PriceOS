@@ -221,8 +221,12 @@ export default function StickersModal() {
                     })()
                 ) : (
                     <>
+                        {/* Promo strip — attention yellow, empty for now. */}
+                        <div className="ss-promo" aria-hidden="true" />
+
                         <div className="ss-ticker" aria-hidden="true">
                             <div className="ss-ticker-track">
+                                <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
                                 <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
                                 <span>GENESIS LIVE · PETEY LIVE · MORE SHEETS RESTOCKING · SHEETS SELL WHOLE · PRIMARY ONLY · </span>
                             </div>
