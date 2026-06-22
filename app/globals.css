@@ -2075,8 +2075,8 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     font-size: 11px; letter-spacing: 1px;
+    /* Hidden until the resident speaks, then fully solid — no fade (Brendon). */
     opacity: 0;
-    transition: opacity 0.3s;
     padding: 0 4px;
 }
 /* Name matches the bubble polarity: black on white bubbles, white on black. */
@@ -2084,7 +2084,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    similarly-coloured background (Brendon, 2026-06-22). */
 .npc-cast.light .npc-name { color: #000; text-shadow: 0 0 2px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(255, 255, 255, 0.8); }
 .npc-cast.dark  .npc-name { color: #fff; text-shadow: 0 0 2px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.5); }
-.npc-resident.active .npc-name { opacity: 1; }
+.npc-resident.active .npc-name { opacity: 1 !important; }
 
 /* Single solid speech bubble. It can't shrink to wrapped text on its own, so
    JS measures the longest line and sets its width to hug exactly (NpcCast). */
