@@ -127,7 +127,7 @@
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: bold;
     letter-spacing: 0.18em;
     color: color-mix(in srgb, var(--text-color) 92%, transparent);

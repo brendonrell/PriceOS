@@ -74,6 +74,9 @@ export default function StickersModal() {
 
     /* Auto-generated salesman feed (content), refreshed each open. */
     const tickerText = useMemo(() => buildTickerText(), [isOpen]);
+    /* Match the OLD crawl pace (~3.3 chars/sec): scale the timer to the feed
+       length so the longer feed doesn't fly by. */
+    const tickerDur = Math.max(26, Math.round(tickerText.length / 3.3));
 
     const ownedIds = useOwnedStickerIds();
     const totalSheets = REAL_SHEETS.length;
@@ -230,7 +233,7 @@ export default function StickersModal() {
                         {!expanded && <div className="ss-promo" aria-hidden="true" />}
 
                         <div className="ss-ticker" aria-hidden="true">
-                            <div className="ss-ticker-track">
+                            <div className="ss-ticker-track" style={{ animationDuration: `${tickerDur}s` }}>
                                 <span>{tickerText}</span>
                                 <span>{tickerText}</span>
                             </div>
