@@ -140,7 +140,7 @@ export function NpcCast() {
             const rects = m.getClientRects();
             let w = 0;
             for (let i = 0; i < rects.length; i++) w = Math.max(w, rects[i].width);
-            el.style.width = w > 0 ? `${Math.ceil(w + padX + 1)}px` : '';
+            el.style.width = w > 0 ? `${Math.ceil(w + padX + 1) + (c.widthAdjust ?? 0)}px` : '';
         }
     }, [active, lineFor]);
 

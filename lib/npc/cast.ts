@@ -52,6 +52,9 @@ export interface NpcCharacter {
     style: UnicodeStyle;
     /** How their bubble enters — a recognisable motion signature. */
     anim: EntranceAnim;
+    /** Per-character px nudge to the measured bubble width (some unicode fonts
+     *  measure a hair wide). Optional; defaults to 0. */
+    widthAdjust?: number;
     lines: string[];
 }
 
@@ -110,7 +113,7 @@ export function styleText(text: string, style: UnicodeStyle): string {
 
 export const CAST: NpcCharacter[] = [
     {
-        id: 'rocco', name: 'Rocco', wall: 'left', top: 17, style: 'bold', anim: 'glide',
+        id: 'rocco', name: 'Rocco', wall: 'left', top: 17, style: 'bold', anim: 'glide', widthAdjust: -8,
         lines: [
             "It's good. I don't need you to think so.",
             'Sold mine. Got loud in here.',
