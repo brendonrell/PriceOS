@@ -38,6 +38,11 @@
     transform: translateY(100%);
     transition: transform 0.34s cubic-bezier(0.16, 0.84, 0.34, 1);
     overflow: hidden;
+    /* Bounded to the screen + a column so the sticker area can be the scroll
+       region — tall sheets scroll instead of running off the bottom. */
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
     font-family: 'Courier New', Courier, monospace;
 }
 .sticker-sheet-backdrop.active .sticker-sheet {
@@ -347,10 +352,15 @@
 }
 .ss-paper-wrap {
     padding: 14px 16px 18px;
-    max-height: min(74vh, 680px);
+    /* Fill the room left under the header and scroll — the sheet itself is now
+       capped to the screen, so this is the scroll region for tall sheets. */
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
 }
 /* One standard backing sheet. Square corners, solid paper that's the OPPOSITE of
    the page (white on dark colorways, black on light) — and the die-cut margin
