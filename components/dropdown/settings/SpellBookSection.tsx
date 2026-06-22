@@ -253,7 +253,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                             showToast(`NPC: ${next}`);
                         }
                     }}
-                    label={notifs.spell_npc ? `NPC · ${notifs.npc_size}` : 'NPC'}
+                    label={notifs.spell_npc ? `NPC ${notifs.npc_size}` : 'NPC'}
                 />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs
