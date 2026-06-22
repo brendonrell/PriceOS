@@ -31,13 +31,8 @@
  * body.sentiment-on — empty/invisible by default in step 2.
  */
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
-import ProfileLogoMark from '@/components/profile/ProfileLogoMark';
-import {
-    getActiveProfileLogo,
-    subscribeActiveProfileLogo,
-} from '@/lib/state/profileLogoActive';
 import {
     getSentimentState,
     subscribeSentiment,
@@ -51,16 +46,6 @@ export function PeteyLogo() {
 
     const showPrice = notifs.priceLogo;
     const showSentiment = notifs.sentimentOn;
-
-    /* Profile Logo override — when viewing a profile whose owner picked a
-       custom logo, the site logo wears THEIR mark. This overrides every
-       viewer setting (incl. the $PRICE-logo toggle) and can't be hidden — it's
-       the profile owner's chrome, shown to everyone. Null everywhere else. */
-    const activeProfileLogo = useSyncExternalStore(
-        subscribeActiveProfileLogo,
-        getActiveProfileLogo,
-        () => null,
-    );
 
     /* Mirror the sentimentEngine state into local component state so
        React re-renders on every cycle (sim 12253-12259 renderSentimentIcon
@@ -121,56 +106,48 @@ export function PeteyLogo() {
                 aria-label="Price Discussion — toggle home menu"
                 title="Price Discussion — Click to Rotate"
             >
-                {activeProfileLogo ? (
-                    <span className="logo-profile-override" role="img" aria-label="Profile Logo">
-                        <ProfileLogoMark id={activeProfileLogo} size={30} />
-                    </span>
-                ) : (
-                  <>
+                <svg
+                    className="logo-default"
+                    viewBox="0 0 761 655"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    aria-label="Price Discussion Logo"
+                    style={showPrice ? { display: 'none' } : undefined}
+                >
+                    <path d={PETEY_BUBBLE_PATH} fill="currentColor" />
+                    <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" />
+                    <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" />
+                    <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" />
+                    <path d={PETEY_DOT_TOP_PATH} fill="currentColor" />
+                </svg>
+                <span
+                    className="logo-price"
+                    style={{
+                        display: showPrice ? 'flex' : 'none',
+                        height: '28px',
+                        width: 'auto',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                    aria-label="$PRICE Token Logo"
+                    role="img"
+                >
                     <svg
-                        className="logo-default"
-                        viewBox="0 0 761 655"
+                        height="100%"
+                        width="auto"
+                        viewBox="0 0 517 403"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        role="img"
-                        aria-label="Price Discussion Logo"
-                        style={showPrice ? { display: 'none' } : undefined}
                     >
-                        <path d={PETEY_BUBBLE_PATH} fill="currentColor" />
-                        <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" />
-                        <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" />
-                        <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" />
-                        <path d={PETEY_DOT_TOP_PATH} fill="currentColor" />
+                        <path className="plogo-bg" d={PRICE_LOGO_BG_PATH} fill="#FF0055" />
+                        <path className="plogo-fg" d={PRICE_LOGO_P_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_R_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_I_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_C_PATH} fill="#FFE600" />
+                        <path className="plogo-fg" d={PRICE_LOGO_E_PATH} fill="#FFE600" />
                     </svg>
-                    <span
-                        className="logo-price"
-                        style={{
-                            display: showPrice ? 'flex' : 'none',
-                            height: '28px',
-                            width: 'auto',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                        aria-label="$PRICE Token Logo"
-                        role="img"
-                    >
-                        <svg
-                            height="100%"
-                            width="auto"
-                            viewBox="0 0 517 403"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path className="plogo-bg" d={PRICE_LOGO_BG_PATH} fill="#FF0055" />
-                            <path className="plogo-fg" d={PRICE_LOGO_P_PATH} fill="#FFE600" />
-                            <path className="plogo-fg" d={PRICE_LOGO_R_PATH} fill="#FFE600" />
-                            <path className="plogo-fg" d={PRICE_LOGO_I_PATH} fill="#FFE600" />
-                            <path className="plogo-fg" d={PRICE_LOGO_C_PATH} fill="#FFE600" />
-                            <path className="plogo-fg" d={PRICE_LOGO_E_PATH} fill="#FFE600" />
-                        </svg>
-                    </span>
-                  </>
-                )}
+                </span>
             </div>
             <div className="petey-bubble" id="peteyBubble">
                 <a href="/" className="pb-home" title="Home">HOME</a>

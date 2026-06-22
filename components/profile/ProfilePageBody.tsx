@@ -35,8 +35,6 @@ import { useModal } from '../../lib/state/ModalContext';
 import SpriteFace from '../SpriteFace';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
-import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
-import { setActiveProfileLogo } from '../../lib/state/profileLogoActive';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import {
@@ -245,19 +243,6 @@ function ProfilePageBodyInner({
         setActiveProfileHex(ownerHex ?? null);
         return () => setActiveProfileHex(null);
     }, [ownerHex, setActiveProfileHex]);
-
-    /* Profile Logo — make the site logo wear THIS profile owner's chosen mark
-       for every visitor (overrides the viewer's theme; can't be hidden). On
-       your own profile the live hook value wins so a fresh pick shows instantly;
-       on anyone else's, the server value is what everyone sees. */
-    const { logo: myProfileLogo } = useProfileLogo(
-        isOwnProfile ? user.profile_logo : undefined,
-    );
-    const ownerLogo = isOwnProfile ? myProfileLogo : user.profile_logo;
-    useEffect(() => {
-        setActiveProfileLogo(ownerLogo ?? null);
-        return () => setActiveProfileLogo(null);
-    }, [ownerLogo]);
 
     const displayHandle = user.handle ?? handle;
 

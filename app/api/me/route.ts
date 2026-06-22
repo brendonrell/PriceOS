@@ -33,7 +33,6 @@ import {
     type Showcase,
 } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
-import { VALID_PROFILE_LOGO_IDS } from '@/lib/logos/profileLogos';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -107,14 +106,6 @@ function sanitisePatch(
             return { ok: false, reason: 'profile_hex must be a #RRGGBB hex or null' };
         }
         patch.profile_hex = v === null ? null : (v as string).toUpperCase();
-    }
-
-    if ('profile_logo' in body) {
-        const v = body.profile_logo;
-        if (v !== null && !(typeof v === 'string' && VALID_PROFILE_LOGO_IDS.has(v))) {
-            return { ok: false, reason: 'profile_logo must be a valid logo id or null' };
-        }
-        patch.profile_logo = v as string | null;
     }
 
     if ('showcase_style' in body) {

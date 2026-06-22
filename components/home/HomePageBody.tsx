@@ -25,7 +25,7 @@
  * so the body is wrapped in one here. The trait UI isn't rendered on home.
  */
 
-import { useEffect, useMemo, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
@@ -49,9 +49,6 @@ import HomeProjectFacetBar, {
     type HomeSortDir,
 } from './HomeProjectFacetBar';
 import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
-import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
-import { PROFILE_LOGOS } from '../../lib/logos/profileLogos';
-import ProfileLogoMark from '../profile/ProfileLogoMark';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -679,80 +676,15 @@ function HomePageBodyInner({
         </div>
     );
 
-    /* ── Profile Logo picker ─────────────────────────────────────────────
-       Long-press the title → a carousel of logo options pops open right
-       below it (same carousel chrome as Now Minting, no title, smaller +
-       more on screen). Picking one sets your Profile Logo — the mark that
-       wears the site logo on your profile for every visitor. */
-    const { logo: myLogo, setLogo } = useProfileLogo();
-    const [logoOpen, setLogoOpen] = useState(false);
-    const lpTimer = useRef<number | null>(null);
-    const lpFired = useRef(false);
-    const lpStart = useRef<{ x: number; y: number } | null>(null);
-    const clearLp = () => {
-        if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; }
-    };
-    const onTitleDown = (e: ReactPointerEvent) => {
-        lpFired.current = false;
-        lpStart.current = { x: e.clientX, y: e.clientY };
-        clearLp();
-        lpTimer.current = window.setTimeout(() => {
-            lpFired.current = true;
-            lpTimer.current = null;
-            setLogoOpen((v) => !v);
-        }, 460);
-    };
-    const onTitleMove = (e: ReactPointerEvent) => {
-        if (lpTimer.current == null || !lpStart.current) return;
-        const dx = e.clientX - lpStart.current.x;
-        const dy = e.clientY - lpStart.current.y;
-        if (dx * dx + dy * dy > 100) clearLp();
-    };
-    const endTitlePress = () => clearLp();
-    const pickLogo = (id: string, label: string) => {
-        setLogo(id);
-        showToast(`Profile Logo: ${label.toUpperCase()}`);
-    };
-
     return (
         <>
             <Hero
                 ariaLabel="Price Discussion"
                 titleRow={
-                    <>
-                        <h1 className="project-title home-title">
-                            <span
-                                className="home-title-name"
-                                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
-                                onPointerDown={onTitleDown}
-                                onPointerMove={onTitleMove}
-                                onPointerUp={endTitlePress}
-                                onPointerLeave={endTitlePress}
-                                onPointerCancel={endTitlePress}
-                                onContextMenu={(e) => e.preventDefault()}
-                            >
-                                Price Discussion
-                            </span>
-                            <PriceDaySlot />
-                        </h1>
-                        {logoOpen && (
-                            <section className="home-carousel-row home-logo-row" aria-label="Profile Logo options">
-                                <div className="home-carousel-track">
-                                    {PROFILE_LOGOS.map((l) => (
-                                        <button
-                                            key={l.id}
-                                            type="button"
-                                            className={`home-logo-card${myLogo === l.id ? ' active' : ''}`}
-                                            title={l.label}
-                                            onClick={() => pickLogo(l.id, l.label)}
-                                        >
-                                            <ProfileLogoMark id={l.id} size={30} />
-                                        </button>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </>
+                    <h1 className="project-title home-title">
+                        <span>Price Discussion</span>
+                        <PriceDaySlot />
+                    </h1>
                 }
                 identityRow={
                     <div className="hero-line project-custom home-id-row">
