@@ -2078,26 +2078,42 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .npc-resident.active .npc-name { opacity: 0.65; }
 
+/* Outer bubble — the transform/animation + tail anchor. Transparent; the fill
+   lives on the inner text so it hugs the words, not a fixed box. */
 .npc-bubble {
     position: relative;
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold; font-size: 16px; line-height: 1.3;
-    white-space: normal; text-wrap: balance;
+    display: inline-block;
+    max-width: 100%;
     opacity: 0;
     transition: opacity 0.3s; /* exit fade; entrance is per-character keyframe */
 }
+/* Inner text — the fill clings to each wrapped line (box-decoration-break), so
+   the bubble always hugs the text with no empty box, for every character/font. */
+.npc-bubble-text {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-radius: 6px;
+    padding: 4px 11px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold; font-size: 16px; line-height: 1.95;
+}
 /* Pure black/white by theme polarity. */
-.npc-cast.dark  .npc-bubble { background: #000; color: #fff; }
-.npc-cast.light .npc-bubble { background: #fff; color: #000; }
+.npc-cast.dark  .npc-bubble-text { background: #000; color: #fff; }
+.npc-cast.light .npc-bubble-text { background: #fff; color: #000; }
+
+/* Bubble text size — cycled S / M / L from the Spell Book NPC pill (M = default). */
+.npc-cast.npc-s .npc-bubble-text { font-size: 14px; }
+.npc-cast.npc-m .npc-bubble-text { font-size: 16px; }
+.npc-cast.npc-l .npc-bubble-text { font-size: 18px; }
 
 /* Tail pointing back to the wall (Brendon, 2026-06-22: half size, then +30%). */
 .npc-bubble::before {
-    content: ''; position: absolute; top: 14px;
+    content: ''; position: absolute; top: 7px;
     width: 6.5px; height: 6.5px; transform: rotate(45deg);
-    background: inherit;
+    z-index: -1;
 }
+.npc-cast.dark  .npc-bubble::before { background: #000; }
+.npc-cast.light .npc-bubble::before { background: #fff; }
 .npc-resident.left  .npc-bubble::before { left: -3.25px; }
 .npc-resident.right .npc-bubble::before { right: -3.25px; }
 
@@ -2122,8 +2138,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 @keyframes npc-drift  { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 @media (max-width: 600px) {
-    .npc-resident { max-width: 72vw; }
-    .npc-bubble { font-size: 14px; padding: 9px 12px; }
+    .npc-resident { max-width: 62vw; }
 }
 @media (prefers-reduced-motion: reduce) {
     .npc-resident.active .npc-bubble { animation: npc-plain 0.3s linear both; }

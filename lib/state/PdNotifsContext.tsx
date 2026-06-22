@@ -73,9 +73,11 @@ export interface PdNotifs {
     spell_tribunal: boolean;
     spell_panopticon: boolean;
     spell_invisible: boolean;
-    /* NPC — icon-less Spell Book pill (Brendon, 2026-06-20). Flag only; no
-       downstream effect wired yet, like spell_portal / spell_cme. */
+    /* NPC — Spell Book pill drives the off-screen NPC Cast. The pill cycles
+       OFF → S → M → L (bubble text size); spell_npc is the on/off, npc_size the
+       chosen size (Brendon, 2026-06-22). */
     spell_npc: boolean;
+    npc_size: 'S' | 'M' | 'L';
     spell_tarot: boolean;
     spell_priceghost: boolean;
     spell_portal: boolean;
@@ -194,6 +196,7 @@ const DEFAULTS: PdNotifs = {
     spell_panopticon: false,
     spell_invisible: false,
     spell_npc: false,
+    npc_size: 'M',
     spell_tarot: false,
     spell_priceghost: false,
     spell_portal: false,

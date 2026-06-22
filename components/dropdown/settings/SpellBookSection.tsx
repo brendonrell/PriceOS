@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function SpellBookSection({ onTripleTap }: Props) {
-    const { notifs, toggle } = usePdNotifs();
+    const { notifs, toggle, update } = usePdNotifs();
     const { showToast } = useToast();
     const { setSort } = useSort();
     const { open } = useModal();
@@ -236,17 +236,24 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'⬬︎'}
                     label="The Watch"
                 />
-                {/* NPC — swapped into Degen's old slot (Brendon, 2026-06-21).
-                    Icon-less by design; Degen now renders up in NPC's old slot. */}
+                {/* NPC — cycling pill OFF → S → M → L (bubble text size). Medium
+                    is the standard size; S one down, L one up (Brendon, 2026-06-22). */}
                 <SettingsToggle
                     id="sb-npc"
                     active={notifs.spell_npc}
                     onClick={() => {
-                        const next = !notifs.spell_npc;
-                        toggle('spell_npc');
-                        showToast(`NPC: ${next ? 'ON' : 'OFF'}`);
+                        const cycle = ['off', 'S', 'M', 'L'] as const;
+                        const current = notifs.spell_npc ? notifs.npc_size : 'off';
+                        const next = cycle[(cycle.indexOf(current) + 1) % cycle.length];
+                        if (next === 'off') {
+                            update({ spell_npc: false });
+                            showToast('NPC: OFF');
+                        } else {
+                            update({ spell_npc: true, npc_size: next });
+                            showToast(`NPC: ${next}`);
+                        }
                     }}
-                    label="NPC"
+                    label={notifs.spell_npc ? `NPC · ${notifs.npc_size}` : 'NPC'}
                 />
                 {/* Stargazing — sim 4735. Occupies the slot between Solar Flare
                     and Offer Shield. It toggles the plain `stargazing` pdNotifs

@@ -16,9 +16,11 @@
  * light page → white) — see globals.css .npc-cast.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { CAST, styleText } from '@/lib/npc/cast';
+import { readStage, pickAwareness, pickFourthWall } from '@/lib/npc/awareness';
 
 type Polarity = 'dark' | 'light';
 
@@ -46,6 +48,13 @@ export function NpcCast() {
     const [polarity, setPolarity] = useState<Polarity>('dark');
     const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+    /* What you're doing right now — read from the route. The running speak timer
+       reads the latest via a ref so navigation updates without restarting it. */
+    const pathname = usePathname();
+    const stage = useMemo(() => readStage(pathname), [pathname]);
+    const stageRef = useRef(stage);
+    stageRef.current = stage;
+
     useEffect(() => {
         if (!on) {
             setActive({});
@@ -63,7 +72,18 @@ export function NpcCast() {
                 const idle = CAST.filter((c) => !prev[c.id]);
                 if (!idle.length) return prev;
                 const c = idle[Math.floor(Math.random() * idle.length)];
-                const line = c.lines[Math.floor(Math.random() * c.lines.length)];
+                /* Mostly own-world chatter; sometimes they clock what you're
+                   doing (third-person), and once in a blue moon break the wall. */
+                const ownWorld = c.lines[Math.floor(Math.random() * c.lines.length)];
+                const roll = Math.random();
+                let line: string;
+                if (roll < 0.04) {
+                    line = pickFourthWall(stageRef.current);
+                } else if (roll < 0.38) {
+                    line = pickAwareness(c.id, stageRef.current) ?? ownWorld;
+                } else {
+                    line = ownWorld;
+                }
                 setLineFor((lf) => ({ ...lf, [c.id]: line }));
                 if (timers[c.id]) clearTimeout(timers[c.id]);
                 timers[c.id] = setTimeout(() => {
@@ -97,7 +117,10 @@ export function NpcCast() {
     if (!on) return null;
 
     return (
-        <div className={`npc-cast ${polarity}`} aria-hidden="true">
+        <div
+            className={`npc-cast ${polarity} npc-${(notifs.npc_size ?? 'M').toLowerCase()}`}
+            aria-hidden="true"
+        >
             {CAST.map((c) => (
                 <div
                     key={c.id}
@@ -106,7 +129,9 @@ export function NpcCast() {
                 >
                     <span className="npc-name">{c.name}</span>
                     <span className={`npc-bubble npc-anim-${c.anim}`}>
-                        {styleText(lineFor[c.id] ?? '', c.style)}
+                        <span className="npc-bubble-text">
+                            {styleText(lineFor[c.id] ?? '', c.style)}
+                        </span>
                     </span>
                 </div>
             ))}
