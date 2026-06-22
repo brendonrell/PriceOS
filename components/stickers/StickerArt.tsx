@@ -107,7 +107,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-32} y={-32} width={164} height={164} rx={48} fill={LINE} />
+                        <rect x={-29} y={-29} width={158} height={158} rx={45} fill={LINE} />
                         <rect x={-26} y={-26} width={152} height={152} rx={42} fill={CUT} />
                     </>
                 )}
@@ -189,7 +189,7 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
             >
                 {diecut && (
                     <>
-                        <rect x={-36} y={-36} width={W + 72} height={H + 72} rx={54} fill={LINE} />
+                        <rect x={-32} y={-32} width={W + 64} height={H + 64} rx={50} fill={LINE} />
                         <rect x={-28} y={-28} width={W + 56} height={H + 56} rx={46} fill={CUT} />
                     </>
                 )}
