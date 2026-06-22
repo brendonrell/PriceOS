@@ -196,7 +196,7 @@ export function StickerManagerModal({
                 <div className="ambient-pop-title">
                     <span className="ambient-pop-title-text">YOUR STICKERS</span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
-                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STORE
+                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>
                 </div>
 
