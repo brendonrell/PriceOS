@@ -46,6 +46,8 @@ export default function StickersModal() {
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
+    /* Rail (sideways) vs expanded grid (two-up, scrolls down). */
+    const [expanded, setExpanded] = useState(false);
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
 
@@ -82,6 +84,41 @@ export default function StickersModal() {
         for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j]!, pool[i]!]; }
         return pool;
     }, [detail, seed]);
+
+    /* One sheet card — shared by the sideways rail and the expanded grid. */
+    const renderCard = (s: SheetMeta) => (
+        <div
+            className="ss-card ss-card-live"
+            key={s.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => openDetail(s.id)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(s.id); } }}
+        >
+            <div className="ss-card-art">
+                <span className="ss-fan">
+                    {fanFor(s).map((st, i) => (
+                        <span
+                            key={st.id}
+                            className="ss-fan-item"
+                            style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
+                        >
+                            <StickerArt sticker={st} size={52} />
+                        </span>
+                    ))}
+                </span>
+                <span className="ss-card-soon ss-card-new">LIVE</span>
+            </div>
+            <div className="ss-card-meta">
+                <div className="ss-card-name">{s.name}</div>
+                <div className="ss-card-line">
+                    <span className="ss-card-tag">{s.tag}</span>
+                    <span className="ss-card-count">{s.count} stickers</span>
+                </div>
+                <BuySheetButton sheet={s} />
+            </div>
+        </div>
+    );
 
     return (
         <div
@@ -126,6 +163,15 @@ export default function StickersModal() {
                                 <span className="ss-title-main">STICKER STORE</span>
                                 <span className="ss-title-sub">// &amp; EXCHANGE</span>
                             </div>
+                            <button
+                                className={`ss-expand${expanded ? ' is-on' : ''}`}
+                                type="button"
+                                title={expanded ? 'Single row' : 'Expand'}
+                                aria-pressed={expanded}
+                                onClick={() => setExpanded((v) => !v)}
+                            >
+                                {`⊞${VS15}`}
+                            </button>
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
@@ -182,41 +228,15 @@ export default function StickersModal() {
                             </div>
                         </div>
 
-                        <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
-                            {REAL_SHEETS.map((s) => (
-                                <div
-                                    className="ss-card ss-card-live"
-                                    key={s.id}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => openDetail(s.id)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(s.id); } }}
-                                >
-                                    <div className="ss-card-art">
-                                        <span className="ss-fan">
-                                            {fanFor(s).map((st, i) => (
-                                                <span
-                                                    key={st.id}
-                                                    className="ss-fan-item"
-                                                    style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
-                                                >
-                                                    <StickerArt sticker={st} size={52} />
-                                                </span>
-                                            ))}
-                                        </span>
-                                        <span className="ss-card-soon ss-card-new">LIVE</span>
-                                    </div>
-                                    <div className="ss-card-meta">
-                                        <div className="ss-card-name">{s.name}</div>
-                                        <div className="ss-card-line">
-                                            <span className="ss-card-tag">{s.tag}</span>
-                                            <span className="ss-card-count">{s.count} stickers</span>
-                                        </div>
-                                        <BuySheetButton sheet={s} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        {expanded ? (
+                            <div className="ss-grid-view">
+                                {REAL_SHEETS.map((s) => renderCard(s))}
+                            </div>
+                        ) : (
+                            <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
+                                {REAL_SHEETS.map((s) => renderCard(s))}
+                            </div>
+                        )}
 
                         <div className="ss-foot">two sheets live · tap a sheet to peek inside · more restocking</div>
                     </>

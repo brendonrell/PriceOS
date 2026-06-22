@@ -96,6 +96,21 @@
     transition: opacity 0.15s ease;
 }
 .ss-close:hover { opacity: 0.65; }
+/* Expand toggle — flips the rail into a two-up grid that scrolls down. Sits
+   between the title and the stats. ⊞ is not a glossary glyph (Brendon 2026-06-22). */
+.ss-expand {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 22px;
+    line-height: 1;
+    padding: 2px 8px;
+    color: color-mix(in srgb, var(--text-color) 52%, transparent);
+    transition: color 0.15s ease;
+}
+.ss-expand:hover, .ss-expand.is-on { color: var(--text-color); }
 
 .ss-ticker {
     overflow: hidden;
@@ -129,6 +144,19 @@
 }
 .ss-rail::-webkit-scrollbar { display: none; }
 .ss-rail.dragging { cursor: grabbing; }
+
+/* Expanded view — two sheets across, scrolls down inside the sheet. */
+.ss-grid-view {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    padding: 16px 18px 8px;
+    max-height: 56vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.ss-grid-view::-webkit-scrollbar { display: none; }
+.ss-grid-view .ss-card { width: auto; }
 
 .ss-card {
     flex: 0 0 auto;
