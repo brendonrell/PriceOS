@@ -79,22 +79,23 @@
 .ss-stats {
     margin-left: auto;
     display: flex;
-    gap: 14px;
-    font-size: 13px;
+    gap: 16px;
+    font-size: 15px;
     font-weight: bold;
     letter-spacing: 0.06em;
     color: var(--text-color);
 }
 .ss-stat b { color: var(--text-color); }
 .ss-close {
-    font-size: 20px;
+    font-size: 26px;
+    font-weight: bold;
     line-height: 1;
-    color: color-mix(in srgb, var(--text-color) 55%, transparent);
+    color: var(--text-color);
     cursor: pointer;
-    padding: 2px 6px;
-    transition: color 0.15s ease;
+    padding: 2px 8px;
+    transition: opacity 0.15s ease;
 }
-.ss-close:hover { color: var(--text-color); }
+.ss-close:hover { opacity: 0.65; }
 
 .ss-ticker {
     overflow: hidden;
@@ -262,7 +263,7 @@
 
 @media (max-width: 600px) {
     .ss-title-main { font-size: 16px; }
-    .ss-stats { gap: 10px; font-size: 12px; }
+    .ss-stats { gap: 12px; font-size: 14px; }
     .ss-card { width: 138px; }
     .ss-card-art { height: 114px; }
 }
@@ -412,18 +413,30 @@
 .hero-stickers-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
     /* A little breathing room at the ends so edge stickers don't kiss the margin. */
     padding: 2px 2px 0;
     gap: 6px;
 }
-/* ROW mode packs centred; the others spread across the width. */
-.arr-row .hero-stickers-row { justify-content: center; gap: 12px; }
-/* STACK mode overlaps the peeled stickers into a centred pile. */
-.hero-stickers-row.is-stack { justify-content: center; gap: 0; }
+/* Default is LEFT-aligned within the area; ALIGN re-justifies the packed modes. */
+.al-center .hero-stickers-row { justify-content: center; }
+.al-right .hero-stickers-row { justify-content: flex-end; }
+/* ROW packs the stickers tight (left by default, ALIGN moves the pack). */
+.arr-row .hero-stickers-row { gap: 12px; }
+/* SPREAD + FILL fan out edge-to-edge across the area regardless of align. */
+.arr-spread .hero-stickers-row,
+.arr-fill .hero-stickers-row { justify-content: space-between; }
+/* STACK — a wide overlapping fan that fills the area edge to edge. */
+.hero-stack {
+    position: relative;
+    width: 100%;
+    height: 64px;
+    margin: 0;
+}
+.hero-stack-item { position: absolute; top: 50%; }
 /* COLLAGE mode — one large composed area, stickers absolutely placed. */
-.hero-collage { position: relative; width: 100%; margin: 0 auto; }
+.hero-collage { position: relative; width: 100%; margin: 0; }
 .hero-collage-item { position: absolute; }
 .hero-sticker {
     display: inline-flex;

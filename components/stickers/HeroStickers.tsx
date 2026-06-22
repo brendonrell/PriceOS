@@ -2,21 +2,20 @@
 
 /*
  * HeroStickers — the profile owner's stickers on their hero, arranged per the
- * manager's settings (Spread / Row / 2 Rows / Scatter / Fill + tilt + shuffle).
+ * manager's settings (layout style + rows + align + tilt + width + shuffle).
  *
- * Width: by default the row is clamped to the tab row's width (its right edge =
- * the +More button), so on wide / landscape screens it doesn't run off. A
- * landscape EXPAND button releases that clamp and fills the extra space with
- * more stickers.
+ * The sticker AREA is left-aligned with the rest of the hero and ends exactly at
+ * the +More button (the tab row's width). The ALIGN pref centres the stickers
+ * WITHIN that area (never on the screen). WIDTH=Wide releases the clamp.
  *
  * Renders nothing unless the owner holds (active) stickers. Tapping your OWN
  * arrangement opens the manager modal.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
 
@@ -29,7 +28,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
-    const { arrange, tilt, seed, expand } = useHeroPrefs();
+    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip } = useHeroPrefs();
     const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
 
@@ -57,8 +56,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
         [owned, offSheets, offIds],
     );
 
-    const { rows, cap, scatter, overlap } = arrangeShape(arrange);
-    // Expanding fills the wider space with more stickers.
+    const { rows, cap, scatter } = arrangeShape(arrange, rowsPref);
     const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
     const picked = useMemo(() => {
@@ -81,62 +79,79 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
     const baseTilt = tiltDeg(tilt);
     const jrnd = rngFrom(seed + 7);
     const sz = (k: string) => (k === 'face' || k === 'output' ? 50 : 40);
+    const areaStyle = { maxWidth: expand ? undefined : (clampW ?? undefined) };
+    const alignClass = align === 'center' ? 'al-center' : align === 'right' ? 'al-right' : 'al-left';
+    const flipOf = (id: string) => (flip && shouldFlip(id, seed) ? 180 : 0);
 
-    // COLLAGE — one large area, generatively composed, overlapping, mixed sizes.
+    // Wrap the chosen body in the tap target (own profile opens the manager).
+    const wrap = (body: ReactNode) => (
+        <div className="hero-stickers" aria-label="Stickers">
+            {isOwn ? (
+                <>
+                    <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
+                        {body}
+                    </button>
+                    {manager}
+                </>
+            ) : body}
+        </div>
+    );
+
+    // COLLAGE — one large composed area: overlapping, mixed sizes, balanced.
     if (arrange === 'collage') {
         const comp = buildCollage(picked.length, seed);
-        const collageEl = (
-            <div
-                className="hero-collage"
-                style={{
-                    aspectRatio: `${comp.cols} / ${comp.rows}`,
-                    maxWidth: expand ? undefined : (clampW ?? undefined),
-                }}
-            >
+        return wrap(
+            <div className="hero-collage" style={{ ...areaStyle, aspectRatio: `${comp.cols} / ${comp.rows}` }}>
                 {picked.map((s, i) => {
                     const p = comp.items[i]!;
                     return (
                         <span
                             key={s.id}
                             className="hero-sticker hero-collage-item"
-                            style={{
-                                left: `${p.x}%`,
-                                top: `${p.y}%`,
-                                zIndex: p.z,
-                                transform: `translate(-50%, -50%) rotate(${p.rot}deg) scale(${p.scale})`,
-                            }}
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
                             title={s.name}
                         >
                             <StickerArt sticker={s} size={sz(s.kind)} />
                         </span>
                     );
                 })}
-            </div>
-        );
-        return (
-            <div className="hero-stickers" aria-label="Stickers">
-                {isOwn ? (
-                    <>
-                        <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
-                            {collageEl}
-                        </button>
-                        {manager}
-                    </>
-                ) : collageEl}
-            </div>
+            </div>,
         );
     }
 
+    // STACK — a wide overlapping fan that fills the area edge to edge.
+    if (arrange === 'stack') {
+        const n = picked.length;
+        const PAD = 7;
+        const span = 100 - PAD * 2;
+        return wrap(
+            <div className={`hero-stack ${alignClass}`} style={areaStyle}>
+                {picked.map((s, i) => {
+                    const x = n <= 1 ? 50 : PAD + (i / (n - 1)) * span;
+                    const t = baseTilt === 0 ? 0 : (i % 2 === 0 ? -baseTilt : baseTilt);
+                    return (
+                        <span
+                            key={s.id}
+                            className="hero-sticker hero-stack-item"
+                            style={{ left: `${x}%`, zIndex: i + 1, transform: `translate(-50%, -50%) rotate(${t + flipOf(s.id)}deg)` }}
+                            title={s.name}
+                        >
+                            <StickerArt sticker={s} size={sz(s.kind)} />
+                        </span>
+                    );
+                })}
+            </div>,
+        );
+    }
+
+    // Flex rows (spread / row / scatter / fill).
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
-    const rowsEl = (
-        <div
-            className={`hero-stickers-rows arr-${arrange}`}
-            style={{ maxWidth: expand ? undefined : (clampW ?? undefined) }}
-        >
+    return wrap(
+        <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
-                <div className={`hero-stickers-row${overlap ? ' is-stack' : ''}`} key={ri}>
+                <div className="hero-stickers-row" key={ri}>
                     {chunk.map((s, i) => {
                         const t = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
                         const jy = scatter ? Math.round((jrnd() - 0.5) * 14) : 0;
@@ -144,12 +159,7 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
                             <span
                                 key={s.id}
                                 className="hero-sticker"
-                                style={{
-                                    transform: `translateY(${jy}px) rotate(${t}deg)`,
-                                    // STACK: overlap the peeled stickers into a pile.
-                                    marginLeft: overlap && i > 0 ? -18 : undefined,
-                                    zIndex: overlap ? i + 1 : undefined,
-                                }}
+                                style={{ transform: `translateY(${jy}px) rotate(${t + flipOf(s.id)}deg)` }}
                                 title={s.name}
                             >
                                 <StickerArt sticker={s} size={sz(s.kind)} />
@@ -158,19 +168,6 @@ export function HeroStickers({ ownerHandle, isOwn }: Props) {
                     })}
                 </div>
             ))}
-        </div>
-    );
-
-    return (
-        <div className="hero-stickers" aria-label="Stickers">
-            {isOwn ? (
-                <button type="button" className="hero-stickers-tap" title="Arrange your stickers" onClick={() => setMgrOpen(true)}>
-                    {rowsEl}
-                </button>
-            ) : (
-                rowsEl
-            )}
-            {manager}
-        </div>
+        </div>,
     );
 }

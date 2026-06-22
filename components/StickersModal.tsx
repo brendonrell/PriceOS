@@ -123,8 +123,8 @@ export default function StickersModal() {
                     ) : (
                         <>
                             <div className="ss-title">
-                                <span className="ss-title-main">STICKER EXCHANGE</span>
-                                <span className="ss-title-sub">// PD SHOP</span>
+                                <span className="ss-title-main">STICKER STORE</span>
+                                <span className="ss-title-sub">// &amp; EXCHANGE</span>
                             </div>
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>

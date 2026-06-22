@@ -19,8 +19,10 @@ import {
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    getArrange, getTilt, getExpand, setArrange, setTilt, setExpand, shuffleSeed,
-    ARRANGES, TILTS, type Arrange, type Tilt,
+    getArrange, getTilt, getExpand, getRows, getAlign, getFlip,
+    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, shuffleSeed,
+    ARRANGES, TILTS, ROW_OPTS, ALIGNS,
+    type Arrange, type Tilt, type Rows, type Align,
 } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 
@@ -42,6 +44,9 @@ export function StickerManagerModal({
     const [arrange, setArr] = useState<Arrange>('spread');
     const [tilt, setTl] = useState<Tilt>('soft');
     const [expand, setExp] = useState(false);
+    const [rows, setRw] = useState<Rows>(1);
+    const [align, setAl] = useState<Align>('left');
+    const [flip, setFl] = useState(false);
 
     useEffect(() => {
         if (!open) return;
@@ -51,6 +56,9 @@ export function StickerManagerModal({
         setArr(getArrange());
         setTl(getTilt());
         setExp(getExpand());
+        setRw(getRows());
+        setAl(getAlign());
+        setFl(getFlip());
     }, [open, handle]);
 
     useEffect(() => {
@@ -73,6 +81,9 @@ export function StickerManagerModal({
     const pickArrange = (a: Arrange) => { setArr(a); setArrange(a); };
     const pickTilt = (t: Tilt) => { setTl(t); setTilt(t); };
     const pickExpand = (b: boolean) => { setExp(b); setExpand(b); };
+    const pickRows = (r: Rows) => { setRw(r); setRows(r); };
+    const pickAlign = (a: Align) => { setAl(a); setAlign(a); };
+    const pickFlip = (b: boolean) => { setFl(b); setFlip(b); };
 
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
 
@@ -111,10 +122,40 @@ export function StickerManagerModal({
                 </div>
 
                 <div className="smgr-row">
+                    <span className="smgr-label">ROWS</span>
+                    <div className="smgr-chips">
+                        {ROW_OPTS.map((r) => (
+                            <button key={r.id} className={`smgr-chip${rows === r.id ? ' active' : ''}`} type="button" onClick={() => pickRows(r.id)}>
+                                {r.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="smgr-row">
+                    <span className="smgr-label">ALIGN</span>
+                    <div className="smgr-chips">
+                        {ALIGNS.map((a) => (
+                            <button key={a.id} className={`smgr-chip${align === a.id ? ' active' : ''}`} type="button" onClick={() => pickAlign(a.id)}>
+                                {a.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="smgr-row">
                     <span className="smgr-label">WIDTH</span>
                     <div className="smgr-chips">
                         <button className={`smgr-chip${!expand ? ' active' : ''}`} type="button" onClick={() => pickExpand(false)}>FIT</button>
                         <button className={`smgr-chip${expand ? ' active' : ''}`} type="button" onClick={() => pickExpand(true)}>WIDE</button>
+                    </div>
+                </div>
+
+                <div className="smgr-row">
+                    <span className="smgr-label">FLIP</span>
+                    <div className="smgr-chips">
+                        <button className={`smgr-chip${!flip ? ' active' : ''}`} type="button" onClick={() => pickFlip(false)}>OFF</button>
+                        <button className={`smgr-chip${flip ? ' active' : ''}`} type="button" onClick={() => pickFlip(true)}>UPSIDE-DOWN</button>
                     </div>
                 </div>
 
