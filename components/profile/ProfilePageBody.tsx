@@ -76,7 +76,7 @@ import HomeProjectFacetBar, {
     type HomeSortKey,
     type HomeSortDir,
 } from '../home/HomeProjectFacetBar';
-import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
+import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
 import { effectiveShowcaseStyle } from '../../lib/profile/showcaseStyle';
 import { genCuratedSet, type CuratedCandidate, type SpriteVibe } from '../../lib/profile/genCurated';
 import GhostCard from '../project/GhostCard';
@@ -127,7 +127,7 @@ interface ArtistProjStat {
 const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate'] as const;
 
 /* A home activity-feed item for the artist showcase Created feed. */
-interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number }
+interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
 
 function fmtFeedDate(ms: number | null): string {
     if (ms == null) return '—';
@@ -516,6 +516,15 @@ function ProfilePageBodyInner({
                     ),
                 })),
         [holdings],
+    );
+
+    /* Cumulative ETH spend = the sum of every held Output's project mint price.
+       Each project knows its own mint price; a wallet's spend is the total
+       across what it holds. Drives the hero "Volume Spent" stat for ANY profile
+       (reads the viewed wallet's holdings, so it works the same for every user). */
+    const volumeSpent = useMemo(
+        () => enriched.reduce((sum, h) => sum + (getProject(h.slug)?.mintPriceEth ?? 0), 0),
+        [enriched],
     );
 
     /* Collected-tab search + filter + sort over the enriched holdings. Filters
@@ -1349,24 +1358,26 @@ function ProfilePageBodyInner({
        project lifecycle moments (uploaded · milestones · graduated · sold out). */
     const artistFeedView = useMemo<ArtistFeedItem[]>(() => {
         const items: ArtistFeedItem[] = [];
-        const push = (slug: string, title: string, label: string, glyph: string, cls: string | undefined, ms: number | null) => {
+        const push = (slug: string, title: string, label: string, glyph: string, cls: string | undefined, ms: number | null, seq: number) => {
             if (ms == null) return;
-            items.push({ slug, title, label, glyph, cls, ts: ms });
+            items.push({ slug, title, label, glyph, cls, ts: ms, seq });
         };
         const L = FEED_LIFECYCLE;
         for (const p of artistProjects) {
             const st = artistProjStats[p.slug];
             if (!st) continue;
-            push(p.slug, p.displayName, L.upload.label, L.upload.glyph, undefined, st.uploaded_at);
+            push(p.slug, p.displayName, L.upload.label, L.upload.glyph, undefined, st.uploaded_at, FEED_SEQ.upload);
             for (const [count, ts] of Object.entries(st.milestones)) {
                 const m = milestoneByKey(count);
-                if (m) push(p.slug, p.displayName, m.label, m.glyph, m.cls, ts);
+                if (m) push(p.slug, p.displayName, m.label, m.glyph, m.cls, ts, m.count);
             }
-            push(p.slug, p.displayName, L.graduated.label, L.graduated.glyph, L.graduated.cls, st.reached_at);
-            push(p.slug, p.displayName, L.ascension.label, L.ascension.glyph, undefined, st.sold_out_at);
+            push(p.slug, p.displayName, L.graduated.label, L.graduated.glyph, L.graduated.cls, st.reached_at, FEED_SEQ.graduated);
+            push(p.slug, p.displayName, L.ascension.label, L.ascension.glyph, undefined, st.sold_out_at, FEED_SEQ.ascension);
         }
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
-        items.sort((a, b) => (a.ts - b.ts) * dirMult);
+        // Order by time, then by the milestone sequence so same-transaction
+        // events (identical ts) still read FIRST BLOOD → GRADUATED → … in order.
+        items.sort((a, b) => (a.ts - b.ts || a.seq - b.seq) * dirMult);
         return items;
     }, [artistProjects, artistProjStats, mintSort.dir]);
 
@@ -1682,7 +1693,7 @@ function ProfilePageBodyInner({
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol">0</span>
+                            <span className="stat-val stat-val-vol">{volumeSpent.toFixed(2)}</span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}

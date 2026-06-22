@@ -41,6 +41,21 @@ export const FEED_LIFECYCLE = {
     ascension: { label: 'ASCENSION', glyph: '△' },
 } as const;
 
+/* Canonical chronological order of a project's feed events, by the mint count
+   that triggers each — the tiebreaker that makes the feed aware of the FULL
+   milestone sequence. Many milestones can be crossed in a single mint
+   transaction and so share one timestamp; without this, two same-timestamp
+   events can render out of order (e.g. GRADUATED above FIRST BLOOD). The true
+   order is: UPLOADED → FIRST BLOOD (1) → GRADUATED (18) → LUCKY 22 (22) →
+   CENTURY (100) → HALO (777) → PER MILLE (1000) → ARCHETYPE (1200) →
+   HI-DEF (4000) → ASCENSION (sold out, last). A count milestone's own seq IS
+   its count; only the non-count lifecycle events need fixed ranks here. */
+export const FEED_SEQ = {
+    upload: 0,
+    graduated: 18,
+    ascension: Number.MAX_SAFE_INTEGER,
+} as const;
+
 /** The milestone config for a key/count, or null if not configured. */
 export function milestoneByKey(key: string | number): ProjectMilestone | null {
     const k = String(key);

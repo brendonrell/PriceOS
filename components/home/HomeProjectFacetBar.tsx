@@ -38,6 +38,9 @@ import {
 } from '../../lib/pins/presetStore';
 import HomeMsFloatBar from './HomeMsFloatBar';
 import { STATUS_LADDER } from '../../lib/home/milestones';
+import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
+import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
+import { L3Pill } from '../project/TraitsUI';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -164,6 +167,40 @@ export default function HomeProjectFacetBar({
     } = useTraits();
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
+
+    /* Live starred-artist + starred-project sets, so an Artist or Project value
+       pill carries the SAME star the rest of the app uses — star an artist or
+       project on its page and it reads as starred here too; long-press here to
+       unstar. Other facets stay non-starrable and render exactly as before. */
+    const [artistStars, setArtistStars] = useState<readonly string[]>(() => getArtistStars());
+    useEffect(() => subscribeArtistStars(setArtistStars), []);
+    const [projectStars, setProjectStars] = useState<readonly string[]>(() => getProjectStars());
+    useEffect(() => subscribeProjectStars(setProjectStars), []);
+
+    /* For an Artist/Project value pill, the live starred state + the toggle
+       (reusing the title-star's stores + toasts). null for non-star facets. */
+    const pillStar = (facet: string, value: string): { starred: boolean; toggle: () => void } | null => {
+        if (facet === 'Artist') {
+            return {
+                starred: artistStars.includes(value),
+                toggle: () => {
+                    const r = toggleArtistStar(value);
+                    showToast(r === 'starred' ? 'Added to your Starred Artists List (Private)' : 'Removed from your Starred Artists List');
+                },
+            };
+        }
+        if (facet === 'Project') {
+            const slug = value.replace(/^@/, '');
+            return {
+                starred: projectStars.includes(slug),
+                toggle: () => {
+                    const r = toggleProjectStar(slug);
+                    showToast(r === 'starred' ? 'Added to your Starred Projects List (Private)' : 'Removed from your Starred Projects List');
+                },
+            };
+        }
+        return null;
+    };
 
     /* No saved pick (logged-out / first visit) = the Custom colorway, which on
        home is the daily Mood Ring the page is already painted in. So the picker
@@ -306,24 +343,21 @@ export default function HomeProjectFacetBar({
                             const count = projects.filter(
                                 (p) => projectFacetValueOf(activeCategory!, p) === value,
                             ).length;
-                            const cls = `pill pill-l3${isActive ? ' active' : ''}${dimmed ? ' dimmed' : ''}`;
+                            const star = pillStar(activeCategory!, value);
                             return (
-                                <div
+                                <L3Pill
                                     key={value}
-                                    className={cls}
-                                    role="button"
-                                    tabIndex={0}
+                                    label={value}
+                                    count={count}
+                                    active={isActive}
+                                    dimmed={dimmed}
+                                    isZero={false}
+                                    category={activeCategory!}
+                                    starrable={star != null}
+                                    starred={star?.starred ?? false}
+                                    onToggleStar={star ? star.toggle : undefined}
                                     onClick={() => toggleFilter(activeCategory!, value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            toggleFilter(activeCategory!, value);
-                                        }
-                                    }}
-                                >
-                                    <span className="stat-name">↳ {value}</span>
-                                    <span className="stat-count">{count}</span>
-                                </div>
+                                />
                             );
                         })}
                     </div>

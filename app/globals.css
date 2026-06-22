@@ -6799,7 +6799,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     .stat-icon-owners.stat-icon-followers {
         font-size: 26px;
         position: relative;
-        top: -3px;
+        top: -4px;
     }
     .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }

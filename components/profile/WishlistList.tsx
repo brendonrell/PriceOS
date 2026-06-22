@@ -371,6 +371,7 @@ function WishlistRow({
                         </>
                     )}
                 </span>
+                <span className="starred-row-sub">Held by: {meta?.ownerDisplay || '—'}</span>
                 <span className="starred-row-sub">Floor:<em>{market.floor}</em></span>
                 <span className="starred-row-sub">Last:<em>{market.lastSale}</em></span>
             </div>

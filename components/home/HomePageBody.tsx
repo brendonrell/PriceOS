@@ -48,7 +48,7 @@ import HomeProjectFacetBar, {
     type HomeSortKey,
     type HomeSortDir,
 } from './HomeProjectFacetBar';
-import { FEED_LIFECYCLE, milestoneByKey } from '../../lib/home/milestones';
+import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -94,7 +94,7 @@ type HomeTab = 'minting' | 'new' | 'shuffle';
 /* Home activity-feed item — a project lifecycle moment (uploaded · graduated ·
    each project milestone · sold-out/ascension). `label` is the ALLCAPS event
    name shown in the feed. */
-interface HomeFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number }
+interface HomeFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
 
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
@@ -499,30 +499,32 @@ function HomePageBodyInner({
         const push = (
             slug: string, fallbackTitle: string,
             label: string, glyph: string, cls: string | undefined,
-            ms: number | null,
+            ms: number | null, seq: number,
         ) => {
             if (ms == null) return;
-            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, label, glyph, cls, ts: ms });
+            items.push({ slug, title: getProject(slug)?.displayName ?? fallbackTitle, label, glyph, cls, ts: ms, seq });
         };
         const addMilestones = (slug: string, title: string, ms: Record<string, number>) => {
             for (const [count, ts] of Object.entries(ms)) {
                 const m = milestoneByKey(count);
-                if (m) push(slug, title, m.label, m.glyph, m.cls, ts);
+                if (m) push(slug, title, m.label, m.glyph, m.cls, ts, m.count);
             }
         };
         const L = FEED_LIFECYCLE;
         for (const u of feed?.uploads ?? []) {
-            push(u.slug, u.title, L.upload.label, L.upload.glyph, undefined, u.uploaded_at);
+            push(u.slug, u.title, L.upload.label, L.upload.glyph, undefined, u.uploaded_at, FEED_SEQ.upload);
             addMilestones(u.slug, u.title, u.milestones);
         }
         for (const m of feed?.minting_now ?? []) {
-            push(m.slug, m.title, L.upload.label, L.upload.glyph, undefined, m.uploaded_at);
+            push(m.slug, m.title, L.upload.label, L.upload.glyph, undefined, m.uploaded_at, FEED_SEQ.upload);
             addMilestones(m.slug, m.title, m.milestones);
-            push(m.slug, m.title, L.graduated.label, L.graduated.glyph, L.graduated.cls, m.reached_at);
-            push(m.slug, m.title, L.ascension.label, L.ascension.glyph, undefined, m.sold_out_at);
+            push(m.slug, m.title, L.graduated.label, L.graduated.glyph, L.graduated.cls, m.reached_at, FEED_SEQ.graduated);
+            push(m.slug, m.title, L.ascension.label, L.ascension.glyph, undefined, m.sold_out_at, FEED_SEQ.ascension);
         }
         const dirMult = mintSort.dir === 'asc' ? 1 : -1;
-        items.sort((a, b) => (a.ts - b.ts) * dirMult);
+        // Order by time, then by the milestone sequence so same-transaction
+        // events (identical ts) still read FIRST BLOOD → GRADUATED → … in order.
+        items.sort((a, b) => (a.ts - b.ts || a.seq - b.seq) * dirMult);
         return items;
     }, [feed, mintSort.dir]);
 

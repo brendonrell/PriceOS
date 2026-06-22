@@ -41,6 +41,9 @@ import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
+import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
+import { L3Pill } from '../project/TraitsUI';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import {
     getPresets,
@@ -136,6 +139,41 @@ export default function ProfileFacetBar({
     const { sort, dir, feedKind, cycleSort, applySort, group, cycleGridSort } = useSort();
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
+
+    /* Live starred-artist + starred-project sets, so an Artist or Project value
+       pill carries the SAME star the rest of the app uses — star an artist on
+       their page and it reads as starred here too; long-press it here to unstar
+       and the pin drops everywhere. Facets that aren't artists/projects stay
+       non-starrable and render exactly as before. */
+    const [artistStars, setArtistStars] = useState<readonly string[]>(() => getArtistStars());
+    useEffect(() => subscribeArtistStars(setArtistStars), []);
+    const [projectStars, setProjectStars] = useState<readonly string[]>(() => getProjectStars());
+    useEffect(() => subscribeProjectStars(setProjectStars), []);
+
+    /* For an Artist/Project value pill, the live starred state + the toggle
+       (reusing the title-star's stores + toasts). null for non-star facets. */
+    const pillStar = (facet: string, value: string): { starred: boolean; toggle: () => void } | null => {
+        if (facet === 'Artist') {
+            return {
+                starred: artistStars.includes(value),
+                toggle: () => {
+                    const r = toggleArtistStar(value);
+                    showToast(r === 'starred' ? 'Added to your Starred Artists List (Private)' : 'Removed from your Starred Artists List');
+                },
+            };
+        }
+        if (facet === 'Project') {
+            const slug = value.replace(/^@/, '');
+            return {
+                starred: projectStars.includes(slug),
+                toggle: () => {
+                    const r = toggleProjectStar(slug);
+                    showToast(r === 'starred' ? 'Added to your Starred Projects List (Private)' : 'Removed from your Starred Projects List');
+                },
+            };
+        }
+        return null;
+    };
 
     /* One-button grid sort (Brendon, 2026-06-18). #ID / $PRICE / AZ each cycle
        every direction × grouping combo in a single tap — like FEED — instead of
@@ -287,24 +325,21 @@ export default function ProfileFacetBar({
                             const count = holdings.filter(
                                 (h) => facetValueOf(activeCategory!, h) === value,
                             ).length;
-                            const cls = `pill pill-l3${isActive ? ' active' : ''}${dimmed ? ' dimmed' : ''}`;
+                            const star = pillStar(activeCategory!, value);
                             return (
-                                <div
+                                <L3Pill
                                     key={value}
-                                    className={cls}
-                                    role="button"
-                                    tabIndex={0}
+                                    label={value}
+                                    count={count}
+                                    active={isActive}
+                                    dimmed={dimmed}
+                                    isZero={false}
+                                    category={activeCategory!}
+                                    starrable={star != null}
+                                    starred={star?.starred ?? false}
+                                    onToggleStar={star ? star.toggle : undefined}
                                     onClick={() => toggleFilter(activeCategory!, value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            toggleFilter(activeCategory!, value);
-                                        }
-                                    }}
-                                >
-                                    <span className="stat-name">↳ {value}</span>
-                                    <span className="stat-count">{count}</span>
-                                </div>
+                                />
                             );
                         })}
                     </div>

@@ -1809,7 +1809,7 @@ interface L3PillProps {
    in globals.css (.pill-l3.active 2332 → .pill-l3.dimmed 2337 →
    .pill-l3.is-zero 2338) — so a zero-count pill that's also selected
    renders with the dashed-transparent is-zero treatment dominating. */
-function L3Pill({
+export function L3Pill({
     label,
     count,
     active,
