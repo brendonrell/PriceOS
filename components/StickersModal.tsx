@@ -21,6 +21,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { useToast } from '../lib/state/ToastContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import {
     SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId, type Sticker,
@@ -49,7 +50,16 @@ function fanFor(sheet: SheetMeta) {
 
 export default function StickersModal() {
     const { openModal, close } = useModal();
+    const { showToast } = useToast();
     const isOpen = openModal?.name === 'stickers';
+
+    /* Toggle the view mode + toast it (house style: new state in CAPS). Fires
+       only on this switch, never on opening the store. */
+    const toggleView = () => setExpanded((v) => {
+        const next = !v;
+        showToast(`View: ${next ? 'STACKED' : 'COMPACT'}`);
+        return next;
+    });
     const railRef = useDragScroll<HTMLDivElement>();
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
@@ -183,7 +193,7 @@ export default function StickersModal() {
                                 type="button"
                                 title={expanded ? 'Single row' : 'Expand'}
                                 aria-pressed={expanded}
-                                onClick={() => setExpanded((v) => !v)}
+                                onClick={toggleView}
                             >
                                 {`⊞${VS15}`}
                             </button>
