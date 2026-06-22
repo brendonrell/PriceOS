@@ -2072,10 +2072,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     font-size: 11px; letter-spacing: 1px;
-    color: #000; opacity: 0;
+    opacity: 0;
     transition: opacity 0.3s;
     padding: 0 4px;
 }
+/* Name matches the bubble polarity: black on white bubbles, white on black. */
+.npc-cast.light .npc-name { color: #000; }
+.npc-cast.dark  .npc-name { color: #fff; }
 .npc-resident.active .npc-name { opacity: 0.65; }
 
 /* Single solid speech bubble. It can't shrink to wrapped text on its own, so
