@@ -7,11 +7,40 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
-  branch `claude/site-edits-formatting-sijaz0` is trash (work is on dev) — Brendon deletes on GitHub.
+  branch `claude/familiar-feature-overhaul-aesgss` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-22 (latest). This session = **STICKER MODE polish — store, manager, hero,
-  ticker, crash-fix** (🏷️ below), all shipped to dev. Prior: HALO 4-PROJECT (🌗),
-  OUTPUT ATTRIBUTES / CHARACTER SHEET (🪪), STARRED/WISHLIST (⭐), GENERATIVE COLORWAY (🎨🥚).
+- **Updated:** 2026-06-22 (latest). This session = **DIGITAL FAMILIAR overhaul + NPC CAST +
+  project-follow tape gags + a big batch of spot edits** (🐉 below), all shipped to dev.
+  Prior: STICKER MODE polish (🏷️), HALO 4-PROJECT (🌗), OUTPUT ATTRIBUTES (🪪), STARRED/WISHLIST (⭐).
+- **QUEUED (not built):** **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
+  LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
+  The Tape. Confirmed source = the homepage milestone feed (`projects.milestones` JSONB / home feed,
+  NOT the events ledger) — so this needs a global milestone source merged into `useTapeFeed`/`/api/feed`.
+  Follow + unfollow gags already shipped this session; milestones are the remaining piece Brendon asked for.
+
+## 🐉 DIGITAL FAMILIAR + NPC CAST + tape gags — shipped to dev 2026-06-22
+- **Familiar:** all 35 species now selectable + animated (engine knew only 5); all tiers unlocked for
+  testing; per-character personality dialogue where RANK informs TONE only (zero "respect you" lines);
+  **Omniscience** (default ON, set-and-forget — reads the user's live DB record/feed, weaves non-specific
+  facts in) with a modal toggle + Customize (outline off/random/color) + Energy (chill default/active/
+  hyped/greed/fear/ngmi, BitDaemons scurry off-screen-and-back clipped, higher tiers move classier);
+  poke-on-tap / long-press-to-open modal w/ italic thoughts + gesture hints; Old Gods drawn bigger via
+  MORE CHARACTERS (not zoom); "Turn off Familiar" in modal, re-enable in spell book. Titans = SEMI-RARE.
+- **NPC Cast:** 8 locked characters (Rocco/Eddie/Mick/Carl/Mimi/Romy/Steven/Celestia) live off-screen on
+  side walls, speaking randomly (~12–22s). Each has a unique Unicode font (Mick = bold fraktur) + unique
+  entrance anim; Courier New name label above the bubble (pure B/W per polarity, solid, subtle keyed
+  shadow — white for black text); Petey-popout bubble in toast style, single solid box + JS measurer so
+  it hugs its text, half-size tail; per-speak jitter; Eddie sneaks walls + gets shooed back; never
+  obstructs clicks; awareness engine v1 (page/piece reactions + rare fourth-wall break). Button stays
+  "NPC", toast says "NPC Cast: ON/OFF". Size pill REMOVED — plain on/off.
+- **Project-follow tape gags:** project follows you on collect, unfollows when you dump your whole bag
+  (read-time holders check via `from_zeroed` on the feed — no migration); rendered on all three rails.
+- **Spot edits batch:** cartel icon beside @brendon (mutuals perk); spell-book icon sizes (hammer/
+  arbitrage/deactivate/tarot/aura/redacted); +More tab icons (star/album); multiselect ring outside the
+  hover square (half-thick desktop); +More sort remembers locally (default newest); Discord divider
+  removal + desktop width cap; menu tape uses the LIVE feed (was mock); sticker store desktop stacked
+  previews (uniform half-height, toggle "Sticker Store: COMPACT", MOBILE UNCHANGED); MY PD price-logo
+  toast → "Logo: \$PRICE / Standard"; MY PD desktop icon nudges (stickers/ambient/price-logo).
 
 ## 🏷️ STICKER MODE — big polish pass shipped to dev 2026-06-22
 - **Store** = STICKER STORE // BY PD. Carousel CTAs pinned to card bottom (no jumping); a ⊞
