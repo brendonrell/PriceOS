@@ -114,7 +114,7 @@
 
 /* Promo strip — a full-width attention band above the ticker (empty for now). */
 .ss-promo {
-    height: 30px;
+    height: 60px;
     background: #ffd400;
     border-top: 1px solid var(--border-color);
 }
@@ -137,7 +137,7 @@
 .ss-ticker-track span { padding-right: 20px; }
 @keyframes ssTicker {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-33.3333%); }
+    100% { transform: translateX(-50%); }
 }
 
 .ss-rail {

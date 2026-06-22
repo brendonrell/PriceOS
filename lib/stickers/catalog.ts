@@ -367,20 +367,9 @@ export function stickersForSheet(id: SheetId): Sticker[] {
 }
 
 /* ── Ownership (simulated seed) ──────────────────────────────────────────── */
-/* Only Brendon is seeded. A curated mix of both sheets so his hero shows a
-   modest spread before he buys anything. */
-const MOCK_OWNED: Record<string, string[]> = {
-    brendon: [
-        'genesis-hot',
-        'genesis-g4',
-        'genesis-g13',
-        'genesis-price-classic',
-        'genesis-price-inverted',
-        'petey-classic',
-        'petey-p6',
-        'petey-p15',
-    ],
-};
+/* Zeroed out — no profile is seeded; everyone (Brendon included) starts with no
+   stickers and builds their set by buying. (Brendon 2026-06-22.) */
+const MOCK_OWNED: Record<string, string[]> = {};
 
 export function ownedStickers(handle: string | null | undefined): Sticker[] {
     if (!handle) return [];

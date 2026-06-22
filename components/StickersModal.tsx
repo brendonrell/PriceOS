@@ -72,12 +72,8 @@ export default function StickersModal() {
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
-    /* The news crawl — auto-built from the store + release dates, refreshed each
-       time the store opens so recency badges stay current. */
+    /* Auto-generated salesman feed (content), refreshed each open. */
     const tickerText = useMemo(() => buildTickerText(), [isOpen]);
-    // Original crawl pace was ~3.3 chars/sec (the short feed at 26s). Hold that
-    // exact pace now the feed is longer, so the speed reads the same as before.
-    const tickerDur = Math.max(26, Math.round(tickerText.length / 3.3));
 
     const ownedIds = useOwnedStickerIds();
     const totalSheets = REAL_SHEETS.length;
@@ -229,12 +225,12 @@ export default function StickersModal() {
                     })()
                 ) : (
                     <>
-                        {/* Promo strip — attention yellow, empty for now. */}
-                        <div className="ss-promo" aria-hidden="true" />
+                        {/* Promo strip — attention yellow, empty for now. Hidden in the
+                            expanded grid view. */}
+                        {!expanded && <div className="ss-promo" aria-hidden="true" />}
 
                         <div className="ss-ticker" aria-hidden="true">
-                            <div className="ss-ticker-track" style={{ animationDuration: `${tickerDur}s` }}>
-                                <span>{tickerText}</span>
+                            <div className="ss-ticker-track">
                                 <span>{tickerText}</span>
                                 <span>{tickerText}</span>
                             </div>

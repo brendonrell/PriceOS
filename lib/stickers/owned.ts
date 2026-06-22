@@ -39,6 +39,21 @@ function writeArr(key: string, arr: string[]) {
     window.dispatchEvent(new CustomEvent(EVT));
 }
 
+/* One-time hard reset — wipe every owned + active-state key on this device, once.
+   Clears the crash from over-stuffed test ownership and gives a clean slate.
+   Bump the version string to force another clean wipe later. (Brendon 2026-06-22.) */
+const RESET_VERSION = 'pd_stickers_reset_v2';
+if (typeof window !== 'undefined') {
+    try {
+        if (window.localStorage.getItem(RESET_VERSION) !== '1') {
+            window.localStorage.removeItem(OWNED_KEY);
+            window.localStorage.removeItem(OFF_SHEETS_KEY);
+            window.localStorage.removeItem(OFF_IDS_KEY);
+            window.localStorage.setItem(RESET_VERSION, '1');
+        }
+    } catch { /* ignore */ }
+}
+
 export function getOwnedIds(): string[] { return readArr(OWNED_KEY); }
 export function getOffSheets(): string[] { return readArr(OFF_SHEETS_KEY); }
 export function getOffIds(): string[] { return readArr(OFF_IDS_KEY); }
