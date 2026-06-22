@@ -8868,6 +8868,12 @@ body.colorway-dark .ghost-feed-bar {
 @media (max-width: 600px) {
     .pill-tab-ico { top: 0; }
 }
+/* Desktop: the +More tab icons (Starred / Wishlist / Albums) run two sizes
+   smaller and sit 2px lower (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    .pill-tab-ico { font-size: 1.08em; top: 1px; }
+    .pill-tab-ico.is-star { font-size: 1.24em; }
+}
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
@@ -9246,8 +9252,12 @@ body.colorway-dark .ghost-feed-bar {
     flex-direction: column;
     gap: 4px;
     padding: 2px 4px 18px;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 22%, transparent);
     margin-bottom: 18px;
+}
+/* Desktop: keep the Discord panel from sprawling — cap it to the content
+   column so it stops where the Starred/Wishlist content stops (Brendon, 2026-06-22). */
+@media (min-width: 601px) {
+    .pd-discord { max-width: 560px; }
 }
 .pd-discord-wordmark {
     font-size: 26px;

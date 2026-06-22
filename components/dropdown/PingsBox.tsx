@@ -11,14 +11,14 @@
  * the header alongside the PINGS label.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { renderPing, passesCategoryPrefs } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
-import { tapeFeedItems } from '../../lib/data/tapeEvents';
+import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
@@ -72,7 +72,9 @@ export function PingsBox() {
 
     const pingsActive = !notifs.notes && !notifs.todos && !notifs.tapeOpen;
     const tapeOn = notifs.menutape > 0;
-    const items = tapeOn ? tapeFeedItems() : [];
+    /* Same live feed The Tape uses (was stale mock data) — Brendon, 2026-06-22. */
+    const realItems = useTapeFeed();
+    const items = tapeOn ? realItems : [];
 
     useEffect(() => {
         const rail = railRef.current;
@@ -126,19 +128,18 @@ export function PingsBox() {
                                 ref={railRef}
                                 aria-label="Menu Tape"
                             >
-                                {items.map((item, i) => (
-                                    <RailItem key={`a-${i}`} item={item} />
-                                ))}
-                                <span className="tape-sep-outer">··</span>
-                                {items.map((item, i) => (
-                                    <RailItem key={`b-${i}`} item={item} />
-                                ))}
-                                {/* Trailing boundary marker so the loop seam
-                                    carries the same gap as the mid-point — without
-                                    it the stream butts against itself on wrap, and
-                                    the two halves aren't an even double (Brendon,
-                                    2026-06-16). */}
-                                <span className="tape-sep-outer">··</span>
+                                {/* Each event is followed by a diamond delimiter,
+                                    doubled into a seamless loop — identical to The
+                                    Tape, so no two events ever run together and the
+                                    wrap seam carries the same gap (Brendon, 2026-06-22). */}
+                                {(['a', 'b'] as const).map((run) =>
+                                    items.map((item, i) => (
+                                        <Fragment key={`${run}-${i}`}>
+                                            <RailItem item={item} />
+                                            <span className="tape-sep-outer" aria-hidden="true">◆</span>
+                                        </Fragment>
+                                    )),
+                                )}
                             </div>
                         </div>
                     )}

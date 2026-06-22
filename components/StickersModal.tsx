@@ -71,6 +71,18 @@ export default function StickersModal() {
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
 
+    /* Desktop-only: a fuller, previews-only expanded grid. Mobile is untouched
+       (it keeps renderCard exactly as-is) — Brendon: "mobile CANNOT change". */
+    const [isDesktop, setIsDesktop] = useState(false);
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return;
+        const mq = window.matchMedia('(min-width: 601px)');
+        const sync = () => setIsDesktop(mq.matches);
+        sync();
+        mq.addEventListener('change', sync);
+        return () => mq.removeEventListener('change', sync);
+    }, []);
+
     /* Remember the carousel scroll position across opening a sheet / reopening
        the store, so it never snaps back to the start (Brendon 2026-06-21). */
     const railXRef = useRef(0);
@@ -142,6 +154,30 @@ export default function StickersModal() {
                     <span className="ss-card-count">{s.count} stickers</span>
                 </div>
                 <BuySheetButton sheet={s} />
+            </div>
+        </div>
+    );
+
+    /* Desktop expanded grid — previews only (no name / count / buy), shorter,
+       with the card filled by more of the sheet's stickers across rows. */
+    const renderPreviewCard = (s: SheetMeta) => (
+        <div
+            className="ss-card ss-card-live ss-card-preview"
+            key={s.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => openDetail(s.id)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(s.id); } }}
+        >
+            <div className="ss-card-art ss-card-art-fill">
+                <span className="ss-preview-grid">
+                    {stickersForSheet(s.id).slice(0, 9).map((st) => (
+                        <span key={st.id} className="ss-preview-item">
+                            <StickerArt sticker={st} size={58} />
+                        </span>
+                    ))}
+                </span>
+                <span className="ss-card-soon ss-card-new">LIVE</span>
             </div>
         </div>
     );
@@ -275,7 +311,7 @@ export default function StickersModal() {
 
                         {expanded ? (
                             <div className="ss-grid-view" ref={gridRef}>
-                                {REAL_SHEETS.map((s) => renderCard(s))}
+                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>

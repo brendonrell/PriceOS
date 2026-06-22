@@ -333,6 +333,25 @@
     background: var(--text-color);
     border: none;
 }
+/* Desktop previews-only expanded card (Brendon, 2026-06-22) — no name/count/buy;
+   the art fills with more of the sheet's stickers across multiple rows. Only
+   rendered on desktop, so mobile is wholly unaffected. */
+.ss-card-preview .ss-card-art-fill {
+    height: auto;
+    min-height: 170px;
+    padding: 16px 14px;
+    align-items: center;
+    border-bottom: none;
+}
+.ss-preview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.ss-preview-item { display: inline-flex; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
+
 .ss-card-live { cursor: pointer; }
 
 /* ── Sheet detail — the peel-off sticker sheet (tap a live card) ─────────── */
