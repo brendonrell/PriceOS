@@ -105,7 +105,7 @@ export const TIERS: readonly BestiaryTier[] = [
     {
         id: 'titans',
         label: 'Titans',
-        rarity: 'RARE',
+        rarity: 'SEMI-RARE',
         unlock: 'Earned through achievements.',
         locked: !ALL_UNLOCKED,
         entries: TITANS,
