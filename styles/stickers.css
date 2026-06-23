@@ -558,6 +558,7 @@
     /* No shadow — a sticker sits flush on the surface with zero gap (Brendon
        2026-06-23). The die-cut paper edge is the only depth cue. */
 }
+.hero-sticker:hover { transform: rotate(0deg) scale(1.08); }
 
 /* ── Hand-placement (own profile) ──────────────────────────────────────────
    The canvas holds the generative flow AND the hand-placed overlay in one
@@ -583,17 +584,14 @@
     position: absolute;
     transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1));
 }
+/* Hover scale, but keep the placed sticker centred on its spot. */
+.hero-placed-item:hover { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(calc(var(--s, 1) * 1.06)); }
 
 /* Lifted = picked up: the soft shadow comes back so it reads as floating off the
-   page, and it bobs gently until you settle it. */
+   page. It sits STILL (no bob) so you can place it exactly where you want. */
 .hero-placed-item.is-lifted {
     filter: drop-shadow(0 7px 11px rgba(0, 0, 0, 0.42));
-    animation: hero-sticker-float 1.5s ease-in-out infinite;
     cursor: grab;
-}
-@keyframes hero-sticker-float {
-    0%, 100% { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
-    50%      { transform: translate(-50%, calc(-50% - 5px)) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
 }
 
 /* The ✕ — prune this sticker from the current arrangement only. Canonical close
