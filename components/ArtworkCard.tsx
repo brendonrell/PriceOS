@@ -533,7 +533,7 @@ function ArtworkCard({
             projectTitle.charAt(0) + projectTitle.slice(1).toLowerCase();
         const result = storeTogglePin(slug, id);
         if (result === 'limit') {
-            showToast('Grail Pin Limit: 10 max');
+            showToast('Grail Pin Limit: 10 MAX');
             return;
         }
         if (result === 'unpinned') {
