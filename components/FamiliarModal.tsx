@@ -51,6 +51,9 @@ const ENERGY_OPTIONS: { id: string; label: string }[] = [
     { id: 'greed', label: 'Greed' },
     { id: 'fear', label: 'Fear' },
     { id: 'ngmi', label: 'NGMI' },
+    { id: 'wagmi', label: 'WAGMI' },
+    { id: 'fomo', label: 'FOMO' },
+    { id: 'cope', label: 'Cope' },
 ];
 
 export default function FamiliarModal() {

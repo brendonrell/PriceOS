@@ -8666,7 +8666,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 }
 /* Desktop runs the grail pin bigger and a touch lower (Brendon 2026-06-19). */
 @media (min-width: 601px) {
-    .starred-row-grail { font-size: 29px; transform: translateY(9px); }
+    .starred-row-grail { font-size: 31px; transform: translateY(9px); }
 }
 /* Remove-from-Starred confirm — reuses the multi-select confirm card style,
    re-centred as a modal over the page (Brendon 2026-06-19). */
@@ -8961,7 +8961,6 @@ body.colorway-dark .ghost-feed-bar {
     /* The offer glyph + remove ✕ read oversized on desktop — halve them. */
     .trait-offer-glyph { font-size: 0.85em; }
     .starred-row-unstar { font-size: 10px; }
-    .starred-row-grail { font-size: 10px; }
 }
 
 /* Trait rows — a small colour tile (the Project's signature colour) stands in
