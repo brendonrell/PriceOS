@@ -3147,14 +3147,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* Long-press the PriceSprite → inline colour picker. Reuses the egg row's
    shove-open + pills; stacks the Save/undo actions above the wheel + pills
    (Brendon 2026-06-23). */
-.profile-sprite-picker {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-}
-.psp-actions { display: flex; gap: 6px; }
-.psp-body { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.psp-save, .psp-undo { cursor: pointer; }
+.profile-sprite-picker { align-items: center; }
 /* The native colour wheel, shown as a round swatch of the current colour. */
 .psp-swatch {
     position: relative;
