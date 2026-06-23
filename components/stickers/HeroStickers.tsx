@@ -173,22 +173,26 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         );
     }
 
-    // STACK — peeled stickers spread like fanned playing cards: spaced across the
-    // area with random jitter (position, height, angle), light overlap.
+    // STACK — a fanned hand of cards: evenly spaced across the area, then a
+    // CHAOS level (jitter on position/height/angle) layered on top. Chaos cycles
+    // as you Shuffle — from a clean readable fan up to the tightest, most-extreme
+    // scatter (chaos = 1 is the original look, kept as the max). All cards stay
+    // visible; the even base spacing is what keeps them readable at low chaos.
     if (arrange === 'stack') {
         const n = picked.length;
         const srnd = rngFrom(seed + 99);
+        const chaos = [0.15, 0.45, 0.75, 1][Math.floor(srnd() * 4)]!;
         const PAD = 8;
         const span = 100 - PAD * 2;
         const slot = n <= 1 ? 0 : span / (n - 1);
-        const rotSpread = baseTilt * 1.4 + 7;
+        const rotSpread = (baseTilt * 1.4 + 7) * chaos;
         return wrap(
             <div className={`hero-stack ${alignClass}`} style={areaStyle}>
                 {picked.map((s, i) => {
                     const base = n <= 1 ? 50 : PAD + i * slot;
-                    const jx = (srnd() - 0.5) * slot * 0.55;
+                    const jx = (srnd() - 0.5) * slot * 0.55 * chaos;
                     const x = Math.max(PAD, Math.min(100 - PAD, base + jx));
-                    const top = 50 + (srnd() - 0.5) * 34;
+                    const top = 50 + (srnd() - 0.5) * 34 * chaos;
                     const rot = (srnd() - 0.5) * 2 * rotSpread;
                     return (
                         <span
