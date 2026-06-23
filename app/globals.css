@@ -3070,13 +3070,15 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 @media (min-width: 601px) {
     .project-hero { align-items: stretch; }
 }
-/* Portrait: the hero stickers bleed past the screen edge by design (looks great)
-   — but they must NEVER widen the browser sideways. Clip the hero horizontally
-   at the viewport edge so the bleed is cut like the carousel content, not
-   scrolled into existence. Landscape (≈ desktop) fits, so it's left untouched.
-   x-only clip keeps every vertical sticker stack/overlap intact. */
+/* Portrait: horizontal page scroll is FORBIDDEN app-wide (Brendon 2026-06-23) —
+   nothing is ever allowed to widen the window sideways. Clip the whole document
+   horizontally at the viewport edge so any bleed (hero stickers, etc.) is cut
+   like the carousel content, never scrolled into existence. x-only clip leaves
+   vertical scroll + every sticker overlap intact; `clip` (not hidden) creates no
+   scroll container, so the sticky chrome is unaffected. Landscape/desktop fit on
+   their own and are left untouched. */
 @media (orientation: portrait) {
-    .project-hero { overflow-x: clip; }
+    html, body { overflow-x: clip; }
 }
 .hero-group-1 {
     display: flex;

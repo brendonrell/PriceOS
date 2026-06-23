@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import type { Sticker } from './catalog';
 
 export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
@@ -99,7 +100,7 @@ export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; ca
     switch (a) {
         case 'row':     return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'spread':  return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
-        case 'stack':   return { rows: 1, cap: 9, scatter: false, overlap: true };
+        case 'stack':   return { rows: 1, cap: 14, scatter: false, overlap: true };
         case 'scatter': return { rows: rowsPref, cap: 7 * rowsPref, scatter: true, overlap: false };
         case 'fill':    return { rows: 3, cap: 24, scatter: true, overlap: false };
         case 'collage': return { rows: 0, cap: 20, scatter: true, overlap: true };
@@ -132,6 +133,54 @@ export function buildCollage(n: number, seed: number): { cols: number; rows: num
         items.push({ x, y, scale, rot: (rnd() - 0.5) * 28, z: Math.floor(rnd() * 1000) });
     }
     return { cols, rows, items };
+}
+
+/* ── STACK = a PILE — a stickered-laptop / skateboard look ─────────────────────
+   Stickers slapped on over time: piled, overlapping, all over the area, NOT a
+   fan. Placement is generative + colour-balanced (on brand): each sticker's
+   dominant hue is read, the set is ordered by hue, then dropped onto an R2
+   low-discrepancy sequence — which fills the area evenly and organically (no
+   grid). Because consecutive hues land far apart, every colour is spread across
+   the pile instead of clumping → compositional colour balance. Shuffle re-rolls
+   the phase + jitter for a fresh composition. */
+export interface PilePiece { x: number; y: number; rot: number; scale: number; z: number; }
+
+/** A sticker's dominant hue (0–360); achromatic / unknown art falls back to a
+ *  stable pseudo-hue from its id so it still distributes instead of clumping. */
+export function stickerHue(s: Sticker): number {
+    const hex = s.color ?? s.bg ?? s.cutout ?? s.fg ?? null;
+    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+        if (d > 0.04) {
+            let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+            return ((h * 60) + 360) % 360;
+        }
+    }
+    let x = 0;
+    for (let i = 0; i < s.id.length; i++) x = (x * 31 + s.id.charCodeAt(i)) | 0;
+    return (x >>> 0) % 360;
+}
+
+export function buildPile(hues: number[], seed: number): { aspect: number; items: PilePiece[] } {
+    const n = Math.max(1, hues.length);
+    const rnd = rngFrom(seed + 131);
+    const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
+    const g = 1.32471795724474602596;   // plastic number → R2 sequence
+    const a1 = 1 / g, a2 = 1 / (g * g);
+    const offX = rnd(), offY = rnd();
+    const items: PilePiece[] = new Array(n);
+    for (let k = 0; k < n; k++) {
+        const idx = order[k]!;
+        let x = (offX + a1 * (k + 1)) % 1;
+        let y = (offY + a2 * (k + 1)) % 1;
+        x = Math.min(0.93, Math.max(0.07, x + (rnd() - 0.5) * 0.05));
+        y = Math.min(0.88, Math.max(0.12, y + (rnd() - 0.5) * 0.09));
+        items[idx] = { x: x * 100, y: y * 100, rot: (rnd() - 0.5) * 46, scale: 0.8 + rnd() * 0.5, z: k };
+    }
+    return { aspect: 2.8, items };
 }
 
 /* Upside-down: ~1 in 4 stickers flip 180°, deterministic per sticker + seed

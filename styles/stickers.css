@@ -546,6 +546,9 @@
 /* COLLAGE mode — one large composed area, stickers absolutely placed. */
 .hero-collage { position: relative; width: 100%; margin: 0; }
 .hero-collage-item { position: absolute; }
+/* STACK = PILE — absolutely-placed area (aspect ratio set inline by buildPile). */
+.hero-pile { position: relative; width: 100%; margin: 0; }
+.hero-pile-item { position: absolute; }
 .hero-sticker {
     display: inline-flex;
     align-items: center;

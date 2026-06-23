@@ -15,7 +15,7 @@
 import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, shouldFlip } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
 import type { Sticker } from '../../lib/stickers/catalog';
@@ -173,32 +173,20 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         );
     }
 
-    // STACK — a fanned hand of cards: evenly spaced across the area, then a
-    // CHAOS level (jitter on position/height/angle) layered on top. Chaos cycles
-    // as you Shuffle — from a clean readable fan up to the tightest, most-extreme
-    // scatter (chaos = 1 is the original look, kept as the max). All cards stay
-    // visible; the even base spacing is what keeps them readable at low chaos.
+    // STACK — a PILE (stickered laptop / skateboard): piled + overlapping, placed
+    // generatively for compositional colour balance (buildPile). Shuffle re-rolls
+    // the composition.
     if (arrange === 'stack') {
-        const n = picked.length;
-        const srnd = rngFrom(seed + 99);
-        const chaos = [0.15, 0.45, 0.75, 1][Math.floor(srnd() * 4)]!;
-        const PAD = 8;
-        const span = 100 - PAD * 2;
-        const slot = n <= 1 ? 0 : span / (n - 1);
-        const rotSpread = (baseTilt * 1.4 + 7) * chaos;
+        const pile = buildPile(picked.map(stickerHue), seed);
         return wrap(
-            <div className={`hero-stack ${alignClass}`} style={areaStyle}>
+            <div className={`hero-pile ${alignClass}`} style={{ ...areaStyle, aspectRatio: String(pile.aspect) }}>
                 {picked.map((s, i) => {
-                    const base = n <= 1 ? 50 : PAD + i * slot;
-                    const jx = (srnd() - 0.5) * slot * 0.55 * chaos;
-                    const x = Math.max(PAD, Math.min(100 - PAD, base + jx));
-                    const top = 50 + (srnd() - 0.5) * 34 * chaos;
-                    const rot = (srnd() - 0.5) * 2 * rotSpread;
+                    const p = pile.items[i]!;
                     return (
                         <span
                             key={s.id}
-                            className="hero-sticker hero-stack-item"
-                            style={{ left: `${x}%`, top: `${top}%`, zIndex: i + 1, transform: `translate(-50%, -50%) rotate(${rot + flipOf(s.id)}deg)` }}
+                            className="hero-sticker hero-pile-item"
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
                             title={s.name}
                         >
                             <StickerArt sticker={s} size={sz(s.kind)} />
