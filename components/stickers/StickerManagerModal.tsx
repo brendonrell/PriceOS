@@ -121,8 +121,9 @@ export function StickerManagerModal({
             const left = Math.max(8, Math.min(r.left, vw - popW - 8));
             // About HALF the room below the stickers (Brendon 2026-06-23) — a
             // compact menu; the pages scroll inside. Floored so it stays usable.
+            // +10px so the bottom controls aren't clipped (Brendon 2026-06-23).
             const room = Math.min(vh - top - 12, vh - 150);
-            const maxH = Math.max(190, Math.round(room * 0.5));
+            const maxH = Math.max(190, Math.round(room * 0.5)) + 10;
             setAnchor({ top, left, maxH });
         };
         measure();
