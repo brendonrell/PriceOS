@@ -4123,8 +4123,9 @@ button,
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
+    /* Nailed in normal flow — never floats/drags (was sticky bottom:0, which
+       detached the tabs in landscape). Brendon 2026-06-23. */
+    position: static;
 }
 .profile-tabs-row .pill-l1 {
     font-family: var(--font-rubik-mono), sans-serif;

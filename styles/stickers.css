@@ -511,6 +511,11 @@
 .hero-stickers {
     width: 100%;
     margin: 2px 0 10px;
+    /* Own low stacking layer so the placed/lifted stickers' high z-indexes stay
+       CONTAINED here and can never rise over the connect menu / app chrome
+       above the hero (Brendon 2026-06-23). */
+    position: relative;
+    z-index: 0;
 }
 .hero-stickers-rows {
     display: flex;
