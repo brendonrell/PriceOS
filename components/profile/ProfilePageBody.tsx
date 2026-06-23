@@ -293,7 +293,7 @@ function ProfilePageBodyInner({
         nameLpTimer.current = window.setTimeout(() => {
             nameLpFired.current = true;
             nameLpTimer.current = null;
-            setNameCarouselOpen(true);
+            setNameCarouselOpen((v) => !v);
         }, 460);
     };
     const onNamePointerMove = (e: React.PointerEvent) => {
@@ -1627,6 +1627,16 @@ function ProfilePageBodyInner({
                             </div>
                         </div>
                     )}
+                    {/* Long-press the @name → the exact Now-Minting carousel for
+                        Oracle, quarter-size tiles, shoved open INLINE under the
+                        title (pushes the hero down, like the colour egg). */}
+                    {isOwnProfile && nameCarouselOpen && (
+                        <div className="profile-name-carousel">
+                            <ProjectProvider slug="oracle">
+                                <HomeProjectCarousel eager />
+                            </ProjectProvider>
+                        </div>
+                    )}
                     </>
                 }
                 identityRow={
@@ -2304,23 +2314,8 @@ function ProfilePageBodyInner({
                 </>
             )}
 
-            {/* Mini Now-Minting carousel — long-press your own @name. The exact
-                home carousel for Oracle, quarter-scale, in a dismissible popup. */}
-            {nameCarouselOpen && isOwnProfile && (
-                <div
-                    className="name-carousel-pop"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Oracle — recent outputs"
-                    onClick={() => setNameCarouselOpen(false)}
-                >
-                    <div className="name-carousel-card" onClick={(e) => e.stopPropagation()}>
-                        <ProjectProvider slug="oracle">
-                            <HomeProjectCarousel eager />
-                        </ProjectProvider>
-                    </div>
-                </div>
-            )}
+            {/* (The mini @name carousel renders INLINE under the title — see the
+                profile-name-carousel block up in the title row.) */}
 
             {/* Add-to-Showcase picker — opened by tapping a ghost frame on your
                 own empty Showcase. Lists your holdings to feature. */}

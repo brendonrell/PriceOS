@@ -3444,32 +3444,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-size: 14px;
 }
 
-/* Mini Now-Minting carousel — long-press your own @name on your profile pops it
-   open (Oracle for now), the exact home carousel at quarter scale, in a
-   dismissible popup (Brendon 2026-06-23). */
-.name-carousel-pop {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(1.5px);
-    backdrop-filter: blur(1.5px);
-}
-.name-carousel-card {
-    width: min(370px, 96vw);
-    max-height: 88vh;
-    overflow: auto;
-    background: var(--bg-color);
-    border: 1px solid color-mix(in srgb, var(--text-color) 28%, transparent);
-    border-radius: 12px;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
-    padding: 2px;
-}
-.name-carousel-card .home-carousel-row { width: 1400px; zoom: 0.25; }
+/* Mini Now-Minting carousel — long-press your own @name shoves it open INLINE
+   under the title (like the colour egg), pushing the hero down. The exact home
+   carousel for Oracle, with quarter-size tiles (Brendon 2026-06-23). */
+.profile-name-carousel { width: 100%; margin: 6px 0 2px; }
+.profile-name-carousel .home-carousel-row { margin: 0; }
+.profile-name-carousel .home-carousel-track .output-card { width: min(8vw, 30px); }
 .stat-val {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
