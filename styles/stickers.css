@@ -566,9 +566,11 @@
    the page — it might be the start of a drag. */
 .hero-stickers-canvas { position: relative; width: 100%; }
 /* A long-press is our lift gesture — suppress the OS text loupe / callout and
-   any selection it would otherwise pop up over the stickers. */
+   any selection it would otherwise pop up over the stickers. Applies to the
+   sticker artwork too (SVG <text>), which iOS would otherwise highlight. */
 .hero-stickers-canvas,
-.hero-stickers-canvas .hero-sticker {
+.hero-stickers-canvas .hero-sticker,
+.hero-stickers-canvas .hero-sticker * {
     touch-action: none;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
