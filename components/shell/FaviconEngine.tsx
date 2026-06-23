@@ -37,11 +37,13 @@
  * wires unread-event tracking, this is the place to read that flag.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { updateFavicon } from '../../lib/favicon/updateFavicon';
+import { getActiveProfileLogo, subscribeActiveProfileLogo } from '../../lib/profile/profileLogoActive';
+import { PROFILE_LOGOS_BY_ID } from '../../lib/profile/profileLogos';
 
 const DEFAULT_TEXT = '\u2030';
 const ETH_PING_DURATION_MS = 2000;
@@ -77,6 +79,15 @@ export function FaviconEngine() {
        so neither survives a reload, mirroring sim. */
     const [rotated, setRotated] = useState(false);
     const [ethPing, setEthPing] = useState(false);
+
+    /* The viewed profile's Profile Logo (or null elsewhere). Same store the
+       corner logo reads — so the favicon repaints to the owner's pick on a
+       profile page and back to the colorway logo when you leave. */
+    const activeLogoId = useSyncExternalStore(
+        subscribeActiveProfileLogo,
+        getActiveProfileLogo,
+        () => null,
+    );
 
     /* Subscribe to PeteyLogo's easter-egg rotation. PeteyLogo dispatches
        this event from its own effect every time its local `rotated`
@@ -136,17 +147,33 @@ export function FaviconEngine() {
        caller below paints with the current flags. */
     const paint = useCallback(() => {
         const { bg, fg } = readThemeColors();
+        const pl = activeLogoId ? PROFILE_LOGOS_BY_ID.get(activeLogoId) : null;
+        const profileLogo = pl
+            ? {
+                  kind: (pl.kind === 'price' ? 'price' : 'logo') as 'price' | 'logo',
+                  color: pl.color,
+                  cutout: pl.cutout,
+                  bg: pl.bg,
+                  fg: pl.fg,
+                  holo: pl.holo,
+                  blank: pl.blank,
+                  glyphOnly: pl.glyphOnly,
+                  outline: pl.outline,
+              }
+            : null;
         updateFavicon({
             bg,
             fg,
             text: DEFAULT_TEXT,
             isAlert: false,
             isEthPing: ethPing,
-            isRotated: rotated,
+            // A Petey (rotated) profile logo rests rotated, like the corner.
+            isRotated: !!pl?.rotated || rotated,
             priceLogoOverride: notifs.priceLogo,
             /* Mirror the on-page logo swap: applyBgHex flags a red big-colour on
                <body>; read it fresh each paint (this repaints on every bg change). */
             priceLogoSwap: document.body.classList.contains('price-logo-swap'),
+            profileLogo,
         });
 
         // Sync Safari browser chrome color to the live bg — sim line 6859.
@@ -163,7 +190,7 @@ export function FaviconEngine() {
                 tcm.setAttribute('content', dimDark ? '#03020a' : bg);
             }
         }
-    }, [ethPing, rotated, notifs.priceLogo]);
+    }, [ethPing, rotated, notifs.priceLogo, activeLogoId]);
 
     /* Main paint effect. useLayoutEffect makes the cold-load favicon sync
        happen in the same pre-paint window as ColorwayContext's CSS-var write,
