@@ -57,6 +57,6 @@ export const SPELLS: SpellEntry[] = [
     { id: 'sybilnet',    flag: 'spell_sybilnet',    name: 'Sybil Net',         icon: '∾\uFE0E' },
     { id: 'gossip',      flag: 'spell_gossip',      name: 'Gossip Protocol',   icon: '⑃\uFE0E' },
     { id: 'aura',        flag: 'spell_aura',        name: 'Aura',              icon: '⦿\uFE0E' },
-    { id: 'arbitrage',   flag: 'spell_arbitrage',   name: 'Arbitrage Map',     icon: '⊞\uFE0E' },
+    { id: 'arbitrage',   flag: 'spell_arbitrage',   name: 'Arbitrage Map',     icon: '⇄\uFE0E' },
     { id: 'hammer',      flag: 'spell_hammer',      name: 'The Hammer',        icon: 'ᚦ\uFE0E', sharp: true, iconStyle: { fontSize: '14px' } },
 ];
