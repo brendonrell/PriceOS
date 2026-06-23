@@ -620,21 +620,22 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* The rotate grip — same chrome as the ✕, opposite (bottom-right) corner. Drag
-   it around the sticker to spin it. */
+/* The rotate grip — diagonally opposite the ✕ (bottom-left) so a reach for it
+   never lands on the remove, and a distinct brand-blue fill so the two read as
+   different tools at a glance. Drag it around the sticker to spin it. */
 .hero-sticker-rotate {
     position: absolute;
     bottom: -9px;
-    right: -9px;
+    left: -9px;
     width: 22px;
     height: 22px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
+    background: #0109FF;
+    color: #fff;
+    border: 1px solid #fff;
     font: bold 13px/1 'Courier New', Courier, monospace;
     padding: 0;
     cursor: grab;
