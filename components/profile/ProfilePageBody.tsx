@@ -1672,7 +1672,7 @@ function ProfilePageBodyInner({
                                     </div>
                                     {PROFILE_LOGO_CAROUSEL.map((logo) => (
                                         <div
-                                            className={`pl-logo-card${ownerLogo === logo.id ? ' is-active' : ''}`}
+                                            className={`pl-logo-card${logo.kind === 'logo' ? ' pl-logo-bubble' : ''}${ownerLogo === logo.id ? ' is-active' : ''}`}
                                             key={logo.id}
                                             role="button"
                                             tabIndex={0}

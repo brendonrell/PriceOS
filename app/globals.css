@@ -3472,6 +3472,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
 }
+/* Regular (bubble) logos read a touch big next to the wider $PRICE marks —
+   scale just the ART down 10%. The tile, the dotted selection square, the
+   $PRICE tiles and the OFF tile are all untouched. */
+.profile-name-carousel .home-carousel-track .pl-logo-bubble svg {
+    transform: scale(0.9);
+}
 /* The pick currently in play — a DOTTED ring (outline, so it never shifts the
    row layout). */
 .profile-name-carousel .home-carousel-track .pl-logo-card.is-active {
