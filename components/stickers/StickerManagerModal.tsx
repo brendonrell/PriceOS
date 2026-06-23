@@ -22,9 +22,9 @@ import {
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    getArrange, getTilt, getExpand, getRows, getAlign, getFlip,
-    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, shuffleSeed, cycleStackLevel,
-    ARRANGES, TILTS, ROW_OPTS, ALIGNS,
+    getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity,
+    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, shuffleSeed,
+    ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES,
     type Arrange, type Tilt, type Rows, type Align,
 } from '../../lib/stickers/heroPrefs';
 import {
@@ -57,6 +57,7 @@ export function StickerManagerModal({
     const [rows, setRw] = useState<Rows>(1);
     const [align, setAl] = useState<Align>('left');
     const [flip, setFl] = useState(false);
+    const [density, setDen] = useState(0);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
@@ -79,6 +80,7 @@ export function StickerManagerModal({
         setRw(getRows());
         setAl(getAlign());
         setFl(getFlip());
+        setDen(getDensity());
     }, [open, handle]);
 
     // Restore the last-open swipe page so reopening doesn't snap back to page 1.
@@ -153,6 +155,7 @@ export function StickerManagerModal({
     const pickRows = (r: Rows) => { setRw(r); setRows(r); };
     const pickAlign = (a: Align) => { setAl(a); setAlign(a); };
     const pickFlip = (b: boolean) => { setFl(b); setFlip(b); };
+    const pickDensity = (d: number) => { setDen(d); setDensity(d); };
 
     // Apply a whole look at once (from a pasted code or Surprise).
     const applyLook = (l: StickerLook) => {
@@ -245,7 +248,7 @@ export function StickerManagerModal({
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
                             ))}
-                            <button className="ambient-chip" type="button" onClick={() => { if (arrange === 'stack') cycleStackLevel(); shuffleSeed(); }} title={arrange === 'stack' ? 'Cycle stack' : 'Shuffle'}>
+                            <button className="ambient-chip" type="button" onClick={() => shuffleSeed()} title="Shuffle">
                                 {`⟳${VS15}`}
                             </button>
                         </Row>
@@ -256,8 +259,13 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 2 */}
+                    {/* Page 2 — Density (stack pile) above Align + Tilt */}
                     <div className="ambient-pop-page">
+                        <Row label="Density">
+                            {DENSITIES.map((d) => (
+                                <Chip key={d.id} on={density === d.id} onClick={() => pickDensity(d.id)}>{d.label}</Chip>
+                            ))}
+                        </Row>
                         <Row label="Align">
                             {ALIGNS.map((a) => (
                                 <Chip key={a.id} on={align === a.id} onClick={() => pickAlign(a.id)}>{a.label}</Chip>

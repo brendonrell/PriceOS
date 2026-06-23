@@ -37,6 +37,15 @@ export const TILTS: { id: Tilt; label: string }[] = [
     { id: 'soft', label: 'SOFT' },
     { id: 'jaunty', label: 'JAUNTY' },
 ];
+/* DENSITY — how packed the STACK pile is. MAX is the densest pile (the one
+   previously asked for, kept as the most-extreme). Three options so the row of
+   buttons fits on one line. */
+export const DENSITIES: { id: number; label: string }[] = [
+    { id: 0, label: 'LOW' },
+    { id: 1, label: 'MED' },
+    { id: 2, label: 'MAX' },
+];
+const DENSITY_COUNTS = [6, 10, 14];
 
 const K_ARRANGE = 'pd_sticker_arrange';
 const K_TILT = 'pd_sticker_tilt';
@@ -45,7 +54,7 @@ const K_EXPAND = 'pd_sticker_expand';
 const K_ROWS = 'pd_sticker_rows';
 const K_ALIGN = 'pd_sticker_align';
 const K_FLIP = 'pd_sticker_flip';
-const K_STACK_LVL = 'pd_sticker_stack_lvl';
+const K_DENSITY = 'pd_sticker_density';
 const EVT = 'pd:stickers-changed';
 
 function read(key: string, fallback: string): string {
@@ -64,13 +73,12 @@ export function setRows(r: Rows) { write(K_ROWS, String(r)); }
 export function setAlign(a: Align) { write(K_ALIGN, a); }
 export function setFlip(b: boolean) { write(K_FLIP, b ? '1' : '0'); }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
-/** STACK density level. The Shuffle button steps it in stack mode; wraps back to
- *  the loosest after the most-extreme pile. */
-export function getStackLevel(): number {
-    const v = parseInt(read(K_STACK_LVL, '0'), 10);
-    return Number.isFinite(v) ? Math.max(0, Math.min(STACK_LEVEL_COUNT - 1, v)) : 0;
+/** STACK pile density (0 = LOW … 2 = MAX). Picked from the Density chips. */
+export function setDensity(d: number) { write(K_DENSITY, String(d)); }
+export function getDensity(): number {
+    const v = parseInt(read(K_DENSITY, '0'), 10);
+    return Number.isFinite(v) ? Math.max(0, Math.min(DENSITIES.length - 1, v)) : 0;
 }
-export function cycleStackLevel() { write(K_STACK_LVL, String((getStackLevel() + 1) % STACK_LEVEL_COUNT)); }
 
 /* Non-reactive reads — for the manager, which holds its own local copy. */
 export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
@@ -80,10 +88,10 @@ export function getRows(): Rows { return read(K_ROWS, '1') === '2' ? 2 : 1; }
 export function getAlign(): Align { return read(K_ALIGN, 'left') as Align; }
 export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 
-export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; stackLevel: number; }
+export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; density: number; }
 
 export function useHeroPrefs(): HeroPrefs {
-    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, stackLevel: 0 });
+    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0 });
     useEffect(() => {
         const sync = () => setV({
             arrange: read(K_ARRANGE, 'spread') as Arrange,
@@ -93,7 +101,7 @@ export function useHeroPrefs(): HeroPrefs {
             rows: read(K_ROWS, '1') === '2' ? 2 : 1,
             align: read(K_ALIGN, 'left') as Align,
             flip: read(K_FLIP, '0') === '1',
-            stackLevel: getStackLevel(),
+            density: getDensity(),
         });
         sync();
         window.addEventListener(EVT, sync);
@@ -173,14 +181,11 @@ export function stickerHue(s: Sticker): number {
     return (x >>> 0) % 360;
 }
 
-/* The Shuffle button cycles the stack DENSITY through these counts. The ROWS
-   option (1 or 2) is honoured SEPARATELY at every density — single row vs a
-   two-row pile. Densest + two rows = the most-extreme pile (the reference). */
-const STACK_COUNTS = [6, 9, 12, 14];
-export const STACK_LEVEL_COUNT = STACK_COUNTS.length;
-
-export function buildPile(hues: number[], seed: number, level = 0, rows = 1): { aspect: number; items: PilePiece[] } {
-    const cnt = STACK_COUNTS[Math.max(0, Math.min(STACK_COUNTS.length - 1, level))]!;
+/* DENSITY (a Density chip) sets how many stickers fill the pile; the ROWS option
+   (1 or 2) is honoured SEPARATELY at every density — single row vs a two-row
+   pile. MAX density + two rows = the most-extreme pile (the reference). */
+export function buildPile(hues: number[], seed: number, density = 0, rows = 1): { aspect: number; items: PilePiece[] } {
+    const cnt = DENSITY_COUNTS[Math.max(0, Math.min(DENSITY_COUNTS.length - 1, density))]!;
     const n = Math.max(1, Math.min(hues.length, cnt));
     const rnd = rngFrom(seed + 131);
     // Colour balance: order by hue, then R2 low-discrepancy placement so
