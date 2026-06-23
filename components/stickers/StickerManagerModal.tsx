@@ -116,9 +116,10 @@ export function StickerManagerModal({
             const vw = window.innerWidth, vh = window.innerHeight;
             const popW = Math.min(330, vw * 0.88);
             const left = Math.max(8, Math.min(r.left, vw - popW - 8));
-            // Fit in the room below the stickers, and never exceed the ambient
-            // menu's own cap (≈ viewport − 150).
-            const maxH = Math.max(170, Math.min(vh - top - 12, vh - 150));
+            // About HALF the room below the stickers (Brendon 2026-06-23) — a
+            // compact menu; the pages scroll inside. Floored so it stays usable.
+            const room = Math.min(vh - top - 12, vh - 150);
+            const maxH = Math.max(190, Math.round(room * 0.5));
             setAnchor({ top, left, maxH });
         };
         measure();
