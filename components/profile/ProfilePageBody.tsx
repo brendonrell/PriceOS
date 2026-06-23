@@ -273,7 +273,7 @@ function ProfilePageBodyInner({
     const displayHandle = user.handle ?? handle;
 
     /* ── Name easter egg — colourway pills ──────────────────────────────
-       Triple-tapping your OWN @name shoves open an in-flow row of colour
+       Long-pressing your OWN @name shoves open an in-flow row of colour
        pills (below the title, pushing the rest of the hero down — never a
        floating overlay). Each pill names + sets the Profile Colorway via the
        shared hook, so the change also reflects live in the Settings field.
@@ -293,16 +293,13 @@ function ProfilePageBodyInner({
         s.lastTap = now;
         if (s.count >= 3) {
             s.count = 0;
-            setEggOpen((v) => {
-                if (!v) preEggHex.current = myProfileHex;
-                return !v;
-            });
+            setNameCarouselOpen((v) => !v);
         }
     };
 
-    /* Long-press the @name (own profile) → a mini Now-Minting carousel pops up
+    /* Triple-tap the @name (own profile) → a mini Now-Minting carousel pops up
        — the exact home carousel, Oracle for now, quarter-scale. A distinct
-       gesture from the triple-tap colour egg, which stays (Brendon 2026-06-23). */
+       gesture from the long-press colour egg, which stays (Brendon 2026-06-23). */
     const [nameCarouselOpen, setNameCarouselOpen] = useState(false);
     const nameLpTimer = useRef<number | null>(null);
     const nameLpFired = useRef(false);
@@ -318,7 +315,10 @@ function ProfilePageBodyInner({
         nameLpTimer.current = window.setTimeout(() => {
             nameLpFired.current = true;
             nameLpTimer.current = null;
-            setNameCarouselOpen((v) => !v);
+            setEggOpen((v) => {
+                if (!v) preEggHex.current = myProfileHex;
+                return !v;
+            });
         }, 460);
     };
     const onNamePointerMove = (e: React.PointerEvent) => {
@@ -1688,7 +1688,7 @@ function ProfilePageBodyInner({
                             </div>
                         </div>
                     )}
-                    {/* Long-press the @name → the carousel (same scroll chrome as
+                    {/* Triple-tap the @name → the carousel (same scroll chrome as
                         Now-Minting), shoved open INLINE under the title like the
                         colour egg. Profile Logo feature: no title, tiles are the
                         PD logos (the feature's own set, not the sticker sheet). */}
