@@ -90,6 +90,19 @@ export const PROFILE_LOGO_CAROUSEL: Sticker[] = [
     ...PROFILE_LOGOS.filter((s) => s.kind === 'logo'),
 ];
 
+/** The OFF / global-toggle tile's art: the bubble logo painted in the PAGE's
+ *  OWN colorway (bubble = current text colour, per-mille = bg) — i.e. exactly
+ *  what the corner logo shows with no Profile Logo set. The UI shows it faded
+ *  inside a dashed ring. Not a storable pick (the OFF tile clears to null). */
+export const PROFILE_LOGO_OFF: Sticker = {
+    id: 'plogo-off',
+    sheet: 'genesis',
+    kind: 'logo',
+    name: 'Default logo',
+    color: 'currentColor',
+    cutout: 'var(--bg-color)',
+};
+
 /** Fast id → sticker lookup (the corner-logo override + the save-path validator
  *  both resolve a stored pick by id). */
 export const PROFILE_LOGOS_BY_ID: ReadonlyMap<string, Sticker> = new Map(

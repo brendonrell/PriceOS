@@ -3472,21 +3472,22 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
 }
-/* The pick currently in play — a ring so the owner sees their selection.
-   outline (not border) so it never shifts the row layout. */
+/* The pick currently in play — a DOTTED ring (outline, so it never shifts the
+   row layout). */
 .profile-name-carousel .home-carousel-track .pl-logo-card.is-active {
-    outline: 2px solid var(--text-color);
+    outline: 2px dotted var(--text-color);
     outline-offset: 0;
 }
-/* First tile = the global on/off: the logo inside a DASHED ring, no words. */
+/* First tile = the global on/off: the default logo (in the page's own colorway)
+   inside a DASHED ring, no words. Stays half-opacity ALWAYS, even when it's the
+   active pick. */
 .profile-name-carousel .home-carousel-track .pl-logo-off {
     border: 1.5px dashed var(--text-color);
-    opacity: 0.6;
+    opacity: 0.5;
 }
 .profile-name-carousel .home-carousel-track .pl-logo-off.is-active {
-    opacity: 1;
+    opacity: 0.5;
     outline: none;
-    border-style: solid;
 }
 @media (max-width: 600px) {
     .profile-name-carousel { margin-left: -20px; }

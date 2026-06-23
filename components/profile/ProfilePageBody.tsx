@@ -62,7 +62,7 @@ import StarredPresetRow from './StarredPresetRow';
 import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
-import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGOS_BY_ID } from '../../lib/profile/profileLogos';
+import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGO_OFF } from '../../lib/profile/profileLogos';
 import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
 import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
@@ -1668,7 +1668,7 @@ function ProfilePageBodyInner({
                                             }
                                         }}
                                     >
-                                        <StickerArt sticker={PROFILE_LOGOS_BY_ID.get('plogo-hot')!} fill />
+                                        <StickerArt sticker={PROFILE_LOGO_OFF} fill />
                                     </div>
                                     {PROFILE_LOGO_CAROUSEL.map((logo) => (
                                         <div
