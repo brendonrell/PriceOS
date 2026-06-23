@@ -189,6 +189,10 @@ export interface UserRow {
    *  (the default). Distinct from profile_hex/profile_logo — its own slot +
    *  event. Cached at `pd_profile_sprite_hex`. */
   profile_sprite_hex: string | null;
+  /** Sticker ownership + active-state, synced to the account so a user's
+   *  stickers follow them across devices. owned = sticker ids held; offSheets /
+   *  offIds = the sheets/stickers the owner switched off. null = none yet. */
+  sticker_state: { owned: string[]; offSheets: string[]; offIds: string[] } | null;
   /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
    *  checked at signup, surfaced only in the profile-name easter egg. Distinct
    *  from profile_hex (the colour the user actively picked). */
@@ -250,6 +254,7 @@ export interface UserStatePatch {
   profile_hex?: string | null;
   profile_logo?: string | null;
   profile_sprite_hex?: string | null;
+  sticker_state?: { owned: string[]; offSheets: string[]; offIds: string[] };
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;
   settings?: UserSettings;
@@ -547,7 +552,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

@@ -39,6 +39,13 @@ export const STATE_CACHE_KEYS = {
      *  = inherit the colorway text colour). Read + written by useProfileSpriteHex;
      *  persisted to the top-level `users.profile_sprite_hex` column. */
     profileSpriteHex: 'pd_profile_sprite_hex',
+    /** Sticker ownership + active-state (owned ids / off-sheets / off-stickers).
+     *  Read + written by lib/stickers/owned.ts; synced to the top-level
+     *  `users.sticker_state` column so stickers follow the account across
+     *  devices. */
+    ownedStickers: 'pd_owned_stickers',
+    stickerOffSheets: 'pd_sticker_off_sheets',
+    stickerOffIds: 'pd_sticker_off_ids',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -168,6 +175,20 @@ export function hydrateFromRow(row: UserRow): void {
                     : null,
             })
         );
+
+        // sticker_state → the owned + active-state keys, so a user's stickers
+        // follow their account across devices. Only seed when present, so a null
+        // account never wipes pre-sync local stickers (the first change pushes
+        // them up). Dispatch stickers-changed so the hero + manager re-read.
+        const ss = row.sticker_state;
+        if (ss && typeof ss === 'object' && !Array.isArray(ss)) {
+            const asArr = (v: unknown) =>
+                Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+            localStorage.setItem(STATE_CACHE_KEYS.ownedStickers, JSON.stringify(asArr(ss.owned)));
+            localStorage.setItem(STATE_CACHE_KEYS.stickerOffSheets, JSON.stringify(asArr(ss.offSheets)));
+            localStorage.setItem(STATE_CACHE_KEYS.stickerOffIds, JSON.stringify(asArr(ss.offIds)));
+            window.dispatchEvent(new CustomEvent('pd:stickers-changed'));
+        }
 
         // showcase_style cache for the settings toggle. 'grid' (legacy default)
         // is kept verbatim as the "unset" marker so the toggle can resolve the

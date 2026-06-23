@@ -153,6 +153,7 @@ function sanitisePatch(
         'workspaces',
         'setup_codes',
         'familiar_config',
+        'sticker_state',
     ] as const) {
         if (key in body) {
             const v = body[key];

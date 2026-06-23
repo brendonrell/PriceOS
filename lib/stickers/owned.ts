@@ -18,10 +18,11 @@ import {
     ownedStickers, stickerById, stickersForSheet,
     type Sticker, type SheetId,
 } from './catalog';
+import { pushState, STATE_CACHE_KEYS } from '../state/userState';
 
-const OWNED_KEY = 'pd_owned_stickers';
-const OFF_SHEETS_KEY = 'pd_sticker_off_sheets';
-const OFF_IDS_KEY = 'pd_sticker_off_ids';
+const OWNED_KEY = STATE_CACHE_KEYS.ownedStickers;
+const OFF_SHEETS_KEY = STATE_CACHE_KEYS.stickerOffSheets;
+const OFF_IDS_KEY = STATE_CACHE_KEYS.stickerOffIds;
 const EVT = 'pd:stickers-changed';
 
 function readArr(key: string): string[] {
@@ -37,6 +38,20 @@ function readArr(key: string): string[] {
 function writeArr(key: string, arr: string[]) {
     try { window.localStorage.setItem(key, JSON.stringify(arr)); } catch { /* quota */ }
     window.dispatchEvent(new CustomEvent(EVT));
+    pushStickerState();
+}
+
+/* Write-through the full sticker state to the account so it follows the user
+   across devices. No-op until the user's server snapshot has hydrated, so it
+   never fires for a logged-out / boot-time device. */
+function pushStickerState() {
+    pushState({
+        sticker_state: {
+            owned: readArr(OWNED_KEY),
+            offSheets: readArr(OFF_SHEETS_KEY),
+            offIds: readArr(OFF_IDS_KEY),
+        },
+    });
 }
 
 /* One-time hard reset — wipe every owned + active-state key on this device, once.
