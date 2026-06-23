@@ -7,18 +7,43 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
-  branch `claude/familiar-feature-overhaul-aesgss` is trash (work is on dev) — Brendon deletes on GitHub.
+  branch `claude/practical-hamilton-x4cg3o` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-22 (latest). This session = **DIGITAL FAMILIAR overhaul + NPC CAST +
-  project-follow tape gags + a big batch of spot edits** (🐉 below), all shipped to dev.
-  Prior: STICKER MODE polish (🏷️), HALO 4-PROJECT (🌗), OUTPUT ATTRIBUTES (🪪), STARRED/WISHLIST (⭐).
+- **Updated:** 2026-06-23 (latest). This session = **a big multi-feature + spot-edit run** (🧰 below),
+  all shipped to dev — the whole spoken backlog is CLEARED. Prior: DIGITAL FAMILIAR overhaul + NPC CAST (🐉).
 - **QUEUED (not built):** (1) **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
   LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
-  The Tape. Confirmed source = the homepage milestone feed (`projects.milestones` JSONB / home feed,
-  NOT the events ledger) — needs a global milestone source merged into `useTapeFeed`/`/api/feed`.
-  (2) **My Network "Fresh Wallets"** is meant to mean *freshly-made-on-Ethereum* wallets, but we don't
-  index on-chain wallet age — so it currently runs on a PD-account-recency proxy (< 30d). Real version
-  needs Alchemy first-tx/nonce per owner. "New to PD" (< 7d signup) IS data-backed and correct.
+  The Tape. Source = the homepage milestone feed (`projects.milestones` JSONB / home feed, NOT the
+  events ledger) — needs a global milestone source merged into `useTapeFeed`/`/api/feed`.
+  (2) **My Network "Fresh Wallets"** — needs Alchemy first-tx/nonce per owner (currently a PD-recency proxy).
+- **NEEDS BRENDON'S EYE (shipped, tunable):** (a) sticker sheet-detail column counts + the @name
+  long-press **mini carousel quarter-scale** (`zoom: 0.25` on `.name-carousel-card .home-carousel-row`)
+  are sensible defaults. (b) the **celestial sky row** (`pcel-sky`) uses FIXED luminary glyphs ☉ ☽ ↑ —
+  zodiac SIGN glyphs are colour-emoji on iOS, so a project's *actual* sun/moon/rising can't be glyphed.
+
+## 🧰 2026-06-23 — MULTI-FEATURE + SPOT-EDIT RUN — all shipped to dev
+- **Spot edits:** wishlist row shows current OWNER; project milestone feeds order by time THEN a fixed
+  milestone sequence (FIRST BLOOD before GRADUATED in one tx; `FEED_SEQ` in `lib/home/milestones.ts`);
+  profile **Volume Spent** = Σ held outputs' project mint price (all users); followers icon +1px mobile;
+  **trait-pill starring** — Artist/Project facet pills reflect + toggle the real artist/project stars via
+  the reused `L3Pill` (exported from TraitsUI; profile + home facet bars).
+- **Familiars:** full textured bestiary wired in (`lib/familiar/bestiary.ts`) — 10 new BitDaemons, 10 new
+  Titans, new Ascended + Old Gods, existing corrected; dithered texture + variance on multi-line tiers;
+  varied eyes (Ø one-eyed); glyphs restricted to an iOS/Win/Android-safe block+box set. Modal text +2;
+  3 energy levels (WAGMI/FOMO/Cope). PNG previews rendered via `scratchpad/*.py` (Pillow installed).
+- **Sticker store (desktop):** 3 across · single packed preview row · panel `zoom` −10% · compact rail
+  mouse-drag (snap off mid-drag) · grid scroll-pos remembered. **Sheet detail (desktop+mobile):** Outputs
+  smaller (more masonry cols) · Projects 4-up (`[data-sheet]`) · name/truename denser grid · BUY SHEET
+  no longer stretches (`ss-buy-head`). **Styled scrollbars app-wide.**
+- **Starred ⇄ Wishlist** stay mounted (no reload on flip). **Arbitrage Map** icon ⊞→**⇄** (⊞ is Stickers).
+  **"& N others"** (home Featuring row) → opens connect-menu **Artists** list (`openMenu` + `setView`).
+- **Graduation:** 8 projects (18+ mints, null `graduated_at`) BACKFILLED to **Jun 21 2026** (staggered,
+  after their uploads) in LIVE DB. Capture is correct (stamps on crossing 18, shared `MINTING_NOW_THRESHOLD`;
+  the 8 were seeded straight to counts so never minted). Home-sort UI (graduating default ⟢⟢ / clock ◷)
+  was built then **REVERTED** — Brendon prefers the old bar; the backfill is the real fix. `homeData` keeps
+  a `reached_at → uploaded_at` fallback.
+- **@name long-press** (own profile) → mini Now-Minting carousel for **Oracle**, quarter scale (triple-tap
+  colour egg untouched). **Celestial tracker** title row: hexagram + ☉☽↑ sky row, word removed.
 
 ## 🐉 DIGITAL FAMILIAR + NPC CAST + tape gags — shipped to dev 2026-06-22
 - **Familiar:** all 35 species now selectable + animated (engine knew only 5); all tiers unlocked for
