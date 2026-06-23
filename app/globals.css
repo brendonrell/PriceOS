@@ -3476,7 +3476,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    Scale just the bubble ART to 0.905 so its speech bubble matches the $PRICE
    bubble size exactly (measured). Tiles, selection square + $PRICE untouched. */
 .profile-name-carousel .home-carousel-track .pl-logo-bubble svg {
-    transform: scale(0.905);
+    transform: translateY(-1px) scale(0.905);
 }
 /* The pick currently in play — a DOTTED ring (outline, so it never shifts the
    row layout). */
