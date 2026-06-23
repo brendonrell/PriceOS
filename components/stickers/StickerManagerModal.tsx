@@ -101,6 +101,35 @@ export function StickerManagerModal({
         return () => window.removeEventListener('keydown', onKey);
     }, [open, onClose]);
 
+    // Anchor the popup DIRECTLY BELOW the sticker area so your stickers stay
+    // visible above it — you watch the changes land as you make them. Height is
+    // capped to the room below (never taller than the ambient menu).
+    const [anchor, setAnchor] = useState<{ top: number; left: number; maxH: number } | null>(null);
+    useEffect(() => {
+        if (!open || typeof window === 'undefined') return;
+        const measure = () => {
+            const el = document.querySelector('.hero-stickers');
+            if (!el) { setAnchor(null); return; }
+            const r = el.getBoundingClientRect();
+            const gap = 8;
+            const top = r.bottom + gap;
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const popW = Math.min(330, vw * 0.88);
+            const left = Math.max(8, Math.min(r.left, vw - popW - 8));
+            // Fit in the room below the stickers, and never exceed the ambient
+            // menu's own cap (≈ viewport − 150).
+            const maxH = Math.max(170, Math.min(vh - top - 12, vh - 150));
+            setAnchor({ top, left, maxH });
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        return () => {
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, [open]);
+
     // Keep the code field tracking the live look unless mid-edit/copy.
     useEffect(() => {
         if (codeEditing || codeCopyingRef.current) return;
@@ -182,7 +211,13 @@ export function StickerManagerModal({
 
     return createPortal(
         <div className="sticker-mgr-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers" onClick={onClose}>
-            <div className="ambient-pop sticker-pop" role="dialog" aria-label="Your stickers" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="ambient-pop sticker-pop"
+                role="dialog"
+                aria-label="Your stickers"
+                onClick={(e) => e.stopPropagation()}
+                style={anchor ? { position: 'fixed', top: anchor.top, left: anchor.left, marginTop: 0, maxHeight: anchor.maxH } : undefined}
+            >
                 <span
                     className="ambient-pop-close"
                     role="button"
@@ -194,7 +229,7 @@ export function StickerManagerModal({
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    <span className="ambient-pop-title-text">YOUR STICKERS</span>
+                    <span className="ambient-pop-title-text">{`⊞${VS15}`} YOUR STICKERS</span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>

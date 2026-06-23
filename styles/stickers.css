@@ -587,13 +587,10 @@
     position: fixed;
     inset: 0;
     z-index: 1320;
-    background: rgba(0, 0, 0, 0.5);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    /* NO dim / blur — the popup anchors below the sticker row, so the stickers
+       stay fully visible above it and you watch the changes land live. The
+       backdrop is just a transparent click-catcher to close. */
+    background: transparent;
     animation: smgr-fade 0.16s ease both;
 }
 @keyframes smgr-fade { from { opacity: 0; } to { opacity: 1; } }
