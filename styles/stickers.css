@@ -586,10 +586,15 @@
 }
 
 /* Lifted = picked up: the soft shadow comes back so it reads as floating off the
-   page. It sits still (no bob) so you can place it exactly. */
+   page, and it bobs gently until you settle it. */
 .hero-placed-item.is-lifted {
     filter: drop-shadow(0 7px 11px rgba(0, 0, 0, 0.42));
+    animation: hero-sticker-float 1.5s ease-in-out infinite;
     cursor: grab;
+}
+@keyframes hero-sticker-float {
+    0%, 100% { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
+    50%      { transform: translate(-50%, calc(-50% - 5px)) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
 }
 
 /* The ✕ — prune this sticker from the current arrangement only. Canonical close
@@ -726,8 +731,6 @@
    height, pager, dots, chips, code row. These are the only sticker-specific
    extras: a compact STORE pill in the header + the owned-sticker grid row. */
 .sticker-pop .ambient-pop-title { padding-right: 56px; }
-/* The ⊞ beside YOUR STICKERS — two sizes up from the 11px title (Brendon). */
-.sticker-pop .smgr-title-ic { font-size: 15px; line-height: 1; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
