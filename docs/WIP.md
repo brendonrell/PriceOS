@@ -44,6 +44,8 @@
   a `reached_at → uploaded_at` fallback.
 - **@name long-press** (own profile) → mini Now-Minting carousel for **Oracle**, quarter scale (triple-tap
   colour egg untouched). **Celestial tracker** title row: hexagram + ☉☽↑ sky row, word removed.
+- **FollowersModal** list now FILLS the modal height (box + list `flex:1`) instead of capping at 60vh —
+  no more dead gap below a short list; scrolls internally on overflow.
 
 ## 🐉 DIGITAL FAMILIAR + NPC CAST + tape gags — shipped to dev 2026-06-22
 - **Familiar:** all 35 species now selectable + animated (engine knew only 5); all tiers unlocked for
