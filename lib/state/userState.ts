@@ -35,6 +35,10 @@ export const STATE_CACHE_KEYS = {
      *  written by useProfileLogo; persisted to the top-level `users.profile_logo`
      *  column (public, like profile_hex). */
     profileLogo: 'pd_profile_logo',
+    /** The colour the user picked for their PriceSprite (a #RRGGBB hex, or absent
+     *  = inherit the colorway text colour). Read + written by useProfileSpriteHex;
+     *  persisted to the top-level `users.profile_sprite_hex` column. */
+    profileSpriteHex: 'pd_profile_sprite_hex',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -147,6 +151,21 @@ export function hydrateFromRow(row: UserRow): void {
         window.dispatchEvent(
             new CustomEvent<string | null>('pd:profile-logo-changed', {
                 detail: (row.profile_logo as string | null) ?? null,
+            })
+        );
+
+        // profile_sprite_hex → pd_profile_sprite_hex (the user's own PriceSprite
+        // colour). Own slot + event, like profile_hex; absent/null = inherit.
+        if (typeof row.profile_sprite_hex === 'string' && HEX_RE.test(row.profile_sprite_hex)) {
+            localStorage.setItem(STATE_CACHE_KEYS.profileSpriteHex, row.profile_sprite_hex.toUpperCase());
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.profileSpriteHex);
+        }
+        window.dispatchEvent(
+            new CustomEvent<string | null>('pd:profile-sprite-hex-changed', {
+                detail: (typeof row.profile_sprite_hex === 'string' && HEX_RE.test(row.profile_sprite_hex))
+                    ? row.profile_sprite_hex.toUpperCase()
+                    : null,
             })
         );
 

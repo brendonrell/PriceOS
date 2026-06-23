@@ -117,6 +117,14 @@ function sanitisePatch(
         patch.profile_logo = v;
     }
 
+    if ('profile_sprite_hex' in body) {
+        const v = body.profile_sprite_hex;
+        if (v !== null && !(typeof v === 'string' && HEX_RE.test(v))) {
+            return { ok: false, reason: 'profile_sprite_hex must be a #RRGGBB hex or null' };
+        }
+        patch.profile_sprite_hex = v === null ? null : (v as string).toUpperCase();
+    }
+
     if ('showcase_style' in body) {
         const v = body.showcase_style;
         if (v !== 'static' && v !== 'generative' && v !== 'gen-curated' && v !== 'artist') {

@@ -64,6 +64,7 @@ import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
 import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGO_OFF } from '../../lib/profile/profileLogos';
 import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
+import { useProfileSpriteHex } from '../../lib/hooks/useProfileSpriteHex';
 import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
@@ -261,6 +262,14 @@ function ProfilePageBodyInner({
         return () => setActiveProfileLogo(null);
     }, [ownerLogo]);
 
+    /* Profile Sprite colour — the owner's picked PriceSprite hex, shown to every
+       visitor; on your own profile the live hook value drives the picker + an
+       instant repaint. null = inherit the colorway text colour (the default). */
+    const { hex: mySpriteHex, setHex: setMySpriteHex } = useProfileSpriteHex(
+        isOwnProfile ? user.profile_sprite_hex : undefined,
+    );
+    const ownerSpriteHex = isOwnProfile ? mySpriteHex : user.profile_sprite_hex;
+
     const displayHandle = user.handle ?? handle;
 
     /* ── Name easter egg — colourway pills ──────────────────────────────
@@ -328,8 +337,8 @@ function ProfilePageBodyInner({
     const spriteLpTimer = useRef<number | null>(null);
     const spriteLpFired = useRef(false);
     const spriteLpStart = useRef<{ x: number; y: number } | null>(null);
-    /* The colorway in play when the picker opened — the undo button restores it. */
-    const preSpriteHex = useRef<string>(myProfileHex);
+    /* The sprite colour in play when the picker opened — undo restores it. */
+    const preSpriteHex = useRef<string | null>(mySpriteHex);
     const clearSpriteLp = () => {
         if (spriteLpTimer.current != null) { window.clearTimeout(spriteLpTimer.current); spriteLpTimer.current = null; }
     };
@@ -342,7 +351,7 @@ function ProfilePageBodyInner({
             spriteLpFired.current = true;
             spriteLpTimer.current = null;
             setSpritePickerOpen((v) => {
-                if (!v) preSpriteHex.current = myProfileHex;
+                if (!v) preSpriteHex.current = mySpriteHex;
                 return !v;
             });
         }, 460);
@@ -1729,64 +1738,10 @@ function ProfilePageBodyInner({
                             </div>
                         </div>
                     )}
-                    {/* Long-press the PriceSprite → inline colour picker: Save +
-                        undo above, a native colour wheel, then the same colorway
-                        pills as the @name egg. Shoved open inline like the egg. */}
-                    {isOwnProfile && spritePickerOpen && (
-                        <div className="profile-egg-row profile-sprite-picker">
-                            <div className="psp-actions">
-                                <div
-                                    className="pill pill-l3 psp-save"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => { setSpritePickerOpen(false); showToast('Colorway: SAVED'); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSpritePickerOpen(false); showToast('Colorway: SAVED'); } }}
-                                    title="Save this colorway"
-                                >
-                                    <span className="stat-name">SAVE</span>
-                                </div>
-                                <div
-                                    className="pill pill-l3 egg-back-pill psp-undo"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => { setMyProfileHex(preSpriteHex.current); setSpritePickerOpen(false); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMyProfileHex(preSpriteHex.current); setSpritePickerOpen(false); } }}
-                                    title="Undo — revert to your previous colorway"
-                                    aria-label="Undo — revert to your previous colorway"
-                                >
-                                    <span className="stat-name">{'⇠⇠︎'}</span>
-                                </div>
-                            </div>
-                            <div className="psp-body">
-                                <label className="psp-swatch" title="Pick any colour">
-                                    <input
-                                        type="color"
-                                        value={/^#[0-9A-F]{6}$/i.test(myProfileHex) ? myProfileHex : PROFILE_HEX_DEFAULT}
-                                        onChange={(e) => setMyProfileHex(e.target.value)}
-                                    />
-                                </label>
-                                {eggPills.map((p) => {
-                                    const active = (myProfileHex ?? '').toUpperCase() === p.hex.toUpperCase();
-                                    return (
-                                        <div
-                                            key={p.hex + p.name}
-                                            className={`pill pill-l3${active ? ' active' : ''}`}
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={() => setMyProfileHex(p.hex)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMyProfileHex(p.hex); } }}
-                                            title={p.hex}
-                                        >
-                                            <span className="stat-name">{p.name}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                     </>
                 }
                 identityRow={
+                    <>
                     <div className="hero-line project-custom id-row-fit" ref={idRowRef}>
                         {nameFace && (isOwnProfile ? (
                             <span
@@ -1805,10 +1760,10 @@ function ProfilePageBodyInner({
                                 onContextMenu={(e) => { if (isOwnProfile) e.preventDefault(); }}
                                 style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
                             >
-                                <SpriteFace face={nameFace} />
+                                <SpriteFace face={nameFace} color={ownerSpriteHex ?? undefined} />
                             </span>
                         ) : (
-                            <SpriteFace className="id-row-sprite" face={nameFace} />
+                            <SpriteFace className="id-row-sprite" face={nameFace} color={ownerSpriteHex ?? undefined} />
                         ))}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
@@ -1854,6 +1809,62 @@ function ProfilePageBodyInner({
                                 </span>
                             </span>                        </div>
                     </div>
+                    {/* Long-press the PriceSprite → inline colour picker BELOW the
+                        sprite: Save + undo above, a native colour wheel, then the
+                        same colorway pills. Sets the SPRITE colour, not the page. */}
+                    {isOwnProfile && spritePickerOpen && (
+                        <div className="profile-egg-row profile-sprite-picker">
+                            <div className="psp-actions">
+                                <div
+                                    className="pill pill-l3 psp-save"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => { setSpritePickerOpen(false); showToast('PriceSprite: SAVED'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSpritePickerOpen(false); showToast('PriceSprite: SAVED'); } }}
+                                    title="Save this PriceSprite colour"
+                                >
+                                    <span className="stat-name">SAVE</span>
+                                </div>
+                                <div
+                                    className="pill pill-l3 egg-back-pill psp-undo"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => { setMySpriteHex(preSpriteHex.current); setSpritePickerOpen(false); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMySpriteHex(preSpriteHex.current); setSpritePickerOpen(false); } }}
+                                    title="Undo — revert to your previous PriceSprite colour"
+                                    aria-label="Undo — revert to your previous PriceSprite colour"
+                                >
+                                    <span className="stat-name">{'⇠⇠︎'}</span>
+                                </div>
+                            </div>
+                            <div className="psp-body">
+                                <label className="psp-swatch" title="Pick any colour">
+                                    <input
+                                        type="color"
+                                        value={mySpriteHex && /^#[0-9A-F]{6}$/i.test(mySpriteHex) ? mySpriteHex : PROFILE_HEX_DEFAULT}
+                                        onChange={(e) => setMySpriteHex(e.target.value)}
+                                    />
+                                </label>
+                                {eggPills.map((p) => {
+                                    const active = (mySpriteHex ?? '').toUpperCase() === p.hex.toUpperCase();
+                                    return (
+                                        <div
+                                            key={p.hex + p.name}
+                                            className={`pill pill-l3${active ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => setMySpriteHex(p.hex)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMySpriteHex(p.hex); } }}
+                                            title={p.hex}
+                                        >
+                                            <span className="stat-name">{p.name}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    </>
                 }
                 socialRow={
                     mutuals.length > 0 ? (

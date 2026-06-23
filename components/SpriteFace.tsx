@@ -18,20 +18,26 @@ import { isWindowsUA, splitFace } from '../lib/sprites/winBrow';
 export default function SpriteFace({
     face,
     className,
+    color,
 }: {
     face: string;
     className?: string;
+    /** Optional override colour (the owner's picked PriceSprite hex). When unset
+     *  the sprite inherits the colorway text colour, exactly as before. */
+    color?: string;
 }) {
     const [win, setWin] = useState(false);
     useEffect(() => {
         setWin(isWindowsUA());
     }, []);
 
-    if (!win) return <span className={className}>{face}</span>;
+    const style = color ? { color } : undefined;
+
+    if (!win) return <span className={className} style={style}>{face}</span>;
 
     const segs = splitFace(face);
     return (
-        <span className={className}>
+        <span className={className} style={style}>
             {segs.map((s, i) =>
                 s.kind === 'text' ? (
                     <Fragment key={i}>{s.text}</Fragment>
