@@ -35,7 +35,7 @@ import { StickerArt } from './StickerArt';
 
 const VS15 = '︎';
 const PAGE_KEY = 'pd_sticker_mgr_page';
-const PAGES = 3;
+const PAGES = 4;
 
 export function StickerManagerModal({
     open, onClose, handle,
@@ -237,7 +237,9 @@ export function StickerManagerModal({
                 </div>
 
                 <div className="ambient-pop-pager" ref={pagerRef} onScroll={onPagerScroll}>
-                    {/* Page 1 — Arrange */}
+                    {/* Page 1 — Layout. Each page holds only what fits at the
+                        compact height; the control rows never scroll — overflow
+                        spills onto a new dot page. Only the sticker grid scrolls. */}
                     <div className="ambient-pop-page">
                         <Row label="Layout">
                             {ARRANGES.map((a) => (
@@ -252,20 +254,24 @@ export function StickerManagerModal({
                                 <Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>
                             ))}
                         </Row>
+                    </div>
+
+                    {/* Page 2 */}
+                    <div className="ambient-pop-page">
                         <Row label="Align">
                             {ALIGNS.map((a) => (
                                 <Chip key={a.id} on={align === a.id} onClick={() => pickAlign(a.id)}>{a.label}</Chip>
                             ))}
                         </Row>
-                    </div>
-
-                    {/* Page 2 — Style */}
-                    <div className="ambient-pop-page">
                         <Row label="Tilt">
                             {TILTS.map((tl) => (
                                 <Chip key={tl.id} on={tilt === tl.id} onClick={() => pickTilt(tl.id)}>{tl.label}</Chip>
                             ))}
                         </Row>
+                    </div>
+
+                    {/* Page 3 */}
+                    <div className="ambient-pop-page">
                         <Row label="Width">
                             <Chip on={!expand} onClick={() => pickExpand(false)}>FIT</Chip>
                             <Chip on={expand} onClick={() => pickExpand(true)}>WIDE</Chip>
@@ -276,7 +282,7 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 3 — Stickers */}
+                    {/* Page 4 — Stickers (the grid is the ONLY scrolling part) */}
                     <div className="ambient-pop-page">
                         <Row label="Sheets">
                             {ownedSheets.map((sh) => (

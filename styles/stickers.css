@@ -644,6 +644,16 @@
 .sticker-pop .ambient-pop-title { padding-right: 56px; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-right: 4px; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
+/* Control pages NEVER scroll — they're split across dot pages so each fits the
+   compact height. ONLY the sticker grid scrolls (Brendon 2026-06-23). */
+.sticker-pop .ambient-pop-page { overflow-y: hidden; }
+.sticker-pop .smgr-grid-row { flex: 1 1 auto; min-height: 0; }
+.sticker-pop .smgr-grid {
+    align-self: stretch;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+}
 .smgr-close {
     font-size: 18px;
     line-height: 1;
