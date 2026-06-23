@@ -9208,7 +9208,17 @@ body.colorway-dark .ghost-feed-bar {
 }
 .output-celestial .oc-moon,
 .output-celestial .oc-hex,
-.project-celestial .pcel-hex { font-size: 1.05em; }
+.project-celestial .pcel-hex { font-size: 0.9em; vertical-align: middle; }
+/* Sky row after the hexagram — sun · moon · rising, compact iOS-safe glyphs
+   (no word, no zodiac emoji). (Brendon 2026-06-23.) */
+.project-celestial .pcel-sky {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.6em;
+    letter-spacing: 0.06em;
+    margin-left: 0.4em;
+    vertical-align: middle;
+    opacity: 0.82;
+}
 .output-celestial .oc-fate { margin-left: 0.5em; }
 .output-celestial .oc-phase,
 .project-celestial .pcel-name {
