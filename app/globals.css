@@ -2418,7 +2418,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 /* /artists directory — whitelist status glyph (☼ active, ☽ cooldown) */
 .artists-page .artist-status { opacity: 0.75; font-size: 14px; line-height: 1; }
 
-.artist-name-txt { opacity: 1; }
+.artist-name-txt { opacity: 1; font-weight: bold; }
 
 .artist-pin-icon {
     font-family: 'Courier New', Courier, monospace;
@@ -6953,11 +6953,23 @@ body.feed-mode .price-memory-ghost { display: none !important; }
        G item 13 — Brendon deviation: min-height equalized to max-height so the
        panel stays at canonical Settings-height across filter result counts. */
     #artistsList { min-height: 225px; max-height: 225px; }
-    .artist-rel-icon[title="Followers"] { font-size: 23px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Following"] { font-size: 16px !important; transform: translateY(-1px); }
     .artist-rel-icon[title="Mutual"]    { font-size: 18px !important; transform: translateY(-1px); }
     .artist-status-icon { transform: translateY(-1px); }
     .pill-artist-filter span { font-size: 16px !important; transform: none !important; top: 1px !important; }
+    /* Row icons in the artists menu — a size larger + nudged down 2px (Brendon
+       2026-06-23, mobile). Starred (pin), Notes, Followers. */
+    .artist-pin-icon { font-size: 16px !important; transform: translateY(2px); }
+    .artist-note-icon { font-size: 16px !important; transform: translateY(2px); }
+    .artist-rel-icon[title="Followers"] { font-size: 25px !important; transform: translateY(1px); }
+    /* Filter pills at the bottom — Followers + Starred two sizes larger, nudged
+       up 2px (Brendon 2026-06-23, mobile). */
+    .pill-artist-filter[data-rel="followers"] span,
+    .pill-artist-filter[data-rel="starred"] span {
+        font-size: 20px !important;
+        transform: translateY(-2px) !important;
+        top: 1px !important;
+    }
 }
 
 /* Desktop-specific stat sizing — sim ~2167-2174 */

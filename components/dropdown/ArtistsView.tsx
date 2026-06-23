@@ -68,7 +68,7 @@ type FilterKey =
 
 const FILTER_PILLS: { key: FilterKey; glyph: string; label: string }[] = [
     { key: 'starred',   glyph: '\u2605\uFE0E',  label: 'Starred' },        // ★
-    { key: 'notes',     glyph: '\u2ACF\uFE0E',  label: 'Artist Notes' },   // ⫏
+    { key: 'notes',     glyph: '\u229F\uFE0E',  label: 'Artist Notes' },   // ⊟ unified note icon
     { key: 'mutual',    glyph: '\u26AD\uFE0E',  label: 'Mutuals' },        // ⚭
     { key: 'following', glyph: '\u26AF\uFE0E',  label: 'Following' },      // ⚯
     { key: 'followers', glyph: '\u26AC\uFE0E',  label: 'Followers' },      // ⚬
