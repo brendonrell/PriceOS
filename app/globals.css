@@ -276,6 +276,11 @@ body.is-pwa .navbar {
 }
 
 .pd-logo.rotated { transform: rotate(-90deg); }
+/* Petey Profile Logo: the corner logo RESTS rotated. Same -90° as .rotated, so
+   a tap (which adds .rotated) doesn't change the angle — it only reveals the
+   HOME/$PRICE bubble (keyed off .rotated). Selecting Petey animates in via the
+   shared .pd-logo transform transition. */
+.pd-logo.petey-fixed { transform: rotate(-90deg); }
 
 .logo-price {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);

@@ -66,6 +66,29 @@ const cutoutFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#FFFFFF');
 
 const LOGO_HUES = genHues(27, 'pg', { sat: 88, lights: [52, 62, 44], phase: 6 });
 
+/* Petey = the SAME logo rotated 90° CCW, its own colour band (mirrors the Petey
+   sticker sheet). `rotated` tells StickerArt + the corner logo to turn it. */
+const PETEY_HUES = genHues(23, 'pp', { sat: 80, lights: [58, 48, 67], phase: 15 });
+const PROFILE_PETEY: Sticker[] = [
+    { id: 'plogo-petey-classic', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
+    ...PETEY_HUES.map<Sticker>((h) => ({
+        id: `plogo-petey-${h.key}`,
+        sheet: 'petey',
+        kind: 'logo',
+        rotated: true,
+        name: `Petey — ${h.name}`,
+        color: h.hex,
+        cutout: cutoutFor(h.hex),
+    })),
+];
+
+/* Holo = the iridescent finish (one upright, one Petey). `holo` swaps the fill
+   for the rainbow gradient; there's no colour variation, so just the two. */
+const PROFILE_HOLO: Sticker[] = [
+    { id: 'plogo-holo',       sheet: 'holo', kind: 'logo', name: 'Holo',       color: '#FFFFFF', cutout: '#1A1A1A', holo: true },
+    { id: 'plogo-holo-petey', sheet: 'holo', kind: 'logo', name: 'Holo Petey', color: '#FFFFFF', cutout: '#1A1A1A', holo: true, rotated: true },
+];
+
 /** The Profile Logo set — classic first, then the colour ring, then $PRICE. */
 export const PROFILE_LOGOS: Sticker[] = [
     /* Brand classic: Hothurt-red bubble + attention-yellow slash. */
@@ -80,14 +103,19 @@ export const PROFILE_LOGOS: Sticker[] = [
     })),
     { id: 'plogo-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED, fg: PRICE_YELLOW },
     { id: 'plogo-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
+    ...PROFILE_PETEY,
+    ...PROFILE_HOLO,
 ];
 
 /** Carousel order for the Profile Logo picker (Brendon 2026-06-23): the two
- *  $PRICE variants first, then the bubble-logo colour ring. The OFF / global
- *  toggle (a logo in a dashed ring) is prepended by the UI, not listed here. */
+ *  $PRICE variants, then the bubble colour ring, then the Petey set, then the
+ *  holo finishes at the very end. The OFF / global toggle (a logo in a dashed
+ *  ring) is prepended by the UI, not listed here. */
 export const PROFILE_LOGO_CAROUSEL: Sticker[] = [
     ...PROFILE_LOGOS.filter((s) => s.kind === 'price'),
-    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo'),
+    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo' && !s.rotated && !s.holo),
+    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo' && s.rotated && !s.holo),
+    ...PROFILE_LOGOS.filter((s) => s.holo),
 ];
 
 /** The OFF / global-toggle tile's art: the bubble logo painted in the PAGE's

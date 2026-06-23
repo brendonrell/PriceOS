@@ -60,6 +60,12 @@ export function PeteyLogo() {
     const override = activeLogoId ? PROFILE_LOGOS_BY_ID.get(activeLogoId) ?? null : null;
     const overrideBubble = override?.kind === 'logo' ? override : null;
     const overridePrice = override?.kind === 'price' ? override : null;
+    // Petey = a rotated bubble logo: it RESTS rotated and a tap brings up the
+    // HOME/$PRICE menu (the rotation transform is shared, so tapping only flips
+    // the menu, not the angle). Holo = the iridescent gradient fill.
+    const overridePetey = !!overrideBubble?.rotated;
+    const overrideHolo = !!override?.holo;
+    const HOLO_GRAD_ID = 'pd-corner-holo';
 
     // The override forces the form (bubble vs $PRICE); otherwise the viewer's
     // own Price Logo setting decides.
@@ -69,7 +75,11 @@ export function PeteyLogo() {
     // Fill overrides. Applied as inline style so a Profile Logo's colours win
     // over the red-bg $PRICE swap CSS too. Undefined when not overriding, so the
     // default logo renders byte-identically to before.
-    const bubbleStyle = overrideBubble ? { fill: overrideBubble.color } : undefined;
+    const bubbleStyle = overrideHolo
+        ? { fill: `url(#${HOLO_GRAD_ID})` }
+        : overrideBubble
+            ? { fill: overrideBubble.color }
+            : undefined;
     const glyphStyle = overrideBubble
         ? { fill: overrideBubble.cutout, stroke: overrideBubble.cutout }
         : undefined;
@@ -122,7 +132,7 @@ export function PeteyLogo() {
     return (
         <div className="pd-logo-wrap">
             <div
-                className={`pd-logo${rotated ? ' rotated' : ''}`}
+                className={`pd-logo${rotated ? ' rotated' : ''}${overridePetey ? ' petey-fixed' : ''}`}
                 onClick={() => setRotated((r) => !r)}
                 role="button"
                 tabIndex={0}
@@ -144,6 +154,18 @@ export function PeteyLogo() {
                     aria-label="Price Discussion Logo"
                     style={showPrice ? { display: 'none' } : undefined}
                 >
+                    {overrideHolo && (
+                        <defs>
+                            <linearGradient id={HOLO_GRAD_ID} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#FF6EC4" />
+                                <stop offset="22%" stopColor="#7873F5" />
+                                <stop offset="44%" stopColor="#4ADEDE" />
+                                <stop offset="66%" stopColor="#9EFF6E" />
+                                <stop offset="84%" stopColor="#FFE86E" />
+                                <stop offset="100%" stopColor="#FF9F6E" />
+                            </linearGradient>
+                        </defs>
+                    )}
                     <path d={PETEY_BUBBLE_PATH} fill="currentColor" style={bubbleStyle} />
                     <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" style={glyphStyle} />
                     <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" style={bubbleStyle} />
