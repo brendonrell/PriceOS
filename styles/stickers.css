@@ -584,11 +584,9 @@
     position: absolute;
     transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1));
 }
-/* Hover scale, but keep the placed sticker centred on its spot. */
-.hero-placed-item:hover { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(calc(var(--s, 1) * 1.06)); }
 
 /* Lifted = picked up: the soft shadow comes back so it reads as floating off the
-   page. It sits STILL (no bob) so you can place it exactly where you want. */
+   page. It sits still (no bob) so you can place it exactly. */
 .hero-placed-item.is-lifted {
     filter: drop-shadow(0 7px 11px rgba(0, 0, 0, 0.42));
     cursor: grab;
