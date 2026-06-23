@@ -39,6 +39,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
@@ -283,6 +284,7 @@ function HomePageBodyInner({
        PD is his art, so the home credits him exactly like an artist on a project
        page (Brendon 2026-06-15). Hidden when he has zero followers. */
     const { notifs } = usePdNotifs();
+    const { openMenu, setView } = useDropdown();
     const [brendonSocial, setBrendonSocial] = useState<{ followers: number; mutual: boolean }>(
         { followers: 0, mutual: false },
     );
@@ -725,7 +727,15 @@ function HomePageBodyInner({
                         {featNames[1] && (
                             <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
                         )}{' '}
-                        <span className="cbr-others">&amp; {featOthers} others</span>
+                        <span
+                            className="cbr-others"
+                            role="button"
+                            tabIndex={0}
+                            title="See all featured artists"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => { openMenu(); setView('artists'); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
+                        >&amp; {featOthers} others</span>
                     </div>
                 }
                 statsRow={
