@@ -88,9 +88,8 @@ const PROFILE_PRICE: Sticker[] = [
     { id: 'plogo-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
 ];
 
-/* Finish variants (Brendon 2026-06-23): the same bubble across the full colour
-   ring in alternate treatments — BLANK (bubble only, no per-mille), PER-MILLE
-   (the mark alone, no bubble), OUTLINE (hollow bubble). */
+/* Finish variant (Brendon 2026-06-23): the same bubble across the full colour
+   ring as a BLANK treatment (bubble only, no per-mille). */
 function finishRing(prefix: string, label: string, extra: Partial<Sticker>): Sticker[] {
     return [
         { id: `plogo-${prefix}-hot`, sheet: 'genesis', kind: 'logo', name: `${label} — Classic`, color: PRICE_RED, cutout: PRICE_YELLOW, ...extra },
@@ -105,9 +104,7 @@ function finishRing(prefix: string, label: string, extra: Partial<Sticker>): Sti
         })),
     ];
 }
-const PROFILE_BLANK   = finishRing('blank', 'Bubble',    { blank: true });
-const PROFILE_PM      = finishRing('pm',    'Per-mille', { glyphOnly: true });
-const PROFILE_OUTLINE = finishRing('out',   'Outline',   { outline: true });
+const PROFILE_BLANK = finishRing('blank', 'Bubble', { blank: true });
 
 /* Petey = the SAME logo rotated 90° CCW, its own colour band (mirrors the Petey
    sticker sheet). `rotated` tells StickerArt + the corner logo to turn it.
@@ -139,22 +136,18 @@ export const PROFILE_LOGOS: Sticker[] = [
     ...PROFILE_SOLID,
     ...PROFILE_PRICE,
     ...PROFILE_BLANK,
-    ...PROFILE_PM,
-    ...PROFILE_OUTLINE,
     ...PROFILE_PETEY,
     ...PROFILE_HOLO,
 ];
 
 /** Carousel order for the Profile Logo picker (Brendon 2026-06-23): the two
- *  $PRICE variants, then the upright bubble finishes (solid → blank → per-mille
- *  → outline), then the Petey set, then the holo finishes. The OFF / global
- *  toggle (a logo in a dashed ring) is prepended by the UI, not listed here. */
+ *  $PRICE variants, then the upright bubble finishes (solid → blank), then the
+ *  Petey set, then the holo finishes. The OFF / global toggle (a logo in a
+ *  dashed ring) is prepended by the UI, not listed here. */
 export const PROFILE_LOGO_CAROUSEL: Sticker[] = [
     ...PROFILE_PRICE,
     ...PROFILE_SOLID,
     ...PROFILE_BLANK,
-    ...PROFILE_PM,
-    ...PROFILE_OUTLINE,
     ...PROFILE_PETEY,
     ...PROFILE_HOLO,
 ];
