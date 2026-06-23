@@ -50,7 +50,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
-    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip } = useHeroPrefs();
+    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, stackLevel } = useHeroPrefs();
     const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
 
@@ -177,10 +177,11 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
     // generatively for compositional colour balance (buildPile). Shuffle re-rolls
     // the composition.
     if (arrange === 'stack') {
-        const pile = buildPile(picked.map(stickerHue), seed);
+        const pile = buildPile(picked.map(stickerHue), seed, stackLevel);
+        const shown = picked.slice(0, pile.items.length);
         return wrap(
             <div className={`hero-pile ${alignClass}`} style={{ ...areaStyle, aspectRatio: String(pile.aspect) }}>
-                {picked.map((s, i) => {
+                {shown.map((s, i) => {
                     const p = pile.items[i]!;
                     return (
                         <span

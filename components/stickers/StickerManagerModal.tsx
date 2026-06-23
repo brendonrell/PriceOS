@@ -23,7 +23,7 @@ import {
 } from '../../lib/stickers/owned';
 import {
     getArrange, getTilt, getExpand, getRows, getAlign, getFlip,
-    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, shuffleSeed,
+    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, shuffleSeed, cycleStackLevel,
     ARRANGES, TILTS, ROW_OPTS, ALIGNS,
     type Arrange, type Tilt, type Rows, type Align,
 } from '../../lib/stickers/heroPrefs';
@@ -242,7 +242,7 @@ export function StickerManagerModal({
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
                             ))}
-                            <button className="ambient-chip" type="button" onClick={() => shuffleSeed()} title="Shuffle">
+                            <button className="ambient-chip" type="button" onClick={() => { if (arrange === 'stack') cycleStackLevel(); shuffleSeed(); }} title={arrange === 'stack' ? 'Cycle stack' : 'Shuffle'}>
                                 {`⟳${VS15}`}
                             </button>
                         </Row>

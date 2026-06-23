@@ -45,6 +45,7 @@ const K_EXPAND = 'pd_sticker_expand';
 const K_ROWS = 'pd_sticker_rows';
 const K_ALIGN = 'pd_sticker_align';
 const K_FLIP = 'pd_sticker_flip';
+const K_STACK_LVL = 'pd_sticker_stack_lvl';
 const EVT = 'pd:stickers-changed';
 
 function read(key: string, fallback: string): string {
@@ -63,6 +64,13 @@ export function setRows(r: Rows) { write(K_ROWS, String(r)); }
 export function setAlign(a: Align) { write(K_ALIGN, a); }
 export function setFlip(b: boolean) { write(K_FLIP, b ? '1' : '0'); }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
+/** STACK density level. The Shuffle button steps it in stack mode; wraps back to
+ *  the loosest after the most-extreme pile. */
+export function getStackLevel(): number {
+    const v = parseInt(read(K_STACK_LVL, '0'), 10);
+    return Number.isFinite(v) ? Math.max(0, Math.min(STACK_LEVEL_COUNT - 1, v)) : 0;
+}
+export function cycleStackLevel() { write(K_STACK_LVL, String((getStackLevel() + 1) % STACK_LEVEL_COUNT)); }
 
 /* Non-reactive reads — for the manager, which holds its own local copy. */
 export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
@@ -72,10 +80,10 @@ export function getRows(): Rows { return read(K_ROWS, '1') === '2' ? 2 : 1; }
 export function getAlign(): Align { return read(K_ALIGN, 'left') as Align; }
 export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 
-export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; }
+export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; stackLevel: number; }
 
 export function useHeroPrefs(): HeroPrefs {
-    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false });
+    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, stackLevel: 0 });
     useEffect(() => {
         const sync = () => setV({
             arrange: read(K_ARRANGE, 'spread') as Arrange,
@@ -85,6 +93,7 @@ export function useHeroPrefs(): HeroPrefs {
             rows: read(K_ROWS, '1') === '2' ? 2 : 1,
             align: read(K_ALIGN, 'left') as Align,
             flip: read(K_FLIP, '0') === '1',
+            stackLevel: getStackLevel(),
         });
         sync();
         window.addEventListener(EVT, sync);
@@ -164,23 +173,49 @@ export function stickerHue(s: Sticker): number {
     return (x >>> 0) % 360;
 }
 
-export function buildPile(hues: number[], seed: number): { aspect: number; items: PilePiece[] } {
-    const n = Math.max(1, hues.length);
+/* The STACK cycles through these via the Shuffle button — a clean single row
+   (few, readable) up to the densest two-row pile, which is the MOST EXTREME
+   (the reference screenshot). Each level sets how many show, the area shape, and
+   single-row vs piled. */
+const STACK_LEVELS: { count: number; aspect: number; single: boolean }[] = [
+    { count: 6,  aspect: 6.2, single: true  },   // single row, few — readable
+    { count: 9,  aspect: 4.3, single: true  },   // single row, fuller
+    { count: 12, aspect: 3.3, single: false },   // two rows, building up
+    { count: 14, aspect: 2.8, single: false },   // EXTREME — the pile, unchanged
+];
+export const STACK_LEVEL_COUNT = STACK_LEVELS.length;
+
+export function buildPile(hues: number[], seed: number, level = 0): { aspect: number; items: PilePiece[] } {
+    const L = STACK_LEVELS[Math.max(0, Math.min(STACK_LEVELS.length - 1, level))]!;
+    const n = Math.max(1, Math.min(hues.length, L.count));
     const rnd = rngFrom(seed + 131);
+    // Colour balance: order by hue, then drop onto an R2 low-discrepancy
+    // sequence so consecutive hues land far apart — no colour clumps.
     const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
     const g = 1.32471795724474602596;   // plastic number → R2 sequence
     const a1 = 1 / g, a2 = 1 / (g * g);
-    const offX = rnd(), offY = rnd();
     const items: PilePiece[] = new Array(n);
-    for (let k = 0; k < n; k++) {
-        const idx = order[k]!;
-        let x = (offX + a1 * (k + 1)) % 1;
-        let y = (offY + a2 * (k + 1)) % 1;
-        x = Math.min(0.93, Math.max(0.07, x + (rnd() - 0.5) * 0.05));
-        y = Math.min(0.88, Math.max(0.12, y + (rnd() - 0.5) * 0.09));
-        items[idx] = { x: x * 100, y: y * 100, rot: (rnd() - 0.5) * 46, scale: 0.8 + rnd() * 0.5, z: k };
+    if (L.single) {
+        // SINGLE ROW — even organic spread along one line, light overlap.
+        const off = rnd(), PAD = 8, span = 100 - PAD * 2;
+        for (let k = 0; k < n; k++) {
+            const idx = order[k]!;
+            const t = (off + a1 * (k + 1)) % 1;
+            items[idx] = { x: PAD + t * span, y: 50 + (rnd() - 0.5) * 16, rot: (rnd() - 0.5) * 30, scale: 0.85 + rnd() * 0.35, z: k };
+        }
+    } else {
+        // 2D PILE — R2 over the whole area (the stickered-laptop look).
+        const offX = rnd(), offY = rnd();
+        for (let k = 0; k < n; k++) {
+            const idx = order[k]!;
+            let x = (offX + a1 * (k + 1)) % 1;
+            let y = (offY + a2 * (k + 1)) % 1;
+            x = Math.min(0.93, Math.max(0.07, x + (rnd() - 0.5) * 0.05));
+            y = Math.min(0.88, Math.max(0.12, y + (rnd() - 0.5) * 0.09));
+            items[idx] = { x: x * 100, y: y * 100, rot: (rnd() - 0.5) * 46, scale: 0.8 + rnd() * 0.5, z: k };
+        }
     }
-    return { aspect: 2.8, items };
+    return { aspect: L.aspect, items };
 }
 
 /* Upside-down: ~1 in 4 stickers flip 180°, deterministic per sticker + seed
