@@ -3479,15 +3479,20 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     outline-offset: 0;
 }
 /* First tile = the global on/off: the default logo (in the page's own colorway)
-   inside a DASHED ring, no words. Stays half-opacity ALWAYS, even when it's the
-   active pick. */
+   inside a DASHED ring, no words. Rests at half opacity. */
 .profile-name-carousel .home-carousel-track .pl-logo-off {
     border: 1.5px dashed var(--text-color);
     opacity: 0.5;
 }
+/* Selected: the dashed square goes fully visible, and the logo inside lifts to
+   50% more visible than its resting 0.5 (→ 0.75) — still faded enough to read as
+   the OFF / default option. */
 .profile-name-carousel .home-carousel-track .pl-logo-off.is-active {
-    opacity: 0.5;
+    opacity: 1;
     outline: none;
+}
+.profile-name-carousel .home-carousel-track .pl-logo-off.is-active svg {
+    opacity: 0.75;
 }
 @media (max-width: 600px) {
     .profile-name-carousel { margin-left: -20px; }
