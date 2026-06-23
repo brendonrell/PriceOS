@@ -562,18 +562,20 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     padding: 1px 0 2px;
 }
 .ambient-dot {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     padding: 0;
     border: none;
     border-radius: 999px;
     background: var(--text-color);
-    opacity: 0.26;
+    /* Inactive dots stay clearly visible — SIZE is the active indicator, not a
+       near-invisible opacity (Brendon 2026-06-23). Shared with the ambient menu. */
+    opacity: 0.7;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.2s;
     -webkit-tap-highlight-color: transparent;
 }
-.ambient-dot.on { opacity: 0.95; transform: scale(1.18); }
+.ambient-dot.on { opacity: 1; transform: scale(1.7); }
 .ambient-pop-dots { gap: 11px; }
 /* Close — top-right corner of the popup (× U+00D7, canonical close glyph). */
 .ambient-pop-close {
