@@ -27,7 +27,7 @@ import { Component, useCallback, useEffect, useMemo, useRef, useState, type Reac
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
 import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
-import { usePlacements, setComposition, moveSticker, raiseSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
+import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
 import { stickerById, type Sticker } from '../../lib/stickers/catalog';
@@ -66,7 +66,15 @@ export function HeroStickers(props: Props) {
 /* A press in progress on a sticker (own profile). Long-press promotes it to a
    grab; movement past a small threshold marks it a drag (so a long-press never
    eats a scroll). */
-interface Press { id: string; startX: number; startY: number; moved: boolean; grabbed: boolean; baseX: number; baseY: number; }
+interface Press { id: string; startX: number; startY: number; moved: boolean; grabbed: boolean; baseX: number; baseY: number; rotate?: { cx: number; cy: number; startAngle: number; startR: number }; }
+
+/* Snap a free rotation to the nearest tidy angle (every 15°) when it's within a
+   few degrees, so stickers land clean but free angles still work. */
+function snapAngle(deg: number): number {
+    const step = 15;
+    const nearest = Math.round(deg / step) * step;
+    return Math.abs(deg - nearest) <= 5 ? nearest : Math.round(deg);
+}
 
 function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Props) {
     const { notifs } = usePdNotifs();
@@ -220,6 +228,13 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
         const onMove = (e: PointerEvent) => {
             const p = press.current;
             if (!p) return;
+            // Rotation drag — spin the sticker around its centre by the angle the
+            // finger has swept since grabbing the handle.
+            if (p.rotate) {
+                const ang = Math.atan2(e.clientY - p.rotate.cy, e.clientX - p.rotate.cx) * (180 / Math.PI);
+                rotateSticker(p.id, snapAngle(p.rotate.startR + (ang - p.rotate.startAngle)));
+                return;
+            }
             const dx = e.clientX - p.startX;
             const dy = e.clientY - p.startY;
             if (!p.moved && dx * dx + dy * dy > 64) p.moved = true;
@@ -309,6 +324,21 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
     };
     const ownDown = (s: Sticker) => (isOwn ? { onPointerDown: (e: React.PointerEvent) => onStickerDown(e, s) } : {});
 
+    /* Grab the rotate handle (on a lifted sticker) → spin it around its centre. */
+    const onRotateDown = (e: React.PointerEvent, s: Sticker) => {
+        e.stopPropagation();
+        const span = (e.currentTarget as HTMLElement).parentElement;
+        if (!span) return;
+        const r = span.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+        press.current = {
+            id: s.id, startX: e.clientX, startY: e.clientY, moved: true, grabbed: true, baseX: 0, baseY: 0,
+            rotate: { cx, cy, startAngle, startR: placeRef.current[s.id]?.r ?? 0 },
+        };
+    };
+
     // Wrap the body in the placement canvas (own) or render it plainly (visitor).
     // On own, a pointer-down that reaches the canvas (i.e. NOT on a sticker, which
     // stops propagation) settles the lifted sticker.
@@ -355,15 +385,26 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
                     >
                         <StickerArt sticker={st} size={sz(st.kind)} />
                         {isOwn && lifted === st.id && (
-                            <button
-                                type="button"
-                                className="hero-sticker-x"
-                                aria-label="Remove from this arrangement"
-                                onPointerDown={(e) => e.stopPropagation()}
-                                onClick={(e) => { e.stopPropagation(); removeFromComposition(st.id); setLifted(null); }}
-                            >
-                                ×
-                            </button>
+                            <>
+                                <button
+                                    type="button"
+                                    className="hero-sticker-x"
+                                    aria-label="Remove from this arrangement"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => { e.stopPropagation(); removeFromComposition(st.id); setLifted(null); }}
+                                >
+                                    ×
+                                </button>
+                                <button
+                                    type="button"
+                                    className="hero-sticker-rotate"
+                                    aria-label="Rotate"
+                                    title="Rotate"
+                                    onPointerDown={(e) => onRotateDown(e, st)}
+                                >
+                                    {'⟳︎'}
+                                </button>
+                            </>
                         )}
                     </span>
                 ))}

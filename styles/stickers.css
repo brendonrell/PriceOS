@@ -620,6 +620,31 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* The rotate grip — same chrome as the ✕, opposite (bottom-right) corner. Drag
+   it around the sticker to spin it. */
+.hero-sticker-rotate {
+    position: absolute;
+    bottom: -9px;
+    right: -9px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font: bold 13px/1 'Courier New', Courier, monospace;
+    padding: 0;
+    cursor: grab;
+    touch-action: none;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    -webkit-tap-highlight-color: transparent;
+}
+.hero-sticker-rotate:active { cursor: grabbing; }
+
 @media (max-width: 600px) {
     .hero-stickers { margin: 0 0 8px; }
     .hero-stickers-row { gap: 4px; }

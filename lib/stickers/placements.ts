@@ -117,6 +117,15 @@ export function raiseSticker(id: string) {
     writeMap(map);
 }
 
+/** Set a placed sticker's rotation (degrees), preserving spot / layer / scale. */
+export function rotateSticker(id: string, r: number) {
+    const map = readMap();
+    const prev = map[id];
+    if (!prev) return;
+    map[id] = { ...prev, r };
+    writeMap(map);
+}
+
 /** Prune a sticker from the locked composition (not settings/ownership). */
 export function removeFromComposition(id: string) {
     const map = readMap();
