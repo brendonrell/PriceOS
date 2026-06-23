@@ -119,11 +119,11 @@ export function StickerManagerModal({
             const vw = window.innerWidth, vh = window.innerHeight;
             const popW = Math.min(330, vw * 0.88);
             const left = Math.max(8, Math.min(r.left, vw - popW - 8));
-            // About HALF the room below the stickers (Brendon 2026-06-23) — a
-            // compact menu; the pages scroll inside. Floored so it stays usable.
-            // +10px so the bottom controls aren't clipped (Brendon 2026-06-23).
-            const room = Math.min(vh - top - 12, vh - 150);
-            const maxH = Math.max(190, Math.round(room * 0.5)) + 10;
+            // FIXED height — the menu is ALWAYS the same height (Brendon
+            // 2026-06-23), never scaled to the room below the stickers; the
+            // pages scroll inside. Clamped only as an off-screen safety on very
+            // short viewports.
+            const maxH = Math.min(264, Math.max(190, vh - top - 8));
             setAnchor({ top, left, maxH });
         };
         measure();
@@ -245,7 +245,7 @@ export function StickerManagerModal({
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    <span className="ambient-pop-title-text">{`⊞${VS15}`} YOUR STICKERS</span>
+                    <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> YOUR STICKERS</span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>

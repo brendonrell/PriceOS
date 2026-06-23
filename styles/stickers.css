@@ -731,6 +731,8 @@
    height, pager, dots, chips, code row. These are the only sticker-specific
    extras: a compact STORE pill in the header + the owned-sticker grid row. */
 .sticker-pop .ambient-pop-title { padding-right: 56px; }
+/* The ⊞ beside YOUR STICKERS — two sizes up from the 11px title (Brendon). */
+.sticker-pop .smgr-title-ic { font-size: 15px; line-height: 1; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
