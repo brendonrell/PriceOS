@@ -2001,20 +2001,8 @@ function ProfilePageBodyInner({
                 content, no notes). 1:1 stand-ins of the real rows, no
                 copy; same wrapper classes so ghosts sit exactly where
                 real rows render. */}
-            {onStarredTab && starredValid.length === 0 && traitStarsValid.length === 0 && artistStars.length === 0 && soundtrackStars.length === 0 && projectStarsValid.length === 0 && (
-                <section className="starred-list" aria-label="Starred">
-                    <div className="starred-rows">
-                        <GhostRows variant="starred" />
-                    </div>
-                </section>
-            )}
-            {onWishlistTab && wishlistValid.length === 0 && (
-                <section className="starred-list" aria-label="Wishlist">
-                    <div className="starred-rows">
-                        <GhostRows variant="wishlist" />
-                    </div>
-                </section>
-            )}
+            {/* Starred + Wishlist (with their empty-state ghosts) render together
+                below the gallery, both kept mounted — see note there. */}
 
             {/* Gallery — Showcase or Collected depending on active tab. Each
                 Showcase slot is wrapped in its own ProjectProvider so the curated
@@ -2222,44 +2210,61 @@ function ProfilePageBodyInner({
                     onApply={applyStarredPreset}
                 />
             )}
-            {onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) && (
-                <StarredList
-                    items={starredValid}
-                    traits={traitStarsValid}
-                    artists={starredArtistHandles}
-                    collectors={starredCollectorHandles}
-                    soundtracks={soundtrackStars}
-                    projects={projectStarsValid}
-                    searchOpen={moreSearchOpen}
-                    query={moreQuery}
-                    onQueryChange={setMoreQuery}
-                    onCloseSearch={closeMoreSearch}
-                    multiActive={moreMultiActive}
-                    onExitMulti={() => setMoreMultiActive(false)}
-                    sortKey={moreSort}
-                    sortDir={moreSortDir}
-                    group={moreGroup}
-                    mode={moreMode}
-                    onSetMode={setMoreMode}
-                    viewerAddress={user.address}
-                />
-            )}
-
-            {/* Wishlist — buy-focused row list (price + cart + remove). Own
-                profile only (private). */}
-            {onWishlistTab && isOwnProfile && wishlistValid.length > 0 && (
-                <WishlistList
-                    items={wishlistValid}
-                    searchOpen={moreSearchOpen}
-                    query={moreQuery}
-                    onQueryChange={setMoreQuery}
-                    onCloseSearch={closeMoreSearch}
-                    multiActive={moreMultiActive}
-                    onExitMulti={() => setMoreMultiActive(false)}
-                    sortKey={moreSort}
-                    sortDir={moreSortDir}
-                    viewerAddress={user.address}
-                />
+            {/* Starred + Wishlist — both stay MOUNTED the whole time you're in
+                this area, so flipping between the two tabs is instant and never
+                reloads the rows / art / prices (Brendon 2026-06-23). Only the
+                visibility toggles; the inactive list hides. Empty → ghost rows. */}
+            {(onStarredTab || onWishlistTab) && isOwnProfile && (
+                <>
+                    <div style={{ display: onStarredTab ? undefined : 'none' }}>
+                        {(starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) ? (
+                            <StarredList
+                                items={starredValid}
+                                traits={traitStarsValid}
+                                artists={starredArtistHandles}
+                                collectors={starredCollectorHandles}
+                                soundtracks={soundtrackStars}
+                                projects={projectStarsValid}
+                                searchOpen={moreSearchOpen}
+                                query={moreQuery}
+                                onQueryChange={setMoreQuery}
+                                onCloseSearch={closeMoreSearch}
+                                multiActive={moreMultiActive}
+                                onExitMulti={() => setMoreMultiActive(false)}
+                                sortKey={moreSort}
+                                sortDir={moreSortDir}
+                                group={moreGroup}
+                                mode={moreMode}
+                                onSetMode={setMoreMode}
+                                viewerAddress={user.address}
+                            />
+                        ) : (
+                            <section className="starred-list" aria-label="Starred">
+                                <div className="starred-rows"><GhostRows variant="starred" /></div>
+                            </section>
+                        )}
+                    </div>
+                    <div style={{ display: onWishlistTab ? undefined : 'none' }}>
+                        {wishlistValid.length > 0 ? (
+                            <WishlistList
+                                items={wishlistValid}
+                                searchOpen={moreSearchOpen}
+                                query={moreQuery}
+                                onQueryChange={setMoreQuery}
+                                onCloseSearch={closeMoreSearch}
+                                multiActive={moreMultiActive}
+                                onExitMulti={() => setMoreMultiActive(false)}
+                                sortKey={moreSort}
+                                sortDir={moreSortDir}
+                                viewerAddress={user.address}
+                            />
+                        ) : (
+                            <section className="starred-list" aria-label="Wishlist">
+                                <div className="starred-rows"><GhostRows variant="wishlist" /></div>
+                            </section>
+                        )}
+                    </div>
+                </>
             )}
 
             {/* Add-to-Showcase picker — opened by tapping a ghost frame on your
