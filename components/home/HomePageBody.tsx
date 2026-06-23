@@ -118,7 +118,7 @@ function fmtUploadTime(ms: number | null): string {
    cards paint THIS project's engine (same markup as the original single-
    project carousel). totalOutputs is provider-live: a mint advances the row
    without a reload (the provider re-fetches on 'pd:project-refresh'). */
-function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
+export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
     const project = useProject();
     const ids = Array.from(
         { length: CAROUSEL_SIZE },

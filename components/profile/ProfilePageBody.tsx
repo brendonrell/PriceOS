@@ -61,6 +61,7 @@ import StarredList from './StarredList';
 import StarredPresetRow from './StarredPresetRow';
 import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
+import { HomeProjectCarousel } from '../home/HomePageBody';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
@@ -273,6 +274,35 @@ function ProfilePageBodyInner({
             });
         }
     };
+
+    /* Long-press the @name (own profile) → a mini Now-Minting carousel pops up
+       — the exact home carousel, Oracle for now, quarter-scale. A distinct
+       gesture from the triple-tap colour egg, which stays (Brendon 2026-06-23). */
+    const [nameCarouselOpen, setNameCarouselOpen] = useState(false);
+    const nameLpTimer = useRef<number | null>(null);
+    const nameLpFired = useRef(false);
+    const nameLpStart = useRef<{ x: number; y: number } | null>(null);
+    const clearNameLp = () => {
+        if (nameLpTimer.current != null) { window.clearTimeout(nameLpTimer.current); nameLpTimer.current = null; }
+    };
+    const onNamePointerDown = (e: React.PointerEvent) => {
+        if (!isOwnProfile) return;
+        nameLpFired.current = false;
+        nameLpStart.current = { x: e.clientX, y: e.clientY };
+        clearNameLp();
+        nameLpTimer.current = window.setTimeout(() => {
+            nameLpFired.current = true;
+            nameLpTimer.current = null;
+            setNameCarouselOpen(true);
+        }, 460);
+    };
+    const onNamePointerMove = (e: React.PointerEvent) => {
+        if (nameLpTimer.current == null || !nameLpStart.current) return;
+        const dx = e.clientX - nameLpStart.current.x;
+        const dy = e.clientY - nameLpStart.current.y;
+        if (dx * dx + dy * dy > 100) clearNameLp();
+    };
+    const onNamePressEnd = () => clearNameLp();
 
     const eggPills = useMemo(() => {
         const sig = user.signature_hex ?? signatureHexFor(user.address);
@@ -1480,7 +1510,14 @@ function ProfilePageBodyInner({
                                 className="egg-name"
                                 role="button"
                                 tabIndex={0}
-                                onClick={handleNameTap}
+                                onClick={() => { if (nameLpFired.current) { nameLpFired.current = false; return; } handleNameTap(); }}
+                                onPointerDown={onNamePointerDown}
+                                onPointerMove={onNamePointerMove}
+                                onPointerUp={onNamePressEnd}
+                                onPointerLeave={onNamePressEnd}
+                                onPointerCancel={onNamePressEnd}
+                                onContextMenu={(e) => { if (isOwnProfile) e.preventDefault(); }}
+                                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
                             >
                                 @{displayHandle}
                             </span>
@@ -2265,6 +2302,24 @@ function ProfilePageBodyInner({
                         )}
                     </div>
                 </>
+            )}
+
+            {/* Mini Now-Minting carousel — long-press your own @name. The exact
+                home carousel for Oracle, quarter-scale, in a dismissible popup. */}
+            {nameCarouselOpen && isOwnProfile && (
+                <div
+                    className="name-carousel-pop"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Oracle — recent outputs"
+                    onClick={() => setNameCarouselOpen(false)}
+                >
+                    <div className="name-carousel-card" onClick={(e) => e.stopPropagation()}>
+                        <ProjectProvider slug="oracle">
+                            <HomeProjectCarousel eager />
+                        </ProjectProvider>
+                    </div>
+                </div>
             )}
 
             {/* Add-to-Showcase picker — opened by tapping a ghost frame on your
