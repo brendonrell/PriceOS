@@ -173,38 +173,24 @@ export function stickerHue(s: Sticker): number {
     return (x >>> 0) % 360;
 }
 
-/* The STACK cycles through these via the Shuffle button — a clean single row
-   (few, readable) up to the densest two-row pile, which is the MOST EXTREME
-   (the reference screenshot). Each level sets how many show, the area shape, and
-   single-row vs piled. */
-const STACK_LEVELS: { count: number; aspect: number; single: boolean }[] = [
-    { count: 6,  aspect: 6.2, single: true  },   // single row, few — readable
-    { count: 9,  aspect: 4.3, single: true  },   // single row, fuller
-    { count: 12, aspect: 3.3, single: false },   // two rows, building up
-    { count: 14, aspect: 2.8, single: false },   // EXTREME — the pile, unchanged
-];
-export const STACK_LEVEL_COUNT = STACK_LEVELS.length;
+/* The Shuffle button cycles the stack DENSITY through these counts. The ROWS
+   option (1 or 2) is honoured SEPARATELY at every density — single row vs a
+   two-row pile. Densest + two rows = the most-extreme pile (the reference). */
+const STACK_COUNTS = [6, 9, 12, 14];
+export const STACK_LEVEL_COUNT = STACK_COUNTS.length;
 
-export function buildPile(hues: number[], seed: number, level = 0): { aspect: number; items: PilePiece[] } {
-    const L = STACK_LEVELS[Math.max(0, Math.min(STACK_LEVELS.length - 1, level))]!;
-    const n = Math.max(1, Math.min(hues.length, L.count));
+export function buildPile(hues: number[], seed: number, level = 0, rows = 1): { aspect: number; items: PilePiece[] } {
+    const cnt = STACK_COUNTS[Math.max(0, Math.min(STACK_COUNTS.length - 1, level))]!;
+    const n = Math.max(1, Math.min(hues.length, cnt));
     const rnd = rngFrom(seed + 131);
-    // Colour balance: order by hue, then drop onto an R2 low-discrepancy
-    // sequence so consecutive hues land far apart — no colour clumps.
+    // Colour balance: order by hue, then R2 low-discrepancy placement so
+    // consecutive hues land far apart — no colour clumps.
     const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
     const g = 1.32471795724474602596;   // plastic number → R2 sequence
     const a1 = 1 / g, a2 = 1 / (g * g);
     const items: PilePiece[] = new Array(n);
-    if (L.single) {
-        // SINGLE ROW — even organic spread along one line, light overlap.
-        const off = rnd(), PAD = 8, span = 100 - PAD * 2;
-        for (let k = 0; k < n; k++) {
-            const idx = order[k]!;
-            const t = (off + a1 * (k + 1)) % 1;
-            items[idx] = { x: PAD + t * span, y: 50 + (rnd() - 0.5) * 16, rot: (rnd() - 0.5) * 30, scale: 0.85 + rnd() * 0.35, z: k };
-        }
-    } else {
-        // 2D PILE — R2 over the whole area (the stickered-laptop look).
+    if (rows >= 2) {
+        // TWO ROWS — R2 over the whole area (the stickered-laptop pile).
         const offX = rnd(), offY = rnd();
         for (let k = 0; k < n; k++) {
             const idx = order[k]!;
@@ -214,8 +200,16 @@ export function buildPile(hues: number[], seed: number, level = 0): { aspect: nu
             y = Math.min(0.88, Math.max(0.12, y + (rnd() - 0.5) * 0.09));
             items[idx] = { x: x * 100, y: y * 100, rot: (rnd() - 0.5) * 46, scale: 0.8 + rnd() * 0.5, z: k };
         }
+        return { aspect: 2.9, items };
     }
-    return { aspect: L.aspect, items };
+    // SINGLE ROW — even organic spread along one line; density = how many.
+    const off = rnd(), PAD = 8, span = 100 - PAD * 2;
+    for (let k = 0; k < n; k++) {
+        const idx = order[k]!;
+        const t = (off + a1 * (k + 1)) % 1;
+        items[idx] = { x: PAD + t * span, y: 50 + (rnd() - 0.5) * 16, rot: (rnd() - 0.5) * 30, scale: 0.85 + rnd() * 0.35, z: k };
+    }
+    return { aspect: 5.5, items };
 }
 
 /* Upside-down: ~1 in 4 stickers flip 180°, deterministic per sticker + seed

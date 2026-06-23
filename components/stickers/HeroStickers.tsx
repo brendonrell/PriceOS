@@ -177,7 +177,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
     // generatively for compositional colour balance (buildPile). Shuffle re-rolls
     // the composition.
     if (arrange === 'stack') {
-        const pile = buildPile(picked.map(stickerHue), seed, stackLevel);
+        const pile = buildPile(picked.map(stickerHue), seed, stackLevel, rowsPref);
         const shown = picked.slice(0, pile.items.length);
         return wrap(
             <div className={`hero-pile ${alignClass}`} style={{ ...areaStyle, aspectRatio: String(pile.aspect) }}>
