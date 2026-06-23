@@ -3489,10 +3489,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 .profile-name-carousel .home-carousel-track .pl-logo-off svg {
     opacity: 0.5;
 }
-/* Selected: a faint (30%) dotted selector square — only this first option gets
-   the muted selector instead of the full one. */
+/* Selected: a clearly-visible dotted selector square (the faded logo stays the
+   muted cue; the square needs to read as "this is picked"). */
 .profile-name-carousel .home-carousel-track .pl-logo-off.is-active {
-    outline: 2px dotted color-mix(in srgb, var(--text-color) 30%, transparent);
+    outline: 2px dotted var(--text-color);
     outline-offset: 0;
 }
 @media (max-width: 600px) {
