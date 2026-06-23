@@ -434,6 +434,12 @@
 .ss-grid-wide { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
 /* Familiars sit 3 to a row — smaller than they were. */
 .ss-grid-fam { grid-template-columns: repeat(3, 1fr); }
+/* Projects sheet reads too small in the tiny auto-fill grid — give it 4 bigger
+   tiles on desktop, 2 on mobile (Brendon 2026-06-23). */
+.ss-paper[data-sheet="project"].ss-grid { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 601px) {
+    .ss-paper[data-sheet="project"].ss-grid { grid-template-columns: repeat(4, 1fr); }
+}
 .ss-cell {
     display: flex;
     align-items: center;
@@ -447,7 +453,7 @@
    its column shrinks to fit. The render pairs wide with narrow so rows balance. */
 .ss-flow {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     align-items: center;
     gap: 16px 14px;
     padding: 16px 14px 20px;
@@ -456,7 +462,7 @@
 .ss-flow .ss-cell svg { max-width: 100%; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    columns: 2;
+    columns: 3;
     column-gap: 8px;
     padding: 12px 12px 16px;
 }
@@ -465,6 +471,9 @@
     break-inside: avoid;
     margin-bottom: 11px;
 }
+/* Outputs are full artworks — pack more across so each is a small thumbnail,
+   not a wall of giant canvases (Brendon 2026-06-23). Desktop + mobile. */
+@media (min-width: 601px) { .ss-masonry { columns: 5; } }
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
 .out-sticker {

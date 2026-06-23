@@ -225,7 +225,7 @@ export default function StickersModal() {
                                 <span className="ss-title-main">{detail.name}</span>
                                 <span className="ss-title-sub">{`// ${detail.count} Pcs`}</span>
                             </div>
-                            <BuySheetButton sheet={detail} />
+                            <BuySheetButton sheet={detail} className="ss-buy-head" />
                         </>
                     ) : (
                         <>
@@ -292,7 +292,7 @@ export default function StickersModal() {
                         const cells = mode === 'flow' ? flowOrder : draw;
                         return (
                             <div className="ss-paper-wrap">
-                                <div className={`ss-paper ${cls}`}>
+                                <div className={`ss-paper ${cls}`} data-sheet={detail.id}>
                                     {cells.map((s) => (
                                         <span key={s.id} className="ss-cell" title={s.name}>
                                             {mode === 'flow'
