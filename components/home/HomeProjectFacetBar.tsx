@@ -62,7 +62,7 @@ export interface EnrichedProject {
 /* Local sort model for the home sort-bar (kept off the global SortContext).
    'feed' swaps the carousels for the activity feed (new-art events for now;
    more event kinds later — Brendon 2026-06-15). 'az' sorts by project name. */
-export type HomeSortKey = 'grad' | 'date' | 'price' | 'feed' | 'az';
+export type HomeSortKey = 'date' | 'price' | 'feed' | 'az';
 export type HomeSortDir = 'asc' | 'desc';
 
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
@@ -393,37 +393,15 @@ export default function HomeProjectFacetBar({
                     style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
                 >
                     <span
-                        className={`sort-btn${sortKey === 'grad' ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        title="Order of graduating"
-                        onClick={() => onSort('grad')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('grad'); } }}
-                    >
-                        <span className="sort-lbl">{'⟢⟢︎'}</span>
-                        <span className="sort-arrow">{arrow('grad')}</span>
-                    </span>
-                    <span
                         className={`sort-btn${sortKey === 'date' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title="Upload date"
+                        title="Sort by date (newest / oldest)"
                         onClick={() => onSort('date')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('date'); } }}
                     >
-                        <span className="sort-lbl">{'◷︎'}</span>
+                        <span className="sort-lbl">DATE</span>
                         <span className="sort-arrow">{arrow('date')}</span>
-                    </span>
-                    <span
-                        className={`sort-btn${sortKey === 'az' ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        title="Sort A–Z by name"
-                        onClick={() => onSort('az')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('az'); } }}
-                    >
-                        <span className="sort-lbl">{sortKey === 'az' && sortDir === 'desc' ? 'ZA' : 'AZ'}</span>
-                        <span className="sort-arrow">{arrow('az')}</span>
                     </span>
                     <span
                         className={`sort-btn${sortKey === 'price' ? ' active' : ''}`}
@@ -435,6 +413,17 @@ export default function HomeProjectFacetBar({
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
                         <span className="sort-arrow">{arrow('price')}</span>
+                    </span>
+                    <span
+                        className={`sort-btn${sortKey === 'az' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Sort A–Z by name"
+                        onClick={() => onSort('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('az'); } }}
+                    >
+                        <span className="sort-lbl">{sortKey === 'az' && sortDir === 'desc' ? 'ZA' : 'AZ'}</span>
+                        <span className="sort-arrow">{arrow('az')}</span>
                     </span>
                     <span
                         className={`sort-btn${sortKey === 'feed' ? ' active' : ''}`}

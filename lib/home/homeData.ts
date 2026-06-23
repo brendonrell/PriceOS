@@ -142,14 +142,11 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
             ? new Date(p.cooldown_until).getTime() - COOLDOWN_MS
             : null,
         // Prefer the persisted graduation moment; fall back to the computed
-        // 18th-mint walk, then to the upload time, so a graduated project with
-        // an unstamped graduation (e.g. seeded test data with no event rows)
-        // still gets a real position in the graduating order instead of
-        // clumping at the end (Brendon 2026-06-23).
+        // 18th-mint walk so a project with an unstamped graduation never drops
+        // out of the recency sort.
         reached_at: p.graduated_at
           ? new Date(p.graduated_at).getTime()
-          : reachedAt[p.id]
-            ?? (p.uploaded_at ? new Date(p.uploaded_at).getTime() : null),
+          : reachedAt[p.id] ?? null,
         sold_out_at: p.sold_out_at ? new Date(p.sold_out_at).getTime() : null,
         milestones: msMap(p.milestones),
       });
