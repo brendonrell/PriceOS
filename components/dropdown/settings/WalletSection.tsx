@@ -269,6 +269,9 @@ export function WalletSection() {
                         // public profile reflects it. Fire-and-forget.
                         pushState({ ens_name: next });
                         setSavedEns(next);
+                        // Tell the profile so its identity row repaints live
+                        // (no reload needed).
+                        window.dispatchEvent(new CustomEvent('pd:ens-changed', { detail: next }));
                         return next;
                     });
                 }}

@@ -390,9 +390,21 @@ function ProfilePageBodyInner({
     const { open: openModal } = useModal();
     const memberSince = formatMemberSince(user.created_at);
 
+    /* Chosen ENS, live on your OWN profile: the picker in Settings fires
+       'pd:ens-changed' so the identity row repaints instantly instead of waiting
+       for a reload. Visitors read the server value. */
+    const [ownEns, setOwnEns] = useState<string | null>(user.ens_name);
+    useEffect(() => {
+        if (!isOwnProfile) return;
+        const h = (e: Event) => setOwnEns((e as CustomEvent<string | null>).detail ?? null);
+        window.addEventListener('pd:ens-changed', h);
+        return () => window.removeEventListener('pd:ens-changed', h);
+    }, [isOwnProfile]);
+    const ensName = isOwnProfile ? ownEns : user.ens_name;
+
     // Identity row: chosen ENS if set, else the truncated wallet address.
-    const viaLabel = user.ens_name
-        ? user.ens_name
+    const viaLabel = ensName
+        ? ensName
         : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
     /* Live follower/following counts — fully seeded from the server row
        (both counts ship with the page since the 2026-06-10 perf batch; the
@@ -426,6 +438,7 @@ function ProfilePageBodyInner({
         setCounts({ followers: user.follower_count, following: user.following_count });
         setHoldings(initialHoldings);
         setOwnedCount(initialOwnedCount);
+        setOwnEns(user.ens_name);
     }
 
     useEffect(() => {
@@ -872,7 +885,7 @@ function ProfilePageBodyInner({
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
     // settings wallet copy). Inline checkmark swap for 1.5s.
-    const copyValue = user.ens_name ?? user.address;
+    const copyValue = ensName ?? user.address;
     const [idCopied, setIdCopied] = useState(false);
     const idCopyTimer = useRef<number | null>(null);
     const handleCopyIdentity = async () => {
@@ -1785,7 +1798,7 @@ function ProfilePageBodyInner({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    {user.ens_name ? (
+                                    {ensName ? (
                                         viaLabel
                                     ) : (
                                         <>
@@ -1805,7 +1818,7 @@ function ProfilePageBodyInner({
                                     className="icon-copy id-copy"
                                     role="button"
                                     tabIndex={0}
-                                    title={`Copy ${user.ens_name ? 'ENS' : 'wallet address'}`}
+                                    title={`Copy ${ensName ? 'ENS' : 'wallet address'}`}
                                     onClick={(e) => { e.preventDefault(); handleCopyIdentity(); }}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
