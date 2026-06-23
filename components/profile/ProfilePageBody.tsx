@@ -402,6 +402,19 @@ function ProfilePageBodyInner({
     }, [isOwnProfile]);
     const ensName = isOwnProfile ? ownEns : user.ens_name;
 
+    /* Chosen Showcase order, live on your OWN profile: the Settings toggle fires
+       'pd:showcase-style-changed' so the showcase re-sorts instantly (Static ↔
+       Shuffle ↔ …) instead of waiting for a reload. Visitors read the server
+       value. */
+    const [liveShowcaseStyle, setLiveShowcaseStyle] = useState(user.showcase_style);
+    useEffect(() => {
+        if (!isOwnProfile) return;
+        const h = (e: Event) => setLiveShowcaseStyle((e as CustomEvent<string>).detail as typeof user.showcase_style);
+        window.addEventListener('pd:showcase-style-changed', h);
+        return () => window.removeEventListener('pd:showcase-style-changed', h);
+    }, [isOwnProfile]);
+    const showcaseStyleVal = isOwnProfile ? liveShowcaseStyle : user.showcase_style;
+
     // Identity row: chosen ENS if set, else the truncated wallet address.
     const viaLabel = ensName
         ? ensName
@@ -439,6 +452,7 @@ function ProfilePageBodyInner({
         setHoldings(initialHoldings);
         setOwnedCount(initialOwnedCount);
         setOwnEns(user.ens_name);
+        setLiveShowcaseStyle(user.showcase_style);
     }
 
     useEffect(() => {
@@ -506,7 +520,7 @@ function ProfilePageBodyInner({
         const slots = (user.showcase?.slots ?? []).filter(
             (s): s is ShowcaseSlot => !!s && !!s.project_id && s.token_id != null && getProject(s.project_id) != null,
         );
-        if (user.showcase_style === 'generative') {
+        if (showcaseStyleVal === 'generative') {
             const a = [...slots];
             for (let i = a.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -515,7 +529,7 @@ function ProfilePageBodyInner({
             return a;
         }
         return slots;
-    }, [user.showcase, user.showcase_style]);
+    }, [user.showcase, showcaseStyleVal]);
 
     /* Empty-state ghost frames for the Showcase — same idea as the project's
        unminted gallery: 6 placeholder frames (matching the 6 Showcase slots),
@@ -1301,7 +1315,7 @@ function ProfilePageBodyInner({
     );
     const hasCreated = artistProjects.length > 0;
 
-    const effStyle = effectiveShowcaseStyle(user.showcase_style, isArtist, user.address);
+    const effStyle = effectiveShowcaseStyle(showcaseStyleVal, isArtist, user.address);
     /* An artist with ≥1 project keeps the Created · Top 6 toggle on EVERY style
        (Brendon 2026-06-20). 'artist' style lands on Created; Static / Generative
        / Gen Curated land on Top 6 — the Created pill stays to its left either

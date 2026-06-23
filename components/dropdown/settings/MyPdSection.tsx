@@ -112,6 +112,8 @@ export function MyPdSection({ onTripleTap }: Props) {
         try { localStorage.setItem(USER_SHOWCASE_KEY, next); } catch { /* ignore */ }
         setRawShowcase(next);
         pushState({ showcase_style: next });
+        // Tell the profile so its showcase re-sorts live (no reload needed).
+        window.dispatchEvent(new CustomEvent('pd:showcase-style-changed', { detail: next }));
         const label = next === 'generative' ? 'GENERATIVE'
             : next === 'gen-curated' ? 'GEN CURATED'
             : next === 'artist' ? 'ARTIST' : 'STATIC';
