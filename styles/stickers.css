@@ -565,7 +565,15 @@
    coordinate space. On your own profile a press on a sticker shouldn't scroll
    the page — it might be the start of a drag. */
 .hero-stickers-canvas { position: relative; width: 100%; }
-.hero-stickers-canvas .hero-sticker { touch-action: none; }
+/* A long-press is our lift gesture — suppress the OS text loupe / callout and
+   any selection it would otherwise pop up over the stickers. */
+.hero-stickers-canvas,
+.hero-stickers-canvas .hero-sticker {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
 
 /* A sticker in the locked composition sits at its saved spot, layer (z, inline),
    rotation (--r) and scale (--s) — captured at lock time so it's pixel-faithful
