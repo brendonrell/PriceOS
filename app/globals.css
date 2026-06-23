@@ -9999,3 +9999,18 @@ body.is-pwa .fullscreen-back {
 .nav-back-btn:hover { opacity: 1; }
 /* Tuck away while the connect menu is open — the dropdown owns that space. */
 .user-menu-wrapper.active .nav-back-btn { display: none; }
+
+/* My PD — one size up (mobile only) for these toggle icons (Brendon 2026-06-23).
+   Last in source + !important so it wins over the per-id blocks above AND the
+   inline icon sizes on the toggles that have no CSS rule. */
+@media (max-width: 600px) {
+    #sn-sticker .st-icon    { font-size: 19px !important; }
+    #sn-ambient .st-icon    { font-size: 20px !important; }
+    #sn-anon .st-icon       { font-size: 17px !important; }
+    #sn-pricelens .st-icon  { font-size: 17px !important; }
+    #sn-sentiment .st-icon  { font-size: 17px !important; }
+    #sn-audience .st-icon   { font-size: 14px !important; }
+    #sn-asciiId .st-icon    { font-size: 17px !important; }
+    #sn-backbutton .st-icon { font-size: 17px !important; }
+    #sn-tape .st-icon       { font-size: 17px !important; }
+}
