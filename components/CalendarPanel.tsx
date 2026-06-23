@@ -81,8 +81,8 @@ export default function CalendarPanel() {
       <div className="cal-body">
         <div className="cal-grid-wrap">
           <div className="cal-weekday-row">
-            <span>M</span><span>T</span><span>W</span><span>T</span>
-            <span>F</span><span>S</span><span>S</span>
+            <span>S</span><span>M</span><span>T</span><span>W</span>
+            <span>T</span><span>F</span><span>S</span>
           </div>
 
           <div className="cal-grid" id="calGrid">

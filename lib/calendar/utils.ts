@@ -24,7 +24,8 @@ export function mondayIndex(jsDay: number): number {
  */
 export function buildMonthCells(viewY: number, viewM: number): CalCell[] {
   const firstDayJs = new Date(viewY, viewM, 1).getDay();
-  const firstCol = mondayIndex(firstDayJs);
+  // Sunday-first grid: JS getDay() is already 0=Sun..6=Sat.
+  const firstCol = firstDayJs;
   const daysInMonth = new Date(viewY, viewM + 1, 0).getDate();
   const daysInPrev = new Date(viewY, viewM, 0).getDate();
 
