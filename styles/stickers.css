@@ -558,7 +558,6 @@
     /* No shadow — a sticker sits flush on the surface with zero gap (Brendon
        2026-06-23). The die-cut paper edge is the only depth cue. */
 }
-.hero-sticker:hover { transform: rotate(0deg) scale(1.08); }
 
 /* ── Hand-placement (own profile) ──────────────────────────────────────────
    The canvas holds the generative flow AND the hand-placed overlay in one
