@@ -1815,6 +1815,20 @@ function ProfilePageBodyInner({
                         live; sets the SPRITE colour, not the page. */}
                     {isOwnProfile && spritePickerOpen && (
                         <div className="profile-egg-row profile-sprite-picker">
+                            {/* OFF — clears the custom colour so the sprite uses the
+                                default (colorway) colour. First option, like the
+                                logo carousel's OFF tile. Active when no colour set. */}
+                            <div
+                                className={`pill pill-l3 psp-off${!mySpriteHex ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setMySpriteHex(null)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMySpriteHex(null); } }}
+                                title="No custom colour — use the default"
+                                aria-label="Turn off the custom PriceSprite colour"
+                            >
+                                <span className="stat-name">{'✕︎'}</span>
+                            </div>
                             <label className="psp-swatch" title="Pick any colour">
                                 <input
                                     type="color"
