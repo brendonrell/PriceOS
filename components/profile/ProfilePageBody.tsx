@@ -61,7 +61,8 @@ import StarredList from './StarredList';
 import StarredPresetRow from './StarredPresetRow';
 import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
-import { HomeProjectCarousel } from '../home/HomePageBody';
+import { StickerArt } from '../stickers/StickerArt';
+import { PROFILE_LOGOS } from '../../lib/profile/profileLogos';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
@@ -1627,14 +1628,21 @@ function ProfilePageBodyInner({
                             </div>
                         </div>
                     )}
-                    {/* Long-press the @name → the exact Now-Minting carousel for
-                        Oracle, quarter-size tiles, shoved open INLINE under the
-                        title (pushes the hero down, like the colour egg). */}
+                    {/* Long-press the @name → the carousel (same scroll chrome as
+                        Now-Minting), shoved open INLINE under the title like the
+                        colour egg. Profile Logo feature: no title, tiles are the
+                        PD logos (the feature's own set, not the sticker sheet). */}
                     {isOwnProfile && nameCarouselOpen && (
                         <div className="profile-name-carousel">
-                            <ProjectProvider slug="oracle">
-                                <HomeProjectCarousel eager />
-                            </ProjectProvider>
+                            <div className="home-carousel-row" aria-label="Profile logos">
+                                <div className="home-carousel-track">
+                                    {PROFILE_LOGOS.map((logo) => (
+                                        <div className="pl-logo-card" key={logo.id}>
+                                            <StickerArt sticker={logo} fill />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
                     </>
