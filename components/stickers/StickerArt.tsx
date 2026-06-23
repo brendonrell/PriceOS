@@ -48,6 +48,11 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
         const color = sticker.holo ? `url(#${holoId})` : (sticker.color ?? '#FF0055');
         const sil = [PETEY_BUBBLE_PATH, PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH];
         const vb = diecut ? '-120 -120 1001 895' : '0 0 761 655';
+        // Finish variants: BLANK = bubble only; GLYPH-ONLY = per-mille only (no
+        // bubble); OUTLINE = hollow bubble. With no filled bubble behind it, the
+        // per-mille paints in `color` so it stays visible (normally it's knocked
+        // out in `cutout`).
+        const pmColor = (sticker.glyphOnly || sticker.outline) ? color : cutout;
         return (
             <svg
                 className={className}
@@ -81,11 +86,19 @@ function StickerArtImpl({ sticker, size = 44, fill, diecut, className }: Props) 
                         </g>
                     </>
                 )}
-                <path d={PETEY_BUBBLE_PATH} fill={color} />
-                <path d={PETEY_GLYPH_PATH} fill={cutout} stroke={cutout} strokeWidth="1.5" />
-                <path d={PETEY_DOT_RIGHT_PATH} fill={color} />
-                <path d={PETEY_DOT_LEFT_PATH} fill={color} />
-                <path d={PETEY_DOT_TOP_PATH} fill={color} />
+                {!sticker.glyphOnly && (
+                    sticker.outline
+                        ? <path d={PETEY_BUBBLE_PATH} fill="none" stroke={color} strokeWidth={28} strokeLinejoin="round" />
+                        : <path d={PETEY_BUBBLE_PATH} fill={color} />
+                )}
+                {!sticker.blank && (
+                    <>
+                        <path d={PETEY_GLYPH_PATH} fill={pmColor} stroke={pmColor} strokeWidth="1.5" />
+                        <path d={PETEY_DOT_RIGHT_PATH} fill={color} />
+                        <path d={PETEY_DOT_LEFT_PATH} fill={color} />
+                        <path d={PETEY_DOT_TOP_PATH} fill={color} />
+                    </>
+                )}
             </svg>
         );
     }

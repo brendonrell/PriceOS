@@ -66,11 +66,56 @@ const cutoutFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#FFFFFF');
 
 const LOGO_HUES = genHues(27, 'pg', { sat: 88, lights: [52, 62, 44], phase: 6 });
 
+/* SOLID upright bubble — brand classic (Hothurt-red bubble + attention-yellow
+   slash), its inverted twin (attention-yellow bubble + Hothurt-red per-mille),
+   then the colour ring. */
+const PROFILE_SOLID: Sticker[] = [
+    { id: 'plogo-hot',     sheet: 'genesis', kind: 'logo', name: 'Logo — Classic',          color: PRICE_RED,    cutout: PRICE_YELLOW },
+    { id: 'plogo-hot-inv', sheet: 'genesis', kind: 'logo', name: 'Logo — Classic Inverted', color: PRICE_YELLOW, cutout: PRICE_RED },
+    ...LOGO_HUES.map<Sticker>((h) => ({
+        id: `plogo-${h.key}`,
+        sheet: 'genesis',
+        kind: 'logo',
+        name: `Logo — ${h.name}`,
+        color: h.hex,
+        cutout: cutoutFor(h.hex),
+    })),
+];
+
+/* The two $PRICE wordmark variants. */
+const PROFILE_PRICE: Sticker[] = [
+    { id: 'plogo-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED,    fg: PRICE_YELLOW },
+    { id: 'plogo-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
+];
+
+/* Finish variants (Brendon 2026-06-23): the same bubble across the full colour
+   ring in alternate treatments — BLANK (bubble only, no per-mille), PER-MILLE
+   (the mark alone, no bubble), OUTLINE (hollow bubble). */
+function finishRing(prefix: string, label: string, extra: Partial<Sticker>): Sticker[] {
+    return [
+        { id: `plogo-${prefix}-hot`, sheet: 'genesis', kind: 'logo', name: `${label} — Classic`, color: PRICE_RED, cutout: PRICE_YELLOW, ...extra },
+        ...LOGO_HUES.map<Sticker>((h) => ({
+            id: `plogo-${prefix}-${h.key}`,
+            sheet: 'genesis',
+            kind: 'logo',
+            name: `${label} — ${h.name}`,
+            color: h.hex,
+            cutout: cutoutFor(h.hex),
+            ...extra,
+        })),
+    ];
+}
+const PROFILE_BLANK   = finishRing('blank', 'Bubble',    { blank: true });
+const PROFILE_PM      = finishRing('pm',    'Per-mille', { glyphOnly: true });
+const PROFILE_OUTLINE = finishRing('out',   'Outline',   { outline: true });
+
 /* Petey = the SAME logo rotated 90° CCW, its own colour band (mirrors the Petey
-   sticker sheet). `rotated` tells StickerArt + the corner logo to turn it. */
+   sticker sheet). `rotated` tells StickerArt + the corner logo to turn it.
+   Classic + its inverted twin lead, then the colour ring. */
 const PETEY_HUES = genHues(23, 'pp', { sat: 80, lights: [58, 48, 67], phase: 15 });
 const PROFILE_PETEY: Sticker[] = [
-    { id: 'plogo-petey-classic', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
+    { id: 'plogo-petey-classic',     sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic',          color: PRICE_RED,    cutout: PRICE_YELLOW },
+    { id: 'plogo-petey-classic-inv', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic Inverted', color: PRICE_YELLOW, cutout: PRICE_RED },
     ...PETEY_HUES.map<Sticker>((h) => ({
         id: `plogo-petey-${h.key}`,
         sheet: 'petey',
@@ -82,40 +127,36 @@ const PROFILE_PETEY: Sticker[] = [
     })),
 ];
 
-/* Holo = the iridescent finish (one upright, one Petey). `holo` swaps the fill
-   for the rainbow gradient; there's no colour variation, so just the two. */
+/* Holo = the iridescent finish. Upright, Petey, and a blank (bubble-only) holo. */
 const PROFILE_HOLO: Sticker[] = [
-    { id: 'plogo-holo',       sheet: 'holo', kind: 'logo', name: 'Holo',       color: '#FFFFFF', cutout: '#1A1A1A', holo: true },
-    { id: 'plogo-holo-petey', sheet: 'holo', kind: 'logo', name: 'Holo Petey', color: '#FFFFFF', cutout: '#1A1A1A', holo: true, rotated: true },
+    { id: 'plogo-holo',       sheet: 'holo', kind: 'logo', name: 'Holo',        color: '#FFFFFF', cutout: '#1A1A1A', holo: true },
+    { id: 'plogo-holo-petey', sheet: 'holo', kind: 'logo', name: 'Holo Petey',  color: '#FFFFFF', cutout: '#1A1A1A', holo: true, rotated: true },
+    { id: 'plogo-holo-blank', sheet: 'holo', kind: 'logo', name: 'Holo Bubble', color: '#FFFFFF', cutout: '#1A1A1A', holo: true, blank: true },
 ];
 
-/** The Profile Logo set — classic first, then the colour ring, then $PRICE. */
+/** The Profile Logo set — every variant, flat (id lookup + save validation). */
 export const PROFILE_LOGOS: Sticker[] = [
-    /* Brand classic: Hothurt-red bubble + attention-yellow slash. */
-    { id: 'plogo-hot', sheet: 'genesis', kind: 'logo', name: 'Logo — Classic', color: PRICE_RED, cutout: PRICE_YELLOW },
-    ...LOGO_HUES.map<Sticker>((h) => ({
-        id: `plogo-${h.key}`,
-        sheet: 'genesis',
-        kind: 'logo',
-        name: `Logo — ${h.name}`,
-        color: h.hex,
-        cutout: cutoutFor(h.hex),
-    })),
-    { id: 'plogo-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED, fg: PRICE_YELLOW },
-    { id: 'plogo-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
+    ...PROFILE_SOLID,
+    ...PROFILE_PRICE,
+    ...PROFILE_BLANK,
+    ...PROFILE_PM,
+    ...PROFILE_OUTLINE,
     ...PROFILE_PETEY,
     ...PROFILE_HOLO,
 ];
 
 /** Carousel order for the Profile Logo picker (Brendon 2026-06-23): the two
- *  $PRICE variants, then the bubble colour ring, then the Petey set, then the
- *  holo finishes at the very end. The OFF / global toggle (a logo in a dashed
- *  ring) is prepended by the UI, not listed here. */
+ *  $PRICE variants, then the upright bubble finishes (solid → blank → per-mille
+ *  → outline), then the Petey set, then the holo finishes. The OFF / global
+ *  toggle (a logo in a dashed ring) is prepended by the UI, not listed here. */
 export const PROFILE_LOGO_CAROUSEL: Sticker[] = [
-    ...PROFILE_LOGOS.filter((s) => s.kind === 'price'),
-    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo' && !s.rotated && !s.holo),
-    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo' && s.rotated && !s.holo),
-    ...PROFILE_LOGOS.filter((s) => s.holo),
+    ...PROFILE_PRICE,
+    ...PROFILE_SOLID,
+    ...PROFILE_BLANK,
+    ...PROFILE_PM,
+    ...PROFILE_OUTLINE,
+    ...PROFILE_PETEY,
+    ...PROFILE_HOLO,
 ];
 
 /** The OFF / global-toggle tile's art: the bubble logo painted in the PAGE's

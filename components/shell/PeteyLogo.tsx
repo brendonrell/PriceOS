@@ -65,6 +65,11 @@ export function PeteyLogo() {
     // the menu, not the angle). Holo = the iridescent gradient fill.
     const overridePetey = !!overrideBubble?.rotated;
     const overrideHolo = !!override?.holo;
+    // Finish variants — see StickerArt: blank (bubble only), glyph-only
+    // (per-mille only), outline (hollow bubble).
+    const overrideBlank = !!overrideBubble?.blank;
+    const overrideGlyphOnly = !!overrideBubble?.glyphOnly;
+    const overrideOutline = !!overrideBubble?.outline;
     const HOLO_GRAD_ID = 'pd-corner-holo';
 
     // The override forces the form (bubble vs $PRICE); otherwise the viewer's
@@ -166,11 +171,25 @@ export function PeteyLogo() {
                             </linearGradient>
                         </defs>
                     )}
-                    <path d={PETEY_BUBBLE_PATH} fill="currentColor" style={bubbleStyle} />
-                    <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" style={glyphStyle} />
-                    <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" style={bubbleStyle} />
-                    <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" style={bubbleStyle} />
-                    <path d={PETEY_DOT_TOP_PATH} fill="currentColor" style={bubbleStyle} />
+                    {overrideGlyphOnly ? null : overrideOutline ? (
+                        <path d={PETEY_BUBBLE_PATH} fill="none" stroke={overrideBubble?.color} strokeWidth={28} strokeLinejoin="round" />
+                    ) : (
+                        <path d={PETEY_BUBBLE_PATH} fill="currentColor" style={bubbleStyle} />
+                    )}
+                    {!overrideBlank && (
+                        <>
+                            <path
+                                d={PETEY_GLYPH_PATH}
+                                fill={(overrideGlyphOnly || overrideOutline) ? overrideBubble?.color : 'var(--bg-color)'}
+                                stroke={(overrideGlyphOnly || overrideOutline) ? overrideBubble?.color : 'var(--bg-color)'}
+                                strokeWidth="1.5"
+                                style={(overrideGlyphOnly || overrideOutline) ? undefined : glyphStyle}
+                            />
+                            <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" style={bubbleStyle} />
+                            <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" style={bubbleStyle} />
+                            <path d={PETEY_DOT_TOP_PATH} fill="currentColor" style={bubbleStyle} />
+                        </>
+                    )}
                 </svg>
                 <span
                     className="logo-price"

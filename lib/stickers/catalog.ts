@@ -44,6 +44,12 @@ export interface Sticker {
     cutout?: string;
     /** logo: rotate the artwork 90° CCW → Petey the mascot. */
     rotated?: boolean;
+    /** logo: just the speech bubble — no per-mille mark inside. */
+    blank?: boolean;
+    /** logo: just the per-mille mark — no bubble around it. */
+    glyphOnly?: boolean;
+    /** logo: hollow bubble (outline only) with the per-mille inside. */
+    outline?: boolean;
     /** $PRICE: rounded-rect background. */
     bg?: string;
     /** $PRICE: letter colour. */
