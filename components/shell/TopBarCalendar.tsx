@@ -11,7 +11,7 @@
  *
  *   ⭢ [M·1] [T·0] [W·3] [T·0] [F·1] [S·0] [S·0] · 11:00 Strata sync · …  ×
  *
- * The 7-day strip starts on the Monday of the week containing CAL_TODAY
+ * The 7-day strip starts on the Sunday of the week containing CAL_TODAY
  * — not the user's selected day; the strip stays anchored to the
  * current week regardless of which cell is selected. Tapping a cell
  * just changes the events ticker contents below.
@@ -36,13 +36,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCalendar } from '../../lib/calendar/CalendarContext';
 import { CAL_EVENTS, CAL_TODAY, CAL_TODOS } from '../../lib/calendar/data';
-import { dateKey, mondayIndex } from '../../lib/calendar/utils';
+import { dateKey } from '../../lib/calendar/utils';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 interface SelDay { y: number; m: number; d: number }
 
-const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const;
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
 
 export function TopBarCalendar() {
     const { notifs, toggle } = usePdNotifs();
@@ -80,19 +80,18 @@ export function TopBarCalendar() {
     // the navbar's flex-wrap behaviour identical to the pre-D9 state.
     if (!notifs.topBarCalendar) return null;
 
-    // Resolve Monday of the week containing CAL_TODAY (sim 6403-6407).
+    // Resolve the Sunday of the week containing CAL_TODAY (week starts Sunday).
     const today = new Date(CAL_TODAY.y, CAL_TODAY.m, CAL_TODAY.d);
-    const todayMonIdx = mondayIndex(today.getDay());
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - todayMonIdx);
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay()); // getDay(): 0 = Sunday
 
     const weekDays: Array<{
         y: number; m: number; d: number;
         label: string; count: number; hasTodo: boolean;
     }> = [];
     for (let i = 0; i < 7; i++) {
-        const dt = new Date(monday);
-        dt.setDate(monday.getDate() + i);
+        const dt = new Date(weekStart);
+        dt.setDate(weekStart.getDate() + i);
         const y = dt.getFullYear();
         const m = dt.getMonth();
         const d = dt.getDate();
