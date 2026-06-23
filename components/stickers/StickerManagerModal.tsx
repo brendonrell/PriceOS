@@ -144,6 +144,13 @@ export function StickerManagerModal({
     if (!open || typeof document === 'undefined') return null;
 
     const toggleSheet = (id: string) => {
+        // At least one owned sheet must stay on — refuse the last one.
+        if (!offSheets.has(id)) {
+            const ownedSheetIds = new Set(owned.map((s) => s.sheet as string));
+            const willOff = new Set(offSheets); willOff.add(id);
+            const anyOn = [...ownedSheetIds].some((sh) => !willOff.has(sh));
+            if (!anyOn) { showToast('Sheets: KEEP ONE ON'); return; }
+        }
         toggleSheetActive(id as Parameters<typeof toggleSheetActive>[0]);
         setOffSheets((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
     };

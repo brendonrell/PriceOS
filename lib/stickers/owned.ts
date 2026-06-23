@@ -98,12 +98,19 @@ export function ownsSheet(sheetId: SheetId, owned: string[] = getOwnedIds()): bo
     return stickersForSheet(sheetId).every((s) => set.has(s.id));
 }
 
-/** Grant every sticker in a sheet (simulated buy). */
+/** Grant every sticker in a sheet (simulated buy). Your FIRST sheet comes on by
+ *  default; every sheet after that lands OFF (you opt it into your profile from
+ *  the manager) so a new buy never auto-clutters a profile you've arranged. */
 export function buySheet(sheetId: SheetId): string[] {
+    const hadSheet = getOwnedIds().length > 0; // already owned a sheet before this buy
     const next = new Set(getOwnedIds());
     for (const s of stickersForSheet(sheetId)) next.add(s.id);
     const arr = [...next];
     writeArr(OWNED_KEY, arr);
+    if (hadSheet) {
+        const off = readArr(OFF_SHEETS_KEY);
+        if (!off.includes(sheetId)) writeArr(OFF_SHEETS_KEY, [...off, sheetId]);
+    }
     return arr;
 }
 
@@ -113,8 +120,21 @@ function toggleIn(key: string, value: string) {
     if (i >= 0) cur.splice(i, 1); else cur.push(value);
     writeArr(key, cur);
 }
-/** Turn a whole sheet's stickers off/on for the profile. */
-export function toggleSheetActive(sheetId: SheetId) { toggleIn(OFF_SHEETS_KEY, sheetId); }
+/** Turn a whole sheet's stickers off/on for the profile. At least one owned
+ *  sheet must always stay on — turning off the last active sheet is refused. */
+export function toggleSheetActive(sheetId: SheetId) {
+    const off = readArr(OFF_SHEETS_KEY);
+    const turningOff = !off.includes(sheetId);
+    if (turningOff) {
+        const ownedSheets = new Set(getOwnedIds().map((id) => stickerById(id)?.sheet).filter(Boolean) as string[]);
+        if (ownedSheets.size > 0) {
+            const willOff = new Set([...off, sheetId]);
+            const anyOn = [...ownedSheets].some((sh) => !willOff.has(sh));
+            if (!anyOn) return; // keep at least one sheet on
+        }
+    }
+    toggleIn(OFF_SHEETS_KEY, sheetId);
+}
 /** Turn a single sticker off/on for the profile. */
 export function toggleStickerActive(id: string) { toggleIn(OFF_IDS_KEY, id); }
 
