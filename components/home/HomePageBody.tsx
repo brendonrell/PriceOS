@@ -392,7 +392,7 @@ function HomePageBodyInner({
        newest); Price = mint price; Feed = the activity feed (new-art events
        for now). */
     const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>(
-        { key: 'date', dir: 'desc' },
+        { key: 'grad', dir: 'desc' },
     );
     const onMintSort = (key: HomeSortKey) =>
         setMintSort((prev) =>
@@ -480,11 +480,14 @@ function HomePageBodyInner({
             filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
         } else if (mintSort.key === 'az') {
             filtered.sort((a, b) => a.title.localeCompare(b.title) * dirMult || a.slug.localeCompare(b.slug));
+        } else if (mintSort.key === 'date') {
+            // Upload date — the project's birthday (uploaded_at), newest first by
+            // default. The clock-glyph sort (Brendon 2026-06-23).
+            filtered.sort((a, b) => ((a.birthMs ?? -Infinity) - (b.birthMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
         } else {
-            // 'date' + 'feed' order by WHEN THE PROJECT STARTED MINTING (crossed
-            // 12), newest first by default — so a fresh graduation pops straight
-            // to the top. (Astrology/PriceDay still use the upload birthday;
-            // this is the live "now minting" recency.)
+            // 'grad' (+ 'feed') — ORDER OF GRADUATING: when the project crossed
+            // into Now Minting, newest first by default so a fresh graduation
+            // pops straight to the top. The default sort, glyph ⟢⟢.
             filtered.sort((a, b) => ((a.reachedMs ?? -Infinity) - (b.reachedMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
         }
         return filtered;
