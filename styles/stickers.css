@@ -646,16 +646,12 @@
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
    height. `clip` (both axes) so there's NO sideways scroll: overflow-y:hidden
-   alone forces overflow-x to auto, which shoved the chips off-screen. Chips wrap;
-   ONLY the sticker grid scrolls (Brendon 2026-06-23). */
+   alone forces overflow-x to auto, which shoved the chips off-screen. Chips wrap.
+   (Brendon 2026-06-23) */
 .sticker-pop .ambient-pop-page { overflow: clip; }
-.sticker-pop .smgr-grid-row { flex: 1 1 auto; min-height: 0; }
-.sticker-pop .smgr-grid {
-    align-self: stretch;
-    min-height: 0;
-    overflow-y: auto;
-    align-content: start;
-}
+/* The Stickers page scrolls AS ONE — the sheet names are NOT a pinned header;
+   they scroll together with the grid. x clipped so it never scrolls sideways. */
+.sticker-pop .smgr-sheet-page { overflow-x: clip; overflow-y: auto; }
 .smgr-close {
     font-size: 18px;
     line-height: 1;
