@@ -1461,12 +1461,13 @@ function ProfilePageBodyInner({
        replaces it with project carousels below. */
     const galleryVisible = ((onShowcase && !artistShowcaseCreated) || onCollected) && !feedActive;
 
-    /* Mouse drag-to-scroll for the artist-project carousels — same handler as
-       the home page. Touch swipes natively; this is the desktop grab-drag. A
-       drag past a few px swallows the trailing click so it doesn't open a
-       card. Re-binds when the Created view (re)mounts the tracks. */
+    /* Mouse drag-to-scroll for the carousels on this page — the artist-project
+       Created carousels AND the Profile Logo picker (same handler as the home
+       page). Touch swipes natively; this is the desktop grab-drag. A drag past a
+       few px swallows the trailing click so it doesn't open a card / pick a logo.
+       Re-binds when the Created view or the logo picker (re)mounts the tracks. */
     useEffect(() => {
-        if (!createdCarouselsActive) return;
+        if (!createdCarouselsActive && !nameCarouselOpen) return;
         const tracks = Array.from(
             document.querySelectorAll<HTMLElement>('.home-carousel-track'),
         );
@@ -1512,7 +1513,7 @@ function ProfilePageBodyInner({
         });
         return () => cleanups.forEach((c) => c());
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [createdCarouselsActive, artistProjects, visibleArtistProjects.length]);
+    }, [createdCarouselsActive, nameCarouselOpen, artistProjects, visibleArtistProjects.length]);
 
     return (
         <>
