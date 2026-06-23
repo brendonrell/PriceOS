@@ -191,8 +191,17 @@ export interface UserRow {
   profile_sprite_hex: string | null;
   /** Sticker ownership + active-state, synced to the account so a user's
    *  stickers follow them across devices. owned = sticker ids held; offSheets /
-   *  offIds = the sheets/stickers the owner switched off. null = none yet. */
-  sticker_state: { owned: string[]; offSheets: string[]; offIds: string[] } | null;
+   *  offIds = the sheets/stickers the owner switched off. placements = the
+   *  owner's hand-placed positions on their profile (id → {x,y,z} in % of the
+   *  hero sticker area). compOff = ✕-removed ids scoped to one generative roll's
+   *  signature (a reroll lapses them). null = none yet. */
+  sticker_state: {
+    owned: string[];
+    offSheets: string[];
+    offIds: string[];
+    placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
+    placementAspect?: number;
+  } | null;
   /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
    *  checked at signup, surfaced only in the profile-name easter egg. Distinct
    *  from profile_hex (the colour the user actively picked). */
@@ -254,7 +263,13 @@ export interface UserStatePatch {
   profile_hex?: string | null;
   profile_logo?: string | null;
   profile_sprite_hex?: string | null;
-  sticker_state?: { owned: string[]; offSheets: string[]; offIds: string[] };
+  sticker_state?: {
+    owned: string[];
+    offSheets: string[];
+    offIds: string[];
+    placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
+    placementAspect?: number;
+  };
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;
   settings?: UserSettings;

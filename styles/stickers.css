@@ -560,6 +560,56 @@
 }
 .hero-sticker:hover { transform: rotate(0deg) scale(1.08); }
 
+/* ── Hand-placement (own profile) ──────────────────────────────────────────
+   The canvas holds the generative flow AND the hand-placed overlay in one
+   coordinate space. On your own profile a press on a sticker shouldn't scroll
+   the page — it might be the start of a drag. */
+.hero-stickers-canvas { position: relative; width: 100%; }
+.hero-stickers-canvas .hero-sticker { touch-action: none; }
+
+/* A sticker in the locked composition sits at its saved spot, layer (z, inline),
+   rotation (--r) and scale (--s) — captured at lock time so it's pixel-faithful
+   to what was generated. */
+.hero-placed-item {
+    position: absolute;
+    transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1));
+}
+
+/* Lifted = picked up: the soft shadow comes back so it reads as floating off the
+   page, and it bobs gently until you settle it. */
+.hero-placed-item.is-lifted {
+    filter: drop-shadow(0 7px 11px rgba(0, 0, 0, 0.42));
+    animation: hero-sticker-float 1.5s ease-in-out infinite;
+    cursor: grab;
+}
+@keyframes hero-sticker-float {
+    0%, 100% { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
+    50%      { transform: translate(-50%, calc(-50% - 5px)) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
+}
+
+/* The ✕ — prune this sticker from the current arrangement only. Canonical close
+   glyph (×, U+00D7); chrome matches the popup close buttons. */
+.hero-sticker-x {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font: bold 15px/1 'Courier New', Courier, monospace;
+    padding: 0;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    -webkit-tap-highlight-color: transparent;
+}
+
 @media (max-width: 600px) {
     .hero-stickers { margin: 0 0 8px; }
     .hero-stickers-row { gap: 4px; }

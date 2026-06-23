@@ -27,6 +27,7 @@ import {
     ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES,
     type Arrange, type Tilt, type Rows, type Align,
 } from '../../lib/stickers/heroPrefs';
+import { clearPlacements } from '../../lib/stickers/placements';
 import {
     encodeStickerCode, decodeStickerCode,
     ARRANGE_IDS, ROW_IDS, ALIGN_IDS, TILT_IDS, type StickerLook,
@@ -149,7 +150,10 @@ export function StickerManagerModal({
         toggleStickerActive(id);
         setOffIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
     };
-    const pickArrange = (a: Arrange) => { setArr(a); setArrange(a); };
+    /* Shuffle / picking a Layout re-generates a fresh roll, so it drops any
+       locked hand-placed composition back to generative. */
+    const reshuffle = () => { clearPlacements(); shuffleSeed(); };
+    const pickArrange = (a: Arrange) => { clearPlacements(); setArr(a); setArrange(a); };
     const pickTilt = (t: Tilt) => { setTl(t); setTilt(t); };
     const pickExpand = (b: boolean) => { setExp(b); setExpand(b); };
     const pickRows = (r: Rows) => { setRw(r); setRows(r); };
@@ -248,7 +252,7 @@ export function StickerManagerModal({
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
                             ))}
-                            <button className="ambient-chip" type="button" onClick={() => shuffleSeed()} title="Shuffle">
+                            <button className="ambient-chip" type="button" onClick={reshuffle} title="Shuffle">
                                 {`⟳${VS15}`}
                             </button>
                         </Row>

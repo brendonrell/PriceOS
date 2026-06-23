@@ -23,6 +23,8 @@ import { pushState, STATE_CACHE_KEYS } from '../state/userState';
 const OWNED_KEY = STATE_CACHE_KEYS.ownedStickers;
 const OFF_SHEETS_KEY = STATE_CACHE_KEYS.stickerOffSheets;
 const OFF_IDS_KEY = STATE_CACHE_KEYS.stickerOffIds;
+const PLACEMENTS_KEY = STATE_CACHE_KEYS.stickerPlacements;
+const PLACE_ASPECT_KEY = STATE_CACHE_KEYS.stickerPlaceAspect;
 const EVT = 'pd:stickers-changed';
 
 function readArr(key: string): string[] {
@@ -41,15 +43,32 @@ function writeArr(key: string, arr: string[]) {
     pushStickerState();
 }
 
+/* Raw passthrough reads for the placement blobs — kept here (not imported from
+   placements.ts) so the account-sync writer has no circular dependency on the
+   placement store, which imports this function. */
+function readJson<T>(key: string, fallback: T): T {
+    if (typeof window === 'undefined') return fallback;
+    try {
+        const raw = window.localStorage.getItem(key);
+        return raw ? (JSON.parse(raw) as T) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 /* Write-through the full sticker state to the account so it follows the user
    across devices. No-op until the user's server snapshot has hydrated, so it
-   never fires for a logged-out / boot-time device. */
-function pushStickerState() {
+   never fires for a logged-out / boot-time device. Exported so the placement
+   store reuses the exact same writer (one source of truth for the blob). */
+export function pushStickerState() {
+    const aspectRaw = typeof window !== 'undefined' ? parseFloat(window.localStorage.getItem(PLACE_ASPECT_KEY) || '') : NaN;
     pushState({
         sticker_state: {
             owned: readArr(OWNED_KEY),
             offSheets: readArr(OFF_SHEETS_KEY),
             offIds: readArr(OFF_IDS_KEY),
+            placements: readJson(PLACEMENTS_KEY, {} as Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>),
+            ...(Number.isFinite(aspectRaw) && aspectRaw > 0 ? { placementAspect: aspectRaw } : {}),
         },
     });
 }
