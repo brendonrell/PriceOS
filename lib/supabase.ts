@@ -178,6 +178,12 @@ export interface UserRow {
    *  from the "Custom" colorway (`pd_custom_color`) and "Haze Mode"
    *  (`pd_haze_color`) — never alias them together. */
   profile_hex: string | null;
+  /** The user's PROFILE LOGO pick — the id of a Profile Logo (lib/profile/
+   *  profileLogos.ts) the owner chose to decorate the corner logo on their
+   *  profile. Shown to every visitor of that profile, overriding the viewer's
+   *  own logo setting. null = off (default logo). Cached at `pd_profile_logo`.
+   *  Distinct from profile_hex (the colour) — its own slot + event. */
+  profile_logo: string | null;
   /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
    *  checked at signup, surfaced only in the profile-name easter egg. Distinct
    *  from profile_hex (the colour the user actively picked). */
@@ -237,6 +243,7 @@ export interface UserRow {
 export interface UserStatePatch {
   ens_name?: string | null;
   profile_hex?: string | null;
+  profile_logo?: string | null;
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;
   settings?: UserSettings;
@@ -534,7 +541,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

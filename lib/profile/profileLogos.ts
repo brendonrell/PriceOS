@@ -81,3 +81,22 @@ export const PROFILE_LOGOS: Sticker[] = [
     { id: 'plogo-price-classic',  sheet: 'genesis', kind: 'price', name: '$PRICE — Classic',  bg: PRICE_RED, fg: PRICE_YELLOW },
     { id: 'plogo-price-inverted', sheet: 'genesis', kind: 'price', name: '$PRICE — Inverted', bg: PRICE_YELLOW, fg: PRICE_RED },
 ];
+
+/** Carousel order for the Profile Logo picker (Brendon 2026-06-23): the two
+ *  $PRICE variants first, then the bubble-logo colour ring. The OFF / global
+ *  toggle (a logo in a dashed ring) is prepended by the UI, not listed here. */
+export const PROFILE_LOGO_CAROUSEL: Sticker[] = [
+    ...PROFILE_LOGOS.filter((s) => s.kind === 'price'),
+    ...PROFILE_LOGOS.filter((s) => s.kind === 'logo'),
+];
+
+/** Fast id → sticker lookup (the corner-logo override + the save-path validator
+ *  both resolve a stored pick by id). */
+export const PROFILE_LOGOS_BY_ID: ReadonlyMap<string, Sticker> = new Map(
+    PROFILE_LOGOS.map((s) => [s.id, s]),
+);
+
+/** A stored profile-logo pick is valid iff it's null (off) or a known id. */
+export function isValidProfileLogo(id: unknown): id is string | null {
+    return id === null || (typeof id === 'string' && PROFILE_LOGOS_BY_ID.has(id));
+}

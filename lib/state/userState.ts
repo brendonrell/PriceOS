@@ -31,6 +31,10 @@ import { patchUserState } from '@/lib/wallet/accountClient';
 export const STATE_CACHE_KEYS = {
     colorway: 'pd_settings_colorway',
     profileHex: 'pd_profile_hex',
+    /** The user's PROFILE LOGO pick (a Profile Logo id, or absent = off). Read +
+     *  written by useProfileLogo; persisted to the top-level `users.profile_logo`
+     *  column (public, like profile_hex). */
+    profileLogo: 'pd_profile_logo',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -132,6 +136,19 @@ export function hydrateFromRow(row: UserRow): void {
                 new CustomEvent<string>('pd:profile-hex-changed', { detail: hex })
             );
         }
+
+        // profile_logo → pd_profile_logo (the user's own PROFILE LOGO pick). Own
+        // slot + event, like profile_hex; absent/null = off (default logo).
+        if (typeof row.profile_logo === 'string' && row.profile_logo.length > 0) {
+            localStorage.setItem(STATE_CACHE_KEYS.profileLogo, row.profile_logo);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.profileLogo);
+        }
+        window.dispatchEvent(
+            new CustomEvent<string | null>('pd:profile-logo-changed', {
+                detail: (row.profile_logo as string | null) ?? null,
+            })
+        );
 
         // showcase_style cache for the settings toggle. 'grid' (legacy default)
         // is kept verbatim as the "unset" marker so the toggle can resolve the

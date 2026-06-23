@@ -62,7 +62,9 @@ import StarredPresetRow from './StarredPresetRow';
 import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
-import { PROFILE_LOGOS } from '../../lib/profile/profileLogos';
+import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGOS_BY_ID } from '../../lib/profile/profileLogos';
+import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
+import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
@@ -245,6 +247,19 @@ function ProfilePageBodyInner({
         setActiveProfileHex(ownerHex ?? null);
         return () => setActiveProfileHex(null);
     }, [ownerHex, setActiveProfileHex]);
+
+    /* Profile Logo — same rails as the Profile Colorway above. The owner's pick
+       (`profile_logo`) decorates the CORNER LOGO on their profile for every
+       visitor, overriding the viewer's own logo setting; on your OWN profile the
+       live hook value drives the picker carousel + an instant repaint. */
+    const { logo: myProfileLogo, setLogo: setMyProfileLogo } = useProfileLogo(
+        isOwnProfile ? user.profile_logo : undefined,
+    );
+    const ownerLogo = isOwnProfile ? myProfileLogo : user.profile_logo;
+    useEffect(() => {
+        setActiveProfileLogo(ownerLogo ?? null);
+        return () => setActiveProfileLogo(null);
+    }, [ownerLogo]);
 
     const displayHandle = user.handle ?? handle;
 
@@ -1634,10 +1649,43 @@ function ProfilePageBodyInner({
                         PD logos (the feature's own set, not the sticker sheet). */}
                     {isOwnProfile && nameCarouselOpen && (
                         <div className="profile-name-carousel">
-                            <div className="home-carousel-row" aria-label="Profile logos">
+                            <div className="home-carousel-row" aria-label="Profile logo">
                                 <div className="home-carousel-track">
-                                    {PROFILE_LOGOS.map((logo) => (
-                                        <div className="pl-logo-card" key={logo.id}>
+                                    {/* First tile = the global on/off: the logo inside a
+                                        dashed ring, no words. Picking it clears your
+                                        Profile Logo (back to the normal logo). */}
+                                    <div
+                                        className={`pl-logo-card pl-logo-off${ownerLogo == null ? ' is-active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label="Turn off Profile Logo"
+                                        aria-pressed={ownerLogo == null}
+                                        onClick={() => setMyProfileLogo(null)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setMyProfileLogo(null);
+                                            }
+                                        }}
+                                    >
+                                        <StickerArt sticker={PROFILE_LOGOS_BY_ID.get('plogo-hot')!} fill />
+                                    </div>
+                                    {PROFILE_LOGO_CAROUSEL.map((logo) => (
+                                        <div
+                                            className={`pl-logo-card${ownerLogo === logo.id ? ' is-active' : ''}`}
+                                            key={logo.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Set Profile Logo: ${logo.name}`}
+                                            aria-pressed={ownerLogo === logo.id}
+                                            onClick={() => setMyProfileLogo(logo.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setMyProfileLogo(logo.id);
+                                                }
+                                            }}
+                                        >
                                             <StickerArt sticker={logo} fill />
                                         </div>
                                     ))}

@@ -31,8 +31,13 @@
  * body.sentiment-on — empty/invisible by default in step 2.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
+import { PROFILE_LOGOS_BY_ID } from '@/lib/profile/profileLogos';
+import {
+    getActiveProfileLogo,
+    subscribeActiveProfileLogo,
+} from '@/lib/profile/profileLogoActive';
 import {
     getSentimentState,
     subscribeSentiment,
@@ -44,8 +49,32 @@ export function PeteyLogo() {
     const [rotated, setRotated] = useState(false);
     const { notifs } = usePdNotifs();
 
-    const showPrice = notifs.priceLogo;
+    /* Profile Logo override — while you're on a profile whose owner picked a
+       Profile Logo, the corner logo repaints to THEIR choice, overriding your
+       own logo setting (Brendon 2026-06-23). null on every other page. */
+    const activeLogoId = useSyncExternalStore(
+        subscribeActiveProfileLogo,
+        getActiveProfileLogo,
+        () => null,
+    );
+    const override = activeLogoId ? PROFILE_LOGOS_BY_ID.get(activeLogoId) ?? null : null;
+    const overrideBubble = override?.kind === 'logo' ? override : null;
+    const overridePrice = override?.kind === 'price' ? override : null;
+
+    // The override forces the form (bubble vs $PRICE); otherwise the viewer's
+    // own Price Logo setting decides.
+    const showPrice = override ? !!overridePrice : notifs.priceLogo;
     const showSentiment = notifs.sentimentOn;
+
+    // Fill overrides. Applied as inline style so a Profile Logo's colours win
+    // over the red-bg $PRICE swap CSS too. Undefined when not overriding, so the
+    // default logo renders byte-identically to before.
+    const bubbleStyle = overrideBubble ? { fill: overrideBubble.color } : undefined;
+    const glyphStyle = overrideBubble
+        ? { fill: overrideBubble.cutout, stroke: overrideBubble.cutout }
+        : undefined;
+    const priceBgStyle = overridePrice ? { fill: overridePrice.bg } : undefined;
+    const priceFgStyle = overridePrice ? { fill: overridePrice.fg } : undefined;
 
     /* Mirror the sentimentEngine state into local component state so
        React re-renders on every cycle (sim 12253-12259 renderSentimentIcon
@@ -115,11 +144,11 @@ export function PeteyLogo() {
                     aria-label="Price Discussion Logo"
                     style={showPrice ? { display: 'none' } : undefined}
                 >
-                    <path d={PETEY_BUBBLE_PATH} fill="currentColor" />
-                    <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" />
-                    <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" />
-                    <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" />
-                    <path d={PETEY_DOT_TOP_PATH} fill="currentColor" />
+                    <path d={PETEY_BUBBLE_PATH} fill="currentColor" style={bubbleStyle} />
+                    <path d={PETEY_GLYPH_PATH} fill="var(--bg-color)" stroke="var(--bg-color)" strokeWidth="1.5" style={glyphStyle} />
+                    <path d={PETEY_DOT_RIGHT_PATH} fill="currentColor" style={bubbleStyle} />
+                    <path d={PETEY_DOT_LEFT_PATH} fill="currentColor" style={bubbleStyle} />
+                    <path d={PETEY_DOT_TOP_PATH} fill="currentColor" style={bubbleStyle} />
                 </svg>
                 <span
                     className="logo-price"
@@ -140,12 +169,12 @@ export function PeteyLogo() {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
-                        <path className="plogo-bg" d={PRICE_LOGO_BG_PATH} fill="#FF0055" />
-                        <path className="plogo-fg" d={PRICE_LOGO_P_PATH} fill="#FFE600" />
-                        <path className="plogo-fg" d={PRICE_LOGO_R_PATH} fill="#FFE600" />
-                        <path className="plogo-fg" d={PRICE_LOGO_I_PATH} fill="#FFE600" />
-                        <path className="plogo-fg" d={PRICE_LOGO_C_PATH} fill="#FFE600" />
-                        <path className="plogo-fg" d={PRICE_LOGO_E_PATH} fill="#FFE600" />
+                        <path className="plogo-bg" d={PRICE_LOGO_BG_PATH} fill="#FF0055" style={priceBgStyle} />
+                        <path className="plogo-fg" d={PRICE_LOGO_P_PATH} fill="#FFE600" style={priceFgStyle} />
+                        <path className="plogo-fg" d={PRICE_LOGO_R_PATH} fill="#FFE600" style={priceFgStyle} />
+                        <path className="plogo-fg" d={PRICE_LOGO_I_PATH} fill="#FFE600" style={priceFgStyle} />
+                        <path className="plogo-fg" d={PRICE_LOGO_C_PATH} fill="#FFE600" style={priceFgStyle} />
+                        <path className="plogo-fg" d={PRICE_LOGO_E_PATH} fill="#FFE600" style={priceFgStyle} />
                     </svg>
                 </span>
             </div>
