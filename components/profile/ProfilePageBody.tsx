@@ -1235,6 +1235,15 @@ function ProfilePageBodyInner({
     const onCollected = activeTab === 'collected';
     const onMore      = activeTab === 'more';
 
+    /* Mount each tab's grid the FIRST time it's opened, then keep it mounted —
+       switching tabs toggles visibility, never tears the tiles down and rebuilds
+       them. So returning to a tab is instant (no repaint) and the hidden tab
+       isn't built until you actually visit it (Brendon 2026-06-23). */
+    const visitedShowcase = useRef(false);
+    const visitedCollected = useRef(false);
+    if (onShowcase) visitedShowcase.current = true;
+    if (onCollected) visitedCollected.current = true;
+
     /* Profile activity feed (Brendon 2026-06-15) — this wallet's own pre-chain
        events (mint / list / sale / transfer) from the shared ledger, filtered
        to this user. Reached via the Collected tab's FEED sort, mirroring the
@@ -2229,13 +2238,17 @@ function ProfilePageBodyInner({
                 aria-label="Gallery"
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
+                {/* SHOWCASE tiles in a display:contents box — they stay real grid
+                    items, but the box is toggled to none when off this tab and is
+                    only built on first visit, so switching tabs never rebuilds. */}
+                {visitedShowcase.current && (
+                <div style={{ display: onShowcase ? 'contents' : 'none' }}>
                 {/* Gen Curated's set name — a full-row grid item so it lines up
                     with the cards' left edge at every width. */}
-                {onShowcase && effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
+                {effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
                     <div className="gencurated-caption">{genCurated.caption}</div>
                 )}
-                {onShowcase
-                    ? (effStyle === 'gen-curated'
+                {(effStyle === 'gen-curated'
                         ? (genCurated && genCurated.picks.length > 0
                             ? genCurated.picks.map((s, i) => (
                                   <ProjectProvider key={`gc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
@@ -2264,8 +2277,13 @@ function ProfilePageBodyInner({
                                   index={i}
                                   onActivate={isOwnProfile ? () => setShowcasePickerOpen(true) : undefined}
                               />
-                          ))))
-                    : enriched.length === 0
+                          ))))}
+                </div>
+                )}
+                {/* COLLECTED tiles — same display:contents keep-mounted box. */}
+                {visitedCollected.current && (
+                <div style={{ display: onCollected ? 'contents' : 'none' }}>
+                {enriched.length === 0
                         ? collectedGhosts.map((aspect, i) => (
                               <GhostCard key={`coghost-${i}`} aspect={aspect} index={i} />
                           ))
@@ -2337,6 +2355,8 @@ function ProfilePageBodyInner({
                                       ))}
                                   </ProjectProvider>
                               ))}
+                </div>
+                )}
             </section>
 
             {/* Activity feed — this wallet's own ledger events, reached via the
