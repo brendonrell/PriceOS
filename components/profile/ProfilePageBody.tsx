@@ -34,7 +34,7 @@ import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { useModal } from '../../lib/state/ModalContext';
 import SpriteFace from '../SpriteFace';
 import { useColorway } from '../../lib/state/ColorwayContext';
-import { useProfileHex } from '../../lib/hooks/useProfileHex';
+import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import {
@@ -319,6 +319,41 @@ function ProfilePageBodyInner({
         if (dx * dx + dy * dy > 100) clearNameLp();
     };
     const onNamePressEnd = () => clearNameLp();
+
+    /* Long-press the PriceSprite (own profile) → an inline colour picker pops up:
+       a native colour wheel + the same colorway pills as the @name egg, with
+       Save and an undo button above it. A plain TAP still opens the PriceSprite
+       modal. Same gesture chrome as the @name long-press (Brendon 2026-06-23). */
+    const [spritePickerOpen, setSpritePickerOpen] = useState(false);
+    const spriteLpTimer = useRef<number | null>(null);
+    const spriteLpFired = useRef(false);
+    const spriteLpStart = useRef<{ x: number; y: number } | null>(null);
+    /* The colorway in play when the picker opened — the undo button restores it. */
+    const preSpriteHex = useRef<string>(myProfileHex);
+    const clearSpriteLp = () => {
+        if (spriteLpTimer.current != null) { window.clearTimeout(spriteLpTimer.current); spriteLpTimer.current = null; }
+    };
+    const onSpritePointerDown = (e: React.PointerEvent) => {
+        if (!isOwnProfile) return;
+        spriteLpFired.current = false;
+        spriteLpStart.current = { x: e.clientX, y: e.clientY };
+        clearSpriteLp();
+        spriteLpTimer.current = window.setTimeout(() => {
+            spriteLpFired.current = true;
+            spriteLpTimer.current = null;
+            setSpritePickerOpen((v) => {
+                if (!v) preSpriteHex.current = myProfileHex;
+                return !v;
+            });
+        }, 460);
+    };
+    const onSpritePointerMove = (e: React.PointerEvent) => {
+        if (spriteLpTimer.current == null || !spriteLpStart.current) return;
+        const dx = e.clientX - spriteLpStart.current.x;
+        const dy = e.clientY - spriteLpStart.current.y;
+        if (dx * dx + dy * dy > 100) clearSpriteLp();
+    };
+    const onSpritePressEnd = () => clearSpriteLp();
 
     const eggPills = useMemo(() => {
         const sig = user.signature_hex ?? signatureHexFor(user.address);
@@ -1694,6 +1729,61 @@ function ProfilePageBodyInner({
                             </div>
                         </div>
                     )}
+                    {/* Long-press the PriceSprite → inline colour picker: Save +
+                        undo above, a native colour wheel, then the same colorway
+                        pills as the @name egg. Shoved open inline like the egg. */}
+                    {isOwnProfile && spritePickerOpen && (
+                        <div className="profile-egg-row profile-sprite-picker">
+                            <div className="psp-actions">
+                                <div
+                                    className="pill pill-l3 psp-save"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => { setSpritePickerOpen(false); showToast('Colorway: SAVED'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSpritePickerOpen(false); showToast('Colorway: SAVED'); } }}
+                                    title="Save this colorway"
+                                >
+                                    <span className="stat-name">SAVE</span>
+                                </div>
+                                <div
+                                    className="pill pill-l3 egg-back-pill psp-undo"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => { setMyProfileHex(preSpriteHex.current); setSpritePickerOpen(false); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMyProfileHex(preSpriteHex.current); setSpritePickerOpen(false); } }}
+                                    title="Undo — revert to your previous colorway"
+                                    aria-label="Undo — revert to your previous colorway"
+                                >
+                                    <span className="stat-name">{'⇠⇠︎'}</span>
+                                </div>
+                            </div>
+                            <div className="psp-body">
+                                <label className="psp-swatch" title="Pick any colour">
+                                    <input
+                                        type="color"
+                                        value={/^#[0-9A-F]{6}$/i.test(myProfileHex) ? myProfileHex : PROFILE_HEX_DEFAULT}
+                                        onChange={(e) => setMyProfileHex(e.target.value)}
+                                    />
+                                </label>
+                                {eggPills.map((p) => {
+                                    const active = (myProfileHex ?? '').toUpperCase() === p.hex.toUpperCase();
+                                    return (
+                                        <div
+                                            key={p.hex + p.name}
+                                            className={`pill pill-l3${active ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => setMyProfileHex(p.hex)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMyProfileHex(p.hex); } }}
+                                            title={p.hex}
+                                        >
+                                            <span className="stat-name">{p.name}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                     </>
                 }
                 identityRow={
@@ -1703,10 +1793,17 @@ function ProfilePageBodyInner({
                                 className="id-row-sprite is-own"
                                 role="button"
                                 tabIndex={0}
-                                title="Your PriceSprite"
+                                title="Your PriceSprite — long-press to recolour"
                                 aria-label="Open your PriceSprite"
-                                onClick={() => openModal('priceSprite')}
+                                onClick={() => { if (spriteLpFired.current) { spriteLpFired.current = false; return; } openModal('priceSprite'); }}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('priceSprite'); } }}
+                                onPointerDown={onSpritePointerDown}
+                                onPointerMove={onSpritePointerMove}
+                                onPointerUp={onSpritePressEnd}
+                                onPointerLeave={onSpritePressEnd}
+                                onPointerCancel={onSpritePressEnd}
+                                onContextMenu={(e) => { if (isOwnProfile) e.preventDefault(); }}
+                                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
                             >
                                 <SpriteFace face={nameFace} />
                             </span>
