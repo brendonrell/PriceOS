@@ -730,10 +730,10 @@ export function MyPdSection({ onTripleTap }: Props) {
                             update({ tape: next as 0 | 1 | 2 | 3 | 4 });
                             const labels: Record<number, string> = {
                                 0: 'OFF',
-                                1: 'Faded (Desktop only)',
-                                2: 'Standard (Desktop only)',
-                                3: 'Bold',
-                                4: 'Framed',
+                                1: 'FADED (DESKTOP ONLY)',
+                                2: 'STANDARD (DESKTOP ONLY)',
+                                3: 'BOLD',
+                                4: 'FRAMED',
                             };
                             showToast('The Tape: ' + (labels[next] ?? 'OFF'));
                         }}
