@@ -794,6 +794,28 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 }
 .dropdown-stack::-webkit-scrollbar { display: none; }
 
+/* Styled scrollbars app-wide (Brendon 2026-06-23) — themed + slim wherever one
+   actually shows (desktop). Containers that explicitly hide their bar
+   (scrollbar-width:none / ::-webkit-scrollbar{display:none}) win on specificity
+   and stay hidden; mobile keeps its native overlay bars. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-color) 32%, transparent) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-color) 28%, transparent);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--text-color) 48%, transparent);
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
 .user-menu-wrapper.active .dropdown-stack {
     opacity: 1;
     visibility: visible;
@@ -9015,6 +9037,11 @@ body.colorway-dark .ghost-feed-bar {
     line-height: 1;
     display: inline-flex;
     align-items: center;
+}
+/* Desktop: the persistent ★ on a trait pill reads a touch large — pull it down
+   3 there only (Brendon 2026-06-23). */
+@media (min-width: 601px) {
+    .pill-l3 .l3-trait-star { font-size: 21px; }
 }
 .pill-l3.trait-starred { box-shadow: inset 0 0 0 1px var(--accent); }
 /* Float-up confirm star — rises from the STAR itself (the pill's right edge),

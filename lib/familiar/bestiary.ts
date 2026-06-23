@@ -9,12 +9,15 @@
  * Brendon's to tune; 1k achievements give plenty of levers).
  *
  * `art` is a single static idle frame (multi-line via \n for the tall tiers),
- * rendered white-space:pre in the tile. Rosters + exact art are first-pass
- * (Gemini-designed this session) — refine/normalize later.
+ * rendered white-space:pre in the tile. Glyphs are restricted to a block /
+ * box-drawing / circle set that renders as monochrome text on iOS, Windows and
+ * Android (no tofu, no double-width). The multi-line tiers carry dithered ▓▒░
+ * shading for depth + per-creature texture variance; eyes vary across the
+ * roster (Ø is single-eyed). (Brendon 2026-06-23.)
  *
  * Tier identities (design — ClickUp NPC-Cast task, 2026-06-14):
  *   BitDaemons — common, compact, the everyday companion.
- *   Titans     — rare, towering; earned through achievements (the flex).
+ *   Titans     — semi-rare, towering; earned through achievements (the flex).
  *   Ascended   — rare, ethereal; grown through bond/time with your familiar.
  *   Old Gods   — mythic, carved stone; earned through long holding tenure.
  */
@@ -39,53 +42,89 @@ export interface BestiaryTier {
 
 /* ── BitDaemons (common, single-line) ─────────────────────────── */
 const BITDAEMONS: BestiaryEntry[] = [
-    { name: 'Wisp',    art: '( ☼ )' },
-    { name: 'Watcher', art: '[ ◎ ]' },
-    { name: 'Slime',   art: '(~O~)' },
-    { name: 'Spider',  art: '/|o.o|\\' },
-    { name: 'Orbit',   art: '(◯·)' },
-    { name: 'Cursor',  art: '>_' },
-    { name: 'Node',    art: '─[⊕]─' },
-    { name: 'Matrix',  art: '[◧ ◨]' },
-    { name: 'Glitch',  art: '▒▓▒' },
-    { name: 'Phantom', art: '░▒░' },
-    { name: 'Pulse',   art: '───●───' },
-    { name: 'Battery', art: '├■■□┤' },
-    { name: 'Shutter', art: '<[◉]>' },
-    { name: 'Sentry',  art: '[■_■]' },
-    { name: 'Switch',  art: '[─○─]' },
-    { name: 'Gear',    art: '├◎┤' },
+    { name: "Wisp", art: "( ☼ )" },
+    { name: "Watcher", art: "[ ◎ ]" },
+    { name: "Slime", art: "(~O~)" },
+    { name: "Spider", art: "/|o.o|\\" },
+    { name: "Orbit", art: "(◯·)" },
+    { name: "Cursor", art: ">_" },
+    { name: "Node", art: "─[⊕]─" },
+    { name: "Matrix", art: "[◧ ◨]" },
+    { name: "Glitch", art: "▒▓▒" },
+    { name: "Phantom", art: "░▒░" },
+    { name: "Pulse", art: "───●───" },
+    { name: "Battery", art: "├■■□┤" },
+    { name: "Shutter", art: "<[◉]>" },
+    { name: "Sentry", art: "[■_■]" },
+    { name: "Switch", art: "[─○─]" },
+    { name: "Gear", art: "├◎┤" },
+    { name: "Pip", art: "(•_•)" },
+    { name: "Optic", art: "[◉_◉]" },
+    { name: "Relay", art: "─[▪]─" },
+    { name: "Sly", art: "(¬_¬)" },
+    { name: "Owlet", art: "{○_○}" },
+    { name: "Mouser", art: "=^•^=" },
+    { name: "Cans", art: "d[◎]b" },
+    { name: "Wave", art: "~[≡]~" },
+    { name: "Tin", art: "|°_°|" },
+    { name: "Bit", art: ">●<" },
 ];
 
-/* ── Titans (rare, towering — multi-line) ─────────────────────── */
+/* ── Titans (semi-rare, towering — multi-line, textured) ──────── */
 const TITANS: BestiaryEntry[] = [
-    { name: 'Leviathan', art: '[ ⫿⫿ ⎈ ⫿⫿ ]' },
-    { name: 'Bastion',   art: '╔═[■_■]═╗\n║ [■_■] ║\n╚═[■_■]═╝' },
-    { name: 'Obelisk',   art: '┌─∆─┐\n│ ◉ │\n│ ∇ │\n└───┘' },
-    { name: 'Warden',    art: '╔═══╗\n║■_■║\n║───║\n╚═══╝' },
-    { name: 'Core',      art: '┌───┐\n┌┤ ⊗ ├┐\n└┤ ⊕ ├┘\n└───┘' },
-    { name: 'Spire',     art: '  │\n  │\n ⟨◉⟩\n  │\n ─┴─' },
-    { name: 'Sentinel',  art: ' ┌─┐\n┌┤ ├┐\n│ ◉ │\n│ ◉ │\n└┤ ├┘\n └─┘' },
+    { name: "Leviathan", art: " ▟▓▓▓▙\n▓▒◉◎▒▓\n▓▓▒▒▓▓\n ▜▓▓▛\n ▒▓▓▒\n▟▒  ▒▙" },
+    { name: "Bastion", art: "╔═[■_■]═╗\n║ [■_■] ║\n╚═[■_■]═╝" },
+    { name: "Obelisk", art: "┌─▲─┐\n│ ◎ │\n│ ▽ │\n└───┘" },
+    { name: "Warden", art: "╔═══╗\n║■_■║\n║───║\n╚═══╝" },
+    { name: "Spire", art: "  ▲\n  █\n (◉)\n  █\n ─┴─" },
+    { name: "Sentinel", art: " ┌─┐\n┌┤ ├┐\n│ ◉ │\n│ ◉ │\n└┤ ├┘\n └─┘" },
+    { name: "Core", art: "┌──────┐\n│◉ ── ◉│\n│◉ ── ◉│\n└──────┘" },
+    { name: "Goliath", art: " ▟▓▓▓▙\n █▒●●▒█\n▟▓████▓▙\n ▒▓██▓▒\n ▜▓▓▓▛\n █   █" },
+    { name: "Pylon", art: "  ╱╲\n ░▒▒░\n░▒◎◎▒░\n ▒▒▒▒\n ░▒▒░\n ─┴┴─" },
+    { name: "Rampart", art: "▒▀▒ ▒▀▒\n▒▒▒▒▒▒▒\n▒░○○░▒\n▒▒▒▒▒▒▒\n▒▄▒ ▒▄▒" },
+    { name: "Golem", art: " ▟▓▒▓▙\n▓▒◉◉▒▓\n▓▓▒▒▓▓\n ▜▓▓▛\n▟▒  ▒▙" },
+    { name: "Atlas", art: "  ░▒░\n ░▒▒▒░\n ▒◎▒●▒\n ░▒▒▒░\n  ▒▒▒\n ▟░ ░▙" },
+    { name: "Juggernaut", art: "▟█▓▓▓█▙\n█▓▒●◉▒▓█\n████████\n▜█▓▓▓█▛\n █▌ ▐█" },
+    { name: "Citadel", art: "▒▀▀▀▒\n▒░░░▒\n▒○▒●▒\n▒░░░▒\n▒▄▄▄▒\n▒   ▒" },
+    { name: "Vanguard", art: "  ▲\n ▟█▙\n░▓◎◎▓░\n ▒▓▓▒\n ▜▓▓▛\n ░ ░" },
+    { name: "Behemoth", art: " ▟▓▙▟▓▙\n▓▒▒▒▒▒▓\n▓░◉▒○░▓\n ▜▓▓▓▛\n  ▒▒▒\n ▟▒ ▒▙" },
+    { name: "Megalith", art: "▒▀▀▀▀▀▒\n▒░░░░░▒\n▒░◉◎●░▒\n▒░░░░░▒\n▒▒▒▒▒▒▒" },
 ];
 
 /* ── Ascended (rare, ethereal — multi-line) ───────────────────── */
 const ASCENDED: BestiaryEntry[] = [
-    { name: 'Seraph', art: '《《 ◎ 》》\n 《 ◎ 》\n《《 ◎ 》》' },
-    { name: 'Eye',    art: '  ∆\n《 ◎ 》\n  ∇' },
-    { name: 'Halo',   art: '○ ○ ○\n⟨ ◉ ⟩' },
-    { name: 'Veil',   art: '┌ ─ ─ ┐\n│  ∅  │\n└     ┘' },
-    { name: 'Sigil',  art: '∞ ─ ∞\n  ┼\n∅ ─ ∅' },
-    { name: 'Wraith', art: '░ ▒ ░\n░ ▒ ░\n░ ▒ ░' },
+    { name: "Seraph", art: "╲╲ ◉ ╱╱\n ╲ ◎ ╱\n╱╱ ● ╲╲" },
+    { name: "Eye", art: " ┌▲┐\n(◉◉)\n └▼┘" },
+    { name: "Halo", art: "○ ○ ○\n( ◉ )" },
+    { name: "Veil", art: " ░▒░\n▒ ◌ ▒\n ░▒░" },
+    { name: "Sigil", art: "◇ ─ ◇\n  ┼\n◇ ─ ◇" },
+    { name: "Wraith", art: "░▒▒▒░\n░▒◉▒░\n░▒▒▒░\n ░▒░\n  ░" },
+    { name: "Oracle", art: " ╲ │ ╱\n─ (◉) ─\n ╱ │ ╲" },
+    { name: "Prism", art: "  ▲\n ▟▓▙\n▟▓▒▓▙\n▜▓▒▓▛\n ▜▓▛\n  ▼" },
+    { name: "Nimbus", art: " ░░░\n░▒▒▒░\n▒▒◎▒▒\n ▒▒▒\n  ▽" },
+    { name: "Aurora", art: "░▒▓▒░\n ▒▓▒\n ░▒░\n ░ ░" },
+    { name: "Lattice", art: "◇─◇─◇\n│ ◉ │\n◇─◇─◇" },
+    { name: "Comet", art: "   ◉\n  ▓▒\n ▒░\n░" },
+    { name: "Cherub", art: "(◉)(◎)\n ╲╲╱╱\n  ▽▽" },
+    { name: "Pulsar", art: "  │\n ─◉─\n╱ │ ╲\n  ▽" },
 ];
 
-/* ── Old Gods (mythic, carved stone — multi-line) ─────────────── */
+/* ── Old Gods (mythic, carved stone — multi-line, translucent) ── */
 const OLD_GODS: BestiaryEntry[] = [
-    { name: 'Forge',   art: '╔═══════╗\n║▓▓▓▓▓▓▓║\n╚╗▒▒▒▒▒╔╝\n ╲  ■  ╱\n ╱  ■  ╲\n╔╝▓▓▓▓▓╚╗\n╚═══════╝' },
-    { name: 'Ember',   art: ' ░▒▒▒▒▒░\n░▒▓▓▓▓▓▒░\n▒▓█████▓▒\n▒▓██■██▓▒\n▒▓█████▓▒\n░▒▓▓▓▓▓▒░\n ░▒▒▒▒▒░' },
-    { name: 'Gallows', art: '╔════════╗\n║ ╱      ║\n║╱       ║\n┃   ◯    ║\n┃   │    ║\n┃   │    ║\n┻━━━━━━━━┛' },
-    { name: 'Tide',    art: '    ◯\n ≈≈≈≈≈≈≈\n ≋≋≋≋≋≋≋\n ▒▒▒▒▒▒▒\n ▓▓▓▓▓▓▓\n ███████\n ■■■■■■■' },
-    { name: 'Helm',    art: ' ╱═══════╲\n ║ ◧   ◨ ║\n ╠═══════╣\n ║ ╳╳╳╳╳ ║\n ║   ┼   ║\n ╲═══════╱\n   ╲═══╱' },
-    { name: 'Glacier', art: '▓▓▓▓▓▓▓▓▓\n╲▓▓▓▓▓▓▓╱\n░╲▓▓▓▓▓╱░\n░░╲▓▓▓╱░░\n▒░░╲▓╱░░▒\n▒▒░░∇░░▒▒\n░░░░░░░░░' },
+    { name: "Forge", art: " ▒▓▓▓▒\n▒▓███▓▒\n ▀███▀\n  ███\n╔═════╗\n╚═════╝" },
+    { name: "Ember", art: "   ▒\n  ▒▓▒\n ▒▓█▓▒\n▒▓███▓▒\n▒▓█●█▓▒\n ▜▓▓▓▛\n  ▀▀▀" },
+    { name: "Gallows", art: "┌───────┐\n│ ╲     │\n│  ○    │\n│  │    │\n│  │    │\n┴───────┘" },
+    { name: "Tide", art: "   ○\n~~~~~~~\n░░░░░░░\n▒▒▒▒▒▒▒\n▓▓▓▓▓▓▓\n███████" },
+    { name: "Helm", art: " ▟▓▓▓▓▓▙\n ▓◎▓▓▓◎▓\n ▓▓▓▓▓▓▓\n ▓╳╳╳╳╳▓\n ▜▓▓▓▓▓▛\n   ▓▓▓" },
+    { name: "Glacier", art: "▓▓▓▓▓▓▓\n░▓▓▓▓▓░\n░░▓▓▓░░\n▒░░▓░░▒\n▒▒░▽░▒▒\n░░░░░░░" },
+    { name: "Colossus", art: " ▟▓▓▓▓▙\n █▒◉◉▒█\n▓▓▓▓▓▓▓▓\n █▐▓▓▌█\n▟▒ ▓▓ ▒▙" },
+    { name: "Monolith", art: "▟▓▓▓▓▓▓▙\n▓▓▓▓▓▓▓▓\n▓▓▒◉▒▓▓▓\n▓▓▓▓▓▓▓▓\n▓▓▓▓▓▓▓▓" },
+    { name: "Ziggurat", art: "   ▓▓\n  ▒▓▓▒\n ▓▒◎▒▓▓\n▒▓▓▓▓▓▓▒\n▓▒▒▒▒▒▒▓▓" },
+    { name: "Idol", art: "  ▟▙\n ▟▓▓▙\n █◉◉█\n █▬▬█\n▟▒▓▓▒▙\n▓▓▒▒▓▓" },
+    { name: "Pyre", art: "  ▲ ▲\n ▟▓▟▓▙\n▟▒▓▓▓▒▙\n▓▒▓●▓▒▓\n▜▒▓▓▓▒▛" },
+    { name: "Ø", art: "  ▟▓▙\n ▓▓◉▓▓\n▓▓▓▓▓▓▓▓\n ▜▒▓▓▒▛\n  ▓  ▓\n ▟▛  ▜▙" },
+    { name: "Kraken", art: " ┌◉◉┐\n┌┴──┴┐\n└┐┌┐┌┘\n └┘└┘" },
+    { name: "Warlord", art: "╔══════╗\n║ ▼▼ ║\n║ ▀▀ ║\n╠══════╣\n║▐ ██ ▌║" },
 ];
 
 /* TESTING (Brendon, 2026-06-22): every tier is unlocked so the whole roster is

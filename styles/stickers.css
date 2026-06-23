@@ -127,6 +127,10 @@
         transform: translate(-50%, -50%);
         margin-left: 0;
     }
+    /* Roomier desktop store: 3 sheets across, and the whole panel scaled down a
+       touch (it read a bit large) — Brendon 2026-06-23. Mobile untouched. */
+    .ss-grid-view { grid-template-columns: repeat(3, 1fr); }
+    .sticker-sheet { zoom: 0.9; }
 }
 
 /* Promo strip — a full-width attention band above the ticker (empty for now). */
@@ -166,7 +170,10 @@
     scrollbar-width: none;
 }
 .ss-rail::-webkit-scrollbar { display: none; }
-.ss-rail.dragging { cursor: grabbing; }
+/* While the mouse is dragging the compact rail, drop the snap (it fights the
+   pan) and show the grab cursor. The hook flags [data-dragging] (Brendon
+   2026-06-23 — compact carousel needs mouse drag). */
+.ss-rail[data-dragging] { scroll-snap-type: none; cursor: grabbing; }
 
 /* Expanded view — two sheets across, scrolls down inside the sheet. */
 .ss-grid-view {
@@ -348,9 +355,10 @@
    the art fills with more of the sheet's stickers across multiple rows. Only
    rendered on desktop, so mobile is wholly unaffected. */
 .ss-card-preview .ss-card-art-fill {
-    /* Fixed so every preview card is the SAME height — about half the original
-       (Brendon, 2026-06-22); extra rows are clipped, centered as a peek. */
-    height: 90px;
+    /* A SINGLE packed row of stickers — short, every card the same height; the
+       row overflows and clips centered so it always fills, no dead background
+       (Brendon, 2026-06-23). */
+    height: 64px;
     padding: 10px 14px;
     align-items: center;
     justify-content: center;
@@ -359,10 +367,12 @@
 }
 .ss-preview-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    overflow: hidden;
+    min-width: 0;
 }
 .ss-preview-item { display: inline-flex; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
 

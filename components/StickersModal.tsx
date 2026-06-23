@@ -86,6 +86,10 @@ export default function StickersModal() {
     /* Remember the carousel scroll position across opening a sheet / reopening
        the store, so it never snaps back to the start (Brendon 2026-06-21). */
     const railXRef = useRef(0);
+    /* Same memory for the expanded grid's vertical scroll, so opening a sheet
+       and coming back lands you where you were, not at the top (Brendon
+       2026-06-23). */
+    const gridYRef = useRef(0);
     useEffect(() => {
         try { railXRef.current = Number(localStorage.getItem('pd_sticker_rail_x')) || 0; } catch { /* ignore */ }
     }, []);
@@ -97,6 +101,10 @@ export default function StickersModal() {
     useEffect(() => {
         if (isOpen && !openSheet && railRef.current) railRef.current.scrollLeft = railXRef.current;
     }, [isOpen, openSheet, railRef]);
+    // Restore the grid scroll position when returning from a sheet.
+    useEffect(() => {
+        if (isOpen && !openSheet && expanded && gridRef.current) gridRef.current.scrollTop = gridYRef.current;
+    }, [isOpen, openSheet, expanded, gridRef]);
 
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
@@ -171,9 +179,9 @@ export default function StickersModal() {
         >
             <div className="ss-card-art ss-card-art-fill">
                 <span className="ss-preview-grid">
-                    {stickersForSheet(s.id).slice(0, 9).map((st) => (
+                    {stickersForSheet(s.id).slice(0, 18).map((st) => (
                         <span key={st.id} className="ss-preview-item">
-                            <StickerArt sticker={st} size={58} />
+                            <StickerArt sticker={st} size={44} />
                         </span>
                     ))}
                 </span>
@@ -310,7 +318,11 @@ export default function StickersModal() {
                         </div>
 
                         {expanded ? (
-                            <div className="ss-grid-view" ref={gridRef}>
+                            <div
+                                className="ss-grid-view"
+                                ref={gridRef}
+                                onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
+                            >
                                 {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>
                         ) : (
