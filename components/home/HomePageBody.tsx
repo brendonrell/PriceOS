@@ -150,6 +150,48 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
     );
 }
 
+/* How many Now-Minting carousels to build on first paint, and how many more to
+   add each time the bottom of the list nears the viewport. Building all of them
+   (each its own data context + a row of art tiles) up front is what buried the
+   homepage; we now grow the list as you scroll and never tear down what's built
+   (Brendon 2026-06-23). */
+const HOME_INITIAL_CAROUSELS = 4;
+const HOME_CAROUSEL_STEP = 4;
+
+function MintingCarousels({ items }: { items: EnrichedProject[] }) {
+    const [shown, setShown] = useState(HOME_INITIAL_CAROUSELS);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const total = items.length;
+    useEffect(() => {
+        if (shown >= total) return;
+        const el = sentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setShown(total); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setShown((c) => Math.min(c + HOME_CAROUSEL_STEP, total));
+                }
+            },
+            { rootMargin: '800px 0px' },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [shown, total]);
+    return (
+        <>
+            {items.slice(0, shown).map((m, i) => (
+                <ProjectProvider key={m.slug} slug={m.slug} initialTotal={m.minted}>
+                    <HomeProjectCarousel eager={i === 0} />
+                </ProjectProvider>
+            ))}
+            {shown < total && (
+                <div ref={sentinelRef} className="home-carousel-sentinel" aria-hidden="true" />
+            )}
+        </>
+    );
+}
+
 /* Shuffle gallery — 24 random outputs of whatever project the parent picked
    for this entry, in the standard #gallery grid. Mounted under its own
    ProjectProvider so the cards paint THIS project's engine. */
@@ -846,15 +888,7 @@ function HomePageBodyInner({
                         row lazy-paints through the card virtualizer as it
                         scrolls into view. Painting every project's canvases
                         up front is what made home crawl (Brendon, 2026-06-13). */}
-                    {visibleMinting.map((m, i) => (
-                        <ProjectProvider
-                            key={m.slug}
-                            slug={m.slug}
-                            initialTotal={m.minted}
-                        >
-                            <HomeProjectCarousel eager={i === 0} />
-                        </ProjectProvider>
-                    ))}
+                    <MintingCarousels items={visibleMinting} />
                 </section>
             )}
 
