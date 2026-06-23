@@ -9,8 +9,9 @@
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
   branch `claude/practical-hamilton-x4cg3o` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-23 (latest). This session = **a big multi-feature + spot-edit run** (🧰 below),
-  all shipped to dev — the whole spoken backlog is CLEARED. Prior: DIGITAL FAMILIAR overhaul + NPC CAST (🐉).
+- **Updated:** 2026-06-23 (later run). This session = **Profile Logo/Sprite finish + site-wide
+  smart-loading + Bench** (🚀 below), all shipped to dev — the whole spoken backlog is CLEARED.
+  Prior runs today: multi-feature + spot-edit (🧰), DIGITAL FAMILIAR + NPC CAST (🐉) — below.
 - **QUEUED (not built):** (1) **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
   LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
   The Tape. Source = the homepage milestone feed (`projects.milestones` JSONB / home feed, NOT the
@@ -20,6 +21,37 @@
   long-press **mini carousel quarter-scale** (`zoom: 0.25` on `.name-carousel-card .home-carousel-row`)
   are sensible defaults. (b) the **celestial sky row** (`pcel-sky`) uses FIXED luminary glyphs ☉ ☽ ↑ —
   zodiac SIGN glyphs are colour-emoji on iOS, so a project's *actual* sun/moon/rising can't be glyphed.
+
+## 🚀 2026-06-23 (later) — PROFILE LOGO/SPRITE + SITE-WIDE SMART-LOADING + BENCH — shipped to dev
+- **Profile Logo finished:** classic-INVERTED (attention-yellow bubble / hothurt-red ‰) for the bubble
+  logo AND Petey; a BLANK (bubble-only) colour ring; a blank HOLO. Per-mille-only + outline finishes were
+  added then **REMOVED** on Brendon's call. `lib/profile/profileLogos.ts` + `StickerArt`/`PeteyLogo`.
+- **Favicon mirrors the active Profile Logo** — colours / the two $PRICE variants / holo / Petey rotation /
+  blank — reverting to the colourway logo off-profile (`lib/favicon/updateFavicon.ts`, `FaviconEngine`).
+- **@name gestures SWAPPED:** triple-tap = Profile Logo carousel; long-press = colourway egg (was the
+  reverse). (Supersedes the older NEEDS-EYE "long-press carousel" note above.)
+- **PriceSprite colour (NEW, account-synced):** long-press your sprite → an inline picker BELOW it (native
+  wheel + the colourway pills + a ✕ OFF + a back pill). Sets a DEDICATED per-profile sprite colour — NOT
+  the page colorway — shown to every visitor. New `users.profile_sprite_hex` column;
+  `lib/hooks/useProfileSpriteHex.ts`, hydrate + write-through; `SpriteFace` takes an optional colour.
+- **Stickers follow the account across devices:** ownership + on/off state sync to a new
+  `users.sticker_state` (jsonb) column; seeded on login, write-through on buy/toggle (`owned.ts` →
+  `pushState`; `userState.hydrateFromRow`). Was localStorage-only.
+- **SMART-LOADING / STABILITY PASS** (site was crashing under art weight — only PAINTING was viewport-gated,
+  the tiles were all BUILT up front):
+  - **Homepage** — builds the top 4 Now-Minting carousels, reveals +4 as the end nears the viewport; built
+    rows never torn down (`MintingCarousels` in `HomePageBody`).
+  - **Project gallery** — mounts a screenful (48), reveals +48 on a scroll sentinel; never re-loads on
+    scroll-back or a mint; grouped headers keep TRUE counts (`galleryShown` + per-group budget).
+  - **User profile tabs** — Showcase + Collected each render into a `display:contents` box, built on FIRST
+    visit then visibility-toggled; switching tabs no longer unmounts/repaints tiles (+More already was).
+  - **Output page** — audited: already fine (one artwork, all tabs kept mounted); no change needed.
+- **Bench** — open comparison paints HI-RES (`BENCH_CARD_RES` 1200; drag ghost + cart stay 360); desktop
+  open bench uses the full screen (`min(1700px,95vw)`/92dvh, per-piece caps removed — side-by-side fills
+  width, stacked fills height). `BenchArt` gained a `res` prop. **Tunable defaults:** chunk sizes (home 4+4,
+  gallery 48+48), the 1200 hi-res, and the desktop bench size are all easy to dial.
+- **Prod DB (additive, nullable):** `users.profile_sprite_hex` (text) + `users.sticker_state` (jsonb), both
+  with anon/authenticated select+insert+update grants (mirrors `profile_logo`/`profile_hex`).
 
 ## 🧰 2026-06-23 — MULTI-FEATURE + SPOT-EDIT RUN — all shipped to dev
 - **Spot edits:** wishlist row shows current OWNER; project milestone feeds order by time THEN a fixed
