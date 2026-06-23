@@ -3453,10 +3453,17 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 /* Mini Now-Minting carousel — long-press your own @name shoves it open INLINE
    under the title (like the colour egg), pushing the hero down. The exact home
-   carousel for Oracle, with quarter-size tiles (Brendon 2026-06-23). */
-.profile-name-carousel { width: 100%; margin: 6px 0 2px; }
+   carousel for Oracle, with quarter-size tiles (Brendon 2026-06-23).
+   The track scrolls (overflow-x) only when its box is NARROWER than the cards.
+   The hero column is shrink-to-fit, so width:100% let the track grow to fit
+   every card and run offscreen — pin a definite width (viewport minus the hero
+   inset: 40px/side desktop, 20px mobile) so it scrolls like it does on home. */
+.profile-name-carousel { width: calc(100vw - 80px); max-width: 900px; margin: 6px 0 2px; }
 .profile-name-carousel .home-carousel-row { margin: 0; }
 .profile-name-carousel .home-carousel-track .output-card { width: min(8vw, 30px); }
+@media (max-width: 600px) {
+    .profile-name-carousel { width: calc(100vw - 40px); }
+}
 .stat-val {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 11px;
