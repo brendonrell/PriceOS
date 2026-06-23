@@ -626,8 +626,11 @@
     gap: 5px;
     height: 22px;
     padding: 0 9px;
-    background: var(--text-color);
-    color: var(--bg-color);
+    /* Flipped vs the menu buttons (Brendon 2026-06-23): the active chips fill
+       with --text-color, so the store fills with --bg-color — the inverse shade
+       (dark when the chips read white, and vice versa). */
+    background: var(--bg-color);
+    color: var(--text-color);
     border: 1px solid var(--text-color);
     border-radius: 4px;
     font-family: inherit;
