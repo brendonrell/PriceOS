@@ -3472,11 +3472,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
 }
-/* Regular (bubble) logos read a touch big next to the wider $PRICE marks —
-   scale just the ART down 10%. The tile, the dotted selection square, the
-   $PRICE tiles and the OFF tile are all untouched. */
+/* Bubble logos fill their whole box; the $PRICE marks fill 90.5% of theirs.
+   Scale just the bubble ART to 0.905 so its speech bubble matches the $PRICE
+   bubble size exactly (measured). Tiles, selection square + $PRICE untouched. */
 .profile-name-carousel .home-carousel-track .pl-logo-bubble svg {
-    transform: scale(0.9);
+    transform: scale(0.905);
 }
 /* The pick currently in play — a DOTTED ring (outline, so it never shifts the
    row layout). */
@@ -3484,21 +3484,16 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     outline: 2px dotted var(--text-color);
     outline-offset: 0;
 }
-/* First tile = the global on/off: the default logo (in the page's own colorway)
-   inside a DASHED ring, no words. Rests at half opacity. */
-.profile-name-carousel .home-carousel-track .pl-logo-off {
-    border: 1.5px dashed var(--text-color);
+/* First tile = the global on/off: at rest, JUST the faded default logo — no
+   ring or border; the low opacity alone says "default / off". */
+.profile-name-carousel .home-carousel-track .pl-logo-off svg {
     opacity: 0.5;
 }
-/* Selected: the dashed square goes fully visible, and the logo inside lifts to
-   50% more visible than its resting 0.5 (→ 0.75) — still faded enough to read as
-   the OFF / default option. */
+/* Selected: a faint (30%) dotted selector square — only this first option gets
+   the muted selector instead of the full one. */
 .profile-name-carousel .home-carousel-track .pl-logo-off.is-active {
-    opacity: 1;
-    outline: none;
-}
-.profile-name-carousel .home-carousel-track .pl-logo-off.is-active svg {
-    opacity: 0.75;
+    outline: 2px dotted color-mix(in srgb, var(--text-color) 30%, transparent);
+    outline-offset: 0;
 }
 @media (max-width: 600px) {
     .profile-name-carousel { margin-left: -20px; }

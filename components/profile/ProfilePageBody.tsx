@@ -1655,7 +1655,7 @@ function ProfilePageBodyInner({
                                         dashed ring, no words. Picking it clears your
                                         Profile Logo (back to the normal logo). */}
                                     <div
-                                        className={`pl-logo-card pl-logo-off${ownerLogo == null ? ' is-active' : ''}`}
+                                        className={`pl-logo-card pl-logo-off pl-logo-bubble${ownerLogo == null ? ' is-active' : ''}`}
                                         role="button"
                                         tabIndex={0}
                                         aria-label="Turn off Profile Logo"
