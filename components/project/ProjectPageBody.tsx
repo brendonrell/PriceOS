@@ -936,6 +936,32 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         [visibleTokenIds],
     );
 
+    /* Gallery loads in chunks — mount a screenful, then reveal more as the
+       bottom nears the viewport, and never tear down what's mounted (smart
+       loading, no re-load of seen tiles; Brendon 2026-06-23). Building the whole
+       list of tiles up front is what made big projects buckle. A new mint or a
+       reorder never resets the reveal, so scrolling back never re-loads. */
+    const GALLERY_INITIAL = 48;
+    const GALLERY_STEP = 48;
+    const [galleryShown, setGalleryShown] = useState(GALLERY_INITIAL);
+    const gallerySentinelRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (galleryShown >= visibleTokenIds.length) return;
+        const el = gallerySentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setGalleryShown(visibleTokenIds.length); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setGalleryShown((c) => Math.min(c + GALLERY_STEP, visibleTokenIds.length));
+                }
+            },
+            { rootMargin: '1000px 0px' },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [galleryShown, visibleTokenIds.length]);
+
     /* ── D17 anchor delta stamping ──
        For every .meta-owner.price-trigger inside #gallery, parse the price
        from text content (format "0.014 ETH" — see ProjectContext token
@@ -1390,12 +1416,17 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                            never unmounted, so they never repaint. Tap-to-group is
                            instant and can't jam, however heavy the art (Brendon,
                            2026-06-16). */
-                        ? groupedSections.flatMap((sec) => {
+                        ? (() => {
+                            // Reveal budget shared across groups: headers (with their
+                            // true counts) always render, but only the first
+                            // `galleryShown` CARDS mount — the rest fill in on scroll.
+                            let budget = galleryShown;
+                            return groupedSections.flatMap((sec) => {
                             const isL2 = sec.level === 2;
                             // A folded level-1 hides its sub-headers and their cards.
                             if (isL2 && collapsedGroups.has(sec.l1Key)) return [];
                             const folded = collapsedGroups.has(sec.ckey);
-                            return [
+                            const header = (
                             <div
                                 key={`hdr-${sec.ckey}`}
                                 className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
@@ -1420,19 +1451,27 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 {!sec.soon && groupHeaderGlyph(group, sec.level)
                                     ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, sec.level)}</span>
                                     : null}
-                            </div>,
-                            ...(folded ? [] : sec.ids.map((id) => (
-                                <ArtworkCard
-                                    key={id}
-                                    id={id}
-                                    projectShowcasePick={projectShowcasePicks.has(id)}
-                                    isBreadcrumb={breadcrumbSample.has(id)}
-                                    eager={eagerIds.has(id)}
-                                />
-                            ))),
-                        ];
-                        })
-                        : visibleTokenIds.map((id) => (
+                            </div>
+                            );
+                            if (folded || budget <= 0) return [header];
+                            const cards = [];
+                            for (const id of sec.ids) {
+                                if (budget <= 0) break;
+                                cards.push(
+                                    <ArtworkCard
+                                        key={id}
+                                        id={id}
+                                        projectShowcasePick={projectShowcasePicks.has(id)}
+                                        isBreadcrumb={breadcrumbSample.has(id)}
+                                        eager={eagerIds.has(id)}
+                                    />
+                                );
+                                budget--;
+                            }
+                            return [header, ...cards];
+                        });
+                        })()
+                        : visibleTokenIds.slice(0, galleryShown).map((id) => (
                             <ArtworkCard
                                 key={id}
                                 id={id}
@@ -1441,6 +1480,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 eager={eagerIds.has(id)}
                             />
                         ))}
+                {!showGhosts && !onShowcaseTab && galleryShown < visibleTokenIds.length && (
+                    <div ref={gallerySentinelRef} className="gallery-load-sentinel" aria-hidden="true" />
+                )}
             </section>
 
             {/* Activity feed — REAL pre-chain rows from Supabase `events`

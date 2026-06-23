@@ -5535,6 +5535,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     align-items: start;
     align-content: start;
 }
+/* Scroll-load sentinel — a zero-height full-row marker; when it nears the
+   viewport the gallery reveals its next chunk of tiles (Brendon 2026-06-23). */
+.gallery-load-sentinel { grid-column: 1 / -1; height: 1px; }
 /* Group-by section headers (Brendon, 2026-06-13) — span the full grid row so
    the gallery reads as labelled colour/owner sections. */
 /* Grouped-gallery section title — reuses the HOME carousel title look
