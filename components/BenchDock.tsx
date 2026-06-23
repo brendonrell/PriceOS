@@ -36,6 +36,9 @@ import BenchArt from './bench/BenchArt';
 
 const VS15 = '︎';
 const RETRACT_MS = 260;
+/* The open comparison paints the art crisp (the whole point is comparing); the
+   drag ghost + cart thumbs stay light at the default (Brendon 2026-06-23). */
+const BENCH_CARD_RES = 1200;
 
 interface ItemInfo { listed: boolean; title: string; priceStr: string; deltaStr: string }
 
@@ -95,7 +98,7 @@ const BenchCard = memo(function BenchCard({
                 {`×${VS15}`}
             </button>
             <div className="bench-card-art">
-                <BenchArt slug={slug} id={id} />
+                <BenchArt slug={slug} id={id} res={BENCH_CARD_RES} />
             </div>
             <div className="bench-card-meta">
                 <div className="bench-card-name-row">

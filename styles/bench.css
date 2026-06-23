@@ -355,8 +355,8 @@ body.bench-dragging * {
         right: 0;
         bottom: 30px;
         margin: 0 auto;
-        max-width: 1120px;
-        max-height: 86dvh;
+        max-width: min(1700px, 95vw);
+        max-height: 92dvh;
         border-radius: 20px;
         border-bottom: 1px solid var(--border-color);
         box-shadow: 0 28px 90px rgba(0, 0, 0, 0.6);
@@ -365,8 +365,12 @@ body.bench-dragging * {
     /* Big art + breathing room — two equal pieces, centered. */
     .bench-tab.expanded .bench-grid { gap: 16px; }
     .bench-tab.expanded .bench-grid.portrait { padding-bottom: 8px; }
-    .bench-tab.expanded .bench-grid.portrait .bench-card { flex: 1 1 0; max-width: 520px; }
-    .bench-tab.expanded .bench-grid.landscape .bench-card { max-width: 640px; }
+    /* Desktop: let the art use the whole panel — side-by-side fills the width,
+       stacked fills its height — instead of capping each piece, so as much art
+       as possible is on screen for the comparison (Brendon 2026-06-23). */
+    .bench-tab.expanded .bench-grid.portrait .bench-card { flex: 1 1 0; max-width: none; }
+    .bench-tab.expanded .bench-grid.landscape .bench-card { max-width: none; }
+    .bench-tab.expanded .bench-grid.landscape.fit .bench-card { max-width: none; }
     .bench-tab.expanded .bench-card { gap: 12px; padding: 12px; }
     .bench-tab.expanded .bench-card-name { font-size: 15px; }
     .bench-tab.expanded .bench-card-price { font-size: 15px; }

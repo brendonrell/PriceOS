@@ -20,10 +20,14 @@ export default function BenchArt({
     slug,
     id,
     className,
+    res,
 }: {
     slug: string;
     id: number;
     className?: string;
+    /** Paint resolution. Defaults to a light 360 for the drag ghost + cart
+        thumbs; the open comparison passes a high value so the art reads crisp. */
+    res?: number;
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -31,11 +35,11 @@ export default function BenchArt({
         const canvas = canvasRef.current;
         if (!canvas) return;
         try {
-            paintOutput(canvas, slug, id, RES);
+            paintOutput(canvas, slug, id, res ?? RES);
         } catch {
             /* registry miss / unknown slug — leave the canvas blank */
         }
-    }, [slug, id]);
+    }, [slug, id, res]);
 
     return (
         <canvas
