@@ -1938,7 +1938,12 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <HeroStickers ownerHandle={user.handle ?? handle} isOwn={isOwnProfile} />
+                    <HeroStickers
+                        ownerHandle={user.handle ?? handle}
+                        isOwn={isOwnProfile}
+                        savedLayout={user.sticker_state?.placements ?? null}
+                        savedAspect={user.sticker_state?.placementAspect ?? null}
+                    />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button

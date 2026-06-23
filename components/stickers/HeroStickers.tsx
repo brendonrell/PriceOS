@@ -1,34 +1,45 @@
 'use client';
 
 /*
- * HeroStickers — the profile owner's stickers on their hero, arranged per the
- * manager's settings (layout style + rows + align + tilt + width + shuffle).
+ * HeroStickers — the profile owner's stickers on their hero.
  *
- * The sticker AREA is left-aligned with the rest of the hero and ends exactly at
- * the +More button (the tab row's width). The ALIGN pref centres the stickers
- * WITHIN that area (never on the screen). WIDTH=Wide releases the clamp.
+ * TWO STATES:
+ *   • GENERATIVE (default) — stickers auto-arrange from the manager's settings
+ *     (layout style + rows + align + tilt + width + shuffle). This is the
+ *     starting canvas; Shuffle re-rolls it. The sticker AREA is left-aligned
+ *     with the rest of the hero and ends at the +More edge.
+ *   • LOCKED — the moment the owner drags a sticker, the WHOLE current picture
+ *     freezes into a saved composition (every sticker + its exact spot, layer,
+ *     rotation, scale). From then the profile is that fixed picture — what the
+ *     owner sees is exactly what every visitor sees. Dragging moves a sticker,
+ *     the ✕ prunes one, last-touched sits on top. Shuffle / picking a Layout in
+ *     the manager clears the lock back to generative.
  *
- * Renders nothing unless the owner holds (active) stickers. On your OWN profile:
- *   - a short TAP on any sticker opens the manager (arrange / shuffle / store),
- *   - a LONG-PRESS lifts a sticker (shadow back + float + a ✕), and you drag it
- *     anywhere; release drops it (still lifted), tapping away settles it flush,
- *     tap-and-hold again to re-drag. The ✕ removes it from THIS arrangement only.
- * Hand-placed spots persist + ride the account; the ✕ is scoped to the current
- * generative roll, so a Shuffle / setting change can bring a removed one back.
+ * Editing (long-press → lift → drag → drop → tap-away settles, ✕ prunes) is
+ * own-profile only; visitors render the saved composition read-only.
+ *
+ * Renders nothing unless there's a composition (locked) or the owner holds
+ * (active) stickers (generative). A short tap on the owner's stickers opens the
+ * manager.
  */
 
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
 import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
-import { usePlacements, placeSticker, moveSticker, raiseSticker, removeFromComposition } from '../../lib/stickers/placements';
+import { usePlacements, setComposition, moveSticker, raiseSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
-import type { Sticker } from '../../lib/stickers/catalog';
+import { stickerById, type Sticker } from '../../lib/stickers/catalog';
 
 interface Props {
     ownerHandle: string | null | undefined;
     isOwn?: boolean;
+    /** The owner's saved composition (from their public profile) — used to render
+     *  the locked picture for VISITORS. On your own profile the live local store
+     *  drives it instead. */
+    savedLayout?: PlacementMap | null;
+    savedAspect?: number | null;
 }
 
 /* Output stickers each paint a full generative artwork to a canvas — heavy.
@@ -57,12 +68,12 @@ export function HeroStickers(props: Props) {
    eats a scroll). */
 interface Press { id: string; startX: number; startY: number; moved: boolean; grabbed: boolean; baseX: number; baseY: number; }
 
-function HeroStickersInner({ ownerHandle, isOwn }: Props) {
+function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
     const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density } = useHeroPrefs();
-    const { placements, compOff } = usePlacements();
+    const ownPlace = usePlacements();
     const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
     /* The currently lifted sticker (floating + ✕), own profile only. */
@@ -87,38 +98,30 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         };
     }, []);
 
+    /* The saved composition that drives the LOCKED picture: the owner's live
+       local store on their own profile, the public snapshot for visitors. */
+    const layoutMap = isOwn ? ownPlace.placements : (savedLayout ?? {});
+    const aspect = isOwn ? ownPlace.aspect : (savedAspect ?? null);
+    const locked = Object.keys(layoutMap).length > 0;
+
+    /* Locked composition, resolved + layered (z asc, last-touched on top). */
+    const lockedItems = useMemo(() => {
+        return Object.entries(layoutMap)
+            .map(([id, p]) => {
+                const st = stickerById(id);
+                return st ? { st, x: p.x, y: p.y, z: p.z, r: p.r ?? 0, sc: p.sc ?? 1 } : null;
+            })
+            .filter((v): v is { st: Sticker; x: number; y: number; z: number; r: number; sc: number } => !!v)
+            .sort((a, b) => a.z - b.z);
+    }, [layoutMap]);
+
     const active = useMemo(
         () => owned.filter((s) => isActive(s, offSheets, offIds)),
         [owned, offSheets, offIds],
     );
 
-    /* The ✕ removals only count for the arrangement they were made in — a fresh
-       roll (different signature) lets them reappear. */
-    const liveSig = `${arrange}|${seed}|${rowsPref}|${expand ? 1 : 0}|${align}|${density}|${flip ? 1 : 0}`;
-    const compRemoved = useMemo(
-        () => (isOwn && compOff.sig === liveSig ? new Set(compOff.ids) : new Set<string>()),
-        [isOwn, compOff, liveSig],
-    );
-
-    /* Hand-placed stickers (own profile) render as an overlay at their saved
-       spot, ordered by z so the pile layers naturally. They're pulled out of the
-       generative flow below. */
-    const placedActive = useMemo(() => {
-        if (!isOwn) return [] as { s: Sticker; x: number; y: number; z: number }[];
-        return active
-            .filter((s) => placements[s.id] && !compRemoved.has(s.id))
-            .map((s) => ({ s, ...placements[s.id]! }))
-            .sort((a, b) => a.z - b.z);
-    }, [isOwn, active, placements, compRemoved]);
-
-    /* The generative flow set = active minus the hand-placed and the ✕-removed. */
-    const flowActive = useMemo(() => {
-        if (!isOwn) return active;
-        return active.filter((s) => !placements[s.id] && !compRemoved.has(s.id));
-    }, [isOwn, active, placements, compRemoved]);
-
     const { rows, cap, scatter } = arrangeShape(arrange, rowsPref);
-    const effCap = expand ? Math.min(flowActive.length, Math.max(cap, 18)) : cap;
+    const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
 
     const picked = useMemo(() => {
         const rnd = scatter ? rngFrom(seed) : null;
@@ -133,7 +136,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         // Group the active set by sheet so a multi-sheet selection is balanced.
         const bySheet = new Map<string, Sticker[]>();
         const sheetOrder: string[] = [];
-        for (const s of flowActive) {
+        for (const s of active) {
             if (!bySheet.has(s.sheet)) { bySheet.set(s.sheet, []); sheetOrder.push(s.sheet); }
             bySheet.get(s.sheet)!.push(s);
         }
@@ -161,18 +164,54 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
             }
         }
         return chosen;
-    }, [flowActive, scatter, effCap, seed]);
+    }, [active, scatter, effCap, seed]);
 
     /* ── Placement gesture (own profile) ──────────────────────────────────────
        Pointer move/up live on the window so a drag survives the sticker hopping
-       DOM trees (flow → overlay) the moment it's lifted. */
+       DOM trees (generative flow → locked overlay) the instant it's locked. */
     const canvasRef = useRef<HTMLDivElement>(null);
     const press = useRef<Press | null>(null);
     const lpTimer = useRef<number | null>(null);
     const liftedRef = useRef<string | null>(null);
+    const lockedRef = useRef<boolean>(locked);
+    const placeRef = useRef<PlacementMap>(layoutMap);
     useEffect(() => { liftedRef.current = lifted; }, [lifted]);
+    useEffect(() => { lockedRef.current = locked; }, [locked]);
+    useEffect(() => { placeRef.current = layoutMap; }, [layoutMap]);
     const clearLp = useCallback(() => {
         if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; }
+    }, []);
+
+    /* Freeze the whole generative picture as it sits on screen — the first-drag
+       lock. Reads each rendered sticker's centre + rotation + scale so the locked
+       composition is pixel-faithful to what was generated. */
+    const lockComposition = useCallback((pressedId: string) => {
+        const el = canvasRef.current;
+        if (!el) return;
+        const cr = el.getBoundingClientRect();
+        if (!cr.width || !cr.height) return;
+        const map: PlacementMap = {};
+        let z = 1;
+        el.querySelectorAll<HTMLElement>('[data-sid]').forEach((node) => {
+            const id = node.getAttribute('data-sid');
+            if (!id) return;
+            const r = node.getBoundingClientRect();
+            let rot = 0, scl = 1;
+            try {
+                const m = new DOMMatrixReadOnly(getComputedStyle(node).transform);
+                rot = Math.atan2(m.b, m.a) * (180 / Math.PI);
+                scl = Math.hypot(m.a, m.b) || 1;
+            } catch { /* identity */ }
+            map[id] = {
+                x: ((r.left + r.width / 2 - cr.left) / cr.width) * 100,
+                y: ((r.top + r.height / 2 - cr.top) / cr.height) * 100,
+                z: z++,
+                r: Math.round(rot * 10) / 10,
+                sc: Math.round(scl * 1000) / 1000,
+            };
+        });
+        if (map[pressedId]) map[pressedId]!.z = z; // the grabbed one rides on top
+        setComposition(map, cr.width / cr.height);
     }, []);
 
     useEffect(() => {
@@ -223,7 +262,8 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         <StickerManagerModal open={mgrOpen} onClose={() => setMgrOpen(false)} handle={(ownerHandle ?? '').replace(/^@/, '')} />
     ) : null;
 
-    if (notifs.sticker || active.length === 0) return manager;
+    if (notifs.sticker) return manager;
+    if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
 
     const baseTilt = tiltDeg(tilt);
     const jrnd = rngFrom(seed + 7);
@@ -241,7 +281,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
         const el = canvasRef.current;
         if (!el) return;
         const cr = el.getBoundingClientRect();
-        const ex = placements[s.id];
+        const ex = placeRef.current[s.id];
         let baseX: number, baseY: number;
         if (ex) {
             baseX = ex.x; baseY = ex.y;
@@ -262,43 +302,16 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
             const p = press.current;
             if (!p || p.id !== s.id) return;
             p.grabbed = true;
-            placeSticker(s.id, p.baseX, p.baseY); // pin where it sits, lift it
+            if (lockedRef.current) raiseSticker(s.id); // already locked → re-grab
+            else lockComposition(s.id);                // first drag → freeze the picture
             setLifted(s.id);
         }, 340);
     };
     const ownDown = (s: Sticker) => (isOwn ? { onPointerDown: (e: React.PointerEvent) => onStickerDown(e, s) } : {});
 
-    // Hand-placed overlay (own profile) — absolutely positioned, layered by z.
-    const overlay = isOwn && placedActive.length > 0 ? (
-        <>
-            {placedActive.map(({ s, x, y, z }) => (
-                <span
-                    key={s.id}
-                    className={`hero-sticker hero-placed-item${lifted === s.id ? ' is-lifted' : ''}`}
-                    style={{ left: `${x}%`, top: `${y}%`, zIndex: lifted === s.id ? 100000 : 1000 + z, ['--r' as string]: `${flipOf(s.id)}deg` } as React.CSSProperties}
-                    title={s.name}
-                    {...ownDown(s)}
-                >
-                    <StickerArt sticker={s} size={sz(s.kind)} />
-                    {lifted === s.id && (
-                        <button
-                            type="button"
-                            className="hero-sticker-x"
-                            aria-label="Remove from this arrangement"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => { e.stopPropagation(); removeFromComposition(s.id, liveSig); setLifted(null); }}
-                        >
-                            ×
-                        </button>
-                    )}
-                </span>
-            ))}
-        </>
-    ) : null;
-
-    // Wrap the chosen body in the placement canvas (own) or render it plainly
-    // (visitor). On own, a pointer-down that reaches the canvas (i.e. NOT on a
-    // sticker, which stops propagation) settles the lifted sticker.
+    // Wrap the body in the placement canvas (own) or render it plainly (visitor).
+    // On own, a pointer-down that reaches the canvas (i.e. NOT on a sticker, which
+    // stops propagation) settles the lifted sticker.
     const wrap = (body: ReactNode) => (
         <div className="hero-stickers" aria-label="Stickers">
             {isOwn ? (
@@ -306,17 +319,59 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
                     <div
                         ref={canvasRef}
                         className="hero-stickers-canvas"
-                        style={{ maxWidth: expand ? undefined : (clampW ?? undefined), minHeight: placedActive.length > 0 ? 96 : undefined }}
+                        style={{
+                            maxWidth: expand ? undefined : (clampW ?? undefined),
+                            ...(locked ? (aspect ? { aspectRatio: String(aspect) } : { minHeight: 96 }) : {}),
+                        }}
                         onPointerDown={() => { if (liftedRef.current) setLifted(null); }}
                     >
                         {body}
-                        {overlay}
                     </div>
                     {manager}
                 </>
-            ) : body}
+            ) : (
+                <div
+                    className="hero-stickers-canvas"
+                    style={{ maxWidth: expand ? undefined : (clampW ?? undefined), ...(aspect ? { aspectRatio: String(aspect) } : { minHeight: 96 }) }}
+                >
+                    {body}
+                </div>
+            )}
         </div>
     );
+
+    // ── LOCKED — the saved composition (owner + every visitor see this) ──────
+    if (locked) {
+        return wrap(
+            <>
+                {lockedItems.map(({ st, x, y, z, r, sc }) => (
+                    <span
+                        key={st.id}
+                        data-sid={st.id}
+                        className={`hero-sticker hero-placed-item${isOwn && lifted === st.id ? ' is-lifted' : ''}`}
+                        style={{ left: `${x}%`, top: `${y}%`, zIndex: (isOwn && lifted === st.id) ? 100000 : 1000 + z, ['--r' as string]: `${r}deg`, ['--s' as string]: `${sc}` } as React.CSSProperties}
+                        title={st.name}
+                        {...ownDown(st)}
+                    >
+                        <StickerArt sticker={st} size={sz(st.kind)} />
+                        {isOwn && lifted === st.id && (
+                            <button
+                                type="button"
+                                className="hero-sticker-x"
+                                aria-label="Remove from this arrangement"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => { e.stopPropagation(); removeFromComposition(st.id); setLifted(null); }}
+                            >
+                                ×
+                            </button>
+                        )}
+                    </span>
+                ))}
+            </>,
+        );
+    }
+
+    // ── GENERATIVE — the auto-arranged starting canvas (Shuffle re-rolls) ────
 
     // COLLAGE — one large composed area: overlapping, mixed sizes, balanced.
     if (arrange === 'collage') {
@@ -328,6 +383,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
                     return (
                         <span
                             key={s.id}
+                            data-sid={s.id}
                             className="hero-sticker hero-collage-item"
                             style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
                             title={s.name}
@@ -354,6 +410,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
                     return (
                         <span
                             key={s.id}
+                            data-sid={s.id}
                             className="hero-sticker hero-pile-item"
                             style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
                             title={s.name}
@@ -381,6 +438,7 @@ function HeroStickersInner({ ownerHandle, isOwn }: Props) {
                         return (
                             <span
                                 key={s.id}
+                                data-sid={s.id}
                                 className="hero-sticker"
                                 style={{ transform: `translateY(${jy}px) rotate(${t + flipOf(s.id)}deg)` }}
                                 title={s.name}

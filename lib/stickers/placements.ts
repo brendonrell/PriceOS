@@ -1,34 +1,32 @@
 'use client';
 
 /*
- * placements — the profile owner's HAND-PLACED sticker arrangement.
+ * placements — the profile owner's LOCKED sticker composition.
  *
- * Long-pressing a sticker on your own profile lifts it; dragging drops it at a
- * spot you choose. That spot is saved here as a percentage of the hero sticker
- * area (x,y in 0–100) plus a stacking order z (last-touched sits on top, so the
- * pile layers naturally). Placements STICK — they persist and follow the user.
- *
- * The ✕ removes a sticker from THIS arrangement only. Because the hero is
- * GENERATIVE, that removal is scoped to the current roll (a signature of the
- * arrangement settings + shuffle seed): re-rolling — Shuffle or any layout
- * setting change — starts a fresh arrangement, so an X'd sticker can come back.
- * It never touches the Settings "turn it off" switch or ownership.
+ * The hero starts generative (auto-arranged, Shuffle re-rolls). The moment the
+ * owner drags a sticker, the WHOLE current picture is frozen into a saved
+ * composition: every sticker shown, exactly where/how it sits (x,y in % of the
+ * sticker area, plus z stacking, rotation r and scale sc captured from screen so
+ * the locked picture matches what was generated). `aspect` is the area's
+ * width÷height at lock time, so the saved %-positions scale faithfully at any
+ * screen width. While a composition exists the profile is LOCKED — what the
+ * owner sees is exactly what every visitor sees. Dragging moves a sticker, the
+ * ✕ prunes one, last-touched sits on top. Shuffle / picking a Layout clears it
+ * back to generative.
  *
  * Persistence rides the same account blob as ownership (sticker_state), so a
- * customised profile follows the user across devices. No new table.
+ * decorated profile follows the user AND ships to every visitor. No new table.
  */
 
 import { useEffect, useMemo, useState } from 'react';
 import { STATE_CACHE_KEYS } from '../state/userState';
 import { pushStickerState } from './owned';
 
-export interface Placement { x: number; y: number; z: number; }
+export interface Placement { x: number; y: number; z: number; r?: number; sc?: number; }
 export type PlacementMap = Record<string, Placement>;
-/** ✕-removed ids, scoped to the arrangement signature they were removed from. */
-export interface CompOff { sig: string; ids: string[]; }
 
 const PLACE_KEY = STATE_CACHE_KEYS.stickerPlacements;
-const COMP_OFF_KEY = STATE_CACHE_KEYS.stickerCompOff;
+const ASPECT_KEY = STATE_CACHE_KEYS.stickerPlaceAspect;
 const EVT = 'pd:stickers-changed';
 
 function readMap(): PlacementMap {
@@ -40,9 +38,14 @@ function readMap(): PlacementMap {
         const out: PlacementMap = {};
         for (const [id, p] of Object.entries(obj as Record<string, unknown>)) {
             if (p && typeof p === 'object') {
-                const { x, y, z } = p as Record<string, unknown>;
+                const { x, y, z, r, sc } = p as Record<string, unknown>;
                 if (typeof x === 'number' && typeof y === 'number') {
-                    out[id] = { x, y, z: typeof z === 'number' ? z : 0 };
+                    out[id] = {
+                        x, y,
+                        z: typeof z === 'number' ? z : 0,
+                        ...(typeof r === 'number' ? { r } : {}),
+                        ...(typeof sc === 'number' ? { sc } : {}),
+                    };
                 }
             }
         }
@@ -52,33 +55,27 @@ function readMap(): PlacementMap {
     }
 }
 
-function readCompOff(): CompOff {
-    if (typeof window === 'undefined') return { sig: '', ids: [] };
+function readAspect(): number | null {
+    if (typeof window === 'undefined') return null;
     try {
-        const raw = window.localStorage.getItem(COMP_OFF_KEY);
-        const obj = raw ? JSON.parse(raw) : null;
-        if (obj && typeof obj === 'object' && typeof obj.sig === 'string' && Array.isArray(obj.ids)) {
-            return { sig: obj.sig, ids: obj.ids.filter((x: unknown): x is string => typeof x === 'string') };
-        }
-        return { sig: '', ids: [] };
+        const v = parseFloat(window.localStorage.getItem(ASPECT_KEY) || '');
+        return Number.isFinite(v) && v > 0 ? v : null;
     } catch {
-        return { sig: '', ids: [] };
+        return null;
     }
 }
 
-function writeMap(map: PlacementMap) {
-    try { window.localStorage.setItem(PLACE_KEY, JSON.stringify(map)); } catch { /* quota */ }
-    window.dispatchEvent(new CustomEvent(EVT));
-    pushStickerState();
-}
-function writeCompOff(v: CompOff) {
-    try { window.localStorage.setItem(COMP_OFF_KEY, JSON.stringify(v)); } catch { /* quota */ }
+function writeMap(map: PlacementMap, aspect?: number | null) {
+    try {
+        window.localStorage.setItem(PLACE_KEY, JSON.stringify(map));
+        if (aspect != null) window.localStorage.setItem(ASPECT_KEY, String(aspect));
+    } catch { /* quota */ }
     window.dispatchEvent(new CustomEvent(EVT));
     pushStickerState();
 }
 
 export function getPlacements(): PlacementMap { return readMap(); }
-export function getCompOff(): CompOff { return readCompOff(); }
+export function getPlaceAspect(): number | null { return readAspect(); }
 
 /** Highest stacking order currently in use (0 when none placed). */
 function topZ(map: PlacementMap): number {
@@ -87,20 +84,28 @@ function topZ(map: PlacementMap): number {
     return z;
 }
 
-/** Save a sticker at a spot, bumping it to the top of the pile. */
-export function placeSticker(id: string, x: number, y: number) {
-    const map = readMap();
-    const z = topZ(map) + 1;
-    map[id] = { x, y, z };
-    writeMap(map);
+/** Freeze a whole composition (the first-drag lock): the full id→spot map plus
+ *  the area's aspect ratio at capture time. */
+export function setComposition(map: PlacementMap, aspect: number) {
+    writeMap(map, aspect);
 }
 
-/** Move an already-placed sticker without changing its stacking order — used
- *  while dragging so the live position tracks the finger. */
+/** Clear the locked composition → back to generative (Shuffle / new Layout). */
+export function clearPlacements() {
+    try {
+        window.localStorage.removeItem(PLACE_KEY);
+        window.localStorage.removeItem(ASPECT_KEY);
+    } catch { /* ignore */ }
+    window.dispatchEvent(new CustomEvent(EVT));
+    pushStickerState();
+}
+
+/** Move a placed sticker, preserving its look (z / rotation / scale). */
 export function moveSticker(id: string, x: number, y: number) {
     const map = readMap();
     const prev = map[id];
-    map[id] = { x, y, z: prev ? prev.z : topZ(map) + 1 };
+    if (!prev) return;
+    map[id] = { ...prev, x, y };
     writeMap(map);
 }
 
@@ -112,30 +117,24 @@ export function raiseSticker(id: string) {
     writeMap(map);
 }
 
-/** Remove a sticker from THIS arrangement only (scoped to the current roll's
- *  signature). A reroll changes the signature, so the removal lapses and the
- *  sticker can reappear. Never touches settings/ownership. */
-export function removeFromComposition(id: string, sig: string) {
+/** Prune a sticker from the locked composition (not settings/ownership). */
+export function removeFromComposition(id: string) {
     const map = readMap();
-    if (map[id]) { delete map[id]; writeMap(map); }
-    const off = readCompOff();
-    if (off.sig === sig) {
-        if (!off.ids.includes(id)) writeCompOff({ sig, ids: [...off.ids, id] });
-    } else {
-        writeCompOff({ sig, ids: [id] });
-    }
+    if (!map[id]) return;
+    delete map[id];
+    writeMap(map);
 }
 
-export interface PlacementState { placements: PlacementMap; compOff: CompOff; }
+export interface PlacementState { placements: PlacementMap; aspect: number | null; }
 
 export function usePlacements(): PlacementState {
-    const [v, setV] = useState<{ placements: PlacementMap; compOff: CompOff }>({ placements: {}, compOff: { sig: '', ids: [] } });
+    const [v, setV] = useState<PlacementState>({ placements: {}, aspect: null });
     useEffect(() => {
-        const sync = () => setV({ placements: readMap(), compOff: readCompOff() });
+        const sync = () => setV({ placements: readMap(), aspect: readAspect() });
         sync();
         window.addEventListener(EVT, sync);
         window.addEventListener('storage', sync);
         return () => { window.removeEventListener(EVT, sync); window.removeEventListener('storage', sync); };
     }, []);
-    return useMemo(() => ({ placements: v.placements, compOff: v.compOff }), [v]);
+    return useMemo(() => v, [v]);
 }

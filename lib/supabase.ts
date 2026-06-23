@@ -199,8 +199,8 @@ export interface UserRow {
     owned: string[];
     offSheets: string[];
     offIds: string[];
-    placements?: Record<string, { x: number; y: number; z: number }>;
-    compOff?: { sig: string; ids: string[] };
+    placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
+    placementAspect?: number;
   } | null;
   /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
    *  checked at signup, surfaced only in the profile-name easter egg. Distinct
@@ -267,8 +267,8 @@ export interface UserStatePatch {
     owned: string[];
     offSheets: string[];
     offIds: string[];
-    placements?: Record<string, { x: number; y: number; z: number }>;
-    compOff?: { sig: string; ids: string[] };
+    placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
+    placementAspect?: number;
   };
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;

@@ -567,13 +567,13 @@
 .hero-stickers-canvas { position: relative; width: 100%; }
 .hero-stickers-canvas .hero-sticker { touch-action: none; }
 
-/* A hand-placed sticker sits at its saved spot; z-order (set inline) layers the
-   pile so the last-touched sits on top. */
+/* A sticker in the locked composition sits at its saved spot, layer (z, inline),
+   rotation (--r) and scale (--s) — captured at lock time so it's pixel-faithful
+   to what was generated. */
 .hero-placed-item {
     position: absolute;
-    transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+    transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1));
 }
-.hero-placed-item:hover { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(1.06); }
 
 /* Lifted = picked up: the soft shadow comes back so it reads as floating off the
    page, and it bobs gently until you settle it. */
@@ -583,8 +583,8 @@
     cursor: grab;
 }
 @keyframes hero-sticker-float {
-    0%, 100% { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(1.06); }
-    50%      { transform: translate(-50%, calc(-50% - 5px)) rotate(var(--r, 0deg)) scale(1.06); }
+    0%, 100% { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
+    50%      { transform: translate(-50%, calc(-50% - 5px)) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
 }
 
 /* The ✕ — prune this sticker from the current arrangement only. Canonical close

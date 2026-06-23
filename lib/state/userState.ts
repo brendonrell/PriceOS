@@ -46,13 +46,15 @@ export const STATE_CACHE_KEYS = {
     ownedStickers: 'pd_owned_stickers',
     stickerOffSheets: 'pd_sticker_off_sheets',
     stickerOffIds: 'pd_sticker_off_ids',
-    /** Hand-placed sticker positions on your profile (id → {x,y,z} in % of the
-     *  hero sticker area). Read + written by lib/stickers/placements.ts; rides
-     *  the `users.sticker_state` blob so a customised profile follows the user. */
+    /** Hand-placed sticker positions on your profile (id → {x,y,z,r,sc} in % of
+     *  the hero sticker area). Non-empty = the profile is LOCKED to this
+     *  composition for the owner AND every visitor. Read + written by
+     *  lib/stickers/placements.ts; rides the `users.sticker_state` blob. */
     stickerPlacements: 'pd_sticker_placements',
-    /** Stickers removed from THIS profile's arrangement only (the ✕) — distinct
-     *  from the Settings on/off switch. Rides `users.sticker_state`. */
-    stickerCompOff: 'pd_sticker_comp_off',
+    /** The sticker area's width÷height when the composition was locked, so the
+     *  saved %-positions scale faithfully at any screen width. Rides
+     *  `users.sticker_state`. */
+    stickerPlaceAspect: 'pd_sticker_place_aspect',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -194,15 +196,14 @@ export function hydrateFromRow(row: UserRow): void {
             localStorage.setItem(STATE_CACHE_KEYS.ownedStickers, JSON.stringify(asArr(ss.owned)));
             localStorage.setItem(STATE_CACHE_KEYS.stickerOffSheets, JSON.stringify(asArr(ss.offSheets)));
             localStorage.setItem(STATE_CACHE_KEYS.stickerOffIds, JSON.stringify(asArr(ss.offIds)));
-            // Hand-placed positions + the per-arrangement ✕ removals — seed only
-            // when present so a pre-sync local arrangement is never wiped.
+            // Locked composition (hand-placed spots) + its capture aspect — seed
+            // only when present so a pre-sync local composition is never wiped.
             const placements = ss.placements;
             if (placements && typeof placements === 'object' && !Array.isArray(placements)) {
                 localStorage.setItem(STATE_CACHE_KEYS.stickerPlacements, JSON.stringify(placements));
             }
-            const compOff = ss.compOff;
-            if (compOff && typeof compOff === 'object' && !Array.isArray(compOff)) {
-                localStorage.setItem(STATE_CACHE_KEYS.stickerCompOff, JSON.stringify(compOff));
+            if (typeof ss.placementAspect === 'number' && ss.placementAspect > 0) {
+                localStorage.setItem(STATE_CACHE_KEYS.stickerPlaceAspect, String(ss.placementAspect));
             }
             window.dispatchEvent(new CustomEvent('pd:stickers-changed'));
         }

@@ -24,7 +24,7 @@ const OWNED_KEY = STATE_CACHE_KEYS.ownedStickers;
 const OFF_SHEETS_KEY = STATE_CACHE_KEYS.stickerOffSheets;
 const OFF_IDS_KEY = STATE_CACHE_KEYS.stickerOffIds;
 const PLACEMENTS_KEY = STATE_CACHE_KEYS.stickerPlacements;
-const COMP_OFF_KEY = STATE_CACHE_KEYS.stickerCompOff;
+const PLACE_ASPECT_KEY = STATE_CACHE_KEYS.stickerPlaceAspect;
 const EVT = 'pd:stickers-changed';
 
 function readArr(key: string): string[] {
@@ -61,13 +61,14 @@ function readJson<T>(key: string, fallback: T): T {
    never fires for a logged-out / boot-time device. Exported so the placement
    store reuses the exact same writer (one source of truth for the blob). */
 export function pushStickerState() {
+    const aspectRaw = typeof window !== 'undefined' ? parseFloat(window.localStorage.getItem(PLACE_ASPECT_KEY) || '') : NaN;
     pushState({
         sticker_state: {
             owned: readArr(OWNED_KEY),
             offSheets: readArr(OFF_SHEETS_KEY),
             offIds: readArr(OFF_IDS_KEY),
-            placements: readJson(PLACEMENTS_KEY, {} as Record<string, { x: number; y: number; z: number }>),
-            compOff: readJson(COMP_OFF_KEY, { sig: '', ids: [] as string[] }),
+            placements: readJson(PLACEMENTS_KEY, {} as Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>),
+            ...(Number.isFinite(aspectRaw) && aspectRaw > 0 ? { placementAspect: aspectRaw } : {}),
         },
     });
 }
