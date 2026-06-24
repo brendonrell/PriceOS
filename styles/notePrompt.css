@@ -192,6 +192,18 @@ body.colorway-dark .note-prompt-btn {
     border-color: #111111;
 }
 
+/* Delete — destructive, parked on the far right of the action row (Brendon,
+   2026-06-24). Tap opens the house confirm card before anything is cleared. */
+.note-prompt-btn--delete {
+    margin-left: auto;
+    color: #ff0055;
+    border-color: rgba(255, 0, 85, 0.45);
+}
+body.colorway-dark .note-prompt-btn--delete {
+    color: #ff3d7f;
+    border-color: rgba(255, 61, 127, 0.5);
+}
+
 body.colorway-dark .note-prompt-btn.primary {
     background: #e0e0e0;
     color: #111111;

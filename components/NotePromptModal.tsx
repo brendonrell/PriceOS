@@ -70,6 +70,10 @@ export default function NotePromptModal({
   // Internal mode: 'view' shows the rendered markdown; 'edit' shows the textarea.
   const [mode, setMode] = useState<'view' | 'edit'>('edit');
 
+  // Delete-confirm overlay (the house confirm card, same as minting). Only
+  // reachable when an existing note is open (initialValue non-empty).
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
   // Live textarea value. Reset to initialValue on each open.
   const [value, setValue] = useState('');
 
@@ -92,6 +96,7 @@ export default function NotePromptModal({
     if (open) {
       setMode(initialValue ? 'view' : 'edit');
       setValue(initialValue);
+      setConfirmingDelete(false);
     }
   }, [open, initialValue]);
 
@@ -183,7 +188,9 @@ export default function NotePromptModal({
     .filter(Boolean)
     .join(' ');
 
-  return createPortal(
+  return (
+    <>
+    {createPortal(
     <div
       className={wrapClassName}
       onMouseDown={handleBackdropMouseDown}
@@ -234,6 +241,17 @@ export default function NotePromptModal({
           >
             {saveLabel}
           </button>
+          {/* Delete — only for an existing saved note. Routes through the
+              house confirm card (same as minting) before clearing. */}
+          {initialValue && (
+            <button
+              type="button"
+              className="note-prompt-btn note-prompt-btn--delete"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete
+            </button>
+          )}
         </div>
         <div className="note-prompt-markdown-hint">
           Markdown supported: **bold**, _italic_, `code`
@@ -241,5 +259,37 @@ export default function NotePromptModal({
       </div>
     </div>,
     document.body,
+    )}
+    {confirmingDelete && createPortal(
+      <div
+        className="starred-confirm-overlay"
+        role="dialog"
+        aria-modal="true"
+        style={{ zIndex: 10002 }}
+        onClick={() => setConfirmingDelete(false)}
+      >
+        <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+          <div className="ms-confirm-question">Delete this note?</div>
+          <div className="ms-confirm-btns">
+            <button
+              type="button"
+              className="ms-confirm-btn ms-confirm-btn--cancel"
+              onClick={() => setConfirmingDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="ms-confirm-btn ms-confirm-btn--ok"
+              onClick={() => { setConfirmingDelete(false); onSave(''); }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }
