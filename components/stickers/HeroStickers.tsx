@@ -90,8 +90,12 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     /* The currently lifted sticker (floating + ✕), own profile only. */
     const [lifted, setLifted] = useState<string | null>(null);
 
-    // Track the tab row's width so the stickers stop at the +More edge.
+    // Track the tab row's width so the stickers stop at the +More edge. Skipped
+    // in preview (Manager Plus): the post-mount measurement would re-lay-out the
+    // panel and momentarily collapse the control labels. The preview just fills
+    // its container (CSS caps it to 100%).
     useEffect(() => {
+        if (preview) return;
         const measure = () => {
             const el = document.getElementById('profileTabsRow');
             if (el) setClampW(el.getBoundingClientRect().width || null);
@@ -107,7 +111,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
             window.removeEventListener('resize', measure);
             window.removeEventListener('orientationchange', measure);
         };
-    }, []);
+    }, [preview]);
 
     /* The saved composition that drives the LOCKED picture: the owner's live
        local store on their own profile, the public snapshot for visitors. */
