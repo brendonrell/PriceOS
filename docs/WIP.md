@@ -7,11 +7,13 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
-  branch `claude/practical-hamilton-x4cg3o` is trash (work is on dev) — Brendon deletes on GitHub.
+  branch `claude/sticker-manager-modal-layout-dn4yfo` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-23 (later run). This session = **Profile Logo/Sprite finish + site-wide
-  smart-loading + Bench** (🚀 below), all shipped to dev — the whole spoken backlog is CLEARED.
-  Prior runs today: multi-feature + spot-edit (🧰), DIGITAL FAMILIAR + NPC CAST (🐉) — below.
+- **Updated:** 2026-06-24. This session = **MY HISTORY feature on its own DB table + views pillar +
+  sticker-manager/breadcrumb/profile polish** (🕰️ below), all shipped to dev.
+  - **⚠️ END NOTE:** the model was visibly off late in this session (repeated misreads of simple asks
+    — Brendon flagged it). Re-verify the History timeline + Starred Soundtracks name on the live deploy
+    before building further on them.
 - **QUEUED (not built):** (1) **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
   LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
   The Tape. Source = the homepage milestone feed (`projects.milestones` JSONB / home feed, NOT the
@@ -21,6 +23,39 @@
   long-press **mini carousel quarter-scale** (`zoom: 0.25` on `.name-carousel-card .home-carousel-row`)
   are sensible defaults. (b) the **celestial sky row** (`pcel-sky`) uses FIXED luminary glyphs ☉ ☽ ↑ —
   zodiac SIGN glyphs are colour-emoji on iOS, so a project's *actual* sun/moon/rising can't be glyphed.
+
+## 🕰️ 2026-06-24 — MY HISTORY + VIEWS PILLAR + POLISH — shipped to dev
+- **MY HISTORY (new, private, own-profile):** a "My History" pill at the END of +More. Shows the last
+  **100** viewed Outputs, **read from a dedicated DB table** (`output_views`), freshest first,
+  **day-grouped** (Today/Yesterday/date, Courier headers) on a **feed-style timeline**. Reuses the
+  Starred **Outputs** rows (StarredList `kind='history'` + `timeline`), traits line dropped for compactness,
+  thumb 20% smaller (51px). Timeline = REAL 2-col grid (`.history-tl-row`: rail lane node+line / content
+  lane) so the rail NEVER overlaps content (the earlier absolute-overlay was the overlap bug).
+  Two L3 pills **History: ON / History: OFF** toggle recording via a mint-style confirm both ways; OFF
+  genuinely stops recording instantly + shows a null note. ✕ deletes a row from the table.
+- **Views pillar (DATA ONLY — NO UI, by Brendon's order):** `output_views` table (RLS-locked, service-role
+  only) + SQL fns `record_output_view` / `output_view_stats`. Every Output open records a view (gated on
+  History recording). `output_view_stats` can return total/unique/mutuals (anonymized) — **kept out of the
+  UI**; surface only when Brendon designs it. `/api/output-views` (POST record), `/api/history` (GET list +
+  DELETE). I WRONGLY shipped a view-counts readout on the output modal then RIPPED IT OUT — UI always needs
+  Brendon's sign-off. `breadcrumbs` settings shape now `{k,t}[]` (timestamps); cap 60→100.
+- **Breadcrumb writes:** account write-through is now DEBOUNCED (~1.5s, max ~8s) + keepalive-flush on
+  tab-hide (`pushSettingsDebounced` in `userState`) — was one PATCH per card. Recent pills = global recent 5,
+  `(rank) @name #id`, other-project pills half-opacity + inert.
+- **Sticker Manager Plus:** preview box height hard-LOCKED on open (only stickers animate, box never resizes);
+  10 generative "plunk-in" builds (independent translate/rotate/scale, re-rolled per open), slowed right down;
+  more preview padding so tilted stickers don't clip; compact menu nudged down to clear the spill;
+  iOS sideways-shove fix held (overflow-x hidden + scrollLeft pin).
+- **Spot edits:** note ⊟ on artwork tiles → moved into the caption (right of the owned check), tap opens the
+  REAL note (not a peek); Delete × in notes → red, 32px; home **Shuffle** + profile **gen-curated** no longer
+  double-cycle (seeded/once-built, not unseeded Math.random on every async dep); Starred Soundtracks shows the
+  soundtrack NAME (`project.soundtrack.label` — the attributes value); +More order: Discord↔Counterparties,
+  Info↔Anointed; settings sticker icon unbolded+down 2px.
+- **ClickUp:** Project Gnome concept + Gnome's-Favour→Appraiser idea filed (02 · PriceOS → Ideas).
+- **QUEUED (idea/ask, NOT built):** (a) make the output-page **Soundtrack attribute** starrable into Starred
+  Soundtracks (proposed: long-press the tile, reuse the existing soundtrack-star mechanic — awaiting Brendon's
+  nod on the affordance). (b) **mutuals'-views gallery sort** + any view-count UI — only when Brendon designs
+  the surface; the data pillar is ready.
 
 ## 🚀 2026-06-23 (later) — PROFILE LOGO/SPRITE + SITE-WIDE SMART-LOADING + BENCH — shipped to dev
 - **Profile Logo finished:** classic-INVERTED (attention-yellow bubble / hothurt-red ‰) for the bubble
