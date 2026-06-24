@@ -5916,7 +5916,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     cursor: pointer;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1;
     opacity: 0.85;
     -webkit-tap-highlight-color: transparent;
