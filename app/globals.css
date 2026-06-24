@@ -8715,8 +8715,18 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    full-width (Brendon, 2026-06-24). */
 .history-feed-content { min-width: 0; }
 .history-feed-content .starred-row { width: 100%; }
-/* The clock node aligns with the top of the card, like the feed glyphs. */
+/* The node aligns with the top of the card, like the feed glyphs. */
 .history-feed-row .f-icon-wrap { top: 0; }
+/* The dashed line connecting one viewed-output node to the next. The shared feed
+   line is a faint white that washes out on coloured themes — give the History
+   timeline a line that reads on every colorway, and span it node-to-node so the
+   tape is unbroken down the column (Brendon, 2026-06-24). */
+.history-feed-row .feed-line {
+    top: 26px;
+    bottom: -14px;
+    left: 6px;
+    border-left: 2px dashed var(--text-color);
+}
 /* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
 
