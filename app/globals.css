@@ -5016,6 +5016,15 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .pill.pill-l1.pill-fate-icon .stat-name { position: relative; top: 2px; }
 
+/* Mobile-only icon-pill nudges (Brendon, 2026-06-24):
+   hexagram (Fate) up 1px; Notes +1px & down 1px; Recents (clock) +1px.
+   Placed after the unconditional Fate rule above so the Fate top wins. */
+@media (max-width: 600px) {
+    .pill.pill-l1.pill-fate-icon .stat-name { top: 1px; }
+    .pill.pill-l1.pill-notes-icon .stat-name { font-size: 17px; position: relative; top: 1px; }
+    .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; }
+}
+
 /* Count tab — display only, no interaction */
 .ms-float-count {
     background: var(--text-color);
