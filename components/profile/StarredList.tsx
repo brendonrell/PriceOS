@@ -953,7 +953,7 @@ function StarredOutputRow({
     return (
         <div className="feed-row history-feed-row">
             <div className="feed-line" />
-            <div className="f-icon-wrap" aria-hidden="true">◷&#xFE0E;</div>
+            <div className="f-icon-wrap" aria-hidden="true">⬚&#xFE0E;</div>
             <div className="f-content history-feed-content">{row}</div>
         </div>
     );
