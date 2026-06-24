@@ -207,7 +207,7 @@ body.colorway-dark .note-prompt-btn--delete {
     color: #111111;
     border-color: #e0e0e0;
 }
-.note-prompt-btn--delete .note-delete-x { color: var(--hothurt); font-weight: bold; }
+.note-prompt-btn--delete .note-delete-x { color: var(--hothurt); font-weight: bold; font-size: 16px; }
 
 body.colorway-dark .note-prompt-btn.primary {
     background: #e0e0e0;
