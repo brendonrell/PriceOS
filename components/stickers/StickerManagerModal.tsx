@@ -418,9 +418,7 @@ export function StickerManagerModal({
                         they scroll together with the grid. */}
                     <div className="ambient-pop-page smgr-sheet-page">
                         <Row label="Sheets">
-                            {ownedSheets.map((sh) => (
-                                <Chip key={sh.id} on={!offSheets.has(sh.id)} onClick={() => toggleSheet(sh.id)}>{sh.name}</Chip>
-                            ))}
+                            {ownedSheets.map(sheetPill)}
                         </Row>
                         <div className="ambient-pop-row smgr-grid-row">
                             <span className="ambient-pop-label">Stickers</span>
