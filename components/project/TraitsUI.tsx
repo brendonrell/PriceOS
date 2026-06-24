@@ -202,12 +202,12 @@ const L2_DICT: Record<
         'Global':    ['Top Holders', 'PriceRank', 'Counterparties', 'New to PD', 'Fresh Wallets'],
     },
     Breadcrumb: {
-        /* Sim's L3 = session-random token IDs; for v0 the L2 narrows are
-           rendered but L3 stays empty until breadcrumb-data wires in.
-           Empty arrays here mean L3 row shows nothing — L1 active +
-           L2 narrowing visible without spurious leaves. */
-        "What's Hot":     [],
+        /* Recent's two views are EITHER/OR, not filters (Brendon, 2026-06-24):
+           'My Breadcrumbs' (first + default) = the recent-visit trail; "What's
+           Hot" = empty for now (wires into the view counter later). Order here
+           sets pill order — My Breadcrumbs leads. */
         'My Breadcrumbs': [],
+        "What's Hot":     [],
     },
 
     /* Feed-mode-only L1 cats (sim 7390-7395 GodModeDict). */
@@ -594,10 +594,14 @@ export default function TraitsUI({
        read straight from L3_FLAT_POOL. */
     const l3Pool: readonly string[] = (() => {
         if (activeL1 === null) return [];
-        /* Recent (Breadcrumb) L3 = the 5 most-recent global visits, freshest
-           first, encoded `slug:id` — not the empty placeholder buckets
-           (Brendon, 2026-06-24). */
-        if (activeL1 === 'Breadcrumb') return recentGlobal.map((b) => `${b.slug}:${b.id}`);
+        /* Recent (Breadcrumb) — either/or. 'My Breadcrumbs' (default) = the 5
+           most-recent global visits, freshest first, encoded `slug:id`. "What's
+           Hot" = empty for now (wires into the view counter later). */
+        if (activeL1 === 'Breadcrumb') {
+            return activeSubFilter === "What's Hot"
+                ? []
+                : recentGlobal.map((b) => `${b.slug}:${b.id}`);
+        }
         if (l2Visible) {
             if (activeSubFilter === 'All') {
                 /* Feed-mode 'Traits' wrapper defaults to the first trait's

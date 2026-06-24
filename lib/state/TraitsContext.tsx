@@ -241,7 +241,10 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
        activeCategory write). */
     const setActiveCategory = useCallback((c: TraitCategory | null) => {
         setActiveCategoryState(c);
-        setActiveSubFilterState('All');
+        /* Recent (Breadcrumb) opens on 'My Breadcrumbs' — its two views are
+           either/or, not filters, so one is always selected (Brendon,
+           2026-06-24). Every other L1 opens neutral ('All'). */
+        setActiveSubFilterState(c === 'Breadcrumb' ? 'My Breadcrumbs' : 'All');
     }, []);
 
     /* Build 16: clear active L1 + drain its filter Set in one transaction.
@@ -310,6 +313,10 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
     const setSubFilter = useCallback((sub: string) => {
         setActiveSubFilterState((prev) => {
             if (prev === sub) {
+                /* Recent (Breadcrumb) is strict either/or — clicking the
+                   already-active view keeps it selected, never drops to a
+                   neutral state (Brendon, 2026-06-24). */
+                if (activeCategory === 'Breadcrumb') return sub;
                 /* sim 8290 — feed-mode Traits sub-default is 'Gateway',
                    not 'All'. We can't read activeFeedCategory off the
                    functional updater here, so check it via closure
@@ -319,7 +326,7 @@ export function TraitsProvider({ children }: { children: ReactNode }) {
             }
             return sub;
         });
-    }, []);
+    }, [activeCategory]);
 
     /* Mirrors sim's toggleFilter (sim 8298): if the value is already in the
        Set for that category, remove it; otherwise add it. We clone the Set
