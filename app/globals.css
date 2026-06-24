@@ -8724,6 +8724,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .history-feed-row .feed-line {
     border-left-color: var(--text-color);
     opacity: 0.9;
+    /* Nudge the connector down 3px to sit between the nodes (Brendon, 2026-06-24). */
+    top: 33px;
+    bottom: -15px;
 }
 /* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
