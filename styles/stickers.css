@@ -877,7 +877,7 @@ body.sticker-mode .hero-stickers { display: none; }
     font: bold 24px/1 'Courier New', Courier, monospace;
     opacity: 1;
     position: relative;
-    top: -1px;
+    top: -2px;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -887,6 +887,7 @@ body.sticker-mode .hero-stickers { display: none; }
     z-index: 1330;
     /* Dim moved to ::before so it can fade independently of the panel. */
     background: transparent;
+    overscroll-behavior: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -978,6 +979,9 @@ body.sticker-mode .hero-stickers { display: none; }
     min-width: 0;
     overflow-y: auto;
     overflow-x: clip;
+    /* Keep the scroll INSIDE the menu — never chain to the page or trip
+       pull-to-refresh (Brendon, 2026-06-24). */
+    overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
     gap: 12px;

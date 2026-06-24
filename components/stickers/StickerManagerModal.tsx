@@ -12,8 +12,13 @@
  * is saved in the background and the hero updates live via its own subscription.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
+/* Measure-before-paint on the client (plain effect on the server, where there's
+   no layout) so the popup is positioned on its very first painted frame. */
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 import { createPortal } from 'react-dom';
+import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { SHEETS, type Sticker } from '../../lib/stickers/catalog';
@@ -110,11 +115,20 @@ export function StickerManagerModal({
         return () => window.removeEventListener('keydown', onKey);
     }, [open, onClose]);
 
+    /* Freeze the page underneath while the manager is open — without this a drag
+       inside the menu scrolls the profile behind it and trips pull-to-refresh
+       (Brendon, 2026-06-24). */
+    useEffect(() => {
+        if (!open) return;
+        lockBodyScroll();
+        return () => unlockBodyScroll();
+    }, [open]);
+
     // Anchor the popup DIRECTLY BELOW the sticker area so your stickers stay
     // visible above it — you watch the changes land as you make them. Height is
     // capped to the room below (never taller than the ambient menu).
     const [anchor, setAnchor] = useState<{ top: number; left: number; maxH: number } | null>(null);
-    useEffect(() => {
+    useIsoLayoutEffect(() => {
         if (!open || typeof window === 'undefined') return;
         const measure = () => {
             const el = document.querySelector('.hero-stickers');
