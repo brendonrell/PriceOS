@@ -735,8 +735,9 @@
 /* The manager menu reuses the Ambient Light shell (.ambient-pop) verbatim — same
    height, pager, dots, chips, code row. These are the only sticker-specific
    extras: a compact STORE pill in the header + the owned-sticker grid row. */
-.sticker-pop .ambient-pop-title { padding-right: 56px; }
-.sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; }
+.sticker-pop .ambient-pop-title { padding-right: 40px; flex-wrap: nowrap; }
+.sticker-pop .ambient-pop-title-text { white-space: nowrap; }
+.sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; white-space: nowrap; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
    height. `clip` (both axes) so there's NO sideways scroll: overflow-y:hidden
