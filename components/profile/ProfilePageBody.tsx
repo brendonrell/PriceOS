@@ -2425,7 +2425,7 @@ function ProfilePageBodyInner({
                                                           {folded ? '▸︎' : '▾︎'}
                                                       </span>
                                                       <span className="ggh-label">{h.label}</span>
-                                                      {h.by ? <span className="ggh-by"> by @{h.by}</span> : null}
+                                                      {h.by ? <span className="ggh-by"> by @{h.by.replace(/^@/, '')}</span> : null}
                                                       {h.soon ? <span className="ggh-soon">coming soon</span> : null}
                                                       {!h.soon && groupHeaderGlyph(group, h.level)
                                                           ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
