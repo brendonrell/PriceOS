@@ -899,6 +899,7 @@ function StarredOutputRow({
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
                 </span>
+                {!timeline && (
                 <span className="starred-row-sub srl-redact">
                     {extraPairs.length > 0
                         ? extraPairs.map((p, i) => (
@@ -906,6 +907,7 @@ function StarredOutputRow({
                           ))
                         : (fate || ' ')}
                 </span>
+                )}
                 <span className="starred-row-sub srl-by">{artist ? `by: ${artist}` : ' '}</span>
                 <span className="starred-row-sub">Output</span>
             </div>
