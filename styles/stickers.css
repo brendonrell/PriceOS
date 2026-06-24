@@ -869,6 +869,14 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Sticker store header — mobile only (Brendon, 2026-06-24): bigger left sticker
+   icon + arrow nudged up 1px. Covers both the compact and Manager Plus headers
+   (shared classes), every colorway. */
+@media (max-width: 600px) {
+    .smgr-title-ic { font-size: 23px; }
+    .smgr-expand { top: -2px; }
+}
+
 .sticker-mgr-plus-backdrop {
     position: fixed;
     inset: 0;
