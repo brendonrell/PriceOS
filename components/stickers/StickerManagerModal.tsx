@@ -283,7 +283,7 @@ export function StickerManagerModal({
                         <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                             <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                         </button>
-                        <button className="smgr-expand" type="button" onClick={() => setFull(false)} title="Exit full screen" aria-label="Exit full screen">
+                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Sticker Manager: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
                         </button>
                         <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={onClose}
@@ -359,7 +359,7 @@ export function StickerManagerModal({
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>
-                    <button className="smgr-expand" type="button" onClick={() => setFull(true)} title="Open Manager Plus" aria-label="Open Manager Plus">
+                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Sticker Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
                         {`↑${VS15}`}
                     </button>
                 </div>
