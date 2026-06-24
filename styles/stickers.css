@@ -971,8 +971,11 @@
    (Brendon 2026-06-23). */
 .smgr-plus-preview { animation: smgr-preview-in 1.4s ease both; }
 @keyframes smgr-preview-in {
-    from { opacity: 0; transform: scale(0.97); }
-    to   { opacity: 1; transform: none; }
+    /* Opacity ONLY — a `transform` here makes the preview a containing block and
+       leaks layout side-effects into the rows below (collapsing the labels)
+       during the animation (Brendon 2026-06-24). */
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 .smgr-plus-preview .hero-sticker { animation: smgr-sticker-in 2s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
 @keyframes smgr-sticker-in {
