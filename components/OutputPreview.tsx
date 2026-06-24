@@ -110,7 +110,8 @@ import {
     subscribeMuted,
     toggleMute as storeToggleMute,
 } from '../lib/pins/muteStore';
-import { recordVisit } from '../lib/pins/breadcrumbStore';
+import { recordVisit, isRecordingEnabled } from '../lib/pins/breadcrumbStore';
+import { recordOutputView, fetchOutputViewStats, type OutputViewStats } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useCart } from '../lib/state/CartContext';
@@ -288,6 +289,18 @@ export default function OutputPreview() {
        funnel into) covers gallery, carousels, shuffle and profile grids. */
     useEffect(() => {
         if (isOpen && id != null) recordVisit(slug, id);
+    }, [isOpen, id, slug]);
+
+    /* Views pillar — record a view (server attributes it to the signed-in
+       viewer) and pull the anonymized counts for this output. Gated on the
+       History "Recording" toggle: OFF → record nothing (Brendon, 2026-06-24). */
+    const [viewStats, setViewStats] = useState<OutputViewStats | null>(null);
+    useEffect(() => {
+        if (!isOpen || id == null) { setViewStats(null); return; }
+        if (isRecordingEnabled()) recordOutputView(slug, id);
+        let alive = true;
+        fetchOutputViewStats(slug, id).then((s) => { if (alive) setViewStats(s); });
+        return () => { alive = false; };
     }, [isOpen, id, slug]);
 
     /* Note active state — filled/bold icon when a note exists for this token. */
@@ -755,6 +768,21 @@ export default function OutputPreview() {
                         )}
                     </span>
                 </div>
+                {/* Views row (anonymized) — total unique viewers + how many are
+                    your mutuals. Hidden until at least one view exists. */}
+                {viewStats && viewStats.totalViewers > 0 && (
+                    <div className="dp-row">
+                        <span className="dp-label">Views</span>
+                        <span className="dp-value">
+                            <span className="dp-value-text">
+                                {viewStats.totalViewers.toLocaleString()}
+                                {viewStats.mutualViewers > 0 && (
+                                    <> · {viewStats.mutualViewers} mutual{viewStats.mutualViewers === 1 ? '' : 's'}</>
+                                )}
+                            </span>
+                        </span>
+                    </div>
+                )}
                 {/* Artwork Page row */}
                 <div className="dp-row">
                     <span className="dp-label">Artwork Page</span>
