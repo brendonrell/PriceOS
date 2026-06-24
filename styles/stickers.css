@@ -920,7 +920,7 @@ body.sticker-mode .hero-stickers { display: none; }
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    overflow-x: clip;
+    overflow-x: hidden;
     font-family: 'Courier New', Courier, monospace;
     /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
        scroll (Brendon 2026-06-23). */
@@ -978,7 +978,12 @@ body.sticker-mode .hero-stickers { display: none; }
     min-height: 0;
     min-width: 0;
     overflow-y: auto;
-    overflow-x: clip;
+    /* HIDDEN, not clip: WebKit doesn't honour `clip` on a box that also scrolls
+       vertically — it degrades to a horizontal scroller, lays the rows out at
+       full content width, and iOS shoves it sideways on open (labels off-screen
+       left). `hidden` reliably wraps the rows to the visible width; the residual
+       iOS sideways-shove is pinned back to 0 in JS (Brendon, 2026-06-24). */
+    overflow-x: hidden;
     /* Keep the scroll INSIDE the menu — never chain to the page or trip
        pull-to-refresh (Brendon, 2026-06-24). */
     overscroll-behavior: contain;

@@ -69,6 +69,7 @@ export function StickerManagerModal({
     const [density, setDen] = useState(0);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
+    const plusBodyRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
     /* Manager Plus — the full-screen (mobile) / jumbo (desktop) view. Opened by
        the ↑ in the header; resets when the menu closes. */
@@ -107,6 +108,20 @@ export function StickerManagerModal({
             if (el) el.scrollLeft = saved * el.clientWidth;
         });
     }, [open]);
+
+    /* Manager Plus: the scrolling control body is vertical-only, but iOS WebKit
+       turns a vertical scroller into a horizontal one too and shoves it sideways
+       on open — leaving every control row's label + first chip off the left edge.
+       Hard-pin its horizontal scroll to 0 across the open + entrance frames so the
+       rows always sit flush left (Brendon, 2026-06-24). */
+    useEffect(() => {
+        if (!full) return;
+        const pin = () => { const el = plusBodyRef.current; if (el && el.scrollLeft !== 0) el.scrollLeft = 0; };
+        pin();
+        const r = requestAnimationFrame(pin);
+        const t = window.setTimeout(pin, 300);
+        return () => { cancelAnimationFrame(r); window.clearTimeout(t); };
+    }, [full]);
 
     useEffect(() => {
         if (!open) return;
@@ -309,7 +324,14 @@ export function StickerManagerModal({
 
                     {previewNode != null && <div className="smgr-plus-preview" aria-label="Live preview">{previewNode}</div>}
 
-                    <div className="smgr-plus-body">
+                    <div
+                        className="smgr-plus-body"
+                        ref={plusBodyRef}
+                        /* Belt-and-suspenders: if WebKit ever scrolls the body
+                           sideways, snap it straight back (vertical scroll is
+                           untouched — scrollLeft is always meant to be 0). */
+                        onScroll={(e) => { const el = e.currentTarget; if (el.scrollLeft !== 0) el.scrollLeft = 0; }}
+                    >
                         <Row label="Layout">
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
