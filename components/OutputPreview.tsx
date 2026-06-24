@@ -929,7 +929,7 @@ export default function OutputPreview() {
                                 {`\u25F0${VS15}`}
                             </span>
                             <span
-                                className={`modal-pill${isPinned ? ' active' : ''}`}
+                                className={`modal-pill modal-pill--grail${isPinned ? ' active' : ''}`}
                                 title="Grail Pin"
                                 onClick={togglePin}
                             >
@@ -985,7 +985,7 @@ export default function OutputPreview() {
                                 {actionLabel}
                             </button>
                             <button
-                                className="modal-action-btn-calc"
+                                className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}`}
                                 id="mActionCalc"
                                 onClick={() => {
                                     if (calcMode === 'user-showcase') {
@@ -1123,7 +1123,7 @@ export default function OutputPreview() {
                         {`\u25F0${VS15}`}
                     </span>
                     <span
-                        className={`modal-pill${isPinned ? ' active' : ''}`}
+                        className={`modal-pill modal-pill--grail${isPinned ? ' active' : ''}`}
                         title="Grail Pin"
                         onClick={togglePin}
                     >
@@ -1148,7 +1148,7 @@ export default function OutputPreview() {
                             {actionLabel}
                         </button>
                         <button
-                            className="modal-action-btn-calc"
+                            className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}`}
                             onClick={() => {
                                 if (calcMode === 'user-showcase') {
                                     showToast('Add to Showcase: COMING SOON');

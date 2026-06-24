@@ -609,6 +609,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     .modal-pill { font-size: 22px; }
     /* Showcase icon in CTA calc tab — 2 steps larger on mobile to match desktop bump */
     .modal-action-btn-calc { font-size: 19px; }
+    /* Grail pin — half a size smaller (−1px) + nudged down 1px (Brendon, 2026-06-24). */
+    .modal-pill.modal-pill--grail { font-size: 21px; position: relative; top: 1px; }
+    /* Showcase icon (⑆) in the calc tab beside LIST — one size larger (Brendon, 2026-06-24). */
+    .modal-action-btn-calc.is-showcase { font-size: 21px; }
 }
 
 

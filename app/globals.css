@@ -5054,7 +5054,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    Placed after the unconditional Fate rule above so the Fate top wins. */
 @media (max-width: 600px) {
     .pill.pill-l1.pill-fate-icon .stat-name { top: 1px; }
-    .pill.pill-l1.pill-notes-icon .stat-name { font-size: 17px; position: relative; top: 1px; }
+    .pill.pill-l1.pill-notes-icon .stat-name { font-size: 17px; position: relative; top: 0.5px; }
     .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; }
 }
 
