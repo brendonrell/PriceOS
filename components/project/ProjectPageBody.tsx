@@ -417,7 +417,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory';
+    type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers';
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('replay');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
@@ -1350,16 +1350,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             visible
                             hideSortBar
                             profilePills={[
+                                { key: 'attributes', label: 'Attributes', active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
+                                { key: 'offers', label: 'Offers', active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
+                                { key: 'pricestory', label: 'Price Story', active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
                                 { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
-                                { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
-                                { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
-                                { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
                                 { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
-                                { key: 'attributes', label: 'Attributes', active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
-                                /* Price Story is pinned LAST so it's always easy to find (Brendon, 2026-06-16). */
-                                { key: 'pricestory', label: 'Price Story', active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
+                                { key: 'albums', label: 'Albums', active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
+                                { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}
                         />
                     )}
@@ -1862,6 +1862,14 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 {/* PRICE STORY — empty for now (Brendon, 2026-06-16). Empty box
                     gives the title a home. */}
                 <div className="more-section-header">PRICE STORY</div>
+                <div className="more-box-wrap">
+                    <div className="more-box-card more-box-empty" />
+                </div>
+                </>)}
+                {moreL1 === 'offers' && (<>
+                {/* OFFERS — empty for now (Brendon, 2026-06-24). Empty box gives
+                    the title a home. */}
+                <div className="more-section-header">OFFERS</div>
                 <div className="more-box-wrap">
                     <div className="more-box-card more-box-empty" />
                 </div>
