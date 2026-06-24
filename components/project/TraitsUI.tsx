@@ -196,7 +196,7 @@ const L2_DICT: Record<
        in BOTH feed and non-feed modes (sim 8588 — `(isFeed && active) ||
        (!isFeed && activeCategory === 'Network')`). */
     Network: {
-        'My Circle': ['Me', 'Mutuals', 'Following', 'Followers'],
+        'My Circle': ['Me', 'Sigil', 'Counterparties', 'Mutuals', 'Following', 'Followers'],
         'Global':    ['Top Holders', 'New to PD', 'Fresh Wallets'],
     },
     Breadcrumb: {
