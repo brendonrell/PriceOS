@@ -75,7 +75,7 @@ export default function ArtworkPageBody({
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
-    const [moreL1, setMoreL1] = useState<MoreL1>('stats');
+    const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
 
     /* Stat-icon toast helper — mirrors project + profile pages. */
     const iconToastProps = (label: string) => ({
