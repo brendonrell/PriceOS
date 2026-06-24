@@ -997,5 +997,5 @@ body.theme-bright .ui-knockout { background: #fff; color: #111; }
 
 /* Sheet pills wear the knockout look; de-selected sit at half strength. The
    outline tracks the knockout ink (currentColor) so it flips with the theme. */
-.pill.smgr-sheet-pill { border: 1.5px solid currentColor; opacity: 0.5; }
+.pill.smgr-sheet-pill { border: 2px dashed currentColor; opacity: 0.5; }
 .pill.smgr-sheet-pill.active { opacity: 1; border-color: transparent; }
