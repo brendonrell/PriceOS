@@ -1002,10 +1002,15 @@ body.sticker-mode .hero-stickers { display: none; }
 /* The live preview is a read-only mirror — fully inert. */
 .hero-stickers-canvas.is-preview { pointer-events: none; }
 
+/* ⛔ PLUS-PREVIEW ANIMATION RULE (Brendon, 2026-06-24) — applies to THIS preview
+   ONLY, not the site. The preview BOX / background never animates: it must NOT
+   change height or size, and nothing may burst out of the menu. ONLY THE
+   STICKERS animate (the build), inside a fixed box. Container gets opacity at
+   most — never a transform or size change. */
 /* Entrance flourish — when Manager Plus opens, the panel settles in and the
-   preview stickers cascade in (staggered fade). Opacity + a container scale
-   only — never the stickers' own transforms, so placement is never disturbed
-   (Brendon 2026-06-23). */
+   preview stickers cascade in (staggered build). Opacity on the box only; the
+   stickers do all the motion via independent translate/rotate/scale so the box
+   never resizes and placement is never disturbed (Brendon 2026-06-23/24). */
 .smgr-plus-preview { animation: smgr-preview-in 0.5s ease both; }
 @keyframes smgr-preview-in {
     /* Opacity ONLY — a `transform` here makes the preview a containing block and
