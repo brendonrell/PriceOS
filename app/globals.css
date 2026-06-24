@@ -4498,15 +4498,17 @@ button,
     pointer-events: none;
 }
 body.sticker-mode .sticker-strike { opacity: 0.5; }
-/* Sticker (⊞) icon vertical centring: down 2px desktop, 1px higher on mobile. */
+/* Sticker (⊞) icon — unbold just this one toggle (the pill is bold, the icon
+   inherits it); vertical centring down 2px desktop, 1px higher on mobile. */
+#sn-sticker .st-icon { font-weight: normal; }
 .sticker-strike { transform: translateY(2px); }
-@media (max-width: 600px) { .sticker-strike { transform: translateY(1px); } }
+@media (max-width: 600px) { .sticker-strike { transform: translateY(2px); } }
 /* Desktop MY PD icon nudges (Brendon, 2026-06-22): Stickers two sizes smaller +
    up 2px; Ambient two sizes larger + up 3px; Price/‰ logo one size smaller +
    de-blurred (it's Inter on purpose). */
 @media (min-width: 601px) {
     #sn-sticker .st-icon { font-size: 12px !important; }
-    #sn-sticker .sticker-strike { transform: translateY(0); }
+    #sn-sticker .sticker-strike { transform: translateY(1px); }
     #sn-ambient .st-icon { font-size: 20px !important; transform: translateY(-3px); }
     #sn-priceLogo .st-icon {
         font-size: 14px !important;
