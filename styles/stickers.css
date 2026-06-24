@@ -275,6 +275,7 @@
 }
 .ss-card-line {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     font-size: 11px;
     font-weight: bold;
@@ -283,7 +284,11 @@
     margin: 5px 0 9px;
 }
 .ss-card-tag { color: var(--text-color); }
-.ss-card-meta .ss-buy { margin-top: auto; }
+/* Count stays a single unit ("30 stickers") pushed to the right of the row;
+   wraps to its own right-aligned line only if the card is too narrow. */
+.ss-card-count { white-space: nowrap; margin-left: auto; }
+/* Buy chip sits directly under the meta — no big pinned-to-bottom gap. */
+.ss-card-meta .ss-buy { margin-top: 0; }
 
 /* Buy chip — filled (the swapped state); inverts to outlined on hover. */
 .ss-buy {

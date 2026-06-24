@@ -118,6 +118,8 @@ export default function StickersModal() {
     const tickerDur = Math.max(26, Math.round(tickerText.length / 3.3));
 
     const ownedIds = useOwnedStickerIds();
+    /* Volume spent = sum of the prices of the sheets you own (Brendon, 2026-06-24). */
+    const spent = REAL_SHEETS.reduce((sum, sh) => (ownsSheet(sh.id, ownedIds) ? sum + parseFloat(sh.price) : sum), 0);
     const totalSheets = REAL_SHEETS.length;
     const detail = openSheet ? REAL_SHEETS.find((s) => s.id === openSheet) ?? null : null;
     /* The whole sheet, shuffled by the seed (fresh order each open) and shown in
@@ -247,7 +249,7 @@ export default function StickersModal() {
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
-                                <span className="ss-stat ss-bal">{`◊${VS15} 0.00`}</span>
+                                <span className="ss-stat ss-bal">{`◊${VS15} ${spent.toFixed(3)}`}</span>
                             </div>
                             <div
                                 className="ss-close"
@@ -308,10 +310,6 @@ export default function StickersModal() {
                     })()
                 ) : (
                     <>
-                        {/* Promo strip — attention yellow, empty for now. Hidden in the
-                            expanded grid view. */}
-                        {!expanded && <div className="ss-promo" aria-hidden="true" />}
-
                         <div className="ss-ticker" aria-hidden="true">
                             <div className="ss-ticker-track" style={{ animationDuration: `${tickerDur}s` }}>
                                 <span>{tickerText}</span>
