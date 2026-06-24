@@ -115,8 +115,11 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
 
     /* The saved composition that drives the LOCKED picture: the owner's live
        local store on their own profile, the public snapshot for visitors. */
-    const layoutMap = isOwn ? ownPlace.placements : (savedLayout ?? {});
-    const aspect = isOwn ? ownPlace.aspect : (savedAspect ?? null);
+    // The preview (Manager Plus) is fed the owner's saved composition up front so
+    // it paints LOCKED from the first frame — no generative-fallback flash, no
+    // height jump that shoves the panel content down (Brendon 2026-06-24).
+    const layoutMap = preview ? (savedLayout ?? {}) : (isOwn ? ownPlace.placements : (savedLayout ?? {}));
+    const aspect = preview ? (savedAspect ?? null) : (isOwn ? ownPlace.aspect : (savedAspect ?? null));
     const locked = Object.keys(layoutMap).length > 0;
 
     /* Locked composition, resolved + layered (z asc, last-touched on top). */
@@ -285,7 +288,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
             open={mgrOpen}
             onClose={() => setMgrOpen(false)}
             handle={(ownerHandle ?? '').replace(/^@/, '')}
-            previewNode={<HeroStickers ownerHandle={ownerHandle} isOwn preview />}
+            previewNode={<HeroStickers ownerHandle={ownerHandle} isOwn preview savedLayout={ownPlace.placements} savedAspect={ownPlace.aspect} />}
         />
     ) : null;
 
