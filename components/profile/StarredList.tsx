@@ -670,7 +670,7 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug}</span>
-                                    <span className="starred-row-sub">♫&#xFE0E; <em>{r.title}</em></span>
+                                    <span className="starred-row-sub">♫&#xFE0E; <em>{getProject(r.slug)?.soundtrack?.label ?? r.title}</em></span>
                                     <span className="starred-row-sub srl-by">{getProject(r.slug)?.artistHandle ? `by: @${getProject(r.slug)!.artistHandle}` : '\u00A0'}</span>
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
