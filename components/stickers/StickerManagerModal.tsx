@@ -74,6 +74,9 @@ export function StickerManagerModal({
     /* Manager Plus — the full-screen (mobile) / jumbo (desktop) view. Opened by
        the ↑ in the header; resets when the menu closes. */
     const [full, setFull] = useState(false);
+    /* Which entrance "build" the preview plays — one of 10 generative variants,
+       re-rolled every time Plus opens so the stickers plunk in a fresh way. */
+    const [fx, setFx] = useState(0);
 
     const look: StickerLook = { arrange, rows, align, tilt, expand, flip };
     const currentCode = encodeStickerCode(look);
@@ -322,7 +325,7 @@ export function StickerManagerModal({
                         </span>
                     </div>
 
-                    {previewNode != null && <div className="smgr-plus-preview" aria-label="Live preview">{previewNode}</div>}
+                    {previewNode != null && <div className={`smgr-plus-preview smgr-fx-${fx}`} aria-label="Live preview">{previewNode}</div>}
 
                     <div
                         className="smgr-plus-body"
@@ -399,7 +402,7 @@ export function StickerManagerModal({
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>
-                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Sticker Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
+                    <button className="smgr-expand" type="button" onClick={() => { setFx(Math.floor(Math.random() * 10)); setFull(true); showToast('Sticker Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
                         {`↑${VS15}`}
                     </button>
                 </div>
