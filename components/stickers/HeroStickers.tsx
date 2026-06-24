@@ -297,7 +297,15 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
 
     const baseTilt = tiltDeg(tilt);
     const jrnd = rngFrom(seed + 7);
-    const sz = (k: string) => (k === 'face' || k === 'output' ? 50 : 40);
+    /* Per-sticker render height. Output artworks render at half (they read big),
+       and ARTISTS-sheet sprites 20% down — owned stickers in any composition pick
+       this up automatically (Brendon, 2026-06-24). */
+    const sz = (s: Sticker) => {
+        const base = s.kind === 'face' || s.kind === 'output' ? 50 : 40;
+        if (s.kind === 'output') return base * 0.5;
+        if (s.sheet === 'artist') return base * 0.8;
+        return base;
+    };
     const areaStyle = { maxWidth: expand ? undefined : (clampW ?? undefined) };
     const alignClass = align === 'center' ? 'al-center' : align === 'right' ? 'al-right' : 'al-left';
     const flipOf = (id: string) => (flip && shouldFlip(id, seed) ? 180 : 0);
@@ -398,7 +406,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                         title={st.name}
                         {...ownDown(st)}
                     >
-                        <StickerArt sticker={st} size={sz(st.kind)} />
+                        <StickerArt sticker={st} size={sz(st)} />
                         {isOwn && lifted === st.id && (
                             <>
                                 <button
@@ -445,7 +453,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                             title={s.name}
                             {...ownDown(s)}
                         >
-                            <StickerArt sticker={s} size={sz(s.kind)} />
+                            <StickerArt sticker={s} size={sz(s)} />
                         </span>
                     );
                 })}
@@ -472,7 +480,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                             title={s.name}
                             {...ownDown(s)}
                         >
-                            <StickerArt sticker={s} size={sz(s.kind)} />
+                            <StickerArt sticker={s} size={sz(s)} />
                         </span>
                     );
                 })}
@@ -500,7 +508,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                                 title={s.name}
                                 {...ownDown(s)}
                             >
-                                <StickerArt sticker={s} size={sz(s.kind)} />
+                                <StickerArt sticker={s} size={sz(s)} />
                             </span>
                         );
                     })}

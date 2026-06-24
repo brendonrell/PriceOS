@@ -173,7 +173,10 @@ export function StickerManagerModal({
     const pickRows = (r: Rows) => { setRw(r); setRows(r); };
     const pickAlign = (a: Align) => { setAl(a); setAlign(a); };
     const pickFlip = (b: boolean) => { setFl(b); setFlip(b); };
-    const pickDensity = (d: number) => { setDen(d); setDensity(d); };
+    /* Density re-rolls the pile, so (like Layout) it drops a locked hand-placed
+       composition back to generative — otherwise the live preview stays pinned
+       to the saved layout and density looks dead (Brendon, 2026-06-24). */
+    const pickDensity = (d: number) => { clearPlacements(); setDen(d); setDensity(d); };
 
     // Apply a whole look at once (from a pasted code or Surprise).
     const applyLook = (l: StickerLook) => {
