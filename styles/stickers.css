@@ -901,8 +901,12 @@
     /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
        scroll (Brendon 2026-06-23). */
     padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
-    animation: smgr-pop 0.18s ease both;
+    /* Scale-FREE entrance: a scaling panel re-rasterizes its children mid-anim,
+       collapsing the fixed-width row labels until it settles. Slide + fade only
+       (Brendon 2026-06-24). */
+    animation: smgr-plus-pop 0.18s ease both;
 }
+@keyframes smgr-plus-pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (min-width: 601px) {
     /* Desktop: not full-screen — a big centred 'jumbo' panel. */
     .sticker-mgr-plus {
@@ -959,7 +963,7 @@
 .smgr-plus-body::-webkit-scrollbar { display: none; }
 /* Rows wrap their chips WITHIN the body — never let a wide pill row establish a
    width wider than the panel (which iOS would then try to scroll to). */
-.smgr-plus-body .ambient-pop-row { min-width: 0; flex-wrap: wrap; }
+.smgr-plus-body .ambient-pop-row { min-width: 0; }
 .smgr-plus-body .ambient-pop-chips { min-width: 0; }
 
 /* The live preview is a read-only mirror — fully inert. */
