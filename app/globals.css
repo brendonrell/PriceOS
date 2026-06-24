@@ -5912,14 +5912,14 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .meta-note-ic {
     display: inline-flex;
     align-items: center;
-    margin-left: 6px;
+    margin-left: 3px;
     cursor: pointer;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
     font-size: 17px;
     line-height: 1;
     position: relative;
-    top: 2px;
+    top: 0;
     opacity: 0.85;
     -webkit-tap-highlight-color: transparent;
 }
