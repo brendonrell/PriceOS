@@ -44,7 +44,7 @@ type ArtworkTab = 'artwork' | 'albums' | 'more';
 /* + More sub-sections — same set as the project page's + More. */
 type MoreL1 =
     | 'replay' | 'stats'
-    | 'social' | 'attributes' | 'pricestory' | 'asciibackup' | 'offers';
+    | 'social' | 'attributes' | 'pricestory' | 'asciibackup' | 'offers' | 'neighbourhood';
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'attributes', label: 'Attributes' },
     { key: 'offers', label: 'Offers' },
@@ -52,6 +52,7 @@ const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
     { key: 'social', label: 'Social' },
+    { key: 'neighbourhood', label: 'Neighbourhood' },
     { key: 'asciibackup', label: 'ASCII Backup' },
 ];
 
