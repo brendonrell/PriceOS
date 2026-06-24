@@ -8722,10 +8722,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    timeline a line that reads on every colorway, and span it node-to-node so the
    tape is unbroken down the column (Brendon, 2026-06-24). */
 .history-feed-row .feed-line {
-    top: 26px;
-    bottom: -14px;
-    left: 6px;
-    border-left: 2px dashed var(--text-color);
+    border-left-color: var(--text-color);
+    opacity: 0.9;
 }
 /* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
