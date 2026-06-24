@@ -952,9 +952,11 @@
     background: var(--bg-color);
     color: var(--text-color);
     border: 1.5px dotted var(--text-color);
+    opacity: 0.5;
 }
 .pill.smgr-sheet-pill.active {
     background: var(--text-color);
     color: var(--bg-color);
     border: 1.5px solid var(--text-color);
+    opacity: 1;
 }

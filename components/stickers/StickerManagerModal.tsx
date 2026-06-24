@@ -266,6 +266,7 @@ export function StickerManagerModal({
             className={`pill smgr-sheet-pill${!offSheets.has(sh.id) ? ' active' : ''}`}
             onClick={() => toggleSheet(sh.id)}
         >
+            <StickerArt sticker={sh.cover} size={14} />
             {sh.name}
         </button>
     );
