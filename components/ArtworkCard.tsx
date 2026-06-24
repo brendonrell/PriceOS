@@ -267,6 +267,45 @@ function ArtworkCard({
     }, []);
     const wishlisted = wishlistKeys.has(`${slug}:${id}`);
 
+    /* Per-output note (the viewer's private note for this piece, same store the
+       Notes list + My Notes filter read). When one exists, a tappable note glyph
+       sits in front of the owner name in the caption; tapping peeks the note text
+       right over the card and dismisses without leaving the grid (Brendon
+       2026-06-24). */
+    const [noteText, setNoteText] = useState('');
+    const [notePeek, setNotePeek] = useState(false);
+    useEffect(() => {
+        const read = () => {
+            try {
+                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('pd_token_notes') : null;
+                const notes = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+                const v = notes[String(id)];
+                setNoteText(typeof v === 'string' ? v : '');
+            } catch { setNoteText(''); }
+        };
+        read();
+        window.addEventListener('pd:notes-changed', read);
+        window.addEventListener('storage', read);
+        return () => {
+            window.removeEventListener('pd:notes-changed', read);
+            window.removeEventListener('storage', read);
+        };
+    }, [id]);
+    const hasNote = noteText.trim().length > 0;
+    /* Close the peek on any outside tap or scroll — you keep browsing right where
+       you were, the note just vanishes. */
+    useEffect(() => {
+        if (!notePeek) return;
+        const close = () => setNotePeek(false);
+        window.addEventListener('scroll', close, true);
+        const t = window.setTimeout(() => document.addEventListener('click', close), 0);
+        return () => {
+            window.removeEventListener('scroll', close, true);
+            window.clearTimeout(t);
+            document.removeEventListener('click', close);
+        };
+    }, [notePeek]);
+
     /* chat #6 D010-cart — sim 11823-11836. CartContext already owns the
        items Set + persistence; ArtworkCard reads `has` for the duplicate-
        toast branch + `add` for the mutation. Toast strings mirror sim
@@ -978,12 +1017,40 @@ function ArtworkCard({
                             {meta!.price}
                         </span>
                     ) : (
-                        <a
-                            className="meta-owner profile-link"
-                            onClick={(e) => e.stopPropagation()}
+                        <span className="meta-owner-group">
+                            {hasNote && (
+                                <span
+                                    className={'meta-note-ic' + (notePeek ? ' is-open' : '')}
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Note"
+                                    aria-label="Show note"
+                                    onClick={(e) => { e.stopPropagation(); setNotePeek((v) => !v); }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault(); e.stopPropagation(); setNotePeek((v) => !v);
+                                        }
+                                    }}
+                                >
+                                    {'⊟︎'}
+                                </span>
+                            )}
+                            <a
+                                className="meta-owner profile-link"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {ownerDisplay}
+                            </a>
+                        </span>
+                    )}
+                    {hasNote && notePeek && (
+                        <div
+                            className="meta-note-pop"
+                            role="tooltip"
+                            onClick={(e) => { e.stopPropagation(); setNotePeek(false); }}
                         >
-                            {ownerDisplay}
-                        </a>
+                            {noteText}
+                        </div>
                     )}
                 </div>
                 )}
