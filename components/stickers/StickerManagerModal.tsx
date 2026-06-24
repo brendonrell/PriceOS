@@ -263,7 +263,7 @@ export function StickerManagerModal({
         <button
             key={sh.id}
             type="button"
-            className={`pill smgr-sheet-pill${!offSheets.has(sh.id) ? ' active' : ''}`}
+            className={`pill smgr-sheet-pill ui-knockout${!offSheets.has(sh.id) ? ' active' : ''}`}
             onClick={() => toggleSheet(sh.id)}
         >
             <StickerArt sticker={sh.cover} size={14} />

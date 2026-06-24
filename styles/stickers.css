@@ -738,7 +738,7 @@
 .sticker-pop .ambient-pop-title { padding-right: 40px; flex-wrap: nowrap; }
 .sticker-pop .ambient-pop-title-text { white-space: nowrap; font-weight: 700; opacity: 1; }
 /* The ⊞ beside YOUR STICKERS — larger than the title + nudged down (Brendon). */
-.smgr-title-ic { font-size: 21px; line-height: 1; position: relative; top: 2px; }
+.smgr-title-ic { font-size: 21px; line-height: 1; position: relative; top: 3px; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; white-space: nowrap; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
@@ -964,17 +964,13 @@
    on. Colours ride the theme tokens: the OFF fill is the inverse shade of the
    active chips (bg-color), the ON fill is text-color — so the theme's own
    black/white choice flips automatically (Brendon 2026-06-23). */
-.pill.smgr-sheet-pill {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1.5px dotted var(--text-color);
-    opacity: 0.5;
-}
-.pill.smgr-sheet-pill.active {
-    /* Selected fill softened to 50%; the outline stays solid at full strength
-       (Brendon). */
-    background: color-mix(in srgb, var(--text-color) 50%, transparent);
-    color: var(--bg-color);
-    border: 1.5px solid var(--text-color);
-    opacity: 1;
-}
+/* KNOCKOUT — a pure black/white element that sits OPPOSITE the theme's ink,
+   whatever the colorway hue. Reusable "inverted UI" treatment; flips with the
+   colorway's light/dark awareness (body.theme-bright = bright bg / dark ink). */
+.ui-knockout { background: #111; color: #fff; }
+body.theme-bright .ui-knockout { background: #fff; color: #111; }
+
+/* Sheet pills wear the knockout look; de-selected sit at half strength. The
+   outline tracks the knockout ink (currentColor) so it flips with the theme. */
+.pill.smgr-sheet-pill { border: 1.5px solid currentColor; opacity: 0.5; }
+.pill.smgr-sheet-pill.active { opacity: 1; }

@@ -326,6 +326,12 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     root.style.setProperty('--bg-color', bg);
     root.style.setProperty('--text-color', text);
 
+    /* Theme lightness flag for INVERTED ("knockout") UI elements — a pure
+       black/white block that sits opposite the theme's ink regardless of the
+       colorway hue. bright bg (dark ink) → .theme-bright. CSS `.ui-knockout`
+       reads this to flip. */
+    body.classList.toggle('theme-bright', isLight);
+
     /* When the page's big colour is itself a RED, the $PRICE logo's red plate
        would sink into the background — so flag it and let CSS swap the logo's
        red/yellow fills. Cheap inline hue/sat check (no extra imports); covers
