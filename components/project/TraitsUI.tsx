@@ -70,6 +70,7 @@ import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../..
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
+import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import SpriteFace from '../SpriteFace';
 import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
@@ -364,6 +365,10 @@ export default function TraitsUI({
         return subscribeSprite(() => setSpriteFrame(getSpriteFrame()));
     }, []);
     const meFace = spriteFrame.hasIdentity ? spriteFrame.face : null;
+    /* Recent (Breadcrumb) L3 = the viewer's actually-visited token ids for this
+       Project, freshest first, as pill labels. Live via the breadcrumb store so
+       the Recent row fills the moment you open artworks (Brendon, 2026-06-24). */
+    const [recentBreadcrumbIds, setRecentBreadcrumbIds] = React.useState<string[]>([]);
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
@@ -378,6 +383,14 @@ export default function TraitsUI({
        specials come from L2_DICT; the feed-mode 'Traits' wrapper is rebuilt
        from the Project's trait names. */
     const { slug: projectSlug, totalOutputs } = useProject();
+
+    React.useEffect(() => {
+        const read = () => setRecentBreadcrumbIds(
+            getRecentIdsForProject(projectSlug, Infinity).map(String),
+        );
+        read();
+        return subscribeBreadcrumbs(read);
+    }, [projectSlug]);
 
     /* Starred Traits (Brendon, 2026-06-18) — long-press a trait value pill to
        favourite that (Project, category, value); it lands as its own row in
@@ -580,6 +593,9 @@ export default function TraitsUI({
        read straight from L3_FLAT_POOL. */
     const l3Pool: readonly string[] = (() => {
         if (activeL1 === null) return [];
+        /* Recent (Breadcrumb) L3 = the actually-visited token ids, freshest
+           first — not the empty placeholder buckets (Brendon, 2026-06-24). */
+        if (activeL1 === 'Breadcrumb') return recentBreadcrumbIds;
         if (l2Visible) {
             if (activeSubFilter === 'All') {
                 /* Feed-mode 'Traits' wrapper defaults to the first trait's

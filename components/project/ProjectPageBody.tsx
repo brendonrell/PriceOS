@@ -434,11 +434,19 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     const [breadcrumbSample, setBreadcrumbSample] = useState<Set<number>>(
         () => new Set(getRecentIdsForProject(project.slug)),
     );
+    /* The Recent FILTER shows the viewer's FULL visited trail for this Project
+       (not just the 5 crumb-stickered ones) — sourced from the same store, no
+       cap (Brendon, 2026-06-24). */
+    const [breadcrumbAll, setBreadcrumbAll] = useState<Set<number>>(
+        () => new Set(getRecentIdsForProject(project.slug, Infinity)),
+    );
     useEffect(() => {
-        setBreadcrumbSample(new Set(getRecentIdsForProject(project.slug)));
-        return subscribeBreadcrumbs(() =>
-            setBreadcrumbSample(new Set(getRecentIdsForProject(project.slug))),
-        );
+        const read = () => {
+            setBreadcrumbSample(new Set(getRecentIdsForProject(project.slug)));
+            setBreadcrumbAll(new Set(getRecentIdsForProject(project.slug, Infinity)));
+        };
+        read();
+        return subscribeBreadcrumbs(read);
     }, [project.slug]);
 
     /* ProjectShowcase tab — the artist's curated set of featured ids from the
@@ -822,7 +830,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
             //    only Outputs the viewer has actually opened in this Project
             //    (the live recently-seen trail from breadcrumbStore).
             if (dActiveCategory === 'Breadcrumb') {
-                if (!breadcrumbSample.has(id)) return false;
+                if (!breadcrumbAll.has(id)) return false;
             }
 
             return true;
@@ -853,7 +861,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbSample, siweAddress, netSets, topHolders]);
+    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, siweAddress, netSets, topHolders]);
 
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving
