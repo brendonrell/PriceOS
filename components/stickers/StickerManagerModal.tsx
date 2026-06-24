@@ -129,7 +129,7 @@ export function StickerManagerModal({
             // 2026-06-23), never scaled to the room below the stickers; the
             // pages scroll inside. Clamped only as an off-screen safety on very
             // short viewports.
-            const maxH = Math.min(264, Math.max(190, vh - top - 8));
+            const maxH = Math.min(259, Math.max(190, vh - top - 8));
             setAnchor({ top, left, maxH });
         };
         measure();
