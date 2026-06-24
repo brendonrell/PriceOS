@@ -196,8 +196,8 @@ const L2_DICT: Record<
        in BOTH feed and non-feed modes (sim 8588 — `(isFeed && active) ||
        (!isFeed && activeCategory === 'Network')`). */
     Network: {
-        'My Circle': ['Me', 'Sigil', 'PriceRank', 'Counterparties', 'Mutuals', 'Following', 'Followers'],
-        'Global':    ['Top Holders', 'New to PD', 'Fresh Wallets'],
+        'My Circle': ['Me', 'Sigil', 'Mutuals', 'Following', 'Followers'],
+        'Global':    ['Top Holders', 'PriceRank', 'Counterparties', 'New to PD', 'Fresh Wallets'],
     },
     Breadcrumb: {
         /* Sim's L3 = session-random token IDs; for v0 the L2 narrows are
