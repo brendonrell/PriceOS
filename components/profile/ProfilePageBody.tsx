@@ -2085,9 +2085,9 @@ function ProfilePageBodyInner({
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'counterparties', label: 'Counterparties', active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
-                                        { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
-                                        { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
+                                        { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
+                                        { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
                                             ? [{ key: 'history', label: <><span className="pill-tab-ico">{'◷︎'}</span> My History</>, active: effMoreL1 === 'history', onClick: () => setMoreL1('history') }]

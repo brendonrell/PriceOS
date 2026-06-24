@@ -879,7 +879,7 @@ function StarredOutputRow({
     const meta = useOutputMeta(id);
     const listed = meta?.price != null;
     const act = () => (multiActive ? onToggleSel() : onOpen());
-    return (
+    const row = (
         <div
             className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}${timeline ? ' is-timeline' : ''}`}
             role="button"
@@ -887,13 +887,7 @@ function StarredOutputRow({
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
-            {timeline && (
-                <>
-                    <span className="history-rail-line" aria-hidden="true" />
-                    <span className="history-rail-node" aria-hidden="true">◷&#xFE0E;</span>
-                </>
-            )}
-            <OutputThumb slug={slug} id={id} />
+            <OutputThumb slug={slug} id={id} size={timeline ? 51 : 64} />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">
                     <span className="srl-handle">{project}</span>
@@ -950,6 +944,17 @@ function StarredOutputRow({
                 </span>
             </div>
             <GrailDot pinned={grailPinned} onToggle={onGrail} />
+        </div>
+    );
+    if (!timeline) return row;
+    /* History timeline — two real columns: a rail lane (node + connecting line)
+       and the content lane. They sit side by side and never overlap. */
+    return (
+        <div className="history-tl-row">
+            <div className="history-tl-rail" aria-hidden="true">
+                <span className="history-tl-node">◷&#xFE0E;</span>
+            </div>
+            {row}
         </div>
     );
 }

@@ -8707,37 +8707,48 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     opacity: 0.85;
-    padding: 14px 0 4px 26px;
+    padding: 14px 0 4px 30px;
 }
-.starred-rows--timeline .starred-row.is-timeline {
+/* History row = TWO real columns that never overlap: a fixed rail lane (node +
+   connecting line) and the content lane (the starred-output row). The content
+   takes 75% of the remaining width (Brendon, 2026-06-24). */
+.history-tl-row {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 75%);
+    column-gap: 10px;
+    align-items: stretch;
+}
+.history-tl-rail {
     position: relative;
-    padding-left: 26px;
+    width: 20px;
 }
-/* The dashed connector — runs from this row's node down to the next. */
-.starred-row.is-timeline .history-rail-line {
+/* The continuous dashed line, centered in the rail lane — lives ONLY in this
+   column, so it can never sit under the content. */
+.history-tl-rail::before {
+    content: '';
     position: absolute;
-    left: 6px;
-    top: 22px;
-    bottom: -8px;
-    width: 1px;
+    left: 50%;
+    top: 0;
+    bottom: 0;
     border-left: 1px dashed var(--border-color);
-    pointer-events: none;
+    transform: translateX(-0.5px);
 }
-.starred-rows--timeline .starred-row.is-timeline:last-child .history-rail-line { display: none; }
-/* The node icon sitting on the rail. */
-.starred-row.is-timeline .history-rail-node {
+/* Stop the line at the node on the last row so it doesn't dangle. */
+.history-tl-row:last-child .history-tl-rail::before { bottom: auto; height: 22px; }
+.history-tl-node {
     position: absolute;
-    left: 0;
-    top: 12px;
-    width: 14px;
-    text-align: center;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
     line-height: 1;
-    opacity: 0.85;
-    z-index: 1;
-    pointer-events: none;
+    opacity: 0.9;
+    background: var(--bg-color);
+    padding: 2px 0;
 }
+/* The content lane row — compact for the timeline. */
+.starred-row.is-timeline { padding: 6px 0; }
 
 .starred-row {
     display: flex;
