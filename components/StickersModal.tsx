@@ -233,7 +233,7 @@ export default function StickersModal() {
                         <>
                             <div className="ss-title">
                                 <span className="ss-title-main">STICKER STORE</span>
-                                <span className="ss-title-sub">// BY PD</span>
+                                <span className="ss-title-sub">// FOR YOUR PROFILE</span>
                             </div>
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}

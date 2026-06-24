@@ -27,10 +27,10 @@ import {
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity,
-    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, shuffleSeed,
-    ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES,
-    type Arrange, type Tilt, type Rows, type Align,
+    getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder,
+    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, shuffleSeed,
+    ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES, BORDERS, stickerHue,
+    type Arrange, type Tilt, type Rows, type Align, type Border,
 } from '../../lib/stickers/heroPrefs';
 import { clearPlacements } from '../../lib/stickers/placements';
 import {
@@ -41,6 +41,32 @@ import { StickerArt } from './StickerArt';
 
 const VS15 = '︎';
 const PAGE_KEY = 'pd_sticker_mgr_page';
+
+/* Colour filter — the SAME swatches as the Familiar customiser. Tapping one
+   shows only the stickers of that colour in the grid (Brendon, 2026-06-24).
+   '#FFFFFF' is the neutral bucket (white/black/greyscale stickers). */
+const HUE_SWATCHES = ['#FF0055', '#FFE600', '#00FFD1', '#9D00FF', '#FF8A00', '#FFFFFF'];
+function hexHS(hex: string): { h: number; s: number } {
+    const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    const s = mx === 0 ? 0 : d / mx;
+    let h = 0;
+    if (d > 0.0001) h = (((mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60) + 360) % 360;
+    return { h, s };
+}
+const CHROMA_SWATCHES = HUE_SWATCHES.filter((c) => c !== '#FFFFFF').map((hex) => ({ hex, h: hexHS(hex).h }));
+/** The swatch a sticker belongs to: its dominant hue snapped to the nearest
+ *  chromatic swatch, or the neutral (white) bucket when it's greyscale. */
+function stickerSwatch(s: Sticker): string {
+    const hex = s.color ?? s.bg ?? s.cutout ?? s.fg ?? null;
+    let hue: number, neutral = false;
+    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) { const o = hexHS(hex); hue = o.h; neutral = o.s < 0.12; }
+    else { hue = stickerHue(s); }
+    if (neutral) return '#FFFFFF';
+    let best = CHROMA_SWATCHES[0]!.hex, bd = 999;
+    for (const sw of CHROMA_SWATCHES) { let dd = Math.abs(hue - sw.h); dd = Math.min(dd, 360 - dd); if (dd < bd) { bd = dd; best = sw.hex; } }
+    return best;
+}
 const PAGES = 4;
 
 export function StickerManagerModal({
@@ -67,6 +93,9 @@ export function StickerManagerModal({
     const [align, setAl] = useState<Align>('left');
     const [flip, setFl] = useState(false);
     const [density, setDen] = useState(0);
+    const [border, setBd] = useState<Border>('off');
+    /* Colour filter — modal-local view filter on the grid (not persisted). */
+    const [hueFilter, setHueFilter] = useState<string | null>(null);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const plusBodyRef = useRef<HTMLDivElement | null>(null);
@@ -98,6 +127,8 @@ export function StickerManagerModal({
         setAl(getAlign());
         setFl(getFlip());
         setDen(getDensity());
+        setBd(getBorder());
+        setHueFilter(null);
     }, [open, handle]);
 
     // Restore the last-open swipe page so reopening doesn't snap back to page 1.
@@ -222,6 +253,9 @@ export function StickerManagerModal({
     const pickAlign = (a: Align) => { clearPlacements(); setAl(a); setAlign(a); };
     const pickFlip = (b: boolean) => { clearPlacements(); setFl(b); setFlip(b); };
     const pickDensity = (d: number) => { clearPlacements(); setDen(d); setDensity(d); };
+    /* Border doesn't change placement (just the kiss-cut edge), so it keeps any
+       locked hand-placed layout — no clearPlacements. */
+    const pickBorder = (b: Border) => { setBd(b); setBorder(b); };
 
     // Apply a whole look at once (from a pasted code or Surprise).
     const applyLook = (l: StickerLook) => {
@@ -282,26 +316,47 @@ export function StickerManagerModal({
     /* The sticker grid (owned, tap to toggle) — shared by both views. Grouped by
        sheet: each sheet starts on its own row, with a gap between groups so the
        end/start of a sheet reads clearly. */
+    const matchesHue = (s: Sticker) => !hueFilter || stickerSwatch(s) === hueFilter;
     const stickerGrid = (
         <div className="smgr-grid-groups">
-            {ownedSheets.map((sh) => (
-                <div className="smgr-grid" key={sh.id}>
-                    {owned.filter((s) => s.sheet === sh.id).map((s) => {
-                        const on = isActive(s, offSheets, offIds);
-                        return (
-                            <button
-                                key={s.id}
-                                className={`smgr-tile${on ? '' : ' off'}`}
-                                type="button"
-                                title={`${s.name} — ${on ? 'on' : 'off'}`}
-                                onClick={() => toggleSticker(s.id)}
-                            >
-                                <StickerArt sticker={s} size={34} />
-                            </button>
-                        );
-                    })}
-                </div>
-            ))}
+            <div className="smgr-hue-row" role="group" aria-label="Filter by colour">
+                {HUE_SWATCHES.map((c) => (
+                    <button
+                        key={c}
+                        type="button"
+                        className={`smgr-hue${hueFilter === c ? ' on' : ''}${c === '#FFFFFF' ? ' is-neutral' : ''}`}
+                        style={{ background: c }}
+                        title={hueFilter === c ? 'Show all colours' : 'Filter to this colour'}
+                        aria-pressed={hueFilter === c}
+                        onClick={() => setHueFilter((prev) => (prev === c ? null : c))}
+                    />
+                ))}
+            </div>
+            {ownedSheets.map((sh) => {
+                const tiles = owned.filter((s) => s.sheet === sh.id && matchesHue(s));
+                if (tiles.length === 0) return null;
+                return (
+                    <div className="smgr-grid" key={sh.id}>
+                        {tiles.map((s) => {
+                            const on = isActive(s, offSheets, offIds);
+                            return (
+                                <button
+                                    key={s.id}
+                                    className={`smgr-tile${on ? '' : ' off'}`}
+                                    type="button"
+                                    title={`${s.name} — ${on ? 'on' : 'off'}`}
+                                    onClick={() => toggleSticker(s.id)}
+                                >
+                                    <StickerArt sticker={s} size={34} />
+                                </button>
+                            );
+                        })}
+                    </div>
+                );
+            })}
+            {hueFilter && owned.every((s) => !matchesHue(s)) && (
+                <div className="smgr-hue-empty">No stickers in this colour.</div>
+            )}
         </div>
     );
 
@@ -375,6 +430,9 @@ export function StickerManagerModal({
                         <Row label="Flip">
                             <Chip on={!flip} onClick={() => pickFlip(false)}>OFF</Chip>
                             <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>
+                        </Row>
+                        <Row label="Border">
+                            {BORDERS.map((b) => (<Chip key={b.id} on={border === b.id} onClick={() => pickBorder(b.id)}>{b.label}</Chip>))}
                         </Row>
                         <Row label="Sheets">
                             {ownedSheets.map(sheetPill)}
@@ -470,6 +528,9 @@ export function StickerManagerModal({
                         <Row label="Flip">
                             <Chip on={!flip} onClick={() => pickFlip(false)}>OFF</Chip>
                             <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>
+                        </Row>
+                        <Row label="Border">
+                            {BORDERS.map((b) => (<Chip key={b.id} on={border === b.id} onClick={() => pickBorder(b.id)}>{b.label}</Chip>))}
                         </Row>
                     </div>
 

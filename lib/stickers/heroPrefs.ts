@@ -13,6 +13,8 @@ export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage
 export type Tilt = 'flat' | 'soft' | 'jaunty';
 export type Rows = 1 | 2 | 3;
 export type Align = 'left' | 'center' | 'right';
+/** Die-cut border weight for placed stickers (the kiss-cut white edge). */
+export type Border = 'off' | 'white' | 'bold';
 
 export const ALIGNS: { id: Align; label: string }[] = [
     { id: 'left', label: 'LEFT' },
@@ -38,6 +40,11 @@ export const TILTS: { id: Tilt; label: string }[] = [
     { id: 'soft', label: 'SOFT' },
     { id: 'jaunty', label: 'JAUNTY' },
 ];
+export const BORDERS: { id: Border; label: string }[] = [
+    { id: 'off', label: 'OFF' },
+    { id: 'white', label: 'WHITE' },
+    { id: 'bold', label: 'BOLD' },
+];
 /* DENSITY — how packed the STACK pile is. MAX is the densest pile (the one
    previously asked for, kept as the most-extreme). Three options so the row of
    buttons fits on one line. */
@@ -56,6 +63,7 @@ const K_ROWS = 'pd_sticker_rows';
 const K_ALIGN = 'pd_sticker_align';
 const K_FLIP = 'pd_sticker_flip';
 const K_DENSITY = 'pd_sticker_density';
+const K_BORDER = 'pd_sticker_border';
 const EVT = 'pd:stickers-changed';
 
 function read(key: string, fallback: string): string {
@@ -73,6 +81,8 @@ export function setExpand(b: boolean) { write(K_EXPAND, b ? '1' : '0'); }
 export function setRows(r: Rows) { write(K_ROWS, String(r)); }
 export function setAlign(a: Align) { write(K_ALIGN, a); }
 export function setFlip(b: boolean) { write(K_FLIP, b ? '1' : '0'); }
+export function setBorder(b: Border) { write(K_BORDER, b); }
+export function getBorder(): Border { return read(K_BORDER, 'off') as Border; }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
 /** STACK pile density (0 = LOW … 2 = MAX). Picked from the Density chips. */
 export function setDensity(d: number) { write(K_DENSITY, String(d)); }
@@ -89,10 +99,10 @@ export function getRows(): Rows { const v = read(K_ROWS, '1'); return v === '3' 
 export function getAlign(): Align { return read(K_ALIGN, 'left') as Align; }
 export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 
-export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; density: number; }
+export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; density: number; border: Border; }
 
 export function useHeroPrefs(): HeroPrefs {
-    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0 });
+    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' });
     useEffect(() => {
         const sync = () => setV({
             arrange: read(K_ARRANGE, 'spread') as Arrange,
@@ -103,6 +113,7 @@ export function useHeroPrefs(): HeroPrefs {
             align: read(K_ALIGN, 'left') as Align,
             flip: read(K_FLIP, '0') === '1',
             density: getDensity(),
+            border: read(K_BORDER, 'off') as Border,
         });
         sync();
         window.addEventListener(EVT, sync);

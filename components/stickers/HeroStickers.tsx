@@ -83,7 +83,12 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
-    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density } = useHeroPrefs();
+    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = useHeroPrefs();
+    /* Die-cut border (the kiss-cut white edge) — Off / White / Bold. White =
+       white kiss-cut; Bold = white cut + a bold dark score line. Driven by CSS
+       vars on the wrapper so the existing StickerArt die-cut is reused as-is. */
+    const diecut = border !== 'off';
+    const borderClass = border === 'off' ? '' : border === 'bold' ? ' bd-bold' : ' bd-white';
     const ownPlace = usePlacements();
     const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
@@ -375,7 +380,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     // On own, a pointer-down that reaches the canvas (i.e. NOT on a sticker, which
     // stops propagation) settles the lifted sticker.
     const wrap = (body: ReactNode) => (
-        <div className="hero-stickers" aria-label="Stickers">
+        <div className={`hero-stickers${borderClass}`} aria-label="Stickers">
             {isOwn ? (
                 <>
                     <div
@@ -415,7 +420,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                         title={st.name}
                         {...ownDown(st)}
                     >
-                        <StickerArt sticker={st} size={sz(st)} />
+                        <StickerArt sticker={st} size={sz(st)} diecut={diecut} />
                         {isOwn && lifted === st.id && (
                             <>
                                 <button
@@ -462,7 +467,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                             title={s.name}
                             {...ownDown(s)}
                         >
-                            <StickerArt sticker={s} size={sz(s)} />
+                            <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
                         </span>
                     );
                 })}
@@ -489,7 +494,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                             title={s.name}
                             {...ownDown(s)}
                         >
-                            <StickerArt sticker={s} size={sz(s)} />
+                            <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
                         </span>
                     );
                 })}
@@ -517,7 +522,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                                 title={s.name}
                                 {...ownDown(s)}
                             >
-                                <StickerArt sticker={s} size={sz(s)} />
+                                <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
                             </span>
                         );
                     })}
