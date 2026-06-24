@@ -545,6 +545,10 @@
     position: relative;
     z-index: 0;
 }
+/* Sticker Mode hides the profile stickers the instant the toggle flips — a hard
+   CSS cut so no spilled-sticker frame can survive the hide, even if the unmount
+   is deferred under concurrent render (Brendon, 2026-06-24). */
+body.sticker-mode .hero-stickers { display: none !important; }
 .hero-stickers-rows {
     display: flex;
     flex-direction: column;

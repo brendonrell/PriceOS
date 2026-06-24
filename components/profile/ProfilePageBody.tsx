@@ -112,7 +112,7 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'info' | 'achievements' | 'discord';
+type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'sigil' | 'loyalty' | 'info' | 'achievements' | 'discord';
 /* Artist Showcase (Artist style): 'created' = the now-minting view of the
    projects this artist made; 'regular' = their curated Top 6 grid. */
 type ShowcaseView = 'created' | 'regular';
@@ -2043,6 +2043,9 @@ function ProfilePageBodyInner({
                                             ]
                                             : []),
                                         { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                        { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
+                                        { key: 'sigil',     label: 'Sigil',     active: effMoreL1 === 'sigil',     onClick: () => setMoreL1('sigil')     },
+                                        { key: 'loyalty',   label: 'Loyalty',   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
