@@ -2639,9 +2639,11 @@ function ProfilePageBodyInner({
                 >
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                         <div className="ms-confirm-question">
-                            {recording
-                                ? 'Turn off History? We stop tracking the outputs you view.'
-                                : 'Start tracking your 100 most recently viewed outputs?'}
+                            {recording ? (
+                                <>Turn off History?<br />We stop tracking the outputs you view.</>
+                            ) : (
+                                'Start tracking your 100 most recently viewed outputs?'
+                            )}
                         </div>
                         <div className="ms-confirm-btns">
                             <button
