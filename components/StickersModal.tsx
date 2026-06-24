@@ -296,7 +296,7 @@ export default function StickersModal() {
                                     {cells.map((s) => (
                                         <span key={s.id} className="ss-cell" title={s.name}>
                                             {mode === 'flow'
-                                                ? <StickerArt sticker={s} size={40} diecut />
+                                                ? <StickerArt sticker={s} size={detail.id === 'artist' ? 30 : 40} diecut />
                                                 : <StickerArt sticker={s} fill diecut />}
                                         </span>
                                     ))}
