@@ -263,7 +263,7 @@ export function StickerManagerModal({
         <button
             key={sh.id}
             type="button"
-            className={`pill pill-l2${!offSheets.has(sh.id) ? ' active' : ''}`}
+            className={`pill smgr-sheet-pill${!offSheets.has(sh.id) ? ' active' : ''}`}
             onClick={() => toggleSheet(sh.id)}
         >
             {sh.name}

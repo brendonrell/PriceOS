@@ -943,3 +943,18 @@
 @media (prefers-reduced-motion: reduce) {
     .smgr-plus-preview, .smgr-plus-preview .hero-sticker { animation: none; }
 }
+
+/* Sheet toggles — dotted outline when off so they read as distinct, filled when
+   on. Colours ride the theme tokens: the OFF fill is the inverse shade of the
+   active chips (bg-color), the ON fill is text-color — so the theme's own
+   black/white choice flips automatically (Brendon 2026-06-23). */
+.pill.smgr-sheet-pill {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1.5px dotted var(--text-color);
+}
+.pill.smgr-sheet-pill.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1.5px solid var(--text-color);
+}
