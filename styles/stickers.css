@@ -955,7 +955,8 @@
     opacity: 0.5;
 }
 .pill.smgr-sheet-pill.active {
-    background: var(--text-color);
+    /* Selected fill = the solid colour at 80% (20% softer) — Brendon. */
+    background: color-mix(in srgb, var(--text-color) 80%, transparent);
     color: var(--bg-color);
     border: 1.5px solid var(--text-color);
     opacity: 1;
