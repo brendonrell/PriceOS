@@ -881,7 +881,8 @@
     position: fixed;
     inset: 0;
     z-index: 1330;
-    background: rgba(0, 0, 0, 0.55);
+    /* Dim moved to ::before so it can fade independently of the panel. */
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -891,7 +892,17 @@
        clip hard-cuts with NO scrollable box, so there's nothing to shift. */
     overflow: clip;
     max-width: 100vw;
+}
+/* Dim fades in on its own layer so the overlay darkens softly WITHOUT fading
+   the panel + its controls (a fade on the backdrop element would fade every
+   child). Only the preview gets the flourish (Brendon, 2026-06-24). */
+.sticker-mgr-plus-backdrop::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
     animation: smgr-fade 0.16s ease both;
+    pointer-events: none;
 }
 .sticker-mgr-plus {
     position: relative;
@@ -909,12 +920,10 @@
     /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
        scroll (Brendon 2026-06-23). */
     padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
-    /* Scale-FREE entrance: a scaling panel re-rasterizes its children mid-anim,
-       collapsing the fixed-width row labels until it settles. Slide + fade only
-       (Brendon 2026-06-24). */
-    animation: smgr-plus-pop 0.18s ease both;
+    /* No whole-panel entrance — the controls appear instantly so only the
+       preview flourishes (Brendon, 2026-06-24). The dim still fades via the
+       backdrop ::before. */
 }
-@keyframes smgr-plus-pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (min-width: 601px) {
     /* Desktop: not full-screen — a big centred 'jumbo' panel. */
     .sticker-mgr-plus {

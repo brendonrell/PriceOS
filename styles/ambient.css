@@ -636,6 +636,9 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s, color 0.15s;
 }
+/* Sticker Manager Layout-row shuffle — icon-only chip, bumped 3 sizes off the
+   12px chip base so the ⟳ reads at a glance (Brendon, 2026-06-24). */
+.ambient-chip.smgr-shuffle { font-size: 18px; line-height: 1; }
 .ambient-chip:hover { background: rgba(127, 127, 127, 0.14); }
 .ambient-chip.on {
     background: var(--text-color);

@@ -299,7 +299,7 @@ export function StickerManagerModal({
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
                             ))}
-                            <button className="ambient-chip" type="button" onClick={reshuffle} title="Shuffle">{`⟳${VS15}`}</button>
+                            <button className="ambient-chip smgr-shuffle" type="button" onClick={reshuffle} title="Shuffle">{`⟳${VS15}`}</button>
                         </Row>
                         <Row label="Rows">
                             {ROW_OPTS.map((r) => (<Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>))}
@@ -373,7 +373,7 @@ export function StickerManagerModal({
                             {ARRANGES.map((a) => (
                                 <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
                             ))}
-                            <button className="ambient-chip" type="button" onClick={reshuffle} title="Shuffle">
+                            <button className="ambient-chip smgr-shuffle" type="button" onClick={reshuffle} title="Shuffle">
                                 {`⟳${VS15}`}
                             </button>
                         </Row>
