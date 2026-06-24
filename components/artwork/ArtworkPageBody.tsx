@@ -43,15 +43,13 @@ function shortAddr(a: string | null): string {
 type ArtworkTab = 'artwork' | 'albums' | 'more';
 /* + More sub-sections — same set as the project page's + More. */
 type MoreL1 =
-    | 'replay' | 'stats' | 'albums'
-    | 'social' | 'sentiment' | 'attributes' | 'pricestory';
+    | 'replay' | 'stats'
+    | 'social' | 'attributes' | 'pricestory';
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'attributes', label: 'Attributes' },
-    { key: 'sentiment', label: 'Sentiment' },
     { key: 'pricestory', label: 'Price Story' },
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
-    { key: 'albums', label: 'Albums' },
     { key: 'social', label: 'Social' },
 ];
 
@@ -486,16 +484,9 @@ export default function ArtworkPageBody({
                         <ReplayPanel />
                     </>
                 )}
-                {moreL1 === 'albums' && (
-                    <>
-                        <div className="more-section-header">ALBUMS</div>
-                        <p className="info-rubik">Not in any albums yet.</p>
-                    </>
-                )}
-
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'albums' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}
