@@ -15,6 +15,7 @@ import {
     colorTemperature, orientationOf, BUCKET_HEX,
 } from './derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, type Freq } from './rarity';
+import { entropyGrid } from './entropyGlyph';
 
 export interface AttrTile {
     glyph: string;
@@ -26,6 +27,8 @@ export interface AttrTile {
     swatch?: string;
     /** Highlight as a standout (rarest-of-axis / notable). */
     rare?: boolean;
+    /** A 16×16 boolean barcode rendered in place of the value (Entropy glyph). */
+    grid?: boolean[];
 }
 export interface AttrGroup {
     key: string;
@@ -156,6 +159,20 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     const overall = overallRarity([tf, ff, cf]);
     if (overall) rarity.push({ glyph: '❂', label: 'Rarity Score', value: `${overall.score} / 100`, sub: `${overall.bits.toFixed(1)} bits`, rare: overall.score >= 70 });
     if (rarity.length) groups.push({ key: 'rarity', label: 'Rarity', tiles: rarity });
+
+    /* ── Lab ──────────────────────────────────────────────────────────────
+       Entropy Visualizer — a 16×16 black/white barcode unique to this piece,
+       derived from a hash of its identity (Brendon, 2026-06-24). */
+    groups.push({
+        key: 'lab',
+        label: 'Lab',
+        tiles: [
+            {
+                glyph: '▩', label: 'Entropy Visualizer', value: '',
+                sub: '16×16 hash barcode', grid: entropyGrid(slug, id),
+            },
+        ],
+    });
 
     return groups;
 }

@@ -9862,6 +9862,20 @@ body.colorway-dark .ghost-feed-bar {
     align-items: center;
     gap: 6px;
 }
+/* Entropy Visualizer — a 16×16 black/white barcode unique to the piece,
+   rendered in place of a text value. Square, crisp, theme-coloured. */
+.attr-entropy {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    grid-template-rows: repeat(16, 1fr);
+    width: 100%;
+    max-width: 128px;
+    aspect-ratio: 1 / 1;
+    margin: 3px 0 1px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+}
+.attr-entropy-cell { background: transparent; }
+.attr-entropy-cell.on { background: var(--text-color); }
 .attr-tile-sub {
     font-size: 9.5px;
     line-height: 1.3;

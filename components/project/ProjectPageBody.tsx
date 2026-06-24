@@ -66,9 +66,9 @@ import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
-import { getProject, projectTrueName } from '../../lib/project/registry';
-import { projectFateReading } from '../../lib/project/fate';
-import { natalChart } from '../../lib/project/natal';
+import { getProject } from '../../lib/project/registry';
+import { buildProjectAttributes } from '../../lib/project/projectAttributes';
+import AttrWall from '../artwork/AttrWall';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import SoundtrackStarButton from './SoundtrackStarButton';
@@ -1851,30 +1851,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     </div>
                 </div>
                 </>)}
-                {moreL1 === 'attributes' && (() => {
-                    /* ATTRIBUTES (Brendon, 2026-06-16) — the project's birth
-                       attributes: its Fate hexagram, natal Sun/Moon/Rising (the
-                       sky over Montreal at its STORED upload moment, not now),
-                       and its True Name. */
-                    const fate = projectFateReading(project.slug);
-                    const chart = natalChart(uploadedAt ?? Date.now());
-                    return (
-                        <>
-                        <div className="more-section-header">ATTRIBUTES</div>
-                        <div className="more-box-wrap">
-                          <div className="more-box-card">
-                            <div className="more-attrs">
-                                <div className="attr-row"><span className="attr-label">Fate</span><span className="attr-val">{fate.glyph} {fate.fate}</span></div>
-                                <div className="attr-row"><span className="attr-label">Sun</span><span className="attr-val">☉&#xFE0E; {chart.sun}</span></div>
-                                <div className="attr-row"><span className="attr-label">Moon</span><span className="attr-val">☽&#xFE0E; {chart.moon}</span></div>
-                                <div className="attr-row"><span className="attr-label">Rising</span><span className="attr-val">↑&#xFE0E; {chart.rising}</span></div>
-                                <div className="attr-row"><span className="attr-label">True Name</span><span className="attr-val project-true-name">{projectTrueName(project.slug)}</span></div>
-                            </div>
-                          </div>
-                        </div>
-                        </>
-                    );
-                })()}
+                {moreL1 === 'attributes' && (
+                    /* ATTRIBUTES — the project's character sheet, rendered through
+                       the SAME tile grid as an Output's (Brendon, 2026-06-24).
+                       Project-level attrs only (no per-piece Form / Rarity /
+                       Entropy); birth Sky + Almanac come from the upload moment. */
+                    <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt)} />
+                )}
                 {moreL1 === 'pricestory' && (<>
                 {/* PRICE STORY — empty for now (Brendon, 2026-06-16). Empty box
                     gives the title a home. */}
