@@ -545,6 +545,13 @@
     position: relative;
     z-index: 0;
 }
+/* The hero stickers spill on purpose, but they live in a positioned layer that
+   would otherwise paint OVER the content below the hero (action row, tabs, the
+   +More pills). Lift every sibling after the sticker area so the spill always
+   stays BEHIND the page content — the sticker area (whatever its width) can never
+   cover the pills (Brendon, 2026-06-24). */
+.hero-stickers ~ * { position: relative; z-index: 1; }
+
 /* Sticker Mode hides the profile stickers. The toggle adds this body class
    synchronously the instant it's pressed (see MyPdSection), so the stickers cut
    out in the same frame the button fires — no spilled-frame flash (Brendon,

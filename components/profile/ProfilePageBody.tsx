@@ -2046,8 +2046,8 @@ function ProfilePageBodyInner({
                                         { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                         { key: 'sigil',     label: 'Sigil',     active: effMoreL1 === 'sigil',     onClick: () => setMoreL1('sigil')     },
                                         { key: 'loyalty',   label: 'Loyalty',   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
-                                        { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
+                                        { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                     ]
                                 )
