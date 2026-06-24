@@ -48,11 +48,11 @@ type MoreL1 =
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'attributes', label: 'Attributes' },
     { key: 'offers', label: 'Offers' },
+    { key: 'neighbourhood', label: 'Neighbourhood' },
     { key: 'pricestory', label: 'Price Story' },
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
     { key: 'social', label: 'Social' },
-    { key: 'neighbourhood', label: 'Neighbourhood' },
     { key: 'asciibackup', label: 'ASCII Backup' },
 ];
 
