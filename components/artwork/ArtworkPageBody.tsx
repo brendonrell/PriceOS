@@ -47,12 +47,12 @@ type MoreL1 =
     | 'social' | 'attributes' | 'pricestory' | 'asciibackup' | 'offers';
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'attributes', label: 'Attributes' },
+    { key: 'offers', label: 'Offers' },
     { key: 'pricestory', label: 'Price Story' },
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
     { key: 'social', label: 'Social' },
     { key: 'asciibackup', label: 'ASCII Backup' },
-    { key: 'offers', label: 'Offers' },
 ];
 
 interface Props {
