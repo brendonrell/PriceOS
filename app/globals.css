@@ -5009,6 +5009,39 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         vertical-align: -0.12em;
     }
 }
+/* The "Me" Network pill wears the user's still PriceSprite as its icon
+   (Brendon, 2026-06-24). Courier like every sprite, sized down so the kaomoji
+   sits inline without stretching the pill row. */
+.pill-l3 .net-pill-sprite {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 0;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    vertical-align: -0.04em;
+    display: inline-block;
+}
+/* New to PD wears the per-mille logo mark — Inter, the way the milestone
+   feed renders it (Brendon, 2026-06-24). */
+.pill-l3 .net-pill-mille {
+    font-family: var(--font-inter);
+    line-height: 0;
+    vertical-align: -0.12em;
+}
+/* Mobile-only icon sizes inside the My Network trait pill (Brendon, 2026-06-24):
+   Mutuals +2 sizes, Following +1, Followers +3 & nudged up 1px. One size = 2px
+   off the 12px base. Centred so the word stays put. */
+@media (max-width: 600px) {
+    .pill-l3 .net-pill-ico,
+    .pill-l3 .net-pill-mille {
+        line-height: 0;
+        vertical-align: -0.12em;
+    }
+    .pill-l3 .net-pill-ico--mutual    { font-size: 16px; }
+    .pill-l3 .net-pill-ico--following { font-size: 14px; }
+    .pill-l3 .net-pill-ico--follower  { font-size: 18px; position: relative; top: -1px; }
+}
 /* Shuffle icon: nudge down 2px on desktop so the ⟳ sits centered in the
    pill against the text tabs (Brendon 2026-06-13). */
 @media (min-width: 601px) {

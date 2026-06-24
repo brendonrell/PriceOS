@@ -71,6 +71,8 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
+import SpriteFace from '../SpriteFace';
+import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import {
     getPresets,
     getLoadedIndex,
@@ -194,8 +196,8 @@ const L2_DICT: Record<
        in BOTH feed and non-feed modes (sim 8588 — `(isFeed && active) ||
        (!isFeed && activeCategory === 'Network')`). */
     Network: {
-        'My Circle': ['Me', '⚭ Mutuals', '⚯ Following', '⚬ Followers'],
-        'Global':    ['Top Holders', 'Fresh Wallets', 'New to PD'],
+        'My Circle': ['Me', 'Mutuals', 'Following', 'Followers'],
+        'Global':    ['Top Holders', 'New to PD', 'Fresh Wallets'],
     },
     Breadcrumb: {
         /* Sim's L3 = session-random token IDs; for v0 the L2 narrows are
@@ -232,6 +234,19 @@ const L3_FLAT_POOL: Partial<Record<TraitCategory, readonly string[]>> = {
     Layer:   LAYERS,
     Mineral: MINERALS,
     Fate:    OMEN_TRAITS,
+};
+
+/* Leading icon for a Network L3 value → glyph + render class. The social
+   relationship glyphs reuse §12's set (Mutual ⚭ / Following ⚯ / Follower ⚬);
+   Fresh Wallets wears the sticker-store ETH lozenge ◊; New to PD wears the
+   per-mille logo mark ‰ (rendered in Inter). Sizes/nudges live in globals.css
+   (.net-pill-ico--* / .net-pill-eth / .net-pill-mille). */
+const NET_VALUE_ICON: Record<string, { glyph: string; cls: string }> = {
+    'Mutuals':       { glyph: '⚭',         cls: 'net-pill-ico net-pill-ico--mutual' },
+    'Following':     { glyph: '⚯',         cls: 'net-pill-ico net-pill-ico--following' },
+    'Followers':     { glyph: '⚬',         cls: 'net-pill-ico net-pill-ico--follower' },
+    'Fresh Wallets': { glyph: '◊︎', cls: 'net-pill-ico net-pill-eth' },
+    'New to PD':     { glyph: '‰',         cls: 'net-pill-mille' },
 };
 
 /* Colorways shown as the four-square cluster on the left of the sort-bar
@@ -337,7 +352,12 @@ export default function TraitsUI({
         clearAllFilters,
     } = useTraits();
     const { showToast } = useToast();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, handle } = useAuth();
+    /* The "Me" Network value pill wears the signed-in user's STILL PriceSprite
+       as its icon (Brendon, 2026-06-24). Same frozen face the profile hero +
+       collected chips use (useSpriteFace) — never the animated engine frame.
+       Null while loading / signed out → the pill falls back to plain "Me". */
+    const meFace = useSpriteFace(handle ?? '');
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
@@ -1031,6 +1051,7 @@ export default function TraitsUI({
                                     dimmed={dimmed}
                                     isZero={count === 0}
                                     category={l3FilterCat}
+                                    meFace={meFace}
                                     starrable={starrable}
                                     starred={traitStarred}
                                     onToggleStar={() => handleTraitStar(l3FilterCat, value)}
@@ -1790,6 +1811,9 @@ interface L3PillProps {
     starred?: boolean;
     onToggleStar?: () => void;
     onClick: () => void;
+    /** Signed-in user's still PriceSprite face — rendered as the icon on the
+     *  Network 'Me' value pill (Brendon, 2026-06-24). Null → plain "Me". */
+    meFace?: string | null;
 }
 
 /* L3 stat-pill — sim 8670-8682. Visual prefix `↳` matches sim 8681
@@ -1820,6 +1844,7 @@ export function L3Pill({
     starred = false,
     onToggleStar,
     onClick,
+    meFace,
 }: L3PillProps) {
     const cls = [
         'pill',
@@ -1905,10 +1930,17 @@ export function L3Pill({
                 <>
                     <span className="stat-name">
                         ↳{' '}
-                        {category === 'Network' && /^[⚬⚭⚯]/.test(label) ? (
+                        {category === 'Network' && label === 'Me' && meFace ? (
                             <>
-                                <span className="net-pill-ico">{label[0]}</span>
-                                {label.slice(1)}
+                                <SpriteFace face={meFace} className="net-pill-sprite" />
+                                {' '}{label}
+                            </>
+                        ) : category === 'Network' && NET_VALUE_ICON[label] ? (
+                            <>
+                                <span className={NET_VALUE_ICON[label].cls}>
+                                    {NET_VALUE_ICON[label].glyph}
+                                </span>
+                                {' '}{label}
                             </>
                         ) : (
                             label
