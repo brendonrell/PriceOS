@@ -257,6 +257,19 @@ export function StickerManagerModal({
         </div>
     );
 
+    /* Sheet toggles — styled like the trait value pills (outlined/greyed when
+       off, filled when on) rather than the default chip. */
+    const sheetPill = (sh: (typeof SHEETS)[number]) => (
+        <button
+            key={sh.id}
+            type="button"
+            className={`pill pill-l2${!offSheets.has(sh.id) ? ' active' : ''}`}
+            onClick={() => toggleSheet(sh.id)}
+        >
+            {sh.name}
+        </button>
+    );
+
     // ── MANAGER PLUS — full-screen (mobile) / jumbo centred panel (desktop) ──
     // Live preview up top, then ALL controls at once (no paging), then the full
     // collection grid. Reuses the same handlers + Row/Chip as the compact popup.
@@ -308,7 +321,7 @@ export function StickerManagerModal({
                             <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>
                         </Row>
                         <Row label="Sheets">
-                            {ownedSheets.map((sh) => (<Chip key={sh.id} on={!offSheets.has(sh.id)} onClick={() => toggleSheet(sh.id)}>{sh.name}</Chip>))}
+                            {ownedSheets.map(sheetPill)}
                         </Row>
                         <div className="ambient-pop-row smgr-grid-row">
                             <span className="ambient-pop-label">Stickers</span>
