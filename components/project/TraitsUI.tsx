@@ -70,7 +70,7 @@ import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../..
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
-import { getRecentGlobal, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
+import { getRecentGlobal, subscribeBreadcrumbs, isRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { useModal } from '../../lib/state/ModalContext';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import SpriteFace from '../SpriteFace';
@@ -371,6 +371,9 @@ export default function TraitsUI({
        from the Project being viewed are lit, the rest sit at half opacity. Live
        via the breadcrumb store (Brendon, 2026-06-24). */
     const [recentGlobal, setRecentGlobal] = React.useState<{ slug: string; id: number }[]>([]);
+    /* History recording on/off — when off, Recent shows masked crumbs (Brendon,
+       2026-06-24). Re-read alongside the trail (emit fires on the toggle too). */
+    const [recording, setRecording] = React.useState(true);
     const { open: openModal } = useModal();
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
@@ -388,7 +391,7 @@ export default function TraitsUI({
     const { slug: projectSlug, totalOutputs } = useProject();
 
     React.useEffect(() => {
-        const read = () => setRecentGlobal(getRecentGlobal(5));
+        const read = () => { setRecentGlobal(getRecentGlobal(5)); setRecording(isRecordingEnabled()); };
         read();
         return subscribeBreadcrumbs(read);
     }, []);
@@ -598,9 +601,11 @@ export default function TraitsUI({
            most-recent global visits, freshest first, encoded `slug:id`. "What's
            Hot" = empty for now (wires into the view counter later). */
         if (activeL1 === 'Breadcrumb') {
-            return activeSubFilter === "What's Hot"
-                ? []
-                : recentGlobal.map((b) => `${b.slug}:${b.id}`);
+            if (activeSubFilter === "What's Hot") return [];
+            /* Recording off — keep 5 numbered crumbs but mask each destination
+               (Brendon, 2026-06-24). '???' is the masked sentinel. */
+            if (!recording) return ['???', '???', '???', '???', '???'];
+            return recentGlobal.map((b) => `${b.slug}:${b.id}`);
         }
         if (l2Visible) {
             if (activeSubFilter === 'All') {
@@ -1048,6 +1053,26 @@ export default function TraitsUI({
                                half-dimmed when from another Project, tap opens
                                that artwork (Brendon, 2026-06-24). */
                             if (l3FilterCat === 'Breadcrumb') {
+                                /* Recording off — masked crumb: keep the rank,
+                                   hide the destination, no tap (Brendon). */
+                                if (value === '???') {
+                                    return (
+                                        <L3Pill
+                                            key={`bc:masked:${idx}`}
+                                            label={`(${idx + 1}) ???`}
+                                            count={-1}
+                                            active={false}
+                                            dimmed={false}
+                                            isZero={false}
+                                            category="Breadcrumb"
+                                            halfDim={false}
+                                            inert
+                                            starrable={false}
+                                            meFace={meFace}
+                                            onClick={() => {}}
+                                        />
+                                    );
+                                }
                                 const ci = value.indexOf(':');
                                 const bSlug = value.slice(0, ci);
                                 const bId = value.slice(ci + 1);
