@@ -153,7 +153,7 @@ const ICON_GLYPHS: { g: string; name: string }[] = [
     { g: '◈', name: 'Streak' },     { g: '◉', name: 'Identity' },   { g: '❖', name: 'Rarity' },
     { g: '❂', name: 'PriceRank' },  { g: '⍟', name: 'Stargazing' }, { g: '✺', name: 'Artist' },
     { g: '☻', name: 'Collector' },  { g: '⨝', name: 'Trait' },      { g: '▶', name: 'Soundtrack' },
-    { g: '⬚', name: 'Project' },    { g: '△', name: 'Ascension' },  { g: '⬢', name: 'Hi-Def' },
+    { g: '⬚', name: 'Project' },    { g: '▲', name: 'Ascension' },  { g: '⬢', name: 'Hi-Def' },
     { g: '✧', name: 'Uploaded' },
 ];
 const ICON_HUES = genHues(ICON_GLYPHS.length, 'i', { sat: 84, lights: [50, 60, 42], phase: 0 });

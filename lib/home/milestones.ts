@@ -38,7 +38,7 @@ export const PROJECT_MILESTONES: readonly ProjectMilestone[] = [
 export const FEED_LIFECYCLE = {
     upload:    { label: 'UPLOADED',  glyph: '✧' },
     graduated: { label: 'GRADUATED', glyph: '⟢⟢', cls: 'af-ic--grad' },
-    ascension: { label: 'ASCENSION', glyph: '△' },
+    ascension: { label: 'ASCENSION', glyph: '▲' },
 } as const;
 
 /* Canonical chronological order of a project's feed events, by the mint count

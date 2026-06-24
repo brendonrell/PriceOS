@@ -224,7 +224,7 @@ live in `app/globals.css` (`.af-ic--*`).
 | Per Mille Club | 1,000 | ‰ | U+2030 | the logo mark, rendered in **Inter** |
 | Archetype | 1,200 | ✻ | U+273B | six teardrop-spoke asterisk — Archetype’s glyph, KEPT, never retire (Brendon, 2026-06-16) |
 | Hi-Def | 4,000 | ⬢ | U+2B22 | crystal facet |
-| Ascension | sold out | △ | U+25B3 | rising triangle |
+| Ascension | sold out | ▲ | U+25B2 | rising triangle (filled; moved off △ so Top Holders could take the hollow △, Brendon 2026-06-24) |
 
 > **Stargazing Mode** (Spell Book pill, `SpellBookSection.tsx`) now wears **⍟
 > (U+235F)** — the ringed star, freed from PriceRank (which took the sun `❂`).
