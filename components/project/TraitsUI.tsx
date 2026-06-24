@@ -72,7 +72,7 @@ import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import SpriteFace from '../SpriteFace';
-import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
+import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
 import {
     getPresets,
     getLoadedIndex,
@@ -353,12 +353,17 @@ export default function TraitsUI({
         clearAllFilters,
     } = useTraits();
     const { showToast } = useToast();
-    const { isAuthenticated, handle } = useAuth();
-    /* The "Me" Network value pill wears the signed-in user's STILL PriceSprite
-       as its icon (Brendon, 2026-06-24). Same frozen face the profile hero +
-       collected chips use (useSpriteFace) — never the animated engine frame.
-       Null while loading / signed out → the pill falls back to plain "Me". */
-    const meFace = useSpriteFace(handle ?? '');
+    const { isAuthenticated } = useAuth();
+    /* The "Me" Network value pill wears the signed-in user's LIVE animated
+       PriceSprite (Brendon, 2026-06-24) — the same engine frame the connect-menu
+       sprite uses, so it blinks / turns / yawns in the pill. No identity yet
+       (signed out / pre-claim) → null, and the pill falls back to plain "Me". */
+    const [spriteFrame, setSpriteFrame] = React.useState<SpriteFrame>(() => getSpriteFrame());
+    React.useEffect(() => {
+        setSpriteFrame(getSpriteFrame());
+        return subscribeSprite(() => setSpriteFrame(getSpriteFrame()));
+    }, []);
+    const meFace = spriteFrame.hasIdentity ? spriteFrame.face : null;
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */

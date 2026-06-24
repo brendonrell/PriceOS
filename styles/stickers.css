@@ -765,8 +765,10 @@
    extras: a compact STORE pill in the header + the owned-sticker grid row. */
 .sticker-pop .ambient-pop-title { padding-right: 40px; flex-wrap: nowrap; }
 .sticker-pop .ambient-pop-title-text { white-space: nowrap; font-weight: 700; opacity: 1; }
-/* The ⊞ beside YOUR STICKERS — larger than the title + nudged down (Brendon). */
-.smgr-title-ic { font-size: 21px; line-height: 1; position: relative; top: 3px; }
+/* The ⊞ beside YOUR STICKERS — unbold, and left to centre with the row's other
+   content (no manual nudge) so the whole header sits on one line (Brendon,
+   2026-06-24). */
+.smgr-title-ic { font-size: 21px; line-height: 1; font-weight: normal; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; white-space: nowrap; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
@@ -867,17 +869,7 @@
     color: var(--text-color);
     font: bold 22px/1 'Courier New', Courier, monospace;
     opacity: 1;
-    position: relative;
-    top: -1px;
     -webkit-tap-highlight-color: transparent;
-}
-
-/* Sticker store header — mobile only (Brendon, 2026-06-24): bigger left sticker
-   icon + arrow nudged up 1px. Covers both the compact and Manager Plus headers
-   (shared classes), every colorway. */
-@media (max-width: 600px) {
-    .smgr-title-ic { font-size: 23px; }
-    .smgr-expand { top: -2px; }
 }
 
 .sticker-mgr-plus-backdrop {
