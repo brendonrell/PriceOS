@@ -57,10 +57,15 @@ export interface UserSettings {
   /** Albums — named, ordered collections of Outputs (keys `${slug}:${id}`).
    *  Same envelope + privacy as `starred` until album sharing ships. */
   albums?: AlbumRecord[];
-  /** Recently-viewed Outputs trail — most-recent-first `${slug}:${id}` keys.
-   *  PRIVATE (owner-only), same envelope as `starred`. Account-backed so the
-   *  trail follows the viewer across devices (Brendon, 2026-06-13). */
-  breadcrumbs?: string[];
+  /** Recently-viewed Outputs trail — most-recent-first visits. Each visit is
+   *  `{ k: "${slug}:${id}", t: epochMs }` (t drives History's day grouping);
+   *  legacy rows may hold bare `${slug}:${id}` strings. PRIVATE (owner-only),
+   *  same envelope as `starred`. Account-backed so the trail follows the viewer
+   *  across devices (Brendon, 2026-06-13/24). */
+  breadcrumbs?: Array<string | { k: string; t: number }>;
+  /** History recording paused by the user (the "Recording" L3 toggle). When
+   *  true, no visits are recorded until resumed. PRIVATE. */
+  breadcrumbsPaused?: boolean;
   /** Starred (pinned) artists — ordered list of artist names. PRIVATE, same
    *  envelope as `starred`. Account-backed so starred artists follow the viewer
    *  across devices (Brendon, 2026-06-13). Was localStorage `pd_artist_pinned`. */

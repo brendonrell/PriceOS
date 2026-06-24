@@ -49,6 +49,7 @@ import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
+import { getRecentGlobal, subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
@@ -112,7 +113,7 @@ function formatMemberSince(iso: string): string {
 }
 
 type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'sigil' | 'loyalty' | 'counterparties' | 'info' | 'achievements' | 'discord' | 'anointed' | 'targets';
+type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'sigil' | 'loyalty' | 'counterparties' | 'history' | 'info' | 'achievements' | 'discord' | 'anointed' | 'targets';
 /* Artist Showcase (Artist style): 'created' = the now-minting view of the
    projects this artist made; 'regular' = their curated Top 6 grid. */
 type ShowcaseView = 'created' | 'regular';
@@ -993,6 +994,26 @@ function ProfilePageBodyInner({
         [starredItems],
     );
 
+    /* My History — the viewer's PRIVATE last-100 viewed Outputs, freshest first,
+       carrying the visit time for day grouping. Reuses the Starred Outputs rows,
+       rendered on the feed timeline (Brendon, 2026-06-24). */
+    const [historyItems, setHistoryItems] = useState<{ slug: string; id: number; ts: number }[]>([]);
+    useEffect(() => {
+        const read = () => setHistoryItems(getRecentGlobal(100).filter((h) => getProject(h.slug) != null));
+        read();
+        return subscribeBreadcrumbs(read);
+    }, []);
+    /* Day grouping (Chrome-history style) is always on for History. */
+    const historyByDay = true;
+    /* Recording on/off — the two L3 pills (History: ON / History: OFF). Synced
+       from the store; switching routes through a mint-style confirm BOTH ways. */
+    const [recording, setRecording] = useState(true);
+    useEffect(() => {
+        setRecording(isRecordingEnabled());
+        return subscribeBreadcrumbs(() => setRecording(isRecordingEnabled()));
+    }, []);
+    const [recordingConfirm, setRecordingConfirm] = useState(false);
+
     /* Starred Traits — favourited (Project, category, value) tuples, shown under
        the Starred tab's Traits filter. Private, own-profile only, like stars. */
     const [traitStarItems, setTraitStarItems] = useState(() => getTraitStarItems());
@@ -1523,15 +1544,17 @@ function ProfilePageBodyInner({
         if (v === 'created' && !createdUnderMore) v = 'albums';
         // Visitors never see private Starred/Wishlists — fall to Created (when
         // this artist surfaces it) else Albums.
-        if (!isOwnProfile && (v === 'starred' || v === 'wishlists')) {
+        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history')) {
             v = createdUnderMore ? 'created' : 'albums';
         }
         return v;
     })();
     const onStarredTab = onMore && isOwnProfile && effMoreL1 === 'starred';
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
-    /* Active sort/group config for the current Starred filter (or Wishlist). */
-    const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : moreMode] ?? MORE_CFG.all;
+    const onHistoryTab = onMore && isOwnProfile && effMoreL1 === 'history';
+    /* Active sort/group config for the current Starred filter (or Wishlist).
+       History reuses the Outputs sort set. */
+    const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : onHistoryTab ? 'outputs' : moreMode] ?? MORE_CFG.all;
     /* Created carousels shown either inside the Artist-style showcase or as the
        +More sub-tab for traditional-Top-6 artists. */
     const moreCreatedActive = onMore && createdUnderMore && effMoreL1 === 'created';
@@ -2052,12 +2075,17 @@ function ProfilePageBodyInner({
                                         { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
+                                        /* My History — PRIVATE, last pill in the row, own profile only. */
+                                        ...(isOwnProfile
+                                            ? [{ key: 'history', label: <><span className="pill-tab-ico">{'◷︎'}</span> My History</>, active: effMoreL1 === 'history', onClick: () => setMoreL1('history') }]
+                                            : []),
                                     ]
                                 )
                             }
                             profilePillsTrailing={
-                                (onStarredTab || onWishlistTab) ? (
+                                (onStarredTab || onWishlistTab || onHistoryTab) ? (
                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                        {(onStarredTab || onWishlistTab) && (
                                         <div
                                             className={`burn-btn${morePresetActive ? ' active' : ''}`}
                                             role="button"
@@ -2068,6 +2096,7 @@ function ProfilePageBodyInner({
                                         >
                                             ⏚&#xFE0E;
                                         </div>
+                                        )}
                                         <div
                                             className={`multiselect-btn${moreMultiActive ? ' active' : ''}`}
                                             role="button"
@@ -2092,7 +2121,7 @@ function ProfilePageBodyInner({
                                 ) : undefined
                             }
                             profileSortControls={
-                                (onStarredTab || onWishlistTab) ? (
+                                (onStarredTab || onWishlistTab || onHistoryTab) ? (
                                     <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
                                         {moreCfg.sorts.map((key) => {
                                             const active = moreSort === key;
@@ -2148,6 +2177,29 @@ function ProfilePageBodyInner({
                                                 {p.count > 0 && <span className="stat-count">{p.count}</span>}
                                             </div>
                                         ))}
+                                    </div>
+                                ) : onHistoryTab && isOwnProfile ? (
+                                    <div className="stats-container collected-values" style={{ display: 'flex' }}>
+                                        <div
+                                            className={`pill pill-l3${recording ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="History on — tracking your recently viewed outputs"
+                                            onClick={() => { if (!recording) setRecordingConfirm(true); }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!recording) setRecordingConfirm(true); } }}
+                                        >
+                                            <span className="stat-name">↳ History: ON</span>
+                                        </div>
+                                        <div
+                                            className={`pill pill-l3${!recording ? ' active' : ''}`}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="History off — not tracking"
+                                            onClick={() => { if (recording) setRecordingConfirm(true); }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (recording) setRecordingConfirm(true); } }}
+                                        >
+                                            <span className="stat-name">↳ History: OFF</span>
+                                        </div>
                                     </div>
                                 ) : undefined
                             }
@@ -2538,6 +2590,81 @@ function ProfilePageBodyInner({
                         )}
                     </div>
                 </>
+            )}
+
+            {/* My History — the last-100 viewed Outputs, reusing the Starred
+                Outputs rows on the feed timeline, grouped by day (Brendon,
+                2026-06-24). Own profile only (private). */}
+            {onHistoryTab && isOwnProfile && (
+                !recording ? (
+                    <section className="starred-list" aria-label="History">
+                        <div className="history-empty-note">
+                            Turn on History to see your 100 most recently viewed outputs.
+                        </div>
+                    </section>
+                ) : historyItems.length > 0 ? (
+                    <StarredList
+                        items={historyItems}
+                        mode="outputs"
+                        kind="history"
+                        timeline
+                        group={historyByDay ? 'day' : 'none'}
+                        searchOpen={moreSearchOpen}
+                        query={moreQuery}
+                        onQueryChange={setMoreQuery}
+                        onCloseSearch={closeMoreSearch}
+                        multiActive={moreMultiActive}
+                        onExitMulti={() => setMoreMultiActive(false)}
+                        sortKey={moreSort}
+                        sortDir={moreSortDir}
+                        viewerAddress={user.address}
+                    />
+                ) : (
+                    <section className="starred-list" aria-label="History">
+                        <div className="history-empty-note">
+                            Your last 100 viewed outputs will appear here as you browse.
+                        </div>
+                    </section>
+                )
+            )}
+
+            {/* History Recording toggle — confirm BOTH ways, mint-style (Brendon,
+                2026-06-24). Pausing genuinely stops recording that instant. */}
+            {recordingConfirm && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setRecordingConfirm(false)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">
+                            {recording
+                                ? 'Turn off History? We stop tracking the outputs you view.'
+                                : 'Start tracking your 100 most recently viewed outputs?'}
+                        </div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setRecordingConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => {
+                                    const next = !recording;
+                                    setRecordingEnabled(next);
+                                    setRecording(next);
+                                    setRecordingConfirm(false);
+                                    showToast(next ? 'History: ON' : 'History: OFF');
+                                }}
+                            >
+                                {recording ? 'Turn Off' : 'Turn On'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* (The mini @name carousel renders INLINE under the title — see the

@@ -19,17 +19,22 @@
  * in the owner's settings and is never shown to anyone else.
  */
 
-import { pushSettingsDebounced, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+import { pushSettings, pushSettingsDebounced, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
 const STORAGE_KEY = STATE_CACHE_KEYS.breadcrumbs;
-/** Trail length cap — most recent N visits across all Projects. */
-const CAP = 60;
+/** Trail length cap — most recent N visits across all Projects. Doubles as the
+ *  History depth (Brendon, 2026-06-24). */
+const CAP = 100;
 /** Crumbs shown per Project gallery (sim's sticker count). */
 export const BREADCRUMBS_PER_PROJECT = 5;
 
 type Listener = (keys: ReadonlyArray<string>) => void;
 
-let order: string[] = [];
+/** A visit: the `${slug}:${id}` key + the epoch-ms it was last opened (powers
+ *  History's day grouping). Legacy entries (pre-timestamp) load with t = 0. */
+interface Entry { k: string; t: number; }
+
+let order: Entry[] = [];
 let hydrated = false;
 const listeners = new Set<Listener>();
 
@@ -37,7 +42,7 @@ function keyOf(slug: string, id: number): string {
     return `${slug}:${id}`;
 }
 
-function loadOrder(): string[] {
+function loadOrder(): Entry[] {
     if (typeof window === 'undefined') return [];
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -45,7 +50,15 @@ function loadOrder(): string[] {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
             return parsed
-                .filter((k): k is string => typeof k === 'string' && k.includes(':'))
+                .map((e): Entry | null => {
+                    // New shape { k, t }; legacy shape: a bare key string.
+                    if (typeof e === 'string' && e.includes(':')) return { k: e, t: 0 };
+                    if (e && typeof e === 'object' && typeof e.k === 'string' && e.k.includes(':')) {
+                        return { k: e.k, t: typeof e.t === 'number' ? e.t : 0 };
+                    }
+                    return null;
+                })
+                .filter((e): e is Entry => e != null)
                 .slice(0, CAP);
         }
     } catch {
@@ -84,24 +97,67 @@ if (typeof window !== 'undefined') {
     window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
         hydrated = true;
         order = loadOrder();
+        recordingLoaded = false; // re-read the account's recording choice
+        loadRecording();
         emit();
     });
 }
 
 function emit(): void {
-    const snapshot: ReadonlyArray<string> = [...order];
+    const snapshot: ReadonlyArray<string> = order.map((e) => e.k);
     listeners.forEach((l) => l(snapshot));
+}
+
+/* Recording switch — the History "Recording" L3 toggle. When OFF we genuinely
+   stop recording visits the instant it's flipped (a privacy pause), and resume
+   the instant it's flipped back. Persisted (local + account) so the choice
+   follows the viewer (Brendon, 2026-06-24). */
+const PAUSE_KEY = 'pd_breadcrumbs_paused';
+let recording = true;
+let recordingLoaded = false;
+function loadRecording(): void {
+    if (recordingLoaded || typeof window === 'undefined') return;
+    recordingLoaded = true;
+    try { recording = window.localStorage.getItem(PAUSE_KEY) !== '1'; } catch { /* ignore */ }
+}
+export function isRecordingEnabled(): boolean {
+    loadRecording();
+    return recording;
+}
+export function setRecordingEnabled(on: boolean): void {
+    loadRecording();
+    recording = on;
+    try {
+        if (typeof window !== 'undefined') window.localStorage.setItem(PAUSE_KEY, on ? '0' : '1');
+    } catch { /* ignore */ }
+    /* Discrete user choice — write through immediately (not debounced). */
+    pushSettings({ breadcrumbsPaused: !on });
+    emit();
 }
 
 /** Record a visit — called when the Output modal opens for (slug, id). */
 export function recordVisit(slug: string, id: number): void {
+    loadRecording();
+    if (!recording) return; // genuinely paused — record nothing
     hydrate();
     const k = keyOf(slug, id);
-    const i = order.indexOf(k);
-    if (i === 0) return; // already the freshest crumb — nothing to do
+    const i = order.findIndex((e) => e.k === k);
+    const t = Date.now();
+    if (i === 0) { order[0]!.t = t; persist(); return; } // freshest already — just bump its time
     if (i > 0) order.splice(i, 1);
-    order.unshift(k);
+    order.unshift({ k, t });
     if (order.length > CAP) order.length = CAP;
+    persist();
+    emit();
+}
+
+/** Drop a single visit from the trail (the History row ✕). */
+export function removeVisit(slug: string, id: number): void {
+    hydrate();
+    const k = keyOf(slug, id);
+    const i = order.findIndex((e) => e.k === k);
+    if (i < 0) return;
+    order.splice(i, 1);
     persist();
     emit();
 }
@@ -114,9 +170,9 @@ export function getRecentIdsForProject(
     hydrate();
     const prefix = `${slug.toLowerCase()}:`;
     const out: number[] = [];
-    for (const k of order) {
-        if (!k.toLowerCase().startsWith(prefix)) continue;
-        const id = Number(k.slice(k.indexOf(':') + 1));
+    for (const e of order) {
+        if (!e.k.toLowerCase().startsWith(prefix)) continue;
+        const id = Number(e.k.slice(e.k.indexOf(':') + 1));
         if (Number.isFinite(id)) out.push(id);
         if (out.length >= n) break;
     }
@@ -124,19 +180,19 @@ export function getRecentIdsForProject(
 }
 
 /** Most recent visited Outputs ACROSS the whole site (every Project), freshest
- *  first — each as { slug, id }. Powers the Recent pills, which show the global
- *  trail with the current Project's crumbs lit and the rest at half opacity. */
+ *  first — each as { slug, id, ts }. Powers the Recent pills + the History
+ *  timeline (ts drives the day grouping). */
 export function getRecentGlobal(
     n: number = BREADCRUMBS_PER_PROJECT,
-): { slug: string; id: number }[] {
+): { slug: string; id: number; ts: number }[] {
     hydrate();
-    const out: { slug: string; id: number }[] = [];
-    for (const k of order) {
-        const i = k.indexOf(':');
+    const out: { slug: string; id: number; ts: number }[] = [];
+    for (const e of order) {
+        const i = e.k.indexOf(':');
         if (i < 0) continue;
-        const slug = k.slice(0, i);
-        const id = Number(k.slice(i + 1));
-        if (Number.isFinite(id)) out.push({ slug, id });
+        const slug = e.k.slice(0, i);
+        const id = Number(e.k.slice(i + 1));
+        if (Number.isFinite(id)) out.push({ slug, id, ts: e.t });
         if (out.length >= n) break;
     }
     return out;

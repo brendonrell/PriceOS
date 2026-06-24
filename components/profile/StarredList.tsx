@@ -27,6 +27,7 @@ import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor, collectorTopBuy, collectorTopBuyEth, collectorProjectsOwned } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
+import { removeVisit } from '../../lib/pins/breadcrumbStore';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
@@ -44,6 +45,21 @@ import GhostRows from './GhostRows';
 export interface StarredItem {
     slug: string;
     id: number;
+    /** Epoch-ms of the visit — History only, drives day grouping. */
+    ts?: number;
+}
+
+/* Day bucket label for the History timeline — Today / Yesterday / "Mon DD YYYY"
+   (Chrome-history style). t <= 0 = a legacy visit with no recorded time. */
+function dayLabel(t: number): string {
+    if (!t || t <= 0) return 'Earlier';
+    const d = new Date(t);
+    const now = new Date();
+    const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const days = Math.round((startOf(now) - startOf(d)) / 86400000);
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
@@ -78,6 +94,8 @@ export default function StarredList({
     group = 'none',
     mode = 'all',
     viewerAddress,
+    kind = 'starred',
+    timeline = false,
 }: {
     items: StarredItem[];
     traits?: ReadonlyArray<TraitStar>;
@@ -108,6 +126,13 @@ export default function StarredList({
     /* The viewer's wallet (own profile = the owner) — lets each artist row
        resolve the follow relationship (mutual / following / follower). */
     viewerAddress?: string | null;
+    /* 'history' reuses the Outputs rows but: the ✕ drops the visit from History
+       (not unstar), and the list can render on the feed timeline (Brendon,
+       2026-06-24). */
+    kind?: 'starred' | 'history';
+    /* Render the Outputs rows on the feed timeline (line + node), grouped by day
+       headers — the History look. */
+    timeline?: boolean;
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -172,6 +197,7 @@ export default function StarredList({
                     const extra = extraPairs.map((p) => `${p.k}: ${p.v}`).join(' · ');
                     return {
                         ...it,
+                        ts: it.ts ?? 0,
                         recentIndex: i,
                         project: t.Project ?? `@${it.slug}`,
                         projectName: getProject(it.slug)?.displayName ?? '',
@@ -341,7 +367,8 @@ export default function StarredList({
     const outputSections = useMemo(() => {
         const dim = dimFor('outputs');
         let secs: Section<typeof visibleOutputs[number]>[];
-        if (dim === 'color') secs = sectionize(visibleOutputs, (r) => resolveBucket(r.slug, r.id) ?? 'Other', COLOR_ORDER);
+        if (dim === 'day') secs = sectionize(visibleOutputs, (r) => dayLabel(r.ts));
+        else if (dim === 'color') secs = sectionize(visibleOutputs, (r) => resolveBucket(r.slug, r.id) ?? 'Other', COLOR_ORDER);
         else if (dim === 'artist') secs = sectionize(visibleOutputs, (r) => r.artist || '—');
         else if (dim === 'project') secs = sectionize(visibleOutputs, (r) => projOf(r.slug));
         else return [{ label: null as string | null, key: '_', groups: outputGroups }];
@@ -388,6 +415,13 @@ export default function StarredList({
 
     const handleUnstar = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
+        if (kind === 'history') {
+            askRemove('Remove this from your History?', () => {
+                removeVisit(slug, id);
+                showToast('Removed from your History');
+            });
+            return;
+        }
         askRemove('Remove this output from your Starred list?', () => {
             toggleStar(slug, id);
             showToast('Removed from your Starred Outputs List');
@@ -465,13 +499,13 @@ export default function StarredList({
             </div>
 
             {/* Rows — each type renders when 'all' or its own filter is active. */}
-            <div className={`starred-rows${multiActive ? ' is-multi' : ''}`}>
+            <div className={`starred-rows${multiActive ? ' is-multi' : ''}${timeline ? ' starred-rows--timeline' : ''}`}>
                 {(mode === 'all' || mode === 'outputs') && (
                     <>
                         {typeHdr && visibleOutputs.length > 0 && <div className="starred-group-header">Outputs</div>}
                         {outputSections.map((sec) => (
                             <Fragment key={sec.key}>
-                                {sec.label != null && <div className="starred-group-header">{sec.label}</div>}
+                                {sec.label != null && <div className={`starred-group-header${timeline ? ' history-day-header' : ''}`}>{sec.label}</div>}
                                 {sec.groups.map(([slug, groupRows]) => (
                                     <ProjectProvider key={`${sec.key}|${slug}`} slug={slug}>
                                         {groupRows.map((r) => (
@@ -479,6 +513,7 @@ export default function StarredList({
                                                 key={`${r.slug}:${r.id}`}
                                                 slug={r.slug}
                                                 id={r.id}
+                                                timeline={timeline}
                                                 project={r.project}
                                                 artist={r.artist}
                                                 extraPairs={r.extraPairs}
@@ -809,6 +844,7 @@ function GrailDot({ pinned, onToggle }: { pinned: boolean; onToggle: () => void 
 function StarredOutputRow({
     slug,
     id,
+    timeline = false,
     project,
     artist,
     extraPairs,
@@ -825,6 +861,7 @@ function StarredOutputRow({
 }: {
     slug: string;
     id: number;
+    timeline?: boolean;
     project: string;
     artist: string;
     extraPairs: { k: string; v: string }[];
@@ -844,12 +881,18 @@ function StarredOutputRow({
     const act = () => (multiActive ? onToggleSel() : onOpen());
     return (
         <div
-            className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
+            className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}${timeline ? ' is-timeline' : ''}`}
             role="button"
             tabIndex={0}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
+            {timeline && (
+                <>
+                    <span className="history-rail-line" aria-hidden="true" />
+                    <span className="history-rail-node" aria-hidden="true">◷&#xFE0E;</span>
+                </>
+            )}
             <OutputThumb slug={slug} id={id} />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">

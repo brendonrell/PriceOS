@@ -8692,6 +8692,53 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     display: flex;
     flex-direction: column;
 }
+/* ── My History — Starred Outputs rows on the feed timeline (Brendon 2026-06-24).
+   Reuses the feed's dashed line + node node; day headers ride Courier. ── */
+.history-empty-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    opacity: 0.55;
+    padding: 18px 4px;
+    line-height: 1.5;
+}
+.history-day-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+    padding: 14px 0 4px 26px;
+}
+.starred-rows--timeline .starred-row.is-timeline {
+    position: relative;
+    padding-left: 26px;
+}
+/* The dashed connector — runs from this row's node down to the next. */
+.starred-row.is-timeline .history-rail-line {
+    position: absolute;
+    left: 6px;
+    top: 22px;
+    bottom: -8px;
+    width: 1px;
+    border-left: 1px dashed var(--border-color);
+    pointer-events: none;
+}
+.starred-rows--timeline .starred-row.is-timeline:last-child .history-rail-line { display: none; }
+/* The node icon sitting on the rail. */
+.starred-row.is-timeline .history-rail-node {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 14px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.85;
+    z-index: 1;
+    pointer-events: none;
+}
+
 .starred-row {
     display: flex;
     align-items: center;
