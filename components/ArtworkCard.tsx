@@ -274,7 +274,6 @@ function ArtworkCard({
        right over the card and dismisses without leaving the grid (Brendon
        2026-06-24). */
     const [noteText, setNoteText] = useState('');
-    const [notePeek, setNotePeek] = useState(false);
     useEffect(() => {
         const read = () => {
             try {
@@ -297,19 +296,6 @@ function ArtworkCard({
        (Brendon 2026-06-24). */
     const { siweAddress } = useAuth();
     const hasNote = noteText.trim().length > 0 && !!siweAddress;
-    /* Close the peek on any outside tap or scroll — you keep browsing right where
-       you were, the note just vanishes. */
-    useEffect(() => {
-        if (!notePeek) return;
-        const close = () => setNotePeek(false);
-        window.addEventListener('scroll', close, true);
-        const t = window.setTimeout(() => document.addEventListener('click', close), 0);
-        return () => {
-            window.removeEventListener('scroll', close, true);
-            window.clearTimeout(t);
-            document.removeEventListener('click', close);
-        };
-    }, [notePeek]);
 
     /* chat #6 D010-cart — sim 11823-11836. CartContext already owns the
        items Set + persistence; ArtworkCard reads `has` for the duplicate-
@@ -682,33 +668,24 @@ function ArtworkCard({
 
     /* Note indicator — the ⊟ glyph in the caption UNDER the artwork, to the
        RIGHT of the owned check, shown in any grid when the logged-in viewer has
-       a note for this piece. Tap it to peek the note over the card; tap / scroll
-       dismisses, grid position kept (Brendon, 2026-06-24). */
+       a note for this piece. Tapping opens the ACTUAL note (notes can be long),
+       not a preview; the grid stays put behind the modal (Brendon, 2026-06-24). */
     const noteIcon = hasNote ? (
         <span
-            className={'meta-note-ic' + (notePeek ? ' is-open' : '')}
+            className="meta-note-ic"
             role="button"
             tabIndex={0}
-            title="Note"
-            aria-label="Show note"
-            onClick={(e) => { e.stopPropagation(); setNotePeek((v) => !v); }}
+            title="Open note"
+            aria-label="Open note"
+            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id); }}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault(); e.stopPropagation(); setNotePeek((v) => !v);
+                    e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id);
                 }
             }}
         >
             {'⊟︎'}
         </span>
-    ) : null;
-    const notePop = (hasNote && notePeek) ? (
-        <div
-            className="meta-note-pop"
-            role="tooltip"
-            onClick={(e) => { e.stopPropagation(); setNotePeek(false); }}
-        >
-            {noteText}
-        </div>
     ) : null;
 
     return (
@@ -1014,7 +991,6 @@ function ArtworkCard({
                             (Brendon, 2026-06-20), same as a starred project name. */}
                         <span className="meta-proj-id">{starred ? '★︎ ' : ''}#{id}</span>
                         {noteIcon}
-                        {notePop}
                     </div>
                 ) : (
                 <div className="meta">
@@ -1044,7 +1020,6 @@ function ArtworkCard({
                         )}
                         {noteIcon}
                     </span>
-                    {notePop}
                     {listed ? (
                         <span
                             className="meta-owner price-trigger"

@@ -5916,38 +5916,14 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     cursor: pointer;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1;
+    position: relative;
+    top: 2px;
     opacity: 0.85;
     -webkit-tap-highlight-color: transparent;
 }
 .meta-note-ic:hover, .meta-note-ic.is-open { opacity: 1; }
-.meta-note-pop {
-    position: absolute;
-    bottom: calc(100% - 2px);
-    left: 0;
-    z-index: 40;
-    width: max-content;
-    max-width: min(240px, 72vw);
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    padding: 8px 10px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: normal;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    text-align: left;
-    cursor: pointer;
-    animation: meta-note-pop-in 0.14s ease both;
-}
-@keyframes meta-note-pop-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
 /* Profile grid caption (Brendon 2026-06-16) — PROJECT NAME (Courier) + #ID
    (Rubik) on one left-aligned line; no owner/price. Spans projects, so the
    name identifies each piece's collection. */
