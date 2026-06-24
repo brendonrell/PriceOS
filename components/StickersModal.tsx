@@ -322,6 +322,9 @@ export default function StickersModal() {
                                 className="ss-grid-view"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
+                                /* Mobile/tablet: cap the stacked grid at 8 rows by fanning
+                                   out columns as sheets grow (Brendon, 2026-06-24). */
+                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 8))}, 1fr)` } : undefined}
                             >
                                 {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>
