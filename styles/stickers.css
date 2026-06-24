@@ -818,20 +818,18 @@
    centred (desktop) view: a live preview up top, all controls at once (no
    paging), then the full collection grid. Reuses the manager's controls.
    ============================================================================ */
-/* The ↑ / ↓ expand toggle in the header. */
+/* The ↑ / ↓ expand toggle in the header. Full strength — it's a primary action. */
 .smgr-expand {
     background: none;
     border: 0;
     padding: 2px 6px;
     margin-left: 6px;
     cursor: pointer;
-    color: inherit;
-    font: bold 16px/1 'Courier New', Courier, monospace;
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
+    color: var(--text-color);
+    font: bold 20px/1 'Courier New', Courier, monospace;
+    opacity: 1;
     -webkit-tap-highlight-color: transparent;
 }
-.smgr-expand:hover { opacity: 1; }
 
 .sticker-mgr-plus-backdrop {
     position: fixed;
