@@ -544,10 +544,6 @@
        above the hero (Brendon 2026-06-23). */
     position: relative;
     z-index: 0;
-    /* Clip stickers to the hero area so none stick out past it when shown/hidden
-       — `clip` hard-cuts with no scroll container (Brendon, 2026-06-24). The
-       manager modal is portaled to <body>, so it's unaffected. */
-    overflow: clip;
 }
 .hero-stickers-rows {
     display: flex;
