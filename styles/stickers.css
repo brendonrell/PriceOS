@@ -791,6 +791,15 @@
 }
 
 .smgr-grid-wrap { display: flex; align-items: flex-start; gap: 10px; }
+/* Sheet groups — each sheet is its own grid (so it starts on a fresh row),
+   stacked with a gap between so the end/start of a sheet reads clearly. */
+.smgr-grid-groups {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
 .smgr-grid {
     flex: 1 1 auto;
     display: grid;

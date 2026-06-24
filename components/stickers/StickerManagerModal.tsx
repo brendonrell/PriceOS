@@ -231,23 +231,29 @@ export function StickerManagerModal({
 
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
 
-    /* The sticker grid (owned, tap to toggle) — shared by both views. */
+    /* The sticker grid (owned, tap to toggle) — shared by both views. Grouped by
+       sheet: each sheet starts on its own row, with a gap between groups so the
+       end/start of a sheet reads clearly. */
     const stickerGrid = (
-        <div className="smgr-grid">
-            {owned.map((s) => {
-                const on = isActive(s, offSheets, offIds);
-                return (
-                    <button
-                        key={s.id}
-                        className={`smgr-tile${on ? '' : ' off'}`}
-                        type="button"
-                        title={`${s.name} — ${on ? 'on' : 'off'}`}
-                        onClick={() => toggleSticker(s.id)}
-                    >
-                        <StickerArt sticker={s} size={34} />
-                    </button>
-                );
-            })}
+        <div className="smgr-grid-groups">
+            {ownedSheets.map((sh) => (
+                <div className="smgr-grid" key={sh.id}>
+                    {owned.filter((s) => s.sheet === sh.id).map((s) => {
+                        const on = isActive(s, offSheets, offIds);
+                        return (
+                            <button
+                                key={s.id}
+                                className={`smgr-tile${on ? '' : ' off'}`}
+                                type="button"
+                                title={`${s.name} — ${on ? 'on' : 'off'}`}
+                                onClick={() => toggleSticker(s.id)}
+                            >
+                                <StickerArt sticker={s} size={34} />
+                            </button>
+                        );
+                    })}
+                </div>
+            ))}
         </div>
     );
 
@@ -405,22 +411,7 @@ export function StickerManagerModal({
                         </Row>
                         <div className="ambient-pop-row smgr-grid-row">
                             <span className="ambient-pop-label">Stickers</span>
-                            <div className="smgr-grid">
-                                {owned.map((s) => {
-                                    const on = isActive(s, offSheets, offIds);
-                                    return (
-                                        <button
-                                            key={s.id}
-                                            className={`smgr-tile${on ? '' : ' off'}`}
-                                            type="button"
-                                            title={`${s.name} — ${on ? 'on' : 'off'}`}
-                                            onClick={() => toggleSticker(s.id)}
-                                        >
-                                            <StickerArt sticker={s} size={34} />
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            {stickerGrid}
                         </div>
                     </div>
                 </div>
