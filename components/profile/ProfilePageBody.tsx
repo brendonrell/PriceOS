@@ -1409,8 +1409,12 @@ function ProfilePageBodyInner({
             vibe: (user.price_sprite as SpriteVibe | null) ?? null,
             handle: user.handle ?? handle,
         });
+        // Build ONCE per entry into gen-curated. Deliberately NOT re-rolling when
+        // follows / captured colours arrive async — those late deps were what made
+        // the set visibly re-shuffle a second time after one tap (Brendon,
+        // 2026-06-24). It reads whatever following/colour data is loaded at build.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onShowcase, effStyle, enriched, colorsVer, ownerFollowing]);
+    }, [onShowcase, effStyle, enriched]);
 
     /* Live per-project stats for this artist's projects (birth time, mint
        count, graduation, sold-out, milestones) — the ledger timestamps the

@@ -684,13 +684,19 @@ function HomePageBodyInner({
         const rows: { slug: string; minted: number }[] = [];
         for (const m of feed?.minting_now ?? []) rows.push({ slug: m.slug, minted: m.minted_count });
         for (const u of feed?.uploads ?? []) rows.push({ slug: u.slug, minted: u.minted_count });
-        return rows.filter((p) => p.minted > 0);
+        // Stable order so the seeded pick below lands on the SAME project across
+        // incidental feed refreshes (Brendon, 2026-06-24).
+        return rows.filter((p) => p.minted > 0).sort((a, b) => a.slug.localeCompare(b.slug));
     }, [feed]);
     const shufflePick = useMemo(() => {
-        if (shufflePool.length === 0) return null;
-        return shufflePool[Math.floor(Math.random() * shufflePool.length)];
-        // shuffleSeed re-rolls the project on every tab entry.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const len = shufflePool.length;
+        if (len === 0) return null;
+        // DETERMINISTIC pick from the seed — not Math.random. A background feed
+        // refresh re-runs this memo, but the result stays put; the project only
+        // changes when the user re-rolls (leaving the Shuffle tab bumps the seed).
+        // Kills the "loads one, then jumps to another" double (Brendon, 2026-06-24).
+        const r = ((shuffleSeed * 2654435761) >>> 0) / 4294967296;
+        return shufflePool[Math.floor(r * len)] ?? shufflePool[0]!;
     }, [shufflePool, shuffleSeed]);
 
     /* Tab pill. `display` lets a tab wear something other than its toast
