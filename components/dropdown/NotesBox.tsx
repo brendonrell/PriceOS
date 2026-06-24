@@ -37,44 +37,60 @@ import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { MOCK_NOTES, MOCK_DEMO_NOTES } from '../../lib/data/mockNotes';
 
-const DELETED_KEY = 'pd_notes_deleted';
+const NOTES_KEY = 'pd_token_notes';
+const NOTE_ICON = '⊟︎';
+
+interface SavedNote { id: string; numericId: number; text: string; }
+
+/* Read the viewer's REAL saved notes from the same store the cards + modal use.
+   No more demo/test notes — the list shows exactly what the user has written
+   (Brendon 2026-06-24). */
+function readNotes(): SavedNote[] {
+    try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(NOTES_KEY) : null;
+        const obj = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+        return Object.entries(obj)
+            .filter(([, t]) => typeof t === 'string' && t.trim().length > 0)
+            .map(([k, t]) => ({ id: `#${k}`, numericId: parseInt(k, 10), text: t }))
+            .sort((a, b) => a.numericId - b.numericId);
+    } catch {
+        return [];
+    }
+}
 
 export function NotesBox() {
     const { notifs, setAccordion } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const { showToast } = useToast();
 
-    const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
-
+    const [notes, setNotes] = useState<SavedNote[]>([]);
     useEffect(() => {
+        const read = () => setNotes(readNotes());
+        read();
+        window.addEventListener('pd:notes-changed', read);
+        window.addEventListener('storage', read);
+        return () => {
+            window.removeEventListener('pd:notes-changed', read);
+            window.removeEventListener('storage', read);
+        };
+    }, []);
+
+    const handleDelete = (e: React.MouseEvent, idStr: string, numericId: number) => {
+        e.stopPropagation();
         try {
-            const raw = localStorage.getItem(DELETED_KEY);
-            if (!raw) return;
-            const arr = JSON.parse(raw);
-            if (Array.isArray(arr)) setDeletedIds(new Set(arr.map(String)));
+            const raw = localStorage.getItem(NOTES_KEY);
+            const obj = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+            delete obj[String(numericId)];
+            localStorage.setItem(NOTES_KEY, JSON.stringify(obj));
+            window.dispatchEvent(new Event('pd:notes-changed'));
         } catch {
             /* swallow */
         }
-    }, []);
-
-    const handleDelete = (e: React.MouseEvent, idStr: string) => {
-        e.stopPropagation();
-        setDeletedIds((prev) => {
-            const next = new Set(prev);
-            next.add(idStr);
-            try {
-                localStorage.setItem(DELETED_KEY, JSON.stringify([...next]));
-            } catch {
-                /* swallow */
-            }
-            return next;
-        });
         showToast(`Note ${idStr}: DELETED`);
     };
 
-    const visible = MOCK_NOTES.filter((n) => !deletedIds.has(n.id));
+    const visible = notes;
 
     return (
         <AccordionBox
@@ -90,19 +106,10 @@ export function NotesBox() {
             }
         >
             {visible.map((n) => {
-                /* Strip leading '#' from the list-item id string and
-                   parseInt — mockNotes stores ids as '#22', sim's
-                   demoNotes (now MOCK_DEMO_NOTES) is keyed by numeric
-                   form 22. parseInt('#22', 10) returns NaN; slicing the
-                   leading hash first fixes the parse. */
-                const numericId = parseInt(n.id.replace(/^#/, ''), 10);
                 const handleClick = (e: React.MouseEvent) => {
                     e.stopPropagation();
-                    if (Number.isNaN(numericId)) return;
-                    openOutputNoteEditor(
-                        numericId,
-                        MOCK_DEMO_NOTES[numericId]
-                    );
+                    if (Number.isNaN(n.numericId)) return;
+                    openOutputNoteEditor(n.numericId);
                 };
                 return (
                     <div
@@ -112,7 +119,7 @@ export function NotesBox() {
                         role="button"
                         tabIndex={0}
                     >
-                        <span className="n-icon">{n.icon}</span>
+                        <span className="n-icon">{NOTE_ICON}</span>
                         <span className="notif-item-body">
                             {n.id} — {n.text}
                         </span>
@@ -121,14 +128,15 @@ export function NotesBox() {
                             role="button"
                             tabIndex={0}
                             title="Delete note"
-                            onClick={(e) => handleDelete(e, n.id)}
+                            onClick={(e) => handleDelete(e, n.id, n.numericId)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     handleDelete(
                                         e as unknown as React.MouseEvent,
-                                        n.id
+                                        n.id,
+                                        n.numericId
                                     );
                                 }
                             }}

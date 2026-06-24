@@ -131,6 +131,7 @@ import {
     subscribeBudgets,
 } from '../lib/engines/budgetEngine';
 import { publishMarket } from '../lib/home/visibleMarketStore';
+import { useAuth } from '../lib/state/AuthContext';
 
 interface ArtworkCardProps {
     id: number;
@@ -291,7 +292,11 @@ function ArtworkCard({
             window.removeEventListener('storage', read);
         };
     }, [id]);
-    const hasNote = noteText.trim().length > 0;
+    /* Notes are PRIVATE — the glyph + peek show ONLY to a logged-in viewer, and
+       the note store is per-browser (their own notes). Logged out → never shown
+       (Brendon 2026-06-24). */
+    const { siweAddress } = useAuth();
+    const hasNote = noteText.trim().length > 0 && !!siweAddress;
     /* Close the peek on any outside tap or scroll — you keep browsing right where
        you were, the note just vanishes. */
     useEffect(() => {

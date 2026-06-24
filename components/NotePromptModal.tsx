@@ -249,7 +249,7 @@ export default function NotePromptModal({
               className="note-prompt-btn note-prompt-btn--delete"
               onClick={() => setConfirmingDelete(true)}
             >
-              Delete
+              <span className="note-delete-x">{'×︎'}</span> Delete
             </button>
           )}
         </div>
