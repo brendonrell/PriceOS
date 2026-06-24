@@ -43,13 +43,11 @@ function shortAddr(a: string | null): string {
 type ArtworkTab = 'artwork' | 'albums' | 'more';
 /* + More sub-sections — same set as the project page's + More. */
 type MoreL1 =
-    | 'replay' | 'stats' | 'genome' | 'gnome' | 'albums'
+    | 'replay' | 'stats' | 'albums'
     | 'social' | 'sentiment' | 'attributes' | 'pricestory';
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
-    { key: 'genome', label: 'Genome' },
-    { key: 'gnome', label: 'Gnome' },
     { key: 'albums', label: 'Albums' },
     { key: 'social', label: 'Social' },
     { key: 'sentiment', label: 'Sentiment' },
