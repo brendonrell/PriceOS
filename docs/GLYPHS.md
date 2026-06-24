@@ -69,7 +69,7 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | Cart | ▢ | U+25A2 |
 | (open / detail) | ⟙ | U+27D9 |
 | Showcase | ⑆ | U+2446 |
-| Mute (Hammer) | ᚦ | U+16A6 |
+| Mute (Hammer) | ⟙ | U+27D9 |
 
 > **Stars are silent.** Starring is a low-stress, frequent bookmark — it never
 > generates a Ping. Wishlist is the opposite (a buy-intent signal) and DOES
