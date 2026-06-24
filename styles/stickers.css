@@ -852,6 +852,7 @@
     color: var(--text-color);
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
     font-family: 'Courier New', Courier, monospace;
     /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
        scroll (Brendon 2026-06-23). */
@@ -894,6 +895,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 12px;
