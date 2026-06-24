@@ -327,9 +327,9 @@ export function StickerManagerModal({
             <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers — full" onClick={onClose}>
                 <div className="sticker-mgr-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
-                        <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">YOUR STICKERS</span></span>
+                        <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">STICKER MANAGER+</span></span>
                         <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
-                            <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
+                            <span className="smgr-store-ic">{`▶${VS15}`}</span> STORE
                         </button>
                         <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Sticker Manager: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
@@ -413,9 +413,9 @@ export function StickerManagerModal({
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">YOUR STICKERS</span></span>
+                    <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">STICKER MANAGER</span></span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
-                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
+                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STORE
                     </button>
                     <button className="smgr-expand" type="button" onClick={() => { setFx(Math.floor(Math.random() * 10)); setFull(true); showToast('Sticker Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
                         {`↑${VS15}`}
