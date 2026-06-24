@@ -245,6 +245,7 @@ const NET_VALUE_ICON: Record<string, { glyph: string; cls: string }> = {
     'Mutuals':       { glyph: '⚭',         cls: 'net-pill-ico net-pill-ico--mutual' },
     'Following':     { glyph: '⚯',         cls: 'net-pill-ico net-pill-ico--following' },
     'Followers':     { glyph: '⚬',         cls: 'net-pill-ico net-pill-ico--follower' },
+    'Top Holders':   { glyph: '△',         cls: 'net-pill-ico net-pill-top' },
     'Fresh Wallets': { glyph: '◊︎', cls: 'net-pill-ico net-pill-eth' },
     'New to PD':     { glyph: '‰',         cls: 'net-pill-mille' },
 };
