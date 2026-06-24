@@ -907,24 +907,24 @@
    preview stickers cascade in (staggered fade). Opacity + a container scale
    only — never the stickers' own transforms, so placement is never disturbed
    (Brendon 2026-06-23). */
-.smgr-plus-preview { animation: smgr-preview-in 0.3s ease both; }
+.smgr-plus-preview { animation: smgr-preview-in 0.7s ease both; }
 @keyframes smgr-preview-in {
     from { opacity: 0; transform: scale(0.97); }
     to   { opacity: 1; transform: none; }
 }
-.smgr-plus-preview .hero-sticker { animation: smgr-sticker-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+.smgr-plus-preview .hero-sticker { animation: smgr-sticker-in 1s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
 @keyframes smgr-sticker-in {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
 .smgr-plus-preview .hero-sticker:nth-child(8n+1) { animation-delay: 0s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+2) { animation-delay: 0.04s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+3) { animation-delay: 0.08s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+4) { animation-delay: 0.12s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+5) { animation-delay: 0.16s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+6) { animation-delay: 0.20s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n+7) { animation-delay: 0.24s; }
-.smgr-plus-preview .hero-sticker:nth-child(8n)   { animation-delay: 0.28s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+2) { animation-delay: 0.11s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+3) { animation-delay: 0.22s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+4) { animation-delay: 0.33s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+5) { animation-delay: 0.44s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+6) { animation-delay: 0.55s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n+7) { animation-delay: 0.66s; }
+.smgr-plus-preview .hero-sticker:nth-child(8n)   { animation-delay: 0.77s; }
 @media (prefers-reduced-motion: reduce) {
     .smgr-plus-preview, .smgr-plus-preview .hero-sticker { animation: none; }
 }
