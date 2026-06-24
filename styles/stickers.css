@@ -738,7 +738,7 @@
 .sticker-pop .ambient-pop-title { padding-right: 40px; flex-wrap: nowrap; }
 .sticker-pop .ambient-pop-title-text { white-space: nowrap; font-weight: 700; opacity: 1; }
 /* The ⊞ beside YOUR STICKERS — larger than the title + nudged down (Brendon). */
-.smgr-title-ic { font-size: 19px; line-height: 1; position: relative; top: 2px; }
+.smgr-title-ic { font-size: 21px; line-height: 1; position: relative; top: 2px; }
 .sticker-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; white-space: nowrap; }
 .ambient-pop-row.smgr-grid-row { align-items: flex-start; }
 /* Control pages NEVER scroll — split across dot pages so each fits the compact
@@ -837,10 +837,10 @@
     margin-left: 6px;
     cursor: pointer;
     color: var(--text-color);
-    font: bold 20px/1 'Courier New', Courier, monospace;
+    font: bold 22px/1 'Courier New', Courier, monospace;
     opacity: 1;
     position: relative;
-    top: -3px;
+    top: -1px;
     -webkit-tap-highlight-color: transparent;
 }
 
