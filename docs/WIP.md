@@ -9,11 +9,9 @@
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task
   branch `claude/sticker-manager-modal-layout-dn4yfo` is trash (work is on dev) — Brendon deletes on GitHub.
   **Stale local-dev self-heals** via the SessionStart hook (re-syncs local `dev` → `origin/dev`).
-- **Updated:** 2026-06-24. This session = **MY HISTORY feature on its own DB table + views pillar +
-  sticker-manager/breadcrumb/profile polish** (🕰️ below), all shipped to dev.
-  - **⚠️ END NOTE:** the model was visibly off late in this session (repeated misreads of simple asks
-    — Brendon flagged it). Re-verify the History timeline + Starred Soundtracks name on the live deploy
-    before building further on them.
+- **Updated:** 2026-06-24 (cont.). Latest session = **History timeline rebuilt on the real activity-feed
+  look + Recent either/or pills + Entropy Visualizer + project attributes rebuilt to the output tile UI**
+  (🧬 below), all shipped to dev. The earlier same-day My-History/views-pillar work is under 🕰️.
 - **QUEUED (not built):** (1) **milestones-on-the-tape** — surface ALL project milestones (FIRST BLOOD,
   LUCKY 22, CENTURY CLUB, HALO, PER MILLE, ARCHETYPE, HI-DEF + sell-out/graduated lifecycle) onto
   The Tape. Source = the homepage milestone feed (`projects.milestones` JSONB / home feed, NOT the
@@ -23,6 +21,35 @@
   long-press **mini carousel quarter-scale** (`zoom: 0.25` on `.name-carousel-card .home-carousel-row`)
   are sensible defaults. (b) the **celestial sky row** (`pcel-sky`) uses FIXED luminary glyphs ☉ ☽ ↑ —
   zodiac SIGN glyphs are colour-emoji on iOS, so a project's *actual* sun/moon/rising can't be glyphed.
+
+## 🧬 2026-06-24 (cont.) — HISTORY FEED LOOK + RECENT PILLS + ATTRIBUTES — shipped to dev
+- **History timeline = the homepage activity-feed row, reused verbatim** (StarredList `StarredOutputRow`
+  timeline branch): `.feed-row` + `.feed-line` connecting glyph nodes, the viewed-output card filling
+  `.f-content` full-width. Node glyph = the dotted square ⬚ (was ◷). The shared feed line is faint white
+  that washes out on coloured themes → `.history-feed-row .feed-line` is recoloured to `--text-color` at
+  full strength (kept 1px dashed + original placement). Replaced the earlier custom `.history-tl-*` grid.
+- **Recent (Breadcrumb) pills are EITHER/OR, not filters** (TraitsUI + TraitsContext): `L2_DICT.Breadcrumb`
+  reordered so **My Breadcrumbs** is first + the default (opens on it via `setActiveCategory`); "What's Hot"
+  is second + empty for now (wire to the view counter later). `setSubFilter` keeps Breadcrumb strict
+  either/or (clicking the active view never drops to neutral). **Recording OFF → 5 masked crumbs** `(1) ???`
+  … `(5) ???` (numbered, inert; `recording` state read via `isRecordingEnabled` in the breadcrumb subscribe).
+- **Outputs +More pills cleaned + reordered:** removed Gnome, Genome (project-only), Albums + Sentiment
+  (Albums is a main tab). Order now **Attributes · Offers · Price Story · Replay · Stats · Social ·
+  Neighbourhood · ASCII Backup**; **Attributes is the default** open section. (Offers/Neighbourhood/ASCII
+  Backup land on the standard placeholder box for now.)
+- **Entropy Visualizer (outputs):** new **Lab** group on the Output character sheet — a deterministic
+  **16×16 black/white barcode** unique per piece (`lib/output/entropyGlyph.ts`, FNV-1a + mulberry32 over
+  `slug:id`). Rendered by a shared `AttrWall` (extracted from `AttributesPanel`); `AttrTile.grid?` + new
+  `.attr-entropy` CSS. NOTE: seeds from (slug,id) — a stable identity glyph, NOT the on-chain mint hash
+  (we don't store one yet); swap the seed when that hash lands.
+- **Project attributes REBUILT to the output tile UI** (Brendon's call): `buildProjectAttributes`
+  (`lib/project/projectAttributes.ts`) feeds the SAME `AttrWall` grid. Thought-through split — shared facts
+  re-shown (True Name, Project, Artist, Supply, Mint Price, Colorway, Soundtrack) + birth **Sky** + **Almanac**
+  from the upload moment + **Fate**; per-piece things left OFF (Form/Rarity/Edition/Entropy). **Golf Score**
+  (project-only): engine source byte size (minified on the deploy) ranked across all projects, smallest = #1
+  (`lib/project/golfScore.ts`). Old `.more-attrs` row list retired.
+- **QUEUED from this session:** **RNG Purity** — deferred; meaningless until we capture the real generative
+  hash/trait draws (our (slug,id) seed reads as uniform). Build it when the true hash lands.
 
 ## 🕰️ 2026-06-24 — MY HISTORY + VIEWS PILLAR + POLISH — shipped to dev
 - **MY HISTORY (new, private, own-profile):** a "My History" pill at the END of +More. Shows the last
