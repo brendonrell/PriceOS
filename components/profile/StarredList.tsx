@@ -947,14 +947,14 @@ function StarredOutputRow({
         </div>
     );
     if (!timeline) return row;
-    /* History timeline — two real columns: a rail lane (node + connecting line)
-       and the content lane. They sit side by side and never overlap. */
+    /* History timeline — the SAME markup as the homepage activity feed: a glyph
+       node on the rail, a dashed line connecting it to the next node, and the
+       output item (thumb + data + CTA) filling the content lane full-width. */
     return (
-        <div className="history-tl-row">
-            <div className="history-tl-rail" aria-hidden="true">
-                <span className="history-tl-node">◷&#xFE0E;</span>
-            </div>
-            {row}
+        <div className="feed-row history-feed-row">
+            <div className="feed-line" />
+            <div className="f-icon-wrap" aria-hidden="true">◷&#xFE0E;</div>
+            <div className="f-content history-feed-content">{row}</div>
         </div>
     );
 }

@@ -8709,45 +8709,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     opacity: 0.85;
     padding: 14px 0 4px 30px;
 }
-/* History row = TWO real columns that never overlap: a fixed rail lane (node +
-   connecting line) and the content lane (the starred-output row). The content
-   takes 75% of the remaining width (Brendon, 2026-06-24). */
-.history-tl-row {
-    display: grid;
-    grid-template-columns: 20px minmax(0, 75%);
-    column-gap: 10px;
-    align-items: stretch;
-}
-.history-tl-rail {
-    position: relative;
-    width: 20px;
-}
-/* The continuous dashed line, centered in the rail lane — lives ONLY in this
-   column, so it can never sit under the content. */
-.history-tl-rail::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    border-left: 1px dashed var(--border-color);
-    transform: translateX(-0.5px);
-}
-/* Stop the line at the node on the last row so it doesn't dangle. */
-.history-tl-row:last-child .history-tl-rail::before { bottom: auto; height: 22px; }
-.history-tl-node {
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    line-height: 1;
-    opacity: 0.9;
-    background: var(--bg-color);
-    padding: 2px 0;
-}
-/* The content lane row — compact for the timeline. */
+/* History timeline = the homepage activity-feed row, reused verbatim: a glyph
+   node on the rail + the dashed .feed-line connecting it to the next node. The
+   starred-output card lives in .f-content and fills the rest of the row
+   full-width (Brendon, 2026-06-24). */
+.history-feed-content { min-width: 0; }
+.history-feed-content .starred-row { width: 100%; }
+/* The clock node aligns with the top of the card, like the feed glyphs. */
+.history-feed-row .f-icon-wrap { top: 0; }
+/* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
 
 .starred-row {
