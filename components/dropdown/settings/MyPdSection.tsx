@@ -251,6 +251,12 @@ export function MyPdSection({ onTripleTap }: Props) {
        pressing when feature is OFF toasts "...ON". */
     const toggleWithToastNeg = (key: keyof PdNotifs, label: string) => {
         const next = !notifs[key];
+        /* Sticker Mode: cut the stickers out in the SAME tick the button fires,
+           alongside its normal toggle/toast — no lag frame before they vanish
+           (Brendon, 2026-06-24). useBodyClass reconciles the class afterwards. */
+        if (key === 'sticker' && typeof document !== 'undefined') {
+            document.body.classList.toggle('sticker-mode', next);
+        }
         toggle(key);
         showToast(`${label}: ${next ? 'OFF' : 'ON'}`);
     };

@@ -280,7 +280,7 @@ export function StickerManagerModal({
             <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers — full" onClick={onClose}>
                 <div className="sticker-mgr-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
-                        <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> YOUR STICKERS</span>
+                        <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">YOUR STICKERS</span></span>
                         <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                             <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                         </button>
@@ -356,7 +356,7 @@ export function StickerManagerModal({
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> YOUR STICKERS</span>
+                    <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">YOUR STICKERS</span></span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
                     </button>

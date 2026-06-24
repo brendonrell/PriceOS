@@ -181,7 +181,10 @@ export function WalletSection() {
             if (activeEns !== savedEns && !savedEnsLoaded.current) return;
         }
         if (activeEns === null || !rawPills.includes(activeEns)) {
-            setActiveEns(savedEns && rawPills.includes(savedEns) ? savedEns : rawPills[0]);
+            // Respect "no ENS chosen" — restore the saved pick if there is one,
+            // otherwise leave it OFF. Never auto-highlight the first pill
+            // (Brendon, 2026-06-24).
+            setActiveEns(savedEns && rawPills.includes(savedEns) ? savedEns : null);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rawPills.join('|'), savedEns]);

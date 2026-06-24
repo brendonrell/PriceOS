@@ -545,10 +545,11 @@
     position: relative;
     z-index: 0;
 }
-/* Sticker Mode hides the profile stickers the instant the toggle flips — a hard
-   CSS cut so no spilled-sticker frame can survive the hide, even if the unmount
-   is deferred under concurrent render (Brendon, 2026-06-24). */
-body.sticker-mode .hero-stickers { display: none !important; }
+/* Sticker Mode hides the profile stickers. The toggle adds this body class
+   synchronously the instant it's pressed (see MyPdSection), so the stickers cut
+   out in the same frame the button fires — no spilled-frame flash (Brendon,
+   2026-06-24). */
+body.sticker-mode .hero-stickers { display: none; }
 .hero-stickers-rows {
     display: flex;
     flex-direction: column;
@@ -763,6 +764,8 @@ body.sticker-mode .hero-stickers { display: none !important; }
     cursor: pointer;
 }
 .smgr-store-ic { font-size: 9px; position: relative; top: -1px; }
+/* The YOUR STICKERS words sit up 3px — the ⊞ icon stays put (Brendon, 2026-06-24). */
+.smgr-title-words { position: relative; top: -3px; }
 
 /* The manager menu reuses the Ambient Light shell (.ambient-pop) verbatim — same
    height, pager, dots, chips, code row. These are the only sticker-specific
@@ -871,8 +874,10 @@ body.sticker-mode .hero-stickers { display: none !important; }
     margin-left: 6px;
     cursor: pointer;
     color: var(--text-color);
-    font: bold 22px/1 'Courier New', Courier, monospace;
+    font: bold 24px/1 'Courier New', Courier, monospace;
     opacity: 1;
+    position: relative;
+    top: -1px;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -919,10 +924,13 @@ body.sticker-mode .hero-stickers { display: none !important; }
     /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
        scroll (Brendon 2026-06-23). */
     padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
-    /* No whole-panel entrance — the controls appear instantly so only the
-       preview flourishes (Brendon, 2026-06-24). The dim still fades via the
-       backdrop ::before. */
+    /* Fade-ONLY entrance (no slide): the panel is invisible for the first frames
+       while its fixed-width row labels settle their initial layout, so the load
+       never shows the collapsed/clipped reflow. No translateY → the buttons don't
+       move, only the preview flourishes inside (Brendon, 2026-06-24). */
+    animation: smgr-plus-pop 0.18s ease both;
 }
+@keyframes smgr-plus-pop { from { opacity: 0; } to { opacity: 1; } }
 @media (min-width: 601px) {
     /* Desktop: not full-screen — a big centred 'jumbo' panel. */
     .sticker-mgr-plus {
