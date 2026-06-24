@@ -730,7 +730,7 @@
     letter-spacing: 0.06em;
     cursor: pointer;
 }
-.smgr-store-ic { font-size: 9px; }
+.smgr-store-ic { font-size: 9px; position: relative; top: -2px; }
 
 /* The manager menu reuses the Ambient Light shell (.ambient-pop) verbatim — same
    height, pager, dots, chips, code row. These are the only sticker-specific
