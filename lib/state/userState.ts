@@ -335,6 +335,9 @@ export function hydrateFromRow(row: UserRow): void {
  *  signs in next gets a clean overwrite. Caches are intentionally left in place
  *  as the last-seen offline mirror; the next hydrateFromRow overwrites them. */
 export function resetUserState(): void {
+    /* Drop any pending debounced write so it can't fire against the next
+       identity that signs in. */
+    cancelSettingsFlush();
     _hydrated = false;
     _address = null;
     _settings = {};
@@ -346,9 +349,9 @@ export function resetUserState(): void {
  * overwrite the saved row. The local cache is updated by the caller (the
  * context setter) regardless, so the UI is instant; the server catches up.
  */
-export function pushState(patch: UserStatePatch): void {
+export function pushState(patch: UserStatePatch, opts?: { keepalive?: boolean }): void {
     if (!_hydrated || !_address) return;
-    void patchUserState(patch).catch(() => {
+    void patchUserState(patch, opts).catch(() => {
         /* network blip — cache already holds the value; next change re-syncs */
     });
 }
@@ -362,7 +365,53 @@ export function pushState(patch: UserStatePatch): void {
  */
 export function pushSettings(partial: Partial<UserSettings>): void {
     _settings = { ..._settings, ...partial };
+    /* An immediate write already sends the whole envelope (incl. anything a
+       debounced write was about to flush) — so cancel any pending flush. */
+    cancelSettingsFlush();
     pushState({ settings: _settings });
+}
+
+/* ── Debounced settings write (Brendon, 2026-06-24) ──────────────────────────
+   For state that changes RAPIDLY as the user browses — breadcrumbs today,
+   History next. The in-memory mirror updates instantly (so reads + any other
+   write see the latest sequence), but the network PATCH is COALESCED: it fires
+   ~1.5s after the last change, and at least every ~8s during continuous
+   activity. A final write is flushed on pagehide/tab-hide (keepalive) so the
+   settled sequence is never lost. */
+const SETTINGS_DEBOUNCE_MS = 1500;
+const SETTINGS_MAX_WAIT_MS = 8000;
+let _settingsTimer: ReturnType<typeof setTimeout> | null = null;
+let _settingsDeadline = 0;
+
+function cancelSettingsFlush(): void {
+    if (_settingsTimer != null) {
+        clearTimeout(_settingsTimer);
+        _settingsTimer = null;
+    }
+    _settingsDeadline = 0;
+}
+
+function flushSettings(keepalive = false): void {
+    cancelSettingsFlush();
+    pushState({ settings: _settings }, keepalive ? { keepalive: true } : undefined);
+}
+
+export function pushSettingsDebounced(partial: Partial<UserSettings>): void {
+    _settings = { ..._settings, ...partial };
+    if (!_hydrated || !_address || typeof window === 'undefined') return;
+    const now = Date.now();
+    if (_settingsDeadline === 0) _settingsDeadline = now + SETTINGS_MAX_WAIT_MS;
+    if (_settingsTimer != null) clearTimeout(_settingsTimer);
+    const wait = Math.max(0, Math.min(SETTINGS_DEBOUNCE_MS, _settingsDeadline - now));
+    _settingsTimer = setTimeout(() => flushSettings(false), wait);
+}
+
+if (typeof window !== 'undefined') {
+    const flushOnHide = () => { if (_settingsTimer != null) flushSettings(true); };
+    window.addEventListener('pagehide', flushOnHide);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushOnHide();
+    });
 }
 
 /**

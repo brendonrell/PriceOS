@@ -19,7 +19,7 @@
  * in the owner's settings and is never shown to anyone else.
  */
 
-import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+import { pushSettingsDebounced, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
 const STORAGE_KEY = STATE_CACHE_KEYS.breadcrumbs;
 /** Trail length cap — most recent N visits across all Projects. */
@@ -69,9 +69,13 @@ function persist(): void {
         }
     }
     // Account write-through — the trail rides in the settings envelope so it
-    // follows the viewer across devices. No-op until an authed snapshot has
-    // hydrated (userState guards it), so a logged-out trail stays on-device.
-    pushSettings({ breadcrumbs: order });
+    // follows the viewer across devices. DEBOUNCED: browsing fires a visit on
+    // every open, so the server write is coalesced (and flushed on tab-hide)
+    // rather than one PATCH per card (Brendon, 2026-06-24). The localStorage
+    // cache above is still written instantly, so the UI + sequence are live.
+    // No-op until an authed snapshot has hydrated (userState guards it), so a
+    // logged-out trail stays on-device.
+    pushSettingsDebounced({ breadcrumbs: order });
 }
 
 /* Server snapshot landed (login on any device) — re-read the cache userState

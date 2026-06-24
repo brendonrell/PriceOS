@@ -60,12 +60,18 @@ export async function fetchMe(): Promise<UserRow | null> {
  * Returns the updated row. Throws on network / 5xx; 4xx surfaces as a thrown
  * error too since callers fire-and-forget and only care about success.
  */
-export async function patchUserState(patch: UserStatePatch): Promise<UserRow> {
+export async function patchUserState(
+    patch: UserStatePatch,
+    opts?: { keepalive?: boolean },
+): Promise<UserRow> {
     const r = await fetch('/api/me', {
         method: 'PATCH',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch),
+        /* keepalive lets a final write survive the page being closed/backgrounded
+           (used by the debounced settings flush on pagehide). */
+        keepalive: opts?.keepalive ?? false,
     });
     if (!r.ok) throw new Error(`patchUserState failed: ${r.status}`);
     return (await r.json()) as UserRow;
