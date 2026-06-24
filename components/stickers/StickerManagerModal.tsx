@@ -39,11 +39,14 @@ const PAGE_KEY = 'pd_sticker_mgr_page';
 const PAGES = 4;
 
 export function StickerManagerModal({
-    open, onClose, handle,
+    open, onClose, handle, previewNode,
 }: {
     open: boolean;
     onClose: () => void;
     handle: string;
+    /** A read-only live preview of the owner's arrangement, rendered at the top
+     *  of Manager Plus (full-screen). Passed in to avoid a circular import. */
+    previewNode?: React.ReactNode;
 }) {
     const { open: openStore } = useModal();
     const { showToast } = useToast();
@@ -62,6 +65,9 @@ export function StickerManagerModal({
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
+    /* Manager Plus — the full-screen (mobile) / jumbo (desktop) view. Opened by
+       the ↑ in the header; resets when the menu closes. */
+    const [full, setFull] = useState(false);
 
     const look: StickerLook = { arrange, rows, align, tilt, expand, flip };
     const currentCode = encodeStickerCode(look);
@@ -71,7 +77,7 @@ export function StickerManagerModal({
     const codeInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
-        if (!open) return;
+        if (!open) { setFull(false); return; }
         setOwned(computeOwnedFor(handle));
         setOffSheets(new Set(getOffSheets()));
         setOffIds(new Set(getOffIds()));
@@ -225,6 +231,90 @@ export function StickerManagerModal({
 
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
 
+    /* The sticker grid (owned, tap to toggle) — shared by both views. */
+    const stickerGrid = (
+        <div className="smgr-grid">
+            {owned.map((s) => {
+                const on = isActive(s, offSheets, offIds);
+                return (
+                    <button
+                        key={s.id}
+                        className={`smgr-tile${on ? '' : ' off'}`}
+                        type="button"
+                        title={`${s.name} — ${on ? 'on' : 'off'}`}
+                        onClick={() => toggleSticker(s.id)}
+                    >
+                        <StickerArt sticker={s} size={34} />
+                    </button>
+                );
+            })}
+        </div>
+    );
+
+    // ── MANAGER PLUS — full-screen (mobile) / jumbo centred panel (desktop) ──
+    // Live preview up top, then ALL controls at once (no paging), then the full
+    // collection grid. Reuses the same handlers + Row/Chip as the compact popup.
+    if (full) {
+        return createPortal(
+            <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers — full" onClick={onClose}>
+                <div className="sticker-mgr-plus" onClick={(e) => e.stopPropagation()}>
+                    <div className="smgr-plus-head">
+                        <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> YOUR STICKERS</span>
+                        <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
+                            <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
+                        </button>
+                        <button className="smgr-expand" type="button" onClick={() => setFull(false)} title="Exit full screen" aria-label="Exit full screen">
+                            {`↓${VS15}`}
+                        </button>
+                        <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={onClose}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}>
+                            {`×${VS15}`}
+                        </span>
+                    </div>
+
+                    {previewNode != null && <div className="smgr-plus-preview" aria-label="Live preview">{previewNode}</div>}
+
+                    <div className="smgr-plus-body">
+                        <Row label="Layout">
+                            {ARRANGES.map((a) => (
+                                <Chip key={a.id} on={arrange === a.id} onClick={() => pickArrange(a.id)}>{a.label}</Chip>
+                            ))}
+                            <button className="ambient-chip" type="button" onClick={reshuffle} title="Shuffle">{`⟳${VS15}`}</button>
+                        </Row>
+                        <Row label="Rows">
+                            {ROW_OPTS.map((r) => (<Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>))}
+                        </Row>
+                        <Row label="Density">
+                            {DENSITIES.map((d) => (<Chip key={d.id} on={density === d.id} onClick={() => pickDensity(d.id)}>{d.label}</Chip>))}
+                        </Row>
+                        <Row label="Align">
+                            {ALIGNS.map((a) => (<Chip key={a.id} on={align === a.id} onClick={() => pickAlign(a.id)}>{a.label}</Chip>))}
+                        </Row>
+                        <Row label="Tilt">
+                            {TILTS.map((tl) => (<Chip key={tl.id} on={tilt === tl.id} onClick={() => pickTilt(tl.id)}>{tl.label}</Chip>))}
+                        </Row>
+                        <Row label="Width">
+                            <Chip on={!expand} onClick={() => pickExpand(false)}>FIT</Chip>
+                            <Chip on={expand} onClick={() => pickExpand(true)}>WIDE</Chip>
+                        </Row>
+                        <Row label="Flip">
+                            <Chip on={!flip} onClick={() => pickFlip(false)}>OFF</Chip>
+                            <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>
+                        </Row>
+                        <Row label="Sheets">
+                            {ownedSheets.map((sh) => (<Chip key={sh.id} on={!offSheets.has(sh.id)} onClick={() => toggleSheet(sh.id)}>{sh.name}</Chip>))}
+                        </Row>
+                        <div className="ambient-pop-row smgr-grid-row">
+                            <span className="ambient-pop-label">Stickers</span>
+                            {stickerGrid}
+                        </div>
+                    </div>
+                </div>
+            </div>,
+            document.body,
+        );
+    }
+
     return createPortal(
         <div className="sticker-mgr-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers" onClick={onClose}>
             <div
@@ -248,6 +338,9 @@ export function StickerManagerModal({
                     <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> YOUR STICKERS</span>
                     <button className="smgr-store" type="button" onClick={() => { onClose(); openStore('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKER STORE
+                    </button>
+                    <button className="smgr-expand" type="button" onClick={() => setFull(true)} title="Open Manager Plus" aria-label="Open Manager Plus">
+                        {`↑${VS15}`}
                     </button>
                 </div>
 

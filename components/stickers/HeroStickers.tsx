@@ -40,6 +40,9 @@ interface Props {
      *  drives it instead. */
     savedLayout?: PlacementMap | null;
     savedAspect?: number | null;
+    /** Read-only mirror — renders the owner's live arrangement with NO gestures
+     *  (no lift/drag/✕, no manager). Used as the live preview inside Manager Plus. */
+    preview?: boolean;
 }
 
 /* Output stickers each paint a full generative artwork to a canvas — heavy.
@@ -76,7 +79,7 @@ function snapAngle(deg: number): number {
     return Math.abs(deg - nearest) <= 5 ? nearest : Math.round(deg);
 }
 
-function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Props) {
+function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, preview }: Props) {
     const { notifs } = usePdNotifs();
     const owned = useOwnedFor(ownerHandle, !!isOwn);
     const { offSheets, offIds } = useStickerPrefs();
@@ -223,7 +226,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
     }, []);
 
     useEffect(() => {
-        if (!isOwn) return;
+        if (!isOwn || preview) return;
         const clamp = (v: number) => Math.max(2, Math.min(98, v));
         const onMove = (e: PointerEvent) => {
             const p = press.current;
@@ -271,10 +274,15 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
             window.removeEventListener('pointerup', onUp);
             window.removeEventListener('pointercancel', onUp);
         };
-    }, [isOwn, clearLp]);
+    }, [isOwn, preview, clearLp]);
 
-    const manager = isOwn ? (
-        <StickerManagerModal open={mgrOpen} onClose={() => setMgrOpen(false)} handle={(ownerHandle ?? '').replace(/^@/, '')} />
+    const manager = isOwn && !preview ? (
+        <StickerManagerModal
+            open={mgrOpen}
+            onClose={() => setMgrOpen(false)}
+            handle={(ownerHandle ?? '').replace(/^@/, '')}
+            previewNode={<HeroStickers ownerHandle={ownerHandle} isOwn preview />}
+        />
     ) : null;
 
     if (notifs.sticker) return manager;
@@ -322,7 +330,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
             setLifted(s.id);
         }, 340);
     };
-    const ownDown = (s: Sticker) => (isOwn ? { onPointerDown: (e: React.PointerEvent) => onStickerDown(e, s) } : {});
+    const ownDown = (s: Sticker) => (isOwn && !preview ? { onPointerDown: (e: React.PointerEvent) => onStickerDown(e, s) } : {});
 
     /* Grab the rotate handle (on a lifted sticker) → spin it around its centre. */
     const onRotateDown = (e: React.PointerEvent, s: Sticker) => {
@@ -348,12 +356,12 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect }: Pro
                 <>
                     <div
                         ref={canvasRef}
-                        className="hero-stickers-canvas"
+                        className={`hero-stickers-canvas${preview ? ' is-preview' : ''}`}
                         style={{
                             maxWidth: expand ? undefined : (clampW ?? undefined),
                             ...(locked ? (aspect ? { aspectRatio: String(aspect) } : { minHeight: 96 }) : {}),
                         }}
-                        onPointerDown={() => { if (liftedRef.current) setLifted(null); }}
+                        onPointerDown={preview ? undefined : () => { if (liftedRef.current) setLifted(null); }}
                     >
                         {body}
                     </div>

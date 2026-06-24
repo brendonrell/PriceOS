@@ -811,3 +811,95 @@
 .smgr-tile.off { opacity: 0.28; }
 .smgr-tile.off:hover { opacity: 0.5; }
 .smgr-tile:not(.off):hover { border-color: color-mix(in srgb, var(--text-color) 50%, transparent); }
+
+/* ============================================================================
+   Manager Plus — the ↑ in the header opens a full-screen (mobile) / jumbo
+   centred (desktop) view: a live preview up top, all controls at once (no
+   paging), then the full collection grid. Reuses the manager's controls.
+   ============================================================================ */
+/* The ↑ / ↓ expand toggle in the header. */
+.smgr-expand {
+    background: none;
+    border: 0;
+    padding: 2px 6px;
+    margin-left: 6px;
+    cursor: pointer;
+    color: inherit;
+    font: bold 16px/1 'Courier New', Courier, monospace;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.smgr-expand:hover { opacity: 1; }
+
+.sticker-mgr-plus-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1330;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: smgr-fade 0.16s ease both;
+}
+.sticker-mgr-plus {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Courier New', Courier, monospace;
+    /* iPhone 12 full-screen isn't huge — keep the chrome tight and let the body
+       scroll (Brendon 2026-06-23). */
+    padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
+    animation: smgr-pop 0.18s ease both;
+}
+@media (min-width: 601px) {
+    /* Desktop: not full-screen — a big centred 'jumbo' panel. */
+    .sticker-mgr-plus {
+        width: min(680px, 92vw);
+        height: auto;
+        max-height: 88vh;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        padding: 16px 18px;
+    }
+}
+.smgr-plus-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 40px 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.smgr-plus-head .ambient-pop-close { position: absolute; top: -2px; right: 4px; }
+.smgr-plus-preview {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.smgr-plus-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 12px;
+    scrollbar-width: none;
+}
+.smgr-plus-body::-webkit-scrollbar { display: none; }
+
+/* The live preview is a read-only mirror — fully inert. */
+.hero-stickers-canvas.is-preview { pointer-events: none; }
