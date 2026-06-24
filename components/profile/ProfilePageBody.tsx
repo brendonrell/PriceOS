@@ -25,7 +25,7 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -49,7 +49,8 @@ import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
-import { getRecentGlobal, subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
+import { subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
+import { fetchMyHistory, type HistoryEntry } from '../../lib/output/views';
 import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
@@ -994,15 +995,20 @@ function ProfilePageBodyInner({
         [starredItems],
     );
 
-    /* My History — the viewer's PRIVATE last-100 viewed Outputs, freshest first,
-       carrying the visit time for day grouping. Reuses the Starred Outputs rows,
-       rendered on the feed timeline (Brendon, 2026-06-24). */
-    const [historyItems, setHistoryItems] = useState<{ slug: string; id: number; ts: number }[]>([]);
-    useEffect(() => {
-        const read = () => setHistoryItems(getRecentGlobal(100).filter((h) => getProject(h.slug) != null));
-        read();
-        return subscribeBreadcrumbs(read);
+    /* My History — the viewer's PRIVATE last-100 viewed Outputs, read straight
+       from the output_views pillar table (freshest first, with visit time for
+       day grouping). Reuses the Starred Outputs rows on the feed timeline
+       (Brendon, 2026-06-24). */
+    const [historyItems, setHistoryItems] = useState<HistoryEntry[]>([]);
+    const readHistory = useCallback(() => {
+        fetchMyHistory().then((h) => setHistoryItems(h.filter((e) => getProject(e.slug) != null)));
     }, []);
+    useEffect(() => {
+        readHistory();
+        const onChange = () => readHistory();
+        window.addEventListener('pd:history-changed', onChange);
+        return () => window.removeEventListener('pd:history-changed', onChange);
+    }, [readHistory]);
     /* Day grouping (Chrome-history style) is always on for History. */
     const historyByDay = true;
     /* Recording on/off — the two L3 pills (History: ON / History: OFF). Synced
@@ -1552,6 +1558,9 @@ function ProfilePageBodyInner({
     const onStarredTab = onMore && isOwnProfile && effMoreL1 === 'starred';
     const onWishlistTab = onMore && isOwnProfile && effMoreL1 === 'wishlists';
     const onHistoryTab = onMore && isOwnProfile && effMoreL1 === 'history';
+    /* Pull fresh History from the table each time the tab opens, so anything
+       viewed since shows up. */
+    useEffect(() => { if (onHistoryTab) readHistory(); }, [onHistoryTab, readHistory]);
     /* Active sort/group config for the current Starred filter (or Wishlist).
        History reuses the Outputs sort set. */
     const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : onHistoryTab ? 'outputs' : moreMode] ?? MORE_CFG.all;

@@ -1,24 +1,20 @@
 'use client';
 
 /*
- * Output views — client helpers for the cross-user views pillar.
+ * History pillar — client helpers backed by the output_views table.
  *
- *   recordOutputView(slug, id)   — fire-and-forget; the server attributes it to
- *                                  the signed-in viewer's @name (no-op when
- *                                  signed out / pre-claim).
- *   fetchOutputViewStats(slug,id) — anonymized counts for an output: total
- *                                  unique viewers, total raw views, and how many
- *                                  viewers are the caller's mutuals.
+ *   recordOutputView(slug, id) — fire-and-forget; the server records the view
+ *                                under the signed-in viewer's @name (no-op when
+ *                                signed out / pre-claim). Gated upstream by the
+ *                                History recording toggle.
+ *   fetchMyHistory()           — the viewer's own recently-viewed Outputs from
+ *                                the table, freshest first (max 100).
+ *   removeMyHistory(slug, id)  — drop one entry from the viewer's history.
  *
- * Gated upstream by the History "Recording" toggle — when History is OFF we
- * don't call recordOutputView at all (Brendon, 2026-06-24).
+ * (Brendon, 2026-06-24.)
  */
 
-export interface OutputViewStats {
-    totalViewers: number;
-    totalViews: number;
-    mutualViewers: number;
-}
+export interface HistoryEntry { slug: string; id: number; ts: number; }
 
 export function recordOutputView(slug: string, id: number): void {
     try {
@@ -33,12 +29,21 @@ export function recordOutputView(slug: string, id: number): void {
     }
 }
 
-export async function fetchOutputViewStats(slug: string, id: number): Promise<OutputViewStats | null> {
+export async function fetchMyHistory(): Promise<HistoryEntry[]> {
     try {
-        const r = await fetch(`/api/output-views?slug=${encodeURIComponent(slug)}&id=${id}`);
-        if (!r.ok) return null;
-        return (await r.json()) as OutputViewStats;
+        const r = await fetch('/api/history');
+        if (!r.ok) return [];
+        return (await r.json()) as HistoryEntry[];
     } catch {
-        return null;
+        return [];
+    }
+}
+
+export async function removeMyHistory(slug: string, id: number): Promise<void> {
+    try {
+        await fetch(`/api/history?slug=${encodeURIComponent(slug)}&id=${id}`, { method: 'DELETE' });
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:history-changed'));
+    } catch {
+        /* ignore */
     }
 }

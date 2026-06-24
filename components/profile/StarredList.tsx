@@ -27,7 +27,7 @@ import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor, collectorTopBuy, collectorTopBuyEth, collectorProjectsOwned } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
-import { removeVisit } from '../../lib/pins/breadcrumbStore';
+import { removeMyHistory } from '../../lib/output/views';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
@@ -417,7 +417,7 @@ export default function StarredList({
         e.stopPropagation();
         if (kind === 'history') {
             askRemove('Remove this from your History?', () => {
-                removeVisit(slug, id);
+                void removeMyHistory(slug, id);
                 showToast('Removed from your History');
             });
             return;
