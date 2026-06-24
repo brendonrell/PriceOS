@@ -5041,9 +5041,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         line-height: 0;
         vertical-align: -0.12em;
     }
-    .pill-l3 .net-pill-ico--mutual    { font-size: 16px; }
-    .pill-l3 .net-pill-ico--following { font-size: 14px; }
-    .pill-l3 .net-pill-ico--follower  { font-size: 18px; position: relative; top: -1px; }
+    /* Per-icon mobile nudges (Brendon, 2026-06-24). */
+    .pill-l3 .net-pill-sprite         { position: relative; top: -1px; }
+    .pill-l3 .net-pill-ico--mutual    { font-size: 16px; position: relative; top: -2px; }
+    .pill-l3 .net-pill-ico--following { font-size: 14px; position: relative; top: -2px; }
+    .pill-l3 .net-pill-ico--follower  { font-size: 20px; position: relative; top: -2px; }
+    .pill-l3 .net-pill-top            { font-size: 14px; position: relative; top: -2px; }
+    .pill-l3 .net-pill-eth            { position: relative; top: -1px; }
 }
 /* Shuffle icon: nudge down 2px on desktop so the ⟳ sits centered in the
    pill against the text tabs (Brendon 2026-06-13). */
