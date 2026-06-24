@@ -343,7 +343,10 @@ export function StickerManagerModal({
                 role="dialog"
                 aria-label="Your stickers"
                 onClick={(e) => e.stopPropagation()}
-                style={anchor ? { position: 'fixed', top: anchor.top, left: anchor.left, marginTop: 0, maxHeight: anchor.maxH } : undefined}
+                /* Stay invisible until the anchor is measured, so the menu never
+                   flashes at its default spot above the stickers before dropping
+                   into place below them (Brendon, 2026-06-24). */
+                style={anchor ? { position: 'fixed', top: anchor.top, left: anchor.left, marginTop: 0, maxHeight: anchor.maxH } : { visibility: 'hidden' }}
             >
                 <span
                     className="ambient-pop-close"

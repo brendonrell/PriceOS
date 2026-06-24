@@ -139,7 +139,16 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     );
 
     const { rows, cap, scatter } = arrangeShape(arrange, rowsPref);
-    const effCap = expand ? Math.min(active.length, Math.max(cap, 18)) : cap;
+    /* Width (FIT/WIDE) controls ONLY how wide the sticker area is drawn — never
+       how many stickers show. Pumping the count on WIDE blew the area up and
+       buried the section below it (Brendon, 2026-06-24). */
+    /* Density now packs every mode (not just Stack): LOW = the resting count
+       (unchanged), MED/MAX add more stickers so the control always does
+       something (Brendon, 2026-06-24). Stack keeps its own pile density. */
+    const DENSITY_MULT = [1, 1.3, 1.6];
+    const effCap = arrange === 'stack'
+        ? cap
+        : Math.round(cap * (DENSITY_MULT[density] ?? 1));
 
     const picked = useMemo(() => {
         const rnd = scatter ? rngFrom(seed) : null;
@@ -439,7 +448,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
 
     // COLLAGE — one large composed area: overlapping, mixed sizes, balanced.
     if (arrange === 'collage') {
-        const comp = buildCollage(picked.length, seed);
+        const comp = buildCollage(picked.length, seed, rowsPref);
         return wrap(
             <div className="hero-collage" style={{ ...areaStyle, aspectRatio: `${comp.cols} / ${comp.rows}` }}>
                 {picked.map((s, i) => {

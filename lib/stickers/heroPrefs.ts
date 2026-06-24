@@ -11,7 +11,7 @@ import type { Sticker } from './catalog';
 
 export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
-export type Rows = 1 | 2;
+export type Rows = 1 | 2 | 3;
 export type Align = 'left' | 'center' | 'right';
 
 export const ALIGNS: { id: Align; label: string }[] = [
@@ -31,6 +31,7 @@ export const ARRANGES: { id: Arrange; label: string }[] = [
 export const ROW_OPTS: { id: Rows; label: string }[] = [
     { id: 1, label: '1' },
     { id: 2, label: '2' },
+    { id: 3, label: '3' },
 ];
 export const TILTS: { id: Tilt; label: string }[] = [
     { id: 'flat', label: 'FLAT' },
@@ -84,7 +85,7 @@ export function getDensity(): number {
 export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
 export function getTilt(): Tilt { return read(K_TILT, 'soft') as Tilt; }
 export function getExpand(): boolean { return read(K_EXPAND, '0') === '1'; }
-export function getRows(): Rows { return read(K_ROWS, '1') === '2' ? 2 : 1; }
+export function getRows(): Rows { const v = read(K_ROWS, '1'); return v === '3' ? 3 : v === '2' ? 2 : 1; }
 export function getAlign(): Align { return read(K_ALIGN, 'left') as Align; }
 export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 
@@ -98,7 +99,7 @@ export function useHeroPrefs(): HeroPrefs {
             tilt: read(K_TILT, 'soft') as Tilt,
             seed: Number(read(K_SEED, '1')) || 1,
             expand: read(K_EXPAND, '0') === '1',
-            rows: read(K_ROWS, '1') === '2' ? 2 : 1,
+            rows: (read(K_ROWS, '1') === '3' ? 3 : read(K_ROWS, '1') === '2' ? 2 : 1) as Rows,
             align: read(K_ALIGN, 'left') as Align,
             flip: read(K_FLIP, '0') === '1',
             density: getDensity(),
@@ -119,8 +120,10 @@ export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; ca
         case 'spread':  return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'stack':   return { rows: 1, cap: 14, scatter: false, overlap: true };
         case 'scatter': return { rows: rowsPref, cap: 7 * rowsPref, scatter: true, overlap: false };
-        case 'fill':    return { rows: 3, cap: 24, scatter: true, overlap: false };
-        case 'collage': return { rows: 0, cap: 20, scatter: true, overlap: true };
+        /* Fill + Collage now honour the Rows pref like the linear modes — capped
+           at 3 so no mode ever shows 4 rows (Brendon, 2026-06-24). */
+        case 'fill':    return { rows: rowsPref, cap: 8 * rowsPref, scatter: true, overlap: false };
+        case 'collage': return { rows: 0, cap: 8 * rowsPref, scatter: true, overlap: true };
         default:        return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
     }
 }
@@ -129,10 +132,13 @@ export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; ca
    mixed sizes. Jittered grid keeps it balanced; scale variety + overlap give the
    collaged look. Positions in % of one large area. */
 export interface CollagePiece { x: number; y: number; scale: number; rot: number; z: number; }
-export function buildCollage(n: number, seed: number): { cols: number; rows: number; items: CollagePiece[] } {
+export function buildCollage(n: number, seed: number, rowsPref = 3): { cols: number; rows: number; items: CollagePiece[] } {
     const rnd = rngFrom(seed);
-    const cols = Math.max(4, Math.round(Math.sqrt(n * 1.3)));
-    const rows = Math.max(1, Math.ceil(n / cols));
+    /* Rows is god: the collage uses exactly the chosen row count (1–3, never 4),
+       and the columns fan out to fit every sticker into those rows (Brendon,
+       2026-06-24). */
+    const rows = Math.max(1, Math.min(3, rowsPref));
+    const cols = Math.max(2, Math.ceil(n / rows));
     const cells = [...Array(cols * rows).keys()];
     for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [cells[i], cells[j]] = [cells[j]!, cells[i]!]; }
     const cw = 100 / cols, ch = 100 / rows;
