@@ -152,7 +152,7 @@ export function StickerManagerModal({
             const el = document.querySelector('.hero-stickers');
             if (!el) { setAnchor(null); return; }
             const r = el.getBoundingClientRect();
-            const gap = 13;
+            const gap = 22;
             const top = r.bottom + gap;
             const vw = window.innerWidth, vh = window.innerHeight;
             const popW = Math.min(330, vw * 0.88);
