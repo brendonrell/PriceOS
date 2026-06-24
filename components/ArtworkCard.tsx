@@ -680,6 +680,37 @@ function ArtworkCard({
         (isSelected ? ' ms-selected' : '') +
         (multiSelectActive ? ' ms-eligible' : '');
 
+    /* Note indicator — the ⊟ glyph in the caption UNDER the artwork, to the
+       RIGHT of the owned check, shown in any grid when the logged-in viewer has
+       a note for this piece. Tap it to peek the note over the card; tap / scroll
+       dismisses, grid position kept (Brendon, 2026-06-24). */
+    const noteIcon = hasNote ? (
+        <span
+            className={'meta-note-ic' + (notePeek ? ' is-open' : '')}
+            role="button"
+            tabIndex={0}
+            title="Note"
+            aria-label="Show note"
+            onClick={(e) => { e.stopPropagation(); setNotePeek((v) => !v); }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault(); e.stopPropagation(); setNotePeek((v) => !v);
+                }
+            }}
+        >
+            {'⊟︎'}
+        </span>
+    ) : null;
+    const notePop = (hasNote && notePeek) ? (
+        <div
+            className="meta-note-pop"
+            role="tooltip"
+            onClick={(e) => { e.stopPropagation(); setNotePeek(false); }}
+        >
+            {noteText}
+        </div>
+    ) : null;
+
     return (
         <article
             className={articleClass}
@@ -974,37 +1005,6 @@ function ArtworkCard({
                         LAST · {lastSaleEth} Ξ
                     </span>
                 </div>
-                {/* Note indicator — sits on the artwork's top-right in ANY grid
-                    (project Artworks, Collected) when the logged-in viewer has a
-                    note for this piece, so noted pieces are spottable at a glance.
-                    Tap it to peek the note over the card; tap anywhere / scroll
-                    dismisses, grid position untouched (Brendon 2026-06-24). */}
-                {hasNote && (
-                    <span
-                        className={'note-badge' + (notePeek ? ' is-open' : '')}
-                        role="button"
-                        tabIndex={0}
-                        title="Note"
-                        aria-label="Show note"
-                        onClick={(e) => { e.stopPropagation(); setNotePeek((v) => !v); }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault(); e.stopPropagation(); setNotePeek((v) => !v);
-                            }
-                        }}
-                    >
-                        {'⊟︎'}
-                    </span>
-                )}
-                {hasNote && notePeek && (
-                    <div
-                        className="note-peek-pop"
-                        role="tooltip"
-                        onClick={(e) => { e.stopPropagation(); setNotePeek(false); }}
-                    >
-                        {noteText}
-                    </div>
-                )}
                 {showProjectName ? (
                     /* Profile grid caption — PROJECT NAME (Courier) + #ID
                         (Rubik), no owner/price (Brendon 2026-06-16). */
@@ -1013,6 +1013,8 @@ function ArtworkCard({
                         {/* Starred → a filled ★ as the character left of the id
                             (Brendon, 2026-06-20), same as a starred project name. */}
                         <span className="meta-proj-id">{starred ? '★︎ ' : ''}#{id}</span>
+                        {noteIcon}
+                        {notePop}
                     </div>
                 ) : (
                 <div className="meta">
@@ -1040,7 +1042,9 @@ function ArtworkCard({
                                 </span>
                             </>
                         )}
+                        {noteIcon}
                     </span>
+                    {notePop}
                     {listed ? (
                         <span
                             className="meta-owner price-trigger"

@@ -5904,38 +5904,28 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     white-space: nowrap;
     transition: opacity 0.3s;
 }
-/* Per-output note indicator (Brendon 2026-06-24) — a tappable note chip on the
-   artwork's top-right, shown in ANY gallery grid when the logged-in viewer has a
-   note for the piece, so noted pieces read at a glance. Tapping peeks the note
-   over the card; tap anywhere / scroll dismisses without leaving the grid. */
-.note-badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 5;
+/* Per-output note indicator (Brendon 2026-06-24) — the ⊟ glyph in the caption
+   UNDER the artwork, to the RIGHT of the owned check, shown in any grid when the
+   logged-in viewer has a note for the piece, so noted pieces read at a glance.
+   Tapping peeks the note over the card; tap anywhere / scroll dismisses without
+   leaving the grid. */
+.meta-note-ic {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 4px;
-    background: var(--bg-color);
+    margin-left: 6px;
+    cursor: pointer;
     color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
     line-height: 1;
-    cursor: pointer;
-    opacity: 0.95;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    opacity: 0.85;
     -webkit-tap-highlight-color: transparent;
 }
-.note-badge:hover, .note-badge.is-open { opacity: 1; }
-.note-peek-pop {
+.meta-note-ic:hover, .meta-note-ic.is-open { opacity: 1; }
+.meta-note-pop {
     position: absolute;
-    top: 30px;
-    right: 6px;
+    bottom: calc(100% - 2px);
+    left: 0;
     z-index: 40;
     width: max-content;
     max-width: min(240px, 72vw);
@@ -5955,7 +5945,7 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     animation: meta-note-pop-in 0.14s ease both;
 }
 @keyframes meta-note-pop-in {
-    from { opacity: 0; transform: translateY(-4px); }
+    from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 /* Profile grid caption (Brendon 2026-06-16) — PROJECT NAME (Courier) + #ID

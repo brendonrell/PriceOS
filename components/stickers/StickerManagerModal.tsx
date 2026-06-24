@@ -70,6 +70,7 @@ export function StickerManagerModal({
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const plusBodyRef = useRef<HTMLDivElement | null>(null);
+    const previewRef = useRef<HTMLDivElement | null>(null);
     const [page, setPage] = useState(0);
     /* Manager Plus — the full-screen (mobile) / jumbo (desktop) view. Opened by
        the ↑ in the header; resets when the menu closes. */
@@ -124,6 +125,20 @@ export function StickerManagerModal({
         const r = requestAnimationFrame(pin);
         const t = window.setTimeout(pin, 300);
         return () => { cancelAnimationFrame(r); window.clearTimeout(t); };
+    }, [full]);
+
+    /* Manager Plus: FORBID the preview box from ever changing height. It must
+       "just be there" at its settled size the instant Plus opens; only the
+       stickers animate inside it — never the box (Brendon, 2026-06-24). Measure
+       the settled content height once (before paint) and pin the box to it, so no
+       entrance build / late paint can grow or shrink the window. */
+    useIsoLayoutEffect(() => {
+        if (!full) return;
+        const el = previewRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        const h = el.getBoundingClientRect().height;
+        if (h > 0) el.style.height = `${h}px`;
     }, [full]);
 
     useEffect(() => {
@@ -325,7 +340,7 @@ export function StickerManagerModal({
                         </span>
                     </div>
 
-                    {previewNode != null && <div className={`smgr-plus-preview smgr-fx-${fx}`} aria-label="Live preview">{previewNode}</div>}
+                    {previewNode != null && <div ref={previewRef} className={`smgr-plus-preview smgr-fx-${fx}`} aria-label="Live preview">{previewNode}</div>}
 
                     <div
                         className="smgr-plus-body"
