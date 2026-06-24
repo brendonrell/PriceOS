@@ -965,7 +965,10 @@ body.sticker-mode .hero-stickers { display: none; }
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 14px 0;
+    /* Generous room top/bottom + sides so the stickers' tilt/scale never clips
+       against the box edge; the locked height includes this padding so the box
+       still can't change size on open (Brendon, 2026-06-24). */
+    padding: 30px 14px;
     border-bottom: 1px solid var(--border-color);
     overflow: clip;
     min-width: 0;
