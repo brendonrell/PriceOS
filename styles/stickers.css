@@ -65,8 +65,11 @@
     align-items: center;
     gap: 12px;
     padding: 0 18px 10px;
+    /* When the title + buy button don't fit one line (long sheet names), the
+       button drops to a second row instead of running off-screen (Brendon). */
+    flex-wrap: wrap;
 }
-.ss-title { display: flex; flex-direction: column; line-height: 1.1; }
+.ss-title { display: flex; flex-direction: column; line-height: 1.1; flex: 1 1 auto; min-width: 0; }
 .ss-title-main {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 18px;
@@ -230,6 +233,8 @@
     position: absolute;
     top: 8px;
     right: 8px;
+    /* Above the sticker fan/preview so it's never buried (Brendon 2026-06-23). */
+    z-index: 4;
     font-size: 8px;
     font-weight: 600;
     letter-spacing: 0.18em;
@@ -237,6 +242,26 @@
     border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
     border-radius: 3px;
     padding: 2px 4px;
+}
+/* Keep the sticker fan/preview under the LIVE + owned badges. */
+.ss-fan, .ss-preview-grid { position: relative; z-index: 1; }
+/* Owned — a FILLED checkmark circle in the bottom-right of the preview, below
+   the LIVE badge. Shown once you hold every sticker in the sheet. */
+.ss-card-owned {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 4;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--text-color);
+    color: var(--bg-color);
+    font: bold 12px/1 'Courier New', Courier, monospace;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Meta grows to fill the card so the buy CTA pins to the bottom on every card —

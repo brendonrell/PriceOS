@@ -28,7 +28,7 @@ import {
 } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
-import { useOwnedStickerIds } from '../lib/stickers/owned';
+import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import { buildTickerText } from '../lib/stickers/ticker';
 
 const VS15 = '︎';
@@ -154,6 +154,7 @@ export default function StickersModal() {
                     ))}
                 </span>
                 <span className="ss-card-soon ss-card-new">LIVE</span>
+                {ownsSheet(s.id, ownedIds) && <span className="ss-card-owned" title="Owned">{'✓︎'}</span>}
             </div>
             <div className="ss-card-meta">
                 <div className="ss-card-name">{s.name}</div>
@@ -186,6 +187,7 @@ export default function StickersModal() {
                     ))}
                 </span>
                 <span className="ss-card-soon ss-card-new">LIVE</span>
+                {ownsSheet(s.id, ownedIds) && <span className="ss-card-owned" title="Owned">{'✓︎'}</span>}
             </div>
         </div>
     );
