@@ -4498,9 +4498,12 @@ button,
     pointer-events: none;
 }
 body.sticker-mode .sticker-strike { opacity: 0.5; }
-/* Sticker (⊞) icon — unbold just this one toggle (the pill is bold, the icon
-   inherits it); vertical centring down 2px desktop, 1px higher on mobile. */
-#sn-sticker .st-icon { font-weight: normal; }
+/* MY PD toggle icons sit at normal weight — the toggle pill is bold and the
+   glyphs were inheriting it (a recent size bump made it obvious). Scoped to the
+   MY PD pill rows, so the bold text labels and the Spell Book pills are
+   untouched (Brendon, 2026-06-24). */
+.settings-pill-row .st-icon { font-weight: normal; }
+/* Sticker (⊞) icon vertical centring: down 2px desktop, 1px higher on mobile. */
 .sticker-strike { transform: translateY(2px); }
 @media (max-width: 600px) { .sticker-strike { transform: translateY(2px); } }
 /* Desktop MY PD icon nudges (Brendon, 2026-06-22): Stickers two sizes smaller +
