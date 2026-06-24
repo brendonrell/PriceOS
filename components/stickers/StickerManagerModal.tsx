@@ -164,18 +164,16 @@ export function StickerManagerModal({
         toggleStickerActive(id);
         setOffIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
     };
-    /* Shuffle / picking a Layout re-generates a fresh roll, so it drops any
-       locked hand-placed composition back to generative. */
+    /* Every generative tuning control re-rolls the composition, so each one drops
+       a locked hand-placed layout back to generative and takes effect immediately
+       — the lock only returns on the next drag-drop (Brendon, 2026-06-24). */
     const reshuffle = () => { clearPlacements(); shuffleSeed(); };
     const pickArrange = (a: Arrange) => { clearPlacements(); setArr(a); setArrange(a); };
-    const pickTilt = (t: Tilt) => { setTl(t); setTilt(t); };
-    const pickExpand = (b: boolean) => { setExp(b); setExpand(b); };
-    const pickRows = (r: Rows) => { setRw(r); setRows(r); };
-    const pickAlign = (a: Align) => { setAl(a); setAlign(a); };
-    const pickFlip = (b: boolean) => { setFl(b); setFlip(b); };
-    /* Density re-rolls the pile, so (like Layout) it drops a locked hand-placed
-       composition back to generative — otherwise the live preview stays pinned
-       to the saved layout and density looks dead (Brendon, 2026-06-24). */
+    const pickTilt = (t: Tilt) => { clearPlacements(); setTl(t); setTilt(t); };
+    const pickExpand = (b: boolean) => { clearPlacements(); setExp(b); setExpand(b); };
+    const pickRows = (r: Rows) => { clearPlacements(); setRw(r); setRows(r); };
+    const pickAlign = (a: Align) => { clearPlacements(); setAl(a); setAlign(a); };
+    const pickFlip = (b: boolean) => { clearPlacements(); setFl(b); setFlip(b); };
     const pickDensity = (d: number) => { clearPlacements(); setDen(d); setDensity(d); };
 
     // Apply a whole look at once (from a pasted code or Surprise).
