@@ -119,6 +119,25 @@ export function getRecentIdsForProject(
     return out;
 }
 
+/** Most recent visited Outputs ACROSS the whole site (every Project), freshest
+ *  first — each as { slug, id }. Powers the Recent pills, which show the global
+ *  trail with the current Project's crumbs lit and the rest at half opacity. */
+export function getRecentGlobal(
+    n: number = BREADCRUMBS_PER_PROJECT,
+): { slug: string; id: number }[] {
+    hydrate();
+    const out: { slug: string; id: number }[] = [];
+    for (const k of order) {
+        const i = k.indexOf(':');
+        if (i < 0) continue;
+        const slug = k.slice(0, i);
+        const id = Number(k.slice(i + 1));
+        if (Number.isFinite(id)) out.push({ slug, id });
+        if (out.length >= n) break;
+    }
+    return out;
+}
+
 /** Subscribe to trail changes. Returns an unsubscribe function. */
 export function subscribeBreadcrumbs(cb: Listener): () => void {
     hydrate();

@@ -70,7 +70,8 @@ import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../..
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
-import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
+import { getRecentGlobal, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
+import { useModal } from '../../lib/state/ModalContext';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import SpriteFace from '../SpriteFace';
 import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
@@ -365,10 +366,12 @@ export default function TraitsUI({
         return subscribeSprite(() => setSpriteFrame(getSpriteFrame()));
     }, []);
     const meFace = spriteFrame.hasIdentity ? spriteFrame.face : null;
-    /* Recent (Breadcrumb) L3 = the viewer's actually-visited token ids for this
-       Project, freshest first, as pill labels. Live via the breadcrumb store so
-       the Recent row fills the moment you open artworks (Brendon, 2026-06-24). */
-    const [recentBreadcrumbIds, setRecentBreadcrumbIds] = React.useState<string[]>([]);
+    /* Recent (Breadcrumb) L3 = the 5 most-recent visits ACROSS THE WHOLE SITE,
+       freshest first. Each pill shows its rank + the Project @name + #id; crumbs
+       from the Project being viewed are lit, the rest sit at half opacity. Live
+       via the breadcrumb store (Brendon, 2026-06-24). */
+    const [recentGlobal, setRecentGlobal] = React.useState<{ slug: string; id: number }[]>([]);
+    const { open: openModal } = useModal();
     const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
@@ -385,12 +388,10 @@ export default function TraitsUI({
     const { slug: projectSlug, totalOutputs } = useProject();
 
     React.useEffect(() => {
-        const read = () => setRecentBreadcrumbIds(
-            getRecentIdsForProject(projectSlug, Infinity).map(String),
-        );
+        const read = () => setRecentGlobal(getRecentGlobal(5));
         read();
         return subscribeBreadcrumbs(read);
-    }, [projectSlug]);
+    }, []);
 
     /* Starred Traits (Brendon, 2026-06-18) — long-press a trait value pill to
        favourite that (Project, category, value); it lands as its own row in
@@ -593,9 +594,10 @@ export default function TraitsUI({
        read straight from L3_FLAT_POOL. */
     const l3Pool: readonly string[] = (() => {
         if (activeL1 === null) return [];
-        /* Recent (Breadcrumb) L3 = the actually-visited token ids, freshest
-           first — not the empty placeholder buckets (Brendon, 2026-06-24). */
-        if (activeL1 === 'Breadcrumb') return recentBreadcrumbIds;
+        /* Recent (Breadcrumb) L3 = the 5 most-recent global visits, freshest
+           first, encoded `slug:id` — not the empty placeholder buckets
+           (Brendon, 2026-06-24). */
+        if (activeL1 === 'Breadcrumb') return recentGlobal.map((b) => `${b.slug}:${b.id}`);
         if (l2Visible) {
             if (activeSubFilter === 'All') {
                 /* Feed-mode 'Traits' wrapper defaults to the first trait's
@@ -1037,7 +1039,32 @@ export default function TraitsUI({
                 >
                     {l3Visible &&
                         l3FilterCat !== null &&
-                        l3Pool.map((value) => {
+                        l3Pool.map((value, idx) => {
+                            /* Recent pills — global trail: `(rank) @name #id`,
+                               half-dimmed when from another Project, tap opens
+                               that artwork (Brendon, 2026-06-24). */
+                            if (l3FilterCat === 'Breadcrumb') {
+                                const ci = value.indexOf(':');
+                                const bSlug = value.slice(0, ci);
+                                const bId = value.slice(ci + 1);
+                                const otherProject = bSlug !== projectSlug;
+                                return (
+                                    <L3Pill
+                                        key={`bc:${value}`}
+                                        label={`(${idx + 1}) @${bSlug} #${bId}`}
+                                        count={-1}
+                                        active={false}
+                                        dimmed={false}
+                                        isZero={false}
+                                        category="Breadcrumb"
+                                        halfDim={otherProject}
+                                        inert={otherProject}
+                                        starrable={false}
+                                        meFace={meFace}
+                                        onClick={() => openModal('output', Number(bId), bSlug)}
+                                    />
+                                );
+                            }
                             const filterSet = activeFilters[l3FilterCat];
                             const isActive = filterSet?.has(value) ?? false;
                             const anySelected = (filterSet?.size ?? 0) > 0;
@@ -1833,6 +1860,12 @@ interface L3PillProps {
     starred?: boolean;
     onToggleStar?: () => void;
     onClick: () => void;
+    /** Half opacity — a Recent pill from a Project other than the one being
+     *  viewed (Brendon, 2026-06-24). */
+    halfDim?: boolean;
+    /** Dead pill — no click/focus, just there for context (the half-opacity
+     *  other-Project Recent pills) (Brendon, 2026-06-24). */
+    inert?: boolean;
     /** Signed-in user's still PriceSprite face — rendered as the icon on the
      *  Network 'Me' value pill (Brendon, 2026-06-24). Null → plain "Me". */
     meFace?: string | null;
@@ -1866,6 +1899,8 @@ export function L3Pill({
     starred = false,
     onToggleStar,
     onClick,
+    halfDim = false,
+    inert = false,
     meFace,
 }: L3PillProps) {
     const cls = [
@@ -1924,29 +1959,34 @@ export function L3Pill({
     return (
         <div
             className={cls}
-            role="button"
-            tabIndex={0}
-            onClick={() => {
+            role={inert ? undefined : 'button'}
+            tabIndex={inert ? undefined : 0}
+            aria-disabled={inert ? true : undefined}
+            onClick={inert ? undefined : () => {
                 if (longFired.current) { longFired.current = false; return; }
                 onClick();
             }}
-            onKeyDown={(e) => {
+            onKeyDown={inert ? undefined : (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     onClick();
                 }
             }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endPress}
-            onPointerLeave={endPress}
-            onPointerCancel={endPress}
+            onPointerDown={inert ? undefined : onPointerDown}
+            onPointerMove={inert ? undefined : onPointerMove}
+            onPointerUp={inert ? undefined : endPress}
+            onPointerLeave={inert ? undefined : endPress}
+            onPointerCancel={inert ? undefined : endPress}
             onContextMenu={(e) => { if (starrable) e.preventDefault(); }}
-            style={starrable ? { position: 'relative', userSelect: 'none', touchAction: 'pan-y' } : undefined}
+            style={{
+                ...(starrable ? { position: 'relative' as const, userSelect: 'none' as const, touchAction: 'pan-y' as const } : {}),
+                ...(halfDim ? { opacity: 0.5 } : {}),
+                ...(inert ? { cursor: 'default' as const } : {}),
+            }}
         >
             {isBreadcrumb ? (
                 <span className="stat-name">
-                    <span className="recent-dot">⬤</span> #{label}
+                    <span className="recent-dot">⬤</span> {label}
                 </span>
             ) : (
                 <>
