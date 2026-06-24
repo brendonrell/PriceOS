@@ -1021,34 +1021,34 @@ body.sticker-mode .hero-stickers { display: none; }
    `transform`), so it composes ON TOP of each sticker's own placement transform
    — the resting frame is always pixel-exact, no layout leak (Brendon 2026-06-24). */
 .smgr-plus-preview .hero-sticker {
-    animation-duration: 0.62s;
+    animation-duration: 1.4s;
     animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot → "stick" */
     animation-fill-mode: both;
     animation-name: smgr-fx-pop;
 }
 /* Stagger — the build walks across the stickers (cycles every 10 so any count
-   reads as a continuous plunk-plunk-plunk). */
+   reads as a continuous plunk … plunk … plunk). */
 .smgr-plus-preview .hero-sticker:nth-child(10n+1) { animation-delay: 0s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+2) { animation-delay: 0.12s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+3) { animation-delay: 0.24s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+4) { animation-delay: 0.36s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+5) { animation-delay: 0.48s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+6) { animation-delay: 0.6s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+7) { animation-delay: 0.72s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+8) { animation-delay: 0.84s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+9) { animation-delay: 0.96s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n)   { animation-delay: 1.08s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+2) { animation-delay: 0.26s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+3) { animation-delay: 0.52s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+4) { animation-delay: 0.78s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+5) { animation-delay: 1.04s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+6) { animation-delay: 1.3s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+7) { animation-delay: 1.56s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+8) { animation-delay: 1.82s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+9) { animation-delay: 2.08s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n)   { animation-delay: 2.34s; }
 
 /* The ten builds. */
 .smgr-fx-0 .hero-sticker { animation-name: smgr-fx-drop; }
 .smgr-fx-1 .hero-sticker { animation-name: smgr-fx-pop; }
 .smgr-fx-2 .hero-sticker { animation-name: smgr-fx-left; }
 .smgr-fx-3 .hero-sticker { animation-name: smgr-fx-right; }
-.smgr-fx-4 .hero-sticker { animation-name: smgr-fx-spin; animation-duration: 0.72s; }
+.smgr-fx-4 .hero-sticker { animation-name: smgr-fx-spin; animation-duration: 1.6s; }
 .smgr-fx-5 .hero-sticker { animation-name: smgr-fx-rise; }
 .smgr-fx-6 .hero-sticker { animation-name: smgr-fx-zoom; }
-.smgr-fx-7 .hero-sticker { animation-name: smgr-fx-bounce; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); animation-duration: 0.8s; }
-.smgr-fx-8 .hero-sticker { animation-name: smgr-fx-swing; animation-duration: 0.7s; }
+.smgr-fx-7 .hero-sticker { animation-name: smgr-fx-bounce; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); animation-duration: 1.8s; }
+.smgr-fx-8 .hero-sticker { animation-name: smgr-fx-swing; animation-duration: 1.6s; }
 .smgr-fx-9 .hero-sticker { animation-name: smgr-fx-scatter; }
 
 @keyframes smgr-fx-drop   { from { opacity: 0; translate: 0 -46px; }            to { opacity: 1; translate: 0 0; } }
