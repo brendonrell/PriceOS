@@ -246,6 +246,10 @@ function HomePageBodyInner({
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
+    /* Keep the Now-Minting carousels MOUNTED once seen, then just hide them
+       off-tab — switching to New Gen Art and back must not repaint the art
+       (same pattern as the profile tabs). Brendon, 2026-06-24. */
+    const [mintingSeen, setMintingSeen] = useState(false);
 
     /* Shuffle is non-essential: it shows ONLY when all three tabs fit on one
        line, and hides (rather than wrapping and disturbing the layout) when they
@@ -438,6 +442,8 @@ function HomePageBodyInner({
     const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>(
         { key: 'date', dir: 'desc' },
     );
+    /* Mark Now-Minting as seen so its carousels stay mounted once painted. */
+    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed') setMintingSeen(true); }, [activeTab, mintSort.key]);
     const onMintSort = (key: HomeSortKey) =>
         setMintSort((prev) =>
             prev.key === key
@@ -879,8 +885,11 @@ function HomePageBodyInner({
             {/* Now Minting (default) — just the carousels: one per project
                 at 18+ mints, in the order they reached 18. No section header,
                 the tab is the label. */}
-            {activeTab === 'minting' && mintSort.key !== 'feed' && (
-                <section aria-label="Now Minting">
+            {/* Mounted once seen, then hidden (not unmounted) when off-tab so the
+                painted canvases survive a tab switch — no repaint (Brendon,
+                2026-06-24). */}
+            {mintingSeen && (
+                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' ? undefined : { display: 'none' }}>
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}

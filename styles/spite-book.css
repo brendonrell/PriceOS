@@ -146,10 +146,23 @@
     -webkit-overflow-scrolling: touch;
     padding: 16px 13px;
     cursor: text;
+    position: relative;
     /* Aged parchment — warm cream with a faint vignette. */
     background:
         radial-gradient(130% 100% at 50% 0%, #f6eed7 0%, #efe2c2 100%);
 }
+/* Page number, outer bottom corner — same parchment-ink serif as the book. */
+.spite-page-num {
+    position: absolute;
+    bottom: 7px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: rgba(74, 53, 37, 0.5);
+    pointer-events: none;
+}
+.spite-page--left .spite-page-num { left: 14px; }
+.spite-page--right .spite-page-num { right: 14px; }
 /* Inner-edge shading so each page curves into the spine. */
 .spite-page:first-child  { box-shadow: inset -14px 0 18px -12px rgba(60, 36, 18, 0.55); }
 .spite-page:last-child   { box-shadow: inset  14px 0 18px -12px rgba(60, 36, 18, 0.55); }

@@ -22,47 +22,49 @@ import { useEffect, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import {
-    getSpiteNames,
-    addSpiteName,
-    removeSpiteName,
+    getSpiteSlots,
+    addSpiteNameAt,
+    removeSpiteAt,
     subscribeSpite,
     isSpited,
+    SPITE_SLOTS,
 } from '../lib/pins/spiteStore';
 import { validateSpiteHandle } from '../lib/pins/spiteValidate';
 
 const VS15 = '︎';
 
-const PAGES = 10;
 const LINES_PER_PAGE = 6;
-const CAP = PAGES * LINES_PER_PAGE;
-const MAX_SPREAD = Math.ceil(PAGES / 2) - 1; // 0..4
+const PAGES = SPITE_SLOTS / LINES_PER_PAGE; // 12
+const MAX_SPREAD = Math.ceil(PAGES / 2) - 1; // 0..5
 
 type FlipDir = 'fwd' | 'back';
 
-/* A page's active writing line — own draft state, always in the DOM so a tap
+/* An empty slot's writing line — own draft state, always in the DOM so a tap
    focuses it natively (iOS keyboard). Commits on Enter or blur; keeps the text
-   if the name is rejected so it can be fixed. */
+   if the name is rejected so it can be fixed. Every blank line is one of these,
+   so any slot can be written into directly (Brendon, 2026-06-24). */
 function AddLine({
+    slot,
     onAdd,
-    inputRef,
+    hint,
 }: {
-    onAdd: (name: string) => Promise<boolean>;
-    inputRef: React.RefObject<HTMLInputElement>;
+    slot: number;
+    onAdd: (slot: number, name: string) => Promise<boolean>;
+    hint: boolean;
 }) {
     const [value, setValue] = useState('');
     const submit = async () => {
         const t = value.trim();
         if (!t) return;
-        const ok = await onAdd(t);
+        const ok = await onAdd(slot, t);
         if (ok) setValue('');
     };
     return (
         <div className="spite-line spite-line--add">
             <input
-                ref={inputRef}
                 className="spite-input"
                 value={value}
-                placeholder={`✛${VS15} name a foe`}
+                placeholder={hint ? `✛${VS15} name a foe` : undefined}
                 maxLength={40}
                 spellCheck={false}
                 autoCorrect="off"
@@ -89,13 +91,12 @@ export default function SpiteBookModal() {
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'spiteBook';
 
-    const [names, setNames] = useState<readonly string[]>([]);
+    const [slots, setSlots] = useState<readonly (string | null)[]>([]);
     const [spread, setSpread] = useState(0);
     const [flip, setFlip] = useState<FlipDir | null>(null);
 
     const spreadRef = useRef<HTMLDivElement>(null);
     const leafRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     // Drag bookkeeping (refs so pointermove doesn't churn React state).
     const drag = useRef<{ startX: number; dir: FlipDir | null; committed: boolean }>({
@@ -104,10 +105,10 @@ export default function SpiteBookModal() {
         committed: false,
     });
 
-    // Subscribe to the spite list (hydrates from localStorage on first read).
+    // Subscribe to the spite slots (hydrates from localStorage on first read).
     useEffect(() => {
-        setNames(getSpiteNames().slice());
-        return subscribeSpite((next) => setNames(next.slice()));
+        setSlots(getSpiteSlots());
+        return subscribeSpite(() => setSlots(getSpiteSlots()));
     }, []);
 
     // Reset to the first spread each time the book opens.
@@ -118,13 +119,9 @@ export default function SpiteBookModal() {
         }
     }, [isOpen]);
 
-    const handleAdd = async (name: string): Promise<boolean> => {
+    const handleAdd = async (slot: number, name: string): Promise<boolean> => {
         if (isSpited(name)) {
             showToast('Spite Book: ALREADY NAMED');
-            return true;
-        }
-        if (getSpiteNames().length >= CAP) {
-            showToast('Spite Book: FULL');
             return false;
         }
         const valid = await validateSpiteHandle(name);
@@ -132,80 +129,66 @@ export default function SpiteBookModal() {
             showToast('Spite Book: NOT FOUND');
             return false;
         }
-        const added = addSpiteName(name);
+        const added = addSpiteNameAt(slot, name);
         showToast(
             added
-                ? `Spite Book: ADDED · ${getSpiteNames().length}`
+                ? `Spite Book: ADDED · ${getSpiteSlots().filter(Boolean).length}`
                 : 'Spite Book: ALREADY NAMED'
         );
         return added;
     };
 
-    const scratch = (name: string) => {
-        removeSpiteName(name);
-        showToast(`Spite Book: SCRATCHED · ${getSpiteNames().length}`);
+    const scratch = (slot: number) => {
+        removeSpiteAt(slot);
+        showToast(`Spite Book: SCRATCHED · ${getSpiteSlots().filter(Boolean).length}`);
     };
 
-    const frontierPage = Math.min(Math.floor(names.length / LINES_PER_PAGE), PAGES - 1);
+    // The first empty slot overall — carries the "name a foe" hint placeholder.
+    const firstEmpty = slots.findIndex((s) => !s);
 
-    /* Render one page's six ruled lines. `live` pages carry the scratch marks +
-       the active writing input; snapshot faces (mid-flip) are text-only. */
+    /* Render one page's six ruled lines. Every line maps to a fixed slot: a
+       written name (with its scratch mark on live pages) or an empty, tappable
+       writing line on live pages (Brendon, 2026-06-24). Snapshot faces
+       (mid-flip) are text-only. */
     const renderLines = (page: number, live: boolean) => {
-        const start = page * LINES_PER_PAGE;
-        const pageNames = names.slice(start, start + LINES_PER_PAGE);
         const rows: React.ReactNode[] = [];
-
-        pageNames.forEach((name) => {
-            rows.push(
-                <div className="spite-line spite-line--name" key={`n-${name}`}>
-                    <span className="spite-name">{name}</span>
-                    {live && (
-                        <span
-                            className="spite-scratch"
-                            role="button"
-                            tabIndex={0}
-                            title="Scratch out"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                scratch(name);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    scratch(name);
-                                }
-                            }}
-                        >
-                            {`✗${VS15}`}
-                        </span>
-                    )}
-                </div>
-            );
-        });
-
-        // The active writing line lands on the page holding the next free slot.
-        const showInput =
-            live && page === frontierPage && names.length < CAP;
-        if (showInput) {
-            rows.push(<AddLine key="add" onAdd={handleAdd} inputRef={inputRef} />);
-        }
-
-        // Pad to a full page of ruled lines so every page reads the same height.
-        while (rows.length < LINES_PER_PAGE) {
-            rows.push(<div className="spite-line spite-line--blank" key={`b-${rows.length}`} />);
+        for (let line = 0; line < LINES_PER_PAGE; line++) {
+            const slot = page * LINES_PER_PAGE + line;
+            const name = slots[slot] ?? null;
+            if (name) {
+                rows.push(
+                    <div className="spite-line spite-line--name" key={`n-${slot}`}>
+                        <span className="spite-name">{name}</span>
+                        {live && (
+                            <span
+                                className="spite-scratch"
+                                role="button"
+                                tabIndex={0}
+                                title="Scratch out"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => { e.stopPropagation(); scratch(slot); }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); scratch(slot); }
+                                }}
+                            >
+                                {`✗${VS15}`}
+                            </span>
+                        )}
+                    </div>
+                );
+            } else if (live) {
+                rows.push(<AddLine key={`a-${slot}`} slot={slot} onAdd={handleAdd} hint={slot === firstEmpty} />);
+            } else {
+                rows.push(<div className="spite-line spite-line--blank" key={`b-${slot}`} />);
+            }
         }
         return <div className="spite-page-lines">{rows}</div>;
     };
 
-    const renderPage = (page: number, live: boolean) => (
-        <div
-            className="spite-page"
-            onClick={() => {
-                if (live && page === frontierPage) inputRef.current?.focus();
-            }}
-        >
+    const renderPage = (page: number, live: boolean, side: 'left' | 'right') => (
+        <div className={`spite-page spite-page--${side}`}>
             {renderLines(page, live)}
+            <span className="spite-page-num" aria-hidden="true">{page + 1}</span>
         </div>
     );
 
@@ -303,9 +286,9 @@ export default function SpiteBookModal() {
                     {/* Live spread underneath. During a forward flip the upcoming
                         right page peeks through; during a back flip the previous
                         left page does. */}
-                    {renderPage(flip === 'fwd' ? spread * 2 : (flip === 'back' ? spread * 2 - 2 : spread * 2), true)}
+                    {renderPage(flip === 'fwd' ? spread * 2 : (flip === 'back' ? spread * 2 - 2 : spread * 2), true, 'left')}
                     <div className="spite-spine" aria-hidden="true" />
-                    {renderPage(flip === 'fwd' ? spread * 2 + 3 : spread * 2 + 1, true)}
+                    {renderPage(flip === 'fwd' ? spread * 2 + 3 : spread * 2 + 1, true, 'right')}
 
                     {/* The turning leaf — two read-only faces. */}
                     {flip && (
@@ -316,13 +299,15 @@ export default function SpiteBookModal() {
                             <div className="spite-leaf-face spite-leaf-front">
                                 {renderPage(
                                     flip === 'fwd' ? spread * 2 + 1 : spread * 2,
-                                    false
+                                    false,
+                                    flip === 'fwd' ? 'right' : 'left'
                                 )}
                             </div>
                             <div className="spite-leaf-face spite-leaf-back">
                                 {renderPage(
                                     flip === 'fwd' ? spread * 2 + 2 : spread * 2 - 1,
-                                    false
+                                    false,
+                                    flip === 'fwd' ? 'left' : 'right'
                                 )}
                             </div>
                         </div>
@@ -330,9 +315,12 @@ export default function SpiteBookModal() {
                 </div>
 
                 <div className="spite-foot">
-                    {names.length === 0
-                        ? 'an empty grudge'
-                        : `${names.length} ${names.length === 1 ? 'name' : 'names'} inscribed`}
+                    {(() => {
+                        const count = slots.filter(Boolean).length;
+                        return count === 0
+                            ? 'an empty grudge'
+                            : `${count} ${count === 1 ? 'name' : 'names'} inscribed`;
+                    })()}
                 </div>
             </div>
         </div>
