@@ -67,13 +67,7 @@ const FRAME_BUDGET_MS = 8;
    so a heavy-engine page mounts without a multi-second freeze instead of
    blocking on N synchronous sandpile solves. */
 const EAGER_SYNC_BUDGET_MS = 24;
-/* Vertical 400px = ~one viewport of deep-scroll lead. Horizontal 290px = just
-   over TWO carousel tiles-and-gaps (tiles cap ~120px + 14px gap ≈ 134px each),
-   so the next tiles in a horizontal carousel finish painting two tiles before
-   they reach the visible edge — the pop-in happens two artworks over, well
-   offscreen, instead of at the edge (Brendon, 2026-06-25). Harmless for
-   vertical grids (nothing sits horizontally offscreen to paint). */
-const ROOT_MARGIN = '400px 290px';
+const ROOT_MARGIN = '400px 0px';
 
 type RegisteredCard = {
     /* Globally-unique key (project slug + token id). Token ids are NOT
