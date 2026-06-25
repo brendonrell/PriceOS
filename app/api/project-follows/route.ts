@@ -85,8 +85,13 @@ export interface FollowedProject {
   project_id: string;
   handle: string | null;
   title: string;
-  /** True when the follow is implicit (the viewer holds a piece). */
+  /** True when the follow is implicit (the viewer holds a piece) — i.e. the
+      project follows the viewer. */
   held: boolean;
+  /** True when the viewer EXPLICITLY follows the project (a project_follows
+      row) — i.e. the viewer follows the project. Held vs following is what
+      splits Followers / Following / Mutuals on the profile Starred pills. */
+  following: boolean;
   /** The creator's @name (null pre-claim), for the ✺ creator stat. */
   artist: string | null;
   /** Minted-so-far + total supply, for the ⬚ count stat. */
@@ -163,6 +168,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           handle: p.handle,
           title: p.title,
           held: held.has(p.id),
+          following: explicit.has(p.id),
           artist: p.artist_address ? addrToHandle.get(p.artist_address.toLowerCase()) ?? null : null,
           minted: p.minted_count ?? 0,
           supply: p.max_supply ?? 0,
