@@ -113,11 +113,31 @@ import {
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
-/* How many leading gallery cards paint eagerly (synchronously on mount) so
-   the visible art is "just there" on load. ~2 screenfuls across mobile (2-col)
-   and desktop (4-5 col) layouts; everything past this lazy-loads via the
-   IntersectionObserver crash-guard. */
-const EAGER_GALLERY_COUNT = 24;
+/* Upper bound on how many leading gallery cards may paint eagerly
+   (synchronously on mount). The ACTUAL count is derived from the device
+   viewport (see eagerGalleryCount) so a phone — which shows ~2-3 cards — never
+   force-paints a desktop's worth of heavy canvases up front (Brendon,
+   2026-06-25: "it needs to be viewport aware"). This caps the widest desktops. */
+const EAGER_GALLERY_MAX = 24;
+
+/* How many gallery cards actually sit above the fold on this device — the set
+   we paint eagerly. The grid is responsive: mobile (≤600px) is a 2-col grid of
+   ~140px cards under a tall project hero, so ~3 rows show on load → 6 cards
+   (Brendon 2026-06-25: "6 max on iPhone"). Desktop derives its count from its
+   own 220px grid metrics (gap 20, 40px side padding, near-square art + ~46px
+   meta), one viewport + a buffer row, capped at EAGER_GALLERY_MAX. Everything
+   below streams in via the lazy observer. */
+function eagerGalleryCount(): number {
+    if (typeof window === 'undefined') return EAGER_GALLERY_MAX; // SSR fallback
+    if (window.innerWidth <= 600) return 6; // mobile: ~2 cols × 3 visible rows
+    const GAP = 20, MIN_COL = 220, PADDING_X = 80, META_H = 46;
+    const contentW = Math.max(MIN_COL, window.innerWidth - PADDING_X);
+    const cols = Math.max(1, Math.floor((contentW + GAP) / (MIN_COL + GAP)));
+    const cardW = (contentW - GAP * (cols - 1)) / cols;
+    const cardH = cardW + META_H;
+    const rows = Math.max(1, Math.ceil(window.innerHeight / cardH));
+    return Math.min(cols * (rows + 1), EAGER_GALLERY_MAX);
+}
 
 /* Activity-feed row model. The FEED view reads our OWN pre-chain ledger
    (Supabase `events` via /api/project/[slug]/feed) and maps each stored
@@ -942,9 +962,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        change when sort/group reorders the grid, so a card's `eager` flag never
        flips. (A flipped eager re-registers the canvas and forces a repaint,
        which is exactly the churn that made grouping jam.) */
+    /* Viewport-derived eager count, fixed once at mount: re-deriving on resize
+       would flip a card's `eager` flag and force a repaint (the exact churn the
+       stable eager set avoids). */
+    const [eagerCount] = useState(eagerGalleryCount);
     const eagerIds = useMemo(
-        () => new Set([...visibleTokenIds].sort((a, b) => a - b).slice(0, EAGER_GALLERY_COUNT)),
-        [visibleTokenIds],
+        () => new Set([...visibleTokenIds].sort((a, b) => a - b).slice(0, eagerCount)),
+        [visibleTokenIds, eagerCount],
     );
 
     /* Gallery loads in chunks — mount a screenful, then reveal more as the
