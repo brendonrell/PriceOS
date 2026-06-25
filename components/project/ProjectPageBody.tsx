@@ -1907,7 +1907,7 @@ export default function ProjectPageBody({
             initialTotal={initialTotal}
             initialShowcaseIds={initialShowcaseIds}
         >
-            <TraitsProvider>
+            <TraitsProvider memoryScope="project" memoryId={slug}>
                 <ProjectPageBodyInner uploadedAt={uploadedAt} />
             </TraitsProvider>
         </ProjectProvider>

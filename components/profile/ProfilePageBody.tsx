@@ -2722,7 +2722,7 @@ export default function ProfilePageBody({
     artistStatus?: 'active' | 'cooldown' | null;
 }) {
     return (
-        <TraitsProvider>
+        <TraitsProvider memoryScope="profile" memoryId={handle}>
             <ProfilePageBodyInner
                 handle={handle}
                 initialUser={initialUser}

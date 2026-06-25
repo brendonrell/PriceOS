@@ -57,11 +57,13 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
 } from 'react';
 import { useToast } from './ToastContext';
+import { getRememberedTab, rememberTab } from './tabMemoryStore';
 
 /* A filter category is now any string: the active Project's trait names
    (Palette, Flow, …, Fate — supplied by the registry schema, no longer
@@ -200,9 +202,30 @@ interface MultiSelectContextValue {
 }
 const MultiSelectContext = createContext<MultiSelectContextValue | null>(null);
 
-export function TraitsProvider({ children }: { children: ReactNode }) {
+export function TraitsProvider({
+    children,
+    memoryScope,
+    memoryId,
+}: {
+    children: ReactNode;
+    /* When set, the open L2 facet/category persists per-surface (account-synced),
+       so a refresh lands back on the same pill — same memory as the tab choice
+       (Brendon, 2026-06-24). Profile Collected + project Artworks pass these. */
+    memoryScope?: 'profile' | 'project';
+    memoryId?: string;
+}) {
+    const memKey = memoryScope && memoryId ? `${memoryId}:l2` : null;
     const [activeCategory, setActiveCategoryState] =
-        useState<TraitCategory | null>(null);
+        useState<TraitCategory | null>(() => {
+            if (!memoryScope || !memKey) return null;
+            const r = getRememberedTab(memoryScope, memKey);
+            return r ? (r as TraitCategory) : null;
+        });
+    /* Persist the open L2 facet whenever it changes (no-ops when unchanged). */
+    useEffect(() => {
+        if (!memoryScope || !memKey) return;
+        rememberTab(memoryScope, memKey, activeCategory ?? '');
+    }, [activeCategory, memoryScope, memKey]);
     /* Chat H item 3 — feed-mode L1 (sim 7400). */
     const [activeFeedCategory, setActiveFeedCategoryState] =
         useState<FeedCategory | null>(null);
