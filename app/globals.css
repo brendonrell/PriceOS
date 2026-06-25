@@ -8723,10 +8723,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    tape is unbroken down the column (Brendon, 2026-06-24). */
 .history-feed-row .feed-line {
     border-left-color: var(--text-color);
-    opacity: 0.7;
+    opacity: 0.6;
     /* Nudge the connector down to sit between the nodes (Brendon, 2026-06-24). */
-    top: 37px;
-    bottom: -11px;
+    top: 39px;
+    bottom: -9px;
 }
 /* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
