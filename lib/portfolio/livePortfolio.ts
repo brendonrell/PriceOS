@@ -15,7 +15,11 @@
  */
 
 import { getProject } from '../project/registry';
-import { projectMarketStat } from '../market/starredMarket';
+import {
+    projectMarketStat,
+    projectAvg10Eth,
+    projectAthEth,
+} from '../market/starredMarket';
 import type {
     PortfolioCategory,
     PortfolioArtist,
@@ -27,12 +31,38 @@ export interface PortfolioHolding {
     token_id: number;
 }
 
-/* Value per piece: the live floor when there is one, else the mint price
-   (Brendon — mint price stands in until a real floor exists). */
-function pieceFloor(slug: string): number {
-    const floor = parseFloat(projectMarketStat(slug).floor);
-    if (Number.isFinite(floor) && floor > 0) return floor;
+/* The $-button cycle (Brendon 2026-06-25): floor → last sold → 10-sale avg →
+   ATH (for fun) → mint → off. Each mode re-values every piece. 'off' hides
+   values in the view; we still value the tree at floor underneath. floor/last
+   come from the (seeded-until-live) market module, avg10/ATH are for-fun
+   stand-ins, mint is the real registry price. */
+export type PortfolioValueMode = 'floor' | 'last' | 'avg10' | 'ath' | 'mint' | 'off';
+
+function mintEth(slug: string): number {
     return getProject(slug)?.mintPriceEth ?? 0;
+}
+
+/** Value per piece for the active $-mode. floor/last fall back to mint price
+    until a real floor exists (Brendon — mint stands in for now). */
+function pieceValue(slug: string, mode: PortfolioValueMode): number {
+    switch (mode) {
+        case 'last': {
+            const last = parseFloat(projectMarketStat(slug).lastSale);
+            return Number.isFinite(last) && last > 0 ? last : mintEth(slug);
+        }
+        case 'avg10':
+            return projectAvg10Eth(slug);
+        case 'ath':
+            return projectAthEth(slug);
+        case 'mint':
+            return mintEth(slug);
+        case 'floor':
+        case 'off':
+        default: {
+            const floor = parseFloat(projectMarketStat(slug).floor);
+            return Number.isFinite(floor) && floor > 0 ? floor : mintEth(slug);
+        }
+    }
 }
 
 const PD_ENS_RE = /\.pricediscussion\.eth$/i;
@@ -41,6 +71,7 @@ const PD_ENS_RE = /\.pricediscussion\.eth$/i;
 export function buildLivePortfolio(
     holdings: PortfolioHolding[],
     ensName: string | null | undefined,
+    mode: PortfolioValueMode = 'floor',
 ): PortfolioCategory[] {
     // Group holdings: artist handle → project slug → token ids.
     const byArtist = new Map<string, Map<string, number[]>>();
@@ -61,7 +92,7 @@ export function buildLivePortfolio(
             projects: [...projs.entries()]
                 .map(([slug, tokens]) => ({
                     name: getProject(slug)?.displayName ?? slug,
-                    floor: pieceFloor(slug),
+                    floor: pieceValue(slug, mode),
                     tokens: [...tokens].sort((a, b) => a - b),
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name)),

@@ -77,6 +77,7 @@ import {
     emptyPortfolio,
     sumPortfolioCats,
     type PortfolioHolding,
+    type PortfolioValueMode,
 } from '../../lib/portfolio/livePortfolio';
 import { useAuth } from '../../lib/state/AuthContext';
 import {
@@ -96,6 +97,19 @@ const FILTER_PILLS: { key: CategoryFilter; label: string }[] = [
     { key: 'ENS',       label: 'ENS' },
 ];
 
+/* The $-button cycle (Brendon 2026-06-25): tap advances the per-piece valuation
+   floor → last sold → 10-sale avg → ATH (for fun) → mint → off → floor.
+   'off' hides the value readouts (the old $-toggle's off state). */
+const PRICE_MODES: PortfolioValueMode[] = ['floor', 'last', 'avg10', 'ath', 'mint', 'off'];
+const PRICE_MODE_LABEL: Record<PortfolioValueMode, string> = {
+    floor: 'FLOOR',
+    last:  'LAST SOLD',
+    avg10: '10-SALE AVG',
+    ath:   'ATH',
+    mint:  'MINT PRICE',
+    off:   'OFF',
+};
+
 /* Sim's _pfFmtEth (sim 10863-10867). >=1 → 2 decimals; <1 → up to 3
    decimals with trailing zeros stripped via parseFloat. Always suffixed
    with " ETH". Used for grand total + every .pf-est slot. */
@@ -110,10 +124,14 @@ export function PortfolioView() {
     const { openValuePrompt } = useValuePrompt();
 
     const [tab, setTab] = useState<PortfolioTab>('portfolio');
-    const [showDollar, setShowDollar] = useLocalStorage<boolean>(
-        'pd_portfolio_show_dollar',
-        true
+    /* $-button value mode (persisted). 'off' = hide values — equivalent to the
+       old $-toggle's off state, so every existing `showDollar` gate is driven
+       off this one derived flag. */
+    const [priceMode, setPriceMode] = useLocalStorage<PortfolioValueMode>(
+        'pd_portfolio_price_mode',
+        'floor'
     );
+    const showDollar = priceMode !== 'off';
 
     /* Live portfolio — the logged-in wallet's REAL holdings + ENS, replacing the
        mock (Brendon, 2026-06-25). Works for any logged-in user (their own
@@ -140,8 +158,8 @@ export function PortfolioView() {
         return () => { cancelled = true; };
     }, [siweAddress]);
     const liveCats = useMemo<PortfolioCategory[]>(
-        () => (tab === 'portfolio' ? buildLivePortfolio(holdings, ensName) : emptyPortfolio()),
-        [tab, holdings, ensName],
+        () => (tab === 'portfolio' ? buildLivePortfolio(holdings, ensName, priceMode) : emptyPortfolio()),
+        [tab, holdings, ensName, priceMode],
     );
     const [budgets, setBudgets] = useState<BudgetsState>(() => getBudgets());
     /* F57 (BUG-10) — subscribe to budgetEngine. The engine owns
@@ -276,6 +294,15 @@ export function PortfolioView() {
             },
         });
     }, [openValuePrompt, showToast]);
+
+    /* Advance the $-button through floor → last → avg10 → ATH → mint → off.
+       Toast names the new mode (the changed thing gets the ALLCAPS). */
+    const cyclePriceMode = useCallback(() => {
+        const idx = PRICE_MODES.indexOf(priceMode);
+        const next = PRICE_MODES[(idx + 1) % PRICE_MODES.length];
+        setPriceMode(next);
+        showToast('Estimates: ' + PRICE_MODE_LABEL[next]);
+    }, [priceMode, setPriceMode, showToast]);
 
     const toggleCatFilter = useCallback((k: CategoryFilter) => {
         setActiveCats((prev) => {
@@ -605,14 +632,14 @@ export function PortfolioView() {
                     id="portfolioDollarToggle"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { const next = !showDollar; setShowDollar(next); showToast('Estimates: ' + (next ? 'ON' : 'OFF')); }}
+                    onClick={() => { cyclePriceMode(); }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            const next = !showDollar; setShowDollar(next); showToast('Estimates: ' + (next ? 'ON' : 'OFF'));
+                            cyclePriceMode();
                         }
                     }}
-                    title="Toggle floor-based value estimates"
+                    title="Cycle value estimate (floor · last · 10-sale avg · ATH · mint · off)"
                 >
                     $
                 </div>
