@@ -1,18 +1,19 @@
 'use client';
 
 /*
- * openExternal — open external links from the installed PWA in a real Safari
- * surface (with chrome + a way back), never trapped inside the app's webview.
+ * openExternal — force external links OUT of the iOS in-app browser.
  *
- * Hard platform reality (researched 2026-06-25): iOS gives an installed
- * standalone web app NO way to hand a link to the real Safari APP — every
- * navigation stays inside the app's own webview. The earlier attempt here
- * (assigning location.href in standalone) made that worst case: it loaded the
- * external site INSIDE the chrome-less PWA shell, with no address bar and no
- * back — the user was trapped (Brendon, 2026-06-25). The ceiling iOS actually
- * allows is the slide-up Safari panel (real Safari address bar + a Done button
- * to return), which `window.open(url, '_blank')` opens. So in standalone we use
- * that; everywhere else (desktop, mobile web) it's the normal new tab.
+ * The problem (Brendon, 2026-06-13, iPhone 12 / iOS 26): in an installed PWA
+ * (display: standalone), `target="_blank"` and `window.open(url, '_blank')`
+ * spawn an in-app SFSafariViewController sheet that covers the app and has to
+ * be manually dismissed. We want every external link to hand off to real
+ * mobile Safari instead.
+ *
+ * The lever: iOS standalone web apps open a SAME-WINDOW top-level navigation to
+ * an OUT-OF-ORIGIN URL in Safari (the standalone app itself stays put) — it's
+ * the `_blank` target / window.open that triggers the in-app sheet. So in
+ * standalone we assign location.href; everywhere else (desktop, mobile web) we
+ * keep the normal new-tab behaviour.
  */
 
 /** True when running as an installed/standalone PWA (iOS or the standard
@@ -27,10 +28,13 @@ export function isStandalonePWA(): boolean {
     return iosStandalone || mq;
 }
 
-/** Open an external URL. In a standalone PWA this opens the slide-up Safari
-    panel (real Safari chrome + Done button), never trapping the user in the
-    app's webview; everywhere else it opens a normal new tab. */
+/** Open an external URL. In a standalone PWA this hands off to Safari (no
+    in-app sheet); otherwise it opens a normal new tab. */
 export function openExternal(url: string): void {
     if (typeof window === 'undefined') return;
+    if (isStandalonePWA()) {
+        window.location.href = url;
+        return;
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
 }
