@@ -980,7 +980,16 @@ function ProfilePageBodyInner({
         rememberTab('profile', user.handle ?? handle, tab);
         setActiveTab(tab);
     };
-    const [moreL1, setMoreL1] = useState<ProfileMoreL1>('starred');
+    /* The +More sub-tab is remembered per-profile too (Brendon, 2026-06-24) —
+       namespaced under the same store with a ":more" id so a refresh lands back
+       on the same sub-section (e.g. My History), not just the +More tab. */
+    const moreMemId = `${user.handle ?? handle}:more`;
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
+    const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
+        const remembered = getRememberedTab('profile', moreMemId);
+        return remembered && MORE_KEYS.has(remembered) ? (remembered as ProfileMoreL1) : 'starred';
+    });
+    useEffect(() => { rememberTab('profile', moreMemId, moreL1); }, [moreL1, moreMemId]);
 
     /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
        later"). Device-local, keyed slug:id so it spans Projects. Shown only on
