@@ -52,8 +52,11 @@
  * effect — display-mode doesn't flip mid-session, so no listener.
  */
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useModal } from '../../lib/state/ModalContext';
+import { useCart } from '../../lib/state/CartContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { useNavFade } from '../../lib/hooks/useNavFade';
 import { pickTabstractTitle } from '../../lib/title/tabstract';
@@ -92,6 +95,25 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useNavFade();
     const pathname = usePathname();
     const router = useRouter();
+    const { close: closeModal } = useModal();
+    const { closePanel: closeCart } = useCart();
+    const { reset: resetDropdown } = useDropdown();
+
+    /* Close any open overlay when the route actually changes. With full-page
+       reloads every nav wiped the screen, so a modal / cart panel / menu left
+       open could never bleed onto the next page; with in-app routing the shell
+       persists, so we close them ourselves on navigation. Closers are read
+       through a ref so this fires ONLY on a real pathname change — never on an
+       unrelated re-render that would otherwise yank a just-opened overlay shut.
+       The initial mount is skipped so a deep link that opens an overlay on load
+       isn't immediately closed. */
+    const overlayCloseRef = useRef<() => void>(() => {});
+    overlayCloseRef.current = () => { closeModal(); closeCart(); resetDropdown(); };
+    const navStartedRef = useRef(false);
+    useEffect(() => {
+        if (!navStartedRef.current) { navStartedRef.current = true; return; }
+        overlayCloseRef.current();
+    }, [pathname]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
