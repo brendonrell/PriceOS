@@ -8725,8 +8725,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     border-left-color: var(--text-color);
     opacity: 0.6;
     /* Nudge the connector down to sit between the nodes (Brendon, 2026-06-24). */
-    top: 41px;
-    bottom: -7px;
+    top: 43px;
+    bottom: -5px;
 }
 /* The content card — compact for the timeline. */
 .starred-row.is-timeline { padding: 6px 0; }
