@@ -272,13 +272,14 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
        → new instead of flashing through blank. URL, back/forward, refresh and
        share all behave exactly as before.
 
-       Bubble phase (NOT capture) so an element's own click handler runs first:
-       a handler that calls preventDefault (e.g. the external-link opener) or
-       stopPropagation (modal-internal links) opts that link out automatically.
-       Guards below leave every NON-in-app case to the browser untouched:
-       new-tab modifier clicks, middle-click, target=_blank, downloads, external
-       origins, mailto:/tel:/in-app schemes, pure same-page #hash jumps, and an
-       explicit data-native-nav escape hatch for any link that must hard-load. */
+       Capture phase (see the registration note below): a deeper element that
+       stops the click (cards, output rows, modal bodies) must NOT force the link
+       into a full reload — capturing at the document means we route every
+       same-origin link in-app first. Guards below leave every NON-in-app case to
+       the browser untouched: new-tab modifier clicks, middle-click, target=_blank,
+       downloads, rel=external, external origins, mailto:/tel:/in-app schemes, pure
+       same-page #hash jumps, and an explicit data-native-nav escape hatch for any
+       link that must hard-load. */
     useEffect(() => {
         const onClick = (e: MouseEvent) => {
             if (e.defaultPrevented) return;
@@ -303,8 +304,17 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             e.preventDefault();
             router.push(a.pathname + a.search + a.hash);
         };
-        document.addEventListener('click', onClick);
-        return () => document.removeEventListener('click', onClick);
+        // CAPTURE phase (Brendon, 2026-06-25 — the "random reload" fix). On the
+        // bubble phase, any ancestor that calls stopPropagation on the click
+        // (cards, output rows, the full-screen links below an output, modal
+        // bodies) stops the event before it reaches the document, so that link
+        // fell through to a full-page reload. Capturing at the document means we
+        // see EVERY same-origin link first and route it in-app regardless. The
+        // explicit opt-outs above still hold (data-native-nav, target, download,
+        // rel=external, cross-origin, #hash); a link that must hard-load uses
+        // data-native-nav.
+        document.addEventListener('click', onClick, true);
+        return () => document.removeEventListener('click', onClick, true);
     }, [router]);
 
     /* Prefetch on PRESS (Brendon, 2026-06-25 — part 2 of the link-lag fix). The
