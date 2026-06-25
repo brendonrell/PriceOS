@@ -59,6 +59,7 @@ const ICONS: Record<RenderKind, string> = {
   PING:           '✉︎', // ✉ message (p2p)
   FOLLOW:         '⚭︎', // ⚭ mutual / social (matches MUTUALS pill)
   PROJECT_FOLLOW: '⚭︎', // ⚭
+  OUTPUT_FOLLOW:  '⚭︎', // ⚭ (same social glyph as project/user follows)
   ACHIEVEMENT:    '✦︎', // ✦ fallback (the unlock's own glyph is used when present)
   STREAK:         '◈︎', // ◈ streak (achievement category glyph)
   MINT:           '✶︎', // ✶ collected (matches MINTS pill)
@@ -115,6 +116,9 @@ export function renderPing(row: FeedItem): RenderedPing {
       break;
     case 'PROJECT_FOLLOW':
       action = p ? `followed ${p}` : 'followed your project';
+      break;
+    case 'OUTPUT_FOLLOW':
+      action = join('followed', join(p, t) || 'your output');
       break;
     case 'MINT':
       if (typeof row.data?.milestone === 'number') {

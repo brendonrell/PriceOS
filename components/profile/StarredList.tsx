@@ -214,11 +214,33 @@ export default function StarredList({
         return held && foll; // mutuals
     };
 
+    /* Outputs the viewer follows — outputs only ever appear under FOLLOWING (you
+       follow an output; an output never follows you back). Keyed "project:token". */
+    const [followedOutputs, setFollowedOutputs] = useState<Set<string>>(new Set());
+    useEffect(() => {
+        if (!viewerAddress) { setFollowedOutputs(new Set()); return; }
+        let alive = true;
+        fetch(`/api/output-follows?follower=${viewerAddress}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => {
+                if (!alive || !j || !Array.isArray(j.outputs)) return;
+                setFollowedOutputs(new Set(
+                    (j.outputs as Array<{ project_id: string; token_id: string }>)
+                        .map((o) => `${o.project_id.toLowerCase()}:${o.token_id}`),
+                ));
+            })
+            .catch(() => { /* ignore */ });
+        return () => { alive = false; };
+    }, [viewerAddress]);
+
     /* Which entity blocks show for the current mode. A social mode shows the
-       three followable lists (collectors + artists + projects); a single-entity
-       mode shows just that one; All shows everything. */
+       followable lists (collectors + artists + projects); the Following mode
+       additionally shows outputs you follow. A single-entity mode shows just
+       that one; All shows everything. */
     const showType = (t: Mode) =>
-        mode === t || mode === 'all' || (isSocial && (t === 'collectors' || t === 'artists' || t === 'projects'));
+        mode === t || mode === 'all'
+        || (isSocial && (t === 'collectors' || t === 'artists' || t === 'projects'))
+        || (social === 'following' && t === 'outputs');
 
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
@@ -298,11 +320,18 @@ export default function StarredList({
 
     const visibleOutputs = useMemo(() => {
         const q = query.trim().toLowerCase();
-        const filtered = q
+        const byQuery = q
             ? outputRows.filter((r) =>
                   `${r.project} ${r.artist} #${r.id} ${r.fate}`.toLowerCase().includes(q),
               )
             : outputRows;
+        /* Social: outputs surface only under Following, narrowed to the ones the
+           viewer follows; under Followers/Mutuals outputs never appear. */
+        const filtered = !isSocial
+            ? byQuery
+            : social === 'following'
+                ? byQuery.filter((r) => followedOutputs.has(`${r.slug.toLowerCase()}:${r.id}`))
+                : [];
         const sorted = [...filtered];
         if (sortKey === 'price') {
             const dirMul = sortDir === 'desc' ? -1 : 1;
@@ -321,7 +350,7 @@ export default function StarredList({
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [outputRows, query, sortKey, sortDir, pricesVer]);
+    }, [outputRows, query, sortKey, sortDir, pricesVer, isSocial, social, followedOutputs]);
 
     /* Group output rows by Project so each group mounts ONE ProjectProvider —
        that's how each row reads its live listing price (and the Buy CTA lights
@@ -545,7 +574,7 @@ export default function StarredList({
 
     const totalVisible =
         mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length
-        : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length
+        : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length + visibleOutputs.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
         : mode === 'artists' ? visibleArtists.length

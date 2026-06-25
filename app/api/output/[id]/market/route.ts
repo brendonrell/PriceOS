@@ -61,8 +61,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       // All-time ETH that changed hands for THIS piece — primary (MINT) +
       // secondary (XFER) sales, mirroring the project-level Total Volume.
       db.from('events').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).in('type', ['MINT', 'XFER']).not('price_eth', 'is', null),
-      // Followers of this piece's PROJECT (shown on the Output page hero).
-      db.from('project_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug),
+      // Followers of THIS OUTPUT (shown on the Output page hero). The parent
+      // project's parental-support follow is added below (+1), so never 0.
+      db.from('output_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug).eq('token_id', tokenId),
     ]);
     // Surface a real DB failure instead of silently returning empty market
     // state (which would paint a wrong owner / missing listing — e.g. a BUY
@@ -109,7 +110,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         ? String((proj.data as unknown as { floor_price_eth: number }).floor_price_eth)
         : null,
       volume_eth: String(Number(volumeEth.toFixed(4))),
-      followers: follows.count ?? 0,
+      followers: (follows.count ?? 0) + 1, // + the parent project (parental support)
       viewer,
     });
   } catch (err) {

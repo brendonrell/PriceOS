@@ -28,11 +28,14 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
+import Hero from '../hero/Hero';
 import TraitsUI from '../project/TraitsUI';
 import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
+import OutputFollowButton from './OutputFollowButton';
 import AttributesPanel from './AttributesPanel';
+import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
 
 function shortAddr(a: string | null): string {
@@ -151,6 +154,29 @@ export default function ArtworkPageBody({
         ? `/${market.owner_handle}`
         : (market?.owner ? `/${market.owner}` : undefined);
     const heldBy = market?.owner_handle ? `@${market.owner_handle}` : shortAddr(market?.owner ?? null);
+
+    /* The output's @name (project @handle + token number, e.g. @oracle234) and
+       its PriceSprite — outputs have no sprite of their own, so they wear their
+       project's (Brendon, 2026-06-25). */
+    const outputName = `@${slug}${numberPart}`;
+    const outputFace = projectSpriteFace(slug);
+    const outputRef = `${slug}-${numberPart}`;
+
+    /* Follower count for the Social tab — stored user followers + the parent
+       project (parental support), so it's never 0. Refreshes on follow change. */
+    const [outputFollowers, setOutputFollowers] = useState(1);
+    useEffect(() => {
+        let cancelled = false;
+        const load = () =>
+            fetch(`/api/output-follows?output=${encodeURIComponent(outputRef)}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setOutputFollowers(d.count ?? 1); })
+                .catch(() => {});
+        load();
+        const h = () => load();
+        window.addEventListener('pd:output-follows-changed', h);
+        return () => { cancelled = true; window.removeEventListener('pd:output-follows-changed', h); };
+    }, [outputRef]);
 
     /* CTA — mirrors the artwork modal (OutputPreview): owner sees LIST/UNLIST,
        a non-owner sees BUY · price when listed, else MAKE OFFER. */
@@ -487,9 +513,66 @@ export default function ArtworkPageBody({
                         <ReplayPanel />
                     </>
                 )}
+                {/* SOCIAL — mirrors the project's social profile (Brendon,
+                    2026-06-25): the same Hero rows, filled with output data —
+                    the output @name, the PROJECT's PriceSprite (outputs have
+                    none of their own) + the owner, the follower count (incl. the
+                    parent project), and Follow + Share. Outputs don't follow
+                    anyone, so there's no FOLLOWING stat. */}
+                {moreL1 === 'social' && (
+                    <>
+                        <div className="more-section-header">OUTPUT SOCIAL PROFILE</div>
+                        <div className="more-box-wrap">
+                          <div className="more-box-card">
+                            <Hero
+                                ariaLabel="Output Profile"
+                                titleRow={
+                                    <h1 className="project-title">
+                                        <span>{outputName}</span>
+                                    </h1>
+                                }
+                                identityRow={
+                                    <div className="hero-line project-custom id-row-fit">
+                                        {outputFace && (
+                                            <span className="id-row-sprite">{outputFace}</span>
+                                        )}
+                                        {heldBy && (
+                                            <div className="artist-lockup">
+                                                <span className="artist-name-wrap">
+                                                    {ownerHref ? <a href={ownerHref}>{heldBy}</a> : <span>{heldBy}</span>}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                }
+                                statsRow={
+                                    <div className="hero-line stats-row">
+                                        <span className="stat-item stat-item-owners">
+                                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers — wallets that follow this Output')}>{'⚬︎'}</span>{' '}
+                                            <span className="stat-val stat-val-owners">{outputFollowers} {outputFollowers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
+                                        </span>
+                                    </div>
+                                }
+                            >
+                                <div className="action-row">
+                                    <OutputFollowButton outputId={outputRef} label={outputName} />
+                                    <button
+                                        className="btn-soundtrack"
+                                        title="Share — coming soon"
+                                        onClick={() => showToast('Share: COMING SOON')}
+                                    >
+                                        <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
+                                    </button>
+                                </div>
+                            </Hero>
+                          </div>
+                        </div>
+                    </>
+                )}
+
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}

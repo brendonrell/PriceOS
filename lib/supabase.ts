@@ -298,6 +298,7 @@ export type PingKind =
   | 'PING'
   | 'FOLLOW'
   | 'PROJECT_FOLLOW'
+  | 'OUTPUT_FOLLOW'
   | 'ACHIEVEMENT'
   | 'STREAK'
   | 'MINT'
