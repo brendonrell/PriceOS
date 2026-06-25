@@ -357,7 +357,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
                 persist across the swap (the native-app feel); only the page
                 content remounts. Keyed on pathname only (not query/hash), so an
                 in-page #hash jump or a query tweak never forces a remount. */}
-            <main key={pathname}>{children}</main>
+            <main key={pathname} className="route-fade">{children}</main>
             <ErrorBoundary name="Footer">
                 <Footer />
             </ErrorBoundary>
