@@ -1796,7 +1796,9 @@ body.tape-framed .tape-rail {
    no cut-off. Each row is two lines: identity, then icon+number stats.
    ============================================================ */
 .followers-backdrop { display: flex; align-items: flex-start; justify-content: center; padding: 52px 8px 8px; }
-.followers-pop { width: min(480px, 96vw); max-height: min(82vh, 680px); }
+/* FIXED compact height — same as the Sticker Manager. Loads at this height and
+   never grows with content; the list scrolls inside. PLUS is the full screen. */
+.followers-pop { width: min(480px, 96vw); height: min(254px, calc(100dvh - 100px)); }
 /* PLUS covers the available screen (dvh = safe under the mobile URL bar). */
 .sticker-mgr-plus.followers-plus { height: 100dvh; max-height: 100dvh; }
 
