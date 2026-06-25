@@ -44,10 +44,19 @@ export default function AttrWall({
                                         ))}
                                     </span>
                                 ) : (
-                                    <span className="attr-tile-value">
-                                        {t.swatch && <span className="attr-swatch" style={{ background: t.swatch }} />}
-                                        {t.value}
-                                    </span>
+                                    <>
+                                        {t.spectrum && (
+                                            <span className="attr-spectrum" role="img" aria-label="Palette spectrum">
+                                                {t.spectrum.map((s, si) => (
+                                                    <span key={si} className="attr-spectrum-seg" style={{ background: s.hex, flexGrow: s.weight }} />
+                                                ))}
+                                            </span>
+                                        )}
+                                        <span className="attr-tile-value">
+                                            {t.swatch && <span className="attr-swatch" style={{ background: t.swatch }} />}
+                                            {t.value}
+                                        </span>
+                                    </>
                                 )}
                                 {t.sub && <span className="attr-tile-sub">{t.sub}</span>}
                             </div>

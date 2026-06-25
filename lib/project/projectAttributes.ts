@@ -11,8 +11,45 @@ import { projectFateReading } from './fate';
 import { natalChart } from './natal';
 import { golfScore } from './golfScore';
 import { birthWeekday, birthTimeOfDay, birthSeason, lunarPhase, lunarGlyph, lunarIllumination } from '../output/derive';
+import { PROJECT_MILESTONES, FEED_LIFECYCLE } from '../home/milestones';
 
-export function buildProjectAttributes(slug: string, uploadedAt: number | null): AttrGroup[] {
+/** A project's earned milestone badges, in the order they're crossed, each with
+    its own dedicated feed icon. A project accrues these as its mint count grows;
+    only earned ones show (Brendon, 2026-06-25). The highest earned is flagged as
+    the current standing. Returns null when there's nothing to show. */
+export function buildMilestoneGroup(mintedCount: number, maxSupply: number): AttrGroup | null {
+    const tiles: AttrTile[] = [];
+    // UPLOADED — every live project has launched.
+    tiles.push({ glyph: FEED_LIFECYCLE.upload.glyph, label: FEED_LIFECYCLE.upload.label, value: 'Launched' });
+    for (const m of PROJECT_MILESTONES) {
+        if (mintedCount < m.count) continue;
+        // GRADUATED (18) sits between FIRST BLOOD (1) and LUCKY 22 (22).
+        if (m.count > 18 && mintedCount >= 18 && !tiles.some((t) => t.label === FEED_LIFECYCLE.graduated.label)) {
+            tiles.push({ glyph: FEED_LIFECYCLE.graduated.glyph, label: FEED_LIFECYCLE.graduated.label, value: '18 mints' });
+        }
+        tiles.push({ glyph: m.glyph, label: m.label, value: m.count === 1 ? '1st mint' : `${m.count} mints` });
+    }
+    // GRADUATED when between 18 and the next count milestone (22) — the loop above
+    // only injects it once a higher milestone lands, so cover the gap here.
+    if (mintedCount >= 18 && !tiles.some((t) => t.label === FEED_LIFECYCLE.graduated.label)) {
+        const firstBlood = tiles.findIndex((t) => t.label === 'FIRST BLOOD');
+        const grad: AttrTile = { glyph: FEED_LIFECYCLE.graduated.glyph, label: FEED_LIFECYCLE.graduated.label, value: '18 mints' };
+        if (firstBlood >= 0) tiles.splice(firstBlood + 1, 0, grad); else tiles.push(grad);
+    }
+    // ASCENSION — sold out (last).
+    if (maxSupply > 0 && mintedCount >= maxSupply) {
+        tiles.push({ glyph: FEED_LIFECYCLE.ascension.glyph, label: FEED_LIFECYCLE.ascension.label, value: 'Sold out' });
+    }
+    if (!tiles.length) return null;
+    tiles[tiles.length - 1].rare = true; // current standing = highest earned
+    return { key: 'milestones', label: 'Milestones', tiles };
+}
+
+export function buildProjectAttributes(
+    slug: string,
+    uploadedAt: number | null,
+    opts?: { mintedCount?: number; maxSupply?: number },
+): AttrGroup[] {
     const project = getProject(slug);
     if (!project) return [];
     const groups: AttrGroup[] = [];
@@ -28,6 +65,12 @@ export function buildProjectAttributes(slug: string, uploadedAt: number | null):
     if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway });
     if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label });
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
+
+    /* ── Milestones (earned badges, each with its dedicated feed icon) ──── */
+    if (opts?.mintedCount != null) {
+        const ms = buildMilestoneGroup(opts.mintedCount, opts.maxSupply ?? project.outputs);
+        if (ms) groups.push(ms);
+    }
 
     /* ── Sky (natal chart at the upload moment) ───────────────────────── */
     const chart = natalChart(uploadedAt ?? Date.now());

@@ -29,6 +29,8 @@ export interface AttrTile {
     rare?: boolean;
     /** A 16×16 boolean barcode rendered in place of the value (Entropy glyph). */
     grid?: boolean[];
+    /** A weighted colour strip (collection palette). Each segment grows by weight. */
+    spectrum?: { hex: string; weight: number }[];
 }
 export interface AttrGroup {
     key: string;

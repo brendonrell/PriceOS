@@ -68,7 +68,9 @@ import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { buildProjectAttributes } from '../../lib/project/projectAttributes';
+import { MINTING_NOW_THRESHOLD } from '../../lib/home/homeData';
 import AttrWall from '../artwork/AttrWall';
+import CollectionAttributes from './CollectionAttributes';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import SoundtrackStarButton from './SoundtrackStarButton';
@@ -1854,9 +1856,20 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 {moreL1 === 'attributes' && (
                     /* ATTRIBUTES — the project's character sheet, rendered through
                        the SAME tile grid as an Output's (Brendon, 2026-06-24).
-                       Project-level attrs only (no per-piece Form / Rarity /
-                       Entropy); birth Sky + Almanac come from the upload moment. */
-                    <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt)} />
+                       A GRADUATED project (≥18 mints) gains aggregate Form /
+                       Palette / Spread / Collective Fingerprint across its minted
+                       set (Brendon, 2026-06-25); ungraduated projects keep the
+                       base attributes. Milestone badges show on both. */
+                    project.totalOutputs >= MINTING_NOW_THRESHOLD ? (
+                        <CollectionAttributes
+                            slug={project.slug}
+                            mintedCount={project.totalOutputs}
+                            maxSupply={project.maxSupply}
+                            uploadedAt={uploadedAt}
+                        />
+                    ) : (
+                        <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply })} />
+                    )
                 )}
                 {moreL1 === 'pricestory' && (<>
                 {/* PRICE STORY — empty for now (Brendon, 2026-06-16). Empty box

@@ -9879,6 +9879,19 @@ body.colorway-dark .ghost-feed-bar {
 }
 .attr-entropy-cell { background: transparent; }
 .attr-entropy-cell.on { background: var(--text-color); }
+/* Collection palette — a weighted colour strip; each segment grows by its
+   share of the minted set (Brendon, 2026-06-25). */
+.attr-spectrum {
+    display: flex;
+    width: 100%;
+    max-width: 160px;
+    height: 14px;
+    margin: 3px 0 5px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+}
+.attr-spectrum-seg { height: 100%; flex-basis: 0; min-width: 1px; }
 .attr-tile-sub {
     font-size: 9.5px;
     line-height: 1.3;
