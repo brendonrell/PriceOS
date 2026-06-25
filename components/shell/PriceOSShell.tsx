@@ -230,15 +230,18 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => document.removeEventListener('visibilitychange', onVisibility);
     }, []);
 
-    /* External links → real Safari, never the in-app browser (Brendon,
-       2026-06-13, iOS 26 PWA). In an installed PWA, any external link (whether
-       a plain `target="_blank"` anchor or one with its own window.open handler)
-       opens an in-app sheet that covers the app. We intercept every external
-       anchor click in capture phase and hand the URL to Safari via a top-level
-       navigation — iOS keeps the standalone app put and opens Safari. Capture +
-       stopPropagation also blocks any element's own window.open handler from
-       ALSO firing. Only active in standalone, so desktop/mobile-web new-tab
-       behaviour is untouched. Same-origin links (in-app routing) pass through. */
+    /* External links → the slide-up Safari panel, never trapped in the app's
+       webview (Brendon, 2026-06-25). Hard iOS reality: an installed PWA has NO
+       way to eject a link to the real Safari APP — every navigation stays in the
+       app's webview. The old approach (assign location.href) was the worst case:
+       it loaded the external site INSIDE the chrome-less app shell, no address
+       bar, no back. The ceiling iOS allows is window.open('_blank'), which opens
+       the slide-up Safari panel (real Safari chrome + a Done button to return).
+       We intercept every external anchor click in capture phase and route it
+       there. Capture + stopPropagation also blocks any element's own window.open
+       handler from ALSO firing. Only active in standalone, so desktop/mobile-web
+       new-tab behaviour is untouched. Same-origin links (in-app routing) pass
+       through. */
     useEffect(() => {
         if (!isStandalonePWA()) return;
         const onClick = (e: MouseEvent) => {
@@ -255,7 +258,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             if (a.origin === window.location.origin) return; // in-app routing
             e.preventDefault();
             e.stopPropagation();
-            window.location.href = href;
+            window.open(href, '_blank', 'noopener,noreferrer');
         };
         document.addEventListener('click', onClick, true);
         return () => document.removeEventListener('click', onClick, true);
