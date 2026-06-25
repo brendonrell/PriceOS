@@ -245,28 +245,27 @@ function ProfilePageBodyInner({
     const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex(
         isOwnProfile ? user.profile_hex : undefined,
     );
-    /* Your OWN profile flashes the placeholder default for a beat because
-       logged-in state (siweAddress) resolves AFTER first render: isOwnProfile is
-       briefly false, so the colour hook seeds to the default, then flips to it
-       once auth lands. Guard it — while the live value is still the placeholder,
-       use the server-known colour instead, so it never flashes. A real/edited
-       colour still wins. (Pure value change — no effect on timing or perf.) */
-    const ownerHex = isOwnProfile
-        ? (myProfileHex && myProfileHex.toUpperCase() !== PROFILE_HEX_DEFAULT
-            ? myProfileHex
-            : (user.profile_hex ?? myProfileHex))
-        : user.profile_hex;
-    /* Layout effect (before paint), NOT a passive effect: with in-app routing
-       the shell stays mounted and the page body swaps, so the incoming owner
-       colour must be registered BEFORE the browser paints the new profile —
-       otherwise the colour resolver paints the default grey for one frame and
-       the page flashes grey → owner colour on every profile-to-profile move.
-       Running before paint, the first frame of the new profile is already its
-       owner's colour. (Cold first load is still seeded server-side above.) */
+    /* BASE paint — EVERY profile, INCLUDING your own, paints from the server
+       profile_hex, identically, with NO dependency on logged-in state (Brendon,
+       2026-06-25: "load my page the same as any other profile; deal with login
+       later in the sequence"). Layout effect = before paint, so the first frame
+       of the new profile is already its owner colour, never the white default
+       while auth resolves. */
     useLayoutEffect(() => {
-        setActiveProfileHex(ownerHex ?? null);
+        setActiveProfileHex(user.profile_hex ?? null);
         return () => setActiveProfileHex(null);
-    }, [ownerHex, setActiveProfileHex]);
+    }, [user.profile_hex, setActiveProfileHex]);
+
+    /* LIVE-EDIT overlay — LATER in the sequence, your OWN profile only, once
+       logged-in state has resolved: reflect instant colour edits from the picker
+       on top of the server base. Passive (after paint) by design — it must NEVER
+       gate or delay the base paint above. */
+    useEffect(() => {
+        if (!isOwnProfile) return;
+        if (myProfileHex && myProfileHex.toUpperCase() !== PROFILE_HEX_DEFAULT) {
+            setActiveProfileHex(myProfileHex);
+        }
+    }, [isOwnProfile, myProfileHex, setActiveProfileHex]);
 
     /* Profile Logo — same rails as the Profile Colorway above. The owner's pick
        (`profile_logo`) decorates the CORNER LOGO on their profile for every
