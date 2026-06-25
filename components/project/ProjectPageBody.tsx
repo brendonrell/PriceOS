@@ -415,12 +415,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        only one group shows at a time:
          Social    → Follow CTA + follower/following counts
          Stats     → Price Stats + ATH & Holders (the factual numbers)
-         Replay    → Replay (the default lead)
+         Attributes→ Attributes (the default lead, Brendon 2026-06-25)
+         Replay    → Replay
          Albums    → Albums
          Genome    → Genome
          Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
     type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers';
-    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('replay');
+    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('attributes');
 
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
