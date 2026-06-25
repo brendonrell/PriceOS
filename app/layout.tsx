@@ -128,24 +128,6 @@ const PREHYDRATION_SCRIPT = `
             hashsyn: '#7B2FFF'
         };
 
-        // iOS Safari (browser, NOT the installed app): giving the top status
-        // bar a solid colour makes iOS reserve an opaque band for it, which
-        // eats into the page under the notch (the "blue bar cutting content"
-        // — Brendon, 2026-06-25). Drop the chrome-colour tag in the browser so
-        // the page runs full-bleed under the notch instead. The installed app
-        // keeps it — its translucent status bar has no such band — so this is
-        // browser-only. Once the tag is gone every later chrome-tint write
-        // (FaviconEngine / ColorwayContext / AmbientStrip / stargazing /
-        // profileBootPaint) finds nothing and no-ops, in browser only.
-        try {
-            var standalone = (navigator.standalone === true) ||
-                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-            if (!standalone) {
-                var tcm0 = document.getElementById('theme-color-meta');
-                if (tcm0 && tcm0.parentNode) tcm0.parentNode.removeChild(tcm0);
-            }
-        } catch (e) { /* ignore */ }
-
         // Helper: write every colorway-derived CSS var so the FOH matches
         // applyBgHex post-hydration. Without this, --mint-bg / --pill-l1-bg
         // / --modal-bg etc. fall through to the static globals.css
