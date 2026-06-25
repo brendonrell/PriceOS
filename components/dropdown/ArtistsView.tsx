@@ -42,6 +42,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import { useToast } from '../../lib/state/ToastContext';
@@ -80,6 +81,7 @@ const REL_FILTER_KEYS: FilterKey[] = ['mutual', 'following', 'followers'];
 const STATUS_FILTER_KEYS: FilterKey[] = ['cooldown', 'active'];
 
 export function ArtistsView() {
+    const router = useRouter();
     const { setView } = useDropdown();
     const { showToast } = useToast();
     const { openArtistNoteEditor } = useNotePrompt();
@@ -257,13 +259,11 @@ export function ArtistsView() {
                                 tabIndex={0}
                                 data-rel={a.rel}
                                 title={relTitle}
-                                onClick={() =>
-                                    window.location.assign('/' + a.name.slice(1))
-                                }
+                                onClick={() => router.push('/' + a.name.slice(1))}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        window.location.assign('/' + a.name.slice(1));
+                                        router.push('/' + a.name.slice(1));
                                     }
                                 }}
                             >
