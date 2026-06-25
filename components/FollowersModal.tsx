@@ -342,6 +342,8 @@ export default function FollowersModal() {
                             {`×${VS15}`}
                         </span>
                     </div>
+                    {/* Reserved preview slot — empty for now (Brendon, 2026-06-25). */}
+                    <div className="followers-plus-preview" aria-hidden="true" />
                     <div className="followers-plus-body">
                         {body}
                     </div>

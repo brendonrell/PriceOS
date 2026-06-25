@@ -1801,6 +1801,8 @@ body.tape-framed .tape-rail {
 .followers-pop { width: min(480px, 96vw); height: min(254px, calc(100dvh - 100px)); }
 /* PLUS covers the available screen (dvh = safe under the mobile URL bar). */
 .sticker-mgr-plus.followers-plus { height: 100dvh; max-height: 100dvh; }
+/* Reserved preview slot at the top of PLUS — empty, no border (Brendon, 2026-06-25). */
+.followers-plus-preview { flex: 0 0 auto; min-height: 96px; }
 
 /* Both bodies fill their shell; only the list scrolls inside. */
 .followers-pop-body,
