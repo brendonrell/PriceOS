@@ -24,17 +24,31 @@ export default function OutputThumb({
         const cv = ref.current;
         if (!cv) return;
         let painted = false;
+        let idle = 0;
+        const ric: (cb: () => void) => number =
+            typeof (window as unknown as { requestIdleCallback?: unknown }).requestIdleCallback === 'function'
+                ? (cb) => (window as unknown as { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb)
+                : (cb) => window.setTimeout(cb, 1);
         const paint = () => {
             if (painted) return;
             painted = true;
-            try { paintOutput(cv, slug, id, size * 2); } catch { /* unknown slug — leave blank */ }
+            /* Defer the actual canvas paint to an idle frame so a screenful of
+               thumbs doesn't paint synchronously and block the list (Brendon,
+               2026-06-24 — matches the gallery card's idle-paint). */
+            idle = ric(() => {
+                try { paintOutput(cv, slug, id, size * 2); } catch { /* unknown slug — leave blank */ }
+            });
         };
         const io = new IntersectionObserver(
             (entries) => { if (entries.some((e) => e.isIntersecting)) { paint(); io.disconnect(); } },
             { rootMargin: '300px' },
         );
         io.observe(cv);
-        return () => io.disconnect();
+        return () => {
+            io.disconnect();
+            const cancel = (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback;
+            if (idle) { cancel ? cancel(idle) : window.clearTimeout(idle); }
+        };
     }, [slug, id, size]);
     return (
         <canvas
