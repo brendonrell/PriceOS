@@ -307,6 +307,38 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => document.removeEventListener('click', onClick);
     }, [router]);
 
+    /* Prefetch on PRESS (Brendon, 2026-06-25 — part 2 of the link-lag fix). The
+       in-app swap is smooth, but the routed pages are force-dynamic, so each tap
+       still waits on the server to build the page: the remaining lag. Warm the
+       destination the instant a link is pressed, so the fetch is already in
+       flight by the time the tap completes — the press→tap gap becomes the head
+       start. pointerdown fires ONCE per press, never on hover or during a
+       scroll, so there's no prefetch storm (that storm — hover/scroll firing on
+       every link — is what choked the server last time). Read-only + deduped;
+       same guards as the click router. */
+    useEffect(() => {
+        const seen = new Set<string>();
+        const warm = (e: Event) => {
+            const a = (e.target as HTMLElement | null)?.closest?.('a[href]') as
+                | HTMLAnchorElement
+                | null;
+            if (!a) return;
+            if (a.dataset.nativeNav !== undefined) return;
+            if (a.target && a.target !== '_self') return;
+            if (a.hasAttribute('download')) return;
+            if ((a.getAttribute('rel') || '').toLowerCase().includes('external')) return;
+            if (!/^https?:\/\//i.test(a.href)) return;
+            if (a.origin !== window.location.origin) return;
+            const url = a.pathname + a.search;
+            if (url === window.location.pathname + window.location.search) return;
+            if (seen.has(url)) return;
+            seen.add(url);
+            try { router.prefetch(url); } catch { /* ignore */ }
+        };
+        document.addEventListener('pointerdown', warm, { passive: true });
+        return () => document.removeEventListener('pointerdown', warm);
+    }, [router]);
+
     /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the
        address bar shows/hides. We pin --app-height once on mount and
        update only on orientationchange (genuine layout flip).
