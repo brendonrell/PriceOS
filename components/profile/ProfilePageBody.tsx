@@ -266,10 +266,7 @@ function ProfilePageBodyInner({
         isOwnProfile ? user.profile_logo : undefined,
     );
     const ownerLogo = isOwnProfile ? myProfileLogo : user.profile_logo;
-    /* Before paint (matching the Profile Colorway above), so the corner logo
-       joins the background change in the same frame instead of popping in a
-       beat later on an in-app navigation. */
-    useLayoutEffect(() => {
+    useEffect(() => {
         setActiveProfileLogo(ownerLogo ?? null);
         return () => setActiveProfileLogo(null);
     }, [ownerLogo]);
