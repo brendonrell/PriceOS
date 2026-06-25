@@ -8723,7 +8723,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    tape is unbroken down the column (Brendon, 2026-06-24). */
 .history-feed-row .feed-line {
     border-left-color: var(--text-color);
-    opacity: 0.9;
+    opacity: 0.8;
     /* Nudge the connector down to sit between the nodes (Brendon, 2026-06-24). */
     top: 35px;
     bottom: -13px;
