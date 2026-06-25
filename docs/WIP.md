@@ -7,8 +7,32 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/link-responsiveness-bg-flash-3nmhvl` is trash (work is on dev) —
+  `claude/lunar-phase-emoji-fix-fnmeqj` is trash (work is on dev) —
   Brendon deletes on GitHub. Stale local-dev self-heals via the SessionStart hook.
+- **Updated:** 2026-06-25 (session 3 — lunar glyphs + Safari research). Shipped to `dev`:
+  1. **Lunar Phase = monochrome glyphs (no emoji)** — the Lunar Phase tile in
+     project + output Attributes was using colour emoji moons (🌑–🌘), banned. Now
+     flat circle glyphs tracing the cycle (● new, ○ full, ◑ waxing / ◐ waning
+     quarters, ◕/◔ crescent↔gibbous). Single source `lunarGlyph`, covers both
+     surfaces. Name + "% lit" unchanged.
+  - **Two Safari attempts tried + REVERTED (both did nothing on-device):**
+    - *Top-bar/notch band (browser):* removing the chrome-colour tag — newest iOS
+      Safari (26) DROPPED `theme-color` entirely, so that tag is already dead; the
+      top/bottom bar colour is now auto-sampled from `position:fixed`/`sticky`
+      elements' `background-color` + `backdrop-filter` within ~4px of the viewport
+      edge, falling back to html/body bg. Our persistent top chrome (navbar) is
+      transparent + body is page-colour → should be seamless; the band is most
+      likely a full-screen BLURRED cover (loader / route-loading / ptr-refresh,
+      all `backdrop-filter: blur` fixed at top:0) bleeding into the bar during a
+      transition. NOT yet pinned — needs on-device confirm (does the band STAY
+      after load = the bar itself, or only FLASH during = the frosted cover). Do
+      NOT strip the loader frost to test (NO-AMPUTATION; it's that exact loader).
+    - *External links out of PWA:* CONFIRMED impossible — iOS gives an installed
+      PWA no way to eject a link to the real Safari APP; all nav stays in-webview.
+      `_system` is Cordova-only (myth for us). Current code's `location.href`
+      traps the user in the chrome-less shell (worst case). Ceiling Apple allows =
+      `window.open('_blank')` → slide-up Safari panel (chrome + Done). Shipped that,
+      Brendon said it changed nothing on his device → reverted. Left as-is.
 - **Updated:** 2026-06-25 (session 2 — link responsiveness / bg flash). Shipped to `dev`:
   1. **In-app navigation** — internal links route client-side (global interceptor
      in the shell, bubble-phase, fully guarded; `<main key={pathname}>` for a fresh
