@@ -139,6 +139,36 @@ export default function StarredList({
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
+    /* Social sub-filter for Starred Collectors — "favourite fans" filtered by
+       your relationship to them (Brendon, 2026-06-25). Reads the viewer's live
+       follow graph once; tapping the active pill clears back to all. */
+    const [social, setSocial] = useState<'all' | 'followers' | 'following' | 'mutuals'>('all');
+    useEffect(() => { if (mode !== 'collectors') setSocial('all'); }, [mode]);
+    const [socialGraph, setSocialGraph] = useState<{ followers: Set<string>; following: Set<string> }>(
+        { followers: new Set(), following: new Set() }
+    );
+    useEffect(() => {
+        if (!viewerAddress) { setSocialGraph({ followers: new Set(), following: new Set() }); return; }
+        let alive = true;
+        fetch(`/api/follows/${viewerAddress}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => {
+                if (!alive || !j) return;
+                const norm = (a: unknown) => new Set((Array.isArray(a) ? a : []).map((h: string) => h.toLowerCase().replace(/^@/, '')));
+                setSocialGraph({ followers: norm(j.follower_handles), following: norm(j.following_handles) });
+            })
+            .catch(() => { /* ignore */ });
+        return () => { alive = false; };
+    }, [viewerAddress]);
+    const matchesSocial = (handle: string): boolean => {
+        if (social === 'all') return true;
+        const k = handle.toLowerCase().replace(/^@/, '');
+        const f = socialGraph.followers.has(k), g = socialGraph.following.has(k);
+        if (social === 'followers') return f;
+        if (social === 'following') return g;
+        return f && g; // mutuals
+    };
+
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -313,7 +343,8 @@ export default function StarredList({
     const visibleCollectors = useMemo(() => {
         const q = query.trim().toLowerCase();
         const rows = collectors.map((name, i) => ({ name, handle: name.replace(/^@/, ''), recentIndex: i }));
-        const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const byQuery = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const filtered = social === 'all' ? byQuery : byQuery.filter((r) => matchesSocial(r.handle));
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => collectorTopBuyEth(a.handle) - collectorTopBuyEth(b.handle));
         else if (sortKey === 'followers') sorted.sort((a, b) => followersOf(a.handle) - followersOf(b.handle));
@@ -321,7 +352,7 @@ export default function StarredList({
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [collectors, query, sortKey, sortDir, userMetaVer]);
+    }, [collectors, query, sortKey, sortDir, userMetaVer, social, socialGraph]);
 
     /* ── Soundtrack rows ──────────────────────────────────────────────── */
     const visibleSoundtracks = useMemo(() => {
@@ -624,6 +655,21 @@ export default function StarredList({
                 )}
                 {(mode === 'all' || mode === 'collectors') && (
                     <>
+                        {mode === 'collectors' && (
+                            <div className="starred-social-pills" role="group" aria-label="Filter collectors by relationship">
+                                {([['followers', 'Followers'], ['following', 'Following'], ['mutuals', 'Mutuals']] as const).map(([k, label]) => (
+                                    <button
+                                        key={k}
+                                        type="button"
+                                        className={`pill pill-l2${social === k ? ' active' : ''}`}
+                                        aria-pressed={social === k}
+                                        onClick={() => setSocial((s) => (s === k ? 'all' : k))}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         {typeHdr && visibleCollectors.length > 0 && <div className="starred-group-header">Collectors</div>}
                         {collectorSections.map((sec) => (
                             <Fragment key={sec.key}>

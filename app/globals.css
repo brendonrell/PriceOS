@@ -1791,45 +1791,63 @@ body.tape-framed .tape-rail {
 
 /* ============================================================
    FOLLOWERS MANAGER — reuses the ambient/sticker popup shells.
-   Compact = floating popup; PLUS = the sticker jumbo panel.
+   Compact = floating popup; PLUS = full-screen jumbo. Each row is a
+   two-line card: identity on top, the three stats below.
    ============================================================ */
 /* Centre the compact popup near the top (the sticker backdrop is a bare
    click-catcher with no layout of its own). */
 .followers-backdrop { display: flex; align-items: flex-start; justify-content: center; padding: 60px 10px 12px; }
-.followers-pop { width: min(440px, 94vw); max-height: min(78vh, 640px); }
+.followers-pop { width: min(460px, 95vw); max-height: min(80vh, 660px); }
+/* PLUS fills the whole screen — the list owns all the room below the header. */
 .followers-pop-body,
-.followers-plus-body { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1 1 auto; overflow: hidden; }
+.followers-plus-body { display: flex; flex-direction: column; gap: 12px; min-height: 0; flex: 1 1 auto; overflow: hidden; }
+.followers-plus-body { padding-top: 12px; }
 .followers-pop .fm-tabs,
-.followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 2px; }
+.followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
 .followers-pop .fm-list,
-.followers-plus .fm-list { width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-/* Reserved preview slot at the top of PLUS — blank for now (Brendon, 2026-06-25). */
-.followers-plus-preview {
-    min-height: 88px;
-    border: 1px dashed color-mix(in srgb, var(--text-color) 20%, transparent);
-    border-radius: 10px;
+.followers-plus .fm-list {
+    width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 8px; padding-right: 2px;
 }
 
 /* Sort pills */
-.fm-sort { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 1px 0 2px; }
-.fm-sort-label { font-size: 9px; font-weight: bold; letter-spacing: 1px; opacity: 0.5; }
+.fm-sort { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
+.fm-sort-label { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
 .fm-sort-chip { font-size: 11px; }
 
-/* Rows — sprite/name chip on the left, stats inline on the right. */
-.fm-row { display: flex; align-items: center; gap: 8px; line-height: 1.5; padding: 3px 0; }
+/* Row CARD — full width, two clear lines. */
+.fm-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--text-color) 5%, transparent);
+    line-height: 1.3;
+}
 .fm-star {
     flex: 0 0 auto; background: none; border: none; cursor: pointer;
-    font-size: 15px; line-height: 1; padding: 2px; color: var(--text-color); opacity: 0.45;
+    font-size: 19px; line-height: 1; padding: 2px; color: var(--text-color);
 }
-.fm-star.on { opacity: 1; }
-.fm-artist-badge { flex: 0 0 auto; font-size: 13px; opacity: 0.7; }
-.fm-row-stats {
+.fm-row-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fm-row-id { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; min-width: 0; }
+.fm-artist-badge { flex: 0 0 auto; font-size: 14px; }
+.fm-tag {
     margin-left: auto; flex: 0 0 auto;
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 9px; letter-spacing: 0.06em;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border-color);
 }
-.fm-stat { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-.fm-stat > span:first-child { opacity: 0.55; }
+/* The three stats — value + caption, full strength (no faint text). */
+.fm-row-stats { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 18px; }
+.fm-stat { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; font-family: 'Courier New', Courier, monospace; }
+.fm-stat-ic { font-size: 13px; }
+.fm-stat b { font-size: 14px; font-weight: bold; }
+.fm-stat-lbl { font-size: 8.5px; font-weight: bold; letter-spacing: 0.08em; }
 
 /* ============================================================
    BACKGROUND LAYERS
@@ -8893,6 +8911,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     padding: 14px 0 4px;
 }
 .starred-group-header:first-child { padding-top: 4px; }
+/* Social sub-filter for Starred Collectors (Followers/Following/Mutuals). */
+.starred-social-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0 8px; }
 .starred-row-meta {
     display: flex;
     flex-direction: column;

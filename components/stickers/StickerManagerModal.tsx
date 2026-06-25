@@ -320,6 +320,16 @@ export function StickerManagerModal({
     const stickerGrid = (
         <div className="smgr-grid-groups">
             <div className="smgr-hue-row" role="group" aria-label="Filter by colour">
+                <button
+                    type="button"
+                    className={`smgr-hue smgr-hue-clear${hueFilter === null ? ' on' : ''}`}
+                    title="Show all colours"
+                    aria-label="Clear colour filter"
+                    aria-pressed={hueFilter === null}
+                    onClick={() => setHueFilter(null)}
+                >
+                    {`×${VS15}`}
+                </button>
                 {HUE_SWATCHES.map((c) => (
                     <button
                         key={c}

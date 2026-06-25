@@ -81,7 +81,7 @@ function isTab(v: unknown): v is FollowersTab {
 const lc = (s: string) => s.toLowerCase().replace(/^@/, '');
 
 export default function FollowersModal() {
-    const { openModal, close } = useModal();
+    const { openModal, close, open } = useModal();
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'followers';
@@ -331,6 +331,9 @@ export default function FollowersModal() {
                 <div className="sticker-mgr-plus followers-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('FOLLOWERS MANAGER+')}
+                        <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
+                            <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
+                        </button>
                         <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Followers Manager: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
                         </button>
@@ -339,9 +342,7 @@ export default function FollowersModal() {
                             {`×${VS15}`}
                         </span>
                     </div>
-                    {/* Reserved preview slot — blank for now (Brendon, 2026-06-25). */}
-                    <div className="smgr-plus-preview followers-plus-preview" aria-hidden="true" />
-                    <div className="smgr-plus-body followers-plus-body">
+                    <div className="followers-plus-body">
                         {body}
                     </div>
                 </div>
@@ -360,6 +361,9 @@ export default function FollowersModal() {
                 </span>
                 <div className="ambient-pop-title">
                     {title('FOLLOWERS MANAGER')}
+                    <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
+                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
+                    </button>
                     <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Followers Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
                         {`↑${VS15}`}
                     </button>
@@ -391,14 +395,30 @@ function PersonRow({
             >
                 {starred ? `★${VS15}` : `☆${VS15}`}
             </button>
-            <CollectedPair handle={handle} />
-            {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
-            <span className="fm-row-stats">
-                {tag && <span className="fm-tag">{tag}</span>}
-                <span className="fm-stat" title="Outputs Collected"><span className="stat-icon-box">{`⬚${VS15}`}</span>{stat ? stat.collected : '—'}</span>
-                <span className="fm-stat" title="Volume Spent"><span className="stat-icon-eth">{`⟠${VS15}`}</span>{stat ? stat.spentEth.toFixed(2) : '—'}</span>
-                <span className="fm-stat" title="Followers"><span className="stat-icon-followers">{`⚬${VS15}`}</span>{stat ? fmtFollowers(stat.followers) : '—'}</span>
-            </span>
+            <div className="fm-row-main">
+                <div className="fm-row-id">
+                    <CollectedPair handle={handle} />
+                    {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
+                    {tag && <span className="fm-tag">{tag}</span>}
+                </div>
+                <div className="fm-row-stats">
+                    <span className="fm-stat" title="Outputs Collected">
+                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                        <b>{stat ? stat.collected : '—'}</b>
+                        <span className="fm-stat-lbl">COLLECTED</span>
+                    </span>
+                    <span className="fm-stat" title="Volume Spent">
+                        <span className="fm-stat-ic">{`⟠${VS15}`}</span>
+                        <b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
+                        <span className="fm-stat-lbl">SPENT</span>
+                    </span>
+                    <span className="fm-stat" title="Followers">
+                        <span className="fm-stat-ic">{`⚬${VS15}`}</span>
+                        <b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
+                        <span className="fm-stat-lbl">FOLLOWERS</span>
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }
@@ -420,16 +440,34 @@ function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectR
             >
                 {starred ? `★${VS15}` : `☆${VS15}`}
             </button>
-            <span className="collected-pair">
-                {face && <SpriteFace className="collected-sprite" face={face} />}
-                <a className="profile-link" href={`/art/${h}`}>@{h}</a>
-            </span>
-            <span className="fm-row-stats">
-                <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
-                {proj.artist && <span className="fm-stat" title="Creator"><span className="stat-icon-artist">{`✺${VS15}`}</span>@{proj.artist}</span>}
-                <span className="fm-stat" title="Minted"><span className="stat-icon-box">{`⬚${VS15}`}</span>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</span>
-                <span className="fm-stat" title="Mutuals who collect"><span className="stat-icon-cartel">{`⟁${VS15}`}</span>{cartel}</span>
-            </span>
+            <div className="fm-row-main">
+                <div className="fm-row-id">
+                    <span className="collected-pair">
+                        {face && <SpriteFace className="collected-sprite" face={face} />}
+                        <a className="profile-link" href={`/art/${h}`}>@{h}</a>
+                    </span>
+                    <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
+                </div>
+                <div className="fm-row-stats">
+                    {proj.artist && (
+                        <span className="fm-stat" title="Creator">
+                            <span className="fm-stat-ic">{`✺${VS15}`}</span>
+                            <b>@{proj.artist}</b>
+                            <span className="fm-stat-lbl">CREATOR</span>
+                        </span>
+                    )}
+                    <span className="fm-stat" title="Minted">
+                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                        <b>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</b>
+                        <span className="fm-stat-lbl">MINTED</span>
+                    </span>
+                    <span className="fm-stat" title="Mutuals who collect">
+                        <span className="fm-stat-ic">{`⟁${VS15}`}</span>
+                        <b>{cartel}</b>
+                        <span className="fm-stat-lbl">MUTUALS</span>
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }

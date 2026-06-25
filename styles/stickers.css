@@ -875,6 +875,17 @@ body.sticker-mode .hero-stickers { display: none; }
     transition: transform 0.12s, box-shadow 0.12s;
 }
 .smgr-hue.is-neutral { border-color: color-mix(in srgb, var(--text-color) 45%, transparent); }
+/* Clear-filter circle — first in the row; the canonical × turns colour
+   filtering off (Brendon, 2026-06-25). */
+.smgr-hue-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 13px;
+    line-height: 1;
+}
 .smgr-hue.on {
     transform: scale(1.18);
     box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 3.5px var(--text-color);
