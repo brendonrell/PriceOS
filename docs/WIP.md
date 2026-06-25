@@ -31,7 +31,19 @@
      watch/fandom follow is wired. No count badge on the 3 pills (tally is live-graph).
   5. **CLAUDE.md** — "caveats are not a reflex" rule added (§7) + the rules-reminder
      hook line reworded (no caveat unless one urgently matters).
+  6. **Output follows** — outputs are now followable, mirroring the project follow
+     stack. New `output_follows` table (additive, applied + verified live) +
+     `OUTPUT_FOLLOW` ping kind. `/api/output-follows` (follow/unfollow/read);
+     following an output pings its OWNER. Parent project always follows its own
+     output (synthesised +1 at read time → never 0, no minting change).
+     `OutputFollowButton` + output +More **Social** tab (mirrors project's: output
+     @name @oracle234, the PROJECT's PriceSprite since outputs have none, owner,
+     follower count, Follow/Share). Output hero follower count now = the output's
+     own. Starred **Following** pill now includes outputs you follow (outputs only
+     ever under Following — they never follow you back).
 - **OPEN / NEXT:**
+  - Output-follow **ping details/surfacing** — the follow + owner ping land now;
+    richer watch/fandom ping behaviour ("cult of the image") is later (Brendon).
   - **Button-flash polish** — on nav the bg is instant but the new page's buttons/
     bubble lag until its data loads (force-dynamic fetch window). Fix = render the
     page frame instantly + stream data, so buttons land WITH the bg. Bg must stay
