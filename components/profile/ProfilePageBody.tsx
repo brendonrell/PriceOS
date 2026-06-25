@@ -245,19 +245,7 @@ function ProfilePageBodyInner({
     const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex(
         isOwnProfile ? user.profile_hex : undefined,
     );
-    /* On your OWN profile the live hook value drives instant repaints on edit —
-       BUT logged-in state (siweAddress) resolves a beat after first render, so
-       `isOwnProfile` is briefly false and the hook seeds to the placeholder
-       default (#E0E0E0). The moment it flips true the page would paint that
-       default → the "white flash" that only hits your own profile. Guard it:
-       while the live value is still the placeholder, fall back to the
-       server-known colour, so it never flashes. Once the hook holds a real
-       colour (hydrated or freshly edited), that wins. */
-    const ownerHex = isOwnProfile
-        ? (myProfileHex && myProfileHex.toUpperCase() !== PROFILE_HEX_DEFAULT
-            ? myProfileHex
-            : (user.profile_hex ?? myProfileHex))
-        : user.profile_hex;
+    const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
     /* Layout effect (before paint), NOT a passive effect: with in-app routing
        the shell stays mounted and the page body swaps, so the incoming owner
        colour must be registered BEFORE the browser paints the new profile —
