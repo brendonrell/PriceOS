@@ -101,7 +101,11 @@ export function lunarPhase(ms: number): string {
 export function lunarGlyph(ms: number): string {
     const a = lunarAgeDays(ms) / SYNODIC;
     const i = Math.floor(a * 8 + 0.5) % 8;
-    return ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'][i];
+    /* Monochrome circle glyphs (no emoji on the app). Lit disc = white, dark
+       disc = black; the fill grows new→full→new and the half-circles distinguish
+       waxing (right-lit ◑) from waning (left-lit ◐).
+       New · WaxCres · 1stQtr · WaxGib · Full · WanGib · LastQtr · WanCres */
+    return ['●', '◕', '◑', '◔', '○', '◔', '◐', '◕'][i];
 }
 /** Illuminated fraction of the lunar disc, 0..1. */
 export function lunarIllumination(ms: number): number {
