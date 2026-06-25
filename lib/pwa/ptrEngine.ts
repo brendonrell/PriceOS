@@ -71,14 +71,21 @@ export function mountPtr(): void {
         return cl.contains('bench-dragging') || cl.contains('modal-open');
     };
 
-    /* Bail if the gesture began inside an inner overflow scroller that is itself
-       scrolled down (lists, modal bodies) — only the page top should pull. */
-    const startedInScrolledInner = (target: EventTarget | null): boolean => {
+    /* Bail if the gesture began inside an inner overflow scroller that can
+       actually scroll (lists, modal bodies) — only the page itself should pull.
+       Must NOT require the inner scroller to be scrolled down: a list sitting at
+       its TOP would otherwise fall through and pulling it would refresh the app
+       (the artists / portfolio scroll-refresh bug, Brendon 2026-06-25). Pulling
+       inside such a list belongs to the list, never to page refresh. */
+    const startedInInnerScroller = (target: EventTarget | null): boolean => {
         let node = target as HTMLElement | null;
         while (node && node !== document.body) {
-            if (node.scrollTop > TOP_EPSILON) {
-                const oy = getComputedStyle(node).overflowY;
-                if (oy === 'auto' || oy === 'scroll') return true;
+            const oy = getComputedStyle(node).overflowY;
+            if (
+                (oy === 'auto' || oy === 'scroll') &&
+                node.scrollHeight > node.clientHeight + TOP_EPSILON
+            ) {
+                return true;
             }
             node = node.parentElement;
         }
@@ -141,7 +148,7 @@ export function mountPtr(): void {
         if (e.touches.length !== 1) return;            // ignore multi-touch
         if (blocked()) return;
         if (!atTop()) return;                           // started mid-scroll
-        if (startedInScrolledInner(e.target)) return;   // inner scroller
+        if (startedInInnerScroller(e.target)) return;   // inner scroller
         startY = e.touches[0].clientY;
         active = true;
     };
