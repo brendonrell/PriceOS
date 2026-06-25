@@ -20,6 +20,7 @@ import { getUserHoldings, getUserHoldingsCount } from '@/lib/profile/getUserHold
 import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
+import { profileColorBootScript } from '@/lib/colorway/profileBootPaint';
 
 // Always render fresh (Brendon 2026-06-12 — collected art was lagging behind
 // new mints). Without this the server render (and its seeded holdings) can be
@@ -84,14 +85,25 @@ export default async function SlugRootPage({ params }: Props) {
     artistStatus = null;
   }
 
+  // Paint the owner's colour into the FIRST frame from the server-known
+  // profile_hex, so a cold open / refresh of a profile lands on its colour with
+  // no grey flash. Runs before the page content paints; no-ops when the viewer
+  // has an explicit colorway pick. Null (no/!invalid hex) → grey default stands.
+  const colorBoot = profileColorBootScript(initialUser.profile_hex);
+
   return (
-    <ProfilePageBody
-      handle={r.handle}
-      initialUser={initialUser}
-      initialHoldings={initialHoldings ?? []}
-      initialOwnedCount={initialOwnedCount}
-      artistStatus={artistStatus}
-    />
+    <>
+      {colorBoot && (
+        <script dangerouslySetInnerHTML={{ __html: colorBoot }} />
+      )}
+      <ProfilePageBody
+        handle={r.handle}
+        initialUser={initialUser}
+        initialHoldings={initialHoldings ?? []}
+        initialOwnedCount={initialOwnedCount}
+        artistStatus={artistStatus}
+      />
+    </>
   );
 }
 
