@@ -69,22 +69,6 @@ export function outputMarketStat(slug: string, id: number): MarketStat {
     return statFromAnchor(`output|${slug}|${id}`, mint);
 }
 
-/* For-fun stand-ins for the portfolio $-cycle (Brendon 2026-06-25): a project's
-   10-sale average and all-time high. Anchored to the project's seeded floor so
-   they read believably — avg sits just under floor, ATH sits well above. Same
-   deterministic seeding as the rest of this module; swap the body for indexer
-   reads when the live market lands and every $-mode lights up unchanged. */
-export function projectAvg10Eth(slug: string): number {
-    const mint = getProject(slug)?.mintPriceEth ?? 0.05;
-    const floor = parseFloat(statFromAnchor(`project|${slug}`, mint).floor);
-    return floor * (0.6 + seedFloat(`project|${slug}|a10`) * 0.5);  // ~0.6×–1.1× floor
-}
-export function projectAthEth(slug: string): number {
-    const mint = getProject(slug)?.mintPriceEth ?? 0.05;
-    const floor = parseFloat(statFromAnchor(`project|${slug}`, mint).floor);
-    return floor * (1.4 + seedFloat(`project|${slug}|ath`) * 2.2); // ~1.4×–3.6× floor
-}
-
 /* ── Artist floor ────────────────────────────────────────────────────────────
    An artist's floor = the LOWEST project floor across all their projects — a
    known, derived number. Shared (not buried in the Starred list) so other

@@ -15,11 +15,6 @@
  */
 
 import { getProject } from '../project/registry';
-import {
-    projectMarketStat,
-    projectAvg10Eth,
-    projectAthEth,
-} from '../market/starredMarket';
 import type {
     PortfolioCategory,
     PortfolioArtist,
@@ -32,37 +27,22 @@ export interface PortfolioHolding {
 }
 
 /* The $-button cycle (Brendon 2026-06-25): floor → last sold → 10-sale avg →
-   ATH (for fun) → mint → off. Each mode re-values every piece. 'off' hides
-   values in the view; we still value the tree at floor underneath. floor/last
-   come from the (seeded-until-live) market module, avg10/ATH are for-fun
-   stand-ins, mint is the real registry price. */
+   ATH (for fun) → mint → off. Each mode re-values every piece. Only MINT is
+   real today — floor/last/avg10/ATH all need the live secondary market (the
+   indexer), so they read 0 until it lands (Brendon: "the other ones will be
+   zero right now, mint is the only one that works"). The modes exist now so
+   they light up untouched the moment the indexer fills them in. 'off' hides
+   the readouts entirely. */
 export type PortfolioValueMode = 'floor' | 'last' | 'avg10' | 'ath' | 'mint' | 'off';
 
 function mintEth(slug: string): number {
     return getProject(slug)?.mintPriceEth ?? 0;
 }
 
-/** Value per piece for the active $-mode. floor/last fall back to mint price
-    until a real floor exists (Brendon — mint stands in for now). */
+/** Value per piece for the active $-mode. Mint is the only live source today;
+    every market-derived mode is 0 until the indexer is running. */
 function pieceValue(slug: string, mode: PortfolioValueMode): number {
-    switch (mode) {
-        case 'last': {
-            const last = parseFloat(projectMarketStat(slug).lastSale);
-            return Number.isFinite(last) && last > 0 ? last : mintEth(slug);
-        }
-        case 'avg10':
-            return projectAvg10Eth(slug);
-        case 'ath':
-            return projectAthEth(slug);
-        case 'mint':
-            return mintEth(slug);
-        case 'floor':
-        case 'off':
-        default: {
-            const floor = parseFloat(projectMarketStat(slug).floor);
-            return Number.isFinite(floor) && floor > 0 ? floor : mintEth(slug);
-        }
-    }
+    return mode === 'mint' ? mintEth(slug) : 0;
 }
 
 const PD_ENS_RE = /\.pricediscussion\.eth$/i;

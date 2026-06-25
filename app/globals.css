@@ -2631,7 +2631,8 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     -webkit-font-smoothing: antialiased;
 }
 
-.portfolio-dollar-toggle {
+.portfolio-dollar-toggle,
+.portfolio-group-toggle {
     height: 24px;
     padding: 0 10px;
     border-radius: 4px;
@@ -2653,8 +2654,10 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     box-sizing: border-box;
     min-width: 14px;
 }
-.portfolio-dollar-toggle:hover { opacity: 0.85; }
-.portfolio-dollar-toggle.active {
+.portfolio-dollar-toggle:hover,
+.portfolio-group-toggle:hover { opacity: 0.85; }
+.portfolio-dollar-toggle.active,
+.portfolio-group-toggle.active {
     background: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--bg-color);

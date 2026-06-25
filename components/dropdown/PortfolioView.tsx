@@ -133,6 +133,16 @@ export function PortfolioView() {
     );
     const showDollar = priceMode !== 'off';
 
+    /* Grouping toggle beside the $ button (Brendon 2026-06-25): the artist
+       badge (✺) = group by artist → project → pieces (the current/default
+       view); the project square (⬚) = a flat A–Z list of projects. Exactly
+       one is active. Glyphs are the canonical gallery grouping glyphs (GLYPHS
+       §4). */
+    const [groupMode, setGroupMode] = useLocalStorage<'artist' | 'project'>(
+        'pd_portfolio_group_mode',
+        'artist'
+    );
+
     /* Live portfolio — the logged-in wallet's REAL holdings + ENS, replacing the
        mock (Brendon, 2026-06-25). Works for any logged-in user (their own
        wallet). Holdings via the same outputs route the profile grid uses; ENS
@@ -643,6 +653,38 @@ export function PortfolioView() {
                 >
                     $
                 </div>
+                <div
+                    className={`portfolio-group-toggle${groupMode === 'artist' ? ' active' : ''}`}
+                    id="portfolioGroupArtist"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => { if (groupMode !== 'artist') { setGroupMode('artist'); showToast('Group: ARTIST'); } }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (groupMode !== 'artist') { setGroupMode('artist'); showToast('Group: ARTIST'); }
+                        }
+                    }}
+                    title="Group by artist"
+                >
+                    {'✺︎'}
+                </div>
+                <div
+                    className={`portfolio-group-toggle${groupMode === 'project' ? ' active' : ''}`}
+                    id="portfolioGroupProject"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => { if (groupMode !== 'project') { setGroupMode('project'); showToast('Group: PROJECT'); } }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (groupMode !== 'project') { setGroupMode('project'); showToast('Group: PROJECT'); }
+                        }
+                    }}
+                    title="Group by project (A–Z)"
+                >
+                    {'⬚︎'}
+                </div>
             </div>
 
             {/* ── TREE ──────────────────────────────────────────── */}
@@ -704,23 +746,39 @@ export function PortfolioView() {
                                     )}
                                 </div>
                                 {cat.type === 'tree' ? (
-                                    cat.artists.map((art) => {
-                                        // Sim 11005-11009: artistSum = sum of floor*tokens.
-                                        const artistSum = art.projects.reduce(
-                                            (s, c) => s + (c.floor || 0) * c.tokens.length,
-                                            0
-                                        );
-                                        return (
-                                            <PortfolioArtistRows
-                                                key={art.name}
-                                                artistName={art.name}
-                                                artistSum={artistSum}
-                                                showDollar={showDollar}
-                                                portfolioHidden={portfolioHidden}
-                                                projects={art.projects}
-                                            />
-                                        );
-                                    })
+                                    groupMode === 'project' ? (
+                                        // Project view — flat A–Z list of projects, no
+                                        // artist headers (Brendon 2026-06-25).
+                                        cat.artists
+                                            .flatMap((a) => a.projects)
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map((coll) => (
+                                                <PortfolioProjectRows
+                                                    key={coll.name}
+                                                    coll={coll}
+                                                    showDollar={showDollar}
+                                                    portfolioHidden={portfolioHidden}
+                                                />
+                                            ))
+                                    ) : (
+                                        cat.artists.map((art) => {
+                                            // Sim 11005-11009: artistSum = sum of floor*tokens.
+                                            const artistSum = art.projects.reduce(
+                                                (s, c) => s + (c.floor || 0) * c.tokens.length,
+                                                0
+                                            );
+                                            return (
+                                                <PortfolioArtistRows
+                                                    key={art.name}
+                                                    artistName={art.name}
+                                                    artistSum={artistSum}
+                                                    showDollar={showDollar}
+                                                    portfolioHidden={portfolioHidden}
+                                                    projects={art.projects}
+                                                />
+                                            );
+                                        })
+                                    )
                                 ) : (
                                     cat.names.map((n) => (
                                         <div key={n.label} className="pf-ens-row">
@@ -831,33 +889,56 @@ function PortfolioArtistRows({
                     </span>
                 )}
             </div>
-            {projects.map((coll) => {
-                // Sim 11011: collSum = floor * tokens.length.
-                const collSum = (coll.floor || 0) * coll.tokens.length;
-                return (
-                    <div key={coll.name}>
-                        <div className="pf-project">
-                            <span className="pf-label">{coll.name}</span>
-                            {showDollar && (
-                                <span className="pf-est" style={{ marginLeft: 'auto' }}>
-                                    {pfHide(pfFmtEth(collSum))}
-                                </span>
-                            )}
-                        </div>
-                        {coll.tokens.map((tid) => (
-                            <div key={tid} className="pf-artwork">
-                                <span className="pf-label">#{tid}</span>
-                                <span className="pf-leader" />
-                                {showDollar && (
-                                    <span className="pf-est">
-                                        {pfHide(pfFmtEth(coll.floor))}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                );
-            })}
+            {projects.map((coll) => (
+                <PortfolioProjectRows
+                    key={coll.name}
+                    coll={coll}
+                    showDollar={showDollar}
+                    portfolioHidden={portfolioHidden}
+                />
+            ))}
         </>
+    );
+}
+
+/**
+ * Renders one project: its .pf-project header row (label + est) followed by a
+ * .pf-artwork row per token. Shared by the artist view (nested under an artist)
+ * and the project view (flat A–Z), so both groupings render pieces identically.
+ */
+function PortfolioProjectRows({
+    coll,
+    showDollar,
+    portfolioHidden,
+}: {
+    coll: PortfolioProject;
+    showDollar: boolean;
+    portfolioHidden: boolean;
+}) {
+    const pfHide = (val: string) => (portfolioHidden ? '***' : val);
+    // Sim 11011: collSum = floor * tokens.length.
+    const collSum = (coll.floor || 0) * coll.tokens.length;
+    return (
+        <div>
+            <div className="pf-project">
+                <span className="pf-label">{coll.name}</span>
+                {showDollar && (
+                    <span className="pf-est" style={{ marginLeft: 'auto' }}>
+                        {pfHide(pfFmtEth(collSum))}
+                    </span>
+                )}
+            </div>
+            {coll.tokens.map((tid) => (
+                <div key={tid} className="pf-artwork">
+                    <span className="pf-label">#{tid}</span>
+                    <span className="pf-leader" />
+                    {showDollar && (
+                        <span className="pf-est">
+                            {pfHide(pfFmtEth(coll.floor))}
+                        </span>
+                    )}
+                </div>
+            ))}
+        </div>
     );
 }
