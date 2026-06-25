@@ -220,7 +220,10 @@ export function PeteyLogo() {
                 </span>
             </div>
             <div className="petey-bubble" id="peteyBubble">
-                <a href="/" className="pb-home" title="Home">HOME</a>
+                {/* Close the Petey bubble on Home — the click still routes
+                    in-app (no preventDefault). $PRICE deliberately does NOT
+                    close it. */}
+                <a href="/" className="pb-home" title="Home" onClick={() => setRotated(false)}>HOME</a>
                 <a href="/$price" className="pb-price" title="$PRICE Token">$PRICE</a>
             </div>
             {mounted && showSentiment && (
