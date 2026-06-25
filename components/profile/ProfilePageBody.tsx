@@ -1076,7 +1076,8 @@ function ProfilePageBodyInner({
        like the gallery), so there's no separate Group button (Brendon 2026-06-19).
        Wishlist keeps its own #ID sort. */
     type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
-    type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
+    type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
+        | 'followers' | 'following' | 'mutuals';
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
@@ -2200,6 +2201,12 @@ function ProfilePageBodyInner({
                                             { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length },
                                             { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
                                             { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
+                                            // Social filters across collectors + artists + projects. No count
+                                            // badge — the tally depends on the live follow graph (resolved in
+                                            // the list), not the starred totals here.
+                                            { key: 'followers',   label: 'Followers',   count: 0 },
+                                            { key: 'following',   label: 'Following',   count: 0 },
+                                            { key: 'mutuals',     label: 'Mutuals',     count: 0 },
                                             { key: 'projects',    label: 'Projects',    count: projectStarsValid.length },
                                             { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
                                             { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },

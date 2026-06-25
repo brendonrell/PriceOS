@@ -62,7 +62,12 @@ function dayLabel(t: number): string {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects';
+type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
+    // Social cross-entity filters — top-level pills (right after Artists). Each
+    // shows people + projects filtered by the viewer's follow relationship:
+    // followers = follows you (a project follows you while you hold ≥1 of its
+    // outputs), following = you follow them, mutuals = both.
+    | 'followers' | 'following' | 'mutuals';
 type SortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 
 /* A labelled group section; `label` null = ungrouped (no header rendered). */
@@ -139,11 +144,17 @@ export default function StarredList({
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
-    /* Social sub-filter for Starred Collectors — "favourite fans" filtered by
-       your relationship to them (Brendon, 2026-06-25). Reads the viewer's live
-       follow graph once; tapping the active pill clears back to all. */
-    const [social, setSocial] = useState<'all' | 'followers' | 'following' | 'mutuals'>('all');
-    useEffect(() => { if (mode !== 'collectors') setSocial('all'); }, [mode]);
+    /* Social filter (Brendon, 2026-06-25) — the Followers / Following / Mutuals
+       pills are now TOP-LEVEL modes (right after Artists), so the relationship
+       is driven straight off `mode`, not a separate sub-pill. Each social mode
+       shows people (collectors + artists) AND projects, filtered by the viewer's
+       live follow graph. Outputs are deferred until their watch/fandom follow is
+       wired. */
+    const social: 'all' | 'followers' | 'following' | 'mutuals' =
+        mode === 'followers' || mode === 'following' || mode === 'mutuals' ? mode : 'all';
+    const isSocial = social !== 'all';
+
+    /* People follow graph — who follows the viewer / who the viewer follows. */
     const [socialGraph, setSocialGraph] = useState<{ followers: Set<string>; following: Set<string> }>(
         { followers: new Set(), following: new Set() }
     );
@@ -169,6 +180,46 @@ export default function StarredList({
         return f && g; // mutuals
     };
 
+    /* Project follow graph — held (the project follows you, because you own ≥1
+       of its outputs) vs following (you explicitly follow the project). Keyed by
+       project handle, which matches the registry slug. */
+    const [projGraph, setProjGraph] = useState<{ held: Set<string>; following: Set<string> }>(
+        { held: new Set(), following: new Set() }
+    );
+    useEffect(() => {
+        if (!viewerAddress) { setProjGraph({ held: new Set(), following: new Set() }); return; }
+        let alive = true;
+        fetch(`/api/project-follows?follower=${viewerAddress}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => {
+                if (!alive || !j || !Array.isArray(j.projects)) return;
+                const held = new Set<string>(), following = new Set<string>();
+                for (const p of j.projects as Array<{ handle: string | null; held: boolean; following: boolean }>) {
+                    const k = (p.handle ?? '').toLowerCase();
+                    if (!k) continue;
+                    if (p.held) held.add(k);
+                    if (p.following) following.add(k);
+                }
+                setProjGraph({ held, following });
+            })
+            .catch(() => { /* ignore */ });
+        return () => { alive = false; };
+    }, [viewerAddress]);
+    const matchesProjectSocial = (slug: string): boolean => {
+        if (social === 'all') return true;
+        const k = slug.toLowerCase();
+        const held = projGraph.held.has(k), foll = projGraph.following.has(k);
+        if (social === 'followers') return held;
+        if (social === 'following') return foll;
+        return held && foll; // mutuals
+    };
+
+    /* Which entity blocks show for the current mode. A social mode shows the
+       three followable lists (collectors + artists + projects); a single-entity
+       mode shows just that one; All shows everything. */
+    const showType = (t: Mode) =>
+        mode === t || mode === 'all' || (isSocial && (t === 'collectors' || t === 'artists' || t === 'projects'));
+
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -181,7 +232,7 @@ export default function StarredList({
         });
     const handleRemoveSelected = () => {
         if (selected.size === 0) return;
-        const inMode = (m: Mode) => mode === 'all' || mode === m;
+        const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
         if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
         if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
         if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
@@ -329,7 +380,8 @@ export default function StarredList({
     const visibleArtists = useMemo(() => {
         const q = query.trim().toLowerCase();
         const rows = artists.map((name, i) => ({ name, handle: name.replace(/^@/, ''), recentIndex: i }));
-        const filtered = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const byQuery = q ? rows.filter((r) => r.name.toLowerCase().includes(q)) : rows;
+        const filtered = social === 'all' ? byQuery : byQuery.filter((r) => matchesSocial(r.handle));
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => artistFloorEth(a.handle) - artistFloorEth(b.handle));
         else if (sortKey === 'followers') sorted.sort((a, b) => followersOf(a.handle) - followersOf(b.handle));
@@ -337,7 +389,7 @@ export default function StarredList({
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [artists, query, sortKey, sortDir, userMetaVer]);
+    }, [artists, query, sortKey, sortDir, userMetaVer, social, socialGraph]);
 
     /* ── Collector rows (starred users with no projects) ──────────────── */
     const visibleCollectors = useMemo(() => {
@@ -372,13 +424,15 @@ export default function StarredList({
         const rows = projects
             .filter((slug) => getProject(slug) != null)
             .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, color: projectColorway(slug) ?? 'var(--stat-bg)', market: projectMarketStat(slug), recentIndex: i }));
-        const filtered = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
+        const byQuery = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
+        const filtered = social === 'all' ? byQuery : byQuery.filter((r) => matchesProjectSocial(r.slug));
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => parseFloat(a.market.floor) - parseFloat(b.market.floor));
         else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
-    }, [projects, query, sortKey, sortDir]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [projects, query, sortKey, sortDir, social, projGraph]);
 
     /* ── Group sections (only inside a single filter; All groups by type via the
        render). Outputs sub-group by Project inside each section so one
@@ -437,7 +491,7 @@ export default function StarredList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, group, visibleSoundtracks]);
     /* All-Starred groups by TYPE — a header before each non-empty block. */
-    const typeHdr = mode === 'all' && group === 'type';
+    const typeHdr = (mode === 'all' && group === 'type') || isSocial;
 
     /* Removing from Starred asks first (the ✕ on the right) — a small confirm
        card, the same style as multi-select's. */
@@ -491,6 +545,7 @@ export default function StarredList({
 
     const totalVisible =
         mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length
+        : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
         : mode === 'artists' ? visibleArtists.length
@@ -531,7 +586,7 @@ export default function StarredList({
 
             {/* Rows — each type renders when 'all' or its own filter is active. */}
             <div className={`starred-rows${multiActive ? ' is-multi' : ''}${timeline ? ' starred-rows--timeline' : ''}`}>
-                {(mode === 'all' || mode === 'outputs') && (
+                {showType('outputs') && (
                     <>
                         {typeHdr && visibleOutputs.length > 0 && <div className="starred-group-header">Outputs</div>}
                         {outputSections.map((sec) => (
@@ -566,7 +621,7 @@ export default function StarredList({
                         ))}
                     </>
                 )}
-                {(mode === 'all' || mode === 'traits') && (
+                {showType('traits') && (
                     <>
                         {typeHdr && visibleTraits.length > 0 && <div className="starred-group-header">Traits</div>}
                         {traitSections.map((sec) => (
@@ -627,7 +682,7 @@ export default function StarredList({
                         ))}
                     </>
                 )}
-                {(mode === 'all' || mode === 'artists') && (
+                {showType('artists') && (
                     <>
                         {typeHdr && visibleArtists.length > 0 && <div className="starred-group-header">Artists</div>}
                         {artistSections.map((sec) => (
@@ -653,23 +708,8 @@ export default function StarredList({
                         ))}
                     </>
                 )}
-                {(mode === 'all' || mode === 'collectors') && (
+                {showType('collectors') && (
                     <>
-                        {mode === 'collectors' && (
-                            <div className="starred-social-pills" role="group" aria-label="Filter collectors by relationship">
-                                {([['followers', 'Followers'], ['following', 'Following'], ['mutuals', 'Mutuals']] as const).map(([k, label]) => (
-                                    <button
-                                        key={k}
-                                        type="button"
-                                        className={`pill pill-l2${social === k ? ' active' : ''}`}
-                                        aria-pressed={social === k}
-                                        onClick={() => setSocial((s) => (s === k ? 'all' : k))}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                         {typeHdr && visibleCollectors.length > 0 && <div className="starred-group-header">Collectors</div>}
                         {collectorSections.map((sec) => (
                             <Fragment key={sec.key}>
@@ -694,7 +734,7 @@ export default function StarredList({
                         ))}
                     </>
                 )}
-                {(mode === 'all' || mode === 'soundtracks') && (
+                {showType('soundtracks') && (
                     <>
                         {typeHdr && visibleSoundtracks.length > 0 && <div className="starred-group-header">Soundtracks</div>}
                         {soundtrackSections.map((sec) => (
@@ -755,7 +795,7 @@ export default function StarredList({
                         ))}
                     </>
                 )}
-                {(mode === 'all' || mode === 'projects') && (
+                {showType('projects') && (
                     <>
                         {typeHdr && visibleProjects.length > 0 && <div className="starred-group-header">Projects</div>}
                         {projectSections.map((sec) => (
