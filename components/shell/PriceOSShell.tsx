@@ -307,6 +307,41 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => document.removeEventListener('click', onClick);
     }, [router]);
 
+    /* Prefetch on intent (Brendon, 2026-06-25) — the in-app swap is smooth, but
+       the routed pages are force-dynamic, so each tap still WAITS on the server
+       to fetch that page's data before it can show: the real remaining lag.
+       Warm the destination the moment a link is hovered (desktop) or first
+       touched (mobile), so the fetch is already in flight — often finished —
+       by the time the tap completes. Read-only + deduped (a no-op once cached);
+       same guards as the click router so only real in-app routes are warmed. */
+    useEffect(() => {
+        const seen = new Set<string>();
+        const warm = (target: EventTarget | null) => {
+            const a = (target as HTMLElement | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+            if (!a) return;
+            if (a.dataset.nativeNav !== undefined) return;
+            if (a.target && a.target !== '_self') return;
+            if (a.hasAttribute('download')) return;
+            if ((a.getAttribute('rel') || '').toLowerCase().includes('external')) return;
+            if (!/^https?:\/\//i.test(a.href)) return;
+            if (a.origin !== window.location.origin) return;
+            const url = a.pathname + a.search;
+            const here = window.location.pathname + window.location.search;
+            if (url === here) return;          // current page / pure hash jump
+            if (seen.has(url)) return;          // already warmed
+            seen.add(url);
+            try { router.prefetch(url); } catch { /* ignore */ }
+        };
+        const onOver = (e: Event) => warm(e.target);
+        const onTouch = (e: Event) => warm(e.target);
+        document.addEventListener('pointerover', onOver, { passive: true });
+        document.addEventListener('touchstart', onTouch, { passive: true });
+        return () => {
+            document.removeEventListener('pointerover', onOver);
+            document.removeEventListener('touchstart', onTouch);
+        };
+    }, [router]);
+
     /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the
        address bar shows/hides. We pin --app-height once on mount and
        update only on orientationchange (genuine layout flip).
