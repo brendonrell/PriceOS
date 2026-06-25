@@ -16,7 +16,7 @@ import {
   getUserProfileByHandle,
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
-import { getUserHoldings, getUserHoldingsCount } from '@/lib/profile/getUserHoldings';
+import type { getUserHoldings } from '@/lib/profile/getUserHoldings';
 import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
@@ -58,32 +58,24 @@ export default async function SlugRootPage({ params }: Props) {
   const initialUser = await getUserProfileByHandle(r.handle);
   if (!initialUser) notFound();
 
-  // Holdings ship with the page too (perf batch 2026-06-10) — same query the
-  // /api/user/[address]/outputs route runs, done in-process so the Collected
-  // grid paints on arrival instead of after a client round-trip. The client
-  // still re-fetches via the route on 'pd:project-refresh' (mint / market
-  // actions). Best-effort: a holdings error falls back to the old behavior
-  // (empty seed; nothing renders worse than before this change).
-  // Holdings, owned count, and artist badge ALL depend only on the address, so
-  // run them concurrently instead of one-after-another — the page wait drops
-  // from the sum of all three to the slowest single one (Brendon, 2026-06-25:
-  // "no reason for this lag"). allSettled keeps each best-effort: one failing
-  // query never blocks the page or the others.
-  // - Holdings ship with the page (perf batch 2026-06-10) so the Collected grid
-  //   paints on arrival; the client re-fetches on 'pd:project-refresh'.
-  // - Owned count is the exact total (holdings caps at 1000 rows).
-  // - Artist badge = allowlist whitelist + cooldown status.
-  const [holdingsRes, ownedCountRes, artistStatusRes] = await Promise.allSettled([
-    getUserHoldings(initialUser.address),
-    getUserHoldingsCount(initialUser.address),
-    getArtistStatus(initialUser.address),
-  ]);
-  const initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> =
-    holdingsRes.status === 'fulfilled' ? (holdingsRes.value ?? []) : [];
-  const initialOwnedCount =
-    ownedCountRes.status === 'fulfilled' ? (ownedCountRes.value ?? 0) : 0;
-  const artistStatus: Awaited<ReturnType<typeof getArtistStatus>> =
-    artistStatusRes.status === 'fulfilled' ? artistStatusRes.value : null;
+  // The collected grid (the heavy query — hundreds of rows) is NO LONGER fetched
+  // here. The body already re-fetches it on mount via /api/user/[address]/
+  // outputs AND sets the owned count from the same call (see the holdings effect
+  // in ProfilePageBody; the count stat reads max(count, holdings.length)
+  // meanwhile). Blocking the whole page render on that heavy query was the link
+  // lag — the page now paints the instant the profile row resolves, and the grid
+  // fills in a beat later (Brendon, 2026-06-25: page instant > grid on first
+  // frame). The colour still comes from the profile row above, so no flash.
+  const initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> = [];
+  const initialOwnedCount = 0;
+
+  // Artist badge — a light allowlist lookup, cheap enough to keep on the render.
+  let artistStatus: Awaited<ReturnType<typeof getArtistStatus>> = null;
+  try {
+    artistStatus = await getArtistStatus(initialUser.address);
+  } catch {
+    artistStatus = null;
+  }
 
   // Paint the owner's colour into the FIRST frame from the server-known
   // profile_hex, so a cold open / refresh of a profile lands on its colour with
