@@ -245,7 +245,17 @@ function ProfilePageBodyInner({
     const { hex: myProfileHex, setHex: setMyProfileHex } = useProfileHex(
         isOwnProfile ? user.profile_hex : undefined,
     );
-    const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
+    /* Your OWN profile flashes the placeholder default for a beat because
+       logged-in state (siweAddress) resolves AFTER first render: isOwnProfile is
+       briefly false, so the colour hook seeds to the default, then flips to it
+       once auth lands. Guard it — while the live value is still the placeholder,
+       use the server-known colour instead, so it never flashes. A real/edited
+       colour still wins. (Pure value change — no effect on timing or perf.) */
+    const ownerHex = isOwnProfile
+        ? (myProfileHex && myProfileHex.toUpperCase() !== PROFILE_HEX_DEFAULT
+            ? myProfileHex
+            : (user.profile_hex ?? myProfileHex))
+        : user.profile_hex;
     /* Layout effect (before paint), NOT a passive effect: with in-app routing
        the shell stays mounted and the page body swaps, so the incoming owner
        colour must be registered BEFORE the browser paints the new profile —
