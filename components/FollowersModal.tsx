@@ -283,7 +283,7 @@ export default function FollowersModal() {
                 </div>
             )}
 
-            <div className="collectors-list fm-list">
+            <div className="fm-list">
                 {loading && isEmpty ? (
                     <div className="fm-empty fm-loading">Loading…</div>
                 ) : isEmpty ? (
@@ -399,23 +399,17 @@ function PersonRow({
                 <div className="fm-row-id">
                     <CollectedPair handle={handle} />
                     {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
-                    {tag && <span className="fm-tag">{tag}</span>}
                 </div>
                 <div className="fm-row-stats">
+                    {tag && <span className="fm-tag">{tag}</span>}
                     <span className="fm-stat" title="Outputs Collected">
-                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
-                        <b>{stat ? stat.collected : '—'}</b>
-                        <span className="fm-stat-lbl">COLLECTED</span>
+                        <span className="fm-stat-ic">{`⬚${VS15}`}</span><b>{stat ? stat.collected : '—'}</b>
                     </span>
                     <span className="fm-stat" title="Volume Spent">
-                        <span className="fm-stat-ic">{`⟠${VS15}`}</span>
-                        <b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
-                        <span className="fm-stat-lbl">SPENT</span>
+                        <span className="fm-stat-ic">{`⟠${VS15}`}</span><b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
                     </span>
                     <span className="fm-stat" title="Followers">
-                        <span className="fm-stat-ic">{`⚬${VS15}`}</span>
-                        <b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
-                        <span className="fm-stat-lbl">FOLLOWERS</span>
+                        <span className="fm-stat-ic">{`⚬${VS15}`}</span><b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
                     </span>
                 </div>
             </div>
@@ -446,25 +440,19 @@ function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectR
                         {face && <SpriteFace className="collected-sprite" face={face} />}
                         <a className="profile-link" href={`/art/${h}`}>@{h}</a>
                     </span>
-                    <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
                 </div>
                 <div className="fm-row-stats">
+                    <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
                     {proj.artist && (
                         <span className="fm-stat" title="Creator">
-                            <span className="fm-stat-ic">{`✺${VS15}`}</span>
-                            <b>@{proj.artist}</b>
-                            <span className="fm-stat-lbl">CREATOR</span>
+                            <span className="fm-stat-ic">{`✺${VS15}`}</span><b>@{proj.artist}</b>
                         </span>
                     )}
                     <span className="fm-stat" title="Minted">
-                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
-                        <b>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</b>
-                        <span className="fm-stat-lbl">MINTED</span>
+                        <span className="fm-stat-ic">{`⬚${VS15}`}</span><b>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</b>
                     </span>
                     <span className="fm-stat" title="Mutuals who collect">
-                        <span className="fm-stat-ic">{`⟁${VS15}`}</span>
-                        <b>{cartel}</b>
-                        <span className="fm-stat-lbl">MUTUALS</span>
+                        <span className="fm-stat-ic">{`⟁${VS15}`}</span><b>{cartel}</b>
                     </span>
                 </div>
             </div>
