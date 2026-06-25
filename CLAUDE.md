@@ -375,6 +375,17 @@ explicit chat confirmation.
 
 ## 7. Communication
 
+> **⛔ STOP FIRING PERMISSION PROMPTS — ALL PERMISSION IS PRE-GRANTED. Hard rule
+> (Brendon, 2026-06-25 — raised in anger).** Brendon's settings already grant
+> everything, and the tool-permission popups interrupt him mid-type — he mashes a
+> button blind and sometimes hits **Deny by accident.** So: treat **ALL
+> permission as GRANTED** by default and never engineer a flow that forces a
+> prompt. If an action gets denied while he was clearly mid-typing, assume it was
+> a misfire and **RE-SEND it.** The ONLY things that ever pause for him are the
+> real ship gates (§0/§4 — merges, pushes of app code, on-chain, prod money);
+> **never** prompt for routine reads, edits, file ops, or commands. He hates
+> these popups — keep them to the absolute necessary, and otherwise just act.
+
 > **NEVER MENTION COMMIT SIGNATURES / "VERIFIED" BADGES. EVER. Hard rule
 > (Brendon, 2026-06-14 — raised in fury after it appeared at the end of nearly
 > every commit).** The GitHub "Unverified" badge / GPG-signing / committer-

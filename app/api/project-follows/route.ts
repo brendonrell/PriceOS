@@ -87,6 +87,11 @@ export interface FollowedProject {
   title: string;
   /** True when the follow is implicit (the viewer holds a piece). */
   held: boolean;
+  /** The creator's @name (null pre-claim), for the ✺ creator stat. */
+  artist: string | null;
+  /** Minted-so-far + total supply, for the ⬚ count stat. */
+  minted: number;
+  supply: number;
 }
 
 export interface FollowedProjectsResponse {
@@ -129,15 +134,38 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (ids.length > 0) {
       const { data: projData, error: projErr } = await supabase
         .from('projects')
-        .select('id, handle, title')
+        .select('id, handle, title, minted_count, max_supply, artist_address')
         .in('id', ids);
       if (projErr) return serverError(projErr.message);
-      projects = ((projData ?? []) as Array<{ id: string; handle: string | null; title: string }>)
+      const projRows = (projData ?? []) as Array<{
+        id: string; handle: string | null; title: string;
+        minted_count: number | null; max_supply: number | null; artist_address: string | null;
+      }>;
+
+      // Resolve each project's creator address → @name in one read.
+      const artistAddrs = Array.from(
+        new Set(projRows.map((p) => p.artist_address?.toLowerCase()).filter((a): a is string => !!a))
+      );
+      const addrToHandle = new Map<string, string>();
+      if (artistAddrs.length > 0) {
+        const { data: artistData } = await supabase
+          .from('users')
+          .select('address, handle')
+          .in('address', artistAddrs);
+        for (const u of (artistData ?? []) as Array<{ address: string; handle: string | null }>) {
+          if (u.handle) addrToHandle.set(u.address.toLowerCase(), u.handle);
+        }
+      }
+
+      projects = projRows
         .map((p) => ({
           project_id: p.id,
           handle: p.handle,
           title: p.title,
           held: held.has(p.id),
+          artist: p.artist_address ? addrToHandle.get(p.artist_address.toLowerCase()) ?? null : null,
+          minted: p.minted_count ?? 0,
+          supply: p.max_supply ?? 0,
         }))
         .sort((a, b) => a.title.localeCompare(b.title));
     }
