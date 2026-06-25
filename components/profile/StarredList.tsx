@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useMemo, useState, Fragment } from 'react';
+import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -141,6 +142,7 @@ export default function StarredList({
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
+    const router = useRouter();
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
@@ -838,8 +840,8 @@ export default function StarredList({
                                 className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={multiActive ? () => toggleSel(selKey) : () => window.location.assign('/' + r.slug)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : window.location.assign('/' + r.slug); } }}
+                                onClick={multiActive ? () => toggleSel(selKey) : () => router.push('/art/' + r.slug)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : router.push('/art/' + r.slug); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
                                     <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
@@ -1100,11 +1102,14 @@ function StarredArtistRow({
     sprite?: string | null;
 }) {
     const { showToast } = useToast();
+    const router = useRouter();
     const { count, rel, address } = useArtistSocial(handle, viewerAddress);
     const projectCount = useMemo(() => projectsByArtist(handle).length, [handle]);
     const relGlyph = relGlyphOf(rel);
     const relLabel = relLabelOf(rel);
-    const act = () => (multiActive ? onToggleSel() : window.location.assign('/' + handle));
+    // In-app route to the canonical bare handle (strip any leading @, which
+    // would 301-redirect through a blank hop — the white-wall family).
+    const act = () => (multiActive ? onToggleSel() : router.push('/' + handle.replace(/^@/, '')));
 
     /* Follow / unfollow — the SAME flow as the profile Follow button
        (/api/follows, @name-keyed, fires pd:follows-changed). Following state

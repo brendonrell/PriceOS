@@ -76,6 +76,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     getRpcMs,
     getRpcQualityClass,
@@ -107,6 +108,7 @@ export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
     const { open: openOutputModal } = useModal();
     const { showToast } = useToast();
+    const router = useRouter();
 
     // Subscribe to engine state. We mirror engine state into React
     // state so toggles trigger re-renders. Initialised lazily from
@@ -269,9 +271,12 @@ export function TopBarRow() {
                                     } else if (pin.kind === 'soundtrack' && pin.playlistId) {
                                         window.open(playlistWatchUrl(pin.playlistId), '_blank', 'noopener,noreferrer');
                                     } else if (pin.kind === 'artist') {
-                                        window.location.assign('/' + pin.slug);
+                                        // In-app route to the canonical bare handle (strip any
+                                        // leading @, which would 301-redirect through a blank hop).
+                                        router.push('/' + pin.slug.replace(/^@/, ''));
                                     } else {
-                                        window.location.assign('/art/' + pin.slug);
+                                        // Projects live at /art/{slug} — the canonical, non-redirecting path.
+                                        router.push('/art/' + pin.slug);
                                     }
                                 }}
                                 onUnpin={() => {
