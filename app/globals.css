@@ -142,21 +142,6 @@ body {
     min-height: 100dvh;
 }
 
-/* Route content fade (Brendon, 2026-06-25). With in-app navigation the page
-   body swaps under a persistent shell + an instant background; the new page's
-   buttons/bubble would otherwise hard-pop in once their data loads. Fade the
-   page content in per route — same 0.3s ease as the signature background
-   crossfade — so the chrome glides in with the colour. The shell keys <main>
-   on the pathname, so this replays on a real route change only (not on a
-   query/hash change), and never touches the always-mounted background. */
-@keyframes pd-route-fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-main.route-fade {
-    animation: pd-route-fade-in 0.3s ease;
-}
-
 /* THE FOOTER MYSTERY, solved (2026-06-10). [data-rk] is RainbowKit's
    wrapper div. It used to wrap the whole app, so it carried the
    flex-column + min-height sizing. Since the wallet stack went deferred
