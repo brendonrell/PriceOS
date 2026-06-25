@@ -41,6 +41,28 @@
      follower count, Follow/Share). Output hero follower count now = the output's
      own. Starred **Following** pill now includes outputs you follow (outputs only
      ever under Following — they never follow you back).
+- **Link-lag / profile / connect-menu (2026-06-25, late session):** all on `dev`.
+  1. **Profile loads like any other** — colour painted from the DB `profile_hex`
+     for EVERY profile (incl. your own); login/live-edit is a separate overlay
+     applied AFTER, never gating the paint. Killed the own-profile white flash.
+  2. **Link lag, part 1** — profile page no longer blocks its render on the heavy
+     collected-grid query; the body already re-fetches grid + count on mount, so
+     the page paints the instant the profile row resolves, grid fills in after.
+  3. **Link lag, part 2** — prefetch the destination on **pointerdown** (press),
+     deduped, same guards as the click router. NEVER on hover/scroll (that storm
+     was the freeze last time). Pages now lighter, so warming is cheap.
+  4. **Connect menu** — artists list routed in-app (was a full reload every tap).
+  5. **PWA pull-to-refresh** — guard now skips ANY real inner scroller (was only
+     skipping ones already scrolled down), so pulling the artists/portfolio list
+     no longer refreshes the whole app.
+  6. **Portfolio is real** — `lib/portfolio/livePortfolio.ts` builds the tree from
+     the logged-in wallet's real holdings (artist→project→pieces, valued at live
+     floor ?? mint price); ENS detects `*.pricediscussion.eth` on the account
+     (empty until registered); Sticker/Shadow empty (no real dataset). Mock gone.
+  - **HARD-WON LESSON (this session):** the connect menu was the missed surface
+     the whole time. Also: NEVER prefetch on hover/scroll (server choke → freeze);
+     NEVER bolt on a spinner/fade Brendon didn't ask for; the two issues
+     (link lag vs own-profile white flash) are SEPARATE — don't conflate them.
 - **OPEN / NEXT:**
   - Output-follow **ping details/surfacing** — the follow + owner ping land now;
     richer watch/fandom ping behaviour ("cult of the image") is later (Brendon).
