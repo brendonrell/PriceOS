@@ -68,12 +68,17 @@ import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import type { ValuePromptField } from '../../lib/state/ValuePromptContext';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import {
-    PORTFOLIO_DATA,
-    sumPortfolioValue,
     type PortfolioTab,
     type PortfolioCategory,
     type PortfolioProject,
 } from '../../lib/data/mockPortfolio';
+import {
+    buildLivePortfolio,
+    emptyPortfolio,
+    sumPortfolioCats,
+    type PortfolioHolding,
+} from '../../lib/portfolio/livePortfolio';
+import { useAuth } from '../../lib/state/AuthContext';
 import {
     addBudget as engineAddBudget,
     deleteBudget as engineDeleteBudget,
@@ -108,6 +113,35 @@ export function PortfolioView() {
     const [showDollar, setShowDollar] = useLocalStorage<boolean>(
         'pd_portfolio_show_dollar',
         true
+    );
+
+    /* Live portfolio — the logged-in wallet's REAL holdings + ENS, replacing the
+       mock (Brendon, 2026-06-25). Works for any logged-in user (their own
+       wallet). Holdings via the same outputs route the profile grid uses; ENS
+       name off the user row. Shadow tab has no real dataset → empty. */
+    const { siweAddress } = useAuth();
+    const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
+    const [ensName, setEnsName] = useState<string | null>(null);
+    useEffect(() => {
+        const addr = siweAddress?.toLowerCase();
+        if (!addr) { setHoldings([]); setEnsName(null); return; }
+        let cancelled = false;
+        fetch(`/api/user/${addr}/outputs`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !Array.isArray(d?.holdings)) return;
+                setHoldings(d.holdings.map((h: { slug: string; token_id: number }) => ({ slug: h.slug, token_id: h.token_id })));
+            })
+            .catch(() => {});
+        fetch(`/api/user/${addr}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled) setEnsName(d?.ens_name ?? null); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+    const liveCats = useMemo<PortfolioCategory[]>(
+        () => (tab === 'portfolio' ? buildLivePortfolio(holdings, ensName) : emptyPortfolio()),
+        [tab, holdings, ensName],
     );
     const [budgets, setBudgets] = useState<BudgetsState>(() => getBudgets());
     /* F57 (BUG-10) — subscribe to budgetEngine. The engine owns
@@ -150,7 +184,7 @@ export function PortfolioView() {
        visible — only numbers and budget names are starred (phase 1). */
     const pfHide = (val: string) => (portfolioHidden ? '***' : val);
 
-    const grandTotal = useMemo(() => sumPortfolioValue(tab), [tab]);
+    const grandTotal = useMemo(() => sumPortfolioCats(liveCats), [liveCats]);
 
     /**
      * Toggle a budget at index `idx`. If it's already active, deactivate
@@ -254,7 +288,7 @@ export function PortfolioView() {
 
     // Apply filters to categories.
     const visibleCats: PortfolioCategory[] = useMemo(() => {
-        const cats = PORTFOLIO_DATA[tab];
+        const cats = liveCats;
         const searchLower = search.toLowerCase();
         return cats
             .filter((cat) => activeCats.size === 0 || activeCats.has(cat.name as CategoryFilter))
@@ -283,7 +317,7 @@ export function PortfolioView() {
                 if (cat.type === 'tree') return cat.artists.length > 0;
                 return cat.names.length > 0;
             });
-    }, [tab, search, activeCats]);
+    }, [liveCats, search, activeCats]);
 
     return (
         <div
