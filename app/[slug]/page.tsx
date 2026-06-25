@@ -64,26 +64,26 @@ export default async function SlugRootPage({ params }: Props) {
   // still re-fetches via the route on 'pd:project-refresh' (mint / market
   // actions). Best-effort: a holdings error falls back to the old behavior
   // (empty seed; nothing renders worse than before this change).
-  let initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> = [];
-  let initialOwnedCount = 0;
-  try {
-    initialHoldings = (await getUserHoldings(initialUser.address)) ?? [];
-    // Exact owned total (holdings caps at 1000 rows) so the stat is right on
-    // first paint (Brendon 2026-06-19).
-    initialOwnedCount = await getUserHoldingsCount(initialUser.address);
-  } catch {
-    initialHoldings = [];
-  }
-
-  // Artist badge — whitelist + cooldown status from the allowlist (the sim
-  // stand-in for the on-chain whitelist). Best-effort: a lookup error means
-  // no badge, never a broken profile.
-  let artistStatus: Awaited<ReturnType<typeof getArtistStatus>> = null;
-  try {
-    artistStatus = await getArtistStatus(initialUser.address);
-  } catch {
-    artistStatus = null;
-  }
+  // Holdings, owned count, and artist badge ALL depend only on the address, so
+  // run them concurrently instead of one-after-another — the page wait drops
+  // from the sum of all three to the slowest single one (Brendon, 2026-06-25:
+  // "no reason for this lag"). allSettled keeps each best-effort: one failing
+  // query never blocks the page or the others.
+  // - Holdings ship with the page (perf batch 2026-06-10) so the Collected grid
+  //   paints on arrival; the client re-fetches on 'pd:project-refresh'.
+  // - Owned count is the exact total (holdings caps at 1000 rows).
+  // - Artist badge = allowlist whitelist + cooldown status.
+  const [holdingsRes, ownedCountRes, artistStatusRes] = await Promise.allSettled([
+    getUserHoldings(initialUser.address),
+    getUserHoldingsCount(initialUser.address),
+    getArtistStatus(initialUser.address),
+  ]);
+  const initialHoldings: Awaited<ReturnType<typeof getUserHoldings>> =
+    holdingsRes.status === 'fulfilled' ? (holdingsRes.value ?? []) : [];
+  const initialOwnedCount =
+    ownedCountRes.status === 'fulfilled' ? (ownedCountRes.value ?? 0) : 0;
+  const artistStatus: Awaited<ReturnType<typeof getArtistStatus>> =
+    artistStatusRes.status === 'fulfilled' ? artistStatusRes.value : null;
 
   // Paint the owner's colour into the FIRST frame from the server-known
   // profile_hex, so a cold open / refresh of a profile lands on its colour with
