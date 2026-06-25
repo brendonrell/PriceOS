@@ -695,22 +695,33 @@ function ProfilePageBodyInner({
         return filtered;
     }, [enriched, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
 
-    /* Progressive gallery reveal (Brendon, 2026-06-18). Mounting hundreds of
-       cards in a single commit froze the page and crashed it into a reload on a
-       big collection. Render a first screenful immediately so the page is snappy
-       and interactive, then stream the rest of the artwork in over the following
-       frames — the art is always the LAST thing to fill in, never a blocker.
-       revealCount only grows, so once the whole grid is mounted, later filter /
-       sort changes render instantly. */
+    /* Progressive gallery reveal (Brendon, 2026-06-18; windowed 2026-06-24).
+       Mount a first screenful so the page is instant, then grow the window ONLY
+       as the viewer scrolls toward the end (a sentinel near the bottom). The old
+       version grew every animation frame until the WHOLE collection was mounted
+       — fine for small wallets, but a 10k–20k collection ended up with every card
+       in the DOM and scrolled like glue. Now the mounted set tracks how far
+       you've actually scrolled, so a giant collection browses as smoothly as a
+       small one. revealCount only grows, so re-filtering renders instantly. */
     const REVEAL_FIRST = 24;
     const REVEAL_STEP = 48;
     const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
+    const collectedSentinelRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         if (revealCount >= visibleCollected.length) return;
-        const raf = requestAnimationFrame(() =>
-            setRevealCount((c) => c + REVEAL_STEP),
+        const el = collectedSentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setRevealCount(visibleCollected.length); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setRevealCount((c) => Math.min(c + REVEAL_STEP, visibleCollected.length));
+                }
+            },
+            { rootMargin: '1200px 0px' },
         );
-        return () => cancelAnimationFrame(raf);
+        io.observe(el);
+        return () => io.disconnect();
     }, [revealCount, visibleCollected.length]);
     const shownCollected = useMemo(
         () =>
@@ -2467,6 +2478,11 @@ function ProfilePageBodyInner({
                                       ))}
                                   </ProjectProvider>
                               ))}
+                {/* Grows the mounted window as you scroll toward the end — keeps a
+                    huge collection light (Brendon, 2026-06-24). */}
+                {onCollected && enriched.length > 0 && revealCount < visibleCollected.length && (
+                    <div ref={collectedSentinelRef} style={{ gridColumn: '1 / -1', height: 1 }} aria-hidden="true" />
+                )}
                 </div>
                 )}
             </section>
