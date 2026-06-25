@@ -42,6 +42,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
+import { forceRenderKeys } from '../../lib/virtualization/canvasVirtualizer';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import HomeProjectFacetBar, {
     projectFacetValueOf,
@@ -129,6 +130,35 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
         { length: CAROUSEL_SIZE },
         (_, i) => project.totalOutputs - i,
     ).filter((id) => id >= 1);
+
+    /* Carousel preload — paint tiles two over BEFORE they reach the visible
+       edge. The global canvas observer is rooted on the viewport, but a carousel
+       clips its own off-screen tiles, so that observer can't reach them until
+       they're already at the edge (the pop-in). This per-track observer is
+       rooted on the scroller itself with a ~2-tile horizontal margin, so each
+       tile paints while it's still two over and offscreen (Brendon, 2026-06-25 —
+       "count two tiles outside the viewport"). */
+    const trackRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const track = trackRef.current;
+        if (!track || typeof IntersectionObserver === 'undefined') return;
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const e of entries) {
+                    if (!e.isIntersecting) continue;
+                    const key = (e.target as HTMLElement).dataset.vkey;
+                    if (key) forceRenderKeys(new Set([key]));
+                }
+            },
+            // ~2 carousel tiles (≈120px + 14px gap each) past each edge.
+            { root: track, rootMargin: '0px 300px' },
+        );
+        track
+            .querySelectorAll<HTMLElement>('[data-vkey]')
+            .forEach((el) => io.observe(el));
+        return () => io.disconnect();
+    }, [project.totalOutputs]);
+
     return (
         <section
             className="home-carousel-row"
@@ -144,7 +174,7 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
                     </span>
                 )}
             </div>
-            <div className="home-carousel-track">
+            <div className="home-carousel-track" ref={trackRef}>
                 {ids.map((id, idx) => (
                     /* Carousel tiles cap at ~120px — paint a small canvas, not the
                        full 400px grid res, so a page of carousels stays snappy.
