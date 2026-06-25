@@ -25,7 +25,7 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -246,7 +246,14 @@ function ProfilePageBodyInner({
         isOwnProfile ? user.profile_hex : undefined,
     );
     const ownerHex = isOwnProfile ? myProfileHex : user.profile_hex;
-    useEffect(() => {
+    /* Layout effect (before paint), NOT a passive effect: with in-app routing
+       the shell stays mounted and the page body swaps, so the incoming owner
+       colour must be registered BEFORE the browser paints the new profile —
+       otherwise the colour resolver paints the default grey for one frame and
+       the page flashes grey → owner colour on every profile-to-profile move.
+       Running before paint, the first frame of the new profile is already its
+       owner's colour. (Cold first load is still seeded server-side above.) */
+    useLayoutEffect(() => {
         setActiveProfileHex(ownerHex ?? null);
         return () => setActiveProfileHex(null);
     }, [ownerHex, setActiveProfileHex]);

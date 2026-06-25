@@ -53,7 +53,7 @@
  */
 
 import { useEffect, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
 import { useNavFade } from '../../lib/hooks/useNavFade';
 import { pickTabstractTitle } from '../../lib/title/tabstract';
@@ -91,6 +91,7 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
     const pathname = usePathname();
+    const router = useRouter();
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -238,6 +239,52 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         return () => document.removeEventListener('click', onClick, true);
     }, []);
 
+    /* In-app routing — the snappy, native-app feel (Brendon, 2026-06-25).
+       Every page-to-page link in the app is a plain <a href>, so each tap tore
+       the whole page down and rebuilt it from the server — the lag, and the
+       black-flash-then-repaint of the theme colour (the page goes blank before
+       the colour loads). We catch same-origin link taps and route them IN-APP
+       instead: the shell, providers and painted background stay mounted, only
+       the page body swaps, and the theme colour follows the URL change (already
+       wired in ColorwayContext via usePathname) — so the background slides old
+       → new instead of flashing through blank. URL, back/forward, refresh and
+       share all behave exactly as before.
+
+       Bubble phase (NOT capture) so an element's own click handler runs first:
+       a handler that calls preventDefault (e.g. the external-link opener) or
+       stopPropagation (modal-internal links) opts that link out automatically.
+       Guards below leave every NON-in-app case to the browser untouched:
+       new-tab modifier clicks, middle-click, target=_blank, downloads, external
+       origins, mailto:/tel:/in-app schemes, pure same-page #hash jumps, and an
+       explicit data-native-nav escape hatch for any link that must hard-load. */
+    useEffect(() => {
+        const onClick = (e: MouseEvent) => {
+            if (e.defaultPrevented) return;
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            const a = (e.target as HTMLElement | null)?.closest?.('a[href]') as
+                | HTMLAnchorElement
+                | null;
+            if (!a) return;
+            // A long-press already handled this gesture (e.g. starring a
+            // soundtrack) — swallow the trailing synthetic click, don't route.
+            if (navSuppressed()) { e.preventDefault(); clearNavSuppress(); return; }
+            if (a.dataset.nativeNav !== undefined) return;     // explicit opt-out
+            if (a.target && a.target !== '_self') return;       // _blank etc.
+            if (a.hasAttribute('download')) return;
+            if ((a.getAttribute('rel') || '').toLowerCase().includes('external')) return;
+            if (!/^https?:\/\//i.test(a.href)) return;          // mailto:, tel:, schemes
+            if (a.origin !== window.location.origin) return;     // external → leave it
+            // Pure same-page #hash jump (same path+query, only the hash differs)
+            // → let the browser do its native in-page scroll, don't re-route.
+            const here = window.location.pathname + window.location.search;
+            if (a.hash && a.pathname + a.search === here) return;
+            e.preventDefault();
+            router.push(a.pathname + a.search + a.hash);
+        };
+        document.addEventListener('click', onClick);
+        return () => document.removeEventListener('click', onClick);
+    }, [router]);
+
     /* BUG — mobile Safari squish. iOS Safari changes 100dvh when the
        address bar shows/hides. We pin --app-height once on mount and
        update only on orientationchange (genuine layout flip).
@@ -281,7 +328,14 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <ErrorBoundary name="AmbientStrip">
                 <AmbientStrip />
             </ErrorBoundary>
-            <main>{children}</main>
+            {/* Key the page body on the path so each route mounts a FRESH
+                subtree — matching the old full-reload semantics exactly, so no
+                page that assumed a reload keeps stale per-route state. The shell,
+                providers and painted background live OUTSIDE <main>, so they
+                persist across the swap (the native-app feel); only the page
+                content remounts. Keyed on pathname only (not query/hash), so an
+                in-page #hash jump or a query tweak never forces a remount. */}
+            <main key={pathname}>{children}</main>
             <ErrorBoundary name="Footer">
                 <Footer />
             </ErrorBoundary>
