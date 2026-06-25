@@ -65,6 +65,11 @@ const SHOW_CAROUSEL_ARTIST = false;
 /* Outputs in the Shuffle grid — a fresh random project's 18 random outputs
    on every entry (Brendon 2026-06-13). */
 const SHUFFLE_SIZE = 18;
+/* Shuffle is cycled rapidly (re-rolls a new project on every entry) — mount only
+   a screenful on arrival so each cycle is instant; grow on scroll for the rare
+   below-the-fold browse (Brendon, 2026-06-24). */
+const SHUFFLE_INITIAL = 6;
+const SHUFFLE_STEP = 6;
 
 /* "Featuring" credits — the REAL artist roster, from the registry
    (every project's artist, de-duped). New projects feed this automatically. */
@@ -140,10 +145,13 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
                 )}
             </div>
             <div className="home-carousel-track">
-                {ids.map((id) => (
+                {ids.map((id, idx) => (
                     /* Carousel tiles cap at ~120px — paint a small canvas, not the
-                       full 400px grid res, so a page of carousels stays snappy. */
-                    <ArtworkCard key={id} id={id} eager={eager} renderSize={200} />
+                       full 400px grid res, so a page of carousels stays snappy.
+                       Eager-paint ONLY the first few visible tiles of the eager
+                       row — the rest of the row paints on horizontal scroll via
+                       the viewport observer (Brendon, 2026-06-24). */
+                    <ArtworkCard key={id} id={id} eager={eager && idx < HOME_EAGER_TILES} renderSize={200} />
                 ))}
             </div>
         </section>
@@ -157,6 +165,9 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
    (Brendon 2026-06-23). */
 const HOME_INITIAL_CAROUSELS = 4;
 const HOME_CAROUSEL_STEP = 4;
+/* Eager-paint only the visible tiles of the first row — not the whole carousel
+   (the rest paint on horizontal scroll). Brendon, 2026-06-24. */
+const HOME_EAGER_TILES = 4;
 
 function MintingCarousels({ items }: { items: EnrichedProject[] }) {
     const [shown, setShown] = useState(HOME_INITIAL_CAROUSELS);
@@ -209,11 +220,36 @@ function ShuffleGallery({ seed }: { seed: number }) {
         // seed is the re-roll trigger (a new project + fresh picks per entry).
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [project.totalOutputs, seed]);
+
+    /* Lazy MOUNT, not just lazy paint: only a screenful of cards mount on entry
+       (most people never scroll below the fold here — they flip between New Gen
+       Art and Shuffle), the rest mount on a scroll sentinel. Mounting all 18
+       cards' contexts at once was the entry lag (Brendon, 2026-06-24). */
+    const [shown, setShown] = useState(SHUFFLE_INITIAL);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const total = ids.length;
+    // Fresh shuffle (new seed/project) → reset back to a screenful.
+    useEffect(() => { setShown(SHUFFLE_INITIAL); }, [seed, project.slug]);
+    useEffect(() => {
+        if (shown >= total) return;
+        const el = sentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setShown(total); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setShown((c) => Math.min(c + SHUFFLE_STEP, total));
+                }
+            },
+            { rootMargin: '800px 0px' },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [shown, total]);
+
     return (
-        /* Cards lazy-paint through the virtualizer (no eager flag) — only the
-           on-screen screenful paints on arrival, the rest as they scroll in.
-           Forcing all 24 to paint at once was the Shuffle entry lag, worst on
-           heavy projects (Brendon, 2026-06-13). */
+        /* Visible cards lazy-paint through the virtualizer too (no eager flag) —
+           only the on-screen screenful paints on arrival. */
         <>
             {/* Shuffle byline — the picked project + artist, Courier, sitting in
                 the same spot as the New Uploads header (Brendon, 2026-06-15). */}
@@ -224,11 +260,16 @@ function ShuffleGallery({ seed }: { seed: number }) {
                 className="shuffle-head"
             />
             <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
-                {ids.map((id) => (
-                    /* Shuffle teasers also show small — paint a smaller canvas. */
-                    <ArtworkCard key={`${seed}-${id}`} id={id} renderSize={240} />
+                {ids.slice(0, shown).map((id, idx) => (
+                    /* Shuffle teasers show small. Eager-paint the first visible row
+                       so the art appears instantly on each rapid re-roll (users
+                       cycle until they like one); the rest lazy-paint on scroll. */
+                    <ArtworkCard key={`${seed}-${id}`} id={id} renderSize={240} eager={idx < HOME_EAGER_TILES} />
                 ))}
             </section>
+            {shown < total && (
+                <div ref={sentinelRef} className="home-carousel-sentinel" aria-hidden="true" />
+            )}
         </>
     );
 }
