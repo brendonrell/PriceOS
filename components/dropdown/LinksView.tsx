@@ -58,7 +58,7 @@ import { fmtFollowers } from '../../lib/social/useArtistSocial';
 export function LinksView() {
     const { setView, closeMenu } = useDropdown();
     const { open } = useModal();
-    const { siweAddress, signOut } = useAuth();
+    const { siweAddress, handle, signOut } = useAuth();
     const { showToast } = useToast();
 
     const isAuthed = !!siweAddress;
@@ -81,7 +81,13 @@ export function LinksView() {
         return () => { cancel = true; };
     }, [siweAddress]);
 
-    const profileHref = siweAddress ? `/${siweAddress}` : '/brendon';
+    /* Link STRAIGHT to the handle (/{handle}) — the same single, colour-booted
+       hop every other profile uses. The /{address} URL only 301-redirects to
+       /{handle} server-side, and that middle hop renders a blank page with no
+       profile colour: that's the "white wall" that hit ONLY your own profile
+       opened from here (Brendon, 2026-06-25 — the core action, must be perfect).
+       Fall back to the address (which redirects) only until the handle resolves. */
+    const profileHref = handle ? `/${handle}` : siweAddress ? `/${siweAddress}` : '/brendon';
 
     const gas = useGasData(true);
     const gasValue = gas.data
