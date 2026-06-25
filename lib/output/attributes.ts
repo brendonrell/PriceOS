@@ -69,7 +69,7 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (project) {
         identity.push({ glyph: '✺', label: 'Artist', value: `@${project.artistHandle}` });
         identity.push({ glyph: '◈', label: 'Project', value: project.displayName });
-        if (project.mintPriceEth != null) identity.push({ glyph: '⟠', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
+        if (project.mintPriceEth != null) identity.push({ glyph: '◊', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
         if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway });
         if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label });
     }

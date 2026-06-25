@@ -24,7 +24,7 @@ export function buildProjectAttributes(slug: string, uploadedAt: number | null):
         { glyph: '✺', label: 'Artist', value: `@${project.artistHandle}` },
         { glyph: '⬚', label: 'Supply', value: `${project.outputs}` },
     ];
-    if (project.mintPriceEth != null) identity.push({ glyph: '⟠', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
+    if (project.mintPriceEth != null) identity.push({ glyph: '◊', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
     if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway });
     if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label });
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
