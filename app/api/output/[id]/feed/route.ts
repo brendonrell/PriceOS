@@ -62,7 +62,7 @@ const PLATFORM_GENESIS: readonly FeedMarker[] = [
     seq: 0, pin: 3, tbdDay: true, label: 'RELEASED', lead: '', highlight: 'PriceOS 1.0', tail: ' released', href: null,
   },
   {
-    id: 'price-airdrop', glyph: '⤓', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
+    id: 'price-airdrop', glyph: '⦽', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
     seq: 0, pin: 2, tbdDay: true, label: 'AIRDROP', lead: '', highlight: '$PRICE', tail: ' airdrop', href: null,
   },
 ];
