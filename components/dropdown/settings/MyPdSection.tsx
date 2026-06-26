@@ -204,7 +204,7 @@ export function MyPdSection({ onTripleTap }: Props) {
             // ignore
         }
         copyingRef.current = true;
-        setInputValue('COPIED!');
+        setInputValue('SETUP CODE COPIED!');
         window.setTimeout(() => {
             copyingRef.current = false;
             setInputValue(currentCode);
