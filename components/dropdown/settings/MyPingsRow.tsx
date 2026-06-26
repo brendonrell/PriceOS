@@ -150,7 +150,7 @@ export function MyPingsRow() {
                     onClick={() => togglePingCat('mutuals')}
                     icon={'⚭\uFE0E'}
                     iconBare
-                    iconStyle={{ fontSize: '14.5px', lineHeight: '1', transform: 'translateY(-0.5px)' }}
+                    iconStyle={{ fontSize: '14.5px', lineHeight: '1', transform: 'translateY(-1px)' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
@@ -180,7 +180,7 @@ export function MyPingsRow() {
                     onClick={() => togglePingCat('traits')}
                     icon={'⨝︎'}
                     iconBare
-                    iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(2px)' }}
+                    iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(1px)' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
