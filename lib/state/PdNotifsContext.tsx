@@ -171,6 +171,11 @@ export interface PdNotifs {
         offers: boolean;
         xfers: boolean;
         mutuals: boolean;
+        // Starred-collection pings — movement on the projects / traits / artists
+        // you star.
+        projects: boolean;
+        traits: boolean;
+        artists: boolean;
         cooldown: boolean;
     };
 
@@ -248,6 +253,9 @@ const DEFAULTS: PdNotifs = {
         offers: true,
         xfers: true,
         mutuals: true,
+        artists: true,
+        projects: true,
+        traits: true,
         cooldown: true,
     },
 

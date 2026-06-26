@@ -58,11 +58,14 @@ export function MyPingsRow() {
 
     const togglePingCat = (key: keyof typeof notifs.pings) => {
         const PING_LABELS: Record<string, string> = {
-            mints:   'Mints Pings',
-            lists:   'Lists Pings',
-            offers:  'Offers Pings',
-            xfers:   'Xfers Pings',
-            mutuals: 'Mutuals Only',
+            mints:    'Mints Pings',
+            lists:    'Lists Pings',
+            offers:   'Offers Pings',
+            xfers:    'Xfers Pings',
+            mutuals:  'Mutuals Only',
+            artists:  'Artists Pings',
+            projects: 'Projects Pings',
+            traits:   'Traits Pings',
         };
         const next = !notifs.pings[key];
         update({ pings: { ...notifs.pings, [key]: next } });
@@ -147,6 +150,36 @@ export function MyPingsRow() {
                     onClick={() => togglePingCat('mutuals')}
                     icon={'⚭\uFE0E'}
                     label="MUTUALS"
+                />
+                <SettingsToggle
+                    id="sn-artists"
+                    title="Artists Pings — starred artists"
+                    active={notifs.pings.artists}
+                    onClick={() => togglePingCat('artists')}
+                    icon={'✺︎'}
+                    iconBare
+                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
+                />
+                <SettingsToggle
+                    id="sn-projects"
+                    title="Projects Pings — starred projects"
+                    active={notifs.pings.projects}
+                    onClick={() => togglePingCat('projects')}
+                    icon={'⬚︎'}
+                    iconBare
+                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
+                />
+                <SettingsToggle
+                    id="sn-traits"
+                    title="Traits Pings — starred traits"
+                    active={notifs.pings.traits}
+                    onClick={() => togglePingCat('traits')}
+                    icon={'⨝︎'}
+                    iconBare
+                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-nightmode"
