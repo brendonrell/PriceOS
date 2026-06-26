@@ -21,7 +21,8 @@
  *     Stats sub-tab under + More.
  */
 
-import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { priceDayContents } from '../../lib/priceday/priceday';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
@@ -47,6 +48,16 @@ import type { AttrInput } from '../../lib/output/attributes';
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
     return '0x' + a.slice(2, 6) + '…' + a.slice(-4);
+}
+
+/* "JUL 09 2026" — the date-beside-the-name format, same as the project + profile
+   hero (their fmtUploadDate / formatMemberSince). */
+function fmtPriceDate(ms: number | null): string {
+    if (ms == null) return '—';
+    const d = new Date(ms);
+    const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${mon} ${day} ${d.getUTCFullYear()}`;
 }
 
 /* A project/artist history row in the output timeline — same two-line shape as
@@ -230,6 +241,37 @@ export default function ArtworkPageBody({
         return () => { cancelled = true; };
     }, [slug, numberPart]);
 
+    /* PriceDay date beside the name — the mint date, with the same clickable
+       almanac popover the project + profile heroes use (Brendon, 2026-06-26;
+       PriceDay itself is still being built, so this reuses the project flow). */
+    const [priceDayOpen, setPriceDayOpen] = useState(false);
+    const [priceDayPos, setPriceDayPos] = useState<{ top: number; left: number } | null>(null);
+    const priceDayRef = useRef<HTMLSpanElement>(null);
+    useEffect(() => {
+        if (!priceDayOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (priceDayRef.current && !priceDayRef.current.contains(e.target as Node)) setPriceDayOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [priceDayOpen]);
+    const openPriceDay = () => {
+        if (priceDayOpen) { setPriceDayOpen(false); return; }
+        if (priceDayRef.current) {
+            const rect = priceDayRef.current.getBoundingClientRect();
+            const POPOVER_WIDTH = 260, MARGIN = 8;
+            let left: number;
+            if (window.innerWidth < 600) left = (window.innerWidth - POPOVER_WIDTH) / 2;
+            else {
+                left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
+                left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
+            }
+            setPriceDayPos({ top: rect.bottom + 4, left });
+        }
+        setPriceDayOpen(true);
+    };
+    const outputPdc = priceDayContents(mintMs != null ? new Date(mintMs) : new Date());
+
     /* This Output's activity timeline — REAL pre-chain transaction rows from
        Supabase `events` (scoped to this token), PLUS the project/artist history
        markers (artist joined · uploaded · milestones · graduated · ascension).
@@ -390,6 +432,42 @@ export default function ArtworkPageBody({
                             stays plain text. Long-press the title to star this
                             Output (Brendon 2026-06-19). */}
                         <OutputTitleStar slug={slug} id={numberPart} projectName={projectName} projectHref={projectHref} />
+                        <span className="project-date-wrap" ref={priceDayRef}>
+                            <span
+                                className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={openPriceDay}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPriceDay(); } }}
+                                title="PriceDay"
+                            >{fmtPriceDate(mintMs)}</span>
+                            {priceDayOpen && priceDayPos && (
+                                <div className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
+                                    <div className="dp-title">PRICEDAY #{outputPdc.number}</div>
+                                    <div className="dp-title-spacer" />
+
+                                    <div className="pd-section-header">MINTED THIS DAY</div>
+                                    {outputPdc.minted.map((r, i) => (
+                                        <div className="dp-row" key={`m${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
+                                    ))}
+                                    <div className="pd-section-end" />
+
+                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
+                                    {outputPdc.uploaded.map((r, i) => (
+                                        <div className="dp-row" key={`u${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
+                                    ))}
+                                    <div className="pd-section-end" />
+
+                                    {outputPdc.biggestSale && (
+                                        <>
+                                            <div className="pd-section-header">BIGGEST SALE</div>
+                                            <div className="dp-row"><span className="dp-label">{outputPdc.biggestSale.label}</span><span className="dp-value">{outputPdc.biggestSale.value}</span></div>
+                                            <div className="pd-section-end" />
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </span>
                     </h1>
 
                     <div className="hero-line project-custom">
