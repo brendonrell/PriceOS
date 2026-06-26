@@ -157,7 +157,7 @@ export function PingsBox() {
                 </div>
             ) : (
                 rendered.map((p) => (
-                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}`}>
+                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`}>
                         <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
                         <span>
                             {p.handle && <strong className={isSpited(p.handle) ? 'spited' : undefined}>{p.handle}</strong>}

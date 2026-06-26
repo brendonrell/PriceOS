@@ -588,8 +588,10 @@ body.sentiment-on .sentiment-widget {
 .ping-ic--MINT,
 .ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* ✶ small + low */
 
-/* Read pings fade back; the empty-state line is muted. */
-.notif-item.read { opacity: 0.8; }
+/* Seen (read) pings fade back + strike through to read as "handled"; the strike
+   skips the glyph so the icon stays clean. The empty-state line is muted. */
+.notif-item.read { opacity: 0.8; text-decoration: line-through; }
+.notif-item.read .n-icon { text-decoration: none; }
 .pings-empty {
     padding: 8px 10px;
     font-size: 12px;
@@ -1389,6 +1391,10 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
     box-shadow: inset 2px 0 0 var(--hothurt);
 }
 .notif-item--high .n-icon { opacity: 1; color: var(--hothurt); }
+
+/* Low-priority pings — sunk to the bottom (sorted in PingsBox) and dimmed a
+   touch so they read as background. */
+.notif-item--low { opacity: 0.7; }
 
 #notesList .notif-item { align-items: flex-start; }
 #notesList .notif-item .n-icon { margin-top: 1px; }
