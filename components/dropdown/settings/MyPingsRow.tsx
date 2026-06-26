@@ -19,7 +19,7 @@
  *   out user sees the shape of the personal notification preferences.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { usePdNotifs, PING_TOAST_CYCLE, showsNativePings } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -41,7 +41,12 @@ export function MyPingsRow() {
     // The confirm bubble renders in a body-level portal (top layer, never
     // clipped); these hold the pill's measured position to place it.
     const cellRef = useRef<HTMLSpanElement>(null);
-    const [confirmPos, setConfirmPos] = useState<{ top: number; left: number } | null>(null);
+    const bubbleRef = useRef<HTMLDivElement>(null);
+    // pillCenterX = where the tail must point; top = pill's top edge.
+    const [confirmPos, setConfirmPos] = useState<{ top: number; pillCenterX: number } | null>(null);
+    // Computed once the bubble is measured: centerX = clamped on-screen centre,
+    // tailDx = tail's offset from that centre so it still aims at the pill.
+    const [bubbleLayout, setBubbleLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
     useEffect(() => {
         let live = true;
         getNativeStatus().then((s) => {
@@ -98,13 +103,28 @@ export function MyPingsRow() {
         const show = showsNativePings(next) && !nativeOn;
         if (show && cellRef.current) {
             const r = cellRef.current.getBoundingClientRect();
-            // Bubble centre sits 24px right of the pill centre (on-screen fit).
-            // The tail is offset back the SAME 24px so it points at the pill —
-            // see .pingtoast-3d-confirm::after { left: calc(50% - 24px) }.
-            setConfirmPos({ top: r.top, left: r.left + r.width / 2 + 24 });
+            setBubbleLayout(null); // re-measure for this position
+            setConfirmPos({ top: r.top, pillCenterX: r.left + r.width / 2 });
         }
         setShow3dConfirm(show);
     };
+
+    /* Place the confirm bubble: keep it fully on-screen (clamp its centre so
+       neither edge is cut off), then point the tail back at the pill wherever
+       the bubble lands. Measured after mount; hidden for that one frame. */
+    useEffect(() => {
+        if (!show3dConfirm || !confirmPos || !bubbleRef.current) return;
+        const w = bubbleRef.current.offsetWidth;
+        const half = w / 2;
+        const margin = 8;
+        const vw = window.innerWidth;
+        const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+        // Centre the bubble on the pill, but never let an edge cross the margin.
+        const centerX = clamp(confirmPos.pillCenterX, margin + half, vw - margin - half);
+        // Tail aims at the pill, but stays within the bubble's rounded body.
+        const tailDx = clamp(confirmPos.pillCenterX - centerX, -(half - 12), half - 12);
+        setBubbleLayout({ centerX, tailDx });
+    }, [show3dConfirm, confirmPos]);
 
     return (
         <>
@@ -225,13 +245,16 @@ export function MyPingsRow() {
                        signal that the state changed. */
                     <div
                         key={notifs.pingToasts}
+                        ref={bubbleRef}
                         className="pingtoast-3d-confirm"
                         role="dialog"
                         style={{
                             top: confirmPos.top,
-                            left: confirmPos.left,
+                            left: bubbleLayout?.centerX ?? confirmPos.pillCenterX,
                             transform: 'translate(-50%, calc(-100% - 8px))',
-                        }}
+                            visibility: bubbleLayout ? 'visible' : 'hidden',
+                            ['--p3d-tail-dx' as string]: `${bubbleLayout?.tailDx ?? 0}px`,
+                        } as CSSProperties}
                     >
                         <span className="p3d-q">Enable 3D Pingtoasts?</span>
                         <button
@@ -240,14 +263,14 @@ export function MyPingsRow() {
                             disabled={!canEnableNative}
                             onClick={(e) => { e.stopPropagation(); void confirm3d(); }}
                         >
-                            Yes
+                            {'  Yes  '}
                         </button>
                         <button
                             type="button"
                             className="p3d-btn p3d-no"
                             onClick={(e) => { e.stopPropagation(); setShow3dConfirm(false); }}
                         >
-                            No
+                            {'  No  '}
                         </button>
                     </div>,
                     document.body,

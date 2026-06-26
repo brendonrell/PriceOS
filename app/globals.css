@@ -530,14 +530,15 @@ body.sentiment-on .sentiment-widget {
 /* Greyed when native push can't be enabled here (e.g. iOS before the app is
    added to the home screen). */
 .p3d-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-/* Downward tail — offset 24px left of the bubble's centre so it points at the
-   pingtoast pill (the bubble centre sits 24px right of the pill — see
-   MyPingsRow's confirmPos). Fixed to the button, so it travels with it. */
+/* Downward tail — points at the pingtoast pill. The bubble is clamped to stay
+   on-screen, so its centre may sit anywhere relative to the pill; --p3d-tail-dx
+   (set per-open in MyPingsRow) shifts the tail off the bubble centre to keep it
+   aimed at the pill. Travels with the bubble. */
 .pingtoast-3d-confirm::after {
     content: '';
     position: absolute;
     top: 100%;
-    left: calc(50% - 24px);
+    left: calc(50% + var(--p3d-tail-dx, 0px));
     transform: translateX(-50%);
     border: 5px solid transparent;
     border-top-color: var(--hothurt);
