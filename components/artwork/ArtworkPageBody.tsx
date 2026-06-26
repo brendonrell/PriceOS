@@ -23,6 +23,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { priceDayContents } from '../../lib/priceday/priceday';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
@@ -197,6 +198,7 @@ export default function ArtworkPageBody({
        same source as the Project page. Falls back to a title-cased slug only for
        an unknown project. */
     const projectName = getProject(slug)?.displayName ?? (projectSlug ? titleCase(projectSlug) : 'Prisms');
+    const soundtrack = getProject(slug)?.soundtrack ?? null;
     const projectHref = `/art/${slug}`;
     const fullscreenHref = `/art/${slug}/${numberPart}/full`;
 
@@ -705,6 +707,18 @@ export default function ArtworkPageBody({
                                 </div>
                             ))}
                         </div>
+                        {soundtrack && (
+                            <a
+                                className="output-soundtrack-btn"
+                                href={playlistWatchUrl(soundtrack.playlistId)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`Soundtrack — ${soundtrack.label}`}
+                                aria-label="Project soundtrack"
+                            >
+                                {'♫︎'}
+                            </a>
+                        )}
                         <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
                             {OUT_SORTS.map((s) => (
                                 <span
