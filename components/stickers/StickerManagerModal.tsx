@@ -42,10 +42,26 @@ import { StickerArt } from './StickerArt';
 const VS15 = '︎';
 const PAGE_KEY = 'pd_sticker_mgr_page';
 
-/* Colour filter — the SAME swatches as the Familiar customiser. Tapping one
-   shows only the stickers of that colour in the grid (Brendon, 2026-06-24).
-   '#FFFFFF' is the neutral bucket (white/black/greyscale stickers). */
-const HUE_SWATCHES = ['#FF0055', '#FFE600', '#00FFD1', '#9D00FF', '#FF8A00', '#FFFFFF'];
+/* Colour filter — tap a swatch to show only stickers of that detected dominant
+   colour. Expanded to 11 colour families × light/dark (Brendon, 2026-06-26): the
+   user picks the hue AND the direction (light vs dark — it matters for which
+   colorway it reads against). Order is light,dark per family: red, orange,
+   yellow, green, blue, purple, pink, brown, then the neutral set black, grey,
+   white. The neutral swatches catch greyscale stickers. */
+interface Swatch { hex: string; neutral: boolean; }
+const HUE_SWATCHES: Swatch[] = [
+    { hex: '#FF6B6B', neutral: false }, { hex: '#A30D2D', neutral: false }, // red    L · D
+    { hex: '#FFB347', neutral: false }, { hex: '#B85C00', neutral: false }, // orange L · D
+    { hex: '#FFEB5C', neutral: false }, { hex: '#C9A227', neutral: false }, // yellow L · D
+    { hex: '#7BE37B', neutral: false }, { hex: '#1F7A33', neutral: false }, // green  L · D
+    { hex: '#6FB7FF', neutral: false }, { hex: '#163E8F', neutral: false }, // blue   L · D
+    { hex: '#C79CFF', neutral: false }, { hex: '#5B2199', neutral: false }, // purple L · D
+    { hex: '#FFAAD4', neutral: false }, { hex: '#C43E86', neutral: false }, // pink   L · D
+    { hex: '#C8966A', neutral: false }, { hex: '#5E3A1C', neutral: false }, // brown  L · D
+    { hex: '#555555', neutral: true  }, { hex: '#0A0A0A', neutral: true  }, // black  L · D
+    { hex: '#CFCFCF', neutral: true  }, { hex: '#888888', neutral: true  }, // grey   L · D
+    { hex: '#FFFFFF', neutral: true  }, { hex: '#E2E2E2', neutral: true  }, // white  L · D
+];
 function hexHS(hex: string): { h: number; s: number } {
     const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
     const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
@@ -54,17 +70,47 @@ function hexHS(hex: string): { h: number; s: number } {
     if (d > 0.0001) h = (((mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60) + 360) % 360;
     return { h, s };
 }
-const CHROMA_SWATCHES = HUE_SWATCHES.filter((c) => c !== '#FFFFFF').map((hex) => ({ hex, h: hexHS(hex).h }));
-/** The swatch a sticker belongs to: its dominant hue snapped to the nearest
- *  chromatic swatch, or the neutral (white) bucket when it's greyscale. */
+function hexRGB(hex: string): { r: number; g: number; b: number } {
+    return { r: parseInt(hex.slice(1, 3), 16), g: parseInt(hex.slice(3, 5), 16), b: parseInt(hex.slice(5, 7), 16) };
+}
+/** Full-saturation RGB for a hue — the fallback when a sticker has no stored hex
+ *  (we only know its hue). */
+function hueToRGB(h: number): { r: number; g: number; b: number } {
+    const x = 1 - Math.abs(((h / 60) % 2) - 1);
+    let r = 0, g = 0, b = 0;
+    if (h < 60) { r = 1; g = x; } else if (h < 120) { r = x; g = 1; }
+    else if (h < 180) { g = 1; b = x; } else if (h < 240) { g = x; b = 1; }
+    else if (h < 300) { r = x; b = 1; } else { r = 1; b = x; }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+const SWATCH_RGB = HUE_SWATCHES.map((sw) => ({ ...sw, ...hexRGB(sw.hex) }));
+/** Light swatches get a stronger ring so they read against the panel. */
+function isLightHex(hex: string): boolean {
+    const { r, g, b } = hexRGB(hex);
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.82;
+}
+/** The swatch a sticker belongs to: nearest swatch by colour distance, kept
+ *  WITHIN the neutral set for greyscale stickers and the chromatic set otherwise
+ *  (so a pale-but-coloured sticker never collapses into white). Returns the hex
+ *  key the filter compares against. */
 function stickerSwatch(s: Sticker): string {
     const hex = s.color ?? s.bg ?? s.cutout ?? s.fg ?? null;
-    let hue: number, neutral = false;
-    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) { const o = hexHS(hex); hue = o.h; neutral = o.s < 0.12; }
-    else { hue = stickerHue(s); }
-    if (neutral) return '#FFFFFF';
-    let best = CHROMA_SWATCHES[0]!.hex, bd = 999;
-    for (const sw of CHROMA_SWATCHES) { let dd = Math.abs(hue - sw.h); dd = Math.min(dd, 360 - dd); if (dd < bd) { bd = dd; best = sw.hex; } }
+    let rgb: { r: number; g: number; b: number };
+    let neutral: boolean;
+    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
+        rgb = hexRGB(hex);
+        neutral = hexHS(hex).s < 0.12;
+    } else {
+        rgb = hueToRGB(stickerHue(s));
+        neutral = false;
+    }
+    let best = HUE_SWATCHES[0]!.hex, bd = Infinity;
+    for (const sw of SWATCH_RGB) {
+        if (sw.neutral !== neutral) continue;
+        const dr = rgb.r - sw.r, dg = rgb.g - sw.g, db = rgb.b - sw.b;
+        const dd = dr * dr + dg * dg + db * db;
+        if (dd < bd) { bd = dd; best = sw.hex; }
+    }
     return best;
 }
 const PAGES = 4;
@@ -330,15 +376,15 @@ export function StickerManagerModal({
                 >
                     {`×${VS15}`}
                 </button>
-                {HUE_SWATCHES.map((c) => (
+                {HUE_SWATCHES.map(({ hex }) => (
                     <button
-                        key={c}
+                        key={hex}
                         type="button"
-                        className={`smgr-hue${hueFilter === c ? ' on' : ''}${c === '#FFFFFF' ? ' is-neutral' : ''}`}
-                        style={{ background: c }}
-                        title={hueFilter === c ? 'Show all colours' : 'Filter to this colour'}
-                        aria-pressed={hueFilter === c}
-                        onClick={() => setHueFilter((prev) => (prev === c ? null : c))}
+                        className={`smgr-hue${hueFilter === hex ? ' on' : ''}${isLightHex(hex) ? ' is-neutral' : ''}`}
+                        style={{ background: hex }}
+                        title={hueFilter === hex ? 'Show all colours' : 'Filter to this colour'}
+                        aria-pressed={hueFilter === hex}
+                        onClick={() => setHueFilter((prev) => (prev === hex ? null : hex))}
                     />
                 ))}
             </div>
