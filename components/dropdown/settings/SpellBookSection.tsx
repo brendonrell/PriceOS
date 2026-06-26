@@ -180,6 +180,26 @@ export function SpellBookSection({ onTripleTap }: Props) {
                             />
                         );
                     }
+                    if (spell.id === 'cartel') {
+                        // Cartel is icon-only (Brendon, 2026-06-26) — same compact
+                        // pill the icon-only MY PD toggles use.
+                        return (
+                            <SettingsToggle
+                                key={spell.id}
+                                id={`sb-${spell.id}`}
+                                active={notifs[spell.flag]}
+                                onClick={() => toggleSpellWithToast(spell)}
+                                icon={spell.icon}
+                                iconStyle={{
+                                    ...(spell.iconStyle?.fontSize ? { fontSize: spell.iconStyle.fontSize } : {}),
+                                    ...(spell.iconStyle?.top ? { position: 'relative', top: spell.iconStyle.top } : {}),
+                                    margin: '0 1px',
+                                }}
+                                sharp={spell.sharp}
+                                style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
+                            />
+                        );
+                    }
                     return (
                         <SettingsToggle
                             key={spell.id}

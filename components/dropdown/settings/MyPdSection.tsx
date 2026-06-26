@@ -692,8 +692,8 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.audience}
                         onClick={() => toggleWithToast('audience', 'Audience')}
                         icon={'●\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1', margin: '0 1px' }}
-                        style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
+                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
+                        label="Audience"
                     />
                     <SettingsToggle
                         id="sn-asciiId"
