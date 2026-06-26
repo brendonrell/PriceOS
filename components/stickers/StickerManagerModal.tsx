@@ -253,6 +253,17 @@ export function StickerManagerModal({
     // visible above it — you watch the changes land as you make them. Height is
     // capped to the room below (never taller than the ambient menu).
     const [anchor, setAnchor] = useState<{ top: number; left: number; maxH: number } | null>(null);
+
+    /* "Match" = stickers that suit your current Profile Colorway colour. Maps the
+       live profile hex to its swatch and leads the text presets. Declared with
+       the other hooks (above the closed-modal early return) so hook order is
+       stable whether the menu is open or shut. */
+    const { hex: profileHex } = useProfileHex();
+    const PRESETS = useMemo<Preset[]>(
+        () => [{ key: 'MATCH', label: 'Match', hexes: [swatchForHex(profileHex)] }, ...STATIC_PRESETS],
+        [profileHex],
+    );
+
     useIsoLayoutEffect(() => {
         if (!open || typeof window === 'undefined') return;
         const measure = () => {
@@ -377,13 +388,6 @@ export function StickerManagerModal({
     /* The sticker grid (owned, tap to toggle) — shared by both views. Grouped by
        sheet: each sheet starts on its own row, with a gap between groups so the
        end/start of a sheet reads clearly. */
-    /* "Match" = stickers that suit your current Profile Colorway colour. Maps the
-       live profile hex to its swatch and leads the text presets. */
-    const { hex: profileHex } = useProfileHex();
-    const PRESETS = useMemo<Preset[]>(
-        () => [{ key: 'MATCH', label: 'Match', hexes: [swatchForHex(profileHex)] }, ...STATIC_PRESETS],
-        [profileHex],
-    );
     const activePreset = hueFilter ? PRESETS.find((p) => p.key === hueFilter) ?? null : null;
     const matchesHue = (s: Sticker) => {
         if (!hueFilter) return true;
