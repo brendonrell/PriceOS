@@ -19,7 +19,8 @@
  *   out user sees the shape of the personal notification preferences.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { usePdNotifs, PING_TOAST_CYCLE, showsNativePings } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
@@ -37,6 +38,10 @@ export function MyPingsRow() {
        Drives whether cycling onto a native mode shows the inline enable prompt. */
     const [nativeOn, setNativeOn] = useState(false);
     const [show3dConfirm, setShow3dConfirm] = useState(false);
+    // The confirm bubble renders in a body-level portal (top layer, never
+    // clipped); these hold the pill's measured position to place it.
+    const cellRef = useRef<HTMLSpanElement>(null);
+    const [confirmPos, setConfirmPos] = useState<{ top: number; left: number } | null>(null);
     useEffect(() => {
         let live = true;
         getNativeStatus().then((s) => {
@@ -85,14 +90,20 @@ export function MyPingsRow() {
         const next = PING_TOAST_CYCLE[(i + 1) % PING_TOAST_CYCLE.length];
         update({ pingToasts: next });
         showToast(`Pingtoasts: ${next.toUpperCase()}`);
-        setShow3dConfirm(showsNativePings(next) && !nativeOn);
+        const show = showsNativePings(next) && !nativeOn;
+        if (show && cellRef.current) {
+            const r = cellRef.current.getBoundingClientRect();
+            // Centre over the pill, nudged a touch right for on-screen fit.
+            setConfirmPos({ top: r.top, left: r.left + r.width / 2 + 14 });
+        }
+        setShow3dConfirm(show);
     };
 
     return (
         <>
             <div className={`settings-header${gatedClass}`}>MY PINGS</div>
             <div className={`settings-pill-row${gatedClass}`}>
-                <span className="pingtoast-cell">
+                <span className="pingtoast-cell" ref={cellRef}>
                 <SettingsToggle
                     id="sn-pingToasts"
                     title={`Pingtoasts: ${notifs.pingToasts.toUpperCase()} — tap to cycle`}
@@ -102,15 +113,6 @@ export function MyPingsRow() {
                     iconStyle={{ fontSize: '14px', lineHeight: '1', marginRight: 0 }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
-                {show3dConfirm && (
-                    <button
-                        type="button"
-                        className="pingtoast-3d-confirm"
-                        onClick={(e) => { e.stopPropagation(); void confirm3d(); }}
-                    >
-                        Enable 3D Pingtoasts?
-                    </button>
-                )}
                 </span>
                 <SettingsToggle
                     id="sn-mints"
@@ -209,6 +211,22 @@ export function MyPingsRow() {
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
             </div>
+            {show3dConfirm && confirmPos && typeof document !== 'undefined' &&
+                createPortal(
+                    <button
+                        type="button"
+                        className="pingtoast-3d-confirm"
+                        style={{
+                            top: confirmPos.top,
+                            left: confirmPos.left,
+                            transform: 'translate(-50%, calc(-100% - 8px))',
+                        }}
+                        onClick={(e) => { e.stopPropagation(); void confirm3d(); }}
+                    >
+                        Enable 3D Pingtoasts?
+                    </button>,
+                    document.body,
+                )}
         </>
     );
 }

@@ -40,9 +40,8 @@ export function PwaInstallStep({ onDone }: { onDone: () => void }) {
     const [emphasise, setEmphasise] = useState(false);
     const seenRef = useRef(false);
     /* Decorative notification badge on the app icon — sells that installing
-       brings real, badged pings. Illustrative number (random 1–22), fixed for
-       this mount so it doesn't flicker. */
-    const [badgeNum] = useState(() => 1 + Math.floor(Math.random() * 22));
+       brings real, badged pings. Always 22 (Brendon, 2026-06-26), every variant. */
+    const badgeNum = 22;
 
     /* Record that the prompt was shown (once). */
     useEffect(() => {

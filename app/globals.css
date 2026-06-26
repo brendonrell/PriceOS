@@ -493,12 +493,13 @@ body.sentiment-on .sentiment-widget {
    pop-outs. It appears when the cycle lands on a native mode (3D / COMBO) and
    native isn't enabled yet, and is dismissed by cycling onward. */
 .pingtoast-cell { position: relative; display: inline-flex; }
+/* Rendered in a body-level portal (escapes the panel's clipping) and placed
+   with fixed coords measured from the pill — so it sits above the pill but can
+   never be clipped by the dropdown's overflow (Brendon, 2026-06-26). The inline
+   top/left/transform own the placement; this rule is the look. */
 .pingtoast-3d-confirm {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 30;
+    position: fixed;
+    z-index: 9999;
     white-space: nowrap;
     padding: 6px 10px;
     border-radius: 8px;
@@ -512,7 +513,7 @@ body.sentiment-on .sentiment-widget {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.32);
     animation: pingtoast-3d-pop 140ms ease-out;
 }
-/* Little downward tail pointing at the pill. */
+/* Little downward tail at the bubble's bottom centre, pointing at the pill. */
 .pingtoast-3d-confirm::after {
     content: '';
     position: absolute;
@@ -523,8 +524,8 @@ body.sentiment-on .sentiment-widget {
     border-top-color: var(--hothurt);
 }
 @keyframes pingtoast-3d-pop {
-    from { opacity: 0; transform: translateX(-50%) translateY(3px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /* Decorative iOS badge on the onboarding "add to home screen" app icon — sells
