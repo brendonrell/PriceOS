@@ -447,40 +447,112 @@ body.sentiment-on .sentiment-widget {
     font-variant-numeric: tabular-nums;
 }
 
-/* Unread Pings badge — a count dot pinned to the top-right of the connect
-   button. Inverse palette so it pops against the bar. Shows even when the menu
-   is closed (icon-only) so unread is visible without opening. */
+/* Unread Pings badge — a real iOS app-icon badge clipped to the top-right corner
+   of the connect square (which reads as the app icon when the menu is closed).
+   Signature Hothurt red + a white ring, exactly like Messages/Mail. Shows even
+   when the menu is closed so unread is visible without opening. Part of the
+   regular Pingtoasts (ON / COMBO) feature — gated in UserMenuButtons. */
 .btn-user { position: relative; }
 .pings-count-badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    background: var(--text-color);
-    color: var(--bg-color);
+    top: -7px;
+    right: -7px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    background: var(--hothurt);        /* #FF0055 — signature, every colorway */
+    color: #fff;
+    border: 1.5px solid #fff;          /* the iOS badge ring */
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    font-weight: bold;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
     pointer-events: none;
     box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
 }
 
-/* Inline variant — same circle, sat next to the PINGS label in the panel
-   header instead of pinned to a button corner. iOS-notification feel. */
+/* Inline variant — same badge, sat next to the PINGS label in the panel header
+   instead of pinned to a corner. */
 .pings-count-badge--inline {
     position: static;
     top: auto;
     right: auto;
     margin-left: 6px;
     vertical-align: middle;
+}
+
+/* ── Pingtoasts cell + inline "Enable 3D Pingtoasts?" confirm ───────────────
+   The confirm is an inline bubble floated ABOVE the Pingtoasts pill (not a
+   screen-covering modal) — the same non-blocking feel as the multi-select
+   pop-outs. It appears when the cycle lands on a native mode (3D / COMBO) and
+   native isn't enabled yet, and is dismissed by cycling onward. */
+.pingtoast-cell { position: relative; display: inline-flex; }
+.pingtoast-3d-confirm {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--hothurt);
+    color: #fff;
+    border: none;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.32);
+    animation: pingtoast-3d-pop 140ms ease-out;
+}
+/* Little downward tail pointing at the pill. */
+.pingtoast-3d-confirm::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--hothurt);
+}
+@keyframes pingtoast-3d-pop {
+    from { opacity: 0; transform: translateX(-50%) translateY(3px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Decorative iOS badge on the onboarding "add to home screen" app icon — sells
+   that installing brings real, badged notifications. Same Hothurt + ring as the
+   live connect-button badge. The number is illustrative (random 1–22). */
+.pwa-step-icon-wrap { position: relative; display: inline-block; }
+.pwa-step-icon-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--hothurt);
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
 }
 
 /* Money/All filter pill in the PINGS header — isolates financial pings. */
@@ -5283,6 +5355,16 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     line-height: 1.4;
     text-align: center;
     padding: 0 4px;
+}
+/* Secondary line under a confirm question (used by the 3D Pingtoasts first-run
+   ask) — lighter + smaller than the bold headline. */
+.ms-confirm-sub {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: normal;
+    letter-spacing: 0.2px;
+    line-height: 1.45;
+    opacity: 0.7;
 }
 .ms-confirm-btns {
     display: flex;

@@ -48,7 +48,6 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | `WATCH_HIT` | ✛ | U+271B | watch (wishlist family) |
 | `STREAK` | ◈ | U+25C8 | streak category glyph |
 | `ACHIEVEMENT` | *(its own)* | — | uses the unlock's catalog glyph; falls back to ✦ U+2726 |
-| `PING` (p2p message) | ✉ | U+2709 | direct message |
 
 > ⚠️ **No hearts** for wishlist. PD's wishlist glyph is **✛ (U+271B)**, taken
 > from the artwork action bar. A `♥`/`♡` is a per-user tape *sigil*, never a

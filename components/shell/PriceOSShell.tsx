@@ -89,6 +89,7 @@ import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
+import NativePingsFirstRun from './NativePingsFirstRun';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
@@ -447,6 +448,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="BenchDock">
                 <BenchDock />
+            </ErrorBoundary>
+            <ErrorBoundary name="NativePingsFirstRun">
+                <NativePingsFirstRun />
             </ErrorBoundary>
         </>
     );

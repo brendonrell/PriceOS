@@ -40,13 +40,26 @@ import { pushSettings, USERSTATE_HYDRATED_EVENT } from './userState';
 // 3 = Bold, 4 = Framed (inverted strip). Mobile cycle skips 1 and 2.
 export type TapeMode = 0 | 1 | 2 | 3 | 4;
 
-// Pingtoast mode — what kinds of pings pop a live toast. Cycled by the
-// Pingtoasts pill in MY PINGS: OFF → MONEY → SOCIAL → ALL.
-//   money  = financial signal only (offers / sales / accepted / wishlist)
-//   social = follows / achievements / p2p / mint milestones
-//   all    = everything (the "Reese's cup" — both at once)
-export type PingToastMode = 'off' | 'money' | 'social' | 'all';
-export const PING_TOAST_CYCLE: PingToastMode[] = ['off', 'money', 'social', 'all'];
+// Pingtoast mode — how far a ping reaches. Cycled by the Pingtoasts pill in MY
+// PINGS: OFF → ON → 3D → COMBO.
+//   off   = nothing pops (pings still land silently in the inbox)
+//   on    = regular Pingtoasts — in-app toast pop-ups + the connect-icon badge,
+//           while PD is open (the no-extra-permission path, great on iOS Safari)
+//   3d    = "3D Pingtoasts" — real native OS notifications that reach the lock
+//           screen even when PD is closed (opt-in: needs the device's allow-
+//           prompt + an installed PWA). No in-app toast — the OS shows it.
+//   combo = both at once — in-app toasts AND native notifications.
+export type PingToastMode = 'off' | 'on' | '3d' | 'combo';
+export const PING_TOAST_CYCLE: PingToastMode[] = ['off', 'on', '3d', 'combo'];
+
+/** True when this mode pops the in-app toast + shows the connect-icon badge. */
+export function showsRegularToasts(mode: PingToastMode): boolean {
+  return mode === 'on' || mode === 'combo';
+}
+/** True when this mode delivers native (3D) OS notifications. */
+export function showsNativePings(mode: PingToastMode): boolean {
+  return mode === '3d' || mode === 'combo';
+}
 
 // Menu Tape (the in-dropdown clone) supports a subset: 0, 3, 4.
 export type MenuTapeMode = 0 | 3 | 4;
@@ -164,15 +177,12 @@ export interface PdNotifs {
     // Misc UI prefs
     nightmode: boolean;
     priceLogo: boolean;
-    /* Brendon item 11 (chat A) — Pingtoasts: when true, ping events
-       toast (sim 9275 — `Pingtoasts ${state}`). The pill in MY PINGS
-       was rendered inert (no active/onClick props), so clicking
-       didn't react. Now wired: defaults true (sim 6782 init).
-       Behaviour for "show ping toast" callsites lands in subsequent
-       chats — this surfaces the toggle so the button reacts.
-       Brendon 2026-06-14 — upgraded from a boolean to a 4-stop cycle
-       (off/money/social/all) so users can scope live toasts to just the
-       markets, just their friends, or the full mix. */
+    /* Pingtoasts — how far a ping reaches. OFF (silent inbox) → ON (in-app
+       toasts + connect-icon badge) → 3D (native OS notifications, opt-in) →
+       COMBO (both). See PingToastMode above. Was a 4-stop off/money/social/all
+       cycle (2026-06-14); re-modelled to the notification-reach cycle on
+       2026-06-26 when native "3D Pingtoasts" landed. Legacy values map forward
+       on load. */
     pingToasts: PingToastMode;
 }
 
@@ -243,9 +253,10 @@ const DEFAULTS: PdNotifs = {
 
     nightmode: false,
     priceLogo: false,
-    /* Pingtoasts default to ALL (the full mix). Old boolean `true` coerces
-       to 'all', `false` to 'off' on load (see hydration effect). */
-    pingToasts: 'all',
+    /* Pingtoasts default OFF — the feature is buried + opt-in (Brendon,
+       2026-06-26). Users turn it on (regular), 3D (native), or COMBO via the
+       MY PINGS pill. Legacy stored values map forward on load (hydration). */
+    pingToasts: 'off',
 };
 
 const STORAGE_KEY = 'pd_settings_notifs';
@@ -300,12 +311,18 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
                     ...parsed,
                     pings: { ...DEFAULTS.pings, ...(parsed.pings || {}) },
                 };
-                // Back-compat: pingToasts was a boolean before the 4-stop cycle.
+                // Back-compat: pingToasts was a boolean (pre-cycle), then a
+                // four-stop off/money/social/all cycle. Map both onto the
+                // current off/on/3d/combo model. Money/social/all all popped
+                // toasts → the new regular "on". An unknown/missing value lands
+                // on the buried default (off — Pingtoasts is opt-in).
                 const pt = (next as { pingToasts: unknown }).pingToasts;
                 if (typeof pt === 'boolean') {
-                    next.pingToasts = pt ? 'all' : 'off';
+                    next.pingToasts = pt ? 'on' : 'off';
+                } else if (pt === 'money' || pt === 'social' || pt === 'all') {
+                    next.pingToasts = 'on';
                 } else if (!PING_TOAST_CYCLE.includes(pt as PingToastMode)) {
-                    next.pingToasts = 'all';
+                    next.pingToasts = 'off';
                 }
             }
         } catch {

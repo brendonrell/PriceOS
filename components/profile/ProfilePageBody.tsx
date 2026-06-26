@@ -37,6 +37,7 @@ import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { shareLink } from '../../lib/pwa/share';
 import {
     useSort,
     GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER, groupHeaderGlyph,
@@ -2058,8 +2059,19 @@ function ProfilePageBodyInner({
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
                         <button
                             className="btn-soundtrack"
-                            title="Profile action — coming soon"
-                            onClick={() => showToast('Share: COMING SOON')}
+                            title={`Share @${displayHandle}`}
+                            onClick={async () => {
+                                const url =
+                                    typeof window !== 'undefined'
+                                        ? `${window.location.origin}/${displayHandle}`
+                                        : `/${displayHandle}`;
+                                const result = await shareLink({
+                                    url,
+                                    title: `@${displayHandle} on Price Discussion`,
+                                });
+                                if (result === 'copied') showToast('Link: COPIED');
+                                else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
+                            }}
                         >
                             {/* Play icon stays on the soundtrack button no matter the
                                 label (Brendon, 2026-06-15). */}

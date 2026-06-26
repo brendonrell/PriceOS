@@ -34,9 +34,9 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseBrowser } from '../supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import { usePdNotifs } from './PdNotifsContext';
+import { usePdNotifs, showsRegularToasts, showsNativePings } from './PdNotifsContext';
 import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
-import { isFinancial } from '../pings/tiers';
+import { setAppBadge, clearAppBadge } from '../push/client';
 
 // Poll cadence (reliability fallback). The live market feed below drives the
 // near-instant path; this just catches non-market pings (follow / p2p) and any
@@ -133,25 +133,23 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       };
       const items = j.items ?? [];
 
-      // New, unread, category-allowed pings we haven't seen → toast once,
-      // scoped to the Pingtoasts mode (off / money / social / all).
+      // New, unread, category-allowed pings we haven't seen → pop a toast once.
+      // In-app toasts fire only when Pingtoasts is in a regular state (ON or
+      // COMBO) AND Silent Mode (the crescent focus toggle) is OFF. A 3D-only
+      // setup delivers via the OS, not an in-app toast. Pings still record
+      // regardless — Silent Mode only mutes the surfacing, so flipping it back
+      // on resumes the firehose of everything that landed while you focused.
       const n = prefsRef.current;
-      const mode = n.pingToasts;
+      const toastsOn = showsRegularToasts(n.pingToasts) && !n.nightmode;
       const fresh = items.filter(
         (p) => !p.read && !seenIds.current.has(p.id) && passesCategoryPrefs(p.kind, n.pings)
       );
-      if (primed.current && mode !== 'off' && fresh.length > 0) {
-        const toastable =
-          mode === 'money'
-            ? fresh.filter((p) => isFinancial(p.kind))
-            : mode === 'social'
-              ? fresh.filter((p) => !isFinancial(p.kind))
-              : fresh;
-        if (toastable.length === 1) {
-          const r = renderPing(toastable[0]);
+      if (primed.current && toastsOn && fresh.length > 0) {
+        if (fresh.length === 1) {
+          const r = renderPing(fresh[0]);
           showToast(`Ping: ${[r.handle, r.action].filter(Boolean).join(' ')}`.trim());
-        } else if (toastable.length > 1) {
-          showToast(`Pings: ${toastable.length} NEW`);
+        } else {
+          showToast(`Pings: ${fresh.length} NEW`);
         }
       }
       items.forEach((p) => seenIds.current.add(p.id));
@@ -274,6 +272,14 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       }
     };
   }, [siweAddress, fetchFull, fetchCount]);
+
+  // OS app-icon badge — when 3D Pingtoasts are on (3d / combo), mirror the
+  // unread count onto the installed app icon (iOS 16.4+ / Chromium), the same
+  // way Messages/Mail badge. Cleared when native isn't in play or count hits 0.
+  useEffect(() => {
+    if (showsNativePings(notifs.pingToasts)) setAppBadge(state.unreadCount);
+    else clearAppBadge();
+  }, [notifs.pingToasts, state.unreadCount]);
 
   const value = useMemo<PingsContextValue>(
     () => ({ state, refresh: fetchFull, markAllRead }),
