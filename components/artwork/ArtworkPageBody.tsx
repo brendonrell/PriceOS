@@ -266,8 +266,9 @@ export default function ArtworkPageBody({
         );
 
     /* Merge transactions + history markers into one homepage-shaped feed. The
-       fixed platform/identity rows (`pin` > 0) always anchor to the BOTTOM in
-       their pinned order; everything else sorts by the active sort. */
+       canonical FEED order is newest-first with the fixed platform/identity rows
+       pinned to the bottom. The FEED arrow flips the ENTIRE list top-to-bottom
+       (every row, pinned included); $PRICE sorts the whole list by price. */
     const feedItems = useMemo<FeedItem[]>(() => {
         const items: FeedItem[] = [];
         for (const fe of feedRows) {
@@ -294,15 +295,16 @@ export default function ArtworkPageBody({
                 pin: m.pin, seq: m.seq, price: 0, sortName: m.highlight,
             });
         }
-        const dirMult = outSort.dir === 'asc' ? 1 : -1;
-        items.sort((a, b) => {
-            if (a.pin !== b.pin) return a.pin - b.pin;          // genesis/identity to the bottom
-            if (a.pin > 0) return b.seq - a.seq;                // pinned block: fixed order
-            if (outSort.key === 'price') return (a.price - b.price) * dirMult || (b.ts - a.ts);
-            if (outSort.key === 'az') return a.sortName.localeCompare(b.sortName) * dirMult || (b.ts - a.ts);
-            return (a.ts - b.ts) * dirMult || (b.seq - a.seq);  // date / feed
-        });
-        return items;
+        // $PRICE — sort the whole feed by price (no pinning), direction-aware.
+        if (outSort.key === 'price') {
+            const m = outSort.dir === 'asc' ? 1 : -1;
+            items.sort((a, b) => (a.price - b.price) * m || (b.ts - a.ts));
+            return items;
+        }
+        // FEED — canonical newest-first with the pinned block at the bottom…
+        items.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
+        // …and the arrow flips the WHOLE list (last↔first), pinned rows included.
+        return outSort.dir === 'asc' ? items.reverse() : items;
     }, [feedRows, feedMarkers, outSort]);
 
     const owned = market?.viewer?.isOwner ?? false;
