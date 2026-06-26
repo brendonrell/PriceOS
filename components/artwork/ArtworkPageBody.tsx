@@ -25,6 +25,7 @@ import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
@@ -156,6 +157,7 @@ export default function ArtworkPageBody({
 }: Props) {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
+    const { open: openModal } = useModal();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
 
@@ -552,7 +554,15 @@ export default function ArtworkPageBody({
                 aria-label="Artwork"
                 style={{ display: onArtwork ? undefined : 'none' }}
             >
-                <div className="artwork-feature-stage">
+                <div
+                    className="artwork-feature-stage"
+                    role="button"
+                    tabIndex={0}
+                    title="Open — scroll the project"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => openModal('output', numberPart, slug)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('output', numberPart, slug); } }}
+                >
                     <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
                 </div>
                 <div className="artwork-feature-foot">
