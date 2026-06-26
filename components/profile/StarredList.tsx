@@ -1004,7 +1004,7 @@ function StarredOutputRow({
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
-            <OutputThumb slug={slug} id={id} size={timeline ? 51 : 64} />
+            <OutputThumb slug={slug} id={id} size={timeline ? 51 : 64} crop={timeline} />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">
                     <span className="srl-handle">{project}</span>

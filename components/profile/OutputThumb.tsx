@@ -14,10 +14,15 @@ export default function OutputThumb({
     slug,
     id,
     size = 64,
+    crop = false,
 }: {
     slug: string;
     id: number;
     size?: number;
+    /* When set, art is CROPPED to fill the square (cover) instead of the
+       default stretch-to-fill. History opts in; Starred/Wishlist do not
+       (Brendon 2026-06-26 — scope the crop to History only). */
+    crop?: boolean;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
@@ -54,10 +59,10 @@ export default function OutputThumb({
         <canvas
             ref={ref}
             className="starred-row-thumb-canvas"
-            /* Square slot, art CROPPED to fill it — never stretched/distorted
-               (Brendon 2026-06-26). The bitmap is the piece's true aspect; cover
-               scales-to-fill and trims the overflow, centered. */
-            style={{ width: size, height: size, display: 'block', borderRadius: 6, background: 'var(--stat-bg)', objectFit: 'cover' }}
+            /* Square slot. When `crop` is set the art fills it via cover — true
+               aspect, trimmed, never distorted (Brendon 2026-06-26). Otherwise
+               the original stretch-to-fill is kept (Starred/Wishlist unchanged). */
+            style={{ width: size, height: size, display: 'block', borderRadius: 6, background: 'var(--stat-bg)', ...(crop ? { objectFit: 'cover' as const } : {}) }}
         />
     );
 }
