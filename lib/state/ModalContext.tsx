@@ -52,16 +52,17 @@ interface OpenModalState {
  *  and carousels — instead of one project's id range (Brendon 2026-06-26). */
 export interface OutputRef { slug: string; id: number; }
 
-/** Read every VISIBLE output card on the page, in document order — exactly the
- *  visual order (grid top-to-bottom, carousels stacked). Captured at open-time,
- *  before the modal covers the grid. Hidden cards (filtered out, off-tab, or
- *  showcase-collapsed via CSS — the full list stays mounted) are skipped, so the
- *  arrows only walk what the user can actually see. */
+/** Read every VISIBLE output on the page, in document order — exactly the visual
+ *  order (grid top-to-bottom, carousels stacked, list rows in order). Captured at
+ *  open-time, before the modal covers the surface. Matches both gallery cards and
+ *  list rows (Starred / Wishlist / History) — anything carrying a slug + token id.
+ *  Hidden items (filtered out, off-tab, or showcase-collapsed via CSS — the full
+ *  list stays mounted) are skipped, so the arrows only walk what's actually seen. */
 function readOutputSequence(): OutputRef[] {
     if (typeof document === 'undefined') return [];
     const out: OutputRef[] = [];
-    document.querySelectorAll<HTMLElement>('.output-card[data-slug][data-mint-id]').forEach((el) => {
-        // offsetParent === null ⇒ this card (or an ancestor) is display:none.
+    document.querySelectorAll<HTMLElement>('[data-slug][data-mint-id]').forEach((el) => {
+        // offsetParent === null ⇒ this item (or an ancestor) is display:none.
         if (el.offsetParent === null) return;
         const slug = el.dataset.slug;
         const id = Number(el.dataset.mintId);

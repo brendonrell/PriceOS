@@ -340,6 +340,10 @@ function WishlistRow({
             className={`starred-row wishlist-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
             role="button"
             tabIndex={0}
+            /* Stamped so the artwork modal's arrows walk the Wishlist AS SHOWN
+               (Brendon 2026-06-26). */
+            data-slug={slug}
+            data-mint-id={id}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >

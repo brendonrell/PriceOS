@@ -27,11 +27,14 @@ const STORAGE_KEY = 'pd_grail_pins';
 const MAX_PINS = 10;
 export const MAX_GRAIL_PINS = MAX_PINS;
 
-export type GrailKind = 'output' | 'wishlist' | 'project' | 'trait' | 'artist' | 'soundtrack';
+import type { TxStar } from './txStarStore';
+
+export type GrailKind = 'output' | 'wishlist' | 'project' | 'trait' | 'artist' | 'soundtrack' | 'tx';
 
 export interface GrailPin {
     kind: GrailKind;
-    /** Project slug — or, for an artist pin, the @handle (without '@'). */
+    /** Project slug — or, for an artist pin, the @handle (without '@'). For a tx
+     *  pin, the slug of the token the transaction is about (for the pill label). */
     slug: string;
     /** Output id (output kind only). */
     id?: number;
@@ -41,6 +44,9 @@ export interface GrailPin {
     /** Soundtrack playlist id + display title (soundtrack kind only). */
     playlistId?: string;
     title?: string;
+    /** The starred transaction's essentials (tx kind only) — enough to render
+     *  the pill + open the token it concerns. */
+    tx?: TxStar;
 }
 
 type Listener = (pins: readonly GrailPin[]) => void;
@@ -58,6 +64,7 @@ export function grailKey(p: GrailPin): string {
         case 'trait': return `t:${p.slug}|${p.category}|${p.value}`;
         case 'artist': return `a:${p.slug}`;
         case 'soundtrack': return `s:${p.slug}|${p.playlistId}`;
+        case 'tx': return `x:${p.tx?.id}`;
         default: return `?:${p.slug}`;
     }
 }
@@ -89,6 +96,11 @@ function hydrate(): void {
                     if (kind === 'soundtrack') {
                         if (typeof p.playlistId !== 'string') return null;
                         return { kind: 'soundtrack', slug: p.slug, playlistId: p.playlistId, title: typeof p.title === 'string' ? p.title : undefined };
+                    }
+                    if (kind === 'tx') {
+                        const tx = p.tx;
+                        if (!tx || typeof tx !== 'object' || typeof tx.id !== 'string' || typeof tx.type !== 'string') return null;
+                        return { kind: 'tx', slug: p.slug, tx: tx as TxStar };
                     }
                     return null;
                 })

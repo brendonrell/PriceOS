@@ -925,6 +925,11 @@ export default function StarredList({
                                tiles. The wallet credited on the row (recipient for
                                MINT/SALE, sender for LIST/XFER). No @name → no colour. */
                             const txActorHandle = (r.star.type === 'MINT' || r.star.type === 'SALE') ? r.star.toHandle : r.star.fromHandle;
+                            /* The token this transaction concerns — slug parsed off
+                               the `${slug}-${localId}` tokenId (slugs may contain a
+                               hyphen, so split on the LAST one). Drives the pin label. */
+                            const txTokenSlug = r.star.tokenId ? r.star.tokenId.slice(0, r.star.tokenId.lastIndexOf('-')) : '';
+                            const txPin: GrailPin = { kind: 'tx', slug: txTokenSlug, tx: r.star };
                             return (
                             <div
                                 key={selKey}
@@ -956,6 +961,10 @@ export default function StarredList({
                                         ✕&#xFE0E;
                                     </span>
                                 </div>
+                                <GrailDot
+                                    pinned={grailKeys.has(grailKey(txPin))}
+                                    onToggle={() => handleGrail(txPin)}
+                                />
                             </div>
                             );
                         })}
@@ -1075,6 +1084,11 @@ function StarredOutputRow({
             className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}${timeline ? ' is-timeline' : ''}`}
             role="button"
             tabIndex={0}
+            /* Stamped so the artwork modal's arrows walk this list AS SHOWN
+               (Starred Outputs / History order) — same as a grid (Brendon
+               2026-06-26). */
+            data-slug={slug}
+            data-mint-id={id}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >

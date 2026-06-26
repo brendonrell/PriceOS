@@ -93,6 +93,7 @@ import { buildOutputMetaFor } from '../../lib/state/ProjectContext';
 import { getProject } from '../../lib/project/registry';
 import { projectMarketStat, traitMarketStat } from '../../lib/market/starredMarket';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { FEED_ICON } from '../../lib/feed/feedRow';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
@@ -274,6 +275,10 @@ export function TopBarRow() {
                                         // In-app route to the canonical bare handle (strip any
                                         // leading @, which would 301-redirect through a blank hop).
                                         router.push('/' + pin.slug.replace(/^@/, ''));
+                                    } else if (pin.kind === 'tx') {
+                                        // A transaction concerns a token — open that token's modal.
+                                        const lid = Number(txLocalId(pin.tx));
+                                        if (Number.isFinite(lid)) openOutputModal('output', lid, pin.slug);
                                     } else {
                                         // Projects live at /art/{slug} — the canonical, non-redirecting path.
                                         router.push('/art/' + pin.slug);
@@ -422,6 +427,13 @@ function fmtCount(n: number): string {
 }
 
 /* Short, human label for a pin (toast text). */
+/** Local token number out of a tx pin's `${slug}-${id}` tokenId. */
+function txLocalId(tx?: GrailPin['tx']): string {
+    if (!tx?.tokenId) return '';
+    const i = tx.tokenId.lastIndexOf('-');
+    return i >= 0 ? tx.tokenId.slice(i + 1) : tx.tokenId;
+}
+
 function grailPillLabel(pin: GrailPin): string {
     const name = getProject(pin.slug)?.displayName ?? pin.slug.toUpperCase();
     const coll = name.charAt(0) + name.slice(1).toLowerCase();
@@ -431,6 +443,7 @@ function grailPillLabel(pin: GrailPin): string {
         case 'trait': return `${coll} \u00b7 ${pin.value}`;
         case 'artist': return `@${pin.slug}`;
         case 'soundtrack': return `${coll} \u266a`;
+        case 'tx': { const l = txLocalId(pin.tx); return l ? `${coll} #${l}` : coll; }
         default: return coll;
     }
 }
@@ -504,6 +517,13 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
         priceText = artistFollowers != null ? fmtCount(artistFollowers) : null;
         titleAttr = `@${pin.slug}${artistFollowers != null ? ` · ${artistFollowers} followers` : ''}`;
+    } else if (pin.kind === 'tx') {
+        // Transaction pin — the event glyph + the token it concerns.
+        displayTitle = redacted ? redactedTitle : projectTitle;
+        leadGlyph = pin.tx ? `${FEED_ICON[pin.tx.type] ?? '✶'}︎` : null;
+        const lid = txLocalId(pin.tx);
+        idText = lid ? `#${lid}` : null;
+        titleAttr = `${projectTitle} · ${pin.tx?.type ?? 'TX'}${lid ? ` #${lid}` : ''}`;
     } else {
         // soundtrack
         displayTitle = redacted ? redactedTitle : `@${pin.slug}`;
