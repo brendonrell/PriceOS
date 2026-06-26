@@ -920,6 +920,11 @@ export default function StarredList({
                         {typeHdr && visibleTx.length > 0 && <div className="starred-group-header">Tx</div>}
                         {visibleTx.map((r) => {
                             const selKey = `tx:${r.star.id}`;
+                            /* Colour the tile by the transacting wallet's generative
+                               colorway — the SAME source as the starred artist/collector
+                               tiles. The wallet credited on the row (recipient for
+                               MINT/SALE, sender for LIST/XFER). No @name → no colour. */
+                            const txActorHandle = (r.star.type === 'MINT' || r.star.type === 'SALE') ? r.star.toHandle : r.star.fromHandle;
                             return (
                             <div
                                 key={selKey}
@@ -930,7 +935,7 @@ export default function StarredList({
                                 onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph">{r.fe.icon}&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph" style={txActorHandle ? { color: artistColor(txActorHandle) } : undefined}>{r.fe.icon}&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">{r.fe.detail}</span>
