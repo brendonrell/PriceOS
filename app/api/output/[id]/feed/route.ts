@@ -17,10 +17,11 @@ export const revalidate = 5; // Feed events: 5s
    the artist route). */
 const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
 
-/* A non-transaction timeline row: the artist's join, the project's upload, and
-   each project milestone / lifecycle moment. Rendered alongside the token's
-   own MINT/LIST/SALE/XFER rows so the output reads as a full history. Content =
-   `lead` + bold `highlight` + `tail`; seq orders same-timestamp rows. */
+/* A non-transaction timeline row: the artist + minter identity moments, the
+   project's upload, and each project milestone / lifecycle moment. Rendered in
+   the SAME two-line shape as the homepage Now-Minting feed — `label` is the
+   ALLCAPS action (the af-type column), `subject` is the name (the f-content
+   column, linked when `href` is set). `badge` appends the ✺ PD-Artist mark. */
 export interface FeedMarker {
   id: string;
   glyph: string;
@@ -31,32 +32,33 @@ export interface FeedMarker {
      independent of their literal dates (the platform rows carry future dates, so
      a plain time sort would float them to the top). 0 = normal, time-sorted;
      higher = lower on the page. 4 = #price-discussion, 3 = PriceOS 1.0,
-     2 = $PRICE airdrop, 1 = artist joined. */
+     2 = $PRICE airdrop, 1 = identity (artist/minter). */
   pin: number;
   /* When set, the day is undecided — the row shows "MMM ?" (month only). The
      timestamp still carries the right month for display. */
   tbdDay?: boolean;
-  lead: string;
-  highlight: string;
-  tail: string;
+  label: string;
+  subject: string;
+  href: string | null;
+  badge?: boolean;
 }
 
 /* The fixed platform-origin rows that open EVERY output's timeline, beneath the
    artist's join, in chronological order. Dates are deliberate (the day is ours
-   to pick). Glyphs are vetted glossary picks: ⌖ = the OG/longevity mark; ✢ = the
-   anointing mark; ⁂ = the asterism (a scatter — the airdrop). */
+   to pick). Glyphs are Brendon's picks: # = the hashtag, ‰ = the PriceOS logo
+   mark (Inter), ⤓ = a downward drop (the airdrop). */
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
     id: 'pd-started', glyph: '#', cls: null, timestamp: '2021-11-11T00:00:00.000Z',
-    seq: 0, pin: 4, lead: '', highlight: '#price-discussion', tail: ' started',
+    seq: 0, pin: 4, label: 'STARTED', subject: '#price-discussion', href: null,
   },
   {
     id: 'priceos-released', glyph: '‰', cls: 'af-ic--mille', timestamp: '2026-07-01T00:00:00.000Z',
-    seq: 0, pin: 3, tbdDay: true, lead: '', highlight: 'PriceOS 1.0', tail: ' released',
+    seq: 0, pin: 3, tbdDay: true, label: 'RELEASED', subject: 'PriceOS 1.0', href: null,
   },
   {
     id: 'price-airdrop', glyph: '⤓', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
-    seq: 0, pin: 2, tbdDay: true, lead: '', highlight: '$PRICE', tail: ' airdrop',
+    seq: 0, pin: 2, tbdDay: true, label: 'AIRDROP', subject: '$PRICE', href: null,
   },
 ];
 
@@ -114,7 +116,7 @@ type DB = ReturnType<typeof getSupabaseService>;
    labels the home / profile feeds use (lib/home/milestones). Project-level, so
    identical across every output of the project. Best-effort: a missing project
    row or unstamped moment simply yields fewer markers. */
-async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
+async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<FeedMarker[]> {
   const projRes = await db
     .from('projects')
     .select('title, artist_address, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones')
@@ -138,21 +140,61 @@ async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
     const t = new Date(v).getTime();
     return Number.isFinite(t) ? new Date(t).toISOString() : null;
   };
+  const projHref = `/art/${slug}`;
+  const nameOf = (handle: string | null, addr: string): string =>
+    handle ? `@${handle}` : `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  const profileHref = (handle: string | null): string | null => (handle ? `/${handle}` : null);
 
-  // Artist joined PriceOS — the artist's user row (created_at = join moment).
-  if (p.artist_address) {
-    const uRes = await db
-      .from('users')
-      .select('handle, created_at')
-      .eq('address', p.artist_address)
-      .maybeSingle();
-    const u = uRes.data as { handle: string | null; created_at: string | null } | null;
-    const joined = iso(u?.created_at ?? null);
-    if (joined) {
+  const artistAddr = p.artist_address ? p.artist_address.toLowerCase() : null;
+
+  // ── Identity rows: artist joined → artist added as PD Artist → minter joined.
+  if (artistAddr) {
+    const [artistUserRes, allowRes] = await Promise.all([
+      db.from('users').select('handle, created_at').eq('address', artistAddr).maybeSingle(),
+      db.from('artist_allowlist').select('added_at').eq('address', artistAddr).maybeSingle(),
+    ]);
+    const au = artistUserRes.data as { handle: string | null; created_at: string | null } | null;
+    const artistName = nameOf(au?.handle ?? null, artistAddr);
+    const artistLink = profileHref(au?.handle ?? null);
+
+    const artistJoined = iso(au?.created_at ?? null);
+    if (artistJoined) {
       markers.push({
         id: `artist-joined-${slug}`,
-        glyph: '✺', cls: null, timestamp: joined, seq: -2, pin: 1,
-        lead: '', highlight: u?.handle ? `@${u.handle}` : 'The artist', tail: ' joined PriceOS',
+        glyph: '✺', cls: null, timestamp: artistJoined, seq: -3, pin: 1,
+        label: 'JOINED PD', subject: artistName, href: artistLink,
+      });
+    }
+    const artistAdded = iso((allowRes.data as { added_at: string | null } | null)?.added_at ?? null);
+    if (artistAdded) {
+      markers.push({
+        id: `artist-added-${slug}`,
+        glyph: '✺', cls: null, timestamp: artistAdded, seq: -2, pin: 1,
+        label: 'PD ARTIST', subject: artistName, href: artistLink, badge: true,
+      });
+    }
+  }
+
+  // Original minter of THIS token (first MINT's recipient). Skip if the minter
+  // IS the artist (already shown above); otherwise just their join date — never
+  // an artist row, even if they happen to be an artist too.
+  const mintRes = await db
+    .from('events')
+    .select('to_address, timestamp')
+    .eq('project_id', slug).eq('token_id', tokenId).eq('type', 'MINT')
+    .order('timestamp', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const minterAddr = (mintRes.data as { to_address: string | null } | null)?.to_address?.toLowerCase() ?? null;
+  if (minterAddr && minterAddr !== artistAddr) {
+    const muRes = await db.from('users').select('handle, created_at').eq('address', minterAddr).maybeSingle();
+    const mu = muRes.data as { handle: string | null; created_at: string | null } | null;
+    const minterJoined = iso(mu?.created_at ?? null);
+    if (minterJoined) {
+      markers.push({
+        id: `minter-joined-${slug}-${tokenId}`,
+        glyph: '✺', cls: null, timestamp: minterJoined, seq: -1, pin: 1,
+        label: 'JOINED PD', subject: nameOf(mu?.handle ?? null, minterAddr), href: profileHref(mu?.handle ?? null),
       });
     }
   }
@@ -164,7 +206,7 @@ async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
     markers.push({
       id: `upload-${slug}`,
       glyph: FEED_LIFECYCLE.upload.glyph, cls: null, timestamp: uploadedIso, seq: -1, pin: 0,
-      lead: '', highlight: title, tail: ' uploaded',
+      label: FEED_LIFECYCLE.upload.label, subject: title, href: projHref,
     });
   }
 
@@ -176,7 +218,7 @@ async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
       markers.push({
         id: `ms-${count}-${slug}`,
         glyph: m.glyph, cls: m.cls ?? null, timestamp: when, seq: m.count, pin: 0,
-        lead: `${title} reached `, highlight: m.label, tail: '',
+        label: m.label, subject: title, href: projHref,
       });
     }
   }
@@ -187,7 +229,7 @@ async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
     markers.push({
       id: `grad-${slug}`,
       glyph: FEED_LIFECYCLE.graduated.glyph, cls: FEED_LIFECYCLE.graduated.cls ?? null, timestamp: gradIso, seq: 18, pin: 0,
-      lead: '', highlight: title, tail: ' graduated',
+      label: FEED_LIFECYCLE.graduated.label, subject: title, href: projHref,
     });
   }
   const ascIso = iso(p.sold_out_at);
@@ -195,7 +237,7 @@ async function buildMarkers(db: DB, slug: string): Promise<FeedMarker[]> {
     markers.push({
       id: `asc-${slug}`,
       glyph: FEED_LIFECYCLE.ascension.glyph, cls: null, timestamp: ascIso, seq: Number.MAX_SAFE_INTEGER, pin: 0,
-      lead: `${title} reached `, highlight: FEED_LIFECYCLE.ascension.label, tail: '',
+      label: FEED_LIFECYCLE.ascension.label, subject: title, href: projHref,
     });
   }
 
@@ -231,7 +273,7 @@ export async function GET(
       .slice(0, limit);
     await attachHandles(db, events);
 
-    const markers = await buildMarkers(db, slug);
+    const markers = await buildMarkers(db, slug, tokenId);
 
     const response: OutputFeedResponse = {
       project_id: slug,

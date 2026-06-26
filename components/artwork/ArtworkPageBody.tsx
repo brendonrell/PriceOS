@@ -24,6 +24,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
@@ -35,7 +36,7 @@ import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
 import AttributesPanel from './AttributesPanel';
-import FeedEventRow from '../feed/FeedEventRow';
+import OutputActionRow from './OutputActionRow';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import type { EventRow } from '../../lib/supabase';
@@ -47,8 +48,8 @@ function shortAddr(a: string | null): string {
     return '0x' + a.slice(2, 6) + '…' + a.slice(-4);
 }
 
-/* A project/artist history row in the output timeline (artist joined · uploaded
-   · milestones · graduated · ascension). Mirrors the server FeedMarker shape. */
+/* A project/artist history row in the output timeline — same two-line shape as
+   the homepage Now-Minting feed. Mirrors the server FeedMarker. */
 interface FeedMarker {
     id: string;
     glyph: string;
@@ -57,29 +58,66 @@ interface FeedMarker {
     seq: number;
     pin: number;
     tbdDay?: boolean;
-    lead: string;
-    highlight: string;
-    tail: string;
+    label: string;
+    subject: string;
+    href: string | null;
+    badge?: boolean;
 }
 
-/* One row of the merged timeline: either a token transaction (FeedEventRow) or
-   a history marker. `ts` (ms) + `seq` drive the shared sort. */
-type TimelineRow =
-    | { kind: 'tx'; ts: number; seq: number; pin: number; fe: FeedEvent }
-    | { kind: 'marker'; ts: number; seq: number; pin: number; m: FeedMarker };
+/* One rendered row of the output feed (transactions + history markers), shaped
+   for the homepage `home-activity-feed` two-line row. */
+interface FeedItem {
+    key: string;
+    glyph: string;
+    cls: string | null;
+    label: string;
+    ts: number;
+    tbdDay?: boolean;
+    content: ReactNode;
+    pin: number;
+    seq: number;
+    price: number;
+    sortName: string;
+}
 
-/* Marker date for the time column — "MMM DD" uppercase (e.g. MAY 13), or "MMM ?"
-   when the day is undecided (tbdDay). These are historical moments, so they show
-   a date where transaction rows show a time. */
-function fmtMarkerDate(iso: string, tbdDay?: boolean): string {
+/* Output feed sort — the homepage Now-Minting model (date / price / az / feed). */
+type OutSortKey = 'date' | 'price' | 'az' | 'feed';
+type OutSortDir = 'asc' | 'desc';
+
+/* Colorway view squares — identical cluster to the homepage sort bar. */
+const OUT_THEME_PILLS: { key: ColorwayKey; cls: string; glyph: string; title: string }[] = [
+    { key: 'custom', cls: 't-custom', glyph: '◩︎', title: 'Custom Color' },
+    { key: 'light',  cls: 't-light',  glyph: '◻︎', title: 'Light' },
+    { key: 'dark',   cls: 't-dark',   glyph: '◼︎', title: 'Dark' },
+    { key: 'orange', cls: 't-orange', glyph: '▨︎', title: 'Orange' },
+];
+
+/* The four homepage sort buttons (DATE · $PRICE · AZ/ZA · FEED). */
+const OUT_SORTS: { key: OutSortKey; title: string; lbl: (s: { key: OutSortKey; dir: OutSortDir }) => string }[] = [
+    { key: 'date',  title: 'Sort by date',     lbl: () => 'DATE' },
+    { key: 'price', title: 'Sort by price',    lbl: () => '$PRICE' },
+    { key: 'az',    title: 'Sort A–Z by name', lbl: (s) => (s.key === 'az' && s.dir === 'desc' ? 'ZA' : 'AZ') },
+    { key: 'feed',  title: 'Activity Feed',    lbl: () => 'FEED' },
+];
+
+/* "MMM DD" (e.g. MAY 13), or "MMM ?" when the day is undecided — same base
+   format as the homepage feed's upload date. */
+function fmtFeedDate(iso: string, tbdDay?: boolean): string {
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    const month = d
-        .toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })
-        .toUpperCase();
+    if (Number.isNaN(d.getTime())) return '—';
+    const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
     if (tbdDay) return `${month} ?`;
     const day = d.toLocaleDateString('en-US', { day: '2-digit', timeZone: 'UTC' });
     return `${month} ${day}`;
+}
+
+/* "15:42" — 24-hour clock, matching the homepage feed. Blank for undecided-day
+   rows (no meaningful time). */
+function fmtFeedTime(iso: string, tbdDay?: boolean): string {
+    if (tbdDay) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
 }
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';
@@ -213,18 +251,56 @@ export default function ArtworkPageBody({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [slug, numberPart]);
 
-    /* Merge transactions + history markers into one timeline, newest first.
-       The fixed platform/artist genesis rows (`pin` > 0) always anchor to the
-       BOTTOM in their pinned order, regardless of date; everything else sorts by
-       time, with `seq` breaking same-timestamp ties so a single mint's milestones
-       read in their true order (FIRST BLOOD → GRADUATED → …). */
-    const timeline = useMemo<TimelineRow[]>(() => {
-        const rows: TimelineRow[] = [];
-        for (const fe of feedRows) rows.push({ kind: 'tx', ts: fe.timestamp, seq: Number.MAX_SAFE_INTEGER, pin: 0, fe });
-        for (const m of feedMarkers) rows.push({ kind: 'marker', ts: Date.parse(m.timestamp) || 0, seq: m.seq, pin: m.pin, m });
-        rows.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
-        return rows;
-    }, [feedRows, feedMarkers]);
+    /* Feed sort — the homepage Now-Minting model. Default 'feed' = the activity
+       order (newest first, with the fixed platform/identity rows pinned to the
+       bottom). DATE / $PRICE / AZ re-order the rest. */
+    const { colorway, setColorway } = useColorway();
+    const activeColorway: ColorwayKey = colorway ?? 'custom';
+    const [outSort, setOutSort] = useState<{ key: OutSortKey; dir: OutSortDir }>({ key: 'feed', dir: 'desc' });
+    const onOutSort = (key: OutSortKey) =>
+        setOutSort((prev) =>
+            prev.key === key
+                ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+                : { key, dir: key === 'price' || key === 'az' ? 'asc' : 'desc' },
+        );
+
+    /* Merge transactions + history markers into one homepage-shaped feed. The
+       fixed platform/identity rows (`pin` > 0) always anchor to the BOTTOM in
+       their pinned order; everything else sorts by the active sort. */
+    const feedItems = useMemo<FeedItem[]>(() => {
+        const items: FeedItem[] = [];
+        for (const fe of feedRows) {
+            items.push({
+                key: `tx-${fe.id}`, glyph: fe.icon, cls: null, label: fe.type,
+                ts: fe.timestamp, content: fe.detail, pin: 0, seq: Number.MAX_SAFE_INTEGER,
+                price: fe.price, sortName: fe.type,
+            });
+        }
+        for (const m of feedMarkers) {
+            const name = (
+                <>
+                    {m.href
+                        ? <a className="f-highlight upload-title" href={m.href}>{m.subject}</a>
+                        : <span className="f-highlight upload-title">{m.subject}</span>}
+                    {m.badge && <span className="artist-tag is-sm" aria-label="PD Artist">{' ✺︎'}</span>}
+                </>
+            );
+            items.push({
+                key: `m-${m.id}`, glyph: m.glyph, cls: m.cls, label: m.label,
+                ts: Date.parse(m.timestamp) || 0, tbdDay: m.tbdDay, content: name,
+                pin: m.pin, seq: m.seq, price: 0, sortName: m.subject,
+            });
+        }
+        const dirMult = outSort.dir === 'asc' ? 1 : -1;
+        items.sort((a, b) => {
+            if (a.pin !== b.pin) return a.pin - b.pin;          // genesis/identity to the bottom
+            if (a.pin > 0) return b.seq - a.seq;                // pinned block: fixed order
+            if (outSort.key === 'price') return (a.price - b.price) * dirMult || (b.ts - a.ts);
+            if (outSort.key === 'az') return a.sortName.localeCompare(b.sortName) * dirMult || (b.ts - a.ts);
+            return (a.ts - b.ts) * dirMult || (b.seq - a.seq);  // date / feed
+        });
+        return items;
+    }, [feedRows, feedMarkers, outSort]);
 
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
@@ -497,31 +573,63 @@ export default function ArtworkPageBody({
                         : <span className="aff-owner">{heldBy}</span>}
                 </div>
 
-                {/* Output activity feed — REAL pre-chain rows from Supabase
-                    `events`, scoped to this token. Same markup as the project
-                    artworks feed so it reads identically. */}
-                <section id="output-activity-feed" aria-label="Activity Feed">
-                    <div className="feed-list">
-                        {timeline.length === 0 ? (
-                            <GhostFeedRows />
-                        ) : timeline.map((row) => (
-                            row.kind === 'tx' ? (
-                                <FeedEventRow key={row.fe.id} fe={row.fe} />
-                            ) : (
-                                <div className="feed-row" key={row.m.id}>
-                                    <div className="feed-line" />
-                                    <div className={`f-icon-wrap af-ic${row.m.cls ? ` ${row.m.cls}` : ''}`}>
-                                        {row.m.glyph}&#xFE0E;
-                                    </div>
-                                    <div className="f-time">{fmtMarkerDate(row.m.timestamp, row.m.tbdDay)}</div>
-                                    <div className="f-type" />
-                                    <div className="f-content">
-                                        {row.m.lead}
-                                        <span className="f-highlight">{row.m.highlight}</span>
-                                        {row.m.tail}
-                                    </div>
+                {/* Action row — the artwork-modal buttons (star / wishlist /
+                    album / note / to-do / grail / cart), just below the art. */}
+                <OutputActionRow slug={slug} id={numberPart} listed={!!market?.listing} owned={owned} />
+
+                {/* Output activity feed — the homepage Now-Minting feed, exact:
+                    colorway squares + DATE / $PRICE / AZ / FEED, then the
+                    two-line activity rows. Fed by THIS output's history. */}
+                <div className="home-facet-bar output-feed-bar">
+                    <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
+                        <div className="colorway-pills">
+                            {OUT_THEME_PILLS.map((t) => (
+                                <div
+                                    key={t.key ?? 'default'}
+                                    className={`pill-colorway ${t.cls}${activeColorway === t.key ? ' active' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setColorway(t.key)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setColorway(t.key); } }}
+                                    title={t.title}
+                                >
+                                    <span>{t.glyph}</span>
                                 </div>
-                            )
+                            ))}
+                        </div>
+                        <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+                            {OUT_SORTS.map((s) => (
+                                <span
+                                    key={s.key}
+                                    className={`sort-btn${outSort.key === s.key ? ' active' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    title={s.title}
+                                    onClick={() => onOutSort(s.key)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOutSort(s.key); } }}
+                                >
+                                    <span className="sort-lbl">{s.lbl(outSort)}</span>
+                                    <span className="sort-arrow">{outSort.key === s.key ? (outSort.dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <section className="home-uploads" aria-label="Activity Feed">
+                    <div className="feed-list home-activity-feed">
+                        {feedItems.length === 0 ? (
+                            <GhostFeedRows />
+                        ) : feedItems.map((row) => (
+                            <div className="feed-row" key={row.key}>
+                                <div className="feed-line" />
+                                <div className={`f-icon-wrap af-ic${row.cls ? ` ${row.cls}` : ''}`}>{row.glyph}&#xFE0E;</div>
+                                <div className="f-time">{fmtFeedDate(new Date(row.ts).toISOString(), row.tbdDay)}</div>
+                                <div className="f-type af-type">
+                                    <span>{row.label}</span>
+                                    <span>{fmtFeedTime(new Date(row.ts).toISOString(), row.tbdDay)}</span>
+                                </div>
+                                <div className="f-content">{row.content}</div>
+                            </div>
                         ))}
                     </div>
                 </section>
