@@ -541,7 +541,7 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
             role="button"
             tabIndex={0}
         >
-            {leadGlyph && <span className="grail-pill-play" aria-hidden="true">{leadGlyph}</span>}
+            {leadGlyph && <span className={`grail-pill-play${pin.kind === 'tx' ? ' grail-pill-play--tx' : pin.kind === 'trait' ? ' grail-pill-play--trait' : ''}`} aria-hidden="true">{leadGlyph}</span>}
             <span className={`grail-pill-title${titleShortClass}`}>
                 {displayTitle}
             </span>

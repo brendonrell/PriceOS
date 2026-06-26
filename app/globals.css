@@ -7670,6 +7670,10 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 .grail-pill-title.short { -webkit-mask-image: none; mask-image: none; flex: 0 0 auto; }
 /* Soundtrack pin — a ▶ play affordance instead of a price (Brendon 2026-06-19). */
 .grail-pill-play { font-size: 11px; line-height: 1; flex-shrink: 0; opacity: 0.85; }
+/* Larger lead glyph for transaction (+2 sizes) and trait (+1 size) pins
+   (Brendon 2026-06-26). */
+.grail-pill-play--tx { font-size: 15px; }
+.grail-pill-play--trait { font-size: 13px; }
 .grail-pill-id {
     font-size: 13px; font-weight: 900; line-height: 1; flex-shrink: 0;
     -webkit-text-stroke: 0.25px currentColor;
