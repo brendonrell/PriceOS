@@ -6549,8 +6549,10 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     flex-direction: column;
     line-height: 1.25;
 }
-/* Date shifts right a touch so the bigger ⟢⟢ has room to spill into. */
-.home-activity-feed .f-time { margin-left: 8px; }
+/* Date shifts right a touch so the bigger ⟢⟢ has room to spill into. The date
+   column reads at full strength here (not the global 50% dim) — the timeline +
+   days should sit at 90% minimum, not fade out (Brendon, 2026-06-26). */
+.home-activity-feed .f-time { margin-left: 8px; opacity: 0.9; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
