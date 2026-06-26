@@ -76,13 +76,13 @@ export const metadata: Metadata = {
         title: 'Price Discussion',
         description: SITE_DESCRIPTION,
         type: 'website',
-        images: [{ url: '/icon-512px.png', width: 512, height: 512, alt: 'Price Discussion' }],
+        images: [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
     },
     twitter: {
         card: 'summary',
         title: 'Price Discussion',
         description: SITE_DESCRIPTION,
-        images: ['/icon-512px.png'],
+        images: ['/icon-1024px.png'],
     },
 };
 
