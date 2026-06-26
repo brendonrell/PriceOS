@@ -722,30 +722,28 @@ export default function ArtworkPageBody({
                             ))}
                         </div>
                     </div>
-                    {searchActive && (
-                        <div className="search-row open" id="outputSearchRow">
-                            <input
-                                className="search-input"
-                                type="text"
-                                placeholder="Search the feed…"
-                                autoComplete="off"
-                                autoFocus
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Escape') { setQuery(''); setSearchActive(false); } }}
-                            />
-                            <span
-                                className="search-clear"
-                                role="button"
-                                tabIndex={0}
-                                title="Clear"
-                                onClick={() => { setQuery(''); setSearchActive(false); }}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); } }}
-                            >
-                                ✕&#xFE0E;
-                            </span>
-                        </div>
-                    )}
+                    <div className={`search-row${searchActive ? ' open' : ''}`} id="outputSearchRow">
+                        <input
+                            className="search-input"
+                            type="text"
+                            placeholder="Search the feed…"
+                            autoComplete="off"
+                            enterKeyHint="done"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
+                        />
+                        <span
+                            className="search-clear"
+                            role="button"
+                            tabIndex={0}
+                            title="Clear"
+                            onClick={() => { setQuery(''); setSearchActive(false); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); } }}
+                        >
+                            ✕&#xFE0E;
+                        </span>
+                    </div>
                 </div>
                 <section className="home-uploads" aria-label="Activity Feed">
                     <div className="feed-list home-activity-feed">
