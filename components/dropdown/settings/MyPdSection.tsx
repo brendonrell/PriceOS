@@ -687,13 +687,17 @@ export function MyPdSection({ onTripleTap }: Props) {
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
-                        id="sn-audience"
-                        title="The Audience — live viewers on a project"
-                        active={notifs.audience}
-                        onClick={() => toggleWithToast('audience', 'Audience')}
-                        icon={'●\uFE0E'}
-                        iconStyle={{ fontSize: '12px', lineHeight: '1' }}
-                        label="Audience"
+                        id="sn-cartel"
+                        title="Cartel — you + your mutuals = the Cabal"
+                        active={notifs.spell_cartel}
+                        onClick={() => {
+                            const next = !notifs.spell_cartel;
+                            toggle('spell_cartel');
+                            showToast(next ? '⟁\uFE0E You + Your Mutuals = The Cabal ⟁\uFE0E' : 'Cartel: OFF');
+                        }}
+                        icon={'⟁\uFE0E'}
+                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px' }}
+                        style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
                         id="sn-asciiId"

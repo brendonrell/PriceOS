@@ -603,14 +603,7 @@ export default function ArtworkPageBody({
                 <div className="home-facet-bar output-feed-bar">
                     {/* Action row — artwork-modal buttons as colorway-style
                         squares, just below the art. */}
-                    <OutputActionRow
-                        slug={slug}
-                        id={numberPart}
-                        listed={!!market?.listing}
-                        owned={owned}
-                        searchActive={searchActive}
-                        onToggleSearch={() => setSearchActive((v) => !v)}
-                    />
+                    <OutputActionRow slug={slug} id={numberPart} listed={!!market?.listing} owned={owned} />
                     <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                         <div className="colorway-pills">
                             {OUT_THEME_PILLS.map((t) => (
@@ -642,6 +635,16 @@ export default function ArtworkPageBody({
                                     <span className="sort-arrow">{outSort.key === s.key ? (outSort.dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                                 </span>
                             ))}
+                            <div
+                                className={`search-btn${searchActive ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                title="Search"
+                                onClick={() => setSearchActive((v) => !v)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchActive((v) => !v); } }}
+                            >
+                                {'⌕︎'}
+                            </div>
                         </div>
                     </div>
                     {searchActive && (
