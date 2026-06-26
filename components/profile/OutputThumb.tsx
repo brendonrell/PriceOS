@@ -54,7 +54,10 @@ export default function OutputThumb({
         <canvas
             ref={ref}
             className="starred-row-thumb-canvas"
-            style={{ width: size, height: size, display: 'block', borderRadius: 6, background: 'var(--stat-bg)' }}
+            /* Square slot, art CROPPED to fill it — never stretched/distorted
+               (Brendon 2026-06-26). The bitmap is the piece's true aspect; cover
+               scales-to-fill and trims the overflow, centered. */
+            style={{ width: size, height: size, display: 'block', borderRadius: 6, background: 'var(--stat-bg)', objectFit: 'cover' }}
         />
     );
 }

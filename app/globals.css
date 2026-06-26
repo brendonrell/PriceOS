@@ -5978,11 +5978,11 @@ body.colorway-dark .ghost-card .ghost-wrapper {
 .meta-note-ic {
     display: inline-flex;
     align-items: center;
-    margin-left: 3px;
+    margin-left: 5px;
     cursor: pointer;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 17px;
+    font-size: 21px;
     line-height: 1;
     position: relative;
     top: 0.5px;
