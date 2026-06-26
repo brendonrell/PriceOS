@@ -595,9 +595,9 @@ export default function StarredList({
 
     const handleTxUnstar = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        askRemove('Remove this tx from your Starred list?', () => {
+        askRemove('Remove this transaction from your Starred list?', () => {
             removeTxStar(id);
-            showToast('Removed from your Starred Tx List');
+            showToast('Removed from your Starred Transactions List');
         });
     };
 
@@ -941,7 +941,7 @@ export default function StarredList({
                                     <span className="starred-row-id">{r.fe.detail}</span>
                                     <span className="starred-row-sub">{r.fe.type} · {r.fe.time}</span>
                                     <span className="starred-row-sub">{r.fe.price ? <>Price:<em>{r.fe.price} ETH</em></> : ' '}</span>
-                                    <span className="starred-row-sub">Tx</span>
+                                    <span className="starred-row-sub">Transaction</span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span

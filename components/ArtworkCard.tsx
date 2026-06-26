@@ -692,6 +692,11 @@ function ArtworkCard({
         <article
             className={articleClass}
             data-mint-id={id}
+            /* Project slug stamped so the artwork modal can read the on-screen
+               grid order (every .output-card in document order) and walk the
+               arrows through the grid AS SHOWN — across projects/carousels —
+               not just one project's ids (Brendon 2026-06-26). */
+            data-slug={slug}
             /* F57 (BUG-10) — sim 7993. Numeric ETH price stamp read
                by applyStepLine's #gallery walk (sim 11280). -1 for
                unlisted tokens matches sim's sentinel. */

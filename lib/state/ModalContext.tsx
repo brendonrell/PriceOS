@@ -47,16 +47,45 @@ interface OpenModalState {
     payload?: number | string;
 }
 
+/** One output in the on-screen grid order (slug + token id). The output modal's
+ *  prev/next arrows walk this so they follow the grid AS SHOWN — across projects
+ *  and carousels — instead of one project's id range (Brendon 2026-06-26). */
+export interface OutputRef { slug: string; id: number; }
+
+/** Read every VISIBLE output card on the page, in document order — exactly the
+ *  visual order (grid top-to-bottom, carousels stacked). Captured at open-time,
+ *  before the modal covers the grid. Hidden cards (filtered out, off-tab, or
+ *  showcase-collapsed via CSS — the full list stays mounted) are skipped, so the
+ *  arrows only walk what the user can actually see. */
+function readOutputSequence(): OutputRef[] {
+    if (typeof document === 'undefined') return [];
+    const out: OutputRef[] = [];
+    document.querySelectorAll<HTMLElement>('.output-card[data-slug][data-mint-id]').forEach((el) => {
+        // offsetParent === null ⇒ this card (or an ancestor) is display:none.
+        if (el.offsetParent === null) return;
+        const slug = el.dataset.slug;
+        const id = Number(el.dataset.mintId);
+        if (slug && Number.isFinite(id)) out.push({ slug: slug.toLowerCase(), id });
+    });
+    return out;
+}
+
 interface ModalContextValue {
     openModal: OpenModalState | null;
     /** The currently-displayed output id in the OutputPreview. */
     currentModalId: number | null;
     /** Project slug for the currently-open output modal (null = active route project). */
     currentModalSlug: string | null;
+    /** The on-screen grid order captured when the output modal opened — the
+     *  prev/next arrows walk this (null = no grid; fall back to per-project nav). */
+    outputSequence: OutputRef[] | null;
     open: (name: ModalName, payload?: number | string, slug?: string) => void;
     close: () => void;
-    /** Set the OutputPreview's output id (for prev/next nav). */
+    /** Set the OutputPreview's output id (for prev/next nav within one project). */
     setCurrentModalId: (id: number | null) => void;
+    /** Move the output modal to a specific (slug, id) — used to walk the grid
+     *  sequence across projects without re-opening the modal. */
+    setCurrentModalOutput: (slug: string, id: number) => void;
 }
 
 const ModalContext = createContext<ModalContextValue | null>(null);
@@ -65,19 +94,30 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [openModal, setOpenModal] = useState<OpenModalState | null>(null);
     const [currentModalId, setCurrentModalId] = useState<number | null>(null);
     const [currentModalSlug, setCurrentModalSlug] = useState<string | null>(null);
+    const [outputSequence, setOutputSequence] = useState<OutputRef[] | null>(null);
 
     const open = useCallback((name: ModalName, payload?: number | string, slug?: string) => {
         setOpenModal({ name, payload });
         if (name === 'output' && typeof payload === 'number') {
             setCurrentModalId(payload);
             setCurrentModalSlug(slug ? slug.toLowerCase() : null);
+            // Snapshot the grid AS SHOWN now, before the modal covers it. Only
+            // keep it when there's more than one card to walk.
+            const seq = readOutputSequence();
+            setOutputSequence(seq.length > 1 ? seq : null);
         }
+    }, []);
+
+    const setCurrentModalOutput = useCallback((slug: string, id: number) => {
+        setCurrentModalSlug(slug ? slug.toLowerCase() : null);
+        setCurrentModalId(id);
     }, []);
 
     const close = useCallback(() => {
         setOpenModal(null);
         setCurrentModalId(null);
         setCurrentModalSlug(null);
+        setOutputSequence(null);
     }, []);
 
     /* Body class lock + scroll-Y preservation.
@@ -121,8 +161,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, [openModal, close]);
 
     const value = useMemo<ModalContextValue>(
-        () => ({ openModal, currentModalId, currentModalSlug, open, close, setCurrentModalId }),
-        [openModal, currentModalId, currentModalSlug, open, close]
+        () => ({ openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalId, setCurrentModalOutput }),
+        [openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalOutput]
     );
 
     return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>;

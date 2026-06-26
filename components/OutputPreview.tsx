@@ -209,7 +209,7 @@ function buildMockOffers(outputId: number): MockOffer[] {
 }
 
 export default function OutputPreview() {
-    const { openModal, currentModalId, currentModalSlug, setCurrentModalId, close } = useModal();
+    const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close } = useModal();
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
@@ -569,19 +569,37 @@ export default function OutputPreview() {
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
     }, [slug]);
 
+    /* Walk the captured grid sequence (the grid AS SHOWN — across projects and
+       carousels) when one was captured at open and the current piece is in it.
+       step = +1 (next) or -1 (prev), wrapping at the ends. Same-project hops
+       still paint imperatively for snappiness; cross-project hops let the
+       [isOpen, id, slug] paint effect repaint. Returns true if it handled it. */
+    const stepSequence = useCallback((step: 1 | -1): boolean => {
+        if (id == null || !outputSequence) return false;
+        const here = slug.toLowerCase();
+        const pos = outputSequence.findIndex((s) => s.slug === here && s.id === id);
+        if (pos < 0) return false;
+        const t = outputSequence[(pos + step + outputSequence.length) % outputSequence.length];
+        if (t.slug === here) renderToCanvas(t.id);
+        setCurrentModalOutput(t.slug, t.id);
+        return true;
+    }, [id, slug, outputSequence, setCurrentModalOutput, renderToCanvas]);
+
     const goNext = useCallback(() => {
         if (id == null) return;
+        if (stepSequence(1)) return;
         const nextId = id >= mintedBound ? 1 : id + 1;
         renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, mintedBound, setCurrentModalId, renderToCanvas]);
+    }, [id, mintedBound, setCurrentModalId, renderToCanvas, stepSequence]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
+        if (stepSequence(-1)) return;
         const nextId = id <= 1 ? Math.max(1, mintedBound) : id - 1;
         renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, mintedBound, setCurrentModalId, renderToCanvas]);
+    }, [id, mintedBound, setCurrentModalId, renderToCanvas, stepSequence]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {

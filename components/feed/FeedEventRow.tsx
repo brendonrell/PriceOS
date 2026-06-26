@@ -44,7 +44,7 @@ export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
             const r = toggleTxStar(fe.star);
             setFloatDown(r !== 'starred');
             setFloatId((n) => n + 1);
-            showToast(r === 'starred' ? 'Added to your Starred Tx List (Private)' : 'Removed from your Starred Tx List');
+            showToast(r === 'starred' ? 'Added to your Starred Transactions List (Private)' : 'Removed from your Starred Transactions List');
         }, 460);
     };
     const onPointerMove = (e: React.PointerEvent) => {
