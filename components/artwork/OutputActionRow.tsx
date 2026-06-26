@@ -19,8 +19,8 @@ import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishli
 import { shareLink } from '../../lib/pwa/share';
 
 export default function OutputActionRow({
-    slug, id, listed,
-}: { slug: string; id: number; listed: boolean; owned: boolean }) {
+    slug, id, listed, searchActive, onToggleSearch,
+}: { slug: string; id: number; listed: boolean; owned: boolean; searchActive: boolean; onToggleSearch: () => void }) {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openOutputNoteEditor } = useNotePrompt();
@@ -98,6 +98,16 @@ export default function OutputActionRow({
             <Btn glyph={'⟟︎'} title="Grail Pin" extra="output-act-grail" onClick={onGrail} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
+            <div
+                className={`search-btn${searchActive ? ' active' : ''}`}
+                role="button"
+                tabIndex={0}
+                title="Search the feed"
+                onClick={(e) => { stop(e); onToggleSearch(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleSearch(); } }}
+            >
+                {'⌕︎'}
+            </div>
         </div>
     );
 }
