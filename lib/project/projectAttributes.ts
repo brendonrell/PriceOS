@@ -56,7 +56,6 @@ export function buildProjectAttributes(
 
     /* ── Identity ─────────────────────────────────────────────────────── */
     const identity: AttrTile[] = [
-        { glyph: '✶', label: 'True Name', value: projectTrueName(slug) },
         { glyph: '◈', label: 'Project', value: project.displayName },
         { glyph: '✺', label: 'Artist', value: `@${project.artistHandle}` },
         { glyph: '⬚', label: 'Supply', value: `${project.outputs}` },
@@ -64,6 +63,8 @@ export function buildProjectAttributes(
     if (project.mintPriceEth != null) identity.push({ glyph: '◊', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
     if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway });
     if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label });
+    // True Name sits LAST in Identity (Brendon 2026-06-26).
+    identity.push({ glyph: '✶', label: 'True Name', value: projectTrueName(slug) });
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
 
     /* ── Milestones (earned badges, each with its dedicated feed icon) ──── */
