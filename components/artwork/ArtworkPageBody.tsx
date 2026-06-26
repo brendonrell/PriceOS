@@ -709,14 +709,14 @@ export default function ArtworkPageBody({
                         </div>
                         {soundtrack && (
                             <a
-                                className="output-soundtrack-btn"
+                                className="pill-colorway output-soundtrack-btn"
                                 href={playlistWatchUrl(soundtrack.playlistId)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={`Soundtrack — ${soundtrack.label}`}
                                 aria-label="Project soundtrack"
                             >
-                                {'♫︎'}
+                                <span>{'♫︎'}</span>
                             </a>
                         )}
                         <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
