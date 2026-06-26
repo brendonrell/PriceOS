@@ -890,6 +890,28 @@ body.sticker-mode .hero-stickers { display: none; }
     transform: scale(1.18);
     box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 3.5px var(--text-color);
 }
+/* Text preset chips (Match · RGB · CMYK · PRIMARY) — sit inline after the
+   circles in the same wrapping row. Pill shaped to the 18px circle height. */
+.smgr-hue-preset {
+    height: 18px;
+    padding: 0 8px;
+    border-radius: 9px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+    background: transparent;
+    color: var(--text-color);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s, background 0.12s, color 0.12s;
+}
+.smgr-hue-preset.on {
+    background: var(--text-color);
+    color: var(--bg-color);
+    transform: scale(1.06);
+}
 .smgr-hue-empty {
     font-size: 11px;
     opacity: 0.5;

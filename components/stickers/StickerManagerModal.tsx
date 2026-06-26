@@ -12,7 +12,8 @@
  * is saved in the background and the hero updates live via its own subscription.
  */
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useProfileHex } from '../../lib/hooks/useProfileHex';
 
 /* Measure-before-paint on the client (plain effect on the server, where there's
    no layout) so the popup is positioned on its very first painted frame. */
@@ -89,21 +90,10 @@ function isLightHex(hex: string): boolean {
     const { r, g, b } = hexRGB(hex);
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.82;
 }
-/** The swatch a sticker belongs to: nearest swatch by colour distance, kept
- *  WITHIN the neutral set for greyscale stickers and the chromatic set otherwise
- *  (so a pale-but-coloured sticker never collapses into white). Returns the hex
- *  key the filter compares against. */
-function stickerSwatch(s: Sticker): string {
-    const hex = s.color ?? s.bg ?? s.cutout ?? s.fg ?? null;
-    let rgb: { r: number; g: number; b: number };
-    let neutral: boolean;
-    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
-        rgb = hexRGB(hex);
-        neutral = hexHS(hex).s < 0.12;
-    } else {
-        rgb = hueToRGB(stickerHue(s));
-        neutral = false;
-    }
+/** Nearest swatch (by colour distance) to a given RGB, kept WITHIN the neutral
+ *  set for greyscale and the chromatic set otherwise (so a pale-but-coloured
+ *  input never collapses into white). Returns the hex key the filter compares. */
+function nearestSwatchFromRGB(rgb: { r: number; g: number; b: number }, neutral: boolean): string {
     let best = HUE_SWATCHES[0]!.hex, bd = Infinity;
     for (const sw of SWATCH_RGB) {
         if (sw.neutral !== neutral) continue;
@@ -113,6 +103,31 @@ function stickerSwatch(s: Sticker): string {
     }
     return best;
 }
+/** The swatch a sticker belongs to (its detected dominant colour). */
+function stickerSwatch(s: Sticker): string {
+    const hex = s.color ?? s.bg ?? s.cutout ?? s.fg ?? null;
+    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
+        return nearestSwatchFromRGB(hexRGB(hex), hexHS(hex).s < 0.12);
+    }
+    return nearestSwatchFromRGB(hueToRGB(stickerHue(s)), false);
+}
+/** The swatch a freeform hex (e.g. the user's profile colour) maps to — used by
+ *  the "Match" filter to pull stickers that suit the chosen profile colorway. */
+function swatchForHex(hex: string): string {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return HUE_SWATCHES[0]!.hex;
+    return nearestSwatchFromRGB(hexRGB(hex), hexHS(hex).s < 0.12);
+}
+
+/* Text preset filters — multi-swatch groups shown inline after the circles.
+   CMYK maps to PD's palette per Brendon: cyan = light blue, magenta = dark
+   (deep) pink, yellow = either yellow, black = either black. PRIMARY is the
+   painter's red/yellow/blue triad. "Match" (added per-render) leads them. */
+interface Preset { key: string; label: string; hexes: string[] }
+const STATIC_PRESETS: Preset[] = [
+    { key: 'RGB',     label: 'RGB',     hexes: ['#FF6B6B', '#A30D2D', '#7BE37B', '#1F7A33', '#6FB7FF', '#163E8F'] },
+    { key: 'CMYK',    label: 'CMYK',    hexes: ['#6FB7FF', '#C43E86', '#FFEB5C', '#C9A227', '#555555', '#0A0A0A'] },
+    { key: 'PRIMARY', label: 'PRIMARY', hexes: ['#FF6B6B', '#A30D2D', '#FFEB5C', '#C9A227', '#6FB7FF', '#163E8F'] },
+];
 const PAGES = 4;
 
 export function StickerManagerModal({
@@ -362,7 +377,19 @@ export function StickerManagerModal({
     /* The sticker grid (owned, tap to toggle) — shared by both views. Grouped by
        sheet: each sheet starts on its own row, with a gap between groups so the
        end/start of a sheet reads clearly. */
-    const matchesHue = (s: Sticker) => !hueFilter || stickerSwatch(s) === hueFilter;
+    /* "Match" = stickers that suit your current Profile Colorway colour. Maps the
+       live profile hex to its swatch and leads the text presets. */
+    const { hex: profileHex } = useProfileHex();
+    const PRESETS = useMemo<Preset[]>(
+        () => [{ key: 'MATCH', label: 'Match', hexes: [swatchForHex(profileHex)] }, ...STATIC_PRESETS],
+        [profileHex],
+    );
+    const activePreset = hueFilter ? PRESETS.find((p) => p.key === hueFilter) ?? null : null;
+    const matchesHue = (s: Sticker) => {
+        if (!hueFilter) return true;
+        const sw = stickerSwatch(s);
+        return activePreset ? activePreset.hexes.includes(sw) : sw === hueFilter;
+    };
     const stickerGrid = (
         <div className="smgr-grid-groups">
             <div className="smgr-hue-row" role="group" aria-label="Filter by colour">
@@ -386,6 +413,18 @@ export function StickerManagerModal({
                         aria-pressed={hueFilter === hex}
                         onClick={() => setHueFilter((prev) => (prev === hex ? null : hex))}
                     />
+                ))}
+                {PRESETS.map((p) => (
+                    <button
+                        key={p.key}
+                        type="button"
+                        className={`smgr-hue-preset${hueFilter === p.key ? ' on' : ''}`}
+                        title={hueFilter === p.key ? 'Show all colours' : `Filter to ${p.label}`}
+                        aria-pressed={hueFilter === p.key}
+                        onClick={() => setHueFilter((prev) => (prev === p.key ? null : p.key))}
+                    >
+                        {p.label}
+                    </button>
                 ))}
             </div>
             {ownedSheets.map((sh) => {
