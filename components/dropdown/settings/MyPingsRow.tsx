@@ -265,13 +265,6 @@ export function MyPingsRow() {
                         >
                             {'  Yes  '}
                         </button>
-                        <button
-                            type="button"
-                            className="p3d-btn p3d-no"
-                            onClick={(e) => { e.stopPropagation(); setShow3dConfirm(false); }}
-                        >
-                            {'  No  '}
-                        </button>
                     </div>,
                     document.body,
                 )}
