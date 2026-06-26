@@ -2230,7 +2230,7 @@ function ProfilePageBodyInner({
                                             { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
                                             { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },
                                             { key: 'soundtracks', label: 'Soundtracks', count: soundtrackStars.length },
-                                            { key: 'tx',          label: 'Tx',          count: txStars.length },
+                                            { key: 'tx',          label: 'Txs',         count: txStars.length },
                                         ] as { key: MoreMode; label: string; count: number }[]).map((p) => (
                                             <div
                                                 key={p.key}
