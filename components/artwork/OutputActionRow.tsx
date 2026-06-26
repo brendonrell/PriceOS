@@ -66,7 +66,7 @@ export default function OutputActionRow({
     const onShare = async (e: React.MouseEvent) => {
         stop(e);
         const url = typeof window !== 'undefined' ? `${window.location.origin}/art/${slug}/${id}` : `/art/${slug}/${id}`;
-        const r = await shareLink({ url, title: `${collName} #${id} on Price Discussion` });
+        const r = await shareLink({ url, title: `${projectTitle} #${id} on Price Discussion` });
         if (r === 'copied') showToast('Link: COPIED');
         else if (r === 'unavailable') showToast('Share: UNAVAILABLE');
     };

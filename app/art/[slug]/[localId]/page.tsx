@@ -12,6 +12,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
+import { getProject } from '@/lib/project/registry';
 
 type Props = { params: { slug: string; localId: string } };
 
@@ -54,9 +55,23 @@ export function generateMetadata({ params }: Props): Metadata {
   }
   const slug = params.slug.toLowerCase();
   const localId = Number(params.localId);
+  const name = getProject(slug)?.displayName ?? slug;
+  const ogTitle = `${name} #${localId} on Price Discussion`;
   // TODO: canonical should point to /{globalId} once indexer mapping is live.
   // Shell omits canonical to avoid self-pointing at the alt URL.
   return {
-    title: `${slug} #${localId} · Price Discussion`,
+    title: `${name} #${localId} · Price Discussion`,
+    // Share/preview image — the PWA icon, so the OS share sheet + link unfurls
+    // for an Output show our mark instead of the browser's generic placeholder.
+    openGraph: {
+      title: ogTitle,
+      type: 'website',
+      images: [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
+    },
+    twitter: {
+      card: 'summary',
+      title: ogTitle,
+      images: ['/icon-1024px.png'],
+    },
   };
 }
