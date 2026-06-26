@@ -66,6 +66,7 @@ export function MyPingsRow() {
             artists:  'Artists Pings',
             projects: 'Projects Pings',
             traits:   'Traits Pings',
+            rarity:   'Rarity Pings',
         };
         const next = !notifs.pings[key];
         update({ pings: { ...notifs.pings, [key]: next } });
@@ -181,6 +182,16 @@ export function MyPingsRow() {
                     icon={'⨝︎'}
                     iconBare
                     iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(1px)' }}
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
+                />
+                <SettingsToggle
+                    id="sn-rarity"
+                    title="Rarity Pings — rarity-tier movement"
+                    active={notifs.pings.rarity}
+                    onClick={() => togglePingCat('rarity')}
+                    icon={'❖︎'}
+                    iconBare
+                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
