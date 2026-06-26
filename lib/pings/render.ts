@@ -40,12 +40,41 @@ export function fromPingRow(row: PingRow): FeedItem {
   };
 }
 
+/** Attention tier. MEDIUM is the default (today's behaviour). HIGH always sorts
+ *  to the top and renders bold; LOW sinks to the bottom of the list. */
+export type PingPriority = 'low' | 'medium' | 'high';
+
+/** Default tier per kind (Brendon, 2026-06-26 — tunable).
+ *   HIGH   — money landing / act-now: a sale, an offer, an accepted offer, a
+ *            wishlisted piece moving.
+ *   LOW    — social / celebratory background: follows, achievements, streaks.
+ *   MEDIUM — everything else (mints, transfers, listings, watches). */
+const PRIORITY: Record<RenderKind, PingPriority> = {
+  SALE:           'high',
+  OFFER:          'high',
+  OFFER_ACCEPTED: 'high',
+  WISHLIST_HIT:   'high',
+  FOLLOW:         'low',
+  PROJECT_FOLLOW: 'low',
+  OUTPUT_FOLLOW:  'low',
+  ACHIEVEMENT:    'low',
+  STREAK:         'low',
+  MINT:           'medium',
+  XFER:           'medium',
+  WATCH_HIT:      'medium',
+  LIST:           'medium',
+};
+
+/** Tier rank for sorting (high first, low last). */
+export const PRIORITY_RANK: Record<PingPriority, number> = { high: 0, medium: 1, low: 2 };
+
 export interface RenderedPing {
   id: string;
   kind: RenderKind;
   icon: string;        // VS-15 enforced glyph
   handle: string;      // actor label (e.g. "@matty", or "" for self/system)
   action: string;      // "collected @oracle #14", "followed you", etc.
+  priority: PingPriority;
   read: boolean;
   createdAt: string;
 }
@@ -179,6 +208,7 @@ export function renderPing(row: FeedItem): RenderedPing {
     icon: ownIcon ?? ICONS[row.kind] ?? '✦︎',
     handle,
     action,
+    priority: PRIORITY[row.kind] ?? 'medium',
     read: row.read,
     createdAt: row.created_at,
   };

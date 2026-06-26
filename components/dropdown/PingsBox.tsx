@@ -16,7 +16,7 @@ import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
-import { renderPing, passesCategoryPrefs } from '../../lib/pings/render';
+import { renderPing, passesCategoryPrefs, PRIORITY_RANK } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
@@ -103,10 +103,14 @@ export function PingsBox() {
     };
 
     // Real pings → rendered, category-filtered, and (optionally) money-only.
+    // Then ordered by attention tier: HIGH pinned to the top, LOW sunk to the
+    // bottom, MEDIUM in between — recency preserved within each tier (the API
+    // hands them back newest-first and the sort is stable).
     const rendered = pingsState.items
         .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
         .filter((p) => !moneyOnly || isFinancial(p.kind))
-        .map((p) => renderPing(p));
+        .map((p) => renderPing(p))
+        .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]);
 
     return (
         <AccordionBox
@@ -153,7 +157,7 @@ export function PingsBox() {
                 </div>
             ) : (
                 rendered.map((p) => (
-                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}`}>
+                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}`}>
                         <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
                         <span>
                             {p.handle && <strong className={isSpited(p.handle) ? 'spited' : undefined}>{p.handle}</strong>}

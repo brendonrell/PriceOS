@@ -1381,6 +1381,15 @@ body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
 
 .notif-item.todo-item b { font-weight: 900; }
 
+/* High-priority pings — pinned to the top of the list (sorted in PingsBox) and
+   visually elevated: heaviest weight + a Hothurt accent rail and glyph so the
+   eye lands on them first. */
+.notif-item--high {
+    font-weight: 900;
+    box-shadow: inset 2px 0 0 var(--hothurt);
+}
+.notif-item--high .n-icon { opacity: 1; color: var(--hothurt); }
+
 #notesList .notif-item { align-items: flex-start; }
 #notesList .notif-item .n-icon { margin-top: 1px; }
 
