@@ -108,9 +108,6 @@ export function PingsBox() {
         .filter((p) => !moneyOnly || isFinancial(p.kind))
         .map((p) => renderPing(p));
 
-    const unread = pingsState.unreadCount;
-    const badgeText = unread > 99 ? '99+' : String(unread);
-
     return (
         <AccordionBox
             boxId="pingsBox"
@@ -123,11 +120,7 @@ export function PingsBox() {
                 <div className="pings-header-row">
                     <span className="pings-label">
                         PINGS
-                        {unread > 0 && (
-                            <span className="pings-count-badge pings-count-badge--inline">
-                                {badgeText}
-                            </span>
-                        )}
+                        <span className="notif-count">({rendered.length})</span>
                     </span>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
