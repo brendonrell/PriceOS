@@ -10232,6 +10232,17 @@ body.colorway-dark .ghost-feed-bar {
 .output-action-row .output-act-note span { font-size: 19px; }
 .output-action-row .output-act-todo span { font-size: 19px; }
 .output-action-row .output-act-grail span { position: relative; top: 2px; }
+/* Share is a text button sitting in the row of square icon buttons — same height
+   + border (.pill-colorway), but auto-width with a label. */
+.output-action-row .output-share-btn {
+    width: auto;
+    padding: 0 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
 
 /* The output's copy of the homepage Now-Minting bar (action buttons + colorway +
    sorts). On home it sits inside the Hero, which supplies its inset; here it

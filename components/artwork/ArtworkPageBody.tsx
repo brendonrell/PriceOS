@@ -81,6 +81,7 @@ interface FeedItem {
     seq: number;
     price: number;
     sortName: string;
+    searchText: string;
 }
 
 /* Output feed sort — the homepage Now-Minting model (date / price / az / feed). */
@@ -260,6 +261,8 @@ export default function ArtworkPageBody({
     const { colorway, setColorway } = useColorway();
     const activeColorway: ColorwayKey = colorway ?? 'custom';
     const [outSort, setOutSort] = useState<{ key: OutSortKey; dir: OutSortDir }>({ key: 'feed', dir: 'desc' });
+    const [searchActive, setSearchActive] = useState(false);
+    const [query, setQuery] = useState('');
     const onOutSort = (key: OutSortKey) =>
         setOutSort((prev) =>
             prev.key === key
@@ -274,10 +277,12 @@ export default function ArtworkPageBody({
     const feedItems = useMemo<FeedItem[]>(() => {
         const items: FeedItem[] = [];
         for (const fe of feedRows) {
+            const st = fe.star;
             items.push({
                 key: `tx-${fe.id}`, glyph: fe.icon, cls: null, label: fe.type,
                 ts: fe.timestamp, content: fe.detail, pin: 0, seq: Number.MAX_SAFE_INTEGER,
                 price: fe.price, sortName: fe.type,
+                searchText: `${fe.type} ${st?.toHandle ?? ''} ${st?.fromHandle ?? ''} ${st?.tokenId ?? ''}`.toLowerCase(),
             });
         }
         for (const m of feedMarkers) {
@@ -295,19 +300,22 @@ export default function ArtworkPageBody({
                 key: `m-${m.id}`, glyph: m.glyph, cls: m.cls, label: m.label,
                 ts: Date.parse(m.timestamp) || 0, tbdDay: m.tbdDay, content,
                 pin: m.pin, seq: m.seq, price: 0, sortName: m.highlight,
+                searchText: `${m.label} ${m.lead}${m.highlight}${m.tail}`.toLowerCase(),
             });
         }
+        const q = query.trim().toLowerCase();
+        const visible = q ? items.filter((it) => it.searchText.includes(q)) : items;
         // $PRICE — sort the whole feed by price (no pinning), direction-aware.
         if (outSort.key === 'price') {
             const m = outSort.dir === 'asc' ? 1 : -1;
-            items.sort((a, b) => (a.price - b.price) * m || (b.ts - a.ts));
-            return items;
+            visible.sort((a, b) => (a.price - b.price) * m || (b.ts - a.ts));
+            return visible;
         }
         // FEED — canonical newest-first with the pinned block at the bottom…
-        items.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
+        visible.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
         // …and the arrow flips the WHOLE list (last↔first), pinned rows included.
-        return outSort.dir === 'asc' ? items.reverse() : items;
-    }, [feedRows, feedMarkers, outSort]);
+        return outSort.dir === 'asc' ? visible.reverse() : visible;
+    }, [feedRows, feedMarkers, outSort, query]);
 
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
@@ -595,7 +603,14 @@ export default function ArtworkPageBody({
                 <div className="home-facet-bar output-feed-bar">
                     {/* Action row — artwork-modal buttons as colorway-style
                         squares, just below the art. */}
-                    <OutputActionRow slug={slug} id={numberPart} listed={!!market?.listing} owned={owned} />
+                    <OutputActionRow
+                        slug={slug}
+                        id={numberPart}
+                        listed={!!market?.listing}
+                        owned={owned}
+                        searchActive={searchActive}
+                        onToggleSearch={() => setSearchActive((v) => !v)}
+                    />
                     <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                         <div className="colorway-pills">
                             {OUT_THEME_PILLS.map((t) => (
@@ -629,6 +644,30 @@ export default function ArtworkPageBody({
                             ))}
                         </div>
                     </div>
+                    {searchActive && (
+                        <div className="search-row open" id="outputSearchRow">
+                            <input
+                                className="search-input"
+                                type="text"
+                                placeholder="Search the feed…"
+                                autoComplete="off"
+                                autoFocus
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Escape') { setQuery(''); setSearchActive(false); } }}
+                            />
+                            <span
+                                className="search-clear"
+                                role="button"
+                                tabIndex={0}
+                                title="Clear"
+                                onClick={() => { setQuery(''); setSearchActive(false); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); } }}
+                            >
+                                ✕&#xFE0E;
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <section className="home-uploads" aria-label="Activity Feed">
                     <div className="feed-list home-activity-feed">

@@ -16,10 +16,11 @@ import { getProject } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin } from '../../lib/pins/grailStore';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
+import { shareLink } from '../../lib/pwa/share';
 
 export default function OutputActionRow({
-    slug, id, listed,
-}: { slug: string; id: number; listed: boolean; owned: boolean }) {
+    slug, id, listed, searchActive, onToggleSearch,
+}: { slug: string; id: number; listed: boolean; owned: boolean; searchActive: boolean; onToggleSearch: () => void }) {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openOutputNoteEditor } = useNotePrompt();
@@ -62,6 +63,13 @@ export default function OutputActionRow({
         const next = cartItems.length + 1;
         showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
     };
+    const onShare = async (e: React.MouseEvent) => {
+        stop(e);
+        const url = typeof window !== 'undefined' ? `${window.location.origin}/art/${slug}/${id}` : `/art/${slug}/${id}`;
+        const r = await shareLink({ url, title: `${collName} #${id} on Price Discussion` });
+        if (r === 'copied') showToast('Link: COPIED');
+        else if (r === 'unavailable') showToast('Share: UNAVAILABLE');
+    };
 
     /* Same square button as the colorway picker below (.pill-colorway): bordered
        box, glyph centred; the `active` state mirrors the colorway active fill. */
@@ -88,6 +96,8 @@ export default function OutputActionRow({
             <Btn glyph={'⊟︎'} title="Add Note" extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
             <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
             <Btn glyph={'⟟︎'} title="Grail Pin" extra="output-act-grail" onClick={onGrail} />
+            <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
+            <Btn glyph={'⌕︎'} title="Search the feed" active={searchActive} extra="output-act-search" onClick={(e) => { stop(e); onToggleSearch(); }} />
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
         </div>
     );
