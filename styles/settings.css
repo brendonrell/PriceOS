@@ -636,3 +636,9 @@
 .ws-add:hover:not(.faded) { opacity: 0.9; }
 .ws-add.faded { opacity: 0.15; cursor: not-allowed; }
 
+
+/* Sentiment Weather pill icon — nudge up 0.5px on mobile only, where the
+   ◒ glyph sits a hair low against its neighbours (Brendon, 2026-06-26). */
+@media (max-width: 600px) {
+    #sn-sentiment .st-icon { transform: translateY(-0.5px); }
+}

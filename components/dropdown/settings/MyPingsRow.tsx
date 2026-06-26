@@ -149,7 +149,9 @@ export function MyPingsRow() {
                     active={notifs.pings.mutuals}
                     onClick={() => togglePingCat('mutuals')}
                     icon={'⚭\uFE0E'}
-                    label="MUTUALS"
+                    iconBare
+                    iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(-1px)' }}
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-artists"
@@ -178,7 +180,7 @@ export function MyPingsRow() {
                     onClick={() => togglePingCat('traits')}
                     icon={'⨝︎'}
                     iconBare
-                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(2px)' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
@@ -192,7 +194,7 @@ export function MyPingsRow() {
                     }}
                     icon={'⏾\uFE0E'}
                     iconBare
-                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(2px)' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
             </div>
