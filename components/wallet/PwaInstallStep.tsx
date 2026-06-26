@@ -39,6 +39,10 @@ export function PwaInstallStep({ onDone }: { onDone: () => void }) {
     const [qr, setQr] = useState<string | null>(null);
     const [emphasise, setEmphasise] = useState(false);
     const seenRef = useRef(false);
+    /* Decorative notification badge on the app icon — sells that installing
+       brings real, badged pings. Illustrative number (random 1–22), fixed for
+       this mount so it doesn't flicker. */
+    const [badgeNum] = useState(() => 1 + Math.floor(Math.random() * 22));
 
     /* Record that the prompt was shown (once). */
     useEffect(() => {
@@ -82,6 +86,7 @@ export function PwaInstallStep({ onDone }: { onDone: () => void }) {
             <div className={`pwa-step-icon${isAndroid ? ' pwa-step-icon-android' : ''}`}>
                 <img src={isAndroid ? '/icon-192-maskable.png' : '/icon-180px.png'} alt="PD" />
             </div>
+            <span className="pwa-step-icon-badge" aria-hidden="true">{badgeNum}</span>
         </div>
     );
 

@@ -1,6 +1,6 @@
 // lib/pings/tiers.ts — client-safe. The archival tiering.
 //
-// Not all pings are equal. SOCIAL pings (followed you, achievement, p2p, mint
+// Not all pings are equal. SOCIAL pings (followed you, achievement, mint
 // milestone) are ephemeral attention — they age out. FINANCIAL-SIGNAL pings
 // (offer, sale, offer-accepted, transfer, wishlist listed/sold) are a RECORD
 // you'll want to scroll back through, so they persist far longer and can be
@@ -26,7 +26,7 @@ export function isFinancial(kind: RenderKind): boolean {
 }
 
 // Retention windows (READ pings only — unread is never auto-deleted).
-export const PING_EPHEMERAL_DAYS = 30;   // social: follow, achievement, p2p, milestone
+export const PING_EPHEMERAL_DAYS = 30;   // social: follow, achievement, milestone
 export const PING_FINANCIAL_DAYS = 365;  // financial signal: a year of history
 
 /** Stored ping kinds by tier (LIST excluded — broadcast-only, never stored). */
@@ -34,5 +34,5 @@ export const STORED_FINANCIAL_KINDS: PingKind[] = [
   'OFFER', 'OFFER_ACCEPTED', 'SALE', 'XFER', 'WISHLIST_HIT', 'WATCH_HIT',
 ];
 export const STORED_EPHEMERAL_KINDS: PingKind[] = [
-  'PING', 'FOLLOW', 'PROJECT_FOLLOW', 'ACHIEVEMENT', 'STREAK', 'MINT',
+  'FOLLOW', 'PROJECT_FOLLOW', 'ACHIEVEMENT', 'STREAK', 'MINT',
 ];

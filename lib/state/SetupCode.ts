@@ -200,12 +200,17 @@ const SPELL_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromE
 // ── Multi-value tokens (Brendon 2026-06-19 — Setup Codes catch-up) ──────
 // Only the NON-default value is encoded; absence restores the default on apply.
 //   watchMetric: 0 (default) omitted; 1-3 → WMT1..3
-//   pingToasts:  'all' (default) omitted; off/money/social → PTOF/PTMN/PTSO
+//   pingToasts:  'off' (default) omitted; on/3d/combo → PTON/PT3D/PTCO
 //   menutape:    0 (default) omitted; 3/4 → MNT3/MNT4
 //   audience:    true (default) omitted; false → NAUD
 const TOKEN_TO_WATCHMETRIC: Record<string, number> = { WMT1: 1, WMT2: 2, WMT3: 3 };
-const PINGTOAST_TO_TOKEN: Record<PingToastMode, string> = { off: 'PTOF', money: 'PTMN', social: 'PTSO', all: 'PTAL' };
-const TOKEN_TO_PINGTOAST: Record<string, PingToastMode> = { PTOF: 'off', PTMN: 'money', PTSO: 'social', PTAL: 'all' };
+const PINGTOAST_TO_TOKEN: Record<PingToastMode, string> = { off: 'PTOF', on: 'PTON', '3d': 'PT3D', combo: 'PTCO' };
+// Decode includes legacy tokens (PTMN/PTSO/PTAL, the old money/social/all cycle)
+// → they all popped toasts, so they map onto the regular "on" state.
+const TOKEN_TO_PINGTOAST: Record<string, PingToastMode> = {
+    PTOF: 'off', PTON: 'on', PT3D: '3d', PTCO: 'combo',
+    PTMN: 'on', PTSO: 'on', PTAL: 'on',
+};
 const TOKEN_TO_MENUTAPE: Record<string, MenuTapeMode> = { MNT3: 3, MNT4: 4 };
 
 /** All flag keys that participate in the Setup Code envelope. */
@@ -245,7 +250,7 @@ export function encodeSetupCode(
     }
     // Multi-value settings — only the non-default value is encoded.
     if (notifs.watchMetric >= 1 && notifs.watchMetric <= 3) activeTokens.push(`WMT${notifs.watchMetric}`);
-    if (notifs.pingToasts && notifs.pingToasts !== 'all') activeTokens.push(PINGTOAST_TO_TOKEN[notifs.pingToasts]);
+    if (notifs.pingToasts && notifs.pingToasts !== 'off') activeTokens.push(PINGTOAST_TO_TOKEN[notifs.pingToasts]);
     if (notifs.menutape === 3 || notifs.menutape === 4) activeTokens.push(`MNT${notifs.menutape}`);
     if (!notifs.audience) activeTokens.push('NAUD');
     activeTokens.sort();
@@ -346,7 +351,7 @@ export function notifsPatchFromDecodedState(state: DecodedState): Partial<PdNoti
     }
     // Multi-value settings reset to their DEFAULT when the code omits them.
     patch.watchMetric = state.watchMetric ?? 0;
-    patch.pingToasts = state.pingToasts ?? 'all';
+    patch.pingToasts = state.pingToasts ?? 'off';
     patch.menutape = state.menutape ?? 0;
     patch.audience = state.audience ?? true;
     return patch;

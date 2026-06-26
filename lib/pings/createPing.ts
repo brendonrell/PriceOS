@@ -17,6 +17,7 @@ import {
   STORED_EPHEMERAL_KINDS,
   STORED_FINANCIAL_KINDS,
 } from '@/lib/pings/tiers';
+import { sendNativePing } from '@/lib/push/webpush';
 
 type DB = ReturnType<typeof getSupabaseService>;
 
@@ -120,6 +121,25 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
         ? null
         : Number(input.amountEth);
 
+    // 3D Pingtoasts — fan a native OS notification to the recipient's registered
+    // devices. Best-effort and self-gating: no-op until they opt into 3D AND the
+    // VAPID keys are configured, so this is inert for everyone else. Awaited (not
+    // fire-and-forget) so it survives a serverless teardown; the fast path is a
+    // single indexed lookup when the recipient has no devices.
+    const fireNative = (id: string) =>
+      sendNativePing(recipient, {
+        id,
+        kind: input.kind,
+        source: 'directed',
+        actor_name: actorName,
+        project_id: input.projectId ?? null,
+        token_id: input.tokenId ?? null,
+        amount_eth: amount == null ? null : String(amount),
+        data: baseData,
+        read: false,
+        created_at: new Date().toISOString(),
+      });
+
     // Bump an existing OPEN (unread) rollup row in-window, returning its id, or
     // null if there's none. A partial unique index on (recipient_address,
     // group_key) WHERE read=false guarantees at most one such row, so this can't
@@ -167,6 +187,7 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
     if (input.groupKey) {
       const bumped = await tryBump();
       if (bumped) {
+        await fireNative(bumped);
         void maybePrune(db, recipient);
         return bumped;
       }
@@ -195,6 +216,7 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
       if (input.groupKey && (error as { code?: string }).code === '23505') {
         const bumped = await tryBump();
         if (bumped) {
+          await fireNative(bumped);
           void maybePrune(db, recipient);
           return bumped;
         }
@@ -202,8 +224,10 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
       console.error('[pings] createPing insert failed:', error.message);
       return null;
     }
+    const newId = (inserted as { id: string }).id;
+    await fireNative(newId);
     void maybePrune(db, recipient);
-    return (inserted as { id: string }).id;
+    return newId;
   } catch (err) {
     console.error('[pings] createPing error:', err instanceof Error ? err.message : err);
     return null;

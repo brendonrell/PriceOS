@@ -28,3 +28,45 @@ self.addEventListener('activate', (event) => {
 // calls respondWith — the browser handles every request straight from the
 // network. Nothing is cached or intercepted, so the site stays live.
 self.addEventListener('fetch', () => { /* network passthrough */ });
+
+/* ── 3D Pingtoasts — native push (Brendon, 2026-06-26) ─────────────────────────
+ * The ONLY stateful job this worker has beyond installability. The server
+ * (lib/push/webpush.ts) sends a JSON payload { title, body, tag, icon, badge,
+ * url }; we surface it as a real OS notification. Title carries the recipient's
+ * PriceSprite face, body carries the canonical ping glyph + content — all plain
+ * text, so it renders on-brand on iOS, Android and desktop Chrome alike. */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  const title = data.title || 'Price Discussion';
+  const options = {
+    body: data.body || '',
+    tag: data.tag || 'pd-ping',
+    icon: data.icon || '/icon-192px.png',
+    badge: data.badge || '/icon-192-maskable.png',
+    // renotify so a fresh ping in an existing tag still buzzes (not silently
+    // replaced). data.url is where a tap lands.
+    renotify: true,
+    data: { url: data.url || '/' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Tap a notification → focus an open PD window if there is one, else open it.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of all) {
+      if ('focus' in client) {
+        try { await client.focus(); } catch { /* ignore */ }
+        if ('navigate' in client && url !== '/') {
+          try { await client.navigate(url); } catch { /* ignore */ }
+        }
+        return;
+      }
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(url);
+  })());
+});

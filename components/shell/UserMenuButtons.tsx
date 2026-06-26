@@ -88,7 +88,7 @@ import {
     subscribeWalletBus,
 } from '../../lib/wallet/walletBus';
 import { useDropdown } from '../../lib/state/DropdownContext';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { usePdNotifs, showsRegularToasts } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -179,9 +179,11 @@ export function UserMenuButtons() {
     const cartBtnClass = `btn-cart${cartCount > 0 ? ' has-items' : ''}`;
     const cartBadgeText = cartCount > 99 ? '99+' : String(cartCount);
 
-    /* Unread Pings → a count badge on the connect button (only when signed in
-       and there's something unread). Reuses the cart badge's visual pattern. */
-    const unreadPings = isAuthed ? pingsState.unreadCount : 0;
+    /* Unread Pings → the iOS-style Hothurt badge on the connect button. Part of
+       the regular Pingtoasts feature, so it shows only when that's on (ON /
+       COMBO), signed in, and there's something unread. */
+    const unreadPings =
+        isAuthed && showsRegularToasts(notifs.pingToasts) ? pingsState.unreadCount : 0;
     const pingBadgeText = unreadPings > 99 ? '99+' : String(unreadPings);
 
     /* Click handler — dual path based on auth + menu state.

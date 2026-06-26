@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { MINT_FEE_ETH } from '../../lib/project/registry';
+import { acquireWakeLock } from '../../lib/pwa/wakeLock';
 
 const MAX_PER_MINT = 22;
 
@@ -54,6 +55,9 @@ export default function MintButton({
   const confirm = async () => {
     setPhase('minting');
     setPct(6);
+    // Keep the screen awake for the duration of the mint so it never dims/sleeps
+    // mid-action (no-op where the platform lacks the API). Released in finally.
+    const releaseWakeLock = acquireWakeLock();
     // Two rAFs so the CSS width transition runs from ~0 to near-full.
     requestAnimationFrame(() => requestAnimationFrame(() => setPct(92)));
     const minShow = new Promise((r) => setTimeout(r, 900));
@@ -69,6 +73,8 @@ export default function MintButton({
       ok = r.ok;
     } catch {
       /* network */
+    } finally {
+      releaseWakeLock();
     }
     await minShow;
     setPct(100);

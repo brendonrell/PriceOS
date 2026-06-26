@@ -56,7 +56,6 @@ export interface RenderedPing {
 // wears everywhere else in the app. All carry the VS-15 text selector (U+FE0E)
 // so they render as monochrome Courier glyphs, never emoji.
 const ICONS: Record<RenderKind, string> = {
-  PING:           '✉︎', // ✉ message (p2p)
   FOLLOW:         '⚭︎', // ⚭ mutual / social (matches MUTUALS pill)
   PROJECT_FOLLOW: '⚭︎', // ⚭
   OUTPUT_FOLLOW:  '⚭︎', // ⚭ (same social glyph as project/user follows)
@@ -154,11 +153,6 @@ export function renderPing(row: FeedItem): RenderedPing {
       handle = '';
       const days = typeof row.data?.days === 'number' ? (row.data.days as number) : null;
       action = days ? `${days}-day streak` : 'Streak milestone';
-      break;
-    }
-    case 'PING': {
-      const msg = typeof row.data?.message === 'string' ? (row.data.message as string) : 'pinged you';
-      action = `pinged you: ${msg}`;
       break;
     }
     case 'WISHLIST_HIT': {
