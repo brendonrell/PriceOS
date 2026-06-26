@@ -35,6 +35,10 @@ import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
 import AttributesPanel from './AttributesPanel';
+import FeedEventRow from '../feed/FeedEventRow';
+import { GhostFeedRows } from '../GhostFeed';
+import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
+import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
 
@@ -147,6 +151,28 @@ export default function ArtworkPageBody({
             })
             .catch(() => {});
         return () => { cancelled = true; };
+    }, [slug, numberPart]);
+
+    /* This Output's activity feed — REAL pre-chain rows from Supabase `events`,
+       scoped to this one token. Same source + mapping as the project feed, so
+       the two read identically. Re-pulled on any market action. */
+    const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
+    useEffect(() => {
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/output/${slug}-${numberPart}/feed?limit=100`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { events?: EventRow[] } | null) => {
+                    if (!cancelled && Array.isArray(d?.events)) {
+                        setFeedRows(d!.events.map(eventToFeedEvent));
+                    }
+                })
+                .catch(() => { /* keep last good rows */ });
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [slug, numberPart]);
 
     const owned = market?.viewer?.isOwner ?? false;
@@ -419,6 +445,19 @@ export default function ArtworkPageBody({
                         ? <a className="aff-owner profile-link" href={ownerHref}>{heldBy}</a>
                         : <span className="aff-owner">{heldBy}</span>}
                 </div>
+
+                {/* Output activity feed — REAL pre-chain rows from Supabase
+                    `events`, scoped to this token. Same markup as the project
+                    artworks feed so it reads identically. */}
+                <section id="output-activity-feed" aria-label="Activity Feed">
+                    <div className="feed-list">
+                        {feedRows.length === 0 ? (
+                            <GhostFeedRows />
+                        ) : feedRows.map((e) => (
+                            <FeedEventRow key={e.id} fe={e} />
+                        ))}
+                    </div>
+                </section>
             </section>
 
             {/* Albums tab — placeholder. */}
