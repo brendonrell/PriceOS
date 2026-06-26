@@ -59,7 +59,9 @@ interface FeedMarker {
     pin: number;
     tbdDay?: boolean;
     label: string;
-    subject: string;
+    lead: string;
+    highlight: string;
+    tail: string;
     href: string | null;
     badge?: boolean;
 }
@@ -92,12 +94,11 @@ const OUT_THEME_PILLS: { key: ColorwayKey; cls: string; glyph: string; title: st
     { key: 'orange', cls: 't-orange', glyph: '▨︎', title: 'Orange' },
 ];
 
-/* The four homepage sort buttons (DATE · $PRICE · AZ/ZA · FEED). */
-const OUT_SORTS: { key: OutSortKey; title: string; lbl: (s: { key: OutSortKey; dir: OutSortDir }) => string }[] = [
-    { key: 'date',  title: 'Sort by date',     lbl: () => 'DATE' },
-    { key: 'price', title: 'Sort by price',    lbl: () => '$PRICE' },
-    { key: 'az',    title: 'Sort A–Z by name', lbl: (s) => (s.key === 'az' && s.dir === 'desc' ? 'ZA' : 'AZ') },
-    { key: 'feed',  title: 'Activity Feed',    lbl: () => 'FEED' },
+/* Sort buttons — $PRICE + FEED. FEED already orders by date (newest first), so
+   a separate DATE button is redundant; AZ doesn't apply to one output's feed. */
+const OUT_SORTS: { key: OutSortKey; title: string; lbl: () => string }[] = [
+    { key: 'price', title: 'Sort by price', lbl: () => '$PRICE' },
+    { key: 'feed',  title: 'Activity Feed', lbl: () => 'FEED' },
 ];
 
 /* "MMM DD" (e.g. MAY 13), or "MMM ?" when the day is undecided — same base
@@ -277,18 +278,20 @@ export default function ArtworkPageBody({
             });
         }
         for (const m of feedMarkers) {
-            const name = (
+            const content = (
                 <>
+                    {m.lead}
                     {m.href
-                        ? <a className="f-highlight upload-title" href={m.href}>{m.subject}</a>
-                        : <span className="f-highlight upload-title">{m.subject}</span>}
+                        ? <a className="f-highlight upload-title" href={m.href}>{m.highlight}</a>
+                        : <span className="f-highlight upload-title">{m.highlight}</span>}
+                    {m.tail}
                     {m.badge && <span className="artist-tag is-sm" aria-label="PD Artist">{' ✺︎'}</span>}
                 </>
             );
             items.push({
                 key: `m-${m.id}`, glyph: m.glyph, cls: m.cls, label: m.label,
-                ts: Date.parse(m.timestamp) || 0, tbdDay: m.tbdDay, content: name,
-                pin: m.pin, seq: m.seq, price: 0, sortName: m.subject,
+                ts: Date.parse(m.timestamp) || 0, tbdDay: m.tbdDay, content,
+                pin: m.pin, seq: m.seq, price: 0, sortName: m.highlight,
             });
         }
         const dirMult = outSort.dir === 'asc' ? 1 : -1;
@@ -573,14 +576,14 @@ export default function ArtworkPageBody({
                         : <span className="aff-owner">{heldBy}</span>}
                 </div>
 
-                {/* Action row — the artwork-modal buttons (star / wishlist /
-                    album / note / to-do / grail / cart), just below the art. */}
-                <OutputActionRow slug={slug} id={numberPart} listed={!!market?.listing} owned={owned} />
-
-                {/* Output activity feed — the homepage Now-Minting feed, exact:
-                    colorway squares + DATE / $PRICE / AZ / FEED, then the
-                    two-line activity rows. Fed by THIS output's history. */}
+                {/* Output activity feed — the homepage Now-Minting bar, exact:
+                    the artwork-modal action buttons, then the colorway squares +
+                    $PRICE / FEED, then the two-line activity rows. The action row
+                    sits directly above the colorway picker, left-aligned. */}
                 <div className="home-facet-bar output-feed-bar">
+                    {/* Action row — artwork-modal buttons as colorway-style
+                        squares, just below the art. */}
+                    <OutputActionRow slug={slug} id={numberPart} listed={!!market?.listing} owned={owned} />
                     <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                         <div className="colorway-pills">
                             {OUT_THEME_PILLS.map((t) => (
@@ -608,7 +611,7 @@ export default function ArtworkPageBody({
                                     onClick={() => onOutSort(s.key)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOutSort(s.key); } }}
                                 >
-                                    <span className="sort-lbl">{s.lbl(outSort)}</span>
+                                    <span className="sort-lbl">{s.lbl()}</span>
                                     <span className="sort-arrow">{outSort.key === s.key ? (outSort.dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                                 </span>
                             ))}

@@ -10217,29 +10217,25 @@ body.colorway-dark .ghost-feed-bar {
 /* Breathing room between the art's footer row and the site footer below. */
 #artwork-feature { padding-bottom: 40px; }
 
-/* Action row under the Output art — the artwork-modal buttons as a static,
-   tasteful row. Reuses the .hi-icon glyphs but recolours for the on-page
-   background (the card's #e0e0e0 is tuned for its dark hover scrim). */
+/* Action row under the Output art — the artwork-modal buttons as colorway-style
+   square buttons (.pill-colorway), left-aligned directly above the colorway
+   picker. Wraps on narrow screens. */
 .output-action-row {
-    display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 12px 20px;
-    padding: 20px 40px 6px 40px;
-}
-.output-action-row .hi-icon { color: var(--text-color); opacity: 0.75; }
-.output-action-row .hi-icon.active-star { color: var(--text-color); opacity: 1; }
-@media (max-width: 600px) {
-    .output-action-row { padding: 16px 16px 4px 16px; }
+    margin-right: 0;
 }
 
-/* The output's copy of the homepage Now-Minting sort bar. On home it sits inside
-   the Hero, which supplies its inset; here it stands alone, so give it the same
-   40px page inset the feed list below it uses, and a little air above/below. */
+/* The output's copy of the homepage Now-Minting bar (action buttons + colorway +
+   sorts). On home it sits inside the Hero, which supplies its inset; here it
+   stands alone, so it carries the SAME page inset the homepage feed uses — 40px
+   desktop, 20px mobile — and adds tasteful air below the art before the first
+   button. */
 .output-feed-bar {
     padding: 0 40px;
-    margin: 4px 0 16px;
+    margin: 24px 0 18px;
+}
+@media (max-width: 600px) {
+    .output-feed-bar { padding: 0 20px; }
 }
 .artwork-feature-foot .aff-check { opacity: 0.85; }
 .artwork-feature-foot .aff-fullscreen {

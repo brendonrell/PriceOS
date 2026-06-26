@@ -63,31 +63,32 @@ export default function OutputActionRow({
         showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
     };
 
+    /* Same square button as the colorway picker below (.pill-colorway): bordered
+       box, glyph centred; the `active` state mirrors the colorway active fill. */
+    const Btn = ({ glyph, title, active, onClick, extra }: {
+        glyph: string; title: string; active?: boolean; onClick: (e: React.MouseEvent) => void; extra?: string;
+    }) => (
+        <div
+            className={`pill-colorway output-act${active ? ' active' : ''}${extra ? ` ${extra}` : ''}`}
+            role="button"
+            tabIndex={0}
+            title={title}
+            onClick={onClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e as unknown as React.MouseEvent); } }}
+        >
+            <span>{glyph}</span>
+        </div>
+    );
+
     return (
-        <div className="output-action-row">
-            <span className={`hi-icon${starred ? ' active-star' : ''}`} title="Star" onClick={onStar}>
-                {starred ? '★︎' : '☆︎'}
-            </span>
-            <span className={`hi-icon${wishlisted ? ' active-star' : ''}`} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} onClick={onWishlist}>
-                {'✛︎'}
-            </span>
-            <span className="hi-icon" title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }}>
-                {'◰︎'}
-            </span>
-            <span className="hi-icon hi-note" title="Add Note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }}>
-                {'⊟︎'}
-            </span>
-            <span className="hi-icon hi-todo" title="Make To-Do" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }}>
-                {'❍︎'}
-            </span>
-            <span className="hi-icon hi-grail" title="Grail Pin" onClick={onGrail}>
-                {'⟟︎'}
-            </span>
-            {listed && (
-                <span className="hi-icon hi-cart" title="Add to Cart" onClick={onCart}>
-                    {'▢︎'}
-                </span>
-            )}
+        <div className="output-action-row colorway-pills">
+            <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} />
+            <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
+            <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
+            <Btn glyph={'⊟︎'} title="Add Note" extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
+            <Btn glyph={'❍︎'} title="Make To-Do" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
+            <Btn glyph={'⟟︎'} title="Grail Pin" onClick={onGrail} />
+            {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
         </div>
     );
 }

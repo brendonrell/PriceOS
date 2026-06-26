@@ -37,8 +37,13 @@ export interface FeedMarker {
   /* When set, the day is undecided — the row shows "MMM ?" (month only). The
      timestamp still carries the right month for display. */
   tbdDay?: boolean;
+  /* `label` is the af-type middle column (the homepage style). The right column
+     is the descriptive caption `lead` + linked/bold `highlight` + `tail`, with
+     `badge` appending the ✺ PD-Artist mark. */
   label: string;
-  subject: string;
+  lead: string;
+  highlight: string;
+  tail: string;
   href: string | null;
   badge?: boolean;
 }
@@ -50,15 +55,15 @@ export interface FeedMarker {
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
     id: 'pd-started', glyph: '#', cls: null, timestamp: '2021-11-11T00:00:00.000Z',
-    seq: 0, pin: 4, label: 'STARTED', subject: '#price-discussion', href: null,
+    seq: 0, pin: 4, label: 'STARTED', lead: '', highlight: '#price-discussion', tail: ' started', href: null,
   },
   {
     id: 'priceos-released', glyph: '‰', cls: 'af-ic--mille', timestamp: '2026-07-01T00:00:00.000Z',
-    seq: 0, pin: 3, tbdDay: true, label: 'RELEASED', subject: 'PriceOS 1.0', href: null,
+    seq: 0, pin: 3, tbdDay: true, label: 'RELEASED', lead: '', highlight: 'PriceOS 1.0', tail: ' released', href: null,
   },
   {
     id: 'price-airdrop', glyph: '⤓', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
-    seq: 0, pin: 2, tbdDay: true, label: 'AIRDROP', subject: '$PRICE', href: null,
+    seq: 0, pin: 2, tbdDay: true, label: 'AIRDROP', lead: '', highlight: '$PRICE', tail: ' airdrop', href: null,
   },
 ];
 
@@ -162,7 +167,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
       markers.push({
         id: `artist-joined-${slug}`,
         glyph: '✺', cls: null, timestamp: artistJoined, seq: -3, pin: 1,
-        label: 'JOINED PD', subject: artistName, href: artistLink,
+        label: 'JOINED PD', lead: '', highlight: artistName, tail: ' joined PD', href: artistLink,
       });
     }
     const artistAdded = iso((allowRes.data as { added_at: string | null } | null)?.added_at ?? null);
@@ -170,7 +175,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
       markers.push({
         id: `artist-added-${slug}`,
         glyph: '✺', cls: null, timestamp: artistAdded, seq: -2, pin: 1,
-        label: 'PD ARTIST', subject: artistName, href: artistLink, badge: true,
+        label: 'PD ARTIST', lead: '', highlight: artistName, tail: ' added as PD Artist', href: artistLink, badge: true,
       });
     }
   }
@@ -194,7 +199,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
       markers.push({
         id: `minter-joined-${slug}-${tokenId}`,
         glyph: '✺', cls: null, timestamp: minterJoined, seq: -1, pin: 1,
-        label: 'JOINED PD', subject: nameOf(mu?.handle ?? null, minterAddr), href: profileHref(mu?.handle ?? null),
+        label: 'JOINED PD', lead: '', highlight: nameOf(mu?.handle ?? null, minterAddr), tail: ' joined PD', href: profileHref(mu?.handle ?? null),
       });
     }
   }
@@ -206,7 +211,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
     markers.push({
       id: `upload-${slug}`,
       glyph: FEED_LIFECYCLE.upload.glyph, cls: null, timestamp: uploadedIso, seq: -1, pin: 0,
-      label: FEED_LIFECYCLE.upload.label, subject: title, href: projHref,
+      label: FEED_LIFECYCLE.upload.label, lead: '', highlight: title, tail: ' uploaded', href: projHref,
     });
   }
 
@@ -218,7 +223,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
       markers.push({
         id: `ms-${count}-${slug}`,
         glyph: m.glyph, cls: m.cls ?? null, timestamp: when, seq: m.count, pin: 0,
-        label: m.label, subject: title, href: projHref,
+        label: m.label, lead: `${title} reached `, highlight: m.label, tail: '', href: projHref,
       });
     }
   }
@@ -229,7 +234,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
     markers.push({
       id: `grad-${slug}`,
       glyph: FEED_LIFECYCLE.graduated.glyph, cls: FEED_LIFECYCLE.graduated.cls ?? null, timestamp: gradIso, seq: 18, pin: 0,
-      label: FEED_LIFECYCLE.graduated.label, subject: title, href: projHref,
+      label: FEED_LIFECYCLE.graduated.label, lead: '', highlight: title, tail: ' graduated', href: projHref,
     });
   }
   const ascIso = iso(p.sold_out_at);
@@ -237,7 +242,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
     markers.push({
       id: `asc-${slug}`,
       glyph: FEED_LIFECYCLE.ascension.glyph, cls: null, timestamp: ascIso, seq: Number.MAX_SAFE_INTEGER, pin: 0,
-      label: FEED_LIFECYCLE.ascension.label, subject: title, href: projHref,
+      label: FEED_LIFECYCLE.ascension.label, lead: `${title} reached `, highlight: FEED_LIFECYCLE.ascension.label, tail: '', href: projHref,
     });
   }
 
