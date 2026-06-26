@@ -10216,6 +10216,17 @@ body.colorway-dark .ghost-feed-bar {
 }
 /* Breathing room between the art's footer row and the site footer below. */
 #artwork-feature { padding-bottom: 40px; }
+
+/* This output's activity feed — same row styling as the project artworks feed
+   (.feed-list). Carries the page's standard 40px horizontal inset (16px on
+   mobile) so the rows line up exactly with the art + foot above, plus top
+   spacing so it reads as its own block below the foot. */
+#output-activity-feed {
+    padding: 26px 40px 0 40px;
+}
+@media (max-width: 600px) {
+    #output-activity-feed { padding: 22px 16px 0 16px; }
+}
 .artwork-feature-foot .aff-check { opacity: 0.85; }
 .artwork-feature-foot .aff-fullscreen {
     margin-left: 8px;

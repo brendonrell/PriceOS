@@ -21,7 +21,7 @@
  *     Stats sub-tab under + More.
  */
 
-import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -45,6 +45,41 @@ import type { AttrInput } from '../../lib/output/attributes';
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
     return '0x' + a.slice(2, 6) + '…' + a.slice(-4);
+}
+
+/* A project/artist history row in the output timeline (artist joined · uploaded
+   · milestones · graduated · ascension). Mirrors the server FeedMarker shape. */
+interface FeedMarker {
+    id: string;
+    glyph: string;
+    cls: string | null;
+    timestamp: string;
+    seq: number;
+    pin: number;
+    tbdDay?: boolean;
+    lead: string;
+    highlight: string;
+    tail: string;
+}
+
+/* One row of the merged timeline: either a token transaction (FeedEventRow) or
+   a history marker. `ts` (ms) + `seq` drive the shared sort. */
+type TimelineRow =
+    | { kind: 'tx'; ts: number; seq: number; pin: number; fe: FeedEvent }
+    | { kind: 'marker'; ts: number; seq: number; pin: number; m: FeedMarker };
+
+/* Marker date for the time column — "MMM DD" uppercase (e.g. MAY 13), or "MMM ?"
+   when the day is undecided (tbdDay). These are historical moments, so they show
+   a date where transaction rows show a time. */
+function fmtMarkerDate(iso: string, tbdDay?: boolean): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const month = d
+        .toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })
+        .toUpperCase();
+    if (tbdDay) return `${month} ?`;
+    const day = d.toLocaleDateString('en-US', { day: '2-digit', timeZone: 'UTC' });
+    return `${month} ${day}`;
 }
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';
@@ -153,19 +188,22 @@ export default function ArtworkPageBody({
         return () => { cancelled = true; };
     }, [slug, numberPart]);
 
-    /* This Output's activity feed — REAL pre-chain rows from Supabase `events`,
-       scoped to this one token. Same source + mapping as the project feed, so
-       the two read identically. Re-pulled on any market action. */
+    /* This Output's activity timeline — REAL pre-chain transaction rows from
+       Supabase `events` (scoped to this token), PLUS the project/artist history
+       markers (artist joined · uploaded · milestones · graduated · ascension).
+       Same source + mapping as the project feed, so they read identically.
+       Re-pulled on any market action. */
     const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
+    const [feedMarkers, setFeedMarkers] = useState<FeedMarker[]>([]);
     useEffect(() => {
         let cancelled = false;
         const load = () => {
             fetch(`/api/output/${slug}-${numberPart}/feed?limit=100`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((d: { events?: EventRow[] } | null) => {
-                    if (!cancelled && Array.isArray(d?.events)) {
-                        setFeedRows(d!.events.map(eventToFeedEvent));
-                    }
+                .then((d: { events?: EventRow[]; markers?: FeedMarker[] } | null) => {
+                    if (cancelled || !d) return;
+                    if (Array.isArray(d.events)) setFeedRows(d.events.map(eventToFeedEvent));
+                    if (Array.isArray(d.markers)) setFeedMarkers(d.markers);
                 })
                 .catch(() => { /* keep last good rows */ });
         };
@@ -174,6 +212,19 @@ export default function ArtworkPageBody({
         window.addEventListener('pd:project-refresh', onR);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [slug, numberPart]);
+
+    /* Merge transactions + history markers into one timeline, newest first.
+       The fixed platform/artist genesis rows (`pin` > 0) always anchor to the
+       BOTTOM in their pinned order, regardless of date; everything else sorts by
+       time, with `seq` breaking same-timestamp ties so a single mint's milestones
+       read in their true order (FIRST BLOOD → GRADUATED → …). */
+    const timeline = useMemo<TimelineRow[]>(() => {
+        const rows: TimelineRow[] = [];
+        for (const fe of feedRows) rows.push({ kind: 'tx', ts: fe.timestamp, seq: Number.MAX_SAFE_INTEGER, pin: 0, fe });
+        for (const m of feedMarkers) rows.push({ kind: 'marker', ts: Date.parse(m.timestamp) || 0, seq: m.seq, pin: m.pin, m });
+        rows.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
+        return rows;
+    }, [feedRows, feedMarkers]);
 
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
@@ -451,10 +502,26 @@ export default function ArtworkPageBody({
                     artworks feed so it reads identically. */}
                 <section id="output-activity-feed" aria-label="Activity Feed">
                     <div className="feed-list">
-                        {feedRows.length === 0 ? (
+                        {timeline.length === 0 ? (
                             <GhostFeedRows />
-                        ) : feedRows.map((e) => (
-                            <FeedEventRow key={e.id} fe={e} />
+                        ) : timeline.map((row) => (
+                            row.kind === 'tx' ? (
+                                <FeedEventRow key={row.fe.id} fe={row.fe} />
+                            ) : (
+                                <div className="feed-row" key={row.m.id}>
+                                    <div className="feed-line" />
+                                    <div className={`f-icon-wrap af-ic${row.m.cls ? ` ${row.m.cls}` : ''}`}>
+                                        {row.m.glyph}&#xFE0E;
+                                    </div>
+                                    <div className="f-time">{fmtMarkerDate(row.m.timestamp, row.m.tbdDay)}</div>
+                                    <div className="f-type" />
+                                    <div className="f-content">
+                                        {row.m.lead}
+                                        <span className="f-highlight">{row.m.highlight}</span>
+                                        {row.m.tail}
+                                    </div>
+                                </div>
+                            )
                         ))}
                     </div>
                 </section>
