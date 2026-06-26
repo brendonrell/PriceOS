@@ -82,12 +82,12 @@ export default function OutputActionRow({
 
     return (
         <div className="output-action-row colorway-pills">
-            <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} />
+            <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} extra="output-act-star" />
             <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
             <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
             <Btn glyph={'⊟︎'} title="Add Note" extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
-            <Btn glyph={'❍︎'} title="Make To-Do" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
-            <Btn glyph={'⟟︎'} title="Grail Pin" onClick={onGrail} />
+            <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
+            <Btn glyph={'⟟︎'} title="Grail Pin" extra="output-act-grail" onClick={onGrail} />
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
         </div>
     );

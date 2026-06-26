@@ -10226,6 +10226,12 @@ body.colorway-dark .ghost-feed-bar {
     flex-wrap: wrap;
     margin-right: 0;
 }
+/* Per-icon size/alignment nudges in the action row (Brendon, 2026-06-26). Base
+   glyph is 18px (.pill-colorway span). */
+.output-action-row .output-act-star span { font-size: 19px; position: relative; top: -1px; }
+.output-action-row .output-act-note span { font-size: 19px; }
+.output-action-row .output-act-todo span { font-size: 19px; }
+.output-action-row .output-act-grail span { position: relative; top: 2px; }
 
 /* The output's copy of the homepage Now-Minting bar (action buttons + colorway +
    sorts). On home it sits inside the Hero, which supplies its inset; here it
