@@ -11,6 +11,7 @@
 
 import type { ReactNode } from 'react';
 import type { EventRow } from '../supabase';
+import type { TxStar } from '../pins/txStarStore';
 
 export interface FeedEvent {
     id: string;
@@ -20,6 +21,9 @@ export interface FeedEvent {
     detail: ReactNode;
     timestamp: number;
     price: number;
+    /* The event essentials captured for Starred Tx — long-pressing the row
+       persists this so the Starred surface can re-render without the feed. */
+    star: TxStar;
 }
 
 export const FEED_ICON: Record<FeedEvent['type'], string> = {
@@ -63,5 +67,33 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
         detail: <><span className="f-highlight">{actor}</span> {verb}</>,
         timestamp: ms,
         price,
+        star: {
+            id: e.id,
+            type,
+            tokenId: e.token_id,
+            fromAddress: e.from_address,
+            toAddress: e.to_address,
+            fromHandle: e.from_handle ?? null,
+            toHandle: e.to_handle ?? null,
+            priceEth: e.price_eth,
+            timestamp: e.timestamp,
+        },
     };
+}
+
+/** Rebuild a feed event from a persisted Starred-Tx blob (the reverse of
+ *  `star` above) so the Starred surface renders it identically to the feed. */
+export function txStarToFeedEvent(s: TxStar): FeedEvent {
+    return eventToFeedEvent({
+        id: s.id,
+        type: s.type,
+        project_id: '',
+        token_id: s.tokenId,
+        from_address: s.fromAddress,
+        to_address: s.toAddress,
+        price_eth: s.priceEth,
+        timestamp: s.timestamp,
+        from_handle: s.fromHandle,
+        to_handle: s.toHandle,
+    } as EventRow);
 }

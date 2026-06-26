@@ -46,6 +46,7 @@ import { signatureHexFor } from '../../lib/profile/signatureHex';
 import { resolveBucket, resolveFingerprint, useStoredColors } from '../../lib/art/colorStore';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
+import FeedEventRow from '../feed/FeedEventRow';
 import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
 import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
@@ -54,6 +55,7 @@ import { fetchMyHistory, type HistoryEntry } from '../../lib/output/views';
 import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
+import { getTxStarItems, subscribeTxStars } from '../../lib/pins/txStarStore';
 import { getProjectStars, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
@@ -1086,7 +1088,7 @@ function ProfilePageBodyInner({
        Wishlist keeps its own #ID sort. */
     type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
     type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
-        | 'followers' | 'following' | 'mutuals';
+        | 'tx' | 'followers' | 'following' | 'mutuals';
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
@@ -1198,6 +1200,14 @@ function ProfilePageBodyInner({
     useEffect(() => {
         setSoundtrackStars(getSoundtrackStarItems());
         return subscribeSoundtrackStars(() => setSoundtrackStars(getSoundtrackStarItems()));
+    }, []);
+
+    /* Starred Tx — favourited on-chain activity events, under the Starred tab's
+       Tx filter (the very last pill after Soundtracks). */
+    const [txStars, setTxStars] = useState(() => getTxStarItems());
+    useEffect(() => {
+        setTxStars(getTxStarItems());
+        return subscribeTxStars(() => setTxStars(getTxStarItems()));
     }, []);
 
     /* Starred Projects — favourited Project slugs, under the Starred tab's
@@ -2204,10 +2214,10 @@ function ProfilePageBodyInner({
                                 ) : undefined
                             }
                             profileValueRow={
-                                onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) ? (
+                                onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                                     <div className="stats-container collected-values" style={{ display: 'flex' }}>
                                         {([
-                                            { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length },
+                                            { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length + txStars.length },
                                             { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
                                             { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
                                             // Social filters across collectors + artists + projects. No count
@@ -2220,6 +2230,7 @@ function ProfilePageBodyInner({
                                             { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
                                             { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },
                                             { key: 'soundtracks', label: 'Soundtracks', count: soundtrackStars.length },
+                                            { key: 'tx',          label: 'Tx',          count: txStars.length },
                                         ] as { key: MoreMode; label: string; count: number }[]).map((p) => (
                                             <div
                                                 key={p.key}
@@ -2522,13 +2533,7 @@ function ProfilePageBodyInner({
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
                     ) : sortedFeedEvents.map((e) => (
-                        <div className="feed-row" key={e.id}>
-                            <div className="feed-line" />
-                            <div className="f-icon-wrap">{e.icon}&#xFE0E;</div>
-                            <div className="f-time">{e.time}</div>
-                            <div className="f-type">{e.type}</div>
-                            <div className="f-content">{e.detail}</div>
-                        </div>
+                        <FeedEventRow key={e.id} fe={e} />
                     ))}
                 </div>
             </section>
@@ -2603,7 +2608,7 @@ function ProfilePageBodyInner({
             {(onStarredTab || onWishlistTab) && isOwnProfile && (
                 <>
                     <div style={{ display: onStarredTab ? undefined : 'none' }}>
-                        {(starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0) ? (
+                        {(starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                             <StarredList
                                 items={starredValid}
                                 traits={traitStarsValid}
@@ -2611,6 +2616,7 @@ function ProfilePageBodyInner({
                                 collectors={starredCollectorHandles}
                                 soundtracks={soundtrackStars}
                                 projects={projectStarsValid}
+                                txEvents={txStars}
                                 searchOpen={moreSearchOpen}
                                 query={moreQuery}
                                 onQueryChange={setMoreQuery}

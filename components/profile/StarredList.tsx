@@ -34,6 +34,8 @@ import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
+import { removeTxStar, type TxStar } from '../../lib/pins/txStarStore';
+import { txStarToFeedEvent } from '../../lib/feed/feedRow';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
@@ -63,7 +65,7 @@ function dayLabel(t: number): string {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
+type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects' | 'tx'
     // Social cross-entity filters — top-level pills (right after Artists). Each
     // shows people + projects filtered by the viewer's follow relationship:
     // followers = follows you (a project follows you while you hold ≥1 of its
@@ -89,6 +91,7 @@ export default function StarredList({
     collectors = [],
     soundtracks = [],
     projects = [],
+    txEvents = [],
     searchOpen = false,
     query = '',
     onQueryChange,
@@ -109,6 +112,7 @@ export default function StarredList({
     collectors?: ReadonlyArray<string>;
     soundtracks?: ReadonlyArray<SoundtrackStar>;
     projects?: ReadonlyArray<string>;
+    txEvents?: ReadonlyArray<TxStar>;
     /* Search is controlled by the parent so its ⌕ icon can live up in the
        +More sub-nav beside the Info pill (where Collected's search lives). */
     searchOpen?: boolean;
@@ -263,6 +267,7 @@ export default function StarredList({
         if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
         if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
         if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
+        if (inMode('tx')) visibleTx.forEach((r) => { if (selected.has(`tx:${r.star.id}`)) removeTxStar(r.star.id); });
         const n = selected.size;
         setSelected(new Set());
         onExitMulti?.();
@@ -449,6 +454,20 @@ export default function StarredList({
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [soundtracks, query, sortKey, sortDir]);
 
+    /* ── Tx rows (starred on-chain activity events) ───────────────────── */
+    const visibleTx = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = txEvents.map((s, i) => ({ star: s, fe: txStarToFeedEvent(s), recentIndex: i }));
+        const filtered = q
+            ? rows.filter((r) => `${r.star.type} ${r.star.tokenId ?? ''} ${r.star.fromHandle ?? ''} ${r.star.toHandle ?? ''}`.toLowerCase().includes(q))
+            : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'price') sorted.sort((a, b) => a.fe.price - b.fe.price);
+        else if (sortKey === 'id') sorted.sort((a, b) => a.fe.timestamp - b.fe.timestamp);
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [txEvents, query, sortKey, sortDir]);
+
     /* ── Project rows ─────────────────────────────────────────────────── */
     const visibleProjects = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -574,14 +593,23 @@ export default function StarredList({
         });
     };
 
+    const handleTxUnstar = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        askRemove('Remove this tx from your Starred list?', () => {
+            removeTxStar(id);
+            showToast('Removed from your Starred Tx List');
+        });
+    };
+
     const totalVisible =
-        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length
+        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visibleTx.length
         : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length + visibleOutputs.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
         : mode === 'artists' ? visibleArtists.length
         : mode === 'collectors' ? visibleCollectors.length
         : mode === 'soundtracks' ? visibleSoundtracks.length
+        : mode === 'tx' ? visibleTx.length
         : visibleProjects.length;
 
     return (
@@ -885,6 +913,47 @@ export default function StarredList({
                         })}
                             </Fragment>
                         ))}
+                    </>
+                )}
+                {showType('tx') && (
+                    <>
+                        {typeHdr && visibleTx.length > 0 && <div className="starred-group-header">Tx</div>}
+                        {visibleTx.map((r) => {
+                            const selKey = `tx:${r.star.id}`;
+                            return (
+                            <div
+                                key={selKey}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role={multiActive ? 'button' : undefined}
+                                tabIndex={multiActive ? 0 : undefined}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
+                            >
+                                <div className="trait-row-tile artist-tile">
+                                    <span className="artist-row-tile-glyph">{r.fe.icon}&#xFE0E;</span>
+                                </div>
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{r.fe.detail}</span>
+                                    <span className="starred-row-sub">{r.fe.type} · {r.fe.time}</span>
+                                    <span className="starred-row-sub">{r.fe.price ? <>Price:<em>{r.fe.price} ETH</em></> : ' '}</span>
+                                    <span className="starred-row-sub">Tx</span>
+                                </div>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => handleTxUnstar(e, r.star.id)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTxUnstar(e as unknown as React.MouseEvent, r.star.id); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
+                            </div>
+                            );
+                        })}
                     </>
                 )}
                 {totalVisible === 0 && <GhostRows variant="starred" />}

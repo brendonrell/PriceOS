@@ -90,6 +90,9 @@ export const STATE_CACHE_KEYS = {
     /** Starred Projects (Project slugs). Read + written by projectStarStore;
      *  lives in the settings envelope (private). */
     projectStars: 'pd_project_stars',
+    /** Starred Tx (on-chain activity events; JSON blobs keyed by event id).
+     *  Read + written by txStarStore; lives in the settings envelope (private). */
+    txStars: 'pd_tx_stars',
     /** Per-page last-viewed tab map `{ project: {slug:tab}, profile: {handle:tab} }`.
      *  Read + written by tabMemoryStore; lives in the settings envelope. */
     tabMemory: 'pd_tab_memory',
@@ -275,6 +278,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.projectStars,
             JSON.stringify(Array.isArray(s.projectStars) ? s.projectStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.txStars,
+            JSON.stringify(Array.isArray(s.txStars) ? s.txStars : []),
         );
         // Per-page tab memory — server wins; tabMemoryStore reads this cache
         // synchronously in the project/profile page tab initializers.

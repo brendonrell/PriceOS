@@ -80,6 +80,8 @@ import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import type { EventRow } from '../../lib/supabase';
 import { GhostFeedRows } from '../GhostFeed';
+import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
+import FeedEventRow from '../feed/FeedEventRow';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -144,63 +146,9 @@ function eagerGalleryCount(): number {
    MINT / LIST / SALE / XFER into one of these (Brendon, 2026-06-13 — the
    feed is real now, not a mock seed). Feed sort cycles time-desc / time-asc
    / price-desc / price-asc, so the row carries numeric timestamp + price. */
-interface FeedEvent {
-    id: string;
-    icon: string;
-    time: string;
-    type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
-    detail: ReactNode;
-    timestamp: number;
-    price: number;
-}
-
-const FEED_ICON: Record<FeedEvent['type'], string> = {
-    MINT: '✶', LIST: '✹', SALE: '✦', XFER: '✸',
-};
-
-function feedShortAddr(a: string | null): string {
-    if (!a) return 'someone';
-    return a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
-}
-
-/** Token number out of an event's `${slug}-${id}` token_id. */
-function feedLocalId(tokenId: string | null): string {
-    if (!tokenId) return '';
-    const i = tokenId.lastIndexOf('-');
-    return i >= 0 ? tokenId.slice(i + 1) : tokenId;
-}
-
-/** One stored event → one feed row. MINT / SALE credit the recipient;
-    LIST / XFER credit the sender. Handles resolve server-side; a bare
-    address falls back to a short 0x form. */
-function eventToFeedEvent(e: EventRow): FeedEvent {
-    const type = e.type;
-    const ms = Date.parse(e.timestamp) || 0;
-    const price = e.price_eth ? parseFloat(e.price_eth) : 0;
-    const lid = feedLocalId(e.token_id);
-    const toSide = type === 'MINT' || type === 'SALE';
-    const handle = toSide ? e.to_handle : e.from_handle;
-    const addr = toSide ? e.to_address : e.from_address;
-    const actor = handle ? `@${handle}` : feedShortAddr(addr ?? null);
-    const tok = <span className="f-highlight">#{lid}</span>;
-    let verb: ReactNode;
-    if (type === 'MINT') verb = <>collected {tok}</>;
-    else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
-    else if (type === 'SALE') verb = <>bought {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
-    else verb = <>transferred {tok}</>;
-    return {
-        id: e.id,
-        icon: FEED_ICON[type] ?? '✶',
-        time: new Date(ms).toLocaleTimeString('en-GB', {
-            hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Montreal',
-        }),
-        type,
-        detail: <><span className="f-highlight">{actor}</span> {verb}</>,
-        timestamp: ms,
-        price,
-    };
-}
-
+/* The activity-feed event mapping (FeedEvent + eventToFeedEvent) now lives in
+   lib/feed/feedRow — shared with the profile feed, and carries the Starred-Tx
+   payload. Imported above. */
 
 /* Sim's GENOME card (sim ~5246) — 80 hand-placed scatter dots in a
    400×140 viewBox. Inlined as data so the JSX stays readable; same
@@ -1532,16 +1480,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
                     ) : sortedFeedEvents.map((e) => (
-                        <div className="feed-row" key={e.id}>
-                            <div className="feed-line" />
-                            <div className="f-icon-wrap">
-                                {e.icon}
-                                &#xFE0E;
-                            </div>
-                            <div className="f-time">{e.time}</div>
-                            <div className="f-type">{e.type}</div>
-                            <div className="f-content">{e.detail}</div>
-                        </div>
+                        <FeedEventRow key={e.id} fe={e} />
                     ))}
                 </div>
             </section>

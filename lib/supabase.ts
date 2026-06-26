@@ -78,6 +78,10 @@ export interface UserSettings {
   soundtrackStars?: string[];
   /** Starred Projects — PRIVATE favourited Project slugs. Same envelope. */
   projectStars?: string[];
+  /** Starred Tx — PRIVATE favourited on-chain activity events (simulated for
+   *  now). Each entry is a JSON blob of the event's display essentials, keyed by
+   *  event id. Same envelope + privacy as `starred`. */
+  txStars?: string[];
   /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
    *  choice on each project / profile follows them across devices and overrides
    *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased
