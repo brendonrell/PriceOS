@@ -500,32 +500,51 @@ body.sentiment-on .sentiment-widget {
 .pingtoast-3d-confirm {
     position: fixed;
     z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     white-space: nowrap;
-    padding: 6px 10px;
+    padding: 6px 8px 6px 10px;
     border-radius: 8px;
     background: var(--hothurt);
     color: #fff;
-    border: none;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.32);
-    animation: pingtoast-3d-pop 140ms ease-out;
+    /* Flashes on mount + every 3D↔COMBO switch (the element is keyed on the
+       mode, so it remounts and replays this). Animates brightness/opacity only —
+       never transform — so the inline placement transform is preserved. */
+    animation: pingtoast-3d-flash 240ms ease-out;
 }
-/* Little downward tail at the bubble's bottom centre, pointing at the pill. */
+.p3d-q { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
+.p3d-btn {
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    -webkit-tap-highlight-color: transparent;
+}
+.p3d-yes { background: #fff; color: var(--hothurt); }
+.p3d-no { background: transparent; color: #fff; }
+/* Greyed when native push can't be enabled here (e.g. iOS before the app is
+   added to the home screen). */
+.p3d-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Downward tail — offset 24px left of the bubble's centre so it points at the
+   pingtoast pill (the bubble centre sits 24px right of the pill — see
+   MyPingsRow's confirmPos). Fixed to the button, so it travels with it. */
 .pingtoast-3d-confirm::after {
     content: '';
     position: absolute;
     top: 100%;
-    left: 50%;
+    left: calc(50% - 24px);
     transform: translateX(-50%);
     border: 5px solid transparent;
     border-top-color: var(--hothurt);
 }
-@keyframes pingtoast-3d-pop {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+@keyframes pingtoast-3d-flash {
+    0%   { opacity: 0.35; filter: brightness(1.9); }
+    100% { opacity: 1;    filter: brightness(1); }
 }
 
 /* Decorative iOS badge on the onboarding "add to home screen" app icon — sells

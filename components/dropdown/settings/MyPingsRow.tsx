@@ -24,7 +24,7 @@ import { createPortal } from 'react-dom';
 import { usePdNotifs, PING_TOAST_CYCLE, showsNativePings } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
-import { enableNativePings, getNativeStatus } from '../../../lib/push/client';
+import { enableNativePings, getNativeStatus, nativePushSupported } from '../../../lib/push/client';
 import { SettingsToggle } from './SettingsToggle';
 
 export function MyPingsRow() {
@@ -61,6 +61,11 @@ export function MyPingsRow() {
         else showToast('3D Pingtoasts: FAILED');
     };
 
+    /* Native push only works where the platform supports it — on iOS that means
+       the app is added to the home screen. When it can't be enabled here, the
+       Yes button is greyed. */
+    const canEnableNative = nativePushSupported();
+
     const togglePingCat = (key: keyof typeof notifs.pings) => {
         const PING_LABELS: Record<string, string> = {
             mints:    'Mints Pings',
@@ -93,8 +98,10 @@ export function MyPingsRow() {
         const show = showsNativePings(next) && !nativeOn;
         if (show && cellRef.current) {
             const r = cellRef.current.getBoundingClientRect();
-            // Centre over the pill, nudged a touch right for on-screen fit.
-            setConfirmPos({ top: r.top, left: r.left + r.width / 2 + 14 });
+            // Bubble centre sits 24px right of the pill centre (on-screen fit).
+            // The tail is offset back the SAME 24px so it points at the pill —
+            // see .pingtoast-3d-confirm::after { left: calc(50% - 24px) }.
+            setConfirmPos({ top: r.top, left: r.left + r.width / 2 + 24 });
         }
         setShow3dConfirm(show);
     };
@@ -193,7 +200,7 @@ export function MyPingsRow() {
                     onClick={() => togglePingCat('rarity')}
                     icon={'❖︎'}
                     iconBare
-                    iconStyle={{ fontSize: '14px', lineHeight: '1' }}
+                    iconStyle={{ fontSize: '15px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
@@ -213,18 +220,36 @@ export function MyPingsRow() {
             </div>
             {show3dConfirm && confirmPos && typeof document !== 'undefined' &&
                 createPortal(
-                    <button
-                        type="button"
+                    /* Keyed on the mode so it remounts + replays the flash each
+                       time the cycle switches between 3D and COMBO — a clear
+                       signal that the state changed. */
+                    <div
+                        key={notifs.pingToasts}
                         className="pingtoast-3d-confirm"
+                        role="dialog"
                         style={{
                             top: confirmPos.top,
                             left: confirmPos.left,
                             transform: 'translate(-50%, calc(-100% - 8px))',
                         }}
-                        onClick={(e) => { e.stopPropagation(); void confirm3d(); }}
                     >
-                        Enable 3D Pingtoasts?
-                    </button>,
+                        <span className="p3d-q">Enable 3D Pingtoasts?</span>
+                        <button
+                            type="button"
+                            className="p3d-btn p3d-yes"
+                            disabled={!canEnableNative}
+                            onClick={(e) => { e.stopPropagation(); void confirm3d(); }}
+                        >
+                            Yes
+                        </button>
+                        <button
+                            type="button"
+                            className="p3d-btn p3d-no"
+                            onClick={(e) => { e.stopPropagation(); setShow3dConfirm(false); }}
+                        >
+                            No
+                        </button>
+                    </div>,
                     document.body,
                 )}
         </>
