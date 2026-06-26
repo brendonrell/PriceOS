@@ -10257,7 +10257,6 @@ body.colorway-dark .ghost-feed-bar {
    colorway picker (.pill-colorway), wearing the ♫ from project Attributes, with a
    bit of breathing room on either side, between the picker and the sort buttons. */
 .output-soundtrack-btn {
-    margin: 0 5px;
     text-decoration: none;
 }
 @media (max-width: 600px) {
