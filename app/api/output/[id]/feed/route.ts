@@ -47,15 +47,15 @@ export interface FeedMarker {
    anointing mark; ⁂ = the asterism (a scatter — the airdrop). */
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
-    id: 'pd-started', glyph: '⌖', cls: null, timestamp: '2021-11-11T00:00:00.000Z',
+    id: 'pd-started', glyph: '#', cls: null, timestamp: '2021-11-11T00:00:00.000Z',
     seq: 0, pin: 4, lead: '', highlight: '#price-discussion', tail: ' started',
   },
   {
-    id: 'priceos-released', glyph: '✢', cls: null, timestamp: '2026-07-01T00:00:00.000Z',
+    id: 'priceos-released', glyph: '‰', cls: 'af-ic--mille', timestamp: '2026-07-01T00:00:00.000Z',
     seq: 0, pin: 3, tbdDay: true, lead: '', highlight: 'PriceOS 1.0', tail: ' released',
   },
   {
-    id: 'price-airdrop', glyph: '⁂', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
+    id: 'price-airdrop', glyph: '$', cls: null, timestamp: '2026-08-01T00:00:00.000Z',
     seq: 0, pin: 2, tbdDay: true, lead: '', highlight: '$PRICE', tail: ' airdrop',
   },
 ];
