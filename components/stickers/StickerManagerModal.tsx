@@ -84,6 +84,9 @@ function hueToRGB(h: number): { r: number; g: number; b: number } {
     else if (h < 300) { r = x; b = 1; } else { r = 1; b = x; }
     return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
+/* Family names, in HUE_SWATCHES order (each family = its light,dark pair) — used
+   by the long-press "all of this hue" toast. */
+const HUE_FAMILY_NAMES = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'BLUE', 'PURPLE', 'PINK', 'BROWN', 'BLACK', 'GREY', 'WHITE'];
 const SWATCH_RGB = HUE_SWATCHES.map((sw) => ({ ...sw, ...hexRGB(sw.hex) }));
 /** Light swatches get a stronger ring so they read against the panel. */
 function isLightHex(hex: string): boolean {
@@ -126,7 +129,7 @@ interface Preset { key: string; label: string; hexes: string[] }
 const STATIC_PRESETS: Preset[] = [
     { key: 'RGB',     label: 'RGB',     hexes: ['#FF6B6B', '#A30D2D', '#7BE37B', '#1F7A33', '#6FB7FF', '#163E8F'] },
     { key: 'CMYK',    label: 'CMYK',    hexes: ['#6FB7FF', '#C43E86', '#FFEB5C', '#C9A227', '#555555', '#0A0A0A'] },
-    { key: 'PRIMARY', label: 'PRIMARY', hexes: ['#FF6B6B', '#A30D2D', '#FFEB5C', '#C9A227', '#6FB7FF', '#163E8F'] },
+    { key: 'PRIMARY', label: 'PR', hexes: ['#FF6B6B', '#A30D2D', '#FFEB5C', '#C9A227', '#6FB7FF', '#163E8F'] },
 ];
 const PAGES = 4;
 
@@ -155,12 +158,17 @@ export function StickerManagerModal({
     const [flip, setFl] = useState(false);
     const [density, setDen] = useState(0);
     const [border, setBd] = useState<Border>('off');
-    /* Colour filter — modal-local view filter on the grid (not persisted). */
+    /* Colour filter — modal-local view filter on the grid (not persisted). A
+       single swatch tap filters to that exact colour; LONG-PRESSING a swatch
+       selects the WHOLE hue family (its light + dark), held in `famHexes`. */
     const [hueFilter, setHueFilter] = useState<string | null>(null);
+    const [famHexes, setFamHexes] = useState<string[] | null>(null);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const plusBodyRef = useRef<HTMLDivElement | null>(null);
     const previewRef = useRef<HTMLDivElement | null>(null);
+    const lpTimer = useRef<number | null>(null);
+    const lpFired = useRef(false);
     const [page, setPage] = useState(0);
     /* Manager Plus — the full-screen (mobile) / jumbo (desktop) view. Opened by
        the ↑ in the header; resets when the menu closes. */
@@ -190,6 +198,7 @@ export function StickerManagerModal({
         setDen(getDensity());
         setBd(getBorder());
         setHueFilter(null);
+        setFamHexes(null);
     }, [open, handle]);
 
     // Restore the last-open swipe page so reopening doesn't snap back to page 1.
@@ -390,34 +399,71 @@ export function StickerManagerModal({
        end/start of a sheet reads clearly. */
     const activePreset = hueFilter ? PRESETS.find((p) => p.key === hueFilter) ?? null : null;
     const matchesHue = (s: Sticker) => {
+        if (famHexes) return famHexes.includes(stickerSwatch(s));
         if (!hueFilter) return true;
         const sw = stickerSwatch(s);
         return activePreset ? activePreset.hexes.includes(sw) : sw === hueFilter;
     };
+    /* Long-press a swatch → its whole hue family (the light + dark pair, which
+       sit adjacent in HUE_SWATCHES). A normal tap stays single-colour. A toast
+       names what just happened — most people trigger it by accident the first
+       time (Brendon, 2026-06-26). */
+    const selectFamily = (i: number) => {
+        const start = i - (i % 2);
+        const pair = [HUE_SWATCHES[start]?.hex, HUE_SWATCHES[start + 1]?.hex].filter(Boolean) as string[];
+        if (pair.length) {
+            setHueFilter(null);
+            setFamHexes(pair);
+            showToast(`Stickers: ALL ${HUE_FAMILY_NAMES[start / 2] ?? ''}`.trimEnd());
+        }
+    };
+    const lpStart = (i: number) => {
+        lpFired.current = false;
+        if (lpTimer.current != null) window.clearTimeout(lpTimer.current);
+        lpTimer.current = window.setTimeout(() => { lpFired.current = true; lpTimer.current = null; selectFamily(i); }, 420);
+    };
+    const lpEnd = () => { if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; } };
+
+    const noneOn = hueFilter === null && !famHexes;
     const stickerGrid = (
         <div className="smgr-grid-groups">
             <div className="smgr-hue-row" role="group" aria-label="Filter by colour">
                 <button
                     type="button"
-                    className={`smgr-hue smgr-hue-clear${hueFilter === null ? ' on' : ''}`}
+                    className={`smgr-hue smgr-hue-clear${noneOn ? ' on' : ''}`}
                     title="Show all colours"
                     aria-label="Clear colour filter"
-                    aria-pressed={hueFilter === null}
-                    onClick={() => setHueFilter(null)}
+                    aria-pressed={noneOn}
+                    onClick={() => { setHueFilter(null); setFamHexes(null); showToast('Stickers: ALL COLOURS'); }}
                 >
                     {`×${VS15}`}
                 </button>
-                {HUE_SWATCHES.map(({ hex }) => (
-                    <button
-                        key={hex}
-                        type="button"
-                        className={`smgr-hue${hueFilter === hex ? ' on' : ''}${isLightHex(hex) ? ' is-neutral' : ''}`}
-                        style={{ background: hex }}
-                        title={hueFilter === hex ? 'Show all colours' : 'Filter to this colour'}
-                        aria-pressed={hueFilter === hex}
-                        onClick={() => setHueFilter((prev) => (prev === hex ? null : hex))}
-                    />
-                ))}
+                {HUE_SWATCHES.map(({ hex }, i) => {
+                    const on = hueFilter === hex || (famHexes?.includes(hex) ?? false);
+                    return (
+                        <button
+                            key={hex}
+                            type="button"
+                            className={`smgr-hue${on ? ' on' : ''}${isLightHex(hex) ? ' is-neutral' : ''}`}
+                            style={{ background: hex }}
+                            title={on ? 'Show all colours' : 'Tap: this colour · Hold: all of this hue'}
+                            aria-pressed={on}
+                            onPointerDown={() => lpStart(i)}
+                            onPointerUp={lpEnd}
+                            onPointerLeave={lpEnd}
+                            onPointerCancel={lpEnd}
+                            onClick={() => {
+                                if (lpFired.current) { lpFired.current = false; return; }
+                                setFamHexes(null);
+                                const next = hueFilter === hex ? null : hex;
+                                setHueFilter(next);
+                                showToast(next
+                                    ? `Stickers: ${i % 2 === 0 ? 'LIGHT' : 'DARK'} ${HUE_FAMILY_NAMES[Math.floor(i / 2)] ?? ''}`.trimEnd()
+                                    : 'Stickers: ALL COLOURS');
+                            }}
+                        />
+                    );
+                })}
                 {PRESETS.map((p) => (
                     <button
                         key={p.key}
@@ -425,7 +471,7 @@ export function StickerManagerModal({
                         className={`smgr-hue-preset${hueFilter === p.key ? ' on' : ''}`}
                         title={hueFilter === p.key ? 'Show all colours' : `Filter to ${p.label}`}
                         aria-pressed={hueFilter === p.key}
-                        onClick={() => setHueFilter((prev) => (prev === p.key ? null : p.key))}
+                        onClick={() => { setFamHexes(null); setHueFilter((prev) => (prev === p.key ? null : p.key)); }}
                     >
                         {p.label}
                     </button>

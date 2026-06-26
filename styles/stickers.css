@@ -890,27 +890,30 @@ body.sticker-mode .hero-stickers { display: none; }
     transform: scale(1.18);
     box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 3.5px var(--text-color);
 }
-/* Text preset chips (Match · RGB · CMYK · PRIMARY) — sit inline after the
-   circles in the same wrapping row. Pill shaped to the 18px circle height. */
+/* Text presets (Match · RGB · CMYK · PR) — plain text, NOT buttons (Brendon,
+   2026-06-26): same size/weight as the menu labels above, sitting inline after
+   the circles. Active = full strength + underline. */
 .smgr-hue-preset {
     height: 18px;
-    padding: 0 8px;
-    border-radius: 9px;
-    border: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 2px;
+    border: none;
     background: transparent;
     color: var(--text-color);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    opacity: 0.55;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s, background 0.12s, color 0.12s;
+    transition: opacity 0.12s;
 }
 .smgr-hue-preset.on {
-    background: var(--text-color);
-    color: var(--bg-color);
-    transform: scale(1.06);
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 .smgr-hue-empty {
     font-size: 11px;
@@ -1009,7 +1012,7 @@ body.sticker-mode .hero-stickers { display: none; }
     .sticker-mgr-plus {
         width: min(680px, 92vw);
         height: auto;
-        max-height: 88vh;
+        max-height: 92vh;
         border: 1px solid var(--border-color);
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -1037,12 +1040,13 @@ body.sticker-mode .hero-stickers { display: none; }
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Generous room top/bottom + sides so the stickers' tilt/scale never clips
-       against the box edge; the locked height includes this padding so the box
-       still can't change size on open (Brendon, 2026-06-24). */
-    padding: 30px 14px;
+    /* Generous room top/bottom + sides + a taller floor so big setups have space
+       (Brendon, 2026-06-26). Stickers OVERFLOW the box rather than clip — a large
+       arrangement spills past the edge instead of being cut off. */
+    padding: 46px 14px;
+    min-height: 150px;
     border-bottom: 1px solid var(--border-color);
-    overflow: clip;
+    overflow: visible;
     min-width: 0;
     max-width: 100%;
 }
@@ -1102,34 +1106,35 @@ body.sticker-mode .hero-stickers { display: none; }
    `transform`), so it composes ON TOP of each sticker's own placement transform
    — the resting frame is always pixel-exact, no layout leak (Brendon 2026-06-24). */
 .smgr-plus-preview .hero-sticker {
-    animation-duration: 1.4s;
+    animation-duration: 1.05s;
     animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot → "stick" */
     animation-fill-mode: both;
     animation-name: smgr-fx-pop;
 }
 /* Stagger — the build walks across the stickers (cycles every 10 so any count
-   reads as a continuous plunk … plunk … plunk). */
+   reads as a continuous plunk … plunk … plunk). Tightened ~30% so the cascade
+   lands quicker (Brendon, 2026-06-26). */
 .smgr-plus-preview .hero-sticker:nth-child(10n+1) { animation-delay: 0s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+2) { animation-delay: 0.26s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+3) { animation-delay: 0.52s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+4) { animation-delay: 0.78s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+5) { animation-delay: 1.04s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+6) { animation-delay: 1.3s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+7) { animation-delay: 1.56s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+8) { animation-delay: 1.82s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n+9) { animation-delay: 2.08s; }
-.smgr-plus-preview .hero-sticker:nth-child(10n)   { animation-delay: 2.34s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+2) { animation-delay: 0.18s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+3) { animation-delay: 0.36s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+4) { animation-delay: 0.54s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+5) { animation-delay: 0.72s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+6) { animation-delay: 0.9s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+7) { animation-delay: 1.08s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+8) { animation-delay: 1.26s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n+9) { animation-delay: 1.44s; }
+.smgr-plus-preview .hero-sticker:nth-child(10n)   { animation-delay: 1.62s; }
 
 /* The ten builds. */
 .smgr-fx-0 .hero-sticker { animation-name: smgr-fx-drop; }
 .smgr-fx-1 .hero-sticker { animation-name: smgr-fx-pop; }
 .smgr-fx-2 .hero-sticker { animation-name: smgr-fx-left; }
 .smgr-fx-3 .hero-sticker { animation-name: smgr-fx-right; }
-.smgr-fx-4 .hero-sticker { animation-name: smgr-fx-spin; animation-duration: 1.6s; }
+.smgr-fx-4 .hero-sticker { animation-name: smgr-fx-spin; animation-duration: 1.2s; }
 .smgr-fx-5 .hero-sticker { animation-name: smgr-fx-rise; }
 .smgr-fx-6 .hero-sticker { animation-name: smgr-fx-zoom; }
-.smgr-fx-7 .hero-sticker { animation-name: smgr-fx-bounce; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); animation-duration: 1.8s; }
-.smgr-fx-8 .hero-sticker { animation-name: smgr-fx-swing; animation-duration: 1.6s; }
+.smgr-fx-7 .hero-sticker { animation-name: smgr-fx-bounce; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); animation-duration: 1.35s; }
+.smgr-fx-8 .hero-sticker { animation-name: smgr-fx-swing; animation-duration: 1.2s; }
 .smgr-fx-9 .hero-sticker { animation-name: smgr-fx-scatter; }
 
 @keyframes smgr-fx-drop   { from { opacity: 0; translate: 0 -46px; }            to { opacity: 1; translate: 0 0; } }

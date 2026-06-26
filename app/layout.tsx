@@ -55,10 +55,35 @@ import { WalletProviders } from '../components/wallet/WalletProviders';
 import { DevLoginButton } from '../components/dev/DevLoginButton';
 import { getSession } from '../lib/auth/siwe';
 
+/* Canonical origin for absolute preview-image URLs. On Vercel each deploy sets
+   VERCEL_URL to its own host, so the share image resolves on dev + prod alike;
+   the dev preview is the fallback for local/other contexts. */
+const SITE_URL =
+    (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
+    'https://price-os-git-dev-pricediscussion.vercel.app';
+
+const SITE_DESCRIPTION =
+    'A web3 social platform where the community discussing secondary prices is the product. Browse projects, track grail pins, and explore generative art.';
+
 export const metadata: Metadata = {
+    metadataBase: new URL(SITE_URL),
     title: 'Price Discussion',
-    description:
-        'A web3 social platform where the community discussing secondary prices is the product. Browse projects, track grail pins, and explore generative art.',
+    description: SITE_DESCRIPTION,
+    /* Default share/preview image — the PWA app icon, so the OS share sheet and
+       link unfurls show our mark instead of the browser's generic placeholder
+       (Brendon, 2026-06-26). */
+    openGraph: {
+        title: 'Price Discussion',
+        description: SITE_DESCRIPTION,
+        type: 'website',
+        images: [{ url: '/icon-512px.png', width: 512, height: 512, alt: 'Price Discussion' }],
+    },
+    twitter: {
+        card: 'summary',
+        title: 'Price Discussion',
+        description: SITE_DESCRIPTION,
+        images: ['/icon-512px.png'],
+    },
 };
 
 /* Next.js App Router canonical way to set the viewport meta tag.
