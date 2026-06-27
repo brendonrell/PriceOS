@@ -767,10 +767,13 @@ export default function ArtworkPageBody({
                             <div className="feed-row" key={row.key}>
                                 <div className="feed-line" />
                                 <div className={`f-icon-wrap af-ic${row.cls ? ` ${row.cls}` : ''}`}>{row.glyph}&#xFE0E;</div>
-                                <div className="f-time">{fmtFeedDate(new Date(row.ts).toISOString(), row.tbdDay)}</div>
+                                <div className="f-time">
+                                    <span>{fmtFeedDate(new Date(row.ts).toISOString(), row.tbdDay)}</span>
+                                    <span>{fmtFeedTime(new Date(row.ts).toISOString(), row.tbdDay)}</span>
+                                </div>
                                 <div className="f-type af-type">
                                     <span>{row.label}</span>
-                                    <span>{fmtFeedTime(new Date(row.ts).toISOString(), row.tbdDay)}</span>
+                                    {row.price > 0 && <span>{row.price} ETH</span>}
                                 </div>
                                 <div className="f-content">{row.content}</div>
                             </div>

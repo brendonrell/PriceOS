@@ -6551,8 +6551,16 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 }
 /* Date shifts right a touch so the bigger ⟢⟢ has room to spill into. The date
    column reads at full strength here (not the global 50% dim) — the timeline +
-   days should sit at 90% minimum, not fade out (Brendon, 2026-06-26). */
-.home-activity-feed .f-time { margin-left: 8px; opacity: 0.9; }
+   days should sit at 90% minimum, not fade out (Brendon, 2026-06-26). Date +
+   time now stack here (day on top, time under it); the type column's old time
+   slot carries ETH amounts instead (Brendon, 2026-06-27). */
+.home-activity-feed .f-time {
+    margin-left: 8px;
+    opacity: 0.9;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
@@ -10261,8 +10269,9 @@ body.colorway-dark .ghost-feed-bar {
     text-decoration: none;
 }
 /* The ✺ PD-Artist badge on the "added as PD Artist" feed row — nudged down to
-   sit on the text baseline (Brendon, 2026-06-27). */
-.output-artist-badge { position: relative; top: 3px; }
+   sit on the text baseline. Scoped under .f-content to outrank
+   `.artist-tag.is-sm { top: 1px }` (Brendon, 2026-06-27). */
+.f-content .output-artist-badge { position: relative; top: 3px; }
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
 }
