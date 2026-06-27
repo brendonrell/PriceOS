@@ -1011,7 +1011,7 @@ export default function StarredList({
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : router.push('/art/' + r.slug); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
-                                    <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
+                                    <span className="artist-row-tile-glyph history-pj-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
                                     <span className="starred-row-id">@{r.slug}<ProjectNameBadges slug={r.slug} /></span>
