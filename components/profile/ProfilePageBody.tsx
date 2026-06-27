@@ -459,6 +459,12 @@ function ProfilePageBodyInner({
        for big collections — Brendon 2026-06-19). Seeded server-side, refreshed
        from the outputs route's `total`. */
     const [ownedCount, setOwnedCount] = useState<number>(initialOwnedCount);
+    /* Cumulative ETH spend over the LIFE of the account — every acquisition the
+       wallet ever paid for (mints + secondary buys), whether or not still held.
+       Seeded from the server (real `events` sum), refreshed by the same outputs
+       fetch that reconciles holdings on mount / after a mint. Drives the hero
+       "Volume Spent" stat for ANY profile. */
+    const [volumeSpent, setVolumeSpent] = useState<number>(initialUser.volume_spent_eth ?? 0);
 
     /* Client-nav identity reset — the App Router reuses this component
        instance when navigating between two profile pages (same segment,
@@ -472,6 +478,7 @@ function ProfilePageBodyInner({
         setCounts({ followers: user.follower_count, following: user.following_count });
         setHoldings(initialHoldings);
         setOwnedCount(initialOwnedCount);
+        setVolumeSpent(user.volume_spent_eth ?? 0);
         setOwnEns(user.ens_name);
         setLiveShowcaseStyle(user.showcase_style);
     }
@@ -616,11 +623,12 @@ function ProfilePageBodyInner({
         const load = () =>
             fetch(`/api/user/${user.address.toLowerCase()}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((d: { holdings?: Holding[]; total?: number } | null) => {
+                .then((d: { holdings?: Holding[]; total?: number; volume_spent_eth?: number } | null) => {
                     if (cancelled || !d?.holdings) return;
                     const next = d.holdings;
                     setHoldings((prev) => (sig(prev) === sig(next) ? prev : next));
                     if (typeof d.total === 'number') setOwnedCount(d.total);
+                    if (typeof d.volume_spent_eth === 'number') setVolumeSpent(d.volume_spent_eth);
                 })
                 .catch(() => {});
         // Always reconcile on mount (Brendon 2026-06-12): the seed gives an
@@ -654,15 +662,6 @@ function ProfilePageBodyInner({
                     ),
                 })),
         [holdings],
-    );
-
-    /* Cumulative ETH spend = the sum of every held Output's project mint price.
-       Each project knows its own mint price; a wallet's spend is the total
-       across what it holds. Drives the hero "Volume Spent" stat for ANY profile
-       (reads the viewed wallet's holdings, so it works the same for every user). */
-    const volumeSpent = useMemo(
-        () => enriched.reduce((sum, h) => sum + (getProject(h.slug)?.mintPriceEth ?? 0), 0),
-        [enriched],
     );
 
     /* Collected-tab search + filter + sort over the enriched holdings. Filters

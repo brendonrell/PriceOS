@@ -206,6 +206,10 @@ export default function ArtworkPageBody({
 
     const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
 
+    /* The project's REAL total supply (registry `outputs`) — the hero supply
+       stat reads `#id / maxSupply`, same denominator the Project page shows. */
+    const maxSupply = getProject(slug)?.outputs ?? 0;
+
     /* Live market stats for this Output. */
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
@@ -552,7 +556,7 @@ export default function ArtworkPageBody({
                                 ⬚&#xFE0E;
                             </span>{' '}
                             <span className="stat-val">
-                                {numberPart}/222
+                                {numberPart}/{maxSupply > 0 ? maxSupply : '—'}
                             </span>
                         </span>
                         <span className="stat-item stat-item-vol">

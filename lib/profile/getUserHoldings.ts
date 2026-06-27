@@ -52,6 +52,31 @@ export async function getUserHoldingsCount(rawAddress: string): Promise<number> 
  * projects are few (well under the 1000-row page cap), so deduping the
  * project_id column is exact. Returns 0 for a malformed address or on error.
  */
+/**
+ * Cumulative ETH this wallet has SPENT acquiring Outputs over the lifetime of
+ * the account — every event where the wallet was the recipient and a price was
+ * paid (mints + secondary buys), regardless of whether the piece is still held.
+ * Free mints (null price) contribute nothing. Returns 0 for a malformed address
+ * or on error. (Sums up to the 1000-row page cap — far beyond any real spend
+ * history; revisit with a SQL SUM if a wallet ever crosses 1000 buys.)
+ */
+export async function getUserSpendEth(rawAddress: string): Promise<number> {
+  const address = rawAddress.toLowerCase();
+  if (!ADDRESS_RE.test(address)) return 0;
+  const supabase = getSupabaseService();
+  const { data, error } = await supabase
+    .from('events')
+    .select('price_eth')
+    .eq('to_address', address)
+    .not('price_eth', 'is', null);
+  if (error) return 0;
+  let sum = 0;
+  for (const r of (data ?? []) as { price_eth: string | number | null }[]) {
+    sum += Number(r.price_eth ?? 0);
+  }
+  return Number(sum.toFixed(4));
+}
+
 export async function getUserOwnedProjectsCount(rawAddress: string): Promise<number> {
   const address = rawAddress.toLowerCase();
   if (!ADDRESS_RE.test(address)) return 0;

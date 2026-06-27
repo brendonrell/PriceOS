@@ -1,5 +1,5 @@
 import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
-import { getUserOwnedProjectsCount } from './getUserHoldings';
+import { getUserOwnedProjectsCount, getUserSpendEth } from './getUserHoldings';
 
 /** Profile row plus follower/following counts — the shape both the
  *  /api/user/by-handle route and the server-rendered profile page use. */
@@ -8,6 +8,8 @@ export interface UserProfileData extends UserRow {
   following_count: number;
   /** Distinct projects this wallet owns pieces from (collectors' "N owned"). */
   owned_projects: number;
+  /** Cumulative ETH spent acquiring Outputs over the account's lifetime. */
+  volume_spent_eth: number;
 }
 
 // Handle shape mirrors lib/slug.ts: ASCII alphanumerics, underscore, hyphen.
@@ -78,11 +80,18 @@ export async function getUserProfileByHandle(
   if (followersRes.error) throw new Error(followersRes.error.message);
   if (followingRes.error) throw new Error(followingRes.error.message);
 
-  // Distinct projects owned — best-effort (never fails the profile lookup).
+  // Distinct projects owned + lifetime spend — best-effort (never fail the
+  // profile lookup over an aggregate query).
   let ownedProjects = 0;
+  let volumeSpent = 0;
   try {
     const addr = (userRow.address ?? '').toLowerCase();
-    if (addr) ownedProjects = await getUserOwnedProjectsCount(addr);
+    if (addr) {
+      [ownedProjects, volumeSpent] = await Promise.all([
+        getUserOwnedProjectsCount(addr),
+        getUserSpendEth(addr),
+      ]);
+    }
   } catch { /* leave 0 */ }
 
   return {
@@ -90,5 +99,6 @@ export async function getUserProfileByHandle(
     follower_count: followersRes.count ?? 0,
     following_count: followingRes.count ?? 0,
     owned_projects: ownedProjects,
+    volume_spent_eth: volumeSpent,
   };
 }

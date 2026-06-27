@@ -11,7 +11,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
-import { getUserHoldings, getUserHoldingsCount, type UserHolding } from '@/lib/profile/getUserHoldings';
+import { getUserHoldings, getUserHoldingsCount, getUserSpendEth, type UserHolding } from '@/lib/profile/getUserHoldings';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,6 +22,8 @@ export interface UserOutputsResponse {
   address: string;
   total: number;
   holdings: UserHolding[];
+  /** Cumulative ETH spent acquiring Outputs over the account's lifetime. */
+  volume_spent_eth: number;
 }
 
 export async function GET(
@@ -36,12 +38,16 @@ export async function GET(
 
     // Real owned total (exact count) — holdings caps at 1000 rows, so its
     // length under-reports for big collections (Brendon 2026-06-19).
-    const total = await getUserHoldingsCount(address);
+    const [total, volumeSpent] = await Promise.all([
+      getUserHoldingsCount(address),
+      getUserSpendEth(address),
+    ]);
 
     const response: UserOutputsResponse = {
       address,
       total,
       holdings,
+      volume_spent_eth: volumeSpent,
     };
     return NextResponse.json(response);
   } catch (err) {
