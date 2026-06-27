@@ -23,6 +23,10 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { outputTraits, getProject } from '../../lib/project/registry';
 import { toggleWishlist } from '../../lib/pins/wishlistStore';
+import { isStarred, subscribeStarred, toggleStar } from '../../lib/pins/starStore';
+import { useAuth } from '../../lib/state/AuthContext';
+import { useNotePrompt } from '../../lib/state/NotePromptContext';
+import { useStarLongPress, useTokenNote } from '../../lib/hooks/rowFlags';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistSocial, relGlyphOf, relLabelOf, fmtFollowers } from '../../lib/social/useArtistSocial';
 import { outputMarketStat } from '../../lib/market/starredMarket';
@@ -305,7 +309,25 @@ function WishlistRow({
     const { open } = useModal();
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas } = useCart();
+    const { siweAddress } = useAuth();
+    const { openOutputNoteEditor } = useNotePrompt();
     const meta = useOutputMeta(id);
+
+    /* Top-line flags — a ★ (before the note) when starred, the reused ⊟ note
+       glyph when the viewer has a note. Long-press the row to star/unstar, the
+       SAME gesture as History + the activity feed. Both update live. */
+    const [starred, setStarred] = useState(false);
+    useEffect(() => {
+        setStarred(isStarred(slug, id));
+        return subscribeStarred(() => setStarred(isStarred(slug, id)));
+    }, [slug, id]);
+    const note = useTokenNote(id);
+    const hasNote = note.trim().length > 0 && !!siweAddress;
+    const lp = useStarLongPress(() => {
+        const r = toggleStar(slug, id);
+        showToast(r === 'starred' ? 'Added to your Starred Outputs List' : 'Removed from your Starred Outputs List');
+        return r === 'starred';
+    });
 
     /* The artist's social tags beside their @name — same treatment as Starred:
        the relationship glyph + follower count (Brendon 2026-06-19). The bare
@@ -334,7 +356,10 @@ function WishlistRow({
         showToast('Cart: ADDED');
     };
 
-    const act = () => (multiActive ? onToggleSel() : open('output', id, slug));
+    const act = () => {
+        if (lp.longFired.current) { lp.longFired.current = false; return; }
+        multiActive ? onToggleSel() : open('output', id, slug);
+    };
     return (
         <div
             className={`starred-row wishlist-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}`}
@@ -344,15 +369,33 @@ function WishlistRow({
                (Brendon 2026-06-26). */
             data-slug={slug}
             data-mint-id={id}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+            {...lp.handlers}
         >
             <OutputThumb slug={slug} id={id} size={88} />
             <div className="starred-row-meta">
-                {/* Top row — same as the Starred output rows: @project + #id. */}
+                {/* Top row — same as the Starred output rows: @project + #id, with
+                    the ★ (when starred) before the ⊟ note glyph. */}
                 <span className="starred-row-id is-split">
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
+                    {starred && <span className="srl-flag srl-flag-star" aria-label="Starred">★&#xFE0E;</span>}
+                    {hasNote && (
+                        <span
+                            className="meta-note-ic"
+                            role="button"
+                            tabIndex={0}
+                            title="Open note"
+                            aria-label="Open note"
+                            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id); } }}
+                        >
+                            {'⊟︎'}
+                        </span>
+                    )}
+                    {lp.floatId > 0 && <span key={lp.floatId} className={`project-name-star-float${lp.floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
                 </span>
                 <span className="starred-row-sub srl-redact">
                     {extraPairs.length > 0

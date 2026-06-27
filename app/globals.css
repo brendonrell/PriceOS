@@ -8947,7 +8947,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    tape is unbroken down the column (Brendon, 2026-06-24). */
 .history-feed-row .feed-line {
     border-left-color: var(--text-color);
-    opacity: 0.6;
+    /* The connector line reads near-solid (Brendon, 2026-06-27). */
+    opacity: 0.94;
     /* Nudge the connector down to sit between the nodes (Brendon, 2026-06-24). */
     top: 43px;
     bottom: -5px;
@@ -9410,7 +9411,14 @@ body.colorway-dark .ghost-feed-bar {
     font-weight: 700;
     -webkit-text-stroke: 0.045em currentColor;
     text-stroke: 0.045em currentColor;
+    /* The bolded project mark reads at full strength (the rail node otherwise
+       inherits .f-icon-wrap's 0.9) — Brendon 2026-06-27. */
+    opacity: 1;
 }
+/* Top-line state flags after the #id / @name — the ★ (starred) and the reused
+   ⊟ note glyph. Small, inline, a hair of space off the id (Brendon 2026-06-27). */
+.srl-flag { margin-left: 5px; line-height: 0; vertical-align: baseline; font-size: 0.92em; }
+.srl-flag-star { color: var(--text-color); }
 /* Project Offer CTA — two rows tall: the label wraps to two centred lines so the
    button stands as tall as two meta rows (Brendon 2026-06-27). */
 .starred-row-cta.project-offer-cta {

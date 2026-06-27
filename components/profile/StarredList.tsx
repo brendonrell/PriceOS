@@ -17,23 +17,26 @@
  * so the list paints instantly.
  */
 
-import { useEffect, useMemo, useState, Fragment } from 'react';
+import { useEffect, useMemo, useState, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { useNotePrompt } from '../../lib/state/NotePromptContext';
+import { useStarLongPress, useTokenNote } from '../../lib/hooks/rowFlags';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor, collectorTopBuy, collectorTopBuyEth, collectorProjectsOwned } from '../../lib/market/starredMarket';
-import { toggleStar } from '../../lib/pins/starStore';
+import { toggleStar, isStarred, subscribeStarred } from '../../lib/pins/starStore';
 import { removeMyHistory, PROJECT_VIEW_ID } from '../../lib/output/views';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
-import { removeProjectStar } from '../../lib/pins/projectStarStore';
+import { removeProjectStar, isProjectStarred, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { removeTxStar, type TxStar } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent } from '../../lib/feed/feedRow';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
@@ -1185,7 +1188,34 @@ function StarredOutputRow({
 }) {
     const meta = useOutputMeta(id);
     const listed = meta?.price != null;
-    const act = () => (multiActive ? onToggleSel() : onOpen());
+    const { showToast } = useToast();
+    const { siweAddress } = useAuth();
+    const { openOutputNoteEditor } = useNotePrompt();
+
+    /* Top-line state flags. The ⊟ note glyph shows in EVERY list (History,
+       Wishlist, Starred) when the viewer has a note. The ★ shows only in History
+       (the timeline) — Starred rows are already starred, so it'd be redundant —
+       and rides before the note. Long-press stars the piece (History only here;
+       Wishlist has its own). Both update live. */
+    const [starred, setStarred] = useState(false);
+    useEffect(() => {
+        if (!timeline) return;
+        setStarred(isStarred(slug, id));
+        return subscribeStarred(() => setStarred(isStarred(slug, id)));
+    }, [timeline, slug, id]);
+    const note = useTokenNote(id);
+    const hasNote = note.trim().length > 0 && !!siweAddress;
+
+    const lp = useStarLongPress(() => {
+        const r = toggleStar(slug, id);
+        showToast(r === 'starred' ? 'Added to your Starred Outputs List' : 'Removed from your Starred Outputs List');
+        return r === 'starred';
+    });
+
+    const act = () => {
+        if (lp.longFired.current) { lp.longFired.current = false; return; }
+        multiActive ? onToggleSel() : onOpen();
+    };
     const row = (
         <div
             className={`starred-row has-actions-abs${multiActive && selected ? ' is-selected' : ''}${timeline ? ' is-timeline' : ''}`}
@@ -1196,14 +1226,31 @@ function StarredOutputRow({
                2026-06-26). */
             data-slug={slug}
             data-mint-id={id}
+            style={timeline ? { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' } : undefined}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+            {...(timeline ? lp.handlers : {})}
         >
             <OutputThumb slug={slug} id={id} size={timeline ? 51 : 64} crop={timeline} />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">
                     <span className="srl-handle">{project}</span>
                     <span className="srl-suffix">#{id}</span>
+                    {starred && <span className="srl-flag srl-flag-star" aria-label="Starred">★&#xFE0E;</span>}
+                    {hasNote && (
+                        <span
+                            className="meta-note-ic"
+                            role="button"
+                            tabIndex={0}
+                            title="Open note"
+                            aria-label="Open note"
+                            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id); } }}
+                        >
+                            {'⊟︎'}
+                        </span>
+                    )}
+                    {lp.floatId > 0 && <span key={lp.floatId} className={`project-name-star-float${lp.floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
                 </span>
                 {!timeline && (
                 <span className="starred-row-sub srl-redact">
@@ -1315,20 +1362,40 @@ function StarredProjectHistoryRow({
     grailPinned: boolean;
     onGrail: () => void;
 }) {
-    const act = () => (multiActive ? onToggleSel() : onOpen());
+    const { showToast } = useToast();
+    const [starred, setStarred] = useState(false);
+    useEffect(() => {
+        setStarred(isProjectStarred(slug));
+        return subscribeProjectStars(() => setStarred(isProjectStarred(slug)));
+    }, [slug]);
+    const lp = useStarLongPress(() => {
+        const r = toggleProjectStar(slug);
+        showToast(r === 'starred' ? 'Added to your Starred Projects List' : 'Removed from your Starred Projects List');
+        return r === 'starred';
+    });
+    const act = () => {
+        if (lp.longFired.current) { lp.longFired.current = false; return; }
+        multiActive ? onToggleSel() : onOpen();
+    };
     const card = (
         <div
             className={`starred-row has-actions-abs is-timeline${multiActive && selected ? ' is-selected' : ''}`}
             role="button"
             tabIndex={0}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
             onClick={act}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+            {...lp.handlers}
         >
             <div className="trait-row-tile artist-tile">
                 <span className="artist-row-tile-glyph history-pj-glyph" style={{ color }}>⬚&#xFE0E;</span>
             </div>
             <div className="starred-row-meta">
-                <span className="starred-row-id">@{slug}</span>
+                <span className="starred-row-id">
+                    @{slug}
+                    {starred && <span className="srl-flag srl-flag-star" aria-label="Starred">★&#xFE0E;</span>}
+                    {lp.floatId > 0 && <span key={lp.floatId} className={`project-name-star-float${lp.floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
+                </span>
                 <span className="starred-row-sub">Floor:<em>{floor}</em></span>
                 <span className="starred-row-sub">Last:<em>{lastSale}</em></span>
                 <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(slug)}</span></span>
