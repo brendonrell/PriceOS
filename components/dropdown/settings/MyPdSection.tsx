@@ -31,6 +31,7 @@ import { pushState, USERSTATE_HYDRATED_EVENT } from '../../../lib/state/userStat
 import { effectiveShowcaseStyle } from '../../../lib/profile/showcaseStyle';
 import type { ShowcaseStyle } from '../../../lib/supabase';
 import { SettingsToggle } from './SettingsToggle';
+import { PerMilleMark } from '../../shell/PerMilleMark';
 
 interface Props {
     /**
@@ -597,21 +598,12 @@ export function MyPdSection({ onTripleTap }: Props) {
                             toggle('priceLogo');
                             showToast(`Logo: ${next ? '$PRICE' : 'Standard'}`);
                         }}
-                        icon={'‰'}
+                        icon={<PerMilleMark style={{ height: '12px', width: 'auto', display: 'block' }} />}
                         iconStyle={{
-                            /* Inter is REQUIRED here -- it's the exact per-mille
-                               of the Price logo (Brendon; the only Inter use on
-                               the site). 12px bold smudged on Windows: the
-                               webfont is unhinted and the glyph's three tiny
-                               bowls blur below ~13px (sim looked crisp only
-                               because it fell back to a system font there).
-                               13px is the smallest size that renders clean
-                               without changing the button's footprint. */
-                            fontFamily: "var(--font-inter), sans-serif",
-                            fontSize: '13px',
-                            fontWeight: 'bold',
-                            lineHeight: '1',
-                            letterSpacing: 0,
+                            /* The REAL per-mille logo mark (SVG), not the ‰ glyph —
+                               crisp at every size, no webfont smudge. */
+                            display: 'flex',
+                            alignItems: 'center',
                             margin: '0 2px',
                         }}
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto' }}

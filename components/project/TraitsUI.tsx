@@ -53,6 +53,7 @@
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { PerMilleMark } from '../shell/PerMilleMark';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import {
     useSort,
@@ -2028,9 +2029,13 @@ export function L3Pill({
                             </>
                         ) : category === 'Network' && NET_VALUE_ICON[label] ? (
                             <>
-                                <span className={NET_VALUE_ICON[label].cls}>
-                                    {NET_VALUE_ICON[label].glyph}
-                                </span>
+                                {label === 'New to PD' ? (
+                                    <PerMilleMark className="net-pill-mille net-pill-mille-svg" />
+                                ) : (
+                                    <span className={NET_VALUE_ICON[label].cls}>
+                                        {NET_VALUE_ICON[label].glyph}
+                                    </span>
+                                )}
                                 {' '}{label}
                             </>
                         ) : (

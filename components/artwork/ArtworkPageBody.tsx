@@ -42,9 +42,7 @@ import AttributesPanel from './AttributesPanel';
 import OutputActionRow from './OutputActionRow';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
-import {
-    PETEY_GLYPH_PATH, PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH,
-} from '../../lib/stickers/logoPaths';
+import { PerMilleMark } from '../shell/PerMilleMark';
 import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
@@ -831,12 +829,7 @@ export default function ArtworkPageBody({
                                 {/* The PriceOS logo row uses the REAL corner-logo per-mille
                                     (glyph-only variant) as a small SVG, not the ‰ character. */}
                                 <div className={`f-icon-wrap af-ic${row.cls ? ` ${row.cls}` : ''}`}>{row.cls === 'af-ic--mille' ? (
-                                    <svg className="af-mille-svg" viewBox="170 101 447 379" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PriceOS">
-                                        <path d={PETEY_GLYPH_PATH} stroke="currentColor" strokeWidth={1.5} />
-                                        <path d={PETEY_DOT_RIGHT_PATH} />
-                                        <path d={PETEY_DOT_LEFT_PATH} />
-                                        <path d={PETEY_DOT_TOP_PATH} />
-                                    </svg>
+                                    <PerMilleMark className="af-mille-svg" />
                                 ) : (<>{row.glyph}&#xFE0E;</>)}</div>
                                 <div className="f-time">
                                     <span>{fmtFeedDate(new Date(row.ts).toISOString(), row.tbdDay)}</span>

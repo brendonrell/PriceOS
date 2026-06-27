@@ -5206,6 +5206,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     line-height: 0;
     vertical-align: -0.12em;
 }
+/* New to PD now wears the REAL per-mille logo mark (SVG, glyph-only) — sized in
+   em so it tracks the pill text, sitting on the baseline like the old glyph. */
+.pill-l3 svg.net-pill-mille-svg {
+    height: 0.95em;
+    width: auto;
+    vertical-align: -0.16em;
+}
 /* Mobile-only icon sizes inside the My Network trait pill (Brendon, 2026-06-24):
    Mutuals +2 sizes, Following +1, Followers +3 & nudged up 1px. One size = 2px
    off the 12px base. Centred so the word stays put. */
