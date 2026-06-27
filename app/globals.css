@@ -5193,7 +5193,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
         vertical-align: -0.12em;
     }
     /* Fresh Wallets ◊ runs two sizes larger again (16 → 20px), Brendon 2026-06-27. */
-    .pill-l3 .net-pill-eth { font-size: 20px; position: relative; top: 1px; }
+    .pill-l3 .net-pill-eth { font-size: 20px; position: relative; top: 3px; }
 }
 /* The "Me" Network pill wears the user's still PriceSprite as its icon
    (Brendon, 2026-06-24). Courier like every sprite, sized down so the kaomoji
