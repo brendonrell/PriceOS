@@ -17,7 +17,7 @@
  * so the list paints instantly.
  */
 
-import { useEffect, useMemo, useState, Fragment } from 'react';
+import { useEffect, useMemo, useState, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -570,8 +570,8 @@ export default function StarredList({
     type HistoryRow =
         | { type: 'output'; ts: number; slug: string; id: number; project: string; artist: string; extraPairs: { k: string; v: string }[]; fate: string }
         | { type: 'project'; ts: number; slug: string; color: string; floor: string; lastSale: string };
-    const historySections = useMemo(() => {
-        if (!isHistory) return [] as Section<HistoryRow>[];
+    const historyRowsFlat = useMemo(() => {
+        if (!isHistory) return [] as HistoryRow[];
         const q = query.trim().toLowerCase();
         const outs: HistoryRow[] = outputRows.map((r) => ({
             type: 'output', ts: r.ts, slug: r.slug, id: r.id,
@@ -590,8 +590,39 @@ export default function StarredList({
             );
         }
         all.sort((a, b) => b.ts - a.ts);
-        return sectionize(all, (r) => dayLabel(r.ts));
+        return all;
     }, [isHistory, outputRows, projectViewRows, query]);
+
+    /* Progressive reveal — same shape as the Collected grid (Brendon 2026-06-27).
+       History can hold up to 500 rows, each a live OutputThumb; mount a first
+       screenful, then grow the window as a sentinel near the bottom scrolls into
+       view, so a deep history scrolls smoothly instead of painting 500 canvases. */
+    const HIST_FIRST = 20;
+    const HIST_STEP = 40;
+    const [historyReveal, setHistoryReveal] = useState(HIST_FIRST);
+    const historySentinelRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (!isHistory) return;
+        if (historyReveal >= historyRowsFlat.length) return;
+        const el = historySentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setHistoryReveal(historyRowsFlat.length); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setHistoryReveal((c) => Math.min(c + HIST_STEP, historyRowsFlat.length));
+                }
+            },
+            { rootMargin: '1200px 0px' },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [isHistory, historyReveal, historyRowsFlat.length]);
+
+    const historySections = useMemo(
+        () => sectionize(isHistory ? historyRowsFlat.slice(0, historyReveal) : [], (r) => dayLabel(r.ts)),
+        [isHistory, historyRowsFlat, historyReveal],
+    );
 
     const traitSections = useMemo(() => {
         const dim = dimFor('traits');
@@ -781,6 +812,9 @@ export default function StarredList({
                                 )}
                             </Fragment>
                         ))}
+                        {historyReveal < historyRowsFlat.length && (
+                            <div ref={historySentinelRef} className="history-reveal-sentinel" aria-hidden="true" />
+                        )}
                     </>
                 )}
                 {showType('outputs') && !isHistory && (
