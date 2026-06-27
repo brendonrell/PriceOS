@@ -5175,9 +5175,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 @media (max-width: 600px) {
     .pill.pill-l1.pill-fate-icon .stat-name { font-size: 15px; top: 1px; }
 }
-/* Clock: +1px and nudge down 1px on desktop */
+/* Clock: +1px and nudge down 0.5px on desktop (Brendon, 2026-06-27 — was 1px) */
 @media (min-width: 601px) {
-    .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; position: relative; top: 1px; }
+    .pill.pill-l1.pill-breadcrumb .stat-name { font-size: 17px; position: relative; top: 0.5px; }
 }
 /* Clear ✕ — nudge down 1px on desktop (Brendon, 2026-06-22). */
 @media (min-width: 601px) {
