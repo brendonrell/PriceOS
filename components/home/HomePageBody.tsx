@@ -106,9 +106,10 @@ interface HomeFeedItem { slug: string; title: string; label: string; glyph: stri
 /* "JUN 11" — compact upload-date stamp for the feed's time column. */
 function fmtUploadDate(ms: number | null): string {
     if (ms == null) return '—';
-    return new Date(ms)
-        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
-        .toUpperCase();
+    const d = new Date(ms);
+    const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${mon} ${day} ’${String(d.getUTCFullYear()).slice(-2)}`;
 }
 
 /* "15:42" — clock time of the upload (24-hour, PD house style), shown in place

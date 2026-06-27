@@ -6560,11 +6560,14 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     display: flex;
     flex-direction: column;
     line-height: 1.25;
+    width: 86px;
+    white-space: nowrap;
 }
+@media (max-width: 600px) { .home-activity-feed .f-time { width: 80px; } }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
-.af-ic--airdrop { font-size: 19px; }                      /* ⍜ airdrop — one step down */
+.af-ic--airdrop { font-size: 18px; }                      /* ⍜ airdrop — two steps down */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
@@ -10272,6 +10275,11 @@ body.colorway-dark .ghost-feed-bar {
    sit on the text baseline. Scoped under .f-content to outrank
    `.artist-tag.is-sm { top: 1px }` (Brendon, 2026-06-27). */
 .f-content .output-artist-badge { position: relative; top: 3px; }
+
+/* Output timeline content reads like the tx rows — lowercase verbs, with names
+   in their TRUE case: project names proper, @artists as @names, $PRICE caps.
+   So the highlighted subject is NOT force-uppercased here (Brendon, 2026-06-27). */
+.output-timeline-feed .f-content .upload-title { text-transform: none; }
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
 }

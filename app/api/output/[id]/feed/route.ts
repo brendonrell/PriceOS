@@ -223,7 +223,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
       markers.push({
         id: `ms-${count}-${slug}`,
         glyph: m.glyph, cls: m.cls ?? null, timestamp: when, seq: m.count, pin: 0,
-        label: m.label, lead: `${title} reached `, highlight: m.label, tail: '', href: projHref,
+        label: m.label, lead: `${title} reached `, highlight: m.label.toLowerCase(), tail: '', href: projHref,
       });
     }
   }
@@ -242,7 +242,7 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
     markers.push({
       id: `asc-${slug}`,
       glyph: FEED_LIFECYCLE.ascension.glyph, cls: null, timestamp: ascIso, seq: Number.MAX_SAFE_INTEGER, pin: 0,
-      label: FEED_LIFECYCLE.ascension.label, lead: `${title} reached `, highlight: FEED_LIFECYCLE.ascension.label, tail: '', href: projHref,
+      label: FEED_LIFECYCLE.ascension.label, lead: `${title} reached `, highlight: FEED_LIFECYCLE.ascension.label.toLowerCase(), tail: '', href: projHref,
     });
   }
 

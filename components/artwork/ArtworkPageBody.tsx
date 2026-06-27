@@ -121,9 +121,10 @@ function fmtFeedDate(iso: string, tbdDay?: boolean): string {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '—';
     const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
-    if (tbdDay) return `${month} ?`;
+    const yy = String(d.getUTCFullYear()).slice(-2);
+    if (tbdDay) return `${month} ? ’${yy}`;
     const day = d.toLocaleDateString('en-US', { day: '2-digit', timeZone: 'UTC' });
-    return `${month} ${day}`;
+    return `${month} ${day} ’${yy}`;
 }
 
 /* "15:42" — 24-hour clock, matching the homepage feed. Blank for undecided-day
@@ -760,7 +761,7 @@ export default function ArtworkPageBody({
                     </div>
                 </div>
                 <section className="home-uploads" aria-label="Activity Feed">
-                    <div className="feed-list home-activity-feed">
+                    <div className="feed-list home-activity-feed output-timeline-feed">
                         {feedItems.length === 0 ? (
                             <GhostFeedRows />
                         ) : feedItems.map((row) => (
