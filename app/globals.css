@@ -6574,9 +6574,9 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
-.af-ic--airdrop { font-size: 17px; position: relative; top: 3px; }  /* ⍜ airdrop — three steps down, nudged down 3px */
-.af-ic--hash { font-size: 19px; }                         /* # one step down from base */
-.af-ic--dagger { font-size: 16px; position: relative; top: 2px; }   /* † first blood — settle it, nudged down 2px */
+.af-ic--airdrop { font-size: 17px; position: relative; top: 2px; }  /* ⍜ airdrop — three steps down, nudged down 2px */
+.af-ic--hash { font-size: 19px; position: relative; top: 2px; }   /* # one step down from base, nudged down 2px */
+.af-ic--dagger { font-size: 16px; position: relative; top: 1px; }   /* † first blood — settle it, nudged down 1px */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter), Inter, sans-serif; font-size: 15px; font-weight: 700; } /* ‰ matches the logo, bold */
 /* Output timeline: the PriceOS logo row paints the REAL corner-logo per-mille
