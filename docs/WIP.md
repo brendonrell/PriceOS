@@ -7,9 +7,39 @@
 ---
 
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/lunar-phase-emoji-fix-fnmeqj` is trash (work is on dev) —
+  `claude/output-activity-feed-q5poor` is trash (work is on dev) —
   Brendon deletes on GitHub. Stale local-dev self-heals via the SessionStart hook.
-- **Updated:** 2026-06-25 (session 3 — lunar glyphs + Safari research). Shipped to `dev`:
+- **Updated:** 2026-06-27 (session 4 — output activity feed + timeline polish).
+  Shipped to `dev`:
+  1. **Output activity feed / timeline** — full feed below the output art: real tx
+     rows + pinned platform-genesis + identity markers (#price-discussion channel
+     started · PriceOS 1.0 released · $PRICE airdrop · artist joined/added · minter).
+     Search row = EXACT projects search-row copy (text + min/max ETH range + ✕,
+     ends at the page inset). Middle hero stat changed VOL→**ATH** (all-time-high
+     price paid; mint price until first trade). Feed ETH amount italic (bold read
+     identical in Courier, so italic stays). Tap art → opens project modal. Share
+     image = PWA icon; proper-cased title; PriceDay date beside the name; soundtrack ♫.
+  2. **‰ PriceOS mark = Inter, bold** — root cause of "Inter dropped": newer iOS
+     forces a fallback font off the hidden text-presentation selector (`︎`)
+     after ‰. Removed it on BOTH the timeline ‰ and the settings Price Logo →
+     real Inter is back. (Inter font itself loads fine; this was the only break.)
+  3. **Action-row / hover active states** — note + grail buttons (and the gallery
+     card hover grail) now light up when the output already has that thing; star
+     and wishlist already did. Albums/todos exempt. Share button matched to the
+     glyph squares' exact height/box model.
+  4. **Landscape output art** — fills the space (taller cap on short viewports) and
+     no longer overflows into horizontal scroll (stage/foot padding kept inside width).
+- **⚠️ OPEN — spell-book / settings icon nudges look WRONG (Brendon, end of session,
+  angry):** the recent per-icon nudges (tarot, price ghost, hammer, first blood,
+  cartel) render FAR larger than the px value set — "not remotely a pixel." Pushed
+  as-is on his "push what you have and wrap." NOT diagnosed yet. Suspect the inline
+  `position:relative; top:Npx` is compounding with existing `.st-icon`
+  `transform: translateY()` + per-id `#sb-*`/`#sn-*` transforms/font-sizes (some
+  `!important`), so the net shift is bigger than intended. NEXT: read every `.st-icon`
+  / per-id override before re-nudging; set the FINAL top once, don't stack. Also
+  confirm the settings Price Logo actually renders BOLD on device (code has
+  `fontWeight:'bold'`; SettingsToggle forwards full `iconStyle` via `style=`).
+- **(prior) Updated:** 2026-06-25 (session 3 — lunar glyphs + Safari research). Shipped to `dev`:
   1. **Lunar Phase = monochrome glyphs (no emoji)** — the Lunar Phase tile in
      project + output Attributes was using colour emoji moons (🌑–🌘), banned. Now
      flat circle glyphs tracing the cycle (● new, ○ full, ◑ waxing / ◐ waning
