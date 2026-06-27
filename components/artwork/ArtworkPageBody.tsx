@@ -308,7 +308,8 @@ export default function ArtworkPageBody({
     const [outSort, setOutSort] = useState<{ key: OutSortKey; dir: OutSortDir }>({ key: 'feed', dir: 'desc' });
     const [searchActive, setSearchActive] = useState(false);
     const [query, setQuery] = useState('');
-    const searchInputRef = useRef<HTMLInputElement>(null);
+    const [priceMin, setPriceMin] = useState('');
+    const [priceMax, setPriceMax] = useState('');
     const onOutSort = (key: OutSortKey) =>
         setOutSort((prev) =>
             prev.key === key
@@ -350,7 +351,20 @@ export default function ArtworkPageBody({
             });
         }
         const q = query.trim().toLowerCase();
-        const visible = q ? items.filter((it) => it.searchText.includes(q)) : items;
+        const lo = parseFloat(priceMin);
+        const hi = parseFloat(priceMax);
+        const hasLo = Number.isFinite(lo);
+        const hasHi = Number.isFinite(hi);
+        const visible = items.filter((it) => {
+            if (q && !it.searchText.includes(q)) return false;
+            // ETH range — only priced rows qualify when a bound is set.
+            if (hasLo || hasHi) {
+                if (it.price <= 0) return false;
+                if (hasLo && it.price < lo) return false;
+                if (hasHi && it.price > hi) return false;
+            }
+            return true;
+        });
         // $PRICE — sort the whole feed by price (no pinning), direction-aware.
         if (outSort.key === 'price') {
             const m = outSort.dir === 'asc' ? 1 : -1;
@@ -361,7 +375,7 @@ export default function ArtworkPageBody({
         visible.sort((a, b) => (a.pin - b.pin) || (b.ts - a.ts) || (b.seq - a.seq));
         // …and the arrow flips the WHOLE list (last↔first), pinned rows included.
         return outSort.dir === 'asc' ? visible.reverse() : visible;
-    }, [feedRows, feedMarkers, outSort, query]);
+    }, [feedRows, feedMarkers, outSort, query, priceMin, priceMax]);
 
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
@@ -694,8 +708,7 @@ export default function ArtworkPageBody({
                         onToggleSearch={() => {
                             const next = !searchActive;
                             setSearchActive(next);
-                            if (next) requestAnimationFrame(() => searchInputRef.current?.focus());
-                            else { setQuery(''); searchInputRef.current?.blur(); }
+                            if (!next) { setQuery(''); setPriceMin(''); setPriceMax(''); }
                         }}
                     />
                     <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
@@ -743,33 +756,56 @@ export default function ArtworkPageBody({
                             ))}
                         </div>
                     </div>
-                    {/* Permanent divider between the controls and the feed; on
-                        Search it just gains the input text (Brendon, 2026-06-27). */}
-                    <div className="output-search">
+                    {/* Search row — the EXACT projects-page search-row, copy-pasted:
+                        text search + min/max ETH range + ✕. Hidden until Search is
+                        tapped; .open constrains it to the page inset (Brendon, 2026-06-27). */}
+                    <div className={`search-row${searchActive ? ' open' : ''}`} id="searchRow">
                         <input
-                            ref={searchInputRef}
-                            className="output-search-input"
+                            className="search-input"
                             type="text"
-                            placeholder={searchActive ? 'Search the feed…' : ''}
+                            placeholder="Search the feed…"
                             autoComplete="off"
                             enterKeyHint="done"
                             value={query}
-                            onChange={(e) => { setQuery(e.target.value); if (!searchActive) setSearchActive(true); }}
-                            onFocus={() => setSearchActive(true)}
+                            onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
                         />
-                        {(searchActive || query) && (
-                            <span
-                                className="output-search-clear"
-                                role="button"
-                                tabIndex={0}
-                                title="Clear"
-                                onClick={() => { setQuery(''); setSearchActive(false); searchInputRef.current?.blur(); }}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); searchInputRef.current?.blur(); } }}
-                            >
-                                ✕&#xFE0E;
-                            </span>
-                        )}
+                        <span className="feed-price-range">
+                            <input
+                                className="price-input"
+                                type="number"
+                                placeholder="min"
+                                step="0.001"
+                                min="0"
+                                enterKeyHint="done"
+                                value={priceMin}
+                                onChange={(e) => setPriceMin(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
+                            />
+                            <span className="price-sep">–</span>
+                            <input
+                                className="price-input"
+                                type="number"
+                                placeholder="max"
+                                step="0.001"
+                                min="0"
+                                enterKeyHint="done"
+                                value={priceMax}
+                                onChange={(e) => setPriceMax(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
+                            />
+                            <span className="price-eth-label">ETH</span>
+                        </span>
+                        <span
+                            className="search-clear"
+                            role="button"
+                            tabIndex={0}
+                            title="Clear"
+                            onClick={() => { setQuery(''); setPriceMin(''); setPriceMax(''); setSearchActive(false); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setPriceMin(''); setPriceMax(''); setSearchActive(false); } }}
+                        >
+                            ✕&#xFE0E;
+                        </span>
                     </div>
                 </div>
                 <section className="home-uploads" aria-label="Activity Feed">
