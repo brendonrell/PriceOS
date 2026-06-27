@@ -9416,10 +9416,8 @@ body.colorway-dark .ghost-feed-bar {
     opacity: 1;
 }
 /* Top-line state flags after the #id / @name — the ★ (starred) and the reused
-   ⊟ note glyph, plus the project cartel/celestial badges. They sit inside
-   .starred-row-id, which the Starred/History lists underline — `inline-block`
-   breaks that underline off the glyphs. Sized up a few steps off the id text
-   (Brendon 2026-06-27). */
+   ⊟ note glyph, plus the project cartel/celestial badges. Sized up a few steps
+   off the id text (Brendon 2026-06-27). */
 .srl-flag,
 .starred-row-id .meta-note-ic {
     display: inline-block;
@@ -9427,9 +9425,15 @@ body.colorway-dark .ghost-feed-bar {
     line-height: 0;
     vertical-align: baseline;
 }
-/* Star two sizes up, note two sizes down off the shared 1.3em (Brendon). */
-.srl-flag { margin-left: 5px; font-size: 1.6em; }
-.starred-row-id .meta-note-ic { font-size: 1em; }
+/* The Output id row is a flexbox (.is-split), which blockifies these glyphs so
+   the row-id underline leaks onto them. Underline only the name + #id text
+   instead, leaving the flags clean (Brendon 2026-06-27 — output-only issue). */
+.starred-list[aria-label="Starred"] .starred-row-id.is-split { text-decoration: none; }
+.starred-list[aria-label="Starred"] .starred-row-id.is-split .srl-handle,
+.starred-list[aria-label="Starred"] .starred-row-id.is-split .srl-suffix { text-decoration: underline; }
+/* Star two sizes up + down 2px; note two sizes down + up 2px (Brendon). */
+.srl-flag { margin-left: 5px; font-size: 1.6em; position: relative; top: 2px; }
+.starred-row-id .meta-note-ic { font-size: 1em; position: relative; top: 0.5px; }
 .srl-flag-star { color: var(--text-color); }
 .starred-row-id .project-cartel,
 .starred-row-id .project-celestial {
