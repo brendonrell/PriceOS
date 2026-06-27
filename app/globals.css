@@ -10332,7 +10332,7 @@ body.colorway-dark .ghost-feed-bar {
     color: inherit;
 }
 .artwork-feature-foot .aff-fullscreen:hover { opacity: 1; }
-.artwork-feature-foot .aff-owner { color: inherit; opacity: 0.85; }
+.artwork-feature-foot .aff-owner { color: inherit; opacity: 1; font-weight: 700; }
 
 /* Project name in the artwork title is a link to the project page; keep it
    visually identical to the title (no link colour / underline), just clickable.
