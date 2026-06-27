@@ -10262,6 +10262,7 @@ body.colorway-dark .ghost-feed-bar {
    desktop, 20px mobile — and adds tasteful air below the art before the first
    button. */
 .output-feed-bar {
+    box-sizing: border-box;
     padding: 0 40px;
     margin: 38px 0 32px;
 }
