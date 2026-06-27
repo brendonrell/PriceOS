@@ -1051,7 +1051,7 @@ function ProfilePageBodyInner({
     const historyByDay = true;
     /* Recording on/off — the two L3 pills (History: ON / History: OFF). Synced
        from the store; switching routes through a mint-style confirm BOTH ways. */
-    const [recording, setRecording] = useState(true);
+    const [recording, setRecording] = useState(false);
     useEffect(() => {
         setRecording(isRecordingEnabled());
         return subscribeBreadcrumbs(() => setRecording(isRecordingEnabled()));
@@ -2262,7 +2262,7 @@ function ProfilePageBodyInner({
                                             className={`pill pill-l3${recording ? ' active' : ''}`}
                                             role="button"
                                             tabIndex={0}
-                                            title="History on — tracking your recently viewed outputs"
+                                            title="History on — tracking your recently viewed outputs and projects"
                                             onClick={() => { if (!recording) setRecordingConfirm(true); }}
                                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!recording) setRecordingConfirm(true); } }}
                                         >
@@ -2677,7 +2677,7 @@ function ProfilePageBodyInner({
                 !recording ? (
                     <section className="starred-list" aria-label="History">
                         <div className="history-empty-note">
-                            Turn on History to see your 100 most recently viewed outputs.
+                            Turn on History to see your 500 most recently viewed outputs and projects.
                         </div>
                     </section>
                 ) : historyItems.length > 0 ? (
@@ -2700,7 +2700,7 @@ function ProfilePageBodyInner({
                 ) : (
                     <section className="starred-list" aria-label="History">
                         <div className="history-empty-note">
-                            Your last 100 viewed outputs will appear here as you browse.
+                            Your last 500 viewed outputs and projects will appear here as you browse.
                         </div>
                     </section>
                 )
@@ -2718,9 +2718,9 @@ function ProfilePageBodyInner({
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                         <div className="ms-confirm-question">
                             {recording ? (
-                                <>Turn off History?<br />We stop tracking the outputs you view.</>
+                                <>Turn off History?<br />We stop tracking the outputs and projects you view.</>
                             ) : (
-                                'Start tracking your 100 most recently viewed outputs?'
+                                'Start tracking your 500 most recently viewed outputs and projects?'
                             )}
                         </div>
                         <div className="ms-confirm-btns">

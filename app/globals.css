@@ -9402,6 +9402,25 @@ body.colorway-dark .ghost-feed-bar {
     white-space: nowrap;
 }
 .starred-row-cta:hover { opacity: 0.85; }
+/* History PROJECT cards only — bold the dotted-square ⬚ (the tile + the rail
+   node). ⬚ has no bold weight, so thicken it with a currentColor text-stroke
+   (which inherits the project's colorway). Output history + starred cards
+   untouched (Brendon 2026-06-27). */
+.history-pj-glyph {
+    font-weight: 700;
+    -webkit-text-stroke: 0.045em currentColor;
+    text-stroke: 0.045em currentColor;
+}
+/* Project Offer CTA — two rows tall: the label wraps to two centred lines so the
+   button stands as tall as two meta rows (Brendon 2026-06-27). */
+.starred-row-cta.project-offer-cta {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+    width: 5.5em;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
 /* Already-on (e.g. wishlisted) — muted so the actionable state still reads as
    filled but distinct. */
 .starred-row-cta.is-on {

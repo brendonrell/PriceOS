@@ -261,8 +261,10 @@ export function hydrateFromRow(row: UserRow): void {
             JSON.stringify(Array.isArray(s.breadcrumbs) ? s.breadcrumbs : []),
         );
         // History recording-paused flag — mirror to the key breadcrumbStore reads
-        // so the choice follows the viewer across devices.
-        localStorage.setItem('pd_breadcrumbs_paused', s.breadcrumbsPaused ? '1' : '0');
+        // so the choice follows the viewer across devices. History is opt-in
+        // (default OFF), so only an EXPLICIT enable (breadcrumbsPaused === false)
+        // writes the on value; undefined/true stay paused.
+        localStorage.setItem('pd_breadcrumbs_paused', s.breadcrumbsPaused === false ? '0' : '1');
         localStorage.setItem(
             STATE_CACHE_KEYS.artistStars,
             JSON.stringify(Array.isArray(s.artistStars) ? s.artistStars : []),

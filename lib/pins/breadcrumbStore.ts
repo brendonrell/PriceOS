@@ -111,14 +111,16 @@ function emit(): void {
 /* Recording switch — the History "Recording" L3 toggle. When OFF we genuinely
    stop recording visits the instant it's flipped (a privacy pause), and resume
    the instant it's flipped back. Persisted (local + account) so the choice
-   follows the viewer (Brendon, 2026-06-24). */
+   follows the viewer (Brendon, 2026-06-24). DEFAULT OFF — History is opt-in;
+   recording only happens once the viewer explicitly turns it on (Brendon,
+   2026-06-27). The stored key holds '0' only when the viewer has enabled it. */
 const PAUSE_KEY = 'pd_breadcrumbs_paused';
-let recording = true;
+let recording = false;
 let recordingLoaded = false;
 function loadRecording(): void {
     if (recordingLoaded || typeof window === 'undefined') return;
     recordingLoaded = true;
-    try { recording = window.localStorage.getItem(PAUSE_KEY) !== '1'; } catch { /* ignore */ }
+    try { recording = window.localStorage.getItem(PAUSE_KEY) === '0'; } catch { /* ignore */ }
 }
 export function isRecordingEnabled(): boolean {
     loadRecording();

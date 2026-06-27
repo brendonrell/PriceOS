@@ -715,6 +715,7 @@ export default function StarredList({
                                             selected={selected.has(`p:${r.slug}`)}
                                             onToggleSel={() => toggleSel(`p:${r.slug}`)}
                                             onOpen={() => router.push('/art/' + r.slug)}
+                                            onOffer={() => showToast('Project Offer: COMING SOON')}
                                             onUnstar={(e) => handleUnstar(e, r.slug, PROJECT_VIEW_ID)}
                                             grailPinned={grailKeys.has(grailKey({ kind: 'project', slug: r.slug }))}
                                             onGrail={() => handleGrail({ kind: 'project', slug: r.slug })}
@@ -735,6 +736,7 @@ export default function StarredList({
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
                                                 onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onOffer={() => showToast('Offer: COMING SOON')}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
                                                 onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
@@ -770,6 +772,7 @@ export default function StarredList({
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
                                                 onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onOffer={() => showToast('Offer: COMING SOON')}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
                                                 onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
@@ -983,15 +986,15 @@ export default function StarredList({
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
-                                        className="starred-row-cta trait-offer-cta"
+                                        className="starred-row-cta trait-offer-cta project-offer-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Make an offer (coming soon)"
-                                        aria-label="Make an offer"
-                                        onClick={(e) => { e.stopPropagation(); showToast('Offer: COMING SOON'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Offer: COMING SOON'); } }}
+                                        title="Make a project offer (coming soon)"
+                                        aria-label="Make a project offer"
+                                        onClick={(e) => { e.stopPropagation(); showToast('Project Offer: COMING SOON'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Project Offer: COMING SOON'); } }}
                                     >
-                                        <span className="trait-offer-glyph">✦︎</span> Offer
+                                        <span className="trait-offer-glyph">✦︎</span> Project Offer
                                     </span>
                                     <span
                                         className="starred-row-unstar"
@@ -1156,6 +1159,7 @@ function StarredOutputRow({
     onToggleSel,
     onOpen,
     onWishlist,
+    onOffer,
     onUnstar,
     grailPinned,
     onGrail,
@@ -1173,6 +1177,8 @@ function StarredOutputRow({
     onToggleSel: () => void;
     onOpen: () => void;
     onWishlist: (e: React.MouseEvent) => void;
+    /** History rows swap the Wishlist CTA for an Offer CTA (Brendon 2026-06-27). */
+    onOffer?: () => void;
     onUnstar: (e: React.MouseEvent) => void;
     grailPinned: boolean;
     onGrail: () => void;
@@ -1223,6 +1229,18 @@ function StarredOutputRow({
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOpen(); } }}
                     >
                         {`▢︎ Buy ${meta!.price}`}
+                    </span>
+                ) : timeline ? (
+                    <span
+                        className="starred-row-cta trait-offer-cta"
+                        role="button"
+                        tabIndex={0}
+                        title="Make an offer (coming soon)"
+                        aria-label="Make an offer"
+                        onClick={(e) => { e.stopPropagation(); onOffer?.(); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOffer?.(); } }}
+                    >
+                        <span className="trait-offer-glyph">✦︎</span> Offer
                     </span>
                 ) : (
                     <span
@@ -1279,6 +1297,7 @@ function StarredProjectHistoryRow({
     selected,
     onToggleSel,
     onOpen,
+    onOffer,
     onUnstar,
     grailPinned,
     onGrail,
@@ -1291,6 +1310,7 @@ function StarredProjectHistoryRow({
     selected: boolean;
     onToggleSel: () => void;
     onOpen: () => void;
+    onOffer: () => void;
     onUnstar: (e: React.MouseEvent) => void;
     grailPinned: boolean;
     onGrail: () => void;
@@ -1305,7 +1325,7 @@ function StarredProjectHistoryRow({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
         >
             <div className="trait-row-tile artist-tile">
-                <span className="artist-row-tile-glyph" style={{ color }}>⬚&#xFE0E;</span>
+                <span className="artist-row-tile-glyph history-pj-glyph" style={{ color }}>⬚&#xFE0E;</span>
             </div>
             <div className="starred-row-meta">
                 <span className="starred-row-id">@{slug}</span>
@@ -1314,6 +1334,17 @@ function StarredProjectHistoryRow({
                 <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(slug)}</span></span>
             </div>
             <div className="starred-row-actions">
+                <span
+                    className="starred-row-cta trait-offer-cta project-offer-cta"
+                    role="button"
+                    tabIndex={0}
+                    title="Make a project offer (coming soon)"
+                    aria-label="Make a project offer"
+                    onClick={(e) => { e.stopPropagation(); onOffer(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOffer(); } }}
+                >
+                    <span className="trait-offer-glyph">✦︎</span> Project Offer
+                </span>
                 <span
                     className="starred-row-unstar"
                     role="button"
@@ -1332,7 +1363,7 @@ function StarredProjectHistoryRow({
     return (
         <div className="feed-row history-feed-row">
             <div className="feed-line" />
-            <div className="f-icon-wrap" aria-hidden="true" style={{ color }}>⬚&#xFE0E;</div>
+            <div className="f-icon-wrap history-pj-glyph" aria-hidden="true" style={{ color }}>⬚&#xFE0E;</div>
             <div className="f-content history-feed-content">{card}</div>
         </div>
     );

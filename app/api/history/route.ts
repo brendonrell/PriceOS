@@ -1,7 +1,7 @@
 // My History — the signed-in viewer's own recently-viewed Outputs, read straight
 // from the output_views pillar table (the durable record). Freshest first, last
-// 100. PRIVATE: requireAuth, scoped to the caller's own @name rows.
-//   GET                → [{ slug, id, ts }] (newest first, max 100)
+// 500. PRIVATE: requireAuth, scoped to the caller's own @name rows.
+//   GET                → [{ slug, id, ts }] (newest first, max 500)
 //   DELETE ?slug=&id=  → drop one row from the caller's history
 
 import { NextResponse } from 'next/server';
@@ -40,7 +40,7 @@ export const GET = requireAuth(async (_req, _ctx, address) => {
       .select('project_id, token_id, last_viewed_at')
       .eq('viewer_name', viewer)
       .order('last_viewed_at', { ascending: false })
-      .limit(100);
+      .limit(500);
     if (error) return serverError(error.message);
 
     const rows = (data ?? []) as { project_id: string; token_id: number; last_viewed_at: string }[];
