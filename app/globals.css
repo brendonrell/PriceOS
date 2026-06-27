@@ -10189,6 +10189,10 @@ body.colorway-dark .ghost-feed-bar {
    thumbnail). Wide pieces use the full content width; tall pieces cap to the
    viewport height and centre. */
 .artwork-feature-stage {
+    /* Keep the horizontal inset INSIDE the width — otherwise the full-bleed
+       stage runs 80px past the viewport and creates horizontal scroll in
+       landscape (where the page isn't x-clipped). */
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     /* Left-aligned like the rest of the page (Brendon 2026-06-19) — was centred. */
@@ -10212,9 +10216,16 @@ body.colorway-dark .ghost-feed-bar {
     .artwork-feature-stage { padding: 6px 16px 0 16px; }
     .artwork-feature-art { max-height: 64vh; }
 }
+/* Landscape phones: vertical space is the bottleneck, so let the art grow into
+   nearly the full viewport height — it widens with it and uses the horizontal
+   room instead of sitting small with a wasteland to its right (Brendon, 2026-06-27). */
+@media (orientation: landscape) and (max-height: 600px) {
+    .artwork-feature-art { max-height: 88vh; }
+}
 /* Footer row under the art: #id + owned ✓ + Full Screen on the left, owner on
    the right. Mirrors the gallery card's meta line. */
 .artwork-feature-foot {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -10281,6 +10292,8 @@ body.colorway-dark .ghost-feed-bar {
    in their TRUE case: project names proper, @artists as @names, $PRICE caps.
    So the highlighted subject is NOT force-uppercased here (Brendon, 2026-06-27). */
 .output-timeline-feed .f-content .upload-title { text-transform: none; }
+/* Timeline rail — dashed connectors at 90% opacity (Brendon, 2026-06-27). */
+.output-timeline-feed .feed-line { opacity: 0.9; }
 
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
