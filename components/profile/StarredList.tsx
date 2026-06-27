@@ -24,6 +24,9 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useStarLongPress, useTokenNote } from '../../lib/hooks/rowFlags';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useCartelMutualCount } from '../../lib/social/cartel';
+import { useProjectCelestial } from '../../lib/output/celestial';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
@@ -86,6 +89,35 @@ function sectionize<T>(rows: T[], keyOf: (r: T) => string, order?: string[]): Se
     return entries.map(([label, rs]) => ({ label, key: label, rows: rs }));
 }
 const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
+
+/* The after-name project badges — the Cartel count (⟁ + the viewer's mutuals
+   controlling this project) and the Celestial Tracker (the project's Fate
+   hexagram + sky row) — exactly as they ride beside the project name on the
+   project page (ProjectTitleStar). Each is gated on its own spell; renders
+   nothing when both are off. Drop after a project @name on the Starred + History
+   project cards. */
+function ProjectNameBadges({ slug }: { slug: string }) {
+    const { notifs } = usePdNotifs();
+    const cartelOn = notifs.spell_cartel;
+    const cartelCount = useCartelMutualCount(slug, cartelOn);
+    const projFate = useProjectCelestial(slug, notifs.spell_celestial);
+    return (
+        <>
+            {cartelOn && (
+                <span className="project-cartel" aria-label={`${cartelCount} mutuals in the cartel`}>
+                    <span className="pc-ico">{'⟁︎'}</span>
+                    <span className="pc-num">{cartelCount}</span>
+                </span>
+            )}
+            {projFate && (
+                <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
+                    <span className="pcel-hex">{projFate.glyph}</span>
+                    <span className="pcel-sky" aria-hidden="true">{'☉︎ ☽︎ ↑︎'}</span>
+                </span>
+            )}
+        </>
+    );
+}
 
 export default function StarredList({
     items,
@@ -982,7 +1014,7 @@ export default function StarredList({
                                     <span className="artist-row-tile-glyph" style={{ color: r.color }}>⬚&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">@{r.slug}</span>
+                                    <span className="starred-row-id">@{r.slug}<ProjectNameBadges slug={r.slug} /></span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
                                     <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(r.slug)}</span></span>
@@ -1394,6 +1426,7 @@ function StarredProjectHistoryRow({
                 <span className="starred-row-id">
                     @{slug}
                     {starred && <span className="srl-flag srl-flag-star" aria-label="Starred">★&#xFE0E;</span>}
+                    <ProjectNameBadges slug={slug} />
                     {lp.floatId > 0 && <span key={lp.floatId} className={`project-name-star-float${lp.floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
                 </span>
                 <span className="starred-row-sub">Floor:<em>{floor}</em></span>
