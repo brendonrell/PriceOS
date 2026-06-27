@@ -377,6 +377,16 @@ export default function ArtworkPageBody({
         return outSort.dir === 'asc' ? visible.reverse() : visible;
     }, [feedRows, feedMarkers, outSort, query, priceMin, priceMax]);
 
+    /* All-time high price paid for this Output — the highest mint/sale price in
+       its history. Defaults to the mint price until it trades for the first time. */
+    const athEth = useMemo(() => {
+        let max = 0;
+        for (const fe of feedRows) {
+            if ((fe.type === 'MINT' || fe.type === 'SALE') && fe.price > max) max = fe.price;
+        }
+        return max;
+    }, [feedRows]);
+
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
         ? `/${market.owner_handle}`
@@ -547,10 +557,10 @@ export default function ArtworkPageBody({
                         <span className="stat-item stat-item-vol">
                             <span
                                 className="stat-icon-eth"
-                                {...iconToastProps('Total Volume')}
+                                {...iconToastProps('All-Time High')}
                             >⟠&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-vol">
-                                {market ? `${market.volume_eth ?? '0'} VOL` : '—'}
+                                {athEth > 0 ? `${athEth} ATH` : '—'}
                             </span>
                         </span>
                         <span className="stat-item stat-item-owners">
@@ -824,7 +834,7 @@ export default function ArtworkPageBody({
                                 </div>
                                 <div className="f-type af-type">
                                     <span>{row.label}</span>
-                                    {row.price > 0 && <span>{row.price} ETH</span>}
+                                    {row.price > 0 && <span className="af-price">{row.price} ETH</span>}
                                 </div>
                                 <div className="f-content">{row.content}</div>
                             </div>
