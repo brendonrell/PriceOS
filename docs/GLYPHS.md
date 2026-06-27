@@ -47,7 +47,7 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | `WISHLIST_HIT` | ✛ | U+271B | the artwork Wishlist glyph (NOT a heart) |
 | `WATCH_HIT` | ✛ | U+271B | watch (wishlist family) |
 | `STREAK` | ◈ | U+25C8 | streak category glyph |
-| `ACHIEVEMENT` | *(its own)* | — | uses the unlock's catalog glyph; falls back to ✦ U+2726 |
+| `ACHIEVEMENT` | ◍ | U+25CD | the canonical achievements icon; an unlock's own catalog glyph overrides when present |
 
 > ⚠️ **No hearts** for wishlist. PD's wishlist glyph is **✛ (U+271B)**, taken
 > from the artwork action bar. A `♥`/`♡` is a per-user tape *sigil*, never a
@@ -119,6 +119,14 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 > eight-pointed star). Moved off `❖` on 2026-06-16 so `❖` (U+2756) is free for
 > **RARITY** sitewide (Brendon). Update any new rank surface to `❂`; never use
 > `❖` for PriceRank again.
+
+> **Achievements icon = ◍ (U+25CD)** — the striped/barred circle shown on the
+> achievement tiles. This is the canonical, app-wide "achievements" mark (not
+> just a tile fallback): the single source of truth lives in
+> `lib/achievements/icon.ts` (`ACHIEVEMENTS_ICON`). The achievement-unlock Ping
+> falls back to it, and the **PriceRank** Network filter pill inherits it
+> (Brendon, 2026-06-27). Deliberately NOT the `❂` rank-sun above — PriceRank's
+> pill wears the achievements icon, on purpose.
 
 ### Gallery grouping glyphs (the cycling sort modifier — Brendon, 2026-06-16)
 

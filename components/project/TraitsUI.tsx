@@ -54,6 +54,7 @@ import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { PerMilleMark } from '../shell/PerMilleMark';
+import { ACHIEVEMENTS_ICON } from '../../lib/achievements/icon';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
 import {
     useSort,
@@ -241,14 +242,16 @@ const L3_FLAT_POOL: Partial<Record<TraitCategory, readonly string[]>> = {
 
 /* Leading icon for a Network L3 value → glyph + render class. The social
    relationship glyphs reuse §12's set (Mutual ⚭ / Following ⚯ / Follower ⚬);
-   Fresh Wallets wears the sticker-store ETH lozenge ◊; New to PD wears the
-   per-mille logo mark ‰ (rendered in Inter). Sizes/nudges live in globals.css
-   (.net-pill-ico--* / .net-pill-eth / .net-pill-mille). */
+   Fresh Wallets wears the sticker-store ETH lozenge ◊; PriceRank wears the
+   achievements-tile icon ◍ (U+25CD, the minting-category glyph); New to PD wears
+   the per-mille logo mark (the real SVG). Sizes/nudges live in globals.css
+   (.net-pill-ico--* / .net-pill-eth / .net-pill-rank / .net-pill-mille). */
 const NET_VALUE_ICON: Record<string, { glyph: string; cls: string }> = {
     'Mutuals':       { glyph: '⚭',         cls: 'net-pill-ico net-pill-ico--mutual' },
     'Following':     { glyph: '⚯',         cls: 'net-pill-ico net-pill-ico--following' },
     'Followers':     { glyph: '⚬',         cls: 'net-pill-ico net-pill-ico--follower' },
     'Top Holders':   { glyph: '△',         cls: 'net-pill-ico net-pill-top' },
+    'PriceRank':     { glyph: ACHIEVEMENTS_ICON, cls: 'net-pill-ico net-pill-rank' },
     'Fresh Wallets': { glyph: '◊︎', cls: 'net-pill-ico net-pill-eth' },
     'New to PD':     { glyph: '‰',         cls: 'net-pill-mille' },
 };

@@ -6,6 +6,7 @@
 // projects you follow did X" firehose — never stored). Both share this shape.
 
 import type { PingRow, PingKind } from '@/lib/supabase';
+import { ACHIEVEMENTS_ICON } from '@/lib/achievements/icon';
 
 /** Render-only kinds: the directed ping kinds plus LIST (broadcast-only — a
  *  listing by someone you follow). LIST is never stored in `pings`. */
@@ -88,7 +89,7 @@ const ICONS: Record<RenderKind, string> = {
   FOLLOW:         '⚭︎', // ⚭ mutual / social (matches MUTUALS pill)
   PROJECT_FOLLOW: '⚭︎', // ⚭
   OUTPUT_FOLLOW:  '⚭︎', // ⚭ (same social glyph as project/user follows)
-  ACHIEVEMENT:    '✦︎', // ✦ fallback (the unlock's own glyph is used when present)
+  ACHIEVEMENT:    ACHIEVEMENTS_ICON, // ◍ the canonical achievements icon (the unlock's own glyph is used when present)
   STREAK:         '◈︎', // ◈ streak (achievement category glyph)
   MINT:           '✶︎', // ✶ collected (matches MINTS pill)
   LIST:           '✹︎', // ✹ listed (matches LISTS pill)
