@@ -9030,6 +9030,14 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (min-width: 601px) {
     .starred-row.is-selected::after { box-shadow: 0 0 0 1px var(--accent); }
 }
+/* History timeline selection ring (Brendon, 2026-06-27): hug the content tighter
+   left/right, drop further below it (top buffer stays), and a clean 2px line. */
+.starred-rows--timeline .starred-row.is-selected::after {
+    left: -2px;
+    right: -2px;
+    bottom: -6px;
+    box-shadow: 0 0 0 2px var(--accent);
+}
 /* Underline the top (title) line + extra-bold the bottom (type) line of every
    Starred row (Brendon 2026-06-19). Scoped to the Starred surface so the
    Wishlist sibling is untouched. */
