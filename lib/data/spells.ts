@@ -48,7 +48,7 @@ export const SPELLS: SpellEntry[] = [
        label. Our "icon-less" pill. */
     { id: 'npc',         flag: 'spell_npc',         name: 'NPC' },
     { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '▯▯▯\uFE0E', iconStyle: { top: '-2px' } },
-    { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: 'ᗝ\uFE0E', iconStyle: { top: '-2px' } },
+    { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: 'ᗝ\uFE0E', iconStyle: { top: '-1px' } },
     /* Solar Flare (id 'cme') retired 2026-06-14 — its inactive Spell Book slot
        was reassigned to The Watch (a hardcoded pill in SpellBookSection, like
        Stargazing / Echo). The `spell_cme` pdNotifs flag is intentionally KEPT
