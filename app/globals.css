@@ -10280,6 +10280,41 @@ body.colorway-dark .ghost-feed-bar {
    in their TRUE case: project names proper, @artists as @names, $PRICE caps.
    So the highlighted subject is NOT force-uppercased here (Brendon, 2026-06-27). */
 .output-timeline-feed .f-content .upload-title { text-transform: none; }
+
+/* The controls↔feed divider. Always present as a plain line that ends at the
+   page inset (it's a block child of the padded bar, so it can't overrun); tapping
+   Search just gains the input text on the same line (Brendon, 2026-06-27). */
+.output-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--text-color);
+}
+.output-search-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    caret-color: var(--text-color);
+    padding: 2px 0;
+}
+.output-search-input::placeholder { opacity: 0.5; font-weight: normal; color: var(--text-color); }
+.output-search-clear {
+    cursor: pointer;
+    opacity: 0.5;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent;
+}
+.output-search-clear:hover { opacity: 1; }
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
 }

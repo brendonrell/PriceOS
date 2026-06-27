@@ -308,6 +308,7 @@ export default function ArtworkPageBody({
     const [outSort, setOutSort] = useState<{ key: OutSortKey; dir: OutSortDir }>({ key: 'feed', dir: 'desc' });
     const [searchActive, setSearchActive] = useState(false);
     const [query, setQuery] = useState('');
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const onOutSort = (key: OutSortKey) =>
         setOutSort((prev) =>
             prev.key === key
@@ -690,7 +691,12 @@ export default function ArtworkPageBody({
                         listed={!!market?.listing}
                         owned={owned}
                         searchActive={searchActive}
-                        onToggleSearch={() => setSearchActive((v) => !v)}
+                        onToggleSearch={() => {
+                            const next = !searchActive;
+                            setSearchActive(next);
+                            if (next) requestAnimationFrame(() => searchInputRef.current?.focus());
+                            else { setQuery(''); searchInputRef.current?.blur(); }
+                        }}
                     />
                     <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
                         <div className="colorway-pills">
@@ -737,27 +743,33 @@ export default function ArtworkPageBody({
                             ))}
                         </div>
                     </div>
-                    <div className={`search-row${searchActive ? ' open' : ''}`} id="outputSearchRow">
+                    {/* Permanent divider between the controls and the feed; on
+                        Search it just gains the input text (Brendon, 2026-06-27). */}
+                    <div className="output-search">
                         <input
-                            className="search-input"
+                            ref={searchInputRef}
+                            className="output-search-input"
                             type="text"
-                            placeholder="Search the feed…"
+                            placeholder={searchActive ? 'Search the feed…' : ''}
                             autoComplete="off"
                             enterKeyHint="done"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={(e) => { setQuery(e.target.value); if (!searchActive) setSearchActive(true); }}
+                            onFocus={() => setSearchActive(true)}
                             onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur(); }}
                         />
-                        <span
-                            className="search-clear"
-                            role="button"
-                            tabIndex={0}
-                            title="Clear"
-                            onClick={() => { setQuery(''); setSearchActive(false); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); } }}
-                        >
-                            ✕&#xFE0E;
-                        </span>
+                        {(searchActive || query) && (
+                            <span
+                                className="output-search-clear"
+                                role="button"
+                                tabIndex={0}
+                                title="Clear"
+                                onClick={() => { setQuery(''); setSearchActive(false); searchInputRef.current?.blur(); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); setSearchActive(false); searchInputRef.current?.blur(); } }}
+                            >
+                                ✕&#xFE0E;
+                            </span>
+                        )}
                     </div>
                 </div>
                 <section className="home-uploads" aria-label="Activity Feed">
