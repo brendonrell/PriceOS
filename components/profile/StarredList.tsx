@@ -1431,7 +1431,7 @@ function StarredProjectHistoryRow({
                 </span>
                 <span className="starred-row-sub">Floor:<em>{floor}</em></span>
                 <span className="starred-row-sub">Last:<em>{lastSale}</em></span>
-                <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(slug)}</span></span>
+                <span className="starred-row-sub">Project</span>
             </div>
             <div className="starred-row-actions">
                 <span
