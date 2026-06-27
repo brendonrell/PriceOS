@@ -6572,6 +6572,10 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .af-ic--dagger { font-size: 16px; position: relative; top: 2px; }   /* † first blood — settle it, nudged down 2px */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter), Inter, sans-serif; font-size: 15px; font-weight: 700; } /* ‰ matches the logo, bold */
+/* Output timeline: the PriceOS logo row paints the REAL corner-logo per-mille
+   (glyph-only) as a small SVG. top:5px cancels the wrapper's -5px font nudge so
+   the mark centres on the text line. */
+.af-mille-svg { height: 13px; width: auto; display: inline-block; vertical-align: middle; position: relative; top: 5px; }
 /* ⟢⟢ Graduated is MEANT to stand out — render it bigger and let it spill out of
    the icon box (overflow visible); box stays 14px so columns stay aligned, and
    the date's left margin gives the spill room. (Brendon, 2026-06-15) */
