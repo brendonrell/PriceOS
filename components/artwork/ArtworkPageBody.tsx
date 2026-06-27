@@ -337,7 +337,7 @@ export default function ArtworkPageBody({
                         ? <a className="f-highlight upload-title" href={m.href}>{m.highlight}</a>
                         : <span className="f-highlight upload-title">{m.highlight}</span>}
                     {m.tail}
-                    {m.badge && <span className="artist-tag is-sm" aria-label="PD Artist">{' ✺︎'}</span>}
+                    {m.badge && <span className="artist-tag is-sm output-artist-badge" aria-label="PD Artist">{' ✺︎'}</span>}
                 </>
             );
             items.push({

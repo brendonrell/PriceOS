@@ -10259,6 +10259,9 @@ body.colorway-dark .ghost-feed-bar {
 .output-soundtrack-btn {
     text-decoration: none;
 }
+/* The ✺ PD-Artist badge on the "added as PD Artist" feed row — nudged down to
+   sit on the text baseline (Brendon, 2026-06-27). */
+.output-artist-badge { position: relative; top: 3px; }
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
 }
