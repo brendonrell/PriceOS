@@ -6556,6 +6556,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
+.af-ic--airdrop { font-size: 19px; }                      /* ⍜ airdrop — one step down */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
