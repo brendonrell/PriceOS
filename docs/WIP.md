@@ -6,6 +6,19 @@
 
 ---
 
+- **⚠️ VERCEL PAUSED + BACKGROUND POLLERS HARD-OFF (Brendon, 2026-06-27):**
+  Vercel paused the project (`live:false`) on the **free-tier usage cap** — the
+  latest build is healthy, so it's a usage limit, NOT a bad deploy or the commits.
+  To stop the ongoing drain, the two background pollers are **disabled behind
+  flags** (flip to `false` to restore):
+  - **`RPC_PING_DISABLED`** (`lib/rpc/rpcEngine.ts`) — the latency ⌁ pill that
+    polled `/api/rpc-ping` every 4–8s/tab. ⌁ button is now inert.
+  - **`PINGS_POLL_DISABLED`** (`lib/state/PingsContext.tsx`) — the unread-pings
+    `/api/pings/count` poll (15s) + its live-event nudge + visibility refetch.
+    The pings menu still pulls once when it opens.
+  NOT the missing VAPID push secret — that path configures once, no-ops when the
+  key's absent, never retries. **Un-pausing the live site is Brendon's Vercel
+  account action** (free-tier cap reset / upgrade); re-enable the flags after.
 - **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
   `claude/output-activity-feed-q5poor` is trash (work is on dev) —
   Brendon deletes on GitHub. Stale local-dev self-heals via the SessionStart hook.

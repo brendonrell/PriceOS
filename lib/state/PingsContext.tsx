@@ -43,6 +43,13 @@ import { setAppBadge, clearAppBadge } from '../push/client';
 // dropped socket. Tight because latency is the enemy on a financial surface.
 const POLL_MS = 15_000;
 
+/* ⛔ TEMPORARILY DISABLED (Brendon, 2026-06-27) — the unread-pings count poll
+   (and its live-event nudge / visibility refetch) hit /api/pings/count every
+   15s per tab, a steady drain on the Vercel free tier that helped pause the
+   project. Off for now; the menu still pulls once when it opens. Re-enable
+   (flip to false) once on a paid plan / the usage cap is sorted. */
+const PINGS_POLL_DISABLED = true;
+
 // App actions that can mint a new ping — re-pull immediately, don't wait for the
 // next interval. Mirrors the qualifying-event list PriceRankSync listens to.
 const QUALIFYING_EVENTS = [
@@ -232,9 +239,10 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
       void fetchCount();
     };
-    const interval = window.setInterval(tick, POLL_MS);
+    const interval = PINGS_POLL_DISABLED ? 0 : window.setInterval(tick, POLL_MS);
 
     const onVisible = () => {
+      if (PINGS_POLL_DISABLED) return;
       if (document.visibilityState === 'visible') void fetchCount();
     };
     document.addEventListener('visibilitychange', onVisible);
@@ -253,13 +261,15 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       nudgeTimer = window.setTimeout(() => { void fetchCount(); }, 800);
     };
     let channel: RealtimeChannel | null = null;
-    try {
-      channel = getSupabaseBrowser()
-        .channel('pings-live')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, nudge)
-        .subscribe();
-    } catch {
-      /* anon env missing in this build — the poll covers it */
+    if (!PINGS_POLL_DISABLED) {
+      try {
+        channel = getSupabaseBrowser()
+          .channel('pings-live')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, nudge)
+          .subscribe();
+      } catch {
+        /* anon env missing in this build — the poll covers it */
+      }
     }
 
     return () => {

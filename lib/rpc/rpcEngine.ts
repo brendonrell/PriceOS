@@ -67,6 +67,12 @@ let state: RpcState = { active: false, ms: null };
 let timer: ReturnType<typeof setTimeout> | null = null;
 const listeners = new Set<Listener>();
 
+/* ⛔ TEMPORARILY DISABLED (Brendon, 2026-06-27) — the latency-pill poll hit
+   /api/rpc-ping every 4–8s per tab, a steady drain on the Vercel free tier that
+   helped pause the project. Hard-off here so the ⌁ button can't start it.
+   Re-enable (flip to false) once on a paid plan / the usage cap is sorted. */
+const RPC_PING_DISABLED = true;
+
 function notify() {
     listeners.forEach((cb) => cb(state));
 }
@@ -78,6 +84,7 @@ function qualityClass(ms: number): 'good' | 'ok' | 'slow' {
 }
 
 async function realPing() {
+    if (RPC_PING_DISABLED) return;
     if (typeof document !== 'undefined' && document.hidden) return;
     if (!state.active) return;
     try {
@@ -162,6 +169,7 @@ export function getRpcQualityClass(ms: number): 'good' | 'ok' | 'slow' {
  * — the engine stays UI-free.
  */
 export function toggleRpcPing(): boolean {
+    if (RPC_PING_DISABLED) return false; // off for now — never starts the poll
     if (state.active) {
         state = { active: false, ms: null };
         clearTimer();
