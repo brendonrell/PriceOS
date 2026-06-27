@@ -17,7 +17,7 @@
  * so the list paints instantly.
  */
 
-import { useEffect, useMemo, useState, useRef, Fragment } from 'react';
+import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
