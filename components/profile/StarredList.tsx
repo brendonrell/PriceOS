@@ -28,7 +28,7 @@ import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artistFloor, collectorTopBuy, collectorTopBuyEth, collectorProjectsOwned } from '../../lib/market/starredMarket';
 import { toggleStar } from '../../lib/pins/starStore';
-import { removeMyHistory } from '../../lib/output/views';
+import { removeMyHistory, PROJECT_VIEW_ID } from '../../lib/output/views';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
@@ -297,7 +297,9 @@ export default function StarredList({
     const outputRows = useMemo(
         () =>
             items
-                .filter((it) => getProject(it.slug) != null)
+                // Project-page views (token 0) are History-only and render as
+                // project cards, never as Output rows.
+                .filter((it) => it.id !== PROJECT_VIEW_ID && getProject(it.slug) != null)
                 .map((it, i) => {
                     const t = outputTraits(it.slug, it.id);
                     const PLAT = new Set(['Artist', 'Project', 'Fate', 'PriceDay', 'Sun', 'Moon', 'Rising']);
@@ -510,6 +512,52 @@ export default function StarredList({
         return secs.map((s) => ({ label: s.label, key: s.key, groups: bySlug(s.rows) }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, group, visibleOutputs, outputGroups, colorsVer]);
+
+    /* ── History (project + output views, one chronological day-grouped list) ──
+       Only when kind==='history'. Project-page visits (token 0) become project
+       cards; Output visits stay Output rows. Both adapt to the timeline style,
+       interleaved newest-first and bucketed by day. Field values for the project
+       cards come from the same source the Starred Projects cards use
+       (projectColorway + projectMarketStat). */
+    const isHistory = kind === 'history';
+    const projectViewRows = useMemo(() => {
+        if (!isHistory) return [] as { slug: string; ts: number; color: string; market: ReturnType<typeof projectMarketStat>; name: string }[];
+        return items
+            .filter((it) => it.id === PROJECT_VIEW_ID && getProject(it.slug) != null)
+            .map((it) => ({
+                slug: it.slug,
+                ts: it.ts ?? 0,
+                color: projectColorway(it.slug) ?? 'var(--stat-bg)',
+                market: projectMarketStat(it.slug),
+                name: getProject(it.slug)?.displayName ?? `@${it.slug}`,
+            }));
+    }, [items, isHistory]);
+    type HistoryRow =
+        | { type: 'output'; ts: number; slug: string; id: number; project: string; artist: string; extraPairs: { k: string; v: string }[]; fate: string }
+        | { type: 'project'; ts: number; slug: string; color: string; floor: string; lastSale: string };
+    const historySections = useMemo(() => {
+        if (!isHistory) return [] as Section<HistoryRow>[];
+        const q = query.trim().toLowerCase();
+        const outs: HistoryRow[] = outputRows.map((r) => ({
+            type: 'output', ts: r.ts, slug: r.slug, id: r.id,
+            project: r.project, artist: r.artist, extraPairs: r.extraPairs, fate: r.fate,
+        }));
+        const projs: HistoryRow[] = projectViewRows.map((r) => ({
+            type: 'project', ts: r.ts, slug: r.slug, color: r.color,
+            floor: r.market.floor, lastSale: r.market.lastSale,
+        }));
+        let all = [...outs, ...projs];
+        if (q) {
+            all = all.filter((r) =>
+                r.type === 'output'
+                    ? `${r.project} ${r.artist} #${r.id}`.toLowerCase().includes(q)
+                    : `@${r.slug}`.toLowerCase().includes(q),
+            );
+        }
+        all.sort((a, b) => b.ts - a.ts);
+        return sectionize(all, (r) => dayLabel(r.ts));
+    }, [isHistory, outputRows, projectViewRows, query]);
+
     const traitSections = useMemo(() => {
         const dim = dimFor('traits');
         if (dim === 'project') return sectionize(visibleTraits, (r) => projOf(r.slug));
@@ -601,8 +649,13 @@ export default function StarredList({
         });
     };
 
+    const historyRowCount = useMemo(
+        () => historySections.reduce((n, s) => n + s.rows.length, 0),
+        [historySections],
+    );
     const totalVisible =
-        mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visibleTx.length
+        isHistory ? historyRowCount
+        : mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visibleTx.length
         : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length + visibleOutputs.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
@@ -645,7 +698,55 @@ export default function StarredList({
 
             {/* Rows — each type renders when 'all' or its own filter is active. */}
             <div className={`starred-rows${multiActive ? ' is-multi' : ''}${timeline ? ' starred-rows--timeline' : ''}`}>
-                {showType('outputs') && (
+                {isHistory && (
+                    <>
+                        {historySections.map((sec) => (
+                            <Fragment key={sec.key}>
+                                {sec.label != null && <div className="starred-group-header history-day-header">{sec.label}</div>}
+                                {sec.rows.map((r) =>
+                                    r.type === 'project' ? (
+                                        <StarredProjectHistoryRow
+                                            key={`p:${r.slug}:${r.ts}`}
+                                            slug={r.slug}
+                                            color={r.color}
+                                            floor={r.floor}
+                                            lastSale={r.lastSale}
+                                            multiActive={multiActive}
+                                            selected={selected.has(`p:${r.slug}`)}
+                                            onToggleSel={() => toggleSel(`p:${r.slug}`)}
+                                            onOpen={() => router.push('/art/' + r.slug)}
+                                            onUnstar={(e) => handleUnstar(e, r.slug, PROJECT_VIEW_ID)}
+                                            grailPinned={grailKeys.has(grailKey({ kind: 'project', slug: r.slug }))}
+                                            onGrail={() => handleGrail({ kind: 'project', slug: r.slug })}
+                                        />
+                                    ) : (
+                                        <ProjectProvider key={`o:${r.slug}:${r.id}`} slug={r.slug}>
+                                            <StarredOutputRow
+                                                slug={r.slug}
+                                                id={r.id}
+                                                timeline
+                                                project={r.project}
+                                                artist={r.artist}
+                                                extraPairs={r.extraPairs}
+                                                fate={r.fate}
+                                                wished={wishKeys.has(`${r.slug}:${r.id}`)}
+                                                multiActive={multiActive}
+                                                selected={selected.has(`${r.slug}:${r.id}`)}
+                                                onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
+                                                onOpen={() => open('output', r.id, r.slug)}
+                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
+                                                grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
+                                                onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
+                                            />
+                                        </ProjectProvider>
+                                    ),
+                                )}
+                            </Fragment>
+                        ))}
+                    </>
+                )}
+                {showType('outputs') && !isHistory && (
                     <>
                         {typeHdr && visibleOutputs.length > 0 && <div className="starred-group-header">Outputs</div>}
                         {outputSections.map((sec) => (
@@ -1160,6 +1261,79 @@ function StarredOutputRow({
             <div className="feed-line" />
             <div className="f-icon-wrap" aria-hidden="true">⬚&#xFE0E;</div>
             <div className="f-content history-feed-content">{row}</div>
+        </div>
+    );
+}
+
+/* One PROJECT visit on the History timeline — the Starred Projects card (the
+   projects icon ⬚ in the project's colorway, @slug, floor/last, Project + sprite)
+   adapted to the History style: a glyph node on the rail, dashed line to the
+   next, and a trimmed card (no Offer CTA — History only carries the remove ✕).
+   Tapping the row opens the project page. */
+function StarredProjectHistoryRow({
+    slug,
+    color,
+    floor,
+    lastSale,
+    multiActive,
+    selected,
+    onToggleSel,
+    onOpen,
+    onUnstar,
+    grailPinned,
+    onGrail,
+}: {
+    slug: string;
+    color: string;
+    floor: string;
+    lastSale: string;
+    multiActive: boolean;
+    selected: boolean;
+    onToggleSel: () => void;
+    onOpen: () => void;
+    onUnstar: (e: React.MouseEvent) => void;
+    grailPinned: boolean;
+    onGrail: () => void;
+}) {
+    const act = () => (multiActive ? onToggleSel() : onOpen());
+    const card = (
+        <div
+            className={`starred-row has-actions-abs is-timeline${multiActive && selected ? ' is-selected' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={act}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+        >
+            <div className="trait-row-tile artist-tile">
+                <span className="artist-row-tile-glyph" style={{ color }}>⬚&#xFE0E;</span>
+            </div>
+            <div className="starred-row-meta">
+                <span className="starred-row-id">@{slug}</span>
+                <span className="starred-row-sub">Floor:<em>{floor}</em></span>
+                <span className="starred-row-sub">Last:<em>{lastSale}</em></span>
+                <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(slug)}</span></span>
+            </div>
+            <div className="starred-row-actions">
+                <span
+                    className="starred-row-unstar"
+                    role="button"
+                    tabIndex={0}
+                    title="Remove from History"
+                    aria-label="Remove from History"
+                    onClick={onUnstar}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUnstar(e as unknown as React.MouseEvent); } }}
+                >
+                    ✕&#xFE0E;
+                </span>
+            </div>
+            <GrailDot pinned={grailPinned} onToggle={onGrail} />
+        </div>
+    );
+    return (
+        <div className="feed-row history-feed-row">
+            <div className="feed-line" />
+            <div className="f-icon-wrap" aria-hidden="true" style={{ color }}>⬚&#xFE0E;</div>
+            <div className="f-content history-feed-content">{card}</div>
         </div>
     );
 }

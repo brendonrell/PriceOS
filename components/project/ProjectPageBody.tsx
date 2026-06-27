@@ -111,7 +111,9 @@ import { forceRenderKeys } from '../../lib/virtualization/canvasVirtualizer';
 import {
     getRecentIdsForProject,
     subscribeBreadcrumbs,
+    isRecordingEnabled,
 } from '../../lib/pins/breadcrumbStore';
+import { recordProjectView } from '../../lib/output/views';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -213,6 +215,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        and on every project-to-project navigation, but NOT on in-project sort
        taps (those depend on other state). */
     useEffect(() => { resetToDefault(); }, [project.slug, resetToDefault]);
+
+    /* Record a PROJECT-PAGE view into History (the views pillar, token 0) on
+       every project open, gated by the same History recording toggle as Output
+       views. Private; no-ops when signed out or recording is off. */
+    useEffect(() => {
+        if (isRecordingEnabled()) recordProjectView(project.slug);
+    }, [project.slug]);
     /* Collapsible grouping headers — tap one to fold its pieces away, tap again
        to reopen. Reset when the grouping dimension changes (keys are labels). */
     const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => new Set());

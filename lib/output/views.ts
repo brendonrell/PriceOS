@@ -16,6 +16,16 @@
 
 export interface HistoryEntry { slug: string; id: number; ts: number; }
 
+/** Sentinel token id for a PROJECT-PAGE view (no specific Output). A History
+ *  entry with this id is a project visit, rendered as a project card; any id > 0
+ *  is an Output visit. (Brendon, 2026-06-27.) */
+export const PROJECT_VIEW_ID = 0;
+
+/** True when a History entry is a project-page visit (vs an Output visit). */
+export function isProjectView(e: { id: number }): boolean {
+    return e.id === PROJECT_VIEW_ID;
+}
+
 export function recordOutputView(slug: string, id: number): void {
     try {
         void fetch('/api/output-views', {
@@ -27,6 +37,13 @@ export function recordOutputView(slug: string, id: number): void {
     } catch {
         /* ignore */
     }
+}
+
+/** Record a PROJECT-PAGE view — same pillar table, token id 0 (the project
+ *  sentinel). Fire-and-forget; the server attributes it to the signed-in @name
+ *  and no-ops when signed out. Gate the call on the History recording toggle. */
+export function recordProjectView(slug: string): void {
+    recordOutputView(slug, PROJECT_VIEW_ID);
 }
 
 export async function fetchMyHistory(): Promise<HistoryEntry[]> {
