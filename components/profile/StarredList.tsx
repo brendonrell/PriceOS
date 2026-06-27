@@ -1029,7 +1029,7 @@ export default function StarredList({
                                         onClick={(e) => { e.stopPropagation(); showToast('Project Offer: COMING SOON'); }}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Project Offer: COMING SOON'); } }}
                                     >
-                                        <span className="trait-offer-glyph">✦︎</span> Project Offer
+                                        <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
                                     </span>
                                     <span
                                         className="starred-row-unstar"
@@ -1443,7 +1443,7 @@ function StarredProjectHistoryRow({
                     onClick={(e) => { e.stopPropagation(); onOffer(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOffer(); } }}
                 >
-                    <span className="trait-offer-glyph">✦︎</span> Project Offer
+                    <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
                 </span>
                 <span
                     className="starred-row-unstar"

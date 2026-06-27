@@ -9439,10 +9439,8 @@ body.colorway-dark .ghost-feed-bar {
 /* Project Offer CTA — two rows tall: the label wraps to two centred lines so the
    button stands as tall as two meta rows (Brendon 2026-06-27). */
 .starred-row-cta.project-offer-cta {
-    white-space: normal;
-    text-align: center;
+    text-align: right;
     line-height: 1.2;
-    width: 5.5em;
     padding-top: 6px;
     padding-bottom: 6px;
 }
