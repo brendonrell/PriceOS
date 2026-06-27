@@ -8947,8 +8947,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    tape is unbroken down the column (Brendon, 2026-06-24). */
 .history-feed-row .feed-line {
     border-left-color: var(--text-color);
-    /* The connector line reads near-solid (Brendon, 2026-06-27). */
-    opacity: 0.94;
+    /* The connector line opacity (Brendon, 2026-06-27). */
+    opacity: 0.8;
     /* Nudge the connector down to sit between the nodes (Brendon, 2026-06-24). */
     top: 43px;
     bottom: -5px;
