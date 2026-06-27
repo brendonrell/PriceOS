@@ -732,10 +732,13 @@ body.anon-mode .ascii-pfp-badge { display: none !important; }
    rules immediately above. */
 body.ascii-id-mode .ascii-sprite-wrap { display: none !important; }
 body.ascii-id-mode .ascii-pfp-badge   { display: none !important; }
-/* ASCII-ID also hides the live PriceSprite worn by the "Me" Network filter pill
-   (Brendon, 2026-06-27) — same as every other sprite surface. The pill falls
-   back to just its "Me" label. */
-body.ascii-id-mode .net-pill-sprite   { display: none !important; }
+/* ASCII-ID hides EVERY PriceSprite face site-wide (Brendon, 2026-06-27) — the
+   "no little guys" experience for people who'd rather not have the characters.
+   `.pricesprite` is the base class on every SpriteFace (held-by chips, followers,
+   profile ID rows, the Me pill); `.id-row-sprite` catches the directly-rendered
+   project/output faces. The @names and labels all stay — only the faces go. */
+body.ascii-id-mode .pricesprite,
+body.ascii-id-mode .id-row-sprite     { display: none !important; }
 
 /* Brendon-list-2 chat F item 11 — modal-pin-hint CSS was completely
    absent from the React port. Sim 3170-3188 carries the full block;

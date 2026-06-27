@@ -33,11 +33,16 @@ export default function SpriteFace({
 
     const style = color ? { color } : undefined;
 
-    if (!win) return <span className={className} style={style}>{face}</span>;
+    // Every PriceSprite face carries the `pricesprite` base class so the
+    // ASCII-ID setting can hide them ALL site-wide with one rule (Brendon,
+    // 2026-06-27 — the "no little guys" experience).
+    const cls = className ? `pricesprite ${className}` : 'pricesprite';
+
+    if (!win) return <span className={cls} style={style}>{face}</span>;
 
     const segs = splitFace(face);
     return (
-        <span className={className} style={style}>
+        <span className={cls} style={style}>
             {segs.map((s, i) =>
                 s.kind === 'text' ? (
                     <Fragment key={i}>{s.text}</Fragment>

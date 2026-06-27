@@ -878,7 +878,7 @@ export default function StarredList({
                                     <span className="starred-row-id">@{r.slug}</span>
                                     <span className="starred-row-sub">Floor:<em>{r.market.floor}</em></span>
                                     <span className="starred-row-sub">Last:<em>{r.market.lastSale}</em></span>
-                                    <span className="starred-row-sub">Project {projectSpriteFace(r.slug)}</span>
+                                    <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(r.slug)}</span></span>
                                 </div>
                                 <div className="starred-row-actions">
                                     <span
