@@ -9442,6 +9442,8 @@ body.colorway-dark .ghost-feed-bar {
 /* Star two sizes up + down 2px; note two sizes down + up 2px (Brendon). */
 .srl-flag { margin-left: 5px; font-size: 1.6em; position: relative; top: 2px; }
 .starred-row-id .meta-note-ic { font-size: 1em; position: relative; top: 0.5px; }
+/* History (output rows): note a touch larger + nudged down 1px (Brendon). */
+.starred-rows--timeline .starred-row-id .meta-note-ic { font-size: 1.08em; top: 1.5px; }
 .srl-flag-star { color: var(--text-color); }
 .starred-row-id .project-cartel,
 .starred-row-id .project-celestial {
