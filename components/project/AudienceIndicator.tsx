@@ -25,7 +25,16 @@ import { useProjectAudience, type AudienceMember } from '../../lib/hooks/useProj
 
 const VS15 = '︎';
 
-export default function AudienceIndicator({ slug }: { slug: string }) {
+export default function AudienceIndicator({
+    slug,
+    token = null,
+}: {
+    slug: string;
+    /** An Output's token id when this indicator sits on an Output page (it then
+     *  counts only that Output's viewers); null on the project page (it counts
+     *  the project's TOTAL audience — the project page plus every Output). */
+    token?: number | null;
+}) {
     const { siweAddress } = useAuth();
     const { notifs } = usePdNotifs();
     const [open, setOpen] = useState(false);
@@ -35,8 +44,9 @@ export default function AudienceIndicator({ slug }: { slug: string }) {
         () => ({
             id: siweAddress ? siweAddress.toLowerCase() : '',
             anon: notifs.anon || !siweAddress,
+            token,
         }),
-        [siweAddress, notifs.anon],
+        [siweAddress, notifs.anon, token],
     );
 
     const live = useProjectAudience(slug, self, notifs.audience);
@@ -53,11 +63,18 @@ export default function AudienceIndicator({ slug }: { slug: string }) {
     }, []);
 
     const members: AudienceMember[] = useMemo(() => {
-        const sims = Array.from({ length: simCount }, (_, i) => ({ id: `sim-${i}`, anon: false }));
+        const sims = Array.from({ length: simCount }, (_, i) => ({ id: `sim-${i}`, anon: false, token: null }));
         return [...live, ...sims];
     }, [live, simCount]);
 
-    const count = members.length;
+    // Project page (token == null) shows the project's TOTAL audience; an Output
+    // page filters the shared room down to just the viewers on THIS Output.
+    const present = useMemo(
+        () => (token == null ? members : members.filter((m) => m.token === token)),
+        [members, token],
+    );
+
+    const count = present.length;
     if (!notifs.audience) return null; // opted out via the MY PD Audience toggle
     if (count < 1) return null; // empty room / Realtime down → render nothing
 
@@ -85,7 +102,7 @@ export default function AudienceIndicator({ slug }: { slug: string }) {
                 <span className="audience-reveal" role="dialog" aria-label="Who's watching">
                     <span className="audience-reveal-head">{count} here now</span>
                     <span className="audience-glyphs">
-                        {members.map((m) => (
+                        {present.map((m) => (
                             <span
                                 key={m.id}
                                 className={`audience-glyph${m.anon ? ' anon' : ''}`}

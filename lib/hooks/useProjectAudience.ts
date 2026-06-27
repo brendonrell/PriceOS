@@ -26,6 +26,10 @@ export interface AudienceMember {
     id: string;
     /** Viewer is in Anon mode (or signed out) → render as ◌, never a Sigil. */
     anon: boolean;
+    /** Which page within the project this viewer is on: an Output's token id, or
+     *  null for the project page. The channel is the project's TOTAL audience;
+     *  this lets an Output page filter the set down to just its own viewers. */
+    token: number | null;
 }
 
 export interface AudienceSelf {
@@ -33,6 +37,9 @@ export interface AudienceSelf {
      *  the hook mints a random per-visit id so guests still count once. */
     id: string;
     anon: boolean;
+    /** This viewer's current page: an Output token id, or null for the project
+     *  page. Broadcast so each Output can count just its own gaze. */
+    token: number | null;
 }
 
 /** Join the project's presence channel, track self, return the live member set
@@ -65,18 +72,23 @@ export function useProjectAudience(
 
             const sync = () => {
                 if (!channel || cancelled) return;
-                const state = channel.presenceState<{ anon?: boolean }>();
-                const list: AudienceMember[] = Object.keys(state).map((id) => {
-                    const meta = state[id]?.[0];
-                    return { id, anon: !!meta?.anon };
-                });
+                const state = channel.presenceState<{ anon?: boolean; token?: number | null }>();
+                // Flatten EVERY presence entry (a viewer open in two tabs is two
+                // gazes) so per-Output token filtering and the project total are
+                // both accurate. Composite id keeps React keys unique.
+                const list: AudienceMember[] = [];
+                for (const id of Object.keys(state)) {
+                    (state[id] ?? []).forEach((meta, i) => {
+                        list.push({ id: `${id}#${i}`, anon: !!meta?.anon, token: meta?.token ?? null });
+                    });
+                }
                 setMembers(list);
             };
 
             channel.on('presence', { event: 'sync' }, sync);
             channel.subscribe((status) => {
                 if (status === 'SUBSCRIBED' && channel) {
-                    void channel.track({ anon: self.anon });
+                    void channel.track({ anon: self.anon, token: self.token });
                 }
             });
         } catch {
@@ -95,7 +107,7 @@ export function useProjectAudience(
                 }
             }
         };
-    }, [slug, self.id, self.anon, enabled]);
+    }, [slug, self.id, self.anon, self.token, enabled]);
 
     return members;
 }

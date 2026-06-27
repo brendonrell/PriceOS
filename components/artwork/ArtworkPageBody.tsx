@@ -34,6 +34,7 @@ import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
 import Hero from '../hero/Hero';
 import TraitsUI from '../project/TraitsUI';
+import AudienceIndicator from '../project/AudienceIndicator';
 import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
 import OutputTitleStar from './OutputTitleStar';
@@ -579,6 +580,11 @@ export default function ArtworkPageBody({
                                 {market?.followers ?? 0} {(market?.followers ?? 0) === 1 ? 'FOLLOWER' : 'FOLLOWERS'}
                             </span>
                         </span>
+                        {/* The Audience — joins the parent project's shared presence
+                            channel (keyed by project slug) so the project totals
+                            everyone, but counts only THIS output's own viewers here
+                            (token = this output's number). */}
+                        <AudienceIndicator slug={slug} token={numberPart} />
                     </div>
                 </div>
 
