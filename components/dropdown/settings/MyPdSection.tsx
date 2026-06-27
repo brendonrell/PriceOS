@@ -597,7 +597,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             toggle('priceLogo');
                             showToast(`Logo: ${next ? '$PRICE' : 'Standard'}`);
                         }}
-                        icon={'‰\uFE0E'}
+                        icon={'‰'}
                         iconStyle={{
                             /* Inter is REQUIRED here -- it's the exact per-mille
                                of the Price logo (Brendon; the only Inter use on
@@ -696,7 +696,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             showToast(next ? '⟁\uFE0E You + Your Mutuals = The Cabal ⟁\uFE0E' : 'Cartel: OFF');
                         }}
                         icon={'⟁\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px' }}
+                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px', position: 'relative', top: '1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle

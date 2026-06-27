@@ -47,8 +47,8 @@ export const SPELLS: SpellEntry[] = [
     /* NPC — icon-less by design (Brendon, 2026-06-20): no glyph, just the
        label. Our "icon-less" pill. */
     { id: 'npc',         flag: 'spell_npc',         name: 'NPC' },
-    { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '▯▯▯\uFE0E' },
-    { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: 'ᗝ\uFE0E' },
+    { id: 'tarot',       flag: 'spell_tarot',       name: 'Tarot Spread',      icon: '▯▯▯\uFE0E', iconStyle: { top: '-2px' } },
+    { id: 'priceghost',  flag: 'spell_priceghost',  name: 'Price Ghost',       icon: 'ᗝ\uFE0E', iconStyle: { top: '-2px' } },
     /* Solar Flare (id 'cme') retired 2026-06-14 — its inactive Spell Book slot
        was reassigned to The Watch (a hardcoded pill in SpellBookSection, like
        Stargazing / Echo). The `spell_cme` pdNotifs flag is intentionally KEPT
@@ -58,5 +58,5 @@ export const SPELLS: SpellEntry[] = [
     { id: 'gossip',      flag: 'spell_gossip',      name: 'Gossip Protocol',   icon: '⑃\uFE0E' },
     { id: 'aura',        flag: 'spell_aura',        name: 'Aura',              icon: '⦿\uFE0E' },
     { id: 'arbitrage',   flag: 'spell_arbitrage',   name: 'Arbitrage Map',     icon: '⇄\uFE0E' },
-    { id: 'hammer',      flag: 'spell_hammer',      name: 'The Hammer',        icon: '⟙\uFE0E', sharp: true, iconStyle: { fontSize: '14px' } },
+    { id: 'hammer',      flag: 'spell_hammer',      name: 'The Hammer',        icon: '⟙\uFE0E', sharp: true, iconStyle: { fontSize: '14px', top: '2px' } },
 ];
