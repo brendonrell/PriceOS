@@ -9022,13 +9022,16 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .starred-row.is-selected::after {
     /* Selection ring sits just OUTSIDE the hover-highlight square — same
        rectangle as the hover fill, with the line drawn outward via box-shadow
-       so it wraps the hover square exactly (Brendon, 2026-06-22). */
+       so it wraps the hover square exactly (Brendon, 2026-06-22). Hugs the
+       content tighter than the hover fill, at a clean 2px (Brendon 2026-06-27). */
     background: transparent;
     box-shadow: 0 0 0 2px var(--accent);
+    left: -4px;
+    right: -4px;
 }
-/* Desktop: the +More selection ring runs half as thick (Brendon, 2026-06-22). */
+/* 2px on desktop too (Brendon 2026-06-27 — was 1px). */
 @media (min-width: 601px) {
-    .starred-row.is-selected::after { box-shadow: 0 0 0 1px var(--accent); }
+    .starred-row.is-selected::after { box-shadow: 0 0 0 2px var(--accent); }
 }
 /* History timeline selection ring (Brendon, 2026-06-27): hug the content tighter
    left/right, drop further below it (top buffer stays), and a clean 2px line. */
