@@ -5218,7 +5218,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* New to PD now wears the REAL per-mille logo mark (SVG, glyph-only) — sized in
    em so it tracks the pill text, sitting on the baseline like the old glyph. */
 .pill-l3 svg.net-pill-mille-svg {
-    height: 0.71em;
+    height: 0.95em;
     width: auto;
     vertical-align: -0.16em;
 }
