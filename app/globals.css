@@ -9424,11 +9424,12 @@ body.colorway-dark .ghost-feed-bar {
 .starred-row-id .meta-note-ic {
     display: inline-block;
     text-decoration: none;
-    font-size: 1.3em;
     line-height: 0;
     vertical-align: baseline;
 }
-.srl-flag { margin-left: 5px; }
+/* Star two sizes up, note two sizes down off the shared 1.3em (Brendon). */
+.srl-flag { margin-left: 5px; font-size: 1.6em; }
+.starred-row-id .meta-note-ic { font-size: 1em; }
 .srl-flag-star { color: var(--text-color); }
 .starred-row-id .project-cartel,
 .starred-row-id .project-celestial {
