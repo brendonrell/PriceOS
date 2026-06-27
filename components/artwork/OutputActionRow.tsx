@@ -35,8 +35,31 @@ export default function OutputActionRow({
     const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(() => getWishlistKeys());
     useEffect(() => { setWishlistKeys(getWishlistKeys()); return subscribeWishlist(setWishlistKeys); }, []);
 
+    /* Does this Output already have a saved note? Same store + signal the gallery
+       card reads, so the action-row button lights up when a note exists. */
+    const [noteText, setNoteText] = useState('');
+    useEffect(() => {
+        const read = () => {
+            try {
+                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('pd_token_notes') : null;
+                const notes = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+                const v = notes[String(id)];
+                setNoteText(typeof v === 'string' ? v : '');
+            } catch { setNoteText(''); }
+        };
+        read();
+        window.addEventListener('pd:notes-changed', read);
+        window.addEventListener('storage', read);
+        return () => {
+            window.removeEventListener('pd:notes-changed', read);
+            window.removeEventListener('storage', read);
+        };
+    }, [id]);
+
     const starred = starredKeys.has(`${slug}:${id}`);
     const wishlisted = wishlistKeys.has(`${slug}:${id}`);
+    const pinned = pinnedSet.some((p) => p.kind === 'output' && p.slug === slug && p.id === id);
+    const hasNote = noteText.trim().length > 0;
 
     const stop = (e: React.MouseEvent) => e.stopPropagation();
 
@@ -93,9 +116,9 @@ export default function OutputActionRow({
             <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} extra="output-act-star" />
             <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
             <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
-            <Btn glyph={'⊟︎'} title="Add Note" extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
+            <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
             <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
-            <Btn glyph={'⟟︎'} title="Grail Pin" extra="output-act-grail" onClick={onGrail} />
+            <Btn glyph={'⟟︎'} title="Grail Pin" active={pinned} extra="output-act-grail" onClick={onGrail} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
             <div

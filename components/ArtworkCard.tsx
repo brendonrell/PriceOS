@@ -904,7 +904,7 @@ function ArtworkCard({
                                 {'\u274D\uFE0E'}
                             </span>
                             <span
-                                className="hi-icon hi-grail"
+                                className={'hi-icon hi-grail' + (isPinned ? ' active-star' : '')}
                                 title="Grail Pin"
                                 onClick={handleGrailClick}
                             >

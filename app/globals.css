@@ -6567,11 +6567,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
-.af-ic--airdrop { font-size: 17px; }                      /* ⍜ airdrop — three steps down */
+.af-ic--airdrop { font-size: 17px; position: relative; top: 3px; }  /* ⍜ airdrop — three steps down, nudged down 3px */
 .af-ic--hash { font-size: 19px; }                         /* # one step down from base */
-.af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
+.af-ic--dagger { font-size: 16px; position: relative; top: 3px; }   /* † first blood — settle it, nudged down 3px */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
-.af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */
+.af-ic--mille { font-family: var(--font-inter), Inter, sans-serif; font-size: 15px; } /* ‰ matches the logo */
 /* ⟢⟢ Graduated is MEANT to stand out — render it bigger and let it spill out of
    the icon box (overflow visible); box stays 14px so columns stay aligned, and
    the date's left margin gives the spill room. (Brendon, 2026-06-15) */
@@ -10259,6 +10259,14 @@ body.colorway-dark .ghost-feed-bar {
 /* Share is a text button sitting in the row of square icon buttons — same height
    + border (.pill-colorway), but auto-width with a label. */
 .output-action-row .output-share-btn {
+    /* Match the glyph squares EXACTLY: they're content-box (28px + 1px border each
+       side = 30px tall); a <button> defaults to border-box, so it came out ~2px
+       short and rode high. Force the same box model + flat line-height so the label
+       centres dead-on with the icons (Brendon, 2026-06-27). */
+    box-sizing: content-box;
+    -webkit-appearance: none;
+    appearance: none;
+    line-height: 1;
     width: auto;
     padding: 0 12px;
     font-family: 'Courier New', Courier, monospace;
@@ -10287,7 +10295,7 @@ body.colorway-dark .ghost-feed-bar {
 /* The ✺ PD-Artist badge on the "added as PD Artist" feed row — nudged down to
    sit on the text baseline. Scoped under .f-content to outrank
    `.artist-tag.is-sm { top: 1px }` (Brendon, 2026-06-27). */
-.f-content .output-artist-badge { position: relative; top: 3px; }
+.f-content .output-artist-badge { position: relative; top: 4px; }
 
 /* Output timeline content reads like the tx rows — lowercase verbs, with names
    in their TRUE case: project names proper, @artists as @names, $PRICE caps.
@@ -10295,8 +10303,9 @@ body.colorway-dark .ghost-feed-bar {
 .output-timeline-feed .f-content .upload-title { text-transform: none; }
 /* Timeline rail — dashed connectors at 90% opacity (Brendon, 2026-06-27). */
 .output-timeline-feed .feed-line { opacity: 0.9; }
-/* The ETH amount under the action name reads bold (Brendon, 2026-06-27). */
-.output-timeline-feed .af-type .af-price { font-weight: 700; }
+/* The ETH amount under the action name reads bold (Brendon, 2026-06-27).
+   Italic added as a live test that this rule is reaching the element at all. */
+.output-timeline-feed .af-type .af-price { font-weight: 700; font-style: italic; }
 
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
