@@ -6567,7 +6567,8 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
-.af-ic--airdrop { font-size: 18px; }                      /* ⍜ airdrop — two steps down */
+.af-ic--airdrop { font-size: 17px; }                      /* ⍜ airdrop — three steps down */
+.af-ic--hash { font-size: 19px; }                         /* # one step down from base */
 .af-ic--dagger { font-size: 16px; }                       /* † reads tall — settle it */
 .af-ic--oval { transform: translateY(-3px); }             /* ⬭ halo sits low — raise it */
 .af-ic--mille { font-family: var(--font-inter); font-size: 15px; } /* ‰ matches the logo */

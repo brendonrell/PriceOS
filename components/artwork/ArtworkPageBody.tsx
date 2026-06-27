@@ -815,7 +815,9 @@ export default function ArtworkPageBody({
                         ) : feedItems.map((row) => (
                             <div className="feed-row" key={row.key}>
                                 <div className="feed-line" />
-                                <div className={`f-icon-wrap af-ic${row.cls ? ` ${row.cls}` : ''}`}>{row.glyph}&#xFE0E;</div>
+                                {/* The ‰ logo mark must stay in Inter; the text-presentation
+                                    selector forces an iOS fallback font, so omit it there. */}
+                                <div className={`f-icon-wrap af-ic${row.cls ? ` ${row.cls}` : ''}`}>{row.glyph}{row.cls === 'af-ic--mille' ? '' : '︎'}</div>
                                 <div className="f-time">
                                     <span>{fmtFeedDate(new Date(row.ts).toISOString(), row.tbdDay)}</span>
                                     <span>{fmtFeedTime(new Date(row.ts).toISOString(), row.tbdDay)}</span>
