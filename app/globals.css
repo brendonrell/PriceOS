@@ -9441,6 +9441,9 @@ body.colorway-dark .ghost-feed-bar {
 .starred-list[aria-label="Starred"] .starred-row-id.is-split .srl-suffix { text-decoration: underline; }
 /* Star two sizes up + down 2px; note two sizes down + up 2px (Brendon). */
 .srl-flag { margin-left: 5px; font-size: 1.6em; position: relative; top: 2px; }
+/* The Output id row is a flexbox (gap: 3px), so trim the star's margin to land
+   the same ~5px from the name as the non-flex project card (Brendon). */
+.starred-row-id.is-split .srl-flag { margin-left: 2px; }
 .starred-row-id .meta-note-ic { font-size: 1em; position: relative; top: 0.5px; }
 /* History (output rows): note a touch larger + nudged down 1px (Brendon). */
 .starred-rows--timeline .starred-row-id .meta-note-ic { font-size: 1.08em; top: 1.5px; }
