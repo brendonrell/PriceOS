@@ -23,7 +23,7 @@ mkdirSync(outDir, { recursive: true });
 const kit = readFileSync(resolve('tools/halo/kit.js'), 'utf8');
 const engine = readFileSync(resolve(enginePath), 'utf8');
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
 const page = await browser.newPage();
 page.on('console', (m) => { if (m.type() === 'error') console.error('PAGE-ERR:', m.text()); });
 await page.setContent('<!doctype html><html><body></body></html>');
