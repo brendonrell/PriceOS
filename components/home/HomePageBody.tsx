@@ -93,7 +93,9 @@ function pickFeatured(): string[] {
 }
 
 /* Poll fallback for the live feed — Realtime push is the primary signal;
-   this floor-sweeps staleness when the websocket can't connect. */
+   this floor-sweeps staleness ONLY when the websocket can't connect. While
+   the push channel is subscribed the tick is a no-op, so a healthy open tab
+   makes zero network calls between real DB changes. */
 const FEED_POLL_MS = 30_000;
 
 type HomeTab = 'minting' | 'new' | 'shuffle';
@@ -458,6 +460,9 @@ function HomePageBodyInner({
             window.dispatchEvent(new Event('pd:project-refresh'));
         };
         let channel: RealtimeChannel | null = null;
+        // True while the Realtime push channel is connected — when it is, the
+        // poll tick below skips the network call entirely (push covers us).
+        let realtimeOk = false;
         try {
             channel = getSupabaseBrowser()
                 .channel('home-live')
@@ -471,14 +476,19 @@ function HomePageBodyInner({
                     { event: 'INSERT', schema: 'public', table: 'events' },
                     onDbChange,
                 )
-                .subscribe();
+                .subscribe((status) => {
+                    realtimeOk = status === 'SUBSCRIBED';
+                });
         } catch {
             /* anon env missing in this build — the poll below covers it */
         }
         const onRefresh = () => load();
         window.addEventListener('pd:project-refresh', onRefresh);
-        // Only poll the home feed while the tab is visible; refresh on return.
-        const poll = window.setInterval(() => { if (!document.hidden) load(); }, FEED_POLL_MS);
+        // Fallback only: poll while the tab is visible AND the push channel is
+        // down. A healthy connected tab makes no calls here between real changes.
+        const poll = window.setInterval(() => {
+            if (!document.hidden && !realtimeOk) load();
+        }, FEED_POLL_MS);
         const onVis = () => { if (!document.hidden) load(); };
         document.addEventListener('visibilitychange', onVis);
         return () => {
