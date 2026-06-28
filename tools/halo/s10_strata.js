@@ -80,12 +80,32 @@ window.ENGINE = (function () {
 
   // ── REALISTIC materials ──
   function matRock(x, x0, y0, w, h, base, r, noise) {
-    // subtle vertical lightness gradient + heavy mottle + occasional clast
+    // massive rock: gradient + heavy mottle + faint internal bedding + hairline
+    // fractures so even a thick bed never reads as a flat fill.
     const g = x.createLinearGradient(0, y0, 0, y0 + h);
-    g.addColorStop(0, K.mix(base, '#fff', 0.06)); g.addColorStop(1, K.mix(base, '#000', 0.10));
+    g.addColorStop(0, K.mix(base, '#fff', 0.07)); g.addColorStop(1, K.mix(base, '#000', 0.12));
     x.fillStyle = g; x.fillRect(x0, y0, w, h);
-    K.mottle(x, x0, y0, w, h, base, 30, r, 'overlay');
-    K.mottle(x, x0, y0, w, h, base, 90, r, 'multiply');
+    K.mottle(x, x0, y0, w, h, base, 26, r, 'overlay');
+    K.mottle(x, x0, y0, w, h, base, 80, r, 'multiply');
+    // faint internal bedding waves (cloudy fbm streaks)
+    x.save();
+    const streaks = 2 + (r() * 3 | 0);
+    for (let i = 0; i < streaks; i++) {
+      const sy = y0 + h * (0.15 + r() * 0.7);
+      const c = r() < 0.5 ? K.mix(base, '#fff', 0.14) : K.mix(base, '#000', 0.16);
+      x.strokeStyle = K.rgba(c, 0.18 + r() * 0.14); x.lineWidth = 1 + r() * 3;
+      x.beginPath();
+      for (let xx = 0; xx <= w; xx += 7) { const n = noise.fbm((x0 + xx) / 60, sy / 50, 3); x.lineTo(x0 + xx, sy + n * h * 0.18); }
+      x.stroke();
+    }
+    // hairline fractures
+    x.strokeStyle = K.rgba(K.mix(base, '#000', 0.45), 0.22); x.lineWidth = 0.7;
+    for (let i = 0; i < 2 + (r() * 3 | 0); i++) {
+      let cx = x0 + r() * w, cy = y0 + r() * h; x.beginPath(); x.moveTo(cx, cy);
+      for (let s = 0; s < 3; s++) { cx += (r() - 0.5) * w * 0.3; cy += (r() - 0.5) * h * 0.5; x.lineTo(cx, cy); }
+      x.stroke();
+    }
+    x.restore();
   }
   function matAsh(x, x0, y0, w, h, base, r) {
     // fine even powder; soft, low-contrast speckle
@@ -574,11 +594,11 @@ window.ENGINE = (function () {
       const y0 = -H * 0.05, y1 = H * 1.05;
       // dark rock dominated stack
       const bands = buildStack(y0, y1, pal, r, { allowWrong: false });
-      // force darkness: bias toward darkest cols
-      for (const b of bands) { b.base = K.mix(b.base, '#000', 0.35 + r() * 0.2); }
+      // force deep darkness so the single anomaly truly pops
+      for (const b of bands) { b.base = K.mix(b.base, '#0a0807', 0.55 + r() * 0.25); }
       paintStack(x, bands, -10, W + 20, pal, r, noise, 6);
-      // the single anomalous seam: a thin glowing/wrong band
-      const sy = H * (0.3 + r() * 0.4), sh = H * (0.03 + r() * 0.05);
+      // the single anomalous seam: a glowing/wrong band, thick enough to read
+      const sy = H * (0.32 + r() * 0.34), sh = H * (0.05 + r() * 0.06);
       const wrongMats = ['static*', 'liquid*', 'gold*', 'text*', 'halftone*'];
       const sm = K.pick(wrongMats, r);
       x.save();
@@ -589,12 +609,16 @@ window.ENGINE = (function () {
       x.closePath(); x.clip();
       paintMaterial(x, sm, -10, sy, W + 20, sh, sm === 'gold*' ? pal.accent : K.mix(pal.accent, pal.cols[2], 0.3), r, noise, pal);
       x.restore();
-      // glow halo around the seam
+      // glow halo around the seam — stronger, bleeds into the dark host rock
       x.save(); x.globalCompositeOperation = 'lighter';
-      const glowCol = sm === 'gold*' ? pal.accent : pal.accent;
-      const gg = x.createLinearGradient(0, sy - sh * 2, 0, sy + sh * 3);
-      gg.addColorStop(0, K.rgba(glowCol, 0)); gg.addColorStop(0.5, K.rgba(glowCol, 0.18)); gg.addColorStop(1, K.rgba(glowCol, 0));
-      x.fillStyle = gg; x.fillRect(0, sy - sh * 2, W, sh * 5);
+      const glowCol = sm === 'gold*' ? pal.accent : K.mix(pal.accent, '#fff', 0.15);
+      const gg = x.createLinearGradient(0, sy - sh * 3, 0, sy + sh * 4);
+      gg.addColorStop(0, K.rgba(glowCol, 0)); gg.addColorStop(0.5, K.rgba(glowCol, 0.34)); gg.addColorStop(1, K.rgba(glowCol, 0));
+      x.fillStyle = gg; x.fillRect(0, sy - sh * 3, W, sh * 7);
+      // a tight core glow right on the seam
+      const gc = x.createLinearGradient(0, sy, 0, sy + sh);
+      gc.addColorStop(0, K.rgba(glowCol, 0.0)); gc.addColorStop(0.5, K.rgba(glowCol, 0.25)); gc.addColorStop(1, K.rgba(glowCol, 0.0));
+      x.fillStyle = gc; x.fillRect(0, sy, W, sh);
       x.restore();
       // seam edge lines
       x.strokeStyle = K.rgba(pal.ink, 0.5); x.lineWidth = 1.2;

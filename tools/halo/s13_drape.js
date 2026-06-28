@@ -252,33 +252,32 @@ window.ENGINE = (function () {
       // cloth frozen mid-air / mid-wind, defying gravity — a SHEET billowing
       // sideways across the frame, its folds running roughly horizontal, lifted
       // up at one corner as if a gust froze. Wrong gravity: it hangs from nothing.
-      castShadow(W * 0.5, H * 0.95, W * 0.42, H * 0.05, 0.18); // faint — airborne
+      // A volume of cloth billowing through the air — a thick sheet caught
+      // mid-gust, its folds swelling and overlapping into a mass, the downwind
+      // edge lifted UP (wrong gravity: it hangs from nothing).
       const flow = lightSide;                 // wind blows toward the lit side
-      const cy = H * (0.46 + (r() - 0.5) * 0.16);
-      const billow = H * (0.16 + r() * 0.08); // vertical swell amplitude
-      const n = 9 + (r() * 4 | 0);
+      const cy = H * (0.50 + (r() - 0.5) * 0.12);
+      const billow = H * (0.20 + r() * 0.08); // vertical swell amplitude
+      const n = 6 + (r() * 3 | 0);            // fewer, FATTER folds
       const folds = [];
       for (let i = 0; i < n; i++) {
-        const t = (i + 0.5) / n;              // 0..1 across the vertical stack of folds
-        // each fold is a long horizontal ribbon arcing across the frame, with the
-        // downwind corner LIFTED upward (defying gravity)
-        const yBase = cy + (t - 0.5) * billow * 1.7;
-        const x0 = W * (-0.08);
-        const x1 = W * (1.08);
-        const y0 = yBase + Math.sin(t * 3 + 0.4) * H * 0.04;
-        const y1 = yBase - billow * (0.4 + 0.5 * t) * flow * flow - H * 0.10; // lifted up at far edge
-        const half = H * 0.05 * (0.8 + r() * 0.7);
-        const lit = (t < 0.5) ? lightSide : -lightSide; // upper folds catch, lower in shade
+        const t = (i + 0.5) / n;
+        // each fold is a fat horizontal ribbon arcing across the frame; its
+        // vertical position swells (the sheet's belly) and the far edge lifts up
+        const belly = Math.sin(t * Math.PI) * billow * 0.5; // mass bulges in the middle band
+        const yBase = cy + (t - 0.5) * billow * 1.5;
+        const x0 = W * (-0.10);
+        const x1 = W * (1.10);
+        const y0 = yBase + belly + Math.sin(t * 4 + 0.4) * H * 0.03;
+        const y1 = yBase - billow * (0.5 + 0.4 * t) - H * 0.12; // far edge lifted
+        const half = H * 0.085 * (0.9 + r() * 0.6);  // FAT
+        const lit = (t < 0.45) ? lightSide : -lightSide;
         folds.push({ tx: flow < 0 ? x1 : x0, ty: flow < 0 ? y1 : y0,
                      bx: flow < 0 ? x0 : x1, by: flow < 0 ? y0 : y1,
                      half, ph: r() * 10, lit, d: t });
       }
-      folds.sort((a, b) => a.d - b.d); // back (top) to front (bottom)
-      for (const f of folds) paintFold(f.tx, f.bx, f.ty, f.by, f.half, W * 0.05, f.ph, f.lit, 1, 0.93);
-      // a trailing wisp + edge flutter so it reads as airborne fabric, not a slab
-      x.save(); x.globalCompositeOperation = 'multiply';
-      K.softShadow(x, flow < 0 ? W * 0.12 : W * 0.88, cy + billow, W * 0.20, 0.25);
-      x.restore();
+      folds.sort((a, b) => a.d - b.d); // back (top) to front (bottom) → overlap reads as a sheet
+      for (const f of folds) paintFold(f.tx, f.bx, f.ty, f.by, f.half, W * 0.07, f.ph, f.lit, 1, 0.94);
 
     } else if (mode === 'Pooled') {
       // fabric pooling/puddling on a surface — concentric collapsing folds low

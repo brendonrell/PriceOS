@@ -48,7 +48,9 @@ window.ENGINE = (function () {
     x.save();
     x.globalCompositeOperation = polarity < 0 ? 'multiply' : 'screen';
     for (let yy = 0; yy < H; yy += step) {
-      for (let xx = 0; xx < W; xx += step) {
+      const rowOff = (r() - 0.5) * step; // stagger rows so no vertical lattice
+      for (let xx0 = -step; xx0 < W; xx0 += step) {
+        const xx = xx0 + rowOff;
         const dx = (xx - cx), dy = (yy - cy);
         const d = Math.sqrt(dx * dx + dy * dy) / rad;
         if (d > 1.35) continue;
@@ -181,13 +183,19 @@ window.ENGINE = (function () {
     g.filter = 'none';
     // chemistry mask: erase the form with fbm so it half-dissolves into stain —
     // but lightly, so a clear silver suggestion remains (this IS the subject).
+    // two-scale erase: a coarse mask removes whole regions (so part of the form
+    // vanishes entirely), a finer mask mottles what's left. The surviving piece
+    // keeps its silhouette — a hand half there, a face fading at one cheek.
     g.globalCompositeOperation = 'destination-out';
-    const step = Math.max(3, Math.floor(S / 190));
-    const ph = r() * 1000;
+    const step = Math.max(3, Math.floor(S / 200));
+    const ph = r() * 1000, ph2 = r() * 1000;
     for (let yy = 0; yy < H; yy += step) {
       for (let xx = 0; xx < W; xx += step) {
-        const n = (noise.fbm((xx + ph) / 150, (yy + ph) / 150, 5, 0.6, 2.2) + 1) / 2;
-        const erase = K.clamp(0.30 + (n - 0.5) * 1.5, 0, 1);
+        const coarse = (noise.fbm((xx + ph) / (S * 0.5), (yy + ph) / (S * 0.5), 3, 0.6, 2.2) + 1) / 2;
+        const fine = (noise.fbm((xx + ph2) / 80, (yy + ph2) / 80, 5, 0.6, 2.2) + 1) / 2;
+        // coarse: hard-cut whole regions; fine: soft mottle in the kept region
+        let erase = K.clamp((0.62 - coarse) * 3, 0, 1);       // big bites
+        erase = Math.max(erase, K.clamp(0.15 + (fine - 0.5) * 1.3, 0, 1)); // mottle
         if (erase < 0.02) continue;
         g.fillStyle = 'rgba(0,0,0,' + erase + ')';
         const j = step * 0.7;
@@ -231,7 +239,9 @@ window.ENGINE = (function () {
       const lo = pal.flat ? 0.10 : 0.22;
       x.save(); x.globalCompositeOperation = 'overlay';
       for (let yy = 0; yy < H; yy += step) {
-        for (let xx = 0; xx < W; xx += step) {
+        const rowOff = (r() - 0.5) * step;
+        for (let xx0 = -step; xx0 < W; xx0 += step) {
+          const xx = xx0 + rowOff;
           const n = noise.fbm((xx + ph) / (minWH * 0.55), (yy + ph) / (minWH * 0.55), 4, 0.55, 2.2);
           const col = n < 0 ? pal.deep : pal.paper;
           const a = Math.abs(n) * lo;

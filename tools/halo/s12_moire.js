@@ -195,11 +195,13 @@ window.ENGINE = (function () {
           if (thirdGrid) { R += cG[0] * a3; G += cG[1] * a3; B += cG[2] * a3; }
         } else {
           // subtractive printing on light ground (Tide / Ash / Bone) — inks darken
+          // Bone is intentionally whisper-subtle; the others get a touch more ink.
+          const ink = pal.name === 'Bone' ? 0.5 : 0.72;
           const i1 = (1 - g1) * beatGain, i2 = (1 - g2) * beatGain;
           const i3 = thirdGrid ? (1 - g3) * beatGain * 0.6 : 0;
-          R = gnd[0] - (gnd[0] - cA[0]) * i1 * 0.55 - (gnd[0] - cB[0]) * i2 * 0.55 - (gnd[0] - cB[0]) * i3 * 0.4;
-          G = gnd[1] - (gnd[1] - cA[1]) * i1 * 0.55 - (gnd[1] - cB[1]) * i2 * 0.55 - (gnd[1] - cB[1]) * i3 * 0.4;
-          B = gnd[2] - (gnd[2] - cA[2]) * i1 * 0.55 - (gnd[2] - cB[2]) * i2 * 0.55 - (gnd[2] - cB[2]) * i3 * 0.4;
+          R = gnd[0] - (gnd[0] - cA[0]) * i1 * ink - (gnd[0] - cB[0]) * i2 * ink - (gnd[0] - cB[0]) * i3 * 0.4;
+          G = gnd[1] - (gnd[1] - cA[1]) * i1 * ink - (gnd[1] - cB[1]) * i2 * ink - (gnd[1] - cB[1]) * i3 * 0.4;
+          B = gnd[2] - (gnd[2] - cA[2]) * i1 * ink - (gnd[2] - cB[2]) * i2 * ink - (gnd[2] - cB[2]) * i3 * 0.4;
         }
 
         // ghost tonal lift: nudge toward glow where the shape is (keeps it faint)
