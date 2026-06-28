@@ -33,22 +33,33 @@
 window.ENGINE = (function () {
   const K = window.KIT;
 
-  // Colorways — all INCANDESCENT vs AURORA. Vary the balance of fire vs cold
-  // light, aurora hue, and the temperature of the smoke, while staying in the
-  // orange-below / green-cyan-above / steel-ground family.
+  // Colorways — CINDER's territory: FIRE + AURORA on NEAR-BLACK. The fire below
+  // is molten (its temperature shifts white-orange→deep red per colorway); the
+  // aurora above takes a DIFFERENT dominant hue per colorway — green, cyan,
+  // magenta-violet, gold, rose — so the dominant accent visibly changes output
+  // to output while everything stays fiery-on-dark. The sky/ground are kept
+  // genuinely near-black (very low value) so neither the fire nor the aurora is
+  // ever drowned by a bright steel-blue field — that was the prior failure.
+  //  hot/white/deep = molten ramp · aur1/aur2 = the aurora pair for this hue.
   const PALS = [
-    { name: 'Foundry Night', ground:'#0a1422', sky:'#08131f', skyHi:'#0c2236',
-      hot:'#ff7a18', white:'#ffe7a8', deep:'#b8340a', aur1:'#38f5b0', aur2:'#3ad0ff', smoke:'#16202e' },
-    { name: 'Aurora Pour',   ground:'#081420', sky:'#06131d', skyHi:'#0a2a3a',
-      hot:'#ff8a22', white:'#fff0bc', deep:'#c23a08', aur1:'#46ffc0', aur2:'#54e0ff', smoke:'#122230' },
-    { name: 'Slag Green',    ground:'#091a1c', sky:'#06181c', skyHi:'#0a3030',
-      hot:'#ff6a10', white:'#ffe2a0', deep:'#a82e08', aur1:'#5cffae', aur2:'#34f0d6', smoke:'#0e2426' },
-    { name: 'Cold Crucible', ground:'#0a1426', sky:'#070f22', skyHi:'#0e2046',
-      hot:'#ff7e1c', white:'#ffe9b2', deep:'#b03208', aur1:'#3ae0ff', aur2:'#6aa8ff', smoke:'#141e34' },
-    { name: 'Ember Storm',   ground:'#0c1018', sky:'#0a0e16', skyHi:'#141a28',
-      hot:'#ff8a14', white:'#ffeaa0', deep:'#cc3a06', aur1:'#48f0a0', aur2:'#9ad84a', smoke:'#18202c' },
-    { name: 'Magma Veil',    ground:'#120e16', sky:'#0e0a14', skyHi:'#221432',
-      hot:'#ff6c1a', white:'#ffd89a', deep:'#b62a14', aur1:'#56f0c0', aur2:'#c065ff', smoke:'#1c1420' },
+    // GREEN aurora · white-hot molten
+    { name: 'Verdant Forge', ground:'#070806', sky:'#040504', skyHi:'#070d09',
+      hot:'#ff7a18', white:'#fff0c0', deep:'#c23a08', aur1:'#34f59a', aur2:'#7affc0', smoke:'#0a120c' },
+    // CYAN aurora · orange molten
+    { name: 'Glacier Pour',  ground:'#05070a', sky:'#03060a', skyHi:'#06121a',
+      hot:'#ff8420', white:'#ffeaae', deep:'#b8330a', aur1:'#2ee6ff', aur2:'#6ad0ff', smoke:'#081420' },
+    // MAGENTA-VIOLET aurora · deep-red molten (the hot, dangerous one)
+    { name: 'Violet Slag',   ground:'#08050a', sky:'#060309', skyHi:'#10081c',
+      hot:'#ff5e12', white:'#ffd49a', deep:'#a01a0a', aur1:'#c656ff', aur2:'#ff5ac8', smoke:'#120a1a' },
+    // GOLD aurora · molten yellow-white (everything incandescent)
+    { name: 'Aurum Crucible',ground:'#0a0805', sky:'#070503', skyHi:'#120c05',
+      hot:'#ffa024', white:'#fff4c4', deep:'#cc5208', aur1:'#ffcf4a', aur2:'#ffe88a', smoke:'#140e07' },
+    // ROSE aurora · ember-red molten
+    { name: 'Rose Ember',    ground:'#0a0507', sky:'#070305', skyHi:'#16070c',
+      hot:'#ff6e22', white:'#ffdcae', deep:'#b8200e', aur1:'#ff6a9a', aur2:'#ff9ec0', smoke:'#150a0e' },
+    // TEAL-GREEN aurora · hottest white-orange molten
+    { name: 'Slag Green',    ground:'#050807', sky:'#030605', skyHi:'#06120e',
+      hot:'#ff8c12', white:'#fff2b6', deep:'#cc3a06', aur1:'#30f0c8', aur2:'#5cffae', smoke:'#08130f' },
   ];
 
   // Each layout has a default canvas shape that serves the composition.
@@ -83,7 +94,10 @@ window.ENGINE = (function () {
       pours: K.rint(r, 2, 4),
       cranes: K.rint(r, 2, 4),
       emberDensity: K.pick(['Storm', 'Blizzard', 'Inferno'], r),
-      auroraHue: r(),                   // lean aur1<->aur2
+      auroraHue: r(),                   // lean aur1<->aur2 within this colorway
+      // molten temperature shift per output: <0.5 cooler/redder (toward deep),
+      // >0.5 hotter/whiter (toward white). Keeps the fire varying seed-to-seed.
+      moltenTemp: r(),
       smokeAmt: 0.7 + r() * 0.6,
     };
   }
@@ -144,9 +158,16 @@ window.ENGINE = (function () {
       const col = i % 2 === 0 ? P.aur1 : aur;
       auroraCurtain(x, cx, W * (0.10 + r() * 0.13), col, noise,
         topY + (botY - topY) * (r() * 0.06), botY * (0.8 + r() * 0.2),
-        (0.14 + r() * 0.14) * strength, seed + i);
+        (0.16 + r() * 0.16) * strength, seed + i);
     }
-    K.bloom(x, W * (0.3 + r() * 0.4), (topY + botY) * 0.5, W * 0.7, aur, 0.06 * strength);
+    // Localized aurora glow pools rather than a flat full-frame wash — keeps the
+    // field near-black between curtains so the aurora reads as light, not haze.
+    const nG = 2;
+    for (let i = 0; i < nG; i++) {
+      const gx = W * (0.2 + 0.6 * (i + r() * 0.5) / nG);
+      const gy = topY + (botY - topY) * (0.3 + r() * 0.4);
+      K.bloom(x, gx, gy, W * (0.32 + r() * 0.14), i % 2 ? P.aur1 : aur, 0.07 * strength);
+    }
   }
 
   // Far hazy smokestacks dissolving into smoke near a baseline. Desaturated /
@@ -474,8 +495,8 @@ window.ENGINE = (function () {
         const n = (noise.fbm(xx / 130, yy / 90 - seed, 5, 0.55, 2.1) + 1) / 2;
         const dense = Math.pow(n, 2.2) * amt;
         if (dense < 0.08) continue;
-        const col = rise > 0.55 ? K.mix(P.smoke, aur, (rise - 0.55) * 0.5) : K.mix(P.smoke, P.deep, (0.55 - rise) * 0.4);
-        x.fillStyle = K.rgba(col, dense * 0.15);
+        const col = rise > 0.55 ? K.mix(P.smoke, aur, (rise - 0.55) * 0.34) : K.mix(P.smoke, P.deep, (0.55 - rise) * 0.4);
+        x.fillStyle = K.rgba(col, dense * 0.11);
         x.fillRect(xx, yy, step + 1, step + 1);
       }
     }
@@ -588,7 +609,7 @@ window.ENGINE = (function () {
     // a thin band of rising embers near the bottom (from the foundry below)
     emberStorm(x, P, W, H, aur, noise, r, H * 0.20, H, emberN(p), [W * p.focusX, W * (1 - p.focusX)], 0.30);
     smokeBand(x, P, W, H, aur, noise, r, seed, H * 0.05, H * 0.92, p.smokeAmt);
-    K.hazeSheet(x, W, H, noise, aur, 0.12, 220, 'screen');
+    K.hazeSheet(x, W, H, noise, aur, 0.075, 220, 'screen');
   }
 
   // (4) EMBER TEMPEST — ember storm dominant; the foundry is a thin glowing
@@ -611,7 +632,7 @@ window.ENGINE = (function () {
     emberStorm(x, P, W, H, aur, noise, r, H * 0.02, poolY, emberN(p) + 3500, pours.map(po => po.px), 0.55);
     if (p.anom === 'Frozen Constellation') frozenConstellation(x, P, W, H, aur, r, H * 0.06, H * 0.40);
     smokeBand(x, P, W, H, aur, noise, r, seed, H * 0.05, horizon, p.smokeAmt * 1.1);
-    K.hazeSheet(x, W, horizon, noise, aur, 0.10, 200, 'screen');
+    K.hazeSheet(x, W, horizon, noise, aur, 0.07, 200, 'screen');
     K.bloom(x, W * p.focusX, poolY, W * 0.6, P.hot, 0.10);
   }
 
@@ -641,7 +662,7 @@ window.ENGINE = (function () {
     // a faint thread of embers drifting up — sparse, doesn't crowd the sky
     emberStorm(x, P, W, H, aur, noise, r, H * 0.30, poolY, Math.floor(emberN(p) * 0.35), pxs, 0.40);
     smokeBand(x, P, W, H, aur, noise, r, seed, H * 0.35, horizon, p.smokeAmt * 0.7);
-    K.hazeSheet(x, W, H, noise, aur, 0.14, 240, 'screen');
+    K.hazeSheet(x, W, H, noise, aur, 0.085, 240, 'screen');
     K.bloom(x, W * p.focusX, horizon, W * 0.5, P.hot, 0.05);
   }
 
@@ -690,7 +711,7 @@ window.ENGINE = (function () {
     if (p.anom === 'Frozen Constellation') frozenConstellation(x, P, W, H, aur, r, H * 0.05, H * 0.32);
     // thick fog rolling across the recession
     smokeBand(x, P, W, H, aur, noise, r, seed, horizon - H * 0.05, H * 0.92, p.smokeAmt * 1.2);
-    K.hazeSheet(x, W, H, noise, aur, 0.12, 220, 'screen');
+    K.hazeSheet(x, W, H, noise, aur, 0.075, 220, 'screen');
     K.bloom(x, cru[cru.length - 1].cx, cru[cru.length - 1].cy, W * 0.4, P.hot, 0.10);
   }
 
@@ -957,7 +978,7 @@ window.ENGINE = (function () {
   }
 
   function finishHaze(x, P, W, H, aur, noise, horizon) {
-    K.hazeSheet(x, W, horizon, noise, aur, 0.10, 200, 'screen');
+    K.hazeSheet(x, W, horizon, noise, aur, 0.06, 200, 'screen');
     x.save(); x.globalCompositeOperation = 'screen';
     const hg = x.createLinearGradient(0, horizon - H * 0.12, 0, horizon + H * 0.06);
     hg.addColorStop(0, K.rgba(P.hot, 0));
@@ -969,8 +990,28 @@ window.ENGINE = (function () {
 
   // ════════════════════════════════════════════════════════════════════════
 
+  // Shift a colorway's molten ramp by temperature t (0=coolest/reddest,
+  // 1=hottest/whitest). Returns a per-output palette; aurora pair untouched so
+  // the aurora hue stays the colorway's identity.
+  function temperedPalette(P, t) {
+    const k = (t - 0.5) * 2; // -1..1
+    const Q = Object.assign({}, P);
+    if (k < 0) {
+      // cooler/redder: pull hot toward deep, white toward hot
+      Q.hot   = K.mix(P.hot,   P.deep, -k * 0.55);
+      Q.white = K.mix(P.white, P.hot,  -k * 0.45);
+      Q.deep  = K.mix(P.deep,  '#5a0c04', -k * 0.4);
+    } else {
+      // hotter/whiter: pull hot toward white, white toward pure white
+      Q.hot   = K.mix(P.hot,   P.white,   k * 0.40);
+      Q.white = K.mix(P.white, '#fffcea', k * 0.55);
+      Q.deep  = K.mix(P.deep,  P.hot,     k * 0.30);
+    }
+    return Q;
+  }
+
   function draw(cv, seed) {
-    const r = K.rng(seed), p = params(r, seed), P = p.pal, W = p.W, H = p.H;
+    const r = K.rng(seed), p = params(r, seed), P = temperedPalette(p.pal, p.moltenTemp), W = p.W, H = p.H;
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d');
     const noise = K.makeNoise(seed);

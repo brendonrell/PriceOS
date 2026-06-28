@@ -18,19 +18,37 @@
 window.ENGINE = (function () {
   const K = window.KIT;
 
+  // COSMIC JEWEL territory: deep space, but the WHOLE field — planet limb,
+  // space wash, nebulae, haze — takes a different rich JEWEL hue per output.
+  // Goods (stalls / drones / threads) stay warm coral + gold so they always
+  // read as warm market lights against whatever the jewel space hue is.
+  // `tint` is the signature jewel; `space0/space1` are deep, desaturated
+  // versions of that same hue so the dominant colour clearly shifts per output.
   const PALS = [
-    { name: 'Tropical Orbit', space0: '#0a0e2a', space1: '#04030f', limb: '#ff5e5e', atmo: '#ffb070',
-      warm: '#ff5e5e', cool: '#2ee0d0', gold: '#ffe0a0', haze: '#ff8a6a' },
-    { name: 'Dawn Souk',      space0: '#1a1038', space1: '#070314', limb: '#ff7e4e', atmo: '#ffd0a0',
-      warm: '#ff7a5e', cool: '#3ee0c0', gold: '#ffe8b0', haze: '#ffa070' },
-    { name: 'Teal Tide',      space0: '#04162e', space1: '#020812', limb: '#1fb8c8', atmo: '#7ef0e0',
-      warm: '#ff6e6e', cool: '#2ee0d0', gold: '#ffe0a0', haze: '#3ed0c8' },
-    { name: 'Ember Belt',     space0: '#1c0820', space1: '#0a0208', limb: '#ff4e6e', atmo: '#ffa080',
-      warm: '#ff5e5e', cool: '#2ed0d8', gold: '#ffd890', haze: '#ff7a6a' },
-    { name: 'Goldspice',      space0: '#180e22', space1: '#06040e', limb: '#ffae4e', atmo: '#ffe0a0',
-      warm: '#ff6e5e', cool: '#3ee0c8', gold: '#ffe8b0', haze: '#ffbe7a' },
-    { name: 'Deep Lagoon',    space0: '#031826', space1: '#01060e', limb: '#2ec8c0', atmo: '#a0f0e8',
-      warm: '#ff6e6e', cool: '#4ef0d8', gold: '#ffe0a0', haze: '#2ec0c8' },
+    // teal-ocean world
+    { name: 'Ocean World', tint: '#1fd6c6', space0: '#06262e', space1: '#020c12',
+      limb: '#1fc8c0', atmo: '#9ff4e6', warm: '#ff7a5e', gold: '#ffd98a',
+      cool: '#3ce8d4', haze: '#1fc0bc' },
+    // amber-desert world
+    { name: 'Desert World', tint: '#ffae4a', space0: '#2c1a0c', space1: '#0f0804',
+      limb: '#ffac46', atmo: '#ffe0a8', warm: '#ff7e52', gold: '#ffe6a0',
+      cool: '#ffc070', haze: '#ffb868' },
+    // violet gas-giant
+    { name: 'Violet Giant', tint: '#9a6cff', space0: '#1c1140', space1: '#0a0620',
+      limb: '#a070ff', atmo: '#d4baff', warm: '#ff8a6a', gold: '#ffd9a0',
+      cool: '#b894ff', haze: '#9c78f0' },
+    // rose world
+    { name: 'Rose World', tint: '#ff5a92', space0: '#380e22', space1: '#16050e',
+      limb: '#ff4e88', atmo: '#ffc4d4', warm: '#ff8a5e', gold: '#ffdca0',
+      cool: '#ff9cc0', haze: '#ff6e96' },
+    // ice-blue world
+    { name: 'Ice World', tint: '#5aa8ff', space0: '#0a1c3a', space1: '#040a1c',
+      limb: '#5aa0ff', atmo: '#c0ddff', warm: '#ff8e5e', gold: '#ffdfa0',
+      cool: '#8cc4ff', haze: '#5a9ce8' },
+    // ember world
+    { name: 'Ember World', tint: '#ff5a4a', space0: '#2c0c10', space1: '#10040a',
+      limb: '#ff4e44', atmo: '#ffb088', warm: '#ff7a52', gold: '#ffd28a',
+      cool: '#ff8a6a', haze: '#ff6850' },
   ];
 
   const LAYOUTS = ['Low Limb', 'Steep Diagonal', 'Deep Cluster', 'Hero Stalls', 'Caravan', 'Far Below'];
@@ -74,16 +92,32 @@ window.ENGINE = (function () {
     bg.addColorStop(1, pal.space1);
     x.fillStyle = bg; x.fillRect(0, 0, W, H);
 
+    // jewel-tint nebula clouds — the signature hue saturating the whole field
+    // so the DOMINANT colour of each output is its world's jewel, not a generic
+    // dark. Tinted toward `tint`/`atmo`, lifted enough to read as colour.
     x.save(); x.globalCompositeOperation = 'screen';
-    for (let i = 0; i < 10; i++) {
-      const nx = r() * W, ny = r() * H * 0.8;
-      const nr = Math.min(W, H) * (0.18 + r() * 0.3);
-      const ncol = K.mix(pal.space0, r() < 0.5 ? pal.cool : pal.haze, 0.35 + r() * 0.3);
+    for (let i = 0; i < 13; i++) {
+      const nx = r() * W, ny = r() * H * 0.9;
+      const nr = Math.min(W, H) * (0.22 + r() * 0.36);
+      const pickC = r();
+      const ncol = pickC < 0.6
+        ? K.mix(pal.tint, pal.space0, 0.3 + r() * 0.25)
+        : K.mix(pal.atmo, pal.tint, 0.3 + r() * 0.4);
       const ng = x.createRadialGradient(nx, ny, 0, nx, ny, nr);
-      ng.addColorStop(0, K.rgba(ncol, 0.05 + r() * 0.05));
+      ng.addColorStop(0, K.rgba(ncol, 0.07 + r() * 0.08));
       ng.addColorStop(1, K.rgba(ncol, 0));
       x.fillStyle = ng; x.fillRect(nx - nr, ny - nr, nr * 2, nr * 2);
     }
+    x.restore();
+
+    // a broad directional jewel veil so even empty corners carry the hue
+    x.save(); x.globalCompositeOperation = 'screen';
+    const vg = x.createRadialGradient(W * (0.3 + r() * 0.4), H * (0.2 + r() * 0.3), 0,
+      W * 0.5, H * 0.5, Math.max(W, H) * 0.85);
+    vg.addColorStop(0, K.rgba(pal.tint, 0.10));
+    vg.addColorStop(0.55, K.rgba(K.mix(pal.tint, pal.space0, 0.5), 0.06));
+    vg.addColorStop(1, K.rgba(pal.tint, 0));
+    x.fillStyle = vg; x.fillRect(0, 0, W, H);
     x.restore();
   }
 
@@ -453,16 +487,18 @@ window.ENGINE = (function () {
       x.fillStyle = sg; x.fillRect(0, 0, W, H);
       x.restore();
 
-      // 2-3 huge heroes, overlapping, near the lower-centre
+      // 2-3 heroes at a COMFORTABLE mid-distance (camera pulled back) — a clear
+      // focal cluster, never an object looming huge against the lens. Cap the
+      // foreground size so the biggest stall sits mid-frame, not jammed up front.
       const nH = 2 + Math.floor(r() * 2);
       const heroes = [];
       for (let i = 0; i < nH; i++) {
         heroes.push({
-          px: W * (0.3 + (i / Math.max(1, nH - 1)) * 0.4 + (r() - 0.5) * 0.12),
-          py: H * (0.5 + r() * 0.28),
-          size: Math.min(W, H) * (0.26 + r() * 0.12),
+          px: W * (0.32 + (i / Math.max(1, nH - 1)) * 0.36 + (r() - 0.5) * 0.1),
+          py: H * (0.46 + r() * 0.22),
+          size: Math.min(W, H) * (0.17 + r() * 0.05),
           rot: (r() - 0.5) * 0.7,
-          depth: 0.92 + r() * 0.08,
+          depth: 0.9 + r() * 0.08,
         });
       }
       heroes.sort((a, b) => a.size - b.size);
@@ -505,9 +541,9 @@ window.ENGINE = (function () {
       items.sort((a, b) => a.depth - b.depth);
       banners(x, W, H, buildBanners(Math.floor(34 * density), W * 0.5, yMid, W * 0.9, amp * 2.5, r), P, r);
       for (const it of items) drawStall(x, it.px, it.py, it.size, it.rot, it.depth, P, r, it.size > 60);
-      // big lead caravan stall at the near end
-      const lx = nearLeft ? W * 0.08 : W * 0.92;
-      drawStall(x, lx, pathY(nearLeft ? 0 : 1), Math.min(W, H) * 0.22, (r() - 0.5) * 0.6, 0.96, P, r, true);
+      // lead caravan stall at the near end — pulled back to a mid-distance size
+      const lx = nearLeft ? W * 0.1 : W * 0.9;
+      drawStall(x, lx, pathY(nearLeft ? 0 : 1), Math.min(W, H) * 0.15, (r() - 0.5) * 0.6, 0.94, P, r, true);
       drones(x, W, H, pal, r, Math.floor(45 * density), { x0: 0, y0: yMid - amp * 2, w: W, h: amp * 4 });
       hazeAndFinish(x, W, H, pal, noise, r, false);
       return { aspect: W / H };
@@ -558,9 +594,10 @@ window.ENGINE = (function () {
       lightThreads(x, W, H, W * 0.5, H * 0.4, W * 0.8, H * 0.7, P, noise, r, 4 + Math.floor(density * 2));
       banners(x, W, H, buildBanners(Math.floor(30 * density), W * 0.5, H * 0.35, W * 0.8, H * 0.6, r), P, r);
       for (const it of items) drawStall(x, it.px, it.py, it.size, it.rot, it.depth, P, r, it.size > 60);
-      // big foreground heroes at the very top
+      // foreground heroes near the top — capped + nudged off the very edge so
+      // they read as a focal cluster, not stalls crowding the lens.
       for (let i = 0; i < 3; i++) {
-        drawStall(x, W * (0.2 + r() * 0.6), H * (0.04 + r() * 0.18), Math.min(W, H) * (0.14 + r() * 0.08), (r() - 0.5) * Math.PI, 0.95 + r() * 0.05, P, r, true);
+        drawStall(x, W * (0.2 + r() * 0.6), H * (0.09 + r() * 0.16), Math.min(W, H) * (0.085 + r() * 0.035), (r() - 0.5) * Math.PI, 0.92 + r() * 0.05, P, r, true);
       }
       drones(x, W, H, pal, r, Math.floor(45 * density), null);
       hazeAndFinish(x, W, H, pal, noise, r, false);

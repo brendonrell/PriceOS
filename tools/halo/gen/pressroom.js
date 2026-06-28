@@ -18,13 +18,25 @@
 window.ENGINE = (function () {
   const K = window.KIT;
 
+  // RISO SPOT-INK TRIOS — each a deliberate, curated fluoro 3-ink set on warm
+  // bone/newsprint paper. The paper stays HIGH-KEY (bright, dominant); the trio
+  // shifts the dominant fluoro hue cleanly seed-to-seed. `shade` is the dark
+  // toner this trio bleeds toward — kept dark-but-tinted so ink never crushes to
+  // dead black and the page reads bright.
   const PALS = [
-    { name: 'Riso Fluoro',   paper: '#efe7d6', ink: ['#ff48a0', '#2a4bff', '#ffd21e'] },
-    { name: 'Press Cyan',    paper: '#ece9dd', ink: ['#ff3d7f', '#0bb5d6', '#ffcf1a'] },
-    { name: 'Acid Tangerine',paper: '#f1e9d4', ink: ['#ff5a2e', '#2a4bff', '#ffe23a'] },
-    { name: 'Violet Run',    paper: '#ebe4d8', ink: ['#ff48a0', '#7b2cf0', '#33d6a6'] },
-    { name: 'Bone & Berry',  paper: '#f2ecdc', ink: ['#e0286e', '#3550e6', '#1fb37a'] },
-    { name: 'Newsprint',     paper: '#e8e2cf', ink: ['#ff6b9d', '#2563ff', '#ffc933'] },
+    // pink + blue + yellow — the classic riso trichromat
+    { name: 'CMY Riso',      paper: '#f3ecda', ink: ['#ff4d97', '#2f56ff', '#ffce1f'], shade: '#2a2150' },
+    // teal + orange + deep ink-navy (the "ink-black" accent, kept chromatic so
+    // it reads as a third colour, not a dead black mass on tall towers)
+    { name: 'Teal & Tang',   paper: '#f1ecdc', ink: ['#0fb9c4', '#ff6a2a', '#2b3f6e'], shade: '#1c2e42' },
+    // magenta + green
+    { name: 'Magenta Field', paper: '#f4eddb', ink: ['#ff3da0', '#15c47e', '#ffd83a'], shade: '#243a30' },
+    // red + cyan
+    { name: 'Red & Cyan',    paper: '#f2ecd9', ink: ['#ff3b46', '#12bce0', '#ffd24a'], shade: '#1d3640' },
+    // purple + lime
+    { name: 'Purple Lime',   paper: '#f1ead8', ink: ['#8a3bf2', '#b7e835', '#ff66b0'], shade: '#33245a' },
+    // ultramarine + vermilion
+    { name: 'Ultra Vermil',  paper: '#f3ecd8', ink: ['#2438e8', '#ff5630', '#ffcf3a'], shade: '#202a4a' },
   ];
   const RUNS = ['First Pull', 'Heavy Ink', 'Faded Run', 'Double Print'];
 
@@ -117,8 +129,15 @@ window.ENGINE = (function () {
     return { tN, tS, tE, tW, bS, bE, bW, base: b, h, hw, hh };
   }
 
-  function inkCols(ink, paper) {
-    return { top: K.mix(ink, paper, 0.40), left: ink, right: K.mix(ink, '#3a2030', 0.30) };
+  // Faces: TOP catches light (mix toward paper → bright), LEFT is the pure spot
+  // ink, RIGHT is the shaded face (mix toward the trio's dark toner, but gently
+  // so it stays a saturated ink, not a black wall — keeps the page high-key).
+  function inkCols(ink, paper, shade) {
+    return {
+      top: K.mix(ink, paper, 0.54),
+      left: ink,
+      right: K.mix(ink, shade || '#2a2150', 0.18),
+    };
   }
 
   function chanAssigner(noise) {
@@ -191,7 +210,7 @@ window.ENGINE = (function () {
       const ch = chanOf(gc, gr);
       if (chanFilter != null && ch !== chanFilter) continue;
       const ink = inks[ch];
-      const cl = inkCols(ink, paper);
+      const cl = inkCols(ink, paper, p.pal.shade);
       const dCluster = Math.hypot((gc - fc) / cols, (gr - fr) / rows);
       const falloff = K.clamp(1 - dCluster * (cfg.focalTight || 1.7), 0.05, 1);
       const baseN = (noise.fbm(gc * 0.8 + 11, gr * 0.8 + 5, 4) + 1) / 2;
@@ -227,7 +246,7 @@ window.ENGINE = (function () {
         const a0 = iso(gc0, gr0, ox, oy, tw, th);
         const a1 = iso(gc0 + len, gr0 + (r() < 0.5 ? 0 : 2), ox, oy, tw, th);
         const wdt = th * 0.5;
-        x.fillStyle = K.mix(ink, '#241225', 0.40);
+        x.fillStyle = K.mix(ink, p.pal.shade, 0.28);
         for (let li = 0; li <= 5; li++) {
           const t = li / 5, lx = a0.x + (a1.x - a0.x) * t, ly = a0.y + (a1.y - a0.y) * t;
           x.fillRect(lx - wdt * 0.1, ly - lift + wdt, wdt * 0.2, lift);
@@ -262,7 +281,7 @@ window.ENGINE = (function () {
       const ch = footCh(Math.round(gc * 3) + 9, Math.round(gr * 3) + 4);
       if (chanFilter != null && ch !== chanFilter) continue;
       const ink = inks[ch];
-      const cl = inkCols(ink, paper);
+      const cl = inkCols(ink, paper, p.pal.shade);
       const ftw = tw * (0.16 + r() * 0.10), fth = ftw * 0.5;
       const fox = baseX + (gc - gr) * ftw * 0.5;
       const foy = baseY + th * 0.45 + (gc + gr) * fth * 0.5;
@@ -283,7 +302,7 @@ window.ENGINE = (function () {
       const tierH = totalH * frac + cth * 1.2;
       if (chanFilter == null || ch === chanFilter) {
         const ink = inks[ch];
-        const cl = inkCols(ink, paper);
+        const cl = inkCols(ink, paper, p.pal.shade);
         const box = isoBox(x, 0, 0, baseX, cy, cw, cth, tierH, cl, 0.98);
         windows(x, box, ink, paper, cw, cth, 0.98);
         if (t === tiers - 1) {
@@ -333,7 +352,7 @@ window.ENGINE = (function () {
             x.fillRect(bx + sx * pw + 1.5, by + sy * ph + 1.5, pw - 3, ph - 3);
             // darker footprint core
             x.globalAlpha = 0.4 * cov;
-            x.fillStyle = K.mix(ink, '#241225', 0.5);
+            x.fillStyle = K.mix(ink, p.pal.shade, 0.42);
             x.fillRect(bx + sx * pw + pw * 0.3, by + sy * ph + ph * 0.3, pw * 0.4, ph * 0.4);
           }
         }
@@ -475,7 +494,10 @@ window.ENGINE = (function () {
       const off = plate(ci, densities);
       x.save();
       x.globalCompositeOperation = 'multiply';
-      x.globalAlpha = faded ? 0.8 : 0.92;
+      // keep the page HIGH-KEY: three overlapping ink plates on multiply crush
+      // to mud fast, so each plate prints a touch translucent — the bone paper
+      // stays the dominant value and the inks read as clean spot colour.
+      x.globalAlpha = faded ? 0.74 : 0.84;
       const [mx, my] = misVecs[ci];
       x.drawImage(off, mx, my);
       x.restore();
@@ -591,6 +613,28 @@ window.ENGINE = (function () {
     fade.addColorStop(0.55, K.rgba(P.paper, 0));
     x.fillStyle = fade; x.fillRect(0, 0, W, H);
     x.restore();
+
+    // ── 6b. HIGH-KEY LIFT — a faint paper wash in 'lighten' so any area the
+    // stacked plates crushed toward black floats back up toward bone. Bright ink
+    // is untouched (it's already lighter than the wash); only the muddy darks
+    // lift. Stronger on the dense full-bleed layouts that crush most.
+    const dense = (L === 'Iso Sprawl' || L === 'Press Jam' || L === 'Torn Sheet');
+    x.save();
+    x.globalCompositeOperation = 'lighten';
+    x.globalAlpha = (dense ? 0.22 : 0.12) * (faded ? 1.2 : 1);
+    x.fillStyle = K.mix(P.paper, '#000', 0.50); // a dim paper — lifts the darks
+    x.fillRect(0, 0, W, H);
+    x.restore();
+    // a second, hue-tinted lift toward the trio's dominant fluoro so crushed
+    // cores read as deep COLOUR (deep pink/orange/teal), never neutral mud.
+    if (dense) {
+      x.save();
+      x.globalCompositeOperation = 'lighten';
+      x.globalAlpha = 0.10 * (heavy ? 1.3 : 1);
+      x.fillStyle = K.mix(P.ink[0], '#000', 0.58);
+      x.fillRect(0, 0, W, H);
+      x.restore();
+    }
 
     // ── 7. GLOBAL HALFTONE + chroma + grain + vignette
     halftoneScreen(x, W, H, p.dot * 1.4, 45 * Math.PI / 180,
