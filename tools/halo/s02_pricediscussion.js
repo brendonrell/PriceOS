@@ -22,13 +22,33 @@ window.ENGINE = (function () {
        text    = glyph/label colour on the accent bubbles
        textDim = label colour on dim bubbles
        smoke   = haze/steam colour rising off the field */
+  /* Palette variations — the collection's range lives HERE. Yellow-on-ink is the
+     signature, but the set roams across rooms/hours/moods so no two seeds read
+     as the same project. ~20 colorways, dark + light, varied accents. */
   const PALS = [
+    // ── the signature yellow-on-ink core ──
     { name: 'Attention',   dark: 1, ground: '#0d0d0f', bub: '#f7c400', bub2: '#3a3214', accent: '#ffd633', text: '#0d0d0f', textDim: '#e6d49a', smoke: '#f7c400' },
     { name: 'Carbon',      dark: 1, ground: '#141416', bub: '#42424d', bub2: '#2c2c34', accent: '#f4c623', text: '#0d0d0f', textDim: '#c8c8d2', smoke: '#aab0c0' },
-    { name: 'Ledger',      dark: 0, ground: '#e7dcc4', bub: '#2c241d', bub2: '#473a2e', accent: '#8c3b2e', text: '#f0e7d3', textDim: '#f0e7d3', smoke: '#b7a988' },
+    { name: 'Ink Gold',    dark: 1, ground: '#050505', bub: '#2a2a2e', bub2: '#1c1c20', accent: '#f5c542', text: '#050505', textDim: '#cfcfd6', smoke: '#d8c98a' },
+    { name: 'Blueprint',   dark: 1, ground: '#0a1430', bub: '#1c2c52', bub2: '#142142', accent: '#ffd633', text: '#0a1430', textDim: '#b8c6e6', smoke: '#9fb4e0' },
+    { name: 'Sodium',      dark: 1, ground: '#14110b', bub: '#33291a', bub2: '#241d12', accent: '#ffb02e', text: '#14110b', textDim: '#e6cfa0', smoke: '#ffb84d' },
+    // ── dark rooms, other hues ──
     { name: 'After Hours', dark: 1, ground: '#0b1417', bub: '#1f3940', bub2: '#16292e', accent: '#e8a83f', text: '#0b1417', textDim: '#a8cfd0', smoke: '#e8a83f' },
-    { name: 'Receipt',     dark: 0, ground: '#f2efe6', bub: '#d2cdc0', bub2: '#e0dbcf', accent: '#c2362b', text: '#f2efe6', textDim: '#6f6a5e', smoke: '#cfc8b8' },
+    { name: 'Phosphor',    dark: 1, ground: '#0a120c', bub: '#1f3326', bub2: '#16271d', accent: '#7cffa0', text: '#07120b', textDim: '#9fd9b3', smoke: '#7cffa0' },
+    { name: 'Cyan Wire',   dark: 1, ground: '#07141a', bub: '#163842', bub2: '#102832', accent: '#46e0ff', text: '#06141a', textDim: '#a7d8e6', smoke: '#46e0ff' },
+    { name: 'Iris',        dark: 1, ground: '#100c1a', bub: '#2c2440', bub2: '#1f1930', accent: '#b18cff', text: '#0c0816', textDim: '#c8bbe6', smoke: '#b18cff' },
+    { name: 'Rose Noir',   dark: 1, ground: '#15090f', bub: '#38202b', bub2: '#281620', accent: '#ff86b3', text: '#15090f', textDim: '#e6b4c6', smoke: '#ff86b3' },
+    { name: 'Oxblood',     dark: 1, ground: '#160a0a', bub: '#3a1d1d', bub2: '#2a1414', accent: '#e8b34f', text: '#160a0a', textDim: '#d9a8a0', smoke: '#c97a5a' },
+    { name: 'Ember Room',  dark: 1, ground: '#160f0c', bub: '#3a2620', bub2: '#2a1c18', accent: '#ff6a3d', text: '#160f0c', textDim: '#e0b3a0', smoke: '#ff7a4d' },
     { name: 'Static',      dark: 1, ground: '#1a1c20', bub: '#46586a', bub2: '#33424f', accent: '#ffd21a', text: '#0d0d0f', textDim: '#cdd9e4', smoke: '#9fb6c6' },
+    // ── light papers, varied accents ──
+    { name: 'Ledger',      dark: 0, ground: '#e7dcc4', bub: '#2c241d', bub2: '#473a2e', accent: '#8c3b2e', text: '#f0e7d3', textDim: '#f0e7d3', smoke: '#b7a988' },
+    { name: 'Receipt',     dark: 0, ground: '#f2efe6', bub: '#d2cdc0', bub2: '#e0dbcf', accent: '#c2362b', text: '#f2efe6', textDim: '#6f6a5e', smoke: '#cfc8b8' },
+    { name: 'Marigold',    dark: 0, ground: '#f3ead0', bub: '#e4d4ac', bub2: '#efe4c6', accent: '#d99a1f', text: '#2a2110', textDim: '#6e5f3a', smoke: '#d8c79a' },
+    { name: 'Bone',        dark: 0, ground: '#ece8df', bub: '#d6d0c4', bub2: '#e2ddd2', accent: '#b23a2e', text: '#2a2620', textDim: '#6b665c', smoke: '#cfc8b8' },
+    { name: 'Mint Paper',  dark: 0, ground: '#e9f0ea', bub: '#cfe0d4', bub2: '#dde9e0', accent: '#1f9d6b', text: '#10241a', textDim: '#5a7166', smoke: '#bcd2c4' },
+    { name: 'Glacier',     dark: 0, ground: '#eaf0f4', bub: '#d2dde6', bub2: '#e0e8ee', accent: '#2f6fe0', text: '#14202c', textDim: '#5e6e7c', smoke: '#c2d2de' },
+    { name: 'Slate Day',   dark: 0, ground: '#e4e7ea', bub: '#cdd3d8', bub2: '#dde1e4', accent: '#e08a2f', text: '#1a2026', textDim: '#5e6a72', smoke: '#c4ccd2' },
   ];
 
   const MODES = ['Column', 'Crossfire', 'Swarm', 'Thread', 'Ticker', 'Dissolve'];
@@ -37,9 +57,9 @@ window.ENGINE = (function () {
   // sparse price-talk fragments (kept tasteful, partly faded by the caller)
   const FRAGS = ['why this much?', '$6k', '$16k', 'price?', 'wen', 'ath', 'lol',
     'fk i miss those days', 'discuss', 'how much', 'too cheap', 'worth it?',
-    'floor', '0.1', '%∞', 'gm', 'why?', '$$$', 'sold', 'mint', 'paper hands'];
+    'floor', '0.1', 'gm', 'why?', '$$$', 'sold', 'mint', 'paper hands'];
   const USERS = ['rudxane', 'seventeen', 'willpop', 'siggi'];
-  const REACTS = ['‰', '%∞', '◎', '◇', '△', '◯', '✦', '$'];
+  const REACTS = ['◎', '◇', '△', '◯', '✦', '$'];
 
   function pickPal(r) {
     if (window.FORCE_PAL) { const p = PALS.find((p) => p.name === window.FORCE_PAL); if (p) return p; }
@@ -351,18 +371,6 @@ window.ENGINE = (function () {
       x.lineCap = 'round'; x.stroke();
     }
     x.restore();
-
-    // ── SIGNATURE MARK: a faint Per Mille / %∞ watermark drifting in the haze ──
-    if (r() < 0.9) {
-      x.save();
-      const mx = W * (0.5 + (r() - 0.5) * 0.5), my = H * (0.22 + r() * 0.56);
-      x.globalAlpha = 0.07 + r() * 0.045;
-      x.fillStyle = pal.accent;
-      x.font = (S * (0.17 + r() * 0.09) | 0) + 'px ui-monospace, monospace';
-      x.textAlign = 'center'; x.textBaseline = 'middle';
-      x.fillText(r() < 0.5 ? '‰' : '%∞', mx, my);
-      x.restore();
-    }
 
     // ── ATMOSPHERE & TEXTURE GRADE ──
     const hazeCol = K.mix(pal.smoke, pal.ground, pal.dark ? 0.3 : 0.5);
