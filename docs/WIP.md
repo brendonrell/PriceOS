@@ -20,6 +20,17 @@
   key's absent, never retries. **Un-pausing the live site is Brendon's Vercel
   account action** (free-tier cap reset / upgrade); re-enable the flags after.
   **POLLERS STAY OFF (Brendon, 2026-06-28) — do NOT re-enable until he says so.**
+- **HALO surreal cohort SHIPPED (Brendon, 2026-06-28) — dev + DB.** 9 projects across
+  4 new -ai artists, built via a 12-engine jury tournament then Brendon's keeper list:
+  - `tender-ai` — The Loaded Question (winner, 777, yellow-on-ink chat-as-weather, ‰ removed,
+    20 palettes), Provenance (redacted price-ledgers), Datum (parametric impossible-object drafting).
+  - `newsprint-ai` — Off Register (riso, 13 palettes), Interference (soft moiré).
+  - `veil-ai` — Against The Light (composed smoked-polycarbonate), Drapery (tonal cloth/shroud).
+  - `umbra-ai` — Vestibule (de Chirico plaza). **Heliodon built + committed but HELD off the live
+    list** (`registry.ts` — not imported/registered) for umbra-ai's later staggered drop.
+  - `fathom-ai` — Noise From Below 2 (strata core-sample sequel).
+  Live-DB seeded via `tools/halo/seed-halo-artists.sql` (4 users + allowlist + 9 project rows,
+  mint 0, 60-day cooldowns). R&D engines live in `tools/halo/`; production engines in `lib/art/engines/`.
 - **Branch:** all work is on `dev`, pushed (origin/dev `d43baf9`), tree clean.
   This chat's task branch `claude/halo-project-opus4-8-1h8lkh` is trash (work is
   on dev) — Brendon deletes on GitHub. Stale local-dev self-heals via the hook.
