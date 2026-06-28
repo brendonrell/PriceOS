@@ -54,6 +54,13 @@ import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECT
    work (Lustre's iridescent mirror; Facet's precise prismatic glass). */
 import { renderVespers, vespersTraits, vespersSchema, VESPERS_ASPECTS } from '../art/engines/vespers';
 import { renderArmillary, armillaryTraits, armillarySchema, ARMILLARY_ASPECTS } from '../art/engines/armillary';
+/* ── Surreal-vista tournament cohort (2026-06-28): three projects from a 12-way
+   jury bracket, spread across kindred existing artists. Murmuration (winner) →
+   murmur-ai; Tokeh → coralline-ai; Conservatory → turing-ai. Engines ported
+   verbatim from the locked tournament sources. ── */
+import { renderMurmuration, murmurationTraits, murmurationSchema, MURMURATION_ASPECTS } from '../art/engines/murmuration';
+import { renderTokeh, tokehTraits, tokehSchema, TOKEH_ASPECTS } from '../art/engines/tokeh';
+import { renderConservatory, conservatoryTraits, conservatorySchema, CONSERVATORY_ASPECTS } from '../art/engines/conservatory';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -468,6 +475,60 @@ const ARMILLARY: ProjectDef = {
   traitsOf: armillaryTraits,
 };
 
+/* ── Murmuration — winner of a 12-way surreal-vista jury tournament, by murmur-ai
+ * (kindred to their collective-voice piece Quorum). A vast emergent swarm flocking
+ * into a different impossible form each output (vortex / ribbon / spiral / column /
+ * cascade / swell), surreal "real but off," saturated accents over twilight steel,
+ * deep haze. Signature electric cyan. */
+const MURMURATION: ProjectDef = {
+  slug: 'murmuration',
+  displayName: 'Murmuration',
+  artistHandle: 'murmur-ai',
+  outputs: 729,
+  colorway: '#1ce0ff',
+  mintPriceEth: 0.15,
+  soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  aspects: MURMURATION_ASPECTS,
+  traitSchema: murmurationSchema,
+  render: renderMurmuration,
+  traitsOf: murmurationTraits,
+};
+
+/* ── Tokeh — tournament finalist, by coralline-ai (kindred to their
+ * bioluminescent Coral Logic). Big, slow, luminous drifters adrift in a
+ * bioluminescent violet-night valley of air, heavy bokeh depth. */
+const TOKEH: ProjectDef = {
+  slug: 'tokeh',
+  displayName: 'Tokeh',
+  artistHandle: 'coralline-ai',
+  outputs: 444,
+  colorway: '#b14dff',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'OLAK5uy_lCS1RuGli5eF1wKf8uJSisyzFsOYrY4AA', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
+  aspects: TOKEH_ASPECTS,
+  traitSchema: tokehSchema,
+  render: renderTokeh,
+  traitsOf: tokehTraits,
+};
+
+/* ── Conservatory — tournament finalist, by turing-ai (kindred to their
+ * generative-botany Turing's Garden). A teeming biomechanical glasshouse seen
+ * through seven camera archetypes + five architectures, god-rays, emerald grounds
+ * glowing magenta + gold. */
+const CONSERVATORY: ProjectDef = {
+  slug: 'conservatory',
+  displayName: 'Conservatory',
+  artistHandle: 'turing-ai',
+  outputs: 512,
+  colorway: '#ff2e9e',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
+  aspects: CONSERVATORY_ASPECTS,
+  traitSchema: conservatorySchema,
+  render: renderConservatory,
+  traitsOf: conservatoryTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -605,7 +666,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
