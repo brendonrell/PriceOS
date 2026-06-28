@@ -28,7 +28,11 @@ window.ENGINE = (function () {
       tints: ['#6a4f8a', '#4a7a82', '#5a5f7a', '#7d5a86', '#3f5d6a'] },
   ];
 
-  const MODES = ['Stack', 'Fan', 'Lattice', 'Monolith', 'Drift', 'Lens'];
+  /* v2 (2026-06-28 — CEO "expand it greatly, NOT always one big thing centred —
+     this is ART, COMPOSE images"). Modes are now COMPOSITIONS: clusters at
+     varied scales/positions, deliberate negative space, off-centre weighting,
+     overlap colour-math as the hero. Old centred single-slab modes replaced. */
+  const MODES = ['Constellation', 'Cascade', 'Lattice', 'Diptych', 'Drift', 'Eclipse', 'Shelf', 'Spill'];
   const FORMATS = [[1040, 1300], [1200, 1200], [1300, 1040]]; // portrait / square / landscape
 
   function pickPal(r) {
@@ -182,115 +186,190 @@ window.ENGINE = (function () {
     const tints = K.shuffle(pal.tints, r);
     function tintAt(i) { return tints[i % tints.length]; }
 
-    /* ── COMPOSE per mode ── */
-    const cxc = W / 2, cyc = H / 2;
+    /* ── COMPOSE per mode ──────────────────────────────────────────────────
+       Every mode is now a COMPOSITION: a primary mass anchored OFF-CENTRE on a
+       phi point, supporting elements at contrasting scale, deliberate empty
+       quadrant(s) for negative space, and overlaps that multiply into the hero
+       colour. The frostPanel material is unchanged — only the staging is. */
+    const PHI = 0.618;
+    // choose an off-centre anchor on a rule-of-thirds / phi intersection, and
+    // bias the empty space to the opposite side.
+    const anchorXs = [1 - PHI, PHI, 0.33, 0.67];
+    const anchorYs = [1 - PHI, PHI, 0.35, 0.66];
+    const ax0 = anchorXs[(r() * anchorXs.length) | 0];
+    const ay0 = anchorYs[(r() * anchorYs.length) | 0];
+    const anchorX = W * ax0, anchorY = H * ay0;
+    const cxc = W / 2, cyc = H / 2; // kept for a few accents
 
-    if (mode === 'Stack') {
-      // parallel sheets receding on a diagonal — overlapping bands
-      const n = 4 + (r() * 2 | 0);
-      const ang = (-0.18 + r() * 0.36);
-      const sw = W * (0.46 + r() * 0.12), sh = H * (0.5 + r() * 0.12);
-      const stepx = W * (0.10 + r() * 0.04) * (r() < 0.5 ? 1 : -1);
-      const stepy = -H * (0.085 + r() * 0.04);
-      for (let i = 0; i < n; i++) {
-        const depth = i / (n - 1);
-        const sc = 0.7 + depth * 0.45;
-        frostPanel(cxc + (i - (n - 1) / 2) * stepx, cyc + (i - (n - 1) / 2) * -stepy,
-          sw * sc, sh * sc, S * 0.05, ang, tintAt(i), depth, 'sheet');
-      }
-      // a couple registration holes on the nearest sheet
-      if (r() < 0.8) { hole(cxc + sw * 0.28, cyc - sh * 0.30, S * 0.012); hole(cxc - sw * 0.26, cyc + sh * 0.30, S * 0.012); }
+    // small helper: drop a cluster of overlapping panels around a point so the
+    // overlaps (not the panels) are the subject.
+    function cluster(px, py, spreadX, spreadY, count, baseScale, kinds, depthLo, depthHi) {
+      const items = [];
+      for (let i = 0; i < count; i++) items.push({ d: depthLo + r() * (depthHi - depthLo), i });
+      items.sort((a, b) => a.d - b.d); // far → near so near panels overlap on top
+      items.forEach((it, k) => {
+        const a = (k / Math.max(1, count - 1) - 0.5);
+        const ox = a * spreadX + (r() - 0.5) * spreadX * 0.5;
+        const oy = (r() - 0.5) * spreadY;
+        const sc = baseScale * (0.6 + it.d * 0.8);
+        frostPanel(px + ox, py + oy, S * sc, S * sc * (0.7 + r() * 0.6),
+          S * 0.05, (r() - 0.5) * 0.7, tintAt(it.i + k), it.d, K.pick(kinds, r));
+      });
+    }
 
-    } else if (mode === 'Fan') {
-      // panels splayed like a card fan from a low pivot
-      const n = 5 + (r() * 3 | 0);
-      const pivx = cxc + (r() - 0.5) * W * 0.2, pivy = H * (0.9 + r() * 0.12);
-      const spread = (0.9 + r() * 0.5);
-      const pw = W * 0.20, ph = H * (0.62 + r() * 0.12);
+    if (mode === 'Constellation') {
+      // 3–4 small clusters scattered across the frame on phi points; one cluster
+      // is the heavy focal mass, the rest are light satellites. Wide empty gaps.
+      const focal = K.rint(r, 0, 3);
+      const spots = [[1 - PHI, 1 - PHI], [PHI, 1 - PHI], [1 - PHI, PHI], [PHI, PHI]];
+      const order = K.shuffle(spots, r);
+      order.forEach((sp, i) => {
+        const heavy = i === focal;
+        const n = heavy ? K.rint(r, 3, 5) : K.rint(r, 1, 2);
+        cluster(W * sp[0], H * sp[1],
+          S * (heavy ? 0.22 : 0.10), S * (heavy ? 0.18 : 0.08), n,
+          heavy ? (0.34 + r() * 0.12) : (0.12 + r() * 0.08),
+          ['disc', 'sheet', 'blob'], heavy ? 0.35 : 0.15, heavy ? 0.95 : 0.5);
+      });
+      hole(W * order[focal][0] + S * 0.06, H * order[focal][1] - S * 0.06, S * 0.012);
+
+    } else if (mode === 'Cascade') {
+      // a descending diagonal river of overlapping sheets from a high corner to
+      // the opposite low one — the whole anti-diagonal busy, both off-diagonal
+      // corners left empty (strong negative space). Scale grows toward the near end.
+      const fromLeft = ax0 < 0.5;
+      const n = 6 + (r() * 3 | 0);
+      const x0 = fromLeft ? -W * 0.05 : W * 1.05, x1 = fromLeft ? W * 0.85 : W * 0.15;
+      const y0 = -H * 0.05, y1 = H * 1.02;
+      const ang = (fromLeft ? -1 : 1) * (0.2 + r() * 0.2);
       for (let i = 0; i < n; i++) {
-        const t = n === 1 ? 0.5 : i / (n - 1);
-        const a = (t - 0.5) * spread;
-        const depth = 0.35 + 0.65 * (1 - Math.abs(t - 0.5) * 2 * 0.8); // centre cards nearer
-        const px = pivx + Math.sin(a) * H * 0.42;
-        const py = pivy - Math.cos(a) * H * 0.46;
-        frostPanel(px, py, pw, ph, S * 0.06, a, tintAt(i), depth, 'sheet');
+        const t = i / (n - 1);
+        const px = x0 + (x1 - x0) * t + (r() - 0.5) * W * 0.06;
+        const py = y0 + (y1 - y0) * t + (r() - 0.5) * H * 0.04;
+        const depth = 0.25 + t * 0.7;
+        const sc = 0.22 + t * 0.34;
+        frostPanel(px, py, S * sc, S * sc * (1.1 + r() * 0.4), S * 0.05, ang + (r() - 0.5) * 0.2,
+          tintAt(i), depth, r() < 0.7 ? 'sheet' : 'disc');
       }
 
     } else if (mode === 'Lattice') {
-      // grid of HEAVILY overlapping discs/squares — overlaps are the star
+      // grid of HEAVILY overlapping discs/squares — overlaps are the star. Now
+      // the grid is windowed to ~2/3 of the frame and pushed to a corner so the
+      // remaining third is breathing space.
       const cols = 3 + (r() * 2 | 0), rows = 3 + (r() * 2 | 0);
       const k = r() < 0.5 ? 'disc' : 'sheet';
-      // tile the cells edge-to-edge with margin, then make each form bigger than
-      // its cell so neighbours genuinely cross and multiply
-      const mx = W * 0.08, my = H * 0.08;
-      const cellw = (W - mx * 2) / cols, cellh = (H - my * 2) / rows;
-      const d = Math.max(cellw, cellh) * (1.35 + r() * 0.30); // >>cell → strong overlap
+      const winW = W * (0.62 + r() * 0.12), winH = H * (0.62 + r() * 0.12);
+      const ox = (ax0 < 0.5 ? 0.04 : 0.96 - winW / W) * W;
+      const oy = (ay0 < 0.5 ? 0.04 : 0.96 - winH / H) * H;
+      const cellw = winW / cols, cellh = winH / rows;
+      const d = Math.max(cellw, cellh) * (1.35 + r() * 0.30);
       const order = [];
       for (let gy = 0; gy < rows; gy++) for (let gx = 0; gx < cols; gx++) order.push([gx, gy]);
       K.shuffle(order, r).forEach((g, i) => {
         const gx = g[0], gy = g[1];
-        const px = mx + cellw * (gx + 0.5) + (r() - 0.5) * cellw * 0.12;
-        const py = my + cellh * (gy + 0.5) + (r() - 0.5) * cellh * 0.12;
+        const px = ox + cellw * (gx + 0.5) + (r() - 0.5) * cellw * 0.16;
+        const py = oy + cellh * (gy + 0.5) + (r() - 0.5) * cellh * 0.16;
         const depth = 0.3 + r() * 0.7;
         frostPanel(px, py, d, d, S * 0.045, (r() - 0.5) * 0.3, tintAt(gx + gy * 2 + i), depth, k);
       });
 
-    } else if (mode === 'Monolith') {
-      // one big frosted slab + small tinted accents (+ the surreal off-shadow)
-      const bw = W * (0.40 + r() * 0.10), bh = H * (0.66 + r() * 0.12);
-      // SURREAL: cast shadow points a different way than the accents' light
-      x.save();
-      x.globalCompositeOperation = 'multiply';
-      x.filter = 'blur(' + S * 0.03 + 'px)';
-      x.globalAlpha = 0.18;
-      x.fillStyle = dark ? '#000' : K.mix(pal.haze, '#000', 0.3);
-      x.translate(cxc, cyc);
-      x.rotate(0.04);
-      x.fillRect(-bw / 2 - lightDir * S * 0.10, -bh / 2 + S * 0.06, bw, bh); // wrong-side shadow
-      x.restore();
-      frostPanel(cxc + (r() - 0.5) * W * 0.06, cyc, bw, bh, S * 0.06, (r() - 0.5) * 0.05, tintAt(0), 0.92, 'sheet');
-      // small accents overlapping its edges
-      const na = 3 + (r() * 2 | 0);
-      for (let i = 0; i < na; i++) {
-        const ax = cxc + (r() - 0.5) * bw * 1.3;
-        const ay = cyc + (r() - 0.5) * bh * 1.2;
-        const aw = S * (0.10 + r() * 0.12);
-        frostPanel(ax, ay, aw, aw * (0.7 + r() * 0.8), S * 0.03,
-          (r() - 0.5) * 0.8, tintAt(i + 1), 0.4 + r() * 0.4, r() < 0.5 ? 'disc' : 'sheet');
-      }
-      hole(cxc, cyc - bh * 0.36, S * 0.013);
+    } else if (mode === 'Diptych') {
+      // two contrasting masses in dialogue: a tall sheet on one phi column and a
+      // round cluster on the other, their edges JUST overlapping at the centre so
+      // the colour-math meeting is the subject. Outer margins kept airy.
+      const leftFirst = r() < 0.5;
+      const colA = W * (leftFirst ? 0.34 : 0.66), colB = W * (leftFirst ? 0.66 : 0.34);
+      // tall slab
+      const sw = W * (0.30 + r() * 0.06), sh = H * (0.7 + r() * 0.12);
+      frostPanel(colA, H * (0.5 + (r() - 0.5) * 0.1), sw, sh, S * 0.06,
+        (r() - 0.5) * 0.12, tintAt(0), 0.88, 'sheet');
+      // round cluster overlapping its inner edge
+      cluster(colB, H * (0.46 + (r() - 0.5) * 0.16), S * 0.14, S * 0.16,
+        K.rint(r, 2, 4), 0.26 + r() * 0.1, ['disc', 'blob'], 0.4, 0.92);
+      hole(colA, H * 0.5 - sh * 0.34, S * 0.012);
 
     } else if (mode === 'Drift') {
-      // panels floating apart in deep haze — varied scale, sparse, airy
+      // panels floating apart in deep haze — varied scale, sparse, airy. Pushed
+      // off-centre with one corner kept deliberately empty.
       const n = 5 + (r() * 3 | 0);
       const kinds = ['sheet', 'disc', 'blob'];
+      const emptyCorner = K.rint(r, 0, 3); // which corner stays bare
+      const ecx = (emptyCorner % 2), ecy = (emptyCorner / 2 | 0);
       const items = [];
       for (let i = 0; i < n; i++) {
-        items.push({ depth: r(), x: 0.15 + r() * 0.7, y: 0.15 + r() * 0.7, i });
+        // bias positions away from the empty corner
+        let px = 0.15 + r() * 0.7, py = 0.15 + r() * 0.7;
+        if (Math.abs(px - ecx) < 0.32 && Math.abs(py - ecy) < 0.32) { px = 1 - px; py = 1 - py; }
+        items.push({ depth: r(), x: px, y: py, i });
       }
-      items.sort((a, b) => a.depth - b.depth); // far first
+      items.sort((a, b) => a.depth - b.depth);
       items.forEach((it) => {
-        const sc = 0.16 + it.depth * 0.34;
+        const sc = 0.14 + it.depth * 0.34;
         frostPanel(W * it.x, H * it.y, S * sc, S * sc * (0.7 + r() * 0.7),
           S * 0.05, (r() - 0.5) * 1.0, tintAt(it.i), it.depth, K.pick(kinds, r));
       });
 
-    } else { // Lens — concentric translucent rings forming a soft lens/eye
+    } else if (mode === 'Eclipse') {
+      // two big overlapping discs of different tint pushed off-centre — the
+      // crescent/lens of overlap is the hero. A scatter of tiny accents trails off.
+      const cx2 = anchorX, cy2 = anchorY;
+      const big = S * (0.46 + r() * 0.1);
+      const sep = big * (0.55 + r() * 0.3);
+      const a = r() * 6.283;
+      frostPanel(cx2 - Math.cos(a) * sep * 0.5, cy2 - Math.sin(a) * sep * 0.5,
+        big, big, S * 0.5, 0, tintAt(0), 0.6, 'disc');
+      frostPanel(cx2 + Math.cos(a) * sep * 0.5, cy2 + Math.sin(a) * sep * 0.5,
+        big * (0.9 + r() * 0.2), big * (0.9 + r() * 0.2), S * 0.5, 0, tintAt(1), 0.9, 'disc');
+      // small satellites drifting toward the empty quadrant
+      const na = K.rint(r, 2, 4);
+      for (let i = 0; i < na; i++) {
+        const sa2 = a + Math.PI + (r() - 0.5) * 1.2;
+        const dd = big * (1.0 + i * 0.5);
+        frostPanel(cx2 + Math.cos(sa2) * dd, cy2 + Math.sin(sa2) * dd,
+          S * (0.06 + r() * 0.06), S * (0.06 + r() * 0.06), S * 0.4,
+          (r() - 0.5) * 0.6, tintAt(i + 2), 0.3 + r() * 0.3, r() < 0.5 ? 'disc' : 'blob');
+      }
+      hole(cx2, cy2, S * 0.016);
+
+    } else if (mode === 'Shelf') {
+      // horizontal stratum of overlapping sheets sitting low (or high) in frame
+      // like objects on a shelf — broad empty band above (or below). Varied widths.
+      const high = ay0 < 0.5;
+      const shelfY = H * (high ? 0.32 : 0.68);
       const n = 4 + (r() * 3 | 0);
-      const offx = (r() - 0.5) * W * 0.12, offy = (r() - 0.5) * H * 0.12;
-      const big = S * (0.78 + r() * 0.14);
+      let cursor = W * (0.06 + r() * 0.06);
+      for (let i = 0; i < n && cursor < W * 0.94; i++) {
+        const sw = W * (0.14 + r() * 0.16);
+        const sh = H * (0.22 + r() * 0.22);
+        const depth = 0.4 + r() * 0.55;
+        const overlap = sw * (0.25 + r() * 0.25); // sheets overlap their neighbour
+        frostPanel(cursor + sw * 0.5, shelfY + (r() - 0.5) * H * 0.05,
+          sw, sh, S * 0.05, (r() - 0.5) * 0.12, tintAt(i), depth, r() < 0.6 ? 'sheet' : 'disc');
+        cursor += sw - overlap;
+      }
+      if (r() < 0.7) hole(cursor - W * 0.1, shelfY - H * 0.08, S * 0.012);
+
+    } else { // Spill — a dense knot of small overlapping panels in one off-centre
+      // pocket that thins and scatters outward into the negative space: a splash
+      // frozen mid-air. Strong density gradient = strong composition.
+      const px0 = anchorX, py0 = anchorY;
+      const n = 9 + (r() * 6 | 0);
+      const dir = r() * 6.283; // the spill direction
+      const items = [];
       for (let i = 0; i < n; i++) {
         const t = i / (n - 1);
-        const d = big * (1 - t * 0.78);
-        // each ring slightly off-centre = the surreal "depth folds back"
-        const wob = (1 - t);
-        // alternate tints so each concentric ring multiplies into a new hue
-        const tnt = tintAt(i % 2 === 0 ? i : i + 2);
-        frostPanel(cxc + offx * wob + (r() - 0.5) * S * 0.02 * wob,
-          cyc + offy * wob + (r() - 0.5) * S * 0.02 * wob,
-          d, d, S * 0.5, 0, tnt, 0.25 + t * 0.7, 'disc');
+        const dd = S * (0.04 + t * 0.5) * (0.6 + r() * 0.8);
+        const spread = t * 0.9; // wider scatter as it flies out
+        const a = dir + (r() - 0.5) * spread;
+        items.push({ t, x: px0 + Math.cos(a) * dd, y: py0 + Math.sin(a) * dd, i });
       }
-      hole(cxc + offx, cyc + offy, S * 0.02);
+      items.sort((a, b) => b.t - a.t); // dense core (t small) drawn last/on-top
+      items.forEach((it) => {
+        const sc = (0.05 + (1 - it.t) * 0.22) * (0.7 + r() * 0.7);
+        frostPanel(it.x, it.y, S * sc, S * sc * (0.7 + r() * 0.6), S * 0.04,
+          (r() - 0.5) * 1.0, tintAt(it.i), 0.3 + (1 - it.t) * 0.65, K.pick(['disc', 'blob', 'sheet'], r));
+      });
+      hole(px0, py0, S * 0.014);
     }
 
     /* ── GLOBAL ATMOSPHERE & TEXTURE GRADE ── */

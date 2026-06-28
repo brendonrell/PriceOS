@@ -55,9 +55,12 @@ window.ENGINE = (function () {
     const x = cv.getContext('2d');
     const mp = matProps(pal.mat);
 
-    // raking light: a clear direction (mostly from upper-left or upper-right)
+    // raking light: a clear direction (mostly from upper-left or upper-right).
+    // v2 (2026-06-28 — CEO "expand it, get ambitious"): stronger, lower rake so
+    // ridges blaze and valleys plunge — more sculptural relief.
     const lightSide = r() < 0.5 ? -1 : 1;     // -1 = light from left
     const lightAng = lightSide * (0.35 + r() * 0.25); // radians off vertical-ish
+    const rake = 1.15 + r() * 0.35;           // global raking-light intensity boost
 
     // ── CALM GROUND (the wall/backdrop, a soft tonal gradient) ──
     (function ground() {
@@ -79,7 +82,7 @@ window.ENGINE = (function () {
        half(t): half-width of the fold at t
        lit: the side (–1/1) the raking light catches (the ridge highlight)   */
     function paintFold(x0, x1, y0, y1, baseHalf, wob, phase, lit, depth, alpha) {
-      const STEPS = 46;
+      const STEPS = 64;
       // precompute centre-line + widths
       const cxs = [], hws = [];
       for (let i = 0; i <= STEPS; i++) {
@@ -100,7 +103,8 @@ window.ENGINE = (function () {
       // paint cross-section bands as long thin polygons running down the fold.
       // bands across the half-width: valleyFar | occl | core | ridge-base | RIDGE(lit) | falloff | valleyNear
       // We sweep an offset u from -1..1 (lit side positive when u*lit>0).
-      const BANDS = 9;
+      // finer cross-section = smoother, more sculptural relief
+      const BANDS = 15;
       for (let b = 0; b < BANDS; b++) {
         const u0 = -1 + (2 * b) / BANDS;
         const u1 = -1 + (2 * (b + 1)) / BANDS;
@@ -111,13 +115,16 @@ window.ENGINE = (function () {
         // curvature term: ridge sits around um ~ 0.15*lit (just past centre toward light)
         const ridgePos = 0.18 * lit;
         const ridge = Math.exp(-Math.pow((um - ridgePos) * 2.4, 2)); // bright lobe
+        // a tighter secondary specular crest right at the ridge for sharper relief
+        const crest = Math.exp(-Math.pow((um - ridgePos) * 6.5, 2));
         const valley = Math.pow(Math.abs(um), 3.0);    // dark at outer edges
         // compose a tone
         let tone;
         const litMix = Math.pow(litness, 0.8);
         tone = K.mix(pal.core, pal.base, litMix);
-        tone = K.mix(tone, pal.hi, ridge * 0.85 * mp.contrast * litMix);
-        tone = K.mix(tone, pal.deep, valley * 0.7);
+        tone = K.mix(tone, pal.hi, Math.min(1, ridge * 0.85 * mp.contrast * rake * litMix));
+        tone = K.mix(tone, pal.hi, crest * 0.4 * mp.contrast * litMix);
+        tone = K.mix(tone, pal.deep, Math.min(1, valley * 0.78 * rake));
         // velvet crush: darken the lit flanks slightly + deepen core (sheen at grazing)
         if (mp.crush > 0) tone = K.mix(tone, pal.deep, (1 - ridge) * mp.crush * 0.3);
 
@@ -199,10 +206,20 @@ window.ENGINE = (function () {
     const cxImpl = W * 0.5;
 
     if (mode === 'Folds') {
-      // frame-filling cascade of vertical folds, raking light
+      // frame-filling cascade of vertical folds, raking light. Now denser + a
+      // finer secondary pass of thin creases riding the major folds.
       castShadow(W * 0.5, H * 0.92, W * 0.5, H * 0.10, 0.45);
-      const n = 9 + (r() * 5 | 0);
+      const n = 13 + (r() * 7 | 0);
       curtain(-W * 0.04, W * 1.04, H * (-0.06), H * 1.06, n, W * 0.09, 1.1);
+      // fine creases — thin shallow folds layered over the cascade for detail
+      const fineN = 8 + (r() * 6 | 0);
+      for (let i = 0; i < fineN; i++) {
+        const fx = W * (0.04 + r() * 0.92);
+        const half = W * 0.018 * (0.6 + r() * 0.8);
+        const lit = r() < 0.62 ? lightSide : -lightSide;
+        paintFold(fx, fx + (r() - 0.5) * W * 0.05, H * (-0.04 + r() * 0.1), H * (0.9 + r() * 0.14),
+                  half, W * 0.04, r() * 10, lit, 1, 0.5 + r() * 0.3);
+      }
 
     } else if (mode === 'Shroud') {
       // THE SURREAL STAR: cloth draped over an absent/impossible volume.
@@ -214,8 +231,9 @@ window.ENGINE = (function () {
       const massW = W * (0.46 + r() * 0.16);
       castShadow(peakX + lightSide * W * 0.04, baseY + H * 0.02, massW * 0.95, H * 0.07, 0.5);
 
-      // radiating folds from the peak down to the base — like cloth pulled to a point
-      const n = 11 + (r() * 6 | 0);
+      // radiating folds from the peak down to the base — like cloth pulled to a
+      // point. Denser fan for a richer, finer shroud.
+      const n = 15 + (r() * 8 | 0);
       const ribs = [];
       for (let i = 0; i < n; i++) {
         const t = (i + 0.5) / n;
@@ -231,6 +249,17 @@ window.ENGINE = (function () {
       }
       ribs.sort((a, b) => b.depth - a.depth); // outer/back first
       for (const f of ribs) paintFold(f.tx, f.bx, f.ty, f.by, f.half, W * 0.06, f.ph, f.lit, 1, 0.95);
+      // fine secondary creases pulling toward the peak — adds drapery detail
+      const fineN = 10 + (r() * 8 | 0);
+      for (let i = 0; i < fineN; i++) {
+        const t = (i + 0.5) / fineN;
+        const bx = peakX + (t - 0.5) * massW * (0.9 + 0.3 * Math.sin(t * 9));
+        const tx = peakX + (t - 0.5) * massW * 0.08 + Math.sin(t * 7) * W * 0.02;
+        const half = massW / n * (0.28 + r() * 0.3);
+        const lit = ((bx - peakX) * lightSide < 0) ? lightSide : -lightSide;
+        paintFold(tx, bx, peakY + Math.abs(t - 0.5) * H * 0.06, baseY - H * 0.06 + (r() - 0.5) * H * 0.04,
+                  half, W * 0.04, r() * 10, lit, 1, 0.45 + r() * 0.3);
+      }
       // a fuller pooled hem at the base so the cloth reaches the floor as cloth,
       // not stringy legs — short blunt horizontal folds bunched along the footprint
       const hemN = 6 + (r() * 3 | 0);
