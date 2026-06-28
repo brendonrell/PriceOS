@@ -175,7 +175,7 @@ window.ENGINE = (function () {
       const n=5; const xs=[]; for(let i=0;i<n;i++) xs.push(0.10+0.80*i/(n-1)+(K.rng(i*31+1)()-0.5)*0.06);
       const items=xs.map((fx,i)=>({fx, depth:K.rng(i*17+3)()})).sort((a,b)=>a.depth-b.depth);
       for(const it of items){ const depth=it.depth; const sc=(1-depth)*1.0+0.18;
-        const w=S*0.05*sc, h=S*0.7*sc; const cx=W*it.fx;
+        const w=S*0.085*sc, h=S*0.66*sc; const cx=W*it.fx;
         // tapered obelisk (slim trapezoid + pyramidion)
         const col=K.mix(P.stone,P.haze,depth*0.6);
         x.fillStyle=col; x.beginPath(); x.moveTo(cx-w*0.32, base-h*0.86); x.lineTo(cx+w*0.32, base-h*0.86); x.lineTo(cx+w/2, base); x.lineTo(cx-w/2, base); x.closePath(); x.fill();
@@ -190,7 +190,7 @@ window.ENGINE = (function () {
       // arrange slabs across a front arc, sort by y for correct overlap
       const slabs=[]; for(let i=0;i<n;i++){ const f=i/(n-1); const ang=Math.PI*(1.05+f*0.9); const px=cx+Math.cos(ang)*rx; const py=cy+Math.sin(ang)*ry; slabs.push({px,py,depth:1-(py-(cy-ry))/(ry*2)}); }
       slabs.sort((a,b)=>a.py-b.py);
-      for(const s of slabs){ const sc=(1-Math.max(0,Math.min(1,s.depth)))*0.7+0.4; const w=S*0.09*sc, h=S*0.5*sc;
+      for(const s of slabs){ const sc=(1-Math.max(0,Math.min(1,s.depth)))*0.7+0.4; const w=S*0.13*sc, h=S*0.5*sc;
         // each slab stands with base at the waterline (massive, half in water)
         block(x, s.px, base, w, h, P, Math.max(0,Math.min(0.8,s.depth)), true, r); }
       // a centred lintel-crowned trilithon as the hero focus
@@ -218,6 +218,12 @@ window.ENGINE = (function () {
     x.fillStyle=sg; x.fillRect(0,0,W,hzY);
     K.hazeSheet(x,W,hzY,noise,P.haze,0.45,S*0.55,'screen');
     K.bloom(x,W*0.5,hzY*0.46,W*0.6,P.skB,0.18);
+    // a faint distant celestial disc high in the sky — sparse, atmospheric, fills the
+    // negative space without reading as a sun (cool, low-contrast, ringless)
+    { const bx=W*(0.30+r()*0.40), by=hzY*(0.20+r()*0.20), brad=S*0.05;
+      K.bloom(x,bx,by,brad*5,P.haze,0.16);
+      const bg=x.createRadialGradient(bx,by,0,bx,by,brad); bg.addColorStop(0,K.rgba(K.mix(P.lit,'#fff',0.3),0.5)); bg.addColorStop(0.6,K.rgba(P.lit,0.18)); bg.addColorStop(1,K.rgba(P.lit,0));
+      x.save(); x.globalCompositeOperation='screen'; x.fillStyle=bg; x.beginPath(); x.arc(bx,by,brad,0,7); x.fill(); x.restore(); }
 
     // build hero scene above water onto offscreen for clean mirroring
     const off=document.createElement('canvas'); off.width=W; off.height=Math.ceil(hzY)+2; const ox=off.getContext('2d');

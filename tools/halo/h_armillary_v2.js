@@ -140,7 +140,10 @@ window.ENGINE = (function () {
                  : mode==='cross'      ? (0.16+0.16*t)                       // shallow slices
                  : 0.30+0.50*t;
       const rot = spin==='Aligned' ? i*0.13 : (seedR()-0.5)*3.1;
-      ring(x,cx,cy,rad,tilt,rot,P, (i*0.21)%1, 0.45, lw*(1-t*0.3), i<2, alpha);
+      // span/phase: gyroscope tumbles hard so spread each ring further across
+      // the band for richer colour variety on the close-up.
+      const span = mode==='gyroscope'?0.62:0.45;
+      ring(x,cx,cy,rad,tilt,rot,P, (i*0.31)%1, span, lw*(1-t*0.3), i<2, alpha);
       // orbiting bodies on outer rings (orrery / armillary reads)
       if((mode==='orrery'||mode==='armillary') && i<nRings-1){
         const bodies=1+(i%2);
@@ -149,7 +152,9 @@ window.ENGINE = (function () {
     }
 
     // central axis pin (armillary read) — not on gyroscope (free-tumbling)
-    if(mode!=='gyroscope'){ x.save(); x.globalAlpha=alpha; x.strokeStyle=K.rgba(P.ink,0.6); x.lineWidth=lw*0.55; x.beginPath(); x.moveTo(cx,cy-R*1.04); x.lineTo(cx,cy+R*1.04); x.stroke(); x.restore(); }
+    if(mode!=='gyroscope'){ x.save(); x.globalAlpha=alpha; x.strokeStyle=K.rgba(P.ink,0.55); x.lineWidth=lw*0.5;
+      const ax=R*1.18; const ag=x.createLinearGradient(cx,cy-ax,cx,cy+ax); ag.addColorStop(0,K.rgba(P.ink,0)); ag.addColorStop(0.3,K.rgba(P.ink,0.55)); ag.addColorStop(0.7,K.rgba(P.ink,0.55)); ag.addColorStop(1,K.rgba(P.ink,0)); x.strokeStyle=ag;
+      x.beginPath(); x.moveTo(cx,cy-ax); x.lineTo(cx,cy+ax); x.stroke(); x.restore(); }
 
     // radial gauge scale around the outermost ring
     if(!faded){ x.save(); x.globalAlpha=alpha; x.strokeStyle=K.rgba(P.ink,0.4); x.lineWidth=1;
@@ -213,9 +218,19 @@ window.ENGINE = (function () {
     if(hasHorizon){
       world(x,W,H,P,noise,hzY,seed);
     } else {
-      // atmosphere-only depth (Solitary / Gyroscope close-up)
-      K.hazeSheet(x,W,H,noise,P.h1,0.30,S*0.55,'screen');
-      K.hazeSheet(x,W,H,noise,P.h2,0.18,S*0.9,'screen');
+      // atmosphere-only depth (Solitary / Gyroscope close-up) — layered volume
+      // so the mechanism hangs in fog, not on a flat field.
+      K.hazeSheet(x,W,H,noise,P.h1,0.34,S*0.50,'screen');
+      K.hazeSheet(x,W,H,noise,P.h2,0.22,S*0.85,'screen');
+      K.hazeSheet(x,W,H,noise,P.h1,0.14,S*1.5,'screen');
+      // a soft off-centre light well + drifting curl wisps for atmosphere depth
+      const wx=W*(0.40+0.2*K.rng(seed*7)()), wy=H*(0.36+0.2*K.rng(seed*13)());
+      K.bloom(x,wx,wy,S*0.7,P.h2,0.14); K.bloom(x,wx,wy,S*0.35,P.core,0.08);
+      x.save(); x.globalCompositeOperation='screen';
+      for(let i=0;i<26;i++){ const rr=K.rng(seed*17+i*7); let px=rr()*W,py=rr()*H;
+        x.strokeStyle=K.rgba(i%2?P.h1:P.h2,0.05+rr()*0.05); x.lineWidth=0.8+rr()*1.4; x.beginPath(); x.moveTo(px,py);
+        for(let s2=0;s2<8;s2++){ const v=K.curl(noise,px,py,1); px+=v[0]*40; py+=v[1]*40; x.lineTo(px,py); } x.stroke(); }
+      x.restore();
     }
 
     // ── BACKGROUND satellite mechanisms receding into fog ──
@@ -243,7 +258,7 @@ window.ENGINE = (function () {
     } else if(p.scene==='Gauge Cluster'){
       cx=W*0.5; cy=hzY-S*0.06; R=S*0.30; mode='gauge';
     } else if(p.scene==='Solitary'){
-      cx=W*(0.36+0.10*K.rng(seed*9)()); cy=H*(0.42+0.08*K.rng(seed*11)()); R=S*0.24; mode='armillary'; // small, vast void
+      cx=W*(0.30+0.14*K.rng(seed*9)()); cy=H*(0.34+0.12*K.rng(seed*11)()); R=S*0.21; mode='armillary'; // small, vast void
     } else if(p.scene==='Swarm'){
       cx=W*(0.46+(K.rng(seed*9)()-0.5)*0.12); cy=hzY-S*0.10; R=S*0.30; mode='orrery';   // busy field, hero among many
     } else { // Cross-section

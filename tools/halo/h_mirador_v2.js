@@ -30,7 +30,7 @@ window.ENGINE = (function () {
     { name:'Mauve Dune',  skT:'#2a1030', skB:'#c66aa0', gnd:'#4a2240', metal:'#180a1c', lit:'#ffc6e6', glow:'#ffd06a', haze:'#b0608f', ink:'#ffe0f0' },
     { name:'Sulfur Sky',  skT:'#3a2a00', skB:'#ffd21a', gnd:'#6a4a08', metal:'#241800', lit:'#fff6a0', glow:'#ff5a2a', haze:'#e0b81f', ink:'#3a2a00' },
     { name:'Ember Ash',   skT:'#1a0604', skB:'#8a2a12', gnd:'#3a160c', metal:'#120402', lit:'#ff8a4d', glow:'#ffd23a', haze:'#7a3320', ink:'#ffcab0' },
-    { name:'Bone Salt',   skT:'#4a3a5a', skB:'#e8d6c6', gnd:'#9a8a86', metal:'#2a2230', lit:'#fff4e6', glow:'#ff6a8a', haze:'#d6c2c2', ink:'#3a2e3a' },
+    { name:'Bone Salt',   skT:'#4a3a5a', skB:'#d8c2b2', gnd:'#7a6a68', metal:'#241c2a', lit:'#fff4e6', glow:'#ff5a82', haze:'#b8a2a2', ink:'#3a2e3a' },
     { name:'Tangerine',   skT:'#2a0c00', skB:'#ff8410', gnd:'#5a2a08', metal:'#1c0a00', lit:'#ffd08a', glow:'#ff3a6a', haze:'#d8721a', ink:'#ffe2c0' },
     { name:'Ice Teal',    skT:'#0a2630', skB:'#7fe6e0', gnd:'#2a5258', metal:'#08181c', lit:'#e6ffff', glow:'#ff9a5a', haze:'#8fcdd0', ink:'#063038' },
   ];
@@ -78,25 +78,36 @@ window.ENGINE = (function () {
     x.restore();
   }
 
-  /* a buried/tilted dish — only the rim breaks the dust surface (surreal). */
+  /* a buried/tilted dish — a big rim breaking the dust surface (surreal). The
+     upper HALF of the dish stands proud of the surface; a dark dust shadow rings
+     the buried lip so it reads as half-sunk even on pale palettes. */
   function buriedDish(x, cx, surfaceY, sc, P, depth, tilt, r){
     const haze=P.haze, lit=P.lit, glow=P.glow;
-    const dishR=190*sc;
-    const dcol=K.mix(P.metal,haze,depth*0.8), lcol=K.mix(lit,haze,depth*0.7);
+    const dishR=230*sc;
+    const dcol=K.mix(P.metal,haze,depth*0.7), lcol=K.mix(lit,haze,depth*0.6);
+    // dust shadow at the lip first (so the dish casts a sunken pool of shade)
+    x.save(); x.globalCompositeOperation='multiply';
+    const sg=x.createRadialGradient(cx,surfaceY,dishR*0.2,cx,surfaceY,dishR*1.5);
+    sg.addColorStop(0,'rgba(0,0,0,0.42)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=sg; x.beginPath(); x.ellipse(cx,surfaceY,dishR*1.5,dishR*0.55,0,0,7); x.fill(); x.restore();
     x.save();
-    // clip to above the surface so the dish reads as half-sunk
-    x.beginPath(); x.rect(cx-dishR*1.6, 0, dishR*3.2, surfaceY); x.clip();
-    x.translate(cx, surfaceY+dishR*0.55); x.rotate(tilt); x.scale(1,0.5);
+    // clip to ABOVE the surface so the dish reads as half-sunk; centre the dish
+    // on the surface line so ~half stands proud.
+    x.beginPath(); x.rect(cx-dishR*1.7, 0, dishR*3.4, surfaceY); x.clip();
+    x.translate(cx, surfaceY); x.rotate(tilt); x.scale(1,0.62);
     const g=x.createLinearGradient(-dishR,-dishR,dishR,dishR);
-    g.addColorStop(0,K.mix(dcol,'#000',0.35)); g.addColorStop(0.5,lcol); g.addColorStop(1,dcol);
+    g.addColorStop(0,K.mix(dcol,'#000',0.4)); g.addColorStop(0.5,lcol); g.addColorStop(1,K.mix(dcol,'#000',0.2));
     x.fillStyle=g; x.beginPath(); x.ellipse(0,0,dishR,dishR,0,0,7); x.fill();
-    x.fillStyle=K.rgba(K.mix(dcol,'#000',0.5),0.85); x.beginPath(); x.ellipse(0,0,dishR*0.74,dishR*0.74,0,0,7); x.fill();
-    x.strokeStyle=K.rgba(lcol,0.4); x.lineWidth=Math.max(0.8,2*sc);
-    for(let k=1;k<=3;k++){ x.beginPath(); x.ellipse(0,0,dishR*0.74*(k/3.2),dishR*0.74*(k/3.2),0,0,7); x.stroke(); }
-    x.fillStyle=K.rgba(glow,0.8); x.beginPath(); x.arc(0,0,Math.max(2,4*sc),0,7); x.fill();
+    // dark inner cup
+    x.fillStyle=K.rgba(K.mix(dcol,'#000',0.55),0.9); x.beginPath(); x.ellipse(0,0,dishR*0.76,dishR*0.76,0,0,7); x.fill();
+    // bright rim ring (this is what makes it pop on pale palettes)
+    x.strokeStyle=K.rgba(K.mix(lit,'#fff',0.2),0.7); x.lineWidth=Math.max(1.4,4*sc);
+    x.beginPath(); x.ellipse(0,0,dishR*0.97,dishR*0.97,0,0,7); x.stroke();
+    x.strokeStyle=K.rgba(lcol,0.45); x.lineWidth=Math.max(0.8,2*sc);
+    for(let k=1;k<=3;k++){ x.beginPath(); x.ellipse(0,0,dishR*0.76*(k/3.2),dishR*0.76*(k/3.2),0,0,7); x.stroke(); }
+    K.bloom(x,0,0,dishR*0.5,glow,0.35*(1-depth*0.4));
+    x.fillStyle=K.rgba(glow,0.85); x.beginPath(); x.arc(0,0,Math.max(2,5*sc),0,7); x.fill();
     x.restore();
-    // a faint dust mound at the buried lip
-    K.bloom(x,cx,surfaceY,dishR*1.4,haze,0.22);
   }
 
   /* a lattice antenna mast — semi-abstract truss with a beacon. */
@@ -183,7 +194,9 @@ window.ENGINE = (function () {
       // one colossal hero relic close-up + vast negative space + tiny far ones.
       // hero pushed OFF-CENTRE (thirds) so the empty sky reads as tension, not dead.
       const heroR=K.rng(seed*29+3);
-      const heroKind=['dish','mast','receiver'][Math.floor(heroR()*3)];
+      // bias hero toward the kinds that read COLOSSAL (dish/receiver); a thin
+      // mast rarely fills a frame the way the brief's "colossal hero" wants.
+      const heroKind=['dish','dish','receiver','mast'][Math.floor(heroR()*4)];
       const heroLeft = heroR()<0.5;
       const heroX = heroLeft ? W*(0.20+heroR()*0.12) : W*(0.68+heroR()*0.12);
       // tiny far scatter near horizon, biased to the OPPOSITE side of the hero
@@ -224,18 +237,21 @@ window.ENGINE = (function () {
     }
 
     else if(scene==='Buried'){
-      // relics half-sunk/tilted in dust — only rims break the surface. Bigger,
-      // bolder rims so they actually read; a couple upright relics for scale-wrong.
-      const N=9;
+      // relics half-sunk/tilted in dust — big rims break the surface. Guarantee a
+      // NEAR hero buried dish so the scene always reads; rest spread across depth.
+      const hr=K.rng(seed*23+1);
+      const heroX=W*(0.18+hr()*0.6), heroDepth=0.06+hr()*0.12;
+      push({cx:heroX, base:gy(H,hzY,heroDepth), sc:pscale(heroDepth)*1.7, depth:heroDepth, kind:'buried', tilt:(hr()-0.5)*0.9});
+      const N=8;
       for(let i=0;i<N;i++){
-        const rr=K.rng(seed*23+i*71);
-        const depth=Math.pow(rr(),1.0);
+        const rr=K.rng(seed*29+i*71);
+        const depth=0.15+Math.pow(rr(),0.9)*0.78;
         const surfaceY=gy(H,hzY,depth);
         const cx=W*(0.05+rr()*0.9);
-        const sc=pscale(depth)*(1.0+rr()*1.1);
+        const sc=pscale(depth)*(0.9+rr()*1.0);
         // mostly buried dishes; a few upright relics interspersed for scale-wrong
-        if(rr()<0.68) push({cx,base:surfaceY,sc,depth,kind:'buried',tilt:(rr()-0.5)*1.0});
-        else push({cx,base:surfaceY,sc:sc*0.8,depth,kind: rr()<0.5?'mast':'receiver',tilt:0, wrong: rr()<0.4});
+        if(rr()<0.66) push({cx,base:surfaceY,sc,depth,kind:'buried',tilt:(rr()-0.5)*1.0});
+        else push({cx,base:surfaceY,sc:sc*0.85,depth,kind: rr()<0.5?'mast':'receiver',tilt:0, wrong: rr()<0.45});
       }
     }
 
@@ -289,12 +305,21 @@ window.ENGINE = (function () {
     K.bloom(x,sunx,hzY*0.74,W*0.40,P.lit,p.hour==='High Glare'?0.30:0.20);
 
     // GROUND
-    const pg=x.createLinearGradient(0,hzY,0,H); pg.addColorStop(0,K.mix(P.skB,P.gnd,0.5)); pg.addColorStop(0.2,P.gnd); pg.addColorStop(1,K.mix(P.gnd,'#000',0.5));
+    const pg=x.createLinearGradient(0,hzY,0,H); pg.addColorStop(0,K.mix(P.skB,P.gnd,0.55)); pg.addColorStop(0.18,P.gnd); pg.addColorStop(1,K.mix(P.gnd,'#000',0.62));
     x.fillStyle=pg; x.fillRect(0,hzY,W,H-hzY);
     K.hazeSheet(x,W,H,noise,P.haze,0.3,S*0.6,'overlay');
     K.bloom(x,W*0.5,hzY,W*0.8,P.haze,0.3);
     // soft dune mottling on the plain so it isn't a flat field
     K.mottle(x,0,hzY,W,H-hzY,P.gnd,2600,r,'overlay');
+
+    // faint distant ridge silhouette breaking the horizon (kills dead sky).
+    // Antenna Ridge draws its own bigger landform, so skip there.
+    if(p.scene!=='Antenna Ridge'){
+      x.save(); x.globalCompositeOperation='multiply'; x.fillStyle=K.rgba(K.mix(P.metal,P.haze,0.4),0.55);
+      x.beginPath(); x.moveTo(0,hzY);
+      for(let xx=0;xx<=W;xx+=W/30){ const yb=hzY-(0.5+noise.fbm(xx/160,11,3))*S*0.045; x.lineTo(xx,yb); }
+      x.lineTo(W,hzY); x.closePath(); x.fill(); x.restore();
+    }
 
     // survey grid receding (instrument tell)
     x.save(); x.globalCompositeOperation='screen'; x.strokeStyle=K.rgba(P.ink,0.09); x.lineWidth=1; const vpx=W*0.5;
