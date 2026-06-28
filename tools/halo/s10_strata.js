@@ -87,13 +87,15 @@ window.ENGINE = (function () {
     x.fillStyle = g; x.fillRect(x0, y0, w, h);
     K.mottle(x, x0, y0, w, h, base, 26, r, 'overlay');
     K.mottle(x, x0, y0, w, h, base, 80, r, 'multiply');
+    // pale beds need stronger streak contrast or they read flat
+    const pale = K.lum(base) > 0.55;
     // faint internal bedding waves (cloudy fbm streaks)
     x.save();
-    const streaks = 2 + (r() * 3 | 0);
+    const streaks = (pale ? 4 : 2) + (r() * 3 | 0);
     for (let i = 0; i < streaks; i++) {
-      const sy = y0 + h * (0.15 + r() * 0.7);
-      const c = r() < 0.5 ? K.mix(base, '#fff', 0.14) : K.mix(base, '#000', 0.16);
-      x.strokeStyle = K.rgba(c, 0.18 + r() * 0.14); x.lineWidth = 1 + r() * 3;
+      const sy = y0 + h * (0.12 + r() * 0.76);
+      const c = r() < 0.5 ? K.mix(base, '#fff', pale ? 0.20 : 0.14) : K.mix(base, '#000', pale ? 0.26 : 0.16);
+      x.strokeStyle = K.rgba(c, (pale ? 0.26 : 0.18) + r() * 0.14); x.lineWidth = 1 + r() * 3;
       x.beginPath();
       for (let xx = 0; xx <= w; xx += 7) { const n = noise.fbm((x0 + xx) / 60, sy / 50, 3); x.lineTo(x0 + xx, sy + n * h * 0.18); }
       x.stroke();
