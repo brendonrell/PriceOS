@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+import { readFileSync, writeFileSync } from 'fs';
+const [,,inp,out,maxW] = process.argv;
+const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const page = await b.newPage();
+const data = 'data:image/png;base64,'+readFileSync(inp).toString('base64');
+await page.setContent('<body style="margin:0"><img id=i src="'+data+'"></body>');
+await page.waitForSelector('#i');
+const jpg = await page.evaluate(async(maxW)=>{const im=document.getElementById('i');await im.decode();const s=Math.min(1, maxW/im.naturalWidth);const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*s);c.height=Math.round(im.naturalHeight*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',0.72);}, parseInt(maxW));
+writeFileSync(out, Buffer.from(jpg.split(',')[1],'base64'));
+console.log('OK',out, Buffer.from(jpg.split(',')[1],'base64').length);
+await b.close();

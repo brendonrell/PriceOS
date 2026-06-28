@@ -41,12 +41,31 @@ import { renderLustre, lustreTraits, lustreSchema, LUSTRE_ASPECTS } from '../art
 import { renderBloomwater, bloomwaterTraits, bloomwaterSchema, BLOOMWATER_ASPECTS } from '../art/engines/bloomwater';
 import { renderVoltaic, voltaicTraits, voltaicSchema, VOLTAIC_ASPECTS } from '../art/engines/voltaic';
 import { renderFacet, facetTraits, facetSchema, FACET_ASPECTS } from '../art/engines/facet';
+/* ── Halo cohort (2026-06-28) — 6 semi-abstract surreal projects, each its own
+   distinct colour territory + a Layout axis (4-6 structural compositions per
+   project), assigned to 6 new single-project AI artists. Built via a 12→6
+   jury bake-off + layout-variety pass + per-project palette pass. ── */
+import { renderOrbital, orbitalTraits, orbitalSchema, ORBITAL_ASPECTS } from '../art/engines/orbital';
+import { renderPressroom, pressroomTraits, pressroomSchema, PRESSROOM_ASPECTS } from '../art/engines/pressroom';
+import { renderCinder, cinderTraits, cinderSchema, CINDER_ASPECTS } from '../art/engines/cinder';
+import { renderInterchange, interchangeTraits, interchangeSchema, INTERCHANGE_ASPECTS } from '../art/engines/interchange';
+import { renderTopiary, topiaryTraits, topiarySchema, TOPIARY_ASPECTS } from '../art/engines/topiary';
+import { renderTideworks, tideworksTraits, tideworksSchema, TIDEWORKS_ASPECTS } from '../art/engines/tideworks';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
+/* ── HALO project (2026-06-28): VESPERS — the platform halo (flagship), by
+   firstchannel-ai — plus its tournament runner-up ARMILLARY, by lapidary-ai. */
+import { renderVespers, vespersTraits, vespersSchema, VESPERS_ASPECTS } from '../art/engines/vespers';
+import { renderArmillary, armillaryTraits, armillarySchema, ARMILLARY_ASPECTS } from '../art/engines/armillary';
+/* ── Surreal-vista tournament cohort (2026-06-28): Murmuration (winner) →
+   murmur-ai; Tokeh → coralline-ai; Conservatory → turing-ai. ── */
+import { renderMurmuration, murmurationTraits, murmurationSchema, MURMURATION_ASPECTS } from '../art/engines/murmuration';
+import { renderTokeh, tokehTraits, tokehSchema, TOKEH_ASPECTS } from '../art/engines/tokeh';
+import { renderConservatory, conservatoryTraits, conservatorySchema, CONSERVATORY_ASPECTS } from '../art/engines/conservatory';
 /* ── HALO surreal cohort (2026-06-28) — four new AI artists + a fathom-ai sequel.
    Heliodon (umbra-ai) is built + committed but HELD off the live list for a
    later staggered release (Vestibule ships first). ── */
@@ -441,6 +460,131 @@ const FACET: ProjectDef = {
   traitsOf: facetTraits,
 };
 
+/* ── Halo cohort (2026-06-28) — opus4-8 jury bake-off survivors, each under a
+   new single-project AI artist, each owning a distinct colour territory. ── */
+const ORBITAL: ProjectDef = {
+  slug: 'orbital', displayName: 'Orbital', artistHandle: 'lowgravity-ai', outputs: 444,
+  colorway: '#ff5e5e', mintPriceEth: 0.08,
+  soundtrack: { playlistId: 'OLAK5uy_muokP2ArFXF_yuj0Qnh_5_QmfFMpwqFj4', label: 'Air — Moon Safari' },
+  aspects: ORBITAL_ASPECTS, traitSchema: orbitalSchema, render: renderOrbital, traitsOf: orbitalTraits,
+};
+const PRESSROOM: ProjectDef = {
+  slug: 'pressroom', displayName: 'Pressroom', artistHandle: 'offset-ai', outputs: 512,
+  colorway: '#ff48a0', mintPriceEth: 0.05,
+  soundtrack: { playlistId: 'PLWQigmFvFjPdvjrUyTTkpocV3KHfibXmO', label: 'Jet Set Radio — Original Soundtrack' },
+  aspects: PRESSROOM_ASPECTS, traitSchema: pressroomSchema, render: renderPressroom, traitsOf: pressroomTraits,
+};
+const CINDER: ProjectDef = {
+  slug: 'cinder', displayName: 'Cinder', artistHandle: 'nightpour-ai', outputs: 333,
+  colorway: '#ff7a18', mintPriceEth: 0.12,
+  soundtrack: { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
+  aspects: CINDER_ASPECTS, traitSchema: cinderSchema, render: renderCinder, traitsOf: cinderTraits,
+};
+const CATENARY: ProjectDef = {
+  slug: 'catenary', displayName: 'Catenary', artistHandle: 'headways-ai', outputs: 256,
+  colorway: '#ffb02e', mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  aspects: INTERCHANGE_ASPECTS, traitSchema: interchangeSchema, render: renderInterchange, traitsOf: interchangeTraits,
+};
+const TOPIARY: ProjectDef = {
+  slug: 'topiary', displayName: 'Topiary', artistHandle: 'nightlawn-ai', outputs: 360,
+  colorway: '#1fae5a', mintPriceEth: 0.07,
+  soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
+  aspects: TOPIARY_ASPECTS, traitSchema: topiarySchema, render: renderTopiary, traitsOf: topiaryTraits,
+};
+const SLACK_WATER: ProjectDef = {
+  slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'slacktide-ai', outputs: 288,
+  colorway: '#1ec8c8', mintPriceEth: 0.09,
+  soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  aspects: TIDEWORKS_ASPECTS, traitSchema: tideworksSchema, render: renderTideworks, traitsOf: tideworksTraits,
+};
+
+/* THE HALO PROJECT — VESPERS. Monumental drowned architecture mirrored in
+   still water; eight scene families, ten cool-jewel colourways. firstchannel-ai. */
+const VESPERS: ProjectDef = {
+  slug: 'vespers',
+  displayName: 'Vespers',
+  artistHandle: 'firstchannel-ai',
+  outputs: 444,
+  colorway: '#39ffbc',
+  mintPriceEth: 0.2,
+  soundtrack: { playlistId: 'OLAK5uy_kswdDmyW01XnMc4TobYm-ybFAfusEjxjc', label: 'Stars of the Lid — And Their Refinement of the Decline' },
+  aspects: VESPERS_ASPECTS,
+  traitSchema: vespersSchema,
+  render: renderVespers,
+  traitsOf: vespersTraits,
+};
+
+/* ARMILLARY — the halo tournament's runner-up, kept as its own project. A
+   floating precision instrument in coloured haze; ten hot colourways. lapidary-ai. */
+const ARMILLARY: ProjectDef = {
+  slug: 'armillary',
+  displayName: 'Armillary',
+  artistHandle: 'lapidary-ai',
+  outputs: 360,
+  colorway: '#ff5de0',
+  mintPriceEth: 0.15,
+  soundtrack: { playlistId: 'OLAK5uy_lMwoLU2oHipofIEl9gqOY2E1jVqbHg5v0', label: 'Vangelis — Albedo 0.39' },
+  aspects: ARMILLARY_ASPECTS,
+  traitSchema: armillarySchema,
+  render: renderArmillary,
+  traitsOf: armillaryTraits,
+};
+
+/* ── Murmuration — winner of a 12-way surreal-vista jury tournament, by murmur-ai
+ * (kindred to their collective-voice piece Quorum). A vast emergent swarm flocking
+ * into a different impossible form each output (vortex / ribbon / spiral / column /
+ * cascade / swell), surreal "real but off," saturated accents over twilight steel,
+ * deep haze. Signature electric cyan. */
+const MURMURATION: ProjectDef = {
+  slug: 'murmuration',
+  displayName: 'Murmuration',
+  artistHandle: 'murmur-ai',
+  outputs: 729,
+  colorway: '#1ce0ff',
+  mintPriceEth: 0.15,
+  soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  aspects: MURMURATION_ASPECTS,
+  traitSchema: murmurationSchema,
+  render: renderMurmuration,
+  traitsOf: murmurationTraits,
+};
+
+/* ── Tokeh — tournament finalist, by coralline-ai (kindred to their
+ * bioluminescent Coral Logic). Big, slow, luminous drifters adrift in a
+ * bioluminescent violet-night valley of air, heavy bokeh depth. */
+const TOKEH: ProjectDef = {
+  slug: 'tokeh',
+  displayName: 'Tokeh',
+  artistHandle: 'coralline-ai',
+  outputs: 444,
+  colorway: '#b14dff',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'OLAK5uy_lCS1RuGli5eF1wKf8uJSisyzFsOYrY4AA', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
+  aspects: TOKEH_ASPECTS,
+  traitSchema: tokehSchema,
+  render: renderTokeh,
+  traitsOf: tokehTraits,
+};
+
+/* ── Conservatory — tournament finalist, by turing-ai (kindred to their
+ * generative-botany Turing's Garden). A teeming biomechanical glasshouse seen
+ * through seven camera archetypes + five architectures, god-rays, emerald grounds
+ * glowing magenta + gold. */
+const CONSERVATORY: ProjectDef = {
+  slug: 'conservatory',
+  displayName: 'Conservatory',
+  artistHandle: 'turing-ai',
+  outputs: 512,
+  colorway: '#ff2e9e',
+  mintPriceEth: 0.1,
+  soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
+  aspects: CONSERVATORY_ASPECTS,
+  traitSchema: conservatorySchema,
+  render: renderConservatory,
+  traitsOf: conservatoryTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -586,6 +730,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
  *   umbra-ai     : Vestibule (live), Heliodon (HELD)       (shadow & metaphysical space)
  *   fathom-ai    : Noise From Below 2                      (sequel to Noise From Below)
  */
+// (merged alongside the VESPERS/ARMILLARY + surreal-vista cohorts already on dev)
 const LOADED_QUESTION: ProjectDef = {
   slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'tender-ai', outputs: 777,
   colorway: '#f7c400', mintPriceEth: 0,
@@ -641,7 +786,7 @@ const NOISE_BELOW_2: ProjectDef = {
   aspects: BELOW2_ASPECTS, traitSchema: below2Schema, render: renderBelow2, traitsOf: below2Traits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

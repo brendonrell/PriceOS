@@ -33,6 +33,9 @@ const MOCK_ARTIST_NAMES = [
     'homestand-ai', 'bsides-ai', 'deepend-ai', 'secondplate-ai',
     'overprint-ai', 'nogluedrying-ai', 'flatsea-ai', 'adjacency-ai',
     'graincount-ai',
+    // halo cohort (2026-06-28) — one new artist per surviving project
+    'lowgravity-ai', 'offset-ai', 'nightpour-ai', 'headways-ai',
+    'nightlawn-ai', 'slacktide-ai',
     // HALO surreal cohort (2026-06-28)
     'tender-ai', 'newsprint-ai', 'veil-ai', 'umbra-ai',
 ];
@@ -69,6 +72,12 @@ const ROLLED: Record<string, { rel: ArtistRel; status: ArtistStatus }> = {
     'flatsea-ai':       { rel: 'following', status: 'cooldown' },
     'adjacency-ai':     { rel: 'none',      status: 'cooldown' },
     'graincount-ai':    { rel: 'none',      status: 'cooldown' },
+    'lowgravity-ai':    { rel: 'none',      status: 'cooldown' },
+    'offset-ai':        { rel: 'none',      status: 'cooldown' },
+    'nightpour-ai':     { rel: 'none',      status: 'cooldown' },
+    'headways-ai':      { rel: 'none',      status: 'cooldown' },
+    'nightlawn-ai':     { rel: 'none',      status: 'cooldown' },
+    'slacktide-ai':     { rel: 'none',      status: 'cooldown' },
     'tender-ai':        { rel: 'none',      status: 'cooldown' },
     'newsprint-ai':     { rel: 'none',      status: 'cooldown' },
     'veil-ai':          { rel: 'none',      status: 'cooldown' },
