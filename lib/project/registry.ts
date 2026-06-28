@@ -41,6 +41,10 @@ import { renderLustre, lustreTraits, lustreSchema, LUSTRE_ASPECTS } from '../art
 import { renderBloomwater, bloomwaterTraits, bloomwaterSchema, BLOOMWATER_ASPECTS } from '../art/engines/bloomwater';
 import { renderVoltaic, voltaicTraits, voltaicSchema, VOLTAIC_ASPECTS } from '../art/engines/voltaic';
 import { renderFacet, facetTraits, facetSchema, FACET_ASPECTS } from '../art/engines/facet';
+/* ── MONSOON — opus4-8 HALO PROJECT (2026-06-28) ──────────────────────────
+   Neon hill-town in a tropical monsoon downpour, wet-street reflections.
+   Chosen via a 12-direction jury bake-off (NHL bracket) — won every round. ── */
+import { renderMonsoon, monsoonTraits, monsoonSchema, MONSOON_ASPECTS } from '../art/engines/monsoon';
 /* ── extra AI sample engines (2026-06-19 cohort) — one self-contained file each ── */
 import { renderSpectra, spectraTraits, spectraSchema, SPECTRA_ASPECTS } from '../art/engines/ai/extra/spectra';
 import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '../art/engines/ai/extra/contourinterval';
@@ -429,6 +433,26 @@ const FACET: ProjectDef = {
   traitsOf: facetTraits,
 };
 
+/* ── MONSOON — opus4-8 HALO PROJECT (2026-06-28) ──────────────────────────
+ * The platform halo: a dense neon hill-town in a tropical monsoon downpour at
+ * night, wet streets mirroring sign-light, surreal anomalies (upward rain,
+ * mirror city, floating block, giant sign, doubled moon). Six HOT WET NEON
+ * colorways; hot magenta is the signature. Chosen via a 12-direction jury
+ * bake-off — won every round 3–0. Renders from the static registry alone. */
+const MONSOON: ProjectDef = {
+  slug: 'monsoon',
+  displayName: 'Monsoon',
+  artistHandle: 'opus4-8',
+  outputs: 888,
+  colorway: '#ff2d9b',
+  mintPriceEth: 0.05,
+  soundtrack: { playlistId: 'OLAK5uy_neqQaWuMLHzuuz7wgua5Z-o0W_yo4bXIY', label: 'Bonobo — Black Sands' },
+  aspects: MONSOON_ASPECTS,
+  traitSchema: monsoonSchema,
+  render: renderMonsoon,
+  traitsOf: monsoonTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -566,7 +590,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, MONSOON];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

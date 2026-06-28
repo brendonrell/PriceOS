@@ -118,9 +118,13 @@ window.ENGINE = (function () {
     if (mode === 'Upward Band') {
       const bg = x.createLinearGradient(0, bandY0, 0, bandY1);
       bg.addColorStop(0, K.rgba(P.cyan, 0));
-      bg.addColorStop(0.5, K.rgba(P.cyan, 0.06));
+      bg.addColorStop(0.5, K.rgba(P.cyan, 0.13));
       bg.addColorStop(1, K.rgba(P.cyan, 0));
       x.fillStyle = bg; x.fillRect(0, bandY0, W, bandY1 - bandY0);
+      // glowing seam edges so the impossible reversal reads clearly
+      x.strokeStyle = K.rgba(K.mix(P.cyan, '#fff', 0.3), 0.22); x.lineWidth = 1.4;
+      x.beginPath(); x.moveTo(0, bandY0); x.lineTo(W, bandY0); x.stroke();
+      x.beginPath(); x.moveTo(0, bandY1); x.lineTo(W, bandY1); x.stroke();
     }
     for (let i = 0; i < n; i++) {
       const sx = r() * W * 1.2 - W * 0.1;
@@ -141,7 +145,10 @@ window.ENGINE = (function () {
   }
 
   function draw(cv, seed) {
-    const r = K.rng(seed), p = params(r), P = p.pal, W = p.fmt.W, H = p.fmt.H;
+    const r = K.rng(seed), p = params(r), W = p.fmt.W, H = p.fmt.H;
+    // colorway-override hook (the signature-colour pass renders one composition
+    // across every colorway); falls back to the seed's own pick.
+    const P = (typeof window !== 'undefined' && window.FORCE_PAL && PALS.find((q) => q.name === window.FORCE_PAL)) || p.pal;
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d');
     const noise = K.makeNoise(seed);
@@ -251,7 +258,7 @@ window.ENGINE = (function () {
     // The signature element. Mirror the ENTIRE lit town into the wet street as
     // long, soft, downward-stretched neon smears. "Mirror City" shifts/recolors.
     {
-      const shift = p.surreal === 'Mirror City' ? (r() - 0.5) * W * 0.35 : 0;
+      const shift = p.surreal === 'Mirror City' ? (r() < 0.5 ? -1 : 1) * W * (0.18 + r() * 0.20) : 0;
       const wetH = H - water;
       x.save();
       x.globalCompositeOperation = 'lighter';
@@ -261,14 +268,14 @@ window.ENGINE = (function () {
         const into = K.clamp((water - s.y) / water, 0, 1); // how high the source sits
         const fade = 0.5 + into * 0.5;
         let col = s.col;
-        if (p.surreal === 'Mirror City' && r() < 0.5) col = K.mix(s.col, P.jade, 0.5);
+        if (p.surreal === 'Mirror City' && r() < 0.7) col = K.mix(s.col, P.jade, 0.6);
         // NARROW vertical neon trail, length scaled by how bright the source is
         const colW = K.clamp(s.rad * 0.16, 3, 26);
         const colH = K.clamp(wetH * (0.4 + into * 0.55), 40, wetH * 1.1);
         const top = water + 2;
         const grd = x.createLinearGradient(0, top, 0, top + colH);
-        grd.addColorStop(0, K.rgba(col, s.a * fade * 0.55));
-        grd.addColorStop(0.35, K.rgba(col, s.a * fade * 0.26));
+        grd.addColorStop(0, K.rgba(col, s.a * fade * 0.42));
+        grd.addColorStop(0.35, K.rgba(col, s.a * fade * 0.20));
         grd.addColorStop(1, K.rgba(col, 0));
         // soft horizontal falloff via a radial-ish smear: draw 3 stacked widths
         for (let w = 0; w < 3; w++) {
@@ -340,8 +347,8 @@ window.ENGINE = (function () {
         x.fillRect(ux - sz, uy, sz * 2, 1.5);
         // glowing dot of carried light just under the canopy
         x.save(); x.globalCompositeOperation = 'lighter';
-        x.fillStyle = K.rgba('#ffffff', 0.95); x.beginPath(); x.arc(ux, uy + sz * 0.35, sz * 0.18, 0, 7); x.fill();
-        x.fillStyle = K.rgba(col, 0.95); x.beginPath(); x.arc(ux, uy + sz * 0.35, sz * 0.3, 0, 7); x.fill();
+        x.fillStyle = K.rgba('#ffffff', 0.7); x.beginPath(); x.arc(ux, uy + sz * 0.35, sz * 0.14, 0, 7); x.fill();
+        x.fillStyle = K.rgba(col, 0.9); x.beginPath(); x.arc(ux, uy + sz * 0.35, sz * 0.3, 0, 7); x.fill();
         x.restore();
         K.bloom(x, ux, uy + sz * 0.35, sz * 1.9, col, 0.55);
         // its little reflection streaking down
