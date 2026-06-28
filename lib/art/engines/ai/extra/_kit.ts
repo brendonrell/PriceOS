@@ -24,6 +24,50 @@ export function paperTooth(x,W,H,r){x.save();x.globalCompositeOperation='overlay
 export function mottle(x,x0,y0,w,h,col,density,r,blend){x.save();x.globalCompositeOperation=blend||'overlay';const n=Math.floor(w*h/density);for(let i=0;i<n;i++){const dark=r()<0.5;const c=dark?mix(col,'#000',0.34):mix(col,'#fff',0.32);const s=0.8+r()*2.2;x.fillStyle=rgba(c,0.04+r()*0.09);x.fillRect(x0+r()*w,y0+r()*h,s,s);}x.restore();}
 export const PHI=1.61803398875, INVPHI=0.61803398875;
 
+/* ── extended atmosphere/texture kit (halo cohort 2026-06-28) — ported from the
+   R&D kit so production engines get haze, fbm noise, bloom, sheen, metal. ── */
+export function makeNoise(seed){
+  const r=rng(seed);
+  const perm=new Uint8Array(512);
+  const p=new Uint8Array(256);
+  for(let i=0;i<256;i++)p[i]=i;
+  for(let i=255;i>0;i--){const j=Math.floor(r()*(i+1));const t=p[i];p[i]=p[j];p[j]=t;}
+  for(let i=0;i<512;i++)perm[i]=p[i&255];
+  function fade(t){return t*t*t*(t*(t*6-15)+10);}
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function grad(h,x,y){const u=(h&1)?x:-x,v=(h&2)?y:-y;return u+v;}
+  function noise2(x,y){
+    const X=Math.floor(x)&255,Y=Math.floor(y)&255;
+    x-=Math.floor(x);y-=Math.floor(y);
+    const u=fade(x),v=fade(y);
+    const aa=perm[perm[X]+Y],ab=perm[perm[X]+Y+1],ba=perm[perm[X+1]+Y],bb=perm[perm[X+1]+Y+1];
+    return lerp(lerp(grad(aa,x,y),grad(ba,x-1,y),u),lerp(grad(ab,x,y-1),grad(bb,x-1,y-1),u),v);
+  }
+  function fbm(x,y,oct,gain,lac){oct=oct||4;gain=gain||0.5;lac=lac||2;let a=0,f=1,amp=0.5,n=0;for(let i=0;i<oct;i++){a+=amp*noise2(x*f,y*f);n+=amp;amp*=gain;f*=lac;}return a/n;}
+  return {noise2,fbm};
+}
+export function bloom(x,cx,cy,rad,col,a0){x.save();x.globalCompositeOperation='lighter';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,rgba(col,a0));g.addColorStop(1,rgba(col,0));x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
+export function hazeSheet(x,W,H,noise,col,opacity,scale,blend){
+  x.save();x.globalCompositeOperation=blend||'screen';
+  const step=Math.max(3,Math.floor(Math.min(W,H)/180));
+  const c=h2r(col);
+  for(let yy=0;yy<H;yy+=step){for(let xx=0;xx<W;xx+=step){
+    const n=(noise.fbm(xx/scale,yy/scale,5,0.55,2.1)+1)/2;
+    const a=clamp(n*n*opacity,0,1);
+    if(a<0.01)continue;
+    x.fillStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';
+    x.fillRect(xx,yy,step+1,step+1);
+  }}
+  x.restore();
+}
+export function scanlines(x,W,H,gap,a){x.save();x.globalCompositeOperation='multiply';x.fillStyle='rgba(0,0,0,'+a+')';for(let y=0;y<H;y+=gap){x.fillRect(0,y,W,1);}x.restore();}
+export function iridescent(phase,sat,light){const h=((phase*360)%360+360)%360;return hsl2hex(h,sat==null?0.85:sat,light==null?0.6:light);}
+export function sheen(x,cx,cy,rad,col,a0){x.save();x.globalCompositeOperation='lighter';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,rgba(col,a0));g.addColorStop(0.4,rgba(col,a0*0.35));g.addColorStop(1,rgba(col,0));x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
+export function curl(noise,x,y,eps){eps=eps||1;const n1=noise.fbm((x)/100,(y+eps)/100,4),n2=noise.fbm((x)/100,(y-eps)/100,4);const n3=noise.fbm((x+eps)/100,(y)/100,4),n4=noise.fbm((x-eps)/100,(y)/100,4);return [(n1-n2)/(2*eps),-(n3-n4)/(2*eps)];}
+export function softShadow(x,cx,cy,rad,a){x.save();x.globalCompositeOperation='multiply';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
+export function chromeRamp(x,x0,y0,w,h,ang,base){const cx=x0+w/2,cy=y0+h/2,L=Math.max(w,h);const dx=Math.cos(ang)*L,dy=Math.sin(ang)*L;const g=x.createLinearGradient(cx-dx/2,cy-dy/2,cx+dx/2,cy+dy/2);g.addColorStop(0,mix(base,'#05060a',0.55));g.addColorStop(0.32,mix(base,'#ffffff',0.55));g.addColorStop(0.46,mix(base,'#06070c',0.35));g.addColorStop(0.6,mix(base,'#ffffff',0.85));g.addColorStop(0.78,mix(base,'#04050a',0.6));g.addColorStop(1,mix(base,'#ffffff',0.4));return g;}
+export function chromaSplit(x,W,H,off){try{const img=x.getImageData(0,0,W,H);const d=img.data;const out=x.createImageData(W,H);const o=out.data;const dx=off|0;for(let y=0;y<H;y++){for(let i=0;i<W;i++){const idx=(y*W+i)*4;const rx=Math.min(W-1,i+dx),bx=Math.max(0,i-dx);o[idx]=d[(y*W+rx)*4];o[idx+1]=d[idx+1];o[idx+2]=d[(y*W+bx)*4+2];o[idx+3]=255;}}x.putImageData(out,0,0);}catch(e){}}
+
 /* Paint via a raw engine at native resolution, blit at requested width — the
    exact contract used by core engines (lib/art/engines/ai/index.ts). */
 export function blit(raw, traitsOf){
