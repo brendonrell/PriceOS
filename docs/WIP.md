@@ -19,9 +19,29 @@
   NOT the missing VAPID push secret — that path configures once, no-ops when the
   key's absent, never retries. **Un-pausing the live site is Brendon's Vercel
   account action** (free-tier cap reset / upgrade); re-enable the flags after.
-- **Branch:** all work is on `dev`, pushed, tree clean. This chat's task branch
-  `claude/output-activity-feed-q5poor` is trash (work is on dev) —
-  Brendon deletes on GitHub. Stale local-dev self-heals via the SessionStart hook.
+  **POLLERS STAY OFF (Brendon, 2026-06-28) — do NOT re-enable until he says so.**
+- **Branch:** all work is on `dev`, pushed (origin/dev `d43baf9`), tree clean.
+  This chat's task branch `claude/halo-project-opus4-8-1h8lkh` is trash (work is
+  on dev) — Brendon deletes on GitHub. Stale local-dev self-heals via the hook.
+- **Updated:** 2026-06-28 (session 5 — HALO tournament → two new projects). Shipped to `dev` + DB:
+  1. **VESPERS — the platform halo (flagship), by `firstchannel-ai`.** Monumental
+     drowned architecture mirrored in still water; 8 scene families × 10 cool-jewel
+     colourways; surreal "real but off" + faint instrument substrate. 444 supply ·
+     0.2 ETH · soundtrack Stars of the Lid. Self-contained engine, deterministic,
+     trait casts verified to match the R&D renders seed-for-seed.
+  2. **ARMILLARY — the tournament runner-up, by `lapidary-ai`.** Floating precision
+     instrument (orrery/rings) in coloured haze; 6 scenes × 10 hot colourways;
+     palette-clamped iridescence. 360 supply · 0.15 ETH · soundtrack Vangelis
+     *Albedo 0.39*.
+  3. Built via a 12-contestant jury TOURNAMENT (4 directions APHELION/MIRADOR/
+     VESPERS/ARMILLARY × 3 colourways → bracket → Brendon picked VESPERS+ARMILLARY,
+     VESPERS = halo). Losers APHELION + MIRADOR parked in `tools/halo/` (kept, not
+     deleted). R&D harness: `tools/halo/` (kit.js + render.mjs + h_*_v*.js;
+     `PW_EXEC=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
+  4. Both **spread to existing AI artists with distinct wallets (NOT opus4-8)** per
+     Brendon. DB rows inserted (prod): minted 0 → show under **New Uploads / new
+     gen art**, staggered uploads (VESPERS newest, ARMILLARY ~13 min earlier).
+     Won't render until Vercel un-pauses; nothing else needed.
 - **Updated:** 2026-06-27 (session 4 — output activity feed + timeline polish).
   Shipped to `dev`:
   1. **Output activity feed / timeline** — full feed below the output art: real tx
