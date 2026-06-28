@@ -47,6 +47,18 @@ import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '..
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
+/* ── HALO surreal cohort (2026-06-28) — four new AI artists + a fathom-ai sequel.
+   Heliodon (umbra-ai) is built + committed but HELD off the live list for a
+   later staggered release (Vestibule ships first). ── */
+import { renderLoadedQuestion, loadedQuestionTraits, loadedQuestionSchema, LOADEDQUESTION_ASPECTS } from '../art/engines/loadedquestion';
+import { renderProvenance, provenanceTraits, provenanceSchema, PROVENANCE_ASPECTS } from '../art/engines/provenance';
+import { renderDatum, datumTraits, datumSchema, DATUM_ASPECTS } from '../art/engines/datum';
+import { renderOffRegister, offRegisterTraits, offRegisterSchema, OFFREGISTER_ASPECTS } from '../art/engines/offregister';
+import { renderInterference, interferenceTraits, interferenceSchema, INTERFERENCE_ASPECTS } from '../art/engines/interference';
+import { renderAgainstLight, againstLightTraits, againstLightSchema, AGAINSTLIGHT_ASPECTS } from '../art/engines/againstlight';
+import { renderDrapery, draperyTraits, draperySchema, DRAPERY_ASPECTS } from '../art/engines/drapery';
+import { renderVestibule, vestibuleTraits, vestibuleSchema, VESTIBULE_ASPECTS } from '../art/engines/vestibule';
+import { renderBelow2, below2Traits, below2Schema, BELOW2_ASPECTS } from '../art/engines/noisefrombelow2';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -566,7 +578,70 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET];
+/* ── HALO surreal cohort (2026-06-28) ─────────────────────────────────────
+ * Four new AI artists with kindred bodies of work + a sequel for fathom-ai:
+ *   tender-ai    : The Loaded Question, Provenance, Datum  (value / text / systems)
+ *   newsprint-ai : Off Register, Interference              (ink & optics on paper)
+ *   veil-ai      : Against The Light, Drapery              (translucency & cloth)
+ *   umbra-ai     : Vestibule (live), Heliodon (HELD)       (shadow & metaphysical space)
+ *   fathom-ai    : Noise From Below 2                      (sequel to Noise From Below)
+ */
+const LOADED_QUESTION: ProjectDef = {
+  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'tender-ai', outputs: 777,
+  colorway: '#f7c400', mintPriceEth: 0,
+  soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
+  aspects: LOADEDQUESTION_ASPECTS, traitSchema: loadedQuestionSchema, render: renderLoadedQuestion, traitsOf: loadedQuestionTraits,
+};
+const PROVENANCE: ProjectDef = {
+  slug: 'provenance', displayName: 'Provenance', artistHandle: 'tender-ai', outputs: 256,
+  colorway: '#b23a2e', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
+  aspects: PROVENANCE_ASPECTS, traitSchema: provenanceSchema, render: renderProvenance, traitsOf: provenanceTraits,
+};
+const DATUM: ProjectDef = {
+  slug: 'datum', displayName: 'Datum', artistHandle: 'tender-ai', outputs: 333,
+  colorway: '#14365e', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  aspects: DATUM_ASPECTS, traitSchema: datumSchema, render: renderDatum, traitsOf: datumTraits,
+};
+const OFF_REGISTER: ProjectDef = {
+  slug: 'off-register', displayName: 'Off Register', artistHandle: 'newsprint-ai', outputs: 256,
+  colorway: '#ff5a3c', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
+  aspects: OFFREGISTER_ASPECTS, traitSchema: offRegisterSchema, render: renderOffRegister, traitsOf: offRegisterTraits,
+};
+const INTERFERENCE: ProjectDef = {
+  slug: 'interference', displayName: 'Interference', artistHandle: 'newsprint-ai', outputs: 222,
+  colorway: '#8a93a0', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
+  aspects: INTERFERENCE_ASPECTS, traitSchema: interferenceSchema, render: renderInterference, traitsOf: interferenceTraits,
+};
+const AGAINST_LIGHT: ProjectDef = {
+  slug: 'against-the-light', displayName: 'Against The Light', artistHandle: 'veil-ai', outputs: 256,
+  colorway: '#b8a070', mintPriceEth: 0,
+  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  aspects: AGAINSTLIGHT_ASPECTS, traitSchema: againstLightSchema, render: renderAgainstLight, traitsOf: againstLightTraits,
+};
+const DRAPERY: ProjectDef = {
+  slug: 'drapery', displayName: 'Drapery', artistHandle: 'veil-ai', outputs: 222,
+  colorway: '#7a3b3b', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_kS0xK-8stFnvAtN5wIIAidUD2MAXSOxAI', label: 'Sigur Rós — Ágætis byrjun' },
+  aspects: DRAPERY_ASPECTS, traitSchema: draperySchema, render: renderDrapery, traitsOf: draperyTraits,
+};
+const VESTIBULE: ProjectDef = {
+  slug: 'vestibule', displayName: 'Vestibule', artistHandle: 'umbra-ai', outputs: 256,
+  colorway: '#c2613b', mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
+  aspects: VESTIBULE_ASPECTS, traitSchema: vestibuleSchema, render: renderVestibule, traitsOf: vestibuleTraits,
+};
+const NOISE_BELOW_2: ProjectDef = {
+  slug: 'noise-from-below-2', displayName: 'Noise From Below 2', artistHandle: 'fathom-ai', outputs: 128,
+  colorway: '#8A6E3C', mintPriceEth: 0,
+  soundtrack: { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
+  aspects: BELOW2_ASPECTS, traitSchema: below2Schema, render: renderBelow2, traitsOf: below2Traits,
+};
+
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

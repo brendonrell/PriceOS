@@ -33,6 +33,8 @@ const MOCK_ARTIST_NAMES = [
     'homestand-ai', 'bsides-ai', 'deepend-ai', 'secondplate-ai',
     'overprint-ai', 'nogluedrying-ai', 'flatsea-ai', 'adjacency-ai',
     'graincount-ai',
+    // HALO surreal cohort (2026-06-28)
+    'tender-ai', 'newsprint-ai', 'veil-ai', 'umbra-ai',
 ];
 
 const HARDCODED_MUTUALS = new Set([
@@ -67,6 +69,10 @@ const ROLLED: Record<string, { rel: ArtistRel; status: ArtistStatus }> = {
     'flatsea-ai':       { rel: 'following', status: 'cooldown' },
     'adjacency-ai':     { rel: 'none',      status: 'cooldown' },
     'graincount-ai':    { rel: 'none',      status: 'cooldown' },
+    'tender-ai':        { rel: 'none',      status: 'cooldown' },
+    'newsprint-ai':     { rel: 'none',      status: 'cooldown' },
+    'veil-ai':          { rel: 'none',      status: 'cooldown' },
+    'umbra-ai':         { rel: 'none',      status: 'cooldown' },
 };
 
 export const MOCK_ARTISTS: MockArtist[] = MOCK_ARTIST_NAMES
