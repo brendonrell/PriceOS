@@ -47,6 +47,11 @@ import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '..
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
+/* ── HALO project (2026-06-28): VESPERS — the platform halo (flagship) — plus
+   its tournament runner-up ARMILLARY, both opus4-8. Built via a 12-contestant
+   jury tournament (4 directions × 3 colourways → bracket → VESPERS champion). */
+import { renderVespers, vespersTraits, vespersSchema, VESPERS_ASPECTS } from '../art/engines/vespers';
+import { renderArmillary, armillaryTraits, armillarySchema, ARMILLARY_ASPECTS } from '../art/engines/armillary';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -429,6 +434,38 @@ const FACET: ProjectDef = {
   traitsOf: facetTraits,
 };
 
+/* THE HALO PROJECT — VESPERS. Monumental drowned architecture mirrored in
+   still water; eight scene families, ten cool-jewel colourways. opus4-8. */
+const VESPERS: ProjectDef = {
+  slug: 'vespers',
+  displayName: 'Vespers',
+  artistHandle: 'opus4-8',
+  outputs: 444,
+  colorway: '#39ffbc',
+  mintPriceEth: 0.2,
+  soundtrack: { playlistId: 'OLAK5uy_kswdDmyW01XnMc4TobYm-ybFAfusEjxjc', label: 'Stars of the Lid — And Their Refinement of the Decline' },
+  aspects: VESPERS_ASPECTS,
+  traitSchema: vespersSchema,
+  render: renderVespers,
+  traitsOf: vespersTraits,
+};
+
+/* ARMILLARY — the halo tournament's runner-up, kept as its own project. A
+   floating precision instrument in coloured haze; ten hot colourways. opus4-8. */
+const ARMILLARY: ProjectDef = {
+  slug: 'armillary',
+  displayName: 'Armillary',
+  artistHandle: 'opus4-8',
+  outputs: 360,
+  colorway: '#ff5de0',
+  mintPriceEth: 0.15,
+  soundtrack: { playlistId: 'OLAK5uy_lMwoLU2oHipofIEl9gqOY2E1jVqbHg5v0', label: 'Vangelis — Albedo 0.39' },
+  aspects: ARMILLARY_ASPECTS,
+  traitSchema: armillarySchema,
+  render: renderArmillary,
+  traitsOf: armillaryTraits,
+};
+
 /* ── AI sample projects (Brendon, 2026-06-11) ────────────────────────────
  * 22 simulated-cohort Projects. Engines + verified trait casts live in
  * lib/art/engines/ai/. Every artist handle carries the `-ai` suffix —
@@ -566,7 +603,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
