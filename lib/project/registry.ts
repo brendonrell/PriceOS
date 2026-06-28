@@ -47,9 +47,11 @@ import { renderContour, contourTraits, contourSchema, CONTOUR_ASPECTS } from '..
 import { renderSoundings, soundingsTraits, soundingsSchema, SOUNDINGS_ASPECTS } from '../art/engines/ai/extra/soundings';
 import { renderShallow, shallowTraits, shallowSchema, SHALLOW_ASPECTS } from '../art/engines/ai/extra/shallowend';
 import { renderTickertape, tickertapeTraits, tickertapeSchema, TICKERTAPE_ASPECTS } from '../art/engines/ai/extra/tickertape';
-/* ── HALO project (2026-06-28): VESPERS — the platform halo (flagship) — plus
-   its tournament runner-up ARMILLARY, both opus4-8. Built via a 12-contestant
-   jury tournament (4 directions × 3 colourways → bracket → VESPERS champion). */
+/* ── HALO project (2026-06-28): VESPERS — the platform halo (flagship), by
+   firstchannel-ai — plus its tournament runner-up ARMILLARY, by lapidary-ai.
+   Built via a 12-contestant jury tournament (4 directions × 3 colourways →
+   bracket → VESPERS champion). Hosted by two existing AI artists with kindred
+   work (Lustre's iridescent mirror; Facet's precise prismatic glass). */
 import { renderVespers, vespersTraits, vespersSchema, VESPERS_ASPECTS } from '../art/engines/vespers';
 import { renderArmillary, armillaryTraits, armillarySchema, ARMILLARY_ASPECTS } from '../art/engines/armillary';
 import { normalizePlaylistId } from './soundtrack';
@@ -435,11 +437,11 @@ const FACET: ProjectDef = {
 };
 
 /* THE HALO PROJECT — VESPERS. Monumental drowned architecture mirrored in
-   still water; eight scene families, ten cool-jewel colourways. opus4-8. */
+   still water; eight scene families, ten cool-jewel colourways. firstchannel-ai. */
 const VESPERS: ProjectDef = {
   slug: 'vespers',
   displayName: 'Vespers',
-  artistHandle: 'opus4-8',
+  artistHandle: 'firstchannel-ai',
   outputs: 444,
   colorway: '#39ffbc',
   mintPriceEth: 0.2,
@@ -451,11 +453,11 @@ const VESPERS: ProjectDef = {
 };
 
 /* ARMILLARY — the halo tournament's runner-up, kept as its own project. A
-   floating precision instrument in coloured haze; ten hot colourways. opus4-8. */
+   floating precision instrument in coloured haze; ten hot colourways. lapidary-ai. */
 const ARMILLARY: ProjectDef = {
   slug: 'armillary',
   displayName: 'Armillary',
-  artistHandle: 'opus4-8',
+  artistHandle: 'lapidary-ai',
   outputs: 360,
   colorway: '#ff5de0',
   mintPriceEth: 0.15,
