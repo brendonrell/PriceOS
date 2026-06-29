@@ -66,7 +66,7 @@ function sessionOptions(): SessionOptions {
 }
 
 export async function getSession(): Promise<IronSession<SiweSession>> {
-  return getIronSession<SiweSession>(cookies(), sessionOptions());
+  return getIronSession<SiweSession>(await cookies(), sessionOptions());
 }
 
 /**
@@ -135,11 +135,11 @@ export async function verifySiweMessage(
 export function requireAuth<TParams = Record<string, string>>(
   handler: (
     req: NextRequest,
-    ctx: { params: TParams },
+    ctx: { params: Promise<TParams> },
     address: string
   ) => Promise<NextResponse> | NextResponse
 ) {
-  return async (req: NextRequest, ctx: { params: TParams }): Promise<NextResponse> => {
+  return async (req: NextRequest, ctx: { params: Promise<TParams> }): Promise<NextResponse> => {
     const address = await verifySiweSession(req);
     if (!address) return unauthorized('SIWE session required');
     return handler(req, ctx, address);

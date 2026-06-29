@@ -22,10 +22,8 @@ export interface FollowsListResponse {
   following_scores: number[];
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { address: string } }
-): Promise<NextResponse> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ address: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   const address = params.address.toLowerCase();
   if (!ADDRESS_RE.test(address)) {
     return badRequest('Invalid Ethereum address');

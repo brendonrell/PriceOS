@@ -14,7 +14,7 @@ import { notFound } from 'next/navigation';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 import { getProject } from '@/lib/project/registry';
 
-type Props = { params: { slug: string; localId: string } };
+type Props = { params: Promise<{ slug: string; localId: string }> };
 
 function isValidProjectSlug(s: string): boolean {
   const lower = s.toLowerCase();
@@ -30,7 +30,8 @@ function isValidLocalId(s: string): boolean {
   return true;
 }
 
-export default function ProjectOutputPage({ params }: Props) {
+export default async function ProjectOutputPage(props: Props) {
+  const params = await props.params;
   if (!isValidProjectSlug(params.slug)) notFound();
   if (!isValidLocalId(params.localId)) notFound();
 
@@ -49,7 +50,8 @@ export default function ProjectOutputPage({ params }: Props) {
   );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   if (!isValidProjectSlug(params.slug) || !isValidLocalId(params.localId)) {
     return { title: 'Not Found · Price Discussion' };
   }

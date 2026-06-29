@@ -249,10 +249,8 @@ async function buildMarkers(db: DB, slug: string, tokenId: string): Promise<Feed
   return markers;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<NextResponse> {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   const parsed = parseId(params.id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;

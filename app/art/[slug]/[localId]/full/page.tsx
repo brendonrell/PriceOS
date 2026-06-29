@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ArtworkFullscreen from '@/components/artwork/ArtworkFullscreen';
 
-type Props = { params: { slug: string; localId: string } };
+type Props = { params: Promise<{ slug: string; localId: string }> };
 
 function isValidProjectSlug(s: string): boolean {
   const lower = s.toLowerCase();
@@ -21,13 +21,15 @@ function isValidLocalId(s: string): boolean {
   return true;
 }
 
-export default function ArtworkFullscreenPage({ params }: Props) {
+export default async function ArtworkFullscreenPage(props: Props) {
+  const params = await props.params;
   if (!isValidProjectSlug(params.slug)) notFound();
   if (!isValidLocalId(params.localId)) notFound();
   return <ArtworkFullscreen slug={params.slug.toLowerCase()} id={Number(params.localId)} />;
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   if (!isValidProjectSlug(params.slug) || !isValidLocalId(params.localId)) {
     return { title: 'Not Found · Price Discussion' };
   }

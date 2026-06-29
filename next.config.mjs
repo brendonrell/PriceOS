@@ -4,6 +4,17 @@ const nextConfig = {
     // D1 scaffold has no ESLint dep; don't block builds on it.
     ignoreDuringBuilds: true,
   },
+  // Client-side navigation cache. Next 15 changed the `dynamic` stale-time
+  // default from 30s to 0s, which would refetch already-visited pages on every
+  // revisit and make navigation feel a beat slower. Re-pinned to the Next 14
+  // values (dynamic 30s, static 5min) so client nav stays instant — identical
+  // feel to before the upgrade.
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 300,
+    },
+  },
   // Security headers applied to every response. Deliberately does NOT set a
   // script-src Content-Security-Policy — a blocking script CSP needs tuning
   // against the live wallet/3rd-party scripts or it breaks the app, so that's a

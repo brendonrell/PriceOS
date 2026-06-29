@@ -47,14 +47,14 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 
 function getClientIp(req: NextRequest): string {
-  // Prefer the platform-trusted IP (Vercel populates req.ip at the edge). The
-  // x-forwarded-for header is client-spoofable, so it's only a fallback for
-  // non-Vercel/local runs — never the primary source.
-  if (req.ip) return req.ip;
-  const xff = req.headers.get('x-forwarded-for');
-  if (xff) return xff.split(',')[0].trim();
+  // Prefer the platform-trusted IP. Vercel populates x-real-ip at the edge with
+  // the true client IP — this replaced the removed `req.ip` in Next 15 and
+  // carries the same value. The x-forwarded-for header is client-spoofable, so
+  // it's only a fallback for non-Vercel/local runs — never the primary source.
   const real = req.headers.get('x-real-ip');
   if (real) return real;
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
   return 'unknown';
 }
 

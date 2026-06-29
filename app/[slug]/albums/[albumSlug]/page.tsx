@@ -5,13 +5,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { resolveProfileHandle } from '@/lib/slug';
 
-type Props = { params: { slug: string; albumSlug: string } };
+type Props = { params: Promise<{ slug: string; albumSlug: string }> };
 
 function isValidAlbumSlug(s: string): boolean {
   return /^[a-z0-9-]+$/.test(s.toLowerCase()) && s.length > 0 && s.length <= 64;
 }
 
-export default function ProfileAlbumDetailPage({ params }: Props) {
+export default async function ProfileAlbumDetailPage(props: Props) {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle) notFound();
   if (!isValidAlbumSlug(params.albumSlug)) notFound();
@@ -30,7 +31,8 @@ export default function ProfileAlbumDetailPage({ params }: Props) {
   );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle || !isValidAlbumSlug(params.albumSlug)) {
     return { title: 'Not Found · Price Discussion' };

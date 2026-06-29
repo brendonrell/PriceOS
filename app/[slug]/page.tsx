@@ -28,9 +28,10 @@ import { profileColorBootScript } from '@/lib/colorway/profileBootPaint';
 // else forces a refetch. force-dynamic = the seed is always current.
 export const dynamic = 'force-dynamic';
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
-export default async function SlugRootPage({ params }: Props) {
+export default async function SlugRootPage(props: Props) {
+  const params = await props.params;
   const r = resolveSlug(params.slug);
   if (r.kind === 'invalid') notFound();
 
@@ -99,7 +100,8 @@ export default async function SlugRootPage({ params }: Props) {
   );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const r = resolveSlug(params.slug);
   if (r.kind === 'invalid') {
     return { title: 'Not Found · Price Discussion' };

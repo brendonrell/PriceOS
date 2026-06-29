@@ -23,10 +23,8 @@ export interface ProjectFollowersResponse {
   following_count: number;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   const ref = params.id.trim();
   if (ref.length === 0) {
     return notFound('Project not found');

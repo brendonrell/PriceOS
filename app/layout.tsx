@@ -488,7 +488,7 @@ export default async function RootLayout({
     const SSR_COOKIE_CONFIG_STUB = {
         storage: { key: 'wagmi' },
     } as unknown as WagmiConfigType;
-    const cookieHeader = headers().get('cookie') ?? '';
+    const cookieHeader = (await headers()).get('cookie') ?? '';
     const initialState = cookieToInitialState(SSR_COOKIE_CONFIG_STUB, cookieHeader);
 
     let initialAuth: string | null | undefined;
