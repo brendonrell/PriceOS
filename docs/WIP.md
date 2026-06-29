@@ -6,6 +6,81 @@
 
 ---
 
+## ⭐ ACTIVE TASK — CLOUDFLARE MIGRATION (Brendon, 2026-06-29). READ THIS WHOLE BLOCK BEFORE DOING ANYTHING.
+
+> **New session: you have NOT done any of this yet. The app is STILL on Vercel,
+> STILL on the current framework version (Next 14 / React 18). NOTHING has moved
+> to Cloudflare. No migration code exists. Do not assume any step below is
+> already done — none are. This block is a PLAN, not a status report.**
+
+**What Brendon decided (do not re-litigate — he already chose this):**
+- Move the app's hosting from **Vercel → Cloudflare**, because Cloudflare's
+  bandwidth is free and his app is image-heavy, so it's far cheaper at scale.
+- He wants to **start today**, with THIS Claude doing the build (the other coder,
+  "Fable 5", is unavailable and may be for a while).
+- His **#1 fear, above everything: the app must look and work IDENTICALLY after
+  the move. It is near pixel-perfect today.** Protecting that is the prime
+  directive of this task. If anything would change the look/feel, STOP and tell him.
+
+**THE TARGET IS CLOUDFLARE *WORKERS* VIA THE OPENNEXT ADAPTER. NOT "next-on-pages".**
+- Brendon says "Cloudflare Pages" in chat — that is his shorthand. The real,
+  current path is **`@opennextjs/cloudflare` (OpenNext) deploying to Cloudflare
+  Workers.** The old `@cloudflare/next-on-pages` route is DEPRECATED and
+  Edge-runtime-only — **DO NOT USE IT.** If you find yourself reaching for
+  next-on-pages, you are on the wrong path; stop.
+
+**DO THE STEPS IN THIS EXACT ORDER. Do not skip or reorder:**
+1. **Framework upgrade FIRST, on its own, BEFORE touching Cloudflare.** Upgrade
+   Next 14→current + React 18→19. Prove it is pixel- and feel-identical on the
+   dev preview, screen by screen. The ONLY thing in this upgrade that can change
+   how the app *feels* is that **data caching defaults flip OFF** in the new
+   version — which can make some screens load a beat slower or show fresher data.
+   **Fix = explicitly re-pin caching where the instant feel matters. Layout,
+   styling, components, animations DO NOT change and you must NOT change them.**
+   This step is separated out on purpose so look/feel risk is isolated from the
+   hosting move. Ship/verify this before step 2.
+2. **THEN add the OpenNext adapter and do the first Cloudflare build.** This first
+   build is what tells us the REAL packed server-worker size — we do not know it
+   yet (see cost note). Wire the seams that differ on Cloudflare:
+   - **Rate limiter IP source** (`middleware.ts`) — currently reads Vercel's
+     `req.ip`; on Cloudflare the IP comes from the `CF-Connecting-IP` header.
+     Rewire it or per-IP limiting silently weakens.
+   - **Push notifications** (`web-push`, `lib/push/webpush.ts`) — the one Node-only
+     library; needs a Worker-compatible signing path. (Push isn't fully configured
+     anyway — VAPID key absent — so low stakes, but it's the fiddliest item.)
+   - **Timed-cache routes** (stats 60s, price 10s, search 60s, gas 12s) — caching
+     mechanism differs; re-tune freshness windows.
+   - **Image serving** — switches off Vercel's optimizer to Cloudflare's; visually
+     identical, must be wired.
+3. **THEN stand up the Cloudflare copy side-by-side with the live app.** Click
+   through EVERY screen on both, diff look + behaviour, tune until identical.
+   **Cut over only when it matches. The live Vercel app stays untouched the whole
+   time — fully reversible; if anything's off, you just stay on Vercel.**
+
+**COST — what's actually true (do NOT overstate):**
+- Cloudflare bills in **USD**. Brendon is **Canadian / pays CAD** — his card gets
+  charged USD, bank does the FX. **$5 USD/mo ≈ ~$7 CAD.** No CAD-native billing.
+- **Start on the FREE plan.** Free gives 100k requests/day — plenty for build +
+  full testing. His art loads as **static assets = free + unlimited, doesn't
+  count** against limits.
+- **The ONLY thing that forces the $5 plan is the packed server-worker size cap:
+  3 MB (free) vs 10 MB (paid), gzipped.** We have NOT measured this — it's only
+  known after the step-2 OpenNext build. **Honest expectation: likely over 3 MB
+  (heavy wallet/login/crypto deps) → likely needs $5/mo. NOT certain. The first
+  build settles it.** Do NOT tell Brendon he must pay before that number exists.
+- At real scale Cloudflare is ~10× cheaper than Vercel, almost entirely because
+  bandwidth is free. (Reference figure discussed: ~1M daily users ≈ ~$500–1,500/mo
+  on Cloudflare hosting; at that scale the Supabase DB becomes the bigger bill.)
+
+**SHIP GATES STILL APPLY.** Build on a feature branch. Do NOT merge to `dev` or
+touch the live app without Brendon's explicit go. Building/testing on the side is
+pre-approved; the cutover is his call.
+
+**Brendon's entry point next chat:** he'll say something like "start the Cloudflare
+migration." That is your GO for step 1 (the framework upgrade). Begin there.
+
+---
+
 - **⚠️ VERCEL PAUSED + BACKGROUND POLLERS HARD-OFF (Brendon, 2026-06-27):**
   Vercel paused the project (`live:false`) on the **free-tier usage cap** — the
   latest build is healthy, so it's a usage limit, NOT a bad deploy or the commits.
