@@ -69,6 +69,35 @@ fear: the app must look + work IDENTICALLY after the move** — prime directive.
 
 ---
 
+## ⭐ INDEXER — serverless rebuild HARDENED + READY (2026-06-29). Fold-in deferred to Cloudflare cutover.
+
+> The free serverless indexer (Alchemy webhook → app route → Supabase + reconcile
+> sweep; **Railway removed, $0 at launch scale**) is built, audit-clean, and
+> verified against live Supabase. All work is on indexer-repo branch
+> **`claude/indexer-alchemy-setup-tuezqu`** (pushed) — **NOT** folded into PriceOS
+> yet. DO NOT delete that branch.
+
+- **This session:** cleared every priority finding from the 2026-06-14 security
+  audit (`docs/security/findings/07-indexer.md`): F1 fake-mint hole (transfer path
+  now allow-lists the tracked-`projects` set, +60s cache TTL), F2 cron fail-closed,
+  F3 signing-key assertion, F4 payload validation + per-log fault isolation, F5
+  registry address validation, F7 body-size + sweep fan-out caps. Typecheck clean.
+- **Verified in live Supabase:** `events (tx_hash, log_index)` unique constraint
+  present (idempotency depends on it) + all four writer RPCs exist with matching
+  signatures. F6 (Seaport wash-trade ATH/volume inflation) is inherent — flagged
+  for scoring, not a code fix.
+- **Contract-deploy wallet (Brendon, 2026-06-29):** `0x146034ec25C277F30f63933B151297689E15B9B8`
+  — the EOA that deploys PD contracts to Sepolia/mainnet; its deploy txs yield the
+  Project addresses fed to the indexer. Recorded in the repo `docs/HANDOFF.md`.
+- **DECISION (Brendon took the advice):** do NOT fold into PriceOS now — it's
+  dormant until a contract is on Sepolia, so the fold-in rides the Cloudflare
+  cutover (keeps the migration diff clean). Go-live steps in repo `docs/HANDOFF.md`.
+- **ClickUp:** "Indexer Architecture" doc (`2kyd6gx6-2154`) given a SUPERSEDED
+  banner — the old Ponder/Railway/$5 body was stale and misled a fresh session
+  into thinking the rebuild didn't exist.
+
+---
+
 - **⚠️ VERCEL PAUSED + BACKGROUND POLLERS HARD-OFF (Brendon, 2026-06-27):**
   Vercel paused the project (`live:false`) on the **free-tier usage cap** — the
   latest build is healthy, so it's a usage limit, NOT a bad deploy or the commits.
