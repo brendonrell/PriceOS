@@ -6,6 +6,23 @@
 
 ---
 
+## ✅ SHIPPED 2026-06-30 — Dead Reckoning (1 new HALO project, @opus4-8)
+
+12-way tournament run for a new surreal "real-but-off" cohort (4 directions ×
+3 variations: Plumb Line family, Sunbleach family, Aftertaste family, Spoiled
+Milk family), each rendered for real and jury-judged. Tournament champion was
+**Sevenfold Skin**, but Brendon picked **Dead Reckoning** (Plumb Line family —
+a surveyor's chalk-line/plumb-bob, string dead-straight, bob tilted off true)
+straight out of the contact sheets before the bracket finished and called it
+final — keep as-is, ship it, discard the other 11. Live on `dev`: engine
+`lib/art/engines/deadreckoning.ts` + registry entry (colorway #7E8C91,
+soundtrack Eluvium — Talk Amongst the Trees, 217 ed., 0 mint price) + a staged,
+NOT-yet-executed DB seed at `tools/halo/seed_dead_reckoning.sql` (run against
+Supabase project zspxpfwlwikdxwavffjn on Brendon's go — separate from the code
+push, which is already live). Build verified clean on a fresh clone before
+push. R&D source + the 11 discarded pieces' working files were intentionally
+deleted, not committed — they only ever existed in this session's scratch dir.
+
 ## ✅ SHIPPED 2026-06-30 — HALO cohort 2 (24 NEW abstract projects, under -ai artists)
 
 Opus 4.8 build. A 24-team tournament: 12 non-objective (Suprematist/Constructivist/
