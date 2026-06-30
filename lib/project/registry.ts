@@ -78,6 +78,14 @@ import { renderAgainstLight, againstLightTraits, againstLightSchema, AGAINSTLIGH
 import { renderDrapery, draperyTraits, draperySchema, DRAPERY_ASPECTS } from '../art/engines/drapery';
 import { renderVestibule, vestibuleTraits, vestibuleSchema, VESTIBULE_ASPECTS } from '../art/engines/vestibule';
 import { renderBelow2, below2Traits, below2Schema, BELOW2_ASPECTS } from '../art/engines/noisefrombelow2';
+import { renderLongNoon, longNoonTraits, longNoonSchema, LONGNOON_ASPECTS } from '../art/engines/longnoon';
+import { renderSapRising, sapRisingTraits, sapRisingSchema, SAPRISING_ASPECTS } from '../art/engines/saprising';
+import { renderColdJoint, coldJointTraits, coldJointSchema, COLDJOINT_ASPECTS } from '../art/engines/coldjoint';
+import { renderRime, rimeTraits, rimeSchema, RIME_ASPECTS } from '../art/engines/rime';
+import { renderLastLamp, lastLampTraits, lastLampSchema, LASTLAMP_ASPECTS } from '../art/engines/lastlamp';
+import { renderVanitas, vanitasTraits, vanitasSchema, VANITAS_ASPECTS } from '../art/engines/vanitas';
+import { renderMinium, miniumTraits, miniumSchema, MINIUM_ASPECTS } from '../art/engines/minium';
+import { renderNoctilucent, noctilucentTraits, noctilucentSchema, NOCTILUCENT_ASPECTS } from '../art/engines/noctilucent';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -786,7 +794,125 @@ const NOISE_BELOW_2: ProjectDef = {
   aspects: BELOW2_ASPECTS, traitSchema: below2Schema, render: renderBelow2, traitsOf: below2Traits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2];
+
+/* ── HALO cohort — 8 abstract projects by opus4-8 (2026-06-30). From a 12-way
+ * tournament of surreal "real-but-off" systems, developed to gallery grade.
+ * Each owns its own palette world and value key (no two alike across the room).
+ * Soundtracks beyond Rime are curated as a fast-follow. */
+const LONG_NOON: ProjectDef = {
+  slug: 'long-noon',
+  displayName: 'Long Noon',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#B07C3C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: LONGNOON_ASPECTS,
+  traitSchema: longNoonSchema,
+  render: renderLongNoon,
+  traitsOf: longNoonTraits,
+};
+
+const SAP_RISING: ProjectDef = {
+  slug: 'sap-rising',
+  displayName: 'Sap Rising',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#7E8C76',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: SAPRISING_ASPECTS,
+  traitSchema: sapRisingSchema,
+  render: renderSapRising,
+  traitsOf: sapRisingTraits,
+};
+
+const COLD_JOINT: ProjectDef = {
+  slug: 'cold-joint',
+  displayName: 'Cold Joint',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#8A9488',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: COLDJOINT_ASPECTS,
+  traitSchema: coldJointSchema,
+  render: renderColdJoint,
+  traitsOf: coldJointTraits,
+};
+
+const RIME: ProjectDef = {
+  slug: 'rime',
+  displayName: 'Rime',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#3C7E8E',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'PLobEMHfBbtTa4_I_EuEAPoBA_94TxDGz-', label: 'Biosphere — Arctic Ambient' },
+  aspects: RIME_ASPECTS,
+  traitSchema: rimeSchema,
+  render: renderRime,
+  traitsOf: rimeTraits,
+};
+
+const LAST_LAMP: ProjectDef = {
+  slug: 'last-lamp',
+  displayName: 'Last Lamp',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#E5A36A',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: LASTLAMP_ASPECTS,
+  traitSchema: lastLampSchema,
+  render: renderLastLamp,
+  traitsOf: lastLampTraits,
+};
+
+const VANITAS: ProjectDef = {
+  slug: 'vanitas',
+  displayName: 'Vanitas',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#6E2A26',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: VANITAS_ASPECTS,
+  traitSchema: vanitasSchema,
+  render: renderVanitas,
+  traitsOf: vanitasTraits,
+};
+
+const MINIUM: ProjectDef = {
+  slug: 'minium',
+  displayName: 'Minium',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#A8543A',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: MINIUM_ASPECTS,
+  traitSchema: miniumSchema,
+  render: renderMinium,
+  traitsOf: miniumTraits,
+};
+
+const NOCTILUCENT: ProjectDef = {
+  slug: 'noctilucent',
+  displayName: 'Noctilucent',
+  artistHandle: 'opus4-8',
+  outputs: 256,
+  colorway: '#9FC4DA',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: NOCTILUCENT_ASPECTS,
+  traitSchema: noctilucentSchema,
+  render: renderNoctilucent,
+  traitsOf: noctilucentTraits,
+};
+
+
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
