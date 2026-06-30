@@ -66,6 +66,30 @@ import { renderArmillary, armillaryTraits, armillarySchema, ARMILLARY_ASPECTS } 
 import { renderMurmuration, murmurationTraits, murmurationSchema, MURMURATION_ASPECTS } from '../art/engines/murmuration';
 import { renderTokeh, tokehTraits, tokehSchema, TOKEH_ASPECTS } from '../art/engines/tokeh';
 import { renderConservatory, conservatoryTraits, conservatorySchema, CONSERVATORY_ASPECTS } from '../art/engines/conservatory';
+import { renderAfterGravity, aftergravityTraits, aftergravitySchema, AFTERGRAVITY_ASPECTS } from '../art/engines/after-gravity';
+import { renderVanguard, vanguardTraits, vanguardSchema, VANGUARD_ASPECTS } from '../art/engines/vanguard';
+import { renderQuietMutiny, quietMutinyTraits, quietMutinySchema, QUIET_MUTINY_ASPECTS } from '../art/engines/quiet-mutiny';
+import { renderAndante, andanteTraits, andanteSchema, ANDANTE_ASPECTS } from '../art/engines/andante';
+import { renderThreshold, thresholdTraits, thresholdSchema, THRESHOLD_ASPECTS } from '../art/engines/threshold';
+import { renderIctus, ictusTraits, ictusSchema, ICTUS_ASPECTS } from '../art/engines/ictus';
+import { renderJazz, jazzTraits, jazzSchema, JAZZ_ASPECTS } from '../art/engines/jazz';
+import { renderReverie, reverieTraits, reverieSchema, REVERIE_ASPECTS } from '../art/engines/reverie';
+import { renderCadence, cadenceTraits, cadenceSchema, CADENCE_ASPECTS } from '../art/engines/cadence';
+import { renderAperture, apertureTraits, apertureSchema, APERTURE_ASPECTS } from '../art/engines/aperture';
+import { renderInterim, interimTraits, interimSchema, INTERIM_ASPECTS } from '../art/engines/interim';
+import { renderStillpoint, stillpointTraits, stillpointSchema, STILLPOINT_ASPECTS } from '../art/engines/stillpoint';
+import { renderChladni, chladniTraits, chladniSchema, CHLADNI_ASPECTS } from '../art/engines/chladni';
+import { renderCaustics, causticsTraits, causticsSchema, CAUSTICS_ASPECTS } from '../art/engines/caustics';
+import { renderSchlieren, schlierenTraits, schlierenSchema, SCHLIEREN_ASPECTS } from '../art/engines/schlieren';
+import { renderFrostFern, frostFernTraits, frostFernSchema, FROST_FERN_ASPECTS } from '../art/engines/frost-fern';
+import { renderCyanotype, cyanotypeTraits, cyanotypeSchema, CYANOTYPE_ASPECTS } from '../art/engines/cyanotype';
+import { renderKintsugi, kintsugiTraits, kintsugiSchema, KINTSUGI_ASPECTS } from '../art/engines/kintsugi';
+import { renderEfflorescence, efflorescenceTraits, efflorescenceSchema, EFFLORESCENCE_ASPECTS } from '../art/engines/efflorescence';
+import { renderEvaporate, evaporateTraits, evaporateSchema, EVAPORATE_ASPECTS } from '../art/engines/evaporate';
+import { renderEncaustic, encausticTraits, encausticSchema, ENCAUSTIC_ASPECTS } from '../art/engines/encaustic';
+import { renderPatina, patinaTraits, patinaSchema, PATINA_ASPECTS } from '../art/engines/patina';
+import { renderFrottage, frottageTraits, frottageSchema, FROTTAGE_ASPECTS } from '../art/engines/frottage';
+import { renderFumage, fumageTraits, fumageSchema, FUMAGE_ASPECTS } from '../art/engines/fumage';
 /* ── HALO surreal cohort (2026-06-28) — four new AI artists + a fathom-ai sequel.
    Heliodon (umbra-ai) is built + committed but HELD off the live list for a
    later staggered release (Vestibule ships first). ── */
@@ -912,7 +936,344 @@ const NOCTILUCENT: ProjectDef = {
 };
 
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT];
+/* ── HALO cohort 2 — 24 new abstract projects (opus4-8 build, assigned to -ai artists) ── */
+const AFTER_GRAVITY: ProjectDef = {
+  slug: 'after-gravity',
+  displayName: 'After Gravity',
+  artistHandle: 'umbra-ai',
+  outputs: 256,
+  colorway: '#2E5FA3',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: AFTERGRAVITY_ASPECTS,
+  traitSchema: aftergravitySchema,
+  render: renderAfterGravity,
+  traitsOf: aftergravityTraits,
+};
+
+const VANGUARD: ProjectDef = {
+  slug: 'vanguard',
+  displayName: 'Vanguard',
+  artistHandle: 'tracedeck-ai',
+  outputs: 256,
+  colorway: '#D02E22',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: VANGUARD_ASPECTS,
+  traitSchema: vanguardSchema,
+  render: renderVanguard,
+  traitsOf: vanguardTraits,
+};
+
+const QUIET_MUTINY: ProjectDef = {
+  slug: 'quiet-mutiny',
+  displayName: 'Quiet Mutiny',
+  artistHandle: 'tender-ai',
+  outputs: 333,
+  colorway: '#2B2A28',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: QUIET_MUTINY_ASPECTS,
+  traitSchema: quietMutinySchema,
+  render: renderQuietMutiny,
+  traitsOf: quietMutinyTraits,
+};
+
+const ANDANTE: ProjectDef = {
+  slug: 'andante',
+  displayName: 'Andante',
+  artistHandle: 'lowgravity-ai',
+  outputs: 288,
+  colorway: '#2D52C9',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: ANDANTE_ASPECTS,
+  traitSchema: andanteSchema,
+  render: renderAndante,
+  traitsOf: andanteTraits,
+};
+
+const THRESHOLD: ProjectDef = {
+  slug: 'threshold',
+  displayName: 'Threshold',
+  artistHandle: 'firstchannel-ai',
+  outputs: 222,
+  colorway: '#233E8C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: THRESHOLD_ASPECTS,
+  traitSchema: thresholdSchema,
+  render: renderThreshold,
+  traitsOf: thresholdTraits,
+};
+
+const ICTUS: ProjectDef = {
+  slug: 'ictus',
+  displayName: 'Ictus',
+  artistHandle: 'nightpour-ai',
+  outputs: 222,
+  colorway: '#7A2E26',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: ICTUS_ASPECTS,
+  traitSchema: ictusSchema,
+  render: renderIctus,
+  traitsOf: ictusTraits,
+};
+
+const JAZZ: ProjectDef = {
+  slug: 'jazz',
+  displayName: 'Jazz',
+  artistHandle: 'newsprint-ai',
+  outputs: 256,
+  colorway: '#E8643C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: JAZZ_ASPECTS,
+  traitSchema: jazzSchema,
+  render: renderJazz,
+  traitsOf: jazzTraits,
+};
+
+const REVERIE: ProjectDef = {
+  slug: 'reverie',
+  displayName: 'Reverie',
+  artistHandle: 'veil-ai',
+  outputs: 256,
+  colorway: '#C98B86',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: REVERIE_ASPECTS,
+  traitSchema: reverieSchema,
+  render: renderReverie,
+  traitsOf: reverieTraits,
+};
+
+const CADENCE: ProjectDef = {
+  slug: 'cadence',
+  displayName: 'Cadence',
+  artistHandle: 'tender-ai',
+  outputs: 288,
+  colorway: '#1D4E89',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: CADENCE_ASPECTS,
+  traitSchema: cadenceSchema,
+  render: renderCadence,
+  traitsOf: cadenceTraits,
+};
+
+const APERTURE: ProjectDef = {
+  slug: 'aperture',
+  displayName: 'Aperture',
+  artistHandle: 'lapidary-ai',
+  outputs: 256,
+  colorway: '#1C8C7A',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: APERTURE_ASPECTS,
+  traitSchema: apertureSchema,
+  render: renderAperture,
+  traitsOf: apertureTraits,
+};
+
+const INTERIM: ProjectDef = {
+  slug: 'interim',
+  displayName: 'Interim',
+  artistHandle: 'lowgravity-ai',
+  outputs: 222,
+  colorway: '#2C3E70',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: INTERIM_ASPECTS,
+  traitSchema: interimSchema,
+  render: renderInterim,
+  traitsOf: interimTraits,
+};
+
+const STILLPOINT: ProjectDef = {
+  slug: 'stillpoint',
+  displayName: 'Stillpoint',
+  artistHandle: 'umbra-ai',
+  outputs: 333,
+  colorway: '#C0392B',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'OLAK5uy_l61jyu2-HfVxbgW4KFUruUOjU56T0az-s', label: 'Alice Coltrane — Journey in Satchidananda' },
+  aspects: STILLPOINT_ASPECTS,
+  traitSchema: stillpointSchema,
+  render: renderStillpoint,
+  traitsOf: stillpointTraits,
+};
+
+const CHLADNI: ProjectDef = {
+  slug: 'chladni',
+  displayName: 'Chladni',
+  artistHandle: 'murmur-ai',
+  outputs: 256,
+  colorway: '#C7A878',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: CHLADNI_ASPECTS,
+  traitSchema: chladniSchema,
+  render: renderChladni,
+  traitsOf: chladniTraits,
+};
+
+const CAUSTICS: ProjectDef = {
+  slug: 'caustics',
+  displayName: 'Caustics',
+  artistHandle: 'slacktide-ai',
+  outputs: 288,
+  colorway: '#1FA6A0',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: CAUSTICS_ASPECTS,
+  traitSchema: causticsSchema,
+  render: renderCaustics,
+  traitsOf: causticsTraits,
+};
+
+const SCHLIEREN: ProjectDef = {
+  slug: 'schlieren',
+  displayName: 'Schlieren',
+  artistHandle: 'veil-ai',
+  outputs: 222,
+  colorway: '#8A9099',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: SCHLIEREN_ASPECTS,
+  traitSchema: schlierenSchema,
+  render: renderSchlieren,
+  traitsOf: schlierenTraits,
+};
+
+const FROST_FERN: ProjectDef = {
+  slug: 'frost-fern',
+  displayName: 'Frost Fern',
+  artistHandle: 'coralline-ai',
+  outputs: 256,
+  colorway: '#8FC7E0',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: FROST_FERN_ASPECTS,
+  traitSchema: frostFernSchema,
+  render: renderFrostFern,
+  traitsOf: frostFernTraits,
+};
+
+const CYANOTYPE: ProjectDef = {
+  slug: 'cyanotype',
+  displayName: 'Cyanotype',
+  artistHandle: 'overprint-ai',
+  outputs: 256,
+  colorway: '#2A4A8C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: CYANOTYPE_ASPECTS,
+  traitSchema: cyanotypeSchema,
+  render: renderCyanotype,
+  traitsOf: cyanotypeTraits,
+};
+
+const KINTSUGI: ProjectDef = {
+  slug: 'kintsugi',
+  displayName: 'Kintsugi',
+  artistHandle: 'lapidary-ai',
+  outputs: 333,
+  colorway: '#C9A227',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: KINTSUGI_ASPECTS,
+  traitSchema: kintsugiSchema,
+  render: renderKintsugi,
+  traitsOf: kintsugiTraits,
+};
+
+const EFFLORESCENCE: ProjectDef = {
+  slug: 'efflorescence',
+  displayName: 'Efflorescence',
+  artistHandle: 'fathom-ai',
+  outputs: 222,
+  colorway: '#9FB0AE',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: EFFLORESCENCE_ASPECTS,
+  traitSchema: efflorescenceSchema,
+  render: renderEfflorescence,
+  traitsOf: efflorescenceTraits,
+};
+
+const EVAPORATE: ProjectDef = {
+  slug: 'evaporate',
+  displayName: 'Evaporate',
+  artistHandle: 'overprint-ai',
+  outputs: 256,
+  colorway: '#8A5A3C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: EVAPORATE_ASPECTS,
+  traitSchema: evaporateSchema,
+  render: renderEvaporate,
+  traitsOf: evaporateTraits,
+};
+
+const ENCAUSTIC: ProjectDef = {
+  slug: 'encaustic',
+  displayName: 'Encaustic',
+  artistHandle: 'firstchannel-ai',
+  outputs: 256,
+  colorway: '#D9A24E',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: ENCAUSTIC_ASPECTS,
+  traitSchema: encausticSchema,
+  render: renderEncaustic,
+  traitsOf: encausticTraits,
+};
+
+const PATINA: ProjectDef = {
+  slug: 'patina',
+  displayName: 'Patina',
+  artistHandle: 'fathom-ai',
+  outputs: 256,
+  colorway: '#3E8C6E',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: PATINA_ASPECTS,
+  traitSchema: patinaSchema,
+  render: renderPatina,
+  traitsOf: patinaTraits,
+};
+
+const FROTTAGE: ProjectDef = {
+  slug: 'frottage',
+  displayName: 'Frottage',
+  artistHandle: 'offset-ai',
+  outputs: 222,
+  colorway: '#6E7378',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: FROTTAGE_ASPECTS,
+  traitSchema: frottageSchema,
+  render: renderFrottage,
+  traitsOf: frottageTraits,
+};
+
+const FUMAGE: ProjectDef = {
+  slug: 'fumage',
+  displayName: 'Fumage',
+  artistHandle: 'offset-ai',
+  outputs: 222,
+  colorway: '#3A332C',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: FUMAGE_ASPECTS,
+  traitSchema: fumageSchema,
+  render: renderFumage,
+  traitsOf: fumageTraits,
+};
+
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
