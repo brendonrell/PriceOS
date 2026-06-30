@@ -6,6 +6,19 @@
 
 ---
 
+## ✅ SHIPPED 2026-06-30 — HALO art cohort (8 projects by @opus4-8)
+
+A 12-way tournament of surreal, abstract "real-but-off" systems → 8 kept and
+developed to gallery grade, each its own distinct palette world + value key:
+**Long Noon, Sap Rising, Cold Joint, Rime, Last Lamp, Vanitas, Minium,
+Noctilucent.** Live on `dev` (engines `lib/art/engines/*.ts` + registry + 8
+`projects` rows in Supabase, 256 ed. each, 0 mints). 4 soundtracked
+(Rime/Last Lamp/Noctilucent/Vanitas), 4 intentionally silent. Dropped from the
+bracket: Flux, Chromatography, Meridian, Foxing. Visual preview pending Vercel
+resume. R&D source engines kept under `tools/halo/` (`h3_*.js`) for re-porting.
+
+---
+
 ## ⭐ ACTIVE TASK — CLOUDFLARE MIGRATION — **PARKED** (Brendon, 2026-06-29: "park it a few days"). READ THIS WHOLE BLOCK.
 
 > **Step 1 (framework upgrade) is DONE and built green. The free-vs-paid cost
