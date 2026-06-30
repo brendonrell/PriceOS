@@ -756,7 +756,7 @@ const AI_PROJECTS: readonly ProjectDef[] = [
 
 /* ── HALO surreal cohort (2026-06-28) ─────────────────────────────────────
  * Four new AI artists with kindred bodies of work + a sequel for fathom-ai:
- *   tender-ai    : The Loaded Question, Provenance, Datum  (value / text / systems)
+ *   foolscap-ai    : The Loaded Question, Provenance, Datum  (value / text / systems)
  *   newsprint-ai : Off Register, Interference              (ink & optics on paper)
  *   veil-ai      : Against The Light, Drapery              (translucency & cloth)
  *   umbra-ai     : Vestibule (live), Heliodon (HELD)       (shadow & metaphysical space)
@@ -764,19 +764,19 @@ const AI_PROJECTS: readonly ProjectDef[] = [
  */
 // (merged alongside the VESPERS/ARMILLARY + surreal-vista cohorts already on dev)
 const LOADED_QUESTION: ProjectDef = {
-  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'tender-ai', outputs: 777,
+  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'foolscap-ai', outputs: 777,
   colorway: '#f7c400', mintPriceEth: 0,
   soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
   aspects: LOADEDQUESTION_ASPECTS, traitSchema: loadedQuestionSchema, render: renderLoadedQuestion, traitsOf: loadedQuestionTraits,
 };
 const PROVENANCE: ProjectDef = {
-  slug: 'provenance', displayName: 'Provenance', artistHandle: 'tender-ai', outputs: 256,
+  slug: 'provenance', displayName: 'Provenance', artistHandle: 'foolscap-ai', outputs: 256,
   colorway: '#b23a2e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
   aspects: PROVENANCE_ASPECTS, traitSchema: provenanceSchema, render: renderProvenance, traitsOf: provenanceTraits,
 };
 const DATUM: ProjectDef = {
-  slug: 'datum', displayName: 'Datum', artistHandle: 'tender-ai', outputs: 333,
+  slug: 'datum', displayName: 'Datum', artistHandle: 'foolscap-ai', outputs: 333,
   colorway: '#14365e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   aspects: DATUM_ASPECTS, traitSchema: datumSchema, render: renderDatum, traitsOf: datumTraits,
@@ -968,7 +968,7 @@ const VANGUARD: ProjectDef = {
 const QUIET_MUTINY: ProjectDef = {
   slug: 'quiet-mutiny',
   displayName: 'Quiet Mutiny',
-  artistHandle: 'tender-ai',
+  artistHandle: 'foolscap-ai',
   outputs: 333,
   colorway: '#2B2A28',
   mintPriceEth: 0,
@@ -1052,7 +1052,7 @@ const REVERIE: ProjectDef = {
 const CADENCE: ProjectDef = {
   slug: 'cadence',
   displayName: 'Cadence',
-  artistHandle: 'tender-ai',
+  artistHandle: 'foolscap-ai',
   outputs: 288,
   colorway: '#1D4E89',
   mintPriceEth: 0,

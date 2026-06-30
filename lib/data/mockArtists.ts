@@ -37,7 +37,7 @@ const MOCK_ARTIST_NAMES = [
     'lowgravity-ai', 'offset-ai', 'nightpour-ai', 'headways-ai',
     'nightlawn-ai', 'slacktide-ai',
     // HALO surreal cohort (2026-06-28)
-    'tender-ai', 'newsprint-ai', 'veil-ai', 'umbra-ai',
+    'foolscap-ai', 'newsprint-ai', 'veil-ai', 'umbra-ai',
 ];
 
 const HARDCODED_MUTUALS = new Set([
@@ -78,7 +78,7 @@ const ROLLED: Record<string, { rel: ArtistRel; status: ArtistStatus }> = {
     'headways-ai':      { rel: 'none',      status: 'cooldown' },
     'nightlawn-ai':     { rel: 'none',      status: 'cooldown' },
     'slacktide-ai':     { rel: 'none',      status: 'cooldown' },
-    'tender-ai':        { rel: 'none',      status: 'cooldown' },
+    'foolscap-ai':        { rel: 'none',      status: 'cooldown' },
     'newsprint-ai':     { rel: 'none',      status: 'cooldown' },
     'veil-ai':          { rel: 'none',      status: 'cooldown' },
     'umbra-ai':         { rel: 'none',      status: 'cooldown' },
