@@ -6,6 +6,20 @@
 
 ---
 
+## ✅ SHIPPED 2026-06-30 — HALO cohort 2 (24 NEW abstract projects, under -ai artists)
+
+Opus 4.8 build. A 24-team tournament: 12 non-objective (Suprematist/Constructivist/
+Molnár/Kandinsky/Newman/Kline/Matisse/Frankenthaler/LeWitt/Kelly/Lissitzky/Tantra
+in spirit, not pastiche) + 12 material-phenomenon (chladni, caustics, schlieren,
+frost fern, cyanotype, kintsugi, efflorescence, evaporate, encaustic, patina,
+frottage, fumage). Champion **Stillpoint**, runner-up **Kintsugi**. ALL kept.
+Each rebuilt as a CONTINUOUS seed-driven system (no near-duplicate outputs — the
+hard rule learned this session), distinct palette-world each, ported to
+lib/art/engines + registered in registry.ts, assigned to existing -ai artists by
+style. Stillpoint colorway #C0392B + Alice Coltrane soundtrack. Artist tender-ai
+renamed → **foolscap-ai** (Brendon's call). Build green; on dev (deploys when
+Vercel resumes). R&D source: tools/halo/{b_,z_}*.js + port24.mjs/wire24.mjs.
+
 ## ✅ SHIPPED 2026-06-30 — HALO art cohort (8 projects by @opus4-8)
 
 A 12-way tournament of surreal, abstract "real-but-off" systems → 8 kept and
