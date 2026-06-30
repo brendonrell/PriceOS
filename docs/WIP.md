@@ -16,12 +16,11 @@ a surveyor's chalk-line/plumb-bob, string dead-straight, bob tilted off true)
 straight out of the contact sheets before the bracket finished and called it
 final — keep as-is, ship it, discard the other 11. Live on `dev`: engine
 `lib/art/engines/deadreckoning.ts` + registry entry (colorway #7E8C91,
-soundtrack Eluvium — Talk Amongst the Trees, 217 ed., 0 mint price) + a staged,
-NOT-yet-executed DB seed at `tools/halo/seed_dead_reckoning.sql` (run against
-Supabase project zspxpfwlwikdxwavffjn on Brendon's go — separate from the code
-push, which is already live). Build verified clean on a fresh clone before
-push. R&D source + the 11 discarded pieces' working files were intentionally
-deleted, not committed — they only ever existed in this session's scratch dir.
+soundtrack Eluvium — Talk Amongst the Trees, 217 ed., 0 mint price) + the
+`projects` row live in Supabase (project zspxpfwlwikdxwavffjn). Build verified
+clean on a fresh clone before push. R&D source + the 11 discarded pieces'
+working files were intentionally deleted, not committed — they only ever
+existed in this session's scratch dir.
 
 ## ✅ SHIPPED 2026-06-30 — HALO cohort 2 (24 NEW abstract projects, under -ai artists)
 
