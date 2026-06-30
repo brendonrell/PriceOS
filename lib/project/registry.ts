@@ -110,6 +110,9 @@ import { renderLastLamp, lastLampTraits, lastLampSchema, LASTLAMP_ASPECTS } from
 import { renderVanitas, vanitasTraits, vanitasSchema, VANITAS_ASPECTS } from '../art/engines/vanitas';
 import { renderMinium, miniumTraits, miniumSchema, MINIUM_ASPECTS } from '../art/engines/minium';
 import { renderNoctilucent, noctilucentTraits, noctilucentSchema, NOCTILUCENT_ASPECTS } from '../art/engines/noctilucent';
+/* ── Dead Reckoning — opus4-8 (2026-06-30). Ported from the halo R&D engine
+   tools/halo/v3_dead-reckoning.js. ── */
+import { renderDeadReckoning, deadreckoningTraits, deadreckoningSchema, DEADRECKONING_ASPECTS } from '../art/engines/deadreckoning';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -935,6 +938,20 @@ const NOCTILUCENT: ProjectDef = {
   traitsOf: noctilucentTraits,
 };
 
+const DEAD_RECKONING: ProjectDef = {
+  slug: 'dead-reckoning',
+  displayName: 'Dead Reckoning',
+  artistHandle: 'opus4-8',
+  outputs: 217,
+  colorway: '#7E8C91',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'PLDE6874E48524BA11', label: 'Eluvium — Talk Amongst the Trees' },
+  aspects: DEADRECKONING_ASPECTS,
+  traitSchema: deadreckoningSchema,
+  render: renderDeadReckoning,
+  traitsOf: deadreckoningTraits,
+};
+
 
 /* ── HALO cohort 2 — 24 new abstract projects (opus4-8 build, assigned to -ai artists) ── */
 const AFTER_GRAVITY: ProjectDef = {
@@ -1273,7 +1290,7 @@ const FUMAGE: ProjectDef = {
   traitsOf: fumageTraits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
