@@ -296,6 +296,20 @@ export const EXCHANGES: Exchange[] = [
             { who: 'mick', text: "Anonymous viewer. Filed under 'A'." },
         ],
     },
+    /* — spilling the beans: the mute exists, and Eddie can't help himself — */
+    {
+        id: 'x-spill-mute', kind: 'couch', beats: [
+            { who: 'eddie', text: 'You know you can press on us and we shut up, right? Hold the bubble.' },
+            { who: 'carl', text: 'Why would you tell them that.' },
+            { who: 'eddie', text: 'Transparency.' },
+        ],
+    },
+    {
+        id: 'x-spill-mute2', kind: 'couch', beats: [
+            { who: 'steven', text: 'Someone told me you can hold one of us down and we go quiet.' },
+            { who: 'rocco', text: 'Do not test it on me.' },
+        ],
+    },
 
     /* — drift: they forget you exist, then snap back — */
     {
@@ -1072,6 +1086,36 @@ export const LOYAL: Record<string, string[]> = {
 
 /* ── THE CROSSOVER — once EVER: the cast notices your Familiar ──────────
    {familiar} fills with the actual species name on screen. */
+
+/* ── MUTE — someone just got silenced, and the couch saw it happen ──────
+   {mute} fills with the muted resident's name. The survivors keep it classy. */
+
+export const MUTE_REACTS: Exchange[] = [
+    {
+        id: 'mute-lucky', kind: 'couch', beats: [
+            { who: 'mick', text: 'They muted {mute}.' },
+            { who: 'carl', text: '…Lucky.' },
+        ],
+    },
+    {
+        id: 'mute-canthey', kind: 'couch', beats: [
+            { who: 'eddie', text: 'They MUTED {mute}. Can they do that?' },
+            { who: 'steven', text: 'Apparently.' },
+        ],
+    },
+    {
+        id: 'mute-behave', kind: 'couch', beats: [
+            { who: 'romy', text: '{mute} got muted. Everyone behave.' },
+            { who: 'rocco', text: 'I always behave. That was the problem with {mute}.' },
+        ],
+    },
+    {
+        id: 'mute-notes', kind: 'couch', beats: [
+            { who: 'mick', text: '{mute}: silenced by viewer request. Logged.' },
+            { who: 'mimi', text: 'Fewer voices. More margin for the rest of us.' },
+        ],
+    },
+];
 
 export const XOVER_SCENES: Exchange[] = [
     {

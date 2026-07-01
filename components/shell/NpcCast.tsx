@@ -24,11 +24,13 @@ import type { CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { useAuth } from '@/lib/state/AuthContext';
+import { useToast } from '@/lib/state/ToastContext';
 import { CAST, styleText } from '@/lib/npc/cast';
 import { readStage } from '@/lib/npc/awareness';
-import { directorTick, directorNav, type DirectorCtx, type PlayBeat } from '@/lib/npc/director';
+import { directorTick, directorNav, directorMuteReaction, type DirectorCtx, type PlayBeat } from '@/lib/npc/director';
 import { readPieceInView } from '@/lib/npc/inview';
 import { subscribeActions } from '@/lib/npc/actions';
+import { mutedIds, muteResident, clearMutes } from '@/lib/npc/memory';
 import { getFamiliarSpeciesName } from '@/lib/engines/familiarEngine';
 
 type Polarity = 'dark' | 'light';
@@ -76,6 +78,7 @@ function nextLullMs(): number {
 export function NpcCast() {
     const { notifs } = usePdNotifs();
     const { handle } = useAuth();
+    const { showToast } = useToast();
     const on = notifs.spell_npc;
     /* The Familiar's on-screen presence gates the once-ever crossover scene. */
     const familiarOn = !!notifs.spell_familiar;
@@ -117,6 +120,15 @@ export function NpcCast() {
     const lastActivity = useRef(Date.now());
     const noticeKey = useRef<string | null>(null);
 
+    /* Per-resident mute (long-press a bubble). Persisted; toggling the NPC
+       spell off→on un-mutes everyone — the reset, with no UI. */
+    const mutedRef = useRef<Set<string>>(new Set());
+    const prevOn = useRef(on);
+    useEffect(() => {
+        if (on && !prevOn.current) clearMutes();
+        prevOn.current = on;
+    }, [on]);
+
     /* Route changes feed the pacing read + reset the idle clock. */
     useEffect(() => {
         if (!on) return;
@@ -138,15 +150,74 @@ export function NpcCast() {
         const beatTimers: ReturnType<typeof setTimeout>[] = [];
         let tickTimer: ReturnType<typeof setTimeout>;
         let playing = false;
+        mutedRef.current = new Set(mutedIds());
 
         const touch = () => { lastActivity.current = Date.now(); };
-        window.addEventListener('pointerdown', touch, { passive: true });
-        window.addEventListener('wheel', touch, { passive: true });
+
+        /* Long-press a bubble → mute that resident. Detected with a window-
+           level hit-test against the visible bubbles' boxes, so the cast keeps
+           its hard pointer-events:none — nothing is ever click-blocked; a hold
+           on a bubble's spot is simply also noticed (Brendon, 2026-07-01). */
+        let pressTimer: ReturnType<typeof setTimeout> | null = null;
+        let pressAt: { x: number; y: number } | null = null;
+        const cancelPress = () => {
+            if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+            pressAt = null;
+        };
+        const doMute = (id: string) => {
+            cancelPress();
+            if (mutedRef.current.has(id)) return;
+            muteResident(id);
+            mutedRef.current = new Set([...mutedRef.current, id]);
+            activeRef.current = { ...activeRef.current, [id]: false };
+            setActive((p) => ({ ...p, [id]: false }));
+            if (timers[id]) { clearTimeout(timers[id]); delete timers[id]; }
+            const name = CAST.find((c) => c.id === id)?.name ?? id;
+            showToast(`${name}: MUTED`);
+            // The survivors notice ("They muted him." "…Lucky.")
+            beatTimers.push(setTimeout(() => {
+                if (playing) return;
+                const busy = new Set([
+                    ...Object.keys(activeRef.current).filter((k) => activeRef.current[k]),
+                    ...mutedRef.current,
+                ]);
+                const beats = directorMuteReaction(id, busy);
+                if (beats) runPlayout(beats);
+            }, 1400));
+        };
+        const onPointerDown = (e: PointerEvent) => {
+            touch();
+            for (const c of CAST) {
+                if (!activeRef.current[c.id] || mutedRef.current.has(c.id)) continue;
+                const el = bubbleRefs.current[c.id];
+                if (!el) continue;
+                const r = el.getBoundingClientRect();
+                if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                    pressAt = { x: e.clientX, y: e.clientY };
+                    if (pressTimer) clearTimeout(pressTimer);
+                    pressTimer = setTimeout(() => doMute(c.id), 650);
+                    return;
+                }
+            }
+        };
+        const onPointerMove = (e: PointerEvent) => {
+            if (pressAt && (Math.abs(e.clientX - pressAt.x) > 12 || Math.abs(e.clientY - pressAt.y) > 12)) {
+                cancelPress();
+            }
+        };
+        const onScrollTouch = () => { touch(); cancelPress(); };
+
+        window.addEventListener('pointerdown', onPointerDown, { passive: true });
+        window.addEventListener('pointermove', onPointerMove, { passive: true });
+        window.addEventListener('pointerup', cancelPress, { passive: true });
+        window.addEventListener('pointercancel', cancelPress, { passive: true });
+        window.addEventListener('wheel', onScrollTouch, { passive: true });
         window.addEventListener('touchstart', touch, { passive: true });
         window.addEventListener('keydown', touch);
-        window.addEventListener('scroll', touch, { passive: true });
+        window.addEventListener('scroll', onScrollTouch, { passive: true });
 
         const show = (id: string, line: string) => {
+            if (mutedRef.current.has(id)) return; // the muted stay muted, mid-scene too
             setLineFor((lf) => ({ ...lf, [id]: line }));
             setJitter((jt) => ({
                 ...jt,
@@ -169,7 +240,8 @@ export function NpcCast() {
             if (id === MISCHIEF_ID) {
                 if (sneakWallRef.current && sneakCount.current >= sneakTarget.current) {
                     const shooers = CAST.filter(
-                        (x) => x.wall === SNEAK_WALL && x.id !== MISCHIEF_ID && !activeRef.current[x.id],
+                        (x) => x.wall === SNEAK_WALL && x.id !== MISCHIEF_ID
+                            && !activeRef.current[x.id] && !mutedRef.current.has(x.id),
                     );
                     sneakWallRef.current = null;
                     sneakCount.current = 0;
@@ -212,7 +284,12 @@ export function NpcCast() {
                 polarity: readPolarity(),
                 hour: new Date().getHours(),
                 idleMs: Date.now() - lastActivity.current,
-                activeIds: new Set(Object.keys(activeRef.current).filter((id) => activeRef.current[id])),
+                /* Muted residents ride along as permanently "busy" — every
+                   pool, scene and duet filters them out with zero extra code. */
+                activeIds: new Set([
+                    ...Object.keys(activeRef.current).filter((id) => activeRef.current[id]),
+                    ...mutedRef.current,
+                ]),
                 familiarOn: familiarOnRef.current,
                 familiarName: familiarOnRef.current ? getFamiliarSpeciesName() || null : null,
             };
@@ -262,17 +339,21 @@ export function NpcCast() {
             clearTimeout(tickTimer);
             clearInterval(noticer);
             unsubActions();
+            cancelPress();
             beatTimers.forEach(clearTimeout);
             Object.values(timers).forEach(clearTimeout);
             hideTimers.current = {};
             activeRef.current = {};
-            window.removeEventListener('pointerdown', touch);
-            window.removeEventListener('wheel', touch);
+            window.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', cancelPress);
+            window.removeEventListener('pointercancel', cancelPress);
+            window.removeEventListener('wheel', onScrollTouch);
             window.removeEventListener('touchstart', touch);
             window.removeEventListener('keydown', touch);
-            window.removeEventListener('scroll', touch);
+            window.removeEventListener('scroll', onScrollTouch);
         };
-    }, [on]);
+    }, [on, showToast]);
 
     /* Size each visible bubble to hug its wrapped text EXACTLY. The old
        approach (widest line-box rect) over-reported on wrapped lines — hanging

@@ -47,6 +47,8 @@ interface PersistShape {
     /** The favourites form: per-resident taste affinity, and who adopted you. */
     affinity?: Record<string, number>;
     adoptedBy?: string | null;
+    /** Residents you've long-press muted. Cleared by toggling the NPC spell. */
+    muted?: string[];
 }
 
 const KEY = 'pd:npc:memory';
@@ -213,6 +215,29 @@ export function fireOncePersist(flag: string): boolean {
     flags.push(flag);
     save();
     return true;
+}
+
+/* ── per-resident mute (long-press a bubble) ────────────────────────── */
+
+export function mutedIds(): string[] {
+    load();
+    return persist.muted ?? [];
+}
+
+export function muteResident(id: string): void {
+    load();
+    const m = persist.muted ?? (persist.muted = []);
+    if (!m.includes(id)) m.push(id);
+    save();
+}
+
+/** Toggling the NPC spell off→on un-mutes everyone (the reset, no UI). */
+export function clearMutes(): void {
+    load();
+    if (persist.muted?.length) {
+        persist.muted = [];
+        save();
+    }
 }
 
 /* ── actions (what they watched you DO) ─────────────────────────────── */

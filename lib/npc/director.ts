@@ -29,7 +29,7 @@ import {
     SIGHT, SIGHT_SCENE, EXCHANGES, STREAK, REVISIT, PREDICT_ARM, PREDICT_HIT, PREDICT_MISS,
     IDLE, PACING, NIGHT, MORNING, DIRECT, FOURTHWALL, colorWord,
     ACTION_LINES, ACTION_EXCHANGES, BUYBET_ARM, BUYBET_HIT, BUYBET_MISS,
-    DUET_OPENERS, DUET_REPLIES, ADOPTION_SCENES, LOYAL, XOVER_SCENES,
+    DUET_OPENERS, DUET_REPLIES, ADOPTION_SCENES, LOYAL, XOVER_SCENES, MUTE_REACTS,
     type Sight, type Exchange,
 } from './scenarios';
 import {
@@ -146,6 +146,7 @@ interface FillCtx {
     obsession?: string | null;
     scene?: string | null;
     familiar?: string | null;
+    mute?: string | null;
 }
 
 function fill(text: string, f: FillCtx): string {
@@ -158,7 +159,8 @@ function fill(text: string, f: FillCtx): string {
         .replace(/\{n\}/g, f.n != null ? String(f.n) : 'a few')
         .replace(/\{obsession\}/g, f.obsession ?? 'that one')
         .replace(/\{scene\}/g, capFirst(f.scene ?? 'what it is'))
-        .replace(/\{familiar\}/g, f.familiar ?? 'creature');
+        .replace(/\{familiar\}/g, f.familiar ?? 'creature')
+        .replace(/\{mute\}/g, f.mute ?? 'them');
 }
 
 function capFirst(s: string): string {
@@ -498,6 +500,17 @@ function duetBeat(ctx: DirectorCtx, sight: Sight | null, f: FillCtx): PlayBeat[]
 /** Route-change hook — feeds the pacing read. */
 export function directorNav(): void {
     recordNav();
+}
+
+/** A resident just got long-press muted — the survivors react (once). The
+ *  `busy` set should carry active AND muted residents. */
+export function directorMuteReaction(mutedId: string, busy: Set<string>): PlayBeat[] | null {
+    const name = CAST.find((c) => c.id === mutedId)?.name ?? 'them';
+    const playable = MUTE_REACTS.filter((x) =>
+        !x.beats.some((b) => busy.has(b.who) || b.who === mutedId));
+    const x = freshest(playable, (e) => `x:${e.id}`);
+    if (!x) return null;
+    return playExchange(x, { mute: name });
 }
 
 function sightBeat(ctx: DirectorCtx, sight: Sight, f: FillCtx): PlayBeat[] | null {
