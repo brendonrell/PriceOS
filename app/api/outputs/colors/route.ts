@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const sb = getSupabaseAnon();
     const { data, error } = await sb
       .from('outputs')
-      .select('project_id, token_id, dominant_color, aspect, brightness, saturation, complexity, rarity, artist, project_name, true_name, price_day, natal_sun, natal_moon, natal_rising, fate, minted_at')
+      .select('project_id, token_id, dominant_color, aspect, brightness, saturation, complexity, accent_color, palette_count, contrast, warmth, gravity, symmetry, air, texture, rarity, artist, project_name, true_name, price_day, natal_sun, natal_moon, natal_rising, fate, minted_at')
       .in('project_id', slugs)
       .not('dominant_color', 'is', null);
     if (error) return serverError(error);
@@ -28,6 +28,9 @@ export async function GET(req: NextRequest) {
     const out = (data ?? []) as {
       project_id: string; token_id: string; dominant_color: string | null;
       aspect: string | null; brightness: number | null; saturation: number | null; complexity: number | null;
+      accent_color: string | null; palette_count: number | null; contrast: number | null;
+      warmth: number | null; gravity: string | null; symmetry: number | null;
+      air: number | null; texture: number | null;
       rarity: string | null; artist: string | null; project_name: string | null; true_name: string | null;
       price_day: string | null; natal_sun: string | null; natal_moon: string | null; natal_rising: string | null;
       fate: string | null; minted_at: string | null;
@@ -40,6 +43,14 @@ export async function GET(req: NextRequest) {
       brightness: r.brightness,
       saturation: r.saturation,
       complexity: r.complexity,
+      accent: r.accent_color,
+      paletteCount: r.palette_count,
+      contrast: r.contrast,
+      warmth: r.warmth,
+      gravity: r.gravity,
+      symmetry: r.symmetry,
+      air: r.air,
+      texture: r.texture,
       rarity: r.rarity,
       artist: r.artist,
       project_name: r.project_name,

@@ -1,19 +1,22 @@
 'use client';
 
 /*
- * NpcCast — the off-screen residents (UI-only rough-in).
+ * NpcCast — the off-screen residents: PD's gossiping audience.
  *
- * Mounted in the shell, gated on pdNotifs.spell_npc (the existing Spell Book
- * "NPC" pill — same button + slot, now actually driving this). When on, a
- * random resident's speech bubble slides in from its side wall, holds a few
- * seconds, then retracts. No event awareness yet — random character, random
- * line, random timing — this pass is purely to nail the look + feel.
+ * Mounted in the shell, gated on pdNotifs.spell_npc (the Spell Book "NPC"
+ * pill). The component owns TIMING + RENDERING only; everything they say comes
+ * from the director (lib/npc/director), which reacts to what's actually on
+ * screen: the page you're on, the piece in view (via its sampled visual
+ * fingerprint — lib/npc/inview), your pacing, your idle stretches, your
+ * @name, your theme, the clock, and what you've done in front of them this
+ * session and last (lib/npc/memory).
  *
- * Each resident has a fixed home on a wall and speaks in their own Unicode
- * letterform (see lib/npc/cast) so you can tell who's talking at a glance. The
- * bubble matches the Petey popout's shape/size in the toasts' solid style, and
- * is forced to pure black/white by theme darkness (dark page → black bubble,
- * light page → white) — see globals.css .npc-cast.
+ * Cadence is scene-based, not metronomic: a moment plays (one line, or a
+ * multi-beat exchange between residents), then the room goes quiet for a
+ * varied stretch — with a quicker reaction when a new piece lands in front of
+ * them. Each resident keeps a fixed wall home, a Unicode letterform and an
+ * entrance motion (lib/npc/cast) so you know who's talking from the corner of
+ * your eye. Bubble styling: globals.css .npc-cast.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -22,7 +25,9 @@ import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { useAuth } from '@/lib/state/AuthContext';
 import { CAST, styleText } from '@/lib/npc/cast';
-import { readStage, pickAwareness, pickFourthWall } from '@/lib/npc/awareness';
+import { readStage } from '@/lib/npc/awareness';
+import { directorTick, directorNav, type DirectorCtx, type PlayBeat } from '@/lib/npc/director';
+import { readPieceInView } from '@/lib/npc/inview';
 
 type Polarity = 'dark' | 'light';
 
@@ -40,6 +45,8 @@ const SHOO_LINES = [
     'Wrong wall, Eddie. Out.',
 ];
 
+const BUBBLE_HOLD_MS = 6000;
+
 /** Pure-B/W choice by page-background darkness: dark bg → black bubble. */
 function readPolarity(): Polarity {
     if (typeof window === 'undefined') return 'dark';
@@ -55,13 +62,21 @@ function readPolarity(): Polarity {
     }
 }
 
+/** The lull between moments — varied on purpose so the room never ticks like
+ *  a metronome: mostly conversational gaps, sometimes a long quiet stretch. */
+function nextLullMs(): number {
+    const r = Math.random();
+    if (r < 0.4) return 14000 + Math.random() * 12000;  // 14–26s
+    if (r < 0.8) return 26000 + Math.random() * 24000;  // 26–50s
+    return 50000 + Math.random() * 40000;               // 50–90s lull
+}
+
 export function NpcCast() {
     const { notifs } = usePdNotifs();
     const { handle } = useAuth();
     const on = notifs.spell_npc;
     /* Your username (no @) — the residents weave it in instead of always "they".
-       Read via a ref so the running speak timer sees the latest without
-       restarting. */
+       Read via a ref so the running timers see the latest without restarting. */
     const viewerName = handle ? handle.replace(/^@/, '') : null;
     const nameRef = useRef<string | null>(viewerName);
     nameRef.current = viewerName;
@@ -73,27 +88,40 @@ export function NpcCast() {
     const [jitter, setJitter] = useState<Record<string, { x: number; y: number }>>({});
     const [polarity, setPolarity] = useState<Polarity>('dark');
     const hideTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+    const activeRef = useRef<Record<string, boolean>>({});
     /* Bubble DOM nodes + an off-screen measurer used to size each bubble to its
        longest wrapped line (a solid box can't shrink to wrapped text on its own). */
     const bubbleRefs = useRef<Record<string, HTMLSpanElement | null>>({});
     const measureRef = useRef<HTMLSpanElement | null>(null);
 
-    /* Mischief state — sneakWall drives render; refs drive the speak-timer logic. */
+    /* Mischief state — sneakWall drives render; refs drive the speak logic. */
     const [sneakWall, setSneakWall] = useState<'left' | null>(null);
     const sneakWallRef = useRef<'left' | null>(null);
     const sneakCount = useRef(0);
     const sneakTarget = useRef(3);
 
-    /* What you're doing right now — read from the route. The running speak timer
-       reads the latest via a ref so navigation updates without restarting it. */
+    /* What you're doing right now — read from the route. Running timers read
+       the latest via a ref so navigation updates without restarting them. */
     const pathname = usePathname();
     const stage = useMemo(() => readStage(pathname), [pathname]);
     const stageRef = useRef(stage);
     stageRef.current = stage;
 
+    /* Activity + "they noticed" tracking. */
+    const lastActivity = useRef(Date.now());
+    const noticeKey = useRef<string | null>(null);
+
+    /* Route changes feed the pacing read + reset the idle clock. */
+    useEffect(() => {
+        if (!on) return;
+        directorNav();
+        lastActivity.current = Date.now();
+    }, [pathname, on]);
+
     useEffect(() => {
         if (!on) {
             setActive({});
+            activeRef.current = {};
             sneakWallRef.current = null;
             sneakCount.current = 0;
             setSneakWall(null);
@@ -101,103 +129,147 @@ export function NpcCast() {
         }
 
         const timers = hideTimers.current;
+        const beatTimers: ReturnType<typeof setTimeout>[] = [];
         let tickTimer: ReturnType<typeof setTimeout>;
+        let playing = false;
 
-        const speakOne = () => {
-            setPolarity(readPolarity());
-            setActive((prev) => {
-                const liveIds = Object.keys(prev).filter((id) => prev[id]);
-                if (liveIds.length >= 2) return prev; // keep the screen calm
-                const idle = CAST.filter((c) => !prev[c.id]);
-                if (!idle.length) return prev;
+        const touch = () => { lastActivity.current = Date.now(); };
+        window.addEventListener('pointerdown', touch, { passive: true });
+        window.addEventListener('wheel', touch, { passive: true });
+        window.addEventListener('touchstart', touch, { passive: true });
+        window.addEventListener('keydown', touch);
+        window.addEventListener('scroll', touch, { passive: true });
 
-                const show = (id: string, line: string) => {
-                    setLineFor((lf) => ({ ...lf, [id]: line }));
-                    setJitter((jt) => ({
-                        ...jt,
-                        [id]: { x: Math.round(Math.random() * 26), y: Math.round((Math.random() * 2 - 1) * 30) },
-                    }));
-                    if (timers[id]) clearTimeout(timers[id]);
-                    timers[id] = setTimeout(() => {
-                        setActive((p) => ({ ...p, [id]: false }));
-                        delete timers[id];
-                    }, 6000);
-                };
-
-                const c = idle[Math.floor(Math.random() * idle.length)];
-
-                // Mischief: Eddie sneaks onto the other wall, then a neighbour
-                // there shoos him home after a couple of messages.
-                if (c.id === MISCHIEF_ID) {
-                    if (sneakWallRef.current && sneakCount.current >= sneakTarget.current) {
-                        const shooers = CAST.filter(
-                            (x) => x.wall === SNEAK_WALL && x.id !== MISCHIEF_ID && !prev[x.id],
-                        );
-                        sneakWallRef.current = null;
-                        sneakCount.current = 0;
-                        setSneakWall(null);
-                        if (shooers.length) {
-                            const s = shooers[Math.floor(Math.random() * shooers.length)];
-                            show(s.id, SHOO_LINES[Math.floor(Math.random() * SHOO_LINES.length)]);
-                            return { ...prev, [s.id]: true };
-                        }
-                    } else if (sneakWallRef.current) {
-                        sneakCount.current += 1;
-                    } else if (Math.random() < 0.3) {
-                        sneakWallRef.current = SNEAK_WALL;
-                        setSneakWall(SNEAK_WALL);
-                        sneakCount.current = 1;
-                        sneakTarget.current = 3 + Math.round(Math.random()); // 3-4 turns → 2-3 messages
-                    }
-                }
-
-                /* Mostly own-world chatter; sometimes they clock what you're
-                   doing (third-person), and once in a blue moon break the wall. */
-                const ownWorld = c.lines[Math.floor(Math.random() * c.lines.length)];
-                const roll = Math.random();
-                let line: string;
-                if (roll < 0.04) {
-                    line = pickFourthWall(stageRef.current, nameRef.current);
-                } else if (roll < 0.38) {
-                    line = pickAwareness(c.id, stageRef.current, nameRef.current) ?? ownWorld;
-                } else {
-                    line = ownWorld;
-                }
-                show(c.id, line);
-                return { ...prev, [c.id]: true };
-            });
+        const show = (id: string, line: string) => {
+            setLineFor((lf) => ({ ...lf, [id]: line }));
+            setJitter((jt) => ({
+                ...jt,
+                [id]: { x: Math.round(Math.random() * 26), y: Math.round((Math.random() * 2 - 1) * 30) },
+            }));
+            activeRef.current = { ...activeRef.current, [id]: true };
+            setActive((p) => ({ ...p, [id]: true }));
+            if (timers[id]) clearTimeout(timers[id]);
+            timers[id] = setTimeout(() => {
+                activeRef.current = { ...activeRef.current, [id]: false };
+                setActive((p) => ({ ...p, [id]: false }));
+                delete timers[id];
+            }, BUBBLE_HOLD_MS);
         };
 
-        const scheduleTick = () => {
-            const delay = 12000 + Math.random() * 10000; // every ~12-22s (calmer)
+        /* Eddie's wall mischief wraps any beat he delivers: sometimes he sneaks
+           over, and after a couple of appearances a left-wall neighbour shoos
+           him home (that beat replaces his). */
+        const speakWithMischief = (id: string, line: string) => {
+            if (id === MISCHIEF_ID) {
+                if (sneakWallRef.current && sneakCount.current >= sneakTarget.current) {
+                    const shooers = CAST.filter(
+                        (x) => x.wall === SNEAK_WALL && x.id !== MISCHIEF_ID && !activeRef.current[x.id],
+                    );
+                    sneakWallRef.current = null;
+                    sneakCount.current = 0;
+                    setSneakWall(null);
+                    if (shooers.length) {
+                        const s = shooers[Math.floor(Math.random() * shooers.length)];
+                        show(s.id, SHOO_LINES[Math.floor(Math.random() * SHOO_LINES.length)]);
+                        return;
+                    }
+                } else if (sneakWallRef.current) {
+                    sneakCount.current += 1;
+                } else if (Math.random() < 0.25) {
+                    sneakWallRef.current = SNEAK_WALL;
+                    setSneakWall(SNEAK_WALL);
+                    sneakCount.current = 1;
+                    sneakTarget.current = 3 + Math.round(Math.random()); // 3-4 appearances
+                }
+            }
+            show(id, line);
+        };
+
+        const runPlayout = (beats: PlayBeat[]) => {
+            playing = true;
+            setPolarity(readPolarity());
+            let at = 0;
+            for (const b of beats) {
+                at += b.gapMs;
+                beatTimers.push(setTimeout(() => speakWithMischief(b.who, b.text), at));
+            }
+            beatTimers.push(setTimeout(() => { playing = false; }, at + 1500));
+        };
+
+        const moment = () => {
+            if (playing) return;
+            const piece = stageRef.current.kind === 'artwork' ? readPieceInView() : null;
+            const ctx: DirectorCtx = {
+                stage: stageRef.current,
+                piece,
+                name: nameRef.current,
+                polarity: readPolarity(),
+                hour: new Date().getHours(),
+                idleMs: Date.now() - lastActivity.current,
+                activeIds: new Set(Object.keys(activeRef.current).filter((id) => activeRef.current[id])),
+            };
+            const beats = directorTick(ctx);
+            if (beats && beats.length) runPlayout(beats);
+        };
+
+        const scheduleTick = (delay: number) => {
             tickTimer = setTimeout(() => {
-                speakOne();
-                scheduleTick();
+                /* A fresh piece landed in front of them since the last moment →
+                   react sooner (they noticed), instead of waiting out the lull. */
+                moment();
+                const piece = readPieceInView();
+                const key = piece ? `${piece.slug}:${piece.id}` : null;
+                noticeKey.current = key;
+                scheduleTick(nextLullMs());
             }, delay);
         };
 
+        /* Watch for a new piece coming into view mid-lull: a light poll that
+           only shortens the wait when something actually changed. */
+        const noticer = setInterval(() => {
+            if (playing) return;
+            const piece = readPieceInView();
+            const key = piece ? `${piece.slug}:${piece.id}` : null;
+            if (key && key !== noticeKey.current) {
+                noticeKey.current = key;
+                clearTimeout(tickTimer);
+                scheduleTick(3500 + Math.random() * 5000);
+            }
+        }, 2000);
+
         setPolarity(readPolarity());
-        const kickoff = setTimeout(speakOne, 2500); // first sign of life
-        scheduleTick();
+        scheduleTick(3000); // first sign of life (the director cold-opens)
 
         return () => {
-            clearTimeout(kickoff);
             clearTimeout(tickTimer);
+            clearInterval(noticer);
+            beatTimers.forEach(clearTimeout);
             Object.values(timers).forEach(clearTimeout);
             hideTimers.current = {};
+            activeRef.current = {};
+            window.removeEventListener('pointerdown', touch);
+            window.removeEventListener('wheel', touch);
+            window.removeEventListener('touchstart', touch);
+            window.removeEventListener('keydown', touch);
+            window.removeEventListener('scroll', touch);
         };
     }, [on]);
 
-    /* Size each visible bubble to hug its longest wrapped line. The measurer has
-       no transformed ancestor, so its line widths are accurate even while a
-       bubble plays its entrance animation. */
+    /* Size each visible bubble to hug its wrapped text EXACTLY. The old
+       approach (widest line-box rect) over-reported on wrapped lines — hanging
+       break spaces + fallback-font metrics inflated the width, leaving a blank
+       slab past the text (the "butt"). Instead: count the line boxes at the
+       cap, then binary-search the NARROWEST width that still fits that many
+       lines. At that width one line exactly fills the box, so there is nothing
+       to stick out — no per-character fudge needed. The measurer has no
+       transformed ancestor, so it lays out accurately even while a bubble
+       plays its entrance animation. */
     useEffect(() => {
         const m = measureRef.current;
         if (!m || typeof window === 'undefined') return;
-        const cap = Math.min(168, window.innerWidth * 0.52);
-        const padX = 24; // must match .npc-bubble horizontal padding (12px * 2)
-        m.style.fontSize = '16px';
-        m.style.maxWidth = `${cap - padX}px`;
+        const cap = Math.min(152, window.innerWidth * 0.52);
+        const padX = 22; // must match .npc-bubble horizontal padding (11px * 2)
+        m.style.fontSize = '15px';
         for (const c of CAST) {
             const el = bubbleRefs.current[c.id];
             if (!el) continue;
@@ -208,10 +280,18 @@ export function NpcCast() {
             }
             m.style.letterSpacing = c.letterSpacing ?? '';
             m.textContent = styleText(text, c.style);
-            const rects = m.getClientRects();
-            let w = 0;
-            for (let i = 0; i < rects.length; i++) w = Math.max(w, rects[i].width);
-            el.style.width = w > 0 ? `${Math.ceil(w + padX + 1) + (c.widthAdjust ?? 0)}px` : '';
+            const capW = Math.max(24, Math.round(cap - padX));
+            m.style.maxWidth = `${capW}px`;
+            const lineCount = m.getClientRects().length;
+            if (lineCount === 0) { el.style.width = ''; continue; }
+            let lo = 24, hi = capW;
+            while (lo < hi) {
+                const mid = (lo + hi) >> 1;
+                m.style.maxWidth = `${mid}px`;
+                if (m.getClientRects().length > lineCount) lo = mid + 1;
+                else hi = mid;
+            }
+            el.style.width = `${lo + padX}px`;
         }
     }, [active, lineFor]);
 

@@ -5,18 +5,16 @@ import { getProject } from '../project/registry';
 /*
  * npc/awareness — the NPC Cast's read on what YOU'RE doing right now.
  *
- * The residents mostly live in their own world (lib/npc/cast lines), but they
- * also clock where you are and react — like reality-TV commentary on a stranger
- * browsing. This is the UI rung of the awareness ladder (ClickUp 86b9fcp11):
- *   1. own-world chatter (most of the time — lives in cast.ts)
- *   2. third-person glances at you ("they keep opening the red ones")  ← here
- *   3. rare direct address                                            ← here
- *   4. the once-in-a-blue-moon fourth-wall jolt                       ← here
+ * The residents clock where you are and react — like reality-TV commentary on
+ * a stranger browsing. This module owns rung 2 of the awareness ladder
+ * (ClickUp 86b9fcp11): the third-person GLANCE pools, keyed by page kind.
+ * Rungs 3–4 (direct address, fourth wall), the sight lines that react to the
+ * piece's actual pixels, and every multi-beat scene live in lib/npc/scenarios;
+ * lib/npc/director decides what fires when.
  *
- * Pure client-side: we read the current route to know the page + the piece in
- * view (PROJECT #id). No indexer / live events yet. The visual fingerprint
- * (colour / busy / mood) is the next rung — these lines name the piece and the
- * surface; "seeing" what it looks like plugs in later.
+ * Pure client-side: readStage classifies the current route into the page +
+ * piece in view (PROJECT #id); the pixel-level "seeing" comes from
+ * lib/npc/inview.
  *
  * Voice rules (locked): offhand, deadpan, one unbreakable lens each; market
  * voices stay on patterns, never a real identifiable person.
@@ -65,37 +63,37 @@ type AwarePools = { artwork: string[]; project: string[]; profile: string[]; bro
    2026-06-22); those are dropped when you're logged out (no name to use). */
 const AWARE: Record<string, AwarePools> = {
     rocco: {
-        artwork: ['They keep staring at {piece}. I sold mine.', '{piece}. Bold of them to like it out loud.', '{name} keeps staring at {piece}. I sold mine.'],
-        project: ['They found {slug}. I was here first.', 'Whole collection now? Amateur hour.', '{name} found {slug}. I was here first.'],
+        artwork: ['They keep staring at {piece}. I sold mine.', '{piece}. Bold of them to like it out loud.', '{name} keeps staring at {piece}. I sold mine.', 'A long look at {piece}. Longer than it needs.'],
+        project: ['They found {slug}. I was here first.', 'Whole collection now? Amateur hour.', '{name} found {slug}. I was here first.', '{slug}. Late, but they made it.'],
         profile: ['They care what other people own. Cute.', 'Reading a profile. Looking for taste to borrow.', '{name} cares what other people own. Cute.'],
-        browsing: ["They'll buy the popular one. They always do.", 'Scrolling for permission to like something.', '{name} will buy the popular one. Always does.'],
+        browsing: ["They'll buy the popular one. They always do.", 'Scrolling for permission to like something.', '{name} will buy the popular one. Always does.', "Look at them shop. No thesis. Just scrolling."],
     },
     eddie: {
-        artwork: ['They keep coming back to {piece}. That means something.', '{piece} again. Somebody tipped them off.', '{name} keeps coming back to {piece}. That means something.'],
+        artwork: ['They keep coming back to {piece}. That means something.', '{piece} again. Somebody tipped them off.', '{name} keeps coming back to {piece}. That means something.', 'What do they see in {piece}. No really — what. I want in.'],
         project: ["They're deep in {slug}. Heard it's moving.", 'Watching {slug}. So is someone else.', "{name}'s deep in {slug}. Heard it's moving."],
         profile: ["They're checking whose hands it's in.", 'Reading a profile. Building a case.', "{name}'s checking whose hands it's in."],
-        browsing: ["They're hunting. I can tell.", 'Quiet scroll. The dangerous kind.', "{name}'s hunting. I can tell."],
+        browsing: ["They're hunting. I can tell.", 'Quiet scroll. The dangerous kind.', "{name}'s hunting. I can tell.", 'What are they thinking right now. I need to know.'],
     },
     mick: {
-        artwork: ['They looked at {piece}. Noted.', "{piece}. I've seen it pass through three wallets.", '{name} looked at {piece}. Noted.'],
+        artwork: ['They looked at {piece}. Noted.', "{piece}. I've seen it pass through three wallets.", '{name} looked at {piece}. Noted.', '{piece}. Second look this week, if my notes hold.'],
         project: ['Back in {slug}. Same as last week.', 'I have records on all of {slug}.', "{name}'s back in {slug}. Same as last week."],
         profile: ["They're reading history. At least someone does.", 'Checking tenure. Good instinct.', "{name}'s reading history. At least someone does."],
-        browsing: ['Browsing. Tuesday behavior.', "Seen this exact session a hundred times.", '{name}, browsing. Tuesday behavior.'],
+        browsing: ['Browsing. Tuesday behavior.', 'Seen this exact session a hundred times.', '{name}, browsing. Tuesday behavior.'],
     },
     carl: {
         artwork: ["They like {piece}. It'll let them down.", '{piece}. Looks great. For now.', "{name} likes {piece}. It'll let them down."],
         project: ['All of {slug}? That is a lot to regret later.', "{slug}. Floor's coming for it.", 'All of {slug}, {name}? That is a lot to regret later.'],
         profile: ['Looking at what they do not have.', 'Comparing up. Healthy. Sure.', '{name} is looking at what they do not have.'],
-        browsing: ['Still looking. It will not help.', "They'll find something to lose money on.", "{name}'s still looking. It will not help."],
+        browsing: ['Still looking. It will not help.', "They'll find something to lose money on.", "{name}'s still looking. It will not help.", "They seem hopeful today. That'll sort itself out."],
     },
     mimi: {
         artwork: ["They want {piece}. I'll be there when they fold.", '{piece}. I own the better one.', "{name} wants {piece}. I'll be there when they fold."],
         project: ['Circling {slug}. So am I.', 'They like {slug}. Noted for later.', '{name} likes {slug}. Noted for later.'],
         profile: ['Sizing someone up. I size wallets.', 'Reading a profile. I read positions.', "{name}'s sizing someone up. I size wallets."],
-        browsing: ['Indecisive. Cheap to take from.', "They're scared. Good.", "{name}'s scared. Good."],
+        browsing: ['Indecisive. Cheap to take from.', "They're scared. Good.", "{name}'s scared. Good.", 'Window shopping. The window remembers.'],
     },
     romy: {
-        artwork: ['They really like {piece}. That is nice.', '{piece}. Good eye, honestly.', '{name} really likes {piece}. That is nice.'],
+        artwork: ['They really like {piece}. That is nice.', '{piece}. Good eye, honestly.', '{name} really likes {piece}. That is nice.', 'Look at them lingering. What are they thinking?'],
         project: ['They are enjoying {slug}. Let them.', '{slug} is a sweet little world.', '{name} is enjoying {slug}. Let them.'],
         profile: ['Curious about someone. That is the whole point.', 'Seeing what other people love.', '{name} is curious about someone. That is the whole point.'],
         browsing: ['Just looking around. Nothing wrong with that.', "They'll find their one.", '{name} is just looking around. Nothing wrong with that.'],
@@ -113,15 +111,6 @@ const AWARE: Record<string, AwarePools> = {
         browsing: ["They're searching for something they can't name.", 'The scroll is a kind of divination.', "{name} is searching for something they can't name."],
     },
 };
-
-/* The fourth-wall jolt — rare. {piece}-bearing lines only fire on an artwork. */
-const FOURTHWALL: string[] = [
-    'Wait… do they know we are watching them look at {piece} right now?',
-    'Hold on — who is watching us watch them?',
-    'Are we on a screen right now? Is this a screen?',
-    'They can see us. Right? …Right?',
-    'Someone is reading this. I can feel it.',
-];
 
 function rand<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -150,10 +139,4 @@ export function pickAwareness(charId: string, stage: Stage, name?: string | null
     if (!name) pool = pool.filter((l) => !l.includes('{name}'));
     if (!pool || !pool.length) return null;
     return fill(rand(pool), stage, name);
-}
-
-/** The rare fourth-wall line. {piece} variants are dropped when no piece is in view. */
-export function pickFourthWall(stage: Stage, name?: string | null): string {
-    const usable = stage.piece ? FOURTHWALL : FOURTHWALL.filter((l) => !l.includes('{piece}'));
-    return fill(rand(usable.length ? usable : FOURTHWALL), stage, name);
 }

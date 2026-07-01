@@ -24,12 +24,21 @@ const reported = new Set<string>();           // POST dedupe (per session)
 const loadedSlugs = new Set<string>();        // GET dedupe (per session)
 
 /* The rest of the visual fingerprint (everything beyond the colour bucket),
-   cached + served alongside the colour from the same rows. */
+   cached + served alongside the colour from the same rows. v2 fields are null
+   on rows captured before the deep look. */
 export interface StoredFingerprint {
     aspect: AspectKind | null;
     brightness: number | null;
     saturation: number | null;
     complexity: number | null;
+    accent: string | null;
+    paletteCount: number | null;
+    contrast: number | null;
+    warmth: number | null;
+    gravity: string | null;
+    symmetry: number | null;
+    air: number | null;
+    texture: number | null;
 }
 const fpCache = new Map<string, StoredFingerprint>();
 export function resolveFingerprint(slug: string, id: number): StoredFingerprint | null {
@@ -117,6 +126,14 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
         brightness: fp.brightness,
         saturation: fp.saturation,
         complexity: fp.complexity,
+        accent: fp.accent,
+        paletteCount: fp.paletteCount,
+        contrast: fp.contrast,
+        warmth: fp.warmth,
+        gravity: fp.gravity,
+        symmetry: fp.symmetry,
+        air: fp.air,
+        texture: fp.texture,
     });
     try {
         fetch('/api/outputs/color', {
@@ -129,6 +146,15 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
                 brightness: fp.brightness,
                 saturation: fp.saturation,
                 complexity: fp.complexity,
+                accent: fp.accent,
+                accentShare: fp.accentShare,
+                paletteCount: fp.paletteCount,
+                contrast: fp.contrast,
+                warmth: fp.warmth,
+                gravity: fp.gravity,
+                symmetry: fp.symmetry,
+                air: fp.air,
+                texture: fp.texture,
             }),
             keepalive: true,
         }).catch(() => { /* ignore */ });
@@ -163,6 +189,9 @@ async function loadColors(slugs: string[]): Promise<void> {
             slug: string; id: number; bucket: string;
             aspect?: AspectKind | null; brightness?: number | null;
             saturation?: number | null; complexity?: number | null;
+            accent?: string | null; paletteCount?: number | null; contrast?: number | null;
+            warmth?: number | null; gravity?: string | null; symmetry?: number | null;
+            air?: number | null; texture?: number | null;
             rarity?: string | null; artist?: string | null; project_name?: string | null;
             true_name?: string | null; price_day?: string | null;
             natal_sun?: string | null; natal_moon?: string | null; natal_rising?: string | null;
@@ -180,6 +209,14 @@ async function loadColors(slugs: string[]): Promise<void> {
                     brightness: r.brightness ?? null,
                     saturation: r.saturation ?? null,
                     complexity: r.complexity ?? null,
+                    accent: r.accent ?? null,
+                    paletteCount: r.paletteCount ?? null,
+                    contrast: r.contrast ?? null,
+                    warmth: r.warmth ?? null,
+                    gravity: r.gravity ?? null,
+                    symmetry: r.symmetry ?? null,
+                    air: r.air ?? null,
+                    texture: r.texture ?? null,
                 });
                 changed = true;
             }

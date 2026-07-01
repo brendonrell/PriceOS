@@ -2274,7 +2274,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     display: flex; flex-direction: column; gap: 4px;
     /* Tight wrap keeps the bubble small + close to the wall, so the box hugs the
        text (no empty "butt") instead of stretching wide on a wrapped line. */
-    max-width: min(168px, 52vw);
+    max-width: min(152px, 52vw);
 }
 .npc-resident.left  { left: 12px;  align-items: flex-start; }
 .npc-resident.right { right: 12px; align-items: flex-end; text-align: right; }
@@ -2304,11 +2304,11 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     position: relative;
     box-sizing: border-box;
     display: inline-block;
-    max-width: min(168px, 52vw);
+    max-width: min(152px, 52vw);
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 7px 11px;
     font-family: 'Courier New', Courier, monospace;
-    font-weight: bold; font-size: 16px; line-height: 1.32;
+    font-weight: bold; font-size: 15px; line-height: 1.32;
     white-space: normal;
     /* Project names are arbitrary, so a long unbroken name must wrap inside the
        bubble instead of spilling past its edge (Brendon, 2026-06-22). The
@@ -2344,23 +2344,23 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    Each motion is exaggerated + on a different axis/speed so you instantly know
    who's talking from the corner of your eye (Brendon, 2026-06-22). */
 .npc-resident.active .npc-bubble { opacity: 1; animation-fill-mode: both; }
-.npc-resident.active .npc-anim-glide  { animation: npc-glide  0.8s  cubic-bezier(0.16, 0.8, 0.2, 1); }            /* Rocco — slow, unbothered */
-.npc-resident.active .npc-anim-settle { animation: npc-settle 0.6s  cubic-bezier(0.3, 1.3, 0.5, 1); }            /* Mick — heavy drop + thud */
-.npc-resident.active .npc-anim-snap   { animation: npc-snap   0.22s cubic-bezier(0.2, 1.6, 0.4, 1); }            /* Mimi — fast strike */
-.npc-resident.active .npc-anim-plain  { animation: npc-plain  0.28s linear; }                                   /* Steven — just appears */
-.npc-resident.active .npc-anim-lean   { animation: npc-lean   0.55s cubic-bezier(0.2, 1.2, 0.3, 1); }            /* Eddie — tilts in */
-.npc-resident.active .npc-anim-sag    { animation: npc-sag    0.75s cubic-bezier(0.3, 0.6, 0.3, 1); }            /* Carl — heavy flop */
-.npc-resident.active .npc-anim-bloom  { animation: npc-bloom  0.55s cubic-bezier(0.2, 1.5, 0.4, 1); }            /* Romy — warm pop */
-.npc-resident.active .npc-anim-drift  { animation: npc-drift  1s    ease-in-out; }                               /* Celestia — slow float */
+.npc-resident.active .npc-anim-glide  { animation: npc-glide  1.05s cubic-bezier(0.22, 1, 0.3, 1); }              /* Rocco — slow, unbothered, arrives past you then eases back */
+.npc-resident.active .npc-anim-settle { animation: npc-settle 0.65s cubic-bezier(0.3, 1.3, 0.5, 1); }             /* Mick — heavy drop, thud, tiny rebound */
+.npc-resident.active .npc-anim-snap   { animation: npc-snap   0.2s  cubic-bezier(0.15, 1.7, 0.35, 1); }           /* Mimi — strike; lands with a flick of recoil */
+.npc-resident.active .npc-anim-plain  { animation: npc-plain  0.24s linear; }                                    /* Steven — just appears (that IS the character) */
+.npc-resident.active .npc-anim-lean   { animation: npc-lean   0.65s cubic-bezier(0.2, 1.2, 0.3, 1); }             /* Eddie — tilts in, hangs on the lean, rights himself */
+.npc-resident.active .npc-anim-sag    { animation: npc-sag    0.9s  cubic-bezier(0.3, 0.55, 0.35, 1); }           /* Carl — heavier flop, slower to give up moving */
+.npc-resident.active .npc-anim-bloom  { animation: npc-bloom  0.6s  cubic-bezier(0.2, 1.35, 0.4, 1); }            /* Romy — soft bloom, gentler overshoot */
+.npc-resident.active .npc-anim-drift  { animation: npc-drift  1.25s ease-in-out; }                                /* Celestia — floats up with a faint sway */
 
-@keyframes npc-glide  { 0% { opacity: 0; transform: translateX(calc(var(--npc-from) * 1.4)); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes npc-glide  { 0% { opacity: 0; transform: translateX(calc(var(--npc-from) * 1.4)); } 70% { opacity: 1; transform: translateX(calc(var(--npc-from) * -0.035)); } 100% { opacity: 1; transform: translateX(0); } }
 @keyframes npc-settle { 0% { opacity: 0; transform: translateY(-52px); } 55% { opacity: 1; transform: translateY(9px); } 78% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
-@keyframes npc-snap   { 0% { opacity: 0; transform: translateX(var(--npc-from)) scale(1.18); } 55% { opacity: 1; } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes npc-snap   { 0% { opacity: 0; transform: translateX(var(--npc-from)) scale(1.2); } 55% { opacity: 1; transform: translateX(calc(var(--npc-from) * -0.03)) scale(1.02); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
 @keyframes npc-plain  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes npc-lean   { 0% { opacity: 0; transform: translateX(var(--npc-from)) rotate(-11deg); } 65% { opacity: 1; transform: translateX(0) rotate(5deg); } 100% { opacity: 1; transform: translateX(0) rotate(0); } }
-@keyframes npc-sag    { 0% { opacity: 0; transform: translateY(-46px) rotate(-3deg); } 55% { opacity: 1; transform: translateY(12px) rotate(2deg); } 80% { transform: translateY(2px); } 100% { transform: translateY(0) rotate(0); } }
-@keyframes npc-bloom  { 0% { opacity: 0; transform: scale(0.35); } 65% { opacity: 1; transform: scale(1.14); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes npc-drift  { 0% { opacity: 0; transform: translateY(34px) scale(0.9); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes npc-lean   { 0% { opacity: 0; transform: translateX(var(--npc-from)) rotate(-13deg); } 55% { opacity: 1; transform: translateX(0) rotate(6deg); } 80% { transform: rotate(-2deg); } 100% { opacity: 1; transform: translateX(0) rotate(0); } }
+@keyframes npc-sag    { 0% { opacity: 0; transform: translateY(-52px) rotate(-3.5deg); } 50% { opacity: 1; transform: translateY(14px) rotate(2.5deg); } 74% { transform: translateY(-2px) rotate(-1deg); } 100% { transform: translateY(0) rotate(0); } }
+@keyframes npc-bloom  { 0% { opacity: 0; transform: scale(0.45); } 60% { opacity: 1; transform: scale(1.09); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes npc-drift  { 0% { opacity: 0; transform: translateY(38px) translateX(3px) scale(0.92); } 55% { opacity: 1; transform: translateY(-4px) translateX(-2px) scale(1.01); } 100% { opacity: 1; transform: translateY(0) translateX(0) scale(1); } }
 
 @media (max-width: 600px) {
     .npc-resident { max-width: 62vw; }

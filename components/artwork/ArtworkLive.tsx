@@ -18,6 +18,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { needsColorSample, reportFingerprint, reportTraits } from '../../lib/art/colorStore';
 import { sampleCanvasFingerprint } from '../../lib/art/sampleColor';
+import { publishPieceInView, clearPieceInView } from '../../lib/npc/inview';
 
 export default function ArtworkLive({
     slug,
@@ -43,12 +44,16 @@ export default function ArtworkLive({
         const big = Math.max(window.innerWidth, window.innerHeight);
         const target = Math.round(Math.min(2000, Math.max(640, big * dpr)));
         paintOutput(canvas, slug, id, target);
-        // Viewing a piece's page backfills its stored fingerprint + traits, same
-        // self-populating model as the gallery cards.
+        // One cheap pixel read serves two masters: the stored fingerprint
+        // backfill (same self-populating model as the gallery cards) and the
+        // NPC Cast's live sight of the piece actually on screen.
+        const fp = sampleCanvasFingerprint(canvas);
         if (needsColorSample(slug, id)) {
-            reportFingerprint(slug, id, sampleCanvasFingerprint(canvas));
+            reportFingerprint(slug, id, fp);
         }
         reportTraits(slug, id);
+        publishPieceInView(slug, id, fp);
+        return () => clearPieceInView(slug, id);
     }, [slug, id]);
 
     // Sizing is CSS-driven via `className` (so it can use viewport-relative

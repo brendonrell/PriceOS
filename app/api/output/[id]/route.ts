@@ -24,13 +24,23 @@ export interface OutputDetailResponse {
   last_sale_eth: string | null;
   traits: OutputTraits;
   history: EventRow[];
-  /** Stored visual fingerprint (sampled pixels) — null until captured. */
+  /** Stored visual fingerprint (sampled pixels) — null until captured.
+   *  v2 fields (accent…texture) are null on rows captured before the deep look. */
   fingerprint: {
     dominant_color: string | null;
     aspect: string | null;
     brightness: number | null;
     saturation: number | null;
     complexity: number | null;
+    accent_color?: string | null;
+    accent_share?: number | null;
+    palette_count?: number | null;
+    contrast?: number | null;
+    warmth?: number | null;
+    gravity?: string | null;
+    symmetry?: number | null;
+    air?: number | null;
+    texture?: number | null;
   } | null;
   true_name: string | null;
 }
@@ -70,12 +80,15 @@ export async function GET(
         .eq('token_id', tokenId)
         .order('timestamp', { ascending: true }),
       db.from('outputs')
-        .select('dominant_color, aspect, brightness, saturation, complexity, true_name')
+        .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, true_name')
         .eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
     ]);
     const meta = metaRes.data as {
       dominant_color: string | null; aspect: string | null;
       brightness: number | null; saturation: number | null; complexity: number | null;
+      accent_color: string | null; accent_share: number | null; palette_count: number | null;
+      contrast: number | null; warmth: number | null; gravity: string | null;
+      symmetry: number | null; air: number | null; texture: number | null;
       true_name: string | null;
     } | null;
 
@@ -139,6 +152,15 @@ export async function GET(
             brightness: meta.brightness,
             saturation: meta.saturation,
             complexity: meta.complexity,
+            accent_color: meta.accent_color,
+            accent_share: meta.accent_share,
+            palette_count: meta.palette_count,
+            contrast: meta.contrast,
+            warmth: meta.warmth,
+            gravity: meta.gravity,
+            symmetry: meta.symmetry,
+            air: meta.air,
+            texture: meta.texture,
           }
         : null,
       true_name: meta?.true_name ?? null,

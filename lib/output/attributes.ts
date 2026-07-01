@@ -13,6 +13,7 @@ import {
     birthWeekday, birthTimeOfDay, birthSeason, lunarPhase, lunarGlyph, lunarIllumination,
     fateDetail, brightnessBand, saturationBand, complexityBand, toneMood,
     colorTemperature, orientationOf, BUCKET_HEX,
+    paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
 } from './derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, type Freq } from './rarity';
 import { entropyGrid } from './entropyGlyph';
@@ -45,10 +46,15 @@ export interface AttrInput {
     mintMs: number | null;
     /** Platform + artist traits from /api/output/[id] (Sun/Moon/Rising/Fate/Palette…). */
     traits: Record<string, string>;
-    /** Stored visual fingerprint (sampled pixels), or null. */
+    /** Stored visual fingerprint (sampled pixels), or null. v2 fields
+     *  (accent…texture) are absent/null on rows captured before the deep look. */
     fingerprint: {
         dominant_color: string | null; aspect: string | null;
         brightness: number | null; saturation: number | null; complexity: number | null;
+        accent_color?: string | null; accent_share?: number | null;
+        palette_count?: number | null; contrast?: number | null; warmth?: number | null;
+        gravity?: string | null; symmetry?: number | null; air?: number | null;
+        texture?: number | null;
     } | null;
     /** The Output true name (project glyphs + id). */
     trueName: string;
@@ -77,21 +83,47 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     }
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
 
-    /* ── Form (sampled fingerprint) ───────────────────────────────────── */
+    /* ── Fingerprint (sampled pixels — the deep look) ─────────────────────
+       The piece's full visual read, one wall of tiles. v1 axes first (colour /
+       light), then the v2 deep look (palette structure / composition). Every
+       tile is gated on its datum so pre-v2 rows degrade to the shorter wall. */
     const form: AttrTile[] = [];
     const bucket = fingerprint?.dominant_color ?? outputColorBucket(slug, id) ?? null;
+    const warmth = fingerprint?.warmth;
     if (bucket) {
         form.push({ glyph: '◉', label: 'Dominant Colour', value: bucket, swatch: BUCKET_HEX[bucket] });
-        form.push({ glyph: '✦', label: 'Temperature', value: colorTemperature(bucket) });
     }
-    const orient = orientationOf(fingerprint?.aspect ?? null);
-    if (orient) form.push({ glyph: '▭', label: 'Orientation', value: orient });
+    const accent = fingerprint?.accent_color;
+    if (accent) {
+        const ash = fingerprint?.accent_share;
+        form.push({ glyph: '◎', label: 'Accent', value: accent, swatch: BUCKET_HEX[accent], sub: ash != null ? pct(ash) : undefined });
+    }
+    const pc = fingerprint?.palette_count;
+    if (pc != null) form.push({ glyph: '▤', label: 'Palette', value: paletteBand(pc), sub: `${pc} colour${pc === 1 ? '' : 's'}` });
+    if (bucket) {
+        form.push({
+            glyph: '✦', label: 'Temperature', value: warmth != null ? warmthBand(warmth) : colorTemperature(bucket),
+            sub: warmth != null ? `${pct(warmth)} warm` : undefined,
+        });
+    }
     const br = fingerprint?.brightness, sa = fingerprint?.saturation, cx = fingerprint?.complexity;
     if (br != null) form.push({ glyph: '◐', label: 'Brightness', value: brightnessBand(br), sub: pct(br) });
     if (sa != null) form.push({ glyph: '❖', label: 'Saturation', value: saturationBand(sa), sub: pct(sa) });
-    if (cx != null) form.push({ glyph: '⌗', label: 'Complexity', value: complexityBand(cx), sub: pct(cx) });
+    const contrast = fingerprint?.contrast;
+    if (contrast != null) form.push({ glyph: '◨', label: 'Contrast', value: contrastBand(contrast), sub: pct(contrast) });
     if (br != null && sa != null) form.push({ glyph: '◕', label: 'Tone', value: toneMood(br, sa) });
-    if (form.length) groups.push({ key: 'form', label: 'Form', tiles: form });
+    if (cx != null) form.push({ glyph: '⌗', label: 'Complexity', value: complexityBand(cx), sub: pct(cx) });
+    const texture = fingerprint?.texture;
+    if (texture != null) form.push({ glyph: '▒', label: 'Texture', value: textureBand(texture), sub: pct(texture) });
+    const air = fingerprint?.air;
+    if (air != null) form.push({ glyph: '◌', label: 'Air', value: airBand(air), sub: pct(air) });
+    const gravity = fingerprint?.gravity;
+    if (gravity) form.push({ glyph: '◒', label: 'Gravity', value: gravityWord(gravity) });
+    const symmetry = fingerprint?.symmetry;
+    if (symmetry != null) form.push({ glyph: '◫', label: 'Symmetry', value: symmetryBand(symmetry), sub: pct(symmetry) });
+    const orient = orientationOf(fingerprint?.aspect ?? null);
+    if (orient) form.push({ glyph: '▭', label: 'Orientation', value: orient });
+    if (form.length) groups.push({ key: 'form', label: 'Fingerprint', tiles: form });
 
     /* ── Sky (natal chart) ────────────────────────────────────────────── */
     const sun = traits.Sun, moon = traits.Moon, rising = traits.Rising;

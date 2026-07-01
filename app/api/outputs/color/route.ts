@@ -9,6 +9,7 @@ import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import {
   brightnessBand, saturationBand, complexityBand, toneMood, colorTemperature, orientationOf,
+  paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand,
 } from '@/lib/output/derive';
 
 export const revalidate = 0;
@@ -23,6 +24,7 @@ const VALID = new Set<string>([
 ]);
 
 const ASPECTS = new Set(['square', 'wide', 'tall']);
+const GRAVITIES = new Set(['Centered', 'Low', 'High', 'Left', 'Right']);
 const unit = (n: unknown): number | null =>
   typeof n === 'number' && isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
 
@@ -32,6 +34,9 @@ export async function POST(req: NextRequest) {
       | {
           slug?: string; id?: number | string; bucket?: string;
           aspect?: string; brightness?: number; saturation?: number; complexity?: number;
+          accent?: string | null; accentShare?: number; paletteCount?: number;
+          contrast?: number; warmth?: number | null; gravity?: string;
+          symmetry?: number; air?: number; texture?: number;
         }
       | null;
     const slug = body?.slug?.trim();
@@ -62,6 +67,23 @@ export async function POST(req: NextRequest) {
     if (sa != null) row.saturation_band = saturationBand(sa);
     if (cx != null) row.complexity_band = complexityBand(cx);
     if (br != null && sa != null) row.tone_mood = toneMood(br, sa);
+
+    // ── The deep look (fingerprint v2, 2026-07-01) — scalars + bands ──
+    const accent = body?.accent && VALID.has(body.accent) && body.accent !== bucket ? body.accent : null;
+    if (accent) {
+      row.accent_color = accent;
+      const ash = unit(body?.accentShare); if (ash != null) row.accent_share = ash;
+    }
+    const pc = typeof body?.paletteCount === 'number' && isFinite(body.paletteCount)
+      ? Math.max(1, Math.min(14, Math.round(body.paletteCount))) : null;
+    if (pc != null) { row.palette_count = pc; row.palette_band = paletteBand(pc); }
+    const co = unit(body?.contrast); if (co != null) { row.contrast = co; row.contrast_band = contrastBand(co); }
+    const wa = unit(body?.warmth); if (wa != null) { row.warmth = wa; row.warmth_band = warmthBand(wa); }
+    const gr = body?.gravity && GRAVITIES.has(body.gravity) ? body.gravity : null;
+    if (gr) row.gravity = gr;
+    const sy = unit(body?.symmetry); if (sy != null) { row.symmetry = sy; row.symmetry_band = symmetryBand(sy); }
+    const ai = unit(body?.air); if (ai != null) { row.air = ai; row.air_band = airBand(ai); }
+    const tx = unit(body?.texture); if (tx != null) { row.texture = tx; row.texture_band = textureBand(tx); }
 
     const sb = getSupabaseService();
     const { error } = await sb.from('outputs').upsert(row as never, {

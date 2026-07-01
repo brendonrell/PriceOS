@@ -206,6 +206,64 @@ export function colorTemperature(bucket: string): string {
     if (COOL.has(bucket)) return 'Cool';
     return 'Neutral';
 }
+
+/* ── Fingerprint v2 scalars → bands (the deep look, 2026-07-01) ──────────
+   Same single-source contract as the v1 bands above: the capture route
+   denormalises these onto `outputs`, the UI computes them live as fallback. */
+
+/** Distinct colour count (buckets ≥8% of pixels) → palette word. */
+export function paletteBand(count: number): string {
+    if (count <= 1) return 'Monochrome';
+    if (count === 2) return 'Duotone';
+    if (count === 3) return 'Trichrome';
+    return 'Polychrome';
+}
+/** Luminance spread (p90 − p10, 0..1) → contrast word. */
+export function contrastBand(v: number): string {
+    if (v < 0.12) return 'Flat';
+    if (v < 0.3) return 'Soft';
+    if (v < 0.55) return 'Measured';
+    if (v < 0.78) return 'Crisp';
+    return 'Stark';
+}
+/** Warm share among chromatic pixels (0..1) → temperature word, finer than
+ *  the bucket-derived colorTemperature. */
+export function warmthBand(v: number): string {
+    if (v < 0.15) return 'Cold';
+    if (v < 0.42) return 'Cool';
+    if (v < 0.58) return 'Split';
+    if (v < 0.85) return 'Warm';
+    return 'Molten';
+}
+/** Left↔right mirror similarity (0..1) → symmetry word. */
+export function symmetryBand(v: number): string {
+    if (v >= 0.9) return 'Mirrored';
+    if (v >= 0.72) return 'Balanced';
+    if (v >= 0.5) return 'Leaning';
+    return 'Askew';
+}
+/** Flat / negative-space share (0..1) → air word. */
+export function airBand(v: number): string {
+    if (v >= 0.72) return 'Vast';
+    if (v >= 0.5) return 'Airy';
+    if (v >= 0.28) return 'Open';
+    return 'Packed';
+}
+/** Fine-detail share (0..1) → texture word. */
+export function textureBand(v: number): string {
+    if (v < 0.18) return 'Smooth';
+    if (v < 0.38) return 'Even';
+    if (v < 0.6) return 'Textured';
+    return 'Grainy';
+}
+/** Gravity direction → display phrase for the attribute tile. */
+export function gravityWord(g: string): string {
+    if (g === 'Low') return 'Sits Low';
+    if (g === 'High') return 'Held High';
+    if (g === 'Left') return 'Leans Left';
+    if (g === 'Right') return 'Leans Right';
+    return 'Centered';
+}
 /** Aspect bucket ('square' | 'wide' | 'tall') → orientation word. */
 export function orientationOf(aspect: string | null, ratio?: number | null): string {
     if (aspect === 'wide') return 'Landscape';
