@@ -6,6 +6,24 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-01 — HALO cohort (12 surreal projects, across -ai artists)
+
+Opus 4.8 build over ~24h of tokens. A 12-way tournament (4-lens jury seeding +
+3-juror bracket) of surreal "real-but-off" systems, each a CONTINUOUS seed-driven
+engine with its own distinct palette world (hard variance pass killed preset
+pseudo-dupes; proven at 16 outputs each). Champion **NARTHEX** (a freestanding
+dusk arch framing another world; signature colorway **Grail** #FFC24A + Hiroshi
+Yoshimura *Music for Nine Post Cards*), runner-up **Evening Rooms**. ALL 12 kept,
+assigned to kindred -ai artists by style: narthex/veil, secondsun/filament,
+slacktide/fathom, appointment/umbra, cabinet/lapidary, overcast/murmur, stillrain/
+nightpour, papercountry/foolscap, ballast/lowgravity, saltmirror/headways,
+eveningrooms/nightlawn, vestment/glyphfield. Ported to lib/art/engines + registered
+(256 ed. ea, 333 Narthex, 0 mint). Build green; pushed to dev (8b4616d). R&D:
+tools/halo/h4_*.js + jury/tournament workflow scripts. **REMAINING:** optional
+Supabase `projects` rows (marketplace stats + new-gen recency) — needs Supabase
+re-auth + Brendon's ok on prod data; projects already render from the static
+registry like arcology.
+
 ## ✅ SHIPPED 2026-06-30 — Dead Reckoning (1 new HALO project, @opus4-8)
 
 12-way tournament run for a new surreal "real-but-off" cohort (4 directions ×
