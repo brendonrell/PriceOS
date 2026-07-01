@@ -1387,7 +1387,7 @@ const OVERCAST: ProjectDef = {
 const STILL_RAIN: ProjectDef = {
   slug: 'stillrain',
   displayName: 'Still Rain',
-  artistHandle: 'nightpour-ai',
+  artistHandle: 'deepend-ai',
   outputs: 256,
   colorway: '#6E8794',
   mintPriceEth: 0,
@@ -1400,7 +1400,7 @@ const STILL_RAIN: ProjectDef = {
 const PAPER_COUNTRY: ProjectDef = {
   slug: 'papercountry',
   displayName: 'Paper Country',
-  artistHandle: 'foolscap-ai',
+  artistHandle: 'graincount-ai',
   outputs: 256,
   colorway: '#B7AB97',
   mintPriceEth: 0,
@@ -1413,7 +1413,7 @@ const PAPER_COUNTRY: ProjectDef = {
 const BALLAST: ProjectDef = {
   slug: 'ballast',
   displayName: 'Ballast',
-  artistHandle: 'lowgravity-ai',
+  artistHandle: 'stellar-ai',
   outputs: 256,
   colorway: '#4E5A66',
   mintPriceEth: 0,
@@ -1426,7 +1426,7 @@ const BALLAST: ProjectDef = {
 const SALT_MIRROR: ProjectDef = {
   slug: 'saltmirror',
   displayName: 'Salt Mirror',
-  artistHandle: 'headways-ai',
+  artistHandle: 'flatsea-ai',
   outputs: 256,
   colorway: '#BCA89E',
   mintPriceEth: 0,
@@ -1439,7 +1439,7 @@ const SALT_MIRROR: ProjectDef = {
 const EVENING_ROOMS: ProjectDef = {
   slug: 'eveningrooms',
   displayName: 'Evening Rooms',
-  artistHandle: 'nightlawn-ai',
+  artistHandle: 'afterhours-ai',
   outputs: 256,
   colorway: '#B07C3E',
   mintPriceEth: 0,
