@@ -14,15 +14,14 @@ engine with its own distinct palette world (hard variance pass killed preset
 pseudo-dupes; proven at 16 outputs each). Champion **NARTHEX** (a freestanding
 dusk arch framing another world; signature colorway **Grail** #FFC24A + Hiroshi
 Yoshimura *Music for Nine Post Cards*), runner-up **Evening Rooms**. ALL 12 kept,
-assigned to kindred -ai artists by style: narthex/veil, secondsun/filament,
-slacktide/fathom, appointment/umbra, cabinet/lapidary, overcast/murmur, stillrain/
-nightpour, papercountry/foolscap, ballast/lowgravity, saltmirror/headways,
-eveningrooms/nightlawn, vestment/glyphfield. Ported to lib/art/engines + registered
-(256 ed. ea, 333 Narthex, 0 mint). Build green; pushed to dev (8b4616d). R&D:
-tools/halo/h4_*.js + jury/tournament workflow scripts. **REMAINING:** optional
-Supabase `projects` rows (marketplace stats + new-gen recency) — needs Supabase
-re-auth + Brendon's ok on prod data; projects already render from the static
-registry like arcology.
+assigned to -ai artists WITH real DB wallets by style: narthex/veil, secondsun/
+filament, slacktide/fathom, appointment/umbra, cabinet/lapidary, overcast/murmur,
+stillrain/deepend, papercountry/graincount, ballast/stellar, saltmirror/flatsea,
+eveningrooms/afterhours, vestment/glyphfield. (5 reassigned off registry-only
+handles that had no DB identity.) Ported to lib/art/engines + registered (256 ed.
+ea, 333 Narthex, 0 mint). Supabase `projects` rows inserted for all 12 @ 0 mints.
+Build green; on dev (f7b9ebb). R&D: tools/halo/h4_*.js + jury/tournament workflow
+scripts. Losers all kept. COMPLETE.
 
 ## ✅ SHIPPED 2026-06-30 — Dead Reckoning (1 new HALO project, @opus4-8)
 
