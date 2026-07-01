@@ -6,6 +6,40 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-01 — Sepolia contract candidates FINAL + /deploy launcher (Fable 5)
+
+**pd-contracts `main` is the Sepolia deploy candidate — 284 tests green.**
+Shipped: Output range **22–9,999**; all three audit-backlog hardening items
+closed (assembly differential-fuzz-proven, strict UTF-8 metadata gate, size
+caps — name/symbol 50 per locked naming policy / description 1,024 / chunks 32);
+**previews back to Arweave** (Brendon's call — pre-May audited design restored,
+art stays 100% on-chain); **PDStickers v2 rewrite**: sealed sheets + peel
+(sealed stack on OpenSea; peel burns → delivers), FIXED default + PACK random
+pulls (peel-time draw, project-mint entropy, EOA-only, capped rares drop out,
+open-edition floor so packs can't brick), per-sheet collab splits on primary AND
+5% royalty (StickerSplitter vaults), zero custody, repriceable, restockable,
+1–99/sheet. **Cooldown stays hardcoded 60 days — SPEC (Brendon, hard): the
+chastity belt is never a parameter; a deploy-param version was shipped
+un-asked and REVERTED. Do not reintroduce.**
+
+**PriceOS dev:** `/deploy` — phone-first Sepolia launcher (Rainbow/WalletConnect,
+page-local Sepolia-only wallet stack; registry → factory → wire → stickers, four
+taps; embedded bytecode = the proven build). NOT visible yet: Vercel paused
+(free-tier CPU cap) — NOTHING pushed to dev has built since 06-27; renders when
+hosting resumes or lands with the Cloudflare cutover.
+
+**Indexer:** serverless build (branch `claude/indexer-alchemy-setup-tuezqu`)
+re-verified against the finals — **code-ready, zero edits**; go-live is
+operational only and rides the Cloudflare migration (see parked block below).
+NOTE: repo `main`'s Ponder code is HISTORICAL — never build on it.
+
+**NEXT / waiting on Brendon:** Sepolia ETH (Google Cloud faucet or
+sepolia-faucet.pk910.de, ~0.05–0.1 needed) → deploy (via /deploy when hosting
+is back, or Remix). Queued in ClickUp: bulk-create ~100-project test catalog
+(86baq09e9 — BLOCKED on Brendon's approach call: one throwaway whitelisted
+wallet per project, cooldown untouched), studio + stickerstudio sites, indexer
+stickers surface. Discord-ready contract synopsis lives in this session's chat.
+
 ## ✅ SHIPPED 2026-07-01 — HALO cohort (12 surreal projects, across -ai artists)
 
 Opus 4.8 build over ~24h of tokens. A 12-way tournament (4-lens jury seeding +
