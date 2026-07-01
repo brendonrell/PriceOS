@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
           accent?: string | null; accentShare?: number; paletteCount?: number;
           contrast?: number; warmth?: number | null; gravity?: string;
           symmetry?: number; air?: number; texture?: number;
+          scene?: string | null; shapeCount?: number; pattern?: string | null;
+          shapes?: { bucket?: string; kind?: string; share?: number; pos?: string }[];
         }
       | null;
     const slug = body?.slug?.trim();
@@ -84,6 +86,28 @@ export async function POST(req: NextRequest) {
     const sy = unit(body?.symmetry); if (sy != null) { row.symmetry = sy; row.symmetry_band = symmetryBand(sy); }
     const ai = unit(body?.air); if (ai != null) { row.air = ai; row.air_band = airBand(ai); }
     const tx = unit(body?.texture); if (tx != null) { row.texture = tx; row.texture_band = textureBand(tx); }
+
+    // ── The quantitative read (fingerprint v3) — scene + shapes ──
+    const KINDS = new Set(['circle', 'square', 'bar', 'shape']);
+    const PATTERNS = new Set(['stripes', 'field', 'scatter']);
+    const POSITIONS = new Set(['centre', 'top', 'bottom', 'left', 'right', 'corner']);
+    if (typeof body?.scene === 'string' && body.scene.length > 0 && body.scene.length <= 140) {
+      row.scene = body.scene;
+    }
+    const scn = typeof body?.shapeCount === 'number' && isFinite(body.shapeCount)
+      ? Math.max(0, Math.min(64, Math.round(body.shapeCount))) : null;
+    if (scn != null) row.shape_count = scn;
+    if (body?.pattern && PATTERNS.has(body.pattern)) row.pattern = body.pattern;
+    if (Array.isArray(body?.shapes)) {
+      const shapes = body.shapes
+        .filter((s) => s && typeof s === 'object'
+          && typeof s.bucket === 'string' && VALID.has(s.bucket)
+          && typeof s.kind === 'string' && KINDS.has(s.kind)
+          && typeof s.pos === 'string' && POSITIONS.has(s.pos))
+        .slice(0, 8)
+        .map((s) => ({ bucket: s.bucket, kind: s.kind, share: unit(s.share) ?? 0, pos: s.pos }));
+      if (shapes.length) row.shapes = shapes;
+    }
 
     const sb = getSupabaseService();
     const { error } = await sb.from('outputs').upsert(row as never, {

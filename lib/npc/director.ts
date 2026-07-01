@@ -8,13 +8,15 @@
  * ClickUp 86b9fcp11).
  *
  * The ladder, in priority order each tick:
- *   1. a prediction about you just resolved (hit or miss — the couch owns it)
- *   2. a queued moment (colour streak / piece revisit)
+ *   0. something you just DID (the action bus — mint, wishlist, cart, grail…)
+ *   1. a prediction/bet about you just resolved (the couch owns the result)
+ *   2. a queued moment (colour streak / piece revisit / an adoption)
  *   3. your lights flipped (dark ↔ light)
  *   4. the cold open (first sign of life, once per session)
  *   5. boredom / pacing (idle stretch, or tearing through pages)
- *   6. the weighted roll: sight › exchange › glance › own-world › direct ›
- *      the once-a-session fourth-wall jolt.
+ *   6. the weighted roll: sight › exchange › duet › glance › own-world ›
+ *      direct › the once-a-session fourth-wall jolt › the once-EVER
+ *      familiar crossover.
  *
  * Every spoken line lands in the persistent used-ledger (lib/npc/memory), so
  * the show doesn't repeat across logins until the bank cycles.
@@ -24,13 +26,18 @@ import { CAST } from './cast';
 import { pickAwareness, type Stage } from './awareness';
 import type { PieceInView } from './inview';
 import {
-    SIGHT, EXCHANGES, STREAK, REVISIT, PREDICT_ARM, PREDICT_HIT, PREDICT_MISS,
-    IDLE, PACING, NIGHT, MORNING, DIRECT, FOURTHWALL, colorWord, type Sight, type Exchange,
+    SIGHT, SIGHT_SCENE, EXCHANGES, STREAK, REVISIT, PREDICT_ARM, PREDICT_HIT, PREDICT_MISS,
+    IDLE, PACING, NIGHT, MORNING, DIRECT, FOURTHWALL, colorWord,
+    ACTION_LINES, ACTION_EXCHANGES, BUYBET_ARM, BUYBET_HIT, BUYBET_MISS,
+    DUET_OPENERS, DUET_REPLIES, ADOPTION_SCENES, LOYAL, XOVER_SCENES,
+    type Sight, type Exchange,
 } from './scenarios';
 import {
-    sessionFacts, nextEvent, fireOnce, markUsed, isUsed,
+    sessionFacts, nextEvent, fireOnce, fireOncePersist, markUsed, isUsed,
     armPrediction, duePrediction, hasPredictionFor, noteObsession, recordNav,
+    recordAction, armBuyBet, resolveBuyBet, expiredBuyBet,
 } from './memory';
+import { consumeAction, type NpcAction } from './actions';
 import {
     brightnessBand, saturationBand, complexityBand, toneMood,
     contrastBand, warmthBand, symmetryBand, airBand, textureBand, orientationOf,
@@ -47,6 +54,10 @@ export interface DirectorCtx {
     idleMs: number;
     /** Residents whose bubbles are currently visible. */
     activeIds: Set<string>;
+    /** The Digital Familiar is on screen (gates the once-ever crossover). */
+    familiarOn: boolean;
+    /** Its species name, for {familiar}. */
+    familiarName: string | null;
 }
 
 export interface PlayBeat {
@@ -106,6 +117,11 @@ function buildSight(p: PieceInView): Sight {
         tone: fp ? toneMood(fp.brightness, fp.saturation) : null,
         orientation: fp ? orientationOf(fp.aspect) || null : null,
         rarity,
+        scene: fp?.scene ?? null,
+        shapeCount: fp?.shapeCount ?? 0,
+        pattern: fp?.pattern ?? null,
+        hasCircle: fp?.shapes?.some((sh) => sh.kind === 'circle') ?? false,
+        hasSquare: fp?.shapes?.some((sh) => sh.kind === 'square') ?? false,
     };
     sightCache.set(key, s);
     return s;
@@ -128,6 +144,8 @@ interface FillCtx {
     accent?: string | null;
     n?: number | null;
     obsession?: string | null;
+    scene?: string | null;
+    familiar?: string | null;
 }
 
 function fill(text: string, f: FillCtx): string {
@@ -138,7 +156,13 @@ function fill(text: string, f: FillCtx): string {
         .replace(/\{color\}/g, f.color ?? 'that colour')
         .replace(/\{accent\}/g, f.accent ?? 'colour')
         .replace(/\{n\}/g, f.n != null ? String(f.n) : 'a few')
-        .replace(/\{obsession\}/g, f.obsession ?? 'that one');
+        .replace(/\{obsession\}/g, f.obsession ?? 'that one')
+        .replace(/\{scene\}/g, capFirst(f.scene ?? 'what it is'))
+        .replace(/\{familiar\}/g, f.familiar ?? 'creature');
+}
+
+function capFirst(s: string): string {
+    return s.length ? s[0].toUpperCase() + s.slice(1) : s;
 }
 
 function lineKey(who: string, text: string): string {
@@ -216,7 +240,24 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         color: sight?.bucket ? colorWord(sight.bucket) : null,
         accent: sight?.accent ? colorWord(sight.accent) : null,
         obsession: facts.lastObsession?.label ?? null,
+        scene: sight?.scene ?? null,
+        familiar: ctx.familiarName,
     };
+
+    /* 0 — something you just DID. The couch pounces. */
+    const act = consumeAction();
+    if (act) {
+        const beats = actionBeat(act, ctx, sight, f);
+        if (beats) return beats;
+    }
+    const lapsed = expiredBuyBet();
+    if (lapsed) {
+        const pool = BUYBET_MISS[lapsed.by];
+        if (pool?.length) {
+            const p = rand(pool);
+            if (!ctx.activeIds.has(p.who)) return single(p.who, p.text, { ...f, piece: lapsed.label });
+        }
+    }
 
     /* 1 — a prediction about you just resolved. */
     const due = duePrediction();
@@ -228,8 +269,19 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         }
     }
 
-    /* 2 — a queued moment: streak or revisit. */
+    /* 2 — a queued moment: streak, revisit, or an adoption. */
     const ev = nextEvent();
+    if (ev?.adoption) {
+        const scene = ADOPTION_SCENES[ev.adoption.by];
+        if (scene && !scene.beats.some((b) => ctx.activeIds.has(b.who))) {
+            return playExchange(scene, f);
+        }
+        // Announcer busy — the adopter says a loyalty line instead.
+        const loyal = LOYAL[ev.adoption.by];
+        if (loyal?.length && !ctx.activeIds.has(ev.adoption.by)) {
+            return single(ev.adoption.by, rand(loyal), f);
+        }
+    }
     if (ev?.streak && cooled('streak', 90000)) {
         stamp('streak');
         const beats = fromPool(STREAK, ctx, { ...f, color: colorWord(ev.streak.bucket), n: ev.streak.len });
@@ -309,6 +361,14 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         if (beats) return beats;
     }
 
+    /* The once-EVER familiar crossover — the cast notices your companion. */
+    if (ctx.familiarOn && ctx.familiarName && facts.minutesIn >= 2 && Math.random() < 0.035) {
+        const playable = XOVER_SCENES.filter((x) => !x.beats.some((b) => ctx.activeIds.has(b.who)));
+        if (playable.length && fireOncePersist('xover')) {
+            return playExchange(rand(playable), f);
+        }
+    }
+
     /* 6 — the weighted roll. REACTIVE FIRST (Brendon, 2026-07-01): they're a
        gossiping audience, not a companion — the show is what's on screen, and
        own-world chatter is the connective bed, never the default. */
@@ -329,16 +389,21 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
             const beats = sightBeat(ctx, sight, f);
             if (beats) return beats;
         }
-        if (roll < 0.7 && cooled('exchange', 150000)) {
+        if (roll < 0.66 && cooled('exchange', 150000)) {
             stamp('exchange');
             const beats = pickExchange(['sight', 'couch', 'seen', 'drift'], ctx, sight, f);
             if (beats) return beats;
         }
-        if (roll < 0.9) {
+        if (roll < 0.8 && cooled('duet', 120000)) {
+            stamp('duet');
+            const beats = duetBeat(ctx, sight, f);
+            if (beats) return beats;
+        }
+        if (roll < 0.92) {
             const beats = glanceBeat(ctx, f);
             if (beats) return beats;
         }
-        return ownWorldBeat(ctx);
+        return ownWorldBeat(ctx, facts, f);
     }
     // Off the artwork: the glances at what you're doing carry the show.
     if (roll < 0.03 && cooled('direct', 360000)) {
@@ -346,16 +411,88 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         const beats = directAddress(ctx, f);
         if (beats) return beats;
     }
-    if (roll < 0.3 && cooled('exchange', 150000)) {
+    if (roll < 0.26 && cooled('exchange', 150000)) {
         stamp('exchange');
         const beats = pickExchange(['couch', 'seen', 'drift'], ctx, sight, f);
         if (beats) return beats;
     }
-    if (roll < 0.72) {
+    if (roll < 0.42 && cooled('duet', 120000)) {
+        stamp('duet');
+        const beats = duetBeat(ctx, sight, f);
+        if (beats) return beats;
+    }
+    if (roll < 0.74) {
         const beats = glanceBeat(ctx, f);
         if (beats) return beats;
     }
-    return ownWorldBeat(ctx);
+    return ownWorldBeat(ctx, facts, f);
+}
+
+/* ── the action pounce ─────────────────────────────────────────────── */
+
+function actionBeat(act: NpcAction, ctx: DirectorCtx, sight: Sight | null, f: FillCtx): PlayBeat[] | null {
+    const n = recordAction(act.kind, ctx.piece ? `${ctx.piece.slug}:${ctx.piece.id}` : null);
+
+    // A purchase resolves any open buy bet first — the payoff beats the react.
+    if (act.kind === 'mint' || act.kind === 'buy') {
+        const won = resolveBuyBet(ctx.piece?.slug ?? ctx.stage.slug ?? null);
+        if (won) {
+            const pool = BUYBET_HIT[won.by];
+            if (pool?.length) {
+                const p = rand(pool);
+                if (!ctx.activeIds.has(p.who)) return single(p.who, p.text, { ...f, piece: won.label });
+            }
+        }
+    }
+
+    // Per-kind cooldown — spamming stars doesn't spam bubbles (counts still
+    // accumulate, so the eventual line says "{n} today").
+    if (!cooled(`act:${act.kind}`, 45000)) return null;
+    stamp(`act:${act.kind}`);
+
+    // A wishlist on a visible piece sometimes arms a buy bet instead.
+    if (act.kind === 'wishlist' && ctx.piece && Math.random() < 0.35) {
+        const by = Math.random() < 0.6 ? 'eddie' : 'mimi';
+        if (!ctx.activeIds.has(by)) {
+            armBuyBet(by, ctx.piece.slug, ctx.piece.id, ctx.piece.label);
+            return single(by, rand(BUYBET_ARM[by]), f);
+        }
+    }
+
+    // The couch reacts together to the big moves, sometimes.
+    const scenes = ACTION_EXCHANGES[act.kind];
+    if (scenes?.length && Math.random() < 0.3) {
+        const playable = scenes.filter((x) =>
+            !x.beats.some((b) => ctx.activeIds.has(b.who)) && !isUsed(`x:${x.id}`));
+        if (playable.length) return playExchange(rand(playable), f);
+    }
+
+    const pool = (ACTION_LINES[act.kind] ?? [])
+        .filter((l) => !ctx.activeIds.has(l.who))
+        .filter((l) => !l.when || l.when(sight, n))
+        .filter((l) => !l.text.includes('{name}') || ctx.name);
+    const pick = freshest(pool, (l) => lineKey(l.who, l.text));
+    if (!pick) return null;
+    return single(pick.who, pick.text, { ...f, n });
+}
+
+/* ── duets — halves assembled into whole scenes ────────────────────── */
+
+function duetBeat(ctx: DirectorCtx, sight: Sight | null, f: FillCtx): PlayBeat[] | null {
+    const openers = DUET_OPENERS.filter((o) =>
+        !ctx.activeIds.has(o.who) && (!o.when || o.when(sight)));
+    const opener = freshest(openers, (o) => `duet-o:${lineKey(o.who, o.text)}`);
+    if (!opener) return null;
+    const replies = DUET_REPLIES.filter((r) =>
+        r.topics.includes(opener.topic) && r.who !== opener.who && !ctx.activeIds.has(r.who));
+    const reply = freshest(replies, (r) => `duet-r:${lineKey(r.who, r.text)}`);
+    if (!reply) return null;
+    markUsed(`duet-o:${lineKey(opener.who, opener.text)}`);
+    markUsed(`duet-r:${lineKey(reply.who, reply.text)}`);
+    return [
+        { who: opener.who, text: fill(opener.text, f), gapMs: 0 },
+        { who: reply.who, text: fill(reply.text, f), gapMs: beatGap() },
+    ];
 }
 
 /** Route-change hook — feeds the pacing read. */
@@ -366,7 +503,7 @@ export function directorNav(): void {
 function sightBeat(ctx: DirectorCtx, sight: Sight, f: FillCtx): PlayBeat[] | null {
     const ids = idleChars(ctx);
     const candidates = ids.flatMap((id) =>
-        (SIGHT[id] ?? [])
+        [...(SIGHT[id] ?? []), ...(SIGHT_SCENE[id] ?? [])]
             .filter((l) => l.when(sight))
             .filter((l) => !l.text.includes('{name}') || ctx.name)
             .map((l) => ({ id, text: l.text })),
@@ -400,7 +537,16 @@ function directAddress(ctx: DirectorCtx, f: FillCtx): PlayBeat[] | null {
     return fromPool(pools, ctx, f);
 }
 
-function ownWorldBeat(ctx: DirectorCtx): PlayBeat[] | null {
+function ownWorldBeat(ctx: DirectorCtx, facts?: { adoptedBy: string | null }, f?: FillCtx): PlayBeat[] | null {
+    // The adopted viewer's resident warms up now and then (the favourites form).
+    if (facts?.adoptedBy && f && !ctx.activeIds.has(facts.adoptedBy)
+        && Math.random() < 0.2 && cooled('loyal', 300000)) {
+        const loyal = (LOYAL[facts.adoptedBy] ?? []).filter((t) => !isUsed(lineKey(facts.adoptedBy!, t)));
+        if (loyal.length) {
+            stamp('loyal');
+            return single(facts.adoptedBy, rand(loyal), f);
+        }
+    }
     const ids = idleChars(ctx);
     if (!ids.length) return null;
     const candidates = ids.flatMap((id) => {

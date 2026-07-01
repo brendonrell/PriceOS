@@ -17,9 +17,9 @@
  * the clock, the theme, your @name if it's on screen, and what you've done in
  * front of them. Market voices stay on patterns + anonymous wallets.
  *
- * Template slots: {piece} {project} {name} {color} {accent} {n} {obsession}.
- * Lines carrying {name} are dropped when you're logged out; the rest use
- * "they/them" — the cast talking about you, not at you.
+ * Template slots: {piece} {project} {name} {color} {accent} {n} {obsession}
+ * {scene} {familiar}. Lines carrying {name} are dropped when you're logged
+ * out; the rest use "they/them" — the cast talking about you, not at you.
  */
 
 /** The cast's read of the piece on screen — band WORDS, not scalars (the same
@@ -43,6 +43,12 @@ export interface Sight {
     tone: string | null;         // Brooding / Sombre / Moody / Electric / Serene / Airy / Bold / Hushed / Balanced
     orientation: string | null;  // Landscape / Portrait / Square
     rarity: number | null;       // 0–100
+    /* v3 — the quantitative read: the countable things a human notices. */
+    scene: string | null;        // "two blue squares and a yellow circle"
+    shapeCount: number;          // countable regions found
+    pattern: string | null;      // stripes / field / scatter
+    hasCircle: boolean;
+    hasSquare: boolean;
 }
 
 export interface SightLine {
@@ -601,4 +607,491 @@ export const FOURTHWALL: string[] = [
     'Do we stop existing when they close the tab? Nobody answer.',
     'They just leaned closer. Everyone act natural.',
     'Say something normal. They might be able to read this.',
+];
+
+/* ── SIGHT, the quantitative read — they quote the COUNTABLE things ──────
+   This is the "is there a camera?" rung: not "it's busy" but "two blue
+   squares and a yellow circle." {scene} fills with the generated sentence. */
+
+export const SIGHT_SCENE: Record<string, SightLine[]> = {
+    steven: [
+        { when: (v) => !!v.scene, text: '{scene}. That is literally what it is.' },
+        { when: (v) => v.shapeCount === 2, text: 'Two things on it. I like when you can count them.' },
+        { when: (v) => v.pattern === 'stripes', text: 'Stripes. We had a couch like that.' },
+        { when: (v) => v.hasSquare, text: "There's a square in it. Solid choice, the square." },
+    ],
+    mick: [
+        { when: (v) => !!v.scene, text: '{scene}. I counted. It checks out.' },
+        { when: (v) => v.shapeCount >= 5, text: '{n} shapes in that one. Somebody had a productive day.' },
+        { when: (v) => v.pattern === 'field', text: 'A field of the same shape, over and over. The old-timers loved a field.' },
+    ],
+    eddie: [
+        { when: (v) => !!v.scene && v.shapeCount >= 2, text: '{scene}. Count them yourself. Then ask why that number.' },
+        { when: (v) => v.hasCircle, text: "See the circle? Circles are always a message. Always." },
+        { when: (v) => v.pattern === 'scatter', text: 'All those little bits, scattered. Scattered by WHO.' },
+    ],
+    rocco: [
+        { when: (v) => !!v.scene && v.shapeCount <= 3, text: '{scene}. Nothing extra. Correct.' },
+        { when: (v) => v.pattern === 'field', text: 'The same shape, repeated until it means something. Old trick. Works.' },
+    ],
+    romy: [
+        { when: (v) => !!v.scene, text: '{scene}. Sometimes it can just be that, and that is plenty.' },
+        { when: (v) => v.hasCircle, text: 'The circle in it is very calm. I keep looking at it.' },
+    ],
+    carl: [
+        { when: (v) => !!v.scene && v.shapeCount === 1, text: '{scene}. One thing, alone. I relate to it.' },
+        { when: (v) => v.pattern === 'scatter', text: 'A scatter. That used to be one whole thing, probably.' },
+    ],
+    mimi: [
+        { when: (v) => !!v.scene && v.shapeCount <= 2, text: '{scene}. Simple reads sell fast. Noted.' },
+        { when: (v) => v.pattern === 'stripes', text: 'Stripes photograph well. Thumbnails move stripes.' },
+    ],
+    celestia: [
+        { when: (v) => v.hasCircle, text: 'That circle is watching them back. They can feel it. Look.' },
+        { when: (v) => !!v.scene && v.shapeCount === 3, text: 'Three shapes. Threes are never an accident.' },
+        { when: (v) => v.pattern === 'stripes', text: 'Bars. A gate, or a cage. Depends which side you stand.' },
+    ],
+};
+
+/* ── ACTIONS — they react to what you DO, through each lens ──────────────
+   `when` gets the current Sight (or null) + how many of this action they've
+   watched this session; convergence lines light up when action × piece ×
+   pattern line up. {n} fills with the count. */
+
+export interface ActionLine {
+    who: string;
+    text: string;
+    when?: (v: Sight | null, n: number) => boolean;
+}
+
+export const ACTION_LINES: Record<string, ActionLine[]> = {
+    star: [
+        { who: 'mick', text: 'Starred. Logged.' },
+        { who: 'romy', text: 'They starred it. Good. It deserved a little something.' },
+        { who: 'rocco', text: 'A star. Generous. Not wrong, this time.' },
+        { who: 'eddie', text: 'Starred, not wishlisted. Keeping it quiet. Interesting.' },
+        { who: 'mick', text: "That's {n} stars today. The ledger grows.", when: (_v, n) => n >= 3 },
+        { who: 'steven', text: 'They star a lot of stuff. I respect the enthusiasm.', when: (_v, n) => n >= 5 },
+        { who: 'mimi', text: 'Starring the {color} one. Their taste is getting expensive.', when: (v) => !!v?.bucket },
+    ],
+    unstar: [
+        { who: 'carl', text: 'Un-starred. The cooling begins.' },
+        { who: 'rocco', text: 'Taste is editing. Fine.' },
+        { who: 'mick', text: 'Star retracted. Also logged.' },
+    ],
+    wishlist: [
+        { who: 'mimi', text: 'On the wishlist. Wanting is step one. I sell to step three.' },
+        { who: 'eddie', text: 'Wishlisted. That list says more than any profile.' },
+        { who: 'carl', text: 'Wishlisted. The wanting is the good part. It goes downhill from owning.' },
+        { who: 'romy', text: 'On the list. I hope they get it, honestly.' },
+        { who: 'celestia', text: 'Wishlisted. Wanting leaves a mark on a piece. That one is marked now.' },
+        { who: 'eddie', text: 'They wishlisted {piece}. You saw it. I saw it.', when: (v) => !!v },
+        { who: 'mimi', text: 'Wishlisting the rare one. Everyone wants the rare one. Few pay.', when: (v) => (v?.rarity ?? 0) >= 80 },
+        { who: 'steven', text: "That's {n} wishlists today. Big dreams. Same, though.", when: (_v, n) => n >= 3 },
+    ],
+    unwishlist: [
+        { who: 'mimi', text: 'Off the wishlist. The wanting died. It happens fast.' },
+        { who: 'carl', text: 'De-wishlisted. Wise. Or broke. Same look.' },
+        { who: 'mick', text: 'Removed from the list. The list remembers anyway. I make sure.' },
+    ],
+    cart: [
+        { who: 'eddie', text: 'In the cart. Carts talk. Checkouts whisper.' },
+        { who: 'mimi', text: 'Cart. Now we count the minutes until doubt.' },
+        { who: 'carl', text: 'Added to cart. The regret is also in the cart. It rides free.' },
+        { who: 'steven', text: 'In the cart. I leave stuff in carts for months. No shame.' },
+        { who: 'romy', text: 'It went in the cart. Get it. Life is short and the art is good.' },
+        { who: 'mimi', text: '{n} in the cart now. Someone is building up the nerve.', when: (_v, n) => n >= 3 },
+    ],
+    bench: [
+        { who: 'steven', text: 'On the bench. Benched art. This site is a lot sometimes.' },
+        { who: 'eddie', text: 'Benched. The bench is where decisions go to think.' },
+        { who: 'rocco', text: 'The bench. Purgatory with better lighting.' },
+    ],
+    grail: [
+        { who: 'rocco', text: 'A grail pin. Bold word, grail. Let it earn it.' },
+        { who: 'celestia', text: 'Pinned as a grail. Naming a grail out loud changes things. They will see.' },
+        { who: 'eddie', text: 'Grail pinned. Now THAT is information.' },
+        { who: 'mimi', text: 'A grail pin. So that is the one they would never sell. Noted. Everything sells.' },
+        { who: 'romy', text: 'They pinned a grail. Everyone should have one. That is the whole religion.' },
+        { who: 'carl', text: 'A grail. Something to lose. Congratulations.' },
+    ],
+    ungrail: [
+        { who: 'carl', text: 'De-pinned. Even grails end. Told you.' },
+        { who: 'eddie', text: 'The grail fell. Something happened. What happened.' },
+    ],
+    album: [
+        { who: 'romy', text: 'Into an album. A little collection inside the collection. Sweet.' },
+        { who: 'mick', text: 'Filed into an album. A sorter. My kind of viewer.' },
+        { who: 'rocco', text: 'Albums. Curation. Someone is taking this seriously. Good.' },
+    ],
+    todo: [
+        { who: 'steven', text: 'They put art on a to-do list. I put the lawn on mine. Same energy.' },
+        { who: 'mick', text: 'On the to-do list. Lists get done here. Sometimes.' },
+        { who: 'carl', text: 'A to-do. The road to the graveyard of intentions. Nice one though.' },
+    ],
+    note: [
+        { who: 'eddie', text: 'They wrote a note on it. Private thoughts. I would pay for those.' },
+        { who: 'mick', text: 'A note. Someone else keeps records. I feel less alone.' },
+        { who: 'celestia', text: 'They wrote something on it. Words stick to pieces. Choose them well.' },
+    ],
+    follow: [
+        { who: 'romy', text: 'Followed. The graph grows by one. That is how villages start.' },
+        { who: 'eddie', text: 'A follow. Alliances forming. I keep a chart.' },
+        { who: 'mimi', text: 'Following. Attention is a currency. They just spent some.' },
+    ],
+    unfollow: [
+        { who: 'eddie', text: 'An unfollow. Ice cold. What do they know.' },
+        { who: 'carl', text: 'Unfollowed. All bonds loosen. Some just do it quietly.' },
+        { who: 'mick', text: 'Unfollowed. The graph shrinks by one. Recorded.' },
+    ],
+    mint: [
+        { who: 'romy', text: 'They MINTED. Everyone hush. This is the good part.' },
+        { who: 'eddie', text: 'A mint. Right in front of us. I love this show.' },
+        { who: 'mick', text: 'A mint, witnessed live. Straight into the permanent record.' },
+        { who: 'carl', text: 'Minted. May it treat them better than mine treated me.' },
+        { who: 'celestia', text: 'A mint. A birth chart just got written. I will read it later.' },
+        { who: 'rocco', text: 'They minted. Fine instinct. Do not tell them I said that.' },
+        { who: 'mimi', text: 'Minted at the source. The only honest price in the building.' },
+        { who: 'steven', text: 'They minted one. Clapping quietly over here.' },
+        { who: 'eddie', text: 'Another mint. That is {n} today. Somebody feels something.', when: (_v, n) => n >= 2 },
+    ],
+    buy: [
+        { who: 'mimi', text: 'Bought. Off the secondary, full price. Conviction or impatience.' },
+        { who: 'eddie', text: 'A buy. Someone somewhere just exhaled.' },
+        { who: 'romy', text: 'They bought it. It found its person. That is the whole story.' },
+        { who: 'carl', text: 'Bought. Somewhere a seller is either laughing or crying. No third option.' },
+    ],
+    sell: [
+        { who: 'carl', text: 'Sold. It begins: the checking of the price, forever, after.' },
+        { who: 'mimi', text: 'A sale. Now watch if they regret it. They always look back once.' },
+        { who: 'rocco', text: 'Sold. Letting go is also taste.' },
+        { who: 'mick', text: 'Sold. The provenance grows a line. That is all history is.' },
+    ],
+    listed: [
+        { who: 'eddie', text: 'A listing. The number tells a story. I am reading it now.' },
+        { who: 'mimi', text: 'Listed. Now I get to decide if that price is a joke.' },
+        { who: 'carl', text: 'Listed. And now, the waiting. The long, honest waiting.' },
+    ],
+    offer: [
+        { who: 'mimi', text: 'An offer went out. Aggressive. I approve of the shape of it.' },
+        { who: 'eddie', text: 'They made an offer. Somewhere a phone just lit up.' },
+        { who: 'rocco', text: 'An offer. Negotiation is an art form nobody frames.' },
+    ],
+    sweep: [
+        { who: 'mimi', text: 'A SWEEP. Now that is how you announce yourself.' },
+        { who: 'eddie', text: 'They swept. Multiple pieces, one move. That gets talked about.' },
+        { who: 'mick', text: 'A sweep, logged in full. Days like this are why I keep the book.' },
+    ],
+    colorway: [
+        { who: 'celestia', text: 'They changed the colours of the whole world. As one does.' },
+        { who: 'steven', text: 'New colours. I liked the old ones. I will like these too.' },
+        { who: 'rocco', text: 'A new colorway. Redecorating mid-session. Confidence.' },
+        { who: 'romy', text: 'They repainted the room. It suits them, whatever it is.' },
+    ],
+    achievement: [
+        { who: 'mick', text: 'An achievement. Into the record it goes.' },
+        { who: 'romy', text: 'They unlocked something. Small trumpet sounds.' },
+        { who: 'eddie', text: 'An achievement popped. I heard it from here.' },
+        { who: 'carl', text: 'An achievement. Enjoy the dopamine. It has a half-life.' },
+    ],
+    zen: [
+        { who: 'steven', text: 'Zen mode. Smart. This place gets loud.' },
+        { who: 'celestia', text: 'They cleared the room to be alone with it. Correct ritual.' },
+        { who: 'rocco', text: 'Zen mode. Just the art. The only setting that matters.' },
+    ],
+};
+
+/* Action scenes — the couch reacts TOGETHER to the big moves. */
+export const ACTION_EXCHANGES: Record<string, Exchange[]> = {
+    mint: [
+        {
+            id: 'ax-mint-toast', kind: 'couch', beats: [
+                { who: 'romy', text: 'They minted! A toast.' },
+                { who: 'steven', text: 'I have soup.' },
+                { who: 'romy', text: 'To the soup, then.' },
+            ],
+        },
+        {
+            id: 'ax-mint-record', kind: 'couch', beats: [
+                { who: 'mick', text: 'Mint, witnessed, logged.' },
+                { who: 'eddie', text: 'You log everything.' },
+                { who: 'mick', text: 'And yet you always ask me for the notes.' },
+            ],
+        },
+    ],
+    wishlist: [
+        {
+            id: 'ax-wish-bet', kind: 'couch', beats: [
+                { who: 'eddie', text: 'Wishlisted. They always cave after the wishlist.' },
+                { who: 'carl', text: 'Or it sits there forever. Like mine.' },
+                { who: 'eddie', text: 'You are not the standard, Carl.' },
+            ],
+        },
+    ],
+    cart: [
+        {
+            id: 'ax-cart-watch', kind: 'couch', beats: [
+                { who: 'mimi', text: 'Cart. Watch the hesitation window.' },
+                { who: 'steven', text: 'Maybe they just like carts.' },
+                { who: 'mimi', text: 'Nobody just likes carts.' },
+            ],
+        },
+    ],
+    grail: [
+        {
+            id: 'ax-grail-named', kind: 'couch', beats: [
+                { who: 'celestia', text: 'They named a grail. Say nothing for a moment.' },
+                { who: 'eddie', text: '…Okay the moment is over, WHICH one—' },
+            ],
+        },
+    ],
+    sweep: [
+        {
+            id: 'ax-sweep-gasp', kind: 'couch', beats: [
+                { who: 'eddie', text: 'A sweep. A SWEEP.' },
+                { who: 'rocco', text: 'Composure, Eddie.' },
+                { who: 'eddie', text: 'I am composed. A SWEEP though.' },
+            ],
+        },
+    ],
+    sell: [
+        {
+            id: 'ax-sell-watch', kind: 'couch', beats: [
+                { who: 'mimi', text: 'They sold. Now we see if they check the price tomorrow.' },
+                { who: 'carl', text: 'They will. Everyone does. It is the tax.' },
+            ],
+        },
+    ],
+};
+
+/* Buy bets — a wishlist arms a call; the mint/buy resolves it on camera. */
+export const BUYBET_ARM: Record<string, string[]> = {
+    eddie: ['Wishlisted {piece}. Calling it now: they buy. Witnesses everywhere.'],
+    mimi: ["Wishlisted {piece}. They'll pay for it eventually. They always pay."],
+};
+export const BUYBET_HIT: Record<string, { who: string; text: string }[]> = {
+    eddie: [{ who: 'eddie', text: 'BOUGHT. From wishlist to wallet. I called {piece}, and the wall heard me.' }],
+    mimi: [{ who: 'mimi', text: 'And they paid for {piece}. Like I said. Wanting has a price.' }],
+};
+export const BUYBET_MISS: Record<string, { who: string; text: string }[]> = {
+    eddie: [{ who: 'mick', text: 'For the record: {piece} stayed wishlisted. Eddie logged another miss.' }],
+    mimi: [{ who: 'carl', text: 'Mimi called a cave on {piece}. Still standing. Huh.' }],
+};
+
+/* ── DUETS — pre-written halves that assemble into whole scenes ──────────
+   Openers are gated by what's actually true on screen; any reply sharing the
+   topic (different speaker) can answer. ~40 openers × topic-matched replies
+   = hundreds of distinct two-beat scenes from curated parts, before template
+   fills. This is where the bank stops being a list and becomes a room. */
+
+export interface DuetOpener {
+    who: string;
+    text: string;
+    topic: string;
+    when?: (v: Sight | null) => boolean;
+}
+export interface DuetReply {
+    who: string;
+    text: string;
+    topics: string[];
+}
+
+export const DUET_OPENERS: DuetOpener[] = [
+    /* piece-gated */
+    { who: 'rocco', topic: 'loud', when: (v) => v?.tone === 'Electric' || v?.saturation === 'Vivid', text: 'Loud one.' },
+    { who: 'mimi', topic: 'loud', when: (v) => v?.tone === 'Electric', text: 'Loud sells. Say what you want.' },
+    { who: 'steven', topic: 'loud', when: (v) => v?.saturation === 'Vivid', text: 'That one is really going for it.' },
+    { who: 'carl', topic: 'dark', when: (v) => v?.brightness === 'Dark' || v?.brightness === 'Dim', text: 'Dark one. Feels honest.' },
+    { who: 'celestia', topic: 'dark', when: (v) => v?.brightness === 'Dark', text: 'All shadow. Good bones under it.' },
+    { who: 'eddie', topic: 'dark', when: (v) => v?.brightness === 'Dark', text: 'Dark piece. Dark pieces get dark buyers.' },
+    { who: 'rocco', topic: 'empty', when: (v) => v?.air === 'Vast' || v?.complexity === 'Minimal', text: 'Nearly nothing on it. Which is everything.' },
+    { who: 'steven', topic: 'empty', when: (v) => v?.air === 'Vast', text: 'A lot of nothing in that one. Restful.' },
+    { who: 'mick', topic: 'busy', when: (v) => v?.complexity === 'Busy' || v?.complexity === 'Detailed', text: 'Busy one. Long write-up.' },
+    { who: 'romy', topic: 'busy', when: (v) => v?.complexity === 'Busy', text: 'So much going on in there. Happily, though.' },
+    { who: 'eddie', topic: 'rare', when: (v) => (v?.rarity ?? 0) >= 80, text: 'That is the rare one. Confirmed.' },
+    { who: 'mimi', topic: 'rare', when: (v) => (v?.rarity ?? 0) >= 80, text: 'Rare one on screen. Wallets out.' },
+    { who: 'steven', topic: 'shapes', when: (v) => !!v?.scene, text: '{scene}. Just saying what I see.' },
+    { who: 'mick', topic: 'shapes', when: (v) => (v?.shapeCount ?? 0) >= 2, text: '{scene}. Counted twice.' },
+    { who: 'celestia', topic: 'shapes', when: (v) => !!v?.hasCircle, text: 'The circle in that one knows something.' },
+    /* always-available */
+    { who: 'eddie', topic: 'watching', text: 'They are up to something. I feel it in the scroll.' },
+    { who: 'mimi', topic: 'watching', text: 'Quiet viewer today. The quiet ones buy big.' },
+    { who: 'carl', topic: 'watching', text: 'They look happy. That never lasts here.' },
+    { who: 'romy', topic: 'watching', text: 'I think they are having a nice time. Look at the pace.' },
+    { who: 'mick', topic: 'watching', text: 'Steady session. The steady ones build the real collections.' },
+    { who: 'rocco', topic: 'taste', text: 'Their taste is improving. Slowly. But improving.' },
+    { who: 'celestia', topic: 'taste', text: 'They are circling something important. They do not know it yet.' },
+    { who: 'steven', topic: 'smalltalk', text: 'Anyone know if it is supposed to rain?' },
+    { who: 'carl', topic: 'smalltalk', text: 'My knee says the floor drops this week.' },
+    { who: 'romy', topic: 'smalltalk', text: 'I rearranged my corner today. Feels bigger.' },
+    { who: 'eddie', topic: 'smalltalk', text: 'I heard something about somebody. That is all I can say.' },
+];
+
+export const DUET_REPLIES: DuetReply[] = [
+    { who: 'romy', topics: ['loud'], text: 'It is allowed to be loud.' },
+    { who: 'carl', topics: ['loud'], text: 'It will quiet down. Everything does.' },
+    { who: 'rocco', topics: ['loud'], text: 'Volume is not the same as voice.' },
+    { who: 'steven', topics: ['loud', 'dark', 'busy'], text: 'I would still hang it.' },
+    { who: 'mick', topics: ['loud', 'rare'], text: 'Noted either way.' },
+    { who: 'romy', topics: ['dark'], text: 'Somebody will love it for exactly that.' },
+    { who: 'steven', topics: ['dark'], text: 'Good for a hallway.' },
+    { who: 'mimi', topics: ['dark'], text: 'Dark sits on the market. Patience money only.' },
+    { who: 'rocco', topics: ['empty'], text: 'Restraint. Finally.' },
+    { who: 'carl', topics: ['empty'], text: 'Empty now. Emptier later.' },
+    { who: 'eddie', topics: ['empty'], text: 'Empty space is where they hide things. Allegedly.' },
+    { who: 'carl', topics: ['busy'], text: 'All that effort. Same floor as everything else.' },
+    { who: 'rocco', topics: ['busy'], text: 'Too much. Edit.' },
+    { who: 'celestia', topics: ['busy'], text: 'Every mark in there was meant. Probably.' },
+    { who: 'steven', topics: ['rare'], text: 'Looks like the other ones. But okay.' },
+    { who: 'carl', topics: ['rare'], text: 'Rare. So was everything, once.' },
+    { who: 'romy', topics: ['rare'], text: 'It would be just as good common.' },
+    { who: 'eddie', topics: ['rare'], text: 'And they found it FAST. Ask me how.' },
+    { who: 'romy', topics: ['shapes'], text: 'It can just be that. That is plenty.' },
+    { who: 'eddie', topics: ['shapes'], text: 'Count again. There is always one more.' },
+    { who: 'carl', topics: ['shapes'], text: 'Shapes now. Fragments later.' },
+    { who: 'rocco', topics: ['shapes'], text: 'Countable. Honest. Fine.' },
+    { who: 'steven', topics: ['watching'], text: 'Or they are just scrolling. People scroll.' },
+    { who: 'carl', topics: ['watching'], text: 'Something always happens. Then something worse.' },
+    { who: 'mick', topics: ['watching'], text: 'Whatever it is, it is going in the notes.' },
+    { who: 'celestia', topics: ['watching'], text: 'Let them circle. The circling is the finding.' },
+    { who: 'romy', topics: ['watching'], text: 'Leave them be. They are doing great.' },
+    { who: 'romy', topics: ['taste'], text: 'It was always fine. You are just warming up to them.' },
+    { who: 'eddie', topics: ['taste'], text: 'Improving toward WHAT though. Watch the pattern.' },
+    { who: 'carl', topics: ['taste'], text: 'Taste peaks. Then the wallet catches up and ruins it.' },
+    { who: 'steven', topics: ['smalltalk'], text: 'Huh.' },
+    { who: 'mick', topics: ['smalltalk'], text: 'That is not going in the notes.' },
+    { who: 'rocco', topics: ['smalltalk'], text: 'Riveting programming, this.' },
+    { who: 'eddie', topics: ['smalltalk'], text: 'Wait. Say that again slower.' },
+    { who: 'celestia', topics: ['smalltalk'], text: 'The cards said someone would say that today.' },
+    { who: 'mimi', topics: ['smalltalk'], text: 'Is any of this actionable. No? Carry on.' },
+];
+
+/* ── LOYALTY — after a resident adopts you (the favourites form) ────────── */
+
+export const ADOPTION_SCENES: Record<string, Exchange> = {
+    rocco: {
+        id: 'adopt-rocco', kind: 'couch', beats: [
+            { who: 'rocco', text: 'I do not say this often. They have the eye.' },
+            { who: 'eddie', text: 'Rocco LIKES one. Somebody write the date down.' },
+            { who: 'mick', text: 'Done.' },
+        ],
+    },
+    mick: {
+        id: 'adopt-mick', kind: 'couch', beats: [
+            { who: 'mick', text: 'This one reads like a keeper of records. I am claiming them.' },
+            { who: 'steven', text: 'Can you do that?' },
+            { who: 'mick', text: 'It is in the notes now. So yes.' },
+        ],
+    },
+    mimi: {
+        id: 'adopt-mimi', kind: 'couch', beats: [
+            { who: 'mimi', text: 'This viewer has teeth. I like them.' },
+            { who: 'carl', text: 'That is how she compliments people. Run.' },
+        ],
+    },
+    steven: {
+        id: 'adopt-steven', kind: 'couch', beats: [
+            { who: 'steven', text: 'This one likes the blue ones. We are basically friends now.' },
+            { who: 'rocco', text: 'That is not how taste works.' },
+            { who: 'steven', text: 'It is exactly how it works.' },
+        ],
+    },
+    eddie: {
+        id: 'adopt-eddie', kind: 'couch', beats: [
+            { who: 'eddie', text: 'This viewer sees the angles. My kind of people.' },
+            { who: 'mimi', text: 'You say that about everyone with a wallet.' },
+            { who: 'eddie', text: 'And I have been right every time.' },
+        ],
+    },
+    carl: {
+        id: 'adopt-carl', kind: 'couch', beats: [
+            { who: 'carl', text: 'They keep picking the dark ones. Finally, somebody sensible.' },
+            { who: 'romy', text: 'Carl made a friend.' },
+            { who: 'carl', text: 'Do not ruin it.' },
+        ],
+    },
+    romy: {
+        id: 'adopt-romy', kind: 'couch', beats: [
+            { who: 'romy', text: 'Okay, I love this one. The way they look at things.' },
+            { who: 'carl', text: 'You love everyone.' },
+            { who: 'romy', text: 'Especially this one.' },
+        ],
+    },
+    celestia: {
+        id: 'adopt-celestia', kind: 'couch', beats: [
+            { who: 'celestia', text: 'The cards keep turning this viewer up. I accept.' },
+            { who: 'steven', text: 'Accept what?' },
+            { who: 'celestia', text: 'They know.' },
+        ],
+    },
+};
+
+/* Loyalty lines — the adopted viewer's resident warms up (sparingly). */
+export const LOYAL: Record<string, string[]> = {
+    rocco: [
+        'They looked past the popular one. Told you about this viewer.',
+        "Watch them work. No, actually watch. That's how it's done.",
+        'My viewer. Decent eye. I said what I said the day I said it.',
+    ],
+    mick: [
+        'My regular is back on the record. The file thickens agreeably.',
+        'They browse like an archivist. I trained them, in spirit.',
+        'Whatever they open next, log it double. This one matters.',
+    ],
+    mimi: [
+        'My one is circling again. Watch and learn, everyone.',
+        'They hover like a professional now. I take partial credit.',
+        'Nobody lowball my viewer. That is my job.',
+    ],
+    steven: [
+        'My buddy is here. The blue-liker.',
+        'They looked at a blue one. Attaboy.',
+        "Me and this one get it. It's not complicated.",
+    ],
+    eddie: [
+        'My source is on the move. Everyone act like you see nothing.',
+        'This viewer finds things BEFORE I hear about them. Unsettling. Wonderful.',
+        'Protect this one. They see the angles.',
+    ],
+    carl: [
+        'The sensible one is back. Dark taste, clear mind.',
+        'They understand. About the ending being in everything. My people.',
+        'If they buy something, it might actually be fine. Might.',
+    ],
+    romy: [
+        'There they are. Best viewer on this feed and I will say it out loud.',
+        'They lingered on the little one again. See? Heart.',
+        'Whatever they end up collecting, it will be loved right.',
+    ],
+    celestia: [
+        'Mine is here. The one the cards keep mentioning.',
+        'They feel the pieces before they read them. Rare gift.',
+        'Something good circles this viewer. I lit a candle about it.',
+    ],
+};
+
+/* ── THE CROSSOVER — once EVER: the cast notices your Familiar ──────────
+   {familiar} fills with the actual species name on screen. */
+
+export const XOVER_SCENES: Exchange[] = [
+    {
+        id: 'xover-creature', kind: 'seen', beats: [
+            { who: 'steven', text: 'There is a little creature on their screen. It just looked at me.' },
+            { who: 'eddie', text: 'Nobody make eye contact.' },
+            { who: 'celestia', text: 'That is a {familiar}. It was here before us. Show respect.' },
+        ],
+    },
+    {
+        id: 'xover-knows', kind: 'seen', beats: [
+            { who: 'mick', text: 'The little {familiar} they keep. It knows things about them we never will.' },
+            { who: 'carl', text: 'It never blinks, either. I checked.' },
+        ],
+    },
+    {
+        id: 'xover-wave', kind: 'seen', beats: [
+            { who: 'romy', text: 'I waved at their {familiar} earlier.' },
+            { who: 'steven', text: 'Did it wave back?' },
+            { who: 'romy', text: 'It KNEW. That counts.' },
+        ],
+    },
 ];

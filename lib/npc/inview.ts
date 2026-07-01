@@ -41,7 +41,7 @@ export function publishPieceInView(slug: string, id: number, fp: Fingerprint | n
         fp,
         since: Date.now(),
     };
-    recordView(slug, id, current.label, fp?.bucket ?? null);
+    recordView(slug, id, current.label, fp?.bucket ?? null, fp);
 }
 
 /** Called when the artwork surface unmounts (only clears if it's still ours). */

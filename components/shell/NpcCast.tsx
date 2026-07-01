@@ -28,6 +28,8 @@ import { CAST, styleText } from '@/lib/npc/cast';
 import { readStage } from '@/lib/npc/awareness';
 import { directorTick, directorNav, type DirectorCtx, type PlayBeat } from '@/lib/npc/director';
 import { readPieceInView } from '@/lib/npc/inview';
+import { subscribeActions } from '@/lib/npc/actions';
+import { getFamiliarSpeciesName } from '@/lib/engines/familiarEngine';
 
 type Polarity = 'dark' | 'light';
 
@@ -75,6 +77,10 @@ export function NpcCast() {
     const { notifs } = usePdNotifs();
     const { handle } = useAuth();
     const on = notifs.spell_npc;
+    /* The Familiar's on-screen presence gates the once-ever crossover scene. */
+    const familiarOn = !!notifs.spell_familiar;
+    const familiarOnRef = useRef(familiarOn);
+    familiarOnRef.current = familiarOn;
     /* Your username (no @) — the residents weave it in instead of always "they".
        Read via a ref so the running timers see the latest without restarting. */
     const viewerName = handle ? handle.replace(/^@/, '') : null;
@@ -207,6 +213,8 @@ export function NpcCast() {
                 hour: new Date().getHours(),
                 idleMs: Date.now() - lastActivity.current,
                 activeIds: new Set(Object.keys(activeRef.current).filter((id) => activeRef.current[id])),
+                familiarOn: familiarOnRef.current,
+                familiarName: familiarOnRef.current ? getFamiliarSpeciesName() || null : null,
             };
             const beats = directorTick(ctx);
             if (beats && beats.length) runPlayout(beats);
@@ -237,12 +245,23 @@ export function NpcCast() {
             }
         }, 2000);
 
+        /* You DID something (star / wishlist / cart / mint / …) — the couch
+           pounces within a couple of seconds instead of waiting out the lull.
+           The director owns per-action cooldowns; this only reshuffles timing. */
+        const unsubActions = subscribeActions(() => {
+            lastActivity.current = Date.now();
+            if (playing) return;
+            clearTimeout(tickTimer);
+            scheduleTick(2200 + Math.random() * 2800);
+        });
+
         setPolarity(readPolarity());
         scheduleTick(3000); // first sign of life (the director cold-opens)
 
         return () => {
             clearTimeout(tickTimer);
             clearInterval(noticer);
+            unsubActions();
             beatTimers.forEach(clearTimeout);
             Object.values(timers).forEach(clearTimeout);
             hideTimers.current = {};

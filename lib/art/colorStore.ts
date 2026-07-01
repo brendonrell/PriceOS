@@ -39,6 +39,9 @@ export interface StoredFingerprint {
     symmetry: number | null;
     air: number | null;
     texture: number | null;
+    scene: string | null;
+    shapeCount: number | null;
+    pattern: string | null;
 }
 const fpCache = new Map<string, StoredFingerprint>();
 export function resolveFingerprint(slug: string, id: number): StoredFingerprint | null {
@@ -134,6 +137,9 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
         symmetry: fp.symmetry,
         air: fp.air,
         texture: fp.texture,
+        scene: fp.scene,
+        shapeCount: fp.shapeCount,
+        pattern: fp.pattern,
     });
     try {
         fetch('/api/outputs/color', {
@@ -155,6 +161,10 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
                 symmetry: fp.symmetry,
                 air: fp.air,
                 texture: fp.texture,
+                scene: fp.scene,
+                shapeCount: fp.shapeCount,
+                pattern: fp.pattern,
+                shapes: fp.shapes,
             }),
             keepalive: true,
         }).catch(() => { /* ignore */ });
@@ -192,6 +202,7 @@ async function loadColors(slugs: string[]): Promise<void> {
             accent?: string | null; paletteCount?: number | null; contrast?: number | null;
             warmth?: number | null; gravity?: string | null; symmetry?: number | null;
             air?: number | null; texture?: number | null;
+            scene?: string | null; shapeCount?: number | null; pattern?: string | null;
             rarity?: string | null; artist?: string | null; project_name?: string | null;
             true_name?: string | null; price_day?: string | null;
             natal_sun?: string | null; natal_moon?: string | null; natal_rising?: string | null;
@@ -217,6 +228,9 @@ async function loadColors(slugs: string[]): Promise<void> {
                     symmetry: r.symmetry ?? null,
                     air: r.air ?? null,
                     texture: r.texture ?? null,
+                    scene: r.scene ?? null,
+                    shapeCount: r.shapeCount ?? null,
+                    pattern: r.pattern ?? null,
                 });
                 changed = true;
             }

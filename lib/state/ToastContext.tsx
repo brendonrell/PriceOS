@@ -32,6 +32,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { publishToast } from '@/lib/npc/actions';
 
 interface ToastState {
     msg: string;
@@ -91,6 +92,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         (msg: string, holdMs: number = SHOW_MS, fadeMs: number = FADE_MS) => {
             // Latest call wins — drop any in-flight timers.
             clearAllTimers();
+
+            // The NPC Cast watches the same screen you do — every toast is an
+            // on-screen event they can react to (guarded, fire-and-forget).
+            publishToast(msg);
 
             // Stage 1: mount with text but show: false (CSS opacity 0).
             setState({ msg, mounted: true, show: false, fadeMs });

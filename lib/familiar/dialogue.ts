@@ -1154,6 +1154,40 @@ export function pickHint(tier: FamiliarTierId): string {
     return rand(HINTS[tier]);
 }
 
+/* ── Witness — your familiar SEES you mint, live (Brendon, 2026-07-01) ──────
+   Fires the moment a mint lands while the companion is on screen, naming the
+   actual piece when one is in view. Tier-voiced: the little ones are thrilled,
+   the old ones make it a rite. {piece} fills with the label. */
+
+const WITNESS_MINT: Record<FamiliarTierId, string[]> = {
+    bitdaemons: [
+        'I SAW {piece} BEING BORN. I WAS RIGHT HERE.',
+        '{piece} JUST HAPPENED. WE WERE BOTH HERE FOR IT.',
+        'A MINT! {piece}! I FELT THE BLOCK LAND.',
+        'THAT ONE IS OURS NOW. {piece}. I SAW EVERYTHING.',
+    ],
+    titans: [
+        'WITNESSED: {piece}, STRUCK WHILE I STOOD GUARD.',
+        '{piece} RISES. I WAS PRESENT. THAT MATTERS.',
+        'A NEW PIECE JOINS THE HOLD. {piece}. GOOD.',
+    ],
+    ascended: [
+        '{piece} ARRIVED THROUGH ME AND PAST ME. BLESSED.',
+        'I FELT {piece} CROSS OVER. CLEAN LIGHT.',
+        'WITNESSED AND CONSECRATED: {piece}.',
+    ],
+    oldgods: [
+        'I HAVE SEEN TEN THOUSAND BIRTHS. {piece} WAS A GOOD ONE.',
+        '{piece}. BORN UNDER MY WATCH. IT WILL KNOW ME.',
+        'SO {piece} ENTERS THE WORLD. NOTED, IN STONE.',
+    ],
+};
+
+/** A live mint-witness line for this tier, naming the piece. */
+export function pickWitness(tier: FamiliarTierId, pieceLabel: string): string {
+    return rand(WITNESS_MINT[tier]).replace(/\{piece\}/g, pieceLabel);
+}
+
 /* ── Pickers ────────────────────────────────────────────────────────────── */
 
 function rand<T>(arr: T[]): T {

@@ -30,8 +30,10 @@ import {
     type AnimatedSpecies,
     type FamiliarTierId,
 } from '../familiar/species';
-import { pickDialogue, pickThought, pickHint } from '../familiar/dialogue';
+import { pickDialogue, pickThought, pickHint, pickWitness } from '../familiar/dialogue';
 import { loadIntel } from '../familiar/intel';
+import { subscribeActions, type NpcAction } from '../npc/actions';
+import { readPieceInView } from '../npc/inview';
 
 type FamiliarState = 'idle' | 'scroll' | 'action' | 'sleep';
 
@@ -400,6 +402,32 @@ function _onVisibility() {
     }
 }
 
+/* The witness — your companion SEES you mint, live (Brendon, 2026-07-01).
+   Rides the same on-screen action bus as the NPC Cast; while the familiar is
+   visible, a landed mint gets an immediate, piece-naming reaction. Once per
+   piece per page lifetime — a rite, not a nag. */
+let _unsubActions: (() => void) | null = null;
+const _witnessed = new Set<string>();
+
+function _onNpcAction(a: NpcAction): void {
+    if (!_species || !_visible) return;
+    if (a.kind !== 'mint') return;
+    const piece = readPieceInView();
+    let label = piece?.label ?? null;
+    if (!label) {
+        // "Minted: 2 × PROJECT · 1.2 ETH left" → the project name.
+        const m = a.msg.match(/×\s*([^·]+)/);
+        label = m ? m[1].trim() : null;
+    }
+    if (!label) return;
+    if (_witnessed.has(label)) return;
+    _witnessed.add(label);
+    _setState('action');
+    _frameIdx = 0;
+    _renderFrame();
+    _showBubble(pickWitness(_species.tier, label));
+}
+
 function _start() {
     if (_frameTimer) return;
     _startTickers();
@@ -409,6 +437,7 @@ function _start() {
     document.addEventListener('mousemove', _resetSleep, { passive: true });
     document.addEventListener('keydown', _resetSleep, { passive: true });
     document.addEventListener('touchstart', _resetSleep, { passive: true });
+    if (!_unsubActions) _unsubActions = subscribeActions(_onNpcAction);
     _resetSleep();
 }
 
@@ -433,6 +462,10 @@ function _stop() {
         document.removeEventListener('mousemove', _resetSleep);
         document.removeEventListener('keydown', _resetSleep);
         document.removeEventListener('touchstart', _resetSleep);
+    }
+    if (_unsubActions) {
+        _unsubActions();
+        _unsubActions = null;
     }
     _bubbleVisible = false;
     _thoughtVisible = false;

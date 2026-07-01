@@ -55,6 +55,7 @@ export interface AttrInput {
         palette_count?: number | null; contrast?: number | null; warmth?: number | null;
         gravity?: string | null; symmetry?: number | null; air?: number | null;
         texture?: number | null;
+        scene?: string | null; shape_count?: number | null; pattern?: string | null;
     } | null;
     /** The Output true name (project glyphs + id). */
     trueName: string;
@@ -90,6 +91,16 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     const form: AttrTile[] = [];
     const bucket = fingerprint?.dominant_color ?? outputColorBucket(slug, id) ?? null;
     const warmth = fingerprint?.warmth;
+    /* The quantitative read leads the wall — the sentence a human would say
+       ("two blue squares and a yellow circle"), then the adjectives. */
+    const scene = fingerprint?.scene;
+    if (scene) {
+        const shapeCount = fingerprint?.shape_count;
+        form.push({
+            glyph: '◱', label: 'Reads As', value: scene,
+            sub: shapeCount != null && shapeCount > 0 ? `${shapeCount} shape${shapeCount === 1 ? '' : 's'} found` : undefined,
+        });
+    }
     if (bucket) {
         form.push({ glyph: '◉', label: 'Dominant Colour', value: bucket, swatch: BUCKET_HEX[bucket] });
     }

@@ -13,11 +13,15 @@
  * remembered (LRU, ~400) and skipped while remembered.
  */
 
+import type { Fingerprint } from '../art/sampleColor';
+
 export interface ViewEvent {
     /** A colour streak just hit: they keep opening the same-coloured ones. */
     streak?: { bucket: string; len: number };
     /** They came back to the same piece again (2nd, 3rd… look this session). */
     revisit?: { label: string; count: number };
+    /** A resident just decided this viewer is THEIRS (the favourites form). */
+    adoption?: { by: string };
 }
 
 interface Prediction {
@@ -38,6 +42,11 @@ interface PersistShape {
     /** The piece they kept returning to LAST session (label + colour) — the
      *  cold-open callback material. */
     lastObsession: { label: string; bucket: string | null } | null;
+    /** Once-EVER flags (e.g. the familiar crossover) — survive across visits. */
+    flags?: string[];
+    /** The favourites form: per-resident taste affinity, and who adopted you. */
+    affinity?: Record<string, number>;
+    adoptedBy?: string | null;
 }
 
 const KEY = 'pd:npc:memory';
@@ -113,8 +122,43 @@ const predictions: Prediction[] = [];
 const pendingEvents: ViewEvent[] = [];
 let sessionStart = 0;
 
-/** Record a piece coming into view. Queues streak/revisit moments. */
-export function recordView(slug: string, id: number, label: string, bucket: string | null): void {
+/* ── the favourites form ────────────────────────────────────────────────
+   Each resident has a TASTE — the visual qualities they'd respect in what
+   you keep opening. Every viewed piece scores for whoever it matches; when
+   one resident clearly leads, they quietly adopt you (persisted), announce
+   it once, and their loyalty lines join the show. */
+
+const TASTE: Record<string, (fp: Fingerprint) => number> = {
+    rocco: (fp) => (fp.paletteCount <= 2 ? 1 : 0) + (fp.saturation < 0.35 ? 1 : 0) + (fp.complexity < 0.4 ? 1 : 0) + (fp.bucket === 'Black' || fp.bucket === 'White' ? 1 : 0),
+    mick: (fp) => (fp.texture > 0.38 ? 1 : 0) + (fp.paletteCount === 2 ? 1 : 0) + (fp.contrast > 0.55 ? 1 : 0),
+    mimi: (fp) => (fp.bucket === 'Hothurt' || fp.accent === 'Hothurt' ? 2 : 0) + (fp.contrast > 0.55 ? 1 : 0) + (fp.saturation > 0.6 ? 1 : 0),
+    steven: (fp) => (fp.bucket === 'Blue' ? 2 : 0) + (fp.shapes.some((s) => s.kind === 'square') ? 1 : 0) + (fp.complexity < 0.4 ? 1 : 0),
+    eddie: (fp) => (fp.symmetry < 0.5 ? 1 : 0) + (fp.complexity > 0.6 ? 1 : 0) + (fp.gravity === 'Left' || fp.gravity === 'Right' ? 1 : 0),
+    carl: (fp) => (fp.brightness < 0.4 ? 1 : 0) + (fp.saturation < 0.3 ? 1 : 0) + (fp.warmth != null && fp.warmth < 0.4 ? 1 : 0),
+    romy: (fp) => (fp.warmth != null && fp.warmth > 0.6 ? 1 : 0) + (fp.texture > 0.38 ? 1 : 0) + (fp.symmetry < 0.72 ? 1 : 0),
+    celestia: (fp) => (fp.bucket === 'Moon' || fp.bucket === 'Black' ? 1 : 0) + (fp.air > 0.5 ? 1 : 0) + (fp.shapes.some((s) => s.kind === 'circle') ? 1 : 0),
+};
+
+function scoreAffinity(fp: Fingerprint): void {
+    if (!persist.affinity) persist.affinity = {};
+    let leader: string | null = null, top = 0, second = 0;
+    for (const [id, taste] of Object.entries(TASTE)) {
+        const gain = taste(fp);
+        if (gain > 0) persist.affinity[id] = (persist.affinity[id] ?? 0) + gain;
+        const total = persist.affinity[id] ?? 0;
+        if (total > top) { second = top; top = total; leader = id; }
+        else if (total > second) second = total;
+    }
+    if (!persist.adoptedBy && leader && top >= 14 && top - second >= 5) {
+        persist.adoptedBy = leader;
+        pendingEvents.push({ adoption: { by: leader } });
+    }
+    save();
+}
+
+/** Record a piece coming into view. Queues streak/revisit moments and feeds
+ *  the favourites form when the full fingerprint is available. */
+export function recordView(slug: string, id: number, label: string, bucket: string | null, fp?: Fingerprint | null): void {
     load();
     if (!sessionStart) sessionStart = Date.now();
     const key = `${slug}:${id}`;
@@ -137,6 +181,9 @@ export function recordView(slug: string, id: number, label: string, bucket: stri
     if (count === 2 || count === 3 || count === 5) {
         pendingEvents.push({ revisit: { label, count } });
     }
+
+    // Taste only scores DISTINCT looks (revisits don't stack the form).
+    if (fp && prevCount === 0) scoreAffinity(fp);
 }
 
 /** Record a route change (pacing read). */
@@ -156,6 +203,77 @@ export function fireOnce(flag: string): boolean {
     if (onceFired.has(flag)) return false;
     onceFired.add(flag);
     return true;
+}
+
+/** One-shot EVER flags (the familiar crossover) — persisted across visits. */
+export function fireOncePersist(flag: string): boolean {
+    load();
+    const flags = persist.flags ?? (persist.flags = []);
+    if (flags.includes(flag)) return false;
+    flags.push(flag);
+    save();
+    return true;
+}
+
+/* ── actions (what they watched you DO) ─────────────────────────────── */
+
+const actionCounts = new Map<string, number>();
+const actedOn = new Map<string, Set<string>>(); // pieceKey → action kinds
+
+/** Record an observed action; returns how many of that kind this session. */
+export function recordAction(kind: string, pieceKey?: string | null): number {
+    const n = (actionCounts.get(kind) ?? 0) + 1;
+    actionCounts.set(kind, n);
+    if (pieceKey) {
+        const set = actedOn.get(pieceKey) ?? new Set<string>();
+        set.add(kind);
+        actedOn.set(pieceKey, set);
+    }
+    return n;
+}
+
+export function actionCount(kind: string): number {
+    return actionCounts.get(kind) ?? 0;
+}
+
+/** Which actions they've taken on a piece this session (convergence reads). */
+export function actionsOn(slug: string, id: number): Set<string> {
+    return actedOn.get(`${slug}:${id}`) ?? new Set();
+}
+
+/* ── buy bets — wishlist arms a call; a mint/buy resolves it ────────── */
+
+interface BuyBet { by: string; pieceKey: string; label: string; armedAtViews: number; }
+const buyBets: BuyBet[] = [];
+
+export function armBuyBet(by: string, slug: string, id: number, label: string): void {
+    const key = `${slug}:${id}`;
+    if (buyBets.some((b) => b.pieceKey === key)) return;
+    buyBets.push({ by, pieceKey: key, label, armedAtViews: viewOrder.length });
+}
+
+/** A purchase happened — if the couch had a bet on the piece (or its project),
+ *  resolve it as a hit. */
+export function resolveBuyBet(slug: string | null): { by: string; label: string } | null {
+    for (let i = 0; i < buyBets.length; i++) {
+        const b = buyBets[i];
+        if (!slug || b.pieceKey.startsWith(`${slug}:`)) {
+            buyBets.splice(i, 1);
+            return { by: b.by, label: b.label };
+        }
+    }
+    return null;
+}
+
+/** An expired buy bet (they browsed far past it without buying), if any. */
+export function expiredBuyBet(): { by: string; label: string } | null {
+    for (let i = 0; i < buyBets.length; i++) {
+        if (viewOrder.length - buyBets[i].armedAtViews >= 12) {
+            const b = buyBets.splice(i, 1)[0];
+            return { by: b.by, label: b.label };
+        }
+    }
+    return null;
 }
 
 /* ── predictions (the couch makes calls about you) ──────────────────── */
@@ -214,6 +332,8 @@ export interface SessionFacts {
     sessionNumber: number;
     /** The piece they kept returning to last session, if the cast noticed. */
     lastObsession: { label: string; bucket: string | null } | null;
+    /** The resident who adopted this viewer (the favourites form), if any. */
+    adoptedBy: string | null;
 }
 
 export function sessionFacts(): SessionFacts {
@@ -229,6 +349,7 @@ export function sessionFacts(): SessionFacts {
         isReturning: returning,
         sessionNumber: persist.sessions,
         lastObsession: persist.lastObsession,
+        adoptedBy: persist.adoptedBy ?? null,
     };
 }
 

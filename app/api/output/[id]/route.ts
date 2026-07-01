@@ -41,6 +41,9 @@ export interface OutputDetailResponse {
     symmetry?: number | null;
     air?: number | null;
     texture?: number | null;
+    scene?: string | null;
+    shape_count?: number | null;
+    pattern?: string | null;
   } | null;
   true_name: string | null;
 }
@@ -80,7 +83,7 @@ export async function GET(
         .eq('token_id', tokenId)
         .order('timestamp', { ascending: true }),
       db.from('outputs')
-        .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, true_name')
+        .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, scene, shape_count, pattern, true_name')
         .eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
     ]);
     const meta = metaRes.data as {
@@ -89,6 +92,7 @@ export async function GET(
       accent_color: string | null; accent_share: number | null; palette_count: number | null;
       contrast: number | null; warmth: number | null; gravity: string | null;
       symmetry: number | null; air: number | null; texture: number | null;
+      scene: string | null; shape_count: number | null; pattern: string | null;
       true_name: string | null;
     } | null;
 
@@ -161,6 +165,9 @@ export async function GET(
             symmetry: meta.symmetry,
             air: meta.air,
             texture: meta.texture,
+            scene: meta.scene,
+            shape_count: meta.shape_count,
+            pattern: meta.pattern,
           }
         : null,
       true_name: meta?.true_name ?? null,
