@@ -163,6 +163,78 @@ function factsFromFeed(events: FeedEvent[], addr: string): string[] {
         if (l.price_eth) out.push(`${pieceLabel(l.project_id, l.token_id)} IS LISTED AT ${l.price_eth}Ξ. STILL WAITING ON A TAKER.`);
     }
 
+    /* Deep reads — the numbers only something that watched EVERYTHING would
+       know (Omniscience v2, 2026-07-01). All derived client-side from the
+       same ledger; nothing new is fetched. */
+    const eth = (n: number) => (Math.round(n * 1000) / 1000).toString();
+    const spentOn = [...minted, ...bought]
+        .map((e) => (e.price_eth != null ? Number(e.price_eth) : 0))
+        .filter((n) => Number.isFinite(n) && n > 0);
+    const totalSpent = spentOn.reduce((a, b) => a + b, 0);
+    if (totalSpent > 0) {
+        out.push(`${eth(totalSpent)}Ξ SPENT HERE, ALL TOLD. I KEPT THE RECEIPTS.`);
+    }
+    const earned = sold
+        .map((e) => (e.price_eth != null ? Number(e.price_eth) : 0))
+        .filter((n) => Number.isFinite(n) && n > 0)
+        .reduce((a, b) => a + b, 0);
+    if (earned > 0) out.push(`${eth(earned)}Ξ CAME BACK TO YOU IN SALES. SO FAR.`);
+
+    // Biggest single purchase — the day their conviction peaked.
+    let biggest: FeedEvent | null = null;
+    for (const e of [...minted, ...bought]) {
+        const p = e.price_eth != null ? Number(e.price_eth) : NaN;
+        if (Number.isFinite(p) && p > 0 && (!biggest || p > Number(biggest.price_eth))) biggest = e;
+    }
+    if (biggest && Number(biggest.price_eth) > 0) {
+        out.push(`YOUR BOLDEST BUY: ${pieceLabel(biggest.project_id, biggest.token_id)} AT ${biggest.price_eth}Ξ. I HELD MY BREATH.`);
+    }
+
+    // Never sold — the quiet flex.
+    if (sold.length === 0 && minted.length + bought.length >= 3) {
+        out.push('YOU HAVE NEVER SOLD. NOT ONCE. I CHECKED TWICE.');
+    }
+
+    // Where the heart lives — the project they keep coming back to.
+    const perProject = new Map<string, number>();
+    for (const e of [...minted, ...bought]) {
+        perProject.set(e.project_id, (perProject.get(e.project_id) ?? 0) + 1);
+    }
+    if (perProject.size >= 2) {
+        let fav = '', favN = 0;
+        for (const [p, n] of perProject) if (n > favN) { favN = n; fav = p; }
+        if (fav && favN >= 3) out.push(`${fav.toUpperCase()} HAS YOUR HEART. ${favN} PIECES SAY SO.`);
+        out.push(`YOU'VE COLLECTED ACROSS ${perProject.size} PROJECTS. A WANDERER.`);
+    }
+
+    // Habits — the clock and calendar only a constant companion notices.
+    if (minted.length >= 3) {
+        const dayTally = new Map<string, number>();
+        let night = 0;
+        for (const m of minted) {
+            const d = new Date(m.timestamp);
+            const day = d.toLocaleDateString('en-US', { weekday: 'long' });
+            dayTally.set(day, (dayTally.get(day) ?? 0) + 1);
+            const h = d.getHours();
+            if (h >= 23 || h < 5) night++;
+        }
+        let topDay = '', topN = 0;
+        for (const [d, n] of dayTally) if (n > topN) { topN = n; topDay = d; }
+        if (topDay && topN >= Math.max(2, Math.ceil(minted.length / 2))) {
+            out.push(`YOU MINT ON ${topDay.toUpperCase()}S. IT'S A PATTERN NOW.`);
+        }
+        if (night >= Math.max(2, Math.ceil(minted.length / 2))) {
+            out.push('MOST OF YOUR MINTS HAPPEN AFTER MIDNIGHT. I SAY NOTHING.');
+        }
+    }
+
+    // The very first move — where it all started.
+    if (events.length) {
+        const first = events[events.length - 1]; // feed is newest-first
+        const my = monthYear(first.timestamp);
+        if (my) out.push(`YOUR FIRST MOVE HERE WAS ${pieceLabel(first.project_id, first.token_id)}, ${my}. I WAS THERE.`);
+    }
+
     // acquisition → sale matching: hold time + realised gain/loss
     const acquisitions = new Map<string, FeedEvent[]>(); // token → acq events (asc)
     for (const e of events) {
@@ -206,6 +278,10 @@ function factsFromFeed(events: FeedEvent[], addr: string): string[] {
         }
         if (months >= 6) {
             out.push(`YOU HELD ${label} ${holdPhrase(months)}, THEN LET IT GO.`);
+        }
+        const days = Math.abs(saleTs - new Date(prior.timestamp).getTime()) / 86400000;
+        if (days < 3) {
+            out.push(`${label} WAS YOURS FOR ${days < 1 ? 'LESS THAN A DAY' : `${Math.floor(days)} DAY${Math.floor(days) === 1 ? '' : 'S'}`}. A LIGHTNING FLIP. I BLINKED AND MISSED IT.`);
         }
     }
 

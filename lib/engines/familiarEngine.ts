@@ -287,6 +287,18 @@ function _showThought(text: string) {
     }, 2500);
 }
 
+/* A silent gesture — the familiar plays its action animation with no words.
+   A companion mostly MOVES; speech is the exception (Brendon, 2026-07-01). */
+function _gesture() {
+    _setState('action');
+    _frameIdx = 0;
+    _renderFrame();
+    if (_actionRevertTimer) clearTimeout(_actionRevertTimer);
+    _actionRevertTimer = setTimeout(() => {
+        if (_state === 'action') _setState('idle');
+    }, 1200);
+}
+
 function _emitDialogue(state: FamiliarState) {
     if (!_species) return;
     // Teach the gesture: first idle remark is a hint, then rarely after.
@@ -298,6 +310,18 @@ function _emitDialogue(state: FamiliarState) {
         }
         if (Math.random() < 0.06) {
             _showBubble(pickHint(_species.tier));
+            return;
+        }
+        /* Companion, not chatterbox (Brendon, 2026-07-01): half the idle
+           moments aren't speech at all — a little gesture, or an italic
+           *thought* beside the sprite. Presence over patter. */
+        const beat = Math.random();
+        if (beat < 0.2) {
+            _gesture();
+            return;
+        }
+        if (beat < 0.5) {
+            _showThought(pickThought(_species.tier));
             return;
         }
     }
@@ -353,9 +377,11 @@ function _handleDocClick(ev: Event) {
 function _startTickers() {
     if (_frameTimer) return;
     _frameTimer = setInterval(_renderFrame, 600);
+    // Idle moments come slower than the original 20-40s — a companion sits
+    // WITH you; half its moments are gestures/thoughts, not speech.
     _dialogueTimer = setInterval(
         () => _emitDialogue('idle'),
-        20000 + Math.random() * 20000,
+        28000 + Math.random() * 27000,
     );
 }
 

@@ -68,6 +68,20 @@ const BITDAEMONS: BestiaryEntry[] = [
     { name: "Wave", art: "~[≡]~" },
     { name: "Tin", art: "|°_°|" },
     { name: "Bit", art: ">●<" },
+    { name: "Echo", art: "((( · )))" },
+    { name: "Beacon", art: "!◉!" },
+    { name: "Magnet", art: "⊃·⊂" },
+    { name: "Socket", art: "[o|o]" },
+    { name: "Crumb", art: "(··)" },
+    { name: "Static", art: "[≋]" },
+    { name: "Sprout", art: ",ψ," },
+    { name: "Bloop", art: "(°o°)" },
+    { name: "Dial", art: "(◷)" },
+    { name: "Fuse", art: "≈─●" },
+    { name: "Radar", art: "[(·)]" },
+    { name: "Domino", art: "[∷]" },
+    { name: "Pixel", art: "▪" },
+    { name: "Knot", art: "~⊗~" },
 ];
 
 /* ── Titans (semi-rare, towering — multi-line, textured) ──────── */
@@ -89,6 +103,13 @@ const TITANS: BestiaryEntry[] = [
     { name: "Vanguard", art: "  ▲\n ▟█▙\n░▓◎◎▓░\n ▒▓▓▒\n ▜▓▓▛\n ░ ░" },
     { name: "Behemoth", art: " ▟▓▙▟▓▙\n▓▒▒▒▒▒▓\n▓░◉▒○░▓\n ▜▓▓▓▛\n  ▒▒▒\n ▟▒ ▒▙" },
     { name: "Megalith", art: "▒▀▀▀▀▀▒\n▒░░░░░▒\n▒░◉◎●░▒\n▒░░░░░▒\n▒▒▒▒▒▒▒" },
+    { name: "Bulwark", art: "▛▀▀▀▀▀▜\n▌░○░○░▐\n▌▒▒▒▒▒▐\n▙▄▄▄▄▄▟" },
+    { name: "Dynamo", art: " ┌▓▓▓┐\n─┤◉▒◉├─\n └▓▓▓┘\n  ▀▀▀" },
+    { name: "Turbine", art: "  ╲│╱\n ─(◎)─\n  ╱│╲\n ─┴┴─" },
+    { name: "Gantry", art: "┌─┬─┬─┐\n│ │◉│ │\n┴ ┴─┴ ┴" },
+    { name: "Keystone", art: "  ▟▓▙\n ▟▒◉▒▙\n▟░▒▒▒░▙\n▌     ▐" },
+    { name: "Anvil", art: "▄▄▄▄▄▄▄\n ▜▓●▓▛\n  ▐▓▌\n▄▄▟▓▙▄▄" },
+    { name: "Reactor", art: "╔═▓▓▓═╗\n║ ◉◉◉ ║\n║ ▒▒▒ ║\n╚═▓▓▓═╝" },
 ];
 
 /* ── Ascended (rare, ethereal — multi-line) ───────────────────── */
@@ -107,6 +128,12 @@ const ASCENDED: BestiaryEntry[] = [
     { name: "Comet", art: "   ◉\n  ▓▒\n ▒░\n░" },
     { name: "Cherub", art: "(◉)(◎)\n ╲╲╱╱\n  ▽▽" },
     { name: "Pulsar", art: "  │\n ─◉─\n╱ │ ╲\n  ▽" },
+    { name: "Zenith", art: "  ✦\n ╱│╲\n░ │ ░\n  ▽" },
+    { name: "Mirage", art: "░ ◎ ░\n ░ ░\n≈≈≈≈≈" },
+    { name: "Hymn", art: "♪ │ ♪\n ⟨◉⟩\n  ┴" },
+    { name: "Iris", art: "╱▔▔╲\n( ◉ )\n╲▁▁╱" },
+    { name: "Quasar", art: "· ✦ ·\n ─◉─\n· ✦ ·" },
+    { name: "Mote", art: " ·\n(·)\n ·" },
 ];
 
 /* ── Old Gods (mythic, carved stone — multi-line, translucent) ── */
@@ -125,6 +152,8 @@ const OLD_GODS: BestiaryEntry[] = [
     { name: "Ø", art: "  ▟▓▙\n ▓▓◉▓▓\n▓▓▓▓▓▓▓▓\n ▜▒▓▓▒▛\n  ▓  ▓\n ▟▛  ▜▙" },
     { name: "Kraken", art: " ┌◉◉┐\n┌┴──┴┐\n└┐┌┐┌┘\n └┘└┘" },
     { name: "Warlord", art: "╔══════╗\n║ ▼▼ ║\n║ ▀▀ ║\n╠══════╣\n║▐ ██ ▌║" },
+    { name: "Maw", art: "▟▓▓▓▓▓▙\n▓▼▼▼▼▼▓\n▓     ▓\n▓▲▲▲▲▲▓\n▜▓▓▓▓▓▛" },
+    { name: "Root", art: "  ░▒░\n ▒▓▓▓▒\n──▓●▓──\n ╱▓▓▓╲\n╱ ▓ ▓ ╲\n  ▓ ▓" },
 ];
 
 /* TESTING (Brendon, 2026-06-22): every tier is unlocked so the whole roster is
