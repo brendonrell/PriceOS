@@ -161,9 +161,6 @@ function Deployer() {
     const [feeFloor, setFeeFloor] = useState('0.0001');
     const [feeCeiling, setFeeCeiling] = useState('0.01');
     const [feeInitial, setFeeInitial] = useState('0.0007');
-    // Artist-cooldown days. 0 for Sepolia (bulk-create the test catalog);
-    // mainnet uses 60.
-    const [cooldownDays, setCooldownDays] = useState('0');
 
     useEffect(() => setState(loadState()), []);
     useEffect(() => {
@@ -239,7 +236,6 @@ function Deployer() {
                         parseEther(feeFloor),
                         parseEther(feeCeiling),
                         parseEther(feeInitial),
-                        BigInt(Math.round(Number(cooldownDays) * 86400)),
                     ]);
                     return { factory: addr, txs: { factory: tx } };
                 }),
@@ -301,8 +297,6 @@ function Deployer() {
                 <input style={S.input} value={storageWallet} onChange={(e) => setStorageWallet(e.target.value)} />
                 <label style={S.label}>thumbnail writer</label>
                 <input style={S.input} value={writer} onChange={(e) => setWriter(e.target.value)} />
-                <label style={S.label}>artist cooldown (days — 0 for testnet, 60 on mainnet)</label>
-                <input style={S.input} value={cooldownDays} onChange={(e) => setCooldownDays(e.target.value)} />
                 <label style={S.label}>storage fee: floor / ceiling / initial (ETH)</label>
                 <div style={{ display: 'flex', gap: 6 }}>
                     <input style={S.input} value={feeFloor} onChange={(e) => setFeeFloor(e.target.value)} />
