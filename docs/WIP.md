@@ -6,6 +6,41 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-01 — NPC Cast writers' room + Fingerprint v2 + Familiar 100
+
+**On `dev` (46dbcff), tree clean. Renders when hosting resumes (Vercel paused).**
+- **NPC Cast awareness layer BUILT (ClickUp 86b9fcp11, rungs 1–4).** New
+  `lib/npc/{scenarios,director,memory,inview}.ts`: the cast SEES the piece on
+  screen (live pixel sample published from the artwork page) and reacts through
+  each locked lens; multi-beat exchanges; colour streaks; revisits; predictions
+  w/ hit-miss callbacks (misses read out by a neighbour); idle boredom; pacing;
+  cold opens w/ cross-session memory (localStorage — sessions, last obsession,
+  ~400-line no-repeat ledger); theme-flip + late-night reactions; rare direct
+  address; once-a-session fourth-wall jolt (names the real piece). Cadence is
+  scene-based (14–90s lulls, quick reaction when a new piece appears). REACTIVE
+  FIRST (Brendon): gossiping audience, not companion. Bubble "butt" FIXED
+  (binary-search exact-hug width; old rect-measure over-reported on wraps —
+  widthAdjust hack removed); bubbles 16→15px, cap 168→152; entrance anims
+  polished per character; Romy → serif italic, Mimi → sans bold italic (Mick
+  untouched).
+- **Fingerprint v2 (feature name: Fingerprint).** Sampler reads 8 new axes in
+  the same 24×24 pass: accent colour, palette count, contrast, measured warmth,
+  gravity, symmetry, air, texture. Persisted on `outputs` (migration
+  20260701_outputs_fingerprint_v2 APPLIED to live Supabase — additive) +
+  denormalised bands; attributes "Form" group renamed **Fingerprint** and now a
+  wall of tiles; scalars stored for future sort groupings beyond dominant
+  colour.
+- **Digital Familiar → 100** (40 BitDaemons / 24 Titans / 20 Ascended / 16 Old
+  Gods): 29 new creatures, ALL 100 animated + unique personas (Ghibli-ensemble
+  register — bubbly Navi-ish little ones, gentle-giant Titans, luminous
+  Ascended spirits, Mononoke forest-god Old Gods). Companion cadence: idle
+  moments are half gestures/italic thoughts, 28–55s spacing. Omniscience v2:
+  total spent/earned, boldest buy, lightning flips, never-sold, favourite
+  project, minting-day + after-midnight habits, first move ever.
+- NOTE: this container's local `dev` was WEEKS stale on checkout — fixed via
+  `git checkout -B dev origin/dev` before the merge. Future sessions: verify
+  local dev matches origin before merging.
+
 ## ✅ SHIPPED 2026-07-01 — Sepolia contract candidates FINAL + /deploy launcher (Fable 5)
 
 **pd-contracts `main` is the Sepolia deploy candidate — 284 tests green.**
