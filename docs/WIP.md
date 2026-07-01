@@ -6,6 +6,41 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-01 — NPC round 2: actions + convergence + Fingerprint v3 + mute
+
+**On `dev` (ed65e91), tree clean. Same session as round 1 below.**
+- **Fingerprint v3 — the QUANTITATIVE read (Brendon: humans notice counts,
+  not adjectives).** `lib/art/scene.ts` + a 48×48 connected-region pass in
+  the sampler: distinct colour shapes (circle/square/bar/shape), arrangement
+  (stripes/field/scatter), and the generated human sentence ("two blue
+  squares and a yellow circle"). Leads the attribute wall as **Reads As**;
+  stored on `outputs` (scene, shape_count, pattern, shapes jsonb — migration
+  20260701_outputs_fingerprint_v3 APPLIED live). Brendon flagged: feeds
+  future natural-language site search + shape-based groupings.
+- **NPC actions (`lib/npc/actions.ts`).** One tap in ToastContext classifies
+  EVERY toast into typed action events — star/wishlist/cart/bench/grail/
+  album/todo/note/follow/mint/buy/sell/list/offer/sweep/colorway/achievement/
+  zen. Director priority 0: the couch pounces in ~2–5s (per-kind 45s
+  cooldowns; counts accumulate → "{n} today" lines). Convergence gates
+  (action × sight × session facts). Couch scenes for big moves. Wishlist
+  arms buy bets → resolved on mint/buy (hit by the caller, miss read into
+  the record by a neighbour).
+- **Duet composer** — topic-tagged openers × matched replies assemble into
+  whole scenes; with template fills the bank now plays out in the THOUSANDS
+  of distinct moments, all pre-written, all through the no-repeat ledger.
+- **Favourites form** — every distinct viewed piece scores each resident's
+  taste (fp-based); a clear leader ADOPTS you (persisted): announcement
+  scene once, loyalty lines after (rare, cooldown).
+- **Once-EVER Familiar crossover** (persisted flag) — the cast notices your
+  familiar by species name. **Familiar witnesses mints** live via the same
+  action bus, naming the piece (once per piece; tier-voiced pools).
+- **Per-resident MUTE (Brendon approved the how).** Long-press a bubble
+  ~0.7s → muted (persisted; hidden mid-scene; filtered everywhere by riding
+  the busy set). Window-level hit-test — the cast keeps pointer-events:none,
+  nothing is ever click-blocked. Survivors react ("They muted him."
+  "…Lucky."); the cast spills the mechanic themselves (couch scenes). NPC
+  spell off→on clears all mutes (the reset, no UI).
+
 ## ✅ SHIPPED 2026-07-01 — NPC Cast writers' room + Fingerprint v2 + Familiar 100
 
 **On `dev` (46dbcff), tree clean. Renders when hosting resumes (Vercel paused).**
