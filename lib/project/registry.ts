@@ -113,6 +113,18 @@ import { renderNoctilucent, noctilucentTraits, noctilucentSchema, NOCTILUCENT_AS
 /* ── Dead Reckoning — opus4-8 (2026-06-30). Ported from the halo R&D engine
    tools/halo/v3_dead-reckoning.js. ── */
 import { renderDeadReckoning, deadreckoningTraits, deadreckoningSchema, DEADRECKONING_ASPECTS } from '../art/engines/deadreckoning';
+import { renderNarthex, narthexTraits, narthexSchema, NARTHEX_ASPECTS } from '../art/engines/narthex';
+import { renderSecondSun, secondSunTraits, secondSunSchema, SECONDSUN_ASPECTS } from '../art/engines/secondsun';
+import { renderSlackTide, slackTideTraits, slackTideSchema, SLACKTIDE_ASPECTS } from '../art/engines/slacktide';
+import { renderAppointment, appointmentTraits, appointmentSchema, APPOINTMENT_ASPECTS } from '../art/engines/appointment';
+import { renderCabinet, cabinetTraits, cabinetSchema, CABINET_ASPECTS } from '../art/engines/cabinet';
+import { renderOvercast, overcastTraits, overcastSchema, OVERCAST_ASPECTS } from '../art/engines/overcast';
+import { renderStillRain, stillRainTraits, stillRainSchema, STILLRAIN_ASPECTS } from '../art/engines/stillrain';
+import { renderPaperCountry, paperCountryTraits, paperCountrySchema, PAPERCOUNTRY_ASPECTS } from '../art/engines/papercountry';
+import { renderBallast, ballastTraits, ballastSchema, BALLAST_ASPECTS } from '../art/engines/ballast';
+import { renderSaltMirror, saltMirrorTraits, saltMirrorSchema, SALTMIRROR_ASPECTS } from '../art/engines/saltmirror';
+import { renderEveningRooms, eveningRoomsTraits, eveningRoomsSchema, EVENINGROOMS_ASPECTS } from '../art/engines/eveningrooms';
+import { renderVestment, vestmentTraits, vestmentSchema, VESTMENT_ASPECTS } from '../art/engines/vestment';
 import { normalizePlaylistId } from './soundtrack';
 import { FATE_VALUES, outputFate, projectFate } from './fate';
 import { priceDayNumber } from '../priceday/priceday';
@@ -1290,7 +1302,168 @@ const FUMAGE: ProjectDef = {
   traitsOf: fumageTraits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE];
+/* ── HALO cohort (2026-07) — 12 surreal "real-but-off" systems, a 12-way
+ * tournament assigned across kindred -ai artists by style. Champion: Narthex
+ * (a freestanding dusk arch framing another world; signature colorway Grail).
+ * All continuous seed-driven engines with distinct palette worlds. */
+const NARTHEX: ProjectDef = {
+  slug: 'narthex',
+  displayName: 'Narthex',
+  artistHandle: 'veil-ai',
+  outputs: 333,
+  colorway: '#FFC24A',
+  mintPriceEth: 0,
+  soundtrack: { playlistId: 'PLQNHYNv9IpSzzaQMuH7ji2bEy6o8T8Wwn', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
+  aspects: NARTHEX_ASPECTS,
+  traitSchema: narthexSchema,
+  render: renderNarthex,
+  traitsOf: narthexTraits,
+};
+const SECOND_SUN: ProjectDef = {
+  slug: 'secondsun',
+  displayName: 'Second Sun',
+  artistHandle: 'filament-ai',
+  outputs: 256,
+  colorway: '#E8895A',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: SECONDSUN_ASPECTS,
+  traitSchema: secondSunSchema,
+  render: renderSecondSun,
+  traitsOf: secondSunTraits,
+};
+const SLACK_TIDE: ProjectDef = {
+  slug: 'slacktide',
+  displayName: 'Slack Tide',
+  artistHandle: 'fathom-ai',
+  outputs: 256,
+  colorway: '#6F8A86',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: SLACKTIDE_ASPECTS,
+  traitSchema: slackTideSchema,
+  render: renderSlackTide,
+  traitsOf: slackTideTraits,
+};
+const APPOINTMENT: ProjectDef = {
+  slug: 'appointment',
+  displayName: 'The Appointment',
+  artistHandle: 'umbra-ai',
+  outputs: 256,
+  colorway: '#C98B86',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: APPOINTMENT_ASPECTS,
+  traitSchema: appointmentSchema,
+  render: renderAppointment,
+  traitsOf: appointmentTraits,
+};
+const CABINET: ProjectDef = {
+  slug: 'cabinet',
+  displayName: 'Cabinet',
+  artistHandle: 'lapidary-ai',
+  outputs: 256,
+  colorway: '#6B7A52',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: CABINET_ASPECTS,
+  traitSchema: cabinetSchema,
+  render: renderCabinet,
+  traitsOf: cabinetTraits,
+};
+const OVERCAST: ProjectDef = {
+  slug: 'overcast',
+  displayName: 'Overcast',
+  artistHandle: 'murmur-ai',
+  outputs: 256,
+  colorway: '#5B6470',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: OVERCAST_ASPECTS,
+  traitSchema: overcastSchema,
+  render: renderOvercast,
+  traitsOf: overcastTraits,
+};
+const STILL_RAIN: ProjectDef = {
+  slug: 'stillrain',
+  displayName: 'Still Rain',
+  artistHandle: 'nightpour-ai',
+  outputs: 256,
+  colorway: '#6E8794',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: STILLRAIN_ASPECTS,
+  traitSchema: stillRainSchema,
+  render: renderStillRain,
+  traitsOf: stillRainTraits,
+};
+const PAPER_COUNTRY: ProjectDef = {
+  slug: 'papercountry',
+  displayName: 'Paper Country',
+  artistHandle: 'foolscap-ai',
+  outputs: 256,
+  colorway: '#B7AB97',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: PAPERCOUNTRY_ASPECTS,
+  traitSchema: paperCountrySchema,
+  render: renderPaperCountry,
+  traitsOf: paperCountryTraits,
+};
+const BALLAST: ProjectDef = {
+  slug: 'ballast',
+  displayName: 'Ballast',
+  artistHandle: 'lowgravity-ai',
+  outputs: 256,
+  colorway: '#4E5A66',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: BALLAST_ASPECTS,
+  traitSchema: ballastSchema,
+  render: renderBallast,
+  traitsOf: ballastTraits,
+};
+const SALT_MIRROR: ProjectDef = {
+  slug: 'saltmirror',
+  displayName: 'Salt Mirror',
+  artistHandle: 'headways-ai',
+  outputs: 256,
+  colorway: '#BCA89E',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: SALTMIRROR_ASPECTS,
+  traitSchema: saltMirrorSchema,
+  render: renderSaltMirror,
+  traitsOf: saltMirrorTraits,
+};
+const EVENING_ROOMS: ProjectDef = {
+  slug: 'eveningrooms',
+  displayName: 'Evening Rooms',
+  artistHandle: 'nightlawn-ai',
+  outputs: 256,
+  colorway: '#B07C3E',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: EVENINGROOMS_ASPECTS,
+  traitSchema: eveningRoomsSchema,
+  render: renderEveningRooms,
+  traitsOf: eveningRoomsTraits,
+};
+const VESTMENT: ProjectDef = {
+  slug: 'vestment',
+  displayName: 'Vestment',
+  artistHandle: 'glyphfield-ai',
+  outputs: 256,
+  colorway: '#7A2E2A',
+  mintPriceEth: 0,
+  soundtrack: null,
+  aspects: VESTMENT_ASPECTS,
+  traitSchema: vestmentSchema,
+  render: renderVestment,
+  traitsOf: vestmentTraits,
+};
+
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, PENDULA, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_B, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, ARMILLARY, MURMURATION, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, DATUM, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, LAST_LAMP, VANITAS, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE, NARTHEX, SECOND_SUN, SLACK_TIDE, APPOINTMENT, CABINET, OVERCAST, STILL_RAIN, PAPER_COUNTRY, BALLAST, SALT_MIRROR, EVENING_ROOMS, VESTMENT];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
