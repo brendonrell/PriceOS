@@ -107,6 +107,15 @@ fear: the app must look + work IDENTICALLY after the move** — prime directive.
 - Cloudflare caps (confirmed in their docs): **free 3 MB, paid 10 MB** gzipped.
   4.24 MB is over free, comfortably under paid → **$5 USD/mo (~$7 CAD).**
 - Art + all static assets stay **free + unlimited** regardless of plan.
+
+### 🔗 INDEXER RIDES THIS MIGRATION (added 2026-07-01)
+- The serverless indexer (Alchemy webhook → API route → Supabase; branch
+  `claude/indexer-alchemy-setup-tuezqu` in PriceOS-indexer) is **code-ready and
+  verified against the final Sepolia-candidate contracts — zero edits needed.**
+  Its fold-in was already deferred to this cutover (Brendon, 2026-06-29), so the
+  migration session ALSO lands: the two transplant routes, the scheduled
+  reconcile sweep on Cloudflare's cron equivalent (Vercel cron entry never
+  ships), and the indexer env vars on Cloudflare. ClickUp: `86baq097e`.
 - Weight is the wallet/login/crypto libs. Maybe trimmable under 3 MB with
   deliberate work, no guarantee — not worth chasing for a $5 line item.
 - Build scaffold committed: `open-next.config.ts`, `wrangler.jsonc`,
