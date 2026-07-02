@@ -29,8 +29,10 @@ import {
 const VS15 = '︎';
 
 /* Per-category fallback glyph — used when an achievement has no `icon` yet.
-   Legible at tile size, in the spirit of the ASCII PriceSprites. */
-const CATEGORY_GLYPH: Record<AchievementCategory, string> = {
+   Legible at tile size, in the spirit of the ASCII PriceSprites. Exported
+   (with ORDER + LABEL) as the single source for every achievements surface —
+   the PriceSprite modal's category rail reads these same maps. */
+export const CATEGORY_GLYPH: Record<AchievementCategory, string> = {
     primary: '◍',
     trading: '⊟',
     social: '⊙',
@@ -50,7 +52,7 @@ const CATEGORY_GLYPH: Record<AchievementCategory, string> = {
 
 /* Section order + human labels for the category headers. Order is deliberate:
    the heavy/primary categories first, lore (easter eggs) last. */
-const CATEGORY_ORDER: readonly AchievementCategory[] = [
+export const CATEGORY_ORDER: readonly AchievementCategory[] = [
     'primary',
     'trading',
     'social',
@@ -66,7 +68,7 @@ const CATEGORY_ORDER: readonly AchievementCategory[] = [
     'lore',
 ];
 
-const CATEGORY_LABEL: Record<AchievementCategory, string> = {
+export const CATEGORY_LABEL: Record<AchievementCategory, string> = {
     primary: 'MINTING',
     trading: 'TRADING',
     social: 'SOCIAL',

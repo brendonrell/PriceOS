@@ -42,19 +42,25 @@
  * internals on `isOpen`.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
-import { rankProgress } from '../lib/achievements/tiers';
+import { rankProgress, STREAK_ACTIVATION_DAYS } from '../lib/achievements/tiers';
 import {
     ACHIEVEMENTS,
     MAX_PRICE_SCORE,
     VISIBLE_COUNT,
+    type AchievementCategory,
 } from '../lib/achievements/catalog';
-import { tileGlyph } from './achievements/AchievementsGrid';
+import {
+    tileGlyph,
+    CATEGORY_GLYPH,
+    CATEGORY_ORDER,
+    CATEGORY_LABEL,
+} from './achievements/AchievementsGrid';
 import SpriteEyeSlot from './SpriteEyeSlot';
 import {
     getSpriteFrame,
@@ -206,7 +212,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 export default function PriceSpriteModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const { priceRank, priceScore, handle, siweAddress } = useAuth();
+    const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
     const isOpen = openModal?.name === 'priceSprite';
 
@@ -244,7 +250,30 @@ export default function PriceSpriteModal() {
        fetched for and skip when the modal isn't open / there's no wallet. */
     const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(() => new Set());
     const [achScore, setAchScore] = useState<number>(priceScore);
+    const [streakBest, setStreakBest] = useState<number>(0);
     const fetchedFor = useRef<string | null>(null);
+
+    /* The 1,000-achievement catalog browses by CATEGORY — one section at a
+       time on the rail, picked from the pill row (a single strip of 1,000
+       tiles is not a browse, it's a punishment). Default = MINTING, the
+       first + heaviest section. */
+    const [achCat, setAchCat] = useState<AchievementCategory>('primary');
+    const catItems = useMemo(
+        () => ACHIEVEMENTS.filter((a) => a.category === achCat),
+        [achCat],
+    );
+    /* Per-category unlocked tallies for the pills. */
+    const catCounts = useMemo(() => {
+        const m = new Map<AchievementCategory, { done: number; total: number }>();
+        for (const a of ACHIEVEMENTS) {
+            const c = m.get(a.category) ?? { done: 0, total: 0 };
+            c.total += 1;
+            if (unlocked.has(a.id)) c.done += 1;
+            m.set(a.category, c);
+        }
+        return m;
+    }, [unlocked]);
+    const catRowRef = useDragScroll<HTMLDivElement>();
 
     /* Desktop mouse drag-to-scroll on the achievements carousel (touch scrolls
        natively). Shared mouse-only hook; swallows the trailing click so a pan
@@ -258,10 +287,11 @@ export default function PriceSpriteModal() {
         let cancelled = false;
         fetch(`/api/achievements/${addr}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d: { unlocked?: string[]; priceScore?: number } | null) => {
+            .then((d: { unlocked?: string[]; priceScore?: number; streakBest?: number } | null) => {
                 if (cancelled || !d) return;
                 setUnlocked(new Set(d.unlocked ?? []));
                 if (typeof d.priceScore === 'number') setAchScore(d.priceScore);
+                if (typeof d.streakBest === 'number') setStreakBest(d.streakBest);
             })
             .catch(() => {});
         return () => { cancelled = true; };
@@ -379,19 +409,66 @@ export default function PriceSpriteModal() {
                     );
                 })()}
 
-                {/* ACHIEVEMENTS — Xbox-style rail off the REAL catalog. Tiles
-                    show unlocked/locked for the logged-in wallet; secret +
-                    locked render as "???" with a locked blurb. Tap a tile to
-                    read it (no hover on mobile). Tally = real unlocked count /
-                    visible total · PriceScore / max. */}
+                {/* PRICESTREAK — the daily-action streak, finally visible.
+                    Current run from the live user row; best run from the
+                    achievements profile. Never ticked by a bare app-open —
+                    only a real move counts (mint, market, follow, anoint) —
+                    and it activates at 60 days. The ◈ is the canonical
+                    streak glyph (GLYPHS.md §2); treatment mirrors the
+                    Anointment socket row exactly. */}
+                <div className="ps-section-header ps-reveal ps-d4">PRICESTREAK</div>
+                <div className="ps-streak ps-reveal ps-d4">
+                    <span className="ps-streak-mark">{`◈${VS15}`}</span>
+                    <span className="ps-streak-copy">
+                        <span className="ps-streak-state">
+                            {priceStreak > 0 ? `DAY ${priceStreak}` : 'NONE YET'}
+                        </span>
+                        <span className="ps-streak-sub">
+                            {priceStreak > 0
+                                ? priceStreak >= STREAK_ACTIVATION_DAYS
+                                    ? `active · best ${Math.max(streakBest, priceStreak)}`
+                                    : `one real move a day · activates at ${STREAK_ACTIVATION_DAYS}`
+                                : 'one real move a day starts it — not a login'}
+                        </span>
+                    </span>
+                </div>
+
+                {/* ACHIEVEMENTS — Xbox-style rail off the REAL catalog, browsed
+                    one CATEGORY at a time (pill row picks the section; a flat
+                    strip of 1,000 tiles is unusable). Tiles show unlocked/
+                    locked for the logged-in wallet; secret + locked render as
+                    "???" with a locked blurb. Tap a tile to read it (no hover
+                    on mobile). Tally = real unlocked count / visible total ·
+                    PriceScore / max. */}
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
                         {`${unlockedCount} / ${VISIBLE_COUNT} · ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS`}
                     </span>
                 </div>
-                <div className="ps-ach-rail ps-reveal ps-d4" ref={achRailRef}>
-                    {ACHIEVEMENTS.map((a) => {
+                <div className="ps-cat-row ps-reveal ps-d4" ref={catRowRef}>
+                    {CATEGORY_ORDER.map((c) => {
+                        const counts = catCounts.get(c);
+                        if (!counts) return null;
+                        return (
+                            <button
+                                className={`ps-cat-pill${c === achCat ? ' selected' : ''}`}
+                                type="button"
+                                key={c}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAchCat(c);
+                                }}
+                            >
+                                <span className="ps-cat-glyph">{`${CATEGORY_GLYPH[c]}${VS15}`}</span>
+                                <span>{CATEGORY_LABEL[c]}</span>
+                                <span className="ps-cat-count">{`${counts.done}/${counts.total}`}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div className="ps-ach-rail ps-reveal ps-d4" ref={achRailRef} key={achCat}>
+                    {catItems.map((a) => {
                         const isUnlocked = unlocked.has(a.id);
                         const hidden = a.secret && !isUnlocked;
                         return (
