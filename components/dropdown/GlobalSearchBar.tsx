@@ -583,7 +583,7 @@ export function GlobalSearchBar() {
             </div>
 
             <div
-                className={`global-search-results${engaged ? ' has-results' : ''}`}
+                className={`global-search-results${engaged ? ' has-results' : ''}${eggOn ? ' gsr-egg-open' : ''}`}
                 id="globalSearchResults"
                 onMouseDown={(e) => {
                     // Keep the input focused while tapping rows, AND give

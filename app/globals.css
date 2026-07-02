@@ -1138,16 +1138,31 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 /* LaneRunner — the side-door toy. LED-handheld three-lane runner: fixed
    cells that light up, dashed lane dividers, the whole board is the
    controller (tap a lane). Lives inside .global-search-results. */
+.global-search-results.has-results.gsr-egg-open { max-height: 420px; }
 .lr-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; font-family: 'Courier New', Courier, monospace; }
-.lr-score { font-size: 11px; font-weight: bold; letter-spacing: 1px; opacity: 0.85; text-align: center; }
-.lr-board { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 8px; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.lr-score { font-size: 11px; font-weight: bold; letter-spacing: 1px; opacity: 0.85; text-align: center; white-space: nowrap; }
+.lr-board { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 8px; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; transition: background 0.6s ease; }
 .lr-row { display: flex; }
 .lr-cell { position: relative; width: 46px; height: 40px; }
 .lr-cell + .lr-cell { border-left: 1px dashed color-mix(in srgb, currentColor 22%, transparent); }
 .lr-car { position: absolute; left: 50%; top: 50%; width: 21px; height: 37px; transform: translate(-50%, -50%); display: block; }
-.lr-car-traffic { opacity: 0.75; }
+.lr-hazard { opacity: 0.85; }
 .lr-crashed { animation: fmPulse 0.45s ease-in-out 4; }
-.lr-hint { font-size: 10px; opacity: 0.4; }
+.lr-hint { font-size: 10px; opacity: 0.4; white-space: nowrap; }
+/* Oil slide — a quick cartoon fishtail on the remounted hero slot. */
+.lr-hero-slot { position: absolute; inset: 0; animation: lr-fishtail 0.35s ease-out; }
+@keyframes lr-fishtail {
+    0% { transform: rotate(-10deg) translateX(-3px); }
+    60% { transform: rotate(7deg) translateX(2px); }
+    100% { transform: rotate(0) translateX(0); }
+}
+/* NIGHT SHIFT (score 50+): the road darkens, hazards fade into it, and the
+   hero's clear headlights + a soft glow carry the run. */
+.lr-night { background: rgba(0, 0, 0, 0.45); }
+.lr-night .lr-hazard { opacity: 0.42; }
+.lr-night .lr-cell + .lr-cell { border-left-color: color-mix(in srgb, currentColor 10%, transparent); }
+.lr-car-hero { overflow: visible; z-index: 2; }
+.lr-hero-night { filter: drop-shadow(0 0 5px currentColor); }
 
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
