@@ -38,6 +38,7 @@ export type MarketSheetState =
     | { sheet: 'offer'; items: SheetItem[] }
     | { sheet: 'offer-criteria'; target: CriteriaTarget }
     | { sheet: 'offers-panel'; slug: string; id: number }
+    | { sheet: 'trait-picker'; slug: string; id: number }
     | null;
 
 interface MarketSheetContextValue {
@@ -46,6 +47,9 @@ interface MarketSheetContextValue {
     openOfferSheet: (items: SheetItem[]) => void;
     openCriteriaOfferSheet: (target: CriteriaTarget) => void;
     openOffersPanel: (slug: string, id: number) => void;
+    /** The general-purpose trait-offer tool: pick a trait off ONE output
+     *  (multi-select with exactly one selected — Brendon, 2026-07-02). */
+    openTraitPicker: (slug: string, id: number) => void;
     closeSheet: () => void;
 }
 
@@ -66,11 +70,14 @@ export function MarketSheetProvider({ children }: { children: ReactNode }) {
     const openOffersPanel = useCallback((slug: string, id: number) => {
         setState({ sheet: 'offers-panel', slug, id });
     }, []);
+    const openTraitPicker = useCallback((slug: string, id: number) => {
+        setState({ sheet: 'trait-picker', slug, id });
+    }, []);
     const closeSheet = useCallback(() => setState(null), []);
 
     const value = useMemo(
-        () => ({ state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, closeSheet }),
-        [state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, closeSheet],
+        () => ({ state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet }),
+        [state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet],
     );
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

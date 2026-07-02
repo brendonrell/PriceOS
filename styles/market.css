@@ -117,3 +117,28 @@
     transition: opacity 0.15s;
 }
 .mk-offers-pill:hover { opacity: 1; }
+
+/* Trait-offer chip on the attributes wall tiles + the trait picker face. */
+.attr-tile.has-offer { position: relative; }
+.attr-tile-offer {
+    position: absolute; top: 4px; right: 4px;
+    background: none; border: none;
+    color: var(--text-color); opacity: 0.45;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; line-height: 1;
+    padding: 3px 4px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s;
+}
+.attr-tile-offer:hover { opacity: 1; }
+.mk-picker-lead {
+    font-size: 11px; opacity: 0.65; letter-spacing: 0.3px;
+    padding: 2px 0 10px;
+}
+.mk-picker-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mk-picker-row:hover .cart-item-price { opacity: 1; }
+.mk-picker-row .cart-item-price { opacity: 0.55; transition: opacity 0.15s; }
+.mk-criteria-count {
+    font-size: 11px; opacity: 0.65; letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+}

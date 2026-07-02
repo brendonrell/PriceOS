@@ -295,7 +295,7 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         await db.from('listings').upsert(
           {
             project_id: slug, token_id: tokenId, seller_address: address,
-            price_eth: price, active: true, end_time: endTime,
+            price_eth: price, active: true, end_time: endTime, listed_at: new Date().toISOString(),
             currency: 'ETH', source: 'sim', order_hash: null, order_json: null, tx_hash: null,
           } as never,
           { onConflict: 'project_id,token_id' },
@@ -423,7 +423,7 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         await db.from('listings').upsert(
           {
             project_id: slug, token_id: tokenId, seller_address: address,
-            price_eth: Number(checked.priceEth), active: true,
+            price_eth: Number(checked.priceEth), active: true, listed_at: new Date().toISOString(),
             start_time: checked.startTime, end_time: checked.endTime,
             currency: checked.currency, source: 'seaport',
             order_hash: body.orderHash, order_json: body.order, tx_hash: null,

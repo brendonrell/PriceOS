@@ -190,10 +190,26 @@ function PricingSheet({
         return seed;
     });
     const [criteriaPrice, setCriteriaPrice] = useState('');
+    const [matchCount, setMatchCount] = useState<number | null>(null);
     const [durationSec, setDurationSec] = useState(DEFAULT_DURATION_SEC);
     const [busy, setBusy] = useState(false);
     const [step, setStep] = useState<string | null>(null);
     const [wethNote, setWethNote] = useState(false);
+
+    /* Trait offers show what they cover — the live count of minted pieces
+       matching the trait, so the bidder knows exactly what they're bidding on. */
+    useEffect(() => {
+        if (criteria?.kind !== 'trait') return;
+        let cancelled = false;
+        fetch(
+            `/api/market/orders?trait_ids=${encodeURIComponent(criteria.slug)}&category=${encodeURIComponent(criteria.category ?? '')}&value=${encodeURIComponent(criteria.value ?? '')}`,
+            { cache: 'no-store' },
+        )
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setMatchCount(((d.identifiers as string[]) ?? []).length); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [criteria]);
 
     /* Offers on a chain project settle in WETH — say so once, in the sheet. */
     useEffect(() => {
@@ -336,6 +352,11 @@ function PricingSheet({
                 {criteria ? (
                     <div className="mk-criteria-block">
                         <div className="mk-criteria-target">{criteriaLabel}</div>
+                        {criteria.kind === 'trait' && matchCount != null && (
+                            <div className="mk-criteria-count">
+                                {matchCount} piece{matchCount === 1 ? '' : 's'} match{matchCount === 1 ? 'es' : ''}
+                            </div>
+                        )}
                         <span className="mk-price-wrap mk-price-wrap--solo">
                             <input
                                 className="mk-price-input"
@@ -593,9 +614,84 @@ function OffersPanel({
     );
 }
 
+/* ── Trait picker — the general-purpose trait-offer tool ─────────────────── */
+/* Multi-select with exactly ONE output selected → this face: the piece's full
+   trait sheet (server-computed, natal included), tap a trait → offer sheet.
+   (Brendon, 2026-07-02 — trait offers are the community's #1 feature.) */
+function TraitPickerFace({
+    slug,
+    id,
+    onPick,
+    onClose,
+}: {
+    slug: string;
+    id: number;
+    onPick: (category: string, value: string) => void;
+    onClose: () => void;
+}) {
+    const [traits, setTraits] = useState<Record<string, string> | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/output/${slug}-${id}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled) setTraits((d?.traits as Record<string, string>) ?? {}); })
+            .catch(() => { if (!cancelled) setTraits({}); });
+        return () => { cancelled = true; };
+    }, [slug, id]);
+
+    const projectName = getProject(slug)?.displayName ?? slug;
+    const rows = traits ? Object.entries(traits) : null;
+
+    return (
+        <>
+            <div className="cart-panel-header">
+                <span className="cart-panel-title">
+                    {`✦${VS15} TRAIT OFFER`}
+                </span>
+                <span
+                    className="cart-panel-close-x"
+                    role="button"
+                    tabIndex={0}
+                    onClick={onClose}
+                    title="Close"
+                >
+                    {`×${VS15}`}
+                </span>
+            </div>
+            <div className="cart-items-list">
+                <div className="mk-picker-lead">
+                    {projectName} #{id} — pick the trait to bid on
+                </div>
+                {rows == null ? (
+                    <div className="cart-empty-state">Reading traits…</div>
+                ) : rows.length === 0 ? (
+                    <div className="cart-empty-state">No traits found.</div>
+                ) : (
+                    rows.map(([category, value]) => (
+                        <div
+                            key={category}
+                            className="cart-item-row mk-picker-row"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => onPick(category, value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(category, value); } }}
+                        >
+                            <div className="cart-item-meta">
+                                <div className="cart-item-name">{category}</div>
+                                <div className="cart-item-artist">{value}</div>
+                            </div>
+                            <div className="cart-item-price">{`✦${VS15}`}</div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </>
+    );
+}
+
 /* ── Shell ───────────────────────────────────────────────────────────────── */
 export default function MarketSheets() {
-    const { state, closeSheet } = useMarketSheet();
+    const { state, closeSheet, openCriteriaOfferSheet } = useMarketSheet();
     const open = state != null;
     const { mounted, active } = useTwoStage(open);
 
@@ -645,6 +741,17 @@ export default function MarketSheets() {
                 )}
                 {render.sheet === 'offers-panel' && (
                     <OffersPanel key={`offers-${render.slug}-${render.id}`} slug={render.slug} id={render.id} onClose={closeSheet} />
+                )}
+                {render.sheet === 'trait-picker' && (
+                    <TraitPickerFace
+                        key={`pick-${render.slug}-${render.id}`}
+                        slug={render.slug}
+                        id={render.id}
+                        onPick={(category, value) =>
+                            openCriteriaOfferSheet({ kind: 'trait', slug: render.slug, category, value })
+                        }
+                        onClose={closeSheet}
+                    />
                 )}
             </div>
         </div>

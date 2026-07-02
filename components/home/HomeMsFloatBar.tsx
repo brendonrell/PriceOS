@@ -31,7 +31,7 @@ import { useCart } from '../../lib/state/CartContext';
 export default function HomeMsFloatBar() {
     const { multiSelectActive, selectedItems, selectedCount } = useTraits();
     const { showToast } = useToast();
-    const { openListSheet, openOfferSheet } = useMarketSheet();
+    const { openListSheet, openOfferSheet, openTraitPicker } = useMarketSheet();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const [popupOpen, setPopupOpen] = useState(false);
     const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -88,6 +88,8 @@ export default function HomeMsFloatBar() {
         actions.push({ label: 'Make Offer' });
         if (split.listedNotOwned > 0) actions.push({ label: 'Add to Cart' });
     }
+    /* Trait Offer — the one-selected general-purpose tool (any output). */
+    if (count === 1) actions.push({ label: 'Trait Offer' });
 
     const current = count === 0 ? 'Select' : (activeAction ?? 'Add to Album');
 
@@ -131,6 +133,11 @@ export default function HomeMsFloatBar() {
         if (current === 'Make Offer') {
             if (split.notOwned.length === 0) { showToast('Make Offer: NONE ELIGIBLE'); return; }
             openOfferSheet(sheetItems(split.notOwned));
+            return;
+        }
+        if (current === 'Trait Offer') {
+            const it = selectedItems[0];
+            if (it) openTraitPicker(it.slug, it.id);
             return;
         }
         setConfirmOpen(true);

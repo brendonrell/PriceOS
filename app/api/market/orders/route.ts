@@ -208,7 +208,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             await db.from('listings').upsert(
               {
                 project_id: slug, token_id: item.tokenId, seller_address: address,
-                price_eth: price, active: true, end_time: endTime,
+                price_eth: price, active: true, end_time: endTime, listed_at: new Date().toISOString(),
                 currency: 'ETH', source: 'sim', order_hash: null, order_json: null, tx_hash: null,
               } as never,
               { onConflict: 'project_id,token_id' },
@@ -236,7 +236,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             await db.from('listings').upsert(
               {
                 project_id: slug, token_id: item.tokenId, seller_address: address,
-                price_eth: Number(checked.priceEth), active: true,
+                price_eth: Number(checked.priceEth), active: true, listed_at: new Date().toISOString(),
                 start_time: checked.startTime, end_time: checked.endTime,
                 currency: checked.currency, source: 'seaport',
                 order_hash: item.orderHash, order_json: item.order, tx_hash: null,
@@ -452,7 +452,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (offer.scope !== 'item' || !offer.token_id) return badRequest('Only item offers can be declined');
         const owner = await ownerOf(db, offer.project_id as string, offer.token_id);
         if (!owner || owner.toLowerCase() !== address) return badRequest('Only the owner can decline');
-        await db.from('offers').update({ status: 'declined' } as never).eq('id', body.offerId);
+        await db.from('offers').update({ status: 'declined', resolved_at: new Date().toISOString() } as never).eq('id', body.offerId);
         return NextResponse.json({ ok: true });
       }
 
@@ -468,7 +468,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!offer || offer.status !== 'open') return badRequest('Offer not open');
         if (offer.bidder_address?.toLowerCase() !== address) return badRequest('Only the bidder can cancel');
         await db.from('offers')
-          .update({ status: 'cancelled', tx_hash: body.txHash ?? null } as never)
+          .update({ status: 'cancelled', tx_hash: body.txHash ?? null, resolved_at: new Date().toISOString() } as never)
           .eq('id', body.offerId);
         return NextResponse.json({ ok: true });
       }
@@ -523,7 +523,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!owner || owner.toLowerCase() !== address) return badRequest('Only the owner can accept');
 
         await db.from('offers')
-          .update({ status: 'accepted', token_id: tokenId, tx_hash: body.txHash } as never)
+          .update({ status: 'accepted', token_id: tokenId, tx_hash: body.txHash, resolved_at: new Date().toISOString() } as never)
           .eq('id', body.offerId);
         await db.from('listings')
           .update({ active: false } as never)

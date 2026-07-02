@@ -1376,7 +1376,7 @@ function MsFloatBar() {
     const { multiSelectActive, selectedItems, selectedCount, clearSelected } = useTraits();
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
-    const { openListSheet, openOfferSheet } = useMarketSheet();
+    const { openListSheet, openOfferSheet, openTraitPicker } = useMarketSheet();
     const { outputs } = useProject();
     const [pinnedSet, setPinnedSet] = React.useState<readonly GrailPin[]>(() => getGrails());
     const [popupOpen, setPopupOpen] = React.useState(false);
@@ -1458,6 +1458,9 @@ function MsFloatBar() {
 
     if (!anyOwned && allListed) actions.push({ label: 'Add to Cart',  exec: handleAddToCart });
     if (!anyOwned)              actions.push({ label: 'Make Offer',   exec: handleOfferSheet });
+    /* The general-purpose trait-offer tool — exactly ONE selected output
+       (Brendon, 2026-07-02): pick a trait off that piece, bid on the trait. */
+    if (count === 1)            actions.push({ label: 'Trait Offer',  exec: () => { const it = selectedItems[0]; openTraitPicker(it.slug, it.id); } });
     if (allOwned) {
         if (grailPinAvailable)  actions.push({ label: 'Grail Pin',    exec: stub('Grail Pin') });
         actions.push(
@@ -1484,7 +1487,7 @@ function MsFloatBar() {
             setAlbumPickerOpen(true);
             return;
         }
-        if (current === 'List/Re-List' || current === 'Make Offer') {
+        if (current === 'List/Re-List' || current === 'Make Offer' || current === 'Trait Offer') {
             actions.find(a => a.label === current)?.exec();
             return;
         }
