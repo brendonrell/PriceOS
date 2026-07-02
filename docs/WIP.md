@@ -6,6 +6,60 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — SECONDARY MARKET, WHOLE (Seaport order book + wow pass + PRICE STORY)
+
+**dev @ 70733c9, tree clean. Two merges (2d35c12 core, 70733c9 wow pass).
+Renders when hosting resumes.** Brendon-approved push-alls, built blind
+against the paused preview.
+
+- **Two rails, one book:** every project trades SIM today; setting
+  `projects.contract_address` flips THAT project to real Seaport trading —
+  same UI, same tables, same pings. Listings = signed orders (ETH, royalty
+  5%→splitter enforced IN the order at post time); offers = WETH
+  (auto-wrap), item/collection/TRAIT scopes (criteria orders, merkle for
+  traits, identifiers server-derived); fills client-side, indexer
+  authoritative; optimistic book-close + instant pings via our routes.
+- **Schema (applied live + in repo):** listings/offers gained order fields
+  (order_hash/json, start/end, currency, source, scope, criteria, tx_hash)
+  + `offers.resolved_at` + `listings.listed_at` (full offer lifecycle — the
+  Atlas sweep found ~20 planned features need exactly that history);
+  `projects.royalty_receiver` cache; sim RPCs expiry-aware + criteria
+  accept RPC; COUNTER ping kind. Engine: @opensea/seaport-js + ethers,
+  DYNAMIC IMPORT only (main bundle unchanged, engine is its own chunk).
+  TS target ES2017→ES2020 (typecheck floor only).
+- **Surfaces:** artwork page + modal CTAs live (list w/ duration sheet,
+  unlist, offer); ✦ offers pill → offers panel (accept w/ confirm card,
+  decline, cancel, COUNTER w/ inline price → re-list + COUNTER ping);
+  ✹ EDIT pill (price-in-place; chain raise cancels old order first);
+  batch List/Re-List + Make Offer in all three ms bars (one signature);
+  TRAIT OFFER = 1-selected general tool (full trait sheet picker) + ✦
+  chips on attribute tiles + StarredList + wishlist rows; trait pills
+  show standing bids (✦ amount); real sweep (sim RPC + one Seaport tx,
+  confirm card); Fill Budget (active budget → cheapest listed → cart);
+  ping rows are links (offer family lands with panel open); floor
+  thermometer, sheet context line, spread readout, N-pieces-match.
+- **PRICE STORY (signature feature):** `/api/output/[id]/story` +
+  `/api/project/[slug]/story` — market-biography chapters from the real
+  ledger (Birth → First Light → Courtship w/ offer fates → First Sale →
+  Peak → Quiet → Today; project: Genesis → First Blood → Graduated →
+  Ascension → First Trade → Peak → Today), deterministic seeded prose,
+  canonical glyphs, one panel renders both (+More ▸ Price Story tabs).
+- **+More fills (attributes-box or replay-plain only):** OFFERS books
+  (output + project), THE MARKET wall (AttrWall tiles: floor/last/ATH/
+  volume/ask/best offer/spread/sales), SENTIMENT (ledger-honest labels,
+  `/api/project/[slug]/sentiment` also feeds REAL ATH & HOLDERS +
+  percent-listed tiles — were mock). Existing Seal/Disagreement/Genome
+  cards untouched. Expiry-aware floor/search/reads everywhere.
+- **ClickUp:** offer-infra task `86b9fbrx9` commented (shipped + the two
+  deferred: OpenSea API cross-post/ingest when key lands; listing-expiry
+  pings need the scheduled-job rail at Cloudflare cutover).
+- **NEXT:** Brendon queue — sticker-store secondary scoping (discussion
+  first), Discord sales/listings feeds (later; tail our ledger tables).
+  At Sepolia: first real fill smoke test. Wagmi chain profile is env-gated
+  (`NEXT_PUBLIC_CHAIN_ID=11155111` per the test-phase spec).
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — GLOBAL SEARCH IS REAL (the whole thing, Brendon-approved, on dev)
 
 **dev @ 4c1eb91, tree clean. Renders when hosting resumes (Vercel paused;
