@@ -29,6 +29,7 @@ import {
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import StickerMarket from './stickers/StickerMarket';
+import StickerAlbum from './stickers/StickerAlbum';
 import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import { buildTickerText } from '../lib/stickers/ticker';
 
@@ -69,6 +70,9 @@ export default function StickersModal() {
     /* SECONDARY — the in-store sheet market (the only place it lives,
        besides OpenSea once on-chain). Toggled from the header. */
     const [marketOn, setMarketOn] = useState(false);
+    /* MY STICKER ALBUM — the completionist view (named to never collide with
+       the app's Albums feature). */
+    const [albumOn, setAlbumOn] = useState(false);
     /* Expanded grid (two-up, scrolls down) is the DEFAULT; the icon toggles to
        the compact rail (Brendon 2026-06-22). */
     const [expanded, setExpanded] = useState(true);
@@ -111,7 +115,7 @@ export default function StickersModal() {
     }, [isOpen, openSheet, expanded, gridRef]);
 
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
-    useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); } }, [isOpen]);
+    useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); setAlbumOn(false); } }, [isOpen]);
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
@@ -238,19 +242,28 @@ export default function StickersModal() {
                     ) : (
                         <>
                             <div className="ss-title">
-                                <span className="ss-title-main">{marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
-                                <span className="ss-title-sub">{marketOn ? '// SECONDARY' : '// FOR YOUR PROFILE'}</span>
+                                <span className="ss-title-main">{albumOn ? 'MY STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
+                                <span className="ss-title-sub">{albumOn ? '// GOT / NEED' : marketOn ? '// SECONDARY' : '// FOR YOUR PROFILE'}</span>
                             </div>
                             <button
                                 className={`ss-expand ss-market-toggle${marketOn ? ' is-on' : ''}`}
                                 type="button"
                                 title={marketOn ? 'Back to the store' : 'Sticker Market — secondary'}
                                 aria-pressed={marketOn}
-                                onClick={() => setMarketOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'MARKET' : 'STORE'}`); return next; })}
+                                onClick={() => { setAlbumOn(false); setMarketOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'MARKET' : 'STORE'}`); return next; }); }}
                             >
                                 MKT
                             </button>
-                            {!marketOn && (
+                            <button
+                                className={`ss-expand ss-market-toggle${albumOn ? ' is-on' : ''}`}
+                                type="button"
+                                title={albumOn ? 'Back to the store' : 'My Sticker Album — got / need'}
+                                aria-pressed={albumOn}
+                                onClick={() => { setMarketOn(false); setAlbumOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'ALBUM' : 'STORE'}`); return next; }); }}
+                            >
+                                ALB
+                            </button>
+                            {!marketOn && !albumOn && (
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
                                 type="button"
@@ -332,7 +345,9 @@ export default function StickersModal() {
                             </div>
                         </div>
 
-                        {marketOn ? (
+                        {albumOn ? (
+                            <StickerAlbum />
+                        ) : marketOn ? (
                             <StickerMarket />
                         ) : expanded ? (
                             <div
@@ -351,7 +366,7 @@ export default function StickersModal() {
                             </div>
                         )}
 
-                        {!marketOn && (
+                        {!marketOn && !albumOn && (
                         <div className="ss-foot">
                             {totalSheets} sheets live · tap a sheet to peek inside · more restocking ·{' '}
                             <a className="ss-foot-link" href="https://opensea.io" target="_blank" rel="noopener noreferrer">OpenSea</a>

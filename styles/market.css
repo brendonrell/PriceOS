@@ -263,3 +263,52 @@ a.notif-item--link:hover { opacity: 0.85; }
 .skm-qty-val { font-size: 12px; font-weight: bold; min-width: 16px; text-align: center; font-variant-numeric: tabular-nums; }
 .skm-confirm-qty { display: flex; justify-content: center; padding: 8px 0 2px; }
 .ss-market-toggle { width: auto; padding: 0 8px; font-size: 10px; letter-spacing: 0.8px; }
+
+/* ── COMPLETIONISM + MY STICKER ALBUM ────────────────────────── */
+.cpl-month { padding: 10px 0 4px; }
+.cpl-month-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed color-mix(in srgb, var(--text-color) 25%, transparent);
+    margin-bottom: 8px;
+}
+.cpl-month-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold; letter-spacing: 1px;
+}
+.cpl-month-tally {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+}
+.cpl-month-tally.is-complete { opacity: 1; }
+.cpl-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.cpl-item {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 4px; padding: 4px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; opacity: 0.55;
+    text-decoration: none; color: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+.cpl-item.is-got {
+    opacity: 1;
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--text-color) 55%, transparent);
+}
+.cpl-check { font-weight: bold; }
+.cpl-foot {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; opacity: 0.5; padding: 8px 0 2px;
+}
+.alb-page { padding: 10px 0 4px; }
+.alb-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.alb-slot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    border: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 6px;
+}
+.alb-slot:not(.is-got) { opacity: 0.28; filter: grayscale(0.8); }
+.alb-slot.is-got { border-style: solid; }

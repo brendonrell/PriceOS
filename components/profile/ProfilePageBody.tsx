@@ -77,6 +77,7 @@ import AchievementsGrid from '../achievements/AchievementsGrid';
 import DiscordSection from './DiscordSection';
 import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
+import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
 import { getProject, outputTraits, allProjects, projectsByArtist, projectTraits } from '../../lib/project/registry';
@@ -240,6 +241,8 @@ function ProfilePageBodyInner({
     const { setActiveProfileHex } = useColorway();
     const isOwnProfile =
         !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
+    /* COMPLETIONISM modal (own profile only, off the ⬚ collected stat). */
+    const [completionismOpen, setCompletionismOpen] = useState(false);
     /* Seed the Profile Colorway hook with the server-known colour on your OWN
        profile so it paints the real colour on the first pass instead of flashing
        white then repainting (Brendon, 2026-06-18). Only on own profile — on
@@ -2018,7 +2021,31 @@ function ProfilePageBodyInner({
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val">{Math.max(ownedCount, holdings.length)}</span>
+                            {/* Your own count opens COMPLETIONISM — the
+                                month-by-month release checklist (Brendon,
+                                2026-07-02, one of PD's first-envisaged
+                                features). Other profiles keep the plain stat. */}
+                            {isOwnProfile ? (
+                                <span
+                                    className="stat-val"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Completionism"
+                                    onClick={() => setCompletionismOpen(true)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCompletionismOpen(true); } }}
+                                >
+                                    {Math.max(ownedCount, holdings.length)}
+                                </span>
+                            ) : (
+                                <span className="stat-val">{Math.max(ownedCount, holdings.length)}</span>
+                            )}
+                            {isOwnProfile && (
+                                <CompletionismModal
+                                    address={user.address}
+                                    open={completionismOpen}
+                                    onClose={() => setCompletionismOpen(false)}
+                                />
+                            )}
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span
