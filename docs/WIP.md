@@ -6,6 +6,28 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — PRICEDAY IS REAL + THE STICKER WOW TWELVE
+
+**dev @ HEAD, tree clean, build green.**
+- **PriceDay live forever:** `/api/priceday/[n]` — any day's true happenings
+  (Montreal-day window, DST-correct): real mints/uploads/biggest sale + THE
+  DAY (seeded line written from the day's real numbers). `usePriceDay` hook
+  (seeded fallback → live swap, per-day cache) wired into ALL FOUR built
+  PriceDay modals + THE DAY section added to each. Epoch re-anchors to the
+  genesis mint in one line (`PRICEDAY_EPOCH`).
+- **Sticker wow, all 12:** THE PEEL (drag-to-peel sealed overlay, server
+  PEEL events), SEALED % everywhere, SWAPS (escrow at propose +
+  `app_sticker_swap_accept` RPC + confirm + ping), DOUBLES + LIST DOUBLES @
+  FLOOR, need/have matchmaking line, GIFTING (@friend + note → wrapped XFER
+  ping), WANT-list (✛ + instant WISHLIST_HIT ping on list), pack-pull =
+  the peel reveal (odds panel at PDStickers), toy-shop price tags, restock
+  countdown support (`SheetMeta.restockAt`, dormant), ticker leads with the
+  live book. Migration `sticker_market_wow` applied live + in repo.
+- **Sticker economics (Brendon):** secondary fuels primary — 100% primary,
+  5% secondary royalty at the contract. The store IS the ecosystem.
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — COMPLETIONISM (outputs + stickers) + MY STICKER ALBUM
 
 **dev @ HEAD, tree clean.** Tap your own ⬚ collected stat → COMPLETIONISM
