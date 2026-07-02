@@ -1126,6 +1126,14 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .gsr-badge { font-family: 'Courier New', Courier, monospace; font-size: 11px; opacity: 0.8; flex: none; }
 .gsr-stats { white-space: pre; font-family: 'Courier New', Courier, monospace; }
 .gsr-empty { opacity: 0.55; cursor: default; }
+/* Live 36px engine paints — the row-size artwork preview. */
+.gsr-thumb { width: 36px; height: 36px; border-radius: 3px; flex: none; display: block; }
+/* Inline answers — the ledger speaking; reads a step above the rows. */
+.gsr-answer { font-size: 13px; opacity: 0.95; }
+/* The quiet syntax teacher + the per-section expander. */
+.gsr-hint { font-size: 10px; opacity: 0.4; }
+.gsr-more { cursor: pointer; font-size: 11px; }
+.gsr-more:hover { opacity: 0.9; }
 
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */

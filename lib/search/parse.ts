@@ -48,6 +48,23 @@ export interface ParsedQuery {
   visual: boolean;
   /** Leftover plain terms (names, titles, soundtracks, descriptions). */
   terms: string[];
+
+  /* ── The power grammar (operators for the keyboard crowd) ─────────── */
+  /** `by:@artist` — restrict to an artist's work. */
+  byArtist: string | null;
+  /** `project:prisms` — restrict to one project. */
+  project: string | null;
+  /** `holder:@name` / `holder:0x…` — pieces a wallet holds. */
+  holder: string | null;
+  /** Market intent: `listed` / `for sale` · `sold` · `offers`. */
+  market: 'listed' | 'sold' | 'offers' | null;
+  /** Price bounds in ETH — `under:0.1`, `over:0.5`, `<0.1`, `>0.5`. */
+  priceMax: number | null;
+  priceMin: number | null;
+  /** `sort:rarity|price|recent|followers` */
+  sort: 'rarity' | 'price' | 'recent' | 'followers' | null;
+  /** `followers:>10` — minimum follower count for collector results. */
+  followersMin: number | null;
 }
 
 /* ── Vocabulary maps (query word → stored value(s)) ─────────────────────── */
@@ -179,6 +196,8 @@ export function parseQuery(raw: string): ParsedQuery {
     raw: trimmed, handle: null, tokenId: null, address: null, ens: null,
     trueName: null, trueNameToken: null, colors: [], shapes: [], counts: [],
     pattern: null, bands: {}, visual: false, terms: [],
+    byArtist: null, project: null, holder: null, market: null,
+    priceMax: null, priceMin: null, sort: null, followersMin: null,
   };
 
   // True Name glyphs pass through as-is (they never tokenize as [a-z0-9]).
@@ -189,19 +208,86 @@ export function parseQuery(raw: string): ParsedQuery {
     if (tn[2]) out.trueNameToken = String(Number(tn[2]));
   }
 
-  // Keep @ # . - inside tokens (@handle, #7, name.eth, opus4-8); strip any
-  // trailing sentence punctuation so "circles." still reads as a shape.
+  // Keep @ # . - : < > inside tokens (@handle, #7, name.eth, opus4-8,
+  // by:@artist, <0.1); strip any trailing sentence punctuation so
+  // "circles." still reads as a shape.
   const tokens = trimmed
     .toLowerCase()
-    .split(/[^a-z0-9@#.\-]+/)
+    .split(/[^a-z0-9@#.:<>\-]+/)
     .map((t) => (t.endsWith('.eth') ? t : t.replace(/[.\-]+$/, '').replace(/^[.\-]+/, '')))
     .filter(Boolean);
 
   const numbers: string[] = [];
   const colorSet = new Set<string>();
   let sawSquareWord = false;
+  let priceWord: 'under' | 'over' | null = null;
+
+  const SORTS = new Set(['rarity', 'price', 'recent', 'followers']);
+  const asEth = (s: string): number | null => {
+    const n = Number(s.replace(/eth$/, ''));
+    return isFinite(n) && n >= 0 ? n : null;
+  };
 
   for (const t of tokens) {
+    // ── The power grammar: key:value operators, comparators, market words ──
+    const colon = t.indexOf(':');
+    if (colon > 0 && colon < t.length - 1 && !t.startsWith('0x')) {
+      const key = t.slice(0, colon);
+      const val = t.slice(colon + 1).replace(/^@/, '');
+      let handled = true;
+      switch (key) {
+        case 'by': case 'artist': out.byArtist = val; break;
+        case 'project': case 'in': out.project = val; break;
+        case 'holder': case 'owner': out.holder = val; break;
+        case 'color': case 'colour': {
+          const c = COLOR_WORDS[val];
+          if (c) c.forEach((b) => colorSet.add(b));
+          break;
+        }
+        case 'mood': {
+          const m = BAND_WORDS.tone_mood[val];
+          if (m) out.bands.tone_mood = Array.from(new Set([...(out.bands.tone_mood ?? []), ...m]));
+          break;
+        }
+        case 'sort': if (SORTS.has(val)) out.sort = val as ParsedQuery['sort']; break;
+        case 'under': case 'max': { const n = asEth(val); if (n != null) out.priceMax = n; break; }
+        case 'over': case 'min': { const n = asEth(val); if (n != null) out.priceMin = n; break; }
+        case 'followers': {
+          const n = Number(val.replace(/^>/, ''));
+          if (isFinite(n)) out.followersMin = n;
+          break;
+        }
+        case 'sun': case 'sign': {
+          const s = BAND_WORDS.natal_sun[val];
+          if (s) out.bands.natal_sun = s;
+          break;
+        }
+        case 'fate': out.terms.push(val); break;
+        default: handled = false;
+      }
+      if (handled) continue;
+    }
+    if (t.startsWith('<')) { const n = asEth(t.slice(1)); if (n != null) { out.priceMax = n; continue; } }
+    if (t.startsWith('>')) { const n = asEth(t.slice(1)); if (n != null) { out.priceMin = n; continue; } }
+    if (t === 'under' || t === 'below' || t === 'max') { priceWord = 'under'; continue; }
+    if (t === 'over' || t === 'above' || t === 'min') { priceWord = 'over'; continue; }
+    if (/^\d*\.?\d+$/.test(t) && (priceWord || t.includes('.'))) {
+      const n = asEth(t);
+      if (n != null) {
+        if (priceWord === 'over') out.priceMin = n;
+        else out.priceMax = n;
+      }
+      priceWord = null;
+      continue;
+    }
+    if (t === 'listed' || t === 'listings' || t === 'sale' || t === 'forsale' || t === 'selling') {
+      out.market = 'listed';
+      continue;
+    }
+    if (t === 'sold' || t === 'sales') { out.market = 'sold'; continue; }
+    if (t === 'offer' || t === 'offers' || t === 'bid' || t === 'bids') { out.market = 'offers'; continue; }
+    if (t === 'eth') continue;
+
     if (FILLER.has(t)) continue;
 
     if (t.startsWith('@') && t.length > 1) { out.handle = t.slice(1); continue; }

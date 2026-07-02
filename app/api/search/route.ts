@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAnon } from '@/lib/supabase';
+import { getSupabaseAnon, getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { parseQuery, sceneWordForBucket } from '@/lib/search/parse';
 import { getCircleStats } from '@/lib/social/circleStats';
@@ -12,34 +12,32 @@ import {
   outputTrueName,
 } from '@/lib/project/registry';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 /*
  * GET /api/search?q=… — Global Search over PD's own DB + chain mirror.
  *
- * Three sections, one round trip:
- *   projects  — title / @handle / slug / description / soundtrack, an artist's
- *               @handle surfaces their projects, and a pasted True Name
- *               (uppercase Glagolitic) resolves straight to its Project.
- *   users     — @handle / ENS / address (chain identity), each hit enriched
- *               with the profile stats row numbers (collected · spent ·
- *               followers, lib/social/circleStats) + the artist flag.
- *   artworks  — #token ids ("prisms 42", "#7"), and the natural-language
- *               visual read: the stored "Reads As" scene sentence ("two yellow
- *               circles") plus the aesthetic-fingerprint facets (colour bucket,
- *               tone mood, brightness/saturation/complexity bands, temperature,
- *               orientation — lib/search/parse speaks the exact vocabularies
- *               the fingerprint stores).
+ * Sections, one round trip: answers · projects · collectors · artworks ·
+ * soundtracks · traits. Query understanding lives in lib/search/parse —
+ * plain words for civilians, a power grammar for the keyboard crowd:
  *
- * Ranking is done here (exact > prefix > word > substring; projects tiebreak
- * on minted_count, users on followers, artworks on matched-facet count) so the
- * client renders in order.
+ *   by:@artist  project:prisms  holder:@name  color:yellow  mood:serene
+ *   listed · sold · offers · under:0.1 · over:0.5 · sort:rarity|price|
+ *   recent|followers · followers:>10 · sun:leo · #7 · prisms 42 · ⰀⰁⰂⰃ7
+ *
+ * Natural-language visual search rides the stored fingerprint (the Reads-As
+ * scene sentence + colour/mood/band facets). Market queries ride the ledger
+ * mirror (listings / offers / events) — identical once the on-chain indexer
+ * writes the same tables. Ranking: exact > prefix > word > substring, fuzzy
+ * fallback (edit distance ≤2) when a name lane comes back empty, volume /
+ * followers as popularity tiebreaks. Every query is logged (service-role,
+ * fire-and-forget) so "no matches" queries steer what we improve next.
  */
 
 const MIN_QUERY = 2;
-const PROJECT_LIMIT = 6;
-const USER_LIMIT = 6;
-const ARTWORK_LIMIT = 8;
+const PROJECT_LIMIT = 12;
+const USER_LIMIT = 10;
+const ARTWORK_LIMIT = 24;
 
 export interface SearchProjectResult {
   id: string;
@@ -48,7 +46,7 @@ export interface SearchProjectResult {
   artist_handle: string | null;
   minted_count: number;
   max_supply: number;
-  /** Why it matched, when not by name (e.g. 'soundtrack' | 'true name'). */
+  /** Why it matched, when not by name (e.g. 'soundtrack' | 'true name…'). */
   match?: string;
 }
 
@@ -66,19 +64,42 @@ export interface SearchArtworkResult {
   project_id: string;
   token_id: string;
   project_title: string;
-  /** The human "why": the Reads-As sentence or the matched facet words. */
+  /** The human "why": the Reads-As sentence, facet words, or market state. */
   label: string;
-  /** Output followers, incl. the parent project's parental-support +1 —
-      same convention as the output-follows read. */
+  /** Output followers, incl. the parent project's parental-support +1. */
   followers: number;
+}
+
+export interface SearchSoundtrackResult {
+  project_id: string;
+  project_title: string;
+  /** The soundtrack's human label ("Wardruna — Kvitravn"). */
+  label: string;
+}
+
+export interface SearchTraitResult {
+  project_id: string;
+  project_title: string;
+  trait_name: string;
+  value: string;
+}
+
+export interface SearchAnswer {
+  text: string;
+  href: string | null;
 }
 
 export interface SearchResponse {
   query: string;
+  answers: SearchAnswer[];
   projects: SearchProjectResult[];
   users: SearchUserResult[];
   artworks: SearchArtworkResult[];
+  soundtracks: SearchSoundtrackResult[];
+  traits: SearchTraitResult[];
 }
+
+const VS15 = '︎';
 
 /* Escape ILIKE wildcards AND double-quotes, then wrap in double quotes inside
    .or() filters. Without the quotes a comma / parenthesis / dot in the query
@@ -96,8 +117,10 @@ type ProjectRowLite = {
   artist_address: string | null;
   minted_count: number;
   max_supply: number;
+  floor_price_eth?: string | null;
+  volume_eth?: string | null;
+  all_time_high_eth?: string | null;
   description?: string | null;
-  soundtrack?: string | null;
 };
 
 type OutputRowLite = {
@@ -112,10 +135,12 @@ type OutputRowLite = {
   complexity_band: string | null;
   orientation: string | null;
   scene: string | null;
+  rarity_score?: number | null;
+  minted_at?: string | null;
 };
 
 const OUTPUT_COLS =
-  'project_id, token_id, dominant_color, accent_color, tone_mood, color_temperature, brightness_band, saturation_band, complexity_band, orientation, scene';
+  'project_id, token_id, dominant_color, accent_color, tone_mood, color_temperature, brightness_band, saturation_band, complexity_band, orientation, scene, rarity_score, minted_at';
 
 /* Name-match scoring: exact > prefix > word start > substring. */
 function nameScore(name: string | null | undefined, q: string): number {
@@ -128,6 +153,27 @@ function nameScore(name: string | null | undefined, q: string): number {
   return 0;
 }
 
+/* Bounded edit distance for the fuzzy fallback (typo forgiveness). */
+function editDistance(a: string, b: string, cap = 3): number {
+  if (Math.abs(a.length - b.length) > cap) return cap + 1;
+  const dp = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+function fmtEth(v: string | number | null | undefined): string {
+  const n = Number(v ?? 0);
+  return isFinite(n) ? (Math.round(n * 1000) / 1000).toString() : '0';
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const q = new URL(req.url).searchParams.get('q')?.trim();
   if (!q || q.length < MIN_QUERY) {
@@ -135,7 +181,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   const parsed = parseQuery(q);
-  const textQ = [parsed.handle, ...parsed.terms].filter(Boolean).join(' ') || q.toLowerCase();
+  // Answer keywords ("prisms floor", "who holds prisms 7") ask ABOUT a thing;
+  // they must not pollute the name being looked up.
+  const ANSWER_WORDS = new Set([
+    'floor', 'volume', 'ath', 'spent', 'collected', 'followers',
+    'holds', 'holder', 'owns', 'owner', 'who',
+  ]);
+  const nameTerms = parsed.terms.filter((t) => !ANSWER_WORDS.has(t));
+  const textQ = [parsed.handle, ...nameTerms].filter(Boolean).join(' ') || q.toLowerCase();
   const pattern = ilikePattern(textQ);
 
   try {
@@ -145,7 +198,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
        slugs; pasted True Name → its project; a term that IS a slug. */
     const extraSlugs = new Set<string>();
     const slugMatchReason = new Map<string, string>();
-    const artistTerms = [parsed.handle, ...parsed.terms].filter((t): t is string => !!t);
+    const artistTerms = [parsed.handle, parsed.byArtist, ...parsed.terms]
+      .filter((t): t is string => !!t);
     for (const t of artistTerms) {
       for (const p of projectsByArtist(t)) {
         extraSlugs.add(p.slug);
@@ -158,62 +212,98 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       if (p) {
         extraSlugs.add(p.slug);
         slugMatchReason.set(p.slug, 'true name');
-        // Glyphs + edition digits = an OUTPUT true name (ⰀⰁⰂⰃ1234).
         if (parsed.trueNameToken) {
           trueNameOutput = { slug: p.slug, tokenId: parsed.trueNameToken };
         }
       }
     }
-    /* Soundtrack search is registry-side — the DB column stores the playlist
-       ID; the human words ("Boards of Canada") live on the registry label.
-       Every plain term must appear in the label. */
+    if (parsed.project && getProject(parsed.project)) {
+      extraSlugs.add(parsed.project);
+      if (!slugMatchReason.has(parsed.project)) slugMatchReason.set(parsed.project, 'project');
+    }
+
+    /* Soundtrack matches are registry-side — the DB column stores the playlist
+       ID; the human words ("Boards of Canada") live on the registry label. */
+    const soundtrackHits: SearchSoundtrackResult[] = [];
     if (parsed.terms.length > 0) {
       for (const p of allProjects()) {
-        const label = p.soundtrack?.label?.toLowerCase();
-        if (label && parsed.terms.every((t) => label.includes(t))) {
-          extraSlugs.add(p.slug);
-          if (!slugMatchReason.has(p.slug)) slugMatchReason.set(p.slug, 'soundtrack');
+        const label = p.soundtrack?.label;
+        if (label && parsed.terms.every((t) => label.toLowerCase().includes(t))) {
+          soundtrackHits.push({ project_id: p.slug, project_title: p.displayName, label });
+          if (soundtrackHits.length >= 4) break;
         }
       }
     }
 
-    /* A term (or @handle) that is itself a project slug narrows artwork
-       search ("prisms 42", "@prisms #7"). */
+    /* Trait matches — every project's trait schema lives in the registry. A
+       term matching a trait VALUE surfaces `Value (Trait) — Project`. */
+    const traitHits: SearchTraitResult[] = [];
+    if (parsed.terms.length > 0 && parsed.terms.join(' ').length >= 3) {
+      const tq = parsed.terms.join(' ');
+      outer: for (const p of allProjects()) {
+        for (const trait of p.traitSchema?.traits ?? []) {
+          for (const v of trait.values) {
+            const vl = v.toLowerCase();
+            if (vl === tq || (tq.length >= 4 && vl.includes(tq))) {
+              traitHits.push({
+                project_id: p.slug,
+                project_title: p.displayName,
+                trait_name: trait.name,
+                value: v,
+              });
+              if (traitHits.length >= 4) break outer;
+            }
+          }
+        }
+      }
+    }
+
+    /* A term (or @handle / project:) that is itself a project slug narrows
+       artwork search ("prisms 42", "@prisms #7", "project:prisms listed"). */
     const slugHints = parsed.terms.filter((t) => !!getProject(t));
     if (parsed.handle && getProject(parsed.handle)) slugHints.push(parsed.handle);
+    if (parsed.project && getProject(parsed.project)) slugHints.push(parsed.project);
+    const artistSlugs = parsed.byArtist
+      ? projectsByArtist(parsed.byArtist).map((p) => p.slug)
+      : [];
+    const artworkScope = slugHints.length > 0 ? slugHints
+      : artistSlugs.length > 0 ? artistSlugs
+      : null;
+
+    /* Price bounds without a market word imply "for sale". */
+    const market =
+      parsed.market ?? ((parsed.priceMax != null || parsed.priceMin != null) ? 'listed' : null);
 
     /* ── The parallel fan-out ─────────────────────────────────────────── */
 
-    // Name/text search runs when the query carries name-ish terms — or when
-    // nothing else parsed (a plain string is a name search). A purely visual
-    // query ("two yellow circles") skips the name lanes entirely.
+    const hasOperators =
+      !!market || !!parsed.holder || !!parsed.byArtist || !!parsed.project ||
+      parsed.sort !== null || parsed.followersMin !== null;
     const wantText =
       (parsed.terms.length > 0 || parsed.handle !== null ||
-        (!parsed.visual && !parsed.tokenId && !parsed.address && !parsed.ens && !parsed.trueName)) &&
+        (!parsed.visual && !hasOperators && !parsed.tokenId && !parsed.address &&
+          !parsed.ens && !parsed.trueName)) &&
       textQ.length >= MIN_QUERY;
 
+    const PROJECT_COLS =
+      'id, title, handle, artist_address, minted_count, max_supply, floor_price_eth, volume_eth, all_time_high_eth';
+
     const projectNameQ = wantText
-      ? supabase
-          .from('projects')
-          .select('id, title, handle, artist_address, minted_count, max_supply')
+      ? supabase.from('projects').select(PROJECT_COLS)
           .or(`title.ilike.${pattern},handle.ilike.${pattern},id.ilike.${pattern}`)
-          .limit(12)
+          .limit(16)
       : null;
 
     const projectDeepQ = wantText && textQ.length >= 3
-      ? supabase
-          .from('projects')
-          .select('id, title, handle, artist_address, minted_count, max_supply, description')
+      ? supabase.from('projects').select(PROJECT_COLS)
           .ilike('description', `%${textQ.replace(/[%_\\]/g, '\\$&')}%`)
           .limit(6)
       : null;
 
     const projectSlugQ = extraSlugs.size > 0
-      ? supabase
-          .from('projects')
-          .select('id, title, handle, artist_address, minted_count, max_supply')
+      ? supabase.from('projects').select(PROJECT_COLS)
           .in('id', Array.from(extraSlugs))
-          .limit(12)
+          .limit(16)
       : null;
 
     const userFilters: string[] = [];
@@ -222,32 +312,29 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
     if (parsed.address) userFilters.push(`address.ilike.${ilikePattern(parsed.address)}`);
     if (parsed.ens) userFilters.push(`ens_name.ilike.${ilikePattern(parsed.ens)}`);
+    if (parsed.holder && !parsed.holder.startsWith('0x')) {
+      userFilters.push(`handle.ilike.${ilikePattern(parsed.holder)}`);
+    }
     const userQ = userFilters.length > 0
-      ? supabase
-          .from('users')
-          .select('address, ens_name, handle')
+      ? supabase.from('users').select('address, ens_name, handle')
           .or(userFilters.join(','))
-          .limit(12)
+          .limit(16)
       : null;
 
-    /* Artworks — up to three angles, unioned + ranked below. */
+    /* Artworks — direct token ref / Reads-As sentence / fingerprint facets. */
 
-    // 1) Direct token ref (#7, "prisms 42", "@prisms 7", ⰀⰁⰂⰃ1234).
     let tokenQ = null;
     if (trueNameOutput) {
-      tokenQ = supabase
-        .from('outputs')
-        .select(OUTPUT_COLS)
+      tokenQ = supabase.from('outputs').select(OUTPUT_COLS)
         .eq('project_id', trueNameOutput.slug)
         .eq('token_id', trueNameOutput.tokenId)
         .limit(1);
     } else if (parsed.tokenId) {
       let b = supabase.from('outputs').select(OUTPUT_COLS).eq('token_id', parsed.tokenId);
-      if (slugHints.length > 0) b = b.in('project_id', slugHints);
+      if (artworkScope) b = b.in('project_id', artworkScope);
       tokenQ = b.limit(ARTWORK_LIMIT);
     }
 
-    // 2) The Reads-As sentence — every scene word must appear.
     const sceneTerms: string[] = [
       ...parsed.counts,
       ...parsed.colors.slice(0, 2).map(sceneWordForBucket),
@@ -258,13 +345,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (parsed.shapes.length > 0 || parsed.pattern || parsed.counts.length > 0) {
       let b = supabase.from('outputs').select(OUTPUT_COLS);
       for (const t of sceneTerms) b = b.ilike('scene', `%${t.replace(/[%_\\]/g, '\\$&')}%`);
-      if (slugHints.length > 0) b = b.in('project_id', slugHints);
+      if (artworkScope) b = b.in('project_id', artworkScope);
       sceneQ = b.limit(ARTWORK_LIMIT);
     }
 
-    // 3) Fingerprint facets — colour bucket + band/mood columns.
     let facetQ = null;
-    if (parsed.colors.length > 0 || Object.keys(parsed.bands).length > 0) {
+    const wantFacets =
+      parsed.colors.length > 0 || Object.keys(parsed.bands).length > 0 ||
+      (artworkScope !== null && (parsed.sort === 'rarity' || parsed.sort === 'recent'));
+    if (wantFacets) {
       let b = supabase.from('outputs').select(OUTPUT_COLS);
       if (parsed.colors.length > 0) {
         const list = parsed.colors.join(',');
@@ -273,23 +362,70 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       for (const [col, vals] of Object.entries(parsed.bands)) {
         b = b.in(col, vals);
       }
-      if (slugHints.length > 0) b = b.in('project_id', slugHints);
-      facetQ = b.limit(24);
+      if (artworkScope) b = b.in('project_id', artworkScope);
+      if (parsed.sort === 'rarity') b = b.order('rarity_score', { ascending: false, nullsFirst: false });
+      if (parsed.sort === 'recent') b = b.order('minted_at', { ascending: false, nullsFirst: false });
+      facetQ = b.limit(ARTWORK_LIMIT * 2);
     }
 
-    const [projName, projDeep, projSlug, userRes, tokRes, sceneRes, facetRes] =
+    /* Market lanes — the ledger mirror (listings / events / offers). */
+    let listedQ = null;
+    let soldQ = null;
+    let offersQ = null;
+    if (market === 'listed') {
+      let b = supabase.from('listings')
+        .select('project_id, token_id, price_eth')
+        .eq('active', true);
+      if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
+      if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
+      if (artworkScope) b = b.in('project_id', artworkScope);
+      listedQ = b
+        .order('price_eth', { ascending: parsed.sort === 'price' ? false : true })
+        .limit(ARTWORK_LIMIT);
+    }
+    if (market === 'sold') {
+      let b = supabase.from('events')
+        .select('project_id, token_id, price_eth, timestamp')
+        .eq('type', 'SALE');
+      if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
+      if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
+      if (artworkScope) b = b.in('project_id', artworkScope);
+      soldQ = b.order('timestamp', { ascending: false }).limit(ARTWORK_LIMIT);
+    }
+    if (market === 'offers') {
+      let b = supabase.from('offers')
+        .select('project_id, token_id, price_eth')
+        .eq('status', 'open');
+      if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
+      if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
+      if (artworkScope) b = b.in('project_id', artworkScope);
+      offersQ = b.order('price_eth', { ascending: false }).limit(ARTWORK_LIMIT);
+    }
+
+    /* Holder-by-address lane (holder:0x…). Handle form resolves after the
+       user lane returns. */
+    const holderQ = parsed.holder?.startsWith('0x')
+      ? supabase.from('holders')
+          .select('project_id, token_id')
+          .ilike('owner_address', `${parsed.holder.replace(/[%_\\]/g, '\\$&')}%`)
+          .limit(ARTWORK_LIMIT)
+      : null;
+
+    const [projName, projDeep, projSlug, userRes, tokRes, sceneRes, facetRes, listedRes, soldRes, offersRes, holderRes] =
       await Promise.all([
-        projectNameQ, projectDeepQ, projectSlugQ, userQ, tokenQ, sceneQ, facetQ,
+        projectNameQ, projectDeepQ, projectSlugQ, userQ, tokenQ, sceneQ, facetQ, listedQ, soldQ, offersQ, holderQ,
       ]);
 
-    for (const r of [projName, projDeep, projSlug, userRes, tokRes, sceneRes, facetRes]) {
+    for (const r of [projName, projDeep, projSlug, userRes, tokRes, sceneRes, facetRes, listedRes, soldRes, offersRes, holderRes]) {
       if (r?.error) return serverError(r.error.message);
     }
 
-    /* ── Projects: merge + rank ───────────────────────────────────────── */
+    /* ── Projects: merge + rank (popularity = volume, then minted) ────── */
 
-    const projMap = new Map<string, SearchProjectResult & { score: number }>();
+    const projMap = new Map<string, SearchProjectResult & { score: number; vol: number }>();
+    const projRows = new Map<string, ProjectRowLite>();
     const addProject = (row: ProjectRowLite, score: number, match?: string) => {
+      projRows.set(row.id, row);
       const prev = projMap.get(row.id);
       if (prev && prev.score >= score) return;
       projMap.set(row.id, {
@@ -301,6 +437,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         max_supply: row.max_supply,
         ...(match ? { match } : {}),
         score,
+        vol: Number(row.volume_eth ?? 0) || 0,
       });
     };
     for (const row of (projName?.data ?? []) as ProjectRowLite[]) {
@@ -317,15 +454,48 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     for (const row of (projSlug?.data ?? []) as ProjectRowLite[]) {
       addProject(row, 55, slugMatchReason.get(row.id));
     }
-    const projects = Array.from(projMap.values())
-      .sort((a, b) => b.score - a.score || b.minted_count - a.minted_count)
-      .slice(0, PROJECT_LIMIT)
-      .map(({ score: _s, ...rest }) => rest);
 
-    /* ── Users: rank, then enrich the keepers with the stats row ─────── */
+    /* Fuzzy fallback — typo forgiveness over the registry names. */
+    if (projMap.size === 0 && parsed.terms.length > 0 && textQ.length >= 3) {
+      const fuzzed: string[] = [];
+      for (const p of allProjects()) {
+        const cands = [p.slug, p.displayName.toLowerCase(), p.artistHandle.toLowerCase()];
+        if (cands.some((c) => editDistance(c, textQ, 2) <= 2)) fuzzed.push(p.slug);
+        if (fuzzed.length >= 6) break;
+      }
+      if (fuzzed.length > 0) {
+        const { data, error } = await supabase
+          .from('projects').select(PROJECT_COLS).in('id', fuzzed);
+        if (error) return serverError(error.message);
+        for (const row of (data ?? []) as ProjectRowLite[]) {
+          addProject(row, 30, 'close match');
+        }
+      }
+    }
+
+    const projects = Array.from(projMap.values())
+      .sort((a, b) => b.score - a.score || b.vol - a.vol || b.minted_count - a.minted_count)
+      .slice(0, PROJECT_LIMIT)
+      .map(({ score: _s, vol: _v, ...rest }) => rest);
+
+    /* ── Users: rank, fuzzy fallback, enrich with the stats row ───────── */
 
     type UserRowLite = { address: string; ens_name: string | null; handle: string | null };
-    const usersRanked = ((userRes?.data ?? []) as UserRowLite[])
+    let userRows = (userRes?.data ?? []) as UserRowLite[];
+
+    if (userRows.length === 0 && wantText && parsed.terms.length > 0 && textQ.length >= 3) {
+      // Fuzzy over the (small) users table — typo forgiveness for @names.
+      const { data, error } = await supabase
+        .from('users').select('address, ens_name, handle')
+        .not('handle', 'is', null)
+        .limit(500);
+      if (error) return serverError(error.message);
+      userRows = ((data ?? []) as UserRowLite[]).filter(
+        (u) => u.handle && editDistance(u.handle.toLowerCase(), textQ, 2) <= 2
+      );
+    }
+
+    const usersRanked = userRows
       .map((u) => ({
         ...u,
         score: Math.max(
@@ -353,9 +523,29 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           followers: s?.followers ?? 0,
         };
       });
+      if (parsed.followersMin !== null) {
+        users = users.filter((u) => u.followers >= (parsed.followersMin ?? 0));
+      }
+      if (parsed.sort === 'followers') {
+        users.sort((a, b) => b.followers - a.followers);
+      }
     }
 
-    /* ── Artworks: union the three angles, best reason wins ──────────── */
+    /* Holder-by-@name lane resolves through the matched user. */
+    let holderPairs = (holderRes?.data ?? []) as Array<{ project_id: string; token_id: string }>;
+    if (parsed.holder && !parsed.holder.startsWith('0x')) {
+      const holderUser = users.find((u) => u.handle?.toLowerCase() === parsed.holder);
+      if (holderUser) {
+        const { data, error } = await supabase
+          .from('holders').select('project_id, token_id')
+          .eq('owner_address', holderUser.address.toLowerCase())
+          .limit(ARTWORK_LIMIT);
+        if (error) return serverError(error.message);
+        holderPairs = (data ?? []) as Array<{ project_id: string; token_id: string }>;
+      }
+    }
+
+    /* ── Artworks: union all lanes, best reason wins ──────────────────── */
 
     const artMap = new Map<string, SearchArtworkResult & { score: number }>();
     const facetWords = (row: OutputRowLite): string[] => {
@@ -368,14 +558,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
       return words;
     };
-    const addArtwork = (row: OutputRowLite, score: number, label: string) => {
-      const key = `${row.project_id}:${row.token_id}`;
-      const prev = artMap.get(key);
+    const addArtwork = (key: { project_id: string; token_id: string }, score: number, label: string) => {
+      const k = `${key.project_id}:${key.token_id}`;
+      const prev = artMap.get(k);
       if (prev && prev.score >= score) return;
-      artMap.set(key, {
-        project_id: row.project_id,
-        token_id: row.token_id,
-        project_title: getProject(row.project_id)?.displayName ?? row.project_id.toUpperCase(),
+      artMap.set(k, {
+        project_id: key.project_id,
+        token_id: key.token_id,
+        project_title: getProject(key.project_id)?.displayName ?? key.project_id.toUpperCase(),
         label,
         followers: 0,
         score,
@@ -389,6 +579,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
     for (const row of (sceneRes?.data ?? []) as unknown as OutputRowLite[]) {
       addArtwork(row, 90, row.scene ?? '');
+    }
+    // Market lanes outrank facets — their state IS the reason they matched.
+    for (const row of (listedRes?.data ?? []) as Array<{ project_id: string; token_id: string; price_eth: string }>) {
+      addArtwork(row, 85, `✹${VS15} ${fmtEth(row.price_eth)} ETH`);
+    }
+    for (const row of (soldRes?.data ?? []) as Array<{ project_id: string; token_id: string; price_eth: string }>) {
+      addArtwork(row, 84, `✶${VS15} sold ${fmtEth(row.price_eth)} ETH`);
+    }
+    for (const row of (offersRes?.data ?? []) as Array<{ project_id: string; token_id: string; price_eth: string }>) {
+      addArtwork(row, 83, `✦${VS15} offer ${fmtEth(row.price_eth)} ETH`);
+    }
+    for (const row of holderPairs) {
+      addArtwork(row, 82, `⌂${VS15} @${parsed.holder}`);
     }
     for (const row of (facetRes?.data ?? []) as unknown as OutputRowLite[]) {
       const words = facetWords(row);
@@ -423,7 +626,82 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       if (p.match === 'true name') p.match = `true name ${projectTrueName(p.id)}`;
     }
 
-    const response: SearchResponse = { query: q, projects, users, artworks };
+    /* ── Inline answers — the ledger speaks (floor / volume / ath / who
+       holds / spent / collected / followers) ──────────────────────────── */
+
+    const answers: SearchAnswer[] = [];
+    const termSet = new Set(parsed.terms);
+    const topProjRow = projects[0] ? projRows.get(projects[0].id) : undefined;
+    if (topProjRow) {
+      const title = projects[0].title;
+      if (termSet.has('floor')) {
+        answers.push({ text: `${title} floor — ⟠${VS15} ${fmtEth(topProjRow.floor_price_eth)}`, href: `/art/${topProjRow.id}` });
+      }
+      if (termSet.has('volume')) {
+        answers.push({ text: `${title} volume — ⟠${VS15} ${fmtEth(topProjRow.volume_eth)}`, href: `/art/${topProjRow.id}` });
+      }
+      if (termSet.has('ath')) {
+        answers.push({ text: `${title} all-time high — ⟠${VS15} ${fmtEth(topProjRow.all_time_high_eth)}`, href: `/art/${topProjRow.id}` });
+      }
+    }
+    if ((termSet.has('holds') || termSet.has('holder') || termSet.has('owns') || termSet.has('owner')) &&
+        parsed.tokenId && slugHints.length > 0) {
+      const { data: hData } = await supabase
+        .from('holders').select('owner_address')
+        .eq('project_id', slugHints[0])
+        .eq('token_id', parsed.tokenId)
+        .limit(1);
+      const owner = ((hData ?? []) as Array<{ owner_address: string }>)[0]?.owner_address;
+      if (owner) {
+        const { data: uData } = await supabase
+          .from('users').select('handle').eq('address', owner.toLowerCase()).limit(1);
+        const h = ((uData ?? []) as Array<{ handle: string | null }>)[0]?.handle ?? undefined;
+        const title = getProject(slugHints[0])?.displayName ?? slugHints[0];
+        answers.push({
+          text: `${title.charAt(0)}${title.slice(1).toLowerCase()} #${parsed.tokenId} — held by ${h ? `@${h}` : `${owner.slice(0, 6)}…${owner.slice(-4)}`}`,
+          href: h ? `/${h}` : `/${owner}`,
+        });
+      }
+    }
+    if (users[0]?.handle) {
+      const u = users[0];
+      if (termSet.has('spent')) {
+        answers.push({ text: `@${u.handle} spent — ⟠${VS15} ${u.spent_eth.toFixed(2)}`, href: `/${u.handle}` });
+      }
+      if (termSet.has('collected')) {
+        answers.push({ text: `@${u.handle} collected — ⬚${VS15} ${u.collected}`, href: `/${u.handle}` });
+      }
+      if (termSet.has('followers') && parsed.followersMin === null) {
+        answers.push({ text: `@${u.handle} followers — ⚬${VS15} ${u.followers}`, href: `/${u.handle}` });
+      }
+    }
+
+    const response: SearchResponse = {
+      query: q,
+      answers,
+      projects,
+      users,
+      artworks,
+      soundtracks: soundtrackHits,
+      traits: traitHits,
+    };
+
+    /* Search log — what people type (and what came back empty) steers what
+       we improve. Service-role, fire-and-forget, never blocks the response. */
+    try {
+      const svc = getSupabaseService();
+      void svc.from('search_log')
+        .insert({
+          q,
+          hits:
+            answers.length + projects.length + users.length + artworks.length +
+            soundtrackHits.length + traitHits.length,
+        } as never)
+        .then(() => undefined, () => undefined);
+    } catch {
+      /* no service key in this environment — skip logging */
+    }
+
     return NextResponse.json(response);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

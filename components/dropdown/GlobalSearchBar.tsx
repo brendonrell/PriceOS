@@ -82,13 +82,16 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useDropdown } from '../../lib/state/DropdownContext';
+import { useDropdown, type DropdownView } from '../../lib/state/DropdownContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
 import SpriteFace from '../SpriteFace';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { fmtFollowers } from '../../lib/social/useArtistSocial';
 import { getRecentGlobal } from '../../lib/pins/breadcrumbStore';
 import { getProject } from '../../lib/project/registry';
+import { projectSpriteFace } from '../../lib/project/projectSprite';
+import { paintOutput } from '../../lib/state/ProjectContext';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
 
 const VS15 = '︎';
@@ -97,6 +100,37 @@ const VS15 = '︎';
 function shortAddress(addr: string): string {
     return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
+
+/* Tiny live artwork preview — the SAME deterministic engine paint every
+   surface uses (paintOutput), just at row size. Engine cost scales with
+   pixels, so a 36px paint is ~two orders cheaper than a gallery card. */
+function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
+    const ref = useRef<HTMLCanvasElement | null>(null);
+    useEffect(() => {
+        const canvas = ref.current;
+        if (!canvas) return;
+        try {
+            paintOutput(canvas, slug, Number(id), 36);
+        } catch {
+            /* unknown slug → leave the canvas blank */
+        }
+    }, [slug, id]);
+    return <canvas ref={ref} className="gsr-thumb" width={36} height={36} aria-hidden="true" />;
+}
+
+/* Page / panel destinations — nav via the search bar ("home", "artists",
+   "settings"…). Pages route; panels swap the dropdown view in place. */
+const PAGE_ROWS: Array<{ words: string[]; label: string; kind: 'route' | 'view'; to: string }> = [
+    { words: ['home', 'homepage', 'main'], label: 'Home', kind: 'route', to: '/' },
+    { words: ['artists', 'artist'], label: 'Artists', kind: 'route', to: '/artists' },
+    { words: ['profile', 'me'], label: 'Profile', kind: 'route', to: '__profile__' },
+    { words: ['settings', 'setting'], label: 'Settings', kind: 'view', to: 'settings' },
+    { words: ['portfolio'], label: 'Portfolio', kind: 'view', to: 'portfolio' },
+    { words: ['calendar'], label: 'Calendar', kind: 'view', to: 'calendar' },
+];
+
+/** Rows shown per section before the `+N more` expander. */
+const SECTION_PREVIEW = 5;
 
 /** "Prisms #7" — the app's piece-naming convention (ArtworkCard's grail
     toasts): sentence-cased project name, then the edition number. */
@@ -185,13 +219,33 @@ export function GlobalSearchBar() {
     }, [active]);
     const recentCount = recent.length;
 
+    // NOW MINTING — the empty-input discovery rows (same list the home page
+    // shows), so a fresh viewer with no trail still opens onto something.
+    const [minting, setMinting] = useState<Array<{ slug: string; title: string }>>([]);
+    useEffect(() => {
+        if (!active || recentCount >= 3) return;
+        let cancel = false;
+        fetch('/api/home')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancel || !d?.minting_now) return;
+                setMinting(
+                    (d.minting_now as Array<{ slug: string; title: string }>)
+                        .slice(0, 5)
+                        .map((m) => ({ slug: m.slug, title: m.title }))
+                );
+            })
+            .catch(() => {});
+        return () => { cancel = true; };
+    }, [active, recentCount]);
+
     // D26: panel hide while the search surface is engaged — typing, or the
-    // just-opened input showing the RECENTLY VIEWED trail. Imperatively reach
-    // into the live DOM and toggle visibility on menu-links / accordion boxes
-    // / settings panel / artists panel. Refs are captured at the moment the
-    // effect runs so cleanup restores the same nodes — even if React
-    // re-renders or unmounts the bar mid-search.
-    const engaged = isGlobalSearching || (active && recentCount > 0);
+    // just-opened input showing the RECENTLY VIEWED / NOW MINTING rows.
+    // Imperatively reach into the live DOM and toggle visibility on
+    // menu-links / accordion boxes / settings panel / artists panel. Refs are
+    // captured at the moment the effect runs so cleanup restores the same
+    // nodes — even if React re-renders or unmounts the bar mid-search.
+    const engaged = isGlobalSearching || (active && (recentCount > 0 || minting.length > 0));
     useEffect(() => {
         if (!engaged) return;
 
@@ -236,7 +290,12 @@ export function GlobalSearchBar() {
                 .then((res) => (res.ok ? res.json() : null))
                 .then((json: SearchResponse | null) => {
                     if (ctl.signal.aborted) return;
-                    setResults(json ?? { query: q, projects: [], users: [], artworks: [] });
+                    setResults(
+                        json ?? {
+                            query: q, answers: [], projects: [], users: [],
+                            artworks: [], soundtracks: [], traits: [],
+                        }
+                    );
                     setSearching(false);
                 })
                 .catch(() => {
@@ -273,6 +332,47 @@ export function GlobalSearchBar() {
         );
         return { ...results, artworks, projects };
     }, [results]);
+
+    // PAGES — nav via the search bar. "home", "artists", "settings"… match
+    // by word prefix; Profile resolves to the signed-in @handle.
+    const { siweAddress, handle: myHandle } = useAuth();
+    const pageHits = useMemo(() => {
+        const v = value.trim().toLowerCase();
+        if (v.length < 2) return [];
+        return PAGE_ROWS.filter((p) => p.words.some((w) => w.startsWith(v))).map((p) => ({
+            ...p,
+            to: p.to === '__profile__'
+                ? (myHandle ? `/${myHandle}` : siweAddress ? `/${siweAddress}` : '/')
+                : p.to,
+        }));
+    }, [value, myHandle, siweAddress]);
+
+    const goPage = (e: MouseEvent | null, page: { kind: 'route' | 'view'; to: string }) => {
+        e?.preventDefault();
+        if (page.kind === 'view') setView(page.to as DropdownView);
+        else router.push(page.to);
+        setValue('');
+        if (page.kind === 'view') setActive(false);
+    };
+
+    // Per-section `+N more` expansion — collapses again on a new query.
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    useEffect(() => { setExpanded({}); }, [value]);
+
+    // Enter = go: the top hit wins (pages → answers → projects → collectors
+    // → artworks → soundtracks). Zero-click navigation for the keyboard crowd.
+    const enterToGo = (): boolean => {
+        if (pageHits[0]) { goPage(null, pageHits[0]); return true; }
+        const r = ordered;
+        if (!r) return false;
+        if (r.answers[0]?.href) { router.push(r.answers[0].href); return true; }
+        if (r.projects[0]) { router.push(`/art/${r.projects[0].id}`); return true; }
+        if (r.users[0]) { router.push(`/${r.users[0].handle ?? r.users[0].address}`); return true; }
+        if (r.artworks[0]) { router.push(`/art/${r.artworks[0].project_id}/${r.artworks[0].token_id}`); return true; }
+        if (r.soundtracks[0]) { router.push(`/art/${r.soundtracks[0].project_id}`); return true; }
+        if (r.traits[0]) { router.push(`/art/${r.traits[0].project_id}`); return true; }
+        return false;
+    };
 
     // Cycle menu tape mode 0 → 3 → 0 (framed mode 4 removed — letters only)
     const cycleMenuTape = () => {
@@ -396,7 +496,12 @@ export function GlobalSearchBar() {
                                 if (!value.trim()) setActive(false);
                             }}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                // Enter = go: navigate to the top hit;
+                                // no hit → the old blur/dismiss behaviour.
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (!enterToGo()) (e.target as HTMLInputElement).blur();
+                                }
                                 if (e.key === 'Escape') {
                                     setValue('');
                                     setActive(false);
@@ -474,7 +579,9 @@ export function GlobalSearchBar() {
             >
                 {engaged && !isGlobalSearching && (
                     <>
-                        <div className="settings-header gsr-header">Recently Viewed</div>
+                        {recent.length > 0 && (
+                            <div className="settings-header gsr-header">Recently Viewed</div>
+                        )}
                         {recent.map((r) => (
                             <div
                                 key={`r:${r.slug}:${r.id}`}
@@ -483,22 +590,76 @@ export function GlobalSearchBar() {
                                 tabIndex={0}
                                 onClick={(e) => go(e, `/art/${r.slug}/${r.id}`)}
                             >
+                                <ArtThumb slug={r.slug} id={r.id} />
                                 <span className="gsr-main">
                                     {pieceName(getProject(r.slug)?.displayName ?? r.slug, r.id)}
                                 </span>
                             </div>
                         ))}
+                        {recent.length === 0 && minting.length > 0 && (
+                            <div className="settings-header gsr-header">Now Minting</div>
+                        )}
+                        {recent.length === 0 &&
+                            minting.map((m) => (
+                                <div
+                                    key={`m:${m.slug}`}
+                                    className="global-result-item gsr-row"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(e) => go(e, `/art/${m.slug}`)}
+                                >
+                                    <SpriteFace className="gsr-sprite" face={projectSpriteFace(m.slug)} />
+                                    <span className="gsr-main">{m.title}</span>
+                                </div>
+                            ))}
+                        {/* The quiet syntax teacher — how the grammar spreads. */}
+                        <div className="global-result-item gsr-empty gsr-hint">
+                            {`? try: by:@artist · color:yellow · listed under:0.1 · prisms #7 · home`}
+                        </div>
                     </>
                 )}
                 {isGlobalSearching && searching && !ordered && (
                     <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} searching…`}</div>
                 )}
-                {isGlobalSearching && ordered && (
+                {isGlobalSearching && (pageHits.length > 0 || ordered) && (
                     <>
-                        {ordered.projects.length > 0 && (
+                        {ordered && ordered.answers.map((ans, i) => (
+                            <div
+                                key={`ans:${i}`}
+                                className={`global-result-item gsr-row gsr-answer${ans.href ? '' : ' gsr-empty'}`}
+                                role={ans.href ? 'button' : undefined}
+                                tabIndex={ans.href ? 0 : undefined}
+                                onClick={ans.href ? (e) => go(e, ans.href as string) : undefined}
+                            >
+                                <span className="gsr-main">{ans.text}</span>
+                            </div>
+                        ))}
+
+                        {pageHits.length > 0 && (
+                            <div className="settings-header gsr-header">Pages</div>
+                        )}
+                        {pageHits.map((p) => (
+                            <div
+                                key={`pg:${p.label}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => goPage(e, p)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') goPage(null, p);
+                                }}
+                            >
+                                <span className="gsr-main">{p.label}</span>
+                                <span className="gsr-sub">{p.kind === 'view' ? 'panel' : 'page'}</span>
+                            </div>
+                        ))}
+
+                        {ordered && ordered.projects.length > 0 && (
                             <div className="settings-header gsr-header">Projects</div>
                         )}
-                        {ordered.projects.map((p) => (
+                        {ordered && ordered.projects
+                            .slice(0, expanded.projects ? undefined : SECTION_PREVIEW)
+                            .map((p) => (
                             <div
                                 key={`p:${p.id}`}
                                 className="global-result-item gsr-row"
@@ -509,7 +670,7 @@ export function GlobalSearchBar() {
                                     if (e.key === 'Enter') router.push(`/art/${p.id}`);
                                 }}
                             >
-                                <span className="gsr-ic">{`⬚${VS15}`}</span>
+                                <SpriteFace className="gsr-sprite" face={projectSpriteFace(p.id)} />
                                 <span className="gsr-main">{p.title}</span>
                                 <span className="gsr-sub">
                                     {p.match
@@ -518,18 +679,42 @@ export function GlobalSearchBar() {
                                 </span>
                             </div>
                         ))}
+                        {ordered && !expanded.projects && ordered.projects.length > SECTION_PREVIEW && (
+                            <div
+                                className="global-result-item gsr-empty gsr-more"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setExpanded((x) => ({ ...x, projects: true }))}
+                            >
+                                {`+ ${ordered.projects.length - SECTION_PREVIEW} more`}
+                            </div>
+                        )}
 
-                        {ordered.users.length > 0 && (
+                        {ordered && ordered.users.length > 0 && (
                             <div className="settings-header gsr-header">Collectors</div>
                         )}
-                        {ordered.users.map((u) => (
-                            <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} />
-                        ))}
+                        {ordered && ordered.users
+                            .slice(0, expanded.users ? undefined : SECTION_PREVIEW)
+                            .map((u) => (
+                                <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} />
+                            ))}
+                        {ordered && !expanded.users && ordered.users.length > SECTION_PREVIEW && (
+                            <div
+                                className="global-result-item gsr-empty gsr-more"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setExpanded((x) => ({ ...x, users: true }))}
+                            >
+                                {`+ ${ordered.users.length - SECTION_PREVIEW} more`}
+                            </div>
+                        )}
 
-                        {ordered.artworks.length > 0 && (
+                        {ordered && ordered.artworks.length > 0 && (
                             <div className="settings-header gsr-header">Artworks</div>
                         )}
-                        {ordered.artworks.map((a) => (
+                        {ordered && ordered.artworks
+                            .slice(0, expanded.artworks ? undefined : SECTION_PREVIEW)
+                            .map((a) => (
                             <div
                                 key={`a:${a.project_id}:${a.token_id}`}
                                 className="global-result-item gsr-row"
@@ -540,6 +725,7 @@ export function GlobalSearchBar() {
                                     if (e.key === 'Enter') router.push(`/art/${a.project_id}/${a.token_id}`);
                                 }}
                             >
+                                <ArtThumb slug={a.project_id} id={a.token_id} />
                                 <span className="gsr-main">{pieceName(a.project_title, a.token_id)}</span>
                                 <span className="gsr-sub">
                                     {a.label
@@ -548,10 +734,59 @@ export function GlobalSearchBar() {
                                 </span>
                             </div>
                         ))}
+                        {ordered && !expanded.artworks && ordered.artworks.length > SECTION_PREVIEW && (
+                            <div
+                                className="global-result-item gsr-empty gsr-more"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setExpanded((x) => ({ ...x, artworks: true }))}
+                            >
+                                {`+ ${ordered.artworks.length - SECTION_PREVIEW} more`}
+                            </div>
+                        )}
 
-                        {ordered.projects.length === 0 &&
+                        {ordered && ordered.soundtracks.length > 0 && (
+                            <div className="settings-header gsr-header">Soundtracks</div>
+                        )}
+                        {ordered && ordered.soundtracks.map((s) => (
+                            <div
+                                key={`s:${s.project_id}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => go(e, `/art/${s.project_id}`)}
+                            >
+                                <span className="gsr-ic">{`▶${VS15}`}</span>
+                                <span className="gsr-main">{s.label}</span>
+                                <span className="gsr-sub">{s.project_title}</span>
+                            </div>
+                        ))}
+
+                        {ordered && ordered.traits.length > 0 && (
+                            <div className="settings-header gsr-header">Traits</div>
+                        )}
+                        {ordered && ordered.traits.map((t) => (
+                            <div
+                                key={`t:${t.project_id}:${t.trait_name}:${t.value}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => go(e, `/art/${t.project_id}`)}
+                            >
+                                <span className="gsr-ic">{`⨝${VS15}`}</span>
+                                <span className="gsr-main">{t.value}</span>
+                                <span className="gsr-sub">{`${t.trait_name} · ${t.project_title}`}</span>
+                            </div>
+                        ))}
+
+                        {pageHits.length === 0 &&
+                            ordered &&
+                            ordered.answers.length === 0 &&
+                            ordered.projects.length === 0 &&
                             ordered.users.length === 0 &&
                             ordered.artworks.length === 0 &&
+                            ordered.soundtracks.length === 0 &&
+                            ordered.traits.length === 0 &&
                             !searching && (
                                 <div className="global-result-item gsr-empty">{`⌕${VS15} NO MATCHES`}</div>
                             )}
