@@ -45,7 +45,7 @@ function daysSince(iso?: string): number {
 const oneLine = (s: string): string => s.replace(/\s*\n\s*/g, ' ').trim();
 
 /** Build the full crawl string. Pure-ish (reads the clock for recency). */
-export function buildTickerText(): string {
+export function buildTickerText(liveLines: string[] = []): string {
     const familiars = stickersForSheet('familiar');
     const sprites = stickersForSheet('pricesprite');
     const trueNames = stickersForSheet('truename');
@@ -116,6 +116,10 @@ export function buildTickerText(): string {
         const at = 1 + Math.floor(Math.random() * Math.max(1, out.length - 1));
         out.splice(at, 0, egg);
     }
+
+    // LIVE market truth (Brendon, 2026-07-02): real floors / sales / wants
+    // lead the crawl when the store hands them in — salesman lines follow.
+    if (liveLines.length > 0) out.unshift(...liveLines);
 
     return `${out.join('  ·  ')}  ·  `.toUpperCase();
 }

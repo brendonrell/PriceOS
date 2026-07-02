@@ -312,3 +312,67 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .alb-slot:not(.is-got) { opacity: 0.28; filter: grayscale(0.8); }
 .alb-slot.is-got { border-style: solid; }
+
+/* ── THE PEEL — the sealed backing over an owned, unpeeled sheet ── */
+.ss-seal {
+    position: absolute; inset: 0; z-index: 3;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    background:
+        repeating-linear-gradient(135deg,
+            color-mix(in srgb, var(--text-color) 6%, var(--bg-color)) 0 14px,
+            color-mix(in srgb, var(--text-color) 10%, var(--bg-color)) 14px 28px);
+    border: 1.5px dashed color-mix(in srgb, var(--text-color) 45%, transparent);
+    border-radius: 8px;
+    cursor: grab; touch-action: none; user-select: none;
+    transition: transform 0.28s ease, opacity 0.4s ease;
+    transform-origin: 20% 80%;
+}
+.ss-seal:active { cursor: grabbing; }
+.ss-seal.is-gone {
+    transform: translate(120%, 14%) rotate(22deg);
+    opacity: 0;
+    pointer-events: none;
+}
+.ss-seal-tab {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px; letter-spacing: 2px;
+}
+.ss-seal-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 1px; opacity: 0.75;
+}
+.ss-seal-sub {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; opacity: 0.5; letter-spacing: 0.6px;
+}
+.ss-restock { top: 26px; }
+
+/* Toy-shop skin — market prices wear little price tags. */
+.skm-prices, .skm-wrap .cart-item-price {
+    font-family: 'Courier New', Courier, monospace;
+    border: 1px dashed color-mix(in srgb, var(--text-color) 40%, transparent);
+    border-radius: 3px 8px 8px 3px;
+    padding: 3px 8px 3px 10px;
+    position: relative;
+    font-size: 12px;
+}
+.skm-prices::before, .skm-wrap .cart-item-price::before {
+    content: '';
+    position: absolute; left: 3px; top: 50%;
+    width: 4px; height: 4px; margin-top: -2px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--text-color) 45%, transparent);
+}
+.skm-match { font-weight: bold; opacity: 0.9; }
+.skm-quick-row { display: flex; gap: 8px; padding: 2px 0 6px; flex-wrap: wrap; }
+.skm-compose-for { font-size: 10px; opacity: 0.6; }
+.skm-select {
+    background: transparent; color: var(--text-color);
+    border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+    border-radius: 4px; padding: 4px 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px; font-weight: bold;
+}
+.skm-gift-to { width: 92px; text-align: left; }
+.skm-gift-note { width: 150px; text-align: left; }

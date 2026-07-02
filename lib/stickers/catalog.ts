@@ -347,6 +347,9 @@ export interface SheetMeta {
     count: number;
     price: string;
     cover: Sticker;
+    /** Optional restock moment (ISO). When set + future, the store card wears
+     *  a RESTOCKING countdown chip — scarcity as an event. */
+    restockAt?: string;
 }
 
 export const SHEETS: readonly SheetMeta[] = [

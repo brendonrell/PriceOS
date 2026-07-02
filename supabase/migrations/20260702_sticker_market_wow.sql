@@ -1,0 +1,9 @@
+-- Sticker wow pass: swaps (sticker-for-sticker, escrowed at propose),
+-- want-lists (sticker wishlist + need/have matchmaking), PEEL/GIFT/SWAP
+-- event kinds + app_sticker_swap_accept RPC.
+-- APPLIED LIVE 2026-07-02 (sticker_market_wow). Definition mirrors the live
+-- apply: sticker_wants (owner, sheet) pk; sticker_swaps (proposer, give
+-- sheet/qty, want sheet/qty, status, end_time) + want/give indexes; events
+-- type check gains PEEL, GIFT, SWAP; swap-accept moves both sides atomically
+-- (give side escrowed from holdings at propose; accept re-checks the
+-- acceptor's want-side balance, row-locked).

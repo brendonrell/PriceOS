@@ -45,14 +45,24 @@ export async function GET(req: NextRequest) {
     const now = nowSec();
 
     if (url.searchParams.get('summary') === '1') {
-      const [listRes, offRes, evRes] = await Promise.all([
+      const viewer = await verifySiweSession(req);
+      const [listRes, offRes, evRes, lifeRes, wantRes, swapRes, mineRes, myWantRes] = await Promise.all([
         db.from('sticker_listings').select('sheet_id, price_eth, qty').eq('active', true).or(liveOr(now)),
         db.from('sticker_offers').select('sheet_id, price_eth, qty').eq('status', 'open').or(liveOr(now)),
         db.from('sticker_events').select('sheet_id, price_eth, qty, timestamp').eq('type', 'SALE').order('timestamp', { ascending: false }).limit(500),
+        db.from('sticker_events').select('sheet_id, type, qty').in('type', ['CLAIM', 'PEEL']).limit(5000),
+        db.from('sticker_wants').select('sheet_id'),
+        db.from('sticker_swaps').select('give_sheet, want_sheet').eq('status', 'open').or(liveOr(now)),
+        viewer
+          ? db.from('sticker_holdings').select('sheet_id, qty').eq('owner_address', viewer)
+          : Promise.resolve({ data: null, error: null } as never),
+        viewer
+          ? db.from('sticker_wants').select('sheet_id').eq('owner_address', viewer)
+          : Promise.resolve({ data: null, error: null } as never),
       ]);
       if (listRes.error) return serverError(listRes.error.message);
-      const bySheet: Record<string, { floor: number | null; listed: number; best_offer: number | null; bid_qty: number; last: number | null; volume: number; sales: number }> = {};
-      const slot = (id: string) => (bySheet[id] ??= { floor: null, listed: 0, best_offer: null, bid_qty: 0, last: null, volume: 0, sales: 0 });
+      const bySheet: Record<string, { floor: number | null; listed: number; best_offer: number | null; bid_qty: number; last: number | null; volume: number; sales: number; claims: number; peels: number; sealed_pct: number | null; wanted_by: number; swaps: number }> = {};
+      const slot = (id: string) => (bySheet[id] ??= { floor: null, listed: 0, best_offer: null, bid_qty: 0, last: null, volume: 0, sales: 0, claims: 0, peels: 0, sealed_pct: null, wanted_by: 0, swaps: 0 });
       for (const l of (listRes.data ?? []) as { sheet_id: string; price_eth: number; qty: number }[]) {
         const s = slot(l.sheet_id);
         const p = Number(l.price_eth);
@@ -73,14 +83,32 @@ export async function GET(req: NextRequest) {
           s.sales += e.qty;
         }
       }
-      return NextResponse.json({ sheets: bySheet });
+      for (const e of (lifeRes.data ?? []) as { sheet_id: string; type: string; qty: number }[]) {
+        const s = slot(e.sheet_id);
+        if (e.type === 'CLAIM') s.claims += e.qty; else s.peels += e.qty;
+      }
+      for (const w of (wantRes.data ?? []) as { sheet_id: string }[]) slot(w.sheet_id).wanted_by++;
+      for (const sw of (swapRes.data ?? []) as { give_sheet: string; want_sheet: string }[]) {
+        slot(sw.give_sheet).swaps++;
+        if (sw.want_sheet !== sw.give_sheet) slot(sw.want_sheet).swaps++;
+      }
+      for (const k of Object.keys(bySheet)) {
+        const s = bySheet[k];
+        s.sealed_pct = s.claims > 0 ? Math.max(0, Math.round((1 - s.peels / s.claims) * 100)) : null;
+      }
+      const myHoldings: Record<string, number> = {};
+      for (const h of ((mineRes.data ?? []) as { sheet_id: string; qty: number }[] | null) ?? []) {
+        myHoldings[h.sheet_id] = h.qty;
+      }
+      const myWants = (((myWantRes.data ?? []) as { sheet_id: string }[] | null) ?? []).map((w) => w.sheet_id);
+      return NextResponse.json({ sheets: bySheet, my_holdings: myHoldings, my_wants: myWants });
     }
 
     const sheet = url.searchParams.get('sheet');
     if (sheet) {
       if (!SHEET_IDS.has(sheet)) return badRequest('Unknown sheet');
       const viewer = await verifySiweSession(req);
-      const [listRes, offRes, holdRes, lastRes] = await Promise.all([
+      const [listRes, offRes, holdRes, lastRes, swapRes, wantRes] = await Promise.all([
         db.from('sticker_listings')
           .select('id, sheet_id, seller_address, price_eth, qty, end_time, source')
           .eq('sheet_id', sheet).eq('active', true).or(liveOr(now))
@@ -93,6 +121,13 @@ export async function GET(req: NextRequest) {
           ? db.from('sticker_holdings').select('qty').eq('owner_address', viewer).eq('sheet_id', sheet).maybeSingle()
           : Promise.resolve({ data: null, error: null } as never),
         db.from('sticker_events').select('price_eth, timestamp').eq('sheet_id', sheet).eq('type', 'SALE').order('timestamp', { ascending: false }).limit(1).maybeSingle(),
+        db.from('sticker_swaps')
+          .select('id, proposer_address, give_sheet, give_qty, want_sheet, want_qty, end_time')
+          .or(`give_sheet.eq.${sheet},want_sheet.eq.${sheet}`)
+          .eq('status', 'open').or(liveOr(now)).limit(40),
+        viewer
+          ? db.from('sticker_wants').select('sheet_id').eq('owner_address', viewer).eq('sheet_id', sheet).maybeSingle()
+          : Promise.resolve({ data: null, error: null } as never),
       ]);
       if (listRes.error) return serverError(listRes.error.message);
       if (offRes.error) return serverError(offRes.error.message);
@@ -100,6 +135,7 @@ export async function GET(req: NextRequest) {
       const addrs = Array.from(new Set([
         ...((listRes.data ?? []) as { seller_address: string }[]).map((l) => l.seller_address),
         ...((offRes.data ?? []) as { bidder_address: string }[]).map((o) => o.bidder_address),
+        ...((swapRes.data ?? []) as { proposer_address: string }[]).map((w) => w.proposer_address),
       ]));
       const handleByAddr = new Map<string, string | null>();
       if (addrs.length > 0) {
@@ -116,8 +152,13 @@ export async function GET(req: NextRequest) {
         listings: withHandle((listRes.data ?? []) as Record<string, unknown>[], 'seller_address'),
         offers: withHandle((offRes.data ?? []) as Record<string, unknown>[], 'bidder_address'),
         last_sale: (lastRes.data as { price_eth?: number } | null)?.price_eth ?? null,
+        swaps: withHandle((swapRes.data ?? []) as Record<string, unknown>[], 'proposer_address'),
         viewer: viewer
-          ? { address: viewer, holding: Number((holdRes.data as { qty?: number } | null)?.qty ?? 0) }
+          ? {
+              address: viewer,
+              holding: Number((holdRes.data as { qty?: number } | null)?.qty ?? 0),
+              wants: !!wantRes.data,
+            }
           : null,
       });
     }
@@ -130,7 +171,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST — SIWE-gated actions ────────────────────────────────────────────────
 interface Body {
-  action: 'claim' | 'claim_sync' | 'list' | 'cancel' | 'buy' | 'offer' | 'cancel_offer' | 'accept';
+  action: 'claim' | 'claim_sync' | 'list' | 'cancel' | 'buy' | 'offer' | 'cancel_offer' | 'accept'
+    | 'peel' | 'gift' | 'want' | 'unwant' | 'swap_propose' | 'swap_accept' | 'swap_cancel';
   sheet?: string;
   sheets?: string[];
   price?: number | string;
@@ -138,6 +180,13 @@ interface Body {
   durationSec?: number;
   listingId?: string;
   offerId?: string;
+  to?: string;
+  note?: string;
+  giveSheet?: string;
+  giveQty?: number;
+  wantSheet?: string;
+  wantQty?: number;
+  swapId?: string;
 }
 
 export const POST = requireAuth(async (req, _ctx, address) => {
@@ -202,6 +251,21 @@ export const POST = requireAuth(async (req, _ctx, address) => {
           currency: 'ETH', source: 'sim',
         } as never);
         await db.from('sticker_events').insert({ type: 'LIST', sheet_id: body.sheet, from_address: address, qty, price_eth: price, timestamp: now } as never);
+        // Instant sticker wishlist: everyone WANTING this sheet gets pinged
+        // the moment copies hit the book.
+        const wanters = await db.from('sticker_wants').select('owner_address').eq('sheet_id', body.sheet).limit(50);
+        for (const w of (wanters.data ?? []) as { owner_address: string }[]) {
+          if (w.owner_address.toLowerCase() === address) continue;
+          await createPing({
+            recipientAddress: w.owner_address,
+            kind: 'WISHLIST_HIT',
+            actorAddress: address,
+            projectId: 'stickers',
+            tokenId: body.sheet,
+            amountEth: price,
+            groupKey: `STICKER_WANT:${body.sheet}`,
+          });
+        }
         return NextResponse.json({ ok: true, listed: qty });
       }
       case 'cancel': {
@@ -287,6 +351,120 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         }
         return NextResponse.json({ ok: true, sold: r.sold, total: r.total });
       }
+      // ── The Peel — burns sealed copies into the profile stickers (sim:
+      //    records the burn; the chain peel does it for real at PDStickers).
+      case 'peel': {
+        if (!body.sheet || !SHEET_IDS.has(body.sheet)) return badRequest('Unknown sheet');
+        await db.from('sticker_events').insert({ type: 'PEEL', sheet_id: body.sheet, from_address: address, qty: 1, timestamp: now } as never);
+        return NextResponse.json({ ok: true });
+      }
+
+      // ── Gifting — send sheets to a friend, with a note. Free transfer,
+      //    wrapped ping on arrival.
+      case 'gift': {
+        if (!body.sheet || !SHEET_IDS.has(body.sheet)) return badRequest('Unknown sheet');
+        if (!(qty >= 1)) return badRequest('Bad qty');
+        const toRaw = (body.to ?? '').trim().replace(/^@/, '').toLowerCase();
+        if (!toRaw) return badRequest('Missing recipient');
+        const u = toRaw.startsWith('0x')
+          ? await db.from('users').select('address').ilike('address', toRaw).maybeSingle()
+          : await db.from('users').select('address').ilike('handle', toRaw).maybeSingle();
+        const toAddr = (u.data as { address?: string } | null)?.address?.toLowerCase() ?? null;
+        if (!toAddr) return badRequest('Recipient not found');
+        if (toAddr === address) return badRequest('Cannot gift yourself');
+        const have = await holdingOf(body.sheet);
+        if (have < qty) return badRequest('Not enough sheets');
+        await setHolding(body.sheet, have - qty);
+        const theirs = await db.from('sticker_holdings').select('qty').eq('owner_address', toAddr).eq('sheet_id', body.sheet).maybeSingle();
+        const theirQty = Number((theirs.data as { qty?: number } | null)?.qty ?? 0);
+        await db.from('sticker_holdings').upsert(
+          { owner_address: toAddr, sheet_id: body.sheet, qty: theirQty + qty, updated_at: new Date().toISOString() } as never,
+          { onConflict: 'owner_address,sheet_id' },
+        );
+        await db.from('sticker_events').insert({ type: 'GIFT', sheet_id: body.sheet, from_address: address, to_address: toAddr, qty, timestamp: now } as never);
+        await createPing({
+          recipientAddress: toAddr,
+          kind: 'XFER',
+          actorAddress: address,
+          projectId: 'stickers',
+          tokenId: body.sheet,
+          data: { gift: true, note: String(body.note ?? '').slice(0, 140), qty },
+        });
+        return NextResponse.json({ ok: true, gifted: qty });
+      }
+
+      // ── Want-list (sticker wishlist + the matchmaking signal) ────────────
+      case 'want': {
+        if (!body.sheet || !SHEET_IDS.has(body.sheet)) return badRequest('Unknown sheet');
+        await db.from('sticker_wants').upsert(
+          { owner_address: address, sheet_id: body.sheet } as never,
+          { onConflict: 'owner_address,sheet_id' },
+        );
+        return NextResponse.json({ ok: true });
+      }
+      case 'unwant': {
+        if (!body.sheet || !SHEET_IDS.has(body.sheet)) return badRequest('Unknown sheet');
+        await db.from('sticker_wants').delete().eq('owner_address', address).eq('sheet_id', body.sheet);
+        return NextResponse.json({ ok: true });
+      }
+
+      // ── Swaps — sticker-for-sticker, give-side escrowed at propose ───────
+      case 'swap_propose': {
+        const gs = body.giveSheet ?? '';
+        const ws = body.wantSheet ?? '';
+        const gq = Math.floor(Number(body.giveQty ?? 1));
+        const wq = Math.floor(Number(body.wantQty ?? 1));
+        if (!SHEET_IDS.has(gs) || !SHEET_IDS.has(ws)) return badRequest('Unknown sheet');
+        if (gs === ws) return badRequest('Swap different sheets');
+        if (!(gq >= 1) || !(wq >= 1)) return badRequest('Bad quantities');
+        const have = await holdingOf(gs);
+        if (have < gq) return badRequest('Not enough sheets');
+        await setHolding(gs, have - gq); // escrow
+        await db.from('sticker_swaps').insert({
+          proposer_address: address, give_sheet: gs, give_qty: gq,
+          want_sheet: ws, want_qty: wq, status: 'open',
+          end_time: now + clampDuration(body.durationSec),
+        } as never);
+        return NextResponse.json({ ok: true });
+      }
+      case 'swap_cancel': {
+        if (!body.swapId) return badRequest('Missing swap');
+        const r = await db.from('sticker_swaps')
+          .select('proposer_address, give_sheet, give_qty, status')
+          .eq('id', body.swapId).maybeSingle();
+        const row = r.data as { proposer_address?: string; give_sheet?: string; give_qty?: number; status?: string } | null;
+        if (!row || row.status !== 'open' || row.proposer_address?.toLowerCase() !== address) {
+          return badRequest('Only the proposer can cancel');
+        }
+        await db.from('sticker_swaps').update({ status: 'cancelled' } as never).eq('id', body.swapId);
+        const have = await holdingOf(row.give_sheet as string);
+        await setHolding(row.give_sheet as string, have + Number(row.give_qty ?? 0));
+        return NextResponse.json({ ok: true });
+      }
+      case 'swap_accept': {
+        if (!body.swapId) return badRequest('Missing swap');
+        const { data, error } = await db.rpc('app_sticker_swap_accept', {
+          p_acceptor: address, p_swap: body.swapId,
+        } as never);
+        if (error) return serverError(error.message);
+        const r = data as { error?: string; proposer?: string; give_sheet?: string; give_qty?: number; want_sheet?: string; want_qty?: number };
+        if (r.error === 'swap_not_open') return badRequest('Swap not open');
+        if (r.error === 'own_swap') return badRequest('Cannot accept your own swap');
+        if (r.error === 'not_owner') return badRequest('Not enough sheets');
+        if (r.error) return badRequest(r.error);
+        if (r.proposer) {
+          await createPing({
+            recipientAddress: r.proposer,
+            kind: 'XFER',
+            actorAddress: address,
+            projectId: 'stickers',
+            tokenId: r.want_sheet ?? null,
+            data: { swap: true, give: r.give_sheet, giveQty: r.give_qty, want: r.want_sheet, wantQty: r.want_qty },
+          });
+        }
+        return NextResponse.json({ ok: true });
+      }
+
       default:
         return badRequest('Unknown action');
     }

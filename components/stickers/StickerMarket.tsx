@@ -37,6 +37,22 @@ interface SheetSummary {
     last: number | null;
     volume: number;
     sales: number;
+    claims: number;
+    peels: number;
+    sealed_pct: number | null;
+    wanted_by: number;
+    swaps: number;
+}
+
+interface BookSwap {
+    id: string;
+    proposer_address: string;
+    handle: string | null;
+    give_sheet: string;
+    give_qty: number;
+    want_sheet: string;
+    want_qty: number;
+    end_time: number | null;
 }
 
 interface BookListing {
@@ -58,8 +74,9 @@ interface BookOffer {
 interface Book {
     listings: BookListing[];
     offers: BookOffer[];
+    swaps: BookSwap[];
     last_sale: number | null;
-    viewer: { address: string; holding: number } | null;
+    viewer: { address: string; holding: number; wants: boolean } | null;
 }
 
 function who(handle: string | null, addr: string): string {
@@ -122,6 +139,8 @@ export default function StickerMarket() {
     useClaimSync(!!siweAddress);
 
     const [summary, setSummary] = useState<Record<string, SheetSummary> | null>(null);
+    const [myHoldings, setMyHoldings] = useState<Record<string, number>>({});
+    const [myWants, setMyWants] = useState<Set<string>>(new Set());
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
     const [book, setBook] = useState<Book | null>(null);
     const [busy, setBusy] = useState(false);
@@ -133,6 +152,15 @@ export default function StickerMarket() {
     const [offerQty, setOfferQty] = useState(1);
     const [durationSec, setDurationSec] = useState(DEFAULT_DURATION_SEC);
 
+    /* Gift + swap composers */
+    const [giftTo, setGiftTo] = useState('');
+    const [giftNote, setGiftNote] = useState('');
+    const [giftQty, setGiftQty] = useState(1);
+    const [swapGiveQty, setSwapGiveQty] = useState(1);
+    const [swapWantSheet, setSwapWantSheet] = useState<SheetId | ''>('');
+    const [swapWantQty, setSwapWantQty] = useState(1);
+    const [confirmSwap, setConfirmSwap] = useState<BookSwap | null>(null);
+
     /* Confirm cards (money moves → confirm; Brendon 2026-07-02). */
     const [confirmBuy, setConfirmBuy] = useState<{ l: BookListing; qty: number } | null>(null);
     const [confirmSellInto, setConfirmSellInto] = useState<{ o: BookOffer; qty: number } | null>(null);
@@ -140,7 +168,12 @@ export default function StickerMarket() {
     const loadSummary = useCallback(() => {
         fetch('/api/stickers/market?summary=1', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (d) setSummary((d.sheets as Record<string, SheetSummary>) ?? {}); })
+            .then((d) => {
+                if (!d) return;
+                setSummary((d.sheets as Record<string, SheetSummary>) ?? {});
+                setMyHoldings((d.my_holdings as Record<string, number>) ?? {});
+                setMyWants(new Set((d.my_wants as string[]) ?? []));
+            })
             .catch(() => {});
     }, []);
     const loadBook = useCallback((sheet: SheetId) => {
@@ -200,12 +233,22 @@ export default function StickerMarket() {
                                 <StickerArt sticker={s.cover} size={30} />
                             </div>
                             <div className="cart-item-meta">
-                                <div className="cart-item-name">{s.name}</div>
+                                <div className="cart-item-name">
+                                    {s.name}
+                                    {myWants.has(s.id) && <span className="mk-scope-tag">{`✛${VS15} WANTED`}</span>}
+                                </div>
                                 <div className="cart-item-artist">
                                     {sum?.listed ? `${sum.listed} listed` : 'none listed'}
-                                    {sum?.bid_qty ? ` · ${sum.bid_qty} wanted` : ''}
+                                    {sum?.bid_qty ? ` · ${sum.bid_qty} bid` : ''}
                                     {sum?.sales ? ` · ${sum.sales} sold` : ''}
+                                    {sum?.swaps ? ` · ${sum.swaps} swap${sum.swaps === 1 ? '' : 's'}` : ''}
+                                    {sum?.sealed_pct != null ? ` · ${sum.sealed_pct}% sealed` : ''}
                                 </div>
+                                {(myHoldings[s.id] ?? 0) > 1 && (sum?.wanted_by ?? 0) > 0 && (
+                                    <div className="cart-item-artist skm-match">
+                                        {`✛${VS15} ${sum!.wanted_by} collector${sum!.wanted_by === 1 ? '' : 's'} need your doubles`}
+                                    </div>
+                                )}
                             </div>
                             <div className="cart-item-price skm-prices">
                                 <span>{sum?.floor != null ? `${sum.floor.toFixed(3)}` : '—'}</span>
@@ -236,9 +279,38 @@ export default function StickerMarket() {
             <div className="skm-book-head">
                 <span className="skm-book-title">{meta?.name ?? openSheet}</span>
                 <span className="skm-book-pos">
-                    {holding > 0 ? `you hold ${holding}` : 'you hold none'}
+                    {holding > 0 ? `you hold ${holding}${holding > 1 ? ' (doubles)' : ''}` : 'you hold none'}
                     {book?.last_sale != null ? ` · last ${Number(book.last_sale).toFixed(3)}` : ''}
+                    {summary?.[openSheet]?.sealed_pct != null ? ` · ${summary[openSheet].sealed_pct}% sealed` : ''}
                 </span>
+            </div>
+            <div className="skm-quick-row">
+                <button
+                    type="button"
+                    className={`mk-offer-btn${book?.viewer?.wants ? ' mk-offer-btn--accept' : ''}`}
+                    disabled={busy}
+                    onClick={() => void run(
+                        book?.viewer?.wants ? 'Want: REMOVED' : `Want: ADDED · ${meta?.name ?? openSheet}`,
+                        { action: book?.viewer?.wants ? 'unwant' : 'want', sheet: openSheet },
+                    )}
+                >
+                    {`✛${VS15}`} {book?.viewer?.wants ? 'WANTED' : 'WANT THIS'}
+                </button>
+                {holding > 1 && summary?.[openSheet]?.floor != null && (
+                    <button
+                        type="button"
+                        className="mk-offer-btn"
+                        disabled={busy}
+                        onClick={() => {
+                            const floor = summary[openSheet].floor as number;
+                            setSellQty(holding - 1);
+                            setSellPrice(floor.toFixed(3));
+                        }}
+                        title="Prefill the sell composer with your doubles at floor"
+                    >
+                        LIST DOUBLES @ FLOOR
+                    </button>
+                )}
             </div>
 
             {/* Asks */}
@@ -307,6 +379,42 @@ export default function StickerMarket() {
                 })
             )}
 
+            {/* Swaps — sticker-for-sticker, the playground trade. */}
+            <div className="skm-side-label">{`✸${VS15} SWAPS`}</div>
+            {book == null ? null : (book.swaps ?? []).length === 0 ? (
+                <div className="mk-story-loading">No open swaps touch this sheet.</div>
+            ) : (
+                book.swaps.map((w) => {
+                    const mine = myAddr != null && w.proposer_address.toLowerCase() === myAddr;
+                    const giveName = SHEETS.find((x) => x.id === w.give_sheet)?.name ?? w.give_sheet;
+                    const wantName = SHEETS.find((x) => x.id === w.want_sheet)?.name ?? w.want_sheet;
+                    const canAccept = !mine && (myHoldings[w.want_sheet] ?? 0) >= w.want_qty;
+                    return (
+                        <div className="cart-item-row" key={w.id}>
+                            <div className="cart-item-meta">
+                                <div className="cart-item-name">{who(w.handle, w.proposer_address)}{mine ? ' (you)' : ''}</div>
+                                <div className="cart-item-artist">
+                                    gives ×{w.give_qty} {giveName} for ×{w.want_qty} {wantName} · expires {expiresIn(w.end_time)}
+                                </div>
+                            </div>
+                            <div className="cart-item-actions mk-offer-actions">
+                                {mine ? (
+                                    <button type="button" className="mk-offer-btn" disabled={busy}
+                                        onClick={() => void run('Swap: CANCELLED', { action: 'swap_cancel', swapId: w.id })}>
+                                        CANCEL
+                                    </button>
+                                ) : canAccept ? (
+                                    <button type="button" className="mk-offer-btn mk-offer-btn--accept" disabled={busy}
+                                        onClick={() => setConfirmSwap(w)}>
+                                        SWAP
+                                    </button>
+                                ) : null}
+                            </div>
+                        </div>
+                    );
+                })
+            )}
+
             {/* Composers — SELL (needs holding) + OFFER, per-sheet price × qty. */}
             <div className="skm-composers">
                 {holding > 0 && (
@@ -341,6 +449,52 @@ export default function StickerMarket() {
                         {busy ? 'WORKING…' : 'OFFER'}
                     </button>
                 </div>
+                {holding > 0 && (
+                    <div className="skm-compose">
+                        <span className="skm-compose-label">{`✸${VS15} SWAP`}</span>
+                        <QtyStep qty={Math.min(swapGiveQty, holding)} max={holding} setQty={setSwapGiveQty} />
+                        <span className="skm-compose-for">for</span>
+                        <select
+                            className="skm-select"
+                            value={swapWantSheet}
+                            onChange={(e) => setSwapWantSheet(e.target.value as SheetId | '')}
+                        >
+                            <option value="">sheet…</option>
+                            {SHEETS.filter((x) => x.id !== openSheet).map((x) => (
+                                <option key={x.id} value={x.id}>{x.name}</option>
+                            ))}
+                        </select>
+                        <QtyStep qty={swapWantQty} max={22} setQty={setSwapWantQty} />
+                        <button type="button" className="mk-offer-btn mk-offer-btn--accept"
+                            disabled={busy || !swapWantSheet}
+                            onClick={() => void run('Swap: PROPOSED', {
+                                action: 'swap_propose',
+                                giveSheet: openSheet, giveQty: Math.min(swapGiveQty, holding),
+                                wantSheet: swapWantSheet, wantQty: swapWantQty,
+                                durationSec,
+                            })}>
+                            {busy ? 'WORKING…' : 'PROPOSE'}
+                        </button>
+                    </div>
+                )}
+                {holding > 0 && (
+                    <div className="skm-compose">
+                        <span className="skm-compose-label">{`✸${VS15} GIFT`}</span>
+                        <QtyStep qty={Math.min(giftQty, holding)} max={holding} setQty={setGiftQty} />
+                        <input className="mk-price-input skm-gift-to" type="text" placeholder="@friend"
+                            value={giftTo} onChange={(e) => setGiftTo(e.target.value)} />
+                        <input className="mk-price-input skm-gift-note" type="text" placeholder="a note (optional)"
+                            value={giftNote} onChange={(e) => setGiftNote(e.target.value)} maxLength={140} />
+                        <button type="button" className="mk-offer-btn mk-offer-btn--accept"
+                            disabled={busy || !giftTo.trim()}
+                            onClick={() => void run(`Gift: SENT · ${Math.min(giftQty, holding)} to ${giftTo.trim()}`, {
+                                action: 'gift', sheet: openSheet,
+                                qty: Math.min(giftQty, holding), to: giftTo.trim(), note: giftNote.trim(),
+                            })}>
+                            {busy ? 'WORKING…' : 'SEND'}
+                        </button>
+                    </div>
+                )}
                 <div className="mk-duration-row skm-durations">
                     {DURATION_CHOICES.map((d) => (
                         <button key={d.label} type="button"
@@ -374,6 +528,27 @@ export default function StickerMarket() {
                                     if (c) void run(`Bought: ${c.qty} × ${Number(c.l.price_eth).toFixed(3)} ETH`, { action: 'buy', listingId: c.l.id, qty: c.qty });
                                 }}>
                                 Buy
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body,
+            )}
+            {confirmSwap && typeof document !== 'undefined' && createPortal(
+                <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1400 }} onClick={() => setConfirmSwap(null)}>
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">
+                            Swap ×{confirmSwap.want_qty} {SHEETS.find((x) => x.id === confirmSwap.want_sheet)?.name ?? confirmSwap.want_sheet} for ×{confirmSwap.give_qty} {SHEETS.find((x) => x.id === confirmSwap.give_sheet)?.name ?? confirmSwap.give_sheet}?
+                        </div>
+                        <div className="ms-confirm-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmSwap(null)}>Cancel</button>
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => {
+                                    const w = confirmSwap;
+                                    setConfirmSwap(null);
+                                    if (w) void run('Swap: DONE', { action: 'swap_accept', swapId: w.id });
+                                }}>
+                                Swap
                             </button>
                         </div>
                     </div>

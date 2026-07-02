@@ -19,7 +19,7 @@
  * PriceOSShell. Mouse drag-to-scroll on the rail mirrors the home carousels.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useDragScroll, useDragScrollY } from '../lib/hooks/useDragScroll';
@@ -73,6 +73,40 @@ export default function StickersModal() {
     /* MY STICKER ALBUM — the completionist view (named to never collide with
        the app's Albums feature). */
     const [albumOn, setAlbumOn] = useState(false);
+
+    /* THE PEEL — a sealed sheet you own peels open with a real drag (the rip
+       IS the product; never a button). Client-side sealed state per sheet;
+       the peel is recorded server-side (sealed-% economics). */
+    const [peeled, setPeeled] = useState<Set<string>>(() => new Set());
+    useEffect(() => {
+        try {
+            const raw = window.localStorage.getItem('pd_sticker_peeled');
+            const arr = raw ? (JSON.parse(raw) as string[]) : [];
+            if (Array.isArray(arr)) setPeeled(new Set(arr));
+        } catch { /* ignore */ }
+    }, []);
+    const [peelDrag, setPeelDrag] = useState(0);       // 0..1 progress
+    const [peelGone, setPeelGone] = useState(false);   // committed, animating off
+    const peelStart = useRef<{ x: number; y: number } | null>(null);
+    const commitPeel = useCallback((sheetId: string, name: string) => {
+        setPeelGone(true);
+        setTimeout(() => {
+            setPeeled((prev) => {
+                const next = new Set(prev);
+                next.add(sheetId);
+                try { window.localStorage.setItem('pd_sticker_peeled', JSON.stringify([...next])); } catch { /* ignore */ }
+                return next;
+            });
+            setPeelGone(false);
+            setPeelDrag(0);
+        }, 420);
+        showToast(`${name}: PEELED`);
+        fetch('/api/stickers/market', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'peel', sheet: sheetId }),
+        }).catch(() => {});
+    }, [showToast]);
     /* Expanded grid (two-up, scrolls down) is the DEFAULT; the icon toggles to
        the compact rail (Brendon 2026-06-22). */
     const [expanded, setExpanded] = useState(true);
@@ -119,8 +153,32 @@ export default function StickersModal() {
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
-    /* Auto-generated salesman feed (content), refreshed each open. */
-    const tickerText = useMemo(() => buildTickerText(), [isOpen]);
+    /* Auto-generated salesman feed (content), refreshed each open — now led
+       by LIVE market truth (real floors · sales · wants) when the book has
+       any. */
+    const [liveLines, setLiveLines] = useState<string[]>([]);
+    useEffect(() => {
+        if (!isOpen) return;
+        let cancelled = false;
+        fetch('/api/stickers/market?summary=1', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !d?.sheets) return;
+                const lines: string[] = [];
+                for (const sh of REAL_SHEETS) {
+                    const m = (d.sheets as Record<string, { floor: number | null; sales: number; wanted_by: number; sealed_pct: number | null }>)[sh.id];
+                    if (!m) continue;
+                    if (m.floor != null) lines.push(`${sh.name} floor ◊ ${Number(m.floor).toFixed(3)}`);
+                    if (m.sales > 0) lines.push(`${m.sales} ${sh.name} sold on the market`);
+                    if (m.wanted_by > 0) lines.push(`${m.wanted_by} collector${m.wanted_by === 1 ? '' : 's'} want ${sh.name}`);
+                    if (m.sealed_pct != null && m.sealed_pct < 100) lines.push(`${sh.name} · ${m.sealed_pct}% still sealed`);
+                }
+                setLiveLines(lines.slice(0, 8));
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isOpen]);
+    const tickerText = useMemo(() => buildTickerText(liveLines), [isOpen, liveLines]);
     /* Match the OLD crawl pace (~3.3 chars/sec): scale the timer to the feed
        length so the longer feed doesn't fly by. */
     const tickerDur = Math.max(26, Math.round(tickerText.length / 3.3));
@@ -164,6 +222,11 @@ export default function StickersModal() {
                     ))}
                 </span>
                 <span className="ss-card-soon ss-card-new">LIVE</span>
+                {s.restockAt && Date.parse(s.restockAt) > Date.now() && (
+                    <span className="ss-card-soon ss-restock">
+                        RESTOCK {Math.max(1, Math.ceil((Date.parse(s.restockAt) - Date.now()) / 86_400_000))}D
+                    </span>
+                )}
                 {ownsSheet(s.id, ownedIds) && <span className="ss-card-owned" title="Owned">{'✓︎'}</span>}
             </div>
             <div className="ss-card-meta">
@@ -322,8 +385,39 @@ export default function StickersModal() {
                             return out;
                         })();
                         const cells = mode === 'flow' ? flowOrder : draw;
+                        const sealed = ownsSheet(detail.id, ownedIds) && !peeled.has(detail.id);
                         return (
-                            <div className="ss-paper-wrap">
+                            <div className="ss-paper-wrap" style={{ position: 'relative' }}>
+                                {sealed && (
+                                    <div
+                                        className={`ss-seal${peelGone ? ' is-gone' : ''}`}
+                                        style={peelDrag > 0 && !peelGone ? {
+                                            transform: `translate(${peelDrag * 70}%, ${peelDrag * 8}%) rotate(${peelDrag * 14}deg)`,
+                                            transition: 'none',
+                                        } : undefined}
+                                        onPointerDown={(e) => {
+                                            peelStart.current = { x: e.clientX, y: e.clientY };
+                                            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                                        }}
+                                        onPointerMove={(e) => {
+                                            if (!peelStart.current) return;
+                                            const w = (e.currentTarget as HTMLElement).clientWidth || 300;
+                                            const p = Math.max(0, Math.min(1, (e.clientX - peelStart.current.x) / (w * 0.6)));
+                                            setPeelDrag(p);
+                                        }}
+                                        onPointerUp={() => {
+                                            if (!peelStart.current) return;
+                                            peelStart.current = null;
+                                            if (peelDrag >= 0.72) commitPeel(detail.id, detail.name);
+                                            else setPeelDrag(0);
+                                        }}
+                                        onPointerCancel={() => { peelStart.current = null; setPeelDrag(0); }}
+                                    >
+                                        <span className="ss-seal-tab">{`⇢ PEEL`}</span>
+                                        <span className="ss-seal-name">{detail.name}</span>
+                                        <span className="ss-seal-sub">SEALED · drag to peel</span>
+                                    </div>
+                                )}
                                 <div className={`ss-paper ${cls}`} data-sheet={detail.id}>
                                     {cells.map((s) => (
                                         <span key={s.id} className="ss-cell" title={s.name}>

@@ -176,7 +176,15 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = join('countered', eth ? `at ${eth}` : '', 'on', join(p, t) || 'your offer');
       break;
     case 'XFER':
-      action = join('transferred', p, t);
+      if (row.data?.gift === true) {
+        const note = typeof row.data?.note === 'string' && row.data.note ? ` — “${row.data.note}”` : '';
+        const qty = typeof row.data?.qty === 'number' && row.data.qty > 1 ? ` ×${row.data.qty}` : '';
+        action = join('sent you a sticker sheet', t ? t.replace('#', '') : '') + qty + note;
+      } else if (row.data?.swap === true) {
+        action = 'swapped sheets with you';
+      } else {
+        action = join('transferred', p, t);
+      }
       break;
     case 'ACHIEVEMENT': {
       handle = '';
