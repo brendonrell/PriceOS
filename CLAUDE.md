@@ -177,9 +177,24 @@ web3 social platform where the community discussing prices is the product.
 |---|---|---|
 | `brendonrell/PriceOS` (this) | Frontend + API (`app/api/`) | `dev` |
 | `brendonrell/pd-contracts` | Solidity (PDFactory / PDProject / PaymentSplitter) | `main` |
-| `brendonrell/PriceOS-indexer` | Ponder indexer, **Sepolia-only target**, built but not yet running | `main` |
+| `brendonrell/PriceOS-indexer` | ⛔ `main` = DEAD Ponder/Railway code — see banner below. THE indexer lives on branch `claude/indexer-alchemy-setup-tuezqu` | see banner |
 | `brendonrell/pd-price-token` | `$PRICE` ERC-20 (built, not deployed) | `main` |
 | `brendonrell/kiki-genart` | **KIKI — the GENESIS PROJECT of PD**, Brendon's own; set aside for now | `main` |
+
+> **⛔ THE RAILWAY/PONDER INDEXER IS DEAD — NEVER LOOK AT `PriceOS-indexer`
+> `main` (Brendon, 2026-07-02, raised after it misled TWO sessions).**
+> The Ponder/Railway indexer on the repo's `main` branch was **SUPERSEDED
+> 2026-06-29** by the **serverless rebuild**: Alchemy webhook → app route →
+> Supabase + reconcile sweep — $0 at launch scale, Railway fully removed. The
+> rebuild is audit-clean and lives on indexer-repo branch
+> **`claude/indexer-alchemy-setup-tuezqu`** (do NOT delete that branch); it
+> folds into PriceOS at the Cloudflare cutover, go-live steps in that branch's
+> `docs/HANDOFF.md`. **Never review, fix, build on, or take architecture cues
+> from the Ponder code on `main`** — the 2026-07-02 launch-readiness round
+> burned a full indexer fix pass on it because this note lived only in a
+> buried WIP section. The ClickUp "Indexer Architecture" doc carries the same
+> SUPERSEDED banner. If a task says "the indexer," it means the serverless
+> rebuild, full stop.
 
 > **⛔ KIKI IS THE GENESIS PROJECT — Brendon's first art project on PD, set
 > aside for now (Brendon, 2026-06-11, after every fresh session misread it).**
@@ -332,6 +347,21 @@ explicit chat confirmation.
    **not** a source of internal truth. Never cite it as authoritative; if it
    contradicts a spec/this file, treat the PD-Docs claim as draft hallucination
    and surface the discrepancy.
+
+> **⛔ "DOCS" ARE FOR USERS, NOT FOR YOU. Hard rule (Brendon, 2026-07-02 —
+> "our Docs are NOT for you, they are DRAFT FOR USERS", after stale doc
+> bodies misled two sessions).** Long-form descriptive **Docs** — PD-Docs
+> and the ClickUp content/architecture write-ups (e.g. the "Indexer
+> Architecture" doc, the Atlas pages) — are **draft material written for
+> users/readers**, NOT operating memory and NOT a source of internal truth.
+> Never take current architecture, status, or plan-of-record from a Doc
+> body — their prose is reader copy and goes stale the moment a decision
+> moves. Operating truth is: **deployed code + the spec pages §5.1 already
+> names → this file → `docs/WIP.md` → ClickUp TASKS (status/queue)** — in
+> that order. If a Doc contradicts any of those, the Doc is stale draft
+> copy: flag it, don't follow it. (The failure: the ClickUp Indexer
+> Architecture doc's old Ponder/Railway body read as current and sent
+> sessions at the dead indexer — twice.)
 
 ## 6. Verify before you claim
 

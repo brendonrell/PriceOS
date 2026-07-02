@@ -44,7 +44,7 @@ Three repos move together:
 | Repo | What changes for this phase | Who acts |
 |---|---|---|
 | `pd-contracts` | Deploy to Sepolia, verify on Etherscan | Brendon (Remix mobile) — **ship gate** |
-| `PriceOS-indexer` | Point config at Sepolia addresses, run on Railway | Claude wires · Brendon deploys |
+| `PriceOS-indexer` | Serverless rebuild (branch `claude/indexer-alchemy-setup-tuezqu` — repo `main` is dead Ponder/Railway code): register Sepolia addresses on the Alchemy webhook, fold routes into PriceOS | Claude wires · Brendon creates the webhook |
 | `PriceOS` (this) | Add a Sepolia env profile + chain config | Claude — **free rein**, merge-gated |
 
 ## 3. Workstream — ordered
@@ -61,13 +61,18 @@ Three repos move together:
 6. Verify the deployed `PDProject` + `PaymentSplitter` on Etherscan.
 7. **Record every deployed address** → these feed Phases B and C.
 
-### Phase B — Indexer to Sepolia *(Claude wires, Brendon deploys to Railway)*
-1. Set Sepolia contract addresses + start block in the indexer config.
-2. Confirm the Ponder schema matches the Supabase table shapes (they already do —
-   the 7 mocked routes were built to this shape).
-3. Run locally against Sepolia, confirm it ingests the Phase A events
-   (collection-created, mint, transfer, list, sale).
-4. Deploy to Railway; confirm Supabase tables populate.
+### Phase B — Indexer to Sepolia *(Claude wires, Brendon creates the Alchemy webhook)*
+*(Rewritten 2026-07-02 — the old Ponder/Railway steps were superseded by the
+serverless rebuild, 2026-06-29. Go-live detail: rebuild branch `docs/HANDOFF.md`.)*
+1. Fold the serverless indexer (webhook route + reconcile sweep) from the
+   rebuild branch into PriceOS (rides the Cloudflare cutover per Brendon's
+   2026-06-29 call, or earlier if Sepolia arrives first).
+2. Brendon creates the Alchemy webhook (steps in HANDOFF) + sets the signing
+   key; register the Phase A contract addresses on it — and paste each
+   contract address into its `projects` row (`contract_address` — that's the
+   address→slug bridge AND the per-project cutover switch).
+3. Send test events / run the reconcile sweep against Sepolia, confirm the
+   Phase A events (mint, transfer, sale) populate Supabase.
 
 ### Phase C — Frontend to Sepolia *(Claude, free rein, merge-gated)*
 1. Add a **Sepolia env profile** (separate from mainnet): Alchemy Sepolia RPC,
@@ -119,7 +124,7 @@ mainnet and Sepolia profiles separate so neither clobbers the other.
 - **Brendon's taps (the only approvals):**
   1. Merge frontend/indexer PRs into `dev`
   2. On-chain Sepolia deploys (Remix mobile) + signing the test transactions
-  3. Railway deploy of the indexer
+  3. Creating the Alchemy webhook + signing key for the serverless indexer
 - **Never automated:** mainnet anything, real-money writes.
 
 ## 6. Risks / watch-items

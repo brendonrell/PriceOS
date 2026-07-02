@@ -6,6 +6,31 @@
 
 ---
 
+## ⛔ LOCKED 2026-07-02 — THE INDEXER = $0 ALCHEMY SERVERLESS. PONDER/RAILWAY IS DEAD. DOCS ARE FOR USERS.
+
+**(Brendon, raised in anger after TWO sessions grabbed the wrong indexer —
+including the fix round below, which went to the dead code.)**
+- **THE indexer** = serverless Alchemy webhook → app route → Supabase +
+  reconcile sweep. **$0. No Railway — never set up, pay for, or mention it.**
+  Lives on indexer-repo branch `claude/indexer-alchemy-setup-tuezqu` (do NOT
+  delete); go-live in its `docs/HANDOFF.md`. Indexer-repo **`main` = dead
+  Ponder/Railway code** — ⛔ banner now in its README; never touch it.
+- Locked everywhere a session can enter: **CLAUDE.md §2 banner + §5 docs
+  rule · indexer `main` README banner · ClickUp bootstrap page top lock ·
+  ClickUp "Indexer Architecture" doc retitled ⛔ SUPERSEDED · Sepolia test
+  phase doc rewritten (Phase B = webhook, not Railway).**
+- **Docs are DRAFT FOR USERS, not for Claude (Brendon, verbatim).** PD-Docs
+  AND ClickUp content/architecture write-ups: never source current
+  architecture/status from a Doc body. Truth = code + specs → CLAUDE.md →
+  WIP → ClickUp tasks.
+- **Fallout from the fix round below:** the app-side + DB fixes all stand
+  (architecture-independent — contract_address, cutover guard, pings, API
+  auth, social graph, wallet-volume trigger). The indexer-repo commit on
+  `main` is donor code only. The REAL indexer has the same address→slug
+  keying gap (verified — it drops every event as-is): **queued as ClickUp
+  `86baq7mcz` (high)** — port before first Sepolia run. Railway-Postgres
+  console tap is VOID (corrected in the assigned comment on `86b9v5w77`).
+
 ## ✅ SHIPPED 2026-07-02 — LAUNCH-READINESS FIX ROUND (API · indexer · pings · social)
 
 **On `dev` (de4c2de) + indexer `main` (1ac5e2c), trees clean. Renders when
