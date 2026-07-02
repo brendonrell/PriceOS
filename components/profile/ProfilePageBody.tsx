@@ -96,7 +96,8 @@ import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
-import { priceDayNumber, priceDayContents } from '../../lib/priceday/priceday';
+import { priceDayNumber } from '../../lib/priceday/priceday';
+import { usePriceDay } from '../../lib/priceday/usePriceDay';
 
 /**
  * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
@@ -1329,10 +1330,8 @@ function ProfilePageBodyInner({
         return Number.isNaN(d.getTime()) ? null : d;
     }, [user.created_at]);
     const joinPriceDay = joinDate ? priceDayNumber(joinDate) : null;
-    const joinDayContents = useMemo(
-        () => (joinDate ? priceDayContents(joinDate) : null),
-        [joinDate]
-    );
+    const joinPdcLive = usePriceDay(joinDate ?? new Date());
+    const joinDayContents = joinDate ? joinPdcLive : null;
 
     // ── Tab / sub-tab state ───────────────────────────────────────────
     const onShowcase  = activeTab === 'showcase';
@@ -1760,6 +1759,13 @@ function ProfilePageBodyInner({
                                             <span className="dp-label">{joinDayContents.biggestSale.label}</span>
                                             <span className="dp-value">{joinDayContents.biggestSale.value}</span>
                                         </div>
+                                    )}
+                                    {joinDayContents.flavor && (
+                                        <>
+                                            <div className="pd-section-header">THE DAY</div>
+                                            <div className="dp-row"><span className="dp-label">{joinDayContents.flavor}</span></div>
+                                            <div className="pd-section-end" />
+                                        </>
                                     )}
                                     <div className="pd-section-end" />
                                 </div>

@@ -23,6 +23,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { priceDayContents } from '../../lib/priceday/priceday';
+import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -332,7 +333,7 @@ export default function ArtworkPageBody({
         }
         setPriceDayOpen(true);
     };
-    const outputPdc = priceDayContents(mintMs != null ? new Date(mintMs) : new Date());
+    const outputPdc = usePriceDay(mintMs != null ? new Date(mintMs) : new Date());
 
     /* This Output's activity timeline — REAL pre-chain transaction rows from
        Supabase `events` (scoped to this token), PLUS the project/artist history
@@ -582,6 +583,14 @@ export default function ArtworkPageBody({
                                         <>
                                             <div className="pd-section-header">BIGGEST SALE</div>
                                             <div className="dp-row"><span className="dp-label">{outputPdc.biggestSale.label}</span><span className="dp-value">{outputPdc.biggestSale.value}</span></div>
+                                            <div className="pd-section-end" />
+                                        </>
+                                    )}
+                                    {/* THE DAY — the day's own written line (real ledger, seeded voice). */}
+                                    {outputPdc.flavor && (
+                                        <>
+                                            <div className="pd-section-header">THE DAY</div>
+                                            <div className="dp-row"><span className="dp-label">{outputPdc.flavor}</span></div>
                                             <div className="pd-section-end" />
                                         </>
                                     )}

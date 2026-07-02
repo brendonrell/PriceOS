@@ -75,7 +75,7 @@ import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
-import { priceDayContents } from '../../lib/priceday/priceday';
+import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import type { EventRow } from '../../lib/supabase';
@@ -1087,9 +1087,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     /* PriceDay almanac for THIS project's upload day — seeded test-phase
        content (same source the home/profile popovers use), so the project
        popover shows the real PriceDay number instead of a hardcoded one. */
-    const projectPdc = priceDayContents(
-        uploadedAt != null ? new Date(uploadedAt) : new Date(),
-    );
+    const projectPdc = usePriceDay(uploadedAt != null ? new Date(uploadedAt) : new Date(),);
 
     const priceAscActive = sort === 'price' && dir === 'asc';
     const priceAscRef = useRef(priceAscActive);
@@ -1166,6 +1164,13 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                         <>
                                             <div className="pd-section-header">BIGGEST SALE</div>
                                             <div className="dp-row"><span className="dp-label">{projectPdc.biggestSale.label}</span><span className="dp-value">{projectPdc.biggestSale.value}</span></div>
+                                            <div className="pd-section-end" />
+                                        </>
+                                    )}
+                                    {projectPdc.flavor && (
+                                        <>
+                                            <div className="pd-section-header">THE DAY</div>
+                                            <div className="dp-row"><span className="dp-label">{projectPdc.flavor}</span></div>
                                             <div className="pd-section-end" />
                                         </>
                                     )}

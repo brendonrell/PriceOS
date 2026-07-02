@@ -19,6 +19,7 @@ import {
     priceDayContents,
     type PriceDayContents,
 } from '../../lib/priceday/priceday';
+import { usePriceDay } from '../../lib/priceday/usePriceDay';
 
 const POPOVER_WIDTH = 260;
 const MARGIN = 8;
@@ -63,7 +64,8 @@ export default function PriceDaySlot() {
     };
 
     const dateLabel = today ? formatPriceDate(today) : '—';
-    const contents: PriceDayContents | null = today ? priceDayContents(today) : null;
+    const livePdc = usePriceDay(today ?? new Date());
+    const contents: (PriceDayContents & { flavor?: string | null }) | null = today ? livePdc : null;
 
     return (
         <span className="project-date-wrap" ref={ref}>
@@ -114,6 +116,14 @@ export default function PriceDaySlot() {
                             <span className="dp-label">{contents.biggestSale.label}</span>
                             <span className="dp-value">{contents.biggestSale.value}</span>
                         </div>
+                    )}
+                    {/* THE DAY — the day's own written line (real ledger, seeded voice). */}
+                    {contents.flavor && (
+                        <>
+                            <div className="pd-section-header">THE DAY</div>
+                            <div className="dp-row"><span className="dp-label">{contents.flavor}</span></div>
+                            <div className="pd-section-end" />
+                        </>
                     )}
                     <div className="pd-section-end" />
                 </div>
