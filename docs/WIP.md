@@ -6,6 +6,42 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — ACHIEVEMENTS 1000: the full game + the two-year Mjölnir wall
+
+**On `dev` (108dcb8), tree clean. Renders when hosting resumes (Vercel paused).**
+- **Catalog is EXACTLY 1,000** (was 281) across 6 modules: core + ladders +
+  **myth** (NEW — the Odin arc, 15 rows, hinted-not-hardcore per Brendon; new
+  MYTH wall section, glyph ⍟ shared with Stargazing, noted in GLYPHS.md) +
+  **numbers** (88 deadpan token eggs, contract range 22–9999, + the engine's
+  dormant math predicates) + **depth** (575 dense ladders, every family) +
+  **tenure** (40 — the calendar spine). Zero engine changes — all existing
+  trigger paths.
+- **`tools/achievements/verify.js` — run after ANY catalog edit.** Proves:
+  exactly 1000 · unique ids · no 666 · only Mjölnir (+world_first) ≥1000 pts ·
+  token range · **THE TWO-YEAR WALL** (max safe score at day 729 < Mjölnir ≤
+  day 730). Loads the real TS modules; gameable prefixes parsed from engine.
+- **Mjölnir = score 186,000** (was 10,000). The 730-day tenure block (850-pt
+  "Two-Year Oath" + 2-year anniversary) is the wall — un-buyable early.
+  **RANK_TIERS re-spread** to the ~215k economy (Apex 120,000). ⚠ When dead
+  paths go live later (leaderboard/seasons, offer-accept linkage, identity/
+  client eggs), re-run the verifier — the wall band shifts and Mjölnir's
+  threshold gets re-tuned then (nobody will have it yet; safe).
+- **Sub-#22 eggs retargeted** (contracts floor is #22): The One → Firstborn
+  (#22, deliberately shares Lucky 22's trigger — double pop), Master Number →
+  #1818.
+- **Pop spam fixed** (PriceRankSync): >3 unlocks at once = biggest one by name
+  + one "N MORE UNLOCKED" summary toast. ≤3 unchanged (staggered).
+- **PriceSprite modal**: NEW **PRICESTREAK** row (current run / best /
+  activation hint — anoint-socket treatment, ◈); achievements rail now browses
+  **one category at a time** via a pill row (glyph + label + done/total);
+  category maps exported from AchievementsGrid (single source).
+- Streak criteria confirmed already-built to Brendon's spec (real actions
+  only, never logins; 60-day activation; gameable-capped so unfakeable at
+  rank level). ClickUp "FEATURE · The Streak" (86b9erg8f) commented with
+  status; task stays open for the bigger feature (calendar view etc.).
+- This chat's task branch `claude/achievements-system-overhaul-et1hvo` is
+  trash once Brendon deletes it on GitHub (work is on dev).
+
 ## ✅ SHIPPED 2026-07-01 — NPC round 2: actions + convergence + Fingerprint v3 + mute
 
 **On `dev` (ed65e91), tree clean. Same session as round 1 below.**
