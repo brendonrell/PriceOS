@@ -1107,8 +1107,25 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     scrollbar-width: none; -ms-overflow-style: none;
 }
 .global-search-results::-webkit-scrollbar { display: none; }
-.global-search-results.has-results { max-height: 120px; overflow-y: auto; }
+/* Reveal cap raised 120→320 for the LIVE sectioned results (2026-07-02) —
+   PROJECTS / COLLECTORS / ARTWORKS need the room; the rest of the panel is
+   hidden while searching so the space is free. */
+.global-search-results.has-results { max-height: 320px; overflow-y: auto; }
 .global-result-item { font-size: 12px; font-family: 'Courier New', Courier, monospace; font-weight: bold; padding: 7px 10px; border-radius: 4px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, background 0.2s; }
+
+/* LIVE search rows (2026-07-02). Section headers reuse .settings-header;
+   rows are formatted FOR search in the results' own courier voice — the
+   PriceSprite face (no ID Rectangle), the name, and the dim right-hand
+   detail (stats / match reason / Reads-As words). */
+.gsr-header { padding: 6px 10px 2px; opacity: 0.6; }
+.global-result-item.gsr-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gsr-ic { font-size: 12px; opacity: 0.8; flex: none; }
+.gsr-main { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: none; max-width: 55%; }
+.gsr-sub { margin-left: auto; opacity: 0.55; font-weight: normal; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
+.gsr-sprite { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; line-height: 1; flex: none; }
+.gsr-badge { font-family: 'Courier New', Courier, monospace; font-size: 11px; opacity: 0.8; flex: none; }
+.gsr-stats { white-space: pre; font-family: 'Courier New', Courier, monospace; }
+.gsr-empty { opacity: 0.55; cursor: default; }
 
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */

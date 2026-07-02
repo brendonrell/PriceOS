@@ -42,14 +42,22 @@
  *      isn't in the DOM and the new measurement is skipped) still keeps
  *      the dropdown at full size after the first links→calendar open.
  *
- * D25: dummy result rows. While the search input is non-empty
- *      (isGlobalSearching), three preview rows render inside
- *      .global-search-results using sim's exact shape (sim.html 8979–8985):
- *        ⌕ @<val> — collector
- *        ⌕ "<val>" — palette match
- *        ⌕ #<rand 1..1000> — token
- *      The container also receives .has-results so the sim CSS rule at
- *      sim line 613 ({ max-height: 120px; overflow-y: auto }) applies.
+ * D25→LIVE (2026-07-02): real results replace the sim's dummy rows. While
+ *      the input is non-empty, the bar debounce-fetches /api/search and
+ *      renders the response broken down by section — PROJECTS / COLLECTORS /
+ *      ARTWORKS — inside .global-search-results:
+ *        - section headers reuse .settings-header (PortfolioView/ArtistsView
+ *          pattern), rows stay .global-result-item;
+ *        - collector rows reuse CollectedPair (sprite+@name) + the Followers
+ *          Manager's compact stats chips (.fm-stat: ⬚ collected · ⟠ spent ·
+ *          ⚬ followers), sized down one step in the results context;
+ *        - artwork rows carry the piece's Reads-As / fingerprint words, so a
+ *          natural-language match shows WHY it matched;
+ *        - rows navigate like ArtistsView rows (router.push) — projects to
+ *          /art/{slug}, collectors to /{handle}, artworks to /art/{slug}/{id}.
+ *      While the fetch is in flight the row pulses (.fm-loading — §9, always
+ *      feel moving forward). The container keeps .has-results so the reveal
+ *      rule applies (max-height raised for the sectioned list).
  * D26: panel hide on type. While isGlobalSearching, the rest of the
  *      dropdown surface is hidden so the search results dominate the
  *      panel (sim.html 8971–8977). The effect imperatively sets:
@@ -71,10 +79,62 @@
  *      zero .notifications-box and the effect just hides the panel.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
+import SpriteFace from '../SpriteFace';
+import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
+import { fmtFollowers } from '../../lib/social/useArtistSocial';
+import { getRecentGlobal } from '../../lib/pins/breadcrumbStore';
+import { getProject } from '../../lib/project/registry';
+import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
+
+const VS15 = '︎';
+
+/** 0x1234…5678 — the compact address face for handle-less wallets. */
+function shortAddress(addr: string): string {
+    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+}
+
+/** "Prisms #7" — the app's piece-naming convention (ArtworkCard's grail
+    toasts): sentence-cased project name, then the edition number. */
+function pieceName(title: string, id: string | number): string {
+    return `${title.charAt(0)}${title.slice(1).toLowerCase()} #${id}`;
+}
+
+/* One collector row, formatted FOR search (Brendon, 2026-07-02: no ID
+   Rectangle in here — just the PriceSprite, the @name, the ✺ badge and the
+   three profile stats, all in the results' own courier voice). */
+function SearchUserRow({
+    user,
+    onGo,
+}: {
+    user: SearchUserResult;
+    onGo: (e: MouseEvent, href: string) => void;
+}) {
+    const face = useSpriteFace(user.handle ?? '');
+    const name = user.handle
+        ? `@${user.handle}`
+        : user.ens_name ?? shortAddress(user.address);
+    const dest = `/${user.handle ?? user.address}`;
+    return (
+        <div
+            className="global-result-item gsr-row gsr-user"
+            role="button"
+            tabIndex={0}
+            onClick={(e) => onGo(e, dest)}
+        >
+            {face && <SpriteFace className="gsr-sprite" face={face} />}
+            <span className="gsr-main">{name}</span>
+            {user.is_artist && <span className="gsr-badge" title="Artist">{`✺${VS15}`}</span>}
+            <span className="gsr-sub gsr-stats" title="Collected · Spent · Followers">
+                {`⬚${VS15} ${user.collected}  ⟠${VS15} ${user.spent_eth.toFixed(2)}  ⚬${VS15} ${fmtFollowers(user.followers)}`}
+            </span>
+        </div>
+    );
+}
 
 function GlobeIcon({ id }: { id?: string }) {
     return (
@@ -100,8 +160,11 @@ function GlobeIcon({ id }: { id?: string }) {
 export function GlobalSearchBar() {
     const { notifs, update } = usePdNotifs();
     const { view, setView } = useDropdown();
+    const router = useRouter();
     const [active, setActive] = useState(false);
     const [value, setValue] = useState('');
+    const [results, setResults] = useState<SearchResponse | null>(null);
+    const [searching, setSearching] = useState(false);
     // F23: ref on the wrap so we can walk up to .user-dropdown via .closest()
     // without reaching for a global document.querySelector.
     const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -109,18 +172,28 @@ export function GlobalSearchBar() {
     const calendarOpen = view === 'calendar';
 
     // D25 + D26: any non-empty trimmed input flips the bar into search
-    // mode. D25 reads this to render dummy rows; D26 reads it to hide
-    // the rest of the dropdown surface. Mirrors sim's `isGlobalSearching`
-    // flag (sim.html 8914 + 8968).
+    // mode (live results render; the rest of the dropdown surface hides).
+    // Mirrors sim's `isGlobalSearching` flag (sim.html 8914 + 8968).
     const isGlobalSearching = value.trim().length > 0;
 
-    // D26: panel hide on type. Imperatively reach into the live DOM and
-    // toggle visibility on menu-links / accordion boxes / settings panel /
-    // artists panel while typing. Refs are captured at the moment the
+    // RECENTLY VIEWED — the breadcrumb trail (the History feature) surfaces
+    // the moment search opens, before a single keystroke; typing swaps it for
+    // live results. Loaded on activation so the freshest trail always shows.
+    const [recent, setRecent] = useState<{ slug: string; id: number }[]>([]);
+    useEffect(() => {
+        if (active) setRecent(getRecentGlobal(5));
+    }, [active]);
+    const recentCount = recent.length;
+
+    // D26: panel hide while the search surface is engaged — typing, or the
+    // just-opened input showing the RECENTLY VIEWED trail. Imperatively reach
+    // into the live DOM and toggle visibility on menu-links / accordion boxes
+    // / settings panel / artists panel. Refs are captured at the moment the
     // effect runs so cleanup restores the same nodes — even if React
     // re-renders or unmounts the bar mid-search.
+    const engaged = isGlobalSearching || (active && recentCount > 0);
     useEffect(() => {
-        if (!isGlobalSearching) return;
+        if (!engaged) return;
 
         const menuLinks = document.getElementById('dropdownMenuLinks');
         const notifsBoxes = Array.from(
@@ -144,18 +217,62 @@ export function GlobalSearchBar() {
             if (settingsPanel) settingsPanel.style.display = '';
             if (artistsPanel) artistsPanel.style.display = '';
         };
-    }, [isGlobalSearching]);
+    }, [engaged]);
 
-    // D25: three dummy result rows mirroring sim 8979–8985. Math.random
-    // is intentionally re-rolled on every keystroke (each render) — sim
-    // does the same inside its handler.
-    const dummies = isGlobalSearching
-        ? [
-              `⌕ @${value} — collector`,
-              `⌕ "${value}" — palette match`,
-              `⌕ #${Math.floor(Math.random() * 1000) + 1} — token`,
-          ]
-        : [];
+    // LIVE search: debounce-fetch /api/search on every keystroke ≥2 chars.
+    // AbortController cancels the in-flight request when the value changes
+    // or the bar unmounts; stale responses can never land over fresh ones.
+    useEffect(() => {
+        const q = value.trim();
+        if (q.length < 2) {
+            setResults(null);
+            setSearching(false);
+            return;
+        }
+        setSearching(true);
+        const ctl = new AbortController();
+        const t = window.setTimeout(() => {
+            fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctl.signal })
+                .then((res) => (res.ok ? res.json() : null))
+                .then((json: SearchResponse | null) => {
+                    if (ctl.signal.aborted) return;
+                    setResults(json ?? { query: q, projects: [], users: [], artworks: [] });
+                    setSearching(false);
+                })
+                .catch(() => {
+                    if (!ctl.signal.aborted) setSearching(false);
+                });
+        }, 220);
+        return () => {
+            window.clearTimeout(t);
+            ctl.abort();
+        };
+    }, [value]);
+
+    // Row navigation — same move as ArtistsView rows (router.push).
+    const go = (e: MouseEvent, href: string) => {
+        e.preventDefault();
+        router.push(href);
+    };
+
+    // Browse-history-aware ordering: within each section, pieces (and
+    // projects) the viewer actually opened rank first — the trail is the
+    // strongest personal relevance signal we have.
+    const ordered = useMemo(() => {
+        if (!results) return null;
+        const trail = getRecentGlobal(100);
+        const keys = new Set(trail.map((r) => `${r.slug}:${r.id}`));
+        const slugs = new Set(trail.map((r) => r.slug));
+        const artworks = [...results.artworks].sort(
+            (a, b) =>
+                Number(keys.has(`${b.project_id}:${b.token_id}`)) -
+                Number(keys.has(`${a.project_id}:${a.token_id}`))
+        );
+        const projects = [...results.projects].sort(
+            (a, b) => Number(slugs.has(b.id)) - Number(slugs.has(a.id))
+        );
+        return { ...results, artworks, projects };
+    }, [results]);
 
     // Cycle menu tape mode 0 → 3 → 0 (framed mode 4 removed — letters only)
     const cycleMenuTape = () => {
@@ -351,14 +468,95 @@ export function GlobalSearchBar() {
             </div>
 
             <div
-                className={`global-search-results${isGlobalSearching ? ' has-results' : ''}`}
+                className={`global-search-results${engaged ? ' has-results' : ''}`}
                 id="globalSearchResults"
+                onMouseDown={(e) => e.preventDefault()}
             >
-                {dummies.map((d, i) => (
-                    <div key={i} className="global-result-item">
-                        {d}
-                    </div>
-                ))}
+                {engaged && !isGlobalSearching && (
+                    <>
+                        <div className="settings-header gsr-header">Recently Viewed</div>
+                        {recent.map((r) => (
+                            <div
+                                key={`r:${r.slug}:${r.id}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => go(e, `/art/${r.slug}/${r.id}`)}
+                            >
+                                <span className="gsr-main">
+                                    {pieceName(getProject(r.slug)?.displayName ?? r.slug, r.id)}
+                                </span>
+                            </div>
+                        ))}
+                    </>
+                )}
+                {isGlobalSearching && searching && !ordered && (
+                    <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} searching…`}</div>
+                )}
+                {isGlobalSearching && ordered && (
+                    <>
+                        {ordered.projects.length > 0 && (
+                            <div className="settings-header gsr-header">Projects</div>
+                        )}
+                        {ordered.projects.map((p) => (
+                            <div
+                                key={`p:${p.id}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => go(e, `/art/${p.id}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') router.push(`/art/${p.id}`);
+                                }}
+                            >
+                                <span className="gsr-ic">{`⬚${VS15}`}</span>
+                                <span className="gsr-main">{p.title}</span>
+                                <span className="gsr-sub">
+                                    {p.match
+                                        ? p.match
+                                        : `@${p.artist_handle ?? p.handle ?? ''} · ${p.minted_count}/${p.max_supply}`}
+                                </span>
+                            </div>
+                        ))}
+
+                        {ordered.users.length > 0 && (
+                            <div className="settings-header gsr-header">Collectors</div>
+                        )}
+                        {ordered.users.map((u) => (
+                            <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} />
+                        ))}
+
+                        {ordered.artworks.length > 0 && (
+                            <div className="settings-header gsr-header">Artworks</div>
+                        )}
+                        {ordered.artworks.map((a) => (
+                            <div
+                                key={`a:${a.project_id}:${a.token_id}`}
+                                className="global-result-item gsr-row"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => go(e, `/art/${a.project_id}/${a.token_id}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') router.push(`/art/${a.project_id}/${a.token_id}`);
+                                }}
+                            >
+                                <span className="gsr-main">{pieceName(a.project_title, a.token_id)}</span>
+                                <span className="gsr-sub">
+                                    {a.label
+                                        ? `${a.label} · ⚬${VS15} ${a.followers}`
+                                        : `⚬${VS15} ${a.followers}`}
+                                </span>
+                            </div>
+                        ))}
+
+                        {ordered.projects.length === 0 &&
+                            ordered.users.length === 0 &&
+                            ordered.artworks.length === 0 &&
+                            !searching && (
+                                <div className="global-result-item gsr-empty">{`⌕${VS15} NO MATCHES`}</div>
+                            )}
+                    </>
+                )}
             </div>
         </div>
     );
