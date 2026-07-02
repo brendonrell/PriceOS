@@ -6,6 +6,22 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — STICKER SECONDARY (in-store market, the only place it lives)
+
+**dev @ d226c10, tree clean.** MKT toggle in the Sticker Exchange header →
+the market inside the same shell: per-sheet summary (floor · ✦ best offer ·
+listed/wanted/sold) → per-sheet BOOK (asks w/ BUY+qty+confirm, bids w/
+SELL-into+confirm / CANCEL own, SELL + OFFER composers, duration pills,
+partial fills). Server-side 1155 semantics applied live + in repo:
+`sticker_holdings/listings/offers/events` + `app_sticker_buy/accept` RPCs
+(escrow-on-list, same sim ETH balance). Primary sheet buys now record a
+server CLAIM; pre-market device sheets claim_sync once. SALE/OFFER_ACCEPTED
+pings instant. Order columns ready for the PDStickers cutover (same signed-
+order pattern as the art market). Sticker trading lives ONLY here + OpenSea
+post-chain (Brendon's call).
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — SECONDARY MARKET, WHOLE (Seaport order book + wow pass + PRICE STORY)
 
 **dev @ 70733c9, tree clean. Two merges (2d35c12 core, 70733c9 wow pass).
