@@ -6,9 +6,19 @@
 
 ---
 
-## ✅ SHIPPED 2026-07-02 — ACHIEVEMENTS 1000: the full game + the two-year Mjölnir wall
+## ✅ SHIPPED 2026-07-02 — ACHIEVEMENTS 1000 + the two-year Mjölnir wall + LEADERBOARD
 
-**On `dev` (108dcb8), tree clean. Renders when hosting resumes (Vercel paused).**
+**On `dev` (2cc7d9f), tree clean. Renders when hosting resumes (Vercel paused).**
+- **LEADERBOARD (same session, second approval):** tap the PriceRank medallion
+  in the PriceSprite modal → Top-100 popup on the Followers Manager compact
+  shell (fm-row treatment verbatim): position · PriceSprite+@name
+  (CollectedPair) · PriceScore ◍. Own row highlighted (.lb-me). New
+  `GET /api/leaderboard` (anon RLS; named + scored accounts only; ties → older
+  account). New modal name `leaderboard` in ModalContext; mounted in the shell.
+  **Stats columns deliberately deferred** — queued as ClickUp `86baq4g03`
+  (Ideas), which also notes: wiring `leaderboard.bestRank` persistence later
+  makes the dormant leaderboard/season achievements live → re-run the verifier,
+  Mjölnir wall re-tunes.
 - **Catalog is EXACTLY 1,000** (was 281) across 6 modules: core + ladders +
   **myth** (NEW — the Odin arc, 15 rows, hinted-not-hardcore per Brendon; new
   MYTH wall section, glyph ⍟ shared with Stargazing, noted in GLYPHS.md) +
