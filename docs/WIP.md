@@ -6,6 +6,27 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — THE LOOP: PRICEDAY SEARCH POWERUP + DAY STORIES + REAL CALENDAR
+
+**dev @ HEAD, tree clean, build green.** The stack Brendon named — secondary
+→ completionism → PriceDay → search powerup → calendar — is now one loop.
+- Search: `priceday 55` / `pd 55` / `priceday` → full inline day almanac
+  (date · THE DAY · story beats · biggest sale · top mints/arrivals ·
+  tallies, tappable). Engine extracted to `lib/priceday/almanac.server.ts`
+  (feeds priceday route + search + calendar; days now carry `story[]`).
+- Calendar REAL: `calendar_items` (applied live + in repo), `/api/calendar`
+  (month = stored global+personal + AUTO milestones from projects
+  uploaded/graduated/sold_out + busy-minting retrospectives (≥8 mints,
+  posthumous only) + month pseudo-story on closed months). CalendarPanel:
+  + composer beside the Day Note icon (personal; GLOBAL toggle for
+  @brendon via handle check), deletable own items, real dots, selected-day
+  column leads with PriceDay # + THE DAY. CAL_EVENTS mock still shows
+  (untouched).
+- Sim genesis: current epoch = sim (PRISMS as sim genesis); real reset =
+  one line (`PRICEDAY_EPOCH` → first real upload), noted in the engine.
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — PRICEDAY IS REAL + THE STICKER WOW TWELVE
 
 **dev @ HEAD, tree clean, build green.**
