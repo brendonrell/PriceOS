@@ -426,6 +426,7 @@ export default function ProfileFacetBar({
                 sort={sort}
                 dir={dir}
                 feedKind={feedKind}
+                group={effGroup}
                 applySort={applySort}
                 applyPreset={applyPreset}
                 activeFilters={activeFilters}
@@ -523,10 +524,12 @@ interface CollectedPresetRowProps {
     sort: import('../../lib/state/SortContext').SortKey;
     dir: import('../../lib/state/SortContext').SortDir;
     feedKind: import('../../lib/state/SortContext').FeedKind;
+    group: import('../../lib/state/SortContext').GroupKey;
     applySort: (
         sort: import('../../lib/state/SortContext').SortKey,
         dir: import('../../lib/state/SortContext').SortDir,
         feedKind: import('../../lib/state/SortContext').FeedKind,
+        group?: import('../../lib/state/SortContext').GroupKey,
     ) => void;
     applyPreset: (state: Parameters<import('../../lib/state/TraitsContext').TraitsContextValue['applyPreset']>[0]) => void;
     activeFilters: import('../../lib/state/TraitsContext').ActiveFilters;
@@ -541,6 +544,7 @@ function CollectedPresetRow({
     sort,
     dir,
     feedKind,
+    group,
     applySort,
     applyPreset,
     activeFilters,
@@ -567,7 +571,7 @@ function CollectedPresetRow({
             Object.entries(activeFilters).map(([k, v]) => [k, Array.from(v as Set<string>)])
         ) as Record<string, string[]>;
         const { result, index } = savePreset(COLLECTED_SCOPE, {
-            sort, dir, feedKind,
+            sort, dir, feedKind, group,
             activeFilters: filtersSnapshot,
             activeCategory,
             activeFeedCategory: null,
@@ -583,7 +587,7 @@ function CollectedPresetRow({
 
     const handleRecall = (index: number, preset: PresetEntry) => {
         const s = preset.state;
-        applySort(s.sort, s.dir, s.feedKind);
+        applySort(s.sort, s.dir, s.feedKind, s.group ?? 'none');
         const restoredFilters = Object.fromEntries(
             Object.entries(s.activeFilters).map(([k, arr]) => [k, new Set(arr as string[])])
         ) as unknown as import('../../lib/state/TraitsContext').ActiveFilters;

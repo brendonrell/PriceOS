@@ -29,7 +29,8 @@
  * only. The caller resets it via setLoadedIndex() when view state drifts.
  */
 
-import type { SortKey, SortDir, FeedKind } from '../state/SortContext';
+import type { SortKey, SortDir, FeedKind, GroupKey } from '../state/SortContext';
+import { GROUP_GLYPH } from '../state/SortContext';
 import type { TraitCategory, FeedCategory } from '../state/TraitsContext';
 import { pushState, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
@@ -37,6 +38,9 @@ export interface PresetViewState {
     sort: SortKey;
     dir: SortDir;
     feedKind: FeedKind;
+    /** Group-by dimension active when captured. Optional so pre-grouping
+     *  presets (saved before this field existed) restore as ungrouped. */
+    group?: GroupKey;
     activeFilters: Record<TraitCategory, string[]>;   // Set → array for JSON
     activeCategory: TraitCategory | null;
     activeFeedCategory: FeedCategory | null;
@@ -76,7 +80,8 @@ const SORT_LABEL: Record<SortKey, string> = {
 const DIR_GLYPH: Record<SortDir, string> = { asc: '↑', desc: '↓' };
 
 function deriveName(state: PresetViewState): string {
-    const base = `${SORT_LABEL[state.sort]} ${DIR_GLYPH[state.dir]}`;
+    const groupGlyph = state.group ? GROUP_GLYPH[state.group] : '';
+    const base = `${SORT_LABEL[state.sort]} ${DIR_GLYPH[state.dir]}${groupGlyph ? ' ' + groupGlyph : ''}`;
     const cats = Object.keys(state.activeFilters) as TraitCategory[];
     for (const cat of cats) {
         const vals = state.activeFilters[cat];

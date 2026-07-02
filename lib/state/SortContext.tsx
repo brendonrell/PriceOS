@@ -137,6 +137,77 @@ function isGroupKey(v: unknown): v is GroupKey {
 const STORAGE_KEY = 'pd_settings_sort';
 const GROUP_STORAGE_KEY = 'pd_settings_group';
 
+/* ── Shareable sort slug (Brendon, 2026-07-02) ──────────────────────────
+   The active grid sort + grouping serialises to a compact `?sort=` slug so a
+   view can be copied out of the address bar and pasted to reproduce it. It's
+   OFF by default (clean URL) and turns on the instant the user taps their
+   first sort option; a fresh Project (reset-to-default) clears it again.
+     id-asc · price-desc · az-asc-color · feed-time-desc · feed-price-asc-artist · fog
+   Family first, then direction (omitted for fog), feed carries its kind, and a
+   non-'none' grouping is appended as the last token. */
+const SLUG_PARAM = 'sort';
+
+export function encodeSortSlug(
+    sort: SortKey, dir: SortDir, feedKind: FeedKind, group: GroupKey,
+): string {
+    let base: string;
+    if (sort === 'fog') base = 'fog';
+    else if (sort === 'feed') base = `feed-${feedKind}-${dir}`;
+    else base = `${sort}-${dir}`; // id / price / az
+    if (group && group !== 'none') base += `-${group}`;
+    return base;
+}
+
+export interface DecodedSort {
+    sort: SortKey; dir: SortDir; feedKind: FeedKind; group: GroupKey;
+}
+
+export function decodeSortSlug(slug: string): DecodedSort | null {
+    const parts = slug.split('-');
+    const fam = parts[0];
+    if (fam === 'fog') return { sort: 'fog', dir: 'asc', feedKind: 'time', group: 'none' };
+    if (fam === 'feed') {
+        const feedKind: FeedKind = parts[1] === 'price' ? 'price' : 'time';
+        const dir: SortDir = parts[2] === 'asc' ? 'asc' : 'desc';
+        const group: GroupKey = isGroupKey(parts[3]) ? parts[3] : 'none';
+        return { sort: 'feed', dir, feedKind, group };
+    }
+    if (fam === 'id' || fam === 'price' || fam === 'az') {
+        const dir: SortDir = parts[1] === 'desc' ? 'desc' : 'asc';
+        const group: GroupKey = isGroupKey(parts[2]) ? parts[2] : 'none';
+        return { sort: fam, dir, feedKind: 'time', group };
+    }
+    return null;
+}
+
+function readUrlSlug(): DecodedSort | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = new URLSearchParams(window.location.search).get(SLUG_PARAM);
+        return raw ? decodeSortSlug(raw) : null;
+    } catch { return null; }
+}
+
+function writeUrlSlug(slug: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get(SLUG_PARAM) === slug) return;
+        url.searchParams.set(SLUG_PARAM, slug);
+        window.history.replaceState(window.history.state, '', url.toString());
+    } catch { /* ignore */ }
+}
+
+function clearUrlSlug(): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has(SLUG_PARAM)) return;
+        url.searchParams.delete(SLUG_PARAM);
+        window.history.replaceState(window.history.state, '', url.toString());
+    } catch { /* ignore */ }
+}
+
 interface SortContextValue {
     sort: SortKey;
     dir: SortDir;
@@ -145,8 +216,10 @@ interface SortContextValue {
     setSort: (s: SortKey) => void;
     /** Sim-faithful click handler — cycles direction within the family. */
     cycleSort: (s: SortKey) => void;
-    /** Restore a full sort snapshot (used by Gallery View Presets). */
-    applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind) => void;
+    /** Restore a full sort snapshot (used by Gallery View Presets). When
+        `group` is given, the grouping dimension is restored too (a preset that
+        was saved while grouped). Omit it to leave the current grouping alone. */
+    applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind, group?: GroupKey) => void;
     /** Reset the gallery sort + grouping to the user's saved DEFAULT sort with
         no grouping. Called when a project page is entered so an in-project sort/
         grouping never carries over to the next project (Brendon, 2026-06-20). */
@@ -179,8 +252,22 @@ export function SortProvider({ children }: { children: ReactNode }) {
     // Sim 8320 — feed entry point is feed-time-desc. Default kind = 'time'.
     const [feedKind, setFeedKind] = useState<FeedKind>('time');
     const [group, setGroupState] = useState<GroupKey>('none');
+    /* Whether the shareable `?sort=` slug is live. Off by default (clean URL);
+       flips on at the first user sort tap, off again on reset-to-default. */
+    const [slugActive, setSlugActive] = useState(false);
 
     useEffect(() => {
+        // A pasted `?sort=` slug wins over the saved default — that IS the
+        // shared view. Apply it and keep the slug live.
+        const fromUrl = readUrlSlug();
+        if (fromUrl) {
+            setSortState(fromUrl.sort);
+            setDir(fromUrl.dir);
+            setFeedKind(fromUrl.feedKind);
+            setGroupState(fromUrl.group);
+            setSlugActive(true);
+            return;
+        }
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (isSortKey(raw)) {
@@ -204,7 +291,14 @@ export function SortProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /* Mirror the live sort/grouping into the `?sort=` slug once it's active. */
+    useEffect(() => {
+        if (!slugActive) return;
+        writeUrlSlug(encodeSortSlug(sort, dir, feedKind, group));
+    }, [slugActive, sort, dir, feedKind, group]);
+
     const setSort = useCallback((s: SortKey) => {
+        setSlugActive(true);
         setSortState(s);
         // Reset to family-default direction state (sim 8329 / 8320).
         if (s === 'id' || s === 'price') {
@@ -234,6 +328,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
        to id-asc if already fog, else to fog. For id/price: flip dir if
        already that family, else enter at `${type}-asc`. */
     const cycleSort = useCallback((target: SortKey) => {
+        setSlugActive(true);
         if (target === 'feed') {
             if (sort === 'feed') {
                 // 4-step cycle within feed: matches FEED_SORTS order.
@@ -284,16 +379,29 @@ export function SortProvider({ children }: { children: ReactNode }) {
         }
     }, [sort, dir, feedKind]);
 
-    const applySort = useCallback((s: SortKey, d: SortDir, fk: FeedKind) => {
+    const applySort = useCallback((s: SortKey, d: SortDir, fk: FeedKind, g?: GroupKey) => {
+        setSlugActive(true);
         setSortState(s);
         setDir(d);
         setFeedKind(fk);
+        if (g !== undefined) setGroupState(g);
     }, []);
 
     /* Reset to the user's saved DEFAULT sort family + no grouping. Used on
        project entry so each project starts clean and an in-project sort /
        grouping never bleeds into the next project (Brendon, 2026-06-20). */
     const resetToDefault = useCallback(() => {
+        // A Project opened from a pasted `?sort=` link keeps that shared view
+        // instead of snapping back to the saved default.
+        const fromUrl = readUrlSlug();
+        if (fromUrl) {
+            setSortState(fromUrl.sort);
+            setDir(fromUrl.dir);
+            setFeedKind(fromUrl.feedKind);
+            setGroupState(fromUrl.group);
+            setSlugActive(true);
+            return;
+        }
         let fam: SortKey = 'id';
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
@@ -310,9 +418,13 @@ export function SortProvider({ children }: { children: ReactNode }) {
             setDir('asc');
         }
         setGroupState('none');
+        // Fresh Project = the no-slug default.
+        setSlugActive(false);
+        clearUrlSlug();
     }, []);
 
     const cycleGroup = useCallback((order: GroupKey[]) => {
+        setSlugActive(true);
         setGroupState((g) => {
             // If the current dimension isn't in this surface's cycle, restart from none.
             const cur = order.includes(g) ? g : 'none';
@@ -326,6 +438,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
        grouping is no longer a separate (untappable) chip. Mirrors FEED. */
     const cycleGridSort = useCallback(
         (family: SortKey, order: GroupKey[]) => {
+            setSlugActive(true);
             const persistGroup = (g: GroupKey) => {
                 try { localStorage.setItem(GROUP_STORAGE_KEY, g); } catch { /* ignore */ }
             };

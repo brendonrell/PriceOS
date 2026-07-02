@@ -1292,6 +1292,7 @@ export default function TraitsUI({
                 sort={sort}
                 dir={dir}
                 feedKind={feedKind}
+                group={effGroup}
                 applySort={applySort}
                 applyPreset={applyPreset}
                 activeFilters={activeFilters}
@@ -1674,10 +1675,13 @@ interface PresetRowProps {
     sort: import('../../lib/state/SortContext').SortKey;
     dir: import('../../lib/state/SortContext').SortDir;
     feedKind: import('../../lib/state/SortContext').FeedKind;
+    /* Active grouping dimension — captured into the preset so recall restores it. */
+    group: import('../../lib/state/SortContext').GroupKey;
     applySort: (
         sort: import('../../lib/state/SortContext').SortKey,
         dir: import('../../lib/state/SortContext').SortDir,
         feedKind: import('../../lib/state/SortContext').FeedKind,
+        group?: import('../../lib/state/SortContext').GroupKey,
     ) => void;
     applyPreset: (state: Parameters<import('../../lib/state/TraitsContext').TraitsContextValue['applyPreset']>[0]) => void;
     /* Current traits/search/price state — for snapshot */
@@ -1698,6 +1702,7 @@ function PresetRow({
     sort,
     dir,
     feedKind,
+    group,
     applySort,
     applyPreset,
     activeFilters,
@@ -1733,7 +1738,7 @@ function PresetRow({
         ) as Record<import('../../lib/state/TraitsContext').TraitCategory, string[]>;
 
         const { result, index } = savePreset(slug, {
-            sort, dir, feedKind,
+            sort, dir, feedKind, group,
             activeFilters: filtersSnapshot,
             activeCategory,
             activeFeedCategory,
@@ -1750,8 +1755,8 @@ function PresetRow({
 
     const handleRecall = (index: number, preset: PresetEntry) => {
         const s = preset.state;
-        // Universal parts (sort / price / search / notes) always restore.
-        applySort(s.sort, s.dir, s.feedKind);
+        // Universal parts (sort / grouping / price / search / notes) always restore.
+        applySort(s.sort, s.dir, s.feedKind, s.group ?? 'none');
         // Trait filters only make sense on the Project they were captured on
         // (Layer/Mineral/etc. don't exist on a different Project's schema).
         // Legacy presets with no savedSlug are treated as same-Project.

@@ -165,7 +165,12 @@ body.bench-dragging * {
     -webkit-tap-highlight-color: transparent;
 }
 .bench-tab-titlebtn:disabled { cursor: default; }
-.bench-tab-title { font-size: 14px; font-weight: bold; letter-spacing: 0.06em; }
+.bench-tab-title {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: 0.06em;
+}
 .bench-tab-count { opacity: 0.55; margin-left: 7px; font-weight: normal; }
 .bench-tab-hint { opacity: 0.45; margin-left: 8px; font-size: 12px; }
 .bench-tab-chevron { margin-left: auto; opacity: 0.6; font-size: 12px; }

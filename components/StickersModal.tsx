@@ -306,7 +306,7 @@ export default function StickersModal() {
                         <>
                             <div className="ss-title">
                                 <span className="ss-title-main">{albumOn ? 'MY STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
-                                <span className="ss-title-sub">{albumOn ? '// GOT / NEED' : marketOn ? '// SECONDARY' : '// FOR YOUR PROFILE'}</span>
+                                <span className="ss-title-sub">{albumOn ? '// GOT / NEED' : marketOn ? '// SECONDARY' : '// BY PD'}</span>
                             </div>
                             <button
                                 className={`ss-expand ss-market-toggle${marketOn ? ' is-on' : ''}`}
