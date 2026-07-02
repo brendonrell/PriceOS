@@ -6,6 +6,22 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — COMPLETIONISM (outputs + stickers) + MY STICKER ALBUM
+
+**dev @ HEAD, tree clean.** Tap your own ⬚ collected stat → COMPLETIONISM
+modal (cart shell): month-by-month release checklist off the PriceDay spine
+(`/api/completionism`; uploaded_at, cooldown−60d fallback), ✓/❐ checks,
+COMPLETE months, rows link to projects; STICKER COMPLETIONISM section rides
+the same modal. Sticker Exchange header gained ALB → MY STICKER ALBUM
+(slot-per-sticker pages, dimmed missing slots, page tallies, total).
+**Queued in ClickUp (Brendon loved, not yet called):** peel-gesture theatre,
+sealed-% stat, sticker swaps, doubles language, need/have matchmaking,
+gifting, pack-pull moments, softer market skin, restock countdowns, sticker
+wishlist, live ticker quotes. Sticker angle: toy-like/game-like vs the
+market-like projects side (Brendon's design note).
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — STICKER SECONDARY (in-store market, the only place it lives)
 
 **dev @ d226c10, tree clean.** MKT toggle in the Sticker Exchange header →
