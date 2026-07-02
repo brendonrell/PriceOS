@@ -212,3 +212,54 @@ a.notif-item--link:hover { opacity: 0.85; }
     font-size: 10.5px; opacity: 0.6;
     display: inline-block; margin-top: 3px;
 }
+
+/* ── STICKER MARKET — the in-store secondary ─────────────────── */
+.skm-wrap {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 14px 14px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.skm-wrap::-webkit-scrollbar { display: none; }
+.skm-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.skm-thumb { display: flex; align-items: center; justify-content: center; }
+.skm-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.skm-prices .skm-sub { font-size: 10px; opacity: 0.6; font-weight: bold; }
+.skm-back {
+    font-size: 11px; font-weight: bold; letter-spacing: 0.6px;
+    opacity: 0.7; cursor: pointer; padding: 6px 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.skm-back:hover { opacity: 1; }
+.skm-book-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 2px 0 8px;
+}
+.skm-book-title { font-family: var(--font-rubik-mono), sans-serif; font-size: 13px; letter-spacing: 1px; }
+.skm-book-pos { font-size: 10px; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.skm-side-label {
+    font-size: 10px; font-weight: bold; letter-spacing: 1px;
+    opacity: 0.55; padding: 10px 0 2px;
+}
+.skm-composers { padding-top: 14px; }
+.skm-compose {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; flex-wrap: wrap;
+}
+.skm-compose-label { font-size: 10px; font-weight: bold; letter-spacing: 0.8px; opacity: 0.7; width: 58px; }
+.skm-durations { padding-top: 8px; }
+.skm-qty { display: inline-flex; align-items: center; gap: 6px; }
+.skm-step {
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+    border-radius: 4px; color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    width: 22px; height: 22px; line-height: 1;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.skm-step:disabled { opacity: 0.35; cursor: not-allowed; }
+.skm-qty-val { font-size: 12px; font-weight: bold; min-width: 16px; text-align: center; font-variant-numeric: tabular-nums; }
+.skm-confirm-qty { display: flex; justify-content: center; padding: 8px 0 2px; }
+.ss-market-toggle { width: auto; padding: 0 8px; font-size: 10px; letter-spacing: 0.8px; }

@@ -44,6 +44,13 @@ export function BuySheetButton({ sheet, className }: { sheet: SheetMeta; classNa
         await new Promise((r) => setTimeout(r, 900));
         setPct(100);
         buySheet(sheet.id);
+        // Record the grant server-side so the sheet is sellable on the in-store
+        // market (holdings ledger). Fire-and-forget — the local grant is king.
+        fetch('/api/stickers/market', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'claim', sheet: sheet.id }),
+        }).catch(() => {});
         showToast(`${sheet.name} SHEET: OWNED`, 3000);
         setPhase('owned');
         setTimeout(() => setPct(0), 400);

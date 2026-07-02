@@ -28,6 +28,7 @@ import {
 } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
+import StickerMarket from './stickers/StickerMarket';
 import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import { buildTickerText } from '../lib/stickers/ticker';
 
@@ -65,6 +66,9 @@ export default function StickersModal() {
 
     /* Which live sheet is open in detail (peel-sheet view), if any. */
     const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
+    /* SECONDARY — the in-store sheet market (the only place it lives,
+       besides OpenSea once on-chain). Toggled from the header. */
+    const [marketOn, setMarketOn] = useState(false);
     /* Expanded grid (two-up, scrolls down) is the DEFAULT; the icon toggles to
        the compact rail (Brendon 2026-06-22). */
     const [expanded, setExpanded] = useState(true);
@@ -107,7 +111,7 @@ export default function StickersModal() {
     }, [isOpen, openSheet, expanded, gridRef]);
 
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
-    useEffect(() => { if (!isOpen) setOpenSheet(null); }, [isOpen]);
+    useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); } }, [isOpen]);
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
@@ -234,9 +238,19 @@ export default function StickersModal() {
                     ) : (
                         <>
                             <div className="ss-title">
-                                <span className="ss-title-main">STICKER STORE</span>
-                                <span className="ss-title-sub">// FOR YOUR PROFILE</span>
+                                <span className="ss-title-main">{marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
+                                <span className="ss-title-sub">{marketOn ? '// SECONDARY' : '// FOR YOUR PROFILE'}</span>
                             </div>
+                            <button
+                                className={`ss-expand ss-market-toggle${marketOn ? ' is-on' : ''}`}
+                                type="button"
+                                title={marketOn ? 'Back to the store' : 'Sticker Market — secondary'}
+                                aria-pressed={marketOn}
+                                onClick={() => setMarketOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'MARKET' : 'STORE'}`); return next; })}
+                            >
+                                MKT
+                            </button>
+                            {!marketOn && (
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
                                 type="button"
@@ -246,6 +260,7 @@ export default function StickersModal() {
                             >
                                 {`⊞${VS15}`}
                             </button>
+                            )}
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
@@ -317,7 +332,9 @@ export default function StickersModal() {
                             </div>
                         </div>
 
-                        {expanded ? (
+                        {marketOn ? (
+                            <StickerMarket />
+                        ) : expanded ? (
                             <div
                                 className="ss-grid-view"
                                 ref={gridRef}
@@ -334,10 +351,12 @@ export default function StickersModal() {
                             </div>
                         )}
 
+                        {!marketOn && (
                         <div className="ss-foot">
                             {totalSheets} sheets live · tap a sheet to peek inside · more restocking ·{' '}
                             <a className="ss-foot-link" href="https://opensea.io" target="_blank" rel="noopener noreferrer">OpenSea</a>
                         </div>
+                        )}
                     </>
                 )}
             </div>
