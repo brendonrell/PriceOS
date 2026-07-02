@@ -710,7 +710,7 @@ export function GlobalSearchBar() {
                         )}
 
                         {ordered && ordered.artworks.length > 0 && (
-                            <div className="settings-header gsr-header">Artworks</div>
+                            <div className="settings-header gsr-header">Outputs</div>
                         )}
                         {ordered && ordered.artworks
                             .slice(0, expanded.artworks ? undefined : SECTION_PREVIEW)

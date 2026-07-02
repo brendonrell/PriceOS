@@ -23,6 +23,8 @@
  *   Output / Artwork / Token / Starred / Collected / Showcase /
  *   Created (Edition banned platform-wide; Outputs replaces it).
  *   See ClickUp Platform Nomenclature SoT (page 2kyd6gx6-3274).
+ *   2026-07-02 — `porsche`, `odin`, `thor` added to T2 by Brendon
+ *   (protected names; the myth arc + one of them opens a side door).
  */
 
 /** T1 — System / framework. Hard-reserved. */
@@ -56,6 +58,10 @@ export const RESERVED_T2 = [
     'gemini',
     'opus',
     'sonnet',
+    // Protected names (Brendon, 2026-07-02) — the myth arc + a side door
+    'porsche',
+    'odin',
+    'thor',
 ] as const;
 
 /** T3 — Functional routes (current and future). */
