@@ -1135,6 +1135,20 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .gsr-more { cursor: pointer; font-size: 11px; }
 .gsr-more:hover { opacity: 0.9; }
 
+/* LaneRunner — the side-door toy. LED-handheld three-lane runner: fixed
+   cells that light up, dashed lane dividers, the whole board is the
+   controller (tap a lane). Lives inside .global-search-results. */
+.lr-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; font-family: 'Courier New', Courier, monospace; }
+.lr-score { font-size: 11px; font-weight: bold; letter-spacing: 1px; opacity: 0.85; text-align: center; }
+.lr-board { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 8px; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.lr-row { display: flex; }
+.lr-cell { position: relative; width: 46px; height: 40px; }
+.lr-cell + .lr-cell { border-left: 1px dashed color-mix(in srgb, currentColor 22%, transparent); }
+.lr-car { position: absolute; left: 50%; top: 50%; width: 21px; height: 37px; transform: translate(-50%, -50%); display: block; }
+.lr-car-traffic { opacity: 0.75; }
+.lr-crashed { animation: fmPulse 0.45s ease-in-out 4; }
+.lr-hint { font-size: 10px; opacity: 0.4; }
+
 
 /* ── TOP-RIGHT ICON ROW (▰ ⥹ ▦) ──────────────────────────── */
 .top-menu-icons {

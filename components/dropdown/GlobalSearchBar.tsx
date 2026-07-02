@@ -92,9 +92,15 @@ import { getRecentGlobal } from '../../lib/pins/breadcrumbStore';
 import { getProject } from '../../lib/project/registry';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { hashString } from '../../lib/art/rng';
+import LaneRunner from './LaneRunner';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
 
 const VS15 = '︎';
+
+/* A certain word opens a side door. Stored as an FNV-1a hash on purpose —
+   nothing greppable ships in the bundle. Sleuths: keep going. */
+const SIDE_DOOR = 1562394851;
 
 /** 0x1234…5678 — the compact address face for handle-less wallets. */
 function shortAddress(addr: string): string {
@@ -273,12 +279,15 @@ export function GlobalSearchBar() {
         };
     }, [engaged]);
 
+    // The side door — checked before any fetch fires.
+    const eggOn = hashString(value.trim().toLowerCase()) === SIDE_DOOR;
+
     // LIVE search: debounce-fetch /api/search on every keystroke ≥2 chars.
     // AbortController cancels the in-flight request when the value changes
     // or the bar unmounts; stale responses can never land over fresh ones.
     useEffect(() => {
         const q = value.trim();
-        if (q.length < 2) {
+        if (q.length < 2 || hashString(q.toLowerCase()) === SIDE_DOOR) {
             setResults(null);
             setSearching(false);
             return;
@@ -360,8 +369,9 @@ export function GlobalSearchBar() {
     useEffect(() => { setExpanded({}); }, [value]);
 
     // Enter = go: the top hit wins (pages → answers → projects → collectors
-    // → artworks → soundtracks). Zero-click navigation for the keyboard crowd.
+    // → outputs → soundtracks). Zero-click navigation for the keyboard crowd.
     const enterToGo = (): boolean => {
+        if (eggOn) return true; // the side door swallows Enter
         if (pageHits[0]) { goPage(null, pageHits[0]); return true; }
         const r = ordered;
         if (!r) return false;
@@ -575,9 +585,26 @@ export function GlobalSearchBar() {
             <div
                 className={`global-search-results${engaged ? ' has-results' : ''}`}
                 id="globalSearchResults"
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Keep the input focused while tapping rows, AND give
+                    // desktop a drag-to-scroll (mobile scrolls natively).
+                    e.preventDefault();
+                    const el = e.currentTarget;
+                    const startY = e.clientY;
+                    const startTop = el.scrollTop;
+                    const onMove = (ev: globalThis.MouseEvent) => {
+                        el.scrollTop = startTop - (ev.clientY - startY);
+                    };
+                    const onUp = () => {
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onUp);
+                    };
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                }}
             >
-                {engaged && !isGlobalSearching && (
+                {eggOn && <LaneRunner />}
+                {!eggOn && engaged && !isGlobalSearching && (
                     <>
                         {recent.length > 0 && (
                             <div className="settings-header gsr-header">Recently Viewed</div>
@@ -618,10 +645,10 @@ export function GlobalSearchBar() {
                         </div>
                     </>
                 )}
-                {isGlobalSearching && searching && !ordered && (
+                {!eggOn && isGlobalSearching && searching && !ordered && (
                     <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} searching…`}</div>
                 )}
-                {isGlobalSearching && (pageHits.length > 0 || ordered) && (
+                {!eggOn && isGlobalSearching && (pageHits.length > 0 || ordered) && (
                     <>
                         {ordered && ordered.answers.map((ans, i) => (
                             <div
