@@ -50,10 +50,20 @@ export default function PriceRankSync() {
 
     const pop = (list: unknown) => {
       if (!Array.isArray(list) || list.length === 0) return;
-      (list as Achievement[]).forEach((a, i) => {
-        // Toast convention: the NEW thing in ALLCAPS. Stagger multiple unlocks.
-        setTimeout(() => { if (alive) showToast(`Achievement: ${a.name.toUpperCase()}`); }, i * 1500);
-      });
+      const all = list as Achievement[];
+      if (all.length <= 3) {
+        all.forEach((a, i) => {
+          // Toast convention: the NEW thing in ALLCAPS. Stagger multiple unlocks.
+          setTimeout(() => { if (alive) showToast(`Achievement: ${a.name.toUpperCase()}`); }, i * 1500);
+        });
+      } else {
+        // A big batch machine-gunning toasts kills the moment (Brendon,
+        // 2026-07-02). Pop the single biggest unlock by name, then fold the
+        // rest into ONE summary — every pop stays an event.
+        const top = all.reduce((m, a) => (a.points > m.points ? a : m), all[0]);
+        showToast(`Achievement: ${top.name.toUpperCase()}`);
+        setTimeout(() => { if (alive) showToast(`Achievements: ${all.length - 1} MORE UNLOCKED`); }, 1500);
+      }
       window.dispatchEvent(new Event('pd:pricerank-changed'));
     };
 

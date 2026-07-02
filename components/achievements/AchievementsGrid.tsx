@@ -43,6 +43,9 @@ const CATEGORY_GLYPH: Record<AchievementCategory, string> = {
     rank: '❂',
     artist: '✺',
     lore: '⁂',
+    /* myth wears the ringed star — already iOS-proven on the Stargazing pill;
+       context disambiguates (GLYPHS.md §7 precedent, like ◉). */
+    myth: '⍟',
 };
 
 /* Section order + human labels for the category headers. Order is deliberate:
@@ -59,6 +62,7 @@ const CATEGORY_ORDER: readonly AchievementCategory[] = [
     'rank',
     'og',
     'artist',
+    'myth',
     'lore',
 ];
 
@@ -74,6 +78,7 @@ const CATEGORY_LABEL: Record<AchievementCategory, string> = {
     identity: 'IDENTITY',
     rank: 'RANK',
     artist: 'ARTIST',
+    myth: 'MYTH',
     lore: 'EASTER EGGS',
 };
 

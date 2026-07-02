@@ -41,6 +41,10 @@
  */
 
 import { LADDER_ACHIEVEMENTS } from './catalogs/ladders';
+import { MYTH_ACHIEVEMENTS } from './catalogs/myth';
+import { NUMBER_ACHIEVEMENTS } from './catalogs/numbers';
+import { DEPTH_ACHIEVEMENTS } from './catalogs/depth';
+import { TENURE_ACHIEVEMENTS } from './catalogs/tenure';
 
 export type AchievementCategory =
   | 'primary' // minting — the fattest points
@@ -54,7 +58,8 @@ export type AchievementCategory =
   | 'identity' // profile completeness, sprite, plate
   | 'rank' // meta: hitting Score/Rank/leaderboard milestones
   | 'artist' // creator-side (you uploaded the project)
-  | 'lore'; // pure easter eggs / flavour
+  | 'lore' // pure easter eggs / flavour
+  | 'myth'; // the Odin arc — the mythology of the late game
 
 export interface Achievement {
   /** Permanent, immutable, unique. Never reuse or rename. */
@@ -207,7 +212,11 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'world_first', name: 'World #1', blurb: 'Hit #1 on the leaderboard.', points: 1000, category: 'rank', secret: true, trigger: 'leaderboard.bestRank<=1' },
   { id: 'season_champion', name: 'Champion', blurb: 'Finish a season at #1.', points: 500, category: 'rank', trigger: 'season.bestFinish<=1' },
   { id: 'season_podium', name: 'Podium', blurb: 'Finish a season in the top 10.', points: 200, category: 'rank', trigger: 'season.bestFinish<=10' },
-  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Reach 10,000 PriceScore and Brendon himself — God of PD — deems you worthy and places the hammer in your hand. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=10000' },
+  // MJÖLNIR — the summit of the whole 1,000. The threshold is set by the
+  // two-year wall (tools/achievements/verify.js proves it on every edit):
+  // unreachable before day 730 no matter the spend, reachable the day the
+  // Two-Year Oath lands for a collector who has done essentially everything.
+  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Reach 186,000 PriceScore — the whole mountain, essentially everything, two years at the least — and Brendon himself, God of PD, deems you worthy and places the hammer in your hand. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=186000' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  ARTIST · creator-side (you uploaded the project)
@@ -277,15 +286,23 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
 ] as const;
 
 /**
- * The FULL catalog = curated core + the themed batch modules (ladders today;
- * math / myth / hidden as they land). Deduped on id — first definition wins, so
- * a core entry always beats a batch collision. Both the engine and the UI read
- * THIS, so there's one source of truth.
+ * The FULL catalog = curated core + the themed batch modules (ladders, myth,
+ * numbers, depth, tenure). Deduped on id — first definition wins, so a core
+ * entry always beats a batch collision. Both the engine and the UI read THIS,
+ * so there's one source of truth. The whole game is 1,000 achievements —
+ * verified by tools/achievements/verify.js (run it after ANY catalog edit).
  */
 export const ACHIEVEMENTS: readonly Achievement[] = (() => {
   const seen = new Set<string>();
   const out: Achievement[] = [];
-  for (const a of [...CORE_ACHIEVEMENTS, ...LADDER_ACHIEVEMENTS]) {
+  for (const a of [
+    ...CORE_ACHIEVEMENTS,
+    ...LADDER_ACHIEVEMENTS,
+    ...MYTH_ACHIEVEMENTS,
+    ...NUMBER_ACHIEVEMENTS,
+    ...DEPTH_ACHIEVEMENTS,
+    ...TENURE_ACHIEVEMENTS,
+  ]) {
     if (seen.has(a.id)) continue;
     seen.add(a.id);
     out.push(a);

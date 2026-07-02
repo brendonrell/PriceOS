@@ -34,16 +34,20 @@ export interface RankTier {
  * RANK_TIERS[0].minScore.
  */
 export const RANK_TIERS: readonly RankTier[] = [
+  // Re-tiered 2026-07-02 for the 1,000-achievement economy (points total grew
+  // ~20×; the wall math lives in tools/achievements/verify.js). Same 10-tier
+  // shape, same philosophy: the big tiers require real money on-chain, and
+  // Apex sits deep in year-two territory — below Mjölnir's 186,000 summit.
   { tier: 1, minScore: 100, title: 'Initiate' },
-  { tier: 2, minScore: 300, title: 'Participant' },
-  { tier: 3, minScore: 700, title: 'Regular' },
-  { tier: 4, minScore: 1400, title: 'Established' },
-  { tier: 5, minScore: 2500, title: 'Notable' },
-  { tier: 6, minScore: 4000, title: 'Respected' },
-  { tier: 7, minScore: 6000, title: 'Authority' },
-  { tier: 8, minScore: 8500, title: 'Luminary' },
-  { tier: 9, minScore: 11000, title: 'Legend' },
-  { tier: 10, minScore: 12000, title: 'Apex' },
+  { tier: 2, minScore: 400, title: 'Participant' },
+  { tier: 3, minScore: 1000, title: 'Regular' },
+  { tier: 4, minScore: 2500, title: 'Established' },
+  { tier: 5, minScore: 5000, title: 'Notable' },
+  { tier: 6, minScore: 10000, title: 'Respected' },
+  { tier: 7, minScore: 20000, title: 'Authority' },
+  { tier: 8, minScore: 40000, title: 'Luminary' },
+  { tier: 9, minScore: 75000, title: 'Legend' },
+  { tier: 10, minScore: 120000, title: 'Apex' },
 ] as const;
 
 /** Map a PriceScore to its PriceRank tier number (0 = unranked). */

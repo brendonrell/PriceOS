@@ -114,11 +114,16 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 | projects | ⌗ | U+2317 | | artist | ✺ | U+273A |
 | anointing | ✢ | U+2722 | | lore (easter eggs) | ⁂ | U+2042 |
 | streak | ◈ | U+25C8 | | og (longevity) | ⌖ | U+2316 |
+| myth (the Odin arc) | ⍟ | U+235F | | | | |
 
 > **rank / PriceRank = ❂ (U+2742)** — the "sun" glyph (circled open-centre
 > eight-pointed star). Moved off `❖` on 2026-06-16 so `❖` (U+2756) is free for
 > **RARITY** sitewide (Brendon). Update any new rank surface to `❂`; never use
 > `❖` for PriceRank again.
+
+> **myth = ⍟ (U+235F)** — added 2026-07-02 with the MYTH achievement section
+> (the Odin arc). Shares the ringed star with the Spell Book's Stargazing pill —
+> already iOS-proven there; context disambiguates (same precedent as ◉, §7).
 
 > **Achievements icon = ◍ (U+25CD)** — the striped/barred circle shown on the
 > achievement tiles. This is the canonical, app-wide "achievements" mark (not
