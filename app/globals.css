@@ -1965,6 +1965,20 @@ body.tape-framed .tape-rail {
 }
 .fm-stat { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
 .fm-stat-ic { font-size: 12px; }
+
+/* Leaderboard rows (LeaderboardModal) — fm-row plus a position column; your
+   own row gets the tag-pill wash so you find yourself at a glance. */
+.lb-pos {
+    flex: 0 0 auto; min-width: 30px; text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold; line-height: 1.6;
+    opacity: 0.55;
+}
+.lb-row.lb-me {
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+    border-radius: 4px;
+}
+.lb-row.lb-me .lb-pos { opacity: 1; }
 .fm-stat b { font-weight: bold; }
 
 /* ============================================================

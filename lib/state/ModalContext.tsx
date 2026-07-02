@@ -39,7 +39,8 @@ export type ModalName =
     | 'gasTracker'
     | 'stickers'
     | 'spiteBook'
-    | 'panopticonConfirm';
+    | 'panopticonConfirm'
+    | 'leaderboard';
 
 interface OpenModalState {
     name: ModalName;

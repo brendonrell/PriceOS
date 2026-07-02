@@ -1107,6 +1107,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
     letter-spacing: -2px; /* same tightener as the connect-menu badge */
     color: var(--text-color);
 }
+/* The medallion is the door to the Top-100 Leaderboard (2026-07-02). */
+.ps-rank-tappable { cursor: pointer; transition: transform 0.2s; }
+.ps-rank-tappable:hover { transform: translateY(-1px); }
+.ps-rank-tappable:active { transform: scale(0.95); }
+
 .ps-rank-caption {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px; font-weight: bold; letter-spacing: 2px;

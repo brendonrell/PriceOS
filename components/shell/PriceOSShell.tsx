@@ -81,6 +81,7 @@ import FollowersModal from '../FollowersModal';
 import PriceosModal from '../PriceosModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
+import LeaderboardModal from '../LeaderboardModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
@@ -424,6 +425,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="PriceSpriteModal">
                 <PriceSpriteModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="LeaderboardModal">
+                <LeaderboardModal />
             </ErrorBoundary>
             <ErrorBoundary name="GasTrackerModal">
                 <GasTrackerModal />

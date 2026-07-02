@@ -210,7 +210,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 }
 
 export default function PriceSpriteModal() {
-    const { openModal, close } = useModal();
+    const { openModal, close, open } = useModal();
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
@@ -372,8 +372,27 @@ export default function PriceSpriteModal() {
                     through ❿ (U+2776..U+277F) once the rank-up rules
                     exist. The retired users.account_level column must
                     never feed any surface. */}
+                {/* Tapping the medallion opens the Top-100 Leaderboard
+                    (Brendon, 2026-07-02) — your rank is the door to the board. */}
                 <div className="ps-rank-wrap ps-reveal ps-d3">
-                    <div className="ps-rank-medallion">
+                    <div
+                        className="ps-rank-medallion ps-rank-tappable"
+                        role="button"
+                        tabIndex={0}
+                        title="Leaderboard"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            close();
+                            open('leaderboard');
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                close();
+                                open('leaderboard');
+                            }
+                        }}
+                    >
                         <span className="ps-rank-glyph">
                             {priceRank <= 0
                                 ? '⓿'
