@@ -120,20 +120,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ identifiers });
     }
 
-    // Open criteria offers on a project (collection + trait).
+    // Open offers on a project — criteria only by default (the trait-bid
+    // chips), or the FULL book with `all=1` (the +More Offers tab).
     const projSlug = url.searchParams.get('project');
     if (projSlug) {
       const slug = projSlug.toLowerCase();
       if (!getProject(slug)) return badRequest('Unknown project');
-      const r = await db
+      let q = db
         .from('offers')
         .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json')
-        .eq('project_id', slug).eq('status', 'open').in('scope', ['collection', 'trait'])
-        .or(liveOr(now))
-        .order('price_eth', { ascending: false })
-        .limit(50);
+        .eq('project_id', slug).eq('status', 'open');
+      if (url.searchParams.get('all') !== '1') q = q.in('scope', ['collection', 'trait']);
+      const r = await q.or(liveOr(now)).order('price_eth', { ascending: false }).limit(100);
       if (r.error) return serverError(r.error.message);
-      return NextResponse.json({ offers: r.data ?? [] });
+      const rows = (r.data ?? []) as { bidder_address: string }[];
+      const bidders = Array.from(new Set(rows.map((o) => o.bidder_address)));
+      const handleByAddr = new Map<string, string | null>();
+      if (bidders.length > 0) {
+        const hs = await db.from('users').select('address, handle').in('address', bidders);
+        for (const u of (hs.data ?? []) as { address: string; handle: string | null }[]) {
+          handleByAddr.set(u.address, u.handle);
+        }
+      }
+      return NextResponse.json({
+        offers: rows.map((o) => ({ ...o, bidder_handle: handleByAddr.get(o.bidder_address) ?? null })),
+      });
     }
 
     return badRequest('Missing query');
@@ -147,7 +158,7 @@ interface SimListItem { slug: string; tokenId: string; priceEth: string }
 interface ChainListItem extends SimListItem { order: SeaportOrderJson; orderHash: string }
 
 interface Body {
-  action: 'batch_list' | 'batch_offer' | 'criteria_offer' | 'accept_criteria' | 'decline_offer' | 'cancel_offer' | 'confirm_fills' | 'confirm_offer_fill';
+  action: 'batch_list' | 'batch_offer' | 'criteria_offer' | 'accept_criteria' | 'decline_offer' | 'cancel_offer' | 'counter_ping' | 'confirm_fills' | 'confirm_offer_fill';
   durationSec?: number;
   sim?: SimListItem[];
   chain?: ChainListItem[];
@@ -453,6 +464,38 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         const owner = await ownerOf(db, offer.project_id as string, offer.token_id);
         if (!owner || owner.toLowerCase() !== address) return badRequest('Only the owner can decline');
         await db.from('offers').update({ status: 'declined', resolved_at: new Date().toISOString() } as never).eq('id', body.offerId);
+        return NextResponse.json({ ok: true });
+      }
+
+      // ── Owner countered an offer — ping the bidder with the number ────────
+      // The listing itself already landed via the normal list rail; this is
+      // the instant "they countered at X" signal to the bidder.
+      case 'counter_ping': {
+        const slug = (body.slug ?? '').toLowerCase();
+        const tokenId = body.tokenId ?? '';
+        const price = Number(body.price);
+        if (!getProject(slug) || !/^\d+$/.test(tokenId) || !(price > 0)) return badRequest('Bad counter');
+        if (!body.offerId) return badRequest('Missing offerId');
+        const r = await db
+          .from('offers')
+          .select('bidder_address, status, project_id')
+          .eq('id', body.offerId)
+          .maybeSingle();
+        const offer = r.data as { bidder_address?: string; status?: string; project_id?: string } | null;
+        if (!offer || offer.status !== 'open' || offer.project_id !== slug) return badRequest('Offer not open');
+        const owner = await ownerOf(db, slug, tokenId);
+        if (!owner || owner.toLowerCase() !== address) return badRequest('Only the owner can counter');
+        if (offer.bidder_address) {
+          await createPing({
+            recipientAddress: offer.bidder_address,
+            kind: 'COUNTER',
+            actorAddress: address,
+            projectId: slug,
+            tokenId,
+            amountEth: price,
+            groupKey: `COUNTER:${slug}:${tokenId}`,
+          });
+        }
         return NextResponse.json({ ok: true });
       }
 

@@ -65,6 +65,7 @@ import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { getActiveBudgetEth } from '../../lib/engines/budgetEngine';
 import { useAuth } from '../../lib/state/AuthContext';
 import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
@@ -408,6 +409,33 @@ export default function TraitsUI({
        (Network / Recent / Event / Market) aren't token traits and aren't
        starrable (gated on gridCounts below). */
     const [traitStarKeys, setTraitStarKeys] = React.useState<ReadonlySet<string>>(new Set());
+    /* Standing criteria bids on this project — category|value → best ETH.
+       One read per project view (+ refresh after any market action). */
+    const [traitBids, setTraitBids] = React.useState<Record<string, string>>({});
+    React.useEffect(() => {
+        if (!projectSlug) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/market/orders?project=${encodeURIComponent(projectSlug)}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => {
+                    if (cancelled || !d) return;
+                    const map: Record<string, string> = {};
+                    for (const o of (d.offers ?? []) as { scope: string; criteria?: { category?: string; value?: string } | null; price_eth: string | number }[]) {
+                        if (o.scope !== 'trait' || !o.criteria?.category || !o.criteria?.value) continue;
+                        const k = `${o.criteria.category}|${o.criteria.value}`;
+                        const n = Number(o.price_eth);
+                        if (!(k in map) || n > Number(map[k])) map[k] = n.toFixed(3);
+                    }
+                    setTraitBids(map);
+                })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [projectSlug]);
     React.useEffect(() => subscribeTraitStarred((next) => setTraitStarKeys(next)), []);
     const handleTraitStar = (category: string, value: string) => {
         const r = toggleTraitStar(projectSlug, category, value);
@@ -1137,6 +1165,7 @@ export default function TraitsUI({
                                     meFace={meFace}
                                     starrable={starrable}
                                     starred={traitStarred}
+                                    bidEth={starrable ? traitBids[`${l3FilterCat}|${value}`] ?? null : null}
                                     onToggleStar={() => handleTraitStar(l3FilterCat, value)}
                                     /* count===0 → genuinely none in grid;
                                        count<0 → no tally for this category. */
@@ -1377,7 +1406,7 @@ function MsFloatBar() {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const { openListSheet, openOfferSheet, openTraitPicker } = useMarketSheet();
-    const { outputs } = useProject();
+    const { outputs, slug } = useProject();
     const [pinnedSet, setPinnedSet] = React.useState<readonly GrailPin[]>(() => getGrails());
     const [popupOpen, setPopupOpen] = React.useState(false);
     const [activeAction, setActiveAction] = React.useState<string | null>(null);
@@ -1461,6 +1490,32 @@ function MsFloatBar() {
     /* The general-purpose trait-offer tool — exactly ONE selected output
        (Brendon, 2026-07-02): pick a trait off that piece, bid on the trait. */
     if (count === 1)            actions.push({ label: 'Trait Offer',  exec: () => { const it = selectedItems[0]; openTraitPicker(it.slug, it.id); } });
+    /* Fill Budget — the Budget spell's checkout: cheapest listed pieces you
+       don't own, cumulative up to the ACTIVE budget, straight into the cart. */
+    const activeBudget = getActiveBudgetEth();
+    if (activeBudget != null && activeBudget > 0) {
+        actions.push({
+            label: 'Fill Budget',
+            exec: () => {
+                const candidates: { id: number; eth: number }[] = [];
+                outputs.forEach((meta, oid) => {
+                    if (meta.isOwnedByBrendon) return;
+                    const n = meta.price != null ? parseFloat(meta.price) : NaN;
+                    if (Number.isFinite(n) && n > 0 && !cartHas(slug, oid)) candidates.push({ id: oid, eth: n });
+                });
+                candidates.sort((a, b) => a.eth - b.eth);
+                let spent = 0; let added = 0;
+                for (const c of candidates) {
+                    if (spent + c.eth > activeBudget) break;
+                    cartAdd(slug, c.id);
+                    spent += c.eth; added++;
+                }
+                if (added === 0) { showToast('Budget: NOTHING IN REACH'); return; }
+                showToast(`Budget: FILLED · ${added} piece${added === 1 ? '' : 's'} · ${spent.toFixed(3)} ETH`);
+                openCartPanel();
+            },
+        });
+    }
     if (allOwned) {
         if (grailPinAvailable)  actions.push({ label: 'Grail Pin',    exec: stub('Grail Pin') });
         actions.push(
@@ -1910,6 +1965,9 @@ interface L3PillProps {
     starrable?: boolean;
     starred?: boolean;
     onToggleStar?: () => void;
+    /** Best standing trait offer on this value ("0.400") — ambient demand
+     *  (Brendon, 2026-07-02: sellers should SEE live trait bids). */
+    bidEth?: string | null;
     onClick: () => void;
     /** Half opacity — a Recent pill from a Project other than the one being
      *  viewed (Brendon, 2026-06-24). */
@@ -1953,6 +2011,7 @@ export function L3Pill({
     halfDim = false,
     inert = false,
     meFace,
+    bidEth = null,
 }: L3PillProps) {
     const cls = [
         'pill',
@@ -2067,6 +2126,11 @@ export function L3Pill({
                         specials) — show the value with no number rather
                         than a placeholder. */}
                     {count >= 0 && <span className="stat-count">{count}</span>}
+                    {bidEth && (
+                        <span className="pill-bid-chip" title={`Best trait offer · ${bidEth} ETH`}>
+                            {'✦︎'}{bidEth}
+                        </span>
+                    )}
                 </>
             )}
             {/* Persistent ★ when this trait is starred — same glyph + treatment

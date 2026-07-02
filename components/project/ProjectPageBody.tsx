@@ -96,6 +96,8 @@ import ArtworkCard from '../ArtworkCard';
 import GhostCard from './GhostCard';
 import MintButton from './MintButton';
 import ReplayPanel from './ReplayPanel';
+import PriceStoryPanel from '../market/PriceStoryPanel';
+import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
 import TraitsUI from './TraitsUI';
 import Hero from '../hero/Hero';
@@ -198,6 +200,28 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
        Social hero (seeds the sprite, fills the identity line). */
     const projectAddr = useMemo(() => projectContractAddress(project.slug), [project.slug]);
     const [addrCopied, setAddrCopied] = useState(false);
+
+    /* The project market read — sentiment + ATH + holders + open book, one
+       ledger fetch feeding the +More Stats tiles (real numbers, was mock). */
+    const [marketRead, setMarketRead] = useState<{
+        label: string; detail: string; open_listings: number; open_offers: number;
+        ath_eth: number | null; ath_token: string | null; ath_ts: number | null; holders: number;
+    } | null>(null);
+    useEffect(() => {
+        if (!project.slug) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/project/${project.slug}/sentiment`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setMarketRead(d); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [project.slug]);
     const copyProjectAddr = async () => {
         try {
             await navigator.clipboard.writeText(projectAddr);
@@ -1598,7 +1622,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             ⊡&#xFE0E;
                         </span>{' '}
                         <span className="stat-val" id="statOwnedVal">
-                            57%
+                            {marketRead != null && project.totalOutputs > 0
+                                ? `${Math.round(((marketRead.open_listings ?? 0) / project.totalOutputs) * 100)}%`
+                                : '—'}
                         </span>
                     </span>
                     <span className="stat-item">
@@ -1771,27 +1797,28 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
 
                 </>)}
                 {moreL1 === 'stats' && (<>
-                {/* ATH & HOLDERS — sim 5308-5321 */}
+                {/* ATH & HOLDERS — REAL ledger reads (was mock — the secondary
+                    build turned these live, 2026-07-02). */}
                 <div className="more-section-header">ATH & HOLDERS</div>
                 <div className="more-stats-grid">
                     <div
                         className="more-stat-tile"
                         onClick={() =>
-                            showToast('All-time high — indexer data')
+                            showToast(marketRead?.ath_eth != null ? `All-time high · ${marketRead.ath_eth} ETH` : 'All-time high — no sales yet')
                         }
                     >
                         <div className="mst-label">ALL-TIME HIGH</div>
-                        <div className="mst-value">4.22 ETH</div>
-                        <div className="mst-sub">#888 · OCT 09 2026</div>
+                        <div className="mst-value">{marketRead?.ath_eth != null ? `${Number(marketRead.ath_eth).toFixed(2)} ETH` : '—'}</div>
+                        <div className="mst-sub">{marketRead?.ath_token != null ? `#${marketRead.ath_token}${marketRead.ath_ts ? ` · ${new Date(marketRead.ath_ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : ''}` : 'NO SALES YET'}</div>
                     </div>
                     <div
                         className="more-stat-tile"
                         onClick={() =>
-                            showToast('Holder map — 342 unique holders')
+                            showToast(`Holder map — ${marketRead?.holders ?? 0} unique holders`)
                         }
                     >
                         <div className="mst-label">HOLDER MAP</div>
-                        <div className="mst-value">342</div>
+                        <div className="mst-value">{marketRead?.holders ?? '—'}</div>
                         <div className="mst-sub">UNIQUE HOLDERS</div>
                     </div>
                 </div>
@@ -1845,20 +1872,16 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                     )
                 )}
                 {moreL1 === 'pricestory' && (<>
-                {/* PRICE STORY — empty for now (Brendon, 2026-06-16). Empty box
-                    gives the title a home. */}
+                {/* PRICE STORY — the collection's market biography, chapters
+                    from the real ledger (same panel as the Output story). */}
                 <div className="more-section-header">PRICE STORY</div>
-                <div className="more-box-wrap">
-                    <div className="more-box-card more-box-empty" />
-                </div>
+                <PriceStoryPanel slug={project.slug} />
                 </>)}
                 {moreL1 === 'offers' && (<>
-                {/* OFFERS — empty for now (Brendon, 2026-06-24). Empty box gives
-                    the title a home. */}
+                {/* OFFERS — the project's live book: every open offer (item +
+                    collection + trait). Browsing here; acting on the piece. */}
                 <div className="more-section-header">OFFERS</div>
-                <div className="more-box-wrap">
-                    <div className="more-box-card more-box-empty" />
-                </div>
+                <OffersInline slug={project.slug} />
                 </>)}
             </section>
         </>

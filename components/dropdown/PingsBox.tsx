@@ -16,7 +16,7 @@ import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
-import { renderPing, passesCategoryPrefs, PRIORITY_RANK } from '../../lib/pings/render';
+import { renderPing, passesCategoryPrefs, pingHref, PRIORITY_RANK } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
@@ -109,7 +109,7 @@ export function PingsBox() {
     const rendered = pingsState.items
         .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
         .filter((p) => !moneyOnly || isFinancial(p.kind))
-        .map((p) => renderPing(p))
+        .map((p) => ({ ...renderPing(p), href: pingHref(p) }))
         .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]);
 
     return (
@@ -156,16 +156,27 @@ export function PingsBox() {
                     {siweAddress ? 'No pings yet' : 'Connect to see your pings'}
                 </div>
             ) : (
-                rendered.map((p) => (
-                    <div key={p.id} className={`notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`}>
-                        <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
-                        <span>
-                            {p.handle && <strong className={isSpited(p.handle) ? 'spited' : undefined}>{p.handle}</strong>}
-                            {p.handle ? ' ' : ''}
-                            {p.action}
-                        </span>
-                    </div>
-                ))
+                rendered.map((p) => {
+                    const cls = `notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`;
+                    const body = (
+                        <>
+                            <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
+                            <span>
+                                {p.handle && <strong className={isSpited(p.handle) ? 'spited' : undefined}>{p.handle}</strong>}
+                                {p.handle ? ' ' : ''}
+                                {p.action}
+                            </span>
+                        </>
+                    );
+                    /* Market pings deep-link to the piece (offer family lands
+                       with the offers panel open) — a real <a>, so the global
+                       client-side interceptor routes it like every other link. */
+                    return p.href ? (
+                        <a key={p.id} href={p.href} className={`${cls} notif-item--link`}>{body}</a>
+                    ) : (
+                        <div key={p.id} className={cls}>{body}</div>
+                    );
+                })
             )}
         </AccordionBox>
     );

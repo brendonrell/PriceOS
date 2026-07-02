@@ -44,6 +44,9 @@ import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
 import AttributesPanel from './AttributesPanel';
 import OutputActionRow from './OutputActionRow';
+import PriceStoryPanel from '../market/PriceStoryPanel';
+import OffersInline from '../market/OffersInline';
+import AttrWall from './AttrWall';
 import { GhostFeedRows } from '../GhostFeed';
 import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import { PerMilleMark } from '../shell/PerMilleMark';
@@ -179,6 +182,7 @@ export default function ArtworkPageBody({
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
     const { data: walletClient } = useWalletClient();
     const [ctaBusy, setCtaBusy] = useState(false);
+
     const { open: openModal } = useModal();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
@@ -198,6 +202,14 @@ export default function ArtworkPageBody({
     });
 
     const onArtwork = activeTab === 'artwork';
+    /* "in 2d" — listing time left, for the owner's EDIT chip. */
+    const fmtEndsIn = (endTime: number) => {
+        const sLeft = endTime - Math.floor(Date.now() / 1000);
+        if (sLeft <= 0) return 'now';
+        if (sLeft < 3600) return `in ${Math.max(1, Math.floor(sLeft / 60))}m`;
+        if (sLeft < 86400) return `in ${Math.floor(sLeft / 3600)}h`;
+        return `in ${Math.floor(sLeft / 86400)}d`;
+    };
     const onAlbums = activeTab === 'albums';
     const onMore = activeTab === 'more';
 
@@ -217,10 +229,39 @@ export default function ArtworkPageBody({
        stat reads `#id / maxSupply`, same denominator the Project page shows. */
     const maxSupply = getProject(slug)?.outputs ?? 0;
 
+    /* Ping deep-link: /art/slug/id?offers=1 lands with the offers panel open
+       (accept is then one confirm away — the panel's confirm card gates it). */
+    const offersDeepLinked = useRef(false);
+    useEffect(() => {
+        if (offersDeepLinked.current || typeof window === 'undefined') return;
+        if (new URLSearchParams(window.location.search).get('offers') === '1') {
+            offersDeepLinked.current = true;
+            openOffersPanel(slug, Number(numberPart));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [slug, numberPart]);
+
+    /* Project market sentiment — shown in the Stats sub-tab (parked there for
+       now per Brendon; movable later). Ledger-derived, honest labels only. */
+    const [sentiment, setSentiment] = useState<{ label: string; detail: string } | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/project/${slug}/sentiment`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setSentiment({ label: d.label, detail: d.detail }); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [slug]);
+
     /* Live market stats for this Output. */
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
-        listing: { price_eth: string } | null;
+        listing: { price_eth: string; end_time: number | null } | null;
         offers: { id: string }[];
         last_sale: string | null; floor: string | null; volume_eth: string | null;
         followers: number | null;
@@ -404,6 +445,34 @@ export default function ArtworkPageBody({
         }
         return max;
     }, [feedRows]);
+
+    /* THE MARKET wall (Stats sub-tab) — every market number the ledger holds
+       for this piece, as attribute tiles. Canonical glyphs only (✶ sales,
+       ✹ listings, ✦ offers, ⟠ volume, ↨ floor). */
+    const marketAttrGroup = useMemo(() => {
+        const VS = '\uFE0E';
+        const tiles: { glyph: string; label: string; value: string; sub?: string }[] = [];
+        const salesRows = feedRows.filter((fe) => fe.type === 'SALE');
+        tiles.push({ glyph: `↨${VS}`, label: 'Floor', value: market?.floor ? `${Number(market.floor).toFixed(3)} ETH` : '—' });
+        tiles.push({ glyph: `✶${VS}`, label: 'Last Sale', value: market?.last_sale ? `${Number(market.last_sale).toFixed(3)} ETH` : '—' });
+        tiles.push({ glyph: `✶${VS}`, label: 'All-Time High', value: athEth > 0 ? `${Number(athEth.toFixed(4))} ETH` : '—' });
+        tiles.push({ glyph: `⟠${VS}`, label: 'Total Volume', value: market?.volume_eth ? `${market.volume_eth} ETH` : '—' });
+        tiles.push({
+            glyph: `✹${VS}`, label: 'Ask',
+            value: market?.listing ? `${Number(market.listing.price_eth).toFixed(3)} ETH` : 'NOT LISTED',
+            ...(market?.listing?.end_time ? { sub: `ends ${fmtEndsIn(market.listing.end_time)}` } : {}),
+        });
+        const best = (market?.offers?.length ?? 0) > 0 ? (market!.offers as unknown as { price_eth: string }[])[0] : null;
+        tiles.push({ glyph: `✦${VS}`, label: 'Best Offer', value: best ? `${Number(best.price_eth).toFixed(3)} ETH` : '—' });
+        tiles.push({ glyph: `✦${VS}`, label: 'Open Offers', value: String(market?.offers?.length ?? 0) });
+        tiles.push({ glyph: `✶${VS}`, label: 'Sales', value: String(salesRows.length) });
+        if (market?.listing && best) {
+            const spread = Number(market.listing.price_eth) - Number(best.price_eth);
+            tiles.push({ glyph: `✦${VS}`, label: 'The Spread', value: `${Number(spread.toFixed(4))} ETH`, sub: 'ask − best bid' });
+        }
+        return { key: 'market', label: 'Market', tiles };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [market, athEth, feedRows]);
 
     const owned = market?.viewer?.isOwner ?? false;
     const ownerHref = market?.owner_handle
@@ -625,6 +694,22 @@ export default function ArtworkPageBody({
                                 title="Open offers"
                             >
                                 {'✦︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
+                            </button>
+                        )}
+                        {/* Owner of a live listing: edit price in place (the sheet
+                            prefilled = re-list, one signing pass) + how long the
+                            listing has left. */}
+                        {owned && isListed && (
+                            <button
+                                type="button"
+                                className="mk-offers-pill"
+                                onClick={() => openListSheet([{ slug, id: numberPart, currentPriceEth: listPrice }])}
+                                title="Edit price"
+                            >
+                                {'✹︎'} EDIT
+                                {market?.listing?.end_time
+                                    ? ` · ends ${fmtEndsIn(market.listing.end_time)}`
+                                    : ''}
                             </button>
                         )}
                     </div>
@@ -924,6 +1009,12 @@ export default function ArtworkPageBody({
                                     </span>{' '}
                                     <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
                                 </span>
+                                <span
+                                    className="stat-item"
+                                    {...iconToastProps(sentiment ? `Sentiment — ${sentiment.detail}` : 'Sentiment')}
+                                >
+                                    <span className="stat-val">{sentiment?.label ?? '—'}</span>
+                                </span>
                                 <span className="stat-item stat-item-anchor">
                                     <span
                                         className="stat-icon stat-icon-box"
@@ -948,6 +1039,10 @@ export default function ArtworkPageBody({
                             </div>
                           </div>
                         </div>
+                        {/* THE MARKET WALL — the piece's live market read as
+                            attribute tiles (AttrWall verbatim — Brendon,
+                            2026-07-02: secondary stats, attributes-style). */}
+                        <AttrWall groups={[marketAttrGroup]} />
                     </>
                 )}
 
@@ -1033,9 +1128,27 @@ export default function ArtworkPageBody({
                     </>
                 )}
 
+                {/* OFFERS — the piece's open book (read-only browse; acting
+                    happens in the ✦ offers panel). */}
+                {moreL1 === 'offers' && (
+                    <>
+                        <div className="more-section-header">OFFERS</div>
+                        <OffersInline slug={slug} id={Number(numberPart)} />
+                    </>
+                )}
+
+                {/* PRICE STORY — the piece's market biography, chapters from
+                    the real ledger (Brendon, 2026-07-02: the wow feature). */}
+                {moreL1 === 'pricestory' && (
+                    <>
+                        <div className="more-section-header">PRICE STORY</div>
+                        <PriceStoryPanel slug={slug} id={Number(numberPart)} />
+                    </>
+                )}
+
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}
