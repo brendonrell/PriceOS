@@ -10,7 +10,7 @@
  *     Artwork modal; each row carries a quick Add-to-Wishlist CTA + unstar.
  *   • Traits  — a starred (Project, trait category, value), e.g. Prisms ·
  *     Palette: Hothurt, favourited by long-pressing a trait pill. Each row
- *     carries a Trait Offer CTA (offer flow lands later) + unstar.
+ *     carries a Trait Offer CTA (live offer flow) + unstar.
  *
  * Rows are a compact, sortable + filterable ROW list with a small preview per
  * row. Meta is derived deterministically from the registry — no DB round-trip —
@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useStarLongPress, useTokenNote } from '../../lib/hooks/rowFlags';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
@@ -181,6 +182,7 @@ export default function StarredList({
 }) {
     const { open } = useModal();
     const { showToast } = useToast();
+    const { openOfferSheet, openCriteriaOfferSheet } = useMarketSheet();
     const router = useRouter();
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
@@ -781,7 +783,7 @@ export default function StarredList({
                                             selected={selected.has(`p:${r.slug}`)}
                                             onToggleSel={() => toggleSel(`p:${r.slug}`)}
                                             onOpen={() => router.push('/art/' + r.slug)}
-                                            onOffer={() => showToast('Project Offer: COMING SOON')}
+                                            onOffer={() => openCriteriaOfferSheet({ kind: 'collection', slug: r.slug })}
                                             onUnstar={(e) => handleUnstar(e, r.slug, PROJECT_VIEW_ID)}
                                             grailPinned={grailKeys.has(grailKey({ kind: 'project', slug: r.slug }))}
                                             onGrail={() => handleGrail({ kind: 'project', slug: r.slug })}
@@ -802,7 +804,7 @@ export default function StarredList({
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
                                                 onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
-                                                onOffer={() => showToast('Offer: COMING SOON')}
+                                                onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
                                                 onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
@@ -841,7 +843,7 @@ export default function StarredList({
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
                                                 onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
-                                                onOffer={() => showToast('Offer: COMING SOON')}
+                                                onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
                                                 onGrail={() => handleGrail({ kind: 'output', slug: r.slug, id: r.id })}
@@ -884,10 +886,10 @@ export default function StarredList({
                                         className="starred-row-cta trait-offer-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Make a trait offer (coming soon)"
+                                        title="Make a trait offer"
                                         aria-label="Make a trait offer"
-                                        onClick={() => showToast('Trait Offer: COMING SOON')}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Trait Offer: COMING SOON'); } }}
+                                        onClick={() => openCriteriaOfferSheet({ kind: 'trait', slug: r.slug, category: r.category, value: r.value })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCriteriaOfferSheet({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }); } }}
                                     >
                                         <span className="trait-offer-glyph">✦︎</span> Trait Offer
                                     </span>
@@ -1060,8 +1062,8 @@ export default function StarredList({
                                         tabIndex={0}
                                         title="Make a project offer (coming soon)"
                                         aria-label="Make a project offer"
-                                        onClick={(e) => { e.stopPropagation(); showToast('Project Offer: COMING SOON'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Project Offer: COMING SOON'); } }}
+                                        onClick={(e) => { e.stopPropagation(); openCriteriaOfferSheet({ kind: 'collection', slug: r.slug }); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openCriteriaOfferSheet({ kind: 'collection', slug: r.slug }); } }}
                                     >
                                         <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
                                     </span>

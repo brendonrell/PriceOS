@@ -226,6 +226,94 @@ export async function cancelListing(
   refreshMarketSurfaces();
 }
 
+/** Offer on 1..n specific pieces (the multi-select Make Offer batch — and the
+ *  single-item flow, which is just n=1). Chain projects sign all their offers
+ *  in ONE wallet signature per project batch (WETH shortfall wrapped once). */
+export async function makeItemOffers(
+  items: ListItemInput[],
+  opts: { durationSec?: number; wallet?: WalletClient | null; onStep?: StepCb } = {},
+): Promise<ListResult> {
+  const durationSec = opts.durationSec ?? DEFAULT_DURATION_SEC;
+  const result: ListResult = { listed: 0, failed: [] };
+
+  const bySlug = new Map<string, ListItemInput[]>();
+  for (const it of items) {
+    const arr = bySlug.get(it.slug) ?? [];
+    arr.push(it);
+    bySlug.set(it.slug, arr);
+  }
+
+  const simBatch: { slug: string; tokenId: string; priceEth: string }[] = [];
+  const chainBatch: {
+    slug: string;
+    tokenId: string;
+    priceEth: string;
+    order: SeaportOrderJson;
+    orderHash: string;
+  }[] = [];
+
+  for (const [slug, group] of bySlug) {
+    const meta = await fetchMeta(slug);
+    if (!meta.onChain) {
+      for (const it of group) simBatch.push({ slug, tokenId: String(it.id), priceEth: it.priceEth });
+      continue;
+    }
+    if (!meta.contract || !meta.royaltyReceiver) {
+      for (const it of group) result.failed.push({ slug, id: it.id, error: 'Project not tradeable yet' });
+      continue;
+    }
+    const wallet = needWallet(opts.wallet);
+    const eng = await import('./seaportClient');
+    const { startTime, endTime } = windowFor(durationSec);
+    const inputs = group.map((it) => ({
+      contract: meta.contract as string,
+      tokenId: String(it.id),
+      priceEth: it.priceEth,
+      royaltyReceiver: meta.royaltyReceiver as string,
+      startTime,
+      endTime,
+    }));
+    try {
+      const signed =
+        inputs.length === 1
+          ? [await eng.createOffer(wallet, inputs[0], opts.onStep)]
+          : await eng.createBulkOffers(wallet, inputs, opts.onStep);
+      signed.forEach((s, i) =>
+        chainBatch.push({
+          slug,
+          tokenId: String(group[i].id),
+          priceEth: group[i].priceEth,
+          order: s.order,
+          orderHash: s.orderHash,
+        }),
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Signing failed';
+      for (const it of group) result.failed.push({ slug, id: it.id, error: msg });
+    }
+  }
+
+  if (simBatch.length + chainBatch.length > 0) {
+    opts.onStep?.('POSTING');
+    const r = await fetch('/api/market/orders', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'batch_offer',
+        durationSec,
+        sim: simBatch,
+        chain: chainBatch,
+      }),
+    });
+    const j = await jsonOrThrow(r);
+    result.listed = Number(j.offered ?? 0);
+    const failed = (j.failed ?? []) as { slug: string; tokenId: string; error: string }[];
+    for (const f of failed) result.failed.push({ slug: f.slug, id: f.tokenId, error: f.error });
+    refreshMarketSurfaces();
+  }
+  return result;
+}
+
 /* ── Buying / the sweep ──────────────────────────────────────────────────── */
 
 export interface SweepResult {

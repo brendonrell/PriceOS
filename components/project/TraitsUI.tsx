@@ -64,6 +64,7 @@ import {
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
@@ -1375,6 +1376,7 @@ function MsFloatBar() {
     const { multiSelectActive, selectedItems, selectedCount, clearSelected } = useTraits();
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
+    const { openListSheet, openOfferSheet } = useMarketSheet();
     const { outputs } = useProject();
     const [pinnedSet, setPinnedSet] = React.useState<readonly GrailPin[]>(() => getGrails());
     const [popupOpen, setPopupOpen] = React.useState(false);
@@ -1446,12 +1448,20 @@ function MsFloatBar() {
         { label: 'Add to Album', exec: () => setAlbumPickerOpen(true) },
         { label: 'Make To-Do',   exec: stub('Make To-Do') },
     );
+    const sheetItems = () => selectedItems.map(({ slug: s2, id }) => {
+        const price = outputs.get(id)?.price;
+        const n = price != null ? parseFloat(price) : NaN;
+        return { slug: s2, id, currentPriceEth: Number.isFinite(n) && n > 0 ? n.toFixed(3) : null };
+    });
+    const handleListSheet  = () => { if (count === 0) { showToast('Select items first'); return; } openListSheet(sheetItems()); };
+    const handleOfferSheet = () => { if (count === 0) { showToast('Select items first'); return; } openOfferSheet(sheetItems()); };
+
     if (!anyOwned && allListed) actions.push({ label: 'Add to Cart',  exec: handleAddToCart });
-    if (!anyOwned)              actions.push({ label: 'Make Offer',   exec: stub('Make Offer') });
+    if (!anyOwned)              actions.push({ label: 'Make Offer',   exec: handleOfferSheet });
     if (allOwned) {
         if (grailPinAvailable)  actions.push({ label: 'Grail Pin',    exec: stub('Grail Pin') });
         actions.push(
-            { label: 'List/Re-List', exec: stub('List/Re-List') },
+            { label: 'List/Re-List', exec: handleListSheet },
             { label: 'Transfer',     exec: stub('Transfer') },
         );
     }
@@ -1468,9 +1478,14 @@ function MsFloatBar() {
         if (count === 0) return;
         setPopupOpen(false);
         /* Add to Album confirms inside its own picker (choosing the album IS
-           the confirmation) — the generic confirm card would be a dead tap. */
+           the confirmation) — the generic confirm card would be a dead tap.
+           Same for the market sheets: pricing + CONFIRM live in the sheet. */
         if (current === 'Add to Album') {
             setAlbumPickerOpen(true);
+            return;
+        }
+        if (current === 'List/Re-List' || current === 'Make Offer') {
+            actions.find(a => a.label === current)?.exec();
             return;
         }
         setConfirmOpen(true);

@@ -147,7 +147,7 @@ interface SimListItem { slug: string; tokenId: string; priceEth: string }
 interface ChainListItem extends SimListItem { order: SeaportOrderJson; orderHash: string }
 
 interface Body {
-  action: 'batch_list' | 'criteria_offer' | 'accept_criteria' | 'decline_offer' | 'cancel_offer' | 'confirm_fills' | 'confirm_offer_fill';
+  action: 'batch_list' | 'batch_offer' | 'criteria_offer' | 'accept_criteria' | 'decline_offer' | 'cancel_offer' | 'confirm_fills' | 'confirm_offer_fill';
   durationSec?: number;
   sim?: SimListItem[];
   chain?: ChainListItem[];
@@ -251,6 +251,90 @@ export const POST = requireAuth(async (req, _ctx, address) => {
           }
         }
         return NextResponse.json({ ok: true, listed, failed });
+      }
+
+      // ── Multi-select Make Offer — item offers on both rails ──────────────
+      case 'batch_offer': {
+        const sim = (body.sim ?? []).slice(0, 60);
+        const chain = (body.chain ?? []).slice(0, 60);
+        if (sim.length + chain.length === 0) return badRequest('Nothing to offer');
+        const endTime = nowSec() + clampDuration(body.durationSec);
+        let offered = 0;
+        const failed: { slug: string; tokenId: string; error: string }[] = [];
+
+        const contractCache = new Map<string, string | null>();
+        const contractOf = async (slug: string): Promise<string | null | undefined> => {
+          if (!contractCache.has(slug)) {
+            const pm = await projectMarket(db, slug);
+            contractCache.set(slug, pm ? pm.contract : null);
+            if (!pm) return undefined;
+          }
+          return contractCache.get(slug);
+        };
+
+        const placeOffer = async (
+          slug: string, tokenId: string, price: number,
+          extra: Record<string, unknown>,
+        ) => {
+          const owner = await ownerOf(db, slug, tokenId);
+          if (owner && owner.toLowerCase() === address) throw new Error('Cannot offer on your own Output');
+          await db.from('offers').insert({
+            project_id: slug, token_id: tokenId, bidder_address: address,
+            price_eth: price, status: 'open', scope: 'item',
+            ...extra,
+          } as never);
+          await db.from('events').insert({ type: 'OFFER', project_id: slug, token_id: tokenId, from_address: address, to_address: null, price_eth: price, timestamp: nowSec() } as never);
+          if (owner) {
+            await createPing({
+              recipientAddress: owner,
+              kind: 'OFFER',
+              actorAddress: address,
+              projectId: slug,
+              tokenId,
+              amountEth: price,
+              groupKey: `OFFER:${slug}:${tokenId}`,
+            });
+          }
+        };
+
+        for (const item of sim) {
+          const slug = item.slug.toLowerCase();
+          const price = Number(item.priceEth);
+          try {
+            const contract = await contractOf(slug);
+            if (contract === undefined) throw new Error('Unknown project');
+            if (contract) throw new Error('Project is on-chain — trade on-chain');
+            if (!(price > 0)) throw new Error('Bad price');
+            await placeOffer(slug, item.tokenId, price, {
+              end_time: endTime, currency: 'ETH', source: 'sim',
+            });
+            offered++;
+          } catch (e) {
+            failed.push({ slug, tokenId: item.tokenId, error: e instanceof Error ? e.message : 'Offer failed' });
+          }
+        }
+
+        for (const item of chain) {
+          const slug = item.slug.toLowerCase();
+          try {
+            const contract = await contractOf(slug);
+            if (!contract) throw new Error('Project is not on-chain yet');
+            const royaltyReceiver = await resolveRoyaltyReceiver(db, slug, contract);
+            if (!royaltyReceiver) throw new Error('Royalty receiver unavailable');
+            const checked = await checkOfferOrder(item.order, {
+              address, contract, royaltyReceiver, scope: 'item', tokenId: item.tokenId,
+            });
+            await placeOffer(slug, item.tokenId, Number(checked.priceEth), {
+              start_time: checked.startTime, end_time: checked.endTime,
+              currency: checked.currency, source: 'seaport',
+              order_hash: item.orderHash, order_json: item.order,
+            });
+            offered++;
+          } catch (e) {
+            failed.push({ slug, tokenId: item.tokenId, error: e instanceof Error ? e.message : 'Offer failed' });
+          }
+        }
+        return NextResponse.json({ ok: true, offered, failed });
       }
 
       // ── Collection / trait offers ─────────────────────────────────────────

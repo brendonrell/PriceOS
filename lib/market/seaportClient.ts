@@ -58,7 +58,9 @@ async function rigFor(wallet: WalletClient): Promise<Rig> {
     CHAIN_ID,
   );
   const signer = new JsonRpcSigner(provider, account.address);
-  const seaport = new Seaport(signer);
+  // ethers ships dual ESM/CJS type trees; seaport-js's Signer resolves to the
+  // CJS one — same runtime class, so the cast is type-plumbing only.
+  const seaport = new Seaport(signer as unknown as ConstructorParameters<typeof Seaport>[0]);
   return { seaport, signer, provider, address: account.address };
 }
 
@@ -233,6 +235,37 @@ export async function createOffer(
   );
   const order = (await runCreateActions(useCase, onStep)) as OrderWithCounter;
   return toSignedOrder(rig.seaport, order);
+}
+
+/** Sign N item offers with ONE wallet signature. Wraps the combined WETH
+ *  shortfall once up front. */
+export async function createBulkOffers(
+  wallet: WalletClient,
+  inputs: (OfferInput & { tokenId: string })[],
+  onStep?: StepCb,
+): Promise<SignedOrder[]> {
+  const rig = await rigFor(wallet);
+  const total = inputs.reduce((s, i) => s + ethToWei(i.priceEth), 0n);
+  await ensureWeth(rig, total, onStep);
+  const useCase = await rig.seaport.createBulkOrders(
+    inputs.map((i) => ({
+      offer: [{ token: WETH_ADDRESS, amount: ethToWei(i.priceEth).toString() }],
+      consideration: [
+        {
+          itemType: ItemType.ERC721,
+          token: i.contract,
+          identifier: i.tokenId,
+          recipient: rig.address,
+        },
+      ],
+      fees: [{ recipient: i.royaltyReceiver, basisPoints: ROYALTY_BPS }],
+      startTime: i.startTime,
+      endTime: i.endTime,
+    })),
+    rig.address,
+  );
+  const orders = (await runCreateActions(useCase, onStep)) as OrderWithCounter[];
+  return orders.map((o) => toSignedOrder(rig.seaport, o));
 }
 
 /** Run a fulfillment use case: approvals then the exchange tx. Returns the

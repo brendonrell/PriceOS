@@ -26,6 +26,9 @@ import { priceDayContents } from '../../lib/priceday/priceday';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { cancelListing } from '../../lib/market/marketClient';
+import { useWalletClient } from 'wagmi';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -173,6 +176,9 @@ export default function ArtworkPageBody({
 }: Props) {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
+    const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
+    const { data: walletClient } = useWalletClient();
+    const [ctaBusy, setCtaBusy] = useState(false);
     const { open: openModal } = useModal();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
@@ -215,17 +221,23 @@ export default function ArtworkPageBody({
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
         listing: { price_eth: string } | null;
+        offers: { id: string }[];
         last_sale: string | null; floor: string | null; volume_eth: string | null;
         followers: number | null;
         viewer: { address: string; isOwner: boolean; balance: number } | null;
     } | null>(null);
     useEffect(() => {
         let cancelled = false;
-        fetch(`/api/output/${slug}-${numberPart}/market`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setMarket(d); })
-            .catch(() => {});
-        return () => { cancelled = true; };
+        const load = () => {
+            fetch(`/api/output/${slug}-${numberPart}/market`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setMarket(d); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [slug, numberPart]);
 
     /* This Output's platform traits (Artist/Project/PriceDay/Sun/Moon/Rising/
@@ -448,11 +460,16 @@ export default function ArtworkPageBody({
                 showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
             }
         } else if (ctaAction === 'list') {
-            showToast('List: COMING SOON');
+            openListSheet([{ slug, id: numberPart }]);
         } else if (ctaAction === 'unlist') {
-            showToast('Unlist: COMING SOON');
+            if (ctaBusy) return;
+            setCtaBusy(true);
+            cancelListing(slug, numberPart, { wallet: walletClient })
+                .then(() => showToast('Listing: CANCELLED'))
+                .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
+                .finally(() => setCtaBusy(false));
         } else {
-            showToast('Make Offer: COMING SOON');
+            openOfferSheet([{ slug, id: numberPart }]);
         }
     };
 
@@ -596,9 +613,20 @@ export default function ArtworkPageBody({
                             className="btn-mint"
                             title={`${projectName} #${numberPart}`}
                             onClick={onCta}
+                            disabled={ctaBusy}
                         >
-                            {ctaLabel}
+                            {ctaBusy ? <span className="mint-lbl">CANCELLING…</span> : ctaLabel}
                         </button>
+                        {(market?.offers?.length ?? 0) > 0 && (
+                            <button
+                                type="button"
+                                className="mk-offers-pill"
+                                onClick={() => openOffersPanel(slug, numberPart)}
+                                title="Open offers"
+                            >
+                                {'✦︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
+                            </button>
+                        )}
                     </div>
 
                     {/* Tab row — Artwork / Albums / + More. */}
