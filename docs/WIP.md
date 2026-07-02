@@ -26,10 +26,19 @@ including the fix round below, which went to the dead code.)**
 - **Fallout from the fix round below:** the app-side + DB fixes all stand
   (architecture-independent — contract_address, cutover guard, pings, API
   auth, social graph, wallet-volume trigger). The indexer-repo commit on
-  `main` is donor code only. The REAL indexer has the same address→slug
-  keying gap (verified — it drops every event as-is): **queued as ClickUp
-  `86baq7mcz` (high)** — port before first Sepolia run. Railway-Postgres
-  console tap is VOID (corrected in the assigned comment on `86b9v5w77`).
+  `main` is donor code only. Railway-Postgres console tap is VOID
+  (corrected in the assigned comment on `86b9v5w77`).
+- **✅ REAL indexer fixed same day (ClickUp `86baq7mcz` complete).** Full
+  review of the rebuild branch run (06-29 hardening holds: replay-gated
+  counting, null→set volume booking, HMAC, fail-closed cron, fault
+  isolation), then the three gaps fixed + pushed (ebbfcf3, typecheck
+  clean): address→slug bridge over `projects.contract_address` (tracked
+  cache was slug-keyed — dropped every event; sweep fed slugs to
+  eth_getLogs), per-token sale enrichment (tx-only match mispriced
+  sweeps), and on-chain SALE→seller + artist MINT-milestone pings
+  (spec/README/handoff updated — the "notifications trigger" they
+  described never existed live). Go-live unchanged: paste the contract
+  address onto the projects row.
 
 ## ✅ SHIPPED 2026-07-02 — LAUNCH-READINESS FIX ROUND (API · indexer · pings · social)
 
