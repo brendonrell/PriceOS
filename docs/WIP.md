@@ -6,6 +6,47 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — GLOBAL SEARCH IS REAL (the whole thing, Brendon-approved, on dev)
+
+**dev @ 4c1eb91, tree clean. Renders when hosting resumes (Vercel paused;
+Cloudflare Pages move planned "a day or two" from 07-02).** Four pushes,
+each on Brendon's explicit go:
+
+- **Search v1** — the dropdown placeholder became real sectioned search
+  (`app/api/search` + `lib/search/parse` + GlobalSearchBar): PROJECTS /
+  COLLECTORS / OUTPUTS, natural-language visual search over the stored
+  fingerprint (colour/mood/bands live on all ~1,600 pieces; Reads-As
+  scene sentences populate on view post-deploy), True Names, collector
+  rows = PriceSprite + @name + ⬚⟠⚬ stats (NO ID Rectangle — Brendon
+  reformatted it out), history-aware ordering via breadcrumbs.
+- **Search v2** — the power grammar (`by:` `project:` `holder:` `color:`
+  `mood:` `listed/sold/offers` `under:/over:` `sort:` `followers:>n`
+  `sun:`), inline answers (floor/volume/ath/who-holds/spent), Enter=go,
+  PAGES nav ("home"/"artists"/"settings"…), live 36px art thumbnails,
+  SOUNDTRACKS + TRAITS sections, typo forgiveness (edit-distance
+  fallback), `+N more` expanders, RECENTLY VIEWED / NOW MINTING empty
+  state + syntax hint, `search_log` table (service-role only; migration
+  applied live + in repo).
+- **Nomenclature** — results say OUTPUTS (locked noun, never "Artworks");
+  `porsche`/`odin`/`thor` added to reserved handles (T2).
+- **The side door** — type a certain word (FNV-1a-hashed trigger,
+  1562394851 — never in the bundle) → LED-handheld 3-lane runner in the
+  results box (`components/dropdown/LaneRunner.tsx`). Tap-a-lane, 911
+  hero with clear headlights, cartoon hazards (oil slides you, cones/
+  potholes = WIPEOUT), human pace (520→240ms/row), milestone moments
+  (LUCKY 22 ♧ · NIGHT SHIFT 50 · CENTURY Ⅽ · HOTHURT 111 · HALO ⬭ 777).
+- **ClickUp:** feature-reference doc for user docs (`2kyd6gx6-1214`) +
+  follow-up task `86baq897j` (post-resume: fingerprint backfill sweep,
+  verify on dev preview, watch search_log).
+
+**Next session:** when hosting is live — run the fingerprint backfill
+sweep (scene sentences → "two yellow circles" works everywhere), verify
+search on the real dev preview mobile-first, then the Cloudflare cutover
+work per the parked plan. Local-dev note: search verified end-to-end via
+local prod build + Playwright (dev-login), screenshots in-session.
+
+---
+
 ## ⛔ LOCKED 2026-07-02 — THE INDEXER = $0 ALCHEMY SERVERLESS. PONDER/RAILWAY IS DEAD. DOCS ARE FOR USERS.
 
 **(Brendon, raised in anger after TWO sessions grabbed the wrong indexer —
