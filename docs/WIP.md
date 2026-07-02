@@ -28,6 +28,14 @@ including the fix round below, which went to the dead code.)**
   auth, social graph, wallet-volume trigger). The indexer-repo commit on
   `main` is donor code only. Railway-Postgres console tap is VOID
   (corrected in the assigned comment on `86b9v5w77`).
+- **Railway leftover discovered + neutralized (same night):** a Railway
+  service is STILL wired to the indexer repo (project "exquisite-caring")
+  and auto-deploys every push to its `main` — the session's pushes woke it,
+  Ponder OOM-crashed, crash emails hit Brendon. `main`'s railway.json now
+  idles instead of running anything (no crashes, no emails, ~zero usage).
+  **Brendon's tap: DELETE that Railway service** — under the serverless
+  plan Railway shouldn't exist at all. Until deleted, do NOT push to the
+  indexer repo more than necessary (every push = a Railway deploy).
 - **✅ REAL indexer fixed same day (ClickUp `86baq7mcz` complete).** Full
   review of the rebuild branch run (06-29 hardening holds: replay-gated
   counting, null→set volume booking, HMAC, fail-closed cron, fault
