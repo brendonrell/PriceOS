@@ -25,10 +25,14 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import { getMarket, subscribeMarket } from '../../lib/home/visibleMarketStore';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { useCart } from '../../lib/state/CartContext';
 
 export default function HomeMsFloatBar() {
     const { multiSelectActive, selectedItems, selectedCount } = useTraits();
     const { showToast } = useToast();
+    const { openListSheet, openOfferSheet, openTraitPicker } = useMarketSheet();
+    const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const [popupOpen, setPopupOpen] = useState(false);
     const [activeAction, setActiveAction] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -84,6 +88,8 @@ export default function HomeMsFloatBar() {
         actions.push({ label: 'Make Offer' });
         if (split.listedNotOwned > 0) actions.push({ label: 'Add to Cart' });
     }
+    /* Trait Offer — the one-selected general-purpose tool (any output). */
+    if (count === 1) actions.push({ label: 'Trait Offer' });
 
     const current = count === 0 ? 'Select' : (activeAction ?? 'Add to Album');
 
@@ -118,8 +124,43 @@ export default function HomeMsFloatBar() {
         if (count === 0) return;
         setPopupOpen(false);
         if (current === 'Add to Album') { setAlbumPickerOpen(true); return; }
+        /* The market sheets carry their own pricing + CONFIRM — no double confirm. */
+        if (current === 'List/Re-List') {
+            if (split.owned.length === 0) { showToast('List/Re-List: NONE ELIGIBLE'); return; }
+            openListSheet(sheetItems(split.owned));
+            return;
+        }
+        if (current === 'Make Offer') {
+            if (split.notOwned.length === 0) { showToast('Make Offer: NONE ELIGIBLE'); return; }
+            openOfferSheet(sheetItems(split.notOwned));
+            return;
+        }
+        if (current === 'Trait Offer') {
+            const it = selectedItems[0];
+            if (it) openTraitPicker(it.slug, it.id);
+            return;
+        }
         setConfirmOpen(true);
     };
+    const sheetItems = (subset: { slug: string; id: number }[]) =>
+        subset.map(({ slug, id }) => {
+            const snap = getMarket(slug, id);
+            return {
+                slug, id,
+                currentPriceEth: snap?.price != null && snap.price > 0 ? snap.price.toFixed(3) : null,
+            };
+        });
+    const handleAddToCart = () => {
+        let added = 0;
+        for (const it of split.notOwned) {
+            const snap = getMarket(it.slug, it.id);
+            if (snap?.listed && !cartHas(it.slug, it.id)) { cartAdd(it.slug, it.id); added++; }
+        }
+        if (added === 0) showToast('Cart: ALL ALREADY ADDED');
+        else showToast(`Cart: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+        openCartPanel();
+    };
+
     const handleConfirm = () => {
         setConfirmOpen(false);
         if (current === 'Star') { handleStarAll(); return; }
@@ -127,6 +168,7 @@ export default function HomeMsFloatBar() {
         const n = eligibleCount(current);
         const lbl = n === 1 ? '1 output' : `${n} outputs`;
         if (n === 0) { showToast(`${current}: NONE ELIGIBLE`); return; }
+        if (current === 'Add to Cart') { handleAddToCart(); return; }
         showToast(`${current} · ${lbl}: COMING SOON`);
     };
 

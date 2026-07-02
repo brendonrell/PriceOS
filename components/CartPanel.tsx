@@ -47,6 +47,9 @@ import {
 } from '../lib/state/CartContext';
 import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useAuth } from '../lib/state/AuthContext';
+import { sweepBuy } from '../lib/market/marketClient';
+import { useWalletClient } from 'wagmi';
 import BenchArt from './bench/BenchArt';
 
 const VS15 = '\uFE0E';
@@ -164,8 +167,10 @@ function CartGroup({
 }
 
 export default function CartPanel() {
-    const { items, panelOpen, remove, buyAll, closePanel } = useCart();
+    const { items, panelOpen, remove, closePanel } = useCart();
     const { showToast } = useToast();
+    const { siweAddress } = useAuth();
+    const { data: walletClient } = useWalletClient();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
     const [mounted, setMounted] = useState(false);
@@ -240,19 +245,34 @@ export default function CartPanel() {
         [closePanel]
     );
 
-    /* Continuous-motion sweep while the (mock) buy resolves \u2014 the UI must
-       always read as moving forward (CLAUDE.md \u00A79), never a frozen tap. */
+    /* Continuous-motion sweep while the buy resolves \u2014 the UI must always
+       read as moving forward (CLAUDE.md \u00A79), never a frozen tap. THE REAL
+       SWEEP: sim pieces settle through the atomic money RPC one by one; every
+       on-chain piece fills in ONE Seaport transaction. Bought pieces leave the
+       cart; failures stay so nothing silently disappears. */
     const onBuyAll = useCallback(() => {
         if (items.length === 0 || buying) return;
+        if (!siweAddress) { showToast('Wallet: CONNECT TO SWEEP'); return; }
         setBuying(true);
-        setTimeout(() => {
-            setBuying(false);
-            const n = buyAll();
-            if (n > 0) {
-                showToast(`Sweep complete \u00B7 ${n} token${n === 1 ? '' : 's'} acquired`);
-            }
-        }, 900);
-    }, [items.length, buying, buyAll, showToast]);
+        const minShow = new Promise((r) => setTimeout(r, 900));
+        sweepBuy(items, { wallet: walletClient })
+            .then(async (result) => {
+                await minShow;
+                for (const it of result.bought) remove(it.slug, it.id);
+                if (result.failed.length === 0 && result.bought.length > 0) {
+                    closePanel();
+                    showToast(`Sweep complete \u00B7 ${result.bought.length} token${result.bought.length === 1 ? '' : 's'} acquired`);
+                } else if (result.bought.length > 0) {
+                    showToast(`Sweep: ${result.bought.length} BOUGHT \u00B7 ${result.failed.length} failed`);
+                } else {
+                    showToast(result.failed[0]?.error ?? 'Sweep: FAILED');
+                }
+            })
+            .catch((err: unknown) => {
+                showToast(err instanceof Error ? err.message : 'Sweep: FAILED');
+            })
+            .finally(() => setBuying(false));
+    }, [items, buying, siweAddress, walletClient, remove, closePanel, showToast]);
 
     const isEmpty = items.length === 0;
 

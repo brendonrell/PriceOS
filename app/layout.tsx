@@ -45,6 +45,7 @@ import { ValuePromptProvider } from '../lib/state/ValuePromptContext';
 import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
 import { ProjectProvider } from '../lib/state/ProjectContext';
 import { CartProvider } from '../lib/state/CartContext';
+import { MarketSheetProvider } from '../lib/state/MarketSheetContext';
 import { BenchProvider } from '../lib/state/BenchContext';
 import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
@@ -611,11 +612,13 @@ export default async function RootLayout({
                                                             <CalcSheetProvider>
                                                                 <ProjectProvider>
                                                                     <CartProvider>
+                                                                      <MarketSheetProvider>
                                                                         <BenchProvider>
                                                                             <WorkspacesProvider>
                                                                                 <PriceOSShell>{children}</PriceOSShell>
                                                                             </WorkspacesProvider>
                                                                         </BenchProvider>
+                                                                      </MarketSheetProvider>
                                                                     </CartProvider>
                                                                 </ProjectProvider>
                                                             </CalcSheetProvider>

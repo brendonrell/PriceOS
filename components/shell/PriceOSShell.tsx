@@ -88,6 +88,7 @@ import SpiteBookModal from '../SpiteBookModal';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
+import MarketSheets from '../market/MarketSheets';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
 import NativePingsFirstRun from './NativePingsFirstRun';
@@ -446,6 +447,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="CartPanel">
                 <CartPanel />
+            </ErrorBoundary>
+            <ErrorBoundary name="MarketSheets">
+                <MarketSheets />
             </ErrorBoundary>
             <ErrorBoundary name="TheWatch">
                 <TheWatch />

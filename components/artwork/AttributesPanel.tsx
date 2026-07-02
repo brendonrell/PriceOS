@@ -13,11 +13,13 @@ import { useMemo } from 'react';
 import { buildOutputAttributes, type AttrInput } from '../../lib/output/attributes';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { composeCelestialReading } from '../../lib/output/celestialReading';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import AttrWall from './AttrWall';
 
 export default function AttributesPanel(props: AttrInput) {
     const groups = useMemo(() => buildOutputAttributes(props), [props]);
     const { notifs } = usePdNotifs();
+    const { openCriteriaOfferSheet } = useMarketSheet();
 
     /* Celestial Tracker — the piece's birth-sky reading, composed from its real
        attributes (no model, $0). Shown only while the spell is on. */
@@ -36,5 +38,17 @@ export default function AttributesPanel(props: AttrInput) {
         [notifs.spell_celestial, props.slug, props.id, props.mintMs, props.traits]
     );
 
-    return <AttrWall groups={groups} reading={reading} />;
+    /* Trait offers, straight off the character sheet (Brendon, 2026-07-02):
+       every tile that IS a real offerable trait (the server-computable
+       outputTraits vocabulary — props.traits) wears the ✦ chip. */
+    return (
+        <AttrWall
+            groups={groups}
+            reading={reading}
+            offerTraits={props.traits ?? null}
+            onTraitOffer={(category, value) =>
+                openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })
+            }
+        />
+    );
 }

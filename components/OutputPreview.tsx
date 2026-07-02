@@ -89,6 +89,9 @@ import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
+import { useMarketSheet } from '../lib/state/MarketSheetContext';
+import { cancelListing } from '../lib/market/marketClient';
+import { useWalletClient } from 'wagmi';
 import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
@@ -213,6 +216,9 @@ export default function OutputPreview() {
     const { showToast } = useToast();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
+    const { openListSheet, openOfferSheet } = useMarketSheet();
+    const { data: walletClient } = useWalletClient();
+    const [unlistBusy, setUnlistBusy] = useState(false);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -673,11 +679,16 @@ export default function OutputPreview() {
                 showToast(`Added to cart · ${next} item${next === 1 ? '' : 's'}`);
             }
         } else if (mainAction === 'list') {
-            showToast('List: COMING SOON');
+            if (id != null) openListSheet([{ slug, id }]);
         } else if (mainAction === 'unlist') {
-            showToast('Unlist: COMING SOON');
+            if (id == null || unlistBusy) return;
+            setUnlistBusy(true);
+            cancelListing(slug, id, { wallet: walletClient })
+                .then(() => showToast('Listing: CANCELLED'))
+                .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
+                .finally(() => setUnlistBusy(false));
         } else {
-            showToast('Make Offer: COMING SOON');
+            if (id != null) openOfferSheet([{ slug, id }]);
         }
     };
 
@@ -701,7 +712,7 @@ export default function OutputPreview() {
         const liveListPrice = market ? (market.listing?.price_eth ?? null) : meta.price;
         const isListedNow = liveListPrice != null;
         if (ownsThis) {
-            actionLabel = isListedNow ? <>UNLIST</> : <>LIST</>;
+            actionLabel = isListedNow ? (unlistBusy ? <>CANCELLING…</> : <>UNLIST</>) : <>LIST</>;
             mainAction = isListedNow ? 'unlist' : 'list';
             hasCalc = true;
             calcIcon = '\u2446\uFE0E';         // ⑆ user showcase icon

@@ -45,6 +45,8 @@ import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../li
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill } from '../project/TraitsUI';
 import AlbumPickerCard from '../album/AlbumPickerCard';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { useCart } from '../../lib/state/CartContext';
 import {
     getPresets,
     getLoadedIndex,
@@ -676,6 +678,8 @@ function CollectedMsFloatBar({
 }) {
     const { multiSelectActive, selectedItems, selectedCount } = useTraits();
     const { showToast } = useToast();
+    const { openListSheet, openOfferSheet, openTraitPicker } = useMarketSheet();
+    const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
     const [popupOpen, setPopupOpen] = useState(false);
     const [activeAction, setActiveAction] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -717,6 +721,8 @@ function CollectedMsFloatBar({
         actions.push({ label: 'Make Offer' });
         if (allListed) actions.push({ label: 'Add to Cart' });
     }
+    /* Trait Offer — the one-selected general-purpose tool (any output). */
+    if (count === 1) actions.push({ label: 'Trait Offer' });
 
     const current = count === 0 ? 'Select' : (activeAction ?? 'Add to Album');
 
@@ -739,12 +745,32 @@ function CollectedMsFloatBar({
         showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
 
+    const sheetItems = () => selected.map((h) => ({
+        slug: h.slug,
+        id: h.token_id,
+        currentPriceEth: h.list_price_eth != null && parseFloat(h.list_price_eth) > 0
+            ? parseFloat(h.list_price_eth).toFixed(3)
+            : null,
+    }));
+
     const handleExec = () => {
         if (count === 0) return;
         setPopupOpen(false);
-        /* Album picker is its own confirmation — see TraitsUI MsFloatBar. */
+        /* Album picker is its own confirmation — see TraitsUI MsFloatBar.
+           Same for the market sheets (pricing + CONFIRM live in the sheet). */
         if (current === 'Add to Album') {
             setAlbumPickerOpen(true);
+            return;
+        }
+        if (current === 'List/Re-List' || current === 'Make Offer') {
+            if (selected.length === 0) { showToast(`${current}: NONE ELIGIBLE`); return; }
+            if (current === 'List/Re-List') openListSheet(sheetItems());
+            else openOfferSheet(sheetItems());
+            return;
+        }
+        if (current === 'Trait Offer') {
+            const it = selectedItems[0];
+            if (it) openTraitPicker(it.slug, it.id);
             return;
         }
         setConfirmOpen(true);
@@ -753,6 +779,16 @@ function CollectedMsFloatBar({
         setConfirmOpen(false);
         if (current === 'Star') { handleStarAll(); return; }
         if (current === 'Wishlist') { handleWishlistAll(); return; }
+        if (current === 'Add to Cart') {
+            let added = 0;
+            for (const h of selected) {
+                if (h.listed && !cartHas(h.slug, h.token_id)) { cartAdd(h.slug, h.token_id); added++; }
+            }
+            if (added === 0) showToast('Cart: ALL ALREADY ADDED');
+            else showToast(`Cart: ADDED · ${added} item${added === 1 ? '' : 's'}`);
+            openCartPanel();
+            return;
+        }
         showToast(`${current} · ${countLabel}: COMING SOON`);
     };
 
