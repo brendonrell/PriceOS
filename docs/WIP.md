@@ -6,6 +6,37 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — SPOT EDITS + FULL CLICKUP ATLAS ACCURACY PASS
+
+**dev @ 30ce64c, tree clean, build green.**
+
+**App (on dev):** The Bench title in Rubik (was Courier) · grid presets now
+capture the grouping dimension (project + collected) · shareable `?sort=`
+slugs (turn on at the first sort tap, clean URL by default, paste-to-apply,
+clears on fresh project) · Sticker store subtitle "FOR YOUR PROFILE" → "BY PD".
+
+**ClickUp — PriceOS + API Feature Atlas, fully code-verified 2026-07-02**
+(docs only, nothing in the app touched). Ran 5 parallel code-reading agents
+over every surface, then rewrote each spec page against confirmed facts:
+- **Master Index** rebuilt: numbered, sections alphabetical, each name links to
+  its spec page, statuses read from code (LIVE / mock-data / stub / spec / idea),
+  + an explicit "Not in the app" section. Art/projects/artists deliberately
+  EXCLUDED (test content, per Brendon).
+- Rewrote: App Shell, Global UI, Spell Book, OS Tools, Discovery, Project,
+  Output, Profile, Artist, Settings, Pings, Platform Systems, Dedicated Tools,
+  Showcase Engine, API Surface (34 route groups), Reconciliation. Storage / User
+  State / Spec Locks / Subtraits / ID Rectangles verified accurate, left as-is.
+- **Corrections found:** NOT built — Whisper, Cooling Pool, Burn Pile, Hermitage,
+  Price Target, P2P-ping compose, output Genome marker, "MARKET wall." Ships but
+  mock-data — Price Ghost, Incognito, Sentiment Weather, TopBar calendar events,
+  Price Lens floor, Replay history, sticker buying + whole secondary market (SIM).
+  Further along than notes — Celestial/Spite/Panopticon live, achievements = 1,000
+  (not 281), Fingerprint v3. "Deactivate shows Invisible" bug is NOT real.
+- **Deferred (Brendon's call):** Indexer + Smart-Contract ClickUp sections — their
+  repos aren't attached to this session; do them in a chat with those repos in scope.
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — THE LOOP: PRICEDAY SEARCH POWERUP + DAY STORIES + REAL CALENDAR
 
 **dev @ HEAD, tree clean, build green.** The stack Brendon named — secondary
