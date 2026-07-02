@@ -17,7 +17,7 @@
  *  - Top Bar Calendar (⥹) is a separate piece, not in scope here.
  */
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CAL_EVENTS,
   CAL_MONTH_SHORT,
@@ -32,6 +32,17 @@ import {
   dateKey,
   renderNoteMarkdown,
 } from '../lib/calendar/utils';
+import { useToast } from '../lib/state/ToastContext';
+import { usePriceDay } from '../lib/priceday/usePriceDay';
+import { PRICEDAY_EPOCH, priceDayNumber } from '../lib/priceday/priceday';
+
+interface CalApiItem {
+  id?: string;
+  scope: 'personal' | 'global' | 'auto';
+  time?: string | null;
+  title: string;
+  mine?: boolean;
+}
 
 export default function CalendarPanel() {
   const {
@@ -41,7 +52,38 @@ export default function CalendarPanel() {
   } = useCalendar();
 
   const { openDayNoteEditor } = useNotePrompt();
-  const { siweAddress } = useAuth();
+  const { siweAddress, handle } = useAuth();
+  const { showToast } = useToast();
+
+  /* THE REAL CALENDAR — month items from the ledger + the stored layers
+     (global schedule · your items · auto milestones + retrospectives). */
+  const [monthItems, setMonthItems] = useState<Record<string, CalApiItem[]>>({});
+  const [canGlobal, setCanGlobal] = useState(false);
+  const loadMonth = useCallback(() => {
+    fetch(`/api/calendar?year=${viewY}&month=${viewM + 1}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d) return;
+        setMonthItems((d.days as Record<string, CalApiItem[]>) ?? {});
+        setCanGlobal(!!d.can_global);
+      })
+      .catch(() => {});
+  }, [viewY, viewM]);
+  useEffect(() => { loadMonth(); }, [loadMonth]);
+
+  /* Add-item composer (+ beside the Day Note icon). */
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [composeTitle, setComposeTitle] = useState('');
+  const [composeTime, setComposeTime] = useState('');
+  const [composeGlobal, setComposeGlobal] = useState(false);
+  const [composeBusy, setComposeBusy] = useState(false);
+
+  /* PriceDay ↔ calendar: the selected day's almanac line rides the column. */
+  const selDate = useMemo(() => new Date(selY, selM, selD, 12), [selY, selM, selD]);
+  const selPd = usePriceDay(selDate);
+  const selInPdRange =
+    Date.UTC(selY, selM, selD) >= PRICEDAY_EPOCH &&
+    priceDayNumber(selDate) <= priceDayNumber(new Date());
 
   const cells = useMemo(() => buildMonthCells(viewY, viewM), [viewY, viewM]);
 
@@ -100,7 +142,8 @@ export default function CalendarPanel() {
 
               const k = dateKey(c.y, c.m, c.d);
               const evs = CAL_EVENTS[k] || [];
-              const dotCount = Math.min(evs.length, 3);
+              const real = monthItems[k] || [];
+              const dotCount = Math.min(evs.length + real.length, 3);
               const hasTodo =
                 isAuthed && todosMode && !c.other &&
                 Boolean(CAL_TODOS[k] && CAL_TODOS[k].length);
@@ -179,6 +222,24 @@ export default function CalendarPanel() {
             <span>{dateLabel}</span>
             {isAuthed && (
               <span
+                className="cal-daynote-btn cal-add-btn"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); setComposeOpen((v) => !v); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setComposeOpen((v) => !v);
+                  }
+                }}
+                title="Add calendar item"
+              >
+                {'+'}
+              </span>
+            )}
+            {isAuthed && (
+              <span
                 className={`cal-daynote-btn${hasNote ? ' has-note' : ''}`}
                 role="button"
                 tabIndex={0}
@@ -198,7 +259,111 @@ export default function CalendarPanel() {
           </div>
 
           <div className="cal-day-col-events" id="calDayColEvents">
-            {empty && <div className="cal-event-empty">No events</div>}
+            {composeOpen && isAuthed && (
+              <div className="cal-compose" onClick={(e) => e.stopPropagation()}>
+                <input
+                  className="cal-compose-input"
+                  type="text"
+                  placeholder="what's happening?"
+                  value={composeTitle}
+                  maxLength={200}
+                  autoFocus
+                  onChange={(e) => setComposeTitle(e.target.value)}
+                />
+                <div className="cal-compose-row">
+                  <input
+                    className="cal-compose-input cal-compose-time"
+                    type="text"
+                    placeholder="time?"
+                    value={composeTime}
+                    maxLength={24}
+                    onChange={(e) => setComposeTime(e.target.value)}
+                  />
+                  {canGlobal && (
+                    <button
+                      type="button"
+                      className={`cal-compose-global${composeGlobal ? ' is-on' : ''}`}
+                      onClick={() => setComposeGlobal((v) => !v)}
+                      title="Write to the GLOBAL calendar (everyone sees it)"
+                    >
+                      GLOBAL
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="cal-compose-save"
+                    disabled={composeBusy || !composeTitle.trim()}
+                    onClick={() => {
+                      if (composeBusy || !composeTitle.trim()) return;
+                      setComposeBusy(true);
+                      fetch('/api/calendar', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({
+                          action: 'add',
+                          dateKey: selKey,
+                          time: composeTime.trim(),
+                          title: composeTitle.trim(),
+                          scope: composeGlobal ? 'global' : 'personal',
+                        }),
+                      })
+                        .then(async (r) => {
+                          if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string })?.error ?? 'FAILED');
+                          showToast(`Calendar: ADDED${composeGlobal ? ' · GLOBAL' : ''}`);
+                          setComposeTitle('');
+                          setComposeTime('');
+                          setComposeOpen(false);
+                          loadMonth();
+                        })
+                        .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Calendar: FAILED'))
+                        .finally(() => setComposeBusy(false));
+                    }}
+                  >
+                    {composeBusy ? '…' : 'ADD'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* PriceDay ↔ calendar — the selected day's almanac line. */}
+            {selInPdRange && (
+              <div className="cal-event-item cal-event-priceday" title={selPd.flavor ?? undefined}>
+                <div className="cal-event-title">
+                  <span className="cal-pd-num">{'✶\uFE0E'} PriceDay {selPd.number}</span>
+                  {selPd.flavor && <span className="cal-pd-flavor"> — {selPd.flavor}</span>}
+                </div>
+              </div>
+            )}
+
+            {(monthItems[selKey] || []).map((it) => (
+              <div key={it.id ?? `${it.scope}-${it.title}`} className={`cal-event-item cal-event-${it.scope}`}>
+                {it.time && <div className="cal-event-time">{it.time}</div>}
+                <div className="cal-event-title">
+                  {it.scope === 'global' && <span className="cal-global-mark">{'⊞\uFE0E'} </span>}
+                  {it.title}
+                  {it.mine && it.id && (
+                    <span
+                      className="cal-item-del"
+                      role="button"
+                      tabIndex={0}
+                      title="Remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetch('/api/calendar', {
+                          method: 'POST',
+                          headers: { 'content-type': 'application/json' },
+                          body: JSON.stringify({ action: 'delete', id: it.id }),
+                        }).then(() => { showToast('Calendar: REMOVED'); loadMonth(); }).catch(() => {});
+                      }}
+                    >
+                      {'×\uFE0E'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {empty && (monthItems[selKey] || []).length === 0 && !selInPdRange && <div className="cal-event-empty">No events</div>}
 
             {dayNote && (
               <div

@@ -376,3 +376,39 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .skm-gift-to { width: 92px; text-align: left; }
 .skm-gift-note { width: 150px; text-align: left; }
+
+/* ── THE CALENDAR, real ─────────────────────────────────────── */
+.cal-add-btn { margin-right: 4px; font-weight: bold; }
+.cal-compose { padding: 6px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+.cal-compose-input {
+    width: 100%; box-sizing: border-box;
+    background: transparent; color: var(--text-color);
+    border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+    border-radius: 4px; padding: 5px 7px;
+    font-family: 'Courier New', Courier, monospace; font-size: 12px;
+    outline: none;
+}
+.cal-compose-row { display: flex; gap: 6px; align-items: center; }
+.cal-compose-time { width: 70px; }
+.cal-compose-global, .cal-compose-save {
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+    border-radius: 4px; color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 0.6px;
+    padding: 5px 8px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-compose-global.is-on, .cal-compose-save {
+    background: var(--text-color); color: var(--bg-color);
+}
+.cal-compose-save:disabled { opacity: 0.4; cursor: not-allowed; }
+.cal-event-priceday .cal-pd-num { font-weight: bold; }
+.cal-event-priceday .cal-pd-flavor { opacity: 0.7; }
+.cal-global-mark { opacity: 0.7; }
+.cal-item-del {
+    margin-left: 6px; opacity: 0.5; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-item-del:hover { opacity: 1; }
+.cal-event-auto .cal-event-title { opacity: 0.85; }

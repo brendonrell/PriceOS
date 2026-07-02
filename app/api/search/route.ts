@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon, getSupabaseService } from '@/lib/supabase';
+import { buildPriceDayAlmanac } from '@/lib/priceday/almanac.server';
+import { priceDayNumber } from '@/lib/priceday/priceday';
 import { badRequest, serverError } from '@/lib/errors';
 import { parseQuery, sceneWordForBucket } from '@/lib/search/parse';
 import { getCircleStats } from '@/lib/social/circleStats';
@@ -633,6 +635,42 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
        holds / spent / collected / followers) ──────────────────────────── */
 
     const answers: SearchAnswer[] = [];
+
+    /* ── PRICEDAY POWERUP — "priceday 55" / "pd 55" / "priceday" (today)
+       summons the whole day: date, THE DAY, the story beats, the biggest
+       sale, the tallies — every line tappable where it leads somewhere. */
+    const pdMatch = /(?:^|\s)(?:priceday|price\s*day|pd)\s*#?(\d{1,6})?(?:\s|$)/i.exec(q);
+    if (pdMatch && (pdMatch[1] || /priceday|price\s*day/i.test(q))) {
+      const dayN = pdMatch[1] ? Number(pdMatch[1]) : priceDayNumber(new Date());
+      if (Number.isInteger(dayN) && dayN >= 1 && dayN <= priceDayNumber(new Date())) {
+        try {
+          const alm = await buildPriceDayAlmanac(supabase, dayN);
+          answers.push({ text: `✶${VS15} PriceDay ${alm.number} — ${alm.date_label}`, href: null });
+          answers.push({ text: alm.flavor, href: null });
+          for (const line of alm.story.slice(1, 3)) answers.push({ text: line, href: null });
+          if (alm.biggestSale) {
+            answers.push({
+              text: `Biggest sale — ${alm.biggestSale.label} · ${alm.biggestSale.value}`,
+              href: alm.biggestSale.href ?? null,
+            });
+          }
+          for (const m of alm.minted.slice(0, 2)) {
+            if (m.href) answers.push({ text: `✶${VS15} minted — ${m.label} · ${m.value}`, href: m.href ?? null });
+          }
+          for (const u of alm.uploaded.slice(0, 2)) {
+            if (u.href) answers.push({ text: `✧${VS15} arrived — ${u.label} · ${u.value}`, href: u.href ?? null });
+          }
+          const t = alm.tallies;
+          const bits: string[] = [];
+          if (t.mints) bits.push(`${t.mints} mints`);
+          if (t.sales) bits.push(`${t.sales} sales`);
+          if (t.volume_eth) bits.push(`${t.volume_eth} ETH`);
+          if (t.listings) bits.push(`${t.listings} listings`);
+          if (t.offers) bits.push(`${t.offers} offers`);
+          if (bits.length > 0) answers.push({ text: `The tallies — ${bits.join(' · ')}`, href: null });
+        } catch { /* the powerup never breaks ordinary search */ }
+      }
+    }
     const termSet = new Set(parsed.terms);
     const topProjRow = projects[0] ? projRows.get(projects[0].id) : undefined;
     if (topProjRow) {
