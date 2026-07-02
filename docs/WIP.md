@@ -6,6 +6,56 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-02 — LAUNCH-READINESS FIX ROUND (API · indexer · pings · social)
+
+**On `dev` (de4c2de) + indexer `main` (1ac5e2c), trees clean. Renders when
+hosting resumes (Vercel still paused — no deploy since 06-27; July pushes
+build on resume).** Full pipeline review (4 parallel reviewers, findings
+re-verified in code), then Brendon's "fix all of these and push":
+- **Pings:** 23505-recovery bump now ignores the 6h window (unread rollup
+  older than the window silently ate every new OFFER); wishlist fan-out via
+  new `app_ping_wishlist_fanout` RPC (per-row upsert — one duplicate no
+  longer kills a 500-row chunk; bumps count + resurfaces instead). RPC
+  smoke-tested live (insert→bump→cleanup).
+- **API:** `outputs/color` + `outputs/traits` now requireAuth (were
+  unauthenticated service-role writes — anyone could rewrite every token's
+  stored fingerprint); color validates the project. Middleware: sensitive
+  bucket is method-aware — follow-surface GETs ride the normal bucket (a
+  profile page could 429 itself), writes keep 15/min; output-follows +
+  outputs writes added.
+- **Social graph:** relation mode (`?viewer=`) on all three follow reads —
+  buttons/useArtistSocial check the single edge instead of downloading
+  capped lists (wrong state past 1000 followers); exact counts via count
+  queries; lists explicitly capped, newest-first; parallel arrays derived
+  from one filtered pair list (modal zip desync). Re-follow = true no-op
+  (no created_at reset, NO re-fired ping — spam vector closed; clients
+  accept the 200). `follows` rows now write BOTH address columns (rename
+  trigger/cascades/self-follow CHECK alive); 23 existing rows backfilled;
+  `follows(following_name)` index added.
+- **Indexer (was NOT launch-ready — my earlier standalone OK missed it):**
+  `projects.contract_address` = address→slug bridge + per-project cutover
+  flag (set it ⇒ indexer maps the contract, app sim mint/market REFUSES that
+  slug). Handlers write slugs; aggregates fire only on fresh event rows
+  (replays no longer double-count); sale enrichment per (tx, project,
+  token) returning rowcount (sweeps + matchOrders can't double volume);
+  on-chain SALE pings the seller + artist MINT-milestone pings (mirrors app
+  semantics, PD-users only, mutes respected); wallets volume trigger on
+  price-UPDATE (sql/0005, applied live); DATABASE_URL documented/required,
+  /health healthcheck + always-restart, start-block "" guard.
+- **Migrations applied live:** app_ping_wishlist_fanout ·
+  follows_index_and_address_backfill · projects_contract_address ·
+  wallet_volume_on_enrichment.
+- **Brendon console taps (assigned ClickUp comment on 86b9v5w77):**
+  ① Vercel: confirm UPSTASH_REDIS_REST_URL/TOKEN set (else prod rate limiter
+  is per-instance only). ② Railway (at indexer go-live): Postgres +
+  DATABASE_URL. ③ At Sepolia deploy: paste each collection's contract
+  address into its projects row — that IS the cutover switch.
+- **Deferred (known, not fixed — smaller):** pings cursor-pagination
+  duplicate (client never paginates), broadcast-feed URL-length cliff for
+  huge follow graphs (→ RPC later), OUTPUT_FOLLOW retention tier, /api/stats
+  full-table aggregation at scale, ProjectCreated factory auto-discovery +
+  Minted tokenHash ingestion (needed before real Sepolia drops at volume).
+
 ## ✅ SHIPPED 2026-07-02 — ACHIEVEMENTS 1000 + the two-year Mjölnir wall + LEADERBOARD
 
 **On `dev` (2cc7d9f), tree clean. Renders when hosting resumes (Vercel paused).**
