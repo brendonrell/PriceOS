@@ -236,7 +236,10 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'token_420', name: 'Blaze It', blurb: 'Own a token numbered 420.', points: 420, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==420' },
   { id: 'token_42', name: 'Deep Thought', blurb: 'Own token #42 — the answer to life, the universe, and everything.', points: 42, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==42' },
   { id: 'token_1337', name: 'Leet', blurb: 'Own a token numbered 1337.', points: 100, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1337' },
-  { id: 'token_1', name: 'The One', blurb: 'Own the #1 token of any project.', points: 50, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1' },
+  // Retargeted 2026-07-02: PD contracts mint #22–#9999, so "#1" can't exist.
+  // The spirit survives — #22 IS the firstborn of every project. (Deliberately
+  // shares Lucky 22's trigger: two different jokes, one very good buy.)
+  { id: 'token_1', name: 'Firstborn', blurb: 'Own token #22 of any project — the first piece a PD contract can ever mint.', points: 50, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==22' },
   // Angel numbers — mystical, magical, encouraged. (No 666. Ever.)
   { id: 'token_777', name: 'Angel Number', blurb: 'Own token #777 — the universe is winking at you.', points: 77, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==777' },
   { id: 'token_888', name: 'Infinite Abundance', blurb: 'Own token #888 — flow and fortune.', points: 88, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==888' },
@@ -244,7 +247,8 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // Personal + numerology.
   { id: 'token_22', name: 'Lucky 22', blurb: 'Own token #22.', points: 22, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==22' },
   { id: 'token_85', name: "Class of '85", blurb: 'Own token #85. A very good year.', points: 85, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==85' },
-  { id: 'token_18', name: 'Master Number', blurb: 'Own token #18.', points: 18, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==18' },
+  // Retargeted 2026-07-02: #18 is below the contract floor (#22) — doubled up.
+  { id: 'token_18', name: 'Master Number', blurb: 'Own token #1818.', points: 18, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1818' },
   // For the creative coders — math + gen-art number references.
   { id: 'token_144', name: 'Fibonacci', blurb: 'Own token #144 — a perfect square, and a number in the sequence.', points: 21, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==144' },
   { id: 'token_256', name: 'Full Byte', blurb: 'Own token #256 — two to the eighth.', points: 64, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==256' },
