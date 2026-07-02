@@ -38,12 +38,13 @@ export default function ProjectFollowButton({
   useEffect(() => {
     if (!me) { setFollowing(false); return; }
     let cancelled = false;
-    fetch(`/api/project-follows/${encodeURIComponent(projectId)}`, { cache: 'no-store' })
+    // Relation mode: a single-row check server-side. The old full-list fetch
+    // was capped at 1000 rows, so followers past the cap saw the wrong state.
+    fetch(`/api/project-follows/${encodeURIComponent(projectId)}?viewer=${me}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (cancelled || !d) return;
-        const explicit = ((d.followers ?? []) as string[]).map((a) => a.toLowerCase());
-        setFollowing(explicit.includes(me));
+        setFollowing(!!d.viewer_follows);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -68,7 +69,8 @@ export default function ProjectFollowButton({
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ project: projectId }),
         });
-        if (r.status === 201) {
+        if (r.status === 201 || r.status === 200) {
+          // 200 = the edge already existed (stale local state) — same outcome.
           setFollowing(true);
           showToast(`${label}: FOLLOWED`);
           window.dispatchEvent(new Event('pd:project-follows-changed'));

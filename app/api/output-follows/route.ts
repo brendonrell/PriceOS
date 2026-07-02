@@ -92,20 +92,59 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (output) {
       const parsed = parseOutputRef(output);
       if (!parsed) return badRequest('Invalid `?output=` (expected {slug}-{tokenId})');
+
+      // Relation mode (?output=…&viewer=0x…) — one single-row lookup + an
+      // exact count; OutputFollowButton uses this instead of downloading the
+      // whole (capped) follower list to find itself.
+      const viewer = url.searchParams.get('viewer')?.toLowerCase();
+      if (viewer) {
+        if (!ADDRESS_RE.test(viewer)) return badRequest('Invalid `?viewer=` address');
+        const [relRes, countRes] = await Promise.all([
+          supabase
+            .from('output_follows')
+            .select('follower_address')
+            .eq('project_id', parsed.slug)
+            .eq('token_id', parsed.tokenId)
+            .eq('follower_address', viewer)
+            .maybeSingle(),
+          supabase
+            .from('output_follows')
+            .select('follower_address', { count: 'exact', head: true })
+            .eq('project_id', parsed.slug)
+            .eq('token_id', parsed.tokenId),
+        ]);
+        if (relRes.error) return serverError(relRes.error.message);
+        if (countRes.error) return serverError(countRes.error.message);
+        return NextResponse.json({
+          project_id: parsed.slug,
+          token_id: parsed.tokenId,
+          viewer,
+          viewer_follows: relRes.data !== null,
+          count: (countRes.count ?? 0) + 1, // + the parent project (parental support)
+        });
+      }
+
       const { data, error } = await supabase
         .from('output_follows')
         .select('follower_address')
         .eq('project_id', parsed.slug)
-        .eq('token_id', parsed.tokenId);
+        .eq('token_id', parsed.tokenId)
+        .limit(1000);
       if (error) return serverError(error.message);
       const followers = ((data ?? []) as Array<{ follower_address: string }>).map(
         (r) => r.follower_address.toLowerCase()
       );
+      const { count: exactCount, error: countErr } = await supabase
+        .from('output_follows')
+        .select('follower_address', { count: 'exact', head: true })
+        .eq('project_id', parsed.slug)
+        .eq('token_id', parsed.tokenId);
+      if (countErr) return serverError(countErr.message);
       const response: OutputFollowersResponse = {
         project_id: parsed.slug,
         token_id: parsed.tokenId,
         followers,
-        count: followers.length + 1, // + the parent project (parental support)
+        count: (exactCount ?? followers.length) + 1, // + the parent project (parental support)
       };
       return NextResponse.json(response);
     }
@@ -117,7 +156,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const { data, error } = await supabase
         .from('output_follows')
         .select('project_id, token_id, created_at')
-        .eq('follower_address', follower);
+        .eq('follower_address', follower)
+        .order('created_at', { ascending: false })
+        .limit(1000);
       if (error) return serverError(error.message);
       const outputs = ((data ?? []) as Array<FollowedOutput>).map((r) => ({
         project_id: r.project_id,
@@ -163,12 +204,28 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       token_id: parsed.tokenId,
       created_at: new Date().toISOString(),
     };
+    // ignoreDuplicates: re-following an already-followed output is an
+    // idempotent no-op — no created_at reset, no re-fired owner ping.
     const { data, error } = await supabase
       .from('output_follows')
-      .upsert(payload as never, { onConflict: 'follower_address,project_id,token_id' })
+      .upsert(payload as never, {
+        onConflict: 'follower_address,project_id,token_id',
+        ignoreDuplicates: true,
+      })
       .select()
-      .single();
+      .maybeSingle();
     if (error) return serverError(error.message);
+
+    if (data === null) {
+      const response: OutputFollowResponse = {
+        follower_address: address,
+        follower_name: followerName,
+        project_id: parsed.slug,
+        token_id: parsed.tokenId,
+        created_at: new Date().toISOString(),
+      };
+      return NextResponse.json(response, { status: 200 });
+    }
 
     const row = data as {
       follower_address: string;

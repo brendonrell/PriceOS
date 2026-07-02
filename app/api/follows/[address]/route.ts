@@ -6,6 +6,13 @@ export const dynamic = 'force-dynamic';
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 
+/** Explicit cap on the follower/following LISTS. PostgREST silently truncates
+ *  at 1000 rows anyway — pre-fix, a profile past 1000 followers had its count
+ *  frozen at the cap and followers beyond it saw a wrong button state. Counts
+ *  are now exact (count queries) and follow-state checks use the relation
+ *  mode below, so the cap only bounds how many faces a list can show. */
+const LIST_CAP = 1000;
+
 export interface FollowsListResponse {
   address: string;
   followers: string[];
@@ -22,30 +29,120 @@ export interface FollowsListResponse {
   following_scores: number[];
 }
 
+/** ?viewer=0x… response — the single-relation check the FollowButton and
+ *  useArtistSocial use instead of downloading the whole (capped) list. */
+export interface FollowRelationResponse {
+  address: string;
+  viewer: string;
+  /** viewer → address edge exists. */
+  i_follow: boolean;
+  /** address → viewer edge exists. */
+  follows_me: boolean;
+  follower_count: number;
+  following_count: number;
+}
+
+type DB = ReturnType<typeof getSupabaseAnon>;
+
+async function handleOf(supabase: DB, address: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('handle')
+    .eq('address', address)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as { handle: string | null } | null)?.handle ?? null;
+}
+
+/** Exact follower/following counts by @name — count queries, immune to the
+ *  1000-row response cap that used to freeze big profiles' numbers. */
+async function exactCounts(
+  supabase: DB,
+  handle: string
+): Promise<{ followers: number; following: number }> {
+  const [followersRes, followingRes] = await Promise.all([
+    supabase
+      .from('follows')
+      .select('follower_name', { count: 'exact', head: true })
+      .eq('following_name', handle),
+    supabase
+      .from('follows')
+      .select('following_name', { count: 'exact', head: true })
+      .eq('follower_name', handle),
+  ]);
+  if (followersRes.error) throw new Error(followersRes.error.message);
+  if (followingRes.error) throw new Error(followingRes.error.message);
+  return { followers: followersRes.count ?? 0, following: followingRes.count ?? 0 };
+}
+
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { address: string } }
 ): Promise<NextResponse> {
   const address = params.address.toLowerCase();
   if (!ADDRESS_RE.test(address)) {
     return badRequest('Invalid Ethereum address');
   }
+  const viewer = new URL(req.url).searchParams.get('viewer')?.toLowerCase() ?? null;
+  if (viewer !== null && !ADDRESS_RE.test(viewer)) {
+    return badRequest('Invalid `?viewer=` address');
+  }
 
   try {
     const supabase = getSupabaseAnon();
 
     // (a) Resolve the queried address to its @name.
-    const { data: user, error: userErr } = await supabase
-      .from('users')
-      .select('handle')
-      .eq('address', address)
-      .maybeSingle();
-    if (userErr) return serverError(userErr.message);
+    const handle = await handleOf(supabase, address);
 
-    // Cast around Supabase typed-client `never` inference on column-list selects.
-    const userRow = user as { handle: string | null } | null;
-    const handle = userRow?.handle ?? null;
+    // ── Relation mode (?viewer=) — two single-row lookups + exact counts.
+    if (viewer !== null) {
+      const empty: FollowRelationResponse = {
+        address,
+        viewer,
+        i_follow: false,
+        follows_me: false,
+        follower_count: 0,
+        following_count: 0,
+      };
+      if (handle === null) return NextResponse.json(empty);
 
+      const viewerHandle = viewer === address ? handle : await handleOf(supabase, viewer);
+      const counts = await exactCounts(supabase, handle);
+      if (viewerHandle === null || viewer === address) {
+        return NextResponse.json({
+          ...empty,
+          follower_count: counts.followers,
+          following_count: counts.following,
+        });
+      }
+      const [iFollowRes, followsMeRes] = await Promise.all([
+        supabase
+          .from('follows')
+          .select('follower_name')
+          .eq('follower_name', viewerHandle)
+          .eq('following_name', handle)
+          .maybeSingle(),
+        supabase
+          .from('follows')
+          .select('follower_name')
+          .eq('follower_name', handle)
+          .eq('following_name', viewerHandle)
+          .maybeSingle(),
+      ]);
+      if (iFollowRes.error) return serverError(iFollowRes.error.message);
+      if (followsMeRes.error) return serverError(followsMeRes.error.message);
+      const response: FollowRelationResponse = {
+        address,
+        viewer,
+        i_follow: iFollowRes.data !== null,
+        follows_me: followsMeRes.data !== null,
+        follower_count: counts.followers,
+        following_count: counts.following,
+      };
+      return NextResponse.json(response);
+    }
+
+    // ── Full list mode.
     // Pre-claim → no rows possible. Empty lists.
     if (handle === null) {
       const empty: FollowsListResponse = {
@@ -62,16 +159,21 @@ export async function GET(
       return NextResponse.json(empty);
     }
 
-    // (b) Query follows by @name to get the OTHER party's @names.
-    const [followersRes, followingRes] = await Promise.all([
+    // (b) Exact counts + the (capped) row lists by @name.
+    const [counts, followersRes, followingRes] = await Promise.all([
+      exactCounts(supabase, handle),
       supabase
         .from('follows')
         .select('follower_name')
-        .eq('following_name', handle),
+        .eq('following_name', handle)
+        .order('created_at', { ascending: false })
+        .limit(LIST_CAP),
       supabase
         .from('follows')
         .select('following_name')
-        .eq('follower_name', handle),
+        .eq('follower_name', handle)
+        .order('created_at', { ascending: false })
+        .limit(LIST_CAP),
     ]);
 
     if (followersRes.error) return serverError(followersRes.error.message);
@@ -86,7 +188,7 @@ export async function GET(
 
     // (c) Resolve those @names back to addresses via a single users join.
     const allNames = Array.from(new Set([...followerNames, ...followingNames]));
-    let nameToAddress = new Map<string, string>();
+    const nameToAddress = new Map<string, string>();
     const nameToScore = new Map<string, number>();
     if (allNames.length > 0) {
       const { data: usersData, error: usersErr } = await supabase
@@ -94,40 +196,41 @@ export async function GET(
         .select('address, handle, price_score')
         .in('handle', allNames);
       if (usersErr) return serverError(usersErr.message);
-      const urows = (usersData ?? []) as Array<{
+      for (const u of (usersData ?? []) as Array<{
         address: string;
         handle: string | null;
         price_score: number | null;
-      }>;
-      nameToAddress = new Map(
-        urows
-          .filter((u): u is { address: string; handle: string; price_score: number | null } => u.handle !== null)
-          .map((u) => [u.handle, u.address])
-      );
-      for (const u of urows) {
-        if (u.handle !== null) nameToScore.set(u.handle, u.price_score ?? 0);
+      }>) {
+        if (u.handle !== null) {
+          nameToAddress.set(u.handle, u.address);
+          nameToScore.set(u.handle, u.price_score ?? 0);
+        }
       }
     }
 
-    // (d) Build address arrays. The follows.{follower,following}_name FK to
-    // users.handle should guarantee a hit for every row; filter defensively.
-    const followers = followerNames
-      .map((n) => nameToAddress.get(n))
-      .filter((a): a is string => typeof a === 'string');
-    const following = followingNames
-      .map((n) => nameToAddress.get(n))
-      .filter((a): a is string => typeof a === 'string');
+    // (d) Build ONE filtered pair list per direction and derive every parallel
+    // array from it — pre-fix, `followers` was filtered but the handle/score
+    // arrays were not, so one unresolvable @name shifted the zip and every
+    // subsequent handle in the modal wore the wrong wallet's stats.
+    const pair = (names: string[]) =>
+      names
+        .map((n) => ({ handle: n, address: nameToAddress.get(n), score: nameToScore.get(n) ?? 0 }))
+        .filter((p): p is { handle: string; address: string; score: number } =>
+          typeof p.address === 'string'
+        );
+    const followerPairs = pair(followerNames);
+    const followingPairs = pair(followingNames);
 
     const response: FollowsListResponse = {
       address,
-      followers,
-      following,
-      follower_count: followers.length,
-      following_count: following.length,
-      follower_handles: followerNames,
-      following_handles: followingNames,
-      follower_scores: followerNames.map((n) => nameToScore.get(n) ?? 0),
-      following_scores: followingNames.map((n) => nameToScore.get(n) ?? 0),
+      followers: followerPairs.map((p) => p.address),
+      following: followingPairs.map((p) => p.address),
+      follower_count: counts.followers,
+      following_count: counts.following,
+      follower_handles: followerPairs.map((p) => p.handle),
+      following_handles: followingPairs.map((p) => p.handle),
+      follower_scores: followerPairs.map((p) => p.score),
+      following_scores: followingPairs.map((p) => p.score),
     };
     return NextResponse.json(response);
   } catch (err) {

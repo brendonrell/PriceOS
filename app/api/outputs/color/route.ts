@@ -6,7 +6,9 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
+import { getProject } from '@/lib/project/registry';
 import {
   brightnessBand, saturationBand, complexityBand, toneMood, colorTemperature, orientationOf,
   paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand,
@@ -28,7 +30,12 @@ const GRAVITIES = new Set(['Centered', 'Low', 'High', 'Left', 'Right']);
 const unit = (n: unknown): number | null =>
   typeof n === 'number' && isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
 
-export async function POST(req: NextRequest) {
+// requireAuth: this is a service-role write into `outputs` — unauthenticated it
+// let anyone rewrite every token's stored colour/fingerprint (and, with no
+// project check, spray junk rows under arbitrary project ids). Signed-in
+// browsers keep self-populating the table exactly as before; signed-out
+// sampling is dropped server-side (the client fire-and-forget ignores it).
+export const POST = requireAuth(async (req: NextRequest) => {
   try {
     const body = (await req.json().catch(() => null)) as
       | {
@@ -41,12 +48,15 @@ export async function POST(req: NextRequest) {
           shapes?: { bucket?: string; kind?: string; share?: number; pos?: string }[];
         }
       | null;
-    const slug = body?.slug?.trim();
+    const slug = body?.slug?.trim().toLowerCase();
     const id = body?.id;
     const bucket = body?.bucket;
     if (!slug || id == null || !bucket || !VALID.has(bucket)) {
       return badRequest('slug, id and a valid bucket are required');
     }
+    // Only real projects — the traits route always validated this; colour
+    // didn't, which allowed junk rows under arbitrary project ids.
+    if (!getProject(slug)) return badRequest('Unknown project');
 
     // The visual fingerprint rides along when present (validated; nulls skipped).
     const row: Record<string, unknown> = {
@@ -118,4 +128,4 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     return serverError(e);
   }
-}
+});

@@ -145,17 +145,23 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
     // group_key) WHERE read=false guarantees at most one such row, so this can't
     // race into duplicates — a concurrent insert that beats us trips the unique
     // violation below and routes us back here to bump the row it created.
-    const tryBump = async (): Promise<string | null> => {
+    // `ignoreWindow` drops the collapse-window filter: the 23505 recovery path
+    // MUST bump whatever open row exists, however old — the unique index blocks
+    // the insert regardless of age, so a windowed recovery lookup finds nothing
+    // and the ping is silently lost (the pre-fix failure: an unread OFFER rollup
+    // older than 6h swallowed every subsequent offer).
+    const tryBump = async (ignoreWindow = false): Promise<string | null> => {
       if (!input.groupKey) return null;
       const windowMs = input.collapseWindowMs ?? DEFAULT_COLLAPSE_MS;
       const since = new Date(Date.now() - windowMs).toISOString();
-      const { data: existing } = await db
+      let query = db
         .from('pings')
         .select('id, data')
         .eq('recipient_address', recipient)
         .eq('group_key', input.groupKey)
-        .eq('read', false)
-        .gte('created_at', since)
+        .eq('read', false);
+      if (!ignoreWindow) query = query.gte('created_at', since);
+      const { data: existing } = await query
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -212,9 +218,11 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
       .single();
 
     if (error) {
-      // A racing insert won the unique race for this group → bump its row.
+      // The unique index blocked us: either a racing insert won, or an open
+      // rollup row OLDER than the collapse window exists. Bump it either way —
+      // window ignored, or the ping vanishes.
       if (input.groupKey && (error as { code?: string }).code === '23505') {
-        const bumped = await tryBump();
+        const bumped = await tryBump(true);
         if (bumped) {
           await fireNative(bumped);
           void maybePrune(db, recipient);

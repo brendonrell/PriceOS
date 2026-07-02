@@ -68,7 +68,6 @@ export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<nu
     const actorName = (au as { handle: string | null } | null)?.handle ?? null;
 
     const amount = args.amountEth == null ? null : Number(args.amountEth);
-    const nowIso = new Date().toISOString();
     const rows = recipients.map((recipient) => ({
       recipient_address: recipient,
       kind: 'WISHLIST_HIT',
@@ -77,20 +76,23 @@ export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<nu
       project_id: args.slug,
       token_id: args.tokenId,
       amount_eth: amount,
-      data: { event: args.event, ...(projectName ? { project_handle: projectName } : {}) },
+      data: { event: args.event, count: 1, ...(projectName ? { project_handle: projectName } : {}) },
       group_key: `WISHLIST_HIT:${args.slug}:${args.tokenId}:${args.event}`,
-      read: false,
-      created_at: nowIso,
     }));
 
-    // 4. Bulk insert in chunks — O(1) queries, not O(recipients).
+    // 4. Bulk write in chunks — O(1) queries, not O(recipients). Goes through
+    // the app_ping_wishlist_fanout RPC (per-row ON CONFLICT) because a plain
+    // multi-row INSERT is atomic: one recipient still holding an unread row
+    // for this group_key (relist / re-sale) used to kill the whole chunk —
+    // everyone else's ping silently dropped. The RPC bumps that recipient's
+    // open row (count+1, resurfaced) and inserts fresh rows for the rest.
     let written = 0;
     for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
-      const { data: ins, error: e } = await db
-        .from('pings')
-        .insert(rows.slice(i, i + INSERT_CHUNK) as never)
-        .select('id');
-      if (!e) written += ins?.length ?? 0;
+      const { data: n, error: e } = await db.rpc('app_ping_wishlist_fanout', {
+        p_rows: rows.slice(i, i + INSERT_CHUNK),
+      } as never);
+      if (e) console.error('[pings] wishlist fan-out chunk failed:', e.message);
+      else written += (n as number | null) ?? 0;
     }
     return written;
   } catch (err) {

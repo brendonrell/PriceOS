@@ -25,16 +25,28 @@ const RATE_LIMIT = 100;
 // actions an attacker would script to brute-force or sybil-farm — get a much
 // tighter per-IP cap. Even on the in-memory fallback this raises the bar.
 const SENSITIVE_LIMIT = 15;
+// Sensitive for EVERY method — auth flows and the enumeration-shaped checks.
 const SENSITIVE_PREFIXES = [
   '/api/auth',
   '/api/users/create',
-  '/api/follows',
-  '/api/project-follows',
   '/api/anoint',
   '/api/streak',
   '/api/achievements/evaluate',
   '/api/handle/check',
   '/api/project-handle/check',
+];
+// Sensitive for WRITES only. The follow surfaces serve heavy legitimate GET
+// traffic (every follow button + follower modal reads them) — counting those
+// reads against the 15/min budget let one profile page 429 itself and every
+// button silently render "not following". Reads ride the normal bucket; the
+// scriptable POST/DELETE actions keep the tight cap. Also covers the outputs
+// self-population writes (now authed) so they can't be sprayed.
+const SENSITIVE_WRITE_PREFIXES = [
+  '/api/follows',
+  '/api/project-follows',
+  '/api/output-follows',
+  '/api/outputs/color',
+  '/api/outputs/traits',
 ];
 const WINDOW_MS = 60_000;
 const WINDOW_S = 60;
@@ -120,9 +132,11 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 
   // Sensitive routes get a tighter cap and a SEPARATE counter bucket, so heavy
   // legitimate read traffic can't mask an auth/sybil-farming burst.
-  const sensitive = SENSITIVE_PREFIXES.some((p) =>
-    req.nextUrl.pathname.startsWith(p)
-  );
+  const isRead = req.method === 'GET' || req.method === 'HEAD';
+  const sensitive =
+    SENSITIVE_PREFIXES.some((p) => req.nextUrl.pathname.startsWith(p)) ||
+    (!isRead &&
+      SENSITIVE_WRITE_PREFIXES.some((p) => req.nextUrl.pathname.startsWith(p)));
   const limit = sensitive ? SENSITIVE_LIMIT : RATE_LIMIT;
   const bucketKey = `${sensitive ? 's' : 'n'}:${ip}`;
 

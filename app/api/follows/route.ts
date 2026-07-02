@@ -84,20 +84,42 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       return new NextResponse(null, { status: 204 });
     }
 
+    // The address columns matter: the DB's rename-sync trigger, user-deletion
+    // cascades, and self-follow CHECK are all keyed on them. Rows written
+    // name-only leave that machinery dead (NULLs match nothing).
     const payload = {
+      follower_address: address,
+      following_address: target,
       follower_name: followerName,
       following_name: followingName,
       created_at: new Date().toISOString(),
     };
+    // ignoreDuplicates (ON CONFLICT DO NOTHING): a re-follow of an existing
+    // edge returns no row instead of refreshing created_at — and, crucially,
+    // does NOT re-fire the FOLLOW ping (pre-fix, scripted follow/unfollow
+    // toggling spammed the target's inbox and native push).
     const { data, error } = await supabase
       .from('follows')
       .upsert(payload as never, {
         onConflict: 'follower_name,following_name',
+        ignoreDuplicates: true,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) return serverError(error.message);
+
+    if (data === null) {
+      // Edge already existed — idempotent success, no ping.
+      const response: FollowResponse = {
+        follower_address: address,
+        following_address: target,
+        follower_name: followerName,
+        following_name: followingName,
+        created_at: new Date().toISOString(),
+      };
+      return NextResponse.json(response, { status: 200 });
+    }
 
     const row = data as {
       follower_name: string;
@@ -112,7 +134,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       created_at: row.created_at,
     };
 
-    // Ping the followed user: "@you followed you".
+    // Ping the followed user: "@you followed you" — new edges only.
     await createPing({
       recipientAddress: target,
       kind: 'FOLLOW',

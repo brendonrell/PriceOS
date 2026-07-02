@@ -1,8 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon } from '@/lib/supabase';
-import { notFound, serverError } from '@/lib/errors';
+import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
+
+/** ?viewer=0x… response — the single-relation check ProjectFollowButton uses
+ *  instead of downloading the whole (capped) follower list. */
+export interface ProjectFollowRelationResponse {
+  project_id: string;
+  handle: string | null;
+  viewer: string;
+  /** viewer has an explicit project_follows row. */
+  viewer_follows: boolean;
+  /** viewer holds a piece (the project auto-follows them). */
+  viewer_held: boolean;
+  follower_count: number;
+}
 
 export interface ProjectFollowersResponse {
   project_id: string;
@@ -62,13 +75,60 @@ export async function GET(
 
     const projectId = projectRow.id;
 
+    // ── Relation mode (?viewer=) — two single-row lookups + an exact count.
+    const viewer = new URL(_req.url).searchParams.get('viewer')?.toLowerCase() ?? null;
+    if (viewer !== null) {
+      if (!/^0x[a-fA-F0-9]{40}$/.test(viewer)) {
+        return badRequest('Invalid `?viewer=` address');
+      }
+      const [followRes, holdRes, countRes] = await Promise.all([
+        supabase
+          .from('project_follows')
+          .select('follower_address')
+          .eq('project_id', projectId)
+          .eq('follower_address', viewer)
+          .maybeSingle(),
+        supabase
+          .from('holders')
+          .select('owner_address')
+          .eq('project_id', projectId)
+          .eq('owner_address', viewer)
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('project_follows')
+          .select('follower_address', { count: 'exact', head: true })
+          .eq('project_id', projectId),
+      ]);
+      if (followRes.error) return serverError(followRes.error.message);
+      if (countRes.error) return serverError(countRes.error.message);
+      const relation: ProjectFollowRelationResponse = {
+        project_id: projectId,
+        handle: projectRow.handle,
+        viewer,
+        viewer_follows: followRes.data !== null,
+        viewer_held: !holdRes.error && holdRes.data !== null,
+        follower_count: countRes.count ?? 0,
+      };
+      return NextResponse.json(relation);
+    }
+
     // (b) Pull the follower rows for this project. The address is the key;
-    // follower_name is the @name snapshot (null pre-claim).
+    // follower_name is the @name snapshot (null pre-claim). Explicitly capped
+    // (the platform truncates at 1000 rows regardless); the exact follower
+    // count comes from a count query so it can't freeze at the cap.
     const { data: followsData, error: followsErr } = await supabase
       .from('project_follows')
       .select('follower_address, follower_name')
-      .eq('project_id', projectId);
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(1000);
     if (followsErr) return serverError(followsErr.message);
+    const { count: exactFollowerCount, error: followCountErr } = await supabase
+      .from('project_follows')
+      .select('follower_address', { count: 'exact', head: true })
+      .eq('project_id', projectId);
+    if (followCountErr) return serverError(followCountErr.message);
 
     const rows = (followsData ?? []) as Array<{
       follower_address: string;
@@ -83,7 +143,8 @@ export async function GET(
     const { data: holderData, error: holderErr } = await supabase
       .from('holders')
       .select('owner_address')
-      .eq('project_id', projectId);
+      .eq('project_id', projectId)
+      .limit(1000);
     if (holderErr) return serverError(holderErr.message);
     const following = Array.from(
       new Set(
@@ -116,7 +177,7 @@ export async function GET(
       handle: projectRow.handle,
       followers,
       follower_handles: handlesFor(followers),
-      follower_count: followers.length,
+      follower_count: exactFollowerCount ?? followers.length,
       following,
       following_handles: handlesFor(following),
       following_count: following.length,

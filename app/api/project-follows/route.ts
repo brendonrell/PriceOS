@@ -214,15 +214,29 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       project_id: projectId,
       created_at: new Date().toISOString(),
     };
+    // ignoreDuplicates: re-following an already-followed project is an
+    // idempotent no-op — no created_at reset, no re-fired artist ping.
     const { data, error } = await supabase
       .from('project_follows')
       .upsert(payload as never, {
         onConflict: 'follower_address,project_id',
+        ignoreDuplicates: true,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) return serverError(error.message);
+
+    if (data === null) {
+      // Edge already existed — succeed without pinging the artist again.
+      const response: ProjectFollowResponse = {
+        follower_address: address,
+        follower_name: followerName,
+        project_id: projectId,
+        created_at: new Date().toISOString(),
+      };
+      return NextResponse.json(response, { status: 200 });
+    }
 
     const row = data as {
       follower_address: string;

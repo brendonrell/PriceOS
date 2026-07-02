@@ -9,6 +9,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, outputTraits, outputTrueName, PLATFORM_TRAIT } from '@/lib/project/registry';
 import {
@@ -21,7 +22,10 @@ import { outputColorBucket } from '@/lib/art/outputColor';
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+// requireAuth: service-role write into `outputs` — unauthenticated it let
+// anyone overwrite any token's stored trait/rarity metadata. Signed-in
+// browsers keep self-populating exactly as before.
+export const POST = requireAuth(async (req: NextRequest) => {
   try {
     const body = (await req.json().catch(() => null)) as
       | { slug?: string; id?: number | string }
@@ -137,4 +141,4 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     return serverError(e);
   }
-}
+});

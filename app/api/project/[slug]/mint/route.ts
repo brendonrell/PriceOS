@@ -50,6 +50,19 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
   try {
     const supabase = getSupabaseService();
 
+    // Cutover guard: once a project is ON-CHAIN (projects.contract_address
+    // set), the sim mint path is closed for it — the indexer records chain
+    // mints, and both paths writing would double-count supply + volume.
+    // Inert for every sim-only project (contract_address NULL).
+    const { data: cutoverRow } = await supabase
+      .from('projects')
+      .select('contract_address')
+      .eq('id', slug)
+      .maybeSingle();
+    if ((cutoverRow as { contract_address?: string | null } | null)?.contract_address) {
+      return badRequest('Project is on-chain — mint on-chain');
+    }
+
     // One atomic, row-locked DB call so supply + balance can't be raced by
     // two simultaneous mints (no read-then-write gap).
     const { data, error } = await supabase.rpc('app_mint', {

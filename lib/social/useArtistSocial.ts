@@ -40,12 +40,12 @@ export function useArtistSocial(
                 setAddress(addr || null);
                 const me = (viewerAddress ?? '').toLowerCase();
                 if (addr && me) {
-                    const f = await fetch(`/api/follows/${addr}`).then((r) => (r.ok ? r.json() : null));
+                    // Relation mode: two single-row checks server-side instead of
+                    // downloading the artist's whole (capped) follow graph per row.
+                    const f = await fetch(`/api/follows/${addr}?viewer=${me}`).then((r) => (r.ok ? r.json() : null));
                     if (!cancel && f) {
-                        const followers = ((f.followers ?? []) as string[]).map((a) => a.toLowerCase());
-                        const following = ((f.following ?? []) as string[]).map((a) => a.toLowerCase());
-                        const iFollow = followers.includes(me);
-                        const theyFollow = following.includes(me);
+                        const iFollow = !!f.i_follow;
+                        const theyFollow = !!f.follows_me;
                         relation = iFollow && theyFollow ? 'mutual' : iFollow ? 'following' : theyFollow ? 'follower' : 'none';
                     }
                 }

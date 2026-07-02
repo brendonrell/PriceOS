@@ -39,12 +39,14 @@ export default function FollowButton({
   useEffect(() => {
     if (!me || isSelf) return;
     let cancelled = false;
-    fetch(`/api/follows/${target}`, { cache: 'no-store' })
+    // Relation mode: a single-row check server-side. The old full-list fetch
+    // was capped at 1000 rows, so followers past the cap saw FOLLOW on someone
+    // they already follow.
+    fetch(`/api/follows/${target}?viewer=${me}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (cancelled || !d) return;
-        const followers = ((d.followers ?? []) as string[]).map((a) => a.toLowerCase());
-        setFollowing(followers.includes(me));
+        setFollowing(!!d.i_follow);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -83,7 +85,8 @@ export default function FollowButton({
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ target }),
         });
-        if (r.status === 201) {
+        if (r.status === 201 || r.status === 200) {
+          // 200 = the edge already existed (stale local state) — same outcome.
           setFollowing(true);
           showToast(`${label}: FOLLOWED`);
           window.dispatchEvent(new Event('pd:follows-changed'));

@@ -139,6 +139,24 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
 
   try {
     const db = getSupabaseService();
+
+    // Cutover guard: once a project is ON-CHAIN (projects.contract_address
+    // set), sim market money-writes are closed for it — real trades happen
+    // on-chain and the indexer records them; both paths writing would
+    // double-count volume. `cancel` stays allowed so any sim listing left
+    // from before the cutover can still be cleaned up. Inert for every
+    // sim-only project (contract_address NULL).
+    if (body.action !== 'cancel') {
+      const { data: cutoverRow } = await db
+        .from('projects')
+        .select('contract_address')
+        .eq('id', slug)
+        .maybeSingle();
+      if ((cutoverRow as { contract_address?: string | null } | null)?.contract_address) {
+        return badRequest('Project is on-chain — trade on-chain');
+      }
+    }
+
     const owner = await ownerOf(db, slug, tokenId);
     const isOwner = !!owner && owner.toLowerCase() === address;
     const price = Number(body.price);
