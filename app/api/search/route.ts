@@ -375,7 +375,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (market === 'listed') {
       let b = supabase.from('listings')
         .select('project_id, token_id, price_eth')
-        .eq('active', true);
+        .eq('active', true)
+        .or(`end_time.is.null,end_time.gt.${Math.floor(Date.now() / 1000)}`);
       if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
       if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
       if (artworkScope) b = b.in('project_id', artworkScope);
@@ -395,7 +396,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (market === 'offers') {
       let b = supabase.from('offers')
         .select('project_id, token_id, price_eth')
-        .eq('status', 'open');
+        .eq('status', 'open')
+        .not('token_id', 'is', null) // criteria offers have no single token
+        .or(`end_time.is.null,end_time.gt.${Math.floor(Date.now() / 1000)}`);
       if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
       if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
       if (artworkScope) b = b.in('project_id', artworkScope);

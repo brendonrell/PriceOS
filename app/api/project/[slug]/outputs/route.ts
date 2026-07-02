@@ -75,7 +75,8 @@ export async function GET(
     const [projectRes, holdersRes, listingsRes, eventsRes, followsRes] = await Promise.all([
       supabase.from('projects').select('minted_count, showcase_ids, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
-      supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true),
+      supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true)
+        .or(`end_time.is.null,end_time.gt.${Math.floor(Date.now() / 1000)}`),
       supabase.from('events').select('price_eth').eq('project_id', slug).not('price_eth', 'is', null),
       supabase.from('project_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug),
     ]);

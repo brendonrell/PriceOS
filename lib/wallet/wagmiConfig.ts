@@ -44,7 +44,7 @@ import {
     walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { cookieStorage, createConfig, createStorage, http } from 'wagmi';
-import { mainnet } from 'wagmi/chains';
+import { mainnet, sepolia } from 'wagmi/chains';
 
 const projectId = 'dddf23db294ed8117609933e1a6ae83c';
 
@@ -70,14 +70,32 @@ const connectors = connectorsForWallets(
     }
 );
 
-export const wagmiConfig = createConfig({
-    chains: [mainnet],
-    connectors,
-    transports: {
-        [mainnet.id]: http(),
-    },
-    ssr: true,
-    storage: createStorage({
-        storage: cookieStorage,
-    }),
-});
+/* Env-gated chain profile (docs/sepolia-test-phase.md §4 / Phase C): the
+   Sepolia test phase flips NEXT_PUBLIC_CHAIN_ID=11155111 on the preview so
+   the same wallet stack signs against testnet; mainnet stays the default
+   and neither profile clobbers the other. */
+const onSepolia = process.env.NEXT_PUBLIC_CHAIN_ID === '11155111';
+
+export const wagmiConfig = onSepolia
+    ? createConfig({
+        chains: [sepolia],
+        connectors,
+        transports: {
+            [sepolia.id]: http(),
+        },
+        ssr: true,
+        storage: createStorage({
+            storage: cookieStorage,
+        }),
+    })
+    : createConfig({
+        chains: [mainnet],
+        connectors,
+        transports: {
+            [mainnet.id]: http(),
+        },
+        ssr: true,
+        storage: createStorage({
+            storage: cookieStorage,
+        }),
+    });
