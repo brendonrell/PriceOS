@@ -308,6 +308,7 @@ export type PingKind =
   | 'SALE'
   | 'OFFER'
   | 'OFFER_ACCEPTED'
+  | 'COUNTER'
   | 'XFER'
   | 'WISHLIST_HIT'
   | 'WATCH_HIT';

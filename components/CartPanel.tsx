@@ -176,6 +176,7 @@ export default function CartPanel() {
     const [mounted, setMounted] = useState(false);
     const [active, setActive] = useState(false);
     const [buying, setBuying] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -253,6 +254,7 @@ export default function CartPanel() {
     const onBuyAll = useCallback(() => {
         if (items.length === 0 || buying) return;
         if (!siweAddress) { showToast('Wallet: CONNECT TO SWEEP'); return; }
+        setConfirmOpen(false);
         setBuying(true);
         const minShow = new Promise((r) => setTimeout(r, 900));
         sweepBuy(items, { wallet: walletClient })
@@ -373,12 +375,28 @@ export default function CartPanel() {
                     className="cart-panel-buy-all"
                     id="cartPanelBuyAll"
                     type="button"
-                    onClick={onBuyAll}
+                    onClick={() => setConfirmOpen(true)}
                     disabled={isEmpty || buying}
                 >
                     {buying && <span className="cart-buy-sweep" aria-hidden="true" />}
                     {buying ? 'SWEEPING\u2026' : formatBuyLabel(total)}
                 </button>
+                {/* Money moves → confirm card (Brendon, 2026-07-02: every
+                    non-wallet transaction confirms). Same centered card as
+                    the mint chooser. */}
+                {confirmOpen && (
+                    <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmOpen(false)}>
+                        <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                            <div className="ms-confirm-question">
+                                Sweep {items.length} output{items.length === 1 ? '' : 's'} \u00B7 {total.toFixed(3)} ETH?
+                            </div>
+                            <div className="ms-confirm-btns">
+                                <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmOpen(false)}>Cancel</button>
+                                <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={onBuyAll}>Sweep</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

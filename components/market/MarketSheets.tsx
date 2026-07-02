@@ -39,6 +39,7 @@ import { getProject } from '../../lib/project/registry';
 import {
     acceptOffer,
     cancelOffer,
+    counterOffer,
     declineOffer,
     fetchMarket,
     fetchMeta,
@@ -124,6 +125,14 @@ function PriceRow({
                 </div>
                 <div className="cart-item-artist">
                     {item.currentPriceEth ? `listed · ${item.currentPriceEth}` : floorEth > 0 ? `floor ${floorEth.toFixed(3)}` : 'unlisted'}
+                    {(() => {
+                        /* The thermometer — no mental math while pricing. */
+                        const n = parseFloat(value);
+                        if (!Number.isFinite(n) || n <= 0 || floorEth <= 0) return null;
+                        const pct = (n / floorEth - 1) * 100;
+                        const txt = `${pct >= 0 ? '+' : ''}${pct.toFixed(0)}% vs floor`;
+                        return <span className={`cart-item-delta${pct >= 0 ? ' over' : ' under'}`}> {txt}</span>;
+                    })()}
                 </div>
             </div>
             <span className="mk-price-wrap">
@@ -195,6 +204,27 @@ function PricingSheet({
     const [busy, setBusy] = useState(false);
     const [step, setStep] = useState<string | null>(null);
     const [wethNote, setWethNote] = useState(false);
+    const [offerCtx, setOfferCtx] = useState<string | null>(null);
+
+    /* Single-item offer: the deciding numbers live IN the sheet — floor,
+       last sale, current top offer. Nobody backs out to check. */
+    useEffect(() => {
+        if (mode !== 'offer' || criteria || initialItems.length !== 1) return;
+        const it = initialItems[0];
+        let cancelled = false;
+        fetchMarket(it.slug, it.id)
+            .then((m) => {
+                if (cancelled) return;
+                const bits: string[] = [];
+                if (m.floor) bits.push(`floor ${Number(m.floor).toFixed(3)}`);
+                if (m.last_sale) bits.push(`last ${Number(m.last_sale).toFixed(3)}`);
+                if (m.offers.length > 0) bits.push(`top offer ${Number(m.offers[0].price_eth).toFixed(3)}`);
+                setOfferCtx(bits.length ? bits.join(' · ') : null);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, criteria]);
 
     /* Trait offers show what they cover — the live count of minted pieces
        matching the trait, so the bidder knows exactly what they're bidding on. */
@@ -412,6 +442,12 @@ function PricingSheet({
                         </div>
                     </>
                 )}
+                {mode === 'offer' && !criteria && offerCtx && (
+                    <div className="cart-panel-fees-row">
+                        <span>{offerCtx}</span>
+                        <span />
+                    </div>
+                )}
                 {(mode === 'offer' || !!criteria) && wethNote && (
                     <div className="cart-panel-fees-row">
                         <span>offers escrow in WETH</span>
@@ -450,6 +486,8 @@ function OffersPanel({
     const [busyId, setBusyId] = useState<string | null>(null);
     const [step, setStep] = useState<string | null>(null);
     const [confirmOffer, setConfirmOffer] = useState<MarketOfferRow | null>(null);
+    const [counterFor, setCounterFor] = useState<string | null>(null);
+    const [counterPrice, setCounterPrice] = useState('');
 
     const load = useCallback(() => {
         fetchMarket(slug, id).then(setMarket).catch(() => {});
@@ -459,6 +497,28 @@ function OffersPanel({
     const projectName = getProject(slug)?.displayName ?? slug;
     const isOwner = market?.viewer?.isOwner ?? false;
     const offers = market?.offers ?? [];
+    /* The Spread — best bid vs current ask, both sides of this piece's book. */
+    const bestBid = offers.length > 0 ? Number(offers[0].price_eth) : null;
+    const ask = market?.listing ? Number(market.listing.price_eth) : null;
+
+    const runCounter = useCallback(async (offer: MarketOfferRow) => {
+        const n = parseFloat(counterPrice);
+        if (!Number.isFinite(n) || n <= 0) { showToast('Counter: BAD PRICE'); return; }
+        setBusyId(offer.id);
+        setStep('COUNTERING');
+        try {
+            await counterOffer(slug, id, offer, String(n), { wallet: walletClient, onStep: setStep });
+            showToast(`Counter: SENT · ${n.toFixed(3)} ETH`);
+            setCounterFor(null);
+            setCounterPrice('');
+            load();
+        } catch (err) {
+            showToast(err instanceof Error ? err.message : 'Counter: FAILED');
+        } finally {
+            setBusyId(null);
+            setStep(null);
+        }
+    }, [counterPrice, slug, id, walletClient, showToast, load]);
 
     const runAccept = useCallback(async (offer: MarketOfferRow) => {
         setBusyId(offer.id);
@@ -509,6 +569,13 @@ function OffersPanel({
                 <span className="cart-panel-title">
                     {`✦${VS15} OFFERS`}
                     <span className="cart-panel-title-count">({offers.length})</span>
+                    {(bestBid != null || ask != null) && (
+                        <span className="mk-spread">
+                            {bestBid != null ? `bid ${bestBid.toFixed(3)}` : 'no bids'}
+                            {' · '}
+                            {ask != null ? `ask ${ask.toFixed(3)}` : 'no ask'}
+                        </span>
+                    )}
                 </span>
                 <span
                     className="cart-panel-close-x"
@@ -536,7 +603,8 @@ function OffersPanel({
                                 ? `TRAIT · ${o.criteria?.category ?? ''}`.trim()
                                 : null;
                         return (
-                            <div className="cart-item-row" key={o.id}>
+                            <div key={o.id}>
+                            <div className="cart-item-row">
                                 <div className="cart-item-meta">
                                     <div className="cart-item-name">
                                         {o.bidder_handle ? `@${o.bidder_handle}` : shortAddr(o.bidder_address)}
@@ -559,6 +627,17 @@ function OffersPanel({
                                                 onClick={() => setConfirmOffer(o)}
                                             >
                                                 {busy ? `${step ?? 'WORKING'}…` : 'ACCEPT'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="mk-offer-btn"
+                                                disabled={busy}
+                                                onClick={() => {
+                                                    setCounterFor(counterFor === o.id ? null : o.id);
+                                                    setCounterPrice(Number(o.price_eth).toFixed(3));
+                                                }}
+                                            >
+                                                COUNTER
                                             </button>
                                             {o.scope === 'item' && (
                                                 <button
@@ -583,6 +662,30 @@ function OffersPanel({
                                         </button>
                                     )}
                                 </div>
+                                </div>
+                                {counterFor === o.id && (
+                                    <div className="mk-counter-row">
+                                        <span className="mk-price-wrap">
+                                            <input
+                                                className="mk-price-input"
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={counterPrice}
+                                                onChange={(e) => setCounterPrice(e.target.value.replace(/[^0-9.]/g, ''))}
+                                                autoFocus
+                                            />
+                                            <span className="mk-price-unit">ETH</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="mk-offer-btn mk-offer-btn--accept"
+                                            disabled={busy}
+                                            onClick={() => void runCounter(o)}
+                                        >
+                                            {busy ? `${step ?? 'WORKING'}…` : 'SEND COUNTER'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         );
                     })

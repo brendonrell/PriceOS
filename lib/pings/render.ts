@@ -54,6 +54,7 @@ const PRIORITY: Record<RenderKind, PingPriority> = {
   SALE:           'high',
   OFFER:          'high',
   OFFER_ACCEPTED: 'high',
+  COUNTER:        'high',
   WISHLIST_HIT:   'high',
   FOLLOW:         'low',
   PROJECT_FOLLOW: 'low',
@@ -96,6 +97,7 @@ const ICONS: Record<RenderKind, string> = {
   SALE:           '✶︎', // ✶ collected
   OFFER:          '✦︎', // ✦ offered (matches OFFERS pill)
   OFFER_ACCEPTED: '✦︎', // ✦ offer resolved
+  COUNTER:        '✦︎', // ✦ countered (offer family)
   XFER:           '✸︎', // ✸ transfer (matches XFERS pill)
   WISHLIST_HIT:   '✛︎', // ✛ wishlist (matches the artwork Wishlist glyph)
   WATCH_HIT:      '✛︎', // ✛ watch
@@ -170,6 +172,9 @@ export function renderPing(row: FeedItem): RenderedPing {
     case 'OFFER_ACCEPTED':
       action = join('accepted your offer on', join(p, t) || 'your piece');
       break;
+    case 'COUNTER':
+      action = join('countered', eth ? `at ${eth}` : '', 'on', join(p, t) || 'your offer');
+      break;
     case 'XFER':
       action = join('transferred', p, t);
       break;
@@ -215,6 +220,18 @@ export function renderPing(row: FeedItem): RenderedPing {
   };
 }
 
+/** Where a ping points — the piece (market pings), the project, or nowhere.
+ *  Offer-family pings open the piece WITH the offers panel up (?offers=1)
+ *  so accept is two taps from the ping (confirm card included). */
+export function pingHref(p: { kind: RenderKind; project_id?: string | null; token_id?: string | null }): string | null {
+  if (!p.project_id) return null;
+  if (p.token_id != null && p.token_id !== '') {
+    const base = `/art/${p.project_id}/${p.token_id}`;
+    return p.kind === 'OFFER' || p.kind === 'COUNTER' ? `${base}?offers=1` : base;
+  }
+  return `/art/${p.project_id}`;
+}
+
 /** Category-pref gate. Mirrors notifs.pings (mints/lists/offers/xfers/mutuals/
  *  cooldown) so the panel + toasts honour the user's Ping toggles. */
 export function passesCategoryPrefs(
@@ -229,6 +246,7 @@ export function passesCategoryPrefs(
       return prefs.lists;
     case 'OFFER':
     case 'OFFER_ACCEPTED':
+    case 'COUNTER':
       return prefs.offers;
     case 'XFER':
       return prefs.xfers;

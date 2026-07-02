@@ -18,6 +18,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -309,6 +310,7 @@ function WishlistRow({
     const { open } = useModal();
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas } = useCart();
+    const { openOfferSheet } = useMarketSheet();
     const { siweAddress } = useAuth();
     const { openOutputNoteEditor } = useNotePrompt();
     const meta = useOutputMeta(id);
@@ -431,10 +433,10 @@ function WishlistRow({
                         className="starred-row-cta trait-offer-cta wishlist-offer-cta"
                         role="button"
                         tabIndex={0}
-                        title="Make an offer (coming soon)"
+                        title="Make an offer"
                         aria-label="Make an offer"
-                        onClick={(e) => { e.stopPropagation(); showToast('Make Offer: COMING SOON'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); showToast('Make Offer: COMING SOON'); } }}
+                        onClick={(e) => { e.stopPropagation(); openOfferSheet([{ slug, id }]); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOfferSheet([{ slug, id }]); } }}
                     >
                         <span className="trait-offer-glyph">✦︎</span> Make<br />Offer
                     </span>

@@ -144,6 +144,30 @@ export async function listOutputs(
     }
     const wallet = needWallet(opts.wallet);
     const eng = await import('./seaportClient');
+
+    // Raising the price of a live chain listing REQUIRES cancelling the old
+    // signed order first — otherwise the cheaper old order stays fillable on
+    // raw Seaport and undercuts the new one. Lowering is safe to just replace
+    // (the stale order is the pricier one; nobody rational fills it).
+    try {
+      const keys = group.map((it) => `${slug}-${it.id}`).join(',');
+      const tr = await fetch(`/api/market/orders?orders_for=${encodeURIComponent(keys)}`, { cache: 'no-store' });
+      if (tr.ok) {
+        const tj = (await tr.json()) as { tickets?: { tokenId: string; price_eth: string; source: string; order_json: SeaportOrderJson | null }[] };
+        const toCancel = (tj.tickets ?? []).filter((t) => {
+          if (t.source === 'sim' || !t.order_json) return false;
+          const next = group.find((it) => String(it.id) === t.tokenId);
+          return !!next && parseFloat(next.priceEth) > parseFloat(t.price_eth);
+        });
+        if (toCancel.length > 0) {
+          opts.onStep?.('CANCELLING OLD PRICE');
+          await eng.cancelOrders(wallet, toCancel.map((t) => t.order_json as SeaportOrderJson), opts.onStep);
+        }
+      }
+    } catch {
+      /* cancel-first is best-effort — Seaport still enforces the signed orders */
+    }
+
     const { startTime, endTime } = windowFor(durationSec);
     const inputs = group.map((it) => ({
       contract: meta.contract as string,
@@ -585,6 +609,32 @@ export async function acceptOffer(
       }),
     );
   }
+  refreshMarketSurfaces();
+}
+
+/** Counter an offer on a piece you own: list (or re-list) AT your price and
+ *  ping the bidder with the number — the price-discussion move. The listing
+ *  ride is the normal rail (sim instant; chain = one signing pass). */
+export async function counterOffer(
+  slug: string,
+  tokenId: number | string,
+  offer: MarketOfferRow,
+  priceEth: string,
+  opts: { durationSec?: number; wallet?: WalletClient | null; onStep?: StepCb } = {},
+): Promise<void> {
+  const r = await listOutputs(
+    [{ slug, id: tokenId, priceEth }],
+    { durationSec: opts.durationSec, wallet: opts.wallet, onStep: opts.onStep },
+  );
+  if (r.listed === 0) throw new Error(r.failed[0]?.error ?? 'Counter failed');
+  opts.onStep?.('PINGING');
+  await jsonOrThrow(
+    await fetch('/api/market/orders', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'counter_ping', offerId: offer.id, slug, tokenId: String(tokenId), price: Number(priceEth) }),
+    }),
+  );
   refreshMarketSurfaces();
 }
 
