@@ -17,7 +17,7 @@ const SEED_PALS=[
   {name:'Bone', bg:'#efe9dd', a:'#6e2a28', b:'#1a1713'},
 ];
 const SEED_FMTS=[{W:1080,H:1080,t:'Square'},{W:960,H:1200,t:'Portrait'}];
-function seedhead(cv,seed){
+function seedhead(cv,seed,dispW){
   const r=rng(seed);
   const palI=Math.floor(r()*SEED_PALS.length);
   const fmt=pick(SEED_FMTS,r);
@@ -27,7 +27,10 @@ function seedhead(cv,seed){
   const P=SEED_PALS[palI], W=fmt.W,H=fmt.H; cv.width=W;cv.height=H; const x=cv.getContext('2d'); const S=Math.min(W,H), dark=P.bg<'#888888';
   x.fillStyle=P.bg; x.fillRect(0,0,W,H);
   const cx=W/2,cy=H*0.5,ga=2.39996,scale=S*0.52/Math.sqrt(n);
-  if(dark){x.globalCompositeOperation='lighter';x.shadowBlur=4;}
+  // Per-dot shadowBlur is ~99% of this engine's cost and is near-invisible
+  // once downscaled to a thumbnail — keep it only at full-view sizes. The
+  // additive 'lighter' blend (the core of the look) stays at every size.
+  if(dark){x.globalCompositeOperation='lighter';x.shadowBlur=(dispW<500)?0:4;}
   for(let i=0;i<n;i++){const a=i*ga,rad=scale*Math.sqrt(i);const px=cx+Math.cos(a)*rad,py=cy+Math.sin(a)*rad;const t=i/n;const col=rdHexLerp(P.a,P.b,t);if(dark)x.shadowColor=col;x.fillStyle=col;x.globalAlpha=dark?(0.7+0.3*(1-t)):0.9;const sz=2.2+(1-t)*S*0.012;
     if(shape==='dot'){x.beginPath();x.arc(px,py,sz,0,6.29);x.fill();}
     else if(shape==='ring'){x.strokeStyle=col;x.lineWidth=1;x.beginPath();x.arc(px,py,sz,0,6.29);x.stroke();}

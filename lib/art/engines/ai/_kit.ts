@@ -55,12 +55,16 @@ export const PHI=1.61803398875, INVPHI=0.61803398875;
 
 /* Paint via the core engine at native resolution, blit at requested width. */
 export function blit(
-  raw: (cv: HTMLCanvasElement, seed: number) => void,
+  raw: (cv: HTMLCanvasElement, seed: number, displayWidth?: number) => void,
   traitsOf: TraitsFn,
 ): EngineFn {
   return (canvas, tokenId, width) => {
     const off = document.createElement('canvas');
-    raw(off, tokenId);
+    // Pass the DISPLAY width through so an engine can drop expensive,
+    // near-invisible detail (per-mark shadowBlur glow) at thumbnail sizes
+    // while keeping it at full-view sizes. Engines that ignore the third
+    // arg are unaffected; the full-resolution artwork is byte-identical.
+    raw(off, tokenId, Math.max(1, Math.floor(width)));
     const W = Math.max(1, Math.floor(width));
     const H = Math.max(1, Math.round((W * off.height) / off.width));
     canvas.width = W;

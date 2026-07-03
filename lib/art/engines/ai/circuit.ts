@@ -16,7 +16,7 @@ const CIR_PALS=[
   {name:'Crimson', board:'#200808', trace:'#ff5a5a', pad:'#ffd0a0', acc:'#ffb0b0'},
 ];
 const CIR_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1200,t:'Portrait'},{W:1200,H:920,t:'Landscape'}];
-function circuit(cv,seed){
+function circuit(cv,seed,dispW){
   const r=rng(seed);
   const palI=Math.floor(r()*CIR_PALS.length);
   const fmt=pick(CIR_FMTS,r);
@@ -34,7 +34,7 @@ function circuit(cv,seed){
   for(let t=0;t<nTr;t++){
     let cx=rint(r,0,cols-1),cy=rint(r,0,rows-1);const len=rint(r,2,8);const pts=[node(cx,cy)];let dir=Math.floor(r()*4);
     for(let s=0;s<len;s++){if(r()<0.4)dir=(dir+(r()<0.5?1:3))%4;const dd=[[1,0],[0,1],[-1,0],[0,-1]][dir];const seg=rint(r,1,4);cx=Math.max(0,Math.min(cols-1,cx+dd[0]*seg));cy=Math.max(0,Math.min(rows-1,cy+dd[1]*seg));pts.push(node(cx,cy));}
-    const col= r()<0.16?P.acc:P.trace; x.strokeStyle=col; x.shadowColor= P.board<'#888888'?col:'transparent'; x.shadowBlur= P.board<'#888888'?5:0;
+    const col= r()<0.16?P.acc:P.trace; x.strokeStyle=col; x.shadowColor= P.board<'#888888'?col:'transparent'; x.shadowBlur= (P.board<'#888888'&&!(dispW<500))?5:0;
     x.lineWidth=Math.max(2,gp*0.18); x.globalAlpha=0.55+r()*0.35; x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();
     // vias at ends
     [pts[0],pts[pts.length-1]].forEach(p=>{x.fillStyle=P.pad;x.beginPath();x.arc(p[0],p[1],gp*0.22,0,6.29);x.fill();x.fillStyle=P.board;x.beginPath();x.arc(p[0],p[1],gp*0.09,0,6.29);x.fill();});

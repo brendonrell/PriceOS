@@ -24,7 +24,7 @@ const NEON_PALS=[
 ];
 const NEON_FMTS=[{W:1080,H:1080,t:'Square'},{W:920,H:1280,t:'Portrait'},{W:1280,H:920,t:'Landscape'},{W:760,H:1300,t:'Tall'},{W:1500,H:760,t:'Wide'}];
 const NEON_MODES=['stream','rain','spiral','orbit'];
-function afterglow(cv,seed){
+function afterglow(cv,seed,dispW){
   const r=rng(seed);
   const palI=Math.floor(r()*NEON_PALS.length);
   const fmtI=Math.floor(r()*NEON_FMTS.length);
@@ -42,10 +42,14 @@ function afterglow(cv,seed){
   gl.addColorStop(0, P.ink[0]+'22'); gl.addColorStop(1,'transparent'); x.fillStyle=gl; x.fillRect(0,0,W,H);
   const col=()=>P.ink[Math.floor(r()*P.ink.length)];
   function path(pts){x.beginPath();x.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;x.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}x.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);}
+  // Per-ribbon shadowBlur is the dominant cost and blurs to nothing at
+  // thumbnail scale; keep it only at full-view sizes. The layered
+  // wide/low-alpha strokes (the neon body itself) stay at every size.
+  const HI=!(dispW<500);
   function ribbon(pts,c,wide){
     x.save(); x.globalCompositeOperation='lighter'; x.lineCap='round'; x.lineJoin='round'; x.shadowColor=c;
-    [[wide*2.6,0.10],[wide*1.5,0.22],[wide,0.5]].forEach(p=>{x.globalAlpha=p[1];x.lineWidth=p[0];x.strokeStyle=c;x.shadowBlur=wide*2;path(pts);x.stroke();});
-    x.globalAlpha=0.9; x.lineWidth=Math.max(1,wide*0.26); x.strokeStyle='#ffffff'; x.shadowBlur=wide*0.8; path(pts); x.stroke();
+    [[wide*2.6,0.10],[wide*1.5,0.22],[wide,0.5]].forEach(p=>{x.globalAlpha=p[1];x.lineWidth=p[0];x.strokeStyle=c;x.shadowBlur=HI?wide*2:0;path(pts);x.stroke();});
+    x.globalAlpha=0.9; x.lineWidth=Math.max(1,wide*0.26); x.strokeStyle='#ffffff'; x.shadowBlur=HI?wide*0.8:0; path(pts); x.stroke();
     x.restore();
   }
   function dust(){x.save();x.globalCompositeOperation='lighter';for(let i=0;i<Math.max(W,H)/3;i++){const c=col();x.globalAlpha=0.15+r()*0.5;x.fillStyle=c;const s=r()<0.1?2.4:1.2;x.fillRect(r()*W,r()*H,s,s);}x.restore();}
