@@ -1,9 +1,8 @@
 -- THE ZERO-OUT (Brendon, 2026-07-03): every project back to freshly-uploaded
 -- status — 0 mints, no floor/volume/ATH, no graduation. Projects and user
 -- identities stay; the sim mint ledger and everything derived from it goes.
--- APPLIED LIVE 2026-07-03 (with full prior snapshot in schema
--- zeroout_backup_20260703: outputs/events/holders/pings/ping_cursors/
--- user_achievements/output_views/projects/wallets/users).
+-- APPLIED LIVE 2026-07-03. (A transient safety snapshot was dropped the same
+-- day at Brendon's word — test-mint data, nothing kept.)
 delete from public.output_views;
 delete from public.holders;
 delete from public.events;
