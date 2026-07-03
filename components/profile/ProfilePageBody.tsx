@@ -158,19 +158,30 @@ const CAROUSEL_SIZE = 18;
 
 /* One artist-project carousel — same markup + classes as the home page's
    per-project carousel, mounted under its own ProjectProvider so the cards
-   paint THIS project's engine. Shows recent minted Outputs; falls back to the
-   project's opening Outputs as a preview when nothing's minted yet, so the row
-   is never an empty void. */
+   paint THIS project's engine. Shows recent minted Outputs. A previewed tile
+   REQUIRES a real mint — an unminted project shows GHOST FRAMES in its row,
+   never phantom art off unminted token ids (Brendon, 2026-07-03: "when a
+   project is fresh there are no mints and thus no previews — we show the
+   ghosts instead"). Same GhostCard the Project page + Showcase use. */
 function ArtistProjectCarousel({ eager = false }: { eager?: boolean }) {
     const project = useProject();
     const total = project.totalOutputs;
     const ids =
         total > 0
             ? Array.from({ length: Math.min(CAROUSEL_SIZE, total) }, (_, i) => total - i)
-            : Array.from(
-                  { length: Math.min(CAROUSEL_SIZE, project.maxSupply) },
-                  (_, i) => i + 1,
-              );
+            : [];
+    /* Ghost frames for an unminted row: aspect ratios sampled from the
+       project's own aspect palette (registry), deterministic per index so
+       SSR and client match. No canvas, no engine, no seed. */
+    const ghostAspects = (() => {
+        if (total > 0) return [];
+        const pool = getProject(project.slug)?.aspects ?? [1];
+        const aspects = pool.length ? pool : [1];
+        return Array.from({ length: CAROUSEL_SIZE }, (_, i) => {
+            const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
+            return aspects[Math.floor(h * aspects.length) % aspects.length];
+        });
+    })();
     return (
         <section
             className="home-carousel-row"
@@ -182,9 +193,13 @@ function ArtistProjectCarousel({ eager = false }: { eager?: boolean }) {
                 </a>
             </div>
             <div className="home-carousel-track">
-                {ids.map((id) => (
-                    <ArtworkCard key={id} id={id} eager={eager} />
-                ))}
+                {total > 0
+                    ? ids.map((id) => (
+                          <ArtworkCard key={id} id={id} eager={eager} />
+                      ))
+                    : ghostAspects.map((aspect, i) => (
+                          <GhostCard key={`ghost-${i}`} aspect={aspect} index={i} />
+                      ))}
             </div>
         </section>
     );
