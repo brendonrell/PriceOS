@@ -27,8 +27,21 @@ const MOBILE_BP = 600;
 
 export default function PriceDaySlot() {
     const ref = useRef<HTMLSpanElement>(null);
+    const popRef = useRef<HTMLDivElement>(null);
     const [open, setOpen] = useState(false);
     const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+    /* Compute the popover position from the current anchor rect. */
+    const priceDayCoords = () => {
+        if (!ref.current) return null;
+        const rect = ref.current.getBoundingClientRect();
+        let left =
+            window.innerWidth < MOBILE_BP
+                ? (window.innerWidth - POPOVER_WIDTH) / 2
+                : rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
+        left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
+        return { top: rect.bottom + 4, left };
+    };
     /* Compute "today" after mount to avoid an SSR/CSR hydration mismatch. */
     const [today, setToday] = useState<Date | null>(null);
     useEffect(() => {
@@ -51,17 +64,30 @@ export default function PriceDaySlot() {
             setOpen(false);
             return;
         }
-        if (ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            let left =
-                window.innerWidth < MOBILE_BP
-                    ? (window.innerWidth - POPOVER_WIDTH) / 2
-                    : rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
-            left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
-            setPos({ top: rect.bottom + 4, left });
-        }
+        const c = priceDayCoords();
+        if (c) setPos(c);
         setOpen(true);
     };
+
+    /* Keep the popover glued to the date stamp: as the page scrolls (or the
+       window resizes), re-read the anchor and move the popover with it, writing
+       straight to the node so the page never re-renders mid-scroll. */
+    useEffect(() => {
+        if (!open) return;
+        const track = () => {
+            const c = priceDayCoords();
+            if (c && popRef.current) {
+                popRef.current.style.top = `${c.top}px`;
+                popRef.current.style.left = `${c.left}px`;
+            }
+        };
+        window.addEventListener('scroll', track, true);
+        window.addEventListener('resize', track);
+        return () => {
+            window.removeEventListener('scroll', track, true);
+            window.removeEventListener('resize', track);
+        };
+    }, [open]);
 
     const dateLabel = today ? formatPriceDate(today) : '—';
     const livePdc = usePriceDay(today ?? new Date());
@@ -86,6 +112,7 @@ export default function PriceDaySlot() {
             </span>
             {open && pos && contents && (
                 <div
+                    ref={popRef}
                     className="priceday-popover"
                     style={{ position: 'fixed', top: pos.top, left: pos.left }}
                 >

@@ -1355,6 +1355,22 @@ function ProfilePageBodyInner({
     const [priceDayOpen, setPriceDayOpen] = useState(false);
     const [priceDayPos, setPriceDayPos] = useState<{ top: number; left: number } | null>(null);
     const priceDayRef = useRef<HTMLSpanElement>(null);
+    const priceDayPopRef = useRef<HTMLDivElement>(null);
+    const priceDayCoords = () => {
+        if (!priceDayRef.current) return null;
+        const rect = priceDayRef.current.getBoundingClientRect();
+        const POPOVER_WIDTH = 260;
+        const MARGIN = 8;
+        const MOBILE_BP = 600;
+        let left: number;
+        if (window.innerWidth < MOBILE_BP) {
+            left = (window.innerWidth - POPOVER_WIDTH) / 2;
+        } else {
+            left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
+            left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
+        }
+        return { top: rect.bottom + 4, left };
+    };
 
     useEffect(() => {
         if (!priceDayOpen) return;
@@ -1367,22 +1383,29 @@ function ProfilePageBodyInner({
         return () => document.removeEventListener('mousedown', handler);
     }, [priceDayOpen]);
 
+    /* Keep the popover glued to the date stamp on scroll/resize — write straight
+       to the node so the page never re-renders mid-scroll. */
+    useEffect(() => {
+        if (!priceDayOpen) return;
+        const track = () => {
+            const c = priceDayCoords();
+            if (c && priceDayPopRef.current) {
+                priceDayPopRef.current.style.top = `${c.top}px`;
+                priceDayPopRef.current.style.left = `${c.left}px`;
+            }
+        };
+        window.addEventListener('scroll', track, true);
+        window.addEventListener('resize', track);
+        return () => {
+            window.removeEventListener('scroll', track, true);
+            window.removeEventListener('resize', track);
+        };
+    }, [priceDayOpen]);
+
     const openPriceDay = () => {
         if (priceDayOpen) { setPriceDayOpen(false); return; }
-        if (priceDayRef.current) {
-            const rect = priceDayRef.current.getBoundingClientRect();
-            const POPOVER_WIDTH = 260;
-            const MARGIN = 8;
-            const MOBILE_BP = 600;
-            let left: number;
-            if (window.innerWidth < MOBILE_BP) {
-                left = (window.innerWidth - POPOVER_WIDTH) / 2;
-            } else {
-                left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
-                left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
-            }
-            setPriceDayPos({ top: rect.bottom + 4, left });
-        }
+        const c = priceDayCoords();
+        if (c) setPriceDayPos(c);
         setPriceDayOpen(true);
     };
 
@@ -1787,6 +1810,7 @@ function ProfilePageBodyInner({
                             >{memberSince || '\u2014'}</span>
                             {priceDayOpen && priceDayPos && joinDayContents && (
                                 <div
+                                    ref={priceDayPopRef}
                                     className="priceday-popover"
                                     style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}
                                 >
