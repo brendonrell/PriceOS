@@ -38,7 +38,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { serverError } from '@/lib/errors';
 
-export const runtime = 'edge';
+// runtime: removed the Vercel edge directive — on Cloudflare/OpenNext this
+// already runs on the Workers runtime, packed into the single Worker.
 export const revalidate = 4;
 
 export interface RpcPingResponse {

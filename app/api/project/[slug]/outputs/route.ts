@@ -62,10 +62,8 @@ export interface ProjectOutputsResponse {
   stats: ProjectStats;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-): Promise<NextResponse> {
+export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   if (!params.slug) return badRequest('Missing project slug');
   const slug = params.slug.toLowerCase();
 

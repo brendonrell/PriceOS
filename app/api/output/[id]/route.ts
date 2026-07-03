@@ -57,10 +57,8 @@ interface DbEvent {
   timestamp: number | string;
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } },
-): Promise<NextResponse> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   if (!params.id) return badRequest('Missing output id');
   const dash = params.id.lastIndexOf('-');
   if (dash <= 0) return badRequest('Bad output id');

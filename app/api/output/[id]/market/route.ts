@@ -81,7 +81,8 @@ interface OfferRowDb {
 }
 
 // ── GET ──────────────────────────────────────────────────────────────────────
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const parsed = parseId(params.id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;
@@ -251,7 +252,7 @@ const SIM_MONEY_ACTIONS = new Set(['list', 'buy', 'offer', 'accept']);
 const CHAIN_ACTIONS = new Set(['list_order', 'offer_order', 'cancel_order']);
 
 export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
-  const parsed = parseId(ctx.params.id);
+  const parsed = parseId((await ctx.params).id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;
 

@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pricediscussion",
+  "main": "custom-worker.ts",
+  "compatibility_date": "2025-08-21",
+  "compatibility_flags": ["nodejs_compat"],
+  // Indexer reconcile backstop — the webhook is the real-time path; this sweep
+  // replays anything Alchemy fails to deliver. Idempotent, safe to overlap.
+  "triggers": {
+    "crons": ["*/2 * * * *"]
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Next's data/route cache (the timed-cache API routes: stats 60s, price 10s,
+  // search 60s…) — same revalidate behaviour the app had on Vercel.
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "b332595e9f1e40279c5e7f9c1f1f2fc0"
+    }
+  ]
+}

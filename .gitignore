@@ -21,3 +21,8 @@ artsheet.js
 captest.js
 .halo/
 tools/halo/out/
+
+# OpenNext / Cloudflare build output
+.open-next/
+.wrangler/
+.dev.vars

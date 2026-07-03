@@ -9,7 +9,8 @@ import { buildPriceDayAlmanac } from '@/lib/priceday/almanac.server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest, { params }: { params: { n: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ n: string }> }) {
+  const params = await props.params;
   const n = Number(params.n);
   if (!Number.isInteger(n) || n < 1 || n > 100_000) return badRequest('Bad day');
   try {

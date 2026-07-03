@@ -13,7 +13,7 @@ import { ANOINT_LOCK_DAYS } from '@/lib/anoint/levels';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 interface Pledge {
   project_id: string;
@@ -41,7 +41,8 @@ async function getPledge(handle: string): Promise<Pledge | null> {
   return (data ?? null) as Pledge | null;
 }
 
-export default async function ProfileAnointedPage({ params }: Props) {
+export default async function ProfileAnointedPage(props: Props) {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle) notFound();
 
@@ -79,7 +80,8 @@ export default async function ProfileAnointedPage({ params }: Props) {
   );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle) return { title: 'Not Found · Price Discussion' };
   return {

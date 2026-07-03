@@ -35,7 +35,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { serverError } from '@/lib/errors';
 
-export const runtime = 'edge';
+// runtime: on Cloudflare/OpenNext everything runs on the Workers runtime, so
+// the Vercel edge directive is removed (OpenNext packs a single Worker; an
+// explicit edge route would need its own separate function).
 export const revalidate = 12;
 
 /* Chainlink ETH/USD aggregator proxy on Ethereum mainnet.

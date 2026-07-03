@@ -5,9 +5,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { resolveProfileHandle } from '@/lib/slug';
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
-export default function ProfileAlbumsPage({ params }: Props) {
+export default async function ProfileAlbumsPage(props: Props) {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle) notFound();
 
@@ -23,7 +24,8 @@ export default function ProfileAlbumsPage({ params }: Props) {
   );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const handle = resolveProfileHandle(params.slug);
   if (!handle) return { title: 'Not Found · Price Discussion' };
   return {
