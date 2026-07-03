@@ -236,14 +236,15 @@ never `TO public`.
   picking the next ship, edits, builds, branching, pushing to my own feature
   branch, and keeping ClickUp current.
 
-> **⛔ NO SUBAGENTS — EVER. Brendon's metering is sacred (Brendon, 2026-07-03).**
-> Never spawn subagents / parallel agent workers / multi-agent workflows — they
-> burn Brendon's token metering invisibly and he cannot control it. All in-chat
-> work is done by THIS session, in-line. When a task suits a different model
-> (e.g. bulk mechanical execution on Opus 4.8, where he has tokens to burn),
-> package it as a SELF-CONTAINED PASTE-READY BRIEF — full context, exact files,
-> exact spec, acceptance checks — and hand it to Brendon to run in a fresh chat
-> himself. He starts those chats; we never do.
+> **⛔ SUBAGENTS BURN METERING — FABLE SESSIONS NEVER SPAWN THEM (Brendon,
+> 2026-07-03).** Model metering is per-model and Brendon's **Fable allowance is
+> small and precious** — subagents spawned from a Fable session run ON Fable and
+> can drain a whole day's allowance in one shot. So: **a Fable session does all
+> its work in-line, alone. Never spawn subagents/workers/workflows from Fable.**
+> Opus 4.8 sessions may use subagents freely (Brendon has deep Opus tokens).
+> When Fable identifies bulk/mechanical work, hand it off as a brief for a
+> fresh Opus chat — either a paste-ready block or a repo file the Opus session
+> is pointed at (`docs/briefs/`). Brendon starts those chats himself.
 - **Brendon decides (do not freestyle):** product decisions, scope changes, what
   ships, anything touching real money or mainnet.
 - Tweak the work, don't freestyle it. Don't invent helpful additions when fixing

@@ -6,6 +6,43 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-03 — CLOUDFLARE MIGRATION LIVE. THE APP MOVED.
+
+**dev is on Cloudflare. `https://pricediscussion.pricediscussion.workers.dev`
+IS the app now** (Workers Builds: push to `dev` → production build → that URL;
+side branches build as rehearsals via `npx opennextjs-cloudflare upload`).
+Vercel = untouched rollback only; when Brendon declares the CF copy verified,
+delete the Vercel project + uninstall its GitHub app — that's the whole cleanup.
+- Shipped to dev (PR #28, merged on Brendon's push): Next 15.5/React 19.2
+  (look/feel pinned), OpenNext + worker config (cron + KV cache bindings),
+  CF seams (CF-Connecting-IP limiter, caches, images, worker-safe push
+  signing), **indexer folded in** (webhook + reconcile routes + 2-min cron;
+  dormant until `projects.contract_address` is set).
+- Account side (Brendon, same day): Workers Paid $5/mo bought (payment
+  needed desktop after mobile checkout failed); repo connected; secrets
+  copied Vercel→CF runtime + the 3 NEXT_PUBLIC ones into Build vars;
+  + CRON_SECRET. **Discord pair NOT copied** (Vercel marked them
+  unreadable) — grab from Discord dev portal when Discord-link matters.
+- Brendon: iPhone feels SNAPPIER than Vercel ever did. He's thrilled.
+- **⛔ TOKEN PROTOCOL (Brendon, hard):** his FABLE metering is small —
+  Fable sessions NEVER spawn subagents (rule now in CLAUDE.md §3). Bulk
+  work → paste-ready briefs in `docs/briefs/`, Brendon runs them in fresh
+  Opus 4.8 chats (Opus may use subagents).
+- **NEXT — the launch-hardening bundle (ClickUp `86bar1uxr`, order set):**
+  ① Desktop home-page crash (Windows+Chrome tab-crash; iPhone fine) —
+  **Opus brief ready: `docs/briefs/desktop-home-crash.md`**, recon started:
+  suspect = live-art canvas count on wide viewports (HomePageBody carousels
+  + canvasVirtualizer). ② Wallet/auth/ENS reliability review (launch gate).
+  ③ Architecture/tech-debt audit → Opus-executable briefs. ④ Snappiness
+  pass. ⑤ Re-enable both pollers the CF-cheap way (cached, visible-only;
+  10M req/mo included — the Vercel CPU fear doesn't transfer).
+- Same day, separate session: **$PRICE deployed to MAINNET**
+  (`0x173a…4638`) — recorded in CLAUDE.md §2.
+- This chat's task branch `claude/cloudflare-pages-migration-wyh1z5` is
+  trash once Brendon deletes it on GitHub (work is on dev).
+
+---
+
 ## ✅ SHIPPED 2026-07-02 — SPOT EDITS + FULL CLICKUP ATLAS ACCURACY PASS
 
 **dev @ 30ce64c, tree clean, build green.**
