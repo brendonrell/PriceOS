@@ -7,12 +7,16 @@
  * /api/auth/siwe) is UNTOUCHED — this is an additional door, not a
  * replacement, so mobile wallet testing keeps working exactly as before.
  *
- * SECURITY GATE — this must NEVER work on production (main deploy):
- *   VERCEL_ENV is 'production' on main, 'preview' on the dev preview,
- *   and undefined on localhost. We allow only the non-production case.
- *   On production the route 404s as if it doesn't exist. The button that
- *   calls it is also only rendered on non-production (layout gate), but
- *   this server check is the real boundary — a hand-crafted POST to the
+ * SECURITY GATE — this must NEVER work on production:
+ *   The door exists ONLY where DEV_LOGIN_ENABLED=1 is explicitly set in
+ *   the environment (Cloudflare dev deploy during the build phase;
+ *   localhost via .env.local). Anywhere the flag is absent the route
+ *   404s as if it doesn't exist. At launch, deleting the variable IS
+ *   the lock. (The old gate keyed off VERCEL_ENV — a Vercel-ism that
+ *   doesn't exist on Cloudflare, which left the door open on the
+ *   workers.dev deploy; caught in the 2026-07-03 wallet review.) The
+ *   button that calls it rides the same flag (layout gate), but this
+ *   server check is the real boundary — a hand-crafted POST to the
  *   live site still gets nothing.
  *
  * (Build-phase note: the S-A1 secret gate was rolled back — it made
@@ -35,7 +39,7 @@ export const dynamic = 'force-dynamic';
 const BRENDON_ADDR = '0x65c34afda745c12745db70ffa809311339279395';
 
 function devLoginAllowed(): boolean {
-    return process.env.VERCEL_ENV !== 'production';
+    return process.env.DEV_LOGIN_ENABLED === '1';
 }
 
 export async function POST() {

@@ -500,13 +500,14 @@ export default async function RootLayout({
         initialAuth = undefined;
     }
 
-    /* Dev-preview "Login Brendon" shortcut button. VERCEL_ENV is
-       'production' on main, 'preview' on the dev preview, undefined on
-       localhost — so this renders everywhere EXCEPT production. The
-       /api/auth/dev-login route is gated the same way server-side.
-       (Build-phase convenience — restored after the S-A1 secret gate made
-       desktop testing on the preview impossible.) */
-    const showDevLogin = process.env.VERCEL_ENV !== 'production';
+    /* Dev-preview "Login Brendon" shortcut button. Renders ONLY where
+       DEV_LOGIN_ENABLED=1 is explicitly set (Cloudflare dev deploy during
+       the build phase; localhost via .env.local). The /api/auth/dev-login
+       route is gated the same way server-side — that check is the real
+       boundary. At launch, deleting the variable removes button and door
+       together. (Was keyed off VERCEL_ENV — didn't exist on Cloudflare,
+       leaving the door open; caught in the 2026-07-03 wallet review.) */
+    const showDevLogin = process.env.DEV_LOGIN_ENABLED === '1';
 
     return (
         <html lang="en" className={`${rubikMono.variable} ${inter.variable}`}>
