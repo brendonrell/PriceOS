@@ -80,6 +80,13 @@ export function blit(raw, traitsOf){
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (ctx) ctx.drawImage(off, 0, 0, W, H);
-    return { aspect: off.width / off.height, traits: traitsOf(tokenId) };
+    const aspect = off.width / off.height;
+    // Free the full-resolution offscreen's backing store now, not at GC — stops
+    // the homepage's paint-burst from stacking dozens of full-size canvases in
+    // graphics memory (which crashes the GPU process, and every tab with it).
+    // At most one native-size canvas is alive at a time this way.
+    off.width = 0;
+    off.height = 0;
+    return { aspect, traits: traitsOf(tokenId) };
   };
 }

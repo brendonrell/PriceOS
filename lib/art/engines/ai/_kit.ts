@@ -71,7 +71,16 @@ export function blit(
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (ctx) ctx.drawImage(off, 0, 0, W, H);
-    return { aspect: off.width / off.height, traits: traitsOf(tokenId) };
+    const aspect = off.width / off.height;
+    // Release the full-resolution offscreen's backing store NOW, not whenever
+    // GC gets to it. The homepage paints a burst of tiles in one synchronous
+    // pass (worse on desktop, where a big viewport queues many at once);
+    // without this, each burst stacks dozens of full-size canvases in graphics
+    // memory and can crash the GPU process — taking every tab with it. Freeing
+    // here keeps at most one native-size canvas alive at any instant.
+    off.width = 0;
+    off.height = 0;
+    return { aspect, traits: traitsOf(tokenId) };
   };
 }
 
