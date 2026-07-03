@@ -49,7 +49,7 @@ import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { sweepBuy } from '../lib/market/marketClient';
-import { useWalletClient } from 'wagmi';
+import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import BenchArt from './bench/BenchArt';
 
 const VS15 = '\uFE0E';
@@ -170,7 +170,6 @@ export default function CartPanel() {
     const { items, panelOpen, remove, closePanel } = useCart();
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
-    const { data: walletClient } = useWalletClient();
 
     /* Two-stage mounted/active classes per sim 11854–11868. */
     const [mounted, setMounted] = useState(false);
@@ -257,7 +256,8 @@ export default function CartPanel() {
         setConfirmOpen(false);
         setBuying(true);
         const minShow = new Promise((r) => setTimeout(r, 900));
-        sweepBuy(items, { wallet: walletClient })
+        getWalletClientOnDemand()
+            .then((wallet) => sweepBuy(items, { wallet }))
             .then(async (result) => {
                 await minShow;
                 for (const it of result.bought) remove(it.slug, it.id);
@@ -274,7 +274,7 @@ export default function CartPanel() {
                 showToast(err instanceof Error ? err.message : 'Sweep: FAILED');
             })
             .finally(() => setBuying(false));
-    }, [items, buying, siweAddress, walletClient, remove, closePanel, showToast]);
+    }, [items, buying, siweAddress, remove, closePanel, showToast]);
 
     const isEmpty = items.length === 0;
 

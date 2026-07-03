@@ -30,7 +30,7 @@ import {
     useState,
     type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { useWalletClient } from 'wagmi';
+import { getWalletClientOnDemand } from '../../lib/wallet/walletClientOnDemand';
 import { useMarketSheet, type SheetItem, type CriteriaTarget } from '../../lib/state/MarketSheetContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -188,7 +188,6 @@ function PricingSheet({
 }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
-    const { data: walletClient } = useWalletClient();
 
     const [items, setItems] = useState<SheetItem[]>(initialItems);
     const [prices, setPrices] = useState<Record<string, string>>(() => {
@@ -302,6 +301,7 @@ function PricingSheet({
         setBusy(true);
         setStep('SIGNING');
         try {
+            const walletClient = await getWalletClientOnDemand();
             if (criteria) {
                 await makeOffer(
                     {
@@ -350,7 +350,7 @@ function PricingSheet({
             setBusy(false);
             setStep(null);
         }
-    }, [busy, allPriced, siweAddress, criteria, criteriaPrice, durationSec, walletClient, priced, mode, total, onClose, showToast]);
+    }, [busy, allPriced, siweAddress, criteria, criteriaPrice, durationSec, priced, mode, total, onClose, showToast]);
 
     const criteriaLabel = criteria
         ? criteria.kind === 'collection'
@@ -481,7 +481,6 @@ function OffersPanel({
 }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
-    const { data: walletClient } = useWalletClient();
     const [market, setMarket] = useState<OutputMarketState | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
     const [step, setStep] = useState<string | null>(null);
@@ -507,7 +506,7 @@ function OffersPanel({
         setBusyId(offer.id);
         setStep('COUNTERING');
         try {
-            await counterOffer(slug, id, offer, String(n), { wallet: walletClient, onStep: setStep });
+            await counterOffer(slug, id, offer, String(n), { wallet: await getWalletClientOnDemand(), onStep: setStep });
             showToast(`Counter: SENT · ${n.toFixed(3)} ETH`);
             setCounterFor(null);
             setCounterPrice('');
@@ -518,13 +517,13 @@ function OffersPanel({
             setBusyId(null);
             setStep(null);
         }
-    }, [counterPrice, slug, id, walletClient, showToast, load]);
+    }, [counterPrice, slug, id, showToast, load]);
 
     const runAccept = useCallback(async (offer: MarketOfferRow) => {
         setBusyId(offer.id);
         setStep('ACCEPTING');
         try {
-            await acceptOffer(slug, id, offer, { wallet: walletClient, onStep: setStep });
+            await acceptOffer(slug, id, offer, { wallet: await getWalletClientOnDemand(), onStep: setStep });
             showToast(`Offer: ACCEPTED · ${Number(offer.price_eth).toFixed(3)} ${offer.currency}`);
             load();
         } catch (err) {
@@ -533,7 +532,7 @@ function OffersPanel({
             setBusyId(null);
             setStep(null);
         }
-    }, [slug, id, walletClient, showToast, load]);
+    }, [slug, id, showToast, load]);
 
     const runDecline = useCallback(async (offer: MarketOfferRow) => {
         setBusyId(offer.id);
@@ -552,7 +551,7 @@ function OffersPanel({
         setBusyId(offer.id);
         setStep('CANCELLING');
         try {
-            await cancelOffer(offer, { wallet: walletClient, onStep: setStep });
+            await cancelOffer(offer, { wallet: await getWalletClientOnDemand(), onStep: setStep });
             showToast('Offer: CANCELLED');
             load();
         } catch (err) {
@@ -561,7 +560,7 @@ function OffersPanel({
             setBusyId(null);
             setStep(null);
         }
-    }, [walletClient, showToast, load]);
+    }, [showToast, load]);
 
     return (
         <>

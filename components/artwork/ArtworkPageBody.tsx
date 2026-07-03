@@ -29,7 +29,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { cancelListing } from '../../lib/market/marketClient';
-import { useWalletClient } from 'wagmi';
+import { getWalletClientOnDemand } from '../../lib/wallet/walletClientOnDemand';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -181,7 +181,6 @@ export default function ArtworkPageBody({
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
-    const { data: walletClient } = useWalletClient();
     const [ctaBusy, setCtaBusy] = useState(false);
 
     const { open: openModal } = useModal();
@@ -534,7 +533,8 @@ export default function ArtworkPageBody({
         } else if (ctaAction === 'unlist') {
             if (ctaBusy) return;
             setCtaBusy(true);
-            cancelListing(slug, numberPart, { wallet: walletClient })
+            getWalletClientOnDemand()
+                .then((wallet) => cancelListing(slug, numberPart, { wallet }))
                 .then(() => showToast('Listing: CANCELLED'))
                 .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
                 .finally(() => setCtaBusy(false));

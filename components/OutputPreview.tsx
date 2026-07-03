@@ -91,7 +91,7 @@ import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useMarketSheet } from '../lib/state/MarketSheetContext';
 import { cancelListing } from '../lib/market/marketClient';
-import { useWalletClient } from 'wagmi';
+import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
@@ -217,7 +217,6 @@ export default function OutputPreview() {
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet } = useMarketSheet();
-    const { data: walletClient } = useWalletClient();
     const [unlistBusy, setUnlistBusy] = useState(false);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
@@ -683,7 +682,8 @@ export default function OutputPreview() {
         } else if (mainAction === 'unlist') {
             if (id == null || unlistBusy) return;
             setUnlistBusy(true);
-            cancelListing(slug, id, { wallet: walletClient })
+            getWalletClientOnDemand()
+                .then((wallet) => cancelListing(slug, id, { wallet }))
                 .then(() => showToast('Listing: CANCELLED'))
                 .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
                 .finally(() => setUnlistBusy(false));

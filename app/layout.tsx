@@ -120,7 +120,7 @@ const PREHYDRATION_SCRIPT = `
         // gate: not 'art', not 'api', not all-digits (output namespace),
         // matches the handle shape.
         var firstSeg = '';
-        var segMatch = pathname.match(/^\/([^/]+)/);
+        var segMatch = pathname.match(/^\\/([^/]+)/);
         if (segMatch) firstSeg = segMatch[1].toLowerCase();
         var isProfilePage =
             firstSeg.length > 0 &&
