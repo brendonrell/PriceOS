@@ -160,13 +160,6 @@ function castDiscord(seed){
   return {comp, theme:DIS_THEMES[themeI].label, dens};
 }
 
-/* QUORUM — "Quorum": a starling murmuration as ink on paper. Thousands of
-   seeded boids settle under alignment-dominant flocking + a roaming attractor;
-   their motion-trails accumulate at low alpha (multiply) into one calligraphic
-   body breathing in a wide pale sky. The crowd reaching agreement = price
-   discovery. Elegant, restrained, art-world finish (grain, vignette, deckle).
-   Trait draws lead; castQuorum mirrors. (Also the basis for an animated piece.) */
-
 /* Riding The Oil (Discord) */
 export const discordTraits: TraitsFn = (id) => { const c = castDiscord(id) as any; return { Layout: cap(c.comp), Theme: c.theme, Density: c.dens === 1 ? 'Quiet' : c.dens === 2 ? 'Busy' : 'Packed' }; };
 export const discordSchema: TraitSchema = { traits: [

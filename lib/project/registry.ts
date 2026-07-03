@@ -617,8 +617,8 @@ const ARMILLARY: ProjectDef = {
   traitsOf: armillaryTraits,
 };
 
-/* ── Murmuration — winner of a 12-way surreal-vista jury tournament, by murmur-ai
- * (kindred to their collective-voice piece Quorum). A vast emergent swarm flocking
+/* ── Murmuration — winner of a 12-way surreal-vista jury tournament, by murmur-ai.
+ * A vast emergent swarm flocking
  * into a different impossible form each output (vortex / ribbon / spiral / column /
  * cascade / swell), surreal "real but off," saturated accents over twilight steel,
  * deep haze. Signature electric cyan. */
@@ -701,7 +701,7 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'turf-war':               { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
   'avalanche':              { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
   /* ── new cohort (2026-06-13). Most carry a soundtrack matched to the work;
-     the contemplative fine-art pieces (Quorum, Konkret, Ode to Rudxane, The
+     the contemplative fine-art pieces (Konkret, Ode to Rudxane, The
      Lapidary, Warp & Weft, Divided Light, Filament, The Golden Angle) are
      intentionally silent — the artist's chosen bg hex stands alone. ── */
   'everyone-is-typing':     { playlistId: 'OLAK5uy_kmoCFzuKniN8yTiL701Ardjwq7oMkvnz8', label: '100 gecs — 1000 gecs' },
