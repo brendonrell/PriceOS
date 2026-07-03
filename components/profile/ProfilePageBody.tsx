@@ -1047,9 +1047,21 @@ function ProfilePageBodyInner({
         setStarredItems(getStarredItems());
         return subscribeStarred(() => setStarredItems(getStarredItems()));
     }, []);
+    /* Live minted count per pinned slug. A token pin is only real if its id is
+       within the project's CURRENT minted count — so a pin left over after a
+       project's supply reset to 0 (a token that no longer exists) is dropped
+       instead of painting phantom art. Fetched below for the union of starred
+       + wishlisted slugs; an unknown slug (not yet fetched, or fetch failed)
+       keeps the pin so valid pins never flicker away on a slow network. */
+    const [mintedBySlug, setMintedBySlug] = useState<Record<string, number>>({});
     const starredValid = useMemo(
-        () => starredItems.filter((s) => getProject(s.slug) != null),
-        [starredItems],
+        () =>
+            starredItems.filter(
+                (s) =>
+                    getProject(s.slug) != null &&
+                    (mintedBySlug[s.slug] === undefined || s.id <= mintedBySlug[s.slug]),
+            ),
+        [starredItems, mintedBySlug],
     );
 
     /* My History — the viewer's PRIVATE last-100 viewed Outputs, read straight
@@ -1249,9 +1261,47 @@ function ProfilePageBodyInner({
         return subscribeWishlist(() => setWishlistItems(getWishlistItems()));
     }, []);
     const wishlistValid = useMemo(
-        () => wishlistItems.filter((s) => getProject(s.slug) != null),
-        [wishlistItems],
+        () =>
+            wishlistItems.filter(
+                (s) =>
+                    getProject(s.slug) != null &&
+                    (mintedBySlug[s.slug] === undefined || s.id <= mintedBySlug[s.slug]),
+            ),
+        [wishlistItems, mintedBySlug],
     );
+    /* Fetch the live minted count for every pinned slug (starred + wishlist),
+       feeding the two filters above. One count request per distinct slug,
+       refreshed on the same project-refresh signal the rest of the profile
+       already listens to. */
+    const pinnedSlugs = useMemo(() => {
+        const set = new Set<string>();
+        for (const s of starredItems) if (getProject(s.slug) != null) set.add(s.slug);
+        for (const s of wishlistItems) if (getProject(s.slug) != null) set.add(s.slug);
+        return Array.from(set).sort();
+    }, [starredItems, wishlistItems]);
+    useEffect(() => {
+        if (pinnedSlugs.length === 0) { setMintedBySlug({}); return; }
+        let cancelled = false;
+        const load = () => {
+            Promise.all(
+                pinnedSlugs.map((slug) =>
+                    fetch(`/api/project/${slug}/outputs`, { cache: 'no-store' })
+                        .then((r) => (r.ok ? r.json() : null))
+                        .then((d) => [slug, typeof d?.total === 'number' ? d.total : undefined] as const)
+                        .catch(() => [slug, undefined] as const),
+                ),
+            ).then((pairs) => {
+                if (cancelled) return;
+                const m: Record<string, number> = {};
+                for (const [slug, total] of pairs) if (typeof total === 'number') m[slug] = total;
+                setMintedBySlug(m);
+            });
+        };
+        load();
+        const onRefresh = () => load();
+        window.addEventListener('pd:project-refresh', onRefresh);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
+    }, [pinnedSlugs]);
 
     /* Achievements — PUBLIC for THIS profile's owner (any visitor sees any
        profile's wall, logged in or not). Fetched once per profile address from
