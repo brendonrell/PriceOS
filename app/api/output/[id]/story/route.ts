@@ -97,7 +97,8 @@ interface OfferHistRow {
   token_id: string | null;
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const parsed = parseId(params.id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;

@@ -47,7 +47,8 @@ function daysBetween(aSec: number, bSec: number): number {
   return Math.floor(Math.abs(bSec - aSec) / 86400);
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const slug = params.slug.toLowerCase();
   const project = getProject(slug);
   if (!project) return badRequest('Unknown project');

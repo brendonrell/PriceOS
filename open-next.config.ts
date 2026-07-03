@@ -1,7 +1,12 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
+import kvIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/kv-incremental-cache";
 
-// Minimal OpenNext Cloudflare config. Step 2 of the migration will wire the
-// real seams (incremental cache, etc.); this baseline is enough to produce the
-// packed Worker so we can measure its gzipped size against the 3 MB free-plan
-// cap.
-export default defineCloudflareConfig({});
+// Cloudflare seams for the Next app:
+//  • incrementalCache → Workers KV (binding NEXT_INC_CACHE_KV in
+//    wrangler.jsonc). This carries Next's data/route cache, so the
+//    timed-cache API routes (stats 60s / price 10s / search 60s / gas 12s)
+//    keep the same revalidate behaviour they had on Vercel instead of
+//    recomputing on every request.
+export default defineCloudflareConfig({
+  incrementalCache: kvIncrementalCache,
+});

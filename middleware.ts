@@ -59,10 +59,13 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 
 function getClientIp(req: NextRequest): string {
-  // Prefer the platform-trusted IP. Vercel populates x-real-ip at the edge with
-  // the true client IP — this replaced the removed `req.ip` in Next 15 and
-  // carries the same value. The x-forwarded-for header is client-spoofable, so
-  // it's only a fallback for non-Vercel/local runs — never the primary source.
+  // Prefer the platform-trusted IP. Cloudflare stamps CF-Connecting-IP on every
+  // request with the true client IP; Vercel's equivalent is x-real-ip. Both are
+  // set by the platform edge and can't be spoofed through it. The
+  // x-forwarded-for header IS client-spoofable, so it's only a fallback for
+  // local runs — never the primary source.
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf;
   const real = req.headers.get('x-real-ip');
   if (real) return real;
   const xff = req.headers.get('x-forwarded-for');
