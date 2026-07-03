@@ -1,64 +1,63 @@
-# BRIEF — Desktop home-page crash (diagnose + fix)
+# BRIEF — Find the pathological art engine (desktop home crash)
 
-**For a fresh Opus 4.8 session. Read CLAUDE.md first — every rule applies.
-Subagents are allowed in your session (you are Opus, not Fable).**
+**For a fresh Opus 4.8 session. Read CLAUDE.md first; subagents allowed and
+RECOMMENDED — this is a fan-out bisection over ~100 engines.**
 
-## The bug (reported by Brendon, 2026-07-03, on the new Cloudflare deploy)
+## Where the hunt stands (2026-07-03, Fable session — read before starting)
 
-- **Windows desktop + Chrome: the HOME PAGE crashes the tab.** His words:
-  "desktop is crashing on the home page, I guess too much live art? I would
-  have thought a windows machine+chrome could handle 3 carousels visible?"
-- iPhone 12 / iOS 26 (PWA + Safari): fine — in fact snappier than ever.
-- Surface: `https://pricediscussion.pricediscussion.workers.dev` (Cloudflare
-  Workers deploy of `dev` — this IS the app now; Vercel is paused/legacy).
+- Symptom: Windows desktop Chrome died loading the home page; iPhone always
+  fine. Brendon: desktop handled the OLD home (pre-late-June) easily.
+- Already ruled OUT / already fixed (do not re-litigate):
+  - The SSR-500 recovery mode (wallet hooks outside the provider) — fixed +
+    shipped 2026-07-03 (`lib/wallet/walletClientOnDemand.ts`). Crash persisted.
+  - The prehydration boot-script SyntaxError — fixed same day. Crash persisted.
+  - Canvas MEMORY at tile scale is trivial (200px tiles, LRU-capped
+    virtualizer `lib/virtualization/canvasVirtualizer.ts`).
+- The decisive experiment: **the zero-out** (all projects → 0 mints, applied
+  live 2026-07-03) removed all minted tiles from home → **desktop loads
+  great.** So the killer is in PAINTING minted tiles — overwhelmingly likely
+  ONE (or a few) of the ~45 engines added 2026-06-28→07-01 (HALO cohorts —
+  none ever ran on a desktop before the Cloudflare deploy; Vercel was paused
+  the whole time they landed).
+- Working theory: an engine whose paint hangs (unbounded loop / convergence
+  that diverges) or allocates absurdly, on some seed/size/DPR combo that
+  desktop hits and iPhone doesn't (desktop DPR is 1 / 1.25 / 1.5 — Windows
+  display scaling gives NON-INTEGER DPR; iPhone is integer 3).
 
-## What the home page is (verified in code, start here)
+## The hunt (no DB needed — engines are deterministic client functions)
 
-- `app/page.tsx` → server-seeds `components/home/HomePageBody.tsx` (~1,100
-  lines) — stats + NOW MINTING carousels in the first paint.
-- Carousel tiles are **live generative-art canvases**: engines in
-  `lib/art/engines/*` painted through `lib/virtualization/canvasVirtualizer`
-  (IntersectionObserver-gated; carousels pre-paint tiles ~2 over via
-  `forceRenderKeys`, observer rooted on the track — see notes at
-  `components/home/HomePageBody.tsx:130-230`).
-- Comment at `HomePageBody.tsx:971`: painted canvases deliberately SURVIVE tab
-  switches (no repaint). Check whether that retention accumulates on desktop.
-- There are ~45+ registered projects now (registry: `lib/art/registry.ts`) —
-  the home page shows multiple carousel rows; a wide desktop viewport shows
-  FAR more tiles simultaneously than a phone.
+Engines live in `lib/art/engines/*.ts`, registered in `lib/art/registry.ts`,
+painted via each ArtworkCard's render closure (see `components/ArtworkCard.tsx`
+for the exact canvas sizing the home tiles use — `renderSize={200}`).
 
-## Diagnosis leads (verify in code/profile — do NOT assume)
+Build a headless harness (Playwright; chromium at
+`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, launch with
+`executablePath` + `--no-sandbox`): for EVERY registered engine × ~50 seeds ×
+canvas widths {120, 200, 300} × DPR {1, 1.25, 1.5, 3}, paint one canvas with
+a WATCHDOG (worker or per-paint timeout ~2s). Record per paint: wall time,
+success/hang/throw, heap delta. A hang or a >1s tile paint = suspect;
+reproduce it standalone, then fix THAT engine's math (bound the loop /
+fix the convergence) — the OUTPUT for already-seen seeds must stay visually
+identical wherever it already renders (deterministic art is the product;
+Brendon's screenshots are the reference).
 
-1. How many canvases ANIMATE simultaneously on a wide viewport, and whether
-   engines run continuous animation loops per tile with no cap/pause when
-   offscreen or when the count is high.
-2. Per-canvas memory (tile count × canvas buffers, devicePixelRatio scaling
-   on desktop monitors can 4× the pixels per tile).
-3. WebGL context limits if any engine uses WebGL (browsers cap ~8-16 live
-   contexts, oldest gets killed → possible crash path).
-4. The NPC cast layer + other home overlays compounding with the carousels.
-5. Reproduce headless: Playwright + Chromium is preinstalled in the container
-   (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`); build locally (`npm run
-   build` + `npx opennextjs-cloudflare build` optional) and profile memory /
-   long tasks on a desktop-size viewport (e.g. 2560×1440, DPR 1 and 2).
+Also sweep the OLDER engines at non-integer DPR — the HALO cohorts are the
+prime suspects but the DPR angle could implicate an old engine that never
+met a 1.25× display.
 
-## Hard constraints (from CLAUDE.md — non-negotiable)
+## Constraints
 
-- **NO AMPUTATION**: the art stays LIVE and animated. Throttling/virtualizing
-  /pausing offscreen or capping concurrent animation is fine; killing the
-  liveness, downgrading to static images, or removing tiles is NOT.
-- Look/feel must stay pixel-identical on phone (Brendon's prime directive
-  for the migration era).
-- Fix the named bug, nothing else. Smallest change that ends the crash.
-- Work on a feature branch off `dev`. Present Brendon the numbered CEO list;
-  merge to `dev` ONLY on his explicit chat approval ("push"/"approved").
-- Verify with the real production build before claiming done.
-
-## Related (same bundle, do NOT build unless Brendon says so in your chat)
-
-Queued after this fix, in order: wallet/auth/ENS reliability review →
-architecture/tech-debt audit → snappiness pass (page transitions, tap
-response) + re-enable the two disabled pollers the Cloudflare-cheap way
-(cached responses, poll only while app visible; flags: `RPC_PING_DISABLED`
-in `lib/rpc/rpcEngine.ts`, `PINGS_POLL_DISABLED` in
-`lib/state/PingsContext.tsx`).
+- Fix the pathological engine(s) ONLY. No perf "improvements" to healthy
+  engines, no virtualizer changes, no home-page changes.
+- NO AMPUTATION: the art stays live and identical. Bound the computation,
+  never simplify the visual result.
+- Feature branch off latest `dev` → present Brendon the numbered list with
+  the evidence (engine name, what diverged, before/after paint times) →
+  merge to dev only on his explicit go.
+- Local run recipe: `.env.local` with the Supabase URL + anon key (get via
+  Supabase MCP `get_project_url` / `get_publishable_keys`; also set
+  `SUPABASE_SERVICE_ROLE_KEY` to the anon key locally — reads-only stand-in)
+  + any mainnet RPC URL as `NEXT_PUBLIC_ALCHEMY_RPC_URL`. `npm run build` +
+  `npm run start`. NOTE: mints are ZERO now — the home carousels are empty,
+  so tile-paint repro must go through the engine harness above (or sim-mint
+  locally... do NOT mint against the live DB; it was just reset).
