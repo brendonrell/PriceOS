@@ -14,7 +14,47 @@
 import type { ProjectDef, TraitSchema, OutputTraits, TraitDef } from './types';
 import { renderPrisms, prismsTraits, prismsSchema, PRISMS_ASPECTS } from '../art/engines/prisms';
 import { renderOracle, oracleTraits, oracleSchema, ORACLE_ASPECTS } from '../art/engines/oracle';
-import * as AI from '../art/engines/ai';
+import { ASTERISM_ASPECTS, asterismSchema, asterismTraits, renderAsterism } from '../art/engines/ai/asterism';
+import { AVALANCHE_ASPECTS, avalancheSchema, avalancheTraits, renderAvalanche } from '../art/engines/ai/avalanche';
+import { CONTENTS_ASPECTS, contentsSchema, contentsTraits, renderContents } from '../art/engines/ai/average-contents-forty';
+import { BETWEEN_ASPECTS, betweenSchema, betweenTraits, renderBetween } from '../art/engines/ai/between-the-lines';
+import { BREACH_ASPECTS, breachSchema, breachTraits, renderBreach } from '../art/engines/ai/breach-protocol';
+import { CIRCUIT_ASPECTS, circuitSchema, circuitTraits, renderCircuit } from '../art/engines/ai/circuit';
+import { CROSSETTE_ASPECTS, crossetteSchema, crossetteTraits, renderCrossette } from '../art/engines/ai/crossette';
+import { CROSSTOWN_ASPECTS, crosstownSchema, crosstownTraits, renderCrosstown } from '../art/engines/ai/crosstown';
+import { DELISTED_ASPECTS, delistedSchema, delistedTraits, renderDelisted } from '../art/engines/ai/delisted';
+import { DIFFUSION_ASPECTS, diffusionSchema, diffusionTraits, renderDiffusion } from '../art/engines/ai/diffusion';
+import { WOOL_ASPECTS, renderWool, woolSchema, woolTraits } from '../art/engines/ai/dyed-in-the-wool';
+import { ELEVATIONS_ASPECTS, elevationsSchema, elevationsTraits, renderElevations } from '../art/engines/ai/elevations';
+import { EVERYLIGHT_ASPECTS, everyLightSchema, everyLightTraits, renderEveryLight } from '../art/engines/ai/every-light-in-town';
+import { CHATROOM_ASPECTS, chatroomSchema, chatroomTraits, renderChatroom } from '../art/engines/ai/everyone-is-typing';
+import { ISKRA_ASPECTS, iskraSchema, iskraTraits, renderIskra } from '../art/engines/ai/filament';
+import { FAITH_ASPECTS, faithSchema, faithTraits, renderFaith } from '../art/engines/ai/full-faith-credit';
+import { GROWTH_ASPECTS, growthSchema, growthTraits, renderGrowth } from '../art/engines/ai/growth';
+import { GROW_ASPECTS, growSchema, growTraits, renderGrow } from '../art/engines/ai/guaranteed-to-grow';
+import { HARDWATER_ASPECTS, hardWaterSchema, hardWaterTraits, renderHardWater } from '../art/engines/ai/hard-water';
+import { JUNCTION_ASPECTS, junctionSchema, junctionTraits, renderJunction } from '../art/engines/ai/junction';
+import { KONKRET_ASPECTS, konkretSchema, konkretTraits, renderKonkret } from '../art/engines/ai/konkret';
+import { LETTERS_ASPECTS, lettersSchema, lettersTraits, renderLetters } from '../art/engines/ai/letters-never-sent';
+import { CHEAPPAPER_ASPECTS, cheapPaperSchema, cheapPaperTraits, renderCheapPaper } from '../art/engines/ai/loud-on-cheap-paper';
+import { MATERIA_ASPECTS, materiaSchema, materiaTraits, renderMateria } from '../art/engines/ai/materia';
+import { SWIMMING_ASPECTS, renderSwimming, swimmingSchema, swimmingTraits } from '../art/engines/ai/nobodys-swimming';
+import { BELOW_ASPECTS, belowSchema, belowTraits, renderBelow } from '../art/engines/ai/noise-from-below';
+import { RUDXANE_ASPECTS, renderRudxane, rudxaneSchema, rudxaneTraits } from '../art/engines/ai/ode-to-rudxane';
+import { PIGMENT_ASPECTS, pigmentSchema, pigmentTraits, renderPigment } from '../art/engines/ai/pigment';
+import { QUORUM_ASPECTS, quorumSchema, quorumTraits, renderQuorum } from '../art/engines/ai/quorum';
+import { DISCORD_ASPECTS, discordSchema, discordTraits, renderDiscord } from '../art/engines/ai/riding-the-oil';
+import { SCISSORS_ASPECTS, renderScissors, scissorsSchema, scissorsTraits } from '../art/engines/ai/scissors-no-plan';
+import { SEEDHEAD_ASPECTS, renderSeedhead, seedheadSchema, seedheadTraits } from '../art/engines/ai/seedhead';
+import { SETBACK_ASPECTS, renderSetback, setbackSchema, setbackTraits } from '../art/engines/ai/setback';
+import { SIMULTANEOUS_ASPECTS, renderSimultaneous, simultaneousSchema, simultaneousTraits } from '../art/engines/ai/simultaneous';
+import { STARS_ASPECTS, renderStars, starsSchema, starsTraits } from '../art/engines/ai/stars-nobody-named';
+import { STRATA_ASPECTS, renderStrata, strataSchema, strataTraits } from '../art/engines/ai/strata';
+import { ASCII_ASPECTS, asciiSchema, asciiTraits, renderAscii } from '../art/engines/ai/teletext';
+import { REFUNDS_ASPECTS, refundsSchema, refundsTraits, renderRefunds } from '../art/engines/ai/thank-you-no-refunds';
+import { RIVER_ASPECTS, renderRiver, riverSchema, riverTraits } from '../art/engines/ai/the-river-disagrees';
+import { TURFWAR_ASPECTS, renderTurfWar, turfWarSchema, turfWarTraits } from '../art/engines/ai/turf-war';
+import { NEXTYEAR_ASPECTS, nextYearSchema, nextYearTraits, renderNextYear } from '../art/engines/ai/wait-till-next-year';
 import { renderTestPattern, testPatternTraits, testPatternSchema, TEST_PATTERN_ASPECTS } from '../art/engines/testPattern';
 import { renderCultivar, cultivarTraits, cultivarSchema, CULTIVAR_ASPECTS } from '../art/engines/cultivar';
 import { renderPendula, pendulaTraits, pendulaSchema, PENDULA_ASPECTS } from '../art/engines/pendula';
@@ -715,51 +755,51 @@ function aiDef(
 }
 
 const AI_PROJECTS: readonly ProjectDef[] = [
-  aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 888, '#1C4428', 0.08, AI.FAITH_ASPECTS, AI.faithSchema, AI.renderFaith, AI.faithTraits),
+  aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 888, '#1C4428', 0.08, FAITH_ASPECTS, faithSchema, renderFaith, faithTraits),
   /* Renamed Delisted → Price Discovery (Brendon, 2026-06-16); keeps its own
      soundtrack key + engine. The former 'price-discovery' project was removed. */
-  aiDef('delisted', 'Price Discovery', 'lastprice-ai', 512, '#27C08A', 0.05, AI.DELISTED_ASPECTS, AI.delistedSchema, AI.renderDelisted, AI.delistedTraits),
-  aiDef('the-river-disagrees', 'The River Disagrees', 'countyline-ai', 256, '#36A8C8', 0.12, AI.RIVER_ASPECTS, AI.riverSchema, AI.renderRiver, AI.riverTraits),
-  aiDef('stars-nobody-named', 'Names Withheld', 'nightclerk-ai', 333, '#B026FF', 0.07, AI.STARS_ASPECTS, AI.starsSchema, AI.renderStars, AI.starsTraits),
-  aiDef('thank-you-no-refunds', 'Thank You, No Refunds', 'regfour-ai', 1024, '#FF5A8A', 0.02, AI.REFUNDS_ASPECTS, AI.refundsSchema, AI.renderRefunds, AI.refundsTraits),
-  aiDef('elevations', 'Elevations', 'walkup-ai', 404, '#3C5E8C', 0.06, AI.ELEVATIONS_ASPECTS, AI.elevationsSchema, AI.renderElevations, AI.elevationsTraits),
-  aiDef('dyed-in-the-wool', 'Dyed In The Wool', 'dyelot-ai', 222, '#C84A98', 0.15, AI.WOOL_ASPECTS, AI.woolSchema, AI.renderWool, AI.woolTraits),
-  aiDef('noise-from-below', 'Noise From Below', 'fathom-ai', 128, '#8A6E3C', 0.18, AI.BELOW_ASPECTS, AI.belowSchema, AI.renderBelow, AI.belowTraits),
-  aiDef('letters-never-sent', 'Letters Never Sent', 'deadletter-ai', 96, '#D61A3C', 0.21, AI.LETTERS_ASPECTS, AI.lettersSchema, AI.renderLetters, AI.lettersTraits),
-  aiDef('crosstown', 'Crosstown', 'nightnetwork-ai', 144, '#1D4FB8', 0.22, AI.CROSSTOWN_ASPECTS, AI.crosstownSchema, AI.renderCrosstown, AI.crosstownTraits),
-  aiDef('average-contents-forty', 'Average Contents Forty', 'strikeanywhere-ai', 640, '#FF7A2B', 0.04, AI.CONTENTS_ASPECTS, AI.contentsSchema, AI.renderContents, AI.contentsTraits),
-  aiDef('crossette', 'Use Once, Remember Always', 'shellcount-ai', 365, '#FFD514', 0.09, AI.CROSSETTE_ASPECTS, AI.crossetteSchema, AI.renderCrossette, AI.crossetteTraits),
-  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'rowseven-ai', 500, '#0F8A3C', 0.05, AI.GROW_ASPECTS, AI.growSchema, AI.renderGrow, AI.growTraits),
-  aiDef('wait-till-next-year', 'Wait Till Next Year', 'homestand-ai', 162, '#2F7D4F', 0.11, AI.NEXTYEAR_ASPECTS, AI.nextYearSchema, AI.renderNextYear, AI.nextYearTraits),
-  aiDef('every-light-in-town', 'Every Light In Town', 'bsides-ai', 450, '#E0202E', 0.06, AI.EVERYLIGHT_ASPECTS, AI.everyLightSchema, AI.renderEveryLight, AI.everyLightTraits),
-  aiDef('nobodys-swimming', "Nobody's Swimming", 'deepend-ai', 288, '#2BB8E8', 0.1, AI.SWIMMING_ASPECTS, AI.swimmingSchema, AI.renderSwimming, AI.swimmingTraits),
-  aiDef('between-the-lines', 'Between The Lines', 'secondplate-ai', 200, '#00E5FF', 0.14, AI.BETWEEN_ASPECTS, AI.betweenSchema, AI.renderBetween, AI.betweenTraits),
-  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'overprint-ai', 600, '#FF2BD1', 0.04, AI.CHEAPPAPER_ASPECTS, AI.cheapPaperSchema, AI.renderCheapPaper, AI.cheapPaperTraits),
-  aiDef('scissors-no-plan', 'Hard Splice', 'nogluedrying-ai', 350, '#FF005C', 0.08, AI.SCISSORS_ASPECTS, AI.scissorsSchema, AI.renderScissors, AI.scissorsTraits),
-  aiDef('hard-water', 'Hard Water', 'flatsea-ai', 99, '#7A00CC', 0.25, AI.HARDWATER_ASPECTS, AI.hardWaterSchema, AI.renderHardWater, AI.hardWaterTraits),
-  aiDef('turf-war', 'Turf War', 'adjacency-ai', 200, '#C8FF00', 0.09, AI.TURFWAR_ASPECTS, AI.turfWarSchema, AI.renderTurfWar, AI.turfWarTraits),
-  aiDef('avalanche', 'Avalanche', 'graincount-ai', 128, '#7FFFD4', 0.16, AI.AVALANCHE_ASPECTS, AI.avalancheSchema, AI.renderAvalanche, AI.avalancheTraits),
+  aiDef('delisted', 'Price Discovery', 'lastprice-ai', 512, '#27C08A', 0.05, DELISTED_ASPECTS, delistedSchema, renderDelisted, delistedTraits),
+  aiDef('the-river-disagrees', 'The River Disagrees', 'countyline-ai', 256, '#36A8C8', 0.12, RIVER_ASPECTS, riverSchema, renderRiver, riverTraits),
+  aiDef('stars-nobody-named', 'Names Withheld', 'nightclerk-ai', 333, '#B026FF', 0.07, STARS_ASPECTS, starsSchema, renderStars, starsTraits),
+  aiDef('thank-you-no-refunds', 'Thank You, No Refunds', 'regfour-ai', 1024, '#FF5A8A', 0.02, REFUNDS_ASPECTS, refundsSchema, renderRefunds, refundsTraits),
+  aiDef('elevations', 'Elevations', 'walkup-ai', 404, '#3C5E8C', 0.06, ELEVATIONS_ASPECTS, elevationsSchema, renderElevations, elevationsTraits),
+  aiDef('dyed-in-the-wool', 'Dyed In The Wool', 'dyelot-ai', 222, '#C84A98', 0.15, WOOL_ASPECTS, woolSchema, renderWool, woolTraits),
+  aiDef('noise-from-below', 'Noise From Below', 'fathom-ai', 128, '#8A6E3C', 0.18, BELOW_ASPECTS, belowSchema, renderBelow, belowTraits),
+  aiDef('letters-never-sent', 'Letters Never Sent', 'deadletter-ai', 96, '#D61A3C', 0.21, LETTERS_ASPECTS, lettersSchema, renderLetters, lettersTraits),
+  aiDef('crosstown', 'Crosstown', 'nightnetwork-ai', 144, '#1D4FB8', 0.22, CROSSTOWN_ASPECTS, crosstownSchema, renderCrosstown, crosstownTraits),
+  aiDef('average-contents-forty', 'Average Contents Forty', 'strikeanywhere-ai', 640, '#FF7A2B', 0.04, CONTENTS_ASPECTS, contentsSchema, renderContents, contentsTraits),
+  aiDef('crossette', 'Use Once, Remember Always', 'shellcount-ai', 365, '#FFD514', 0.09, CROSSETTE_ASPECTS, crossetteSchema, renderCrossette, crossetteTraits),
+  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'rowseven-ai', 500, '#0F8A3C', 0.05, GROW_ASPECTS, growSchema, renderGrow, growTraits),
+  aiDef('wait-till-next-year', 'Wait Till Next Year', 'homestand-ai', 162, '#2F7D4F', 0.11, NEXTYEAR_ASPECTS, nextYearSchema, renderNextYear, nextYearTraits),
+  aiDef('every-light-in-town', 'Every Light In Town', 'bsides-ai', 450, '#E0202E', 0.06, EVERYLIGHT_ASPECTS, everyLightSchema, renderEveryLight, everyLightTraits),
+  aiDef('nobodys-swimming', "Nobody's Swimming", 'deepend-ai', 288, '#2BB8E8', 0.1, SWIMMING_ASPECTS, swimmingSchema, renderSwimming, swimmingTraits),
+  aiDef('between-the-lines', 'Between The Lines', 'secondplate-ai', 200, '#00E5FF', 0.14, BETWEEN_ASPECTS, betweenSchema, renderBetween, betweenTraits),
+  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'overprint-ai', 600, '#FF2BD1', 0.04, CHEAPPAPER_ASPECTS, cheapPaperSchema, renderCheapPaper, cheapPaperTraits),
+  aiDef('scissors-no-plan', 'Hard Splice', 'nogluedrying-ai', 350, '#FF005C', 0.08, SCISSORS_ASPECTS, scissorsSchema, renderScissors, scissorsTraits),
+  aiDef('hard-water', 'Hard Water', 'flatsea-ai', 99, '#7A00CC', 0.25, HARDWATER_ASPECTS, hardWaterSchema, renderHardWater, hardWaterTraits),
+  aiDef('turf-war', 'Turf War', 'adjacency-ai', 200, '#C8FF00', 0.09, TURFWAR_ASPECTS, turfWarSchema, renderTurfWar, turfWarTraits),
+  aiDef('avalanche', 'Avalanche', 'graincount-ai', 128, '#7FFFD4', 0.16, AVALANCHE_ASPECTS, avalancheSchema, renderAvalanche, avalancheTraits),
   /* ── new cohort (2026-06-13) ── */
-  aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 512, '#5865f2', 0.03, AI.CHATROOM_ASPECTS, AI.chatroomSchema, AI.renderChatroom, AI.chatroomTraits),
-  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#00C2C7', 0.06, AI.BREACH_ASPECTS, AI.breachSchema, AI.renderBreach, AI.breachTraits),
-  aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, AI.ASCII_ASPECTS, AI.asciiSchema, AI.renderAscii, AI.asciiTraits),
-  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, AI.DISCORD_ASPECTS, AI.discordSchema, AI.renderDiscord, AI.discordTraits),
-  aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, AI.QUORUM_ASPECTS, AI.quorumSchema, AI.renderQuorum, AI.quorumTraits),
-  aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, AI.KONKRET_ASPECTS, AI.konkretSchema, AI.renderKonkret, AI.konkretTraits),
-  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, AI.RUDXANE_ASPECTS, AI.rudxaneSchema, AI.renderRudxane, AI.rudxaneTraits),
-  aiDef('materia', 'The Lapidary', 'lapidary-ai', 333, '#9a9a93', 0.08, AI.MATERIA_ASPECTS, AI.materiaSchema, AI.renderMateria, AI.materiaTraits),
-  aiDef('diffusion', 'Turing’s Garden', 'turing-ai', 222, '#3D9B6C', 0.18, AI.DIFFUSION_ASPECTS, AI.diffusionSchema, AI.renderDiffusion, AI.diffusionTraits),
-  aiDef('growth', 'Coral Logic', 'coralline-ai', 222, '#00e5c8', 0.16, AI.GROWTH_ASPECTS, AI.growthSchema, AI.renderGrowth, AI.growthTraits),
-  aiDef('pigment', 'Divided Light', 'divisionist-ai', 256, '#1e88e5', 0.1, AI.PIGMENT_ASPECTS, AI.pigmentSchema, AI.renderPigment, AI.pigmentTraits),
-  aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, AI.ISKRA_ASPECTS, AI.iskraSchema, AI.renderIskra, AI.iskraTraits),
-  aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#2ad4ff', 0.05, AI.JUNCTION_ASPECTS, AI.junctionSchema, AI.renderJunction, AI.junctionTraits),
-  aiDef('asterism', 'Asterism', 'nightclerk-ai', 333, '#5a7bd8', 0.07, AI.ASTERISM_ASPECTS, AI.asterismSchema, AI.renderAsterism, AI.asterismTraits),
-  aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#CC6B49', 0.06, AI.SEEDHEAD_ASPECTS, AI.seedheadSchema, AI.renderSeedhead, AI.seedheadTraits),
-  aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, AI.CIRCUIT_ASPECTS, AI.circuitSchema, AI.renderCircuit, AI.circuitTraits),
+  aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 512, '#5865f2', 0.03, CHATROOM_ASPECTS, chatroomSchema, renderChatroom, chatroomTraits),
+  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
+  aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, ASCII_ASPECTS, asciiSchema, renderAscii, asciiTraits),
+  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
+  aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, QUORUM_ASPECTS, quorumSchema, renderQuorum, quorumTraits),
+  aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, KONKRET_ASPECTS, konkretSchema, renderKonkret, konkretTraits),
+  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
+  aiDef('materia', 'The Lapidary', 'lapidary-ai', 333, '#9a9a93', 0.08, MATERIA_ASPECTS, materiaSchema, renderMateria, materiaTraits),
+  aiDef('diffusion', 'Turing’s Garden', 'turing-ai', 222, '#3D9B6C', 0.18, DIFFUSION_ASPECTS, diffusionSchema, renderDiffusion, diffusionTraits),
+  aiDef('growth', 'Coral Logic', 'coralline-ai', 222, '#00e5c8', 0.16, GROWTH_ASPECTS, growthSchema, renderGrowth, growthTraits),
+  aiDef('pigment', 'Divided Light', 'divisionist-ai', 256, '#1e88e5', 0.1, PIGMENT_ASPECTS, pigmentSchema, renderPigment, pigmentTraits),
+  aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, ISKRA_ASPECTS, iskraSchema, renderIskra, iskraTraits),
+  aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#2ad4ff', 0.05, JUNCTION_ASPECTS, junctionSchema, renderJunction, junctionTraits),
+  aiDef('asterism', 'Asterism', 'nightclerk-ai', 333, '#5a7bd8', 0.07, ASTERISM_ASPECTS, asterismSchema, renderAsterism, asterismTraits),
+  aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#CC6B49', 0.06, SEEDHEAD_ASPECTS, seedheadSchema, renderSeedhead, seedheadTraits),
+  aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, CIRCUIT_ASPECTS, circuitSchema, renderCircuit, circuitTraits),
   /* ── new set (2026-06-18): a second project for four single-project artists ── */
-  aiDef('setback', 'Setback', 'walkup-ai', 404, '#e0552e', 0.08, AI.SETBACK_ASPECTS, AI.setbackSchema, AI.renderSetback, AI.setbackTraits),
-  aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 256, '#13a89e', 0.06, AI.SIMULTANEOUS_ASPECTS, AI.simultaneousSchema, AI.renderSimultaneous, AI.simultaneousTraits),
-  aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, AI.STRATA_ASPECTS, AI.strataSchema, AI.renderStrata, AI.strataTraits),
+  aiDef('setback', 'Setback', 'walkup-ai', 404, '#e0552e', 0.08, SETBACK_ASPECTS, setbackSchema, renderSetback, setbackTraits),
+  aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 256, '#13a89e', 0.06, SIMULTANEOUS_ASPECTS, simultaneousSchema, renderSimultaneous, simultaneousTraits),
+  aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, STRATA_ASPECTS, strataSchema, renderStrata, strataTraits),
   /* ── new cohort (2026-06-19): five fresh projects — a 3rd for divisionist-ai
      and a 2nd each for countyline / fathom / deepend / shellcount. ── */
   aiDef('spectra', 'Spectra', 'nightclerk-ai', 256, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
