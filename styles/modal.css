@@ -1242,6 +1242,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .ps-streak-sub {
     font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
     opacity: 0.55;
+    display: flex; flex-direction: column; gap: 2px;
 }
 
 /* ACHIEVEMENTS category pills — the section picker above the rail (the

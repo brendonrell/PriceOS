@@ -324,3 +324,8 @@ export const MAX_PRICE_SCORE: number = ACHIEVEMENTS.reduce((sum, a) => sum + a.p
 
 /** Count of visible (non-secret) achievements — for "X / Y unlocked" displays. */
 export const VISIBLE_COUNT: number = ACHIEVEMENTS.filter((a) => !a.secret).length;
+
+/** The FULL catalog size (incl. secrets) — the aspirational denominator: the
+ *  whole game is 1,000, and the secret ones are there to be discovered, so
+ *  "X / 1,000" is what players chase (Brendon, 2026-07-03). */
+export const TOTAL_COUNT: number = ACHIEVEMENTS.length;

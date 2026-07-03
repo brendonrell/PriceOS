@@ -30,7 +30,7 @@
  *     (lib/achievements/catalog). For the logged-in wallet we fetch
  *     /api/achievements/{address} on open for the unlocked set + live
  *     PriceScore; tiles paint unlocked/locked, secret+locked show as
- *     "???". Tally = unlocked / VISIBLE_COUNT · score / MAX_PRICE_SCORE.
+ *     "???". Tally = unlocked / TOTAL_COUNT · score / MAX_PRICE_SCORE.
  *   - ANOINTMENT socket — empty-state preview of the one-✢-per-account
  *     pledge (60-day lock). Tapping toasts COMING SOON.
  *   - Score-breakdown tiles remain sim-faithful mocks (sim 4319–4348)
@@ -52,7 +52,7 @@ import { rankProgress, STREAK_ACTIVATION_DAYS } from '../lib/achievements/tiers'
 import {
     ACHIEVEMENTS,
     MAX_PRICE_SCORE,
-    VISIBLE_COUNT,
+    TOTAL_COUNT,
     type AchievementCategory,
 } from '../lib/achievements/catalog';
 import {
@@ -443,11 +443,14 @@ export default function PriceSpriteModal() {
                             {priceStreak > 0 ? `DAY ${priceStreak}` : 'NONE YET'}
                         </span>
                         <span className="ps-streak-sub">
-                            {priceStreak > 0
+                            {(priceStreak > 0
                                 ? priceStreak >= STREAK_ACTIVATION_DAYS
                                     ? `active · best ${Math.max(streakBest, priceStreak)}`
                                     : `one real move a day · activates at ${STREAK_ACTIVATION_DAYS}`
-                                : 'one real move a day starts it — not a login'}
+                                : 'one real move a day starts it — not a login'
+                            ).split(' · ').map((line, i) => (
+                                <span className="ps-streak-sub-line" key={i}>{line}</span>
+                            ))}
                         </span>
                     </span>
                 </div>
@@ -462,7 +465,7 @@ export default function PriceSpriteModal() {
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
-                        <span className="ps-ach-count">{`${unlockedCount} / ${VISIBLE_COUNT}`}</span>
+                        <span className="ps-ach-count">{`${unlockedCount} / ${TOTAL_COUNT.toLocaleString()}`}</span>
                         <span className="ps-ach-score">{`(${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS)`}</span>
                     </span>
                 </div>
