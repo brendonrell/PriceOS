@@ -42,7 +42,6 @@ import { SWIMMING_ASPECTS, renderSwimming, swimmingSchema, swimmingTraits } from
 import { BELOW_ASPECTS, belowSchema, belowTraits, renderBelow } from '../art/engines/ai/noise-from-below';
 import { RUDXANE_ASPECTS, renderRudxane, rudxaneSchema, rudxaneTraits } from '../art/engines/ai/ode-to-rudxane';
 import { PIGMENT_ASPECTS, pigmentSchema, pigmentTraits, renderPigment } from '../art/engines/ai/pigment';
-import { QUORUM_ASPECTS, quorumSchema, quorumTraits, renderQuorum } from '../art/engines/ai/quorum';
 import { DISCORD_ASPECTS, discordSchema, discordTraits, renderDiscord } from '../art/engines/ai/riding-the-oil';
 import { SCISSORS_ASPECTS, renderScissors, scissorsSchema, scissorsTraits } from '../art/engines/ai/scissors-no-plan';
 import { SEEDHEAD_ASPECTS, renderSeedhead, seedheadSchema, seedheadTraits } from '../art/engines/ai/seedhead';
@@ -784,7 +783,6 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
   aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, ASCII_ASPECTS, asciiSchema, renderAscii, asciiTraits),
   aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
-  aiDef('quorum', 'Quorum', 'murmur-ai', 256, '#9aa0ae', 0.12, QUORUM_ASPECTS, quorumSchema, renderQuorum, quorumTraits),
   aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, KONKRET_ASPECTS, konkretSchema, renderKonkret, konkretTraits),
   aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
   aiDef('materia', 'The Lapidary', 'lapidary-ai', 333, '#9a9a93', 0.08, MATERIA_ASPECTS, materiaSchema, renderMateria, materiaTraits),
