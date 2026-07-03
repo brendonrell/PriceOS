@@ -235,6 +235,15 @@ never `TO public`.
 - **Execute autonomously (free rein):** mechanics, sequencing, file inventory,
   picking the next ship, edits, builds, branching, pushing to my own feature
   branch, and keeping ClickUp current.
+
+> **⛔ NO SUBAGENTS — EVER. Brendon's metering is sacred (Brendon, 2026-07-03).**
+> Never spawn subagents / parallel agent workers / multi-agent workflows — they
+> burn Brendon's token metering invisibly and he cannot control it. All in-chat
+> work is done by THIS session, in-line. When a task suits a different model
+> (e.g. bulk mechanical execution on Opus 4.8, where he has tokens to burn),
+> package it as a SELF-CONTAINED PASTE-READY BRIEF — full context, exact files,
+> exact spec, acceptance checks — and hand it to Brendon to run in a fresh chat
+> himself. He starts those chats; we never do.
 - **Brendon decides (do not freestyle):** product decisions, scope changes, what
   ships, anything touching real money or mainnet.
 - Tweak the work, don't freestyle it. Don't invent helpful additions when fixing
