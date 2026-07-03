@@ -10199,8 +10199,9 @@ body.colorway-dark .ghost-feed-bar {
 }
 .attr-tile.rare {
     border-color: var(--text-color);
-    box-shadow: inset 2px 0 0 var(--text-color);
 }
+.attr-tile.rare .attr-tile-label { opacity: 1; }
+.attr-tile.rare .attr-tile-value { font-style: italic; }
 .attr-tile-glyph {
     font-size: 20px;
     line-height: 1;
