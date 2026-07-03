@@ -178,7 +178,7 @@ web3 social platform where the community discussing prices is the product.
 | `brendonrell/PriceOS` (this) | Frontend + API (`app/api/`) | `dev` |
 | `brendonrell/pd-contracts` | Solidity (PDFactory / PDProject / PaymentSplitter) | `main` |
 | `brendonrell/PriceOS-indexer` | ⛔ `main` = DEAD Ponder/Railway code — see banner below. THE indexer lives on branch `claude/indexer-alchemy-setup-tuezqu` | see banner |
-| `brendonrell/pd-price-token` | `$PRICE` ERC-20 (built, not deployed) | `main` |
+| `brendonrell/pd-price-token` | `$PRICE` ERC-20 — **DEPLOYED to mainnet 2026-07-03**: `0x173a012c7c8ca3cfb531dcad84a40c53dbe74638` (100M fixed supply, all minted to `0x1460…B9B8` / pricediscussion.eth) | `main` |
 | `brendonrell/kiki-genart` | **KIKI — the GENESIS PROJECT of PD**, Brendon's own; set aside for now | `main` |
 
 > **⛔ THE RAILWAY/PONDER INDEXER IS DEAD — NEVER LOOK AT `PriceOS-indexer`
