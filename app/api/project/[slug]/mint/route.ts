@@ -34,7 +34,7 @@ function milestoneCrossed(prev: number, now: number): number | null {
 }
 
 export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
-  const slug = ctx.params.slug?.toLowerCase();
+  const slug = (await ctx.params).slug?.toLowerCase();
   const def = slug ? getProject(slug) : null;
   if (!def) return badRequest('Unknown project');
 

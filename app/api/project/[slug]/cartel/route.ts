@@ -17,10 +17,8 @@ const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
  * mutuals holding the project — the badge shows ⟁0 in those cases by design.
  * The number goes live the moment a real mutual collects.
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { slug: string } }
-): Promise<NextResponse> {
+export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   const slug = params.slug?.toLowerCase();
   const me = (new URL(req.url).searchParams.get('me') ?? '').toLowerCase();
   if (!slug) return badRequest('Missing slug');

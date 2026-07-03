@@ -77,8 +77,9 @@ async function exactCounts(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { address: string } }
+  props: { params: Promise<{ address: string }> }
 ): Promise<NextResponse> {
+  const params = await props.params;
   const address = params.address.toLowerCase();
   if (!ADDRESS_RE.test(address)) {
     return badRequest('Invalid Ethereum address');

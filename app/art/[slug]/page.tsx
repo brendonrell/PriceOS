@@ -21,7 +21,7 @@ import { getSupabaseService } from '../../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 /* Legacy fallback only: before the dedicated projects.uploaded_at column, the
    upload moment was derived from cooldown_until − 60d (the 60-day artist
@@ -61,7 +61,8 @@ async function fetchSeed(
     }
 }
 
-export default async function ProjectPage({ params }: Props) {
+export default async function ProjectPage(props: Props) {
+    const params = await props.params;
     const slug = params.slug.toLowerCase();
     if (!getProject(slug)) notFound();
     const { total, showcaseIds, uploadedAt } = await fetchSeed(slug);
@@ -75,7 +76,8 @@ export default async function ProjectPage({ params }: Props) {
     );
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+    const params = await props.params;
     const slug = params.slug.toLowerCase();
     const def = getProject(slug);
     if (!def) {

@@ -11,10 +11,8 @@ const HANDLE_RE = /^[a-z0-9_-]+$/;
 
 export type UserProfileResponse = UserProfileData;
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { handle: string } }
-): Promise<NextResponse> {
+export async function GET(_req: NextRequest, props: { params: Promise<{ handle: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   const handle = params.handle.toLowerCase();
   if (!HANDLE_RE.test(handle)) {
     return badRequest('Invalid handle');
