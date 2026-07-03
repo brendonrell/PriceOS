@@ -1170,7 +1170,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                     {projectPdc.flavor && (
                                         <>
                                             <div className="pd-section-header">THE DAY</div>
-                                            <div className="dp-row"><span className="dp-label">{projectPdc.flavor}</span></div>
+                                            <div className="dp-row dp-flavor"><span className="dp-label">{projectPdc.flavor}</span></div>
                                             <div className="pd-section-end" />
                                         </>
                                     )}

@@ -590,7 +590,7 @@ export default function ArtworkPageBody({
                                     {outputPdc.flavor && (
                                         <>
                                             <div className="pd-section-header">THE DAY</div>
-                                            <div className="dp-row"><span className="dp-label">{outputPdc.flavor}</span></div>
+                                            <div className="dp-row dp-flavor"><span className="dp-label">{outputPdc.flavor}</span></div>
                                             <div className="pd-section-end" />
                                         </>
                                     )}

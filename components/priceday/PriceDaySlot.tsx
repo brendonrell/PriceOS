@@ -121,7 +121,7 @@ export default function PriceDaySlot() {
                     {contents.flavor && (
                         <>
                             <div className="pd-section-header">THE DAY</div>
-                            <div className="dp-row"><span className="dp-label">{contents.flavor}</span></div>
+                            <div className="dp-row dp-flavor"><span className="dp-label">{contents.flavor}</span></div>
                             <div className="pd-section-end" />
                         </>
                     )}

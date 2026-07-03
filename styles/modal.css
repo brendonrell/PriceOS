@@ -327,6 +327,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
     letter-spacing: 0.3px;
     font-weight: bold;
 }
+/* THE DAY flavor line — a full sentence, not a two-column row, so it wraps
+   inside the popover instead of clipping at the edge. */
+.dp-row.dp-flavor { align-items: flex-start; }
+.dp-row.dp-flavor .dp-label { white-space: normal; flex-shrink: 1; }
 .dp-value {
     display: flex;
     align-items: center;
