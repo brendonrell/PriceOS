@@ -448,8 +448,8 @@ export default function PriceSpriteModal() {
                                     ? `active · best ${Math.max(streakBest, priceStreak)}`
                                     : `one real move a day · activates at ${STREAK_ACTIVATION_DAYS}`
                                 : 'one real move a day starts it — not a login'
-                            ).split(' · ').map((line, i) => (
-                                <span className="ps-streak-sub-line" key={i}>{line}</span>
+                            ).split(' · ').map((line, i, arr) => (
+                                <span className="ps-streak-sub-line" key={i}>{i < arr.length - 1 ? `${line},` : line}</span>
                             ))}
                         </span>
                     </span>
@@ -466,7 +466,7 @@ export default function PriceSpriteModal() {
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
                         <span className="ps-ach-count">{`${unlockedCount} / ${TOTAL_COUNT.toLocaleString()} (${Math.round((unlockedCount / TOTAL_COUNT) * 100)}%)`}</span>
-                        <span className="ps-ach-score">{`[[${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS (${Math.round((achScore / MAX_PRICE_SCORE) * 100)}%)]]`}</span>
+                        <span className="ps-ach-score">{`[[ ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS (${Math.round((achScore / MAX_PRICE_SCORE) * 100)}%) ]]`}</span>
                     </span>
                 </div>
                 <div className="ps-cat-row ps-reveal ps-d4" ref={catRowRef}>
@@ -536,8 +536,8 @@ export default function PriceSpriteModal() {
                     <span className="ps-anoint-copy">
                         <span className="ps-anoint-state">UNPLACED</span>
                         <span className="ps-anoint-sub">
-                            {'one pledge per account · locks 60 days'.split(' · ').map((line, i) => (
-                                <span className="ps-anoint-sub-line" key={i}>{line}</span>
+                            {'one pledge per account · locks 60 days'.split(' · ').map((line, i, arr) => (
+                                <span className="ps-anoint-sub-line" key={i}>{i < arr.length - 1 ? `${line},` : line}</span>
                             ))}
                         </span>
                     </span>
