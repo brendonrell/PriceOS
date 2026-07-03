@@ -1312,6 +1312,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .ps-anoint-sub {
     font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
     opacity: 0.55;
+    display: flex; flex-direction: column; gap: 2px;
 }
 
 .ps-metrics {

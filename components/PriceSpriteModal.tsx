@@ -465,8 +465,8 @@ export default function PriceSpriteModal() {
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
-                        <span className="ps-ach-count">{`${unlockedCount} / ${TOTAL_COUNT.toLocaleString()}`}</span>
-                        <span className="ps-ach-score">{`(${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS)`}</span>
+                        <span className="ps-ach-count">{`${unlockedCount} / ${TOTAL_COUNT.toLocaleString()} (${Math.round((unlockedCount / TOTAL_COUNT) * 100)}%)`}</span>
+                        <span className="ps-ach-score">{`[[${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS (${Math.round((achScore / MAX_PRICE_SCORE) * 100)}%)]]`}</span>
                     </span>
                 </div>
                 <div className="ps-cat-row ps-reveal ps-d4" ref={catRowRef}>
@@ -536,7 +536,9 @@ export default function PriceSpriteModal() {
                     <span className="ps-anoint-copy">
                         <span className="ps-anoint-state">UNPLACED</span>
                         <span className="ps-anoint-sub">
-                            one pledge per account · locks 60 days
+                            {'one pledge per account · locks 60 days'.split(' · ').map((line, i) => (
+                                <span className="ps-anoint-sub-line" key={i}>{line}</span>
+                            ))}
                         </span>
                     </span>
                 </div>
