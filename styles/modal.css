@@ -1175,7 +1175,14 @@ body.modal-open { overflow: hidden; touch-action: none; }
     gap: 8px;
     width: 100%; box-sizing: border-box;
 }
-.ps-ach-tally { letter-spacing: 1px; }
+.ps-ach-tally {
+    letter-spacing: 1px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    text-align: right;
+}
+/* Count stays inline with the ACHIEVEMENTS label; the total drops to its own
+   line below, in brackets, so it never wraps mid-number (Brendon 2026-07-03). */
+.ps-ach-count, .ps-ach-score { white-space: nowrap; }
 .ps-ach-rail {
     display: flex; gap: 8px;
     width: 100%; box-sizing: border-box;

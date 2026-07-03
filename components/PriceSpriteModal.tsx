@@ -462,7 +462,8 @@ export default function PriceSpriteModal() {
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-tally">
-                        {`${unlockedCount} / ${VISIBLE_COUNT} · ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS`}
+                        <span className="ps-ach-count">{`${unlockedCount} / ${VISIBLE_COUNT}`}</span>
+                        <span className="ps-ach-score">{`(${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS)`}</span>
                     </span>
                 </div>
                 <div className="ps-cat-row ps-reveal ps-d4" ref={catRowRef}>
