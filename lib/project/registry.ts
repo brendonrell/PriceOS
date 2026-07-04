@@ -1584,6 +1584,13 @@ export function findProjectByTrueName(name: string): ProjectDef | null {
    before (safe default before images are uploaded). */
 export const ART_IMAGE_BASE = (process.env.NEXT_PUBLIC_ART_IMAGE_BASE || '').replace(/\/+$/, '');
 
+/* The stored-image path is asynchronous (an Image load), and callers REUSE one
+   canvas for different tokens over time — the quick-look modal's prev/next and
+   the virtualized grid both repaint the same canvas node. This tracks the token
+   currently targeted at each canvas so a slow image that resolves after the
+   canvas has moved on can't paint stale art over the newer token. */
+const artDrawKey = new WeakMap<HTMLCanvasElement, string>();
+
 /**
  * Render an Output's Artwork by slug. Sizes the canvas, returns aspect +
  * the Output's full traits (artist traits + Fate). Unknown slug → no paint,
@@ -1605,6 +1612,10 @@ export function renderArtwork(
   if (!project) {
     return { aspect: 1, traits: { Fate: outputFate(slug, tokenId) } };
   }
+  // Claim this canvas for the current token so any in-flight async stored draw
+  // for a previously-requested token (canvas reuse) is invalidated below.
+  const drawKey = `${slug}:${tokenId}`;
+  artDrawKey.set(canvas, drawKey);
   if (!live && ART_IMAGE_BASE) {
     const traits = { ...project.traitsOf(tokenId), Fate: outputFate(slug, tokenId) };
     // Draw the stored image onto the same canvas the engine would have used, so
@@ -1613,6 +1624,7 @@ export function renderArtwork(
     img.crossOrigin = 'anonymous';
     img.decoding = 'async';
     img.onload = () => {
+      if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
       const ctx = canvas.getContext('2d');
       if (!ctx || !img.naturalWidth) return;
       canvas.width = img.naturalWidth;
@@ -1625,6 +1637,7 @@ export function renderArtwork(
       if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
     };
     img.onerror = () => {
+      if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
       // No stored preview yet (a just-minted piece before its pin lands, or a
       // failed pin) — never leave a blank tile. Fall back to the live engine,
       // exactly as the app rendered before stored images existed. Mirrors the

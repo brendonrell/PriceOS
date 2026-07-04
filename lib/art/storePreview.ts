@@ -9,9 +9,11 @@ import { renderArtwork } from '../project/registry';
  * where the storage fee funds the platform writer pinning preview.png. Per-mint
  * only — never bulk.
  *
- * Best-effort: a failed upload just means that one piece live-renders until it's
- * pinned — the display seam falls back to the live engine whenever a stored PNG
- * is missing, so nothing ever shows blank.
+ * Best-effort, fire-and-forget: if an upload fails after its retries (or the tab
+ * closes mid-batch), that piece stays un-pinned and keeps live-rendering — the
+ * display seam falls back to the live engine whenever a stored PNG is missing, so
+ * nothing ever shows blank. There is no automatic re-pin of a missed piece (a
+ * reconcile sweep could backfill later if guaranteed pinning is ever wanted).
  */
 
 // Thumbnail resolution. Keeps the whole catalog (132 projects × 222 max = 29,304
