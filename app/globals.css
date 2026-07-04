@@ -7192,6 +7192,31 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     text-align: center;
 }
 
+/* Rarity Receipt — the shareable-card trigger at the head of the character
+   sheet. Quiet mono button; pulses while the PNG builds (always feel moving). */
+.rarity-receipt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px 0;
+    padding: 8px 14px;
+    border: 1px solid var(--text-color);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+.rarity-receipt-btn:hover { background: var(--text-color); color: var(--bg-color); }
+.rarity-receipt-btn:disabled { cursor: default; }
+.rarity-receipt-btn[aria-busy='true'] { animation: rrb-pulse 1s ease-in-out infinite; }
+.rrb-glyph { font-size: 13px; }
+@keyframes rrb-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
 /* Genome placeholder (legacy static card — retained for reference) */
 .more-genome-svg {
     width: 100%;

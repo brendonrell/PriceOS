@@ -15,6 +15,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { composeCelestialReading } from '../../lib/output/celestialReading';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import AttrWall from './AttrWall';
+import RarityReceiptButton from './RarityReceiptButton';
 
 export default function AttributesPanel(props: AttrInput) {
     const groups = useMemo(() => buildOutputAttributes(props), [props]);
@@ -42,13 +43,16 @@ export default function AttributesPanel(props: AttrInput) {
        every tile that IS a real offerable trait (the server-computable
        outputTraits vocabulary — props.traits) wears the ✦ chip. */
     return (
-        <AttrWall
-            groups={groups}
-            reading={reading}
-            offerTraits={props.traits ?? null}
-            onTraitOffer={(category, value) =>
-                openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })
-            }
-        />
+        <>
+            <RarityReceiptButton slug={props.slug} id={props.id} />
+            <AttrWall
+                groups={groups}
+                reading={reading}
+                offerTraits={props.traits ?? null}
+                onTraitOffer={(category, value) =>
+                    openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })
+                }
+            />
+        </>
     );
 }
