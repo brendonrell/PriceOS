@@ -1591,6 +1591,12 @@ export const ART_IMAGE_BASE = (process.env.NEXT_PUBLIC_ART_IMAGE_BASE || '').rep
    canvas has moved on can't paint stale art over the newer token. */
 const artDrawKey = new WeakMap<HTMLCanvasElement, string>();
 
+/* Per-token TRUE aspect, learned once the stored image loads (or the live
+   fallback renders). Pieces vary from wide to tall, so this is returned
+   synchronously on later renders — the tile is shaped right immediately instead
+   of flashing the provisional guess. */
+const artAspectCache = new Map<string, number>();
+
 /**
  * Render an Output's Artwork by slug. Sizes the canvas, returns aspect +
  * the Output's full traits (artist traits + Fate). Unknown slug → no paint,
@@ -1623,6 +1629,15 @@ export function renderArtwork(
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.decoding = 'async';
+    // Shape the tile to the piece's REAL aspect (pieces range wide↔tall) and
+    // remember it, so both the stored image and the live fallback below end up
+    // correctly shaped — never squished into the provisional guess.
+    const applyAspect = (w: number, h: number) => {
+      if (!(w > 0) || !(h > 0)) return;
+      artAspectCache.set(drawKey, w / h);
+      const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
+      if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(w / h);
+    };
     img.onload = () => {
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
       const ctx = canvas.getContext('2d');
@@ -1631,23 +1646,25 @@ export function renderArtwork(
       canvas.height = img.naturalHeight;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
-      // Correct the container's aspect to the real image once it's known
-      // (callers set a provisional ratio from the sync return below).
-      const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
-      if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
+      applyAspect(img.naturalWidth, img.naturalHeight);
     };
     img.onerror = () => {
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
       // No stored preview yet (a just-minted piece before its pin lands, or a
-      // failed pin) — never leave a blank tile. Fall back to the live engine,
-      // exactly as the app rendered before stored images existed. Mirrors the
-      // contract's on-chain placeholder shown until the Arweave preview is pinned.
-      try { project.render(canvas, tokenId, width); } catch { /* unknown engine */ }
+      // failed pin) — never leave a blank tile. Fall back to the live engine AND
+      // correct the tile to the real rendered shape (the provisional would
+      // otherwise squish a wide/tall piece). Mirrors the contract's on-chain
+      // placeholder shown until the Arweave preview is pinned.
+      try {
+        project.render(canvas, tokenId, width);
+        applyAspect(canvas.width, canvas.height);
+      } catch { /* unknown engine */ }
     };
     img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
-    // Provisional aspect from the project's palette keeps layout from collapsing
-    // to zero height before the image loads; onload corrects it exactly.
-    return { aspect: project.aspects?.[0] ?? 1, traits };
+    // Synchronous aspect: the learned true ratio if we've seen this token (no
+    // reflow), else a provisional from the project's aspect set — onload/onerror
+    // correct it the first time.
+    return { aspect: artAspectCache.get(drawKey) ?? project.aspects?.[0] ?? 1, traits };
   }
   const res = project.render(canvas, tokenId, width);
   return { aspect: res.aspect, traits: { ...res.traits, Fate: outputFate(slug, tokenId) } };
