@@ -61,13 +61,19 @@ to next occurrence, ↻ chip), **labels + filter row** (`#tag`), **magic quick-a
 **in-app due reminders** (`components/todos/TodoReminders.tsx`, mounted in the
 shell — Pingtoast when a dated to-do comes due).
 
-**Remaining — needs Brendon (can't do from here):** (1) **native closed-app
-reminders** — pipeline is code-complete but inert; needs VAPID keys in **Cloudflare
-Pages** env, then I wire the due-reminder sweep as a **Cloudflare Cron Trigger**
-(free + minute-level — no Pro-plan gate). Prod-data gate applies. (2) **war-chest
-vs-wallet line** — `useBalance` only resolves inside the wallet provider tree;
-connect-menu is outside it. Excluded: Call Your Shot, Streaks. Details in
-`docs/briefs/todos-feature.md`.
+**Native closed-app reminders — NOW BUILT (2026-07-04).** VAPID keys are in
+Cloudflare (Brendon). Sweep = `app/api/cron/todo-reminders/route.ts` (fail-closed
+on `CRON_SECRET`), dispatched every 2 min by `custom-worker.ts` alongside the
+indexer reconcile, delivering via `sendTodoReminder` in `lib/push/webpush.ts`
+(same subscription + Pingtoasts-mode + Silent-Mode gate as `sendNativePing`).
+Stateless exactly-once (window == cadence, no prod write). Goes live once `dev`
+deploys to Cloudflare + a user has 3D Pingtoasts on. v1 timing: HH:MM to-dos fire
+at that time, date-only fire at `TODO_REMINDER_UTC_HOUR` (default 13:00 UTC);
+per-account timezone is a future refinement.
+
+**Still deferred — needs Brendon:** **war-chest vs-wallet line** — `useBalance`
+only resolves inside the wallet provider tree; connect-menu is outside it.
+Excluded: Call Your Shot, Streaks. Details in `docs/briefs/todos-feature.md`.
 
 ---
 

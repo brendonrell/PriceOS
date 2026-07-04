@@ -16,17 +16,20 @@ export default {
   ) {
     const secret = env.CRON_SECRET;
     if (!secret) return; // fail closed — mirrors the route's own guard
-    const request = new Request(
-      "https://cron.internal/api/cron/indexer-reconcile",
-      { headers: { authorization: `Bearer ${secret}` } }
-    );
-    ctx.waitUntil(
-      (handler.fetch as (r: Request, e: unknown, c: unknown) => Promise<Response>)(
-        request,
-        env,
-        ctx
-      )
-    );
+    const call = (path: string) =>
+      ctx.waitUntil(
+        (handler.fetch as (r: Request, e: unknown, c: unknown) => Promise<Response>)(
+          new Request(`https://cron.internal${path}`, {
+            headers: { authorization: `Bearer ${secret}` },
+          }),
+          env,
+          ctx
+        )
+      );
+    // Indexer reconcile backstop + the closed-app To-Do reminder sweep. Both are
+    // fail-closed on CRON_SECRET and idempotent/best-effort, safe to run together.
+    call("/api/cron/indexer-reconcile");
+    call("/api/cron/todo-reminders");
   },
 };
 

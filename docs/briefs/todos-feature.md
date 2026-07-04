@@ -18,20 +18,22 @@
 >   shell) — pops a Pingtoast when an open dated to-do comes due; reminds once per
 >   (id@due), backlog collapsed into one toast on load.
 >
-> **NOT built — needs Brendon (can't be done from here):**
-> 1. **Native closed-app reminders.** The web-push pipeline is CODE-COMPLETE
->    (`public/sw.js`, `lib/push/*`, `/api/push/subscribe`, `push_subscriptions`
->    table, `web-push` sender) but INERT. To switch on (we're on **Cloudflare
->    Pages** now): (a) generate a VAPID keypair and set
->    `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` in
->    **Cloudflare Pages env**; (b) then I wire the scheduled sender as a
->    **Cloudflare Cron Trigger** (Worker / Pages Function) that sweeps due to-dos
->    and sends via the existing push path — Cloudflare cron is free + minute-level,
->    so there's **no Pro-plan gate** (the old Vercel-Cron concern is moot).
->    Caveat: the current sender uses the Node `web-push` lib; on the Workers
->    runtime it may need a Web-Crypto-based path (nodejs_compat) — confirm when we
->    wire it. New server sweep touches prod → needs your go per the prod-data gate.
-> 2. **War-chest "vs wallet ETH" line.** `useBalance` only resolves inside the
+> **✅ Native closed-app reminders — NOW BUILT + wired (2026-07-04).** VAPID keys
+> are in Cloudflare (Brendon). The sweep is `app/api/cron/todo-reminders/route.ts`
+> (fail-closed on `CRON_SECRET`), dispatched every 2 min by the existing Cloudflare
+> Cron Trigger via `custom-worker.ts` (alongside the indexer reconcile), sending
+> through `sendTodoReminder` in `lib/push/webpush.ts` (reuses the exact
+> subscription + Pingtoasts-mode + Silent-Mode gate as `sendNativePing`).
+> Stateless exactly-once dispatch (window == the 2-min cadence, no prod-data
+> write). Goes LIVE the moment `dev` is deployed to Cloudflare with a user who has
+> "3D Pingtoasts" on. `nodejs_compat` is already set, so `web-push` runs on the
+> Worker. **v1 timing:** a to-do with an HH:MM fires at that time; a date-only
+> to-do fires at `TODO_REMINDER_UTC_HOUR` (default 13:00 UTC ≈ morning in the
+> Americas — set that env var to change it). Per-account timezone is a future
+> refinement.
+>
+> **Still deferred — needs Brendon:**
+> 1. **War-chest "vs wallet ETH" line.** `useBalance` only resolves inside the
 >    deferred WagmiProvider (WalletStack); the connect-menu accordion is outside
 >    it, so it can't read balance without moving the meter or lifting provider
 >    scope. Committed-total half ships now; the vs-wallet compare is deferred.

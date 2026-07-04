@@ -161,3 +161,68 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
     console.error('[push] sendNativePing error:', err instanceof Error ? err.message : err);
   }
 }
+
+/**
+ * Native "3D" reminder for a due To-Do (the closed-app path — the in-app toast
+ * lives in components/todos/TodoReminders.tsx). Same delivery contract as
+ * sendNativePing — VAPID-gated, honours the recipient's Pingtoasts mode + Silent
+ * Mode, prunes dead subscriptions, never throws — but with plain title/body copy
+ * instead of the ping/sprite format. Called by /api/cron/todo-reminders.
+ */
+export async function sendTodoReminder(
+  recipientAddress: string,
+  title: string,
+  body: string,
+): Promise<void> {
+  try {
+    if (!ensureConfigured()) return;
+    const db = getSupabaseService();
+    const address = recipientAddress.toLowerCase();
+
+    const { data: subRows } = await db
+      .from('push_subscriptions')
+      .select('id, endpoint, p256dh, auth')
+      .eq('user_address', address);
+    const subs = (subRows ?? []) as SubRow[];
+    if (subs.length === 0) return;
+
+    // Same gate as sendNativePing: 3D/COMBO Pingtoasts on + Silent Mode off.
+    const { data: uRow } = await db
+      .from('users')
+      .select('settings')
+      .eq('address', address)
+      .maybeSingle();
+    const notifs = (((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {})
+      .notifs ?? {}) as { pingToasts?: PingToastMode; nightmode?: boolean };
+    if (!showsNativePings(notifs.pingToasts ?? 'off') || notifs.nightmode === true) return;
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      tag: 'pd-todo-reminder',
+      icon: '/icon-192px.png',
+      badge: '/icon-192-maskable.png',
+      url: '/',
+    });
+
+    const dead: string[] = [];
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+          );
+        } catch (err) {
+          const code = (err as { statusCode?: number })?.statusCode;
+          if (code === 404 || code === 410) dead.push(s.id);
+        }
+      }),
+    );
+    if (dead.length > 0) {
+      await db.from('push_subscriptions').delete().in('id', dead);
+    }
+  } catch (err) {
+    console.error('[push] sendTodoReminder error:', err instanceof Error ? err.message : err);
+  }
+}
