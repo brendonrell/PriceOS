@@ -1575,20 +1575,59 @@ export function findProjectByTrueName(name: string): ProjectDef | null {
   return slug ? getProject(slug) : null;
 }
 
+/* The Artwork's stored image lives in Cloudflare storage (standing in for
+   Arweave): `${ART_IMAGE_BASE}/{slug}/{tokenId}.png`. When a base is configured
+   the whole app draws the STORED image everywhere the Artwork appears — cards,
+   grids, thumbnails, home, profiles, bench, search — instead of running the
+   generative engine. The ONE exception is the Output's own feature page, which
+   asks for the live render (`live: true`). Empty base ⇒ the app renders live as
+   before (safe default before images are uploaded). */
+export const ART_IMAGE_BASE = (process.env.NEXT_PUBLIC_ART_IMAGE_BASE || '').replace(/\/+$/, '');
+
 /**
  * Render an Output's Artwork by slug. Sizes the canvas, returns aspect +
  * the Output's full traits (artist traits + Fate). Unknown slug → no paint,
  * square aspect, Fate-only traits (keeps callers safe during data drift).
+ *
+ * When `ART_IMAGE_BASE` is set and `live` is not requested, the stored image is
+ * drawn onto the canvas instead of the live engine — this is the app-wide
+ * default so every surface shows the Cloudflare-hosted picture. The feature
+ * page passes `live: true` to keep the real generative render.
  */
 export function renderArtwork(
   canvas: HTMLCanvasElement,
   slug: string,
   tokenId: number,
   width: number,
+  live = false,
 ): { aspect: number; traits: OutputTraits } {
   const project = getProject(slug);
   if (!project) {
     return { aspect: 1, traits: { Fate: outputFate(slug, tokenId) } };
+  }
+  if (!live && ART_IMAGE_BASE) {
+    const traits = { ...project.traitsOf(tokenId), Fate: outputFate(slug, tokenId) };
+    // Draw the stored image onto the same canvas the engine would have used, so
+    // every existing surface (layout, virtualizer, hover) keeps working unchanged.
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    img.onload = () => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx || !img.naturalWidth) return;
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      // Correct the container's aspect to the real image once it's known
+      // (callers set a provisional ratio from the sync return below).
+      const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
+      if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
+    };
+    img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
+    // Provisional aspect from the project's palette keeps layout from collapsing
+    // to zero height before the image loads; onload corrects it exactly.
+    return { aspect: project.aspects?.[0] ?? 1, traits };
   }
   const res = project.render(canvas, tokenId, width);
   return { aspect: res.aspect, traits: { ...res.traits, Fate: outputFate(slug, tokenId) } };

@@ -43,7 +43,7 @@ export default function ArtworkLive({
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const big = Math.max(window.innerWidth, window.innerHeight);
         const target = Math.round(Math.min(2000, Math.max(640, big * dpr)));
-        paintOutput(canvas, slug, id, target);
+        paintOutput(canvas, slug, id, target, true);
         // One cheap pixel read serves two masters: the stored fingerprint
         // backfill (same self-populating model as the gallery cards) and the
         // NPC Cast's live sight of the piece actually on screen.

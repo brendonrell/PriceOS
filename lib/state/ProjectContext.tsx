@@ -256,6 +256,7 @@ export function paintOutput(
     slug: string,
     id: number,
     width: number,
+    live = false,
 ): number {
-    return renderArtwork(canvas, slug, id, width).aspect;
+    return renderArtwork(canvas, slug, id, width, live).aspect;
 }

@@ -83,6 +83,7 @@ import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
+import { ART_IMAGE_BASE } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
@@ -415,7 +416,7 @@ function ArtworkCard({
                brightness + saturation + complexity) from its painted pixels and
                persist it (any engine), in one pass. No-op if already sampled this
                session. (Brendon, 2026-06-16 colour; fingerprint 2026-06-20) */
-            if (needsColorSample(slug, id)) {
+            if (!ART_IMAGE_BASE && needsColorSample(slug, id)) {
                 reportFingerprint(slug, id, sampleCanvasFingerprint(canvas));
             }
             /* Persist the durable platform traits (Artist/Project/PriceDay/Natal/
