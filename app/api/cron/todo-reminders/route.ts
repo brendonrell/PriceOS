@@ -23,8 +23,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** Window (ms) a reminder instant must fall within to fire this sweep. Matches
- *  the 2-min cron cadence so consecutive windows tile without overlap. */
-const WINDOW_MS = 120_000;
+ *  the EVERY-MINUTE cron cadence so consecutive windows tile without overlap and
+ *  a to-the-minute due time fires within ~1 min (cron jitter only). */
+const WINDOW_MS = 60_000;
 
 interface StoredTodo {
   id?: string;

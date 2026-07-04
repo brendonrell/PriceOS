@@ -10,7 +10,7 @@ export default {
   fetch: handler.fetch,
 
   async scheduled(
-    _controller: unknown,
+    controller: { cron?: string },
     env: Record<string, string | undefined> & { CRON_SECRET?: string },
     ctx: { waitUntil(p: Promise<unknown>): void }
   ) {
@@ -26,10 +26,15 @@ export default {
           ctx
         )
       );
-    // Indexer reconcile backstop + the closed-app To-Do reminder sweep. Both are
-    // fail-closed on CRON_SECRET and idempotent/best-effort, safe to run together.
-    call("/api/cron/indexer-reconcile");
-    call("/api/cron/todo-reminders");
+    // Dispatch by which schedule fired (wrangler.jsonc triggers.crons). At even
+    // minutes both match and fire as two separate invocations, so the reminder
+    // sweep runs every minute while the reconcile stays at 2. Both fail-closed on
+    // CRON_SECRET and idempotent/best-effort.
+    if (controller?.cron === "*/2 * * * *") {
+      call("/api/cron/indexer-reconcile");
+    } else {
+      call("/api/cron/todo-reminders");
+    }
   },
 };
 

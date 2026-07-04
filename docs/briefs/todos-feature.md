@@ -20,17 +20,25 @@
 >
 > **✅ Native closed-app reminders — NOW BUILT + wired (2026-07-04).** VAPID keys
 > are in Cloudflare (Brendon). The sweep is `app/api/cron/todo-reminders/route.ts`
-> (fail-closed on `CRON_SECRET`), dispatched every 2 min by the existing Cloudflare
-> Cron Trigger via `custom-worker.ts` (alongside the indexer reconcile), sending
-> through `sendTodoReminder` in `lib/push/webpush.ts` (reuses the exact
+> (fail-closed on `CRON_SECRET`), dispatched **every minute** — users pick due
+> times to the minute, so ~1-min latency is the ceiling. `wrangler.jsonc` carries
+> two crons (`* * * * *` reminders, `*/2 * * * *` reconcile) and `custom-worker.ts`
+> dispatches by which fired, so the indexer reconcile's RPC load stays at 2 min.
+> Delivery via `sendTodoReminder` in `lib/push/webpush.ts` (reuses the exact
 > subscription + Pingtoasts-mode + Silent-Mode gate as `sendNativePing`).
-> Stateless exactly-once dispatch (window == the 2-min cadence, no prod-data
-> write). Goes LIVE the moment `dev` is deployed to Cloudflare with a user who has
-> "3D Pingtoasts" on. `nodejs_compat` is already set, so `web-push` runs on the
-> Worker. **v1 timing:** a to-do with an HH:MM fires at that time; a date-only
-> to-do fires at `TODO_REMINDER_UTC_HOUR` (default 13:00 UTC ≈ morning in the
-> Americas — set that env var to change it). Per-account timezone is a future
-> refinement.
+> Stateless exactly-once (window == the 1-min cadence, no prod-data write). Goes
+> LIVE the moment `dev` is deployed to Cloudflare with a user who has "3D
+> Pingtoasts" on. `nodejs_compat` is set, so `web-push` runs on the Worker.
+> **v1 timing:** an HH:MM to-do fires at that minute; a date-only to-do fires at
+> `TODO_REMINDER_UTC_HOUR` (default 13:00 UTC — set the env var to change it).
+> Per-account timezone is a future refinement.
+>
+> **Cloudflare headroom (Workers Paid):** 2 crons of 250 allowed; ~66k cron
+> invocations/mo of 10M included (<1%); CPU is trivial (sends are I/O, not CPU);
+> per-tick subrequests are well under the 10k/invocation cap. **Scale-watch:** the
+> per-minute sweep reads each push-subscriber's settings every minute — fine at
+> current scale; once push-subscribers reach the thousands, narrow the query and
+> drop the double settings read (sweep + sender both read it today).
 >
 > **Still deferred — needs Brendon:**
 > 1. **War-chest "vs wallet ETH" line.** `useBalance` only resolves inside the

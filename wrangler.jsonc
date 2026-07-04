@@ -4,10 +4,13 @@
   "main": "custom-worker.ts",
   "compatibility_date": "2025-08-21",
   "compatibility_flags": ["nodejs_compat"],
-  // Indexer reconcile backstop — the webhook is the real-time path; this sweep
-  // replays anything Alchemy fails to deliver. Idempotent, safe to overlap.
+  // Two schedules, dispatched by cron string in custom-worker.ts:
+  //   "* * * * *"   → To-Do reminder sweep, EVERY MINUTE (users pick due times
+  //                    to the minute, so ~1-min latency is the ceiling).
+  //   "*/2 * * * *" → indexer reconcile backstop (replays webhook misses;
+  //                    idempotent). Kept at 2 min so its RPC load doesn't double.
   "triggers": {
-    "crons": ["*/2 * * * *"]
+    "crons": ["* * * * *", "*/2 * * * *"]
   },
   "assets": {
     "directory": ".open-next/assets",
