@@ -54,6 +54,7 @@ import { PerMilleMark } from '../shell/PerMilleMark';
 import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
+import { handRead, type HandRead } from '../../lib/output/hand';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -288,6 +289,8 @@ export default function ArtworkPageBody({
     const [mintMs, setMintMs] = useState<number | null>(null);
     const [trueName, setTrueName] = useState<string>('');
     const [fingerprint, setFingerprint] = useState<AttrInput['fingerprint']>(null);
+    const [hand, setHand] = useState<HandRead | null>(null);
+    const [attention, setAttention] = useState<{ votes: number } | null>(null);
     useEffect(() => {
         let cancelled = false;
         fetch(`/api/output/${slug}-${numberPart}`)
@@ -298,6 +301,17 @@ export default function ArtworkPageBody({
                 if (d.minted_at) setMintMs(new Date(d.minted_at).getTime());
                 if (d.true_name) setTrueName(d.true_name as string);
                 if (d.fingerprint) setFingerprint(d.fingerprint as AttrInput['fingerprint']);
+                if (d.attention) setAttention(d.attention as { votes: number });
+                // Hand — the conviction read, from the piece's real ledger.
+                if (Array.isArray(d.history)) {
+                    setHand(handRead({
+                        owner: (d.owner as string) || null,
+                        minter: (d.minter as string) || null,
+                        mintedAtMs: d.minted_at ? new Date(d.minted_at).getTime() : null,
+                        history: d.history as { type: string; to_address: string | null; timestamp: string | number }[],
+                        nowMs: Date.now(),
+                    }));
+                }
             })
             .catch(() => {});
         return () => { cancelled = true; };
@@ -1088,6 +1102,8 @@ export default function ArtworkPageBody({
                         traits={traits}
                         fingerprint={fingerprint}
                         trueName={trueName}
+                        hand={hand}
+                        attention={attention}
                     />
                 )}
 
