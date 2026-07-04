@@ -22,12 +22,11 @@ Bot-spot-edit session, all on dev, tree clean. App changes:
 - **Sticker Manager+ preview:** fixed doubled top/bottom buffer (box-sizing) —
   stickers sit snug + overflow slightly again.
 - **Narthex** project colorway: warm gold → dark charcoal `#2A2B2F`.
+- **Matrix White colorway pill** (profile egg row): was a no-op because its hex
+  `#E0E0E0` equals the "unset" default sentinel, so the live repaint skipped it.
+  Now paints like every other pill.
 - **Account data (Brendon's own row):** zeroed all stars/wishlists/albums +
   history + showcase (they survived the project-zeroing).
-
-**QUEUED (not started):** Matrix-white colorway broken under the colorway
-shortcuts — screenshot IMG_5972 in this chat; each project has a custom
-colorway, Matrix is a shortcut. Investigate + fix next session.
 
 Task branch `claude/bot-spot-edit-ui-mz11dk` is empty/trash (all work went
 straight to dev) — safe to delete.
