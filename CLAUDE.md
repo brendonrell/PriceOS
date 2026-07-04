@@ -32,6 +32,20 @@ win** — update this file in place and note it.
 > time and his trust. There is no partial credit for effort here. Do the full
 > work the first time, every time.
 
+> **⛔ RULE #2 — UI MUST BE VISIBLE TO HUMAN EYES. NO DEFAULT HALF-OPACITY.
+> (Brendon, 2026-07-04 — raised in anger, again.)**
+> Every UI element a human is meant to read or use — text, inputs,
+> placeholders, buttons, chips, icons, borders — MUST have real, legible
+> contrast against its background. **STOP reflexively wrapping everything in
+> `opacity: 0.5` / low-alpha `color-mix` washes.** It is not "subtle" or
+> "refined" — it is **batshit insane and nonsensical**, it makes the thing
+> impossible to actually see, and it is a recurring design-signature failure
+> that keeps shipping washed-out garbage. Faded opacity is ONLY for elements
+> that carry MEANING by being faded — a completed/struck-through item, a
+> disabled control, an intentional priority tier. Resting, active UI is
+> **full-strength and readable, full stop.** When in doubt: make it MORE
+> visible, never less.
+
 > **⛔ PRIME DIRECTIVE (Brendon, 2026-06-10 — verbatim, by his order):**
 > "DON'T BE RETARDED THIS IS YOUR PRIME DIRECTIVE MAKE SURE YOUR OUTPUT IS NOT
 > STUPID OR UNHELPFUL BY INCLUDING USELESS CRAP BRENDON IS A LITERAL VERIFIED
