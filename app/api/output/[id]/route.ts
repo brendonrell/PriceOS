@@ -46,6 +46,10 @@ export interface OutputDetailResponse {
     pattern?: string | null;
   } | null;
   true_name: string | null;
+  /** Attention lens — pledges of fealty routed THROUGH this Output (its
+   *  anointment conduit votes). 0 for the vast majority; the apex is the
+   *  project's Prime Relic. */
+  attention: { votes: number };
 }
 
 interface DbEvent {
@@ -71,7 +75,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
 
   try {
     const db = getSupabaseService();
-    const [holderRes, listingRes, eventsRes, metaRes] = await Promise.all([
+    const [holderRes, listingRes, eventsRes, metaRes, anointRes] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db
@@ -83,6 +87,9 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       db.from('outputs')
         .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, scene, shape_count, pattern, true_name')
         .eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
+      // Attention lens — how many pledges route through this Output as conduit.
+      db.from('anointments').select('*', { count: 'exact', head: true })
+        .eq('project_id', slug).eq('output_token_id', tokenId),
     ]);
     const meta = metaRes.data as {
       dominant_color: string | null; aspect: string | null;
@@ -169,6 +176,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
           }
         : null,
       true_name: meta?.true_name ?? null,
+      attention: { votes: anointRes.count ?? 0 },
     };
     return NextResponse.json(response);
   } catch (err) {

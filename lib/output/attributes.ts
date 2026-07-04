@@ -18,6 +18,7 @@ import {
 } from './derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, type Freq } from './rarity';
 import { outputIsolation } from './genome';
+import type { HandRead } from './hand';
 import { entropyGrid } from './entropyGlyph';
 
 export interface AttrTile {
@@ -61,6 +62,10 @@ export interface AttrInput {
     } | null;
     /** The Output true name (project glyphs + id). */
     trueName: string;
+    /** Conviction read (lib/output/hand) from the live ledger — the Hand lens. */
+    hand?: HandRead | null;
+    /** Attention lens — anoint conduit votes for this piece. */
+    attention?: { votes: number } | null;
 }
 
 const pct = (p: number): string => (p >= 0.1 ? `${Math.round(p * 100)}%` : `${(p * 100).toFixed(1)}%`);
@@ -68,7 +73,7 @@ const rareBlurb = (f: Freq): string =>
     `${f.count} of ${f.total} · ${pct(f.pct)}${f.rank === 1 ? ' · rarest' : ''}`;
 
 export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
-    const { slug, id, mintMs, traits, fingerprint, trueName } = input;
+    const { slug, id, mintMs, traits, fingerprint, trueName, hand, attention } = input;
     const project = getProject(slug);
     const supply = project?.outputs ?? null;
     const groups: AttrGroup[] = [];
@@ -237,6 +242,25 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
             glyph: '❖', label: 'PD Rarity', value: `${headline} / 100`,
             sub: overall && iso ? 'trait + genome' : overall ? 'trait-based' : 'genome-based',
             rare: headline >= 70,
+        });
+    }
+    /* Hand — the conviction / diamond-hands read (the ⌂ holder glyph). Every
+       minted piece has a real hold story, so this always resolves. */
+    if (hand) {
+        const bits: string[] = [`${hand.holdDays}d held`];
+        bits.push(hand.neverSold ? 'never sold' : `${hand.flips} flip${hand.flips === 1 ? '' : 's'}`);
+        if (hand.neverListed) bits.push('never listed');
+        rarity.push({
+            glyph: '⌂', label: 'Hands', value: hand.tier, sub: bits.join(' · '),
+            rare: hand.tier === 'Original' || hand.tier === 'Diamond',
+        });
+    }
+    /* Attention — pledges routed through this piece (anointing ✢). Only shown
+       when it actually carries attention; a plain 0 is just the default. */
+    if (attention && attention.votes > 0) {
+        rarity.push({
+            glyph: '✢', label: 'Attention', value: String(attention.votes),
+            sub: 'pledged through it', rare: true,
         });
     }
     if (rarity.length) groups.push({ key: 'rarity', label: 'Rarity', tiles: rarity });
