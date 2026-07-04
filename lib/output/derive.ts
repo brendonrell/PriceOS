@@ -264,6 +264,38 @@ export function gravityWord(g: string): string {
     if (g === 'Right') return 'Leans Right';
     return 'Centered';
 }
+/* ── Fingerprint v3 → higher-order reads (2026-07-04) ────────────────────────
+   Accurate composites of the REAL scalars above — no new pixel work, no guessed
+   numbers. Each is a transparent function of already-captured reads, gated by
+   the caller on its inputs so pre-capture rows simply omit them. They name a
+   relationship the single-axis bands don't state on their own. */
+
+/** Photographic KEY from brightness × contrast: High-Key = bright with gentle
+ *  contrast (airy, washed); Low-Key = dark with deep contrast (dramatic);
+ *  else Balanced. A real, named relationship neither band shows alone. */
+export function valueKey(brightness: number, contrast: number): string {
+    if (brightness >= 0.62 && contrast < 0.5) return 'High-Key';
+    if (brightness < 0.42 && contrast >= 0.45) return 'Low-Key';
+    if (brightness >= 0.55 && contrast >= 0.6) return 'Bright-Hard';
+    if (brightness < 0.4 && contrast < 0.3) return 'Dim-Soft';
+    return 'Balanced';
+}
+
+/** Colour-RELATIONSHIP between the dominant and accent buckets: identical
+ *  bucket = Monochrome; a neutral partner = Grounded; same temperature family =
+ *  Analogous; warm × cool = Complementary. Derived only from the two real
+ *  buckets (WARM/COOL above) — accurate, deterministic, no pixel re-read. */
+export function colourStory(dominant: string, accent: string): string {
+    if (!dominant || !accent) return '';
+    if (dominant === accent) return 'Monochrome';
+    const dWarm = WARM.has(dominant), dCool = COOL.has(dominant);
+    const aWarm = WARM.has(accent), aCool = COOL.has(accent);
+    // A bucket in neither set is a neutral (Grey/Black/White/Cream/Brown/Moon).
+    if ((!dWarm && !dCool) || (!aWarm && !aCool)) return 'Grounded';
+    if ((dWarm && aWarm) || (dCool && aCool)) return 'Analogous';
+    return 'Complementary';
+}
+
 /** Aspect bucket ('square' | 'wide' | 'tall') → orientation word. */
 export function orientationOf(aspect: string | null, ratio?: number | null): string {
     if (aspect === 'wide') return 'Landscape';

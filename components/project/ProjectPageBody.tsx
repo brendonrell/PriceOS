@@ -96,6 +96,7 @@ import ArtworkCard from '../ArtworkCard';
 import GhostCard from './GhostCard';
 import MintButton from './MintButton';
 import ReplayPanel from './ReplayPanel';
+import GenomePanel from './GenomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
@@ -153,23 +154,6 @@ function eagerGalleryCount(): number {
 /* The activity-feed event mapping (FeedEvent + eventToFeedEvent) now lives in
    lib/feed/feedRow — shared with the profile feed, and carries the Starred-Tx
    payload. Imported above. */
-
-/* Sim's GENOME card (sim ~5246) — 80 hand-placed scatter dots in a
-   400×140 viewBox. Inlined as data so the JSX stays readable; same
-   coordinate sequence sim uses. */
-const GENOME_DOTS: Array<[number, number]> = [
-    [42, 28], [58, 34], [71, 22], [88, 48], [103, 31], [120, 42],
-    [140, 58], [155, 44], [175, 62], [188, 78], [210, 66], [228, 84],
-    [245, 72], [266, 91], [284, 79], [300, 102], [320, 88], [340, 110],
-    [358, 97], [372, 115], [50, 62], [68, 78], [82, 65], [96, 88],
-    [115, 72], [132, 95], [148, 82], [168, 105], [184, 92], [205, 112],
-    [222, 98], [240, 118], [260, 105], [278, 124], [296, 112], [312, 128],
-    [335, 118], [355, 72], [34, 92], [55, 105], [74, 118], [92, 124],
-    [112, 108], [125, 122], [380, 55], [368, 42], [352, 60], [325, 48],
-    [308, 55], [290, 50], [275, 40], [258, 55], [240, 40], [220, 50],
-    [200, 38], [180, 46], [160, 34], [140, 28], [122, 22], [105, 18],
-    [86, 12],
-];
 
 /* Build 19 split: TraitsProvider must wrap the consumer that calls
    useTraits(). The page now exports a thin outer wrapper that mounts
@@ -1746,35 +1730,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
 
                 </>)}
                 {moreL1 === 'genome' && (<>
-                {/* GENOME — sim 5246-5283 */}
+                {/* GENOME ◎ — the real parameter-space map (GenomePanel). */}
                 <div className="more-section-header">GENOME</div>
-                <div className="more-genome-wrap">
-                    <div
-                        className="more-genome-card"
-                        onClick={() =>
-                            showToast(
-                                'Genome — parameter space map, coming soon'
-                            )
-                        }
-                    >
-                        <svg
-                            className="more-genome-svg"
-                            viewBox="0 0 400 140"
-                            preserveAspectRatio="none"
-                            aria-hidden="true"
-                        >
-                            <g fill="currentColor">
-                                {GENOME_DOTS.map(([cx, cy], i) => (
-                                    <circle key={i} cx={cx} cy={cy} r={1.8} />
-                                ))}
-                            </g>
-                        </svg>
-                        <div className="more-genome-meta">
-                            <span>1000 minted · parameter space preview</span>
-                        </div>
-                    </div>
-                </div>
-
+                <GenomePanel />
                 </>)}
                 {moreL1 === 'gnome' && (<>
                 {/* GNOME — paired with Genome for the pun; empty for now
