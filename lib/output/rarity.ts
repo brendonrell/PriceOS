@@ -10,6 +10,7 @@
 import { getProject } from '../project/registry';
 import { readOutputFate } from '../project/fate';
 import { outputColorBucket } from '../art/outputColor';
+import { outputIsolation } from './genome';
 
 export interface Freq {
     /** Editions sharing this value. */
@@ -107,6 +108,27 @@ export function traitRarity(slug: string, traitName: string, value: string): Fre
 export function fateRarity(slug: string, fate: string): Freq | null {
     const r = getProjectRarity(slug);
     return r ? freqOf(r.fate, fate, r.total) : null;
+}
+
+/** The PD Rarity headline for an Output — provable art-rarity (primary trait /
+ *  Fate / colour) blended with genome Isolation into one 0–100 read. The same
+ *  math the character sheet leads with, shared so the Receipt can't disagree. */
+export function pdRarity(slug: string, id: number): {
+    score: number; classic: number | null; isolation: number | null;
+} | null {
+    const pt = primaryTrait(slug, id);
+    const tf = pt ? traitRarity(slug, pt.name, pt.value) : null;
+    const ff = fateRarity(slug, readOutputFate(slug, id).fate);
+    const bucket = outputColorBucket(slug, id);
+    const cf = bucket ? colorRarity(slug, bucket) : null;
+    const overall = overallRarity([tf, ff, cf]);
+    const iso = outputIsolation(slug, id);
+    if (!overall && !iso) return null;
+    const parts: number[] = [];
+    if (overall) parts.push(overall.score);
+    if (iso) parts.push(iso.score);
+    const score = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
+    return { score, classic: overall?.score ?? null, isolation: iso?.score ?? null };
 }
 
 /** Rarity of an Output's dominant colour bucket across its project's editions. */
