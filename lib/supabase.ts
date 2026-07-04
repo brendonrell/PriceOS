@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { PriceSpriteVibe } from './sprites/vibes';
 import type { ResolvedSprite } from './sprites/composer';
+import type { TodoItem } from './todos/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Database row types — mirror the Postgres schema exactly.
@@ -66,6 +67,10 @@ export interface UserSettings {
   /** History recording paused by the user (the "Recording" L3 toggle). When
    *  true, no visits are recorded until resumed. PRIVATE. */
   breadcrumbsPaused?: boolean;
+  /** To-Dos — the user's private task list (raw + output-bound). Same envelope +
+   *  privacy as `starred`; account-backed so it follows the viewer across
+   *  devices. Read + written by lib/todos/todoStore. */
+  todos?: TodoItem[];
   /** Starred (pinned) artists — ordered list of artist names. PRIVATE, same
    *  envelope as `starred`. Account-backed so starred artists follow the viewer
    *  across devices (Brendon, 2026-06-13). Was localStorage `pd_artist_pinned`. */

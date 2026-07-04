@@ -14,6 +14,7 @@ import { useCart } from '../../lib/state/CartContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { getProject } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin } from '../../lib/pins/grailStore';
+import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
 import { shareLink } from '../../lib/pwa/share';
@@ -117,7 +118,11 @@ export default function OutputActionRow({
             <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
             <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
             <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
-            <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => { stop(e); showToast('Added to To-Dos'); }} />
+            <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => {
+                stop(e);
+                const r = addOutputTodo(slug, id, 'BUY');
+                showToast(r === 'exists' ? `To-Do: ALREADY ADDED` : `To-Do: ADDED`);
+            }} />
             <Btn glyph={'⟟︎'} title="Grail Pin" active={pinned} extra="output-act-grail" onClick={onGrail} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}

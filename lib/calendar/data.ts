@@ -6,7 +6,7 @@
  * indexer + Supabase wiring post-port.
  */
 
-import type { CalEvent, CalTodo } from './types';
+import type { CalEvent } from './types';
 
 export const CAL_EVENTS: Record<string, CalEvent[]> = {
   '2026-04-03': [{ time: '10:00', title: 'Prisms drop (anniversary)' }],
@@ -24,20 +24,6 @@ export const CAL_EVENTS: Record<string, CalEvent[]> = {
   '2026-04-22': [{ time: '22:00', title: 'Lucky-22 community mint window' }],
   '2026-04-25': [{ time: '18:00', title: 'Drop #2 scope lock' }],
   '2026-04-29': [{ time: '12:00', title: 'End-of-month retrospective' }],
-};
-
-/**
- * Mock to-dos overlaid onto the calendar when the To-Dos toggle is active.
- * Drawn from the same mock set that populates the TO-DOS panel so the two
- * surfaces stay consistent.
- */
-export const CAL_TODOS: Record<string, CalTodo[]> = {
-  '2026-04-14': [{ title: 'OFFER Strata #37' }],
-  '2026-04-19': [{ title: 'FLOOR-watch Prisms #88' }],
-  '2026-04-20': [{ title: 'DELIST Prisms #88' }],
-  '2026-05-01': [{ title: 'LIST Prisms #147, #203' }],
-  '2026-06-15': [{ title: 'SEND Prisms #500 → @matty' }],
-  '2026-09-22': [{ title: 'BUY Prisms #22' }],
 };
 
 export const CAL_MONTH_NAMES = [

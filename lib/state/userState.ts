@@ -78,6 +78,9 @@ export const STATE_CACHE_KEYS = {
     /** Recently-viewed Outputs trail (`${slug}:${id}` keys, most-recent-first).
      *  Read + written by breadcrumbStore; lives in the settings envelope. */
     breadcrumbs: 'pd_breadcrumbs',
+    /** To-Dos (TodoItem[]). Read + written by lib/todos/todoStore; lives in the
+     *  settings envelope (private, follows the user across devices). */
+    todos: 'pd_todos',
     /** Starred (pinned) artists — ordered artist names. Read + written by
      *  ArtistsView; lives in the settings envelope (private). */
     artistStars: 'pd_artist_pinned',
@@ -259,6 +262,12 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.breadcrumbs,
             JSON.stringify(Array.isArray(s.breadcrumbs) ? s.breadcrumbs : []),
+        );
+        // To-Dos → the cache todoStore reads; re-read on the hydrate event below
+        // so the account's list wins over device-local (server wins).
+        localStorage.setItem(
+            STATE_CACHE_KEYS.todos,
+            JSON.stringify(Array.isArray(s.todos) ? s.todos : []),
         );
         // History recording-paused flag — mirror to the key breadcrumbStore reads
         // so the choice follows the viewer across devices. History is opt-in

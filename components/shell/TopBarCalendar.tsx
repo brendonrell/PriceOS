@@ -35,12 +35,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCalendar } from '../../lib/calendar/CalendarContext';
-import { CAL_EVENTS, CAL_TODAY, CAL_TODOS } from '../../lib/calendar/data';
+import { CAL_EVENTS, CAL_TODAY } from '../../lib/calendar/data';
+import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../lib/todos/todoStore';
 import { dateKey } from '../../lib/calendar/utils';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 interface SelDay { y: number; m: number; d: number }
+
+/** A real calendar item from /api/calendar (the same feed the main
+ *  CalendarPanel loads) — global schedule · your items · auto milestones. */
+interface CalApiItem {
+    id?: string;
+    scope: 'personal' | 'global' | 'auto';
+    time?: string | null;
+    title: string;
+    mine?: boolean;
+}
 
 const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
 
@@ -76,6 +87,47 @@ export function TopBarCalendar() {
         if (el) el.scrollLeft = 0;
     }, [selDay.y, selDay.m, selDay.d]);
 
+    // Dated to-dos from the real todoStore (replaces the old hardcoded CAL_TODOS).
+    const [todoMap, setTodoMap] = useState<Record<string, TodoItem[]>>({});
+    useEffect(() => {
+        const read = () => setTodoMap(datedTodosByDay(getTodos()));
+        read();
+        return subscribeTodos(read);
+    }, []);
+
+    // Real calendar events from /api/calendar — the SAME ledger the main
+    // CalendarPanel reads (Fable wired the panel but not this strip). Fetch every
+    // month the visible week touches, merged by day key. Alongside the static
+    // CAL_EVENTS seed, mirroring the panel's dual source.
+    const [calItems, setCalItems] = useState<Record<string, CalApiItem[]>>({});
+    useEffect(() => {
+        const start = new Date(CAL_TODAY.y, CAL_TODAY.m, CAL_TODAY.d);
+        start.setDate(start.getDate() - start.getDay());
+        const months = new Map<string, { y: number; m: number }>();
+        for (let i = 0; i < 7; i++) {
+            const dt = new Date(start);
+            dt.setDate(start.getDate() + i);
+            months.set(`${dt.getFullYear()}-${dt.getMonth()}`, { y: dt.getFullYear(), m: dt.getMonth() });
+        }
+        let cancelled = false;
+        Promise.all(
+            Array.from(months.values()).map(({ y, m }) =>
+                fetch(`/api/calendar?year=${y}&month=${m + 1}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => (d?.days as Record<string, CalApiItem[]>) ?? {})
+                    .catch(() => ({} as Record<string, CalApiItem[]>)),
+            ),
+        ).then((results) => {
+            if (cancelled) return;
+            const merged: Record<string, CalApiItem[]> = {};
+            for (const days of results) {
+                for (const k of Object.keys(days)) merged[k] = (merged[k] || []).concat(days[k]);
+            }
+            setCalItems(merged);
+        });
+        return () => { cancelled = true; };
+    }, []);
+
     // Don't render the row at all when off — saves layout cost and keeps
     // the navbar's flex-wrap behaviour identical to the pre-D9 state.
     if (!notifs.topBarCalendar) return null;
@@ -97,13 +149,17 @@ export function TopBarCalendar() {
         const d = dt.getDate();
         const key = dateKey(y, m, d);
         const events = CAL_EVENTS[key] || [];
-        const hasTodo = todosMode && !!(CAL_TODOS[key] && CAL_TODOS[key].length);
-        weekDays.push({ y, m, d, label: DAY_LABELS[i], count: events.length, hasTodo });
+        const real = calItems[key] || [];
+        const hasTodo = todosMode && !!(todoMap[key] && todoMap[key].length);
+        weekDays.push({ y, m, d, label: DAY_LABELS[i], count: events.length + real.length, hasTodo });
     }
 
     const selKey = dateKey(selDay.y, selDay.m, selDay.d);
-    const selEvents = CAL_EVENTS[selKey] || [];
-    const selTodos  = (todosMode && CAL_TODOS[selKey]) ? CAL_TODOS[selKey] : [];
+    const selEvents = [
+        ...(CAL_EVENTS[selKey] || []),
+        ...((calItems[selKey] || []).map((it) => ({ time: it.time || '', title: it.title }))),
+    ];
+    const selTodos  = (todosMode && todoMap[selKey]) ? todoMap[selKey] : [];
     const selDayNote = dayNotes[selKey] || '';
 
     const isEmpty =
@@ -201,7 +257,7 @@ function TopBarCalendarEventStrip({
 }: {
     dayNote: string;
     onDayNoteClick: () => void;
-    todos: Array<{ title: string }>;
+    todos: Array<{ text: string }>;
     events: Array<{ time: string; title: string }>;
 }) {
     const parts: React.ReactElement[] = [];
@@ -234,7 +290,7 @@ function TopBarCalendarEventStrip({
         parts.push(
             <span key={`td-${key++}`} className="tbc-ev-todo">
                 <span className="tbc-ev-todo-icon">❍{'\uFE0E'}</span>
-                {t.title}
+                {t.text}
             </span>
         );
     }

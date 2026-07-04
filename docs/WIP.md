@@ -6,6 +6,33 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-04 — TO-DOS v1 ("Todoist in PD")
+
+**All on `dev`, tree clean, build green.** The To-Dos feature is now real — one
+store (`lib/todos/todoStore.ts` + `types.ts`, account-backed via the settings
+envelope, mirrors the Notes/starred pattern) feeds every surface:
+- **Connect-menu accordion** (`components/dropdown/TodosBox.tsx`) — Meta-chips
+  layout (Brendon's pick): title + chips (due · ◊ price · Pn). Quick-add composer
+  behind the header **+** (Brendon to re-home the +), check→✓ + strike + sink,
+  priorities (P1 = red rail), live count, per-row delete, **war-chest** line
+  (total ◊ earmarked across open targets), and **the Sentinel** — a BUY to-do
+  with an ◊ target flips to **READY** when the piece's live listing price hits,
+  read from the SAME feed the grail pins use (`starredPriceStore`).
+- **Calendar + Top Bar Calendar** both read the store for dated to-dos (red dot +
+  row, complete-on-tap). Bonus: the **Top Bar Calendar was also wired to the real
+  `/api/calendar` EVENTS feed** (Fable had left it on the static seed).
+- **Artwork "Make To-Do"** (page action row + gallery hover row) now write real
+  output to-dos (deep-link back to the piece), with dedupe.
+- Mock sources deleted (`mockTodos.ts`, `CAL_TODOS`, dead toasts). GLYPHS.md:
+  **◊ (U+25CA)** documented as the secondary ETH mark; done glyph **✓** noted
+  (device-verify on iPhone — new glyph).
+
+**Next (fast-follow, in `docs/briefs/todos-feature.md`):** native closed-app
+reminders (server push job), recurring, labels, magic quick-add, war-chest
+vs-wallet line. Excluded: Call Your Shot, Streaks.
+
+---
+
 ## ✅ SHIPPED 2026-07-04 — PD RARITY (Genome + 3 lenses + wow layer + Receipt)
 
 **All on `dev`, tree clean, build green.** Output-rarity Option C, built as

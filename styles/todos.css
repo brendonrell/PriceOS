@@ -1,0 +1,251 @@
+/*
+ * To-Dos — the real feature's styles (connect-menu accordion surface).
+ *
+ * Layout = the "Meta chips" treatment (Brendon 2026-07-04): title on top,
+ * details as chips below. Everything inherits the accordion panel's colours
+ * (panel bg = var(--text-color), ink = currentColor) so it adapts to every
+ * colorway; the only hard colour is the hothurt red used app-wide for
+ * priority + to-do accents. Metrics mirror .notif-item.
+ */
+
+/* Header row — label left, add "+" right. */
+.todos-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+.todos-add-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.todos-add-btn:hover { opacity: 1; }
+.todos-add-btn.is-on {
+    opacity: 1;
+    background: var(--hothurt, #ff0055);
+    color: var(--text-color);
+}
+
+/* War-chest line — total ETH earmarked across open priced to-dos. */
+.todo-chest {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 5px 10px 7px;
+}
+.todo-chest-eth {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+}
+.todo-chest .eth-mark { color: var(--hothurt, #ff0055); margin-right: 1px; }
+.todo-chest-lbl { font-size: 11px; font-weight: 600; opacity: 0.6; }
+
+/* Quick-add composer — reuses the calendar-compose look. */
+.todo-compose {
+    margin: 2px 6px 6px;
+    padding: 8px;
+    border-radius: 5px;
+    background: color-mix(in srgb, currentColor 6%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+.todo-compose-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: 600 12px/1.3 inherit;
+    outline: none;
+}
+.todo-compose-input::placeholder { color: color-mix(in srgb, currentColor 42%, transparent); }
+.todo-compose-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+.todo-mini {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: inherit;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: 3px;
+    padding: 5px 7px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+}
+.todo-mini:hover { opacity: 1; }
+.todo-mini-date {
+    cursor: text;
+    /* native date control — keep it small + monochrome */
+    color-scheme: light dark;
+    min-width: 0;
+    max-width: 116px;
+}
+.todo-price-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: text;
+}
+.todo-price-wrap .eth-mark { color: var(--hothurt, #ff0055); }
+.todo-price-input {
+    width: 40px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: 700 10px/1 'Courier New', Courier, monospace;
+    outline: none;
+}
+.todo-price-input::placeholder { color: color-mix(in srgb, currentColor 45%, transparent); }
+.todo-pri-btn.on { border-color: var(--hothurt, #ff0055); }
+.todo-pri-btn.on.p1 { color: var(--hothurt, #ff0055); }
+.todo-add {
+    margin-left: auto;
+    font: 800 11px/1 inherit;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 0;
+    border-radius: 4px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.todo-add:disabled { opacity: 0.4; cursor: default; }
+
+/* Empty state. */
+.todo-empty {
+    padding: 10px;
+    font-size: 12px;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* ── the row (Meta chips) — metrics mirror .notif-item ──────────── */
+.todo-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: inherit;
+    transition: background 0.15s, opacity 0.2s;
+}
+.todo-row:hover { background: color-mix(in srgb, currentColor 5%, transparent); }
+.todo-box {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    width: 16px;
+    flex: 0 0 16px;
+    text-align: center;
+    margin-top: 1px;
+    opacity: 0.9;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s, transform 0.1s;
+}
+.todo-box:hover { opacity: 1; }
+.todo-box:active { transform: scale(0.88); }
+.todo-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.todo-title { font-weight: 700; word-break: break-word; }
+.todo-link { color: inherit; text-decoration: none; }
+.todo-link:hover .todo-title { text-decoration: underline; }
+
+.todo-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.todo-chip {
+    font: 700 10px/1 'Courier New', Courier, monospace;
+    letter-spacing: 0.3px;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+    border-radius: 3px;
+    padding: 3px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+}
+.todo-chip.eth .eth-mark { color: var(--hothurt, #ff0055); }
+.todo-chip.pri {
+    color: var(--hothurt, #ff0055);
+    border-color: color-mix(in srgb, var(--hothurt, #ff0055) 40%, transparent);
+    background: color-mix(in srgb, var(--hothurt, #ff0055) 10%, transparent);
+    opacity: 1;
+}
+.todo-chip.pri.p2 { opacity: 0.72; }
+.todo-chip.pri.p3 { opacity: 0.5; }
+
+/* P1 — the red left rail (same treatment as high-priority pings). */
+.todo-row.p1 { font-weight: 900; box-shadow: inset 2px 0 0 var(--hothurt, #ff0055); }
+.todo-row.p1 .todo-box { color: var(--hothurt, #ff0055); opacity: 1; }
+
+/* Completed — strike through + fade + sink (order handled in JS). */
+.todo-row.done { opacity: 0.45; box-shadow: none; font-weight: 600; }
+.todo-row.done .todo-title,
+.todo-row.done .todo-chips { text-decoration: line-through; }
+.todo-row.done .todo-box { color: #1a8f4a; opacity: 1; text-decoration: none; }
+
+/* The Sentinel — a BUY target whose live price hit. Glows to pull the eye. */
+.todo-row.ready {
+    background: color-mix(in srgb, var(--hothurt, #ff0055) 12%, transparent);
+    box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 0 1px color-mix(in srgb, var(--hothurt, #ff0055) 22%, transparent);
+    animation: todo-ready-pulse 2.4s ease-in-out infinite;
+}
+.todo-row.ready .todo-box { color: var(--hothurt, #ff0055); opacity: 1; }
+.todo-ready {
+    font: 900 8px/1 'Courier New', Courier, monospace;
+    letter-spacing: 1.5px;
+    color: var(--text-color);
+    background: var(--hothurt, #ff0055);
+    padding: 3px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+@keyframes todo-ready-pulse {
+    0%, 100% { box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 0 1px color-mix(in srgb, var(--hothurt, #ff0055) 20%, transparent); }
+    50% { box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 9px 1px color-mix(in srgb, var(--hothurt, #ff0055) 28%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .todo-row.ready { animation: none; }
+}
+
+/* Delete × — hidden at rest, ramps on row hover (matches Notes). */
+.todo-del {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1;
+    width: 18px;
+    flex: 0 0 18px;
+    text-align: center;
+    margin-top: 1px;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.15s, color 0.15s;
+}
+@media (hover: hover) {
+    .todo-row:hover .todo-del { opacity: 0.5; }
+    .todo-del:hover { opacity: 1 !important; color: var(--hothurt, #ff0055); }
+}
+@media (hover: none) {
+    .todo-del { opacity: 0.45; }
+}

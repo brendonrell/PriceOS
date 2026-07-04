@@ -74,6 +74,13 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 > generates a Ping. Wishlist is the opposite (a buy-intent signal) and DOES
 > drive financial Pings.
 
+> **To-Do done state** (`components/dropdown/TodosBox.tsx`, 2026-07-04) — a
+> completed To-Do flips **❍ (U+274D, pending) → ✓ (U+2713, done)** and the row
+> strikes through + sinks to the bottom. ✓ is a NEW glyph in the vocabulary —
+> device-verify it renders as monochrome TEXT on iOS before final lock (the #1
+> glyph gate); if it tofus, swap it. Deliberately NOT the filled circle ● (that's
+> the Audience presence dot, §10).
+
 ### Showcase-mode toggle (`components/dropdown/settings/MyPdSection.tsx`)
 
 The profile Showcase style cycles through an OCR-dingbat family (U+2446–U+2449).
@@ -207,6 +214,11 @@ These belong to a *user*, never to an action.
   ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
   before locking it. (Brendon, 2026-06-15.)
 - **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`) — reserved.
+- **◊ (U+25CA) = ETH (secondary mark)** — the lozenge the sticker store prices in
+  (`components/stickers/BuySheetButton.tsx`), reused for To-Do ETH targets/budgets
+  and the war-chest meter (`styles/todos.css`). **NOT the Greek Xi (Ξ)** — that's
+  wrong and is being purged; **NOT the lined lozenge ⟠ (U+27E0)** — that's the
+  volume / grail-pin feed. The plain no-line lozenge (Brendon, 2026-07-04).
 - **◉ (U+25C9) = Haze-mode dropper / colour-sample tool** (`ColorwayPicker.tsx` —
   grabs the live page bg into the Haze slot). Reused as the **dominant-colour
   grouping** glyph (dropper = sampling colour). Distinct from its §4 identity-

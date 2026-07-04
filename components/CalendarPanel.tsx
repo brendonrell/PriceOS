@@ -22,8 +22,14 @@ import {
   CAL_EVENTS,
   CAL_MONTH_SHORT,
   CAL_TODAY,
-  CAL_TODOS,
 } from '../lib/calendar/data';
+import {
+  getTodos,
+  subscribeTodos,
+  toggleTodo,
+  datedTodosByDay,
+  type TodoItem,
+} from '../lib/todos/todoStore';
 import { useCalendar } from '../lib/calendar/CalendarContext';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useAuth } from '../lib/state/AuthContext';
@@ -71,6 +77,16 @@ export default function CalendarPanel() {
   }, [viewY, viewM]);
   useEffect(() => { loadMonth(); }, [loadMonth]);
 
+  /* Dated to-dos (from the real todoStore) grouped by day — replaces the old
+     hardcoded CAL_TODOS. Red dot on the grid + red row in the day column, both
+     still gated behind the To-Dos toggle + sign-in below. */
+  const [todoMap, setTodoMap] = useState<Record<string, TodoItem[]>>({});
+  useEffect(() => {
+    const read = () => setTodoMap(datedTodosByDay(getTodos()));
+    read();
+    return subscribeTodos(read);
+  }, []);
+
   /* Add-item composer (+ beside the Day Note icon). */
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeTitle, setComposeTitle] = useState('');
@@ -115,7 +131,7 @@ export default function CalendarPanel() {
   const dateLabel = `${CAL_MONTH_SHORT[selM]} ${selD}`;
 
   const events = CAL_EVENTS[selKey] || [];
-  const todos = isAuthed && todosMode ? (CAL_TODOS[selKey] || []) : [];
+  const todos = isAuthed && todosMode ? (todoMap[selKey] || []) : [];
   const empty = events.length === 0 && todos.length === 0 && !dayNote;
 
   return (
@@ -146,7 +162,7 @@ export default function CalendarPanel() {
               const dotCount = Math.min(evs.length + real.length, 3);
               const hasTodo =
                 isAuthed && todosMode && !c.other &&
-                Boolean(CAL_TODOS[k] && CAL_TODOS[k].length);
+                Boolean(todoMap[k] && todoMap[k].length);
 
               return (
                 <div
@@ -399,13 +415,28 @@ export default function CalendarPanel() {
               </div>
             )}
 
-            {todos.map((t, i) => (
-              <div key={`todo-${i}`} className="cal-event-item cal-event-todo">
+            {todos.map((t) => (
+              <div
+                key={t.id}
+                className="cal-event-item cal-event-todo"
+                role="button"
+                tabIndex={0}
+                title="Complete to-do"
+                onClick={(e) => { e.stopPropagation(); toggleTodo(t.id); showToast('To-Do: DONE'); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTodo(t.id);
+                    showToast('To-Do: DONE');
+                  }
+                }}
+              >
                 <div className="cal-event-title">
                   <span className="cal-todo-icon">
                     {'\u274D'}{'\uFE0E'}
                   </span>{' '}
-                  {t.title}
+                  {t.text}
                 </div>
               </div>
             ))}

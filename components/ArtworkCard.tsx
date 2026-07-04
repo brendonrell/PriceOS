@@ -120,6 +120,7 @@ import {
     toggleWishlist as storeToggleWishlist,
 } from '../lib/pins/wishlistStore';
 import { toggleShowcase as storeToggleShowcase } from '../lib/pins/userShowcaseStore';
+import { addOutputTodo } from '../lib/todos/todoStore';
 import { useCart } from '../lib/state/CartContext';
 import { useBench } from '../lib/state/BenchContext';
 import { useHoldDrag } from '../lib/hooks/useHoldDrag';
@@ -899,7 +900,11 @@ function ArtworkCard({
                             <span
                                 className="hi-icon hi-todo"
                                 title="Make To-Do"
-                                onClick={stubAction('Added to To-Dos')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const r = addOutputTodo(slug, id, 'BUY');
+                                    showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
+                                }}
                             >
                                 {'\u274D\uFE0E'}
                             </span>
