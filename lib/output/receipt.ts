@@ -72,7 +72,7 @@ export async function buildRarityReceipt(slug: string, id: number): Promise<HTML
     const boxX = PAD, boxY = PAD, boxW = W - PAD * 2, boxH = 760;
     try {
         const off = document.createElement('canvas');
-        const { aspect } = renderArtwork(off, slug, id, 1080);
+        const { aspect } = renderArtwork(off, slug, id, 1080, true);
         const a = aspect > 0 ? aspect : (off.width / Math.max(1, off.height)) || 1;
         // Fit preserving aspect.
         let dw = boxW, dh = boxW / a;

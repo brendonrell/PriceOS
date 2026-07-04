@@ -621,3 +621,11 @@ explicit chat confirmation.
   states, no ambiguous pauses. If work is happening, the UI says so and keeps
   visibly advancing. (The in-button mint progress bar is the reference pattern;
   apply the same to every future wait state.)
+- **⛔ PREVIEWS / THUMBNAILS ARE PNG — NEVER WebP. Hard rule (Brendon,
+  2026-07-04, raised in anger — it keeps leaking back in).** Every generated
+  Artwork preview/thumbnail — the Arweave preview, the Cloudflare-hosted card
+  images, any stored image the app shows in place of the live render — is a
+  **PNG**, full stop. "WebP" keeps resurfacing from old history/notes and
+  sessions keep grabbing it; **IGNORE IT EVERY TIME.** Never propose, render,
+  store, or serve WebP for a preview. Need it smaller? Render at a **lower
+  resolution** — still PNG. There is no WebP path, ever.

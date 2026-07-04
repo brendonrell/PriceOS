@@ -23,5 +23,14 @@
       "binding": "NEXT_INC_CACHE_KV",
       "id": "b332595e9f1e40279c5e7f9c1f1f2fc0"
     }
+  ],
+  // Stored Artwork previews (the Cloudflare stand-in for Arweave). Per-mint the
+  // app pins {slug}/{id}.png here; /preview/* serves them back from this binding,
+  // so no public bucket and no token are needed. Activates on deploy.
+  "r2_buckets": [
+    {
+      "binding": "PD_ART_PREVIEWS",
+      "bucket_name": "pd-art-previews"
+    }
   ]
 }

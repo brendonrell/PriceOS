@@ -4,6 +4,14 @@ const nextConfig = {
     // D1 scaffold has no ESLint dep; don't block builds on it.
     ignoreDuringBuilds: true,
   },
+  // Artwork previews: draw the STORED PNG everywhere (cards, grids, thumbnails)
+  // instead of the live engine, except the Output feature page. Same-origin
+  // /preview is served by our own worker from the R2 binding — no public bucket,
+  // and it works on every origin (dev preview + prod). Empty would fall back to
+  // live. (/art is the Artwork page namespace, so previews live under /preview.)
+  env: {
+    NEXT_PUBLIC_ART_IMAGE_BASE: '/preview',
+  },
   // Client-side navigation cache. Next 15 changed the `dynamic` stale-time
   // default from 30s to 0s, which would refetch already-visited pages on every
   // revisit and make navigation feel a beat slower. Re-pinned to the Next 14

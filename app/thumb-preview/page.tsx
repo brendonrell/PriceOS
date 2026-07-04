@@ -65,7 +65,9 @@ function ThumbCard({ slug, id, target }: { slug: string; id: number; target: num
         let url: string | undefined;
         setWebp(null); setErr(false);
         try {
-            paintOutput(cv, slug, id, RENDER_W);
+            // live=true: this dev tool reads canvas pixels synchronously below,
+            // so it must render the engine now, not the async stored image.
+            paintOutput(cv, slug, id, RENDER_W, true);
         } catch { setErr(true); return; }
         encodeUnder(cv, target)
             .then((r) => {

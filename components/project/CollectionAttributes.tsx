@@ -20,6 +20,7 @@ import { buildCollectionGroups, computeCollectionSpread, COLLECTION_FORCE_SAMPLE
 import { resolveBucket, resolveFingerprint, reportFingerprint, needsColorSample, useStoredColors } from '../../lib/art/colorStore';
 import { sampleCanvasFingerprint } from '../../lib/art/sampleColor';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { ART_IMAGE_BASE } from '../../lib/project/registry';
 
 export default function CollectionAttributes({
     slug,
@@ -38,6 +39,9 @@ export default function CollectionAttributes({
     /* Render the first 22 off-screen, one per frame, sampling each — so a fresh
        graduate has a full portrait without waiting for someone to scroll. */
     useEffect(() => {
+        // In stored-image mode the canvas holds a picture, not a fresh engine
+        // paint, so pixel sampling would read blank — skip the backfill entirely.
+        if (ART_IMAGE_BASE) return;
         let cancelled = false;
         const target = Math.min(COLLECTION_FORCE_SAMPLE, mintedCount);
         const todo: number[] = [];

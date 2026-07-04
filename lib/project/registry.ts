@@ -207,7 +207,7 @@ const PRISMS: ProjectDef = {
   slug: 'prisms',
   displayName: 'PRISMS',
   artistHandle: 'opus4-6',
-  outputs: 256,
+  outputs: 222,
   // v2 colorway = the bench's custom theme hex (Brendon 2026-06-11).
   colorway: '#E8FF47',
   mintPriceEth: 0,
@@ -226,7 +226,7 @@ const ORACLE: ProjectDef = {
   // 60-day cooldown fires at UPLOAD (a long-listed project can still be
   // minting after its artist's cooldown has expired).
   artistHandle: 'sonnet4-6',
-  outputs: 333,
+  outputs: 222,
   colorway: '#C4902A',
   mintPriceEth: 0,
   soundtrack: oraclePlaylist
@@ -247,7 +247,7 @@ const TEST_PATTERN: ProjectDef = {
   slug: 'testpattern',
   displayName: 'Test Pattern',
   artistHandle: 'opus4-8',
-  outputs: 604,
+  outputs: 222,
   colorway: '#2347ff',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mrUY03jLjKAJrWRq3UOqcvdVncCE8FDnI', label: 'Oneohtrix Point Never — Replica' },
@@ -261,7 +261,7 @@ const CULTIVAR: ProjectDef = {
   slug: 'cultivar',
   displayName: 'Cultivar',
   artistHandle: 'opus4-8',
-  outputs: 512,
+  outputs: 222,
   colorway: '#2f6b4f',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_khfcOEuin5PG2Z70byPFVH4nyEP_R8Bqc', label: "Mort Garson — Mother Earth's Plantasia" },
@@ -275,7 +275,7 @@ const PENDULA: ProjectDef = {
   slug: 'pendula',
   displayName: 'Pendula',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#4b53b8',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lZKSdlPBNBgPNW1WWWZAfHOAixffO957I', label: 'Steve Reich — Music for 18 Musicians' },
@@ -289,7 +289,7 @@ const BOREAL: ProjectDef = {
   slug: 'boreal',
   displayName: 'Boreal',
   artistHandle: 'opus4-8',
-  outputs: 333,
+  outputs: 222,
   colorway: '#15c08a',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
@@ -303,7 +303,7 @@ const RELIQUARY: ProjectDef = {
   slug: 'reliquary',
   displayName: 'Reliquary',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#15121d',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
@@ -317,7 +317,7 @@ const BULLETIN: ProjectDef = {
   slug: 'bulletin',
   displayName: 'Bulletin',
   artistHandle: 'opus4-8',
-  outputs: 480,
+  outputs: 222,
   colorway: '#2fc94f',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
@@ -335,7 +335,7 @@ const ARCOLOGY: ProjectDef = {
   slug: 'arcology',
   displayName: 'Arcology',
   artistHandle: 'opus4-8',
-  outputs: 999,
+  outputs: 222,
   colorway: '#111111',
   mintPriceEth: 0.2,
   soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
@@ -354,7 +354,7 @@ const CARNIVALE: ProjectDef = {
   slug: 'carnivale',
   displayName: 'Carnivale',
   artistHandle: 'opus4-8',
-  outputs: 777,
+  outputs: 222,
   colorway: '#E5267F',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lZaWFSeS6Y0uOoEzTGgCum7NY_OQwKzIY', label: 'Handel — Music for the Royal Fireworks' },
@@ -369,13 +369,13 @@ const CARNIVALE: ProjectDef = {
  * remains HELD (not approved) — its engine stays in lib/art/engines/ai/extra/halo/
  * but it is not registered and has no DB row. */
 const HALO_C: ProjectDef = {
-  slug: 'gridlock', displayName: 'GRIDLOCK', artistHandle: 'tracedeck-ai', outputs: 256,
+  slug: 'gridlock', displayName: 'GRIDLOCK', artistHandle: 'tracedeck-ai', outputs: 222,
   colorway: '#1bff8c', mintPriceEth: 0,
   soundtrack: { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
   aspects: HALOC_ASPECTS, traitSchema: haloCSchema, render: renderHaloC, traitsOf: haloCTraits,
 };
 const HALO_D: ProjectDef = {
-  slug: 'nave', displayName: 'NAVE', artistHandle: 'tracedeck-ai', outputs: 256,
+  slug: 'nave', displayName: 'NAVE', artistHandle: 'tracedeck-ai', outputs: 222,
   // Regal violet — the cathedral read, and keeps it distinct from GRIDLOCK's green.
   colorway: '#a96bff', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
@@ -384,7 +384,7 @@ const HALO_D: ProjectDef = {
 /* GLYPHSTORM — the platform HALO. glyphfield-ai (whose Teletext is the closest
    glyph/decode twin). Dark teal signature (Brendon 2026-06-20). */
 const HALO_B: ProjectDef = {
-  slug: 'glyphstorm', displayName: 'GLYPHSTORM', artistHandle: 'glyphfield-ai', outputs: 256,
+  slug: 'glyphstorm', displayName: 'GLYPHSTORM', artistHandle: 'glyphfield-ai', outputs: 222,
   colorway: '#0a1f2e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
   aspects: HALOB_ASPECTS, traitSchema: haloBSchema, render: renderHaloB, traitsOf: haloBTraits,
@@ -399,7 +399,7 @@ const TERMINAL_NETWORK: ProjectDef = {
   slug: 'terminal-network',
   displayName: 'Terminal Network',
   artistHandle: 'opus4-8',
-  outputs: 888,
+  outputs: 222,
   colorway: '#1f44d0',
   mintPriceEth: 0.1,
   soundtrack: { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
@@ -416,7 +416,7 @@ const LEVIATHAN: ProjectDef = {
   slug: 'leviathan',
   displayName: 'Leviathan',
   artistHandle: 'opus4-8',
-  outputs: 512,
+  outputs: 222,
   colorway: '#12C7B8',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lKktJtgCXM3uVSFKrGudMwXqWcFN9udPE', label: 'Hans Zimmer — Blue Planet II' },
@@ -434,7 +434,7 @@ const EMPYREAN: ProjectDef = {
   slug: 'empyrean',
   displayName: 'Empyrean',
   artistHandle: 'opus4-8',
-  outputs: 600,
+  outputs: 222,
   colorway: '#3A1D7A',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
@@ -456,7 +456,7 @@ const ELECTRUM: ProjectDef = {
   slug: 'electrum',
   displayName: 'Electrum',
   artistHandle: 'opus4-8',
-  outputs: 777,
+  outputs: 222,
   colorway: '#7a3cf0',
   mintPriceEth: 0.15,
   soundtrack: { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
@@ -475,7 +475,7 @@ const QUICKSILVER: ProjectDef = {
   slug: 'quicksilver',
   displayName: 'Quicksilver',
   artistHandle: 'opus4-8',
-  outputs: 512,
+  outputs: 222,
   colorway: '#ff7ae0',
   mintPriceEth: 0.12,
   soundtrack: { playlistId: 'OLAK5uy_lLSoxh_sHx8XnCj_mRTzkHxiUFX7PjFAE', label: 'Autechre — Amber' },
@@ -494,7 +494,7 @@ const LUSTRE: ProjectDef = {
   slug: 'lustre',
   displayName: 'Lustre',
   artistHandle: 'firstchannel-ai',
-  outputs: 333,
+  outputs: 222,
   colorway: '#F2B01E',
   mintPriceEth: 0.14,
   soundtrack: { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
@@ -508,7 +508,7 @@ const BLOOMWATER: ProjectDef = {
   slug: 'bloomwater',
   displayName: 'Bloomwater',
   artistHandle: 'overprint-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#1A2E8C',
   mintPriceEth: 0.1,
   soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
@@ -522,7 +522,7 @@ const VOLTAIC: ProjectDef = {
   slug: 'voltaic',
   displayName: 'Voltaic',
   artistHandle: 'filament-ai',
-  outputs: 444,
+  outputs: 222,
   colorway: '#A3FF12',
   mintPriceEth: 0.12,
   soundtrack: { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
@@ -536,7 +536,7 @@ const FACET: ProjectDef = {
   slug: 'facet',
   displayName: 'Facet',
   artistHandle: 'lapidary-ai',
-  outputs: 288,
+  outputs: 222,
   colorway: '#C9B6FF',
   mintPriceEth: 0.16,
   soundtrack: { playlistId: 'OLAK5uy_kS0xK-8stFnvAtN5wIIAidUD2MAXSOxAI', label: 'Sigur Rós — Ágætis byrjun' },
@@ -549,37 +549,37 @@ const FACET: ProjectDef = {
 /* ── Halo cohort (2026-06-28) — opus4-8 jury bake-off survivors, each under a
    new single-project AI artist, each owning a distinct colour territory. ── */
 const ORBITAL: ProjectDef = {
-  slug: 'orbital', displayName: 'Orbital', artistHandle: 'lowgravity-ai', outputs: 444,
+  slug: 'orbital', displayName: 'Orbital', artistHandle: 'lowgravity-ai', outputs: 222,
   colorway: '#ff5e5e', mintPriceEth: 0.08,
   soundtrack: { playlistId: 'OLAK5uy_muokP2ArFXF_yuj0Qnh_5_QmfFMpwqFj4', label: 'Air — Moon Safari' },
   aspects: ORBITAL_ASPECTS, traitSchema: orbitalSchema, render: renderOrbital, traitsOf: orbitalTraits,
 };
 const PRESSROOM: ProjectDef = {
-  slug: 'pressroom', displayName: 'Pressroom', artistHandle: 'offset-ai', outputs: 512,
+  slug: 'pressroom', displayName: 'Pressroom', artistHandle: 'offset-ai', outputs: 222,
   colorway: '#ff48a0', mintPriceEth: 0.05,
   soundtrack: { playlistId: 'PLWQigmFvFjPdvjrUyTTkpocV3KHfibXmO', label: 'Jet Set Radio — Original Soundtrack' },
   aspects: PRESSROOM_ASPECTS, traitSchema: pressroomSchema, render: renderPressroom, traitsOf: pressroomTraits,
 };
 const CINDER: ProjectDef = {
-  slug: 'cinder', displayName: 'Cinder', artistHandle: 'nightpour-ai', outputs: 333,
+  slug: 'cinder', displayName: 'Cinder', artistHandle: 'nightpour-ai', outputs: 222,
   colorway: '#ff7a18', mintPriceEth: 0.12,
   soundtrack: { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
   aspects: CINDER_ASPECTS, traitSchema: cinderSchema, render: renderCinder, traitsOf: cinderTraits,
 };
 const CATENARY: ProjectDef = {
-  slug: 'catenary', displayName: 'Catenary', artistHandle: 'headways-ai', outputs: 256,
+  slug: 'catenary', displayName: 'Catenary', artistHandle: 'headways-ai', outputs: 222,
   colorway: '#ffb02e', mintPriceEth: 0.1,
   soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: INTERCHANGE_ASPECTS, traitSchema: interchangeSchema, render: renderInterchange, traitsOf: interchangeTraits,
 };
 const TOPIARY: ProjectDef = {
-  slug: 'topiary', displayName: 'Topiary', artistHandle: 'nightlawn-ai', outputs: 360,
+  slug: 'topiary', displayName: 'Topiary', artistHandle: 'nightlawn-ai', outputs: 222,
   colorway: '#1fae5a', mintPriceEth: 0.07,
   soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
   aspects: TOPIARY_ASPECTS, traitSchema: topiarySchema, render: renderTopiary, traitsOf: topiaryTraits,
 };
 const SLACK_WATER: ProjectDef = {
-  slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'slacktide-ai', outputs: 288,
+  slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'slacktide-ai', outputs: 222,
   colorway: '#1ec8c8', mintPriceEth: 0.09,
   soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
   aspects: TIDEWORKS_ASPECTS, traitSchema: tideworksSchema, render: renderTideworks, traitsOf: tideworksTraits,
@@ -591,7 +591,7 @@ const VESPERS: ProjectDef = {
   slug: 'vespers',
   displayName: 'Vespers',
   artistHandle: 'firstchannel-ai',
-  outputs: 444,
+  outputs: 222,
   colorway: '#39ffbc',
   mintPriceEth: 0.2,
   soundtrack: { playlistId: 'OLAK5uy_kswdDmyW01XnMc4TobYm-ybFAfusEjxjc', label: 'Stars of the Lid — And Their Refinement of the Decline' },
@@ -607,7 +607,7 @@ const ARMILLARY: ProjectDef = {
   slug: 'armillary',
   displayName: 'Armillary',
   artistHandle: 'lapidary-ai',
-  outputs: 360,
+  outputs: 222,
   colorway: '#ff5de0',
   mintPriceEth: 0.15,
   soundtrack: { playlistId: 'OLAK5uy_lMwoLU2oHipofIEl9gqOY2E1jVqbHg5v0', label: 'Vangelis — Albedo 0.39' },
@@ -626,7 +626,7 @@ const MURMURATION: ProjectDef = {
   slug: 'murmuration',
   displayName: 'Murmuration',
   artistHandle: 'murmur-ai',
-  outputs: 729,
+  outputs: 222,
   colorway: '#1ce0ff',
   mintPriceEth: 0.15,
   soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
@@ -643,7 +643,7 @@ const TOKEH: ProjectDef = {
   slug: 'tokeh',
   displayName: 'Tokeh',
   artistHandle: 'coralline-ai',
-  outputs: 444,
+  outputs: 222,
   colorway: '#b14dff',
   mintPriceEth: 0.1,
   soundtrack: { playlistId: 'OLAK5uy_lCS1RuGli5eF1wKf8uJSisyzFsOYrY4AA', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
@@ -661,7 +661,7 @@ const CONSERVATORY: ProjectDef = {
   slug: 'conservatory',
   displayName: 'Conservatory',
   artistHandle: 'turing-ai',
-  outputs: 512,
+  outputs: 222,
   colorway: '#ff2e9e',
   mintPriceEth: 0.1,
   soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
@@ -754,57 +754,57 @@ function aiDef(
 }
 
 const AI_PROJECTS: readonly ProjectDef[] = [
-  aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 888, '#1C4428', 0.08, FAITH_ASPECTS, faithSchema, renderFaith, faithTraits),
+  aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 222, '#1C4428', 0.08, FAITH_ASPECTS, faithSchema, renderFaith, faithTraits),
   /* Renamed Delisted → Price Discovery (Brendon, 2026-06-16); keeps its own
      soundtrack key + engine. The former 'price-discovery' project was removed. */
-  aiDef('delisted', 'Price Discovery', 'lastprice-ai', 512, '#27C08A', 0.05, DELISTED_ASPECTS, delistedSchema, renderDelisted, delistedTraits),
-  aiDef('the-river-disagrees', 'The River Disagrees', 'countyline-ai', 256, '#36A8C8', 0.12, RIVER_ASPECTS, riverSchema, renderRiver, riverTraits),
-  aiDef('stars-nobody-named', 'Names Withheld', 'nightclerk-ai', 333, '#B026FF', 0.07, STARS_ASPECTS, starsSchema, renderStars, starsTraits),
-  aiDef('thank-you-no-refunds', 'Thank You, No Refunds', 'regfour-ai', 1024, '#FF5A8A', 0.02, REFUNDS_ASPECTS, refundsSchema, renderRefunds, refundsTraits),
-  aiDef('elevations', 'Elevations', 'walkup-ai', 404, '#3C5E8C', 0.06, ELEVATIONS_ASPECTS, elevationsSchema, renderElevations, elevationsTraits),
+  aiDef('delisted', 'Price Discovery', 'lastprice-ai', 222, '#27C08A', 0.05, DELISTED_ASPECTS, delistedSchema, renderDelisted, delistedTraits),
+  aiDef('the-river-disagrees', 'The River Disagrees', 'countyline-ai', 222, '#36A8C8', 0.12, RIVER_ASPECTS, riverSchema, renderRiver, riverTraits),
+  aiDef('stars-nobody-named', 'Names Withheld', 'nightclerk-ai', 222, '#B026FF', 0.07, STARS_ASPECTS, starsSchema, renderStars, starsTraits),
+  aiDef('thank-you-no-refunds', 'Thank You, No Refunds', 'regfour-ai', 222, '#FF5A8A', 0.02, REFUNDS_ASPECTS, refundsSchema, renderRefunds, refundsTraits),
+  aiDef('elevations', 'Elevations', 'walkup-ai', 222, '#3C5E8C', 0.06, ELEVATIONS_ASPECTS, elevationsSchema, renderElevations, elevationsTraits),
   aiDef('dyed-in-the-wool', 'Dyed In The Wool', 'dyelot-ai', 222, '#C84A98', 0.15, WOOL_ASPECTS, woolSchema, renderWool, woolTraits),
-  aiDef('noise-from-below', 'Noise From Below', 'fathom-ai', 128, '#8A6E3C', 0.18, BELOW_ASPECTS, belowSchema, renderBelow, belowTraits),
-  aiDef('letters-never-sent', 'Letters Never Sent', 'deadletter-ai', 96, '#D61A3C', 0.21, LETTERS_ASPECTS, lettersSchema, renderLetters, lettersTraits),
-  aiDef('crosstown', 'Crosstown', 'nightnetwork-ai', 144, '#1D4FB8', 0.22, CROSSTOWN_ASPECTS, crosstownSchema, renderCrosstown, crosstownTraits),
-  aiDef('average-contents-forty', 'Average Contents Forty', 'strikeanywhere-ai', 640, '#FF7A2B', 0.04, CONTENTS_ASPECTS, contentsSchema, renderContents, contentsTraits),
-  aiDef('crossette', 'Use Once, Remember Always', 'shellcount-ai', 365, '#FFD514', 0.09, CROSSETTE_ASPECTS, crossetteSchema, renderCrossette, crossetteTraits),
-  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'rowseven-ai', 500, '#0F8A3C', 0.05, GROW_ASPECTS, growSchema, renderGrow, growTraits),
-  aiDef('wait-till-next-year', 'Wait Till Next Year', 'homestand-ai', 162, '#2F7D4F', 0.11, NEXTYEAR_ASPECTS, nextYearSchema, renderNextYear, nextYearTraits),
-  aiDef('every-light-in-town', 'Every Light In Town', 'bsides-ai', 450, '#E0202E', 0.06, EVERYLIGHT_ASPECTS, everyLightSchema, renderEveryLight, everyLightTraits),
-  aiDef('nobodys-swimming', "Nobody's Swimming", 'deepend-ai', 288, '#2BB8E8', 0.1, SWIMMING_ASPECTS, swimmingSchema, renderSwimming, swimmingTraits),
-  aiDef('between-the-lines', 'Between The Lines', 'secondplate-ai', 200, '#00E5FF', 0.14, BETWEEN_ASPECTS, betweenSchema, renderBetween, betweenTraits),
-  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'overprint-ai', 600, '#FF2BD1', 0.04, CHEAPPAPER_ASPECTS, cheapPaperSchema, renderCheapPaper, cheapPaperTraits),
-  aiDef('scissors-no-plan', 'Hard Splice', 'nogluedrying-ai', 350, '#FF005C', 0.08, SCISSORS_ASPECTS, scissorsSchema, renderScissors, scissorsTraits),
-  aiDef('hard-water', 'Hard Water', 'flatsea-ai', 99, '#7A00CC', 0.25, HARDWATER_ASPECTS, hardWaterSchema, renderHardWater, hardWaterTraits),
-  aiDef('turf-war', 'Turf War', 'adjacency-ai', 200, '#C8FF00', 0.09, TURFWAR_ASPECTS, turfWarSchema, renderTurfWar, turfWarTraits),
-  aiDef('avalanche', 'Avalanche', 'graincount-ai', 128, '#7FFFD4', 0.16, AVALANCHE_ASPECTS, avalancheSchema, renderAvalanche, avalancheTraits),
+  aiDef('noise-from-below', 'Noise From Below', 'fathom-ai', 222, '#8A6E3C', 0.18, BELOW_ASPECTS, belowSchema, renderBelow, belowTraits),
+  aiDef('letters-never-sent', 'Letters Never Sent', 'deadletter-ai', 222, '#D61A3C', 0.21, LETTERS_ASPECTS, lettersSchema, renderLetters, lettersTraits),
+  aiDef('crosstown', 'Crosstown', 'nightnetwork-ai', 222, '#1D4FB8', 0.22, CROSSTOWN_ASPECTS, crosstownSchema, renderCrosstown, crosstownTraits),
+  aiDef('average-contents-forty', 'Average Contents Forty', 'strikeanywhere-ai', 222, '#FF7A2B', 0.04, CONTENTS_ASPECTS, contentsSchema, renderContents, contentsTraits),
+  aiDef('crossette', 'Use Once, Remember Always', 'shellcount-ai', 222, '#FFD514', 0.09, CROSSETTE_ASPECTS, crossetteSchema, renderCrossette, crossetteTraits),
+  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'rowseven-ai', 222, '#0F8A3C', 0.05, GROW_ASPECTS, growSchema, renderGrow, growTraits),
+  aiDef('wait-till-next-year', 'Wait Till Next Year', 'homestand-ai', 222, '#2F7D4F', 0.11, NEXTYEAR_ASPECTS, nextYearSchema, renderNextYear, nextYearTraits),
+  aiDef('every-light-in-town', 'Every Light In Town', 'bsides-ai', 222, '#E0202E', 0.06, EVERYLIGHT_ASPECTS, everyLightSchema, renderEveryLight, everyLightTraits),
+  aiDef('nobodys-swimming', "Nobody's Swimming", 'deepend-ai', 222, '#2BB8E8', 0.1, SWIMMING_ASPECTS, swimmingSchema, renderSwimming, swimmingTraits),
+  aiDef('between-the-lines', 'Between The Lines', 'secondplate-ai', 222, '#00E5FF', 0.14, BETWEEN_ASPECTS, betweenSchema, renderBetween, betweenTraits),
+  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'overprint-ai', 222, '#FF2BD1', 0.04, CHEAPPAPER_ASPECTS, cheapPaperSchema, renderCheapPaper, cheapPaperTraits),
+  aiDef('scissors-no-plan', 'Hard Splice', 'nogluedrying-ai', 222, '#FF005C', 0.08, SCISSORS_ASPECTS, scissorsSchema, renderScissors, scissorsTraits),
+  aiDef('hard-water', 'Hard Water', 'flatsea-ai', 222, '#7A00CC', 0.25, HARDWATER_ASPECTS, hardWaterSchema, renderHardWater, hardWaterTraits),
+  aiDef('turf-war', 'Turf War', 'adjacency-ai', 222, '#C8FF00', 0.09, TURFWAR_ASPECTS, turfWarSchema, renderTurfWar, turfWarTraits),
+  aiDef('avalanche', 'Avalanche', 'graincount-ai', 222, '#7FFFD4', 0.16, AVALANCHE_ASPECTS, avalancheSchema, renderAvalanche, avalancheTraits),
   /* ── new cohort (2026-06-13) ── */
-  aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 512, '#5865f2', 0.03, CHATROOM_ASPECTS, chatroomSchema, renderChatroom, chatroomTraits),
-  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 333, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
-  aiDef('teletext', 'Teletext', 'glyphfield-ai', 360, '#33ff66', 0.07, ASCII_ASPECTS, asciiSchema, renderAscii, asciiTraits),
-  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 600, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
-  aiDef('konkret', 'Konkret', 'konkret-ai', 200, '#c0392b', 0.09, KONKRET_ASPECTS, konkretSchema, renderKonkret, konkretTraits),
-  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 200, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
-  aiDef('materia', 'The Lapidary', 'lapidary-ai', 333, '#9a9a93', 0.08, MATERIA_ASPECTS, materiaSchema, renderMateria, materiaTraits),
+  aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 222, '#5865f2', 0.03, CHATROOM_ASPECTS, chatroomSchema, renderChatroom, chatroomTraits),
+  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 222, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
+  aiDef('teletext', 'Teletext', 'glyphfield-ai', 222, '#33ff66', 0.07, ASCII_ASPECTS, asciiSchema, renderAscii, asciiTraits),
+  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 222, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
+  aiDef('konkret', 'Konkret', 'konkret-ai', 222, '#c0392b', 0.09, KONKRET_ASPECTS, konkretSchema, renderKonkret, konkretTraits),
+  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 222, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
+  aiDef('materia', 'The Lapidary', 'lapidary-ai', 222, '#9a9a93', 0.08, MATERIA_ASPECTS, materiaSchema, renderMateria, materiaTraits),
   aiDef('diffusion', 'Turing’s Garden', 'turing-ai', 222, '#3D9B6C', 0.18, DIFFUSION_ASPECTS, diffusionSchema, renderDiffusion, diffusionTraits),
   aiDef('growth', 'Coral Logic', 'coralline-ai', 222, '#00e5c8', 0.16, GROWTH_ASPECTS, growthSchema, renderGrowth, growthTraits),
-  aiDef('pigment', 'Divided Light', 'divisionist-ai', 256, '#1e88e5', 0.1, PIGMENT_ASPECTS, pigmentSchema, renderPigment, pigmentTraits),
-  aiDef('filament', 'Filament', 'filament-ai', 200, '#7a2a22', 0.12, ISKRA_ASPECTS, iskraSchema, renderIskra, iskraTraits),
-  aiDef('junction', 'Crossed Wires', 'truchet-ai', 333, '#2ad4ff', 0.05, JUNCTION_ASPECTS, junctionSchema, renderJunction, junctionTraits),
-  aiDef('asterism', 'Asterism', 'nightclerk-ai', 333, '#5a7bd8', 0.07, ASTERISM_ASPECTS, asterismSchema, renderAsterism, asterismTraits),
-  aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 300, '#CC6B49', 0.06, SEEDHEAD_ASPECTS, seedheadSchema, renderSeedhead, seedheadTraits),
-  aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 333, '#2bd47a', 0.06, CIRCUIT_ASPECTS, circuitSchema, renderCircuit, circuitTraits),
+  aiDef('pigment', 'Divided Light', 'divisionist-ai', 222, '#1e88e5', 0.1, PIGMENT_ASPECTS, pigmentSchema, renderPigment, pigmentTraits),
+  aiDef('filament', 'Filament', 'filament-ai', 222, '#7a2a22', 0.12, ISKRA_ASPECTS, iskraSchema, renderIskra, iskraTraits),
+  aiDef('junction', 'Crossed Wires', 'truchet-ai', 222, '#2ad4ff', 0.05, JUNCTION_ASPECTS, junctionSchema, renderJunction, junctionTraits),
+  aiDef('asterism', 'Asterism', 'nightclerk-ai', 222, '#5a7bd8', 0.07, ASTERISM_ASPECTS, asterismSchema, renderAsterism, asterismTraits),
+  aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 222, '#CC6B49', 0.06, SEEDHEAD_ASPECTS, seedheadSchema, renderSeedhead, seedheadTraits),
+  aiDef('circuit', 'Trace Routes', 'tracedeck-ai', 222, '#2bd47a', 0.06, CIRCUIT_ASPECTS, circuitSchema, renderCircuit, circuitTraits),
   /* ── new set (2026-06-18): a second project for four single-project artists ── */
-  aiDef('setback', 'Setback', 'walkup-ai', 404, '#e0552e', 0.08, SETBACK_ASPECTS, setbackSchema, renderSetback, setbackTraits),
-  aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 256, '#13a89e', 0.06, SIMULTANEOUS_ASPECTS, simultaneousSchema, renderSimultaneous, simultaneousTraits),
-  aiDef('strata', 'Strata', 'dyelot-ai', 333, '#a8455e', 0.07, STRATA_ASPECTS, strataSchema, renderStrata, strataTraits),
+  aiDef('setback', 'Setback', 'walkup-ai', 222, '#e0552e', 0.08, SETBACK_ASPECTS, setbackSchema, renderSetback, setbackTraits),
+  aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 222, '#13a89e', 0.06, SIMULTANEOUS_ASPECTS, simultaneousSchema, renderSimultaneous, simultaneousTraits),
+  aiDef('strata', 'Strata', 'dyelot-ai', 222, '#a8455e', 0.07, STRATA_ASPECTS, strataSchema, renderStrata, strataTraits),
   /* ── new cohort (2026-06-19): five fresh projects — a 3rd for divisionist-ai
      and a 2nd each for countyline / fathom / deepend / shellcount. ── */
-  aiDef('spectra', 'Spectra', 'nightclerk-ai', 256, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
-  aiDef('contour-interval', 'Contour Interval', 'countyline-ai', 333, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
+  aiDef('spectra', 'Spectra', 'nightclerk-ai', 222, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
+  aiDef('contour-interval', 'Contour Interval', 'countyline-ai', 222, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
   aiDef('soundings', 'Soundings', 'fathom-ai', 222, '#05131e', 0.12, SOUNDINGS_ASPECTS, soundingsSchema, renderSoundings, soundingsTraits),
-  aiDef('shallow-end', 'Shallow End', 'deepend-ai', 300, '#0a6e7a', 0.06, SHALLOW_ASPECTS, shallowSchema, renderShallow, shallowTraits),
-  aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 288, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
+  aiDef('shallow-end', 'Shallow End', 'deepend-ai', 222, '#0a6e7a', 0.06, SHALLOW_ASPECTS, shallowSchema, renderShallow, shallowTraits),
+  aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 222, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
 
 /* ── HALO surreal cohort (2026-06-28) ─────────────────────────────────────
@@ -817,25 +817,25 @@ const AI_PROJECTS: readonly ProjectDef[] = [
  */
 // (merged alongside the VESPERS/ARMILLARY + surreal-vista cohorts already on dev)
 const LOADED_QUESTION: ProjectDef = {
-  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'foolscap-ai', outputs: 777,
+  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'foolscap-ai', outputs: 222,
   colorway: '#f7c400', mintPriceEth: 0,
   soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
   aspects: LOADEDQUESTION_ASPECTS, traitSchema: loadedQuestionSchema, render: renderLoadedQuestion, traitsOf: loadedQuestionTraits,
 };
 const PROVENANCE: ProjectDef = {
-  slug: 'provenance', displayName: 'Provenance', artistHandle: 'foolscap-ai', outputs: 256,
+  slug: 'provenance', displayName: 'Provenance', artistHandle: 'foolscap-ai', outputs: 222,
   colorway: '#b23a2e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
   aspects: PROVENANCE_ASPECTS, traitSchema: provenanceSchema, render: renderProvenance, traitsOf: provenanceTraits,
 };
 const DATUM: ProjectDef = {
-  slug: 'datum', displayName: 'Datum', artistHandle: 'foolscap-ai', outputs: 333,
+  slug: 'datum', displayName: 'Datum', artistHandle: 'foolscap-ai', outputs: 222,
   colorway: '#14365e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   aspects: DATUM_ASPECTS, traitSchema: datumSchema, render: renderDatum, traitsOf: datumTraits,
 };
 const OFF_REGISTER: ProjectDef = {
-  slug: 'off-register', displayName: 'Off Register', artistHandle: 'newsprint-ai', outputs: 256,
+  slug: 'off-register', displayName: 'Off Register', artistHandle: 'newsprint-ai', outputs: 222,
   colorway: '#ff5a3c', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: OFFREGISTER_ASPECTS, traitSchema: offRegisterSchema, render: renderOffRegister, traitsOf: offRegisterTraits,
@@ -847,7 +847,7 @@ const INTERFERENCE: ProjectDef = {
   aspects: INTERFERENCE_ASPECTS, traitSchema: interferenceSchema, render: renderInterference, traitsOf: interferenceTraits,
 };
 const AGAINST_LIGHT: ProjectDef = {
-  slug: 'against-the-light', displayName: 'Against The Light', artistHandle: 'veil-ai', outputs: 256,
+  slug: 'against-the-light', displayName: 'Against The Light', artistHandle: 'veil-ai', outputs: 222,
   colorway: '#b8a070', mintPriceEth: 0,
   soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: AGAINSTLIGHT_ASPECTS, traitSchema: againstLightSchema, render: renderAgainstLight, traitsOf: againstLightTraits,
@@ -859,13 +859,13 @@ const DRAPERY: ProjectDef = {
   aspects: DRAPERY_ASPECTS, traitSchema: draperySchema, render: renderDrapery, traitsOf: draperyTraits,
 };
 const VESTIBULE: ProjectDef = {
-  slug: 'vestibule', displayName: 'Vestibule', artistHandle: 'umbra-ai', outputs: 256,
+  slug: 'vestibule', displayName: 'Vestibule', artistHandle: 'umbra-ai', outputs: 222,
   colorway: '#c2613b', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
   aspects: VESTIBULE_ASPECTS, traitSchema: vestibuleSchema, render: renderVestibule, traitsOf: vestibuleTraits,
 };
 const NOISE_BELOW_2: ProjectDef = {
-  slug: 'noise-from-below-2', displayName: 'Noise From Below 2', artistHandle: 'fathom-ai', outputs: 128,
+  slug: 'noise-from-below-2', displayName: 'Noise From Below 2', artistHandle: 'fathom-ai', outputs: 222,
   colorway: '#8A6E3C', mintPriceEth: 0,
   soundtrack: { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
   aspects: BELOW2_ASPECTS, traitSchema: below2Schema, render: renderBelow2, traitsOf: below2Traits,
@@ -880,7 +880,7 @@ const LONG_NOON: ProjectDef = {
   slug: 'long-noon',
   displayName: 'Long Noon',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#B07C3C',
   mintPriceEth: 0,
   soundtrack: null,
@@ -894,7 +894,7 @@ const SAP_RISING: ProjectDef = {
   slug: 'sap-rising',
   displayName: 'Sap Rising',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#7E8C76',
   mintPriceEth: 0,
   soundtrack: null,
@@ -908,7 +908,7 @@ const COLD_JOINT: ProjectDef = {
   slug: 'cold-joint',
   displayName: 'Cold Joint',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#8A9488',
   mintPriceEth: 0,
   soundtrack: null,
@@ -922,7 +922,7 @@ const RIME: ProjectDef = {
   slug: 'rime',
   displayName: 'Rime',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#3C7E8E',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLobEMHfBbtTa4_I_EuEAPoBA_94TxDGz-', label: 'Biosphere — Arctic Ambient' },
@@ -936,7 +936,7 @@ const LAST_LAMP: ProjectDef = {
   slug: 'last-lamp',
   displayName: 'Last Lamp',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#E5A36A',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLQz6PJ04bouOH_ntfdWhnOXIAW74Cxywa', label: 'Bohren & der Club of Gore — Sunset Mission' },
@@ -950,7 +950,7 @@ const VANITAS: ProjectDef = {
   slug: 'vanitas',
   displayName: 'Vanitas',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#6E2A26',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_nnGLS5r8Q3tsdQNJXHA6IXqppW7TLmgAM', label: 'Jóhann Jóhannsson — Orphée' },
@@ -964,7 +964,7 @@ const MINIUM: ProjectDef = {
   slug: 'minium',
   displayName: 'Minium',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#A8543A',
   mintPriceEth: 0,
   soundtrack: null,
@@ -978,7 +978,7 @@ const NOCTILUCENT: ProjectDef = {
   slug: 'noctilucent',
   displayName: 'Noctilucent',
   artistHandle: 'opus4-8',
-  outputs: 256,
+  outputs: 222,
   colorway: '#9FC4DA',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLvsYXqtYjMYd1On1Rqof9AboHuAkOcZ5A', label: 'Loscil — Clara' },
@@ -992,7 +992,7 @@ const DEAD_RECKONING: ProjectDef = {
   slug: 'dead-reckoning',
   displayName: 'Dead Reckoning',
   artistHandle: 'opus4-8',
-  outputs: 217,
+  outputs: 222,
   colorway: '#7E8C91',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLDE6874E48524BA11', label: 'Eluvium — Talk Amongst the Trees' },
@@ -1008,7 +1008,7 @@ const AFTER_GRAVITY: ProjectDef = {
   slug: 'after-gravity',
   displayName: 'After Gravity',
   artistHandle: 'umbra-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#2E5FA3',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1022,7 +1022,7 @@ const VANGUARD: ProjectDef = {
   slug: 'vanguard',
   displayName: 'Vanguard',
   artistHandle: 'tracedeck-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#D02E22',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1036,7 +1036,7 @@ const QUIET_MUTINY: ProjectDef = {
   slug: 'quiet-mutiny',
   displayName: 'Quiet Mutiny',
   artistHandle: 'foolscap-ai',
-  outputs: 333,
+  outputs: 222,
   colorway: '#2B2A28',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1050,7 +1050,7 @@ const ANDANTE: ProjectDef = {
   slug: 'andante',
   displayName: 'Andante',
   artistHandle: 'lowgravity-ai',
-  outputs: 288,
+  outputs: 222,
   colorway: '#2D52C9',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1092,7 +1092,7 @@ const JAZZ: ProjectDef = {
   slug: 'jazz',
   displayName: 'Jazz',
   artistHandle: 'newsprint-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#E8643C',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1106,7 +1106,7 @@ const REVERIE: ProjectDef = {
   slug: 'reverie',
   displayName: 'Reverie',
   artistHandle: 'veil-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#C98B86',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1120,7 +1120,7 @@ const CADENCE: ProjectDef = {
   slug: 'cadence',
   displayName: 'Cadence',
   artistHandle: 'foolscap-ai',
-  outputs: 288,
+  outputs: 222,
   colorway: '#1D4E89',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1134,7 +1134,7 @@ const APERTURE: ProjectDef = {
   slug: 'aperture',
   displayName: 'Aperture',
   artistHandle: 'lapidary-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#1C8C7A',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1162,7 +1162,7 @@ const STILLPOINT: ProjectDef = {
   slug: 'stillpoint',
   displayName: 'Stillpoint',
   artistHandle: 'umbra-ai',
-  outputs: 333,
+  outputs: 222,
   colorway: '#C0392B',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_l61jyu2-HfVxbgW4KFUruUOjU56T0az-s', label: 'Alice Coltrane — Journey in Satchidananda' },
@@ -1176,7 +1176,7 @@ const CHLADNI: ProjectDef = {
   slug: 'chladni',
   displayName: 'Chladni',
   artistHandle: 'murmur-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#C7A878',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1190,7 +1190,7 @@ const CAUSTICS: ProjectDef = {
   slug: 'caustics',
   displayName: 'Caustics',
   artistHandle: 'slacktide-ai',
-  outputs: 288,
+  outputs: 222,
   colorway: '#1FA6A0',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1218,7 +1218,7 @@ const FROST_FERN: ProjectDef = {
   slug: 'frost-fern',
   displayName: 'Frost Fern',
   artistHandle: 'coralline-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#8FC7E0',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1232,7 +1232,7 @@ const CYANOTYPE: ProjectDef = {
   slug: 'cyanotype',
   displayName: 'Cyanotype',
   artistHandle: 'overprint-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#2A4A8C',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1246,7 +1246,7 @@ const KINTSUGI: ProjectDef = {
   slug: 'kintsugi',
   displayName: 'Kintsugi',
   artistHandle: 'lapidary-ai',
-  outputs: 333,
+  outputs: 222,
   colorway: '#C9A227',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1274,7 +1274,7 @@ const EVAPORATE: ProjectDef = {
   slug: 'evaporate',
   displayName: 'Evaporate',
   artistHandle: 'overprint-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#8A5A3C',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1288,7 +1288,7 @@ const ENCAUSTIC: ProjectDef = {
   slug: 'encaustic',
   displayName: 'Encaustic',
   artistHandle: 'firstchannel-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#D9A24E',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1302,7 +1302,7 @@ const PATINA: ProjectDef = {
   slug: 'patina',
   displayName: 'Patina',
   artistHandle: 'fathom-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#3E8C6E',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1348,7 +1348,7 @@ const NARTHEX: ProjectDef = {
   slug: 'narthex',
   displayName: 'Narthex',
   artistHandle: 'veil-ai',
-  outputs: 333,
+  outputs: 222,
   colorway: '#2A2B2F',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLQNHYNv9IpSzzaQMuH7ji2bEy6o8T8Wwn', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
@@ -1361,7 +1361,7 @@ const SECOND_SUN: ProjectDef = {
   slug: 'secondsun',
   displayName: 'Second Sun',
   artistHandle: 'filament-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#E8895A',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1374,7 +1374,7 @@ const SLACK_TIDE: ProjectDef = {
   slug: 'slacktide',
   displayName: 'Slack Tide',
   artistHandle: 'fathom-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#6F8A86',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1387,7 +1387,7 @@ const APPOINTMENT: ProjectDef = {
   slug: 'appointment',
   displayName: 'The Appointment',
   artistHandle: 'umbra-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#C98B86',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1400,7 +1400,7 @@ const CABINET: ProjectDef = {
   slug: 'cabinet',
   displayName: 'Cabinet',
   artistHandle: 'lapidary-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#6B7A52',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1413,7 +1413,7 @@ const OVERCAST: ProjectDef = {
   slug: 'overcast',
   displayName: 'Overcast',
   artistHandle: 'murmur-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#5B6470',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1426,7 +1426,7 @@ const STILL_RAIN: ProjectDef = {
   slug: 'stillrain',
   displayName: 'Still Rain',
   artistHandle: 'deepend-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#6E8794',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1439,7 +1439,7 @@ const PAPER_COUNTRY: ProjectDef = {
   slug: 'papercountry',
   displayName: 'Paper Country',
   artistHandle: 'graincount-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#B7AB97',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1452,7 +1452,7 @@ const BALLAST: ProjectDef = {
   slug: 'ballast',
   displayName: 'Ballast',
   artistHandle: 'stellar-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#4E5A66',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1465,7 +1465,7 @@ const SALT_MIRROR: ProjectDef = {
   slug: 'saltmirror',
   displayName: 'Salt Mirror',
   artistHandle: 'flatsea-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#BCA89E',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1478,7 +1478,7 @@ const EVENING_ROOMS: ProjectDef = {
   slug: 'eveningrooms',
   displayName: 'Evening Rooms',
   artistHandle: 'afterhours-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#B07C3E',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1491,7 +1491,7 @@ const VESTMENT: ProjectDef = {
   slug: 'vestment',
   displayName: 'Vestment',
   artistHandle: 'glyphfield-ai',
-  outputs: 256,
+  outputs: 222,
   colorway: '#7A2E2A',
   mintPriceEth: 0,
   soundtrack: null,
@@ -1575,20 +1575,79 @@ export function findProjectByTrueName(name: string): ProjectDef | null {
   return slug ? getProject(slug) : null;
 }
 
+/* The Artwork's stored image lives in Cloudflare storage (standing in for
+   Arweave): `${ART_IMAGE_BASE}/{slug}/{tokenId}.png`. When a base is configured
+   the whole app draws the STORED image everywhere the Artwork appears — cards,
+   grids, thumbnails, home, profiles, bench, search — instead of running the
+   generative engine. The ONE exception is the Output's own feature page, which
+   asks for the live render (`live: true`). Empty base ⇒ the app renders live as
+   before (safe default before images are uploaded). */
+export const ART_IMAGE_BASE = (process.env.NEXT_PUBLIC_ART_IMAGE_BASE || '').replace(/\/+$/, '');
+
+/* The stored-image path is asynchronous (an Image load), and callers REUSE one
+   canvas for different tokens over time — the quick-look modal's prev/next and
+   the virtualized grid both repaint the same canvas node. This tracks the token
+   currently targeted at each canvas so a slow image that resolves after the
+   canvas has moved on can't paint stale art over the newer token. */
+const artDrawKey = new WeakMap<HTMLCanvasElement, string>();
+
 /**
  * Render an Output's Artwork by slug. Sizes the canvas, returns aspect +
  * the Output's full traits (artist traits + Fate). Unknown slug → no paint,
  * square aspect, Fate-only traits (keeps callers safe during data drift).
+ *
+ * When `ART_IMAGE_BASE` is set and `live` is not requested, the stored image is
+ * drawn onto the canvas instead of the live engine — this is the app-wide
+ * default so every surface shows the Cloudflare-hosted picture. The feature
+ * page passes `live: true` to keep the real generative render.
  */
 export function renderArtwork(
   canvas: HTMLCanvasElement,
   slug: string,
   tokenId: number,
   width: number,
+  live = false,
 ): { aspect: number; traits: OutputTraits } {
   const project = getProject(slug);
   if (!project) {
     return { aspect: 1, traits: { Fate: outputFate(slug, tokenId) } };
+  }
+  // Claim this canvas for the current token so any in-flight async stored draw
+  // for a previously-requested token (canvas reuse) is invalidated below.
+  const drawKey = `${slug}:${tokenId}`;
+  artDrawKey.set(canvas, drawKey);
+  if (!live && ART_IMAGE_BASE) {
+    const traits = { ...project.traitsOf(tokenId), Fate: outputFate(slug, tokenId) };
+    // Draw the stored image onto the same canvas the engine would have used, so
+    // every existing surface (layout, virtualizer, hover) keeps working unchanged.
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    img.onload = () => {
+      if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
+      const ctx = canvas.getContext('2d');
+      if (!ctx || !img.naturalWidth) return;
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      // Correct the container's aspect to the real image once it's known
+      // (callers set a provisional ratio from the sync return below).
+      const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
+      if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
+    };
+    img.onerror = () => {
+      if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
+      // No stored preview yet (a just-minted piece before its pin lands, or a
+      // failed pin) — never leave a blank tile. Fall back to the live engine,
+      // exactly as the app rendered before stored images existed. Mirrors the
+      // contract's on-chain placeholder shown until the Arweave preview is pinned.
+      try { project.render(canvas, tokenId, width); } catch { /* unknown engine */ }
+    };
+    img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
+    // Provisional aspect from the project's palette keeps layout from collapsing
+    // to zero height before the image loads; onload corrects it exactly.
+    return { aspect: project.aspects?.[0] ?? 1, traits };
   }
   const res = project.render(canvas, tokenId, width);
   return { aspect: res.aspect, traits: { ...res.traits, Fate: outputFate(slug, tokenId) } };
