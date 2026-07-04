@@ -399,6 +399,13 @@ explicit chat confirmation.
   Pixel proof needs a headless browser (not installed in the container; install
   Playwright only if truly required) — short of that, build + compiled-asset
   inspection IS the proof.
+- **Contract work (`pd-contracts`): the Foundry test env has a known
+  bootstrap.** The container ships no `forge`, `foundryup`/GitHub release
+  downloads 403 through the proxy, and `lib/` is gitignored — so a fresh clone
+  can't build until you set it up. **Don't rediscover it — `pd-contracts` has
+  its own `CLAUDE.md` with the exact copy-paste recipe** (forge from npm, deps
+  from soldeer, symlinked into `lib/`; ~1 min to 284 tests green). Read that
+  file before touching contract tests.
 - **Confirm the deploy is the one being viewed before pointing Brendon at it.**
   The recurring rage this session: he screenshots a STALE preview (old commit)
   and "the fix isn't there." Before claiming a change is visible, verify the
