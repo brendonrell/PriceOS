@@ -284,7 +284,11 @@ function ProfilePageBodyInner({
        gate or delay the base paint above. */
     useEffect(() => {
         if (!isOwnProfile) return;
-        if (myProfileHex && myProfileHex.toUpperCase() !== PROFILE_HEX_DEFAULT) {
+        /* Reflect the live pick verbatim — including Matrix White (#E0E0E0),
+           which equals the "unset" default sentinel. Guarding it out made that
+           one pill a no-op; painting it is correct (it resolves to the same
+           light background the default already uses). */
+        if (myProfileHex) {
             setActiveProfileHex(myProfileHex);
         }
     }, [isOwnProfile, myProfileHex, setActiveProfileHex]);
