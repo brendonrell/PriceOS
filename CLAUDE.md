@@ -76,8 +76,8 @@ win** — update this file in place and note it.
 >   silently push somewhere else and call it done.
 > This is the single most-violated rule in the repo. Re-read it before every push.
 
-> **We work on `dev`. The dev preview
-> (`https://price-os-git-dev-pricediscussion.vercel.app`) IS the app** — the one
+> **We work on `dev`. The Cloudflare preview
+> (`https://pricediscussion.pricediscussion.workers.dev/`) IS the app** — the one
 > environment we build and verify against. Not a personal setting, not optional.
 > Verify every change here before claiming it done. Never attribute a bug to
 > settings/cache/browser — diagnose the code/deploy.
@@ -167,15 +167,13 @@ web3 social platform where the community discussing prices is the product.
 
 - Stack: Next.js 14 (App Router) · React 18 · TypeScript · raw CSS · Supabase ·
   SIWE · wagmi/viem · Alchemy.
-- Deploy: **Cloudflare Pages** (migrated off Vercel, 2026-07 — Brendon). `dev`
-  branch → preview, `main` → production.
-  > ⚠️ **STALE-URL FLAG (2026-07-04):** the old Vercel preview URL
-  > (`price-os-git-dev-pricediscussion.vercel.app`) and every "Vercel" mention
-  > below (§0 preview URL, §4 "Vercel preview URLs", §6 "Vercel MCP deployment
-  > status") are LEFTOVERS from the Vercel era — the platform is Cloudflare Pages
-  > now. Deploy verification + the live preview URL should use Cloudflare; the
-  > exact current preview URL needs confirming before pointing Brendon at it.
-  > Left in place (not guessed) pending the real Cloudflare specifics.
+- Deploy: **Cloudflare** (migrated off Vercel, 2026-07 — Brendon). Runs as a
+  Worker named `pricediscussion`. **Live preview URL:**
+  `https://pricediscussion.pricediscussion.workers.dev/` — publicly reachable AND
+  fetchable from the build container via WebFetch (no more 403), so the deploy can
+  be verified directly. The **Cloudflare connector** (Workers / KV / R2 / D1) is
+  available for infra. Branch→deploy wiring is still being finished (Brendon,
+  2026-07-04); `dev` = what we build/verify, `main` → production.
 
 ## 2. The PD repo ecosystem
 
@@ -350,7 +348,7 @@ explicit chat confirmation.
 > 3. On PUSH/APPROVED — **merge to `dev` and push `dev`**, confirm in one line,
 >    **STOP**, stand by for edits.
 > Do **NOT**, unprompted: pitch a PR, explain what a PR/merge/branch is, hunt for
-> Vercel preview URLs, re-explain the process, or ask "want me to…". If he wants
+> preview URLs, re-explain the process, or ask "want me to…". If he wants
 > a merge or a PR he'll say so. Any extra step is noise and reads as broken.
 > "Standing by for edits." is the whole reply after the push to dev.
 
@@ -403,13 +401,13 @@ explicit chat confirmation.
   inspection IS the proof.
 - **Confirm the deploy is the one being viewed before pointing Brendon at it.**
   The recurring rage this session: he screenshots a STALE preview (old commit)
-  and "the fix isn't there." Before claiming a change is visible, confirm the
-  dev deploy is current via the **Vercel MCP deployment status** (authoritative).
-  The dev preview URL **403s from the build container**, so curl-from-here is NOT
-  a valid check — use the Vercel MCP. Never blame his cache/device.
+  and "the fix isn't there." Before claiming a change is visible, verify the
+  Cloudflare preview directly — it's publicly reachable and **fetchable from the
+  build container via WebFetch** (no more 403), and the Cloudflare connector shows
+  the Worker's deploy state. Never blame his cache/device.
 - Clone + grep before describing repo state. Grep every consumer of a renamed
   export or shape-changed type before declaring file scope.
-- After a Vercel deploy reaches READY, open the dev URL and verify the changed
+- After a Cloudflare deploy is live, open the preview URL and verify the changed
   surface actually renders.
 - Verify Supabase column names via the Supabase MCP before writing triggers.
 - Front-load recon greps/views into one parallel batch.
