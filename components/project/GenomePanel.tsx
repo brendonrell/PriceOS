@@ -3,53 +3,91 @@
 /*
  * components/project/GenomePanel.tsx — The Genome ◎ (parameter-space map).
  *
- * Replaces the static +More "Genome" placeholder. Every minted Output is a
- * point placed by its REAL trait / Fate / palette combination (lib/output/
- * genome.ts): pieces that share values cluster; genuinely unusual ones drift to
- * the edges. Colour + size encode Isolation — the loneliest pieces glow in the
- * colorway. Drag to explore (the readout tracks the piece under your finger);
- * tap a point to open it.
+ * Every minted Output is a point placed by its REAL trait / Fate / palette
+ * combination (lib/output/genome). Beyond the base map it now:
+ *   • KIN — tap a point and its nearest relatives in the space light up, lines
+ *     drawn to each: "here's its family."
+ *   • YOUR CONSTELLATION — your holdings wear a ring; the MINE lens dims the
+ *     rest and joins your pieces, showing whether you collect tight or wide.
+ *   • LIVE PULSE — pieces listed on the market breathe, so the map reads as a
+ *     living surface, not a static chart.
  *
- * Same widget family as ReplayPanel — the card, the readout, the canvas motion,
- * the colorway accent, the controls row — so it reads as native +More furniture,
- * not a new toy. Deterministic + calc-only ($0, never a canvas render of art).
+ * Same widget family as ReplayPanel (card, readout, canvas motion, colorway
+ * accent, controls). Deterministic + calc-only for the space itself ($0, never
+ * renders art).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { getProject, projectColorway } from '../../lib/project/registry';
 import { useModal } from '../../lib/state/ModalContext';
-import { getGenome, type GenomePoint } from '../../lib/output/genome';
+import { useAuth } from '../../lib/state/AuthContext';
+import { getGenome, nearestKin } from '../../lib/output/genome';
 
 export default function GenomePanel() {
     const project = useProject();
     const def = getProject(project.slug);
     const { open } = useModal();
+    const { siweAddress } = useAuth();
 
     const genome = useMemo(() => getGenome(project.slug), [project.slug]);
 
-    /* Plot the MINTED set only (the gallery's 1..totalOutputs) — no non-canonical
-       pieces on the map — while isolation is still ranked across the whole
-       edition set inside the engine. */
+    /* Plot the MINTED set only (1..totalOutputs) — no non-canonical pieces —
+       while isolation stays ranked across the whole edition set in the engine. */
     const points = useMemo(() => {
         if (!genome) return [];
         const n = project.totalOutputs || 0;
         return genome.points.filter((p) => p.id <= n);
     }, [genome, project.totalOutputs]);
 
+    /* Listed pieces — the live-market pulse set. Straight off the project state
+       the page already holds (o.price = an active listing), so no fetch. */
+    const listedIds = useMemo(() => {
+        const s = new Set<number>();
+        project.outputs.forEach((o, id) => { if (o.price) s.add(id); });
+        return s;
+    }, [project.outputs]);
+
     const [selected, setSelected] = useState<number | null>(null);
     const [isolate, setIsolate] = useState(false);
+    const [showMine, setShowMine] = useState(false);
+    const [ownedIds, setOwnedIds] = useState<Set<number>>(new Set());
     const [dims, setDims] = useState({ w: 0, h: 200 });
-    const [intro, setIntro] = useState(0); // 0..1 mount reveal
+
+    /* Your holdings in THIS project → the constellation. */
+    useEffect(() => {
+        if (!siweAddress) { setOwnedIds(new Set()); setShowMine(false); return; }
+        let cancelled = false;
+        fetch(`/api/user/${siweAddress.toLowerCase()}/outputs`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !d?.holdings) return;
+                const mine = new Set<number>();
+                for (const h of d.holdings as { slug: string; token_id: number }[]) {
+                    if (h.slug === project.slug) mine.add(h.token_id);
+                }
+                setOwnedIds(mine);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress, project.slug]);
+
+    /* Kin of the selected piece — its nearest relatives among minted editions. */
+    const kin = useMemo(
+        () => (selected != null ? nearestKin(project.slug, selected, 4, project.totalOutputs) : null),
+        [selected, project.slug, project.totalOutputs],
+    );
+    const kinSet = useMemo(() => new Set((kin?.kin ?? []).map((k) => k.id)), [kin]);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const wrapRef = useRef<HTMLDivElement | null>(null);
-    /* Pixel positions of drawn points, for hit-testing (rebuilt each draw). */
     const laidOut = useRef<{ id: number; px: number; py: number; iso: number }[]>([]);
+    const posById = useRef<Map<number, { px: number; py: number }>>(new Map());
     const pointerStart = useRef<{ x: number; y: number } | null>(null);
     const moved = useRef(false);
+    const mountedAt = useRef(0);
 
-    /* Track width so the canvas is crisp at any size (same as ReplayPanel). */
+    /* Track width so the canvas is crisp at any size. */
     useEffect(() => {
         const el = wrapRef.current;
         if (!el) return;
@@ -61,25 +99,7 @@ export default function GenomePanel() {
         return () => ro.disconnect();
     }, []);
 
-    /* Mount reveal — points settle in over ~0.7s. Resets when the project (and
-       thus the whole space) changes, so it always feels like it's arriving. */
-    useEffect(() => {
-        setIntro(0);
-        setSelected(null);
-        let raf = 0;
-        let start = 0;
-        const DUR = 700;
-        const tick = (ts: number) => {
-            if (!start) start = ts;
-            const p = Math.min(1, (ts - start) / DUR);
-            setIntro(p);
-            if (p < 1) raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf);
-    }, [project.slug]);
-
-    const draw = useCallback(() => {
+    const draw = useCallback((clock: number) => {
         const canvas = canvasRef.current;
         if (!canvas || dims.w <= 0 || points.length === 0) return;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -99,8 +119,9 @@ export default function GenomePanel() {
         const pad = 14;
         const plotW = W - pad * 2;
         const plotH = H - pad * 2;
+        const intro = Math.min(1, clock / 700);
 
-        // Faint frame — the "bounded parameter space" read, matching the mockup.
+        // Faint frame — the bounded parameter space.
         ctx.strokeStyle = ink;
         ctx.globalAlpha = 0.12;
         ctx.lineWidth = 1;
@@ -108,40 +129,37 @@ export default function GenomePanel() {
         ctx.globalAlpha = 1;
 
         const layout: { id: number; px: number; py: number; iso: number }[] = [];
-
-        // Isolation threshold that counts as "rare" for the highlight lens.
+        const pos = new Map<number, { px: number; py: number }>();
         const RARE = 0.72;
+        const mineActive = showMine && ownedIds.size > 0;
 
-        // Draw crowd first (low isolation), rare pieces last so they sit on top.
         const ordered = [...points].sort((a, b) => a.isolation - b.isolation);
-        for (let k = 0; k < ordered.length; k++) {
-            const p = ordered[k];
+        for (const p of ordered) {
             const px = pad + p.x * plotW;
             const py = pad + p.y * plotH;
             layout.push({ id: p.id, px, py, iso: p.isolation });
+            pos.set(p.id, { px, py });
 
-            // Staggered reveal — the crowd lands first, the lonely ones settle
-            // last, so the eye is drawn to the outliers as they arrive.
-            const appear = Math.min(1, Math.max(0, intro * 1.3 - (p.isolation) * 0.3));
+            const appear = Math.min(1, Math.max(0, intro * 1.3 - p.isolation * 0.3));
             if (appear <= 0) continue;
 
             const rare = p.isolation >= RARE;
-            const dimmed = isolate && !rare;
+            const owned = ownedIds.has(p.id);
+            const dim = (isolate && !rare) || (mineActive && !owned);
             const r = (rare ? 3.2 : 2) * appear;
 
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
             if (rare) {
                 ctx.fillStyle = accent;
-                ctx.globalAlpha = appear * (dimmed ? 0.5 : 1);
+                ctx.globalAlpha = appear * (dim ? 0.4 : 1);
             } else {
                 ctx.fillStyle = ink;
-                ctx.globalAlpha = appear * (isolate ? 0.08 : 0.32);
+                ctx.globalAlpha = appear * (dim ? 0.07 : (isolate ? 0.5 : 0.32));
             }
             ctx.fill();
 
-            // Halo on the rarest — the "none higher" glow.
-            if (rare) {
+            if (rare && !dim) {
                 ctx.beginPath();
                 ctx.arc(px, py, r + 3, 0, Math.PI * 2);
                 ctx.strokeStyle = accent;
@@ -151,12 +169,80 @@ export default function GenomePanel() {
             }
             ctx.globalAlpha = 1;
         }
-
         laidOut.current = layout;
+        posById.current = pos;
 
-        // Selected marker — crosshair + ring in the accent.
+        // LIVE PULSE — listed pieces breathe (a slow expanding ring). Phase is
+        // offset per id so they don't beat in unison.
+        if (intro >= 1) {
+            for (const id of listedIds) {
+                const pt = pos.get(id);
+                if (!pt) continue;
+                const phase = ((clock / 1600) + ((id * 0.61803) % 1)) % 1;
+                const rr = 2 + phase * 9;
+                ctx.beginPath();
+                ctx.arc(pt.px, pt.py, rr, 0, Math.PI * 2);
+                ctx.strokeStyle = accent;
+                ctx.globalAlpha = (1 - phase) * 0.45;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // YOUR CONSTELLATION — your holdings ringed; MINE lens joins them.
+        if (ownedIds.size > 0) {
+            const mine: { px: number; py: number }[] = [];
+            for (const id of ownedIds) {
+                const pt = pos.get(id);
+                if (pt) mine.push(pt);
+            }
+            if (mineActive && mine.length > 1) {
+                ctx.beginPath();
+                mine.forEach((m, i) => (i === 0 ? ctx.moveTo(m.px, m.py) : ctx.lineTo(m.px, m.py)));
+                ctx.strokeStyle = accent;
+                ctx.globalAlpha = 0.3;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            for (const m of mine) {
+                ctx.beginPath();
+                ctx.arc(m.px, m.py, 4.5, 0, Math.PI * 2);
+                ctx.strokeStyle = accent;
+                ctx.globalAlpha = 0.9;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // KIN — the selected piece's nearest relatives, lines drawn to each.
+        if (selected != null && kinSet.size > 0) {
+            const from = pos.get(selected);
+            if (from) {
+                for (const k of kinSet) {
+                    const to = pos.get(k);
+                    if (!to) continue;
+                    ctx.beginPath();
+                    ctx.moveTo(from.px, from.py);
+                    ctx.lineTo(to.px, to.py);
+                    ctx.strokeStyle = accent;
+                    ctx.globalAlpha = 0.4;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(to.px, to.py, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = accent;
+                    ctx.globalAlpha = 0.9;
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Selected marker — crosshair + ring.
         if (selected != null) {
-            const hit = layout.find((l) => l.id === selected);
+            const hit = pos.get(selected);
             if (hit) {
                 ctx.strokeStyle = accent;
                 ctx.globalAlpha = 1;
@@ -172,11 +258,27 @@ export default function GenomePanel() {
                 ctx.globalAlpha = 1;
             }
         }
-    }, [dims, points, intro, isolate, selected, project.slug, def]);
+    }, [dims, points, listedIds, ownedIds, showMine, isolate, selected, kinSet, project.slug, def]);
 
-    useEffect(() => { draw(); }, [draw]);
+    /* One rAF loop while mounted — drives the intro reveal AND the live pulse
+       (always-moving), always drawing with the latest state via a ref. Throttled
+       to ~30fps. The panel only mounts while the Genome tab is open. */
+    const drawRef = useRef(draw);
+    useEffect(() => { drawRef.current = draw; }, [draw]);
+    useEffect(() => {
+        setSelected(null);
+        mountedAt.current = 0;
+        let raf = 0;
+        let last = 0;
+        const loop = (ts: number) => {
+            if (!mountedAt.current) mountedAt.current = ts;
+            if (ts - last >= 32) { last = ts; drawRef.current(ts - mountedAt.current); }
+            raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+        return () => cancelAnimationFrame(raf);
+    }, [project.slug]);
 
-    /* Nearest point to a client position, within a tap radius. */
     const hitTest = useCallback((clientX: number, clientY: number): number | null => {
         const el = wrapRef.current;
         if (!el) return null;
@@ -184,7 +286,7 @@ export default function GenomePanel() {
         const x = clientX - r.left;
         const y = clientY - r.top;
         let best: number | null = null;
-        let bestD = 18 * 18; // 18px pick radius, squared
+        let bestD = 18 * 18;
         for (const l of laidOut.current) {
             const dx = l.px - x, dy = l.py - y;
             const d = dx * dx + dy * dy;
@@ -205,16 +307,13 @@ export default function GenomePanel() {
         if (pointerStart.current) {
             const dx = e.clientX - pointerStart.current.x;
             const dy = e.clientY - pointerStart.current.y;
-            if (dx * dx + dy * dy > 36) moved.current = true; // >6px = a drag
+            if (dx * dx + dy * dy > 36) moved.current = true;
         }
-        // Live inspect while dragging OR hovering (desktop).
         const id = hitTest(e.clientX, e.clientY);
         if (id != null) setSelected(id);
     }, [hitTest]);
 
     const onPointerUp = useCallback((e: React.PointerEvent) => {
-        // A tap (no meaningful drag) on a point opens it — Brendon's "tap a
-        // point to jump to that piece". A drag just leaves it inspected.
         if (!moved.current) {
             const id = hitTest(e.clientX, e.clientY);
             if (id != null) open('output', id, project.slug);
@@ -235,11 +334,11 @@ export default function GenomePanel() {
     const sel = selected != null ? genome.byId.get(selected) : null;
     const selScore = sel ? Math.max(1, Math.round(sel.isolation * 100)) : null;
     const accent = projectColorway(project.slug) || def?.colorway || undefined;
+    const nearest = kin?.kin[0];
 
     return (
         <div className="more-genome-wrap">
             <div className="genome-card">
-                {/* Readout — collection summary, or the inspected piece. */}
                 <div className="genome-readout">
                     <div className="gr-head">
                         <span className="gr-state">{sel ? 'INSPECTING' : 'PARAMETER SPACE'}</span>
@@ -250,22 +349,22 @@ export default function GenomePanel() {
                             <>
                                 <span className="gr-metric"><b>{selScore}</b> ISOLATION</span>
                                 <span className="gr-metric"><b>#{sel.isolationRank}</b> RANK</span>
-                                {sel.twins === 1 ? (
+                                {nearest && kin ? (
+                                    <span className="gr-metric"><b>{nearest.shared}/{kin.axes}</b> KIN</span>
+                                ) : sel.twins === 1 ? (
                                     <span className="gr-flag">NONE ALIKE</span>
-                                ) : (
-                                    <span className="gr-metric"><b>{sel.twins}</b> ALIKE</span>
-                                )}
+                                ) : null}
                             </>
                         ) : (
                             <>
                                 <span className="gr-metric"><b>{points.length}</b> PLOTTED</span>
+                                {ownedIds.size > 0 && <span className="gr-metric"><b>{ownedIds.size}</b> YOURS</span>}
                                 <span className="gr-metric"><b>{genome.axes.length}</b> AXES</span>
                             </>
                         )}
                     </div>
                 </div>
 
-                {/* Map — drag to explore, tap a point to open it. */}
                 <div
                     ref={wrapRef}
                     className="genome-plot"
@@ -278,7 +377,6 @@ export default function GenomePanel() {
                     <canvas ref={canvasRef} className="genome-canvas" style={{ width: '100%', height: dims.h }} />
                 </div>
 
-                {/* Controls — the isolate lens + an honest read of the axes. */}
                 <div className="genome-controls">
                     <button
                         type="button"
@@ -288,6 +386,16 @@ export default function GenomePanel() {
                     >
                         ISOLATE
                     </button>
+                    {ownedIds.size > 0 && (
+                        <button
+                            type="button"
+                            className={`gc-lens${showMine ? ' gc-lens-on' : ''}`}
+                            onClick={() => setShowMine((v) => !v)}
+                            aria-pressed={showMine}
+                        >
+                            MINE
+                        </button>
+                    )}
                     <span className="gc-legend"><i className="gc-dot gc-dot-rare" style={accent ? { background: accent } : undefined} /> rare<i className="gc-dot gc-dot-common" /> common</span>
                     <span className="gc-axes">{genome.axes.join(' · ')}</span>
                 </div>

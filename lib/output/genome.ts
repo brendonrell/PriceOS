@@ -52,6 +52,11 @@ export interface Genome {
     axes: string[];
     points: GenomePoint[];
     byId: Map<number, GenomePoint>;
+    /** Per-token active-column vectors (id−1 indexed) — the real one-hot the
+     *  distances run on. Retained so Kin queries need no recompute. */
+    vectors: Int32Array[];
+    /** Axis count (columns compared per distance). */
+    axesCount: number;
 }
 
 /* ── deterministic PRNG (shared shape with entropyGlyph) ─────────────────── */
@@ -273,7 +278,10 @@ function compute(slug: string): Genome | null {
 
     // Report the count of real value-slots (sentinels excluded) for honest UI.
     const realDims = axes.reduce((s, a) => s + a.size, 0);
-    return { slug, total, dims: realDims, axes: axes.map((a) => a.name), points, byId };
+    return {
+        slug, total, dims: realDims, axes: axes.map((a) => a.name), points, byId,
+        vectors: cols, axesCount: A,
+    };
 }
 
 /** The memoised Genome for a project, or null when it has no derivable space. */
@@ -294,6 +302,44 @@ export interface OutputIsolation {
     twins: number;
     /** True when no other edition shares its exact combination. */
     oneOfOne: boolean;
+}
+
+export interface KinResult {
+    /** The k most-similar OTHER editions, nearest first. */
+    kin: { id: number; distance: number; shared: number }[];
+    /** The single most-DISSIMILAR edition — the polar opposite. */
+    opposite: { id: number; distance: number } | null;
+    /** Axis count = the max possible distance (for a "shares X of N" read). */
+    axes: number;
+}
+
+/**
+ * An Output's KIN — its nearest neighbours in the real parameter space (the
+ * pieces most like it) plus its polar opposite. Distance = axes on which the
+ * two differ; `shared` = axes they agree on. `withinMax` restricts candidates
+ * to real (minted) editions so every kin is an openable piece.
+ */
+export function nearestKin(slug: string, id: number, k = 4, withinMax?: number): KinResult | null {
+    const g = getGenome(slug);
+    const self = g?.vectors[id - 1];
+    if (!g || !self) return null;
+    const A = g.axesCount;
+    const max = withinMax != null ? Math.min(withinMax, g.total) : g.total;
+    const all: { id: number; d: number }[] = [];
+    for (let j = 1; j <= max; j++) {
+        if (j === id) continue;
+        const v = g.vectors[j - 1];
+        if (!v) continue;
+        let d = 0;
+        for (let a = 0; a < A; a++) if (self[a] !== v[a]) d++;
+        all.push({ id: j, d });
+    }
+    if (all.length === 0) return null;
+    all.sort((p, q) => (p.d - q.d) || (p.id - q.id));
+    const kin = all.slice(0, k).map((e) => ({ id: e.id, distance: e.d, shared: A - e.d }));
+    let opp = all[all.length - 1];
+    for (const e of all) if (e.d > opp.d || (e.d === opp.d && e.id < opp.id)) opp = e;
+    return { kin, opposite: { id: opp.id, distance: opp.d }, axes: A };
 }
 
 /** One Output's Isolation read, or null when the project has no genome. */
