@@ -6,6 +6,53 @@
 
 ---
 
+## 🔧 IN FLIGHT 2026-07-04 — SWITCH APP TO PNG THUMBNAILS (simulate Arweave via Cloudflare)
+
+**Branch `claude/arweave-sepolia-cloudflare-yc9566` (NOT on dev yet).** THE TASK,
+plainly: the app showed LIVE ARTWORK everywhere — switch it to **PNG thumbnails
+instead, everywhere except the Output feature page** (which stays live). PNGs live
+in Cloudflare storage, standing in for Arweave.
+
+**DONE (committed on the branch):**
+- **App seam switched.** `renderArtwork`/`paintOutput` now draw the STORED PNG
+  (`${ART_IMAGE_BASE}/{slug}/{tokenId}.png`) onto the same canvas every surface
+  already uses, UNLESS the caller asks for `live`. `ArtworkLive` (feature page +
+  fullscreen) and the `receipt` share-card pass `live:true` → still render the
+  real engine. Card fingerprint samplers skipped in image mode. Base =
+  `process.env.NEXT_PUBLIC_ART_IMAGE_BASE`; empty ⇒ falls back to live render
+  (safe). One seam flips the whole app.
+- **All 132 projects → 222 max supply** (uniform, edited in place in the
+  registry — NOT a central constant, Brendon's call). Keeps the full preview set
+  inside R2's 10GB free tier (132×222×~222KB ≈ 6.2GB at 384px thumbnails).
+- **CLAUDE.md §9:** PNG-only preview rule added — **WebP is banned**, ignore it
+  every time.
+- **Cloudflare R2 bucket `pd-art-previews` created.** Account
+  `9ac4108b1b152994d7a91d4979908317`. Token "pd-art-previews" = Object Read &
+  Write (Brendon holds the value; it is NOT in the repo — re-supply it next chat).
+  ⚠ Public read NOT enabled — the R/W token can't (needs Admin); **Brendon flips
+  public access in the dashboard**, OR serve reads through the Worker's R2 binding.
+- **Supabase ZEROED (Brendon's order):** outputs/holders/events/output_views/
+  pings/market rows deleted; 102 project rows reset to 0 mints + 0 stats. Verified
+  empty — collection is empty, fresh-launch state. Users/artists/allowlist/
+  achievements kept.
+
+**THE REAL REMAINING WORK (next chat) — Brendon's two hard corrections:**
+1. **Preview generation MUST mirror the real Arweave flow** — a deterministic
+   render → store, NOT a browser-canvas snapshot. A snapshot won't work: the art
+   is lazy/virtualized and isn't always painted (has to scroll to render). Figure
+   out how the real Arweave preview PNG is produced (see pd-contracts — factory
+   embeds `preview.png`, the ~$2 mint storage fee) and simulate THAT into the R2
+   bucket at `{slug}/{tokenId}.png` when a piece mints.
+2. **No bulk pre-rendering.** Brendon stopped that repeatedly — do not render the
+   whole catalog. Previews come into existence per-mint, the Arweave way.
+- Then: enable public read + set `NEXT_PUBLIC_ART_IMAGE_BASE` to the bucket URL →
+  build → **Brendon's dev push** (app switch is merge-gated).
+- `tools/simrender/` holds a proven headless renderer (real engines → PNG) — a
+  rendering PRIMITIVE only, reuse if the Arweave-style mechanism needs to render
+  server-side; NOT for bulk runs.
+
+---
+
 ## 🎨 SPEC DRAFTED 2026-07-04 — FACTIONS (Sigil · Marginalia · Quadrants) — Brendon sleeping on it
 
 **No code — a spec/planning session. Nothing in flight, tree clean.** Combined
