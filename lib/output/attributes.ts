@@ -14,8 +14,10 @@ import {
     fateDetail, brightnessBand, saturationBand, complexityBand, toneMood,
     colorTemperature, orientationOf, BUCKET_HEX,
     paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
+    valueKey, colourStory,
 } from './derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, type Freq } from './rarity';
+import { outputIsolation } from './genome';
 import { entropyGrid } from './entropyGlyph';
 
 export interface AttrTile {
@@ -134,6 +136,15 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (symmetry != null) form.push({ glyph: '◫', label: 'Symmetry', value: symmetryBand(symmetry), sub: pct(symmetry) });
     const orient = orientationOf(fingerprint?.aspect ?? null);
     if (orient) form.push({ glyph: '▭', label: 'Orientation', value: orient });
+    /* v3 (2026-07-04) — higher-order reads composed from the real scalars above.
+       Each is gated on its inputs so pre-capture rows omit it (never faked). */
+    if (br != null && contrast != null) {
+        form.push({ glyph: '◑', label: 'Value Key', value: valueKey(br, contrast) });
+    }
+    if (bucket && accent) {
+        const story = colourStory(bucket, accent);
+        if (story) form.push({ glyph: '✧', label: 'Colour Story', value: story, sub: `${bucket} · ${accent}` });
+    }
     if (form.length) groups.push({ key: 'form', label: 'Fingerprint', tiles: form });
 
     /* ── Sky (natal chart) ────────────────────────────────────────────── */
@@ -201,8 +212,33 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (ff) rarity.push({ glyph: '☯', label: 'Fate Rarity', value: pct(ff.pct), sub: rareBlurb(ff), rare: ff.rank === 1 });
     const cf = bucket ? colorRarity(slug, bucket) : null;
     if (cf) rarity.push({ glyph: '◉', label: 'Colour Rarity', value: pct(cf.pct), sub: rareBlurb(cf), rare: cf.rank === 1 });
+    /* Genome isolation — how spatially alone this piece sits in the edition
+       set (lib/output/genome), the ◎ read. */
+    const iso = outputIsolation(slug, id);
+    if (iso) {
+        rarity.push({
+            glyph: '◎', label: 'Isolation', value: `${iso.score} / 100`,
+            sub: iso.oneOfOne
+                ? `#${iso.rank} of ${iso.total} · none alike`
+                : `#${iso.rank} of ${iso.total} · ${iso.twins} alike`,
+            rare: iso.oneOfOne || iso.score >= 70,
+        });
+    }
+    /* PD Rarity — the headline: provable art-rarity (trait/Fate/colour) folded
+       WITH the genome isolation into one 0–100 read. Leads the group; ❖ is the
+       sitewide rarity glyph. */
     const overall = overallRarity([tf, ff, cf]);
-    if (overall) rarity.push({ glyph: '❂', label: 'Rarity Score', value: `${overall.score} / 100`, sub: `${overall.bits.toFixed(1)} bits`, rare: overall.score >= 70 });
+    if (overall || iso) {
+        const scores: number[] = [];
+        if (overall) scores.push(overall.score);
+        if (iso) scores.push(iso.score);
+        const headline = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        rarity.unshift({
+            glyph: '❖', label: 'PD Rarity', value: `${headline} / 100`,
+            sub: overall && iso ? 'trait + genome' : overall ? 'trait-based' : 'genome-based',
+            rare: headline >= 70,
+        });
+    }
     if (rarity.length) groups.push({ key: 'rarity', label: 'Rarity', tiles: rarity });
 
     /* ── Lab ──────────────────────────────────────────────────────────────
