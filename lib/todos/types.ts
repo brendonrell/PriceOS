@@ -20,6 +20,10 @@ export type TodoVerb = 'BUY' | 'OFFER' | 'LIST' | 'DELIST' | 'SEND';
 /** 0 = none · 1 = P1 (top) · 2 = P2 · 3 = P3. Lower non-zero sorts higher. */
 export type TodoPriority = 0 | 1 | 2 | 3;
 
+/** Recurrence for a dated to-do. Completing a recurring to-do advances its due
+ *  date to the next occurrence instead of closing it (Todoist behaviour). */
+export type TodoRecurrence = 'daily' | 'weekly' | 'monthly';
+
 export interface TodoSource {
     slug: string;
     tokenId: number;
@@ -41,6 +45,10 @@ export interface TodoItem {
     /** Optional ETH target/budget the collector attaches. Powers the war-chest
      *  meter and, for BUY output to-dos, the Sentinel READY flip. */
     priceEth?: number | null;
+    /** Optional labels/tags (lowercased, no '#'). Filterable in the accordion. */
+    labels?: string[];
+    /** Optional recurrence — completing advances `due` to the next occurrence. */
+    recurrence?: TodoRecurrence | null;
     done: boolean;
     createdAt: number;
 }

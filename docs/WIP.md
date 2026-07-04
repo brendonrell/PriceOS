@@ -27,9 +27,18 @@ envelope, mirrors the Notes/starred pattern) feeds every surface:
   **◊ (U+25CA)** documented as the secondary ETH mark; done glyph **✓** noted
   (device-verify on iPhone — new glyph).
 
-**Next (fast-follow, in `docs/briefs/todos-feature.md`):** native closed-app
-reminders (server push job), recurring, labels, magic quick-add, war-chest
-vs-wallet line. Excluded: Call Your Shot, Streaks.
+Also shipped (second pass, same night): **recurring** to-dos (complete → advances
+to next occurrence, ↻ chip), **labels + filter row** (`#tag`), **magic quick-add**
+(`lib/todos/parse.ts` — "buy prisms 22 under .4 fri" fills everything), and
+**in-app due reminders** (`components/todos/TodoReminders.tsx`, mounted in the
+shell — Pingtoast when a dated to-do comes due).
+
+**Remaining — needs Brendon (can't do from here):** (1) **native closed-app
+reminders** — pipeline is code-complete but inert; needs VAPID keys in Vercel env
++ a Pro-plan cron confirmation, then I wire the `/api/cron/todo-reminders` sender
+(prod-data gate). (2) **war-chest vs-wallet line** — `useBalance` only resolves
+inside the wallet provider tree; connect-menu is outside it. Excluded: Call Your
+Shot, Streaks. Details in `docs/briefs/todos-feature.md`.
 
 ---
 

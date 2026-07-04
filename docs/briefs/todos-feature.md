@@ -1,22 +1,39 @@
 # BRIEF — To-Dos (the real feature: "Todoist in PD")
 
-> **✅ v1 SHIPPED to `dev` 2026-07-04 (build green).** One real store
-> (`lib/todos/todoStore.ts` + `types.ts`, account-backed via the settings
-> envelope) now feeds ALL surfaces: the connect-menu accordion (Meta-chips
-> layout + quick-add composer + war-chest line + the Sentinel), the calendar
-> overlay AND the Top Bar Calendar (both now read the store; the Top Bar
-> Calendar was also wired to the real /api/calendar EVENTS feed, which Fable had
-> left on the static seed), and the artwork "Make To-Do" buttons (both the page
-> action row and the gallery hover row write real output to-dos). Check→✓ +
-> strike + sink, priorities (P1 red rail + chips), due dates → calendar,
-> ◊ ETH targets, in-app READY via the real listing-price feed (`starredPriceStore`,
-> same source the grail pins use). All three mock sources deleted (`mockTodos.ts`,
-> `CAL_TODOS`, the dead toasts). GLYPHS.md updated (◊ secondary ETH + done ✓).
+> **✅ SHIPPED to `dev` 2026-07-04 (build green) — v1 + most fast-follows.**
+> One real store (`lib/todos/todoStore.ts` + `types.ts` + `parse.ts`,
+> account-backed via the settings envelope) feeds ALL surfaces: the connect-menu
+> accordion (Meta-chips layout, quick-add composer, war-chest line, Sentinel,
+> **label filter row**), the calendar overlay AND the Top Bar Calendar (both read
+> the store; the Top Bar Calendar was also wired to the real /api/calendar EVENTS
+> feed Fable left on the seed), and the artwork "Make To-Do" buttons.
 >
-> **Remaining fast-follow layers (NOT yet built):** native "3D" closed-app
-> reminders (needs the server scheduled-push job); recurring to-dos; labels/tags
-> + filtering; magic natural-language quick-add; war-chest "vs wallet ETH" line
-> (needs a wagmi `useBalance` read). Excluded per Brendon: Call Your Shot, Streaks.
+> Now shipped beyond the original v1:
+> - **Recurring** — completing a recurring to-do advances it to the next
+>   occurrence (`toggleTodo` → `advanceDue`); shown with a ↻ chip.
+> - **Labels + filtering** — `#tag` labels, a filter-chip row narrows the list.
+> - **Magic quick-add** (`lib/todos/parse.ts`) — "buy prisms 22 under .4 fri"
+>   parses verb/piece/◊target/due/priority/#labels/recurrence.
+> - **In-app due reminders** (`components/todos/TodoReminders.tsx`, mounted in the
+>   shell) — pops a Pingtoast when an open dated to-do comes due; reminds once per
+>   (id@due), backlog collapsed into one toast on load.
+>
+> **NOT built — needs Brendon (can't be done from here):**
+> 1. **Native closed-app reminders.** The web-push pipeline is CODE-COMPLETE
+>    (`public/sw.js`, `lib/push/*`, `/api/push/subscribe`, `push_subscriptions`
+>    table, `web-push` sender) but INERT. To switch on: (a) generate a VAPID
+>    keypair and set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PUBLIC_KEY` +
+>    `VAPID_PRIVATE_KEY` in Vercel env; (b) confirm the plan supports minute/hour
+>    Vercel Cron (Pro) — status is genuinely unverified; then I wire a
+>    `/api/cron/todo-reminders` route + `vercel.json` cron that sends due
+>    reminders via the existing push path (new server route touches prod → needs
+>    your go per the prod-data gate).
+> 2. **War-chest "vs wallet ETH" line.** `useBalance` only resolves inside the
+>    deferred WagmiProvider (WalletStack); the connect-menu accordion is outside
+>    it, so it can't read balance without moving the meter or lifting provider
+>    scope. Committed-total half ships now; the vs-wallet compare is deferred.
+>
+> Excluded per Brendon: Call Your Shot, Streaks.
 >
 > ⚠️ The done glyph ✓ (U+2713) is NEW — eyeball it on iPhone; swap if it tofus.
 

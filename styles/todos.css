@@ -137,6 +137,32 @@
     font-style: italic;
 }
 
+/* Label filter row — tap a #label to narrow the list. */
+.todo-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 3px 10px 7px;
+}
+.todo-filter-chip {
+    font: 700 10px/1 'Courier New', Courier, monospace;
+    letter-spacing: 0.3px;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: 3px;
+    padding: 4px 7px;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+}
+.todo-filter-chip:hover { opacity: 1; }
+.todo-filter-chip.on {
+    opacity: 1;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--bg-color);
+}
+
 /* ── the row (Meta chips) — metrics mirror .notif-item ──────────── */
 .todo-row {
     display: flex;
@@ -193,6 +219,8 @@
 }
 .todo-chip.pri.p2 { opacity: 0.72; }
 .todo-chip.pri.p3 { opacity: 0.5; }
+.todo-chip.rec { text-transform: capitalize; }
+.todo-chip.label { opacity: 0.7; }
 
 /* P1 — the red left rail (same treatment as high-priority pings). */
 .todo-row.p1 { font-weight: 900; box-shadow: inset 2px 0 0 var(--hothurt, #ff0055); }

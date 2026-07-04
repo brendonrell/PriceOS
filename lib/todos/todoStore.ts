@@ -15,9 +15,9 @@
 
 import { pushSettings, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 import { getProject } from '../project/registry';
-import type { TodoItem, TodoVerb, TodoPriority } from './types';
+import type { TodoItem, TodoVerb, TodoPriority, TodoRecurrence } from './types';
 
-export type { TodoItem, TodoVerb, TodoPriority } from './types';
+export type { TodoItem, TodoVerb, TodoPriority, TodoRecurrence } from './types';
 
 const KEY = 'pd_todos';
 export const TODOS_CHANGED_EVENT = 'pd:todos-changed';
@@ -45,6 +45,12 @@ function safeParse(raw: string | null): TodoItem[] {
                 dueTime: typeof t.dueTime === 'string' ? t.dueTime : null,
                 priority: ([0, 1, 2, 3] as number[]).includes(t.priority) ? t.priority : 0,
                 priceEth: typeof t.priceEth === 'number' && t.priceEth > 0 ? t.priceEth : null,
+                labels: Array.isArray(t.labels)
+                    ? t.labels.filter((x: unknown): x is string => typeof x === 'string')
+                    : undefined,
+                recurrence: (['daily', 'weekly', 'monthly'] as unknown[]).includes(t.recurrence)
+                    ? t.recurrence
+                    : null,
                 done: !!t.done,
                 createdAt: typeof t.createdAt === 'number' ? t.createdAt : 0,
             })) as TodoItem[];
@@ -97,11 +103,14 @@ export interface RawTodoInput {
     dueTime?: string | null;
     priority?: TodoPriority;
     priceEth?: number | null;
+    labels?: string[];
+    recurrence?: TodoRecurrence | null;
 }
 
 export function addRawTodo(input: RawTodoInput): TodoItem | null {
     const text = input.text.trim();
     if (!text) return null;
+    const labels = (input.labels ?? []).map((l) => l.toLowerCase()).filter(Boolean);
     const item: TodoItem = {
         id: newId(),
         kind: 'raw',
@@ -110,11 +119,27 @@ export function addRawTodo(input: RawTodoInput): TodoItem | null {
         dueTime: input.dueTime || null,
         priority: input.priority ?? 0,
         priceEth: typeof input.priceEth === 'number' && input.priceEth > 0 ? input.priceEth : null,
+        labels: labels.length ? labels : undefined,
+        recurrence: input.recurrence ?? null,
         done: false,
         createdAt: Date.now(),
     };
     commit([item, ...getTodos()]);
     return item;
+}
+
+/** Advance a 'YYYY-MM-DD' date to the next occurrence for a recurrence. */
+export function advanceDue(due: string, rec: TodoRecurrence): string {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due);
+    if (!m) return due;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    if (rec === 'daily') d.setDate(d.getDate() + 1);
+    else if (rec === 'weekly') d.setDate(d.getDate() + 7);
+    else d.setMonth(d.getMonth() + 1); // monthly
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${da}`;
 }
 
 /** Compose the display label for an output to-do from its source, e.g.
@@ -161,8 +186,24 @@ export function addOutputTodo(
     return 'added';
 }
 
-export function toggleTodo(id: string): void {
-    commit(getTodos().map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+/** Result of a toggle, so the UI can pick the right toast. */
+export type ToggleResult = 'done' | 'reopened' | 'recurred';
+
+/** Toggle done. A recurring dated to-do that's being COMPLETED instead advances
+ *  to its next occurrence and stays open (Todoist behaviour). */
+export function toggleTodo(id: string): ToggleResult {
+    let result: ToggleResult = 'done';
+    const next = getTodos().map((t) => {
+        if (t.id !== id) return t;
+        if (!t.done && t.recurrence && t.due) {
+            result = 'recurred';
+            return { ...t, due: advanceDue(t.due, t.recurrence) };
+        }
+        result = t.done ? 'reopened' : 'done';
+        return { ...t, done: !t.done };
+    });
+    commit(next);
+    return result;
 }
 
 export function removeTodo(id: string): void {
@@ -206,6 +247,13 @@ export function warChest(list: TodoItem[]): { total: number; count: number } {
         }
     }
     return { total, count };
+}
+
+/** Distinct labels across all to-dos, sorted — for the accordion filter row. */
+export function allLabels(list: TodoItem[]): string[] {
+    const set = new Set<string>();
+    for (const t of list) for (const l of t.labels ?? []) set.add(l);
+    return Array.from(set).sort();
 }
 
 /** Dated OPEN to-dos grouped by 'YYYY-MM-DD' — for the calendar overlay. */

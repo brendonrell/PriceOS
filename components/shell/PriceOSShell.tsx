@@ -75,6 +75,7 @@ import { Footer } from './Footer';
 import AmbientStrip from './AmbientStrip';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
+import TodoReminders from '../todos/TodoReminders';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
 import FollowersModal from '../FollowersModal';
@@ -408,6 +409,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="ActionToast">
                 <ActionToast />
+            </ErrorBoundary>
+            <ErrorBoundary name="TodoReminders">
+                <TodoReminders />
             </ErrorBoundary>
             <ErrorBoundary name="OutputPreview">
                 <OutputPreview />
