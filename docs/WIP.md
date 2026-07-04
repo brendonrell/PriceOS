@@ -6,6 +6,34 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-04 — POST-MIGRATION SPOT-EDIT BUNDLE (dev @ c5bce01)
+
+Bot-spot-edit session, all on dev, tree clean. App changes:
+- **Attributes / +More UI:** every +More section frame went dashed → solid with
+  Attributes' corner radius (unified). Notable tiles: dropped the left side-bar;
+  now full-opacity border + full-opacity label + italic value.
+- **PriceDay popover:** "The Day" line wraps instead of clipping; popover now
+  **tracks the date stamp on scroll** (was screen-pinned/floating) on all four
+  surfaces (home, project, profile, artwork).
+- **PriceSprite modal:** achievements header shows the full **1,000** denominator
+  (secrets counted — aspirational), % after both scores, `[[ … ]]` on the total
+  line, count/score on two lines, breathing room above/below. Streak + Anointment
+  sub-lines split to two lines with a trailing comma on line 1.
+- **Sticker Manager+ preview:** fixed doubled top/bottom buffer (box-sizing) —
+  stickers sit snug + overflow slightly again.
+- **Narthex** project colorway: warm gold → dark charcoal `#2A2B2F`.
+- **Account data (Brendon's own row):** zeroed all stars/wishlists/albums +
+  history + showcase (they survived the project-zeroing).
+
+**QUEUED (not started):** Matrix-white colorway broken under the colorway
+shortcuts — screenshot IMG_5972 in this chat; each project has a custom
+colorway, Matrix is a shortcut. Investigate + fix next session.
+
+Task branch `claude/bot-spot-edit-ui-mz11dk` is empty/trash (all work went
+straight to dev) — safe to delete.
+
+---
+
 ## ✅ SHIPPED 2026-07-03 — CLOUDFLARE MIGRATION LIVE. THE APP MOVED.
 
 **dev is on Cloudflare. `https://pricediscussion.pricediscussion.workers.dev`
