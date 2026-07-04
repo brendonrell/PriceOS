@@ -4136,18 +4136,13 @@ body.persona-default .stats-row-2 { display: none !important; }
 @media (min-width: 601px) {
     .hero-group-2 { align-items: stretch; }
 }
-/* Normal flow — NOT sticky. The old sticky-bottom pin was a sim-port leftover
-   carried onto every CTA row (home / project / profile). On iOS Safari a sticky
-   element becomes its own composited layer that gets clipped at the safe-area
-   (notch) line after the first scroll, so the row showed a hard cutoff while the
-   rest of the page flowed behind the notch. The bottom-pin bought nothing (it
-   only floated during the short hero stretch, then scrolled away). Same reason
-   .profile-tabs-row was pinned to normal flow. Brendon 2026-07-04. */
 .action-row {
     display: flex;
     gap: 15px;
     align-items: center;
     flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
     align-self: flex-start;
 }
 /* No-highlight on tappable controls — kills the iOS text-selection / "Copy ·
