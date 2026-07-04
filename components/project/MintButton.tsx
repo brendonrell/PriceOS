@@ -16,6 +16,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { MINT_FEE_ETH } from '../../lib/project/registry';
 import { acquireWakeLock } from '../../lib/pwa/wakeLock';
+import { storeMintPreviews } from '../../lib/art/storePreview';
 
 const MAX_PER_MINT = 22;
 
@@ -62,7 +63,7 @@ export default function MintButton({
     requestAnimationFrame(() => requestAnimationFrame(() => setPct(92)));
     const minShow = new Promise((r) => setTimeout(r, 900));
     let ok = false;
-    let j: { count?: number; balance?: number; error?: string } = {};
+    let j: { count?: number; balance?: number; error?: string; minted?: number[] } = {};
     try {
       const r = await fetch(`/api/project/${slug}/mint`, {
         method: 'POST',
@@ -84,6 +85,10 @@ export default function MintButton({
       setPct(0);
       return;
     }
+    // Pin each freshly-minted piece's preview PNG — the Arweave-writer sim.
+    // Fire-and-forget: a deterministic render + upload that never delays the
+    // buyer's done face or toast. Covers batch mints (one id per piece).
+    if (Array.isArray(j.minted) && j.minted.length) void storeMintPreviews(slug, j.minted);
     const count = j.count ?? qty;
     // Balance trimmed to ≤3 decimals everywhere it shows — a raw float
     // ("99.97799999…") was what blew the done face out of the button.

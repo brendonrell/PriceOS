@@ -1624,6 +1624,13 @@ export function renderArtwork(
       const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
       if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
     };
+    img.onerror = () => {
+      // No stored preview yet (a just-minted piece before its pin lands, or a
+      // failed pin) — never leave a blank tile. Fall back to the live engine,
+      // exactly as the app rendered before stored images existed. Mirrors the
+      // contract's on-chain placeholder shown until the Arweave preview is pinned.
+      try { project.render(canvas, tokenId, width); } catch { /* unknown engine */ }
+    };
     img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
     // Provisional aspect from the project's palette keeps layout from collapsing
     // to zero height before the image loads; onload corrects it exactly.
