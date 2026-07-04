@@ -34,11 +34,12 @@ to next occurrence, ↻ chip), **labels + filter row** (`#tag`), **magic quick-a
 shell — Pingtoast when a dated to-do comes due).
 
 **Remaining — needs Brendon (can't do from here):** (1) **native closed-app
-reminders** — pipeline is code-complete but inert; needs VAPID keys in Vercel env
-+ a Pro-plan cron confirmation, then I wire the `/api/cron/todo-reminders` sender
-(prod-data gate). (2) **war-chest vs-wallet line** — `useBalance` only resolves
-inside the wallet provider tree; connect-menu is outside it. Excluded: Call Your
-Shot, Streaks. Details in `docs/briefs/todos-feature.md`.
+reminders** — pipeline is code-complete but inert; needs VAPID keys in **Cloudflare
+Pages** env, then I wire the due-reminder sweep as a **Cloudflare Cron Trigger**
+(free + minute-level — no Pro-plan gate). Prod-data gate applies. (2) **war-chest
+vs-wallet line** — `useBalance` only resolves inside the wallet provider tree;
+connect-menu is outside it. Excluded: Call Your Shot, Streaks. Details in
+`docs/briefs/todos-feature.md`.
 
 ---
 

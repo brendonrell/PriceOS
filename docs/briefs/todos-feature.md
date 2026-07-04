@@ -21,13 +21,16 @@
 > **NOT built — needs Brendon (can't be done from here):**
 > 1. **Native closed-app reminders.** The web-push pipeline is CODE-COMPLETE
 >    (`public/sw.js`, `lib/push/*`, `/api/push/subscribe`, `push_subscriptions`
->    table, `web-push` sender) but INERT. To switch on: (a) generate a VAPID
->    keypair and set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PUBLIC_KEY` +
->    `VAPID_PRIVATE_KEY` in Vercel env; (b) confirm the plan supports minute/hour
->    Vercel Cron (Pro) — status is genuinely unverified; then I wire a
->    `/api/cron/todo-reminders` route + `vercel.json` cron that sends due
->    reminders via the existing push path (new server route touches prod → needs
->    your go per the prod-data gate).
+>    table, `web-push` sender) but INERT. To switch on (we're on **Cloudflare
+>    Pages** now): (a) generate a VAPID keypair and set
+>    `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` in
+>    **Cloudflare Pages env**; (b) then I wire the scheduled sender as a
+>    **Cloudflare Cron Trigger** (Worker / Pages Function) that sweeps due to-dos
+>    and sends via the existing push path — Cloudflare cron is free + minute-level,
+>    so there's **no Pro-plan gate** (the old Vercel-Cron concern is moot).
+>    Caveat: the current sender uses the Node `web-push` lib; on the Workers
+>    runtime it may need a Web-Crypto-based path (nodejs_compat) — confirm when we
+>    wire it. New server sweep touches prod → needs your go per the prod-data gate.
 > 2. **War-chest "vs wallet ETH" line.** `useBalance` only resolves inside the
 >    deferred WagmiProvider (WalletStack); the connect-menu accordion is outside
 >    it, so it can't read balance without moving the meter or lifting provider

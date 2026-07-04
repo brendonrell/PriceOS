@@ -167,9 +167,15 @@ web3 social platform where the community discussing prices is the product.
 
 - Stack: Next.js 14 (App Router) · React 18 · TypeScript · raw CSS · Supabase ·
   SIWE · wagmi/viem · Alchemy.
-- Deploy: Vercel. `dev` branch → preview at
-  `https://price-os-git-dev-pricediscussion.vercel.app` (Deployment Protection
-  is OFF — preview is publicly reachable). `main` → production.
+- Deploy: **Cloudflare Pages** (migrated off Vercel, 2026-07 — Brendon). `dev`
+  branch → preview, `main` → production.
+  > ⚠️ **STALE-URL FLAG (2026-07-04):** the old Vercel preview URL
+  > (`price-os-git-dev-pricediscussion.vercel.app`) and every "Vercel" mention
+  > below (§0 preview URL, §4 "Vercel preview URLs", §6 "Vercel MCP deployment
+  > status") are LEFTOVERS from the Vercel era — the platform is Cloudflare Pages
+  > now. Deploy verification + the live preview URL should use Cloudflare; the
+  > exact current preview URL needs confirming before pointing Brendon at it.
+  > Left in place (not guessed) pending the real Cloudflare specifics.
 
 ## 2. The PD repo ecosystem
 
