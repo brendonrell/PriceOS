@@ -6,6 +6,34 @@
 
 ---
 
+## 🎨 SPEC DRAFTED 2026-07-04 — FACTIONS (Sigil · Marginalia · Quadrants) — Brendon sleeping on it
+
+**No code — a spec/planning session. Nothing in flight, tree clean.** Combined
+king-feature spec written to ClickUp Atlas → KING MODE SECTION → new page
+**"FACTIONS (Sigil · Marginalia · Quadrants)"** (`2kyd6gx6-5994`). The
+session's working name **"Dominion"** is renamed **FACTIONS**; it now unifies
+three threads:
+- **Sigil** = NEW opt-in art (distinct from the account-creation **PriceSprite**,
+  which is universal). Making one appends Sigil options to the END of the profile
+  logo carousel. Artwork stamps default to PriceSprite, upgrade to Sigil.
+- **Factions = the colour.** Two tiers: **24 sub-factions** (the 28 non-holo blank
+  bubbles culled by 4) rolling up into **group factions** (the colour wheel, 6 or
+  12). Flag colour locked to the set. Faction toast fires ONLY on the blanks
+  (not holo blank) + Sigil options; everything else silent.
+- **Marginalia** = 10s ceremonial hold → MiniDisc pop-out → generative border
+  (seeded from project address). Edges = PriceSprite chain (sale strikes deep /
+  pass faint; 12 slots; Relic; crypt). **4 corners = faction quadrants** (bare
+  until a hold-line crossed, sweep all 4 = Conquered). Worth: Pedigree/Untouched/
+  Relic/Spread. Faction king layer: grip → Held/Siege/Stronghold → Conquest →
+  Book of Conquests.
+
+**OPEN CALLS (Brendon, on wake):** (1) group factions **6 or 12**; (2) **which 4**
+of the 28 blanks get cut → 24; (3) toast names **sub vs group** (rec: sub).
+Then it's buildable. **Nothing has been approved to build — spec only.**
+Live colorway distribution (56 profiles) captured on the ClickUp page.
+
+---
+
 ## ✅ SHIPPED 2026-07-04 — TO-DOS v1 ("Todoist in PD")
 
 **All on `dev`, tree clean, build green.** The To-Dos feature is now real — one
