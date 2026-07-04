@@ -53,6 +53,19 @@ in Cloudflare storage, standing in for Arweave.
 
 ---
 
+## ⚠ OPEN BUG (unsolved 2026-07-04) — mobile Safari notch cutoff on the CTA row
+
+Content should flow behind the top notch/Dynamic Island; it does on page load,
+but after scrolling the **CTA row** (Follow/Share on profile, Buy/List/Offer on
+output — all the shared `.action-row`) shows a hard cutoff at the notch line
+while the rest of the page flows behind fine. **Ruled OUT:** the `position:
+sticky` on `.action-row` — removed it globally, verified live on the dev preview
+CSS, cutoff persisted, reverted. So sticky is NOT the cause. Not the `is-pwa`
+frosted band either (PWA-only; this is a Safari tab). Real cause still unknown —
+next session start fresh, don't re-chase sticky.
+
+---
+
 ## 🎨 SPEC DRAFTED 2026-07-04 — FACTIONS (Sigil · Marginalia · Quadrants) — Brendon sleeping on it
 
 **No code — a spec/planning session. Nothing in flight, tree clean.** Combined
