@@ -6,6 +6,46 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-04 — PD RARITY (Genome + 3 lenses + wow layer + Receipt)
+
+**All on `dev`, tree clean, build green.** Output-rarity Option C, built as
+**PD Rarity** (ClickUp decision `86b9f1weg` closed). Every number is computed
+from a piece's REAL traits/colour/light — nothing fabricated (Brendon's bar).
+- **The Genome ◎** — the +More placeholder is now a real interactive
+  parameter-space map (`lib/output/genome.ts` + `components/project/GenomePanel`,
+  built in the Replay widget family). Each minted piece is a point placed by its
+  real trait/Fate/palette vector; **Isolation** = k-NN distance across the whole
+  edition set. Deterministic, $0, calc-only (never renders art). 2-D is an honest
+  random projection of the real vectors; the score runs on the true vectors.
+- **Character sheet breakdown** (`lib/output/attributes.ts`): a **PD Rarity**
+  headline (classic rarity blended with Isolation, glyph ❖) + three living lenses
+  — **Isolation** (◎ Genome), **Attention** (✢ anoint conduit votes, added as a
+  parallel count on `/api/output/[id]`), **Hand** (⌂ diamond-hands from the real
+  ledger, `lib/output/hand.ts`: Original→Diamond→Held→Fresh). Classic trait
+  rarities stay the default face.
+- **Fingerprint v3** (`lib/output/derive.ts`): **Value Key** + **Colour Story** —
+  accurate composites of the real captured scalars, gated on their data.
+- **Wow layer (GenomePanel):** **Kin** (tap a piece → its nearest relatives light
+  up, lines drawn; `nearestKin` in genome.ts), **Your Constellation** (your
+  holdings ringed + MINE lens joins them), **live market pulse** (listed pieces
+  breathe, one rAF loop).
+- **Rarity Receipt** (`lib/output/receipt.ts` + `components/artwork/
+  RarityReceiptButton`, at the head of the character sheet): a share card with
+  the piece's canonical art rendered live (`renderArtwork`) + PD Rarity +
+  Isolation + a mini-Genome position, near-black/mono/colorway per King-Mode
+  card rules. Native share sheet with download fallback. `rarity.ts pdRarity()`
+  is the shared headline so the card + sheet always agree.
+- **ClickUp:** "The Kindred" WOW feature renamed **PriceTwin** (the wallet
+  taste-twin — freed "Kin" for the piece-level Genome feature). Rarity-stance
+  decision `86b9f1weg` marked complete with a shipped summary.
+- This chat's task branch `claude/priceos-rarity-labs-features-buzsol` is trash
+  once the work's on dev — safe to delete.
+- **NEXT (not built):** fold rarity into the FULL greenlit Receipt Keeper (sale
+  P&L, milestones) later; **PriceTwin** stays an Ideas-tier WOW (needs the
+  indexer + nightly wallet embeddings).
+
+---
+
 ## ✅ SHIPPED 2026-07-04 — POST-MIGRATION SPOT-EDIT BUNDLE (dev @ c5bce01)
 
 Bot-spot-edit session, all on dev, tree clean. App changes:
