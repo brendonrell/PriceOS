@@ -1349,7 +1349,7 @@ const NARTHEX: ProjectDef = {
   displayName: 'Narthex',
   artistHandle: 'veil-ai',
   outputs: 333,
-  colorway: '#FFC24A',
+  colorway: '#2A2B2F',
   mintPriceEth: 0,
   soundtrack: { playlistId: 'PLQNHYNv9IpSzzaQMuH7ji2bEy6o8T8Wwn', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
   aspects: NARTHEX_ASPECTS,
