@@ -6,6 +6,19 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ RULE #-1 — REPLY FIRST, INSTANTLY, TO EVERY MESSAGE. THE ABSOLUTE TOP
+> RULE, ABOVE ALL OTHERS. (Brendon, 2026-07-05 — raised in fury, non-negotiable.)**
+> This is a CONVERSATION, and a conversation CANNOT HAVE LAG. The FIRST thing you
+> do on EVERY single message Brendon sends — no exception, ever — is send a short
+> reply that CONFIRMS RECEIPT and shows you UNDERSTAND what he asked. That reply
+> comes BEFORE any tool call, any file read, any build, any "thinking." **ALL
+> thinking and work happens AFTER the response, never before it.** Making Brendon
+> wait — staring at nothing while you research or think — is wasting his time and
+> his money, and it is a firing offense. Answer his actual question in that first
+> reply if he asked one (directly, first sentence), then go do the work and report
+> back. Never go silent and disappear into tools while he waits. Reply → then act.
+> Every message. Every time. Instantly.
+
 > **⛔ RULE #0 — REUSE, NEVER REINVENT. DO EXACTLY WHAT BRENDON SAYS, NOTHING
 > EXTRA. (Brendon, 2026-06-22 — the rule above all rules, by his order.)**
 > We do **NOT** roll our own version of anything the site already has. Before
