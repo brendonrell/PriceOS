@@ -1933,8 +1933,8 @@ a.news-pill { cursor: pointer; }
        The bright-bg themes (dark lettering) flip to a light halo below. Text is
        full-strength --text-color — no opacity, ever. */
     text-shadow:
-        0 0 3px rgba(0, 0, 0, 0.7),
-        0 1px 2px rgba(0, 0, 0, 0.55);
+        0 0 3px color-mix(in srgb, var(--bg-color, #000) 35%, #000),
+        0 1px 2px color-mix(in srgb, var(--bg-color, #000) 30%, #000);
 }
 /* Bright-bg colorways carry dark lettering — a light halo reads clean there
    instead of a muddy black (body.theme-bright is set by the colorway engine). */
@@ -1944,8 +1944,8 @@ body.theme-bright .news-pill-title,
 body.theme-bright .news-pill-meta,
 body.theme-bright .news-pill-name {
     text-shadow:
-        0 0 3px rgba(255, 255, 255, 0.65),
-        0 1px 2px rgba(255, 255, 255, 0.5);
+        0 0 3px color-mix(in srgb, var(--bg-color, #fff) 35%, #fff),
+        0 1px 2px color-mix(in srgb, var(--bg-color, #fff) 30%, #fff);
 }
 
 /* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
