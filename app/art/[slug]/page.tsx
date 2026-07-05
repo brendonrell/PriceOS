@@ -64,15 +64,33 @@ async function fetchSeed(
 export default async function ProjectPage(props: Props) {
     const params = await props.params;
     const slug = params.slug.toLowerCase();
-    if (!getProject(slug)) notFound();
+    const def = getProject(slug);
+    if (!def) notFound();
     const { total, showcaseIds, uploadedAt } = await fetchSeed(slug);
+    // Machine-readable facts for agents + search + assistive tech — the
+    // project as a collection of generative artworks, from registry truth.
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Collection',
+        name: def.displayName,
+        creator: def.artistHandle ? { '@type': 'Person', name: `@${def.artistHandle}` } : undefined,
+        size: def.outputs,
+        about: 'Generative art — every piece renders live from deterministic on-chain code.',
+        url: `/art/${slug}`,
+    };
     return (
-        <ProjectPageBody
-            slug={slug}
-            initialTotal={total}
-            initialShowcaseIds={showcaseIds}
-            uploadedAt={uploadedAt}
-        />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <ProjectPageBody
+                slug={slug}
+                initialTotal={total}
+                initialShowcaseIds={showcaseIds}
+                uploadedAt={uploadedAt}
+            />
+        </>
     );
 }
 
@@ -85,6 +103,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     }
     return {
         title: `${def.displayName} · Price Discussion`,
+        description: [
+            `${def.displayName} — a generative art project`,
+            def.artistHandle ? `by @${def.artistHandle}` : null,
+            `on Price Discussion. ${def.outputs} pieces, each rendered live from deterministic code.`,
+        ].filter(Boolean).join(' '),
         alternates: { canonical: `/art/${slug}` },
     };
 }

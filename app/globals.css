@@ -10910,3 +10910,13 @@ body.is-pwa .fullscreen-back {
     #sn-backbutton .st-icon { font-size: 17px !important; }
     #sn-tape .st-icon       { font-size: 17px !important; }
 }
+
+/* ── Keyboard focus ring (accessibility pass, 2026-07-05) ──────────────
+   Shows ONLY for keyboard navigation (:focus-visible) — taps and clicks never
+   see it, so the designed look is untouched. Themed to the colorway and
+   full-strength (Rule #2). !important so the scattered outline:none resets
+   (written for mouse focus) can't blind keyboard users. */
+:focus-visible {
+    outline: 2px solid var(--text-color) !important;
+    outline-offset: 2px;
+}

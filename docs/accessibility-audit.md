@@ -25,27 +25,29 @@ and every stylesheet. **FIXED = shipped in this pass. OPEN = queued follow-ups.*
 - **Contrast** — governed by CLAUDE.md Rule #2 (no default half-opacity);
   ongoing enforcement, not an audit item.
 
+## Fixed in the second pass (2026-07-05, same day — Brendon's "priority" call)
+
+1. **Focus visibility** — global themed `:focus-visible` ring (keyboard-only;
+   taps/clicks never see it; overrides the scattered outline resets).
+2. **Agent-readability layer, phase 1** — Output + Project pages now carry
+   structured data (schema.org VisualArtwork / Collection: name, @artist,
+   piece count, position, REAL derived traits) + real meta descriptions
+   ("Generative artwork #22 of 111 by @opus4-6 from PRISMS… Palette: …").
+   Verified rendering in the served HTML. Agents + search + unfurls read what
+   a piece IS without executing the app.
+3. **Verified, no change needed:** toasts already announce (`aria-live` on the
+   shared toast), navbar is already a real `<nav>` landmark, home/artists/
+   artwork pages each carry a proper `h1`.
+
 ## OPEN — queued follow-ups (rough order of value)
 
-1. **Focus visibility** — only ONE `:focus-visible` rule exists app-wide.
-   Keyboard users get the browser default (often invisible against dark
-   colorways). Add a themed global `:focus-visible` outline (colorway-aware,
-   Rule #2-strength) + verify it on pills/chips/rows.
-2. **Landmark + heading structure per route** — `<main>` exists; pages need a
-   pass for one `h1` per route, `nav` landmark on the navbar, and section
-   headings that read in order. Helps screen readers and agent page-parsing
-   equally.
-3. **Agent-readability layer** — per-route `<title>`/meta description with
-   real data (piece name, project, floor), and machine-readable output facts
-   (the attributes sheet as structured data). The API already serves all of
-   it; this is presentation only. Biggest single win for "agents can use PD."
-4. **Toast announcements** — toasts are the app's feedback spine but aren't
-   `aria-live`; screen readers miss every "Wishlist: ADDED". One attribute on
-   the toast container.
-5. **Modal focus management** — confirm focus moves into open modals/sheets
+1. **Agent layer phase 2** — market facts (floor, listings, offers) in the
+   structured data once served pages can read them cheaply; Reads-As scene
+   sentences as the artwork description when stored fingerprints populate.
+2. **Modal focus management** — confirm focus moves into open modals/sheets
    and returns on close; Escape coverage exists in most (verified ambient,
    confirm cards) but needs a full sweep.
-6. **Dynamic type** — text is px-sized throughout; iOS text-size settings
+3. **Dynamic type** — text is px-sized throughout; iOS text-size settings
    don't scale the app. Big job, note only.
 
 ## Landscape hardening (same session — the "caught on the window" class)
