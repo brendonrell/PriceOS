@@ -16,7 +16,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
-import { getProject, projectColorway } from '../../lib/project/registry';
+import { getProject, projectColorway, renderArtwork } from '../../lib/project/registry';
+import { priceDayNumber } from '../../lib/priceday/priceday';
 import {
   buildReplayHistory,
   buildReplayHistoryFromLedger,
@@ -94,15 +95,15 @@ export default function ReplayPanel() {
     return () => { cancelled = true; };
   }, [project.slug]);
 
-  const history = useMemo(() => {
+  const { history, isReal } = useMemo(() => {
     if (ledger && ledger.events.length > 0) {
       const real = buildReplayHistoryFromLedger(ledger.events, {
         uploadedAtMs: ledger.uploadedAtMs,
         maxSupply: ledger.maxSupply,
       });
-      if (real) return real;
+      if (real) return { history: real, isReal: true };
     }
-    return buildReplayHistory(project.slug, end);
+    return { history: buildReplayHistory(project.slug, end), isReal: false };
   }, [ledger, project.slug, end]);
 
   const [playing, setPlaying] = useState(false);
@@ -198,6 +199,25 @@ export default function ReplayPanel() {
     }
     return best;
   }, [history.events, progress]);
+
+  /* Wow layer — thumbnail cache: the ACTUAL pieces materialize over the chart
+     as the playhead crosses their moments (real-ledger events carry tokens).
+     One deterministic 96px render per token, cached for the session. */
+  const thumbCache = useRef(new Map<string, HTMLCanvasElement>());
+  const thumbFor = useCallback((token: string): HTMLCanvasElement | null => {
+    const cache = thumbCache.current;
+    const hit = cache.get(token);
+    if (hit) return hit;
+    try {
+      const c = document.createElement('canvas');
+      renderArtwork(c, project.slug, Number(token), 96, true);
+      cache.set(token, c);
+      return c;
+    } catch {
+      return null;
+    }
+  }, [project.slug]);
+  useEffect(() => { thumbCache.current.clear(); }, [project.slug]);
 
   /* Draw — runs on every progress / size change (incl. each playback frame). */
   const draw = useCallback(() => {
@@ -322,6 +342,60 @@ export default function ReplayPanel() {
       ctx.globalAlpha = 1;
     }
 
+    // ── Wow layer: milestone pulse — an expanding colorway ring blooms as
+    //    the playhead crosses each narrated moment. ─────────────────────────
+    for (const ev of history.events) {
+      if (!ev.milestone) continue;
+      const d = Math.abs(ev.f - progress);
+      if (d > 0.045) continue;
+      const i = Math.round(ev.f * (n - 1));
+      const x = xAt(i);
+      const y = yFloor(snaps[i].floor);
+      const k = 1 - d / 0.045; // 1 at the moment, 0 at the window edge
+      ctx.beginPath();
+      ctx.arc(x, y, 6 + 16 * (1 - k), 0, Math.PI * 2);
+      ctx.strokeStyle = accent;
+      ctx.globalAlpha = 0.55 * k;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // ── Wow layer: the piece itself materializes above its moment while the
+    //    playhead is near (real ledger only — events carry their token). ────
+    let nearTok: { ev: ReplayEvent; d: number } | null = null;
+    for (const ev of history.events) {
+      if (!ev.token) continue;
+      const d = Math.abs(ev.f - progress);
+      if (d <= 0.03 && (!nearTok || d < nearTok.d)) nearTok = { ev, d };
+    }
+    if (nearTok) {
+      const thumb = thumbFor(nearTok.ev.token!);
+      if (thumb && thumb.width > 0) {
+        const k = 1 - nearTok.d / 0.03;
+        const size = 44 + 12 * k;
+        const i = Math.round(nearTok.ev.f * (n - 1));
+        const dotX = xAt(i);
+        const tx = Math.max(padL, Math.min(W - padR - size, dotX - size / 2));
+        const ty = padT + 2;
+        ctx.globalAlpha = Math.min(1, k * 1.6);
+        // True aspect, contained in a square slot.
+        const a = thumb.width / Math.max(1, thumb.height);
+        let dw = size, dh = size / a;
+        if (dh > size) { dh = size; dw = size * a; }
+        const ox = tx + (size - dw) / 2, oy = ty + (size - dh) / 2;
+        ctx.drawImage(thumb, ox, oy, dw, dh);
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(ox, oy, dw, dh);
+        // #id tag under the thumb.
+        ctx.fillStyle = ink;
+        ctx.font = `10px 'Courier New', Courier, monospace`;
+        ctx.fillText(`#${nearTok.ev.token}`, ox, oy + dh + 12);
+        ctx.globalAlpha = 1;
+      }
+    }
+
     // Playhead.
     ctx.beginPath();
     ctx.moveTo(progX, padT - 6);
@@ -335,7 +409,7 @@ export default function ReplayPanel() {
     ctx.fill();
 
     void cutIdx;
-  }, [dims, history, progress, def]);
+  }, [dims, history, progress, def, thumbFor]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -351,7 +425,8 @@ export default function ReplayPanel() {
             <span className="rr-state">
               {playing ? '▶︎ PLAYING' : atToday ? 'TODAY' : '◼︎ LOCKED'}
             </span>
-            <span className="rr-day">{fmtDate(snap.t)}</span>
+            {/* The PriceDay spine — every scrubbed moment names its DAY. */}
+            <span className="rr-day">{fmtDate(snap.t)} · DAY {priceDayNumber(new Date(snap.t))}</span>
           </div>
           <div className="rr-metrics">
             <span className="rr-metric"><b>{fmtEth(snap.floor)}</b> FLOOR</span>
@@ -397,7 +472,9 @@ export default function ReplayPanel() {
               </button>
             ))}
           </div>
-          <span className="rc-range">{fmtDate(history.startMs)} → TODAY</span>
+          {/* Honesty tag: an empty ledger plays the seeded PREVIEW biography;
+              the moment real history exists this label drops the suffix. */}
+          <span className="rc-range">{fmtDate(history.startMs)} → TODAY{isReal ? '' : ' · PREVIEW'}</span>
         </div>
       </div>
     </div>

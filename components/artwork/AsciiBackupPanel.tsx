@@ -34,6 +34,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
 
     useEffect(() => {
         let cancelled = false;
+        let raf = 0;
 
         const paint = (a: AsciiArtifact) => {
             if (cancelled) return;
@@ -44,7 +45,50 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
             // stay razor-crisp — the "wait, that's ASCII??" moment.
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             const box = canvas.parentElement?.clientWidth || Math.min(window.innerWidth, 900);
-            paintAsciiArtifact(canvas, a, Math.min(2200, Math.round(box * dpr)));
+            const widthPx = Math.min(2200, Math.round(box * dpr));
+
+            // Full card painted once, offscreen…
+            const full = document.createElement('canvas');
+            paintAsciiArtifact(full, a, widthPx);
+            canvas.width = full.width;
+            canvas.height = full.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const reduced = typeof window.matchMedia === 'function'
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduced) {
+                ctx.drawImage(full, 0, 0);
+                return;
+            }
+
+            // …then the backup TYPES ITSELF IN: rows sweep down over ~1.4s
+            // behind an accent scanline, like a plotter printing the piece.
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, full.width, full.height);
+            const rowH = full.height / a.rows;
+            const DURATION = 1400;
+            const start = performance.now();
+            const accent = getComputedStyle(canvas).color || '#F2F2F2';
+            const step = (now: number) => {
+                if (cancelled) return;
+                const t = Math.min(1, (now - start) / DURATION);
+                const eased = 1 - Math.pow(1 - t, 3);
+                const rows = Math.floor(eased * a.rows);
+                const h = Math.max(1, Math.round(rows * rowH));
+                ctx.drawImage(full, 0, 0, full.width, h, 0, 0, full.width, h);
+                if (t < 1) {
+                    // The printing scanline.
+                    ctx.fillStyle = accent;
+                    ctx.globalAlpha = 0.55;
+                    ctx.fillRect(0, h, full.width, Math.max(2, rowH * 0.6));
+                    ctx.globalAlpha = 1;
+                    raf = requestAnimationFrame(step);
+                } else {
+                    ctx.drawImage(full, 0, 0);
+                }
+            };
+            raf = requestAnimationFrame(step);
         };
 
         // Derive fresh from the engine (identical bytes to any pin) and
@@ -78,7 +122,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
             deriveAndHeal(false);
         }
 
-        return () => { cancelled = true; };
+        return () => { cancelled = true; if (raf) cancelAnimationFrame(raf); };
     }, [slug, id]);
 
     const copy = (what: 'txt' | 'json') => {

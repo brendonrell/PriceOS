@@ -42,6 +42,9 @@ export interface ReplayEvent {
   price?: number;
   /** True for the handful of narrated milestones (drives the caption line). */
   milestone: boolean;
+  /** The token this moment belongs to (real-ledger only) — lets the player
+   *  materialize the actual piece as the playhead crosses it. */
+  token?: string | null;
 }
 
 export interface ReplayEndState {
@@ -320,15 +323,15 @@ export function buildReplayHistoryFromLedger(
   const SAMPLES = 240;
   const snapshots: ReplaySnapshot[] = [];
   const events: ReplayEvent[] = [];
-  const push = (t: number, kind: ReplayEventKind, label: string, milestone: boolean, price?: number) => {
-    events.push({ t, f: (t - startMs) / span, kind, label, milestone, ...(price != null ? { price } : {}) });
+  const push = (t: number, kind: ReplayEventKind, label: string, milestone: boolean, price?: number, token?: string | null) => {
+    events.push({ t, f: (t - startMs) / span, kind, label, milestone, ...(price != null ? { price } : {}), ...(token ? { token } : {}) });
   };
 
   let mintCount = 0;
-  let athSale: { t: number; price: number } | null = null;
+  let athSale: { t: number; price: number; token?: string | null } | null = null;
   let firstTradeDone = false;
   let athFloor = 0;
-  const saleDots: { t: number; price: number }[] = [];
+  const saleDots: { t: number; price: number; token?: string | null }[] = [];
 
   let ei = 0;
   let lastEventT = startMs;
@@ -345,11 +348,11 @@ export function buildReplayHistoryFromLedger(
         gain(e.to);
         if (e.token) ownerOf.set(e.token, (e.to ?? '').toLowerCase());
         mintCount++;
-        if (mintCount === 1) push(e.t, 'mint', 'FIRST BLOOD', true, e.price ?? undefined);
-        else if (mintCount === 18) push(e.t, 'mint', 'GRADUATED · NOW MINTING', true);
-        else if (mintCount === 22) push(e.t, 'mint', 'LUCKY 22', true);
-        else if (mintCount === 100) push(e.t, 'mint', 'CENTURY CLUB', true);
-        if (opts.maxSupply && mintCount === opts.maxSupply) push(e.t, 'mint', `SOLD OUT · ${mintCount}`, true);
+        if (mintCount === 1) push(e.t, 'mint', 'FIRST BLOOD', true, e.price ?? undefined, e.token);
+        else if (mintCount === 18) push(e.t, 'mint', 'GRADUATED · NOW MINTING', true, undefined, e.token);
+        else if (mintCount === 22) push(e.t, 'mint', 'LUCKY 22', true, undefined, e.token);
+        else if (mintCount === 100) push(e.t, 'mint', 'CENTURY CLUB', true, undefined, e.token);
+        if (opts.maxSupply && mintCount === opts.maxSupply) push(e.t, 'mint', `SOLD OUT · ${mintCount}`, true, undefined, e.token);
       } else if (e.type === 'LIST') {
         if (e.token && e.price != null) { listed.set(e.token, e.price); recomputeFloor(); }
       } else { // SALE / XFER — the token changes hands; its listing clears.
@@ -363,9 +366,9 @@ export function buildReplayHistoryFromLedger(
         if (e.type === 'SALE' && e.price != null) {
           salesCount++;
           volume += e.price;
-          saleDots.push({ t: e.t, price: e.price });
-          if (!firstTradeDone) { firstTradeDone = true; push(e.t, 'firstSale', `FIRST TRADE · ${e.price.toFixed(3)} ETH`, true, e.price); }
-          if (!athSale || e.price > athSale.price) athSale = { t: e.t, price: e.price };
+          saleDots.push({ t: e.t, price: e.price, token: e.token });
+          if (!firstTradeDone) { firstTradeDone = true; push(e.t, 'firstSale', `FIRST TRADE · ${e.price.toFixed(3)} ETH`, true, e.price, e.token); }
+          if (!athSale || e.price > athSale.price) athSale = { t: e.t, price: e.price, token: e.token };
         }
       }
     }
@@ -382,14 +385,14 @@ export function buildReplayHistoryFromLedger(
 
   // Narrated moments derived after the walk.
   push(startMs, 'mint', opts.uploadedAtMs != null ? 'GENESIS' : 'THE RECORD BEGINS', true);
-  if (athSale && salesCount > 1) push(athSale.t, 'ath', `ALL-TIME HIGH · ${athSale.price.toFixed(3)} ETH`, true, athSale.price);
+  if (athSale && salesCount > 1) push(athSale.t, 'ath', `ALL-TIME HIGH · ${athSale.price.toFixed(3)} ETH`, true, athSale.price, athSale.token);
   if (quiet && quiet.gap >= 14 * DAY_MS && quiet.gap >= span * 0.2) push(quiet.t, 'quiet', 'THE QUIET WEEKS', true);
 
   // Sale dots for texture — cap so a busy ledger doesn't carpet the chart.
   const step = Math.max(1, Math.ceil(saleDots.length / 48));
   for (let i = 0; i < saleDots.length; i += step) {
     const d = saleDots[i];
-    push(d.t, 'sale', 'SALE', false, d.price);
+    push(d.t, 'sale', 'SALE', false, d.price, d.token);
   }
 
   events.sort((a, b) => a.f - b.f);
