@@ -32,6 +32,15 @@ const QUALIFYING_EVENTS = [
   'pd:anoint-changed',         // place / move an Anointment
 ] as const;
 
+// A mint fires 'pd:project-refresh' at the exact moment the new piece is
+// revealing. Evaluating achievements on that same beat pops toasts and re-pulls
+// the user row (an app-wide re-render) right through the reveal — it stepped on
+// the minting display (Brendon, 2026-07-05). Hold the achievement check until
+// the mint reveal has settled (the button's done-face clears at ~1600ms), so the
+// mint owns its moment and the celebration lands cleanly just after. Minting is
+// the whole site — nothing else gets to interrupt it.
+const MINT_REVEAL_SETTLE_MS = 2200;
+
 function todayLocal(): string {
   const d = new Date();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -111,10 +120,21 @@ export default function PriceRankSync() {
         await evaluate();
       }
     };
-    const handler = () => { void onAction(); };
+    // Let a mint's reveal finish before the achievement check runs; other
+    // deliberate actions (follow / anoint) have no reveal, so they stay immediate.
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const handler = (e: Event) => {
+      if (e.type === 'pd:project-refresh') {
+        const t = setTimeout(() => { timers.delete(t); if (alive) void onAction(); }, MINT_REVEAL_SETTLE_MS);
+        timers.add(t);
+      } else {
+        void onAction();
+      }
+    };
     QUALIFYING_EVENTS.forEach((e) => window.addEventListener(e, handler));
     return () => {
       alive = false;
+      timers.forEach((t) => clearTimeout(t));
       QUALIFYING_EVENTS.forEach((e) => window.removeEventListener(e, handler));
     };
   }, [siweAddress, showToast]);
