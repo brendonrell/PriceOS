@@ -1659,6 +1659,16 @@ export function renderArtwork(
         project.render(canvas, tokenId, width);
         applyAspect(canvas.width, canvas.height);
       } catch { /* unknown engine */ }
+      // Self-heal: this stored preview is missing, so announce the gap. A
+      // signed-in viewer's healer (PreviewHealer) picks it up and pins a fresh
+      // deterministic render — so a piece orphaned at mint (interrupted upload)
+      // gets fixed by the FIRST person who simply looks at it, never waiting on
+      // the original minter to return.
+      if (typeof window !== 'undefined') {
+        try {
+          window.dispatchEvent(new CustomEvent('pd:preview-miss', { detail: { slug, tokenId } }));
+        } catch { /* CustomEvent unsupported — skip */ }
+      }
     };
     img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
     // Synchronous aspect: the learned true ratio if we've seen this token (no

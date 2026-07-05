@@ -73,6 +73,7 @@ import { FaviconEngine } from './FaviconEngine';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import AmbientStrip from './AmbientStrip';
+import PreviewHealer from './PreviewHealer';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import TodoReminders from '../todos/TodoReminders';
@@ -395,6 +396,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="AmbientStrip">
                 <AmbientStrip />
+            </ErrorBoundary>
+            <ErrorBoundary name="PreviewHealer">
+                <PreviewHealer />
             </ErrorBoundary>
             {/* Key the page body on the path so each route mounts a FRESH
                 subtree — matching the old full-reload semantics exactly, so no
