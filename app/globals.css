@@ -1926,8 +1926,26 @@ a.news-pill { cursor: pointer; }
 .news-pill-glyph,
 .news-pill-tag,
 .news-pill-title,
-.news-pill-meta {
+.news-pill-meta,
+.news-pill-name {
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.7), 0 1px 1px rgba(0, 0, 0, 0.55);
+}
+
+/* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
+   the row's widths vary. */
+.news-pill--sprite { gap: 8px; }
+.news-pill-sprite {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+}
+.news-pill-name {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-color);
 }
 .news-pill-glyph {
     font-size: 20px;

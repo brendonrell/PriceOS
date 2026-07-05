@@ -18,39 +18,70 @@
  * nailed in the UI before the real content sources are wired.
  */
 
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
+import SpriteFace from '../SpriteFace';
+import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
 
 export interface NewsItem {
+    /** 'text' (default) = glyph + tag + title + meta; 'sprite' = a live animated
+        PriceSprite chip + an @name (a random user moment). */
+    kind?: 'text' | 'sprite';
     /** Small lead glyph (VS-15 vocabulary). */
     glyph?: string;
     /** Short category/tag shown above or beside the headline (ALLCAPS reads best). */
     tag?: string;
-    /** The headline — the part the eye lands on. */
-    title: string;
+    /** The headline — the part the eye lands on (text pills). */
+    title?: string;
     /** Optional secondary line (a detail / value / timestamp). */
     meta?: string;
+    /** @name for a sprite pill (rendered without the leading @). */
+    name?: string;
     /** Optional link — the whole pill navigates here when tapped. */
     href?: string;
 }
 
 /* Placeholder feature pills — stand-ins to nail the look; replaced by the
-   real curated + auto-event sources next. */
+   real curated + auto-event sources next. Widths vary with content on purpose
+   (a wide news line beside a little sprite chip). */
 const PLACEHOLDER_ITEMS: NewsItem[] = [
     { glyph: '✦︎', tag: 'NEW PROJECT', title: 'A fresh drop just landed', meta: 'Now minting' },
+    { kind: 'sprite', name: 'someone' },
     { glyph: '◈︎', tag: 'MILESTONE', title: 'First collection sold out', meta: '250 / 250' },
-    { glyph: '❖︎', tag: 'FEATURED', title: 'Artist of the week', meta: '@someone' },
+    { glyph: '❖︎', tag: 'FEATURED', title: 'Artist of the week', meta: '@brendon' },
+    { kind: 'sprite', name: 'newhere' },
     { glyph: '⟠︎', tag: 'VOLUME', title: 'Platform crossed a new high', meta: '100 ETH' },
-    { glyph: '✧︎', tag: 'ANNOUNCEMENT', title: 'Something big is coming', meta: 'Stay tuned' },
 ];
 
+/* Sprite pill — the live PriceSprite (same engine + face renderer the menu
+   uses), animated, beside the user's @name. */
+function SpriteNewsPill({ item }: { item: NewsItem }) {
+    const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
+    useEffect(() => {
+        setFrame(getSpriteFrame());
+        return subscribeSprite(() => setFrame(getSpriteFrame()));
+    }, []);
+    const inner = (
+        <>
+            <span className="news-pill-sprite" aria-hidden="true">
+                <SpriteFace face={frame.face} />
+            </span>
+            {item.name && <span className="news-pill-name">@{item.name}</span>}
+        </>
+    );
+    return item.href
+        ? <a className="pill news-pill news-pill--sprite" href={item.href}>{inner}</a>
+        : <span className="pill news-pill news-pill--sprite">{inner}</span>;
+}
+
 function NewsPill({ item }: { item: NewsItem }) {
+    if (item.kind === 'sprite') return <SpriteNewsPill item={item} />;
     const inner = (
         <>
             {item.glyph && <span className="news-pill-glyph" aria-hidden="true">{item.glyph}</span>}
             <span className="news-pill-body">
                 {item.tag && <span className="news-pill-tag">{item.tag}</span>}
-                <span className="news-pill-title">{item.title}</span>
+                {item.title && <span className="news-pill-title">{item.title}</span>}
                 {item.meta && <span className="news-pill-meta">{item.meta}</span>}
             </span>
         </>
