@@ -39,15 +39,21 @@ and every stylesheet. **FIXED = shipped in this pass. OPEN = queued follow-ups.*
    shared toast), navbar is already a real `<nav>` landmark, home/artists/
    artwork pages each carry a proper `h1`.
 
-## OPEN — queued follow-ups (rough order of value)
+## Fixed in the third pass (2026-07-05, same day)
 
-1. **Agent layer phase 2** — market facts (floor, listings, offers) in the
-   structured data once served pages can read them cheaply; Reads-As scene
-   sentences as the artwork description when stored fingerprints populate.
-2. **Modal focus management** — confirm focus moves into open modals/sheets
-   and returns on close; Escape coverage exists in most (verified ambient,
-   confirm cards) but needs a full sweep.
-3. **Dynamic type** — text is px-sized throughout; iOS text-size settings
+- **Agent layer phase 2** — Reads-As scene sentences are each piece's
+  machine-readable visual description; active listings surface as priced
+  offers; project floor rides the existing seed read as an aggregate offer.
+- **Modal focus management** — lifted into the shared modal primitive (the
+  same one that owns Escape + the scroll dance), so EVERY modal now moves
+  focus in on open and hands it back on close. Programmatic focus after a tap
+  draws no ring; keyboard users see the themed ring.
+
+## OPEN — queued follow-ups
+
+1. **Sticker sheet/manager overlays** — they run outside the shared modal
+   primitive; give them the same focus in/out behaviour.
+2. **Dynamic type** — text is px-sized throughout; iOS text-size settings
    don't scale the app. Big job, note only.
 
 ## Landscape hardening (same session — the "caught on the window" class)

@@ -162,6 +162,30 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener('keydown', handler);
     }, [openModal, close]);
 
+    /* Focus management — same lifted-primitive move as the scroll dance above:
+       one implementation, every modal inherits it. On open, move focus INTO
+       the dialog (screen readers announce it; keyboard users aren't left
+       tabbing the hidden page behind it); on close/switch, hand focus back to
+       whatever had it. Programmatic focus after a tap draws no ring — the
+       ring only shows for keyboard users (:focus-visible heuristics). */
+    useEffect(() => {
+        if (!openModal) return;
+        const prev = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        // Two frames: the matching modal component mounts after this state flip.
+        const raf = requestAnimationFrame(() => requestAnimationFrame(() => {
+            const dlg = document.querySelector<HTMLElement>('.platform-modal.active')
+                ?? document.querySelector<HTMLElement>('[role="dialog"]');
+            if (dlg && !dlg.contains(document.activeElement)) {
+                if (!dlg.hasAttribute('tabindex')) dlg.setAttribute('tabindex', '-1');
+                dlg.focus({ preventScroll: true });
+            }
+        }));
+        return () => {
+            cancelAnimationFrame(raf);
+            if (prev && document.contains(prev)) prev.focus({ preventScroll: true });
+        };
+    }, [openModal]);
+
     const value = useMemo<ModalContextValue>(
         () => ({ openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalId, setCurrentModalOutput }),
         [openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalOutput]
