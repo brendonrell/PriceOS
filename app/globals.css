@@ -6285,6 +6285,21 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     transform: rotate(45deg);
     margin-bottom: 2px;
 }
+/* Home project-name ownership check — the card's owned badge, but scaled to the
+   name's own font (em units) so it reads a size smaller and sits inline beside
+   the project name on the Now Minting + New Gen Art surfaces (Brendon,
+   2026-07-05). */
+.home-name-owned {
+    width: 0.85em;
+    height: 0.85em;
+    margin-left: 0.4em;
+    vertical-align: middle;
+}
+.home-name-owned .css-check {
+    width: 0.19em;
+    height: 0.36em;
+    margin-bottom: 0.12em;
+}
 /* Artist-owned badge — just the canonical artist glyph ✺ (GLYPHS.md §4) in
    Courier, sized to the diameter of the owned-by-you check circle (no ring of
    its own). Sits right after the check, so a piece the viewing artist owns

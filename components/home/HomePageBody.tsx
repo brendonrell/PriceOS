@@ -125,11 +125,22 @@ function fmtUploadTime(ms: number | null): string {
         .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
 }
 
+/* The "owned by you" check (same glyph the cards carry — a ringed CSS
+   check-mark), sized in em so it matches whatever project-name font it sits
+   beside. Shown right after a project name the viewer owns ≥1 piece of. */
+function OwnedNameCheck() {
+    return (
+        <span className="badge-owned home-name-owned" title="You own this project" aria-label="Owned by you">
+            <span className="css-check" />
+        </span>
+    );
+}
+
 /* One Minting Now carousel — mounted under its own ProjectProvider so the
    cards paint THIS project's engine (same markup as the original single-
    project carousel). totalOutputs is provider-live: a mint advances the row
    without a reload (the provider re-fetches on 'pd:project-refresh'). */
-export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
+export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: boolean; owned?: boolean }) {
     const project = useProject();
     const ids = Array.from(
         { length: CAROUSEL_SIZE },
@@ -173,6 +184,7 @@ export function HomeProjectCarousel({ eager = false }: { eager?: boolean }) {
                 <a className="home-carousel-title" href={`/art/${project.slug}`}>
                     {project.title}
                 </a>
+                {owned && <OwnedNameCheck />}
                 {SHOW_CAROUSEL_ARTIST && getProject(project.slug)?.artistHandle && (
                     <span className="section-head-by">
                         {' '}by <a href={`/${getProject(project.slug)!.artistHandle}`}>@{getProject(project.slug)!.artistHandle}</a>
@@ -204,7 +216,7 @@ const HOME_CAROUSEL_STEP = 4;
    (the rest paint on horizontal scroll). Brendon, 2026-06-24. */
 const HOME_EAGER_TILES = 4;
 
-function MintingCarousels({ items }: { items: EnrichedProject[] }) {
+function MintingCarousels({ items, ownedSlugs }: { items: EnrichedProject[]; ownedSlugs: Set<string> }) {
     const [shown, setShown] = useState(HOME_INITIAL_CAROUSELS);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const total = items.length;
@@ -228,7 +240,7 @@ function MintingCarousels({ items }: { items: EnrichedProject[] }) {
         <>
             {items.slice(0, shown).map((m, i) => (
                 <ProjectProvider key={m.slug} slug={m.slug} initialTotal={m.minted}>
-                    <HomeProjectCarousel eager={i === 0} />
+                    <HomeProjectCarousel eager={i === 0} owned={ownedSlugs.has(m.slug)} />
                 </ProjectProvider>
             ))}
             {shown < total && (
@@ -320,6 +332,24 @@ function HomePageBodyInner({
     const { open: openModal } = useModal();
     const { siweAddress, handle: viewerHandle } = useAuth();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
+
+    /* Projects the viewer owns ≥1 piece of — drives the ownership check beside
+       the project name on both tabs (same glyph the cards carry). Real holdings
+       for the logged-in wallet, keyed by project slug. */
+    const [ownedSlugs, setOwnedSlugs] = useState<Set<string>>(() => new Set());
+    useEffect(() => {
+        const addr = siweAddress?.toLowerCase();
+        if (!addr) { setOwnedSlugs(new Set()); return; }
+        let cancelled = false;
+        fetch(`/api/user/${addr}/outputs`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !Array.isArray(d?.holdings)) return;
+                setOwnedSlugs(new Set(d.holdings.map((h: { slug: string }) => h.slug)));
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress]);
 
     const [activeTab, setActiveTab] = useState<HomeTab>('minting');
     /* Keep the Now-Minting carousels MOUNTED once seen, then just hide them
@@ -993,7 +1023,7 @@ function HomePageBodyInner({
                         row lazy-paints through the card virtualizer as it
                         scrolls into view. Painting every project's canvases
                         up front is what made home crawl (Brendon, 2026-06-13). */}
-                    <MintingCarousels items={visibleMinting} />
+                    <MintingCarousels items={visibleMinting} ownedSlugs={ownedSlugs} />
                 </section>
             )}
 
@@ -1060,6 +1090,7 @@ function HomePageBodyInner({
                                         <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}
                                         </a>
+                                        {ownedSlugs.has(u.slug) && <OwnedNameCheck />}
                                     </div>
                                 </div>
                             );

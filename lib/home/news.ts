@@ -26,6 +26,26 @@ const AUTO_LIMIT = 12;
 
 const vs = (g: string) => `${g}︎`;
 
+/* "Today · 15:42" / "Yesterday · 15:42" / "JUN 11 · 15:42" — the moment stamp
+   shown under the project name on each auto pill. Relative wording for the last
+   two days, then the compact date; time in the app's UTC house style (matches
+   the New Uploads feed stamps). */
+function fmtNewsWhen(ms: number): string {
+    const d = new Date(ms);
+    const now = new Date();
+    const dayOf = (x: Date) => Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate());
+    const diffDays = Math.round((dayOf(now) - dayOf(d)) / 86400000);
+    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+    let day: string;
+    if (diffDays === 0) day = 'Today';
+    else if (diffDays === 1) day = 'Yesterday';
+    else {
+        const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+        day = `${mon} ${String(d.getUTCDate()).padStart(2, '0')}`;
+    }
+    return `${day} · ${time}`;
+}
+
 interface Ev { slug: string; title: string; tag: string; glyph: string; ts: number }
 
 /* The three lifecycle moments as pills, newest first. */
@@ -48,7 +68,7 @@ function autoNewsItems(feed: HomeResponse | null): NewsItem[] {
     return evs
         .sort((a, b) => b.ts - a.ts)
         .slice(0, AUTO_LIMIT)
-        .map((e) => ({ glyph: vs(e.glyph), tag: e.tag, title: e.title, href: `/art/${e.slug}` }));
+        .map((e) => ({ glyph: vs(e.glyph), tag: e.tag, title: e.title, meta: fmtNewsWhen(e.ts), href: `/art/${e.slug}` }));
 }
 
 /* Curated first, then the auto moments. */
