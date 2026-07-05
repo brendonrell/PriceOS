@@ -1928,13 +1928,24 @@ a.news-pill { cursor: pointer; }
 .news-pill-title,
 .news-pill-meta,
 .news-pill-name {
-    /* Theme-aware halo: the colorway's own background tone (soft), which is by
-       design the readable counterpart to the text colour — so it separates the
-       words on any colorway instead of a fixed black that only worked on
-       light/dark. */
+    /* Colour-aware halo, pure CSS. Default = light lettering (dark/saturated
+       colorways like green/orange) → a DARK halo so the words stay readable.
+       The bright-bg themes (dark lettering) flip to a light halo below. Text is
+       full-strength --text-color — no opacity, ever. */
     text-shadow:
-        0 0 3px color-mix(in srgb, var(--bg-color, #000) 60%, transparent),
-        0 1px 1px color-mix(in srgb, var(--bg-color, #000) 50%, transparent);
+        0 0 3px rgba(0, 0, 0, 0.7),
+        0 1px 2px rgba(0, 0, 0, 0.55);
+}
+/* Bright-bg colorways carry dark lettering — a light halo reads clean there
+   instead of a muddy black (body.theme-bright is set by the colorway engine). */
+body.theme-bright .news-pill-glyph,
+body.theme-bright .news-pill-tag,
+body.theme-bright .news-pill-title,
+body.theme-bright .news-pill-meta,
+body.theme-bright .news-pill-name {
+    text-shadow:
+        0 0 3px rgba(255, 255, 255, 0.65),
+        0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 /* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
