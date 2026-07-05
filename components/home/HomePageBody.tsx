@@ -33,6 +33,7 @@ import SectionHead from '../SectionHead';
 import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
+import NewsCarousel from './NewsCarousel';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -893,6 +894,10 @@ function HomePageBodyInner({
                     </div>
                 }
             >
+                {/* Featured news — always-visible rich-pill strip scrolling on
+                    the Tape engine, sitting directly above the action row. */}
+                <NewsCarousel />
+
                 {/* Action row — same chrome as the project page's mint +
                     soundtrack pair. Primary = Join The Chat (Discord);
                     second = Stickers (play icon retained). */}
