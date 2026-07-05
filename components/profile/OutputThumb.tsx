@@ -59,6 +59,8 @@ export default function OutputThumb({
         <canvas
             ref={ref}
             className="starred-row-thumb-canvas"
+            role="img"
+            aria-label={`${slug} #${id} — artwork thumbnail`}
             /* Square slot. When `crop` is set the art fills it via cover — true
                aspect, trimmed, never distorted (Brendon 2026-06-26). Otherwise
                the original stretch-to-fill is kept (Starred/Wishlist unchanged). */

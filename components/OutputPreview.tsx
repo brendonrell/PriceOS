@@ -875,6 +875,8 @@ export default function OutputPreview() {
                     id="modalCanvas"
                     ref={canvasRef}
                     className="output-canvas"
+                    role="img"
+                    aria-label={id != null ? `${slug} #${id} — generative artwork` : 'Generative artwork'}
                     onClick={() => {
                         if (id == null) return;
                         close();
@@ -1105,6 +1107,8 @@ export default function OutputPreview() {
                     id="modalCanvasLs"
                     ref={canvasLsRef}
                     className="output-canvas"
+                    role="img"
+                    aria-label={id != null ? `${slug} #${id} — generative artwork` : 'Generative artwork'}
                     onClick={() => {
                         if (id == null) return;
                         close();

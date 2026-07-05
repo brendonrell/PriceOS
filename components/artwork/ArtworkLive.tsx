@@ -62,5 +62,13 @@ export default function ArtworkLive({
     void contain;
     const style: CSSProperties = { display: 'block', maxWidth: '100%' };
 
-    return <canvas ref={canvasRef} className={className} style={style} />;
+    return (
+        <canvas
+            ref={canvasRef}
+            className={className}
+            style={style}
+            role="img"
+            aria-label={`${slug} #${id} — generative artwork, live render`}
+        />
+    );
 }

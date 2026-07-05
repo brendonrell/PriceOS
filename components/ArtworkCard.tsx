@@ -748,6 +748,8 @@ function ArtworkCard({
                         ref={canvasRef}
                         className="output-canvas"
                         style={{ width: '100%', height: '100%', display: 'block' }}
+                        role="img"
+                        aria-label={`${projectTitle} #${id} — generative artwork`}
                     />
                     {celMark && (
                         <span

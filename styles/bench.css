@@ -66,7 +66,7 @@ body.bench-dragging * {
 /* The CART drop target — only while dragging a listed piece. */
 .bench-cart-target {
     position: fixed;
-    right: 16px;
+    right: max(16px, env(safe-area-inset-right));
     bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     z-index: 4;
     pointer-events: auto;

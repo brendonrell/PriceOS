@@ -35,7 +35,7 @@ export default function ProjectCard({
   return (
     <Link href={`/art/${slug}`} className="output-card project-card" style={{ display: 'block', textDecoration: 'none' }}>
       <div className="canvas-wrapper" ref={wrapRef}>
-        <canvas ref={canvasRef} className="output-canvas visible" />
+        <canvas ref={canvasRef} className="output-canvas visible" role="img" aria-label={`${displayName} — project artwork`} />
       </div>
       <div className="meta">
         <span className="meta-id">{displayName}</span>

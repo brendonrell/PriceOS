@@ -206,7 +206,11 @@ body.is-pwa::before {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: max(25px, env(safe-area-inset-top)) 40px 15px 40px;
+    /* Horizontal padding respects the LANDSCAPE safe areas (the notch sits on
+       the side once rotated) — env() is 0 in portrait / on notchless devices,
+       so max() keeps the exact classic padding there (same pattern as
+       .fullscreen-back). Keeps the logo + connect square off the notch. */
+    padding: max(25px, env(safe-area-inset-top)) max(40px, env(safe-area-inset-right)) 15px max(40px, env(safe-area-inset-left));
     background: transparent;
     position: sticky;
     top: 0;
@@ -221,7 +225,7 @@ body.is-pwa .navbar {
 @media (max-width: 600px) {
     .navbar {
         /* Sim-faithful mobile padding: 15px top/bottom, 20px horizontal. */
-        padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;
+        padding: max(15px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 15px max(20px, env(safe-area-inset-left));
     }
     body.is-pwa .navbar {
         padding-top: max(30px, calc(env(safe-area-inset-top) + 16px));
@@ -1735,7 +1739,8 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     font-size: 10px; font-weight: bold;
     color: var(--text-color);
     opacity: 0.46;
-    padding: 40px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+    /* Sides respect the landscape safe areas (0 in portrait — no change). */
+    padding: 40px max(20px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left));
     letter-spacing: 0.5px;
     user-select: none;
     flex-shrink: 0;
@@ -1749,7 +1754,7 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 @media (max-width: 600px) {
     .priceos-footer {
         gap: 8px; font-size: 9px;
-        padding: 32px 14px calc(16px + env(safe-area-inset-bottom, 0px)) 14px;
+        padding: 32px max(14px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left));
     }
     .priceos-footer-row { gap: 6px; }
 }
@@ -10697,13 +10702,13 @@ body.colorway-dark .ghost-feed-bar {
     justify-content: space-between;
     gap: 12px;
     margin: 8px 0 0;
-    padding: 0 40px;
+    padding: 0 max(40px, env(safe-area-inset-right)) 0 max(40px, env(safe-area-inset-left));
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     color: var(--text-color);
 }
 @media (max-width: 600px) {
-    .artwork-feature-foot { padding: 0 16px; }
+    .artwork-feature-foot { padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
 }
 /* Breathing room between the art's footer row and the site footer below. */
 #artwork-feature { padding-bottom: 40px; }

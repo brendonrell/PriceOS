@@ -93,6 +93,26 @@ export default function TheWatch() {
     setPos(next);
   }, [active, pos]);
 
+  /* Re-clamp on rotation / viewport resize — a chip parked bottom-right in
+     portrait would otherwise sit stranded OFF-SCREEN after turning landscape
+     (the viewport shrinks under the saved coords). */
+  useEffect(() => {
+    if (!active) return;
+    const onResize = () => {
+      setPos((p) => {
+        if (!p) return p;
+        const c = clampToViewport(p.x, p.y);
+        return c.x === p.x && c.y === p.y ? p : c;
+      });
+    };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, [active]);
+
   /* Hide while a modal / panel owns the screen so the chip never covers it. */
   useEffect(() => {
     if (typeof document === 'undefined') return;
