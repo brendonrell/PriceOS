@@ -75,8 +75,6 @@ export interface PdNotifs {
     // setAccordion() below enforces this.
     notes: boolean;
     todos: boolean;
-    /* Workflows accordion (connect menu) — session-only like notes/todos. */
-    workflows: boolean;
     // tapeOpen above is the third accordion flag — colocated with tape mode.
 
     // Spell Book toggles. Matches the sim's spell_<name> naming.
@@ -201,7 +199,6 @@ const DEFAULTS: PdNotifs = {
 
     notes: false,
     todos: false,
-    workflows: false,
 
     spell_familiar: false,
     spell_cartel: false,
@@ -280,15 +277,14 @@ const STORAGE_KEY = 'pd_settings_notifs';
    keys (`pd_notes_open` / `pd_todos_open` / `pd_tape_open`) so they
    reset on a full page reload — opening Notes shouldn't keep Notes open
    forever. Every other pdNotifs key stays in localStorage as before. */
-const SESSION_KEYS = ['notes', 'todos', 'workflows', 'tapeOpen'] as const;
+const SESSION_KEYS = ['notes', 'todos', 'tapeOpen'] as const;
 const SESSION_STORAGE_KEYS: Record<typeof SESSION_KEYS[number], string> = {
     notes:    'pd_notes_open',
     todos:    'pd_todos_open',
-    workflows: 'pd_workflows_open',
     tapeOpen: 'pd_tape_open',
 };
 
-export type AccordionName = 'tape' | 'pings' | 'todos' | 'notes' | 'workflows';
+export type AccordionName = 'tape' | 'pings' | 'todos' | 'notes';
 
 interface PdNotifsContextValue {
     notifs: PdNotifs;
@@ -437,16 +433,14 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
                 if (name === 'tape')  return { ...prev, tapeOpen: false };
                 if (name === 'todos') return { ...prev, todos: false };
                 if (name === 'notes') return { ...prev, notes: false };
-                if (name === 'workflows') return { ...prev, workflows: false };
                 // 'pings' has no boolean — it's the implicit default.
                 return prev;
             }
             // Opening — flip ALL accordions off, then open the named one.
-            const cleared = { ...prev, tapeOpen: false, todos: false, notes: false, workflows: false };
+            const cleared = { ...prev, tapeOpen: false, todos: false, notes: false };
             if (name === 'tape')  return { ...cleared, tapeOpen: true };
             if (name === 'todos') return { ...cleared, todos: true };
             if (name === 'notes') return { ...cleared, notes: true };
-            if (name === 'workflows') return { ...cleared, workflows: true };
             // 'pings' opens by closing the others.
             return cleared;
         });

@@ -313,6 +313,7 @@ real presence, not a toggled "watching" button).
 | Spell Book **The Watch** | ⬬ | U+2B2C | solid horizontal oval — echoes the live MINTED stat chip's oval shape; the free twin of Halo's hollow ⬭ (U+2B2D, §8), so the ellipse family is iOS-proven (Brendon, 2026-06-20) |
 | MY PD **ASCII-ID** (back in the Redacted slot) | ⍢ | U+2362 | also lives in the PriceSprite modal; both drive `asciiId` |
 | **Stickers** (sitewide) | ⊞ | U+229E | the canonical Stickers icon — home action row, MY PD Sticker Mode toggle, the store's expand control, and the Sticker Manager title. Replaced the old ▶/▣ (Brendon, 2026-06-22) |
+| **Workflows** ☇ | ☇ | U+2607 | Brendon's pick (2026-07-05) — the TEXT lightning (never the ⚡ emoji, which is banned). Lives beside the To-Dos `+` (its only entry) and titles the Workflows sheet. Device-verify on iPhone per the #1 glyph gate |
 
 > **Portal** retired (it did nothing): its slot became **Redacted**, its glyph
 > ᗝ moved to **Price Ghost**, and Price Ghost's old ⦾ (U+29BE) is freed. The

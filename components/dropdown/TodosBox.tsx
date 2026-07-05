@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
+import { WorkflowsSheet } from './WorkflowsSheet';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { priceOf, useStarredPrices } from '../../lib/pins/starredPriceStore';
@@ -70,6 +71,8 @@ export function TodosBox() {
 
     // Composer state.
     const [composeOpen, setComposeOpen] = useState(false);
+    // Workflows ☇ — the modal's ONLY entry surface (Brendon, 2026-07-05).
+    const [workflowsOpen, setWorkflowsOpen] = useState(false);
     const [text, setText] = useState('');
     const [due, setDue] = useState('');
     const [price, setPrice] = useState('');
@@ -234,6 +237,24 @@ export function TodosBox() {
                     <span>
                         TO-DOS <span className="notif-count">({openCount})</span>
                     </span>
+                    {notifs.todos && (
+                        <span
+                            className="todos-add-btn todos-wf-btn"
+                            role="button"
+                            tabIndex={0}
+                            title="Workflows"
+                            onClick={(e) => { stop(e); setWorkflowsOpen(true); }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setWorkflowsOpen(true);
+                                }
+                            }}
+                        >
+                            {'☇︎'}
+                        </span>
+                    )}
                     {notifs.todos && (
                         <span
                             className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
@@ -462,6 +483,8 @@ export function TodosBox() {
                     </span>
                 </div>
             )}
+
+            {workflowsOpen && <WorkflowsSheet onClose={() => setWorkflowsOpen(false)} />}
 
             {confirm && (
                 <div

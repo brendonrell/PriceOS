@@ -386,3 +386,12 @@
     padding: 2px 6px;
     text-decoration: none;
 }
+
+/* ☇ Workflows launcher — sits LEFT of the To-Dos "+" (its only entry). */
+.todos-wf-btn { font-size: 15px; margin-right: 2px; }
+
+/* The Workflows modal (value-prompt sheet shell). */
+.wf-sheet { max-height: 74vh; display: flex; flex-direction: column; }
+.wf-sheet .wf-compose { padding: 10px 0 12px; }
+.wf-list { overflow-y: auto; min-height: 0; }
+.wf-sheet .wf-row { padding: 8px 2px; }

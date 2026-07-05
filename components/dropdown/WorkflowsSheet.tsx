@@ -1,20 +1,22 @@
 'use client';
 
 /*
- * WorkflowsBox — WORKFLOWS in the connect menu (Brendon, 2026-07-05):
- * iOS-Shortcuts-style automations, built on the To-Dos rails. Same accordion
- * family as TO-DOS / NOTES (AccordionBox + setAccordion exclusivity).
+ * WorkflowsSheet — WORKFLOWS ☇ (Brendon, 2026-07-05): iOS-Shortcuts-style
+ * automations, built on the To-Dos rails. The ONLY entry surface is the ☇
+ * icon beside the To-Dos "+" (Brendon's call — the connect menu UI stays
+ * untouched otherwise); it opens this modal: the value-prompt sheet shell
+ * (dim backdrop + slide-up box, the AlbumPickerCard treatment) holding the
+ * builder + the armed list.
  *
  * A workflow is BUILT, never written: pick a trigger, pick the payload, ARM.
- *   UPLOAD — "WHEN @artist UPLOADS → MINT ×n + TO-DO + NOTIFY"
- *   PRICE  — "WHEN PIECE #id ≤ ◊x → TO-DO + NOTIFY" (the Sentinel takes over)
+ *   NEXT UPLOAD — "WHEN @artist UPLOADS → MINT ×n + TO-DO + NOTIFY"
+ *   PRICE HIT   — "WHEN piece #id ≤ ◊x → TO-DO + NOTIFY" (Sentinel takes over)
  * Fired workflows stay as records wearing FIRED (one-shot; arm again freely).
  * The engine is WorkflowWatcher in the shell, riding the real feeds.
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { AccordionBox } from './AccordionBox';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '../../lib/state/ToastContext';
 import { getProject } from '../../lib/project/registry';
 import {
@@ -28,11 +30,13 @@ import {
 
 type TriggerKind = 'upload' | 'price';
 
-export function WorkflowsBox() {
-    const { notifs, setAccordion } = usePdNotifs();
+const CLOSE_FADE_MS = 250;
+
+export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
     const { showToast } = useToast();
     const [workflows, setWorkflows] = useState<WorkflowRecord[]>([]);
-    const [composeOpen, setComposeOpen] = useState(false);
+    const [active, setActive] = useState(false);
+    const closingRef = useRef(false);
     const [kind, setKind] = useState<TriggerKind>('upload');
     const [artist, setArtist] = useState('');
     const [slug, setSlug] = useState('');
@@ -46,8 +50,19 @@ export function WorkflowsBox() {
         return subscribeWorkflows(read);
     }, []);
 
+    // Slide-up on mount; fade on dismiss (the value-prompt dance).
+    useEffect(() => {
+        const raf = requestAnimationFrame(() => setActive(true));
+        return () => cancelAnimationFrame(raf);
+    }, []);
+    const dismiss = () => {
+        if (closingRef.current) return;
+        closingRef.current = true;
+        setActive(false);
+        setTimeout(onClose, CLOSE_FADE_MS);
+    };
+
     const armedCount = useMemo(() => workflows.filter((w) => w.firedAt == null).length, [workflows]);
-    const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
 
     const arm = () => {
         if (kind === 'upload') {
@@ -66,47 +81,34 @@ export function WorkflowsBox() {
             showToast(`Workflow: ARMED · ${s.toUpperCase()} #${id} ≤ ◊${p}`);
         }
         setArtist(''); setSlug(''); setTokenId(''); setPrice(''); setQty('1');
-        setComposeOpen(false);
     };
 
     const canArm = kind === 'upload'
         ? artist.trim().length > 0
         : slug.trim().length > 0 && Number(tokenId) >= 1 && Number(price) > 0;
 
-    return (
-        <AccordionBox
-            boxId="workflowsBox"
-            listId="workflowsList"
-            open={notifs.workflows}
-            onHeaderClick={() => setAccordion('workflows', !notifs.workflows)}
-            header={
-                <span className="todos-header-row">
-                    <span>
-                        WORKFLOWS <span className="notif-count">({armedCount})</span>
-                    </span>
-                    {notifs.workflows && (
-                        <span
-                            className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title="Arm a workflow"
-                            onClick={(e) => { stop(e); setComposeOpen((v) => !v); }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    stop(e);
-                                    setComposeOpen((v) => !v);
-                                }
-                            }}
-                        >
-                            +
-                        </span>
-                    )}
-                </span>
-            }
+    return createPortal(
+        <div
+            className={`value-prompt-wrap mounted${active ? ' active' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Workflows"
+            onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
         >
-            {composeOpen && (
-                <div className="wf-compose" onClick={stop}>
+            <div className="value-prompt-box wf-sheet">
+                <span
+                    className="value-prompt-close-x"
+                    onClick={dismiss}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismiss(); } }}
+                    title="Close"
+                >
+                    {'×︎'}
+                </span>
+                <div className="value-prompt-title">☇︎ Workflows <span className="notif-count">({armedCount})</span></div>
+
+                <div className="wf-compose">
                     <div className="wf-kind-row">
                         <button type="button" className={`wf-kind${kind === 'upload' ? ' on' : ''}`} onClick={() => setKind('upload')}>NEXT UPLOAD</button>
                         <button type="button" className={`wf-kind${kind === 'price' ? ' on' : ''}`} onClick={() => setKind('price')}>PRICE HIT</button>
@@ -164,41 +166,42 @@ export function WorkflowsBox() {
                         ARM
                     </button>
                 </div>
-            )}
 
-            {workflows.length === 0 && !composeOpen && (
-                <div className="todo-empty">No workflows yet — tap + to arm one.</div>
-            )}
-
-            {workflows.map((w) => (
-                <div key={w.id} className={`wf-row${w.firedAt != null ? ' fired' : ''}`}>
-                    <span className="wf-sentence">
-                        {workflowSentence(w)}
-                        {w.firedAt != null && (
-                            w.firedSlug
-                                ? <a className="wf-fired" href={`/art/${w.firedSlug}`} onClick={stop}>FIRED</a>
-                                : <span className="wf-fired">FIRED</span>
-                        )}
-                    </span>
-                    <span
-                        className="todo-del"
-                        role="button"
-                        tabIndex={0}
-                        title="Remove workflow"
-                        onClick={(e) => { stop(e); removeWorkflow(w.id); showToast('Workflow: REMOVED'); }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                stop(e);
-                                removeWorkflow(w.id);
-                                showToast('Workflow: REMOVED');
-                            }
-                        }}
-                    >
-                        {'×︎'}
-                    </span>
+                <div className="wf-list">
+                    {workflows.length === 0 && (
+                        <div className="todo-empty">No workflows yet — arm your first above.</div>
+                    )}
+                    {workflows.map((w) => (
+                        <div key={w.id} className={`wf-row${w.firedAt != null ? ' fired' : ''}`}>
+                            <span className="wf-sentence">
+                                {workflowSentence(w)}
+                                {w.firedAt != null && (
+                                    w.firedSlug
+                                        ? <a className="wf-fired" href={`/art/${w.firedSlug}`}>FIRED</a>
+                                        : <span className="wf-fired">FIRED</span>
+                                )}
+                            </span>
+                            <span
+                                className="todo-del"
+                                role="button"
+                                tabIndex={0}
+                                title="Remove workflow"
+                                onClick={() => { removeWorkflow(w.id); showToast('Workflow: REMOVED'); }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        removeWorkflow(w.id);
+                                        showToast('Workflow: REMOVED');
+                                    }
+                                }}
+                            >
+                                {'×︎'}
+                            </span>
+                        </div>
+                    ))}
                 </div>
-            ))}
-        </AccordionBox>
+            </div>
+        </div>,
+        document.body,
     );
 }
