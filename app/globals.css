@@ -1906,7 +1906,7 @@ body.tape-framed .tape-rail {
     height: 100%;
     align-items: center;
     gap: 10px;
-    padding: 7px 16px;
+    padding: 7px 21px 7px 16px;
     margin-right: 12px;
     border-radius: 8px;
     /* Half-opacity themed fill (same token the trait value pills use), with
@@ -1989,7 +1989,7 @@ a.news-pill { cursor: pointer; }
 
 @media (max-width: 600px) {
     .news-wrap { height: 52px; margin: 0; }
-    .news-rail .news-pill { padding: 6px 13px; margin-right: 10px; }
+    .news-rail .news-pill { padding: 6px 18px 6px 13px; margin-right: 10px; }
     .news-pill-glyph { font-size: 18px; }
     .news-pill-title { font-size: 13px; }
     .news-pill-meta { font-size: 10px; }
