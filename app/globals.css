@@ -1928,7 +1928,13 @@ a.news-pill { cursor: pointer; }
 .news-pill-title,
 .news-pill-meta,
 .news-pill-name {
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.28);
+    /* Theme-aware halo: the colorway's own background tone (soft), which is by
+       design the readable counterpart to the text colour — so it separates the
+       words on any colorway instead of a fixed black that only worked on
+       light/dark. */
+    text-shadow:
+        0 0 3px color-mix(in srgb, var(--bg-color, #000) 60%, transparent),
+        0 1px 1px color-mix(in srgb, var(--bg-color, #000) 50%, transparent);
 }
 
 /* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
