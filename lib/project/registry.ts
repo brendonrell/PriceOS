@@ -592,7 +592,7 @@ const VESPERS: ProjectDef = {
   displayName: 'Vespers',
   artistHandle: 'firstchannel-ai',
   outputs: 222,
-  colorway: '#39ffbc',
+  colorway: '#0A1A3F',
   mintPriceEth: 0.2,
   soundtrack: { playlistId: 'OLAK5uy_kswdDmyW01XnMc4TobYm-ybFAfusEjxjc', label: 'Stars of the Lid — And Their Refinement of the Decline' },
   aspects: VESPERS_ASPECTS,
