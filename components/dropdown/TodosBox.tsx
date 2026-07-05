@@ -182,21 +182,23 @@ export function TodosBox() {
                     <span>
                         TO-DOS <span className="notif-count">({openCount})</span>
                     </span>
-                    <span
-                        className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        title="Add a to-do"
-                        onClick={openComposer}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                openComposer(e as unknown as React.MouseEvent);
-                            }
-                        }}
-                    >
-                        +
-                    </span>
+                    {notifs.todos && (
+                        <span
+                            className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Add a to-do"
+                            onClick={openComposer}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openComposer(e as unknown as React.MouseEvent);
+                                }
+                            }}
+                        >
+                            +
+                        </span>
+                    )}
                 </span>
             }
         >

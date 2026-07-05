@@ -17,10 +17,11 @@
 }
 .todos-add-btn {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+    margin: -2px 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -32,8 +33,7 @@
 .todos-add-btn:hover { opacity: 1; }
 .todos-add-btn.is-on {
     opacity: 1;
-    background: var(--hothurt, #ff0055);
-    color: var(--text-color);
+    color: var(--hothurt, #ff0055);
 }
 
 /* War-chest line — total ETH earmarked across open priced to-dos. */
@@ -78,14 +78,14 @@
 }
 .todo-mini {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.3px;
     color: inherit;
     background: color-mix(in srgb, currentColor 18%, transparent);
     border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
     border-radius: 3px;
-    padding: 5px 7px;
+    padding: 4px 7px;
     cursor: pointer;
     white-space: nowrap;
     transition: border-color 0.15s, color 0.15s;
@@ -109,7 +109,7 @@
     border: 0;
     background: transparent;
     color: inherit;
-    font: 700 10px/1 'Courier New', Courier, monospace;
+    font: 700 13px/1 'Courier New', Courier, monospace;
     outline: none;
 }
 .todo-price-input::placeholder { color: color-mix(in srgb, currentColor 68%, transparent); }
