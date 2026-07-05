@@ -282,22 +282,6 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'⍟\uFE0E'}
                     label="Stargazing"
                 />
-                {/* ASCII Backup — hardcoded pill on the plain `asciiBackup`
-                    flag (ClickUp 86bahh9f5). ON = the Output feature page
-                    renders the piece as raw ASCII + a Copy .TXT affordance.
-                    Wears ⍢ — the app's established ASCII glyph (ASCII-ID);
-                    same concept, same mark (panopticon principle). */}
-                <SettingsToggle
-                    id="sb-asciibackup"
-                    active={notifs.asciiBackup}
-                    onClick={() => {
-                        const next = !notifs.asciiBackup;
-                        toggle('asciiBackup');
-                        showToast(`ASCII Backup: ${next ? 'ON' : 'OFF'}`);
-                    }}
-                    icon={'⍢︎'}
-                    label="ASCII Backup"
-                />
                 {/* Echo Chamber — plain `echo` flag (not spell_*), so it lives
                     here as a hardcoded pill like Stargazing. Moved out of MY PD
                     (Brendon 2026-06-14) — that slot is now the Ambient Strip. */}

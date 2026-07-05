@@ -163,11 +163,6 @@ export interface PdNotifs {
      *  and see the "watching now" indicator; OFF = you opt out (no presence
      *  broadcast, indicator hidden for you). Default ON (Brendon, 2026-06-16). */
     audience: boolean;
-    /** ASCII Backup — Spell Book pill (ClickUp 86bahh9f5). ON = the Output
-     *  feature page (and fullscreen) render the piece as a raw ASCII
-     *  translation of the canvas, with a Copy .TXT affordance in the footer.
-     *  Plain flag (no spell_ prefix) like watch/echo/stargazing. */
-    asciiBackup: boolean;
 
     // Ping category preferences (MY PINGS panel)
     pings: {
@@ -252,7 +247,6 @@ const DEFAULTS: PdNotifs = {
     watch: false,
     watchMetric: 0,
     audience: true,
-    asciiBackup: false,
 
     pings: {
         mints: true,

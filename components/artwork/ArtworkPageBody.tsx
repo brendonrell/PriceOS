@@ -55,8 +55,7 @@ import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { getAsciiText } from '../../lib/art/ascii';
+import AsciiBackupPanel from './AsciiBackupPanel';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -184,7 +183,6 @@ export default function ArtworkPageBody({
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
-    const { notifs } = usePdNotifs();
     const [ctaBusy, setCtaBusy] = useState(false);
 
     const { open: openModal } = useModal();
@@ -872,35 +870,6 @@ export default function ArtworkPageBody({
                         >
                             Full Screen
                         </a>
-                        {/* ASCII Backup — copies the raw .txt of the ASCII view
-                            currently on screen. Only present while the Spell
-                            Book pill is on; same treatment as Full Screen. */}
-                        {notifs.asciiBackup && (
-                            <>
-                                {' '}
-                                <a
-                                    className="aff-fullscreen"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Copy the ASCII backup as raw text"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        const txt = getAsciiText(slug, globalId);
-                                        if (!txt) { showToast('ASCII Backup: NOT READY'); return; }
-                                        try { navigator.clipboard?.writeText(txt); } catch { /* ignore */ }
-                                        showToast('ASCII Backup: COPIED');
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            (e.currentTarget as HTMLElement).click();
-                                        }
-                                    }}
-                                >
-                                    Copy .TXT
-                                </a>
-                            </>
-                        )}
                     </span>
                     {ownerHref
                         ? <a className="aff-owner profile-link" href={ownerHref}>{heldBy}</a>
@@ -1229,9 +1198,18 @@ export default function ArtworkPageBody({
                     </>
                 )}
 
+                {/* ASCII BACKUP — this output translated to raw text/ASCII,
+                    in its reserved +More spot (Brendon, 2026-07-05). */}
+                {moreL1 === 'asciibackup' && (
+                    <>
+                        <div className="more-section-header">ASCII BACKUP</div>
+                        <AsciiBackupPanel slug={slug} id={globalId} />
+                    </>
+                )}
+
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && moreL1 !== 'asciibackup' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}

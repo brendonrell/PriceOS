@@ -5,6 +5,9 @@
 // stay minimal. A missing key 404s; the render seam then falls back to the live
 // engine. Deliberately NOT under /api (so it's outside the rate limiter) and NOT
 // under /art (which is the Artwork page namespace).
+//
+// Also serves {slug}/{id}.ascii.json — the ASCII Backup artifact pinned beside
+// each preview PNG (same immutable pin, same cache story).
 
 import { getPreviewBucket } from '@/lib/cf/r2';
 
@@ -14,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(_req: Request, ctx: { params: Promise<{ key: string[] }> }) {
   const { key: parts } = await ctx.params;
   const key = (parts ?? []).join('/');
-  if (!key.endsWith('.png') || key.includes('..')) {
+  if ((!key.endsWith('.png') && !key.endsWith('.ascii.json')) || key.includes('..')) {
     return new Response('Not found', { status: 404 });
   }
 

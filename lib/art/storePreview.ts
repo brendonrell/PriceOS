@@ -1,4 +1,5 @@
 import { renderArtwork } from '../project/registry';
+import { buildAsciiArtifact } from './ascii';
 
 /*
  * storeMintPreviews — the Arweave-writer simulation, client side.
@@ -32,6 +33,16 @@ export async function storeMintPreviews(slug: string, tokenIds: number[]): Promi
       renderArtwork(canvas, slug, tokenId, PREVIEW_PX, true);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (blob) await uploadWithRetry(`/api/preview/${slug}/${tokenId}`, blob);
+      // ASCII Backup rides the same mint moment: derive the text+colour
+      // artifact from the SAME fresh render and pin it beside the PNG
+      // ({slug}/{id}.ascii.json — write-once, ClickUp 86bahh9f5).
+      const artifact = buildAsciiArtifact(canvas, slug, tokenId);
+      if (artifact) {
+        await uploadWithRetry(
+          `/api/ascii/${slug}/${tokenId}`,
+          new Blob([JSON.stringify(artifact)], { type: 'application/json' }),
+        );
+      }
     } catch {
       /* best-effort — the display seam covers any miss with the live engine */
     }
@@ -45,7 +56,7 @@ async function uploadWithRetry(url: string, blob: Blob, attempts = 2): Promise<v
     try {
       const r = await fetch(url, {
         method: 'POST',
-        headers: { 'content-type': 'image/png' },
+        headers: { 'content-type': blob.type || 'image/png' },
         body: blob,
       });
       if (r.ok) return;
