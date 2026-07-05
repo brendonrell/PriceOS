@@ -55,7 +55,8 @@ export interface FeedMarker {
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
     id: 'pd-started', glyph: '#', cls: 'af-ic--hash', timestamp: '2021-11-19T08:28:00.000Z',
-    seq: 0, pin: 4, label: 'STARTED', lead: '', highlight: '#price-discussion', tail: ' channel started', href: null,
+    seq: 0, pin: 4, label: 'STARTED', lead: '', highlight: '#price-discussion', tail: ' channel started',
+    href: 'https://x.com/brendonrell/status/1593936863949164544',
   },
   {
     id: 'priceos-released', glyph: '‰', cls: 'af-ic--mille', timestamp: '2026-07-01T00:00:00.000Z',

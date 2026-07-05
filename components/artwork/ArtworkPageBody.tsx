@@ -432,7 +432,11 @@ export default function ArtworkPageBody({
                 <>
                     {m.lead}
                     {m.href
-                        ? <a className="f-highlight upload-title" href={m.href}>{m.highlight}</a>
+                        ? <a
+                            className="f-highlight upload-title"
+                            href={m.href}
+                            {...(/^https?:\/\//.test(m.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                          >{m.highlight}</a>
                         : <span className="f-highlight upload-title">{m.highlight}</span>}
                     {m.tail}
                     {m.badge && <span className="artist-tag is-sm output-artist-badge" aria-label="PD Artist">{' ✺︎'}</span>}
