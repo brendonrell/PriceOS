@@ -2807,6 +2807,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 
 /* /artists directory — whitelist status glyph (☼ active, ☽ cooldown) */
 .artists-page .artist-status { opacity: 0.75; font-size: 14px; line-height: 1; }
+/* /artists never had page gutters — the ARTISTS title sat flush against the
+   window edge (worst in landscape, wrong everywhere). Standard page padding,
+   same numbers + safe-area clamp as the navbar. */
+.artists-page { padding: 0 max(40px, env(safe-area-inset-right)) 0 max(40px, env(safe-area-inset-left)); }
+@media (max-width: 600px) {
+    .artists-page { padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left)); }
+}
 
 .artist-name-txt { opacity: 1; font-weight: bold; }
 
