@@ -19,7 +19,7 @@
 import type { UserSettings } from '@/lib/supabase';
 import { STATE_CACHE_KEYS, pushSettings } from './userState';
 
-type TabScope = 'project' | 'profile';
+type TabScope = 'project' | 'profile' | 'home';
 type TabMemory = NonNullable<UserSettings['tabMemory']>;
 
 const CACHE_KEY = STATE_CACHE_KEYS.tabMemory;

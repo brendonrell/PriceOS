@@ -96,6 +96,8 @@ export interface UserSettings {
     project?: Record<string, string>;
     /** profile handle → ProfileTab ('showcase' | 'collected' | 'more'). */
     profile?: Record<string, string>;
+    /** home surface → HomeTab ('minting' | 'new' | 'shuffle'). Single key. */
+    home?: Record<string, string>;
   };
   /** The user's chosen Digital Familiar species name (one of the live
    *  BitDaemons). Account-backed so the companion choice follows the viewer

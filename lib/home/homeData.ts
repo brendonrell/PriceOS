@@ -166,7 +166,12 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     }
   }
   uploads.sort(
-    (a, b) => (b.uploaded_at ?? -Infinity) - (a.uploaded_at ?? -Infinity),
+    (a, b) =>
+      (b.uploaded_at ?? -Infinity) - (a.uploaded_at ?? -Infinity) ||
+      // Same instant → fixed alphabetical order (title, then slug) so the New
+      // Gen Art list never reshuffles between reads (Brendon, 2026-07-05).
+      a.title.localeCompare(b.title) ||
+      a.slug.localeCompare(b.slug),
   );
   minting.sort(
     (a, b) => (a.reached_at ?? Infinity) - (b.reached_at ?? Infinity),

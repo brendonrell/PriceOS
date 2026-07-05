@@ -54,7 +54,7 @@ export interface FeedMarker {
    mark (Inter), ⤓ = a downward drop (the airdrop). */
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
-    id: 'pd-started', glyph: '#', cls: 'af-ic--hash', timestamp: '2021-11-11T00:00:00.000Z',
+    id: 'pd-started', glyph: '#', cls: 'af-ic--hash', timestamp: '2021-11-19T08:28:00.000Z',
     seq: 0, pin: 4, label: 'STARTED', lead: '', highlight: '#price-discussion', tail: ' channel started', href: null,
   },
   {

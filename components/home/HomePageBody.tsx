@@ -53,6 +53,7 @@ import HomeProjectFacetBar, {
     type HomeSortDir,
 } from './HomeProjectFacetBar';
 import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
+import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -389,7 +390,17 @@ function HomePageBodyInner({
         return () => { cancelled = true; };
     }, [siweAddress]);
 
-    const [activeTab, setActiveTab] = useState<HomeTab>('minting');
+    /* Land on the tab the viewer last used here — so leaving New Gen Art and
+       coming back (or hitting Back) returns you to it, not the default. */
+    const [activeTab, setActiveTab] = useState<HomeTab>(() => {
+        const r = getRememberedTab('home', 'home');
+        return r === 'new' || r === 'shuffle' || r === 'minting' ? r : 'minting';
+    });
+    const selectTab = (id: HomeTab, label: string) => {
+        setActiveTab(id);
+        rememberTab('home', 'home', id);
+        showToast(`Tab: ${label.toUpperCase()}`);
+    };
     /* Keep the Now-Minting carousels MOUNTED once seen, then just hide them
        off-tab — switching to New Gen Art and back must not repaint the art
        (same pattern as the profile tabs). Brendon, 2026-06-24. */
@@ -733,10 +744,15 @@ function HomePageBodyInner({
     const uploadsView = useMemo(() => {
         const rows = (feed?.uploads ?? []).filter((u) => matches(u.slug, u.title));
         return [...rows].sort((a, b) => {
-            if (homeSort === 'az') return a.title.localeCompare(b.title);
+            // Alphabetical → title, then slug (never a tie → never flip-flops).
+            const alpha = a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug);
+            if (homeSort === 'az') return alpha;
+            // Date order uses the FULL timestamp (down to the second); only when
+            // two uploads land the very same instant does it fall to alphabetical,
+            // so the order is fixed and identical on every refresh.
             const av = a.uploaded_at ?? 0;
             const bv = b.uploaded_at ?? 0;
-            return homeSort === 'newest' ? bv - av : av - bv;
+            return (homeSort === 'newest' ? bv - av : av - bv) || alpha;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [feed, homeSort, artistFilter, homeQuery]);
@@ -850,15 +866,11 @@ function HomePageBodyInner({
             role="button"
             tabIndex={0}
             title={label}
-            onClick={() => {
-                setActiveTab(id);
-                showToast(`Tab: ${label.toUpperCase()}`);
-            }}
+            onClick={() => selectTab(id, label)}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    setActiveTab(id);
-                    showToast(`Tab: ${label.toUpperCase()}`);
+                    selectTab(id, label);
                 }
             }}
         >
