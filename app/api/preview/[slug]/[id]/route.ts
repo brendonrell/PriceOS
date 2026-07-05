@@ -21,9 +21,9 @@ import { getPreviewBucket } from '@/lib/cf/r2';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// 384px preview PNGs top out ~440KB across the whole catalog; 700KB is generous
+// 512px preview PNGs top out ~710KB across the whole catalog; 1.2MB is generous
 // headroom while still rejecting anything abnormal.
-const MAX_BYTES = 700 * 1024;
+const MAX_BYTES = 1200 * 1024;
 const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string; id: string }> }): Promise<NextResponse> {

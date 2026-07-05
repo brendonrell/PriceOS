@@ -16,10 +16,12 @@ import { renderArtwork } from '../project/registry';
  * reconcile sweep could backfill later if guaranteed pinning is ever wanted).
  */
 
-// Thumbnail resolution. Keeps the whole catalog (132 projects × 222 max = 29,304
-// pieces) under R2's 10GB free tier at full sell-out (~6.6GB worst case), with a
-// comfortable buffer. The Output feature page still renders live at full quality.
-const PREVIEW_PX = 384;
+// Stored-preview resolution. Measured across all 120 projects (headless render,
+// supply-weighted): full sell-out (60×222 + 60×111 = 19,980 pieces) projects to
+// ~7.7GB at 512px — under R2's 10GB with real buffer. 640px would project to
+// ~11.6GB, over the tier. The Output feature page still renders live at full
+// quality.
+const PREVIEW_PX = 512;
 
 export async function storeMintPreviews(slug: string, tokenIds: number[]): Promise<void> {
   if (typeof document === 'undefined') return;
