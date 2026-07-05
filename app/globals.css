@@ -1917,7 +1917,7 @@ body.tape-framed .tape-rail {
     cursor: default;
     text-decoration: none;
 }
-a.news-pill { cursor: pointer; }
+.news-rail a.news-pill { cursor: pointer; }
 
 /* Legibility halo — the pill stays half-opacity, so the bright colorway shows
    THROUGH onto the text. A soft dark halo behind every glyph/word keeps the

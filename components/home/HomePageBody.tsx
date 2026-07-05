@@ -380,14 +380,20 @@ function HomePageBodyInner({
         const addr = siweAddress?.toLowerCase();
         if (!addr) { setOwnedSlugs(new Set()); return; }
         let cancelled = false;
-        fetch(`/api/user/${addr}/outputs`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-                if (cancelled || !Array.isArray(d?.holdings)) return;
-                setOwnedSlugs(new Set(d.holdings.map((h: { slug: string }) => h.slug)));
-            })
-            .catch(() => {});
-        return () => { cancelled = true; };
+        const load = () => {
+            fetch(`/api/user/${addr}/owned-projects`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => {
+                    if (cancelled || !Array.isArray(d?.slugs)) return;
+                    setOwnedSlugs(new Set(d.slugs as string[]));
+                })
+                .catch(() => {});
+        };
+        load();
+        // Re-pull after a mint / buy so a freshly-owned project lights up.
+        const onRefresh = () => load();
+        window.addEventListener('pd:project-refresh', onRefresh);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
     }, [siweAddress]);
 
     /* Land on the tab the viewer last used here — so leaving New Gen Art and

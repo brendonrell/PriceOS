@@ -77,6 +77,35 @@ export async function getUserSpendEth(rawAddress: string): Promise<number> {
   return Number(sum.toFixed(4));
 }
 
+/**
+ * The DISTINCT set of project slugs a wallet owns ≥1 piece of — the exact
+ * source for the home "you own this" checks. Paginates the holders rows (so it
+ * never misses a project past the 1000-row page cap) and dedupes to slugs. No
+ * price/mint enrichment — this is the cheap ownership-only read (Brendon,
+ * 2026-07-05: some owned projects were missing their check because the heavier
+ * holdings read was reused here). Returns [] for a malformed address; throws on
+ * a real DB error.
+ */
+export async function getUserOwnedSlugs(rawAddress: string): Promise<string[] | null> {
+  const address = rawAddress.toLowerCase();
+  if (!ADDRESS_RE.test(address)) return null;
+  const supabase = getSupabaseService();
+  const slugs = new Set<string>();
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('holders')
+      .select('project_id')
+      .eq('owner_address', address)
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as { project_id: string }[];
+    for (const r of rows) slugs.add(r.project_id);
+    if (rows.length < PAGE) break;
+  }
+  return [...slugs];
+}
+
 export async function getUserOwnedProjectsCount(rawAddress: string): Promise<number> {
   const address = rawAddress.toLowerCase();
   if (!ADDRESS_RE.test(address)) return 0;
