@@ -9039,6 +9039,16 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .home-carousel-title:hover {
     text-decoration: underline;
 }
+/* The carousel head aligns its children to the title's text baseline; the
+   ownership check has no text baseline, so pin it to the row's vertical center
+   instead — reads centered on the project name (Brendon, 2026-07-05). */
+.home-carousel-head .home-name-owned {
+    align-self: center;
+    /* Optical nudge — the uppercase Rubik title sits high in its line box, so
+       true-center reads a hair low; lift the check to match the caps. */
+    position: relative;
+    top: -0.06em;
+}
 .home-carousel-track {
     display: flex;
     flex-wrap: nowrap;

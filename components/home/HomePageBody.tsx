@@ -1101,10 +1101,13 @@ function HomePageBodyInner({
                                         <span>UPLOADED</span>
                                     </div>
                                     <div className="f-content">
+                                        {/* Check lives INSIDE the name so it flows with the last
+                                            word — a long name that wraps keeps the check beside its
+                                            final line instead of dropping to a lonely row. */}
                                         <a className="f-highlight upload-title" href={`/art/${u.slug}`}>
                                             {title}
+                                            {ownedSlugs.has(u.slug) && <OwnedNameCheck />}
                                         </a>
-                                        {ownedSlugs.has(u.slug) && <OwnedNameCheck />}
                                     </div>
                                 </div>
                             );
