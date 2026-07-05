@@ -10,11 +10,50 @@
 // a stable artwork per (slug, localId) pair until the real
 // mapping lands.
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 import { getProject } from '@/lib/project/registry';
+import { getSupabaseService } from '@/lib/supabase';
 
 type Props = { params: Promise<{ slug: string; localId: string }> };
+
+/* Live facts for the machine-readable layer — the piece's stored Reads-As
+   scene sentence + its cheapest active listing. Best-effort (page renders
+   fine without them) and request-deduped via cache() so metadata + body
+   share ONE read. Query shapes mirror the outputs/story routes. */
+const fetchOutputFacts = cache(
+  async (slug: string, tokenId: number): Promise<{ scene: string | null; listedEth: number | null }> => {
+    try {
+      const supabase = getSupabaseService();
+      const now = new Date().toISOString();
+      const [o, l] = await Promise.all([
+        supabase
+          .from('outputs')
+          .select('scene')
+          .eq('project_id', slug)
+          .eq('token_id', String(tokenId))
+          .maybeSingle(),
+        supabase
+          .from('listings')
+          .select('price_eth')
+          .eq('project_id', slug)
+          .eq('token_id', String(tokenId))
+          .eq('active', true)
+          .or(`end_time.is.null,end_time.gt.${now}`)
+          .order('price_eth', { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      const scene = (o.data as { scene?: string | null } | null)?.scene ?? null;
+      const p = (l.data as { price_eth?: string | number | null } | null)?.price_eth;
+      const listedEth = p != null && Number(p) > 0 ? Number(p) : null;
+      return { scene, listedEth };
+    } catch {
+      return { scene: null, listedEth: null };
+    }
+  },
+);
 
 function isValidProjectSlug(s: string): boolean {
   const lower = s.toLowerCase();
@@ -47,10 +86,14 @@ export default async function ProjectOutputPage(props: Props) {
   try {
     traits = (project?.traitsOf?.(localId) as Record<string, unknown>) ?? {};
   } catch { /* engine without a calc prefix — ship without traits */ }
+  const { scene, listedEth } = await fetchOutputFacts(slug, localId);
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VisualArtwork',
     name: `${project?.displayName ?? slug} #${localId}`,
+    // The Reads-As scene sentence IS the visual description — what the piece
+    // literally looks like, computed from its own pixels.
+    description: scene ?? undefined,
     creator: project?.artistHandle
       ? { '@type': 'Person', name: `@${project.artistHandle}` }
       : undefined,
@@ -62,6 +105,14 @@ export default async function ProjectOutputPage(props: Props) {
     position: localId,
     artform: 'Generative art',
     artMedium: 'Deterministic on-chain code (rendered live)',
+    offers: listedEth
+      ? {
+          '@type': 'Offer',
+          price: listedEth,
+          priceCurrency: 'ETH',
+          availability: 'https://schema.org/InStock',
+        }
+      : undefined,
     additionalProperty: Object.entries(traits).map(([name, value]) => ({
       '@type': 'PropertyValue',
       name,
@@ -104,10 +155,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const t = (project?.traitsOf?.(localId) as Record<string, unknown>) ?? {};
     traitLine = Object.entries(t).slice(0, 6).map(([k, v]) => `${k}: ${v}`).join(' · ');
   } catch { /* ship without traits */ }
+  const { scene, listedEth } = await fetchOutputFacts(slug, localId);
   const description = [
     `Generative artwork #${localId} of ${project?.outputs ?? '?'}`,
     project?.artistHandle ? `by @${project.artistHandle}` : null,
     `from ${name} on Price Discussion.`,
+    scene ? `Reads as: ${scene}.` : null,
+    listedEth ? `Listed at ${listedEth} ETH.` : null,
     traitLine || null,
   ].filter(Boolean).join(' ');
   // TODO: canonical should point to /{globalId} once indexer mapping is live.

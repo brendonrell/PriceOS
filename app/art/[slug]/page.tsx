@@ -32,12 +32,12 @@ const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
    so the page still renders (ghosts + client reconcile) rather than erroring. */
 async function fetchSeed(
     slug: string,
-): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null }> {
+): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null; floorEth: number | null }> {
     try {
         const supabase = getSupabaseService();
         const { data } = await supabase
             .from('projects')
-            .select('minted_count, showcase_ids, uploaded_at, cooldown_until')
+            .select('minted_count, showcase_ids, uploaded_at, cooldown_until, floor_price_eth')
             .eq('id', slug)
             .maybeSingle();
         const row = data as {
@@ -45,19 +45,22 @@ async function fetchSeed(
             showcase_ids?: number[];
             uploaded_at?: string | null;
             cooldown_until?: string | null;
+            floor_price_eth?: string | number | null;
         } | null;
         const uploadedAt = row?.uploaded_at
             ? new Date(row.uploaded_at).getTime()
             : row?.cooldown_until
                 ? new Date(row.cooldown_until).getTime() - COOLDOWN_MS
                 : null;
+        const floor = row?.floor_price_eth != null ? Number(row.floor_price_eth) : null;
         return {
             total: typeof row?.minted_count === 'number' ? row.minted_count : 0,
             showcaseIds: Array.isArray(row?.showcase_ids) ? row!.showcase_ids! : [],
             uploadedAt,
+            floorEth: floor != null && floor > 0 ? floor : null,
         };
     } catch {
-        return { total: 0, showcaseIds: [], uploadedAt: null };
+        return { total: 0, showcaseIds: [], uploadedAt: null, floorEth: null };
     }
 }
 
@@ -66,9 +69,10 @@ export default async function ProjectPage(props: Props) {
     const slug = params.slug.toLowerCase();
     const def = getProject(slug);
     if (!def) notFound();
-    const { total, showcaseIds, uploadedAt } = await fetchSeed(slug);
+    const { total, showcaseIds, uploadedAt, floorEth } = await fetchSeed(slug);
     // Machine-readable facts for agents + search + assistive tech — the
-    // project as a collection of generative artworks, from registry truth.
+    // project as a collection of generative artworks, from registry truth
+    // plus the live floor when one exists.
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Collection',
@@ -77,6 +81,9 @@ export default async function ProjectPage(props: Props) {
         size: def.outputs,
         about: 'Generative art — every piece renders live from deterministic on-chain code.',
         url: `/art/${slug}`,
+        offers: floorEth
+            ? { '@type': 'AggregateOffer', lowPrice: floorEth, priceCurrency: 'ETH' }
+            : undefined,
     };
     return (
         <>
